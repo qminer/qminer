@@ -21,7 +21,7 @@ make
 
 ## Documentation
 
-+ [Quick start](https://github.com/qminer/qminer/wiki/Introduction)
++ [Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
 + [Examples](https://github.com/qminer/qminer/wiki/Examples)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Wiki](https://github.com/qminer/qminer/wiki)
