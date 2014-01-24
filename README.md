@@ -23,8 +23,9 @@ make
 
 + [Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
 + [Examples](https://github.com/qminer/qminer/wiki/Example)
++ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
++ [QMiner Wiki](https://github.com/qminer/qminer/wiki)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
-+ [Wiki](https://github.com/qminer/qminer/wiki)
 
 
 ## Introduction
