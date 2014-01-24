@@ -7,11 +7,6 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Installation
 
-1. Clone to local repository
-2. Checkout and build third party libraries (V8, libuv)
-3. Build GLib and QMiner
-4. Run tests
-
 ```
 git clone git@github.com:qminer/qminer.git
 make lib
