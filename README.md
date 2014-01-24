@@ -5,6 +5,8 @@ QMiner is an analytics platform for large-scale real-time streams containing str
 unstructured data. It is designed to for scaling to millions of instances on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
+QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at [Jozef Stefan Institute](http://www.ijs.si/) and [Quintelligence](http://quintelligence.com).
+
 ### Installation
 
 ```
@@ -22,8 +24,8 @@ make
 + [QMiner Wiki](https://github.com/qminer/qminer/wiki)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
 
-
 ## Introduction
+
 
 ### Analytics over Structured and Unstructured Data
 
