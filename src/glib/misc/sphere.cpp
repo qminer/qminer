@@ -1,7 +1,7 @@
 /**
  * GLib - General C++ Library
  * 
- * Copyright (C) 2014 Jozef Stefan Institut d.o.o.
+ * Copyright (C) 2014 Jozef Stefan Institute
  *
  * This library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3,

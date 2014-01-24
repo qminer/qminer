@@ -1,7 +1,7 @@
 /**
  * QMiner - Open Source Analytics Platform
  * 
- * Copyright (C) 2014 Jozef Stefan Institute d.o.o.
+ * Copyright (C) 2014 Jozef Stefan Institute
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License, version 3,
