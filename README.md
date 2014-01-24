@@ -5,9 +5,24 @@ QMiner is an analytics platform for large-scale real-time streams containing str
 unstructured data. It is designed to for scaling to millions of instances on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
+### Installation
+
+1. Clone to local repository
+2. Checkout and build third party libraries (V8, libuv)
+3. Build GLib and QMiner
+4. Run tests
+
+```
+git clone git@github.com:qminer/qminer.git
+make lib
+make
+./test/javascript/test.sh
+```
+
 ## Documentation
 
 + [Quick start](https://github.com/qminer/qminer/wiki/Introduction)
++ [Examples](https://github.com/qminer/qminer/wiki/Examples)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Wiki](https://github.com/qminer/qminer/wiki)
 
