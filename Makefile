@@ -25,7 +25,7 @@ STATIC_LIBS = $(GLIB)/glib.a $(LIBUV)/libuv.a \
 
 # QMiner code
 QMOBJS = $(QMINER)/qminer_core.o $(QMINER)/qminer_ftr.o $(QMINER)/qminer_aggr.o \
-	$(QMINER)/qminer_op.o $(QMINER)/qminer_gs.o $(QMINER)/qminer_js.o 
+	$(QMINER)/qminer_op.o $(QMINER)/qminer_gs.o $(QMINER)/qminer_js.o \
 	$(QMINER)/qminer_srv.o
 MAINOBJ = $(QMINER)/main.o
 
