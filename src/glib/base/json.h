@@ -116,6 +116,8 @@ public:
   TStr GetStr() const {EAssert(IsStr()); return Str;}
   int GetArrVals() const {EAssert(IsArr()); return ValV.Len();}
   PJsonVal GetArrVal(const int& ValN) const {return ValV[ValN];}
+  void GetArrNumV(TFltV& FltV) const;
+  void GetArrIntV(TIntV& IntV) const;
   void GetArrStrV(TStrV& StrV) const;
   int GetObjKeys() const {EAssert(IsObj()); return KeyValH.Len();}
   void GetObjKeyVal(const int& KeyValN, TStr& Key, PJsonVal& Val) const {
@@ -155,4 +157,31 @@ public:
   static void AddQChAFromStr(const TStr& Str, TChA& ChA);
   static void GetChAFromVal(const PJsonVal& Val, TChA& ChA);
   static TStr GetStrFromVal(const PJsonVal& Val);
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// Binary serialization of Json Value
+class TBsonObj {
+public:
+	static void Serialize(const TJsonVal& JsonVal, TSOut& SOut) { 
+        CreateBsonRecursive(JsonVal, NULL, SOut); };
+	static void SerializeVoc(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool>& Voc, TSOut& SOut) { 
+        CreateBsonRecursive(JsonVal, &Voc, SOut); };
+	static int64 GetMemUsed(const TJsonVal& JsonVal) { 
+        return GetMemUsedRecursive(JsonVal, false); };
+	static int64 GetMemUsedVoc(const TJsonVal& JsonVal) { 
+        return GetMemUsedRecursive(JsonVal, true); };
+
+	static PJsonVal GetJson(TSIn& SIn) { 
+        return GetJsonRecursive(SIn, NULL); };
+	static PJsonVal GetJsonVoc(TSIn& SIn, TStrHash<TInt, TBigStrPool>& Voc) { 
+        return GetJsonRecursive(SIn, &Voc); };
+
+	static void UnitTest();
+
+private:
+	static void CreateBsonRecursive(const TJsonVal& JsonVal, 
+        TStrHash<TInt, TBigStrPool> *Voc, TSOut& SOut);
+	static int64 GetMemUsedRecursive(const TJsonVal& JsonVal, bool UseVoc);
+	static PJsonVal GetJsonRecursive(TSIn& SIn, TStrHash<TInt, TBigStrPool>* Voc);
 };

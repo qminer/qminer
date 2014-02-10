@@ -101,6 +101,24 @@ PJsonVal TJsonVal::NewArr(const TFltPr& FltPr) {
   return Val;
 }
 
+void TJsonVal::GetArrNumV(TFltV& FltV) const {
+    EAssert(IsArr());
+    for (int FltN = 0; FltN < GetArrVals(); FltN++) {
+        PJsonVal ArrVal = GetArrVal(FltN);
+        EAssert(ArrVal->IsNum());
+        FltV.Add(ArrVal->GetNum());
+    }
+}
+
+void TJsonVal::GetArrIntV(TIntV& IntV) const {
+    EAssert(IsArr());
+    for (int IntN = 0; IntN < GetArrVals(); IntN++) {
+        PJsonVal ArrVal = GetArrVal(IntN);
+        EAssert(ArrVal->IsNum());
+        IntV.Add(ArrVal->GetInt());
+    }
+}
+
 void TJsonVal::GetArrStrV(TStrV& StrV) const {
     EAssert(IsArr());
     for (int StrN = 0; StrN < GetArrVals(); StrN++) {
@@ -347,4 +365,139 @@ TStr TJsonVal::GetStrFromVal(const PJsonVal& Val){
   TChA ChA;
   GetChAFromVal(Val, ChA);
   return ChA;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+// TBsonObj methods
+int64 TBsonObj::GetMemUsedRecursive(const TJsonVal& JsonVal, bool UseVoc) {
+	int64 res = 1; // 1 byte for the type
+	TJsonValType t = JsonVal.GetJsonValType();
+	if (t == jvtUndef) {  }
+	else if (t == jvtNull) {  }
+	else if (t == jvtBool) { res += 1; }
+	else if (t == jvtNum) { res += 8; }
+	else if (t == jvtStr) { 
+		res += (UseVoc ? 4 : 4 + JsonVal.GetStr().Len() + 1);
+	} else if (t == jvtArr) {
+		res += 4; // array length
+		for (int i = 0; i < JsonVal.GetArrVals(); i++) {
+			res+= GetMemUsedRecursive(*JsonVal.GetArrVal(i), UseVoc);
+		}
+	} else if (t == jvtObj) {
+		TStr curr_name;
+		PJsonVal curr_val_pt;
+		res += 4; // property-list length
+		for (int i = 0; i < JsonVal.GetObjKeys(); i++) {
+			JsonVal.GetObjKeyVal(i, curr_name, curr_val_pt);
+			res += (UseVoc ? 4 :  4 + curr_name.Len() + 1);
+			res += GetMemUsedRecursive(*curr_val_pt, UseVoc);
+		}
+	}
+	return res;
+}
+
+void TBsonObj::CreateBsonRecursive(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool> *Voc, TSOut& SOut) {
+	TJsonValType t = JsonVal.GetJsonValType();
+	if (t == jvtUndef) { SOut.Save((char)0); }
+	else if (t == jvtNull) { SOut.Save((char)1); }
+	else if (t == jvtBool) { SOut.Save((char)2); SOut.Save(JsonVal.GetBool()); }
+	else if (t == jvtNum) { SOut.Save((char)3); SOut.Save(JsonVal.GetNum()); }
+	else if (t == jvtStr) { 
+		SOut.Save((char)4); 
+		TStr s = JsonVal.GetStr();
+		if (Voc == NULL) {
+			s.Save(SOut, false);
+		} else {            
+			if (Voc->IsKey(s)) {
+				TInt id = Voc->GetKeyId(s);
+				id.Save(SOut);
+			} else {
+				TInt id = Voc->AddKey(s);
+				id.Save(SOut);
+			}
+		}
+	} else if (t == jvtArr) {
+		int arr_len = JsonVal.GetArrVals();
+		SOut.Save((char)5); 
+		SOut.Save(arr_len); 
+		for (int i=0; i<arr_len; i++) {
+			CreateBsonRecursive(*JsonVal.GetArrVal(i), Voc, SOut);
+		}
+	} else if (t == jvtObj) {
+		int obj_len = JsonVal.GetObjKeys();
+		TStr curr_name;
+		PJsonVal curr_val_pt;
+
+		SOut.Save((char)6); 
+		SOut.Save(obj_len);  
+		for (int i=0; i<obj_len; i++) {
+			JsonVal.GetObjKeyVal(i, curr_name, curr_val_pt);
+			if (Voc == NULL) {
+				curr_name.Save(SOut, false);
+			} else {
+				if (Voc->IsKey(curr_name)) {
+					TInt id = Voc->GetKeyId(curr_name);
+					id.Save(SOut);
+				} else {
+					TInt id = Voc->AddKey(curr_name);
+					id.Save(SOut);
+				}
+			}
+			CreateBsonRecursive(*curr_val_pt, Voc, SOut);
+		}
+	}
+}
+
+PJsonVal TBsonObj::GetJsonRecursive(TSIn& SIn, TStrHash<TInt, TBigStrPool>* Voc) {
+	PJsonVal res = TJsonVal::New();
+	char c = SIn.GetCh();    
+
+	if (c == 0) {
+		// do nothing, undefined is default
+	} else if (c == 1) {
+		res->PutNull(); 
+	} else if (c == 2) {
+		TBool b; 
+		b.Load(SIn); 
+		res->PutBool(b); 
+	} else if (c == 3) {
+		TFlt f; 
+		f.Load(SIn); 
+		res->PutNum(f);
+	} else if (c == 4) {
+		if (Voc == NULL){
+			TStr s; 
+			s.Load(SIn, false); 
+			res->PutStr(s);
+		} else {
+			TInt i;
+			i.Load(SIn); 
+			res->PutStr(Voc->GetKey(i));
+		}
+	} else if (c == 5) {
+		res->PutArr();
+		TInt ti; 
+		ti.Load(SIn);
+		for (int i=0; i<ti; i++) {
+			res->AddToArr(GetJsonRecursive(SIn, Voc));
+		}
+	} else if (c == 6) {
+		res->PutObj();
+		TInt ti; 
+		ti.Load(SIn);
+		if (Voc == NULL){
+			TStr s;
+			for (int i=0; i<ti; i++) {
+				s.Load(SIn, false);
+				res->AddToObj(s, GetJsonRecursive(SIn, Voc));
+			}
+		} else {
+			TInt ti2;
+			for (int i=0; i<ti; i++) {
+				ti2.Load(SIn);
+				res->AddToObj(Voc->GetKey(ti2), GetJsonRecursive(SIn, Voc));
+			}
+		}
+	}
+	return res;
 }
