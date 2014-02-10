@@ -21,645 +21,65 @@
 
 namespace TQm {
 
+namespace TStorage {
+
 ///////////////////////////////
-// Generic in-memory storage
-TGenericMemoryStorage::TGenericMemoryStorage(const TStr& _FNmPrefix): 
-	FNmPrefix(_FNmPrefix), Access(faCreate) { }
-
-TGenericMemoryStorage::TGenericMemoryStorage(const TStr& _FNmPrefix, 
-		const TFAccess& _Access): FNmPrefix(_FNmPrefix), Access(_Access) { 
-
-	// load vector
-	TFIn FIn(FNmPrefix); 
-	Load(FIn);
-	// load rest
-	FirstRecordOffset.Load(FIn);
-}
-	
-TGenericMemoryStorage::~TGenericMemoryStorage() { 
-	if (Access != faRdOnly) { 
-		// save vector
-		TFOut FOut(FNmPrefix); 
-		Save(FOut); 
-		// save rest
-		FirstRecordOffset.Save(FOut);
-	}
+// Schema description of field
+void TFieldDescEx::Save(TSOut& SOut) const {
+    //UseAsName.Save(SOut);
+    CodebookP.Save(SOut);
+    SmallStringP.Save(SOut);
+    DefaultVal.Save(SOut);
+    TInt(FieldStoreLoc).Save(SOut);
 }
 
-void TGenericMemoryStorage::AssertReadOnly() const {
-	QmAssertR(((Access==faCreate)||(Access==faUpdate)), FNmPrefix + " opened in Read-Only mode!"); 
+void TFieldDescEx::Load(TSIn& SIn) {
+    //UseAsName.Load(SIn);
+    CodebookP.Load(SIn);
+    SmallStringP.Load(SIn);
+    DefaultVal = PJsonVal(SIn);
+    FieldStoreLoc = TStoreLoc(TInt(SIn).Val);
 }
 
-bool TGenericMemoryStorage::IsValId(const uint64& ValId) const { 
-	return (ValId >= (uint64)FirstRecordOffset.Val && ValId < (uint64)FirstRecordOffset.Val + Len()); 
+///////////////////////////////
+/// Schema description of index key
+void TIndexKeyEx::Save(TSOut& SOut) const {
+    FieldName.Save(SOut); _x_FieldId.Save(SOut); TInt(_x_FieldType).Save(SOut);
+    KeyIndexName.Save(SOut); TInt(KeyType).Save(SOut); TInt(SortType).Save(SOut);
+    WordVocName.Save(SOut); _x_WordVocId.Save(SOut);
 }
 
-void TGenericMemoryStorage::GetVal(const uint64& ValId, TMem& Val) const { 
-	Val = operator[]((int)(ValId - FirstRecordOffset)); 
-}	
-
-uint64 TGenericMemoryStorage::AddVal(const TMem& Val) { 
-	return Add(Val) + FirstRecordOffset; 
+void TIndexKeyEx::Load(TSIn& SIn) {
+    FieldName.Load(SIn); _x_FieldId.Load(SIn);
+    _x_FieldType = (TFieldType)TInt(SIn).Val; KeyIndexName.Load(SIn);
+    KeyType = (TIndexKeyType)TInt(SIn).Val;
+    SortType = (TIndexKeySortType)TInt(SIn).Val;
+    WordVocName.Load(SIn); _x_WordVocId.Load(SIn);
 }
 
-void TGenericMemoryStorage::SetVal(const uint64& ValId, const TMem& Val) { 
-	AssertReadOnly(); 
-	operator[]((int)(ValId - FirstRecordOffset)) = Val; 
-}
-	
-void TGenericMemoryStorage::DelVals(int to_delete) {
-	if (to_delete > 0) {
-		Del(0, to_delete - 1);
-		FirstRecordOffset += to_delete;
-	}
-}
+///////////////////////////////
+// Store window description
+TStr TStoreWndDesc::SysInsertedAtFieldName = "_sys_inserted_at";
 
-uint64 TGenericMemoryStorage::Len() const { 
-	return (uint64 )TVec<TMem, int64>::Len(); 
+void TStoreWndDesc::Save(TSOut& SOut) const {
+    TInt(WindowType).Save(SOut);
+    WindowSize.Save(SOut);
+    InsertP.Save(SOut);
+    TimeFieldNm.Save(SOut);
 }
 
-uint64 TGenericMemoryStorage::GetMinId() const { 
-	return (uint64)FirstRecordOffset; 
+void TStoreWndDesc::Load(TSIn& SIn) {
+    WindowType = TStoreWndType(TInt(SIn).Val);
+    WindowSize.Load(SIn);
+    InsertP.Load(SIn);
+    TimeFieldNm.Load(SIn);
 }
 
-uint64 TGenericMemoryStorage::GetMaxId() const { 
-	return GetMinId() + Len(); 
-}
+///////////////////////////////
+/// Store schema definition.
+TStoreSchema::TMaps TStoreSchema::Maps;
 
-///////////////////////////////////////////////////////////////////////////////////
-// Some constants
-
-const char* const TGenericStoreSettings::SysInsertedAtFieldName = "_sys_inserted_at";
-
-
-///////////////////////////////////////////////////////////////////////////////////
-// TBsonObj methods
-
-int64 TBsonObj::GetMemUsedRecursive(const TJsonVal& JsonVal, bool UseVoc) {
-	int64 res = 1; // 1 byte for the type
-	TJsonValType t = JsonVal.GetJsonValType();
-	if (t == jvtUndef) {  }
-	else if (t == jvtNull) {  }
-	else if (t == jvtBool) { res += 1; }
-	else if (t == jvtNum) { res += 8; }
-	else if (t == jvtStr) { 
-		res += (UseVoc ? 4 : 4 + JsonVal.GetStr().Len() + 1);
-	} else if (t == jvtArr) {
-		res += 4; // array length
-		for (int i = 0; i < JsonVal.GetArrVals(); i++) {
-			res+= GetMemUsedRecursive(*JsonVal.GetArrVal(i), UseVoc);
-		}
-	} else if (t == jvtObj) {
-		TStr curr_name;
-		PJsonVal curr_val_pt;
-		res += 4; // property-list length
-		for (int i = 0; i < JsonVal.GetObjKeys(); i++) {
-			JsonVal.GetObjKeyVal(i, curr_name, curr_val_pt);
-			res += (UseVoc ? 4 :  4 + curr_name.Len() + 1);
-			res += GetMemUsedRecursive(*curr_val_pt, UseVoc);
-		}
-	}
-	return res;
-}
-
-void TBsonObj::CreateBsonRecursive(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool> *Voc, TSOut& SOut) {
-	TJsonValType t = JsonVal.GetJsonValType();
-	if (t == jvtUndef) { SOut.Save((char)0); }
-	else if (t == jvtNull) { SOut.Save((char)1); }
-	else if (t == jvtBool) { SOut.Save((char)2); SOut.Save(JsonVal.GetBool()); }
-	else if (t == jvtNum) { SOut.Save((char)3); SOut.Save(JsonVal.GetNum()); }
-	else if (t == jvtStr) { 
-		SOut.Save((char)4); 
-		TStr s = JsonVal.GetStr();
-		if (Voc == NULL) {
-			s.Save(SOut, false);
-		} else {            
-			if (Voc->IsKey(s)) {
-				TInt id = Voc->GetKeyId(s);
-				id.Save(SOut);
-			} else {
-				TInt id = Voc->AddKey(s);
-				id.Save(SOut);
-			}
-		}
-	} else if (t == jvtArr) {
-		int arr_len = JsonVal.GetArrVals();
-		SOut.Save((char)5); 
-		SOut.Save(arr_len); 
-		for (int i=0; i<arr_len; i++) {
-			CreateBsonRecursive(*JsonVal.GetArrVal(i), Voc, SOut);
-		}
-	} else if (t == jvtObj) {
-		int obj_len = JsonVal.GetObjKeys();
-		TStr curr_name;
-		PJsonVal curr_val_pt;
-
-		SOut.Save((char)6); 
-		SOut.Save(obj_len);  
-		for (int i=0; i<obj_len; i++) {
-			JsonVal.GetObjKeyVal(i, curr_name, curr_val_pt);
-			if (Voc == NULL) {
-				curr_name.Save(SOut, false);
-			} else {
-				if (Voc->IsKey(curr_name)) {
-					TInt id = Voc->GetKeyId(curr_name);
-					id.Save(SOut);
-				} else {
-					TInt id = Voc->AddKey(curr_name);
-					id.Save(SOut);
-				}
-			}
-			CreateBsonRecursive(*curr_val_pt, Voc, SOut);
-		}
-	}
-}
-
-PJsonVal TBsonObj::GetJsonRecursive(TSIn& SIn, TStrHash<TInt, TBigStrPool>* Voc) {
-	PJsonVal res = TJsonVal::New();
-	char c = SIn.GetCh();    
-
-	if (c == 0) {
-		// do nothing, undefined is default
-	} else if (c == 1) {
-		res->PutNull(); 
-	} else if (c == 2) {
-		TBool b; 
-		b.Load(SIn); 
-		res->PutBool(b); 
-	} else if (c == 3) {
-		TFlt f; 
-		f.Load(SIn); 
-		res->PutNum(f);
-	} else if (c == 4) {
-		if (Voc == NULL){
-			TStr s; 
-			s.Load(SIn, false); 
-			res->PutStr(s);
-		} else {
-			TInt i;
-			i.Load(SIn); 
-			res->PutStr(Voc->GetKey(i));
-		}
-	} else if (c == 5) {
-		res->PutArr();
-		TInt ti; 
-		ti.Load(SIn);
-		for (int i=0; i<ti; i++) {
-			res->AddToArr(GetJsonRecursive(SIn, Voc));
-		}
-	} else if (c == 6) {
-		res->PutObj();
-		TInt ti; 
-		ti.Load(SIn);
-		if (Voc == NULL){
-			TStr s;
-			for (int i=0; i<ti; i++) {
-				s.Load(SIn, false);
-				res->AddToObj(s, GetJsonRecursive(SIn, Voc));
-			}
-		} else {
-			TInt ti2;
-			for (int i=0; i<ti; i++) {
-				ti2.Load(SIn);
-				res->AddToObj(Voc->GetKey(ti2), GetJsonRecursive(SIn, Voc));
-			}
-		}
-	}
-	return res;
-}
-
-///////////////////////////////////////////////////////////////////////////////////
-// TGenericStoreSerializator methods
-
-// initialize object from TFieldDesc - field descriptions
-TGenericStoreSerializator::TGenericStoreSerializator(const IFieldDescProvider* FieldDescProvider, const char _TargetStorage){
-	TargetStorage = _TargetStorage;
-	int field_count = FieldDescProvider->GetFieldCount();
-
-	FixedPartOffset = (int)ceil((float)field_count / 8);
-	VarIndexPartOffset = FixedPartOffset;
-
-	int fixed_index_offset = 0;
-	int var_index_offset = 0;
-	int var_field_count = 0;
-
-	for (int i = 0; i < field_count; i++) {
-		const TFieldDesc& field_desc = FieldDescProvider->GetFieldDescription(i);
-		TGenericStoreFieldDesc field_desc_ex = FieldDescProvider->GetGenericStoreFieldDesc(i);
-		if (field_desc_ex.FieldStoreLoc != TargetStorage)
-			continue;
-		int fixed_size = 0;
-		bool is_fixed = true;
-		TFieldType field_type = field_desc.GetFieldType();
-		switch (field_type) {
-		case oftInt: fixed_size = sizeof(int); break;
-		case oftIntV: is_fixed = false; break;
-		case oftUInt64: fixed_size = sizeof(uint64); break;
-		case oftStr:
-			{
-				is_fixed = field_desc_ex.UseCodebook; 
-				if (is_fixed) 
-					fixed_size = sizeof(int);
-			};
-			break;
-		case oftStrV: is_fixed = false; break;
-		case oftBool: fixed_size = sizeof(bool); break;
-		case oftFlt: fixed_size = sizeof(double); break;
-		case oftFltPr: fixed_size = sizeof(double) * 2; break;
-		case oftFltV: is_fixed = false; break;
-		case oftTm: fixed_size = sizeof(uint64); break;
-		case oftNumSpV: 
-			throw TQmExcept::New("Unsupported JSon data type for DB storage - oftNumSpV.");
-			break;
-		case oftBowSpV: 
-			throw TQmExcept::New("Unsupported JSon data type for DB storage - oftBowSpV.");
-			break;
-		}
-		VarIndexPartOffset += fixed_size;
-
-		TGenericStoreSerialF rec;
-		rec.FieldId = field_desc.GetFieldId();
-		rec.InFixedPart = is_fixed;
-		rec.IsCodebookString = field_desc_ex.UseCodebook;
-		rec.IsShortString = field_desc_ex.IsSmallString;
-		rec.NullMapByte = i / 8;
-		rec.NullMapMask = 1u << (i % 8);
-		rec.Offset = (is_fixed ? fixed_index_offset : var_index_offset);		
-		int id = FieldsF.Add(rec);
-		FieldsH.AddDat(rec.FieldId, id);
-
-		if (is_fixed) {
-			fixed_index_offset += fixed_size;
-		} else {
-			var_index_offset += sizeof(int);
-			var_field_count++;
-		}
-	}
-
-	// var-index part consists of integers that are offsets for specific field
-	VarContentPartOffset = VarIndexPartOffset + var_field_count * sizeof(int);
-}
-
-void TGenericStoreSerializator::SerializeUpdate(const PJsonVal& JsonVal, TMem& Source, TMem& Destination, const IFieldDescProvider* FieldDescProvider, const THash<TStr, uint64>& FieldJoinIds, TVec<int>& ChangedFields) {
-
-	TMem internal_mem(VarContentPartOffset);
-	TMOut internal_sout; 	
-
-	// copy fixed part
-	internal_mem.GenZeros(VarContentPartOffset);
-	Assert(internal_mem.Len() <= Source.Len());
-	memcpy(internal_mem.GetBf(), Source.GetBf(), VarContentPartOffset);
-
-	for (int i = 0; i < FieldsF.Len(); i++) {
-		TGenericStoreSerialF rec = FieldsF[i];		
-		const TFieldDesc& fd = FieldDescProvider->GetFieldDescription(rec.FieldId);
-		TStr field_name = fd.GetFieldNm();
-		TFieldType field_type = fd.GetFieldType();
-
-		if (!JsonVal->IsObjKey(field_name)){			
-			// copy the field when no update to it is provided
-			TGenericStoreFieldDesc fdx = FieldDescProvider->GetGenericStoreFieldDesc(rec.FieldId);
-			if (FieldJoinIds.IsKey(field_name)) {
-				if (field_type != oftUInt64)
-					throw TQmExcept::New(TStr::Fmt("Received id for child object for field %s, but field is not uint64.", field_name.CStr()));
-				uint64 child_id = FieldJoinIds.GetDat(field_name);
-
-				uchar* bf = GetLocationFixed(internal_mem, rec);
-				*((uint64*)bf) = child_id;
-				continue; 
-			}
-			if (!rec.InFixedPart) {
-				// copy old field value
-				int var_content_offset = internal_sout.Len();
-				SetLocationVar(internal_mem, rec, var_content_offset);
-
-				int old_bf_len = GetVarPartBfLen(Source, rec);
-				if (old_bf_len > 0) {
-					uchar* old_bf = GetLocationVar(Source, rec);
-					internal_sout.AppendBf(old_bf, old_bf_len);
-				}
-			} else {
-				// do nothing, fixed length variables are already copied
-			}
-		} else {
-			// new value
-			PJsonVal json_child = JsonVal->GetObjKey(field_name);
-			SetNullFlag(internal_mem, rec, false);
-
-			ChangedFields.Add(fd.GetFieldId());
-
-			if (rec.InFixedPart) {
-				SetFixedPart(internal_mem, rec, fd, json_child);
-			} else {
-				SetVarPart(internal_mem, internal_sout, rec, fd, json_child);
-			} 
-		}
-	} 
-
-	Destination.AddBf(internal_mem.GetBf(), VarContentPartOffset);
-	Destination.AddBf(internal_sout.GetBfAddr(), internal_sout.Len());
-}
-
-void TGenericStoreSerializator::SetFixedPart(TMem& internal_mem, const TGenericStoreSerialF& rec, const TFieldDesc& fd, const PJsonVal& json_child) {
-	uchar* bf = GetLocationFixed(internal_mem, rec);
-	TStr field_name = fd.GetFieldNm();
-	TFieldType field_type = fd.GetFieldType();
-
-	switch (field_type) {
-	case oftBool: 
-		{
-			if (!json_child->IsBool())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not boolean.", field_name.CStr()));
-			bool v = (bool)json_child->GetBool();
-			*((bool*)bf) = v;
-		}; 
-		break;
-		//case oftBowSpV:break;
-	case oftFlt:
-		{
-			if (!json_child->IsNum())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not numeric.", field_name.CStr()));
-			double v = (double)json_child->GetNum();
-			*((double*)bf) = v;
-		}; 
-		break;
-	case oftFltPr:
-		{
-			if (!json_child->IsArr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not array.", field_name.CStr()));
-			if (json_child->GetArrVals() != 2)
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not array - expected 2 fields.", field_name.CStr()));
-
-			double v_flt1;
-			double v_flt2;
-			PJsonVal json_child2 = json_child->GetArrVal(0);
-			if (!json_child2->IsNum())
-				throw TQmExcept::New(TStr::Fmt("The first element in the JSon array in data field %s is not numeric.", field_name.CStr()));
-			v_flt1 = json_child2->GetNum();
-			json_child2 = json_child->GetArrVal(1);
-			if (!json_child2->IsNum())
-				throw TQmExcept::New(TStr::Fmt("The second element in the JSon array in data field %s is not numeric.", field_name.CStr()));
-			v_flt2 = json_child2->GetNum();
-
-			*((double*)bf) = v_flt1;
-			*(((double*)bf) + 1) = v_flt2;
-		}; 
-		break;
-		//case oftFltV:break;
-	case oftInt:
-		{
-			if (!json_child->IsNum())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not numeric.", field_name.CStr()));
-			int v = (int)json_child->GetNum();
-			*((int*)bf) = v;
-		}; 
-		break;
-		//case oftIntV:break;
-		//case oftNumSpV:break;
-	case oftStr:
-		{ // this string should be encoded using a codebook
-			if (!json_child->IsStr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not string.", field_name.CStr()));
-			TStr s = json_child->GetStr();
-			TInt v;
-			if (Codebook.IsKey(s))
-				v = Codebook.GetKeyId(s);
-			else
-				v = Codebook.AddKey(s);
-			*((int*)bf) = v.Val;
-		}; 
-		break;
-		//case oftStrV:break;
-	case oftTm:
-		{
-			if (!json_child->IsStr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not string that represents DateTime.", field_name.CStr()));
-			TStr s = json_child->GetStr();
-			uint64 v = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(s, '-', ':', '.', 'T'));
-			*((uint64*)bf) = v;
-		};
-		break;
-	case oftUInt64:
-		{
-			if (!json_child->IsNum())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not numeric.", field_name.CStr()));
-			uint64 v = (uint64)json_child->GetNum();
-			*((uint64*)bf) = v;
-		}; 
-		break;
-	default:
-		throw TQmExcept::New(TStr::Fmt("Unsupported JSon data type for DB storage (fixed part) - %d", field_type));
-
-	}
-}
-
-void TGenericStoreSerializator::SetVarPart(TMem& internal_mem, TMOut& internal_sout, const TGenericStoreSerialF& rec, const TFieldDesc& fd, const PJsonVal& json_child) {
-	TStr field_name = fd.GetFieldNm();
-	TFieldType field_type = fd.GetFieldType();
-
-	int var_content_offset = internal_sout.Len();
-	SetLocationVar(internal_mem, rec, var_content_offset);
-
-	switch (field_type) {
-		//case oftBool: break;
-		//case oftBowSpV:break;
-		//case oftFlt:break;
-		//case oftFltPr:break;
-	case oftFltV:  
-		{	
-			if (!json_child->IsArr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not array.", field_name.CStr()));
-			TFltV v_fltv;
-			for (int j = 0; j < json_child->GetArrVals(); j++) {
-				PJsonVal json_child2 = json_child->GetArrVal(j);
-				if (!json_child2->IsNum())
-					throw TQmExcept::New(TStr::Fmt("One of the elements in the JSon array in data field %s is not numeric.", field_name.CStr()));
-				v_fltv.Add(json_child2->GetNum());
-			}
-			v_fltv.Save(internal_sout);
-		}; 
-		break;
-		//case oftInt:break;
-	case oftIntV:  
-		{
-			if (!json_child->IsArr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not array.", field_name.CStr()));
-			TIntV v_intv;
-			for (int j = 0; j < json_child->GetArrVals(); j++) {
-				PJsonVal json_child2 = json_child->GetArrVal(j);
-				if (!json_child2->IsNum())
-					throw TQmExcept::New(TStr::Fmt("One of the elements in the JSon array in data field %s is not numeric.", field_name.CStr()));
-				v_intv.Add((int)json_child2->GetNum());
-			}						
-			v_intv.Save(internal_sout);
-		}; 
-		break;
-		//case oftNumSpV:break;
-	case oftStr:  
-		{
-			if (!json_child->IsStr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not string.", field_name.CStr()));
-			json_child->GetStr().Save(internal_sout, rec.IsShortString);
-		}; 
-		break;
-	case oftStrV:  
-		{
-			if (!json_child->IsArr())
-				throw TQmExcept::New(TStr::Fmt("Provided JSon data field %s is not array.", field_name.CStr()));
-			TStrV v_strv;
-			for (int j = 0; j < json_child->GetArrVals(); j++) {
-				PJsonVal json_child2 = json_child->GetArrVal(j);
-				if (!json_child2->IsStr())
-					throw TQmExcept::New(TStr::Fmt("One of the elements in the JSon array in data field %s is not string.", field_name.CStr()));
-				v_strv.Add(json_child2->GetStr());
-			}
-			v_strv.Save(internal_sout);
-		}; 
-		break; 
-		//case oftTm:break;
-		//case oftUInt64:break;
-	default:
-		throw TQmExcept::New(TStr::Fmt("Unsupported JSon data type for DB storage (variable part) - %d", field_type));
-	}
-}
-
-void TGenericStoreSerializator::Serialize(const PJsonVal& JsonVal, TMem& Destination, const IFieldDescProvider* FieldDescProvider, const THash<TStr, uint64>& FieldJoinIds) {
-	// reserve fixed space - null map, fixed fields, var-field indexes
-	TMem internal_mem(VarContentPartOffset); // this buffer is of fixed length and is accessed randomly, like an array
-	TMOut internal_sout; // this buffer is of variable width and is written to in sequential manner, like an output stream
-
-	internal_mem.GenZeros(VarContentPartOffset);
-
-	for (int i = 0; i < FieldsF.Len(); i++) {
-		TGenericStoreSerialF rec = FieldsF[i];		
-
-		const TFieldDesc& fd = FieldDescProvider->GetFieldDescription(rec.FieldId);
-		TStr field_name = fd.GetFieldNm();
-		TFieldType field_type = fd.GetFieldType();
-		PJsonVal json_child;
-		if (!JsonVal->IsObjKey(field_name)){			
-			TGenericStoreFieldDesc fdx = FieldDescProvider->GetGenericStoreFieldDesc(rec.FieldId);
-			if (FieldJoinIds.IsKey(field_name)) {
-				if (field_type != oftUInt64)
-					throw TQmExcept::New(TStr::Fmt("Received id for child object for field %s, but field is not uint64.", field_name.CStr()));
-				uint64 child_id = FieldJoinIds.GetDat(field_name);
-
-				uchar* bf = GetLocationFixed(internal_mem, rec);
-				*((uint64*)bf) = child_id;
-				continue;
-			} else if (!fdx.DefValue.Empty()) {
-				json_child = fdx.DefValue;
-			} else if (fd.IsNullable()) {
-				SetNullFlag(internal_mem, rec, true);
-				if (!rec.InFixedPart()) { SetLocationVar(internal_mem, rec, internal_sout.Len()); }
-				continue;
-			} else {
-				TStr Str = TJsonVal::GetStrFromVal(JsonVal);
-				throw TQmExcept::New(TStr::Fmt("JSon data is missing field - expecting %s.", field_name.CStr()));
-			}
-		}
-		if (json_child.Empty())
-			json_child = JsonVal->GetObjKey(field_name);
-
-		if (rec.InFixedPart) {
-			SetFixedPart(internal_mem, rec, fd, json_child);
-		} else {
-			SetVarPart(internal_mem, internal_sout, rec, fd, json_child);
-		}
-	}
-
-	// append generated data to input parameter
-	Destination.AddBf(internal_mem.GetBf(), VarContentPartOffset);
-	Destination.AddBf(internal_sout.GetBfAddr(), internal_sout.Len());
-}
-
-// go from binary to JSON
-void TGenericStoreSerializator::Deserialize(PJsonVal& JsonVal, const TMem& Source, const IFieldDescProvider* FieldDescProvider) const {
-
-	if (!JsonVal->IsObj())
-		JsonVal->PutObj();
-	for (int i = 0; i < FieldsF.Len(); i++) {
-		//TGenericStoreSerialF rec = FieldsF[i];		
-
-		const TFieldDesc& fd = FieldDescProvider->GetFieldDescription(i);
-		int og_field_id = fd.GetFieldId();
-		if (IsFieldNull(Source, og_field_id))
-			continue; // field is NULL, just skip
-
-		TStr field_name = fd.GetFieldNm();
-		TFieldType field_type = fd.GetFieldType();
-
-		TThinMIn tmin(Source.GetBf() + VarContentPartOffset, Source.Len() - VarContentPartOffset);
-
-		switch (field_type){
-		case oftInt: JsonVal->AddToObj(field_name, GetFieldInt(Source, og_field_id)); break;
-		case oftIntV: 
-			{
-				TIntV v_intv;
-				GetFieldIntV(Source, og_field_id, v_intv);
-				PJsonVal json_child = TJsonVal::NewArr();
-				for (int j = 0; j< v_intv.Len(); j++) {
-					json_child->AddToArr(TJsonVal::NewNum(v_intv[j]));
-				}
-				JsonVal->AddToObj(field_name, json_child);
-			}; break;
-		case oftUInt64: JsonVal->AddToObj(field_name, (double)GetFieldUInt64(Source, og_field_id)); break;
-		case oftStr: JsonVal->AddToObj(field_name, GetFieldStr(Source, og_field_id)); break;
-		case oftStrV: 
-			{
-				TStrV v_strv;
-				GetFieldStrV(Source, og_field_id, v_strv);
-				PJsonVal json_child = TJsonVal::NewArr();
-				for (int j = 0; j< v_strv.Len(); j++) {
-					json_child->AddToArr(TJsonVal::NewStr(v_strv[j]));
-				}
-				JsonVal->AddToObj(field_name, json_child);
-			}; break;
-		case oftBool: JsonVal->AddToObj(field_name, GetFieldBool(Source, og_field_id)); break;
-		case oftFlt: JsonVal->AddToObj(field_name, GetFieldFlt(Source, og_field_id)); break;
-		case oftFltPr:  
-			{
-				TFltV v_fltv;
-				GetFieldFltV(Source, og_field_id, v_fltv);
-				TFlt v_flt1 = v_fltv[0];
-				TFlt v_flt2 = v_fltv[1];
-				PJsonVal json_child = TJsonVal::NewArr();
-				json_child->AddToArr(TJsonVal::NewNum(v_flt1));
-				json_child->AddToArr(TJsonVal::NewNum(v_flt2));
-				JsonVal->AddToObj(field_name, json_child);
-			}; break;
-		case oftFltV:  
-			{
-				TFltV v_fltv;
-				GetFieldFltV(Source, og_field_id, v_fltv);
-				PJsonVal json_child = TJsonVal::NewArr();
-				for (int j = 0; j< v_fltv.Len(); j++) {
-					json_child->AddToArr(TJsonVal::NewNum(v_fltv[j]));
-				}
-				JsonVal->AddToObj(field_name, json_child);
-			}; break;
-		case oftTm: 
-			{
-				TTm Tm;
-				GetFieldTm(Source, og_field_id, Tm);
-				JsonVal->AddToObj(field_name, Tm.GetStr());
-			}; break;
-		case oftNumSpV: 
-			throw TQmExcept::New("Unsupported JSon data type for DB storage - oftNumSpV.");
-			break;
-		case oftBowSpV: 
-			throw TQmExcept::New("Unsupported JSon data type for DB storage - oftBowSpV.");
-			break;
-		}
-	}
-}
-
-///////////////////////////////////////////////////////////////////
-// TGenericStoreUtils members and methods
-
-TGenericStoreUtils::TMaps TGenericStoreUtils::Maps;
-
-TGenericStoreUtils::TMaps::TMaps() {            
+TStoreSchema::TMaps::TMaps() {
 	// field-type map
 	FieldTypeMap.AddDat("int") = oftInt;
 	FieldTypeMap.AddDat("int_v") = oftIntV;
@@ -675,1349 +95,2219 @@ TGenericStoreUtils::TMaps::TMaps() {
 	FieldTypeMap.AddDat("bow_sp_v") = oftBowSpV;
 
 	// time-window units
-	TimeWindowUnitMap.AddDat("hour", "h");
-	TimeWindowUnitMap.AddDat("minute", "i");
-	TimeWindowUnitMap.AddDat("second", "s");
-	TimeWindowUnitMap.AddDat("day", "d");
-	TimeWindowUnitMap.AddDat("month", "m");
-	TimeWindowUnitMap.AddDat("week", "w");
+	TimeWindowUnitMap.AddDat("second",                             1000);
+	TimeWindowUnitMap.AddDat("minute",                        60 * 1000);
+	TimeWindowUnitMap.AddDat("hour",                     60 * 60 * 1000);
+	TimeWindowUnitMap.AddDat("day",                 24 * 60 * 60 * 1000);
+	TimeWindowUnitMap.AddDat("week",            7 * 24 * 60 * 60 * 1000);
+	TimeWindowUnitMap.AddDat("month",  uint64(30) * 24 * 60 * 60 * 1000);
+	TimeWindowUnitMap.AddDat("year",  uint64(365) * 24 * 60 * 60 * 1000);
 }
 
-TGenericKeyIndexDesc TGenericStoreUtils::ParseKeyIndexDescInner(const PJsonVal& json, const TGenericStoreSchema& store) {
+TFieldDesc TStoreSchema::ParseFieldDesc(const PJsonVal& FieldVal) {
+	// assert necessary stuff there
+	QmAssertR(FieldVal->IsObjKey("name"), "Missing field name");
+	QmAssertR(FieldVal->IsObjKey("type"), "Missing field type");
+    // parse out
+	TStr FieldName = FieldVal->GetObjKey("name")->GetStr();
+	TStr FieldTypeStr = FieldVal->GetObjKey("type")->GetStr();
+    const bool NullableP = FieldVal->GetObjBool("null", false);
+    const bool PrimaryP = FieldVal->GetObjBool("primary", false);
+	// validate
+	TValidNm::AssertValidNm(FieldName);
+    QmAssertR(Maps.FieldTypeMap.IsKey(FieldTypeStr), "Unsupported field type " + FieldTypeStr);
+    // map field type to enum
+	TFieldType FieldType = (TFieldType)Maps.FieldTypeMap.GetDat(FieldTypeStr).Val;
+    // done
+	return TFieldDesc(FieldName, FieldType,  PrimaryP, NullableP, false);
+}
+
+TFieldDescEx TStoreSchema::ParseFieldDescEx(const PJsonVal& FieldVal) {
+	TFieldDescEx FieldDescEx;
+    // parse flags
+	FieldDescEx.SmallStringP = FieldVal->GetObjBool("shortstring", false);
+	FieldDescEx.CodebookP = FieldVal->GetObjBool("codebook", false);
+	// load default value (if available)
+	if (FieldVal->IsObjKey("default")) {
+		FieldDescEx.DefaultVal = FieldVal->GetObjKey("default");
+    }
+    // get storage place (cache or memory)
+	TStr StoreLocStr = FieldVal->GetObjStr("store", "memory"); // default is store in memory
+    if (StoreLocStr == "memory") {
+        FieldDescEx.FieldStoreLoc = slMemory;
+    } else if (StoreLocStr == "cache") {
+        FieldDescEx.FieldStoreLoc = slDisk;
+    } else {
+        throw TQmExcept::New(TStr::Fmt("Unsupported 'store' flag for field: %s", StoreLocStr.CStr()));
+    }
+    // done
+	return FieldDescEx;
+}
+
+TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
+	// assert necessary stuff there
+    QmAssertR(JoinVal->IsObjKey("name"), "Missing join name");
+    QmAssertR(JoinVal->IsObjKey("type"), "Missing join type");
+	QmAssertR(JoinVal->IsObjKey("store"), "Missing join store");
+    // parse parameters
+	TStr JoinName = JoinVal->GetObjKey("name")->GetStr();
+	TStr JoinType = JoinVal->GetObjKey("type")->GetStr();
+	TStr JoinStore = JoinVal->GetObjKey("store")->GetStr();
+    // get extra description
+	TJoinDescEx JoinDescEx;
+	JoinDescEx.JoinName = JoinName;
+	JoinDescEx.JoinStoreName = JoinStore;
+    // get join type
+	if (JoinType == "index") {
+		JoinDescEx.JoinType = osjtIndex;
+	} else if (JoinType == "field") {
+		JoinDescEx.JoinType = osjtField;
+	} else {
+		throw TQmExcept::New("Unsupported join type");
+	}
+    // get inverse join
+	if (JoinVal->IsObjKey("inverse")){
+		JoinDescEx.InverseJoinName = JoinVal->GetObjKey("inverse")->GetStr();
+	}
+    // done
+	return JoinDescEx;
+}
+
+TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	// check for mandatory fields
-	if (!json->IsObjKey("field"))
-		throw TQmExcept::New("Missing key-index field");
-	if (!json->IsObjKey("type"))
-		throw TQmExcept::New("Missing key-index type");
+    QmAssertR(IndexKeyVal->IsObjKey("field"), "Missing key-index field");
+	QmAssertR(IndexKeyVal->IsObjKey("type"), "Missing key-index type");
 	// parse out indexed field
-	TGenericKeyIndexDesc res;
-	res.FieldName = json->GetObjStr("field");
+	TIndexKeyEx IndexKeyEx;
+	IndexKeyEx.FieldName = IndexKeyVal->GetObjStr("field");
 	// check if it is a valid field name
-	QmAssertR(store.Fields.IsKey(res.FieldName), "Target field for key-index unknown");
+	QmAssertR(FieldH.IsKey(IndexKeyEx.FieldName), "Target field for key-index unknown");
 	// get field type to avoid further lookups when indexing
-	res.FieldType = store.Fields.GetDat(res.FieldName).GetFieldType();
+	IndexKeyEx._x_FieldType = FieldH.GetDat(IndexKeyEx.FieldName).GetFieldType();
 	// parse out key name, use field name as default
-	res.KeyIndexName = json->GetObjStr("name", res.FieldName);
+	IndexKeyEx.KeyIndexName = IndexKeyVal->GetObjStr("name", IndexKeyEx.FieldName);
 	// get and parse key type
-	TStr KeyTypeStr = json->GetObjStr("type");  // mandatory
+	TStr KeyTypeStr = IndexKeyVal->GetObjStr("type");
 	if (KeyTypeStr == "value") {
-		res.KeyType = oiktValue;
+		IndexKeyEx.KeyType = oiktValue;
 	} else if (KeyTypeStr == "text") {
-		res.KeyType = oiktText;
+		IndexKeyEx.KeyType = oiktText;
 	} else if (KeyTypeStr == "location") {
-		res.KeyType = oiktLocation;
+		IndexKeyEx.KeyType = oiktLocation;
 	} else {
 		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
 	}
 	// check field type and index type match
-	if (res.FieldType == oftStr && res.IsValue()) {
-	} else if (res.FieldType == oftStr && res.IsText()) {
-	} else if (res.FieldType == oftStrV && res.IsValue()) {
-	} else if (res.FieldType == oftTm && res.IsValue()) {
-	} else if (res.FieldType == oftFltPr && res.IsLocation()) {
+	if (IndexKeyEx._x_FieldType == oftStr && IndexKeyEx.IsValue()) {
+	} else if (IndexKeyEx._x_FieldType == oftStr && IndexKeyEx.IsText()) {
+	} else if (IndexKeyEx._x_FieldType == oftStrV && IndexKeyEx.IsValue()) {
+	} else if (IndexKeyEx._x_FieldType == oftTm && IndexKeyEx.IsValue()) {
+	} else if (IndexKeyEx._x_FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
 	} else {
 		// not supported, lets complain about it...
-		throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + res.FieldName);
+		throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
 	}
 	// get and parse sort type
-	if (json->IsObjKey("sort")) {
-		TStr SortTypeStr = json->GetObjStr("sort");
+	if (IndexKeyVal->IsObjKey("sort")) {
+		TStr SortTypeStr = IndexKeyVal->GetObjStr("sort");
 		if (SortTypeStr == "string") {
-			res.SortType = oikstByStr;
+			IndexKeyEx.SortType = oikstByStr;
 		} else if (SortTypeStr == "id") {
-			res.SortType = oikstById;
+			IndexKeyEx.SortType = oikstById;
 		} else if (SortTypeStr == "number") {
-			res.SortType = oikstByFlt;
+			IndexKeyEx.SortType = oikstByFlt;
 		} else {
 			throw TQmExcept::New("Unsupported sort type " + SortTypeStr);
 		}
 	} else {
-		res.SortType = oikstUndef;
+		IndexKeyEx.SortType = oikstUndef;
 	}
-	// pasre out word vocabulary
-	res.WordVocName = json->GetObjStr("vocabulary", "");
-	return res;
+	// parse out word vocabulary
+	IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
+	return IndexKeyEx;
 }
 
-TGenericStoreJoinSchema TGenericStoreUtils::ParseJoinDescInner(const PJsonVal& json) {
-	if (!json->IsObjKey("name"))
-		throw TQmExcept::New("Missing join name");
-	if (!json->IsObjKey("type"))
-		throw TQmExcept::New("Missing join type");
-	if (!json->IsObjKey("store"))
-		throw TQmExcept::New("Missing join store");
-
-	TStr JoinName = json->GetObjKey("name")->GetStr();
-	TStr JoinType = json->GetObjKey("type")->GetStr();
-	TStr JoinStore = json->GetObjKey("store")->GetStr();
-
-	TGenericStoreJoinSchema res;
-	res.JoinName = JoinName;
-	res.OtherStoreName = JoinStore;
-	if (JoinType == "index") {    
-		res.IsFieldJoin = false;
-	} else if (JoinType == "field") {
-		res.IsFieldJoin = true;
-	} else {
-		throw TQmExcept::New("Unsupported join type");
+TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(false) {
+    QmAssertR(StoreVal->IsObj(), "Invalid JSON for store definition.");
+	// get store name
+	QmAssertR(StoreVal->IsObjKey("name"), "Missing store name.");
+	StoreName = StoreVal->GetObjStr("name");
+	// get id (optional)
+	if (StoreVal->IsObjKey("id")) {
+		const int _StoreId = StoreVal->GetObjInt("id");
+		QmAssertR(_StoreId >= 0 && _StoreId < 0xFF, "Store " + StoreName + " ID out of range");
+        StoreId = (uchar)_StoreId;
+        HasStoreIdP = true;
 	}
-
-	if (json->IsObjKey("inverse")){
-		res.InverseJoinName = json->GetObjKey("inverse")->GetStr();
-	}
-	return res;
-}
-
-TJoinDesc TGenericStoreUtils::ParseJoinDesc(const PJsonVal& json, const TWPt<TGenericStore>& store, TGenericBase* base) {
-	if (!json->IsObjKey("name"))
-		throw TQmExcept::New("Missing join name");
-	if (!json->IsObjKey("type"))
-		throw TQmExcept::New("Missing join type");
-	if (!json->IsObjKey("store"))
-		throw TQmExcept::New("Missing join store");
-
-	TStr JoinName = json->GetObjKey("name")->GetStr();
-	TStr JoinType = json->GetObjKey("type")->GetStr();
-	TStr JoinStore = json->GetObjKey("store")->GetStr();
-
-	TJoinDesc res;
-	if (JoinType == "index") {
-		uchar other_store_id = base->GetStoreId(JoinStore);
-		res = TJoinDesc(JoinName, other_store_id, store->GetStoreId(), base->Base->GetIndexVoc());
-	} else if (JoinType == "field") {
-		uchar other_store_id = base->GetStoreId(JoinStore);
-		res = TJoinDesc(JoinName, other_store_id, -1);
-	} else {
-		throw TQmExcept::New("Unsupported join type");
-	}
-	return res;
-}
-
-TFieldDesc TGenericStoreUtils::ParseFieldDesc(const PJsonVal& json) {
-	// load stuff from JSON
-	if (!json->IsObjKey("name"))
-		throw TQmExcept::New("Missing field name");
-	if (!json->IsObjKey("type"))
-		throw TQmExcept::New("Missing field type");
-
-	TStr FieldName = json->GetObjKey("name")->GetStr();
-	TStr FieldType = json->GetObjKey("type")->GetStr();
-
-	TBool Nullable = false; 
-	if (json->IsObjKey("null"))
-		Nullable = json->GetObjKey("null")->GetBool();
-
-	// validate
-	TValidNm::AssertValidNm(FieldName);
-
-	if (!Maps.FieldTypeMap.IsKey(FieldType))
-		throw TQmExcept::New(TStr("Unsupported field type ") + FieldType);
-
-	TFieldType ft = (TFieldType)Maps.FieldTypeMap.GetDat(FieldType).Val;
-
-	return TFieldDesc(FieldName, ft, Nullable);        
-}
-
-TGenericStoreFieldDesc TGenericStoreUtils::ParseFieldDescEx(const PJsonVal& json) {
-	TGenericStoreFieldDesc res;
-
-	res.IsSmallString = false;
-	res.UseAsName = false;
-	res.UseCodebook = false;
-	//res.DefValue ; //  leave empty
-	res.FieldStoreLoc = 'm'; // store in memory
-
-	// load stuff from JSON
-	if (json->IsObjKey("shortstring"))
-		res.IsSmallString = json->GetObjKey("shortstring")->GetBool();
-	if (json->IsObjKey("primary"))
-		res.UseAsName = json->GetObjKey("primary")->GetBool();
-	if (json->IsObjKey("codebook"))
-		res.UseCodebook = json->GetObjKey("codebook")->GetBool();
-	if (json->IsObjKey("default"))
-		res.DefValue = json->GetObjKey("default");
-	if (json->IsObjKey("store")) {
-		TStr s = json->GetObjKey("store")->GetStr().ToLc();
-		if (s != "cache" && s != "memory")
-			throw TQmExcept::New(TStr::Fmt("Unsupported 'store' flag for field: %s", s.CStr()));
-		res.FieldStoreLoc = s.GetCh(0); // use 'c' or 'm'
-	}
-	return res;
-}
-
-TStr TGenericStoreUtils::GetRecNameFromJson(const PJsonVal& json, const IFieldDescProvider* field_defs) {
-	TStr res;
-	TStr name_field = field_defs->GetNameField();
-	if (name_field.Empty()) 
-		return res;
-	if (!json->IsObjKey(name_field)) 
-		throw TQmExcept::New(TStr::Fmt("Missing name field in incomming record: %s", name_field.CStr()));
-
-	PJsonVal json_child = json->GetObjKey(name_field);
-	if (!json_child->IsStr())
-		throw TQmExcept::New(TStr::Fmt("Name field in incomming record is not of type string: %s", name_field.CStr()));
-
-	res = json_child->GetStr();
-	return res;
-}
-
-
-TGenericStoreSchema TGenericStoreUtils::ParseStoreSchema(const PJsonVal& json) {
-	TGenericStoreSchema store;
-
-	if (!json->IsObj()) { 
-		throw TQmExcept::New("Invalid JSON for store definition."); }
-
-	// name
-	if (!json->IsObjKey("name")) {
-		throw TQmExcept::New("Missing store name."); }
-	store.StoreName = json->GetObjKey("name")->GetStr();
-
-	// id (optional)
-	store.Id = 0;
-	store.IdSpecified = false;
-	if (json->IsObjKey("id")) {
-		double dtc = json->GetObjKey("id")->GetNum();
-		if (dtc >= 0 && dtc < 255) {
-			store.Id = (uchar) dtc;
-			store.IdSpecified = true;
-		}
-	}
-
 	// fields
-	if (!json->IsObjKey("fields")) {
-		throw TQmExcept::New("Missing field list."); }
-	PJsonVal FieldDefs = json->GetObjKey("fields");
-	if (!FieldDefs->IsArr()) {
-		throw TQmExcept::New("Bad field list."); }
+	QmAssertR(StoreVal->IsObjKey("fields"), "Missing field list.");
+	PJsonVal FieldDefs = StoreVal->GetObjKey("fields");
+	QmAssertR(FieldDefs->IsArr(), "Bad field list.");
 
-	TStr NameField; // which field is used as name - empty by default
-	for (int i = 0; i<FieldDefs->GetArrVals(); i++) {
-		PJsonVal FieldDef = FieldDefs->GetArrVal(i);
-
-		TFieldDesc FieldDesc = TGenericStoreUtils::ParseFieldDesc(FieldDef);
-		store.Fields.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
-
-		TGenericStoreFieldDesc FieldDescEx = TGenericStoreUtils::ParseFieldDescEx(FieldDef);
-		store.FieldsEx.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);
-
-		// determine name field
-		if (FieldDescEx.UseAsName) {
-			if (!NameField.Empty()) {
-				// more than one field is marked as "primary"
-				throw TQmExcept::New(TStr::Fmt("More than one field is marked as primary: %s and %s", NameField.CStr(), FieldDesc.GetFieldNm().CStr()));
-			}
-			if (!FieldDesc.IsStr()) {
-				// fields marked as "primary" must be strings
-				throw TQmExcept::New(TStr::Fmt("Filed marked as primary must be string: %s", FieldDesc.GetFieldNm().CStr()));
-			}
-			if (FieldDesc.IsNullable()) {
-				// fields marked as "primary" must be strings
-				throw TQmExcept::New(TStr::Fmt("Filed marked as primary cannot be nullable: %s", FieldDesc.GetFieldNm().CStr()));
-			}
-			NameField = FieldDesc.GetFieldNm();
-		}
+    // parser fields
+	for (int FieldN = 0; FieldN < FieldDefs->GetArrVals(); FieldN++) {
+		PJsonVal FieldDef = FieldDefs->GetArrVal(FieldN);
+        // prase basic field description
+        TFieldDesc FieldDesc = ParseFieldDesc(FieldDef);
+        QmAssertR(!FieldH.IsKey(FieldDesc.GetFieldNm()), "Duplicate field name " + FieldDesc.GetFieldNm() + " in store " + StoreName);
+		FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
+        // prase extended field description required for serialization
+		TFieldDescEx FieldDescEx = ParseFieldDescEx(FieldDef);
+		FieldExH.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);
 	}
 
-	// indexes
-	if (json->IsObjKey("keys")) {
-		PJsonVal KeyDefs = json->GetObjKey("keys");
-		if (!KeyDefs->IsArr())
-			throw TQmExcept::New("Bad key list.");
-
-		for (int i = 0; i<KeyDefs->GetArrVals(); i++) {
-			PJsonVal KeyDef = KeyDefs->GetArrVal(i);
-			TGenericKeyIndexDesc key_index_desc = TGenericStoreUtils::ParseKeyIndexDescInner(KeyDef, store);
-			store.Indexes.Add(key_index_desc);
+	// parse indexes
+	if (StoreVal->IsObjKey("keys")) {
+		PJsonVal KeyDefs = StoreVal->GetObjKey("keys");
+		QmAssertR(KeyDefs->IsArr(), "Bad key list.");
+		for (int KeyN = 0; KeyN < KeyDefs->GetArrVals(); KeyN++) {
+			PJsonVal KeyDef = KeyDefs->GetArrVal(KeyN);
+			TIndexKeyEx IndexKeyDesc = ParseIndexKeyEx(KeyDef);
+			IndexKeyExV.Add(IndexKeyDesc);
 		}
 	}
 
 	// joins
-	if (json->IsObjKey("joins")) {
-		PJsonVal JoinDefs = json->GetObjKey("joins");
-		if (!JoinDefs->IsArr())
-			throw TQmExcept::New("Bad join list.");
-
-		for (int i = 0; i<JoinDefs->GetArrVals(); i++) {
-			PJsonVal JoinDef = JoinDefs->GetArrVal(i);
-
-			TGenericStoreJoinSchema JoinDesc = TGenericStoreUtils::ParseJoinDescInner(JoinDef);
-			store.JoinsStr.Add(JoinDesc);
-			bool is_field_join = JoinDesc.IsFieldJoin;
-			TStr join_name = JoinDesc.JoinName;
-
-			if (is_field_join) {
-				// add new field to store
-				TFieldDesc FieldDesc(join_name + "Id", oftUInt64, false, true);
-				store.Fields.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
-
-				TGenericStoreFieldDesc FieldDescEx;
-				//FieldDescEx.DefValue
-				FieldDescEx.FieldStoreLoc = 'm';
-				FieldDescEx.IsSmallString = false;
-				FieldDescEx.UseAsName = false;
-				FieldDescEx.UseCodebook = false;
-				store.FieldsEx.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);        
+	if (StoreVal->IsObjKey("joins")) {
+		PJsonVal JoinDefs = StoreVal->GetObjKey("joins");
+		QmAssertR(JoinDefs->IsArr(), "Bad join list.");
+		for (int JoinN = 0; JoinN < JoinDefs->GetArrVals(); JoinN++) {
+			PJsonVal JoinDef = JoinDefs->GetArrVal(JoinN);
+            // parse join
+			TJoinDescEx JoinDescEx = ParseJoinDescEx(JoinDef);
+            // add new field in case of field join
+			if (JoinDescEx.JoinType == osjtField) {
+				// prepare field description
+				TFieldDesc FieldDesc(JoinDescEx.JoinName + "Id", oftUInt64, false, true, true);
+				FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
+                // prepare extended field description
+				TFieldDescEx FieldDescEx;
+				FieldDescEx.FieldStoreLoc = slMemory;
+				FieldDescEx.SmallStringP = false;
+				FieldDescEx.CodebookP = false;
+				FieldExH.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);
 			}
+            // remember join
+			JoinDescExV.Add(JoinDescEx);
 		}
 	}
 
-	// fixed window size
-	if (json->IsObjKey("window")) {
-
-		PJsonVal WindowSize = json->GetObjKey("window");
-		if (!WindowSize->IsNum())
-			throw TQmExcept::New("Bad window size parameter.");
-		store.StoreSettings.WindowSize = (int)WindowSize->GetNum();
-		store.StoreSettings.WindowType = gbcwtLength;
-
-	} else if (json->IsObjKey("timeWindow")) {
-
-		PJsonVal TimeWindow = json->GetObjKey("timeWindow");
-		if (!TimeWindow->IsObj())
-			throw TQmExcept::New("Bad timeWindow parameter.");
-
-		if (!TimeWindow->IsObjKey("duration"))
-			throw TQmExcept::New("Missing duration parameter.");
-		PJsonVal Duration = TimeWindow->GetObjKey("duration");
-		if (!Duration->IsNum())
-			throw TQmExcept::New("Bad duration parameter.");
-
-		if (!TimeWindow->IsObjKey("unit"))
-			throw TQmExcept::New("Missing unit parameter.");
-		PJsonVal Unit = TimeWindow->GetObjKey("unit");
-		if (!Unit->IsStr())
-			throw TQmExcept::New("Bad unit parameter.");
-
-		if (!Maps.TimeWindowUnitMap.IsKey(Unit->GetStr()))
-			throw TQmExcept::New("Unsupported timeWindow length unit type");
-
-		TStr FieldName = TGenericStoreSettings::SysInsertedAtFieldName;
+	// parse window size
+	if (StoreVal->IsObjKey("window")) {
+        // window size defined in number of records
+		WndDesc.WindowType = swtLength;
+        // parse size
+		PJsonVal WindowSize = StoreVal->GetObjKey("window");
+		QmAssertR(WindowSize->IsNum(), "Bad window size parameter.");
+        WndDesc.WindowSize = (uint64)WindowSize->GetInt();
+	} else if (StoreVal->IsObjKey("timeWindow")) {
+        // time-defined window, parse out details
+        WndDesc.WindowType = swtTime;
+        // parse parameters
+		PJsonVal TimeWindow = StoreVal->GetObjKey("timeWindow");
+		QmAssertR(TimeWindow->IsObj(), "Bad timeWindow parameter.");
+        // get window duration
+		QmAssertR(TimeWindow->IsObjKey("duration"), "Missing duration parameter.");
+        uint64 WindowSize = (uint64)(TimeWindow->GetObjInt("duration"));
+        // get duration unit
+        TStr UnitStr = TimeWindow->GetObjStr("unit", "second");
+        // check we know of the unit
+		QmAssertR(Maps.TimeWindowUnitMap.IsKey(UnitStr),
+            "Unsupported timeWindow length unit type: " + UnitStr);
+        // set time duration in milliseconds
+        const uint64 FactorMSecs = Maps.TimeWindowUnitMap.GetDat(UnitStr);
+        WndDesc.WindowSize = WindowSize * FactorMSecs;
+        // get field giving the tact for time
 		if (TimeWindow->IsObjKey("field")) {
-			FieldName = TimeWindow->GetObjStr("field");
-
-			store.StoreSettings.InsertP = false;
+			WndDesc.TimeFieldNm = TimeWindow->GetObjStr("field");
+			WndDesc.InsertP = false;
 		} else {
-			TFieldDesc FieldDesc(FieldName, oftTm, false, true);
-			store.Fields.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
+            // no time field, create one which takes insert-time value
+			TFieldDesc FieldDesc(TStoreWndDesc::SysInsertedAtFieldName, oftTm, false, false, true);
+			FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
 
-			TGenericStoreFieldDesc FieldDescEx;
-			//FieldDescEx.DefValue
-			FieldDescEx.FieldStoreLoc = 'c';
-			FieldDescEx.IsSmallString = false;
-			FieldDescEx.UseAsName = false;
-			FieldDescEx.UseCodebook = false;
-			store.FieldsEx.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);        
+			TFieldDescEx FieldDescEx;
+			FieldDescEx.FieldStoreLoc = slDisk;
+			FieldDescEx.SmallStringP = false;
+			FieldDescEx.CodebookP = false;
+			FieldExH.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);
 
-			store.StoreSettings.InsertP = true;
+            WndDesc.TimeFieldNm = FieldDesc.GetFieldNm();
+			WndDesc.InsertP = true;
 		}
-
-		store.StoreSettings.WindowType = gbcwtDriver;
-		store.StoreSettings.FieldAsSource = FieldName;
-		uint64 window_len = (int)Duration->GetNum();		
-
-		char c = Maps.TimeWindowUnitMap.GetDat(Unit->GetStr()).GetCh(0);
-		if (c == 'h') { window_len *= 60 * 60 * 1000; }
-		else if (c == 'i') { window_len *= 60 * 1000; }
-		else if (c == 's') { window_len *= 1000; }
-		else if (c == 'd') { window_len *= 24 * 60 * 60 * 1000; }
-		else if (c == 'w') { window_len *= 7 * 24 * 60 * 60 * 1000; }
-		else if (c == 'm') { window_len *= (uint64)30 * 24 * 60 * 60 * 1000; }
-		else if (c == 'y') { window_len *= (uint64)365 * 24 * 60 * 60 * 1000;  }
-
-		store.StoreSettings.WindowSize = window_len;
-
 	}
-	return store;
 }
 
-TGenericSchema TGenericStoreUtils::ParseSchema(const PJsonVal& json) {
-	TGenericSchema res;
-
-	if (json->IsArr()) {
-		for (int i = 0; i < json->GetArrVals(); i++) {
-			res.Add(ParseStoreSchema(json->GetArrVal(i)));
-		}    
-	} else if (json->IsObjKey("stores")) {
-		return ParseSchema(json->GetObjKey("stores"));
+void TStoreSchema::ParseSchema(const PJsonVal& SchemaVal, TStoreSchemaV& SchemaV) {
+	if (SchemaVal->IsArr()) {
+		for (int SchemaN = 0; SchemaN < SchemaVal->GetArrVals(); SchemaN++) {
+			SchemaV.Add(TStoreSchema(SchemaVal->GetArrVal(SchemaN)));
+		}
+	} else if (SchemaVal->IsObjKey("stores")) {
+		ParseSchema(SchemaVal->GetObjKey("stores"), SchemaV);
 	} else {
-		res.Add(ParseStoreSchema(json));
+		SchemaV.Add(TStoreSchema(SchemaVal));
 	}
-
-	return res;
 }
 
-void TGenericStoreUtils::ValidateSchema(const TWPt<TBase>& Base, TGenericSchema& Schema){
+void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& SchemaV) {
+	TStrH StoreNameH;
+	TIntV ReqStoreIdV;
 
-	TStrH store_name_list;
-	TIntV requested_store_id_list;
-
-	for (int j=0; j<Schema.Len(); j++){
+	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++){
+		TStoreSchema& Schema = SchemaV[SchemaN];
 		// unique store names
-		TGenericStoreSchema& store_schema = Schema[j];
-		TStr store_name = store_schema.StoreName;
-		if (store_name_list.IsKey(store_name))
-			throw TQmExcept::New(TStr::Fmt("Duplicate store name %s", store_name.CStr()));
-		store_name_list.AddDat(store_name, 0);
-
+		TStr StoreName = Schema.StoreName;
+        QmAssertR(!StoreNameH.IsKey(StoreName), "Duplicate store name " + StoreName);
+		StoreNameH.AddDat(StoreName, 0);
 		// check unique store ids
-		if (Schema[j].IdSpecified) {
-			int requested_store_id = store_schema.Id;
-			for (int k = 0; k < requested_store_id_list.Len(); k++) {
-				if (requested_store_id == requested_store_id_list[k])
-					throw TQmExcept::New(TStr::Fmt("Duplicate store id %d", requested_store_id));
+		if (SchemaV[SchemaN].HasStoreIdP) {
+			int ReqStoreId = Schema.StoreId;
+			for (int ReqStoreIdN = 0; ReqStoreIdN < ReqStoreIdV.Len(); ReqStoreIdN++) {
+				QmAssertR(ReqStoreId != ReqStoreIdV[ReqStoreIdN],
+                    "Duplicate store id " + TInt::GetStr(ReqStoreId));
 			}
-			requested_store_id_list.Add(requested_store_id);
+			ReqStoreIdV.Add(ReqStoreId);
 		}
-
-		// unique field names inside the store
-		TStrH field_name_list;
-		for (int i = 0; i < store_schema.Fields.Len(); i++) {
-			TStr fn = store_schema.Fields[i].GetFieldNm();
-			TValidNm::AssertValidNm(fn);
-			if (field_name_list.IsKey(fn))
-				throw TQmExcept::New(TStr::Fmt("Duplicate field name %s in store %s", fn.CStr(), store_schema.StoreName.CStr()));
-			field_name_list.AddDat(fn, i);
+		// valid field names inside the store and primary key
+        TStr PrimaryFieldName;
+        int FieldKeyId = Schema.FieldH.FFirstKeyId();
+        while (Schema.FieldH.FNextKeyId(FieldKeyId)) {
+			TStr FieldName = Schema.FieldH[FieldKeyId].GetFieldNm();
+            const TFieldDesc& FieldDesc = Schema.FieldH[FieldKeyId];
+			TValidNm::AssertValidNm(FieldName);
+    		// determine primary field matches constraints
+            if (FieldDesc.IsPrimary()) {
+                // more than one field is marked as "primary"
+                QmAssertR(PrimaryFieldName.Empty(), "More than one field is marked as primary: " + PrimaryFieldName + " and " + FieldDesc.GetFieldNm());
+                // fields marked as "primary" must be strings
+                QmAssertR(FieldDesc.IsStr(), "Filed marked as primary must be string: " + FieldDesc.GetFieldNm());
+                // fields marked as "primary" must be strings
+                QmAssertR(!FieldDesc.IsNullable(), "Filed marked as primary cannot be nullable: " + FieldDesc.GetFieldNm());
+                // all fine, mark it as primary
+                PrimaryFieldName = FieldName;
+            }
 		}
 
 		// check that window parameter for field is valid
-		if (store_schema.StoreSettings.WindowType == gbcwtDriver) {
-			if (!field_name_list.IsKey(store_schema.StoreSettings.FieldAsSource))
-				throw TQmExcept::New(TStr::Fmt("Field %s should be used as the source for window is store %s, but it doesn't exist.", store_schema.StoreSettings.FieldAsSource.CStr(), store_schema.StoreName.CStr()));
-			int index = field_name_list.GetDat(store_schema.StoreSettings.FieldAsSource);
-			const TFieldDesc& fd = store_schema.Fields[index];
-			if (fd.GetFieldType() != oftTm)
-				throw TQmExcept::New(TStr::Fmt("Field %s should be used as the source for window is store %s, but it is not of datetime type.", store_schema.StoreSettings.FieldAsSource.CStr(), store_schema.StoreName.CStr()));
-			if (fd.IsNullable())
-				throw TQmExcept::New(TStr::Fmt("Field %s should be used as the source for window is store %s, but it is nullable.", store_schema.StoreSettings.FieldAsSource.CStr(), store_schema.StoreName.CStr()));
-		}		
-
+		if (Schema.WndDesc.WindowType == swtTime) {
+            const TStr& WndFieldName = Schema.WndDesc.TimeFieldNm;
+            QmAssertR(Schema.FieldH.IsKey(WndFieldName), "Field " + WndFieldName +
+                " should be used as the source for window is store " + StoreName +
+                ", but it doesn't exist.");
+			const TFieldDesc& FieldDesc = Schema.FieldH.GetDat(WndFieldName);
+            QmAssertR(FieldDesc.IsTm(), "Field " + WndFieldName +
+                " should be used as the source for window is store " + StoreName +
+                ", but it is not of datetime type.");
+            QmAssertR(!FieldDesc.IsNullable(), "Field " + WndFieldName +
+                " should be used as the source for window is store " + StoreName +
+                ", but it is nullable.");
+		}
 		// joins
-		TStrH join_name_list;
-		for (int i = 0; i < store_schema.JoinsStr.Len(); i++){
-			TStr jn = store_schema.JoinsStr[i].JoinName;
-			if (join_name_list.IsKey(jn))
-				throw TQmExcept::New(TStr::Fmt("Duplicate join name %s in store %s", jn.CStr(), store_schema.StoreName.CStr()));
-			join_name_list.AddDat(jn, 0);
-
-			// check if other store exists
-			TStr other_store_name = store_schema.JoinsStr[i].OtherStoreName;
-			
-			// B: join can refer to same store
-			//if (other_store_name == store_name)
-			//	throw TQmExcept::New(TStr::Fmt("Illegal join %s in store %s - self-reference", jn.CStr(), store_name.CStr()));
-
+		TStrH JoinNameH;
+		for (int JoinN = 0; JoinN < Schema.JoinDescExV.Len(); JoinN++){
+			TStr JoinName = Schema.JoinDescExV[JoinN].JoinName;
+			QmAssertR(!JoinNameH.IsKey(JoinName),
+                "Duplicate join name " + JoinName + " in store " + StoreName);
+			JoinNameH.AddKey(JoinName);
+			// check if the other store exists
+			TStr JoinStoreName = Schema.JoinDescExV[JoinN].JoinStoreName;
             // check if a store exists with that name in the schemas given
-			bool found = false;
-			for (int k=0; k<Schema.Len(); k++){
-				if (Schema[k].StoreName == other_store_name){
-					found = true;
+			bool FoundP = false;
+			for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++){
+				if (SchemaV[SchemaN].StoreName == JoinStoreName){
+					FoundP = true;
 					break;
 				}
 			}
             // check for an existing store with that name
-            if(!found) {
-                for (int k=0; k < Base->GetStores(); k++){
-                    if (Base->GetStoreByStoreN(k)->GetStoreNm() == other_store_name) {
-                        found = true;
+            if(!FoundP) {
+                for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++){
+                    if (Base->GetStoreByStoreN(StoreN)->GetStoreNm() == JoinStoreName) {
+                        FoundP = true;
                         break;
                     }
                 }
             }
-			if (!found)
-				throw TQmExcept::New(TStr::Fmt("Illegal join %s in store %s - other store %s not found", jn.CStr(), store_name.CStr(), other_store_name.CStr()));
+            QmAssertR(FoundP, "Illegal join " + JoinName + " in store " +
+                StoreName + " - joined store " + JoinStoreName + " not found");
 		}
 	}
 }
 
-////////////////////////////////////////////////////////////
-void TGenericStore::GetMem(const bool& UseMemory, const uint64& RecId, TMem& Rec) const {
-	if (UseMemory) JsonM.GetVal(RecId, Rec);
-	else JsonC.GetVal(RecId, Rec);
+///////////////////////////////
+// In-memory storage
+TInMemStorage::TInMemStorage(const TStr& _FNm): FNm(_FNm), Access(faCreate) { }
+
+TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access): FNm(_FNm), Access(_Access) {
+	// load vector
+	TFIn FIn(FNm); ValV.Load(FIn);
+	// load rest
+	FirstValOffset.Load(FIn);
 }
 
-bool TGenericStore::UseMemoryData(const int &FieldId) const { 
-	return (ExtraData.GetDat(FieldId).FieldStoreLoc.Val != 'c'); 
+TInMemStorage::~TInMemStorage() {
+	if (Access != faRdOnly) {
+		// save vector
+		TFOut FOut(FNm); ValV.Save(FOut);
+		// save rest
+		FirstValOffset.Save(FOut);
+	}
 }
 
-PGenericStoreSerializator TGenericStore::GetAppropriateSerializator(const bool& MemoryData) const { 
-	return (MemoryData ? SerializatorMem : SerializatorCache); 
+void TInMemStorage::AssertReadOnly() const {
+	QmAssertR(((Access == faCreate) || (Access == faUpdate)), FNm + " opened in Read-Only mode!");
 }
 
-PGenericStoreSerializator TGenericStore::GetAppropriateSerializator(const int &FieldId) const {
-	if (ExtraData.GetDat(FieldId).FieldStoreLoc.Val == 'c') return SerializatorCache;
-	return SerializatorMem;
+bool TInMemStorage::IsValId(const uint64& ValId) const {
+	return (ValId >= FirstValOffset.Val) &&
+        (ValId < FirstValOffset.Val + ValV.Len());
 }
 
-void TGenericStore::ProcessChangedFields(const uint64& RecId, TVec<int>& changed_fields, 
-		PGenericStoreSerializator& ser, TMem& src, TMem& dest) {
+void TInMemStorage::GetVal(const uint64& ValId, TMem& Val) const {
+	Val = ValV[ValId - FirstValOffset];
+}
 
-	TWPt<TIndexVoc> IndexVoc = Base->GetIndexVoc();
-	for (int i = 0; i < changed_fields.Len(); i++) {
-		int field_id = changed_fields[i];
-		if (HasNameField.Val && field_id == NameFieldId) {			
-			RemoveIdFromNmH(RecId);
-			TStr new_name = ser->GetFieldStr(dest, field_id);
-			if (!new_name.Empty()) {
-				NmH.AddDat(new_name, RecId);
-			}
+uint64 TInMemStorage::AddVal(const TMem& Val) {
+	return ValV.Add(Val) + FirstValOffset;
+}
+
+void TInMemStorage::SetVal(const uint64& ValId, const TMem& Val) {
+	AssertReadOnly();
+    ValV[ValId - FirstValOffset] = Val;
+}
+
+void TInMemStorage::DelVals(int Vals) {
+	if (Vals > 0) {
+		ValV.Del(0, Vals - 1);
+		FirstValOffset += Vals;
+	}
+}
+
+uint64 TInMemStorage::Len() const {
+	return ValV.Len();
+}
+
+uint64 TInMemStorage::GetMinId() const {
+	return FirstValOffset;
+}
+
+uint64 TInMemStorage::GetMaxId() const {
+	return GetMinId() + ValV.Len();
+}
+
+///////////////////////////////
+// Field serialization parameters
+void TRecSerializator::TFieldSerialDesc::Save(TSOut& SOut) const {
+    FieldId.Save(SOut);
+    TInt(StoreLoc).Save(SOut);
+    NullMapByte.Save(SOut);
+    NullMapMask.Save(SOut);
+    FixedPartP.Save(SOut);
+    Offset.Save(SOut);
+    CodebookP.Save(SOut);
+    SmallStringP.Save(SOut);
+    DefaultVal.Save(SOut);
+}
+
+void TRecSerializator::TFieldSerialDesc::Load(TSIn& SIn) {
+    FieldId.Load(SIn);
+    StoreLoc = TStoreLoc(TInt(SIn).Val);
+    NullMapByte = TUCh(SIn);
+    NullMapMask = TUCh(SIn);
+    FixedPartP.Load(SIn);
+    Offset.Load(SIn);
+    CodebookP.Load(SIn);
+    SmallStringP.Load(SIn);
+    DefaultVal = PJsonVal(SIn);
+}
+
+///////////////////////////////
+/// Thin Input-Memory used within TStoreSerializator
+TRecSerializator::TThinMIn::TThinMIn(const TMem& Mem):
+        TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) {
+
+    Bf = (uchar*)Mem.GetBf();
+    BfL = Mem.Len();
+}
+
+TRecSerializator::TThinMIn::TThinMIn(const void* _Bf, const int& _BfL):
+        TSBase("Thin input memory"), TSIn("Thin input memory"),
+        Bf(NULL), BfC(0), BfL(_BfL) {
+
+    Bf = (uchar*)_Bf;
+}
+
+char TRecSerializator::TThinMIn::GetCh() {
+    QmAssertR(BfC<BfL, "Reading beyond the end of stream.");
+    return Bf[BfC++];
+}
+
+char TRecSerializator::TThinMIn::PeekCh() {
+    QmAssertR(BfC<BfL, "Reading beyond the end of stream.");
+    return Bf[BfC];
+}
+
+int TRecSerializator::TThinMIn::GetBf(const void* LBf, const TSize& LBfL) {
+    Assert(TSize(BfC+LBfL)<=TSize(BfL));
+    int LBfS=0;
+    for (TSize LBfC=0; LBfC<LBfL; LBfC++) {
+        LBfS+=(((char*)LBf)[LBfC]=Bf[BfC++]);
+    }
+    return LBfS;
+}
+
+void TRecSerializator::TThinMIn::MoveTo(int Offset) {
+    QmAssertR(Offset<BfL, "Reading beyond the end of stream.");
+    BfC = Offset;
+}
+
+bool TRecSerializator::TThinMIn::GetNextLnBf(TChA& LnChA) {
+    FailR("TMIn::GetNextLnBf: not implemented"); return false;
+}
+
+///////////////////////////////
+// Serialization and de-serialization of records to TMem
+TStr TRecSerializator::GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const {
+    return TStr::Fmt("FPO:%d VIPO:%d VCPO:%d|L:%d|FID:%d NMP:%d NMM:%d FP:%s O:%d",
+        FixedPartOffset.Val, VarIndexPartOffset.Val, VarContentPartOffset.Val,
+        RecMem.Len(), FieldSerialDesc.FieldId.Val, (int)FieldSerialDesc.NullMapByte.Val,
+        (int)FieldSerialDesc.NullMapMask.Val, FieldSerialDesc.FixedPartP ? "T" : "F",
+        FieldSerialDesc.Offset);
+}
+
+const TRecSerializator::TFieldSerialDesc& TRecSerializator::GetFieldSerialDesc(const int& FieldId) const {
+    QmAssertR(FieldIdToSerialDescIdH.IsKey(FieldId),
+        "Field with ID not found: " + TInt::GetStr(FieldId));
+    return FieldSerialDescV[FieldIdToSerialDescIdH.GetDat(FieldId)];
+}
+
+uchar* TRecSerializator::GetLocationFixed(const TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc) const {
+
+    uchar* bf = (uchar*)RecMem.GetBf() + FixedPartOffset + FieldSerialDesc.Offset;
+    AssertR(bf < ((uchar*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+    return bf;
+}
+
+int TRecSerializator::GetOffsetVar(const TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc) const {
+
+    uchar* bf = (uchar*)RecMem.GetBf();
+    int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+    AssertR(VarContentPartOffset + Offset < RecMem.Len(), GetErrorMsg(RecMem, FieldSerialDesc));
+    return VarContentPartOffset + Offset;
+}
+
+uchar* TRecSerializator::GetLocationVar(const TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc) const {
+
+    uchar* bf = (uchar*)RecMem.GetBf();
+    int Offset = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+    uchar* bf2 = (bf + VarContentPartOffset) + Offset;
+    AssertR(bf2 < ((uchar*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+    return bf2;
+}
+
+int TRecSerializator::GetVarPartBfLen(const TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc) {
+
+    uchar* bf = (uchar*)RecMem.GetBf();
+    int Offset1 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset));
+    int Offset2 = -1;
+    if (VarIndexPartOffset + FieldSerialDesc.Offset + (int)sizeof(int) < VarContentPartOffset) {
+        Offset2 = *((int*)(bf + VarIndexPartOffset + FieldSerialDesc.Offset + sizeof(int)));
+    } else {
+        Offset2 = RecMem.Len() - VarContentPartOffset;
+    }
+    AssertR(Offset2 - Offset1 >= 0, GetErrorMsg(RecMem, FieldSerialDesc));
+    return Offset2 - Offset1;
+}
+
+void TRecSerializator::SetLocationVar(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const {
+
+    AssertR(VarIndexPartOffset + FieldSerialDesc.Offset <= (RecMem.Len() - 4), GetErrorMsg(RecMem, FieldSerialDesc));
+    *((int*)(RecMem.GetBf() + VarIndexPartOffset + FieldSerialDesc.Offset)) = VarOffset;
+}
+
+void TRecSerializator::SetFieldNull(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const {
+
+    uchar* bf = (uchar*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
+    AssertR(bf < ((uchar*)RecMem.GetBf() + RecMem.Len()), GetErrorMsg(RecMem, FieldSerialDesc));
+    if (NullP) {
+        *bf |= FieldSerialDesc.NullMapMask;
+    } else {
+        *bf &= ~FieldSerialDesc.NullMapMask;
+    }
+}
+
+void TRecSerializator::SetFieldInt(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    *((int*)bf) = Int;
+}
+
+void TRecSerializator::SetFieldUInt64(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    *((uint64*)bf) = UInt64;
+}
+
+void TRecSerializator::SetFieldStr(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    const int StrId = CodebookH.AddKey(Str);
+    *((int*)bf) = StrId;
+}
+
+void TRecSerializator::SetFieldBool(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const bool& Bool) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    *((bool*)bf) = Bool;
+}
+
+void TRecSerializator::SetFieldFlt(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const double& Flt) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    *((double*)bf) = Flt;
+}
+
+void TRecSerializator::SetFieldFltPr(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    *((double*)bf) = FltPr.Val1.Val;
+    *(((double*)bf) + 1) = FltPr.Val2.Val;
+}
+
+void TRecSerializator::SetFieldTm(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    uint64 TmMSecs = TTm::GetMSecsFromTm(Tm);
+    *((uint64*)bf) = TmMSecs;
+}
+
+void TRecSerializator::SetFieldTmMSecs(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs) {
+
+	uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+    *((uint64*)bf) = TmMSecs;
+}
+
+void TRecSerializator::SetFixedJsonVal(TMem& RecMem,
+        const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
+        const PJsonVal& JsonVal) {
+
+    // call type-appropriate setter
+	switch (FieldDesc.GetFieldType()) {
+        case oftInt:
+            QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+            SetFieldInt(RecMem, FieldSerialDesc, JsonVal->GetInt());
+            break;
+        case oftUInt64:
+            QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+            SetFieldUInt64(RecMem, FieldSerialDesc, (uint64)JsonVal->GetInt());
+            break;
+        case oftStr:
+            // this string should be encoded using a codebook
+            QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
+            SetFieldStr(RecMem, FieldSerialDesc, JsonVal->GetStr());
+            break;
+        case oftBool:
+            QmAssertR(JsonVal->IsBool(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not boolean.");
+            SetFieldBool(RecMem, FieldSerialDesc, JsonVal->GetBool());
+    		break;
+        case oftFlt:
+			QmAssertR(JsonVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+            SetFieldFlt(RecMem, FieldSerialDesc, JsonVal->GetNum());
+    		break;
+        case oftFltPr: {
+            // make sure it's array of length two
+            QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+            QmAssertR(JsonVal->GetArrVals() == 2, "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array - expected 2 fields.");
+            PJsonVal JsonVal1 = JsonVal->GetArrVal(0);
+            PJsonVal JsonVal2 = JsonVal->GetArrVal(1);
+            // make sure both elements are numeric
+            QmAssertR(JsonVal1->IsNum(), "The first element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+            QmAssertR(JsonVal2->IsNum(), "The second element in the JSon array in data field " + FieldDesc.GetFieldNm() + " is not numeric.");
+            // update
+            SetFieldFltPr(RecMem, FieldSerialDesc, TFltPr(JsonVal1->GetNum(), JsonVal2->GetNum()));
+            break;
+        }
+        case oftTm: {
+            QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string that represents DateTime.");
+            TStr TmStr = JsonVal->GetStr();
+            TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+            SetFieldTm(RecMem, FieldSerialDesc, Tm);
+            break;
+        }
+        default:
+            throw TQmExcept::New("Unsupported JSon data type for DB storage (fixed part): " + FieldDesc.GetFieldTypeStr());
+	}
+}
+
+void TRecSerializator::SetFieldIntV(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const TIntV& IntV) {
+
+    // location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+    // update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+    // update value
+    IntV.Save(SOut);
+}
+
+void TRecSerializator::SetFieldStr(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
+
+    // location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+    // update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+    // update value
+    Str.Save(SOut, FieldSerialDesc.SmallStringP);
+}
+
+void TRecSerializator::SetFieldStrV(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const TStrV& StrV) {
+
+    // location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+    // update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+    // update value
+    StrV.Save(SOut);
+}
+
+void TRecSerializator::SetFieldFltV(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const TFltV& FltV) {
+
+    // location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+    // update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+    // update value
+    FltV.Save(SOut);
+}
+
+void TRecSerializator::SetFieldNumSpV(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const TIntFltKdV& SpV) {
+
+    // location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+    // update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+    // update value
+    SpV.Save(SOut);
+}
+
+void TRecSerializator::SetFieldBowSpV(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const PBowSpV& SpV) {
+
+    // location of the new variable-length value is at the end of current output stream
+	int VarContentOffset = SOut.Len();
+    // update it's location in the variable-index
+	SetLocationVar(RecMem, FieldSerialDesc, VarContentOffset);
+    // update value
+    SpV->Save(SOut);
+}
+
+void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
+        const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
+        const PJsonVal& JsonVal) {
+
+    // call type-appropriate setter
+	switch (FieldDesc.GetFieldType()) {
+        case oftIntV: {
+            QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+            TIntV IntV; JsonVal->GetArrIntV(IntV);
+            SetFieldIntV(RecMem, SOut, FieldSerialDesc, IntV);
+            break;
+        }
+        case oftStr: {
+            QmAssertR(JsonVal->IsStr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not string.");
+            TStr Str = JsonVal->GetStr();
+            SetFieldStr(RecMem, SOut, FieldSerialDesc, Str);
+            break;
+        }
+        case oftStrV: {
+            QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+            TStrV StrV; JsonVal->GetArrStrV(StrV);
+            SetFieldStrV(RecMem, SOut, FieldSerialDesc, StrV);
+            break;
+        }
+        case oftFltV: {
+            QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+            TFltV FltV; JsonVal->GetArrNumV(FltV);
+            SetFieldFltV(RecMem, SOut, FieldSerialDesc, FltV);
+            break;
+        }
+		case oftBowSpV:
+            throw TQmExcept::New("Parsing of BowSpV from JSon not yet implemented");
+		case oftNumSpV:
+            throw TQmExcept::New("Parsing of NumSpV from JSon not yet implemented");
+        default:
+            throw TQmExcept::New("Unsupported JSon data type for DB storage (variable part) - " + FieldDesc.GetFieldTypeStr());
+	}
+}
+
+void TRecSerializator::CopyFieldVar(const TMem& InRecMem, TMem& FixedMem,
+        TMOut& VarSOut, const TFieldSerialDesc& FieldSerialDesc) {
+
+    // make sure we are copying variable field
+    QmAssert(!FieldSerialDesc.FixedPartP);
+    // set new offset location
+    int VarContentOffset = VarSOut.Len();
+    SetLocationVar(FixedMem, FieldSerialDesc, VarContentOffset);
+    // just copy other variable fields
+    int OldVarLength = GetVarPartBfLen(InRecMem, FieldSerialDesc);
+    if (OldVarLength > 0) {
+        // get location of old variable
+        uchar* OldVarBf = GetLocationVar(InRecMem, FieldSerialDesc);
+        // move it to output stream for new serialization
+        VarSOut.AppendBf(OldVarBf, OldVarLength);
+    }
+}
+
+void TRecSerializator::ExtractFixedMem(const TMem& InRecMem, TMem& FixedMem) {
+    // Reserve fixed space - null map, fixed fields and var-field indexes
+	FixedMem.Reserve(VarContentPartOffset);
+	// copy fixed part
+	Assert(FixedMem.Len() <= InRecMem.Len());
+    FixedMem.AddBf(InRecMem.GetBf(), VarContentPartOffset);
+}
+
+void TRecSerializator::Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& OutRecMem) {
+    OutRecMem.Reserve(VarContentPartOffset + VarSOut.Len());
+    OutRecMem.AddBf(FixedMem.GetBf(), VarContentPartOffset);
+    OutRecMem.AddBf(VarSOut.GetBfAddr(), VarSOut.Len());
+}
+
+TRecSerializator::TRecSerializator(const TWPt<TStore>& Store,
+        const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage):
+            TargetStorage(_TargetStorage) {
+
+	const int Fields = Store->GetFields();
+
+    // fixed part starts after null-flags
+	FixedPartOffset = (int)ceil((float)Fields / 8);
+    // variable part starts same place before any fixed-width fields identified
+	VarIndexPartOffset = FixedPartOffset;
+
+    // maintaining current offsets and counts
+	int FixedIndexOffset = 0;
+	int VarIndexOffset = 0;
+	int VarFieldCount = 0;
+
+	for (int FieldId = 0; FieldId < Fields; FieldId++) {
+        QmAssert(Store->IsFieldId(FieldId));
+        // get field name
+        const TStr& FieldName = Store->GetFieldNm(FieldId);
+        // get field description
+		const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldId);
+        // get extended field description from schema
+		const TFieldDescEx& FieldDescEx = StoreSchema.FieldExH.GetDat(FieldName);
+        // skip field if it does not match targeted storage
+		if (FieldDescEx.FieldStoreLoc != TargetStorage) { continue; }
+        // check if field is fixed-width and if yes, what is its width
+		int FixedSize = 0; bool FixedP = true;
+		switch (FieldDesc.GetFieldType()) {
+            case oftInt: FixedSize = sizeof(int); break;
+            case oftIntV: FixedP = false; break;
+            case oftUInt64: FixedSize = sizeof(uint64); break;
+            case oftStr: FixedP = FieldDescEx.CodebookP; if (FixedP) { FixedSize = sizeof(int); } break;
+            case oftStrV: FixedP = false; break;
+            case oftBool: FixedSize = sizeof(bool); break;
+            case oftFlt: FixedSize = sizeof(double); break;
+            case oftFltPr: FixedSize = sizeof(double) * 2; break;
+            case oftFltV: FixedP = false; break;
+            case oftTm: FixedSize = sizeof(uint64); break;
+            case oftNumSpV: FixedP = false; break;
+            case oftBowSpV: FixedP = false; break;
+            default: throw TQmExcept::New("Unknown field type " + FieldDesc.GetFieldTypeStr());
 		}
+        // move variable offset for the fixed size of current field
+		VarIndexPartOffset += FixedSize;
+        // prepare field serialization description
+		TFieldSerialDesc FieldSerialDesc;
+		FieldSerialDesc.FieldId = FieldDesc.GetFieldId();
+        FieldSerialDesc.StoreLoc = FieldDescEx.FieldStoreLoc;
+		FieldSerialDesc.NullMapByte = FieldId / 8;
+		FieldSerialDesc.NullMapMask = 1u << (FieldId % 8);
+		FieldSerialDesc.FixedPartP = FixedP;
+		FieldSerialDesc.Offset = (FixedP ? FixedIndexOffset : VarIndexOffset);
+		FieldSerialDesc.CodebookP = FieldDescEx.CodebookP;
+		FieldSerialDesc.SmallStringP = FieldDescEx.SmallStringP;
+        FieldSerialDesc.DefaultVal = FieldDescEx.DefaultVal;
+        // remember serialization description
+		int FieldSerialDescId = FieldSerialDescV.Add(FieldSerialDesc);
+        // remember mapping from field id to serialization description id
+		FieldIdToSerialDescIdH.AddDat(FieldSerialDesc.FieldId, FieldSerialDescId);
+        // accordingly update fixed or variable-index offsets
+		if (FixedP) {
+			FixedIndexOffset += FixedSize;
+		} else {
+			VarIndexOffset += sizeof(int);
+			VarFieldCount++;
+		}
+	}
+	// var-index part consists of integers that are offsets for specific field
+	VarContentPartOffset = VarIndexPartOffset + VarFieldCount * sizeof(int);
+}
 
-		// indexes
-		for (int j = 0; j < KeyIndexes.Len(); j++) {
-			TGenericKeyIndexDesc* index = &KeyIndexes[j];
-			const int index_field_id = index->FieldId;
-			if (index_field_id != field_id) { continue; }
-			const TFieldDesc& fd = GetFieldDesc(index_field_id);
-			const int index_key_id = IndexVoc->GetKeyId(this->GetStoreId(), index->KeyIndexName);
-			if (ser->IsFieldNull(src, field_id)) {
-				// if old value is null, just index new value
-				if (fd.GetFieldType() == oftStr && index->IsValue()) {
-					TStr new_val = ser->GetFieldStr(dest, field_id);
-					Index->Index(index_key_id, new_val, RecId);
-				} else if (fd.GetFieldType() == oftStr && index->IsText()) {
-					TStr new_val = ser->GetFieldStr(dest, field_id);
-					Index->IndexText(index_key_id, new_val, RecId);
-				} else if (fd.GetFieldType() == oftStrV && index->IsValue()) {
-					TStrV val_new; ser->GetFieldStrV(dest, field_id, val_new);
-					for (int k = 0; k < val_new.Len(); k++) {
-						Index->Index(GetStoreId(), index->KeyIndexName, val_new[k], RecId);
-					}
-				} else if (fd.GetFieldType() == oftTm && index->IsValue()) {
-					// TODO: proper time indexing
-					uint64 new_val_ui = ser->GetFieldTmAsUInt64(dest, field_id);
-					TStr new_val = TUInt64::GetStr(new_val_ui);
-					Index->Index(index_key_id, new_val, RecId);
-				} else if (fd.GetFieldType() == oftFltPr && index->IsLocation()) {
-					TFltPr new_val = ser->GetFieldFltPr(dest, field_id);
-					Index->Index(index_key_id, new_val, RecId);
-				} else {
-					throw TQmExcept::New(TStr::Fmt("Unsuperted field and index type combination: %s[%s]: %s", 
-						fd.GetFieldNm().CStr(), fd.GetFieldTypeStr().CStr(), index->GetKeyType().CStr())); 
-				}
+void TRecSerializator::Load(TSIn& SIn) {
+    TargetStorage = TStoreLoc(TInt(SIn).Val);
+    FixedPartOffset.Load(SIn);
+    VarIndexPartOffset.Load(SIn);
+    VarContentPartOffset.Load(SIn);
+    FieldSerialDescV.Load(SIn);
+    FieldIdToSerialDescIdH.Load(SIn);
+    CodebookH.Load(SIn);
+}
+
+void TRecSerializator::Save(TSOut& SOut) {
+    TInt(TargetStorage).Save(SOut);
+    FixedPartOffset.Save(SOut);
+    VarIndexPartOffset.Save(SOut);
+    VarContentPartOffset.Save(SOut);
+    FieldSerialDescV.Save(SOut);
+    FieldIdToSerialDescIdH.Save(SOut);
+    CodebookH.Save(SOut);
+}
+
+void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWPt<TStore>& Store) {
+	// Reserve fixed space - null map, fixed fields and var-field indexes
+	TMem FixedMem(VarContentPartOffset);
+    // Overwrite fixed part with zeros to start with
+    FixedMem.GenZeros(VarContentPartOffset);
+    // Prepare output stream for storing variable width values
+	TMOut VarSOut;
+
+    // iterate over fields and serialize them
+	for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+		const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        // get field description
+		const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldSerialDesc.FieldId);
+		TStr FieldName = FieldDesc.GetFieldNm();
+        // parse field value from provided JSon
+		PJsonVal FieldVal;
+        // figure out value when not provided directly
+		if (!RecVal->IsObjKey(FieldName)){
+            // check if the field is a surrogate for a field join
+			if (!FieldSerialDesc.DefaultVal.Empty()) {
+                // use the provided default value
+				FieldVal = FieldSerialDesc.DefaultVal;
+			} else if (FieldDesc.IsNullable()) {
+                // value not provided and object is nullable, so we set it to NULL
+				SetFieldNull(FixedMem, FieldSerialDesc, true);
+                // update variable-length index to point to the end of stream
+				if (!FieldSerialDesc.FixedPartP) {
+                    SetLocationVar(FixedMem, FieldSerialDesc, VarSOut.Len());
+                }
+                // we are done with this field
+				continue;
 			} else {
-				// otherwise delete old and index new, if value changed
-				if (fd.GetFieldType() == oftStr && index->IsValue()) {
-					TStr old_val = ser->GetFieldStr(src, field_id);
-					TStr new_val = ser->GetFieldStr(dest, field_id);
-					if (old_val == new_val) { continue; }
-					Index->Delete(index_key_id, old_val, RecId);
-					Index->Index(index_key_id, new_val, RecId);
-				} else if (fd.GetFieldType() == oftStr &&index->IsText()) {
-					TStr old_val = ser->GetFieldStr(src, field_id);
-					TStr new_val = ser->GetFieldStr(dest, field_id);
-					if (old_val == new_val) { continue; }
-					Index->DeleteText(index_key_id, old_val, RecId);
-					Index->IndexText(index_key_id, new_val, RecId);
-				} else if (fd.GetFieldType() == oftStrV && index->IsValue()) {
-					TStrV val_old, val_new;
-					ser->GetFieldStrV(src, field_id, val_old);
-					ser->GetFieldStrV(dest, field_id, val_new);
-					for (int k = 0; k < val_old.Len(); k++) {
-						Index->Delete(GetStoreId(), index->KeyIndexName, val_old[k], RecId);
-					}
-					for (int k = 0; k < val_old.Len(); k++) {
-						Index->Index(GetStoreId(), index->KeyIndexName, val_new, RecId);
-					}
-				} else if (fd.GetFieldType() == oftTm && index->IsValue()) {
-					// TODO: proper time indexing
-					uint64 old_val_ui = ser->GetFieldTmAsUInt64(src, field_id);
-					uint64 new_val_ui = ser->GetFieldTmAsUInt64(dest, field_id);
-					if (old_val_ui == new_val_ui) { continue; }
-					TStr old_val = TUInt64::GetStr(old_val_ui);
-					TStr new_val = TUInt64::GetStr(new_val_ui);
-					Index->Delete(index_key_id, old_val, RecId);
-					Index->Index(index_key_id, new_val, RecId);
-				} else if (fd.GetFieldType() == oftFltPr && index->IsLocation()) {
-					TFltPr old_val = ser->GetFieldFltPr(src, field_id);
-					TFltPr new_val = ser->GetFieldFltPr(dest, field_id);
-					if (Index->LocEquals(index_key_id, old_val, new_val)) { continue; }
-					Index->Delete(index_key_id, old_val, RecId);
-					Index->Index(index_key_id, new_val, RecId);
-				} else {
-					throw TQmExcept::New(TStr::Fmt("Unsuperted field and index type combination: %s[%s]: %s", 
-						fd.GetFieldNm().CStr(), fd.GetFieldTypeStr().CStr(), index->GetKeyType().CStr())); 
-				}
+                // report missing field value since no other option available
+				TStr Str = TJsonVal::GetStrFromVal(RecVal);
+				throw TQmExcept::New("JSon data is missing field - expecting " + FieldName);
 			}
 		}
+        // load field value when default not already loaded
+		if (FieldVal.Empty()) {
+			FieldVal = RecVal->GetObjKey(FieldName);
+        }
 
-		// joins are not updated, the programmer needs to take care of that
+		if (FieldSerialDesc.FixedPartP) {
+			SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, FieldVal);
+		} else {
+			SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, FieldVal);
+		}
+	}
+
+	// merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, RecMem);
+}
+
+void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMem& InRecMem,
+        TMem& OutRecMem, const TWPt<TStore>& Store, TIntSet& ChangedFieldIdSet) {
+
+  	// split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+
+    // iterate over fields and serialize them
+	for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+		const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        // get field description
+        const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldSerialDesc.FieldId);
+		TStr FieldName = FieldDesc.GetFieldNm();
+        // figure out value when not provided directly
+		if (!RecVal->IsObjKey(FieldName)){
+            // copy the variable field when no update to it is provided
+            // fixed length variables are already copied on start
+			if (!FieldSerialDesc.FixedPartP) {
+                CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+			}
+		} else {
+    		// new value, must update
+			PJsonVal JsonVal = RecVal->GetObjKey(FieldName);
+            // remove null flag
+			SetFieldNull(FixedMem, FieldSerialDesc, false);
+            // serialize the field
+			if (FieldSerialDesc.FixedPartP) {
+				SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, JsonVal);
+			} else {
+				SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, JsonVal);
+			}
+            // remember for reporting back that we updated the field
+			ChangedFieldIdSet.AddKey(FieldDesc.GetFieldId());
+		}
+	}
+
+	// merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+bool TRecSerializator::IsFieldNull(const TMem& RecMem, const int& FieldId) const {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    uchar* bf = (uchar*)RecMem.GetBf() + FieldSerialDesc.NullMapByte;
+    return ((*bf & FieldSerialDesc.NullMapMask) != 0);
+}
+
+int TRecSerializator::GetFieldInt(const TMem& RecMem, const int& FieldId) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    return *((int*)bf);
+}
+
+void TRecSerializator::GetFieldIntV(const TMem& RecMem, const int& FieldId, TIntV& IntV) const {
+    // prepare input stream and move to the variable location
+    TThinMIn MIn(RecMem);
+    MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+    // load return value from stream
+    IntV.Load(MIn);
+}
+
+uint64 TRecSerializator::GetFieldUInt64(const TMem& RecMem, const int& FieldId) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    return *((uint64*)bf);
+}
+
+TStr TRecSerializator::GetFieldStr(const TMem& RecMem, const int& FieldId) const {
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    if (FieldSerialDesc.FixedPartP) {
+        // get pointer to location
+        uchar* bf = GetLocationFixed(RecMem, FieldSerialDesc);
+        // cast to codebook id value
+        int StrId = *((int*)bf);
+        // return string from codebook
+        return CodebookH.GetKey(StrId);
+    } else {
+        // prepare input stream and move to the variable location
+        TThinMIn MIn(RecMem);
+        MIn.MoveTo(GetOffsetVar(RecMem, FieldSerialDesc));
+        // load return value from stream
+        TStr Str; Str.Load(MIn, FieldSerialDesc.SmallStringP);
+        return Str;
+    }
+}
+
+void TRecSerializator::GetFieldStrV(const TMem& RecMem, const int& FieldId, TStrV& StrV) const {
+    // prepare input stream and move to the variable location
+    TThinMIn MIn(RecMem);
+    MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+    // load return value from stream
+    StrV.Load(MIn);
+}
+
+bool TRecSerializator::GetFieldBool(const TMem& RecMem, const int& FieldId) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    return *((bool*)bf);
+}
+
+double TRecSerializator::GetFieldFlt(const TMem& RecMem, const int& FieldId) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    return *((double*)bf);
+}
+
+TFltPr TRecSerializator::GetFieldFltPr(const TMem& RecMem, const int& FieldId) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    return TFltPr(*((double*)bf), *(((double*)bf) + 1));
+}
+
+void TRecSerializator::GetFieldFltV(const TMem& RecMem, const int& FieldId, TFltV& FltV) const {
+    // prepare input stream and move to the variable location
+    TThinMIn MIn(RecMem);
+    MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+    // load return value from stream
+    FltV.Load(MIn);
+}
+
+void TRecSerializator::GetFieldTm(const TMem& RecMem, const int& FieldId, TTm& Tm) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    uint64 val = *((uint64*)bf);
+    Tm = TTm::GetTmFromMSecs(val);
+}
+
+uint64 TRecSerializator::GetFieldTmMSecs(const TMem& RecMem, const int& FieldId) const {
+    // get pointer to location
+    uchar* bf = GetLocationFixed(RecMem, GetFieldSerialDesc(FieldId));
+    // cast to return value
+    return *((uint64*)bf);
+}
+
+void TRecSerializator::GetFieldNumSpV(const TMem& RecMem, const int& FieldId, TIntFltKdV& SpV) const {
+    // prepare input stream and move to the variable location
+    TThinMIn MIn(RecMem);
+    MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+    // load return value from stream
+    SpV.Load(MIn);
+}
+
+void TRecSerializator::GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const {
+    // prepare input stream and move to the variable location
+    TThinMIn MIn(RecMem);
+    MIn.MoveTo(GetOffsetVar(RecMem, GetFieldSerialDesc(FieldId)));
+    // load return value from stream
+    SpV = TBowSpV::Load(MIn);
+}
+
+void TRecSerializator::SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId) {
+    // different handling for fixed and variable fields
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    if (FieldSerialDesc.FixedPartP) {
+        // copy existing serialization
+        OutRecMem = InRecMem;
+        // just mark fixed field as null
+        SetFieldNull(OutRecMem, FieldSerialDesc, true);
+    } else {
+      	// split to fixed and variable parts
+        TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+        // iterate over fields and serialize them
+        for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+            const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+            if (FieldSerialDesc.FieldId == FieldId) {
+                // this is the field we are setting to NULL
+                SetFieldNull(FixedMem, FieldSerialDesc, true);
+                // update variable-length index to point
+                QmAssert(!FieldSerialDesc.FixedPartP);
+                SetLocationVar(FixedMem, FieldSerialDesc, VarSOut.Len());
+            } else if (!FieldSerialDesc.FixedPartP) {
+                // just copy other variable fields
+                CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+            }
+        }
+    	// merge fixed and variable parts for final result
+        Merge(FixedMem, VarSOut, OutRecMem);
+    }
+}
+
+void TRecSerializator::SetFieldInt(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const int& Int) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldInt(OutRecMem, FieldSerialDesc, Int);
+}
+
+void TRecSerializator::SetFieldIntV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntV& IntV) {
+  	// split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+    // iterate over fields and serialize them
+    for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+        const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        if (FieldSerialDesc.FieldId == FieldId) {
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
+            // serialize to record buffer
+            SetFieldIntV(FixedMem, VarSOut, FieldSerialDesc, IntV);
+        } else if (!FieldSerialDesc.FixedPartP) {
+            // just copy other variable fields
+            CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+        }
+    }
+    // merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+void TRecSerializator::SetFieldUInt64(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const uint64& UInt64) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldUInt64(OutRecMem, FieldSerialDesc, UInt64);
+}
+
+void TRecSerializator::SetFieldStr(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const TStr& Str) {
+
+    // different handling for codebook strings and normal strings
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    if (FieldSerialDesc.FixedPartP) {
+        // copy existing serialization
+        OutRecMem = InRecMem;
+        // remove null flag, just in case
+        SetFieldNull(OutRecMem, FieldSerialDesc, false);
+        // update value
+        SetFieldStr(OutRecMem, FieldSerialDesc, Str);
+    } else {
+      	// split to fixed and variable parts
+        TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+        // iterate over fields and serialize them
+        for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+            const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+            if (FieldSerialDesc.FieldId == FieldId) {
+                // remove null flag, just in case
+                SetFieldNull(FixedMem, FieldSerialDesc, false);
+                // serialize to record buffer
+                SetFieldStr(FixedMem, VarSOut, FieldSerialDesc, Str);
+            } else if (!FieldSerialDesc.FixedPartP) {
+                // just copy other variable fields
+                CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+            }
+        }
+    	// merge fixed and variable parts for final result
+        Merge(FixedMem, VarSOut, OutRecMem);
+    }
+}
+
+void TRecSerializator::SetFieldStrV(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const TStrV& StrV) {
+
+  	// split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+    // iterate over fields and serialize them
+    for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+        const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        if (FieldSerialDesc.FieldId == FieldId) {
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
+            // serialize to record buffer
+            SetFieldStrV(FixedMem, VarSOut, FieldSerialDesc, StrV);
+        } else if (!FieldSerialDesc.FixedPartP) {
+            // just copy other variable fields
+            CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+        }
+    }
+    // merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+void TRecSerializator::SetFieldBool(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const bool& Bool) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldBool(OutRecMem, FieldSerialDesc, Bool);
+}
+
+void TRecSerializator::SetFieldFlt(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const double& Flt) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldFlt(OutRecMem, FieldSerialDesc, Flt);
+}
+
+void TRecSerializator::SetFieldFltPr(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const TFltPr& FltPr) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldFltPr(OutRecMem, FieldSerialDesc, FltPr);
+}
+
+void TRecSerializator::SetFieldFltV(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const TFltV& FltV) {
+
+  	// split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+    // iterate over fields and serialize them
+    for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+        const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        if (FieldSerialDesc.FieldId == FieldId) {
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
+            // serialize to record buffer
+            SetFieldFltV(FixedMem, VarSOut, FieldSerialDesc, FltV);
+        } else if (!FieldSerialDesc.FixedPartP) {
+            // just copy other variable fields
+            CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+        }
+    }
+    // merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+void TRecSerializator::SetFieldTm(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const TTm& Tm) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldTm(OutRecMem, FieldSerialDesc, Tm);
+}
+
+void TRecSerializator::SetFieldTmMSecs(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const uint64& TmMSecs) {
+
+    const TFieldSerialDesc& FieldSerialDesc = GetFieldSerialDesc(FieldId);
+    // copy existing serialization
+    OutRecMem = InRecMem;
+    // remove null flag, just in case
+    SetFieldNull(OutRecMem, FieldSerialDesc, false);
+    // update the value
+    SetFieldTmMSecs(OutRecMem, FieldSerialDesc, TmMSecs);
+}
+
+void TRecSerializator::SetFieldNumSpV(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const TIntFltKdV& SpV) {
+
+  	// split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+    // iterate over fields and serialize them
+    for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+        const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        if (FieldSerialDesc.FieldId == FieldId) {
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
+            // serialize to record buffer
+            SetFieldNumSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
+        } else if (!FieldSerialDesc.FixedPartP) {
+            // just copy other variable fields
+            CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+        }
+    }
+    // merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+void TRecSerializator::SetFieldBowSpV(const TMem& InRecMem,
+        TMem& OutRecMem, const int& FieldId, const PBowSpV& SpV) {
+
+  	// split to fixed and variable parts
+	TMem FixedMem; TMOut VarSOut; ExtractFixedMem(InRecMem, FixedMem);
+    // iterate over fields and serialize them
+    for (int FieldSerialDescId = 0; FieldSerialDescId < FieldSerialDescV.Len(); FieldSerialDescId++) {
+        const TFieldSerialDesc& FieldSerialDesc = FieldSerialDescV[FieldSerialDescId];
+        if (FieldSerialDesc.FieldId == FieldId) {
+            // remove null flag, just in case
+            SetFieldNull(FixedMem, FieldSerialDesc, false);
+            // serialize to record buffer
+            SetFieldBowSpV(FixedMem, VarSOut, FieldSerialDesc, SpV);
+        } else if (!FieldSerialDesc.FixedPartP) {
+            // just copy other variable fields
+            CopyFieldVar(InRecMem, FixedMem, VarSOut, FieldSerialDesc);
+        }
+    }
+    // merge fixed and variable parts for final result
+    Merge(FixedMem, VarSOut, OutRecMem);
+}
+
+///////////////////////////////
+/// Field indexer
+void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMem& RecMem,
+        const uint64& RecId, TRecSerializator& Serializator) {
+
+    // check the type of field and value to select indexing procedure
+    if (Key.FieldType == oftStr && Key.IsValue()){
+        // inverted index over non-tokenized strings
+        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+        Index->Index(Key.KeyId, Str, RecId);
+    } else if (Key.FieldType == oftStr && Key.IsText()) {
+        // inverted index over tokenized strings
+        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+        Index->IndexText(Key.KeyId, Str, RecId);
+    } else if (Key.FieldType == oftStrV && Key.IsValue()) {
+        // inverted index over string array
+        TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
+        Index->Index(Key.KeyId, StrV, RecId);
+    } else if (Key.FieldType == oftTm && Key.IsValue()) {
+        // time indexed as timestamp string, TODO: proper time indexing
+        uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecId, Key.FieldId);
+        Index->Index(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
+    } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
+        // index geo-location using geo-index
+        TFltPr FltPr = Serializator.GetFieldFltPr(RecId, Key.FieldId);
+        Index->Index(Key.KeyId, FltPr, RecId);
+    } else {
+        ErrorLog(TStr::Fmt("[TFieldIndexer::IndexKey] Unsupported field and index type combination: %s[%s]: %s",
+            Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
+    }
+}
+
+void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMem& RecMem,
+        const uint64& RecId, TRecSerializator& Serializator) {
+
+    // check the type of field and value to select deindexing procedure
+    if (Key.FieldType == oftStr && Key.IsValue()) {
+        // inverted index over non-tokenized strings
+        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+        Index->Delete(Key.KeyId, Str, RecId);
+    } else if (Key.FieldType == oftStr && Key.IsText()) {
+        // inverted index over tokenized strings
+        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+        Index->DeleteText(Key.KeyId, Str, RecId);
+    } else if (Key.FieldType == oftStrV && Key.IsValue()) {
+        // inverted index over string array
+        TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
+        Index->Delete(Key.KeyId, StrV, RecId);
+    } else if (Key.FieldType == oftTm && Key.IsValue()) {
+        // time indexed as timestamp string, TODO: proper time indexing
+        uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
+        Index->Delete(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
+    } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
+        // index geo-location using geo-index
+        TFltPr FltPr = Serializator.GetFieldFltPr(RecMem, Key.FieldId);
+        Index->Delete(Key.KeyId, FltPr, RecId);
+    } else {
+        ErrorLog(TStr::Fmt("[TFieldIndexer::DeindexKey] Unsupported field and index type combination: %s[%s]: %s",
+            Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
+    }
+}
+
+void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMem& OldRecMem,
+        const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator) {
+
+    // check the type of field and value to select update procedure
+    if (Key.FieldType == oftStr && Key.IsValue()) {
+        // inverted index over non-tokenized strings
+        TStr OldStr = Serializator.GetFieldStr(OldRecMem, Key.FieldId);
+        TStr NewStr = Serializator.GetFieldStr(NewRecMem, Key.FieldId);
+        if (OldStr == NewStr) { return; }
+        Index->Delete(Key.KeyId, OldStr, RecId);
+        Index->Index(Key.KeyId, NewStr, RecId);
+    } else if (Key.FieldType == oftStr && Key.IsText()) {
+        // inverted index over tokenized strings
+        TStr OldStr = Serializator.GetFieldStr(OldRecMem, Key.FieldId);
+        TStr NewStr = Serializator.GetFieldStr(NewRecMem, Key.FieldId);
+        if (OldStr == NewStr) { return; }
+        Index->DeleteText(Key.KeyId, OldStr, RecId);
+        Index->IndexText(Key.KeyId, NewStr, RecId);
+    } else if (Key.FieldType == oftStrV && Key.IsValue()) {
+        // inverted index over string array
+        TStrV OldStrV; Serializator.GetFieldStrV(OldRecMem, Key.FieldId, OldStrV);
+        TStrV NewStrV; Serializator.GetFieldStrV(NewRecMem, Key.FieldId, NewStrV);
+        if (OldStrV == NewStrV) { return; }
+        Index->Delete(Key.KeyId, OldStrV, RecId);
+        Index->Index(Key.KeyId, NewStrV, RecId);
+    } else if (Key.FieldType == oftTm && Key.IsValue()) {
+        // time indexed as timestamp string, TODO: proper time indexing
+        uint64 OldTmMSecs = Serializator.GetFieldTmMSecs(OldRecMem, Key.FieldId);
+        uint64 NewTmMSecs = Serializator.GetFieldTmMSecs(NewRecMem, Key.FieldId);
+        if (OldTmMSecs == NewTmMSecs) { return; }
+        Index->Delete(Key.KeyId, TUInt64::GetStr(OldTmMSecs), RecId);
+        Index->Index(Key.KeyId, TUInt64::GetStr(NewTmMSecs), RecId);
+    } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
+        // index geo-location using geo-index
+        TFltPr OldFltPr = Serializator.GetFieldFltPr(OldRecMem, Key.FieldId);
+        TFltPr NewFltPr = Serializator.GetFieldFltPr(NewRecMem, Key.FieldId);
+        if (Index->LocEquals(Key.KeyId, OldFltPr, NewFltPr)) { return; }
+        Index->Delete(Key.KeyId, OldFltPr, RecId);
+        Index->Index(Key.KeyId, NewFltPr, RecId);
+    } else {
+        ErrorLog(TStr::Fmt("[TFieldIndexer::UpdateKey] Unsupported field and index type combination: %s[%s]: %s",
+            Key.FieldNm.CStr(), Key.FieldTypeStr.CStr(), Key.GetKeyType().CStr()));
+    }
+}
+
+TRecIndexer::TRecIndexer(const TWPt<TIndex>& _Index, const TWPt<TStore>& Store):
+        Index(_Index), IndexVoc(_Index->GetIndexVoc()) {
+
+    // go over all the fields
+    for (int FieldId = 0; FieldId < Store->GetFields(); FieldId++) {
+        const TFieldDesc& FieldDesc = Store->GetFieldDesc(FieldId);
+        // go over all keys associated with the field
+        for (int KeyIdN = 0; KeyIdN < FieldDesc.GetKeys(); KeyIdN++) {
+            const int KeyId = FieldDesc.GetKeyId(KeyIdN);
+            const TIndexKey& Key = IndexVoc->GetKey(KeyId);
+            // remember the field-key details
+            FieldIndexKeyV.Add(TFieldIndexKey(FieldId, FieldDesc.GetFieldNm(),
+                FieldDesc.GetFieldType(), FieldDesc.GetFieldTypeStr(),
+                KeyId, Key.GetTypeFlags(), Key.GetWordVocId()));
+        }
+    }
+}
+
+void TRecIndexer::IndexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator) {
+	// go over all keys associated with the store and its fields
+	for (int FieldIndexKeyN = 0; FieldIndexKeyN < FieldIndexKeyV.Len(); FieldIndexKeyN++) {
+		const TFieldIndexKey& Key = FieldIndexKeyV[FieldIndexKeyN];
+        // check if field is handled by the serializator
+        if (!Serializator.IsFieldId(Key.FieldId)) { continue; }
+        // check if field is not NULL (e.g. there is something to index)
+        if (Serializator.IsFieldNull(RecMem, Key.FieldId)) { continue; }
+        // index the key
+        IndexKey(Key, RecMem, RecId, Serializator);
 	}
 }
 
-
-void TGenericStore::RemoveIdFromNmH(const uint64& RecId) {
-	// return empty string when no primary key
-	if (HasRecNm() && IsRecId(RecId)) { 
-		TStr RecNm = GetRecNm(RecId);
-		NmH.DelKey(RecNm);
+void TRecIndexer::DeindexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator) {
+	// go over all keys associated with the store and its fields
+	for (int FieldIndexKeyN = 0; FieldIndexKeyN < FieldIndexKeyV.Len(); FieldIndexKeyN++) {
+		const TFieldIndexKey& Key = FieldIndexKeyV[FieldIndexKeyN];
+        // check if field is handled by the serializator
+        if (!Serializator.IsFieldId(Key.FieldId)) { continue; }
+        // check if field is not NULL (e.g. there is something to deindex)
+        if (Serializator.IsFieldNull(RecMem, Key.FieldId)) { continue; }
+        // deindex the key
+        DeindexKey(Key, RecMem, RecId, Serializator);
 	}
 }
 
-TGenericStore::TGenericStore(const TWPt<TGenericBase>& _GenericBase, 
-        const uchar& StoreId, const TStr& StoreName, const TWPt<TIndexVoc>& IndexVoc, 
-        const TStr& _StoreFNm, const int64& _MxCacheSize): TStore(StoreId, StoreName),
-            StoreFNm(_StoreFNm), FAccess(faCreate), Base(_GenericBase->Base),
-            GenericBase(_GenericBase), Index(_GenericBase->Base->GetIndex()), 
-            JsonC(_StoreFNm + ".Cache", _MxCacheSize, 1024), JsonM(_StoreFNm + ".MemCache") { }
+void TRecIndexer::UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem,
+        const uint64& RecId, TIntSet& ChangedFieldIdSet, TRecSerializator& Serializator) {
 
-TGenericStore::TGenericStore(const TWPt<TGenericBase>& _GenericBase, 
-        const TStr& _StoreFNm, const TFAccess& _FAccess, const int64& _MxCacheSize): 
-            TStore(_StoreFNm+".BaseStore"), StoreFNm(_StoreFNm), FAccess(_FAccess), 
-            Base(_GenericBase->Base), GenericBase(_GenericBase), 
-            Index(_GenericBase->Base->GetIndex()), 
-            JsonC(_StoreFNm + ".Cache", _FAccess, _MxCacheSize),
-			JsonM(_StoreFNm + ".MemCache", _FAccess)  {
+	// go over all keys associated with the store and its fields
+	for (int FieldIndexKeyN = 0; FieldIndexKeyN < FieldIndexKeyV.Len(); FieldIndexKeyN++) {
+		const TFieldIndexKey& Key = FieldIndexKeyV[FieldIndexKeyN];
+        // check if field is handled by the serializator
+        if (!Serializator.IsFieldId(Key.FieldId)) { continue; }
+        // check if field is changed
+        if (!ChangedFieldIdSet.IsKey(Key.FieldId)) { continue; }
+        // check how to process the change
+        const bool OldNullP = Serializator.IsFieldNull(OldRecMem, Key.FieldId);
+        const bool NewNullP = Serializator.IsFieldNull(NewRecMem, Key.FieldId);
+        if (OldNullP && !NewNullP) {
+            // if no value before, just index
+            IndexKey(Key, NewRecMem, RecId, Serializator);
+        } else if (!OldNullP && NewNullP) {
+            // no new value, just deindex
+            DeindexKey(Key, OldRecMem, RecId, Serializator);
+        } else if (!OldNullP && !NewNullP) {
+            // value update, do deindexing of old and indexing of new
+            UpdateKey(Key, OldRecMem, NewRecMem, RecId, Serializator);
+        }
+    }
+}
 
+///////////////////////////////
+/// Implementation of store which can be initialized from a schema.
+void TStoreImpl::InitFieldLocV() {
+    for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
+        if (SerializatorCache.IsFieldId(FieldId)) {
+            FieldLocV.Add(slDisk);
+        } else if (SerializatorMem.IsFieldId(FieldId)) {
+            FieldLocV.Add(slMemory);
+        } else {
+            throw TQmExcept::New("Unknown storage location for field " +
+                GetFieldNm(FieldId) + " in store " + GetStoreNm());
+        }
+    }
+}
+
+void TStoreImpl::GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const {
+    if (RecLoc == slDisk) {
+        JsonC.GetVal(RecId, Rec);
+    } else if (RecLoc == slMemory)  {
+        JsonM.GetVal(RecId, Rec);
+    } else {
+        throw TQmExcept::New("Unknown storage location");
+    }
+}
+
+void TStoreImpl::GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const {
+    GetRecMem(FieldLocV[FieldId], RecId, Rec);
+}
+
+void TStoreImpl::PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec) {
+    if (RecLoc == slDisk) {
+        JsonC.SetVal(RecId, Rec);
+    } else if (RecLoc == slMemory)  {
+        JsonM.SetVal(RecId, Rec);
+    } else {
+        throw TQmExcept::New("Unknown storage location");
+    }
+}
+
+void TStoreImpl::PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec) {
+    PutRecMem(FieldLocV[FieldId], RecId, Rec);
+}
+
+bool TStoreImpl::IsFieldDisk(const int &FieldId) const {
+	return SerializatorCache.IsFieldId(FieldId);
+}
+
+bool TStoreImpl::IsFieldInMemory(const int &FieldId) const {
+	return SerializatorMem.IsFieldId(FieldId);
+}
+
+TRecSerializator& TStoreImpl::GetSerializator(const TStoreLoc& StoreLoc) {
+	return (StoreLoc == slMemory) ? SerializatorMem : SerializatorCache;
+}
+
+const TRecSerializator& TStoreImpl::GetSerializator(const TStoreLoc& StoreLoc) const {
+	return (StoreLoc == slMemory) ? SerializatorMem : SerializatorCache;
+}
+
+TRecSerializator& TStoreImpl::GetFieldSerializator(const int &FieldId) {
+    return GetSerializator(FieldLocV[FieldId]);
+}
+
+const TRecSerializator& TStoreImpl::GetFieldSerializator(const int &FieldId) const {
+    return GetSerializator(FieldLocV[FieldId]);
+}
+
+TStr TStoreImpl::ParseRecNm(const PJsonVal& RecVal) {
+    if (HasRecNm()) {
+        TStr RecNmField = GetFieldNm(RecNmFieldId);
+        QmAssertR(RecVal->IsObjKey(RecNmField), "Missing primary field in the record: " + RecNmField);
+        return RecVal->GetObjStr(RecNmField);
+    }
+    // if no record names, just return empty string
+    return TStr();
+}
+
+void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
+    // at start there is no primary key
+	RecNmFieldP = false;
+	// create fields
+	for (int i = 0; i<StoreSchema.FieldH.Len(); i++) {
+		const TFieldDesc& FieldDesc = StoreSchema.FieldH[i];
+		AddFieldDesc(FieldDesc);
+		// check if we found a primary field
+		if (FieldDesc.IsPrimary()) {
+			RecNmFieldP = true;
+			RecNmFieldId = GetFieldId(FieldDesc.GetFieldNm());
+		}
+	}
+	// create index keys
+    TWPt<TIndexVoc> IndexVoc = GetIndex()->GetIndexVoc();
+	for (int IndexKeyExN = 0; IndexKeyExN < StoreSchema.IndexKeyExV.Len(); IndexKeyExN++) {
+		TIndexKeyEx IndexKeyEx = StoreSchema.IndexKeyExV[IndexKeyExN];
+        // get associated field
+		const int FieldId = GetFieldId(IndexKeyEx.FieldName);
+		// if we are given vocabulary name, check if we have one with such name already
+        const int WordVocId = GetBase()->NewIndexWordVoc(IndexKeyEx.KeyType, IndexKeyEx.WordVocName);
+        // create new index key
+		GetBase()->NewFieldIndexKey(this, IndexKeyEx.KeyIndexName, 
+            FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.SortType);
+	}
+	// prepare serializators for disk and in-memory store
+	SerializatorCache = TRecSerializator(this, StoreSchema, slDisk);
+	SerializatorMem = TRecSerializator(this, StoreSchema, slMemory);
+    // initialize field to storage location map
+    InitFieldLocV();
+    // initialize record indexer
+    RecIndexer = TRecIndexer(GetIndex(), this);
+    // remember window parameters
+	WndDesc =  StoreSchema.WndDesc;
+}
+
+TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uchar& StoreId, 
+    const TStr& StoreName, const TStoreSchema& StoreSchema, const TStr& _StoreFNm, 
+    const int64& _MxCacheSize): 
+        TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate), 
+        JsonC(_StoreFNm + ".Cache", _MxCacheSize, 1024), JsonM(_StoreFNm + ".MemCache") {
+
+    InitFromSchema(StoreSchema);
+}
+
+TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm, 
+    const TFAccess& _FAccess, const int64& _MxCacheSize): 
+        TStore(Base, _StoreFNm + ".BaseStore"), 
+        StoreFNm(_StoreFNm), FAccess(_FAccess), 
+        JsonC(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
+        JsonM(_StoreFNm + ".MemCache", _FAccess)  {
+
+    // load members
 	TFIn FIn(StoreFNm + ".GenericStore");
-	HasNameField.Load(FIn);
-	NameField.Load(FIn);
-	NameFieldId.Load(FIn);
-	NmH.Load(FIn);
-	KeyIndexes.Load(FIn);
-	ExtraData.Load(FIn);
-	InverseJoins.Load(FIn);
-	StoreSettings.Load(FIn);
-	if (StoreSettings.WindowType == gbcwtDriver) {
-		StoreSettings.FieldId = GetFieldId(StoreSettings.FieldAsSource); }
-	SerializatorCache = TGenericStoreSerializator::New(FIn);
-	SerializatorMem = TGenericStoreSerializator::New(FIn);
+	RecNmFieldP.Load(FIn);
+	RecNmFieldId.Load(FIn);
+	RecNmIdH.Load(FIn);
+    WndDesc.Load(FIn);
+	SerializatorCache.Load(FIn);
+	SerializatorMem.Load(FIn);
+    
+    // initialize field to storage location map
+    InitFieldLocV();
+    // initialize record indexer
+    RecIndexer = TRecIndexer(GetIndex(), this);
 }
 
-TGenericStore::~TGenericStore() {
+TStoreImpl::~TStoreImpl() {
 	// save if necessary
 	if (FAccess != faRdOnly) {
 		TEnv::Logger->OnStatus(TStr::Fmt("Saving store '%s'...", GetStoreNm().CStr()));
 		// save base store
-		{
-			TFOut BaseFOut(StoreFNm + ".BaseStore"); 
-			SaveStore(BaseFOut);
-		}
+        TFOut BaseFOut(StoreFNm + ".BaseStore");
+        SaveStore(BaseFOut);
 		// save store parameters
 		TFOut FOut(StoreFNm + ".GenericStore");
-		HasNameField.Save(FOut);
-		NameField.Save(FOut);
-		NameFieldId.Save(FOut);
-		NmH.Save(FOut); 
-		KeyIndexes.Save(FOut);
-		ExtraData.Save(FOut);
-		InverseJoins.Save(FOut);
-		StoreSettings.Save(FOut);
-		SerializatorCache->Save(FOut);
-		SerializatorMem->Save(FOut);
+		RecNmFieldP.Save(FOut);
+		RecNmFieldId.Save(FOut);
+		RecNmIdH.Save(FOut);
+		WndDesc.Save(FOut);
+		SerializatorCache.Save(FOut);
+		SerializatorMem.Save(FOut);
 	} else {
 		TEnv::Logger->OnStatus("No saving of generic store " + GetStoreNm() + " neccessary!");
 	}
 }
 
-TStr TGenericStore::GetRecNm(const uint64& RecId) const { 
+TStr TStoreImpl::GetRecNm(const uint64& RecId) const {
 	// return empty string when no primary key
 	if (!HasRecNm()) { return TStr(); }
 	// get the name of primary key
-	return GetFieldNmStr(RecId, NameField);
+	return GetFieldStr(RecId, RecNmFieldId);
 }
 
-uint64 TGenericStore::GetRecId(const TStr& RecNm) const { 
-	return (NmH.IsKey(RecNm) ? NmH.GetDat(RecNm) : TUInt64::Mx); 
+uint64 TStoreImpl::GetRecId(const TStr& RecNm) const {
+	return (RecNmIdH.IsKey(RecNm) ? RecNmIdH.GetDat(RecNm) : TUInt64::Mx);
 }
 
-PStoreIter TGenericStore::GetIter() const { 
-	return TStoreIterVec::New(JsonC.GetFirstValId(), JsonC.GetLastValId() + 1); 
+PStoreIter TStoreImpl::GetIter() const {
+	return TStoreIterVec::New(JsonC.GetFirstValId(), JsonC.GetLastValId() + 1);
 }
 
-uint64 TGenericStore::AddRec(const PJsonVal& Json) {
-	// check if we are given existing record
-	if (Json->IsObjKey("$record")) {
-		// at the start we don't know the record Id
-		uint64 RecId = TUInt64::Mx; 
-		// get the name or id of existing record
-		PJsonVal RecVal = Json->GetObjKey("$record");
-		if (RecVal->IsStr()) {
-			// we got name, translate to Id
-			TStr RecNm = RecVal->GetStr();
-            // check if we can even find this record
-            if (!HasRecNm()) { 
-                ErrorLog("[TGenericStore::AddRec] $record with record name passed to store without primary key");
-                return TUInt64::Mx;
-            }
-            if (!IsRecNm(RecNm)) {
-                ErrorLog("[TGenericStore::AddRec] $record with unknown record name passed ");
-                return TUInt64::Mx;
-            }
-			RecId = GetRecId(RecNm);
-		} else if (RecVal->IsNum()) {
-			// we got directly Id
-			RecId = (uint64)TFlt::Round(RecVal->GetNum());
-		} else {
-            ErrorLog("[TGenericStore::AddRec] unsupported $record value:");
-            ErrorLog(TJsonVal::GetStrFromVal(RecVal));
-            return TUInt64::Mx;
-		}
-		// check if we have anything more than primary field, which would require calling UpdateRec
-		if (Json->GetObjKeys() > 1) {
-			// overwrite current value with new object
-			UpdateRec(RecId, Json);
-		}
-		// return named record
-		return RecId;
-	}
+uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
+    // placeholder for record name
+    TStr RecNm;
 
-	// determine record name
-	TStr RecNm = TGenericStoreUtils::GetRecNameFromJson(Json, this);
-
-	// check if inserting record with known name, which would require redirect to UpdateRec
-	if (HasRecNm() && IsRecNm(RecNm)) {
-		// we already have this record
-		const uint64 RecId = GetRecId(RecNm);
-		// check if we have anything more than primary field
-		if (Json->GetObjKeys() > 1) {
-			// overwrite current value with new object
-			UpdateRec(RecId, Json);
-		}
-		// return named record
-		return RecId;
-	}
-
-	// first insert children for field joins
-	THash<TStr, uint64> FieldJoinIds; 
-	TVec<TFieldJoinDat> field_joins_to_insert;
-	for (int i = 0; i < GetJoins(); i++) {
-		TJoinDesc join_desc = GetJoinDesc(i);
-		if (!join_desc.IsFieldJoin())  { continue; }
-
-		TStr join_name = join_desc.GetJoinNm();
-		if (Json->IsObjKey(join_name)) {
-			// get coined record json object
-			PJsonVal json_child = Json->GetObjKey(join_name);
-			const int join_id = join_desc.GetJoinId();
-			TWPt<TStore> this_store = Base->GetStoreByStoreId(GetStoreId());
-			const uchar join_store_id = join_desc.GetJoinStoreId();
-			TWPt<TStore> join_store = Base->GetStoreByStoreId(join_store_id);
-			// insert children record
-			const uint64 child_id = GenericBase->AddRec(join_store_id, json_child);
-			FieldJoinIds.AddDat(join_name + "Id", child_id);
-			// check if inverse join is defined
-			if (InverseJoins.IsKey(join_id)) {
-				// get join weight (useful only for inverse index joins)
-				int child_fq = TFlt::Round(json_child->GetObjNum("$fq", 1.0));
-                if (child_fq < 1) { 
-                    ErrorLog("[TGenericStore::AddRec] Join frequency must be positive");
-                    child_fq = 1;
-                }
-				// remember inverse join to add later
-				TFieldJoinDat field_join_to_insert;
-				field_join_to_insert.JoinStore = join_store;
-				field_join_to_insert.InverseJoinId = InverseJoins.GetDat(join_id);
-				field_join_to_insert.JoinRecId = child_id;
-				field_join_to_insert.JoinFq = child_fq;
-				field_joins_to_insert.Add(field_join_to_insert);
-			}
-		} else if (join_desc.IsFieldJoin()) {
-			// indicate missing join
-			FieldJoinIds.AddDat(join_name + "Id", TUInt64::Mx);
-		}
-	}
+	// check if we are given reference to existing record
+    try {        
+        // parse out record id
+        const uint64 RecId = TStore::GetRecId(RecVal);
+        if (RecId != TUInt64::Mx) {
+            // check if we have anything more than record identifier, which would require calling UpdateRec
+            if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
+            // return named record
+            return RecId;
+        }
+        // Extract record name from JSon
+        RecNm = ParseRecNm(RecVal);
+        // check if we are inserting record with name which already exists
+        if (HasRecNm() && IsRecNm(RecNm)) {
+            // we already have this record
+            const uint64 RecId = GetRecId(RecNm);
+            // check if we have anything more than primary field, which would require redirect to UpdateRec
+            if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
+            // return id of named record
+            return RecId;
+        }
+    } catch (const PExcept& Except) {
+        // error parsing, report error and return nothing
+        ErrorLog("[TStoreImpl::AddRec] Error parsing out reference to existing record:");
+        ErrorLog(Except->GetMsgStr());
+        return TUInt64::Mx;
+    }
 
 	// always add system field that means "inserted_at"
-	Json->AddToObj(TGenericStoreSettings::SysInsertedAtFieldName, TTm::GetCurUniTm().GetStr());
+	RecVal->AddToObj(TStoreWndDesc::SysInsertedAtFieldName, TTm::GetCurUniTm().GetStr());
 
-	// store the record to the cached vector 
-	uint64 RecId;
-	TMem RecCache;
-	SerializatorCache->Serialize(Json, RecCache, this, FieldJoinIds);
-	RecId = JsonC.AddVal(RecCache);
-	// store the record to the memory vector 
-	TMem RecMem;
-	SerializatorMem->Serialize(Json, RecMem, this, FieldJoinIds);
-	const uint64 _RecId = JsonM.AddVal(RecMem);
-	EAssert(RecId == _RecId); // this is a serious issue if not true :-)
+    // serialize
+	TMem CacheRecMem; SerializatorCache.Serialize(RecVal, CacheRecMem, this);
+	TMem MemRecMem; SerializatorMem.Serialize(RecVal, MemRecMem, this);
+    // store to disk storage
+	const uint64 RecId = JsonC.AddVal(CacheRecMem);
+    // store to in-memory storage
+	const uint64 _RecId = JsonM.AddVal(MemRecMem);
+    // make sure we are consistent with respect to Ids!
+	EAssert(RecId == _RecId);
+    
 	// remember name-recordId map when primary field available
-	if (!RecNm.Empty()) {
-		NmH.AddDat(RecNm, RecId);
-	}
+	if (!RecNm.Empty()) { RecNmIdH.AddDat(RecNm, RecId); }
 
-	// update indexes
-	TWPt<TIndexVoc> IndexVoc = Base->GetIndexVoc();
-	for (int i = 0; i < KeyIndexes.Len(); i++) {
-		TGenericKeyIndexDesc* index = &KeyIndexes[i];
-		if (!Json->IsObjKey(index->FieldName)) { continue; }
-		PJsonVal obj_key = Json->GetObjKey(index->FieldName);
-		const int index_key_id = IndexVoc->GetKeyId(this->GetStoreId(), index->KeyIndexName);
-		if (index->FieldType == oftStr && index->IsValue()){
-			TStr val = obj_key->GetStr();
-			Index->Index(index_key_id, val, RecId);
-		} else if (index->FieldType == oftStr && index->IsText()) {
-			TStr val = obj_key->GetStr();
-			Index->IndexText(index_key_id, val, RecId);
-		} else if (index->FieldType == oftStrV && index->IsValue()) {
-			for (int j = 0; j < obj_key->GetArrVals(); j++) {
-				TStr ValStr = obj_key->GetArrVal(j)->GetStr();
-				Index->Index(index_key_id, ValStr, RecId);
-			}
-		} else if (index->FieldType == oftTm && index->IsValue()) {
-			//TODO: proper time indexing
-			uint64 val = GetFieldTmAsUInt64(RecId, index->FieldId);
-			Index->Index(index_key_id, TUInt64::GetStr(val), RecId);
-		} else if (index->FieldType == oftFltPr && index->IsLocation()) {
-			TFltPr val = GetFieldFltPr(RecId, index->FieldId);
-			Index->Index(index_key_id, val, RecId);
-		} else {
-			const TFieldDesc& fd = GetFieldDesc(index->FieldId);
-			ErrorLog(TStr::Fmt("[TGenericStore::AddRec] Unsupported field and index type combination: %s[%s]: %s", 
-				fd.GetFieldNm().CStr(), fd.GetFieldTypeStr().CStr(), index->GetKeyType().CStr())); 
-		}
-	}
-
-	// insert inverse field joins
-	for (int i = 0; i < field_joins_to_insert.Len(); i++) {
-		Index->IndexJoin(
-			field_joins_to_insert[i].JoinStore, 
-			field_joins_to_insert[i].InverseJoinId, 
-			field_joins_to_insert[i].JoinRecId, 
-			RecId,
-			field_joins_to_insert[i].JoinFq);
-	}
-	// insert all index joins
-	for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
-		TJoinDesc JoinDesc = GetJoinDesc(JoinN);
-		if (!JoinDesc.IsIndexJoin()) { continue; }
-		// get join parameters
-		TStr JoinNm = JoinDesc.GetJoinNm();
-		TInt JoinId = JoinDesc.GetJoinId();
-		// check if we have it in the input data
-		if (Json->IsObjKey(JoinNm)) {
-			// index joins must be in an array
-			PJsonVal JoinArrVal = Json->GetObjKey(JoinNm);
-			if (!JoinArrVal->IsArr()) { 
-                ErrorLog("]TGenericStore::AddRec] Expected array for join " + JoinNm); 
-                continue;
-            }
-			// get join parameters
-			uchar JoinStoreId = JoinDesc.GetJoinStoreId();			
-			for (int JoinRecN = 0 ; JoinRecN < JoinArrVal->GetArrVals(); JoinRecN++) {
-				PJsonVal JoinRecVal = JoinArrVal->GetArrVal(JoinRecN);
-				uint64 JoinRecId = GenericBase->AddRec(JoinStoreId, JoinRecVal);
-				// get join weight, default is 1
-				int JoinFq = TFlt::Round(JoinRecVal->GetObjNum("$fq", 1.0));
-                if (JoinFq < 1) { 
-                    ErrorLog("[TGenericStore::AddRec] Join frequency must be positive");
-                    JoinFq = 1;
-                }
-                // index join
-                AddJoin(JoinId, RecId, JoinRecId, JoinFq);
-			}
-		}
-	}
-	// call triggers
-	OnAdd(Base, RecId);
+    // index new record
+    RecIndexer.IndexRec(CacheRecMem, RecId, SerializatorCache);
+    RecIndexer.IndexRec(MemRecMem, RecId, SerializatorMem);
+    
+	// insert nested join records
+	AddJoinRec(RecId, RecVal);
+	// call add triggers
+	OnAdd(GetBase(), RecId);
+    
 	// return record Id of the new record
 	return RecId;
 }
 
-void TGenericStore::UpdateRec(const uint64& RecId, const PJsonVal& Json) {
-	//TODO: check if there are any fields from JsonC, if not just ignore it to avoid any loading from disk
-	THash<TStr, uint64> FieldJoinIds;
-	TVec<int> changed_fields1, changed_fields2;
-
-	TMem Source1;
-	TMem Destination1;
-	JsonC.GetVal(RecId, Source1);
-	SerializatorCache->SerializeUpdate(Json, Source1, Destination1, this, FieldJoinIds, changed_fields1); // field joins cannot be updated
-
-	TMem Source2;
-	TMem Destination2;
-	JsonM.GetVal(RecId, Source2);
-	SerializatorMem->SerializeUpdate(Json, Source2, Destination2, this, FieldJoinIds, changed_fields2); // field joins cannot be updated
-
-	JsonC.SetVal(RecId, Destination1);
-	JsonM.SetVal(RecId, Destination2);
-
-	ProcessChangedFields(RecId, changed_fields1, SerializatorCache, Source1, Destination1);
-	ProcessChangedFields(RecId, changed_fields2, SerializatorMem, Source2, Destination2);
-
-	OnUpdate(Base, RecId);
-}
-
-void TGenericStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
-    const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
-    // make sure it's index join (changing field joins not supported yet)
-    if (!JoinDesc.IsIndexJoin()) { 
-        ErrorLog("[TGenericStore::AddJoin] Changing of field joins not supported.");
-        return;
-    }
-    // index join
-    Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
-    // check if inverse join is defined
-    if (InverseJoins.IsKey(JoinId)) {
-        TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(Base);
-        const int InverseJoinId = InverseJoins.GetDat(JoinId);
-        if (JoinStore->GetJoinDesc(InverseJoinId).IsIndexJoin()) {
-            Index->IndexJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
-        } else {
-            ErrorLog("[TGenericStore::AddJoin] Automatic indexing of inverse field joins not supported.");
+void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {    
+    // get old record name
+    TStr OldRecNm = GetRecNm(RecId);
+    // figure out which storage fields are affected
+    bool CacheP = false, MemP = false;
+    for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
+        // check if field appears in the record JSon
+        TStr FieldNm = GetFieldNm(FieldId);
+        if (RecVal->IsObjKey(FieldNm)) {
+            CacheP = CacheP || (FieldLocV[FieldId] == slDisk);
+            MemP = MemP || (FieldLocV[FieldId] == slMemory);
         }
     }
-}
-
-void TGenericStore::DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
-    const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
-    // make sure it's index join (changing field joins not supported yet)
-    if (!JoinDesc.IsIndexJoin()) { 
-        ErrorLog("[DelJoin] Changing of field joins not supported.");
-        return;
+    // update disk serialization when necessary
+	if (CacheP) {
+        // update serialization
+        TMem CacheOldRecMem; JsonC.GetVal(RecId, CacheOldRecMem);
+        TMem CacheNewRecMem; TIntSet CacheChangedFieldIdSet;
+        SerializatorCache.SerializeUpdate(RecVal, CacheOldRecMem,
+            CacheNewRecMem, this, CacheChangedFieldIdSet);
+        // update the stored serializations with new values
+    	JsonC.SetVal(RecId, CacheNewRecMem);
+        // update indexes pointing to the record
+        RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId, CacheChangedFieldIdSet, SerializatorCache);
     }
-    // delete join
-    Index->DeleteJoin(this, JoinId, RecId, JoinRecId, JoinFq);
-    // check if inverse join is defined
-    if (InverseJoins.IsKey(JoinId)) {
-        TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(Base);
-        const int InverseJoinId = InverseJoins.GetDat(JoinId);
-        if (JoinStore->GetJoinDesc(InverseJoinId).IsIndexJoin()) {
-            Index->DeleteJoin(JoinStore, InverseJoinId, RecId, JoinRecId, JoinFq);
-        }else {
-            ErrorLog("[DelJoin] Changing of inverse field joins not supported.");
-        }
+    // update in-memory serialization when necessary
+    if (MemP) {
+        // update serialization
+        TMem MemOldRecMem; JsonM.GetVal(RecId, MemOldRecMem);
+        TMem MemNewRecMem; TIntSet MemChangedFieldIdSet;
+        SerializatorMem.SerializeUpdate(RecVal, MemOldRecMem,
+            MemNewRecMem, this, MemChangedFieldIdSet);
+        // update the stored serializations with new values
+        JsonM.SetVal(RecId, MemNewRecMem);
+        // update indexes pointing to the record
+        RecIndexer.UpdateRec(MemOldRecMem, MemNewRecMem, RecId, MemChangedFieldIdSet, SerializatorMem);
     }
+    // check if primary key changed and update the mapping
+    TStr NewRecNm = GetRecNm(RecId);
+    if (HasRecNm() && (OldRecNm != NewRecNm)) {
+        RecNmIdH.DelIfKey(OldRecNm);
+        RecNmIdH.AddDat(NewRecNm) = RecId;
+    }
+    // call update triggers
+	OnUpdate(GetBase(), RecId);
 }
 
-void TGenericStore::InitFromSchema(const TGenericStoreSchema& store_schema) {
-
-	StoreSettings =  store_schema.StoreSettings;
-
-	// create fields
-	HasNameField = false;
-	for (int i = 0; i<store_schema.Fields.Len(); i++) {
-		const TFieldDesc& FieldDesc = store_schema.Fields[i];
-		int field_id = AddFieldDesc(FieldDesc);
-		//FieldIds.AddDat(FieldDesc.GetFieldNm()) = field_id;
-
-		TGenericStoreFieldDesc FieldDescEx = store_schema.FieldsEx[i];
-		ExtraData.AddDat(field_id, FieldDescEx);
-
-		// determine name field
-		if (FieldDescEx.UseAsName) {
-			HasNameField = true;
-			NameField = FieldDesc.GetFieldNm();
-			NameFieldId = FieldDesc.GetFieldId();
-		}
-	}
-	if (StoreSettings.WindowType == gbcwtDriver) 
-		StoreSettings.FieldId = GetFieldId(StoreSettings.FieldAsSource);
-
-	// indexes  
-	for (int i = 0; i<store_schema.Indexes.Len(); i++) {
-		TGenericKeyIndexDesc key_index_desc = store_schema.Indexes[i];
-		key_index_desc.FieldId = GetFieldId(key_index_desc.FieldName);
-
-		// prepare new vocabulary or load existing one
-		if (GenericBase->VocH.IsKey(key_index_desc.WordVocName)) {
-			key_index_desc.WordVocId = GenericBase->VocH.GetDat(key_index_desc.WordVocName);
-		} else {
-			key_index_desc.WordVocId = Base->NewIndexWordVoc(key_index_desc.KeyType);
-			if (!key_index_desc.WordVocName.Empty()) {
-				GenericBase->VocH.AddDat(key_index_desc.WordVocName, key_index_desc.WordVocId);
-			}
-		}
-
-		int index_key_id = Base->NewFieldIndexKey(
-			Base->GetStoreByStoreId(GetStoreId()), 
-			key_index_desc.KeyIndexName,
-			key_index_desc.FieldId, 
-			key_index_desc.WordVocId,
-			key_index_desc.KeyType,
-			key_index_desc.SortType);
-		key_index_desc.KeyId = index_key_id;
-		KeyIndexes.Add(key_index_desc);
-	}
-
-	// joins will be processed separately
-
-	SerializatorCache = TGenericStoreSerializator::New(this, 'c');
-	SerializatorMem = TGenericStoreSerializator::New(this, 'm');
-}
-
-bool TGenericStore::IsFieldNull(const uint64& RecId, const int& FieldId) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->IsFieldNull(mem, FieldId);
-}
-
-int TGenericStore::GetFieldInt(const uint64& RecId, const int& FieldId) const { 
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldInt(mem, FieldId);
-}
-
-TStr TGenericStore::GetFieldStr(const uint64& RecId, const int& FieldId) const { 
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldStr(mem, FieldId);
-}
-
-bool TGenericStore::GetFieldBool(const uint64& RecId, const int& FieldId) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldBool(mem, FieldId);
-}
-
-double TGenericStore::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldFlt(mem, FieldId);
-}
-
-TFltPr TGenericStore::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldFltPr(mem, FieldId);
-}
-
-uint64 TGenericStore::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldUInt64(mem, FieldId);
-}
-
-void TGenericStore::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	GetAppropriateSerializator(use_memory)->GetFieldStrV(mem, FieldId, StrV);
-}
-
-void TGenericStore::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	GetAppropriateSerializator(use_memory)->GetFieldIntV(mem, FieldId, IntV);
-}
-
-void TGenericStore::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	GetAppropriateSerializator(use_memory)->GetFieldFltV(mem, FieldId, FltV);
-}
-
-void TGenericStore::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	GetAppropriateSerializator(use_memory)->GetFieldTm(mem, FieldId, Tm);
-}
-
-uint64 TGenericStore::GetFieldTmAsUInt64(const uint64& RecId, const int& FieldId) const {
-	TMem mem;
-	bool use_memory = UseMemoryData(FieldId);
-	GetMem(use_memory, RecId, mem);
-	return GetAppropriateSerializator(use_memory)->GetFieldTmAsUInt64(mem, FieldId);
-}
-
-void TGenericStore::GarbageCollect() {
-	if (StoreSettings.WindowType == gbcwtNone) { return; }
+void TStoreImpl::GarbageCollect() {
+    // if no window, nothing to do here
+	if (WndDesc.WindowType == swtNone) { return; }
+    // if no records, nothing to do here
 	if (Empty()) { return; }
-	if (JsonC.Len() == 0) return;
-	TEnv::Logger->OnStatusFmt("Gargage Collection in %s", GetStoreNm().CStr());
+    // report on activity
+	TEnv::Logger->OnStatusFmt("Garbage Collection in %s", GetStoreNm().CStr());
 	TEnv::Logger->OnStatusFmt("  %s records at start", TUInt64::GetStr(GetRecs()).CStr());
 
-	TUInt64V deleted_ids;
-	if (StoreSettings.WindowType == gbcwtDriver) {
-		// by time-field
-		PStoreIter iter = GetIter();
+    // prepare list of records that need to be deleted
+	TUInt64V DelRecIdV;
+	if (WndDesc.WindowType == swtTime) {
+        // get last added record
 		const uint64 LastRecId = JsonC.GetLastValId();
-		if (!IsRecId(LastRecId)) { return; }
-		uint64 CurMSecs = StoreSettings.InsertP ? TTm::GetCurUniMSecs() : 
-			GetFieldTmAsUInt64(LastRecId, StoreSettings.FieldId);
-		const uint64 WindowStartMSecs = CurMSecs - StoreSettings.WindowSize;
-		TEnv::Logger->OnStatusFmt("  window: %s - %s", 
+        // not sure why this here, report as error for now
+		if (!IsRecId(LastRecId)) { ErrorLog("Invalid last record in garbage collection"); return; }
+        // get time window field
+        const int TimeFieldId = GetFieldId(WndDesc.TimeFieldNm);
+        // get time which we use as end of time-window (could be insert time or field value)
+		uint64 CurMSecs = WndDesc.InsertP ? TTm::GetCurUniMSecs() :
+			GetFieldTmMSecs(LastRecId, TimeFieldId);
+        // get start of time window
+		const uint64 WindowStartMSecs = CurMSecs - WndDesc.WindowSize;
+        // report what is the established time window used by the garbage collection
+		TEnv::Logger->OnStatusFmt("  window: %s - %s",
 			TTm::GetTmFromMSecs(WindowStartMSecs).GetWebLogDateTimeStr(true, "T", false).CStr(),
 			TTm::GetTmFromMSecs(CurMSecs).GetWebLogDateTimeStr(true, "T", false).CStr());
-		while (iter->Next()) {
-			uint64 id = iter->GetRecId();
-			uint64 TmMSecs = GetFieldTmAsUInt64(id, StoreSettings.FieldId);
+        // iterate from the start until we hit the time window
+		PStoreIter Iter = GetIter();        
+		while (Iter->Next()) {
+			uint64 RecId = Iter->GetRecId();
+            // get record time
+			uint64 TmMSecs = GetFieldTmMSecs(RecId, TimeFieldId);
+            // if we are within time window we stop
 			if (TmMSecs >= WindowStartMSecs) break;
-			deleted_ids.Add(id);
+            // otherwise we mark the record for deletion
+			DelRecIdV.Add(RecId);
 		}
-		TEnv::Logger->OnStatusFmt("  purging %d records", deleted_ids.Len());
-	} else {
-		// length
-		TEnv::Logger->OnStatusFmt("  window: last %d records", (int)StoreSettings.WindowSize);
-		int to_delete_cnt = (int)(JsonM.Len() - (uint64)StoreSettings.WindowSize);
-		if (to_delete_cnt > 0) {
-			PStoreIter iter = GetIter();		
-			while (iter->Next() && to_delete_cnt > 0) {
-				deleted_ids.Add(iter->GetRecId());
-				to_delete_cnt--;
-			}
-		}
+        // report progress
+	} else if (GetRecs() > WndDesc.WindowSize) {
+		// we are windowing based on number of records
+		TEnv::Logger->OnStatusFmt("  window: last %d records", (int)WndDesc.WindowSize);
+        // get number of records which need to be deleted so we are back in the window
+		int DelRecs = (int)(GetRecs() - WndDesc.WindowSize);
+        // iterate from the start until we hit the time window
+        PStoreIter Iter = GetIter();
+        while (Iter->Next() && DelRecs > 0) {
+            // mark record for deletion
+            DelRecIdV.Add(Iter->GetRecId());
+            // track progress
+            DelRecs--;
+        }
 	}
+    TEnv::Logger->OnStatusFmt("  purging %d records", DelRecIdV.Len());
 
-	TWPt<TIndexVoc> IndexVoc = Base->GetIndexVoc();
-	for (int DeleteRecN = 0; DeleteRecN < deleted_ids.Len(); DeleteRecN++) {   
-		if (DeleteRecN % 100 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DeleteRecN); }
-
-		uint64 RecId = deleted_ids[DeleteRecN];
-		// triggers
-		OnDelete(Base, RecId);
-
-		RemoveIdFromNmH(RecId);
-
-		// delete data from indexes
-		for (int KeyN = 0; KeyN < KeyIndexes.Len(); KeyN++) {
-			TGenericKeyIndexDesc* KeyDesc = &KeyIndexes[KeyN];
-			int IndexedFieldId = GetFieldId(KeyDesc->FieldName);
-			const TFieldDesc& IndexedFieldDesc = GetFieldDesc(IndexedFieldId);
-			const int KeyId = IndexVoc->GetKeyId(this->GetStoreId(), KeyDesc->KeyIndexName);
-			if (IndexedFieldDesc.GetFieldType() == oftStr && KeyDesc->IsValue()) {
-				TStr val = GetFieldStr(RecId, IndexedFieldId);
-				Index->Delete(KeyId, val, RecId);
-			} else if (IndexedFieldDesc.GetFieldType() == oftStr && KeyDesc->IsText()) {
-				TStr val = GetFieldStr(RecId, IndexedFieldId);
-				Index->DeleteText(KeyId, val, RecId);
-			} else if (IndexedFieldDesc.GetFieldType() == oftStrV && KeyDesc->IsValue()) {
-				TStrV val, val_new;
-				GetFieldStrV(RecId, IndexedFieldId, val);
-				for (int k = 0; k < val.Len(); k++) {
-					Index->Delete(GetStoreId(), KeyDesc->KeyIndexName, val[k], RecId);
-				}
-			} else if (IndexedFieldDesc.GetFieldType() == oftTm && KeyDesc->IsValue()) {
-				uint64 val = GetFieldTmAsUInt64(RecId, IndexedFieldId);
-				Index->Delete(KeyId, TUInt64::GetStr(val), RecId);				
-			} else {
-				throw TQmExcept::New("Invalid data received for removing from index.");
-			}
-		}
-
-		// delete data from joins
+    // delete records from index
+    for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
+        // report progress
+		if (DelRecN % 100 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
+        // what are we deleting now
+		const uint64 DelRecId = DelRecIdV[DelRecN];
+		// executed triggers before deletion
+		OnDelete(GetBase(), DelRecId);
+        // delete record from name-id map
+        if (HasRecNm()) { RecNmIdH.DelIfKey(GetRecNm(DelRecId)); }
+		// delete record from indexes
+    	TMem CacheRecMem; JsonC.GetVal(DelRecId, CacheRecMem);
+        RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+    	TMem MemRecMem; JsonM.GetVal(DelRecId, MemRecMem);
+        RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorMem);
+		// delete record from joins
+        TRec Rec(this, DelRecId);
 		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
 			TJoinDesc JoinDesc = GetJoinDesc(JoinN);
-			if (!JoinDesc.IsIndexJoin()) {
-                TInt JoinId = JoinDesc.GetJoinId();
-                TUInt64IntKdV JoinRecIdFqV;
-                Index->GetJoinRecIdFqV(JoinDesc.GetJoinKeyId(), RecId, JoinRecIdFqV);
-                for (int j = 0; j < JoinRecIdFqV.Len(); j++) {
-                    const uint64 JoinRecId = JoinRecIdFqV[j].Key;
-                    const int JoinFq = JoinRecIdFqV[j].Dat;
-                    DelJoin(JoinId, RecId, JoinRecId, JoinFq);
-                }
+            // execute the join
+            PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());            
+            for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+                // remove joins with all matched records, one by one
+                const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+                // in case of field join we do not know what is the return frequency
+                // for now we just assume max, to make sure we fully delete inverse join
+                const int JoinFq = JoinDesc.IsFieldJoin() ? JoinRecSet->GetRecFq(JoinRecN) : TInt::Mx;
+                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
             }
 		}
 
 	}
-	JsonC.DelVals(deleted_ids.Len());
-	JsonM.DelVals(deleted_ids.Len());
-
+    // delete records from disk
+	JsonC.DelVals(DelRecIdV.Len());
+    // delete records from in-memory store
+	JsonM.DelVals(DelRecIdV.Len());
+    
+    // report success :-)
 	TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// QMiner-Base
-
-
-// constructor for creating new, empty database
-TGenericBase::TGenericBase(const TStr& FPath, const uint64& IndexCacheSize, 
-		const uint64& _StoreCacheSize, const bool& InitP): StoreCacheSize(_StoreCacheSize) {
-
-	TEnv::Logger->OnStatus("Opening JSON database in create mode");
-	Base = TBase::New(FPath, IndexCacheSize);  
-	if (InitP) { Base->Init(); }
+bool TStoreImpl::IsFieldNull(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).IsFieldNull(RecMem, FieldId);
 }
 
-
-TGenericBase::TGenericBase(const TStr& FPath, const TFAccess& FAccess, 
-		const uint64& IndexCacheSize, const uint64& _StoreCacheSize, 
-		const TStrUInt64H& StoreCacheSizes, const bool& InitP): StoreCacheSize(_StoreCacheSize) {
-
-	Base = TBase::Load(FPath, FAccess, IndexCacheSize);
-
-	// load stores
-	{
-		TFIn FIn(FPath + "Master.dat");
-		TStrV store_names;
-		store_names.Load(FIn);
-		for (int i = 0; i < store_names.Len(); i++) {
-			TStr store_name = store_names[i];
-			uint64 store_cache_size = _StoreCacheSize;
-			if (StoreCacheSizes.IsKey(store_name)) {
-				store_cache_size = StoreCacheSizes.GetDat(store_name);
-			}
-			PStore store = new TGenericStore(this, FPath + store_name, FAccess, store_cache_size);
-			Base->AddStore(store);
-		}
-		VocH.Load(FIn);
-	}
-
-	if (InitP) { Base->Init(); }
+int TStoreImpl::GetFieldInt(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldInt(RecMem, FieldId);
 }
 
-void TGenericBase::CreateSchema(const PJsonVal& StoreDefVal) {
-	TGenericSchema schema = TGenericStoreUtils::ParseSchema(StoreDefVal);
-	TGenericStoreUtils::ValidateSchema(Base, schema);
-	// create each store
-	for (int i=0; i<schema.Len(); i++) {
-		TGenericStoreSchema store = schema[i];
-		TStr StoreName = store.StoreName;
-		// get store id
-		uchar tc = 0;
-		if (store.IdSpecified) {
-			double dtc = store.Id;
-			if (dtc >= 0 && dtc < 255) {
-				tc = (uchar) dtc;
-				for (int j=0; i<Base->GetStores(); j++) {
-					if (tc == Base->GetStoreByStoreN(j)->GetStoreId())
-						throw TQmExcept::New("Store id already in use.");
-				}
-			}
+TStr TStoreImpl::GetFieldStr(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldStr(RecMem, FieldId);
+}
+
+bool TStoreImpl::GetFieldBool(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldBool(RecMem, FieldId);
+}
+
+double TStoreImpl::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldFlt(RecMem, FieldId);
+}
+
+TFltPr TStoreImpl::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldFltPr(RecMem, FieldId);
+}
+
+uint64 TStoreImpl::GetFieldUInt64(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldUInt64(RecMem, FieldId);
+}
+
+void TStoreImpl::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId).GetFieldStrV(RecMem, FieldId, StrV);
+}
+
+void TStoreImpl::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId).GetFieldIntV(RecMem, FieldId, IntV);
+}
+
+void TStoreImpl::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId).GetFieldFltV(RecMem, FieldId, FltV);
+}
+
+void TStoreImpl::GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId).GetFieldTm(RecMem, FieldId, Tm);
+}
+
+uint64 TStoreImpl::GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	return GetFieldSerializator(FieldId).GetFieldTmMSecs(RecMem, FieldId);
+}
+
+void TStoreImpl::GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId).GetFieldNumSpV(RecMem, FieldId, SpV);
+}
+
+void TStoreImpl::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const {
+	TMem RecMem; GetRecMem(RecId, FieldId, RecMem);
+	GetFieldSerializator(FieldId).GetFieldBowSpV(RecMem, FieldId, SpV);
+}
+
+void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldNull(InRecMem, OutRecMem, FieldId);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldInt(InRecMem, OutRecMem, FieldId, Int);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldIntV(InRecMem, OutRecMem, FieldId, IntV);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldUInt64(InRecMem, OutRecMem, FieldId, UInt64);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldStr(InRecMem, OutRecMem, FieldId, Str);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldStrV(InRecMem, OutRecMem, FieldId, StrV);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldBool(InRecMem, OutRecMem, FieldId, Bool);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldFlt(InRecMem, OutRecMem, FieldId, Flt);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldFltPr(InRecMem, OutRecMem, FieldId, FltPr);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldFltV(InRecMem, OutRecMem, FieldId, FltV);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldTm(InRecMem, OutRecMem, FieldId, Tm);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldTmMSecs(InRecMem, OutRecMem, FieldId, TmMSecs);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldNumSpV(InRecMem, OutRecMem, FieldId, SpV);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) {
+	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
+    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldBowSpV(InRecMem, OutRecMem, FieldId, SpV);
+	PutRecMem(RecId, FieldId, OutRecMem);
+}
+
+///////////////////////////////
+/// Create new stores in an existing base from a schema definition
+void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+       const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH) {
+
+    // parse and validate the schema
+    InfoLog("  Parsing schema");
+	TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
+	TStoreSchema::ValidateSchema(Base, SchemaV);
+    
+    // create stores	
+	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+		TStoreSchema StoreSchema = SchemaV[SchemaN];
+		TStr StoreNm = StoreSchema.StoreName;
+        InfoLog("  Creating " + StoreNm);
+		// figure out store id
+		uchar StoreId = 0;
+		if (StoreSchema.HasStoreIdP) {
+			StoreId = StoreSchema.StoreId;
+            // check if we already have store with same ID
+            QmAssertR(!Base->IsStoreId(StoreId), "Store id for " + StoreNm + " already in use.");
 		} else {
-			for (int j=0; j<Base->GetStores(); j++) {
-				uchar ttc = Base->GetStoreByStoreN(j)->GetStoreId();
-				if (tc <= ttc)
-					tc = ttc + 1;
-			}
+            // find lowest unused StoreId
+            while (Base->IsStoreId(StoreId)) {
+                StoreId++;
+                QmAssertR(StoreId < 0xFF, "Out of store Ids -- to many stores!");
+            }
 		}
-
-		TStr root = Base->GetIndex()->GetIndexFPath();
-		TGenericStore *store_obj = new TGenericStore(this, tc, StoreName, 
-			Base->GetIndexVoc(), root + StoreName, StoreCacheSize);
-		Base->AddStore(store_obj);
-
-		store_obj->InitFromSchema(store);
+        // get cache size for the store
+        const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+            StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+        // create new store from the schema
+        PStore Store = new TStoreImpl(Base, StoreId, StoreNm, 
+            StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize);
+        // add store to base
+		Base->AddStore(Store);
 	}
 
-	// create joins
-	for (int i = 0; i < schema.Len(); i++) {
-		TGenericStoreSchema store = schema[i];
-		TWPt<TGenericStore> store_obj = this->GetStoreByStoreNm(store.StoreName);
-		for (int j = 0; j < store.JoinsStr.Len(); j++) {
-			TGenericStoreJoinSchema& join = store.JoinsStr[j];
-			TJoinDesc jd;
-			uchar other_store_id = this->GetStoreId(join.OtherStoreName);
-			if (join.IsFieldJoin) {
+	// Create joins
+    InfoLog("  Creating joins");
+	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+        // get store
+		TStoreSchema StoreSchema = SchemaV[SchemaN];
+		TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreSchema.StoreName);
+        // go over all outgoing joins
+		for (int JoinDescExN = 0; JoinDescExN < StoreSchema.JoinDescExV.Len(); JoinDescExN++) {            
+			TJoinDescEx& JoinDescEx = StoreSchema.JoinDescExV[JoinDescExN];
+            // get join store
+			TWPt<TStore> JoinStore = Base->GetStoreByStoreNm(JoinDescEx.JoinStoreName);
+            // check join type
+			if (JoinDescEx.JoinType == osjtField) {
 				// field join
-				int field_id = store_obj->GetFieldId(join.JoinName + "Id");
-				jd = TJoinDesc(join.JoinName, other_store_id, field_id);
-			} else {
+				int JoinFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Id");
+				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
+                    JoinStore->GetStoreId(), JoinFieldId));
+			} else if (JoinDescEx.JoinType == osjtIndex) {
 				// index join
-				jd = TJoinDesc(join.JoinName, other_store_id, this->GetStoreId(store.StoreName), Base->GetIndexVoc());
-			}  
-			store_obj->AddJoinDesc(jd);
+				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
+                    JoinStore->GetStoreId(), Store->GetStoreId(), 
+                    Base->GetIndexVoc()));
+			} else {
+                ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
+            }
 		}
 	}
 
-	// handle inverse joins
-	for (int i = 0; i < schema.Len(); i++) {
-		TGenericStoreSchema store = schema[i];
-		TWPt<TGenericStore> store_obj = this->GetStoreByStoreNm(store.StoreName);
-		for (int j = 0; j < store.JoinsStr.Len(); j++) {
-			TGenericStoreJoinSchema& join = store.JoinsStr[j];
-			if (!join.InverseJoinName.Empty()) {
-				const int join_id = store_obj->GetJoinId(join.JoinName);
-				TJoinDesc join_desc = store_obj->GetJoinDesc(join_id);
-				const uchar other_store_id = join_desc.GetJoinStoreId();
-
-				TJoinDesc inverse_join_desc(join.InverseJoinName, this->GetStoreId(store.StoreName), other_store_id, Base->GetIndexVoc());
-				TWPt<TGenericStore> other_store_obj = this->GetStoreByStoreId(other_store_id);
-				const int other_join_id = other_store_obj->GetJoinId(join.InverseJoinName);
-
-				store_obj->AddInverseJoin(join_id, other_join_id);
+	// Update inverse joins IDs
+    InfoLog("  Updating inverse join maps");
+	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
+        // get store
+		TStoreSchema StoreSchema = SchemaV[SchemaN];
+		TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreSchema.StoreName);
+        // go over outgoing joins
+		for (int JoinDescExN = 0; JoinDescExN < StoreSchema.JoinDescExV.Len(); JoinDescExN++) {
+            // check if we have inverse join
+			TJoinDescEx& JoinDescEx = StoreSchema.JoinDescExV[JoinDescExN];
+			if (!JoinDescEx.InverseJoinName.Empty()) {
+                // we do, get inverse join id
+				const int JoinId = Store->GetJoinId(JoinDescEx.JoinName);
+                const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
+				TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
+				const int InverseJoinId = JoinStore->GetJoinId(JoinDescEx.InverseJoinName);
+                // mark the map
+				Store->PutInverseJoinId(JoinId, InverseJoinId);
 			}
 		}
-	}
+	}    
 }
 
-TGenericBase::~TGenericBase() { 
-	if (!Base->IsRdOnly()) {
-		Save(Base->GetFPath());
-	} else {
-		TEnv::Logger->OnStatus("No saving of generic base neccessary!");
-	}
+///////////////////////////////
+/// Create new base given a schema definition
+PBase NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize, 
+        const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
+
+    // create empty base
+	InfoLog("Creating new base from schema");
+	PBase Base = TBase::New(FPath, IndexCacheSize);
+    // parse and apply the schema
+    CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
+    // finish base initialization if so required (default is true)
+    if (InitP) { Base->Init(); }
+    // done
+    return Base;
 }
 
-void TGenericBase::Save(const TStr& FPath) {
-	TEnv::Logger->OnStatus("Saving generic base... ");
-	TFOut FOut(FPath + "Master.dat");
+///////////////////////////////
+/// Load base created from a schema definition
+PBase LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize, 
+        const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
 
-	TStrV store_names;
-	for (int i = 0; i < Base->GetStores(); i++) {
-		store_names.Add(Base->GetStoreByStoreN(i)->GetStoreNm());
-	}
-	store_names.Save(FOut);
-	VocH.Save(FOut);
+    InfoLog("Loading base created from schema definition");
+	PBase Base = TBase::Load(FPath, FAccess, IndexCacheSize);
+	// load stores
+    InfoLog("Loading stores");
+    // read store names from file
+    TFIn FIn(FPath + "StoreList.txt"); TStr StoreNm;   
+    while (FIn.GetNextLn(StoreNm)) {
+        InfoLog("  " + StoreNm);
+        // get cache size for the store
+        const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+            StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+        PStore Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+        Base->AddStore(Store);
+    }
+    InfoLog("Stores loaded");
+    // finish base initialization if so required (default is true)
+	if (InitP) { Base->Init(); }
+    // done
+    return Base;
 }
 
-uint64 TGenericBase::AddRec(const int StoreId, const PJsonVal& RecVal) {
-	QmAssertR(RecVal->IsObj(), "Invalid input JSon, not an object");
-	uint64 master_rec_id = GetStoreByStoreId(StoreId)->AddRec(RecVal); 
-	return master_rec_id;
+///////////////////////////////
+/// Save base created from a schema definition
+void SaveBase(const PBase& Base) {
+	if (Base->IsRdOnly()) {
+        InfoLog("No saving of generic base necessary!");
+    } else {
+        // Only need to save list of stores so we know what to load next time
+        // Everything else is saved automatically in destructor
+    	InfoLog("Saving list of stores ... ");
+        TFOut FOut(Base->GetFPath() + "StoreList.txt");
+        for (int StoreN = 0; StoreN < Base->GetStores(); StoreN++) {
+            TStr StoreNm = Base->GetStoreByStoreN(StoreN)->GetStoreNm();
+            FOut.PutStrLn(StoreNm);
+        }
+    }
 }
 
-uint64 TGenericBase::AddRec(const TStr& StoreNm, const PJsonVal& RecVal) {
-	QmAssertR(RecVal->IsObj(), "Invalid input JSon, not an object");
-	QmAssertR(Base->IsStoreNm(StoreNm), TStr("Unknown store name ") + StoreNm);
-	uint64 master_rec_id = GetStoreByStoreNm(StoreNm)->AddRec(RecVal); 
-	return master_rec_id;
-}
-
-void TGenericBase::UpdateRec(const TWPt<TGenericStore>& Store, const PJsonVal& RecVal) {
-	if (!RecVal->IsObj()) 
-		throw TQmExcept::New("JSON for update is not an object");
-	if (!RecVal->IsObjKey("$id")) 
-		throw TQmExcept::New("JSON for update is missing $id");
-
-	uint64 id = (uint64)RecVal->GetObjKey("$id")->GetNum();
-	Store->UpdateRec(id, RecVal); 
-}
-
-void TGenericBase::UpdateRec(const int StoreId, const PJsonVal& RecVal) {
-	UpdateRec(GetStoreByStoreId(StoreId), RecVal);
-}
-
-void TGenericBase::UpdateRec(const TStr& StoreNm, const PJsonVal& RecVal) {
-	UpdateRec(GetStoreByStoreNm(StoreNm), RecVal);
-}
-
-///////////////////////////////////////////////////////////////////////////////// 
-// archiving helpers
-
-void TGenericBase::CopyAllFiles(TStr& Src, TStr& Dest) {
-	TFFile LiveFiles(Src, ""); 
-	TStr file_name;
-	while (LiveFiles.Next(file_name)) { 
-		TStr dest= file_name;
-		dest.ChangeStrAll(Src, Dest);
-		TFile::Copy(file_name, dest, false, false); 		
-	}	
-}
-
-void TGenericBase::DeleteAllFiles(TStr& Src){
-	TFFile ArchDir(Src, false); 
-	TStr file_name;
-	while (ArchDir.Next(file_name)) { 
-		if (file_name.GetFPath() != Src)
-			continue;
-		TFile::Del(file_name); 
-	}	
-}
-
-void TGenericBase::ArchiveFiles(TStr FPath) {
-	TStr FPathArh = GetArchiveDir(FPath);
-	DeleteAllFiles(FPathArh);
-	TDir::DelDir(FPathArh);
-	TDir::GenDir(FPathArh);
-	CopyAllFiles(FPath, FPathArh);
-}
-
-void TGenericBase::RestoreArchivedFiles(TStr FPath) {
-	TStr FPathArh = GetArchiveDir(FPath);
-	DeleteAllFiles(FPath);
-	CopyAllFiles(FPathArh, FPath);
-}
+} // TStorage
 
 }

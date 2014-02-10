@@ -23,7 +23,6 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
-#include <qminer_gs_srv.h>
 #include <qminer_js.h>
 
 class TQmParam {
@@ -140,9 +139,9 @@ public:
 	// index cache size
 	uint64 IndexCacheSize;
 	// default store cache size
-	uint64 StoreCacheSize;
+	uint64 DefStoreCacheSize;
 	// store specific cache sizes
-	TStrUInt64H StoreCacheSizes;
+	TStrUInt64H StoreNmCacheSizeH;
 	// javascript parameters
 	TVec<TJsParam> JsParamV;
 	// file serving folders
@@ -174,7 +173,7 @@ public:
 			PJsonVal CacheVal = ConfigVal->GetObjKey("cache");
 			// parse out index and default store cache sizes
 			IndexCacheSize = int64(CacheVal->GetObjNum("index", 1024)) * int64(TInt::Mega);
-			StoreCacheSize = int64(CacheVal->GetObjNum("store", 1024)) * int64(TInt::Mega);
+			DefStoreCacheSize = int64(CacheVal->GetObjNum("store", 1024)) * int64(TInt::Mega);
 			// prase out store specific sizes, when available
 			if (CacheVal->IsObjKey("stores")) {
 				PJsonVal StoreCacheVals = CacheVal->GetObjKey("stores");
@@ -182,13 +181,13 @@ public:
 					PJsonVal StoreCacheVal = StoreCacheVals->GetArrVal(StoreN);					
 					TStr StoreName = StoreCacheVal->GetObjStr("name");
 					uint64 StoreCacheSize = int64(StoreCacheVal->GetObjNum("size")) * int64(TInt::Mega);
-					StoreCacheSizes.AddDat(StoreName, StoreCacheSize);
+					StoreNmCacheSizeH.AddDat(StoreName, StoreCacheSize);
 				}
 			}
 		} else {
 			// default sizes are set to 1GB for index and stores			
 			IndexCacheSize = int64(1024) * int64(TInt::Mega);
-			StoreCacheSize = int64(1024) * int64(TInt::Mega);
+			DefStoreCacheSize = int64(1024) * int64(TInt::Mega);
 		}
 
 		// load scripts
@@ -232,14 +231,14 @@ public:
 };
 
 // initialize javascript
-void InitJs(const TQmParam& Param, const TQm::PGenericBase& GenericBase, TVec<TQm::PScript>& ScriptV) {
+void InitJs(const TQmParam& Param, const TQm::PBase& Base, TVec<TQm::PScript>& ScriptV) {
 	for (int JsN = 0; JsN < Param.JsParamV.Len(); JsN++) {
 		const TQmParam::TJsParam& JsParam = Param.JsParamV[JsN];
 		TQm::InfoLog("Loading script " + JsParam.FNm.GetFMid() + "...");
         try {
             // initialize javascript engine		
             TVec<TQm::TJsFPath> JsFPathV; TQm::TJsFPath::GetFPathV(JsParam.AccessFPathV, JsFPathV);
-            TQm::PScript Script = TQm::TScript::New(GenericBase, JsParam.Nm, 
+            TQm::PScript Script = TQm::TScript::New(Base, JsParam.Nm, 
                 JsParam.FNm, JsParam.IncludeFPathV, JsFPathV);
             // remember the context 
             ScriptV.Add(Script);
@@ -265,6 +264,11 @@ void ExecUrl(const TStr& UrlStr, const TStr& OkMsgStr, const TStr& ErrMsgStr) {
 }
 
 int main(int argc, char* argv[]) {
+#ifndef NDEBUG
+    // report we are running with all Asserts turned on
+    printf("*** Running in debug mode ***\n");
+#endif    
+    
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
@@ -301,7 +305,7 @@ int main(int argc, char* argv[]) {
 		const bool OverwriteP = Env.IsArgStr("-overwrite", "Overwrite existing configuration file");
 		// read create-specific parameters
 		if (!Env.IsSilent()) { printf("\nCreate parameters:\n"); }
-		const TStr StoreDefFNm = Env.GetIfArgPrefixStr("-def=", "", "Store definition file");
+		const TStr SchemaFNm = Env.GetIfArgPrefixStr("-def=", "", "Store definition file");
 		// read start-specific parameters
 		if (!Env.IsSilent()) { printf("\nStart parameters:\n"); }
 		const bool RdOnlyP = Env.IsArgStr("-rdonly", "Open database in Read-only mode");
@@ -362,13 +366,15 @@ int main(int argc, char* argv[]) {
 		if (CreateP) {
 			// do not mess with folders with existing running qminer instance
 			Lock.Lock();
-			// initialize base
-			TQm::PGenericBase GenericBase = TQm::TGenericBase::New(Param.DbFPath, 16, 16);
-			// initialize stores
-			if (!StoreDefFNm.Empty()) {
-				PJsonVal StoreDefVal = TJsonVal::GetValFromStr(TStr::LoadTxt(StoreDefFNm));
-				GenericBase->CreateSchema(StoreDefVal);
-			}
+            {
+                // parse schema (if no given, create an empty array)
+                PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
+                    TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
+                // initialize base
+                TQm::PBase Base = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
+                // save base
+                TQm::TStorage::SaveBase(Base);
+            }
 			// remove lock
 			Lock.Unlock();
 		}
@@ -379,19 +385,15 @@ int main(int argc, char* argv[]) {
 			Lock.Lock();
 			// load database and start the server
 			{
-				// generate execution ID
-				TStr ExecId = TGuid::GenGuid();
 				// resolve access type
 				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 				// load base
-				TQm::PGenericBase GenericBase = TQm::TGenericBase::Load(Param.DbFPath, FAccess,
-					Param.IndexCacheSize, Param.StoreCacheSize, Param.StoreCacheSizes);
+				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess, 
+                    Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 				// prepare server functions 
 				TSAppSrvFunV SrvFunV;
 				// used to stop the server
 				SrvFunV.Add(TSASFunExit::New());
-				// admin webservices
-				TQm::TGenericStoreSrvFun::RegDefFun(GenericBase, SrvFunV);
 				// initialize static content serving thingies
 				for (int WwwRootN = 0; WwwRootN < Param.WwwRootV.Len(); WwwRootN++) {
 					const TStrPr& WwwRoot = Param.WwwRootV[WwwRootN];
@@ -400,7 +402,7 @@ int main(int argc, char* argv[]) {
 					SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
 				}
 				// initialize javascript contexts
-				TVec<TQm::PScript> ScriptV; InitJs(Param, GenericBase, ScriptV);
+				TVec<TQm::PScript> ScriptV; InitJs(Param, Base, ScriptV);
 				// start server
 				if (!NoLoopP) {
 					// register javascript contexts
@@ -415,6 +417,8 @@ int main(int argc, char* argv[]) {
 					// wait for the end
 					TLoop::Run();
 				}
+                // save base
+                TQm::TStorage::SaveBase(Base);
 			}
 			// remove lock
 			Lock.Unlock();
@@ -422,9 +426,8 @@ int main(int argc, char* argv[]) {
 
 		// Stop QMiner engine
 		if (StopP) {
-			ExecUrl(
-				TStr::Fmt("http://127.0.0.1:%d/exit?return=%d", Param.PortN, ReturnCode),
-				"Server stop procedure initiated", "Error stopping server: ");
+			ExecUrl(TStr::Fmt("http://127.0.0.1:%d/exit?return=%d", Param.PortN, ReturnCode),
+                "Server stop procedure initiated", "Error stopping server: ");
 		}
 
 		// Reload QMiner script
@@ -441,28 +444,29 @@ int main(int argc, char* argv[]) {
 		if (DebugP) {
 			// do not mess with folders with existing running qminer instance
 			Lock.Lock();
-			// load base
-			TQm::PGenericBase GenericBase = TQm::TGenericBase::Load(Param.DbFPath, faRdOnly, 
-				Param.IndexCacheSize, Param.StoreCacheSize, Param.StoreCacheSizes);
-			TQm::PBase Base = GenericBase->Base;
-			// go over task lists and prepare outputs
-			for (int TaskN = 0; TaskN < DebugTaskV.Len(); TaskN++) {
-				TStr Task = DebugTaskV[TaskN];
-				if (Task == "index") {
-					Base->PrintIndex(DebugFNm + "index.txt", true);
-				} else if (Task == "indexvoc") {
-					Base->PrintIndexVoc(DebugFNm + "indexvoc.txt");
-				} else if (Task == "stores") {
-					Base->PrintStores(DebugFNm + "stores.txt");
-				} else if (Task.IsSuffix("_ALL")) {
-					TStr StoreNm = Task.LeftOfLast('_');
-					Base->GetStoreByStoreNm(StoreNm)->PrintAll(Base, DebugFNm + Task + ".txt");
-				} else if (Base->IsStoreNm(Task)) {
-					Base->GetStoreByStoreNm(Task)->PrintTypes(Base, DebugFNm + Task + ".txt");
-				} else {
-					TQm::InfoLog("Unkown debug task '" + Task + "'");
-				}
-			}
+            {
+                // load base
+                TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, faRdOnly, 
+                    Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+                // go over task lists and prepare outputs
+                for (int TaskN = 0; TaskN < DebugTaskV.Len(); TaskN++) {
+                    TStr Task = DebugTaskV[TaskN];
+                    if (Task == "index") {
+                        Base->PrintIndex(DebugFNm + "index.txt", true);
+                    } else if (Task == "indexvoc") {
+                        Base->PrintIndexVoc(DebugFNm + "indexvoc.txt");
+                    } else if (Task == "stores") {
+                        Base->PrintStores(DebugFNm + "stores.txt");
+                    } else if (Task.IsSuffix("_ALL")) {
+                        TStr StoreNm = Task.LeftOfLast('_');
+                        Base->GetStoreByStoreNm(StoreNm)->PrintAll(Base, DebugFNm + Task + ".txt");
+                    } else if (Base->IsStoreNm(Task)) {
+                        Base->GetStoreByStoreNm(Task)->PrintTypes(Base, DebugFNm + Task + ".txt");
+                    } else {
+                        TQm::InfoLog("Unkown debug task '" + Task + "'");
+                    }
+                }
+            }
 			// remove lock
 			Lock.Unlock();
 		}		

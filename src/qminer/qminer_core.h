@@ -167,18 +167,20 @@ private:
 	TInt JoinKeyId;
 	/// Corresponding FieldId, used for for field joins
 	TInt JoinFieldId;
+    /// Inverse join ID (-1 means not defined)
+    TInt InverseJoinId;
 
 public:
 	/// Create an empty join description
-	TJoinDesc(): JoinId(-1), JoinStoreId(255), JoinType(osjtUndef) { } 
+	TJoinDesc(): JoinId(-1), JoinStoreId(255), JoinType(osjtUndef), InverseJoinId(-1) { } 
 	/// Create an index based join (1-N or N-M)
 	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId,
 		const uchar& StoreId, const TWPt<TIndexVoc>& IndexVoc);
 	/// Create a field based join (1-1)
-	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId,
-		const int& _JoinFieldId): JoinId(-1), JoinNm(_JoinNm), 
-			JoinStoreId(_JoinStoreId), JoinType(osjtField), 
-			JoinKeyId(-1), JoinFieldId(_JoinFieldId) { TValidNm::AssertValidNm(JoinNm); }
+	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId, const int& _JoinFieldId): 
+        JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), JoinType(osjtField), 
+        JoinKeyId(-1), JoinFieldId(_JoinFieldId), InverseJoinId(-1) { 
+            TValidNm::AssertValidNm(JoinNm); }
 
 	TJoinDesc(TSIn& SIn);
 	void Save(TSOut& SOut) const;
@@ -192,6 +194,9 @@ public:
 	int GetJoinKeyId() const { return JoinKeyId; }
 	bool IsFieldJoin() const { return JoinType == osjtField; }
 	int GetJoinFieldId() const { return JoinFieldId; }
+    void PutInverseJoinId(const int& _InverseJoinId) { InverseJoinId = _InverseJoinId; }
+    bool IsInverseJoinId() const { return InverseJoinId != -1; }
+    int GetInverseJoinId() const { return InverseJoinId; }
 };
 typedef TVec<TJoinDesc> TJoinDescV;
 
@@ -265,7 +270,8 @@ class TFieldDesc {
 private:
 	typedef enum {
 		ofdfNull = (1 << 0),
-		ofdfInternal = (1 << 1)
+		ofdfInternal = (1 << 1),
+		ofdfPrimary = (1 << 2)
 	} TFieldDescFlags;
 
 private:
@@ -287,8 +293,8 @@ public:
 	/// @param _FieldType Field type
 	/// @param NullP Can field be empty for some records
 	/// @param InternalP Filed was created is and being used internally by QMiner (E.g. for field joins)
-    TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType, 
-		const bool& NullP = false, const bool& InternalP = false);
+    TFieldDesc(const TStr& _FieldNm, TFieldType _FieldType, const bool& Primary,
+        const bool& NullP, const bool& InternalP);
 	
 	TFieldDesc(TSIn& SIn);
 	void Save(TSOut& SOut);
@@ -317,6 +323,7 @@ public:
 	// flags
 	bool IsNullable() const { return ((Flags & ofdfNull) != 0); }
 	bool IsInternal() const { return ((Flags & ofdfInternal) != 0); }
+    bool IsPrimary() const { return ((Flags & ofdfPrimary) != 0); }
 
 	/// Link index key with ID `KeyId` to this field
 	void AddKey(const int& KeyId) { KeyIdV.AddUnique(KeyId); }
@@ -426,10 +433,15 @@ typedef TVec<PStoreTrigger> TStoreTriggerV;
 /// Keeps meta-data descriptions of fields and joins associated with the store.
 /// Contains callbacks for triggers (PStoreTrigger) which were added to the store.
 class TStore {
-private: 
+private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TStore>;
+    
+    /// Shortcut to base
+    TWPt<TBase> Base;
+    /// Shortcut to index
+    TWPt<TIndex> Index;
 	
 	/// Store unique ID
     TUCh StoreId;
@@ -452,16 +464,21 @@ private:
     void LoadStore(TSIn& SIn);
 protected:
 	/// Create new store with given ID and name
-	TStore(uchar _StoreId, const TStr& _StoreNm): StoreId(_StoreId),
-		StoreNm(_StoreNm) {  TValidNm::AssertValidNm(StoreNm); }
+	TStore(const TWPt<TBase>& _Base, uchar _StoreId, const TStr& _StoreNm);
 	/// Load store from input stream
-	TStore(TSIn& SIn) { LoadStore(SIn); }
+	TStore(const TWPt<TBase>& _Base, TSIn& SIn);
 	/// Load store from file
-	TStore(const TStr& FNm) { TFIn FIn(FNm); LoadStore(FIn); }
+	TStore(const TWPt<TBase>& _Base, const TStr& FNm);
+    /// Store to disk
     virtual ~TStore() { }
     
 	/// Save store to output stream
 	void SaveStore(TSOut& SOut) const;
+    
+    /// Access to base
+    const TWPt<TBase>& GetBase() const { return Base; }
+    /// Access to index
+    const TWPt<TIndex>& GetIndex() const { return Index; }
     
 	/// Register new field to the store
     int AddFieldDesc(const TFieldDesc& FieldDesc);
@@ -481,6 +498,9 @@ protected:
     void IntVToStrV(const TIntV& IntV, const TStrHash<TInt, TBigStrPool>& WordH, TStrV& StrV) const;
 	/// Helper function for handling string and vector pools
 	void IntVToStrV(const TIntV& IntV, TStrV& StrV) const;
+    
+    /// Processing nested join records in JSon
+    void AddJoinRec(const uint64& RecId, const PJsonVal& RecVal);
 
 public:
     /// Get store ID
@@ -511,6 +531,8 @@ public:
 	int GetJoinKeyId(const int& JoinId) const { return JoinDescV[JoinId].GetJoinKeyId(); }
 	/// Get full join description for the join with the given ID
 	const TJoinDesc& GetJoinDesc(const int& JoinId) const { return JoinDescV[JoinId]; }
+    /// Register inverse join
+    void PutInverseJoinId(const int& JoinId, const int& InverseJoinId);
 
     /// Get number of registered fields
     int GetFields() const { return FieldDescV.Len(); }
@@ -562,7 +584,20 @@ public:
 	/// Checks if no records in the store
 	bool Empty() const { return (GetRecs() == uint64(0)); }
     
-	/// Check if the value of given field for a given record is NULL
+	/// Add new record provided as JSon
+	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;
+	/// Update existing record with updates in provided JSon
+	virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
+    
+    /// Add join
+    void AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq);
+    /// Delete join
+    void DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq);
+    
+    /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
+	virtual void GarbageCollect() { }
+    
+    /// Check if the value of given field for a given record is NULL
 	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
     /// Get field value using field id (default implementation throws exception)
     virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
@@ -619,7 +654,65 @@ public:
     void GetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, TIntFltKdV& SpV) const;
     /// Get field value using field name (default implementation throws exception)
     void GetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, PBowSpV& SpV) const;
+ 
+	/// Set the value of given field to NULL
+	virtual void SetFieldNull(const uint64& RecId, const int& FieldId);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    /// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
+    /// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
+    /// Set field value using field id (default implementation throws exception)
+	virtual void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
+    /// Set field value using field id (default implementation throws exception)
+    virtual void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
 
+	/// Set the value of given field to NULL
+	void SetFieldNmNull(const uint64& RecId, const TStr& FieldNm);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmInt(const uint64& RecId, const TStr& FieldNm, const int& Int);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmIntV(const uint64& RecId, const TStr& FieldNm, const TIntV& IntV);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmUInt64(const uint64& RecId, const TStr& FieldNm, const uint64& UInt64);
+    /// Set field value using field name (default implementation throws exception)
+	void SetFieldNmStr(const uint64& RecId, const TStr& FieldNm, const TStr& Str);
+    /// Set field value using field name (default implementation throws exception)
+	void SetFieldNmStrV(const uint64& RecId, const TStr& FieldNm, const TStrV& StrV);
+    /// Set field value using field name (default implementation throws exception)
+	void SetFieldNmBool(const uint64& RecId, const TStr& FieldNm, const bool& Bool);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmFlt(const uint64& RecId, const TStr& FieldNm, const double& Flt);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmFltPr(const uint64& RecId, const TStr& FieldNm, const TFltPr& FltPr);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmFltV(const uint64& RecId, const TStr& FieldNm, const TFltV& FltV);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmTm(const uint64& RecId, const TStr& FieldNm, const TTm& Tm);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmTmMSecs(const uint64& RecId, const TStr& FieldNm, const uint64& TmMSecs);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmNumSpV(const uint64& RecId, const TStr& FieldNm, const TIntFltKdV& SpV);
+    /// Set field value using field name (default implementation throws exception)
+    void SetFieldNmBowSpV(const uint64& RecId, const TStr& FieldNm, const PBowSpV& SpV);   
+    
 	/// Get field value as JSon object using field id
 	virtual PJsonVal GetFieldJson(const uint64& RecId, const int& FieldId) const;
 	/// Get field value as human-readable text using field id
@@ -630,13 +723,15 @@ public:
 	virtual TStr GetFieldNmText(const uint64& RecId, const TStr& FieldNm) const;
 
 	/// Helper function for returning JSon definition of fields
-    PJsonVal GetStoreFieldsJson();
+    PJsonVal GetStoreFieldsJson() const;
 	/// Helper function for returning JSon definition of index keys
-    PJsonVal GetStoreKeysJson(const TWPt<TBase>& Base);
+    PJsonVal GetStoreKeysJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of joins
-    PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base);
+    PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of store
-    PJsonVal GetStoreJson(const TWPt<TBase>& Base);
+    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+    /// Parse out record id from record JSon serialization
+    uint64 GetRecId(const PJsonVal& RecVal) const;
 	
     /// Prints record set with all the field values, useful for debugging
 	void PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, TSOut& SOut) const;
@@ -719,6 +814,8 @@ public:
     bool IsByVal() const { return !ByRefP; }
 	/// Get record id (only valid when by reference)
     uint64 GetRecId() const { return RecId; }
+    /// Get record name (only valid when by reference)
+    TStr GetRecNm() const { return Store->GetRecNm(RecId); }
 
     /// Checks if field value is null
 	bool IsFieldNull(const int& FieldId) const;
@@ -1296,7 +1393,7 @@ typedef enum {
 	oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
 	oiktText     = (1 << 1), ///< Index as free text, using inverted index 
 	oiktLocation = (1 << 2), ///< Index as location. using geoindex 
-	oiktInternal = (1 << 3)  ///< Index used internaly for joins, using inverged index
+	oiktInternal = (1 << 3)  ///< Index used internaly for joins, using inverted index
 } TIndexKeyType;
 
 ///////////////////////////////
@@ -1362,6 +1459,8 @@ public:
 	bool IsWordVoc() const { return WordVocId != -1; }
 	/// Get id of word vocabulary used by the key
 	int GetWordVocId() const { return WordVocId; }
+    /// Get key type
+    TIndexKeyType GetTypeFlags() const { return TypeFlags; }
 	/// Checks key type is value
 	bool IsValue() const { return ((TypeFlags & oiktValue) != 0); }
 	/// Checks key type is text
@@ -1402,13 +1501,15 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TIndexWordVoc>;
+    /// Word vocabulary name
+    TStr WordVocNm;
 	/// Count of records sent through this vocabulary
 	TUInt64 Recs; 
 	/// Hash table with all the words
 	TStrHash<TInt> WordH;
 
 	TIndexWordVoc() { }
-	TIndexWordVoc(TSIn& SIn): WordH(SIn) { }
+	TIndexWordVoc(TSIn& SIn): WordVocNm(SIn), WordH(SIn) { }
 public:	
 	/// Create new empty vocabulary
 	static TPt<TIndexWordVoc> New() { return new TIndexWordVoc; }
@@ -1416,7 +1517,7 @@ public:
 	static TPt<TIndexWordVoc> Load(TSIn& SIn) { return new TIndexWordVoc(SIn); }
 	
 	/// Serialize vocabulary to stream
-	void Save(TSOut& SOut) { WordH.Save(SOut); }
+	void Save(TSOut& SOut) { WordVocNm.Save(SOut); WordH.Save(SOut); }
 
 	/// Check if word with given ID exists
 	bool IsWordId(const uint64& WordId) const { return WordH.IsKeyId((int)WordId); }
@@ -1454,6 +1555,13 @@ public:
 	void IncRecs() { Recs++; }
 	/// Add new word to the vocabulary (if existing, it increases its count)
 	uint64 AddWordStr(const TStr& WordStr);
+    
+    /// Check if vocabulary has a name assigned (used for easier referencing in schemas)
+    bool IsWordVocNm() const { return !WordVocNm.Empty(); }
+    /// Get name of the vocabulary
+    const TStr& GetWordVocNm() const { return WordVocNm; }    
+    /// Set vocabulary name
+    void SetWordVocNm(const TStr& _WordVocNm) { WordVocNm = _WordVocNm; }
 };
 typedef TPt<TIndexWordVoc> PIndexWordVoc;
 typedef TVec<PIndexWordVoc> TIndexWordVocV;
@@ -1510,6 +1618,11 @@ public:
 	
 	/// Create new word vocabulary, returns its ID
 	int NewWordVoc() { return WordVocV.Add(TIndexWordVoc::New()); }
+    /// Get Id of word vocabulary with a given name if one exists, -1 otherwise
+    int GetWordVoc(const TStr& WordVocNm) const;
+    /// Set the name of word vocabulary 
+    void SetWordVocNm(const int& WordVocId, const TStr& WordVocNm);
+    
 	/// Create new key in the index vocabulary
 	int AddKey(const uchar& StoreId, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
@@ -2009,8 +2122,11 @@ public:
     /// Add to inverted index (RecId, RecFq) under key (KeyId, WordId).
     void Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
 
-    /// Delete index for RecId under (Key, Word)
+    /// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
 	void Delete(const int& KeyId, const TStr& WordStr, const uint64& RecId);
+	/// Delete index for RecId under (Key, Word). WordStrV is sent through index vocabulary.
+	/// Repeated words have associated weight based on their count.
+	void Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
 	/// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
 	void Delete(const uchar& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
     /// Delete index for RecId under (Key, Word)
@@ -2472,9 +2588,8 @@ public:
 	// execute operator
 	void Operator(const TRecSetV& InRecSetV, const PJsonVal& ParamVal, TRecSetV& OutRecSetV);	
 
-  // creating new index keys
 	// create new word vocabulary and returns its id
-	int NewIndexWordVoc(const TIndexKeyType& Type);
+	int NewIndexWordVoc(const TIndexKeyType& Type, const TStr& WordVocNm = TStr());
 	// creates index key, without linking it to a filed, returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const TIndexKeyType& Type = oiktValue,
 		const TIndexKeySortType& SortType = oikstUndef);
@@ -2495,13 +2610,22 @@ public:
 		const int& WordVocId, const TIndexKeyType& Type = oiktValue, 
 		const TIndexKeySortType& SortType = oikstUndef);
 
+    /// Add new record to a give store
+	uint64 AddRec(const TWPt<TStore>& Store, const PJsonVal& RecVal);
+    /// Add new record to a give store
+	uint64 AddRec(const TStr& StoreNm, const PJsonVal& RecVal);
+    /// Add new record to a give store
+	uint64 AddRec(const int StoreId, const PJsonVal& RecVal);
+    
     // searching records (default search interface)
 	PRecSet Search(const PQuery& Query);
 	PRecSet Search(const TQueryItem& QueryItem);
 	PRecSet Search(const TStr& QueryStr);
 	PRecSet Search(const PJsonVal& QueryVal);
+    
+    /// Execute garbage collection on all stores
+    void GarbageCollect();    
 
-  // temporary folder available to any parts of QMiner that need some temporary disk storage
     // is temporary folder defined
 	bool IsTempFPath() const { return TempFPathP; }
 	// get temporary folder
@@ -2509,7 +2633,7 @@ public:
 	// set temporary folder
 	void PutTempFPath(const TStr& _TempFPath) { TempFPathP = true; TempFPath = _TempFPath; }
 
-  // temporary index (useful at batch processing)
+    // temporary index (useful at batch processing)
   	bool IsTempIndex() const { return !TempIndex.Empty(); }
 	void InitTempIndex(const uint64& IndexCacheSize);
 	void MergeTempIndex() { TempIndex->Merge(Index); TempIndex.Clr(); }
@@ -2517,7 +2641,7 @@ public:
 	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
 	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
-  // statistics
+    // statistics
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);
 	void PrintIndex(const TStr& FNm, const bool& SortP);

@@ -429,19 +429,17 @@ public:
 	v8::Persistent<v8::Context> Context; 
 	/// QMiner Base
 	TWPt<TBase> Base;
-	/// Generic Base
-	TWPt<TGenericBase> GenericBase;
 	/// List of declared triggers
 	TVec<TPair<TUCh, PStoreTrigger> > TriggerV;
 	/// HTTP web fetcher
 	TWPt<TJsFetch> JsFetch;
 	
 public:
-	TScript(const PGenericBase& GenericBase, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
+	TScript(const PBase& _Base, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
 		const TStrV& _IncludeFPathV, const TVec<TJsFPath>& _AllowedFPathV);
-	static PScript New(const PGenericBase& GenericBase, const TStr& ScriptNm, const TStr& ScriptFNm, 
+	static PScript New(const PBase& Base, const TStr& ScriptNm, const TStr& ScriptFNm, 
 		const TStrV& IncludeFPathV, const TVec<TJsFPath>& AllowedFPathV) { 
-			return new TScript(GenericBase, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
+			return new TScript(Base, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
 	~TScript();
 	
 	/// Get script name
@@ -627,14 +625,12 @@ public:
 	TWPt<TScript> Js;
 	/// QMiner base
 	TWPt<TBase> Base;
-	/// Generic base
-	TWPt<TGenericBase> GenericBase;
 	
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsBase> TJsBaseUtil;
 
-	explicit TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base), GenericBase(_Js->GenericBase) { }
+	explicit TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
 		return TJsBaseUtil::New(new TJsBase(Js)); }
@@ -804,7 +800,8 @@ public:
 	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate(const TWPt<TBase>& Base, const TWPt<TStore>& Store);
 	// properties
-	JsDeclareProperty(id);
+    JsDeclareProperty(id);
+    JsDeclareProperty(name);
 	JsDeclareProperty(fq);
 	JsDeclareProperty(field);
 	JsDeclareProperty(join);
@@ -812,6 +809,7 @@ public:
     // function
     JsDeclareFunction(addJoin);
     JsDeclareFunction(delJoin);
+    JsDeclareFunction(toJSON);
 };
 
 ///////////////////////////////
@@ -859,6 +857,7 @@ public:
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
+	JsDeclareFunction(getLanguageOptions);
     JsDeclareFunction(newFeatureSpace);
 	JsDeclareFunction(trainSvmClassify);
 	JsDeclareFunction(trainKMeans);

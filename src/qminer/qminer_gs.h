@@ -24,22 +24,207 @@
 
 namespace TQm {
 
-// window types
-typedef enum { gbcwtNone = 0, gbcwtLength = 1, gbcwtDriver = 2 } TGenericBlockCacheWindowType;
+namespace TStorage {
+    
+///////////////////////////////
+/// Location to where field is serialized
+typedef enum { 
+    slMemory, ///< in-memory storage
+    slDisk    ///< disk storage with most-recently-used memory cache
+} TStoreLoc;
+    
+///////////////////////////////
+/// Schema description of field.
+/// Contains extra stuff needed for serialization not included in TFieldDesc.
+class TFieldDescEx  {
+public:
+	/// Should be stored in codebook?
+	TBool CodebookP;
+	/// Is small string?
+	TBool SmallStringP;  
+	/// Default value if value not specified
+	PJsonVal DefaultVal;  
+	/// Where will this field be stored- true means 
+	TStoreLoc FieldStoreLoc;
+public:
+	TFieldDescEx() {}
+	TFieldDescEx(TSIn& SIn){ Load(SIn); }
+    
+	void Save(TSOut& SOut) const;
+	void Load(TSIn& SIn);
+};  
 
 ///////////////////////////////
-// Generic in-memory storage
-
-class TGenericMemoryStorage : private TVec<TMem, int64> {
-private:
-	TStr FNmPrefix;
-	TFAccess Access;
-	TUInt64 FirstRecordOffset;
-
+/// Schema description of index key
+class TIndexKeyEx {
 public:
-	TGenericMemoryStorage(const TStr& _FNmPrefix);
-	TGenericMemoryStorage(const TStr& _FNmPrefix, const TFAccess& _Access);
-	~TGenericMemoryStorage();
+	/// Indexed field name
+	TStr FieldName;
+	/// Key name (sometimes different from field name)
+	TStr KeyIndexName;
+	/// Index type
+	TIndexKeyType KeyType;
+	/// How to sort the key (if at all)
+	TIndexKeySortType SortType;
+	/// Word vocabulary name (used by inverted index)
+	TStr WordVocName;
+
+	/// Word vocabulary id (used by inverted index)
+	TInt _x_WordVocId;
+    /// Indexed field id
+	TInt _x_FieldId;
+    /// Indexed field type
+	TFieldType _x_FieldType;
+    
+public:
+	TIndexKeyEx() {}
+	TIndexKeyEx(TSIn& SIn) { Load(SIn); }
+
+	void Save(TSOut& SOut) const;
+	void Load(TSIn& SIn);
+
+    /// Is indexed by value
+	bool IsValue() const { return KeyType == oiktValue; }
+    /// Is indexed as text (tokenized)
+	bool IsText() const { return KeyType == oiktText; }
+    /// Is indexed as geo-location
+	bool IsLocation() const { return KeyType == oiktLocation; }
+	// get index type
+	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
+
+	/// Key sortable as string
+	bool IsByStr() const { return SortType == oikstByStr; }
+    /// Key sortable by ID
+	bool IsById() const { return SortType == oikstById; }
+    /// Key sortable as numeric value
+	bool IsByFlt() const { return SortType == oikstByFlt; }
+};
+
+///////////////////////////////
+// Schema description of join 
+class TJoinDescEx {
+public:
+    /// Join name
+	TStr JoinName;
+    /// Join store name
+	TStr JoinStoreName;
+    /// Join type
+	TStoreJoinType JoinType;
+    /// Name of reverse join (empty if none)
+	TStr InverseJoinName;
+    
+public:
+	TJoinDescEx(): JoinType(osjtUndef) { }
+};
+
+///////////////////////////////
+/// Store windowing type
+typedef enum { 
+    swtNone = 0,   ///< No windowing on the store
+    swtLength = 1, ///< Record-number based windowing
+    swtTime = 2    ///< Time-based windowing
+} TStoreWndType;
+
+///////////////////////////////
+/// Store window description
+class TStoreWndDesc {
+public:
+    /// Prefix used for fields inserted by system
+	static TStr SysInsertedAtFieldName;   
+    
+public:    
+    /// Windowing type
+	TStoreWndType WindowType;
+    /// For time window this is period length in milliseconds, otherwise it is max length
+	TUInt64 WindowSize;   
+    /// User insert time
+	TBool InsertP;        
+    /// Name of the field that serves as time-window indicator
+	TStr TimeFieldNm;   
+    
+public:
+	TStoreWndDesc(): WindowType(swtNone) { }
+	TStoreWndDesc(TSIn& SIn){ Load(SIn); }
+
+	void Save(TSOut& SOut) const;
+	void Load(TSIn& SIn);
+};
+
+///////////////////////////////
+/// Store schema definition.
+/// Contains parsed version of store definition, which can be used to
+/// initialize TStoreImpl and TBaseImpl.
+class TStoreSchema {
+private:   
+	// class for internal static data
+	class TMaps {
+	public:
+		TStrH FieldTypeMap;
+		TStrHash<uint64> TimeWindowUnitMap;
+
+		TMaps();  
+	};
+
+	static TMaps Maps;
+    
+public:
+    /// Store name
+	TStr StoreName;
+    /// Store ID (not requireD)
+	TUCh StoreId;
+    /// True when specified store ID is valid
+	TBool HasStoreIdP;
+    /// Window settings
+	TStoreWndDesc WndDesc;
+    /// Field descriptions
+	TStrHash<TFieldDesc> FieldH;
+    /// Extended field descriptions
+	TStrHash<TFieldDescEx> FieldExH;
+    /// Index key descriptions
+	TVec<TIndexKeyEx> IndexKeyExV;
+    /// Join descriptions
+	TVec<TJoinDescEx> JoinDescExV;
+    
+private:
+    /// Parse field description from JSon
+	TFieldDesc ParseFieldDesc(const PJsonVal& FieldVal);
+    /// Parse extended field description from JSon
+	TFieldDescEx ParseFieldDescEx(const PJsonVal& FieldVal);
+    /// Parse extended join description from JSon
+    TJoinDescEx ParseJoinDescEx(const PJsonVal& JoinVal);
+    /// Parse extended index key description from JSon
+    TIndexKeyEx ParseIndexKeyEx(const PJsonVal& IndexKeyVal);
+    
+public:
+    TStoreSchema() { }
+    TStoreSchema(const PJsonVal& StoreVal);
+    
+    /// Parse JSon definition file and return vector of store schemas
+    static void ParseSchema(const PJsonVal& SchemaVal, TVec<TStoreSchema>& SchemaV);
+    /// Validate give vector of store schemas
+    static void ValidateSchema(const TWPt<TBase>& Base, TVec<TStoreSchema>& SchemaV);
+};
+typedef TVec<TStoreSchema> TStoreSchemaV;
+
+///////////////////////////////
+/// In-memory storage.
+/// Wrapper around TVec of TMems.
+/// TODO: Make circular buffer to avoid moving stuff on delete
+class TInMemStorage {
+private:
+    /// Storage filename
+	TStr FNm;
+    /// Access type with which the storage is opened
+	TFAccess Access;
+    /// Offset of the first record
+	TUInt64 FirstValOffset;
+    /// Storage vector
+    TVec<TMem, int64> ValV;
+    
+public:
+	TInMemStorage(const TStr& _FNm);
+	TInMemStorage(const TStr& _FNm, const TFAccess& _Access);
+	~TInMemStorage();
 
 	// asserts if we are allowed to change stuff
 	void AssertReadOnly() const;
@@ -49,609 +234,312 @@ public:
 	void GetVal(const uint64& ValId, TMem& Val) const; 
 	uint64 AddVal(const TMem& Val);
 	void SetVal(const uint64& ValId, const TMem& Val);
-	void DelVals(int to_delete);
+	void DelVals(int Vals);
 
 	uint64 Len() const;
 	uint64 GetMinId() const;
 	uint64 GetMaxId() const;
 };
 
-//////////////////////////////////////////////////////////////////////////////
-// This class performs (de)serialization of JSON object to 
-// binary stream and back.
-
-class TBsonObj {
-
-public:
-
-	static void Serialize(const TJsonVal& JsonVal, TSOut& SOut) { CreateBsonRecursive(JsonVal, NULL, SOut); };
-	static void SerializeVoc(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool>& Voc, TSOut& SOut) { CreateBsonRecursive(JsonVal, &Voc, SOut); };
-	static int64 GetMemUsed(const TJsonVal& JsonVal) { return GetMemUsedRecursive(JsonVal, false); };
-	static int64 GetMemUsedVoc(const TJsonVal& JsonVal) { return GetMemUsedRecursive(JsonVal, true); };
-
-	static PJsonVal GetJson(TSIn& SIn) { return GetJsonRecursive(SIn, NULL); };
-	static PJsonVal GetJsonVoc(TSIn& SIn, TStrHash<TInt, TBigStrPool>& Voc) { return GetJsonRecursive(SIn, &Voc); };
-
-	static void UnitTest();
-
+////////////////////////////////////
+/// Serialization and de-serialization of records to TMem.
+/// This class handles smart serialization of JSON with respect to field 
+/// serialization definitions. It supports NULL flags. It packs fixed-width 
+/// fields together. Variable-width fields are store in two parts - first 
+/// there's an index array so that for each field we store its offset inside 
+/// the buffer. Then there is the real variable-length part where the content
+/// is stored.
+class TRecSerializator {
 private:
+    ///////////////////////////////
+    /// Field serialization parameters.
+    /// This class contains data about field serialization
+    class TFieldSerialDesc {
+    public:
+        /// Id of this field inside TStore
+        TInt FieldId;
+        /// Where will this field be stored- true means 
+        TStoreLoc StoreLoc;
+        /// Offset of byte that contains NULL bit indicator for this field
+        TUCh NullMapByte;
+        /// Mask to use on the NULL-bit indicator byte
+        TUCh NullMapMask;
+        /// Is this field stored in fixed or variable part
+        TBool FixedPartP;
+        /// Offset in fixed or variable-index part
+        TInt Offset;
+        /// Is this field actually a string that is encoded using codebook
+        TBool CodebookP;
+        /// Is this field a short string?
+        TBool SmallStringP;
+        /// Default value if value not specified
+        PJsonVal DefaultVal;  
 
-	static void CreateBsonRecursive(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool> *Voc, TSOut& SOut);
-	static int64 GetMemUsedRecursive(const TJsonVal& JsonVal, bool UseVoc);
-	static PJsonVal GetJsonRecursive(TSIn& SIn, TStrHash<TInt, TBigStrPool>* Voc);
-};
+    public:    
+        TFieldSerialDesc() {}
+        TFieldSerialDesc(TSIn& SIn){ Load(SIn); }
 
-///////////////////////////////////////////////////////////////////////////////////
-// forward declarations
+        // methods required for (de)serialization of this class inside TVec into TSOut and TSIn
+        void Save(TSOut& SOut) const;
+        void Load(TSIn& SIn);
+    };
 
-class TGenericBase; typedef TPt<TGenericBase> PGenericBase;
-class TGenericStore; typedef TPt<TGenericStore> PGenericStore;
-class TGenericStoreFieldDesc;
-
-/////////////////////////////////////////////////////////////////////////
-// interface for store definition
-class IFieldDescProvider {
-public:
-	virtual int GetFieldCount() const = 0;
-	virtual const TFieldDesc& GetFieldDescription(int i) const = 0;
-	virtual const TGenericStoreFieldDesc& GetGenericStoreFieldDesc(int i) const = 0;
-	virtual const TStr& GetNameField() const = 0;
-};
-
-///////////////////////////////////////////////////////////////////////////////////
-// this class contains data about field serialization
-
-class TGenericStoreSerialF {
-public:
-	// offset of byte that contains NULL bit indicator for this field
-	TUCh NullMapByte;
-	// mask to use on the NULL-bit indicator byte
-	TUCh NullMapMask;
-	// is this field stored in fixed or variable part
-	TBool InFixedPart;
-	// offset in fixed or var-index part
-	TInt Offset;
-	// id of this field inside TStore
-	TInt FieldId;
-	// is this field actually a string that is encoded using codebook
-	TBool IsCodebookString;
-	// is this field a short string?
-	TBool IsShortString;
-
-	// methods required for (de)serialization of this class inside TVec into TSOut and TSIn
-	void Save(TSOut& SOut) const {
-		SOut.Save(NullMapByte.Val);
-		SOut.Save(NullMapMask.Val);
-		InFixedPart.Save(SOut);
-		Offset.Save(SOut);
-		FieldId.Save(SOut); 
-		IsCodebookString.Save(SOut);
-		IsShortString.Save(SOut);
-	}
-
-	void Load(TSIn& SIn) {
-		uchar tc; 
-		SIn.Load(tc);
-		NullMapByte = tc;
-		SIn.Load(tc); 
-		NullMapMask = tc; 
-		InFixedPart.Load(SIn);
-		Offset.Load(SIn); 
-		FieldId.Load(SIn); 
-		IsCodebookString.Load(SIn);
-		IsShortString.Load(SIn);
-	}
-
-	TGenericStoreSerialF() {}
-	TGenericStoreSerialF(TSIn& SIn){ Load(SIn); }
-};
-
-///////////////////////////////////////////////////////////////////////////////////
-// this class contains extra data about field, specific to generic store
-
-class TGenericStoreFieldDesc  {
-public:
-	// Should be used as name field?
-	TBool UseAsName;
-	// Should be stored in codebook?
-	TBool UseCodebook;
-	// Is small string?
-	TBool IsSmallString;  
-	// default value if value not specified
-	PJsonVal DefValue;  
-	// where will this field be stored- true means 
-	TCh FieldStoreLoc;
-
-	// methods required for (de)serialization of this class inside TVec into TSOut and TSIn
-	void Save(TSOut& SOut) const {
-		UseAsName.Save(SOut);
-		UseCodebook.Save(SOut);
-		IsSmallString.Save(SOut);
-		DefValue.Save(SOut);
-		FieldStoreLoc.Save(SOut);
-	}
-
-	void Load(TSIn& SIn) {
-		UseAsName.Load(SIn);
-		UseCodebook.Load(SIn);
-		IsSmallString.Load(SIn);
-		DefValue = PJsonVal(SIn);
-		FieldStoreLoc = TCh(SIn);
-	}
-
-	TGenericStoreFieldDesc() {}
-	TGenericStoreFieldDesc(TSIn& SIn){ Load(SIn); }
-};
-
-///////////////////////////////////////////////////////////////////////////////////
-// description of key-index - can be serialized
-class TGenericKeyIndexDesc {
-public:
-	// key id in QMiner index
-	TInt KeyId;
-	// indexed field
-	TStr FieldName;
-	TInt FieldId;
-	TFieldType FieldType;
-	// key name (sometimes different from field name)
-	TStr KeyIndexName;
-	// index type
-	TIndexKeyType KeyType;
-	// how to sort the key (if at all)
-	TIndexKeySortType SortType;
-	// word vocabulary (used by some inverted index)
-	TStr WordVocName;
-	TInt WordVocId;
-	// list of fixed words when given at start
-	TStrV WordVocWdV;
-
-public:
-	TGenericKeyIndexDesc() {}
-	TGenericKeyIndexDesc(TSIn& SIn) { Load(SIn); }
-
-	void Save(TSOut& SOut) const {
-		KeyId.Save(SOut); FieldName.Save(SOut); FieldId.Save(SOut); TInt(FieldType).Save(SOut);
-		KeyIndexName.Save(SOut); TInt(KeyType).Save(SOut); TInt(SortType).Save(SOut);
-		WordVocName.Save(SOut); WordVocId.Save(SOut); WordVocWdV.Save(SOut);
-	}
-
-	void Load(TSIn& SIn) {
-		KeyId.Load(SIn); FieldName.Load(SIn); FieldId.Load(SIn);
-		FieldType = (TFieldType)TInt(SIn).Val; KeyIndexName.Load(SIn);
-		KeyType = (TIndexKeyType)TInt(SIn).Val;
-		SortType = (TIndexKeySortType)TInt(SIn).Val; 
-		WordVocName.Load(SIn); WordVocId.Load(SIn); WordVocWdV.Load(SIn);
-	}
-
-	// get index type
-	bool IsValue() const { return KeyType == oiktValue; }
-	bool IsText() const { return KeyType == oiktText; }
-	bool IsLocation() const { return KeyType == oiktLocation; }
-	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
-
-	// get sort type
-	bool IsByStr() const { return SortType == oikstByStr; }
-	bool IsById() const { return SortType == oikstById; }
-	bool IsByFlt() const { return SortType == oikstByFlt; }
-};
-
-////////////////////////////////////////////////////////////////////
-// generic-store settings
-
-class TGenericStoreSettings {
-public:
-	TGenericBlockCacheWindowType WindowType;
-	TUInt64 WindowSize;   // for time window this is period length in milliseconds, otherwise it is max length
-	TBool InsertP;        // user insert time
-	TStr FieldAsSource;   // name of the field that serves as time-window indicator
-	TInt FieldId;         // id of FieldAsSource, calculated at run-time
-	
-	void Save(TSOut& SOut) const {     
-		TInt i((int)WindowType);
-		i.Save(SOut);
-		WindowSize.Save(SOut);
-		InsertP.Save(SOut);
-		FieldAsSource.Save(SOut);
-	}
-
-	void Load(TSIn& SIn) {
-		TInt i(SIn);
-		WindowType = (TGenericBlockCacheWindowType)i.Val;
-		WindowSize.Load(SIn);
-		InsertP.Load(SIn);
-		FieldAsSource.Load(SIn);
-	}
-
-	TGenericStoreSettings() { WindowType = gbcwtNone; }
-	TGenericStoreSettings(TSIn& SIn){ Load(SIn); }
-
-	static const char* const SysInsertedAtFieldName;
-};
-
-///////////////////////////////////////////////////////////////////////////////////
-// this class contains join information that is given by the schema
-
-class TGenericStoreJoinSchema {
-public:
-	TStr JoinName;
-	TStr OtherStoreName;
-	TBool IsFieldJoin;
-	TStr InverseJoinName;
-
-	TGenericStoreJoinSchema(): IsFieldJoin(false) {}
-};
-
-///////////////////////////////////////////////////////////////////////////////////
-// this class is used to collect new store information after parsing the definition.
-// It is used for validation and servers as the basis for actual creation of new store.
-
-class TGenericStoreSchema {
-
-public:
-	TStr StoreName;
-	TUCh Id;
-	TBool IdSpecified;
-	TGenericStoreSettings StoreSettings;
-	TStrHash<TFieldDesc> Fields;
-	TStrHash<TGenericStoreFieldDesc> FieldsEx;
-	TVec<TGenericKeyIndexDesc> Indexes;
-	TVec<TGenericStoreJoinSchema> JoinsStr;
-};
-
-typedef TVec<TGenericStoreSchema> TGenericSchema;
-
-////////////////////////////////////////////////////////////////////////////////////////
-// This clas handles smart serialization of JSON with respect to field definitions.
-// It supports NULL flags.
-// It packs fixed-width fields together.
-// Varialble-width fields are store in two parts - first there's an index array
-// so that for each field we store its offset inside the buffer.
-// Then there is the real variable-length part where the content is stored.
-
-class TGenericStoreSerializator;
-typedef TPt<TGenericStoreSerializator> PGenericStoreSerializator;;
-
-class TGenericStoreSerializator {
-private: 
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt<TGenericStoreSerializator>;
-
-	// only store fields with this storage flag
-	TCh TargetStorage;
-
-	// offset of fixed part
-	TInt FixedPartOffset;
-
-	// offset of var-index part
-	TInt VarIndexPartOffset;
-
-	// offset of var-content part
-	TInt VarContentPartOffset;
-
-	// definition of fields - order of definitions in this vector
-	// also means order of serialization
-	TVec<TGenericStoreSerialF> FieldsF;
-
-	// mapping from Field id (in TStore) to index inside FieldsF
-	THash<TInt, TInt> FieldsH;
-	// mapping from Field id (in TStore) to index inside FieldsF
-	THash<TInt, TGenericStoreSerialF> FieldsH2;
-	// codebook for encoding strings
-	TStrHash<TInt, TBigStrPool> Codebook;
-
-	// this method returns index of field record in internal vector
-	int GetFRecIndex(const int& FieldId) const {
-		if (!FieldsH.IsKey(FieldId))
-			throw TQmExcept::New(TStr::Fmt("TGenericStoreSerializator: Field with ID not found: %d", FieldId));
-		return FieldsH.GetDat(FieldId);
-	}
-
-	// this method finds location inside the buffer for fixed-width fields
-	uchar* GetLocationFixed(const TMem& Source, const int& FieldId) const {
-		int i = GetFRecIndex(FieldId);
-		TGenericStoreSerialF rec = FieldsF[i];
-		return GetLocationFixed(Source, rec);
-	}
-
-	// this method finds location inside the buffer for fixed-width fields
-	uchar* GetLocationFixed(const TMem& Source, const TGenericStoreSerialF& rec) const {
-		uchar* bf = (uchar*)Source.GetBf() + FixedPartOffset + rec.Offset;
-		Assert(bf < ((uchar*)Source.GetBf() + Source.Len()));
-		return bf;
-	}
-
-	// this method finds location inside the buffer for variable-width fields
-	int GetOffsetVar(const TMem& Source, const int& FieldId) const {
-		int i = GetFRecIndex(FieldId);
-		TGenericStoreSerialF rec = FieldsF[i];
-		uchar* bf = (uchar*)Source.GetBf();
-		int offset = *((int*)(bf + VarIndexPartOffset + rec.Offset));
-		Assert(VarContentPartOffset + offset < Source.Len());
-		return VarContentPartOffset + offset;
-	}
-
-	// this method finds location inside the buffer for variable-width fields
-	uchar* GetLocationVar(const TMem& Source, const int& FieldId) const {
-		int i = GetFRecIndex(FieldId);
-		TGenericStoreSerialF rec = FieldsF[i];
-		return GetLocationVar(Source, rec);
-	}
-
-	// this method finds location inside the buffer for variable-width fields
-	uchar* GetLocationVar(const TMem& Source, const TGenericStoreSerialF& rec) const {
-		uchar* bf = (uchar*)Source.GetBf();
-		int offset = *((int*)(bf + VarIndexPartOffset + rec.Offset));
-		uchar* bf2 = (bf + VarContentPartOffset) + offset; 
-		Assert(bf2 < ((uchar*)Source.GetBf() + Source.Len()));
-		return bf2;
-	}
-
-	// this method saves content offset for specified variable field
-	void SetLocationVar(const TMem& Bf, const TGenericStoreSerialF& rec, const int& var_content_offset) const {
-		Assert(VarIndexPartOffset + rec.Offset <= (Bf.Len() - 4));
-		*((int*)(Bf.GetBf() + VarIndexPartOffset + rec.Offset)) = var_content_offset;			
-	}
-
-	// this method sets or unsets NULL flag for specified field
-	void SetNullFlag(const TMem& Source, const int FieldId, const bool is_null) const {
-		int i = GetFRecIndex(FieldId);
-		TGenericStoreSerialF rec = FieldsF[i];
-		SetNullFlag(Source,rec, is_null);
-	}
-
-	// this method sets or unsets NULL flag for specified field
-	void SetNullFlag(const TMem& Source, const TGenericStoreSerialF& rec, const bool is_null) const {
-		uchar* bf = (uchar*)Source.GetBf() + rec.NullMapByte;
-		Assert(bf < ((uchar*)Source.GetBf() + Source.Len()));
-		if (is_null)
-			*bf |= rec.NullMapMask;
-		else
-			*bf &= ~rec.NullMapMask;
-	}
-
-	// this method calculates length of buffer where given var-length field is stored
-	int GetVarPartBfLen(TMem& Source, const TGenericStoreSerialF rec) { 
-		uchar* bf = (uchar*)Source.GetBf();
-		int offset1 = *((int*)(bf + VarIndexPartOffset + rec.Offset));
-		int offset2 = -1;
-		if (VarIndexPartOffset + rec.Offset + (int)sizeof(int) < VarContentPartOffset)
-			offset2 = *((int*)(bf + VarIndexPartOffset + rec.Offset + sizeof(int)));
-		else
-			offset2 = Source.Len() - VarContentPartOffset;
-		Assert(offset2-offset1 >= 0);
-		return offset2-offset1;
-	}
-
-	void SetFixedPart(TMem& internal_mem, const TGenericStoreSerialF& rec, const TFieldDesc& fd, const PJsonVal& json_child);
-	void SetVarPart(TMem& internal_mem, TMOut& internal_sout, const TGenericStoreSerialF& rec, const TFieldDesc& fd, const PJsonVal& json_child);
-
-	/////////////////////////////////////////////////
-	// Thin Input-Memory
-	// Used to present existing buffer as TSIn. 
-	// It doesn't allocate or release any memory
-	// TODO: extend TMIn so it can wrap around buffer and not claim it (simialr to TMOut)
+    /////////////////////////////////////////////////
+	/// Thin Input-Memory. Used to present existing TMem as TSIn. 
+    /// It doesn't allocate or release any memory.
 	class TThinMIn: public TSIn{
 	private:
 		uchar* Bf;
 		int BfC, BfL;
 	private:
 	public:
-		TThinMIn(const TMem& Mem) : TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(0) { 
-			Bf = (uchar*)Mem.GetBf();
-			BfL = Mem.Len();
-		}
-		TThinMIn(const void* _Bf, const int& _BfL) : TSBase("Thin input memory"), TSIn("Thin input memory"), Bf(NULL), BfC(0), BfL(_BfL) { 
-			Bf = (uchar*)_Bf;
-		}
-		bool Eof(){return BfC==BfL;}
-		int Len() const {return BfL-BfC;}
-		char GetCh(){
-			QmAssertR(BfC<BfL, "Reading beyond the end of stream.");
-			return Bf[BfC++];
-		}
-		char PeekCh(){
-			QmAssertR(BfC<BfL, "Reading beyond the end of stream.");
-			return Bf[BfC];
-		}
-		int GetBf(const void* LBf, const TSize& LBfL){
-			Assert(TSize(BfC+LBfL)<=TSize(BfL));
-			int LBfS=0;
-			for (TSize LBfC=0; LBfC<LBfL; LBfC++){
-				LBfS+=(((char*)LBf)[LBfC]=Bf[BfC++]);}
-			return LBfS;
-		}
-		void Reset(){Cs=TCs(); BfC=0;}
-		uchar* GetBfAddr(){return Bf;}
-		void MoveTo(int Offset){ 
-			QmAssertR(Offset<BfL, "Reading beyond the end of stream.");
-			BfC = Offset;
-		}
-		bool GetNextLnBf(TChA& LnChA) { FailR("TMIn::GetNextLnBf: not implemented"); return false; }
+		TThinMIn(const TMem& Mem);
+		TThinMIn(const void* _Bf, const int& _BfL);
+        
+		bool Eof() { return BfC == BfL; }
+		int Len() const { return BfL-BfC; }
+		char GetCh();
+		char PeekCh();
+		int GetBf(const void* LBf, const TSize& LBfL);
+		void Reset() { Cs = TCs(); BfC = 0; }
+		uchar* GetBfAddr() { return Bf; }
+		void MoveTo(int Offset);
+		bool GetNextLnBf(TChA& LnChA);
 	};
+    
+private: 
+	/// Only store fields with this storage flag
+	TStoreLoc TargetStorage;
+	/// Offset of fixed part
+	TInt FixedPartOffset;
+	/// Offset of var-index part
+	TInt VarIndexPartOffset;
+	/// Offset of var-content part
+	TInt VarContentPartOffset;
+	/// Definition of fields. 
+    /// Order of definitions in this vector defines the order of serialization
+	TVec<TFieldSerialDesc> FieldSerialDescV;
+	/// Mapping from Field id (in TStore) to index inside FieldsF
+	THash<TInt, TInt> FieldIdToSerialDescIdH;	
+	/// Codebook for encoding strings
+	TStrHash<TInt, TBigStrPool> CodebookH;
 
+    /// Dump report used on failed asserts
+    TStr GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+    
+	/// returns field serialization description
+	const TFieldSerialDesc& GetFieldSerialDesc(const int& FieldId) const;
+	/// finds location inside the buffer for fixed-width fields
+	uchar* GetLocationFixed(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// finds location inside the buffer for variable-width fields
+	int GetOffsetVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// finds location inside the buffer for variable-width fields
+	uchar* GetLocationVar(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc) const;
+	/// calculates length of buffer where given var-length field is stored
+	int GetVarPartBfLen(const TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc);
+    
+	/// set content offset for specified variable field
+	void SetLocationVar(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& VarOffset) const;
+	/// sets or un-sets NULL flag for specified field
+	void SetFieldNull(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
+    
+    /// Fixed-length field setter
+    void SetFieldInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+    /// Fixed-length field setter
+    void SetFieldUInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+    /// Fixed-length field setter
+    void SetFieldStr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    /// Fixed-length field setter
+    void SetFieldBool(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+    /// Fixed-length field setter
+    void SetFieldFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+    /// Fixed-length field setter
+    void SetFieldFltPr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+    /// Fixed-length field setter
+    void SetFieldTm(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+    /// Fixed-length field setter
+    void SetFieldTmMSecs(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+    /// Parse fixed-length type field JSon value and serialize it accordingly to it's type
+	void SetFixedJsonVal(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, 
+        const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
+
+    /// Variable-length field setter
+    void SetFieldIntV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TIntV& IntV);
+    /// Variable-length field setter
+    void SetFieldStr(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    /// Variable-length field setter
+    void SetFieldStrV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TStrV& StrV);
+    /// Variable-length field setter
+    void SetFieldFltV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TFltV& FltV);
+    /// Variable-length field setter
+    void SetFieldNumSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const TIntFltKdV& SpV);
+    /// Variable-length field setter
+    void SetFieldBowSpV(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, const PBowSpV& SpV);    
+    /// parse variable-length field JSon value and serialize it accordingly to it's type
+	void SetVarJsonVal(TMem& RecMem, TMOut& SOut, const TFieldSerialDesc& FieldSerialDesc, 
+        const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
+    /// copy variable-length field from InRecMem to FixedMem and SOut
+    void CopyFieldVar(const TMem& InRecMem, TMem& FixedMem, TMOut& VarSOut, const TFieldSerialDesc& FieldSerialDesc);
+
+    /// Extract fixed part from record
+    void ExtractFixedMem(const TMem& InRecMem, TMem& FixedMem);
+    /// Combine fixed and variable buffers into a record
+    void Merge(const TMem& FixedMem, const TMOut& VarSOut, TMem& OutRecMem);
+    
 public:
-	// constructor inits internal mappings and other structures
-	TGenericStoreSerializator(const IFieldDescProvider* FieldDescProvider, const char _TargetStorage);
+    TRecSerializator() { }
+    /// Initialize object from store schema
+    TRecSerializator(const TWPt<TStore>& Store, 
+            const TStoreSchema& StoreSchema, const TStoreLoc& _TargetStorage);
+    
+	/// Load from input stream
+	void Load(TSIn& SIn);
+	/// Save to output stream
+	void Save(TSOut& SOut);
 
-	// for regenerating from existing settings
-	TGenericStoreSerializator(TSIn& SIn) {				
-		FixedPartOffset.Load(SIn);
-		VarIndexPartOffset.Load(SIn);
-		VarContentPartOffset.Load(SIn);
-		FieldsF.Load(SIn);
-		FieldsH.Load(SIn);
-		Codebook.Load(SIn);
-		TargetStorage = TCh(SIn);
-	}
+	/// Serialize JSon object
+	void Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWPt<TStore>& Store);
+    /// Update existing serialization with updated fields from JSon object
+	void SerializeUpdate(const PJsonVal& RecVal, const TMem& InRecMem, TMem& OutRecMem, 
+        const TWPt<TStore>& Store, TIntSet& ChangedFieldIdSet);
 
-	static PGenericStoreSerializator New(const IFieldDescProvider* FieldDescProvider, const char _TargetStorage) {
-		return new TGenericStoreSerializator(FieldDescProvider, _TargetStorage);
-	}
-	static PGenericStoreSerializator New(TSIn& SIn) {
-		return new TGenericStoreSerializator(SIn);
-	}
+	/// Check if field inside this serializator
+	bool IsFieldId(const int& FieldId) const { return FieldIdToSerialDescIdH.IsKey(FieldId); }
+    
+	/// Field getter
+	bool IsFieldNull(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	int GetFieldInt(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldIntV(const TMem& RecMem, const int& FieldId, TIntV& IntV) const;
+	/// Field getter
+	uint64 GetFieldUInt64(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	TStr GetFieldStr(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldStrV(const TMem& RecMem, const int& FieldId, TStrV& StrV) const;
+	/// Field getter
+	bool GetFieldBool(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	double GetFieldFlt(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	TFltPr GetFieldFltPr(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+	void GetFieldFltV(const TMem& RecMem, const int& FieldId, TFltV& FltV) const;
+	/// Field getter
+	void GetFieldTm(const TMem& RecMem, const int& FieldId, TTm& Tm) const;
+	/// Field getter
+	uint64 GetFieldTmMSecs(const TMem& RecMem, const int& FieldId) const;
+	/// Field getter
+    void GetFieldNumSpV(const TMem& RecMem, const int& FieldId, TIntFltKdV& SpV) const;
+	/// Field getter
+    void GetFieldBowSpV(const TMem& RecMem, const int& FieldId, PBowSpV& SpV) const;    
 
-	// for storing to disk
-	void Save(TSOut& SOut) {
-		FixedPartOffset.Save(SOut);
-		VarIndexPartOffset.Save(SOut);
-		VarContentPartOffset.Save(SOut);
-		FieldsF.Save(SOut);
-		FieldsH.Save(SOut);
-		Codebook.Save(SOut);
-		TargetStorage.Save(SOut);
-	}
-
-	// go from JSON to binary
-	void Serialize(const PJsonVal& JsonVal, TMem& Destination, const IFieldDescProvider* FieldDescProvider, const THash<TStr, uint64>& FieldJoinIds);
-	void SerializeUpdate(const PJsonVal& JsonVal, TMem& Source, TMem& Destination, const IFieldDescProvider* FieldDescProvider, const THash<TStr, uint64>& FieldJoinIds, TVec<int>& ChangedFields);
-
-	// go from binary to JSON
-	void Deserialize(PJsonVal& JsonVal, const TMem& Source, const IFieldDescProvider* FieldDescProvider) const;
-
-	// check if field inside
-	bool IsFieldId(const int& FieldId) const {
-		return FieldsH.IsKey(FieldId);
-	}
-
-	// access methods
-	bool IsFieldNull(const TMem& Source, const int& FieldId) const {
-		int i = GetFRecIndex(FieldId);
-		TGenericStoreSerialF rec = FieldsF[i];
-		uchar* bf = (uchar*)Source.GetBf() + rec.NullMapByte;
-		return ((*bf & rec.NullMapMask) != 0);
-	}
-	int GetFieldInt(const TMem& Source, const int& FieldId) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		return *((int*)bf);
-	}
-	TStr GetFieldStr(const TMem& Source, const int& FieldId) const {
-		int i = GetFRecIndex(FieldId);
-		TGenericStoreSerialF rec = FieldsF[i];
-		if (rec.InFixedPart) {
-			uchar* bf = GetLocationFixed(Source, rec);      
-			int codebook_id = *((int*)bf);
-			return Codebook.GetKey(codebook_id);
-		} else {
-			TThinMIn MIn(Source);
-			MIn.MoveTo(GetOffsetVar(Source, FieldId));
-			TStr s;
-			s.Load(MIn, rec.IsShortString);
-			return s;
-		}
-	} 
-	bool GetFieldBool(const TMem& Source, const int& FieldId) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		return *((bool*)bf);
-	}
-	double GetFieldFlt(const TMem& Source, const int& FieldId) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		return *((double*)bf);
-	}
-	TFltPr GetFieldFltPr(const TMem& Source, const int& FieldId) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		return TFltPr(*((double*)bf), *(((double*)bf) + 1));
-	}
-	void GetFieldTm(const TMem& Source, const int& FieldId, TTm& Tm) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		uint64 val = *((uint64*)bf);		
-		Tm = TTm::GetTmFromMSecs(val);
-	}
-	uint64 GetFieldTmAsUInt64(const TMem& Source, const int& FieldId) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		return *((uint64*)bf);
-	}
-	uint64 GetFieldUInt64(const TMem& Source, const int& FieldId) const {
-		uchar* bf = GetLocationFixed(Source, FieldId);
-		return *((uint64*)bf);
-	}	
-	void GetFieldStrV(const TMem& Source, const int& FieldId, TStrV& StrV) const {
-		TThinMIn MIn(Source);
-		MIn.MoveTo(GetOffsetVar(Source, FieldId));
-		StrV.Load(MIn);
-	} 
-	void GetFieldIntV(const TMem& Source, const int& FieldId, TIntV& IntV) const {
-		TThinMIn MIn(Source);
-		MIn.MoveTo(GetOffsetVar(Source, FieldId));
-		IntV.Load(MIn);
-	} 
-	void GetFieldFltV(const TMem& Source, const int& FieldId, TFltV& FltV) const {
-		TThinMIn MIn(Source);
-		MIn.MoveTo(GetOffsetVar(Source, FieldId));
-		FltV.Load(MIn);
-	} 
-
-	// access to unit tests for this class
-	static void UnitTests();
-
-private:
-
-	static void UnitTest_InitEmpty();
-	static void UnitTest_InitSingleFixed();
-	static void UnitTest_InitSingleFixedNullable();
-	static void UnitTest_InitSingleFixedCodebook();
-	static void UnitTest_InitSingleVariable();	
-	static void UnitTest_InitPairFixed();
-	static void UnitTest_InitPairVariable();
-	static void UnitTest_InitPairMixed();
-	static void UnitTest_InitComplex();
-	static void UnitTest_InitTripleVariable();
-
-	static void UnitTest_SerializeSingleFixed();	
-	static void UnitTest_SerializeSingleFixedTm();	
-	static void UnitTest_SerializeSingleFixedNull();	
-	static void UnitTest_SerializeSingleFixedCodebook();	
-	static void UnitTest_SerializeSingleVar();	
-	static void UnitTest_SerializeSingleVarShort();
-	static void UnitTest_SerializeSingleVarNull();	
-	static void UnitTest_SerializePairFixed();
-	static void UnitTest_SerializePairVar();
-	static void UnitTest_SerializePairMixed();
-	static void UnitTest_SerializePairMixedCodebook();
-	static void UnitTest_SerializeTripleVariable();
-	static void UnitTest_SerializeComplex();
-
+    /// Field setter
+	void SetFieldNull(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId);
+    /// Field setter
+    void SetFieldInt(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const int& Int);
+    /// Field setter
+    void SetFieldIntV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntV& IntV);
+    /// Field setter
+    void SetFieldUInt64(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& UInt64);
+    /// Field setter
+    void SetFieldStr(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TStr& Str);
+    /// Field setter
+    void SetFieldStrV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TStrV& StrV);
+    /// Field setter
+    void SetFieldBool(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const bool& Bool);
+    /// Field setter
+    void SetFieldFlt(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const double& Flt);
+    /// Field setter
+    void SetFieldFltPr(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TFltPr& FltPr);
+    /// Field setter
+    void SetFieldFltV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TFltV& FltV);
+    /// Field setter
+    void SetFieldTm(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TTm& Tm);
+    /// Field setter
+    void SetFieldTmMSecs(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const uint64& TmMSecs);
+    /// Field setter
+    void SetFieldNumSpV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const TIntFltKdV& SpV);
+    /// Field setter
+    void SetFieldBowSpV(const TMem& InRecMem, TMem& OutRecMem, const int& FieldId, const PBowSpV& SpV);    
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Utility class for parsing JSON store definitions etc.
-
-class TGenericStoreUtils {
+///////////////////////////////
+/// Field indexer. 
+/// Takes record and updates the QMiner index structures according to schema
+class TRecIndexer {
 private:
+    /// Fast access to info for a particular index key
+    class TFieldIndexKey {
+    public:
+        /// Indexed field id
+        TInt FieldId;
+        /// Indexed field name
+        TStr FieldNm;
+        /// Indexed field type
+        TFieldType FieldType;
+        TStr FieldTypeStr;
+        /// Index key id
+        TInt KeyId;
+        /// Index type
+        TIndexKeyType KeyType;
+        /// Word vocabulary id (used by inverted index)
+        TInt WordVocId;
 
-	// class for internal static data
-	class TMaps {
-	public:
-		TStrH FieldTypeMap;
-		TStrHash<TStr> TimeWindowUnitMap;
+    public:
+        TFieldIndexKey() { }
+        TFieldIndexKey(const int& _FieldId, const TStr& _FieldNm, const TFieldType& _FieldType, 
+            const TStr& _FieldTypeStr, const int& _KeyId, const TIndexKeyType& _KeyType, 
+            const int& _WordVocId): FieldId(_FieldId), FieldNm(_FieldNm), FieldType(_FieldType), 
+                FieldTypeStr(_FieldTypeStr), KeyId(_KeyId), KeyType(_KeyType), WordVocId(_WordVocId) { }
 
-		TMaps();  
-	};
-
-	static TMaps Maps;
-
+        /// Is indexed by value
+        bool IsValue() const { return KeyType == oiktValue; }
+        /// Is indexed as text (tokenized)
+        bool IsText() const { return KeyType == oiktText; }
+        /// Is indexed as geo-location
+        bool IsLocation() const { return KeyType == oiktLocation; }
+        // get index type
+        TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
+    };    
+    
+private:
+    /// Index shortcut
+    TWPt<TIndex> Index;
+    /// Index vocabulary shortcut
+    TWPt<TIndexVoc> IndexVoc;
+    // list of index keys set for particular store
+    TVec<TFieldIndexKey> FieldIndexKeyV;
+    
+    /// Index a record using the given key
+    void IndexKey(const TFieldIndexKey& Key, const TMem& RecMem, 
+        const uint64& RecId, TRecSerializator& Serializator);
+    /// Delete existing index of a record based on a given key
+    void DeindexKey(const TFieldIndexKey& Key, const TMem& RecMem, 
+        const uint64& RecId, TRecSerializator& Serializator);
+    /// Update value of existing index of a record
+    void UpdateKey(const TFieldIndexKey& Key, const TMem& OldRecMem, 
+        const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
+        
 public:
-	static TGenericStoreSchema ParseStoreSchema(const PJsonVal& json);
-	static TGenericSchema ParseSchema(const PJsonVal& json);
-	static void ValidateSchema(const TWPt<TBase>& Base, TGenericSchema& Schema);
-	static TFieldDesc ParseFieldDesc(const PJsonVal& json);
-	static TGenericStoreFieldDesc ParseFieldDescEx(const PJsonVal& json);
-
-	static TJoinDesc ParseJoinDesc(const PJsonVal& json, const TWPt<TGenericStore>& store, TGenericBase* base);
-	static TGenericStoreJoinSchema ParseJoinDescInner(const PJsonVal& json);
-
-	static TGenericKeyIndexDesc ParseKeyIndexDescInner(const PJsonVal& json, const TGenericStoreSchema& store);
-
-	static TStr GetRecNameFromJson(const PJsonVal& json, const IFieldDescProvider* field_defs);
-
-	static void UnitTests();
+    TRecIndexer() { }
+    TRecIndexer(const TWPt<TIndex>& Index, const TWPt<TStore>& Store);
+    
+    /// Index new record
+    void IndexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator);
+    /// Deindex existing record
+    void DeindexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator);
+    /// Update indexes for existing record
+    void UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem, 
+        const uint64& RecId, TIntSet& ChangedFieldIdSet, TRecSerializator& Serializator);
 };
 
-//////////////////////////////////////////////////
-// generic-Store - JSON based
-class TGenericStore: public TStore, public IFieldDescProvider {
+///////////////////////////////
+/// Implementation of store which can be initialized from a schema.
+class TStoreImpl: public TStore {
 private:
+    /// For temporarily storing inverse joins which need to be indexed after adding records
 	struct TFieldJoinDat {
 		TWPt<TStore> JoinStore;
 		TInt InverseJoinId;
@@ -659,181 +547,174 @@ private:
 		TInt JoinFq;
 	};
 	
-protected:
-	TStr StoreFNm;
-	TFAccess FAccess;
-    // shortcuts
-    TWPt<TBase> Base;
-	TWPt<TGenericBase> GenericBase;
-    TWPt<TIndex> Index;
-    
-
-	TBool HasNameField;
-	TStr NameField;
-	TInt NameFieldId;
-	TVec<TGenericKeyIndexDesc> KeyIndexes;
-	THash<TInt, TGenericStoreFieldDesc> ExtraData;
-	THash<TInt, TInt> InverseJoins;
-	
 private:
-	// hash tables with names
-	THash<TStr, TUInt64> NmH; 
-	// store with records that goes to disk
+    /// Store filename
+	TStr StoreFNm;
+    /// Open mode
+	TFAccess FAccess;
+    
+    /// Do we have a primary field which acts as record name
+	TBool RecNmFieldP;
+    /// Id of primary field
+	TInt RecNmFieldId;
+	/// Hash map from record name to record Id. Used when we have primary field.
+	THash<TStr, TUInt64> RecNmIdH; 
+	
+    /// Store for parts of records that go to disk
 	TWndBlockCache<TMem> JsonC;
-	// memory-only storage
-	TGenericMemoryStorage JsonM; 
-	// serializator
-	PGenericStoreSerializator SerializatorCache;
-	// serializator
-	PGenericStoreSerializator SerializatorMem;
-	// store settings
-	TGenericStoreSettings StoreSettings;
-
-	void GetMem(const bool& UseMemory, const uint64& RecId, TMem& Rec) const;
-	bool UseMemoryData(const int &FieldId) const;
-	PGenericStoreSerializator GetAppropriateSerializator(const bool& MemoryData) const;
-	PGenericStoreSerializator GetAppropriateSerializator(const int &FieldId) const;
-	void ProcessChangedFields(const uint64& RecId, TVec<int>& changed_fields, PGenericStoreSerializator& ser, TMem& src, TMem& dest);
-	inline void RemoveIdFromNmH(const uint64& RecId);
+	/// Store for parts of records that should be in-memory
+	TInMemStorage JsonM; 
+	/// Serializator to disk
+	TRecSerializator SerializatorCache;
+	/// Serializator to memory
+	TRecSerializator SerializatorMem;
+    /// Map from fields to storage location
+    TVec<TStoreLoc> FieldLocV;
+    
+    // record indexer
+    TRecIndexer RecIndexer;
+    
+	/// Time window settings
+	TStoreWndDesc WndDesc;
+    
+    /// initialize field storage location map
+    void InitFieldLocV();
+    /// Get TMem serialization of record from specified storage
+	void GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const;
+    /// Get TMem serialization of record from specified where field is stored
+	void GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) const;
+    /// Set TMem serialization of record to a specified storage
+	void PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec);
+    /// Set TMem serialization of record to storage where field is stored
+	void PutRecMem(const uint64& RecId, const int& FieldId, const TMem& Rec);
+    /// True when field is stored on disk
+    bool IsFieldDisk(const int &FieldId) const;
+    /// True when field is stored in-memory
+	bool IsFieldInMemory(const int &FieldId) const;
+    /// Get serializator for given location
+	TRecSerializator& GetSerializator(const TStoreLoc& StoreLoc);
+    /// Get serializator for given location
+	const TRecSerializator& GetSerializator(const TStoreLoc& StoreLoc) const;
+    /// Get serializator for given field
+	TRecSerializator& GetFieldSerializator(const int &FieldId);
+    /// Get serializator for given field
+	const TRecSerializator& GetFieldSerializator(const int &FieldId) const;
+    /// Remove record from name-id map
+	inline void DelRecNm(const uint64& RecId);    
+    /// Extract record name from JSon record
+	TStr ParseRecNm(const PJsonVal& RecVal);    
+    /// Transform Join name to it's corresponding field name
+    TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
+    
+	/// Initialize from given store schema
+	void InitFromSchema(const TStoreSchema& StoreSchema);
 
 public:
-	TGenericStore(const TWPt<TGenericBase>& _GenericBase, const uchar& StoreId, const TStr& StoreName, 
-		const TWPt<TIndexVoc>& IndexVoc, const TStr& _StoreFNm, const int64& _MxCacheSize);
-	TGenericStore(const TWPt<TGenericBase>& _GenericBase, const TStr& _StoreFNm,
+	TStoreImpl(const TWPt<TBase>& _Base, const uchar& StoreId, 
+        const TStr& StoreName, const TStoreSchema& StoreSchema, 
+        const TStr& _StoreFNm, const int64& _MxCacheSize);
+	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
 		const TFAccess& _FAccess, const int64& _MxCacheSize);
 	// need to override destructor, to clear cache
-	~TGenericStore();
+	~TStoreImpl();
 
-	// tells is given ID is a valid ID of existing record
 	bool IsRecId(const uint64& RecId) const { return JsonC.IsValId(RecId); }
-
-	// mappings between record ID and record name
-	bool HasRecNm() const { return HasNameField.Val; }
-	bool IsRecNm(const TStr& RecNm) const { return NmH.IsKey(RecNm); }
+	bool HasRecNm() const { return RecNmFieldP; }
+	bool IsRecNm(const TStr& RecNm) const { return RecNmIdH.IsKey(RecNm); }
 	TStr GetRecNm(const uint64& RecId) const;
 	uint64 GetRecId(const TStr& RecNm) const;
-	
-	// number of all the records
 	uint64 GetRecs() const { return JsonC.Len(); }
-	// iterator over the store
 	PStoreIter GetIter() const;
-	// add new record
-	uint64 AddRec(const PJsonVal& Json);
-	// update existing record
-	void UpdateRec(const uint64& RecId, const PJsonVal& Json);
     
-    // add join
-    void AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq);
-    // delete join
-    void DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq);
+	/// Add new record
+	uint64 AddRec(const PJsonVal& RecVal);
+	/// Update existing record
+	void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
-	// initialize from given store schema
-	void InitFromSchema(const TGenericStoreSchema& store_schema);
-	// generic store settings
-	TGenericStoreSettings GetStoreSettings() const { return StoreSettings; }
-
-	// implementation of TFieldDescProvider
-	int GetFieldCount() const { return GetFields(); };
-	const TFieldDesc& GetFieldDescription(int i) const { return GetFieldDesc(i); };	
-	const TGenericStoreFieldDesc& GetGenericStoreFieldDesc(int i) const { return ExtraData.GetDat(i); }
-	const TStr& GetNameField() const { return NameField; };
-
-	// field retrieval
-	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
-	virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
-	virtual TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
-	virtual bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
-	virtual double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
-	virtual TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
-	virtual uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;	
-	virtual void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
-	virtual void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
-	virtual void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
-	virtual void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
-	virtual uint64 GetFieldTmAsUInt64(const uint64& RecId, const int& FieldId) const;
-
+    /// Purge records that fall out of store window (when it has one)
 	void GarbageCollect();
-	void AddInverseJoin(const int& join_id1, const int& join_id2) { InverseJoins.AddDat(join_id1, join_id2); }
+
+    /// Check if the value of given field for a given record is NULL
+	bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    int GetFieldInt(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const;
+    /// Get field value using field id (default implementation throws exception)
+    uint64 GetFieldUInt64(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+	TStr GetFieldStr(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+	void GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const;
+    /// Get field value using field id (default implementation throws exception)
+	bool GetFieldBool(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    double GetFieldFlt(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    TFltPr GetFieldFltPr(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldTm(const uint64& RecId, const int& FieldId, TTm& Tm) const;
+    /// Get field value using field id (default implementation throws exception)
+    uint64 GetFieldTmMSecs(const uint64& RecId, const int& FieldId) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldNumSpV(const uint64& RecId, const int& FieldId, TIntFltKdV& SpV) const;
+    /// Get field value using field id (default implementation throws exception)
+    void GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV& SpV) const;
+    
+	/// Set the value of given field to NULL
+	void SetFieldNull(const uint64& RecId, const int& FieldId);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64);
+    /// Set field value using field id (default implementation throws exception)
+	void SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str);
+    /// Set field value using field id (default implementation throws exception)
+	void SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV);
+    /// Set field value using field id (default implementation throws exception)
+	void SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
+    /// Set field value using field id (default implementation throws exception)
+    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);    
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// Generic-Base 
-// This class provides "JSON based" database layer, where stores can be defined 
-// on-the-fly by user using JSON syntax.
-class TGenericBase {
-private: 
-	// smart-pointer
-	TCRef CRef;
-	friend class TPt<TGenericBase>;
-public:
-	// qminer base
-	PBase Base;
-	// hashtable of used vocabularies 
-	TStrHash<TInt> VocH;
-protected:
-	// size of cache size per store
-	TUInt64 StoreCacheSize;
+///////////////////////////////
+/// Create new stores from a schema and add them to an existing base
+void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H());
 
-	// for creating a new database
-	TGenericBase(const TStr& FPath, const uint64& IndexCacheSize, 
-		const uint64& _StoreCacheSize, const bool& InitP);
-	// for loading existing index and stores for update or read-only
-	TGenericBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize, 
-		const uint64& _StoreCacheSize, const TStrUInt64H& StoreCacheSizes, const bool& InitP);	
-	// saving stores
-	void Save(const TStr& FPath);
-	void UpdateRec(const TWPt<TGenericStore>& Store, const PJsonVal& RecVal);
+///////////////////////////////
+/// Create new base given a schema definition
+PBase NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize, 
+    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), 
+    const bool& InitP = true);
 
-	static void CopyAllFiles(TStr& Src, TStr& Dest);
-	static void DeleteAllFiles(TStr& Src);
-	static TStr GetArchiveDir(TStr& FPath) { return FPath + "archive/"; }
+///////////////////////////////
+/// Load base created from a schema definition
+PBase LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize, 
+    const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), 
+    const bool& InitP = true);
 
-public:
+///////////////////////////////
+/// Save base created from a schema definition
+void SaveBase(const PBase& Base);
 
-	// for creating new index and stores
-	static PGenericBase New(const TStr& FPath, const uint64& IndexCacheSize, 
-			const uint64& StoreCacheSize, const bool& InitP = true) {
-
-		return new TGenericBase(FPath, IndexCacheSize, StoreCacheSize, InitP); 
-	}
-
-	// for loading existing index and stores
-	static PGenericBase Load(const TStr& FPath, const TFAccess& FAccess,
-			const uint64& IndexCacheSize, const uint64& StoreCacheSize, 
-			const TStrUInt64H& StoreCacheSizes = TStrUInt64H(), const bool& InitP = true) {
-
-		return new TGenericBase(FPath, FAccess, IndexCacheSize, StoreCacheSize, StoreCacheSizes, InitP); 
-	}
-
-	// changes still in cache saved only in destructor
-	~TGenericBase();
-
-	void CreateSchema(const PJsonVal& StoreDefVal);
-	uchar GetStoreId(const TStr& StoreName) { 
-		return Base->GetStoreByStoreNm(StoreName)->GetStoreId(); }
-
-	// utility method for typecasting stores to generic stores
-	TWPt<TGenericStore> GetStoreByStoreNm(const TStr& StoreNm) { 
-		return (TGenericStore*)Base->GetStoreByStoreNm(StoreNm)(); }
-	TWPt<TGenericStore> GetStoreByStoreId(const uchar StoreId) {
-		return (TGenericStore*)Base->GetStoreByStoreId(StoreId)(); }
-	TWPt<TGenericStore> GetStoreByStoreIndex(const int StoreIndex) { 
-		return (TGenericStore*)Base->GetStoreByStoreN(StoreIndex)(); }
-
-	uint64 AddRec(const TStr& StoreNm, const PJsonVal& RecVal);
-	uint64 AddRec(const int StoreId, const PJsonVal& RecVal);
-	void UpdateRec(const TStr& StoreNm, const PJsonVal& RecVal);
-	void UpdateRec(const int StoreId, const PJsonVal& RecVal);
-
-	void GarbageCollect() { 
-		for (int i=0; i<Base->GetStores(); i++) {
-			GetStoreByStoreIndex(i)->GarbageCollect();
-		}
-	}
-
-	static void ArchiveFiles(TStr FPath);
-	static void RestoreArchivedFiles(TStr FPath);
-};
+} // TStorage name space
 
 }
 

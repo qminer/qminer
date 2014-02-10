@@ -244,10 +244,10 @@ TStr TJsFPath::GetCanonicalPath(const TStr& FPath) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Userscript
-TScript::TScript(const PGenericBase& _GenericBase, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
+TScript::TScript(const PBase& _Base, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
 		const TStrV& _IncludeFPathV, const TVec<TJsFPath>& _AllowedFPathV): ScriptNm(_ScriptNm), 
 			ScriptFNm(_ScriptFNm), IncludeFPathV(_IncludeFPathV), AllowedFPathV(_AllowedFPathV),
-			Base(_GenericBase->Base), GenericBase(_GenericBase){ 
+			Base(_Base){ 
 	
 	// initialize callbacks for http client
 	JsFetch = new TJsFetch(this);
@@ -277,7 +277,7 @@ void TScript::Reload() {
 	for (int TriggerN = 0; TriggerN < TriggerV.Len(); TriggerN++) {
 		const uchar StoreId = TriggerV[TriggerN].Val1;
 		PStoreTrigger Trigger = TriggerV[TriggerN].Val2;
-		GenericBase->Base->GetStoreByStoreId(StoreId)->DelTrigger(Trigger);
+		Base->GetStoreByStoreId(StoreId)->DelTrigger(Trigger);
 	}
 	TriggerV.Clr();
 	// reload and reinit
@@ -852,6 +852,7 @@ v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::
 v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Info);    
+    // TODO: make it a singleton
 	return TJsAnalytics::New(JsBase->Js);
 }
 
@@ -885,8 +886,12 @@ v8::Handle<v8::Value> TJsBase::getStoreList(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsBase::createStore(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
-    PJsonVal StoreDef = TJsBaseUtil::GetArgJson(Args, 0);
-	JsBase->GenericBase->CreateSchema(StoreDef);   
+        PJsonVal SchemaVal = TJsBaseUtil::GetArgJson(Args, 0);
+    // check we can write
+    QmAssertR(!JsBase->Base->IsRdOnly(), "Base opened as read-only");
+    //TODO: ability to pass store sizes via function parameter
+    // for now 1GB is assumed for each store
+    TStorage::CreateStoresFromSchema(JsBase->Base, SchemaVal, (uint64)TInt::Giga);   
     return HandleScope.Close(v8::Null());
 }
 
@@ -929,7 +934,7 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
 	try {
-		JsBase->GenericBase->GarbageCollect();
+		JsBase->Base->GarbageCollect();
 	} catch (const PExcept& Except) {
 		TEnv::Logger->OnStatus("[except] " + Except->GetMsgStr());
 	}
@@ -1057,11 +1062,11 @@ v8::Handle<v8::Value> TJsStore::add(const v8::Arguments& Args) {
 	try {
 		// check we can write
 		QmAssertR(!JsStore->Js->Base->IsRdOnly(), "Base opened as read-only");
-		QmAssertR(!JsStore->Js->GenericBase.Empty(), "Only works with generic stores");
 		// get parameters
 		PJsonVal RecVal = TJsStoreUtil::GetArgJson(Args, 0);
 		// add record
-		const uint64 RecId = JsStore->Js->GenericBase->AddRec(JsStore->Store->GetStoreId(), RecVal);
+        TWPt<TStorage::TStoreImpl> Store((TStorage::TStoreImpl*)JsStore->Store());
+        const uint64 RecId = Store->AddRec(RecVal);
 		v8::Local<v8::Integer> _RecId = v8::Integer::New((int)RecId);
 		return HandleScope.Close(_RecId);
 	} catch (const PExcept& Except) {
@@ -1463,7 +1468,9 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 	if (TemplateV[(int)StoreId].IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsLongRegisterProperty(TmpTemp, "$id", id);
+		JsLongRegisterProperty(TmpTemp, "$name", name);
 		JsLongRegisterProperty(TmpTemp, "$fq", fq);
+		JsRegisterFunction(TmpTemp, toJSON);
 		// register all the fields
 		for (int FieldN = 0; FieldN < Store->GetFields(); FieldN++) {
             TStr FieldNm = Store->GetFieldDesc(FieldN).GetFieldNm();
@@ -1506,6 +1513,13 @@ v8::Handle<v8::Value> TJsRec::id(v8::Local<v8::String> Properties, const v8::Acc
 	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
 	v8::Local<v8::Integer> RecId = v8::Integer::New((int)(JsRec->Rec.GetRecId()));
 	return HandleScope.Close(RecId);
+}
+
+v8::Handle<v8::Value> TJsRec::name(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
+    TStr RecNm = JsRec->Rec.GetRecNm();
+	return HandleScope.Close(v8::String::New(RecNm.CStr()));
 }
 
 v8::Handle<v8::Value> TJsRec::fq(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -1628,10 +1642,10 @@ v8::Handle<v8::Value> TJsRec::addJoin(const v8::Arguments& Args) {
     QmAssertR(JsRec->Store->IsJoinNm(JoinNm), "[addJoin] Unknown join " + JsRec->Store->GetStoreNm() + "." + JoinNm);
     QmAssertR(JoinFq > 0, "[addJoin] Join frequency must be positive: " + TInt::GetStr(JoinFq));
     // get generic store
-    TWPt<TGenericStore> GenericStore((TGenericStore*)JsRec->Store());
-    const int JoinId = GenericStore->GetJoinId(JoinNm);
+    TWPt<TStore> Store = JsRec->Store();
+    const int JoinId = Store->GetJoinId(JoinNm);
     // add join
-    GenericStore->AddJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
+    Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
 	// return
 	return HandleScope.Close(v8::Undefined());
 }
@@ -1647,12 +1661,24 @@ v8::Handle<v8::Value> TJsRec::delJoin(const v8::Arguments& Args) {
     QmAssertR(JsRec->Store->IsJoinNm(JoinNm), "[delJoin] Unknown join " + JsRec->Store->GetStoreNm() + "." + JoinNm);
     QmAssertR(JoinFq > 0, "[delJoin] Join frequency must be positive: " + TInt::GetStr(JoinFq));
     // get generic store
-    TWPt<TGenericStore> GenericStore((TGenericStore*)JsRec->Store());
-    const int JoinId = GenericStore->GetJoinId(JoinNm);
+    TWPt<TStore> Store = JsRec->Store();
+    const int JoinId = Store->GetJoinId(JoinNm);
     // delete join
-    GenericStore->DelJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
+    Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
 	// return
 	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    TJsRec* JsRec = TJsRecUtil::GetSelf(Args);
+    const bool JoinRecsP = TJsRecUtil::GetArgBool(Args, 0, false);
+    const bool JoinRecFieldsP = TJsRecUtil::GetArgBool(Args, 1, false);
+    const bool FieldsP = true;
+    const bool StoreInfoP = false;
+    PJsonVal JsObj = JsRec->Rec.GetJson(JsRec->Js->Base, FieldsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);
+    // return
+    return HandleScope.Close(TJsUtil::ParseJson(JsObj));
 }
 
 ///////////////////////////////
@@ -1722,13 +1748,36 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 	v8::HandleScope HandleScope;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+        JsRegisterFunction(TmpTemp, getLanguageOptions);
         JsRegisterFunction(TmpTemp, newFeatureSpace);
         JsRegisterFunction(TmpTemp, trainSvmClassify);						
+        JsRegisterFunction(TmpTemp, trainKMeans);						
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
 	return Template;
+}
+
+v8::Handle<v8::Value> TJsAnalytics::getLanguageOptions(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    
+    // 0) create response object
+	PJsonVal LangOpts = TJsonVal::NewObj();
+
+    // 1) get available stemmers
+    TStrV StemmerTypeNmV, StemmerTypeDNmV;
+    TStemmer::GetStemmerTypeNmV(StemmerTypeNmV, StemmerTypeDNmV);
+    PJsonVal ArrStemmer = TJsonVal::NewArr(StemmerTypeNmV);
+    LangOpts->AddToObj("stemmer", ArrStemmer);
+
+    // 2) get available stopword lists
+    TStrV SwSetTypeNmV, SwSetTypeDNmV;
+    TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
+    PJsonVal ArrStopword = TJsonVal::NewArr(SwSetTypeNmV);
+	LangOpts->AddToObj("stopwords", ArrStopword);
+
+	return HandleScope.Close(TJsUtil::ParseJson(LangOpts));
 }
 
 v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {

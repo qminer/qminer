@@ -61,14 +61,18 @@ TFtrExt::TFtrExt(const TWPt<TBase>& _Base, const PJsonVal& ParamVal): Base(_Base
         // we have just store name
         TStr StoreNm = SourceVal->GetStr();
         FtrStore = Base->GetStoreByStoreNm(StoreNm);
+        JoinSeqH.AddDat(FtrStore->GetStoreId(), TJoinSeq(FtrStore->GetStoreId()));
     } else if (SourceVal->IsObj()) {
         // get store
         TStr StoreNm = SourceVal->GetObjStr("store");
         FtrStore = Base->GetStoreByStoreNm(StoreNm);       
-        // get joins if any give
+        // get joins if any given
         if (SourceVal->IsObjKey("join")) {
             TJoinSeq JoinSeq = TJoinSeq(Base, FtrStore->GetStoreId(), SourceVal->GetObjKey("join"));
             FtrStore = JoinSeq.GetEndStore(Base);
+            JoinSeqH.AddDat(JoinSeq.GetStartStoreId(), JoinSeq);
+        } else {
+            JoinSeqH.AddDat(FtrStore->GetStoreId(), TJoinSeq(FtrStore->GetStoreId()));            
         }
     } else if (SourceVal->IsArr()) {
         // parse join sequence
@@ -665,6 +669,15 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     TStr FieldNm = ParamVal->GetObjStr("field");
     FieldId = GetFtrStore()->GetFieldId(FieldNm);
     FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
+    // get multi-instance mode
+    TStr ModeStr = ParamVal->GetObjStr("mode", "concatenate");
+    if (ModeStr == "concatenate") {
+        Mode = bowmConcat;
+    } else if (ModeStr == "centroid") {
+        Mode = bowmCentroid;
+    } else {
+        throw TQmExcept::New("Unknown bag-of-words multi-record merging mode: " + ModeStr);
+    }
 }
 
 PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
@@ -745,6 +758,8 @@ void TBagOfWords::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
 }
 
 PSwSet TBagOfWords::GetSwSet(const TStr& SwStr) {
+    TStrV SwSetTypeNmV, SwSetTypeDNmV;
+    TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
 	if (SwStr == "en") {
 		return TSwSet::New(swstEn523);
 	} else if (SwStr == "si") { 
@@ -753,7 +768,10 @@ PSwSet TBagOfWords::GetSwSet(const TStr& SwStr) {
 		return TSwSet::New(swstEs);
 	} else if (SwStr == "de") { 
 		return TSwSet::New(swstGe);
-	}
+	} else if(SwSetTypeNmV.IsIn(SwStr)) {
+        TSwSetType SwSet = TSwSet::GetSwSetType(SwStr);
+        return TSwSet::New(SwSet);
+    }
 	throw TQmExcept::New("Unknown stop-word set '" + SwStr + "'");
 }
 
