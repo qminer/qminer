@@ -16,6 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  * 
  */
+#include "bd.h"
+
+#ifdef EIGEN
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#endif
 
 ///////////////////////////////////////////////////////////////////////
 // Sparse-Column-Matrix
@@ -183,6 +189,54 @@ void TFullColMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
     }
 }
 
+///////////////////////////////////////////////////////////////////////
+// Structured-Covariance-Matrix
+void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
+void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, TFltVV& Result) const {
+	// 1/Samples * (X - MeanX*ones(1,Samples)) (Y - MeanY*(ones(1,Samples))' B
+	// 1/ Samples X (Y' B) - MeanX (MeanY' B)
+	Assert(Result.GetRows() == XRows && Result.GetCols() == B.GetCols());
+	int BCols = B.GetCols();
+	TFltVV YtB(Samples, BCols);;
+	TLinAlg::MultiplyT(Y, B, YtB);
+	TLinAlg::Multiply(X, YtB, Result); YtB.Clr();
+
+	TFltV MeanYtB(BCols); // MeanY' B the same TFltV as  B' MeanY	
+	TLinAlg::MultiplyT(B, MeanY, MeanYtB);
+	// Result := 1/SampleN Result - MeanX MeanY' B	
+	for (int RowN = 0; RowN < XRows; RowN++) {
+		for (int ColN = 0; ColN < BCols; ColN++) {
+			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanX[RowN]*MeanYtB[ColN];
+		}
+	}
+}; 
+
+void TStructuredCovarianceMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
+	// 1/Samples * (Y - MeanY*ones(1,Samples)) (X - MeanX*(ones(1,Samples))' B
+	// 1/ Samples Y (X' B) - MeanY (MeanX' B)
+	Assert(Result.GetRows() == YRows && Result.GetCols() == B.GetCols());
+	int BCols = B.GetCols();
+	TFltVV XtB(Samples, BCols);
+	TLinAlg::MultiplyT(X, B, XtB);
+	TLinAlg::Multiply(Y, XtB, Result); XtB.Clr();
+
+	TFltV MeanXtB(BCols); // MeanX' B the same TFltV as  B' MeanX
+	TLinAlg::MultiplyT(B, MeanX, MeanXtB);
+	// Result := 1/SampleN Result - MeanY MeanX' B	
+	for (int RowN = 0; RowN < YRows; RowN++) {
+		for (int ColN = 0; ColN < BCols; ColN++) {
+			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanY[RowN]*MeanXtB[ColN];
+		}
+	}
+};
+
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
 double TLinAlg::DotProduct(const TFltV& x, const TFltV& y) {
@@ -247,6 +301,17 @@ void TLinAlg::LinComb(const double& p, const TFltV& x,
         z[i] = p * x[i] + q * y[i]; }
 }
 
+void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z) {
+	Assert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+	int Rows = X.GetRows();
+	int Cols = X.GetCols();
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Z.At(RowN, ColN) = p*X.At(RowN, ColN) + q*Y.At(RowN, ColN);
+		}
+	}
+}
+
 void TLinAlg::ConvexComb(const double& p, const TFltV& x, const TFltV& y, TFltV& z) {
     AssertR(0.0 <= p && p <= 1.0, TFlt::GetStr(p));
     LinComb(p, x, 1.0 - p, y, z);
@@ -289,6 +354,15 @@ void TLinAlg::AddVec(double k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColId
     for (int i = 0; i < len; i++) {
         Y(i,ColIdY) = Y(i,ColIdY) + k * X(i, ColIdX);
     }
+}
+
+
+void TLinAlg::AddVec(const double& k, const TFltV& x, TFltVV& Y, const int& ColIdY) {
+	Assert(x.Len() == Y.GetRows());
+	Assert(ColIdY >= 0 && ColIdY < x.Len());
+	for (int RowN = 0; RowN < Y.GetRows(); RowN++) {
+		Y.At(RowN, ColIdY) += k*x[RowN];
+	}
 }
 
 void TLinAlg::AddVec(double k, const TFltVV& X, int ColId, TFltV& Result){
@@ -344,6 +418,115 @@ double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
     return sqrt(EuclDist2(x, y));
 }
 
+
+double TLinAlg::FrobDist2(const TFltVV&A, const TFltVV&B) {
+	double frob = 0;
+	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < A.GetCols(); ColN++) {
+			frob+= (A.At(RowN,ColN) - B.At(RowN,ColN))*(A.At(RowN,ColN) - B.At(RowN,ColN));
+		}
+	}
+	return frob;
+}
+double TLinAlg::FrobDist2(const TFltV&A, const TFltV&B) {
+	double frob = 0;
+	for (int RowN = 0; RowN < A.Len(); RowN++) {
+		frob+= (A[RowN] - B[RowN])*(A[RowN] - B[RowN]);
+	}
+	return frob;
+}
+
+void TLinAlg::Sparse(const TFltVV& A, TTriple<TIntV, TIntV, TFltV>& B) {
+	B.Val1.Gen(0);
+	B.Val2.Gen(0);
+	B.Val3.Gen(0);
+	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < A.GetCols(); ColN++) {
+			if (A.At(RowN,ColN) != 0.0) {
+				B.Val1.Add(RowN);
+				B.Val2.Add(ColN);
+				B.Val3.Add(A.At(RowN,ColN));
+			}
+		}
+	}
+}
+
+void TLinAlg::Full(const TTriple<TIntV, TIntV, TFltV>&A, TFltVV& B, int rows, int cols) {
+	B.Gen(rows,cols);
+	B.PutAll(0.0);
+	int nnz = A.Val1.Len();
+	for (int ElN = 0; ElN < nnz; ElN++) {
+		B.At(A.Val1[ElN],A.Val2[ElN]) = A.Val3[ElN];
+	}
+}
+
+void TLinAlg::Transpose(const TTriple<TIntV, TIntV, TFltV>&A, TTriple<TIntV, TIntV, TFltV>&At) {
+	int nnz = A.Val1.Len();
+	At.Val1.Gen(nnz, 0);
+	At.Val2.Gen(nnz, 0);
+	At.Val3.Gen(nnz, 0);
+	for (int ElN = 0; ElN < nnz; ElN++) {
+		At.Val1.Add(A.Val2[ElN]);
+		At.Val2.Add(A.Val1[ElN]);
+		At.Val3.Add(A.Val3[ElN]);
+	}
+}
+
+void TLinAlg::Convert(const TVec<TPair<TIntV, TFltV>>&A, TTriple<TIntV, TIntV, TFltV>&B) {
+	B.Val1.Clr(); 
+	B.Val2.Clr(); 
+	B.Val3.Clr();
+	int Cols = A.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Nnz = A[ColN].Val1.Len();
+		for (int ElN = 0; ElN < Nnz; ElN++) {
+			B.Val1.Add(A[ColN].Val1[ElN]);
+			B.Val2.Add(ColN);
+			B.Val3.Add(A[ColN].Val2[ElN]);
+		}
+	}
+}
+
+void TLinAlg::Sum(const TFltVV& X, TFltV& y, const int Dimension) {
+	int Cols = X.GetCols();
+	int Rows = X.GetRows();
+	if (Dimension == 1) {
+		y.Gen(Cols);
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				y[ColN] += X.At(RowN, ColN);
+			}
+		}
+	} else if (Dimension == 2) {
+		y.Gen(Rows);
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				y[RowN] += X.At(RowN, ColN);
+			}
+		}
+	} else FailR("Dimension should be 1 or 2");
+}
+void TLinAlg::Sum(const TTriple<TIntV, TIntV, TFltV>& X, TFltV& y, const int Dimension) {
+	int Cols = X.Val2.GetMxVal() + 1;
+	int Rows = X.Val1.GetMxVal() + 1;
+	int Els = X.Val1.Len();
+	if (Dimension == 1) {
+		y.Gen(Cols);
+		for (int ElN = 0; ElN < Els; ElN++) {
+			//int RowN = X.Val1[ElN];
+			int ColN = X.Val2[ElN];
+			y[ColN] += X.Val3[ElN];			
+		}
+	} else if (Dimension == 2) {
+		y.Gen(Rows);
+		for (int ElN = 0; ElN < Els; ElN++) {
+			int RowN = X.Val1[ElN];
+			//int ColN = X.Val2[ElN];
+			y[RowN] += X.Val3[ElN];			
+		}		
+	} else FailR("Dimension should be 1 or 2");
+}
+
 double TLinAlg::Norm2(const TFltV& x) {
     return DotProduct(x, x);
 }
@@ -355,6 +538,41 @@ double TLinAlg::Norm(const TFltV& x) {
 void TLinAlg::Normalize(TFltV& x) {
     const double xNorm = Norm(x);
     if (xNorm > 0.0) { MultiplyScalar(1/xNorm, x, x); }
+}
+
+void TLinAlg::NormalizeColumn(TFltVV& X, const int& ColId) {
+	double nX = TLinAlg::Norm(X, ColId);
+	if (nX > 0.0) {
+		for (int RowN = 0; RowN < X.GetRows(); RowN++) {		
+			X.At(RowN, ColId) /= nX;
+		}
+	}
+}
+
+void TLinAlg::NormalizeColumns(TFltVV& X) {
+	for (int ColN = 0; ColN < X.GetCols(); ColN++) {
+		NormalizeColumn(X, ColN);
+	}
+}
+
+void TLinAlg::NormalizeColumns(TTriple<TIntV, TIntV, TFltV>& X) {	
+	if (X.Val2.Len() == 0) return;
+	Assert(X.Val2.IsSorted(true));
+	int Cols = X.Val2.GetMxVal() + 1;
+	TFltV InvColNorms(Cols); //get the last element colN and set the number of elements	
+	
+	int Els = X.Val1.Len();
+	for (int ElN = 0 ; ElN < Els; ElN++) {
+		InvColNorms[X.Val2[ElN]] += X.Val3[ElN] * X.Val3[ElN];
+	}
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		if (InvColNorms[ColN] > 0.0) {
+			InvColNorms[ColN] = 1.0/TMath::Sqrt(InvColNorms[ColN]);
+		}
+	}
+	for (int ElN = 0; ElN < Els; ElN++) {
+		X.Val3[ElN] *= InvColNorms[X.Val2[ElN]];
+	}
 }
 
 double TLinAlg::Norm2(const TIntFltKdV& x) {
@@ -452,6 +670,11 @@ void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y
         y[i].Dat = k * x[i].Dat;
 }
 
+#ifdef BLAS
+void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltV& y) {
+	TLinAlg::Multiply(A, x, y, TLinAlgBlasTranspose::NOTRANS, 1.0, 0.0);
+}
+#else
 void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltV& y) {
     Assert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
     int n = A.GetRows(), m = A.GetCols();
@@ -461,6 +684,7 @@ void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltV& y) {
             y[i] += A(i,j) * x[j];
     }
 }
+#endif
 
 void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltVV& C, int ColId) {
     Assert(A.GetCols() == x.Len() && A.GetRows() == C.GetRows());
@@ -492,7 +716,9 @@ void TLinAlg::Multiply(const TFltVV& A, const TFltVV& B, int ColIdB, TFltVV& C, 
     }
 }
 
+#ifndef BLAS
 void TLinAlg::MultiplyT(const TFltVV& A, const TFltV& x, TFltV& y) {
+	if (y.Empty()) y.Gen(A.GetCols());
     Assert(A.GetRows() == x.Len() && A.GetCols() == y.Len());
     int n = A.GetCols(), m = A.GetRows();
     for (int i = 0; i < n; i++) {
@@ -501,21 +727,239 @@ void TLinAlg::MultiplyT(const TFltVV& A, const TFltV& x, TFltV& y) {
             y[i] += A(j,i) * x[j];
     }
 }
+#else
+void TLinAlg::MultiplyT(const TFltVV& A, const TFltV& x, TFltV& y) {
+	if (y.Empty()) y.Gen(A.GetCols());
+	TLinAlg::Multiply(A, x, y, TLinAlgBlasTranspose::TRANS, 1.0, 0.0);	
+}
+#endif
 
+#ifdef BLAS
+void TLinAlg::Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C, const int& BlasTransposeFlagA, const int& BlasTransposeFlagB) {
+//C := alpha*op(A)*op(B) + beta*C,
+//where:
+//op(X) is one of op(X) = X, or op(X) = XT, or op(X) = XH,
+//alpha and beta are scalars,
+//A, B and C are matrices:
+//op(A) is an m-by-k matrix,
+//op(B) is a k-by-n matrix,
+//C is an m-by-n matrix.
+	int m, k, n;
+	if(BlasTransposeFlagA == TLinAlgBlasTranspose::TRANS){
+		m = A.GetCols(), k = A.GetRows();
+	}else{
+		m = A.GetRows(), k = A.GetCols();
+	}
+	if(BlasTransposeFlagB == TLinAlgBlasTranspose::TRANS){
+		Assert(k == B.GetCols());
+		n = B.GetRows();
+	}else{ 
+		Assert(k == B.GetRows());
+		n = B.GetCols();
+	}
+	Assert(m == C.GetRows() && n == C.GetCols());
+	//Simplified interface
+	double alpha = 1.0; double beta = 0.0;
+	int lda = m, ldb = k, ldc = m;
+	#ifndef COL_MAJOR
+	ldc = n;
+	#else
+	ldc = m;
+	#endif
+#ifdef CBLAS //Standard CBLAS interface
+	CBLAS_TRANSPOSE BlasTransA= CblasNoTrans, BlasTransB = CblasNoTrans;
+	#ifndef COL_MAJOR
+	if (BlasTransposeFlagA){ BlasTransA = CblasTrans;}
+	if (!BlasTransposeFlagA){ lda = k;}
+	if(BlasTransposeFlagB){BlasTransB = CblasTrans;}
+	if (!BlasTransposeFlagB){ ldb = n; }
+	cblas_dgemm(CblasRowMajor, BlasTransA, BlasTransB, m, n, k, alpha, &A(0,0).Val, lda, &B(0,0).Val, ldb, beta, &C(0,0).Val, ldc);
+	#else
+	if (BlasTransposeFlagA){ BlasTransA = CblasTrans; lda = k; }
+	if(BlasTransposeFlagB){BlasTransB = CblasTrans; ldb = n;}
+	cblas_dgemm(CblasColMajor, BlasTransA, BlasTransB, m, n, k, alpha, &A(0,0).Val, lda, &B(0,0).Val, ldb, beta, &C(0,0).Val, ldc);
+	#endif
+#else //Fortran 77 style interface, all values must be passed by reference!
+	TStr TransposeFlagA = "N";
+	TStr TransposeFlagB = "N";
+	if(BlasTransposeFlagA){ TransposeFlagA = "T"; lda = k;}
+	if(BlasTransposeFlagB){ TransposeFlagB = "T"; ldb = n;}
+#ifdef AMD
+	DGEMM(TransposeFlagA.CStr(), TransposeFlagB.CStr(), &m, &n, &k, &alpha, &A(0,0).Val, &lda, &B(0,0).Val, &ldb, &beta, &C(0,0).Val, &ldc, TransposeFlagA.Len(), TransposeFlagB.Len());
+#else
+	dgemm(TransposeFlagA.CStr(), TransposeFlagB.CStr(), &m, &n, &k, &alpha, &A(0,0).Val, &lda, &B(0,0).Val, &ldb, &beta, &C(0,0).Val, &ldc);
+#endif
+#endif
+}
+// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
+void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltV& y, const int& BlasTransposeFlagA, const double alpha, const double beta){
+	int m = A.GetRows();
+	int n = A.GetCols();
+	//Can we multiply and store in y?
+	if(BlasTransposeFlagA)//A'*x n*m x m -> n
+		Assert(x.Len() == m && y.Reserved() == n);
+	else{//A*x  m x n * n -> m
+		Assert(x.Len() == n && y.Reserved() == m);
+	}
+	int lda = m; int incx = 1; int incy = 1;
+#ifdef CBLAS //Standard CBLAS interface
+	CBLAS_TRANSPOSE BlasTransA= CblasNoTrans;
+	if(BlasTransposeFlagA){ BlasTransA= CblasTrans;}
+	#ifndef COL_MAJOR
+    cblas_dgemv(CBLAS_ORDER::CblasRowMajor, BlasTransA, m, n, alpha, &A(0, 0).Val, n, &x[0].Val, 1, beta, &y[0].Val, 1);
+	#else
+	cblas_dgemv(CBLAS_ORDER::CblasColMajor, BlasTransA, m, n, alpha, &A(0, 0).Val, m, &x[0].Val, 1, beta, &y[0].Val, 1);
+	#endif
+#else //Fortran 77 style interface, all values must be passed by reference!
+	TStr TransposeFlag = "N";
+	if(BlasTransposeFlagA){ TransposeFlag = 'T';}
+#ifdef AMD
+	DGEMV(TransposeFlag.CStr(), &m, &n, &alpha, &A(0, 0).Val, &lda, &x[0].Val, &incx, &beta, &y[0].Val, &incy, TransposeFlag.Len());
+	//DGEMV(char *trans, int *m, int *n, double *alpha, double *a, int *lda, double *x, int *incx, double *beta, double *y, int *incy, int trans_len);
+#else
+	dgemv(TransposeFlag.CStr(), &m, &n, &alpha, &A(0, 0).Val, &lda, &x[0].Val, &incx, &beta, &y[0].Val, &incy);
+#endif
+#endif
+}
+
+#endif
+
+////////////////////////////////////////////////////////////////////
+// Andrej says:
+// http://software.intel.com/en-us/node/468598#86F42CD2-6A3C-4E1F-B686-8690FCC03C75
+//call mkl_dcoomm(transa, m, n, k, alpha, matdescra, val, rowind, colind, nnz, b, ldb, beta, c, ldc)
+//if transa=='T' op(A) = A' op(m, k) = m else transa == 'N' op(m, k) = k
+//A is sparse, B and C are full
+//m Number of rows of the matrix A. n Number of columns of the matrix C. k Number of columns of the matrix A.
+//A m x k, B op(m, k) x n, C op(m, k) x n
+//C := alpha*op(A)*B + beta*C
+//	matdescra[6] ={'G', 'G', 'N', 'C', 'Q', 'Q'}; //General, General, Nonunit diagonal, Zero Based indexing
+#ifdef INTEL
+//Be careful C should be of the proper size! if not populated
+void TLinAlg::MultiplySF(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C, const TStr& transa){
+	//B is row_major 
+	int m, n, k, ldb, ldc;
+	if (transa == "N"){
+		n = C.GetCols();
+		m = C.GetRows();
+		k = B.GetRows();
+		ldb = B.GetCols();
+		ldc = C.GetCols();
+	}
+	else{
+		n = C.GetCols();
+		k = C.GetRows();
+		m = B.GetRows();
+		ldb = B.GetCols();
+		ldc = C.GetCols();
+
+	}
+	double alpha = 1; double beta = 0; char matdescra[6] = { 'G', 'G', 'N', 'C', 'Q', 'Q' };
+	int nnz = A.Val3.Len();
+	MKL_DCOOMM(const_cast<char *>(transa.CStr()), &m, &n, &k, &alpha, matdescra, const_cast<double *>(&A.Val3[0].Val), const_cast<int *>(&A.Val1[0].Val), const_cast<int *>(&A.Val2[0].Val), &nnz, const_cast<double *>(&B(0, 0).Val), &ldb, &beta, const_cast<double *>(&C(0, 0).Val), &ldc);
+}
+#endif
+
+
+#ifdef LAPACKE
+
+//A is rewritten in place with orthogonal matrix Q
+void TLinAlg::QRbasis(TFltVV& A){
+	int m = A.GetRows(); int n = A.GetCols(); int k = A.GetCols();
+	int lda = A.GetCols();
+	TFltV tau( MAX(1, MIN( A.GetRows(), A.GetCols() ) ));
+	LAPACKE_dgeqrf(LAPACK_ROW_MAJOR, m, n, &A(0, 0).Val, lda, &tau[0].Val);
+	LAPACKE_dorgqr(LAPACK_ROW_MAJOR, A.GetRows(), A.GetCols(), lda, &A(0, 0).Val, lda, &tau[0].Val);
+}
+void TLinAlg::QRbasis(const TFltVV& A, TFltVV& Q){
+	Q = A;
+	TLinAlg::QRbasis(Q);
+}
+//A is rewritten in place with orthogonal matrix Q (column pivoting to improve stability)
+void TLinAlg::QRcolpbasis(TFltVV& A){
+	int m = A.GetRows(); int n = A.GetCols(); int k = A.GetCols();
+	int lda = A.GetCols();
+	TFltV tau(MAX(1, MIN(m, n)));
+	TIntV jvpt(MAX(1, n));
+	LAPACKE_dgeqp3(LAPACK_ROW_MAJOR, m, n, &A(0, 0).Val, lda, &jvpt[0].Val, &tau[0].Val);
+	LAPACKE_dorgqr(LAPACK_ROW_MAJOR, A.GetRows(), A.GetCols(), lda, &A(0, 0).Val, lda, &tau[0].Val);
+}
+void TLinAlg::QRcolpbasis(const TFltVV& A, TFltVV& Q){
+	Q = A;
+	TLinAlg::QRcolpbasis(Q);
+}
+//S S option ensures that A is not modified
+void TLinAlg::thinSVD(const TFltVV& A, TFltVV& U, TFltV& S, TFltVV& VT){
+	int m = A.GetRows(); int n = A.GetCols();
+	int thin_dim = MIN(m, n); S.Gen(thin_dim); U.Gen(m, thin_dim); VT.Gen(thin_dim, n);
+	TFltV superb(MIN(m, n));
+	int opt = LAPACK_ROW_MAJOR;
+	int lda, ldu, ldvt;
+	if (opt == LAPACK_ROW_MAJOR){
+		lda = n; ldu = thin_dim; ldvt = n;
+	}
+	else{
+		lda = m; ldu = m; ldvt = thin_dim;
+	}
+	LAPACKE_dgesvd(opt, 'S', 'S', m, n, const_cast<double *>(&A(0, 0).Val), lda, &S[0].Val, &U(0, 0).Val, ldu, &VT(0, 0).Val, ldvt, &superb[0].Val);
+}
+
+//void TLinAlg::Multiply(const TFltVV & ProjMat, const TPair<TIntV, TFltV>& Doc, TFltV& result){
+//};
+#endif
+void TLinAlg::Multiply(const TFltVV& A, const TPair<TIntV, TFltV>& x, TFltV& y){
+	// Assumptions on x        
+	Assert(x.Val1.Len() == x.Val2.Len());
+	// Dimensions must match
+	Assert(A.GetCols() >= (x.Val1.Len()==0 ? 0 : x.Val1[x.Val1.GetMxValN()] + 1) && A.GetRows() == y.Len());
+	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+		y[RowN] = 0.0;
+		for (int ElN = 0; ElN < x.Val1.Len(); ElN++) {
+			y[RowN] += A.At(RowN, x.Val1[ElN]) * x.Val2[ElN];
+		}
+	}
+}
+#ifdef BLAS
 void TLinAlg::Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C) {
     Assert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
-
-    int n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < m; j++) {
-            double sum = 0.0;
-            for (int k = 0; k < l; k++)
-                sum += A(i,k)*B(k,j);
-            C(i,j) = sum;
-        }
-    }
+	TLinAlg::Multiply(A, B, C, TLinAlg::TLinAlgBlasTranspose::NOTRANS, TLinAlg::TLinAlgBlasTranspose::NOTRANS);
 }
+#else
+void TLinAlg::Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C) {
+	Assert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
+
+	int n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
+	for (int i = 0; i < n; i++) {
+		for (int j = 0; j < m; j++) {
+			double sum = 0.0;
+			for (int k = 0; k < l; k++)
+				sum += A(i, k)*B(k, j);
+			C(i, j) = sum;
+		}
+	}
+}
+#endif
+
+
 // C = A'*B
+#ifdef BLAS
+void TLinAlg::MultiplyT(const TFltVV& A, const TFltVV& B, TFltVV& C) {
+	TLinAlg::Multiply(A, B, C, TLinAlgBlasTranspose::TRANS, TLinAlgBlasTranspose::NOTRANS);
+//    Assert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
+////C := alpha*op(A)*op(B) + beta*C,
+////where:
+////op(X) is one of op(X) = X, or op(X) = XT, or op(X) = XH,
+////alpha and beta are scalars,
+////A, B and C are matrices:
+////op(A) is an m-by-k matrix,
+////op(B) is a k-by-n matrix,
+////C is an m-by-n matrix.
+//	int m = A.GetCols(), k = A.GetRows();
+//	int n = B.GetCols(); 
+//	double alpha = 1.0; double beta = 0.0;
+//	cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, m, n, k, alpha, &A(0,0).Val, k, &B(0,0).Val, n, beta, &C(0,0).Val, n);
+}
+#else
 void TLinAlg::MultiplyT(const TFltVV& A, const TFltVV& B, TFltVV& C) {
     Assert(A.GetCols() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetRows() == B.GetRows());
 	int n = C.GetRows(), m = C.GetCols(), l = A.GetRows(); double sum;
@@ -528,6 +972,104 @@ void TLinAlg::MultiplyT(const TFltVV& A, const TFltVV& B, TFltVV& C) {
         }
     }
 }
+#endif
+
+void TLinAlg::Multiply(const TFltVV& A, const TTriple<TIntV, TIntV, TFltV>& B, TFltVV& C) {
+	// B well defined
+	Assert(B.Val1.Len() == B.Val2.Len() && B.Val2.Len() == B.Val3.Len());
+	// Dimensions must match
+	C.PutAll(0.0);
+	if (B.Val1.Len() == 0) {
+		return;
+	}
+	int Nonzeros = B.Val1.Len();
+	int MaxRowN = B.Val1[B.Val1.GetMxValN()];
+	int MaxColN = B.Val2[B.Val2.GetMxValN()];
+	Assert(A.GetRows() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetCols());
+	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+		for (int ElN = 0; ElN < Nonzeros; ElN++) {
+			C.At(RowN, B.Val2[ElN]) += A.At(RowN, B.Val1[ElN]) * B.Val3[ElN];                        
+		}
+	}
+}
+
+void TLinAlg::MultiplyT(const TFltVV& A, const TTriple<TIntV, TIntV, TFltV>& B, TFltVV& C) {
+	// B well defined
+	Assert(B.Val1.Len() == B.Val2.Len() && B.Val2.Len() == B.Val3.Len());
+	// Dimensions must match
+	C.PutAll(0.0);
+	if (B.Val1.Len() == 0) {
+		return;
+	}
+	int Nonzeros = B.Val1.Len();
+	int MaxRowN = B.Val1[B.Val1.GetMxValN()];
+	int MaxColN = B.Val2[B.Val2.GetMxValN()];
+	Assert(A.GetCols() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetRows());
+	for (int RowN = 0; RowN < A.GetCols(); RowN++) {
+		for (int ElN = 0; ElN < Nonzeros; ElN++) {
+			C.At(RowN, B.Val2[ElN]) += A.At(B.Val1[ElN], RowN) * B.Val3[ElN];                        
+		}
+	}
+}
+#ifndef INTEL
+void TLinAlg::Multiply(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C) {
+	// A well defined
+	Assert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
+	// Dimensions must match
+	C.PutAll(0.0);
+	if (A.Val1.Len() == 0) {
+		return;
+	}
+	int Nonzeros = A.Val1.Len();
+	int MaxRowN = A.Val1[A.Val1.GetMxValN()];
+	int MaxColN = A.Val2[A.Val2.GetMxValN()];
+	Assert(B.GetCols() == C.GetCols() && (MaxRowN + 1) <= C.GetRows() && (MaxColN + 1) <= B.GetRows());
+	for (int ColN = 0; ColN < B.GetCols(); ColN++) {
+		for (int ElN = 0; ElN < Nonzeros; ElN++) {
+			C.At(A.Val1[ElN], ColN) += A.Val3[ElN] * B.At(A.Val2[ElN], ColN);
+		}
+	}
+}
+
+void TLinAlg::MultiplyT(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C) {
+	// B well defined
+	Assert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
+	// Dimensions must match
+	C.PutAll(0.0);
+	if (A.Val1.Len() == 0) {
+		return;
+	}
+	int Nonzeros = A.Val1.Len();
+	int MaxRowN = A.Val1[A.Val1.GetMxValN()];
+	int MaxColN = A.Val2[A.Val2.GetMxValN()];
+	Assert(B.GetCols() == C.GetCols() && (MaxColN + 1) <= C.GetRows() && (MaxRowN + 1) <= B.GetRows());
+	for (int ColN = 0; ColN < B.GetCols(); ColN++) {
+		for (int ElN = 0; ElN < Nonzeros; ElN++) {
+			C.At(A.Val2[ElN], ColN) += A.Val3[ElN] * B.At(A.Val1[ElN], ColN);
+		}
+	}
+}
+#else
+//If B and C are not of the proper size all will end very badly
+void TLinAlg::Multiply(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C) {
+	// A well defined
+	Assert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
+	// Dimensions must match
+	if (A.Val1.Len() == 0) {
+		return;
+	}
+	TLinAlg::MultiplySF(A, B, C);
+}
+
+void TLinAlg::MultiplyT(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C) {
+	// B well defined
+	Assert(A.Val1.Len() == A.Val2.Len() && A.Val2.Len() == A.Val3.Len());
+	if (A.Val1.Len() == 0) {
+		return;
+	}
+	TLinAlg::MultiplySF(A, B, C, "T");
+}
+#endif
 
 // general matrix multiplication (GEMM)
 void TLinAlg::Gemm(const double& Alpha, const TFltVV& A, const TFltVV& B, const double& Beta, 
@@ -637,7 +1179,7 @@ void TLinAlg::InverseSVD(const TFltVV& M, TFltVV& B) {
 	SVD.Svd(M, U, E, V);
 	
 	// http://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Singular_value_decomposition_.28SVD.29
-	double tol = TFlt::Eps * max(M.GetRows(), M.GetCols()) * E[E.GetMxValN()];
+	double tol = TFlt::Eps * MAX(M.GetRows(), M.GetCols()) * E[E.GetMxValN()];
 	// calculate reciprocal values for diagonal matrix = inverse diagonal
 	for (int i = 0; i < E.Len(); i++) {
 		if (E[i] > tol) {
@@ -1681,6 +2223,14 @@ void TLAMisc::SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut
     }
 }
 
+void TLAMisc::SaveMatlabSpMat(const TTriple<TIntV, TIntV,TFltV>& SpMat, TSOut& SOut) {
+	int Len = SpMat.Val1.Len();
+	for (int ElN = 0; ElN < Len; ElN++) {
+		SOut.PutStrLn(SpMat.Val1[ElN].GetStr() + " " + SpMat.Val2[ElN].GetStr() + " " + SpMat.Val3[ElN].GetStr());
+	}
+	SOut.Flush();
+}
+
 void TLAMisc::SaveMatlabTFltV(const TFltV& m, const TStr& FName) {
     PSOut out = TFOut::New(FName);
     const int RowN = m.Len();
@@ -1804,6 +2354,15 @@ void TLAMisc::PrintTFltVV(const TFltVV& A, const TStr& MatrixNm) {
     printf("]\n");
 }
 
+void TLAMisc::PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm) {
+	int Nonzeros = A.Val1.Len();
+	printf("%s = [\n", MatrixNm.CStr());
+	for (int ElN = 0; ElN < Nonzeros; ElN++) {
+		printf("%d %d %f\n", A.Val1[ElN].Val, A.Val2[ElN].Val, A.Val3[ElN].Val);
+	}
+	printf("]\n");
+}
+
 void TLAMisc::PrintTIntV(const TIntV& Vec, const TStr& VecNm) {
     printf("%s = [", VecNm.CStr());
     for (int i = 0; i < Vec.Len(); i++) {
@@ -1813,11 +2372,11 @@ void TLAMisc::PrintTIntV(const TIntV& Vec, const TStr& VecNm) {
     printf("]\n");
 }
 
-
-void TLAMisc::FillRnd(TFltV& Vec, TRnd& Rnd) {
-    int Len = Vec.Len();
-    for (int i = 0; i < Len; i++)
-        Vec[i] = Rnd.GetNrmDev();
+void TLAMisc::FillRnd(const int64& Len, TFltV& Vec, TRnd& Rnd) {
+    Vec.Gen(Len);
+    for(int i = 0; i < Len; i++) {
+        Vec[i] = Rnd.GetUniDev();
+    }    
 }
 
 void TLAMisc::FillIdentity(TFltVV& M) {
@@ -1836,6 +2395,13 @@ void TLAMisc::FillIdentity(TFltVV& M, const double& Elt) {
         for (int j = 0; j < Len; j++) M(i,j) = 0.0;
         M(i,i) = Elt;
     }
+}
+
+void TLAMisc::FillRange(const int64& Vals, TFltV& Vec) {
+    Vec.Gen(Vals);
+	for(int64 i = 0; i < Vals; i++){
+		Vec[i] = i;
+	}
 }
 
 int TLAMisc::SumVec(const TIntV& Vec) {
@@ -1883,3 +2449,156 @@ void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
         }
     }
 }
+
+ void TLAMisc::Diag(const TFltV& Vec, TFltVV& Mat) {
+	 Mat.Gen(Vec.Len(), Vec.Len());
+	 Mat.PutAll(0.0);
+	 for (int ElN = 0; ElN < Vec.Len(); ElN++) {
+		 Mat.At(ElN, ElN) = Vec[ElN];
+	 }
+ }
+ 
+ //no need to reserve memory for the matrices, all will be done internaly
+ //Set k to 500
+#ifdef EIGEN
+int TLinAlg::ComputeThinSVD(const TStructuredCovarianceMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V){
+	 //TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
+	 const int m = XYt.GetRows();
+	 const int n = XYt.GetCols();
+	 int l = (int)((11 / 10.0) * k);
+	 printf("l is %d\n", l);
+	 const int its = 2;
+	 if ((its+1)*l >= MIN(m, n)){
+		 TFltVV XYtfull; XYtfull.Gen(m, n);
+		 TFltVV Identity; Identity.Gen(n, n);
+		 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
+		 typedef Eigen::Map<Mat> MatW;
+		 MatW IdentityWrapped(&Identity(0, 0).Val, n, n);
+		 IdentityWrapped.setIdentity(n, n);
+		 XYt.Multiply(Identity, XYtfull);
+		 TFltVV VT;
+		 TLinAlg::thinSVD(XYtfull, U, s, VT);
+	     V.Gen(VT.GetCols(), VT.GetRows());
+		 TLinAlg::Transpose(VT, V);
+	 }
+	 else{
+		 TTmStopWatch Time;
+		 if (m >= n){
+			 //H is used for intermediate result and should be of the size n times l!
+			 TFltVV H; H.GenRandom(n, l);
+			 //TFltVV RSample; RSample.GenRandom(n, l);
+			 TFltVV F, F0, F1, F2; F0.Gen(m, l); F1.Gen(m, l); F2.Gen(m, l);
+			 Time.Start();
+			 printf("Start Multiplying with XYt'*XYt twice\n");
+			 //Size of F0 should be m x l
+			 XYt.Multiply(H, F0);
+			 //H is used for intermediate result and should be of the size n times l!
+			 XYt.MultiplyT(F0, H);
+			 //H is used for intermediate result and should be of the size n times l!
+			 XYt.Multiply(H, F1);
+			 //H is used for intermediate result and should be of the size n times l!
+			 XYt.MultiplyT(F1, H); XYt.Multiply(H, F2);
+			 Time.Stop("Finish Multiplying with XYt'*XYt twice\n");
+			 //Free the memory
+			 H.Clr();
+			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
+			 F.Gen(m, (its + 1) * l);//its+1
+			 typedef Eigen::Map<Mat> MatW;
+			 MatW FWrapped(&F(0, 0).Val, m, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, m, l); MatW F1Wrapped(&F1(0, 0).Val, m, l); MatW F2Wrapped(&F2(0, 0).Val, m, l);
+			 printf("Started to join the memory\n");
+			 Time.Start();
+			 FWrapped << F0Wrapped, F1Wrapped, F2Wrapped;
+			 Time.Stop("Finished joining the memory\n");
+			 //Free the memory
+			 F0.Clr(); F1.Clr(); F2.Clr();
+			 //Do QR in place at the end F becomes Q
+			 printf("Orthogonal basis in place computation\n");
+			 Time.Start();
+			 TLinAlg::QRbasis(F);
+			 Time.Stop("Orthogonal basis in place computation took: ");
+			 //Is F still valid
+			 TFltVV FF; FF.Gen(n, (its + 1) * l);
+			 printf("Start Multiplying with XYt'\n");
+			 Time.Start();
+			 XYt.MultiplyT(F, FF);
+			 Time.Stop("Multiplying with XYt' took: ");
+			 TFltVV UU, VT;
+			 printf("Size of matrix FF: %d\n", FF.GetCols());
+			 printf("Computation of thin SVD\n");
+			 Time.Start();
+			 TFltVV FFT; FFT.Gen((its + 1) * l, n);
+			 TLinAlg::Transpose(FF, FFT);
+			 TLinAlg::thinSVD(FFT, UU, s, VT);
+			 Time.Stop("Computation of thin SVD took:");
+			 printf("UU (%d, %d)\n", UU.GetRows(), UU.GetCols());
+			 //Copy and save U
+			 U.Gen(m, (its + 1)*l);
+			 TLinAlg::Multiply(F, UU, U);
+			 V.Gen(VT.GetCols(), VT.GetRows());
+			 TLinAlg::Transpose(VT, V);
+			 //U = Q*U2;
+		 }
+		 else{
+			 //H is used for intermediate result and should be of the size m times l!
+			 TFltVV H; H.GenRandom(m, l);
+			 //TFltVV RSample; RSample.GenRandom(n, l);
+			 TFltVV F, F0, F1, F2; F0.Gen(n, l); F1.Gen(n, l); F2.Gen(n, l);
+			 printf("Star Multiplying with XYt'*XYt\n");
+			 //Size of F0 should be m x l
+			 XYt.MultiplyT(H, F0);
+			 printf("Finish Multiplying with XYt'*Xyt");
+			 //H is used for intermediate result and should be of the size m times l!
+			 XYt.Multiply(F0, H);
+			 //H is used for intermediate result and should be of the size m times l!
+			 XYt.MultiplyT(H, F1);
+			 //H is used for intermediate result and should be of the size m times l!
+			 XYt.Multiply(F1, H); XYt.MultiplyT(H, F2);
+			 printf("Finish Multiplying with XYt\n");
+			 //Free the memory
+			 H.Clr();
+			 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> Mat;
+			 F.GenRandom(n, (its + 1) * l);//its+1
+			 typedef Eigen::Map<Mat> MatW;
+			 MatW FWrapped(&F(0, 0).Val, n, (its + 1) * l); MatW F0Wrapped(&F0(0, 0).Val, n, l); MatW F1Wrapped(&F1(0, 0).Val, n, l); MatW F2Wrapped(&F2(0, 0).Val, n, l);
+			 printf("Started to join the memory");
+			 FWrapped << F0Wrapped, F1Wrapped, F2Wrapped;
+			 printf("Finished join the memory");
+			 //Free the memory
+			 F0.Clr(); F1.Clr(); F2.Clr();
+			 //Do QR in place at the end F becomes Q
+			 TLinAlg::QRbasis(F);
+			 printf("QR finsihed\n");
+			 //Is F still valid
+			 TFltVV FF; FF.Gen(m, (its + 1) * l);
+			 XYt.Multiply(F, FF);
+			 TFltVV VV, VVT;
+			 printf("Size of matrix FF: %d\n", FF.GetCols());
+			 TLinAlg::thinSVD(FF, U, s, VVT);
+			 VV.Gen(VVT.GetCols(), VVT.GetRows());
+			 TLinAlg::Transpose(VVT, VV);
+			 V.Gen(n, (its + 1)*l);
+			 printf("Almost done\n");
+			 printf("F sizes: (%d, %d), VV sizes (%d, %d), V sizes (%d, %d)", F.GetRows(), F.GetCols(), VV.GetRows(), VV.GetCols(), V.GetRows(), V.GetCols());
+			 TLinAlg::Multiply(F, VV, V);
+			 //V = Q*V2;
+		 }
+	 }
+	 //Clip to only top k components
+	 int kk = MIN(k, MIN(m, n));
+	 TFltVV UU, VV; UU.Gen(U.GetRows(), kk); VV.Gen(V.GetRows(), kk);
+	 TFltV ss; ss.Gen(kk); 
+	 for (int j = 0; j < kk; j++){
+		 ss[j] = s[j];
+		 for (int i = 0; i < U.GetRows(); i++){
+			 UU(i, j) = U(i, j);
+		 }
+		 for (int i = 0; i < V.GetRows(); i++){
+			 VV(i, j) = V(i, j);
+		 }
+	 }
+	 U = UU;
+	 V = VV;
+	 s = ss;
+	 return kk;
+ }
+#endif

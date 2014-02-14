@@ -155,6 +155,7 @@ public:
   TTriple(const TVal1& _Val1, const TVal2& _Val2, const TVal3& _Val3):
     Val1(_Val1), Val2(_Val2), Val3(_Val3){}
   explicit TTriple(TSIn& SIn): Val1(SIn), Val2(SIn), Val3(SIn){}
+  void Load(TSIn& SIn) {Val1.Load(SIn); Val2.Load(SIn); Val3.Load(SIn);}
   void Save(TSOut& SOut) const {
     Val1.Save(SOut); Val2.Save(SOut); Val3.Save(SOut);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm="");
@@ -627,6 +628,8 @@ public:
   void QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, const bool& Asc);
   /// Sorts the elements of the vector. ##TVec::Sort
   void Sort(const bool& Asc=true);
+  /// Sorts the elements of the vector in a new copy and returns the permutation. ##TVec::SortGetPerm
+  void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc = true);
   /// Checks whether the vector is sorted in ascending (if \c Asc=true) or descending (if \c Asc=false) order.
   bool IsSorted(const bool& Asc=true) const;
   /// Randomly shuffles the elements of the vector.
@@ -730,6 +733,8 @@ public:
     const TSizeTy ValN=SearchForw(Val); if (ValN==-1){Add(Val); return Last();} else {return GetVal(ValN);}}
   /// Returns the position of the largest element in the vector.
   TSizeTy GetMxValN() const;
+  /// Returns the largest element in the vector \c Val. ###TVec::GetMxVal
+  const TVal& GetMxVal() const {return GetVal(GetMxValN());}
   
   /// Returns a vector on element \c Val1.
   static TVec<TVal, TSizeTy> GetV(const TVal& Val1){
@@ -1175,6 +1180,22 @@ void TVec<TVal, TSizeTy>::QSort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Sort(const bool& Asc){
   QSort(0, Len()-1, Asc);
+}
+
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc) {
+	TSizeTy Len = Vec.Len();
+	TVec<TPair<TVal, TSizeTy> > PairV; PairV.Gen(Len, 0);
+	for (TSizeTy ElN = 0; ElN < Len; ElN++) {
+		PairV.Add(TPair<TVal, TSizeTy>(Vec[ElN], ElN));
+	}
+	PairV.Sort(Asc);
+	SortedVec.Gen(Len, 0);
+	PermV.Gen(Len, 0);
+	for (TSizeTy ElN = 0; ElN < Len; ElN++) {
+		SortedVec.Add(PairV[ElN].Val1);
+		PermV.Add(PairV[ElN].Val2);
+	}
 }
 
 template <class TVal, class TSizeTy>
@@ -2645,7 +2666,7 @@ template <class TVal, class TSizeTy>
 int TVecPool<TVal, TSizeTy>::AddV(const TValV& ValV) {
   const TSizeTy ValVLen = ValV.Len();
   if (ValVLen == 0) { return 0; }
-  if ((TSizeTy)MxVals < (TSizeTy)(Vals+ValVLen)) { Resize(Vals+max(ValVLen, GrowBy)); }
+  if ((TSizeTy)MxVals < (TSizeTy)(Vals+ValVLen)) { Resize(Vals+MAX(ValVLen, GrowBy)); }
   if (FastCopy) { memcpy(ValBf+Vals, ValV.BegI(), sizeof(TVal)*ValV.Len()); }
   else { for (int ValN=0; ValN < ValVLen; ValN++) { ValBf[Vals+ValN]=ValV[ValN]; } }
   Vals+=ValVLen;  IdToOffV.Add(Vals);
@@ -2655,7 +2676,7 @@ int TVecPool<TVal, TSizeTy>::AddV(const TValV& ValV) {
 template <class TVal, class TSizeTy>
 int TVecPool<TVal, TSizeTy>::AddEmptyV(const int& ValVLen) {
   if (ValVLen==0){return 0;}
-  if (MxVals < Vals+ValVLen){Resize(Vals+max(TSize(ValVLen), GrowBy)); }
+  if (MxVals < Vals+ValVLen){Resize(Vals+MAX(TSize(ValVLen), GrowBy)); }
   Vals+=ValVLen; IdToOffV.Add(Vals);
   return IdToOffV.Len()-1;
 }
@@ -2877,7 +2898,7 @@ template<class TVal>
 int TVecPool<TVal>::AddV(const TValV& ValV) {
   const ::TSize ValVLen = ValV.Len();
   if (ValVLen == 0) { return 0; }
-  if (MxVals < Vals+ValVLen) { Resize(Vals+max(ValVLen, GrowBy)); }
+  if (MxVals < Vals+ValVLen) { Resize(Vals+MAX(ValVLen, GrowBy)); }
   if (FastCopy) { memcpy(ValBf+Vals, ValV.BegI(), sizeof(TVal)*ValV.Len()); }
   else { for (uint ValN=0; ValN < ValVLen; ValN++) { ValBf[Vals+ValN]=ValV[ValN]; } }
   Vals+=ValVLen;  IdToOffV.Add(Vals);
@@ -2887,7 +2908,7 @@ int TVecPool<TVal>::AddV(const TValV& ValV) {
 template<class TVal>
 int TVecPool<TVal>::AddEmptyV(const int& ValVLen) {
   if (ValVLen==0){return 0;}
-  if (MxVals < Vals+ValVLen){Resize(Vals+max(TSize(ValVLen), GrowBy)); }
+  if (MxVals < Vals+ValVLen){Resize(Vals+MAX(TSize(ValVLen), GrowBy)); }
   Vals+=ValVLen; IdToOffV.Add(Vals);
   return IdToOffV.Len()-1;
 }
@@ -3113,8 +3134,8 @@ void TVVec<TVal, TSizeTy>::GetMxValXY(TSizeTy& X, TSizeTy& Y) const {
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::CopyFrom(const TVVec<TVal, TSizeTy>& VVec){	
-  TSizeTy CopyXDim= min(GetXDim(), VVec.GetXDim());
-  TSizeTy CopyYDim= min(GetYDim(), VVec.GetYDim());
+  TSizeTy CopyXDim= MIN(GetXDim(), VVec.GetXDim());
+  TSizeTy CopyYDim= MIN(GetYDim(), VVec.GetYDim());
   for (TSizeTy X=0; X<CopyXDim; X++){
     for (TSizeTy Y=0; Y<CopyYDim; Y++){
       At(X, Y)=VVec.At(X, Y);
@@ -3248,6 +3269,7 @@ public:
   TTree(const TTree& Tree): NodeV(Tree.NodeV){}
   explicit TTree(TSIn& SIn): NodeV(SIn){}
   void Save(TSOut& SOut) const {NodeV.Save(SOut);}
+  void Load(TSIn& SIn) {NodeV.Load(SIn);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm="");
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 

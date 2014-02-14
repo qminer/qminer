@@ -18,13 +18,30 @@
  */
 
 ///////////////////////////////////////////////////////////////////////
+// Blas Support
+#ifdef BLAS
+	#ifdef AMD
+		#include "acml.h"
+	#endif
+	#ifdef INTEL 
+		#include "mkl.h"
+	#endif
+	#ifdef OPENBLAS
+		//TODO: Andrej, get rid of mkl.h
+		#include "mkl.h"
+		//#include "cblas.h"
+		//#include "lapacke.h"
+	#endif
+#endif
+
+///////////////////////////////////////////////////////////////////////
 // forward declarations
 class TLinAlg;
 class TLAMisc;
 
 ///////////////////////////////////////////////////////////////////////
-// Matrix
-class TMatrix {
+/// Matrix. Class for matrix-vector and matrix-matrix operations
+class TMatrix {	
 private:
     bool Transposed;
 protected:
@@ -32,6 +49,8 @@ protected:
     virtual void PMultiply(const TFltV& Vec, TFltV& Result) const = 0;
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const = 0;
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const = 0;
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const = 0;	
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const = 0;
 
     virtual int PGetRows() const = 0;
     virtual int PGetCols() const = 0;
@@ -43,7 +62,7 @@ public:
     void Multiply(const TFltVV& B, int ColId, TFltV& Result) const {
         if (Transposed) { PMultiplyT(B, ColId, Result); }
         else { PMultiply(B, ColId, Result); }
-    }
+    }	
     // Result = A * Vec
     void Multiply(const TFltV& Vec, TFltV& Result) const {
         if (Transposed) { PMultiplyT(Vec, Result); }
@@ -53,11 +72,22 @@ public:
     void MultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
         if (Transposed) { PMultiply(B, ColId, Result); }
         else { PMultiplyT(B, ColId, Result); }
-    }
+    }	
     // Result = A' * Vec
     void MultiplyT(const TFltV& Vec, TFltV& Result) const{
         if (Transposed) { PMultiply(Vec, Result); }
         else { PMultiplyT(Vec, Result); }
+    }
+
+	// Result = A * B
+    void Multiply(const TFltVV& B, TFltVV& Result) const {        
+		if (Transposed) { PMultiplyT(B, Result); }
+        else { PMultiply(B, Result); }
+    }
+    // Result = A' * B
+    void MultiplyT(const TFltVV& B, TFltVV& Result) const {
+		if (Transposed) { PMultiply(B, Result); }
+        else { PMultiplyT(B, Result); }
     }
 
     // number of rows
@@ -86,6 +116,10 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const;
     // Result = A' * Vec
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
+	// Result = A * B
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+	// Result = A' * B
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
 
     int PGetRows() const { return RowN; }
     int PGetCols() const { return ColN; }
@@ -115,12 +149,16 @@ public:
 protected:
     // Result = A * B(:,ColId)
     virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const;
-    // Result = A * Vec
+	// Result = A * Vec
     virtual void PMultiply(const TFltV& Vec, TFltV& Result) const;
     // Result = A' * B(:,ColId)
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const;
-    // Result = A' * Vec
+	// Result = A' * Vec
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
+	// Result = A * B
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+	// Result = A' * B
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
 
     int PGetRows() const { return RowN; }
     int PGetCols() const { return ColN; }
@@ -157,6 +195,10 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const;
     // Result = A' * Vec
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
+	// Result = A * B
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+	// Result = A' * B
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
 
     int PGetRows() const { return RowN; }
     int PGetCols() const { return ColN; }
@@ -170,6 +212,44 @@ public:
     void Save(TSOut& SOut) {SOut.Save(RowN); SOut.Save(ColN);  ColV.Save(SOut); }
     void Load(TSIn& SIn) {SIn.Load(RowN); SIn.Load(ColN); ColV.Load(SIn); }
 };
+
+///////////////////////////////////////////////////////////////////////
+// Structured-Covariance-Matrix
+//  matrix is a product of two sparse matrices X Y' (column examples, row features), 
+//  which are centered implicitly by using two dense mean vectors
+class TStructuredCovarianceMatrix: public TMatrix {	
+private:
+    // number of rows and columns of matrix
+    int XRows, YRows;
+	int Samples;
+    // mean vectors
+	TFltV MeanX;
+	TFltV MeanY;
+	TTriple<TIntV, TIntV, TFltV> X;
+    TTriple<TIntV, TIntV, TFltV> Y;
+protected:
+    // Result = A * B(:,ColId)
+	virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const;	
+	// Result = A * B
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const;
+    // Result = A * Vec
+	virtual void PMultiply(const TFltV& Vec, TFltV& Result) const;
+    // Result = A' * B(:,ColId)
+	virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const;
+	// Result = A' * B
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
+    // Result = A' * Vec
+	virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;	
+	
+    int PGetRows() const { return XRows; }
+    int PGetCols() const { return YRows; }
+
+public:
+    TStructuredCovarianceMatrix(): TMatrix() {}    
+	TStructuredCovarianceMatrix(const int XRowN_, const int YRowN_, const int SampleN_, const TFltV& MeanX_, const TFltV& MeanY_, const TTriple<TIntV, TIntV, TFltV>& X_, const TTriple<TIntV, TIntV, TFltV>& Y_): TMatrix(), XRows(XRowN_), YRows(YRowN_), Samples(SampleN_), MeanX(MeanX_), MeanY(MeanY_), X(X_), Y(Y_) {};
+    void Save(TSOut& SOut) {SOut.Save(XRows); SOut.Save(YRows); SOut.Save(Samples); MeanX.Save(SOut); MeanY.Save(SOut); X.Save(SOut); Y.Save(SOut);}
+    void Load(TSIn& SIn) {SIn.Load(XRows); SIn.Load(YRows); SIn.Load(Samples); MeanX.Load(SIn); MeanY.Load(SIn); X.Load(SIn); Y.Load(SIn);}
+};	
 
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
@@ -192,6 +272,9 @@ public:
     // z := p * x + q * y
     static void LinComb(const double& p, const TFltV& x,
         const double& q, const TFltV& y, TFltV& z);
+	// Z := p * X + q * Y
+    static void LinComb(const double& p, const TFltVV& X,
+        const double& q, const TFltVV& Y, TFltVV& Z);
     // z := p * x + (1 - p) * y
     static void ConvexComb(const double& p, const TFltV& x, const TFltV& y, TFltV& z);
 
@@ -205,10 +288,12 @@ public:
     static void AddVec(const double& k, const TIntFltKdV& x, TFltV& y);
     // Y(:,Col) += k * X(:,Col)
     static void AddVec(double k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY);
+	// Y(:,ColIdY) += k * x
+	static void AddVec(const double& k, const TFltV& x, TFltVV& Y, const int& ColIdY);
     // Result += k * X(:,Col)
     static void AddVec(double k, const TFltVV& X, int ColId, TFltV& Result);
 	// z = x + y
-    static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);
+    static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);	    
 
     // Result = SUM(x)
     static double SumVec(const TFltV& x);
@@ -217,10 +302,30 @@ public:
 
     // Result = ||x-y||^2 (Euclidian)
     static double EuclDist2(const TFltV& x, const TFltV& y);
+    // Result = ||x-y||^2 (Euclidian)
     static double EuclDist2(const TFltPr& x, const TFltPr& y);
     // Result = ||x-y|| (Euclidian)
     static double EuclDist(const TFltV& x, const TFltV& y);
+    // Result = ||x-y|| (Euclidian)
     static double EuclDist(const TFltPr& x, const TFltPr& y);
+	
+	// Result = ||A - B||_F (Frobenious)
+	static double FrobDist2(const TFltVV& A, const TFltVV& B);
+	// Result = ||A - B||_F (Frobenious)
+	static double FrobDist2(const TFltV& A, const TFltV& B);
+	// Dense to sparse transform
+	static void Sparse(const TFltVV& A, TTriple<TIntV, TIntV, TFltV>& B);
+	// Sparse to dense transform
+	static void Full(const TTriple<TIntV, TIntV, TFltV>&A, TFltVV& B, int rows, int cols);
+	// Transpose
+	static void Transpose(const TTriple<TIntV, TIntV, TFltV>& A, TTriple<TIntV, TIntV, TFltV>& At);
+	// Vector of sparse vectors to sparse matrix (coordinate representation)
+	static void Convert(const TVec<TPair<TIntV, TFltV> >& A, TTriple<TIntV, TIntV, TFltV>& B);
+
+	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
+	static void Sum(const TFltVV& X, TFltV& y, const int Dimension = 1);
+	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
+	static void Sum(const TTriple<TIntV, TIntV, TFltV>& X, TFltV& y, const int Dimension = 1);
 
     // ||x||^2 (Euclidian)
     static double Norm2(const TFltV& x);
@@ -228,6 +333,12 @@ public:
     static double Norm(const TFltV& x);
     // x := x / ||x||
     static void Normalize(TFltV& x);
+	// Normalize X(:,ColId)
+	static void NormalizeColumn(TFltVV& X, const int& ColId);
+	// Normalize the columns of X
+	static void NormalizeColumns(TFltVV& X);
+	// Normalize the columns of X
+	static void NormalizeColumns(TTriple<TIntV, TIntV, TFltV>& X);
 
     // ||x||^2 (Euclidian), x is sparse
     static double Norm2(const TIntFltKdV& x);
@@ -275,14 +386,57 @@ public:
     // C(:, ColIdC) := A * B(:, ColIdB)
     static void Multiply(const TFltVV& A, const TFltVV& B, int ColIdB, TFltVV& C, int ColIdC);
 
-    // y := A' * x
-    static void MultiplyT(const TFltVV& A, const TFltV& x, TFltV& y);
+//LAPACKE stuff
+#ifdef LAPACKE
+	static void QRbasis(TFltVV& A);
+	static void QRbasis(const TFltVV& A, TFltVV& Q);
+	static void QRcolpbasis(TFltVV& A);
+	static void QRcolpbasis(const TFltVV& A, TFltVV& Q);
+	static void thinSVD(const TFltVV& A, TFltVV& U, TFltV& S, TFltVV& VT);
+#endif
+#if defined(LAPACKE) && defined(EIGEN)
+    static int ComputeThinSVD(const TStructuredCovarianceMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V);
+#endif
+//Full matrix times sparse vector
+#ifdef INTEL	
+	//No need to reserve anything outside, functions currently take care of memory managment for safety
+	static void Multiply(TFltVV& ProjMat, TPair<TIntV, TFltV> &, TFltVV& result);
+	static void Multiply(const TFltVV& ProjMat, const TPair<TIntV, TFltV> &, TFltVV& result);
+	static void MultiplySF(const TTriple<TIntV, TIntV, TFltV>&, const TFltVV& B, TFltVV& C, const TStr& transa = TStr("N"));
+#endif
+	// y := A * x
+	static void Multiply(const TFltVV& A, const TPair<TIntV, TFltV>& x, TFltV& y);
+	// y := A' * x
+	static void MultiplyT(const TFltVV& A, const TFltV& x, TFltV& y);
 
+#ifdef BLAS
+	typedef enum { NOTRANS = 0, TRANS = 1} TLinAlgBlasTranspose;
+	// C = op(A) * op(B)
+    static void Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C, const int& BlasTransposeFlagA, const int& BlasTransposeFlagB);
+	// y := alpha*op(A)*x + beta*y, where op(A) = A -- N, op(A) = A' -- T, op(A) = conj(A') -- C (only for complex)
+    static void Multiply(const TFltVV& A, const TFltV& x, TFltV& y, const int& BlasTransposeFlagA, double alpha = 1.0, double beta = 0.0);
+#endif
     // C = A * B
-    static void Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C);
+    static void Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C);	
+
 	// C = A' * B
     static void MultiplyT(const TFltVV& A, const TFltVV& B, TFltVV& C);
-	
+
+	//////////////////
+	//  DENSE-SPARSE, SPARSE-DENSE
+	// C := A * B
+	static void Multiply(const TFltVV& A, const TTriple<TIntV, TIntV, TFltV>& B, TFltVV& C);
+	// C:= A' * B
+	static void MultiplyT(const TFltVV& A, const TTriple<TIntV, TIntV, TFltV>& B, TFltVV& C);
+	// C := A * B
+	static void Multiply(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C);
+	// C:= A' * B
+	static void MultiplyT(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C);
+
+#ifdef INTEL
+	static void Multiply(const TFltVV & ProjMat, const TPair<TIntV, TFltV> & Doc, TFltV & Result);
+#endif
+
 	// D = alpha * A(') * B(') + beta * C(')
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
 	static void Gemm(const double& Alpha, const TFltVV& A, const TFltVV& B, const double& Beta, 
@@ -515,13 +669,15 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////
-// Useful stuff (hopefuly)
+// Useful stuff (hopefully)
 class TLAMisc {
 public:
 	// Dumps vector to file so Excel can read it
     static void SaveCsvTFltV(const TFltV& Vec, TSOut& SOut);
 	// Dumps sparse vector to file so Matlab can read it
     static void SaveMatlabTFltIntKdV(const TIntFltKdV& SpV, const int& ColN, TSOut& SOut);
+	// Dumps sparse matrix to file so Matlab can read it
+    static void SaveMatlabSpMat(const TTriple<TIntV, TIntV,TFltV>& SpMat, TSOut& SOut);
 	// Dumps vector to file so Matlab can read it
     static void SaveMatlabTFltV(const TFltV& m, const TStr& FName);
 	// Dumps vector to file so Matlab can read it
@@ -540,11 +696,14 @@ public:
     static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
 	// print matrixt to screen
 	static void PrintTFltVV(const TFltVV& A, const TStr& MatrixNm);
+	// print sparse matrix to screen
+	static void PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm);
     // prints vector to screen
     static void PrintTIntV(const TIntV& Vec, const TStr& VecNm);
     // fills vector with random numbers
-    static void FillRnd(TFltV& Vec) { TRnd Rnd(0); FillRnd(Vec, Rnd); }
-    static void FillRnd(TFltV& Vec, TRnd& Rnd);
+    static void FillRnd(TFltV& Vec) { TRnd Rnd(0); FillRnd(Vec.Len(), Vec, Rnd); }
+    static void FillRnd(TFltV& Vec, TRnd& Rnd) { FillRnd(Vec.Len(), Vec, Rnd); }
+    static void FillRnd(const int64& Len, TFltV& Vec, TRnd& Rnd);
     // set all components
     static void Fill(TFltVV& M, const double& Val);
     // sets all compnents to zero
@@ -553,6 +712,8 @@ public:
     // set matrix to identity
     static void FillIdentity(TFltVV& M);
     static void FillIdentity(TFltVV& M, const double& Elt);
+    // set vector to range
+    static void FillRange(const int64& Vals, TFltV& Vec);
     // sums elements in vector
     static int SumVec(const TIntV& Vec);
     static double SumVec(const TFltV& Vec);
@@ -561,6 +722,7 @@ public:
         const double& CutWordWgtSumPrc = 0.0);
     // converts sparse vector to full
     static void ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen);
+	static void Diag(const TFltV& Vec, TFltVV& Mat);
 };
 
 //////////////////////////////////////////////////////////////////////

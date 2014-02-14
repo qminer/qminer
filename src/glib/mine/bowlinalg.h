@@ -32,6 +32,10 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const;
     // Result = A' * Vec
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
+	// Result = A * B
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+	// Result = A' * B
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
 
     int PGetRows() const { return RowN; }
     int PGetCols() const { return ColSpVV.Len(); }

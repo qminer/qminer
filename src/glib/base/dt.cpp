@@ -534,6 +534,25 @@ bool TChA::IsPrefix(const TChA& Str) const {
   return IsPrefix(Str.CStr());
 }
 
+bool TChA::IsPrefixLc(const char* CStr, const int& BChN) const {
+  if (BChN+(int)strlen(CStr)>Len()){return false;}
+  const char* B = Bf+BChN;
+  const char* C = CStr;
+  while (*C!=0 && tolower(*B)==tolower(*C) ) {
+    B++; C++;
+  }
+  if (*C==0){return true;}
+  else {return false;}
+}
+
+bool TChA::IsPrefixLc(const TStr& Str) const {
+  return IsPrefixLc(Str.CStr());
+}
+
+bool TChA::IsPrefixLc(const TChA& Str) const {
+  return IsPrefixLc(Str.CStr());
+}
+
 bool TChA::IsSuffix(const char* CStr) const {
   if ((int)strlen(CStr) > Len()) { return false; }
   const char* E = Bf+Len()-1;
@@ -1103,7 +1122,7 @@ bool TStr::IsPrefix(const char *Str) const {
 	if (len > thisLen) {
 		return false;
 	} else {
-		size_t minLen = min(len, thisLen);
+		size_t minLen = MIN(len, thisLen);
 		int cmp = strncmp(Str, RStr->Bf, minLen);
 		return cmp == 0;
 	}

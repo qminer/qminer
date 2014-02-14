@@ -196,7 +196,7 @@ private:
 	TVec<TSizeMdTy> DimV; // dimensions of each mode (number of modesis an int!)
 	TInt R; // number of components
 	TVec<TVal> Lambda; //coefficient vector: number of components is an int! length = R	
-	TVec<TVVec<TVal, TSizeMdTy>> U; //basis matrices, columns should be normalized (x = rowIdx, y = colIdx), ydim = R
+	TVec<TVVec<TVal, TSizeMdTy> > U; //basis matrices, columns should be normalized (x = rowIdx, y = colIdx), ydim = R
 public:
 	TKTensor(const TVec<TSizeMdTy>& DimV_, const int& R_) {
 		Modes = DimV_.Len();

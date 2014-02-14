@@ -312,6 +312,9 @@ public:
   bool IsPrefix(const char* CStr, const int& BChN=0) const;
   bool IsPrefix(const TStr& Str) const;
   bool IsPrefix(const TChA& Str) const;
+  bool IsPrefixLc(const char* CStr, const int& BChN=0) const;
+  bool IsPrefixLc(const TStr& Str) const;
+  bool IsPrefixLc(const TChA& Str) const;
   bool IsSuffix(const char* CStr) const;
   bool IsSuffix(const TStr& Str) const;
   bool IsSuffix(const TChA& Str) const;
@@ -420,7 +423,7 @@ public:
   int GetSecHashCd() const;
 
   static TRStr* GetNullRStr(){
-    return new TRStr(); }  
+    return new TRStr(0); }  
     //static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
 };
 

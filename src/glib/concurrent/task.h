@@ -238,10 +238,10 @@ public:
 		int End = ItemsPerThread;
 		TVec<TPt<TJob<InItem, OutItem> > > SubJobs(Len());
 		
-		for (int i = 0; i < min(Len(), AllItems); i++) {
+		for (int i = 0; i < MIN(Len(), AllItems); i++) {
 			TPt<TJob<InItem, OutItem> > SubJob = TJob<InItem, OutItem>::New(Job->Task, Job->Items, Job->Outputs);
 			SubJob->IndexOffset = Start;
-			SubJob->IndexEnd = min(AllItems, End);
+			SubJob->IndexEnd = MIN(AllItems, End);
 			//printf("setting up job from %d to %d of %d\n", Start, SubJob->IndexEnd, AllItems);
 			SubJobs[i] = SubJob;
 			Start = End;

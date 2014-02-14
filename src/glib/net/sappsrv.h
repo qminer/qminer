@@ -147,7 +147,8 @@ public:
 
 //////////////////////////////////////
 // File-Download-Function
-class TSASFunFile : TSAppSrvFun {
+// Andrej added public exposure
+class TSASFunFile : public TSAppSrvFun {
 private:
 	TStr FNm;
 	TStr ContType;

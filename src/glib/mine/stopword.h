@@ -61,6 +61,7 @@ public:
   TSwSetType GetSwSetType() const {
     return TSwSetType(int(SwSetType));}
   bool IsIn(const TStr& WordStr, const bool& UcWordStrP=true) const;
+  bool IsEmpty(){ return (SwSetType == swstNone) || (SwStrH.Empty()); }
   void AddWord(const TStr& WordStr);
   void LoadFromFile(const TStr& FNm);
 
