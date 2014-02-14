@@ -46,7 +46,7 @@ qm:
 	# move in qm commandline tool
 	mv ./qm ./$(BUILD)/
 	# copy in unicode definiton files
-	cp ./src/glib/bin/UnicodeDef.Bin ./$(BUILD)/
+	cp ./$(GLIB)/bin/UnicodeDef.Bin ./$(BUILD)/
 	# copy in javascript libraries
 	mkdir -p ./$(BUILD)/lib
 	cp -r ./$(QMINER)/js/* ./build/lib
