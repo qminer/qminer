@@ -2573,7 +2573,9 @@ public:
 	const PStreamAggrBase& GetStreamAggrBase(const uchar& StoreId) const;
 	bool IsStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;
+	const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
 	void AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
     // aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 

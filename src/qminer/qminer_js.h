@@ -235,6 +235,11 @@ public:
 		return TStr(*Utf8);
 	}
 
+	/// Check if argument ArgN exists
+	static bool IsArg(const v8::Arguments& Args, const int& ArgN) {
+		return (Args.Length() > ArgN);
+	}
+
 	/// Checks if argument ArgN is of type string
 	static bool IsArgStr(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
@@ -270,7 +275,7 @@ public:
 		v8::HandleScope HandleScope;
 		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
-		return Val->IsInt32();
+		return Val->IsBoolean();
 	}
 
 	/// Extract argument ArgN as boolean
@@ -421,7 +426,7 @@ private:
 	/// Security token for JavaScript context
 	TStr SecurityToken;
 	/// Map from server Rules to JavaScript callbacks
-    TVec<PJsonVal> ServerRules;
+    TJsonValV SrvFunRuleV;
     THash<TInt, v8::Persistent<v8::Function> > JsNmFunH;;
 	
 public:
@@ -478,6 +483,8 @@ public:
 	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
 	/// Execute stored server function
 	void ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespObj);
+    /// Get array of registered server function rules
+    PJsonVal GetSrvFunRules() const { return TJsonVal::NewArr(SrvFunRuleV); }
 	/// Add new fetch request
 	void AddFetchRq(const TJsFetchRq& Rq);
 	/// Remember new trigger
@@ -771,6 +778,7 @@ public:
 	JsDeclareFunction(filterByFq);
 	JsDeclareFunction(filterByField);
 	JsDeclareFunction(filter);
+	JsDeclareFunction(toJSON);
 };
 
 ///////////////////////////////
@@ -1101,7 +1109,7 @@ private:
         ContTypeStr(THttp::AppJSonFldVal), DoneP(false) { }
 
 public:
-	static v8::Persistent<v8::Object> New(TWebSrv* WebSrv, const int& SockId) { 
+	static v8::Persistent<v8::Object> New(TWebSrv* WebSrv, const uint64& SockId) { 
 		return TJsHttpRespUtil::New(new TJsHttpResp(WebSrv, SockId)); }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();

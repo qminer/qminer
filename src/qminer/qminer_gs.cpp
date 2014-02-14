@@ -1466,11 +1466,11 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMem& RecMem,
         Index->Index(Key.KeyId, StrV, RecId);
     } else if (Key.FieldType == oftTm && Key.IsValue()) {
         // time indexed as timestamp string, TODO: proper time indexing
-        uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecId, Key.FieldId);
+        const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
         Index->Index(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
     } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
         // index geo-location using geo-index
-        TFltPr FltPr = Serializator.GetFieldFltPr(RecId, Key.FieldId);
+        TFltPr FltPr = Serializator.GetFieldFltPr(RecMem, Key.FieldId);
         Index->Index(Key.KeyId, FltPr, RecId);
     } else {
         ErrorLog(TStr::Fmt("[TFieldIndexer::IndexKey] Unsupported field and index type combination: %s[%s]: %s",
@@ -1496,7 +1496,7 @@ void TRecIndexer::DeindexKey(const TFieldIndexKey& Key, const TMem& RecMem,
         Index->Delete(Key.KeyId, StrV, RecId);
     } else if (Key.FieldType == oftTm && Key.IsValue()) {
         // time indexed as timestamp string, TODO: proper time indexing
-        uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
+        const uint64 TmMSecs = Serializator.GetFieldTmMSecs(RecMem, Key.FieldId);
         Index->Delete(Key.KeyId, TUInt64::GetStr(TmMSecs), RecId);
     } else if (Key.FieldType == oftFltPr && Key.IsLocation()) {
         // index geo-location using geo-index
@@ -1535,8 +1535,8 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMem& OldRecMem,
         Index->Index(Key.KeyId, NewStrV, RecId);
     } else if (Key.FieldType == oftTm && Key.IsValue()) {
         // time indexed as timestamp string, TODO: proper time indexing
-        uint64 OldTmMSecs = Serializator.GetFieldTmMSecs(OldRecMem, Key.FieldId);
-        uint64 NewTmMSecs = Serializator.GetFieldTmMSecs(NewRecMem, Key.FieldId);
+        const uint64 OldTmMSecs = Serializator.GetFieldTmMSecs(OldRecMem, Key.FieldId);
+        const uint64 NewTmMSecs = Serializator.GetFieldTmMSecs(NewRecMem, Key.FieldId);
         if (OldTmMSecs == NewTmMSecs) { return; }
         Index->Delete(Key.KeyId, TUInt64::GetStr(OldTmMSecs), RecId);
         Index->Index(Key.KeyId, TUInt64::GetStr(NewTmMSecs), RecId);

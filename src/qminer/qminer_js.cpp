@@ -429,8 +429,8 @@ void TScript::AddSrvFun(const TStr& ScriptNm, const TStr& FunNm,
         }
     }
     TEnv::Logger->OnStatus("Adding Rule: " + Rule->SaveStr());
-    ServerRules.Add(Rule);
-    JsNmFunH.AddDat(TInt(ServerRules.Len()-1), JsFun);
+    SrvFunRuleV.Add(Rule);
+    JsNmFunH.AddDat(TInt(SrvFunRuleV.Len()-1), JsFun);
 }
 
 void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespObj) {
@@ -443,11 +443,11 @@ void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespO
     //TEnv::Logger->OnStatusFmt("Execute for %s request: %s", Verb.CStr(), Url->GetPathStr().CStr());
 
     // Search the rules
-    TInt SelectedRule = -1;
+    int SelectedRule = -1;
     PJsonVal Params;
     bool RuleMatched = false;
-    for(int RuleN = 0; RuleN < ServerRules.Len(); RuleN++) {
-        PJsonVal Rule = ServerRules.GetVal(RuleN);
+    for(int RuleN = 0; RuleN < SrvFunRuleV.Len(); RuleN++) {
+        PJsonVal Rule = SrvFunRuleV.GetVal(RuleN);
         // Verb Match?
         if(!(Rule->GetArrVal(0)->GetObjStr("verb") == Verb)) {
             continue; // No
@@ -590,7 +590,7 @@ void TScript::Install() {
 	Context->Global()->Delete(v8::String::New("qm"));
 	Context->Global()->Delete(v8::String::New("fs"));
 	Context->Global()->Delete(v8::String::New("http"));
-    // create fresh ones
+	// create fresh ones
     DebugLog("Installing 'console' object");
 	Context->Global()->Set(v8::String::New("console"), TJsConsole::New(this));
     DebugLog("Installing 'qm' object");
@@ -669,8 +669,7 @@ void TJsSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
     // extract function name from URL
     // Get the URL used which may include variables
     const int PathSegs = Url->GetPathSegs();
-	QmAssertR(PathSegs >= 2, "No JavaScript function name in URL " + Url->GetUrlStr());
-	TStr FunNm = Url->GetPathSeg(1);
+	TStr FunNm = (PathSegs >= 2) ? Url->GetPathSeg(1) : "";
 	// check if in admin mode or normal callback
 	if (FunNm == "admin") {
 		QmAssertR(PathSegs >= 3, "No admin parameters in URL " + Url->GetUrlStr());
@@ -687,7 +686,15 @@ void TJsSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
 			THttp::TextPlainFldVal, false, TMIn::New(AdminMode));
         // send response
        	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp); 
-	} else {
+	} else if (FunNm.Empty()) {
+        // no parameters, just list the rules
+        PJsonVal SrvFunRules = Js->GetSrvFunRules();
+		// prepare response
+		PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd, THttp::AppJSonFldVal, 
+            false, TMIn::New(TJsonVal::GetStrFromVal(SrvFunRules)));
+        // send response
+       	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);         
+    } else {
         // prepare response object
     	v8::HandleScope HandleScope;
     	v8::Context::Scope ContextScope(Js->Context);        
@@ -1212,6 +1219,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filterByFq);
 		JsRegisterFunction(TmpTemp, filterByField);
 		JsRegisterFunction(TmpTemp, filter);
+		JsRegisterFunction(TmpTemp, toJSON);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1450,6 +1458,23 @@ v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	const int MxHits = -1;
+	const int Offset = 0;
+	const bool JoinRecsP = TJsRecSetUtil::IsArg(Args, 0) ? 
+		(TJsRecSetUtil::IsArgBool(Args, 0) ? TJsRecSetUtil::GetArgBool(Args, 0, false) : false) : false;
+	const bool JoinRecFieldsP = TJsRecSetUtil::IsArg(Args, 1) ? 
+		(TJsRecSetUtil::IsArgBool(Args, 1) ? TJsRecSetUtil::GetArgBool(Args, 1, false) : false) : false;
+	const bool FieldsP = true;
+	const bool AggrsP = false;
+    const bool StoreInfoP = false;
+    PJsonVal JsObj = JsRecSet->RecSet->GetJson(JsRecSet->Js->Base, 
+		MxHits, Offset, FieldsP, AggrsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);	
+	return HandleScope.Close(TJsUtil::ParseJson(JsObj));
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Record
 TVec<v8::Persistent<v8::ObjectTemplate> > TJsRec::TemplateV;
@@ -1487,7 +1512,8 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
             }
         }
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
+		TmpTemp->SetInternalFieldCount(1);		
+		JsRegisterFunction(TmpTemp, toJSON);
 		TemplateV[(int)StoreId] = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
 	return TemplateV[(int)StoreId];
@@ -1672,8 +1698,10 @@ v8::Handle<v8::Value> TJsRec::delJoin(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     TJsRec* JsRec = TJsRecUtil::GetSelf(Args);
-    const bool JoinRecsP = TJsRecUtil::GetArgBool(Args, 0, false);
-    const bool JoinRecFieldsP = TJsRecUtil::GetArgBool(Args, 1, false);
+	const bool JoinRecsP = TJsRecUtil::IsArg(Args, 0) ? 
+		(TJsRecUtil::IsArgBool(Args, 0) ? TJsRecUtil::GetArgBool(Args, 0, false) : false) : false;
+	const bool JoinRecFieldsP = TJsRecUtil::IsArg(Args, 1) ? 
+		(TJsRecUtil::IsArgBool(Args, 1) ? TJsRecUtil::GetArgBool(Args, 1, false) : false) : false;
     const bool FieldsP = true;
     const bool StoreInfoP = false;
     PJsonVal JsObj = JsRec->Rec.GetJson(JsRec->Js->Base, FieldsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);

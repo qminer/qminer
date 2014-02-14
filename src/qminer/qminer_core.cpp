@@ -4147,6 +4147,10 @@ const PStreamAggr& TBase::GetStreamAggr(const uchar& StoreId, const TStr& Stream
 	return GetStreamAggrBase(StoreId)->GetStreamAggr(StreamAggrNm);
 }
 
+const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
+	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+}
+
 void TBase::AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr) {
 	// create new stream aggregate base for the store if one does not exist yet
 	if (!IsStreamAggrBase(StoreId)) {
@@ -4159,6 +4163,10 @@ void TBase::AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr) {
 	}
 	// add new aggregate to the stream aggregate base
 	GetStreamAggrBase(StoreId)->AddStreamAggr(StreamAggr);
+}
+
+void TBase::AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr) {
+	AddStreamAggr(GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
 }
 
 void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {

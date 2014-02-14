@@ -394,6 +394,8 @@ int main(int argc, char* argv[]) {
 				TSAppSrvFunV SrvFunV;
 				// used to stop the server
 				SrvFunV.Add(TSASFunExit::New());
+				// admin webservices
+				TQm::TSrvFun::RegDefFun(Base, SrvFunV);
 				// initialize static content serving thingies
 				for (int WwwRootN = 0; WwwRootN < Param.WwwRootV.Len(); WwwRootN++) {
 					const TStrPr& WwwRoot = Param.WwwRootV[WwwRootN];
