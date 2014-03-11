@@ -249,6 +249,12 @@ public:
    const PBowDocWgtBs& BowDocWgtBs,
    const TVec<TIntV>& DIdVV, const TBowSpVV& ConceptSpVV,
    const PBowSim& BowSim, double& Qual, TFltV& ClustQualV);
+  static PBowDocPart GetFoldingPartForDocWgtBs(
+   const PNotify& Notify, 
+   const PBowDocWgtBs& BowDocWgtBs,
+   const PBowDocBs& BowDocBs,
+   const PBowSim& BowSim,
+   const double& alpha = 1);
   static PBowDocPart GetKMeansPartForDocWgtBs(
    const PNotify& Notify,
    const PBowDocWgtBs& BowDocWgtBs,

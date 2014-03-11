@@ -858,6 +858,119 @@ void TBowClust::GetPartQual(
   }
 }
 
+PBowDocPart TBowClust::GetFoldingPartForDocWgtBs(const PNotify& Notify, const PBowDocWgtBs& BowDocWgtBs,
+  const PBowDocBs& BowDocBs, const PBowSim& BowSim, const double& Alpha) {
+  const int Docs = BowDocWgtBs->GetDocs();
+  const int Words = BowDocWgtBs->GetWords();
+  TNotify::OnNotify(Notify, ntInfo, "-----------------------");
+  TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Docs, "Docs: %d"));
+  TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Words, "Words: %d"));
+
+  // create the average document
+  TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Words, "Computing average document..."));
+  TIntV DIdV; BowDocWgtBs->GetDIdV(DIdV);
+  const PBowSpV AvgSpV = TBowClust::GetConceptSpV(BowDocWgtBs, BowSim, DIdV);
+  double AvgSim = 0;
+  for (int DIdN = 0; DIdN < Docs; DIdN++) {
+    const int DId = BowDocWgtBs->GetDId(DIdN);
+    const PBowSpV DocSpV = BowDocWgtBs->GetSpV(DId);
+
+    const double Sim = BowSim->GetSim(AvgSpV, DocSpV);
+    AvgSim += Sim;
+  }
+  AvgSim /= Docs;
+  TNotify::OnNotify(Notify, ntInfo, TFlt::GetStr(AvgSim, "Mean Sim. to Avg. Document: %.4f"));
+
+  TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Words, "Computing representatives..."));
+  TVec<TIntV> DIdVV; // vector of cluster doc-id vectors
+  TIntSet RepIdSet; // just for optimization
+  TBowSpVV ConceptSpVV;
+  for (int DocIdx = 0; DocIdx < Docs; DocIdx++) {
+    const int DocId = BowDocWgtBs->GetDId(DocIdx);
+    const PBowSpV DocSpV = BowDocWgtBs->GetSpV(DocId);
+
+    // check if the similarity of the current document to all representatives
+    // is < AvgSim, if so add it to the list of representatives
+    bool IsRep = true;
+    for (int ClustIdx = 0; ClustIdx < DIdVV.Len(); ClustIdx++) {
+      int RepId = DIdVV[ClustIdx][0];
+      PBowSpV RepSpV = BowDocWgtBs->GetSpV(RepId);
+
+      const double Sim = BowSim->GetSim(DocSpV, RepSpV);
+      if (Sim >= AvgSim*Alpha) {  // document belongs to some cluster
+        IsRep = false;
+        break;
+      }
+    }
+
+    if (IsRep) {
+      TIntV DIdV; DIdV.Add(DocId);
+      DIdVV.Add(DIdV);
+      ConceptSpVV.Add(DocSpV);
+      RepIdSet.AddKey(DocId);
+    }
+  }
+
+  // construct the clusters using the nearest neighbour rule
+  TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Words, "Constructing clusters..."));
+  const int Clusts = DIdVV.Len();
+  for (int DocIdx = 0; DocIdx < Docs; DocIdx++) {
+    const int DId = BowDocWgtBs->GetDId(DocIdx);
+    const PBowSpV DocSpV = BowDocWgtBs->GetSpV(DId);
+
+    if (!RepIdSet.IsKey(DId)) {
+      // go through all the clusters and select the most similar
+      double BestSim = TFlt::NInf;  int BestClustIdx = -1;
+      for (int ClustIdx = 0; ClustIdx < Clusts; ClustIdx++) {
+        PBowSpV RepSpV = ConceptSpVV[ClustIdx];
+
+        const double Sim = BowSim->GetSim(RepSpV, DocSpV);
+        if (Sim > BestSim) {
+          BestSim = Sim;  BestClustIdx = ClustIdx;
+        }
+      }
+
+      // add the document to the most similar cluster
+      DIdVV[BestClustIdx].Add(DId);
+    }
+  }
+
+  // quality estimate
+  double PartQual;  TFltV ClustQualV;
+  GetPartQual(BowDocWgtBs, DIdVV, ConceptSpVV, BowSim, PartQual, ClustQualV);
+
+  // construct the partition object
+  PBowDocPart Part = TBowDocPart::New();
+  Part->PutQual(PartQual);
+  for (int ClustIdx = 0; ClustIdx < Clusts; ClustIdx++) {
+    const double ClustQual = ClustQualV[ClustIdx];
+
+    const TIntV DIdV = DIdVV[ClustIdx];
+    const PBowSpV ClustSpV = TBowClust::GetConceptSpV(BowDocWgtBs, BowSim, DIdV);
+
+    PBowDocPartClust Cluster = TBowDocPartClust::New(BowDocBs, TInt::GetStr(ClustIdx), ClustQual, DIdVV[ClustIdx], ClustSpV, NULL);
+    Part->AddClust(Cluster);
+  }
+
+  // compute inner cluster similarity
+  TFltVV ClustSimVV(Clusts, Clusts);
+  for (int ClustN1=0; ClustN1<Clusts; ClustN1++){
+    ClustSimVV.At(ClustN1, ClustN1)=
+      BowSim->GetSim(ConceptSpVV[ClustN1], ConceptSpVV[ClustN1]);
+    for (int ClustN2=ClustN1+1; ClustN2<Clusts; ClustN2++){
+      double Sim=BowSim->GetSim(ConceptSpVV[ClustN1], ConceptSpVV[ClustN2]);
+      ClustSimVV.At(ClustN1, ClustN2)=Sim;
+      ClustSimVV.At(ClustN2, ClustN1)=Sim;
+    }
+  }
+  Part->PutClustSim(ClustSimVV);
+
+  TNotify::OnNotify(Notify, ntInfo, TInt::GetStr(Clusts, "Number of Clusters: %d"));
+  TNotify::OnNotify(Notify, ntInfo, TFlt::GetStr(Part->GetQual(), "Final Quality: %g"));
+
+  return Part;
+}
+
 PBowDocPart TBowClust::GetKMeansPartForDocWgtBs(
  const PNotify& Notify,
  const PBowDocWgtBs& BowDocWgtBs,
