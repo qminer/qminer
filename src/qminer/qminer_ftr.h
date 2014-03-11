@@ -83,8 +83,7 @@ public:
 	virtual int GetDim() const = 0;
 	// string representation of the FtrN-th feature
 	virtual TStr GetFtr(const int& FtrN) const = 0;
-
-	/// Reset feature extractor to forget all previously seen records
+   	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
 	// for defining the feature space (required for generating sparse vectors)
 	virtual void Update(const TRec& Rec) { };
@@ -162,13 +161,15 @@ public:
 	// compute centroid of a given record set
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
+    // string vector for a record transformed by a feature extractor
+    void ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const;
 
 	// dimensionality of the feature space
 	int GetDim() const;
 	// string representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
 	// prepares an empty bow and registers all the features
-	PBowDocBs MakeBowDocBs();    
+	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);    
 };
 typedef TPt<TFtrSpace> PFtrSpace;
 

@@ -221,6 +221,38 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	return TStr();
 }
 
+void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
+	QmAssertR(IsDefMode(), "Feature space not fully defined (no call to FinishUpdate())!");
+    if(DimN >= DimV.Len()) {
+	    throw TQmExcept::New("Dimension out of bounds!");
+        return;
+    }
+    PStore Store = FtrExtV[DimN]->GetFtrStore();
+    TRec Rec(Store);
+    for (int FieldId = 0; FieldId < Store->GetFields(); FieldId++) {
+        // check if field appears in the record JSon
+        TStr FieldNm = Store->GetFieldNm(FieldId);
+        if (RecVal->IsObjKey(FieldNm)) {
+            Rec.AddFieldStr(FieldId, RecVal->GetObjStr(FieldNm));
+        }
+    }
+    FtrExtV[DimN]->ExtractStrV(Rec, StrV);
+}
+
+PBowDocBs TFtrSpace::MakeBowDocBs(const PRecSet& FtrRecSet) {
+	// prepare documents
+	PBowDocBs BowDocBs = TBowDocBs::New();
+    for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) { 
+        TStr DocNm =  FtrRecSet->GetRec(RecN).GetRecNm();
+        TStrV WdStrV;
+        for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+            FtrExtV[FtrExtN]->ExtractStrV(FtrRecSet->GetRec(RecN), WdStrV);
+        }
+        BowDocBs->AddDoc(DocNm, TStrV(), WdStrV);
+    }
+    return BowDocBs;
+}
+
 namespace TFtrExts {
     
 ///////////////////////////////////////////////
