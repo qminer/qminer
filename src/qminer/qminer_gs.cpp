@@ -1972,7 +1972,7 @@ void TStoreImpl::GarbageCollect() {
     	TMem CacheRecMem; JsonC.GetVal(DelRecId, CacheRecMem);
         RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
     	TMem MemRecMem; JsonM.GetVal(DelRecId, MemRecMem);
-        RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorMem);
+        RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
 		// delete record from joins
         TRec Rec(this, DelRecId);
 		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
