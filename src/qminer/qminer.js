@@ -3,8 +3,8 @@
 var process = function() {
 	var _obj = {};
 	_obj.isArg = function(arg) {
-		for (var i = 0; i < qm.args.length; i++) {
-			if (qm.args[i] == arg) { return true; }
+        for (var i = 0; i < qm.args.length; i++) {
+            if (qm.args[i] == arg) { return true; }
 		}
 		return false;
 	}	
@@ -80,15 +80,13 @@ http.onPatch = function (path, callback) {
 //////////////////////////////////////////
 // Hash table
 function hashTable() {
-    var _hashTable = new Object();
-    _hashTable._data = new Object();
-    _hashTable.keys = new Array();
-    _hashTable.vals = new Array();
-    _hashTable.put = function (key) { this._data[key] = ""; this.keys.push(key); }
-    _hashTable.put = function (key, dat) { this._data[key] = dat; this.keys.push(key); this.vals.push(dat); }
-    _hashTable.contains = function (key) { return this._data.hasOwnProperty(key); }
-    _hashTable.get = function (key) { return this._data.hasOwnProperty(key) ? this._data[key] : null; }
-    return _hashTable;
+    this._data = new Object();
+    this.keys = new Array();
+    this.vals = new Array();
+    this.put = function (key) { this._data[key] = ""; this.keys.push(key); }
+    this.put = function (key, dat) { this._data[key] = dat; this.keys.push(key); this.vals.push(dat); }
+    this.contains = function (key) { return this._data.hasOwnProperty(key); }
+    this.get = function (key) { return this._data.hasOwnProperty(key) ? this._data[key] : null; }
 }
 
 //////////////////////////////////////////
