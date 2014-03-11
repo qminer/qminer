@@ -221,6 +221,22 @@ public:
 		return JsObj;
 	}
 
+	static TJsObj* GetSelf(const v8::Handle<v8::Object> Obj) {
+		v8::HandleScope HandleScope;
+		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Obj->GetInternalField(0));
+		TJsObj* JsObj = static_cast<TJsObj*>(WrappedObject->Value());
+		return JsObj;
+	}
+
+	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
+	static TStr GetClass(const v8::Handle<v8::Object> Obj) {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::New("class"));
+		if (!ClassNm->IsString()) return "";		
+		v8::String::Utf8Value Utf8(ClassNm);
+		return TStr(*Utf8);		
+	}
+
 	/// Transform V8 string to TStr
 	static TStr GetStr(const v8::Local<v8::String>& V8Str) {
 		v8::HandleScope HandleScope;
@@ -325,6 +341,19 @@ public:
 		}
 		return DefVal;
 	}
+	/// Extract argument ArgN property as int
+	static int GetArgInt32(const v8::Arguments& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
+		v8::HandleScope HandleScope;
+		if (Args.Length() > ArgN) {
+			//TODO: check IsObject()
+			if (Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr()))) {
+				v8::Handle<v8::Value> Val = Args[0]->ToObject()->Get(v8::String::New(Property.CStr()));
+				 QmAssertR(Val->IsInt32(), TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()));
+				 return Val->ToNumber()->Int32Value();
+			}
+		}
+		return DefVal;
+	}
      
    	/// Check if argument ArgN is of type double
 	static bool IsArgFlt(const v8::Arguments& Args, const int& ArgN) {
@@ -341,6 +370,22 @@ public:
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		QmAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be double", ArgN));
 		return static_cast<double>(Val->NumberValue());
+	}
+
+	/// Check if argument ArgN belongs to a given class
+	static bool IsArgClass(const v8::Arguments& Args, const int& ArgN, const TStr& ClassNm) {
+		v8::Handle<v8::Value> Val = Args[ArgN];
+	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);			
+		TStr ClassStr = GetClass(Data);
+		return ClassStr.EqI(ClassNm);
+	}
+
+	/// Extract argument ArgN as a js object
+	static TJsObj* GetArgObj(const v8::Arguments& Args, const int& ArgN) {
+		v8::Handle<v8::Value> Val = Args[ArgN];
+    	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);	
+		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Data->GetInternalField(0));
+		return static_cast<TJsObj*>(WrappedObject->Value());		
 	}
 
 	/// Extract argument ArgN as double, and use DefVal in case when not present
@@ -407,7 +452,7 @@ private:
 	TCRef CRef;
 	friend class TPt<TScript>;
 	
-	// qm, http and fs require access to private members
+	// qm and fs require access to private members
 	friend class TJsBase;
 	friend class TJsFs;
 
@@ -415,8 +460,6 @@ private:
 	TStr ScriptNm;
 	/// Script filename
 	TStr ScriptFNm;
-	/// Script source
-	TStr ScriptSource;
 
 	/// Directories with include libraries available to this script
 	TStrV IncludeFPathV;
@@ -445,6 +488,10 @@ public:
 	static PScript New(const PBase& Base, const TStr& ScriptNm, const TStr& ScriptFNm, 
 		const TStrV& IncludeFPathV, const TVec<TJsFPath>& AllowedFPathV) { 
 			return new TScript(Base, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
+    
+    // get TScript from global context
+    static TWPt<TScript> GetGlobal(v8::Handle<v8::Context>& Context);
+    
 	~TScript();
 	
 	/// Get script name
@@ -490,8 +537,6 @@ public:
 	/// Remember new trigger
 	void AddTrigger(const uchar& StoreId, const PStoreTrigger& Trigger);
 
-	/// Load module from given file
-	static TStr LoadModuleSrc(const TStr& ModuleFNm);
 	/// Callback for loading modules in from javascript
 	JsDeclareFunction(require);
 private:
@@ -500,10 +545,12 @@ private:
 	/// Installs main objects in the context
 	void Install();
 	/// Loads the script from disk and runs preprocessor (imports)
-	void LoadScript();
+	TStr LoadSource(const TStr& FNm);
 	/// Runs the whole script
-	void ExecuteScript();
+	void Execute(const TStr& FNm);
 	
+	/// Load module from given file
+	TStr LoadModuleSrc(const TStr& ModuleFNm);
 	/// Get library full name (search over all include folders
 	TStr GetLibFNm(const TStr& LibNm); 
 };
@@ -637,7 +684,7 @@ private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsBase> TJsBaseUtil;
 
-	explicit TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base) { }
+    TJsBase(TWPt<TScript> _Js);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
 		return TJsBaseUtil::New(new TJsBase(Js)); }
@@ -648,7 +695,6 @@ public:
 	
 	// property
 	//JsDeclareProperty(correlation);
-	JsDeclareProperty(geoip);
 	JsDeclareProperty(args);
 	JsDeclareProperty(analytics);
 	// basic functions
@@ -853,6 +899,8 @@ class TJsAnalytics {
 public:
 	/// JS script context
 	TWPt<TScript> Js;	
+    /// maps an AL id string to an AL object
+    static THash<TStr, PBowAL> ActiveLearnerH; 
     
 private:
 	typedef TJsObjUtil<TJsAnalytics> TJsAnalyticsUtil;
@@ -868,7 +916,10 @@ public:
 	JsDeclareFunction(getLanguageOptions);
     JsDeclareFunction(newFeatureSpace);
 	JsDeclareFunction(trainSvmClassify);
+    JsDeclareFunction(trainSvmRegression);
 	JsDeclareFunction(trainKMeans);
+	JsDeclareFunction(newActiveLearner);
+	JsDeclareFunction(delActiveLearner);
 };
 
 ///////////////////////////////
@@ -895,6 +946,7 @@ public:
 	JsDeclareFunction(updateRecord);
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate);
+    JsDeclareFunction(extractStrings);
 };
 
 ///////////////////////////////
@@ -929,6 +981,33 @@ public:
 
     JsDeclareProperty(featureSpace);
 	JsDeclareFunction(classify);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Active-Learner
+class TJsAL {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// AL Model
+    PBowAL AL;
+    
+private:
+	typedef TJsObjUtil<TJsAL> TJsALUtil;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+    
+	TJsAL(TWPt<TScript> _Js, const PBowAL& _AL): 
+            Js(_Js), AL(_AL) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js,
+            const PBowAL& AL) { return TJsALUtil::New(
+            new TJsAL(Js, AL)); }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    JsDeclareFunction(getQuestion);
+	JsDeclareFunction(answerQuestion);
+	JsDeclareFunction(getPositives);
 };
 
 ///////////////////////////////
@@ -1056,6 +1135,7 @@ public:
 
 	JsDeclareFunction(write);
 	JsDeclareFunction(writeLine);
+	JsDeclareFunction(flush);
 };
 
 ///////////////////////////////
@@ -1104,10 +1184,10 @@ public:
 private:
 	typedef TJsObjUtil<TJsHttpResp> TJsHttpRespUtil;
 	static v8::Persistent<v8::ObjectTemplate> Template;
+    
 	TJsHttpResp(TWebSrv* _WebSrv, const uint64& _SockId): WebSrv(_WebSrv),
         SockId(_SockId), StatusCode(THttp::OkStatusCd), 
         ContTypeStr(THttp::AppJSonFldVal), DoneP(false) { }
-
 public:
 	static v8::Persistent<v8::Object> New(TWebSrv* WebSrv, const uint64& SockId) { 
 		return TJsHttpRespUtil::New(new TJsHttpResp(WebSrv, SockId)); }
@@ -1119,6 +1199,159 @@ public:
 	JsDeclareFunction(add);	
 	JsDeclareFunction(close);
     JsDeclareFunction(send);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Time
+class TJsTm {
+public:
+    /// Date-time
+    TTm Tm;
+private:
+	typedef TJsObjUtil<TJsTm> TJsTmUtil;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+    
+	TJsTm(const TTm& _Tm): Tm(_Tm) { }
+public:
+	static v8::Persistent<v8::Object> New() { 
+		return TJsTmUtil::New(new TJsTm(TTm::GetCurUniTm())); }
+	static v8::Persistent<v8::Object> New(const TTm& Tm) { 
+		return TJsTmUtil::New(new TJsTm(Tm)); }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    // object properties
+    JsDeclareProperty(string);
+    JsDeclareProperty(timestamp);
+    // for creating new objects
+    JsDeclareProperty(now);
+    JsDeclareProperty(nowUTC);
+    
+    // object functions
+    JsDeclareFunction(add);
+    JsDeclareFunction(sub); 
+    JsDeclareFunction(toJSON);
+    // for creating new objects
+    JsDeclareFunction(parse)
+};
+
+///////////////////////////////
+// QMiner-LinAlg
+class TJsLinAlg {
+public:
+	/// JS script context
+	TWPt<TScript> Js;    
+private:
+	TFltV Vec;
+	/// Object utility class
+	typedef TJsObjUtil<TJsLinAlg> TJsLinAlgUtil;
+    
+    explicit TJsLinAlg(TWPt<TScript> _Js): Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
+		return TJsLinAlgUtil::New(new TJsLinAlg(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(newVec);	
+	JsDeclareFunction(newMat);	
+
+};
+
+///////////////////////////////
+// QMiner-FltV
+class TJsFltV {
+public:
+	/// JS script context
+	TWPt<TScript> Js;    
+	TFltV Vec;
+private:	
+	/// Object utility class
+	typedef TJsObjUtil<TJsFltV> TJsFltVUtil;    
+    explicit TJsFltV(TWPt<TScript> _Js): Js(_Js) { }	
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		v8::Persistent<v8::Object> obj = TJsFltVUtil::New(new TJsFltV(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TFltV");
+		obj->SetHiddenValue(key, value);
+		return  obj;
+	}
+	static TFltV& GetFltV(const v8::Handle<v8::Object> Obj) {
+		return TJsFltVUtil::GetSelf(Obj)->Vec;
+	}
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	// get element
+	JsDeclareFunction(at);	
+	// set element, returns undefined
+	JsDeclareFunction(put);	
+	// INPLACE : append an element, returns undefined
+	JsDeclareFunction(push);	
+	// sum elements
+	JsDeclareFunction(sum);
+	// outer product
+	JsDeclareFunction(outer);
+	// inner product
+	JsDeclareFunction(inner);
+	// add vectors
+	JsDeclareFunction(plus);
+	// substract vectors
+	JsDeclareFunction(minus);
+	// scalar multiply
+	JsDeclareFunction(multiply);
+	// INPLACE : normalizes the vector, returns undefined
+	JsDeclareFunction(normalize);
+	// gets vector length
+	JsDeclareProperty(length);
+};
+
+///////////////////////////////
+// QMiner-FltVV
+class TJsFltVV {
+public:
+	/// JS script context
+	TWPt<TScript> Js;    
+	TFltVV Mat;
+private:	
+	/// Object utility class
+	typedef TJsObjUtil<TJsFltVV> TJsFltVVUtil;    
+    explicit TJsFltVV(TWPt<TScript> _Js): Js(_Js) { }	
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 		
+		v8::Persistent<v8::Object> obj = TJsFltVVUtil::New(new TJsFltVV(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TFltVV");
+		obj->SetHiddenValue(key, value);
+		return  obj;
+	}
+	static TFltVV& GetFltVV(const v8::Handle<v8::Object> Obj) {
+		return TJsFltVVUtil::GetSelf(Obj)->Mat;
+	}
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// get element
+	JsDeclareFunction(at);	
+	// set element, returns undefined
+	JsDeclareFunction(put);
+	// matrix x scalar, matrix x vector, matrix x matrix
+	JsDeclareFunction(multiply);
+	// matrix + matrix
+	JsDeclareFunction(plus);
+	// matrix - matrix
+	JsDeclareFunction(minus);
+	// returns the transpose of a matrix
+	JsDeclareFunction(transpose);
+	// solves a linear system A x = y. Input: y, Output: x
+	JsDeclareFunction(solve);
+	// INPLACE : changes the matrix by normalizing columns, return undefined
+	JsDeclareFunction(normalizeCols);
+	// get number of rows
+	JsDeclareProperty(rows);
+	// get number of columns
+	JsDeclareProperty(cols);
 };
 
 }
