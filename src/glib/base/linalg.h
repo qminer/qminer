@@ -26,11 +26,9 @@
 	#ifdef INTEL 
 		#include "mkl.h"
 	#endif
-	#ifdef OPENBLAS
-		//TODO: Andrej, get rid of mkl.h
-		#include "mkl.h"
-		//#include "cblas.h"
-		//#include "lapacke.h"
+	#ifdef OPENBLAS		
+		#include "cblas.h"
+		#include "lapacke.h"		
 	#endif
 #endif
 
@@ -95,7 +93,7 @@ public:
     // number of columns
     int GetCols() const { return Transposed ? PGetRows() : PGetCols(); }
 
-    void Transpose() { Transposed = !Transposed; }
+    virtual void Transpose() { Transposed = !Transposed; }
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -268,6 +266,8 @@ public:
     static double DotProduct(const TFltV& x, const TIntFltKdV& y);
     // <X(:,ColId),y> where only y is sparse
     static double DotProduct(const TFltVV& X, int ColId, const TIntFltKdV& y);
+	// z = x * y'    
+    static void OuterProduct(const TFltV& x, const TFltV& y, TFltVV& Z);
 
     // z := p * x + q * y
     static void LinComb(const double& p, const TFltV& x,
@@ -376,7 +376,9 @@ public:
     static void MultiplyScalar(const double& k, const TFltV& x, TFltV& y);
     // y := k * x
     static void MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y);
-
+    // Y := k * X
+    static void MultiplyScalar(const double& k, const TFltVV& X, TFltVV& Y);
+    
     // y := A * x
     static void Multiply(const TFltVV& A, const TFltV& x, TFltV& y);
     // C(:, ColId) := A * x
@@ -395,7 +397,7 @@ public:
 	static void thinSVD(const TFltVV& A, TFltVV& U, TFltV& S, TFltVV& VT);
 #endif
 #if defined(LAPACKE) && defined(EIGEN)
-    static int ComputeThinSVD(const TStructuredCovarianceMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V);
+    static int ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V);
 #endif
 //Full matrix times sparse vector
 #ifdef INTEL	
@@ -433,9 +435,9 @@ public:
 	// C:= A' * B
 	static void MultiplyT(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C);
 
-#ifdef INTEL
-	static void Multiply(const TFltVV & ProjMat, const TPair<TIntV, TFltV> & Doc, TFltV & Result);
-#endif
+//#ifdef INTEL
+//	static void Multiply(const TFltVV & ProjMat, const TPair<TIntV, TFltV> & Doc, TFltV & Result);
+//#endif
 
 	// D = alpha * A(') * B(') + beta * C(')
 	typedef enum { GEMM_NO_T = 0, GEMM_A_T = 1, GEMM_B_T = 2, GEMM_C_T = 4 } TLinAlgGemmTranspose;
@@ -753,3 +755,138 @@ public:
 };
 
 typedef TSparseOps<TInt, TFlt> TSparseOpsIntFlt;
+
+class TFullMatrix;
+
+/////////////////////////////////////////////////////////////////////////
+//// Full-Vector
+class TVector { friend class TFullMatrix;
+private: 
+    bool IsColVector;
+    TFltV Vec;
+public: 
+    TVector(const int& Dim, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Dim) {}
+    TVector(const TFltV& Vect, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Vect) {}
+
+    // Copy constructor
+    TVector(const TVector& Vector) {
+        printf("TVector: copied\n");
+        IsColVector = Vector.IsColVector;		
+        Vec = Vector.Vec;		
+    }
+    
+    // Move constructor
+    TVector(const TVector&& Vector) {
+        printf("TVector: move constructor\n");
+        IsColVector = Vector.IsColVector;		
+        Vec = std::move(Vector.Vec);		
+    }
+    // Move assignment
+    TVector& operator=(TVector Vector) {
+        printf("TVector: move assignment\n");
+        std::swap(IsColVector, Vector.IsColVector);
+        std::swap(Vec, Vector.Vec);
+        return *this;
+    }
+
+    TFlt& operator [] (const int& Idx) { return Vec[Idx]; }
+
+    double DotProduct(const TFltV& y) const {
+		EAssert(GetDim() == y.Len());
+		return TLinAlg::DotProduct(Vec, y);
+	}
+    double DotProduct(const TVector& y) const {
+        EAssert(GetDim() == y.GetDim() && IsRowVec() && y.IsColVec());
+        return DotProduct(y.Vec);
+    }
+
+    TVector GetT() const;
+	void Transpose() { IsColVector = !IsColVector; }
+	    
+    TFullMatrix operator *(const TVector& y) const;
+    TVector operator *(const TFullMatrix& Mat) const;
+
+    TVector operator *(const double& k) const {
+        TVector Res(Vec.Len(), IsColVec());
+        TLinAlg::MultiplyScalar(k, Vec, Res.Vec);			
+        return Res;		
+    }
+    
+    TVector& operator *=(const TFlt& k) {		
+        TLinAlg::MultiplyScalar(k, Vec, Vec);
+        return *this;
+    }
+    TVector& operator +=(const TVector& y);
+    
+public:
+    int GetDim() const {return Vec.Len();}
+    bool IsColVec() const { return IsColVector; }
+    bool IsRowVec() const { return !IsColVec(); }
+    
+    const TFltV& GetVec() const { return Vec; }
+};
+
+/////////////////////////////////////////////////////////////////////////
+//// Full-Matrix
+class TFullMatrix: public TMatrix { friend class TVector;
+private:
+    TFltVV Mat;
+    
+public:
+    // constructors/destructors
+    TFullMatrix(const int& _XDim, const int& _YDim): Mat(_XDim, _YDim) {}
+    TFullMatrix(const TFltVV& _Mat): Mat(_Mat) {}
+
+    TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) { printf("Matrix copied\n"); }
+    TFullMatrix(const TFullMatrix&& _Mat): Mat(std::move(_Mat.Mat)) { printf("Matrix moved\n"); }
+    virtual ~TFullMatrix() {}
+
+    // the move and copy constructors merged into one
+    TFullMatrix& operator =(TFullMatrix _Mat);
+    
+    // static initializers
+    static TFullMatrix Identity(const int& Dim);
+
+protected:
+    virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const;
+    virtual void PMultiply(const TFltV& Vec, TFltV& Result) const;
+    virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const;
+    virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
+    virtual void PMultiply(const TFltVV& B, TFltVV& Result) const;	
+    virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
+
+    // getters
+    virtual int PGetRows() const { return Mat.GetRows(); }
+    virtual int PGetCols() const { return Mat.GetCols(); }
+    
+    const TFltVV& GetMat() const { return Mat; }
+public:
+    // transposed
+    virtual void Transpose();
+    TFullMatrix GetT() const;
+    double At(const int& i, const int& j) { return Mat(i,j); }
+    void Set(const double& Val, const int& i, const int& j) { Mat(i,j) = Val; }
+    
+    // operators
+    double operator ()(const int& i, const int& j) { return At(i,j); }
+    
+    TFullMatrix& operator +=(const TFullMatrix& B);
+    TFullMatrix& operator -=(const TFullMatrix& B);
+    
+    // add/subtract
+    TFullMatrix operator +(const TFullMatrix& B) const;
+    TFullMatrix operator -(const TFullMatrix& B) const;
+    
+    // multiply
+    TFullMatrix operator *(const TFullMatrix& B) const;
+    TVector operator *(const TVector& x) const;
+    TVector operator *(const TFltV& x) const;
+
+    // scalars
+    TFullMatrix operator *(const double& Lambda) const;
+    TFullMatrix operator /(const double& Lambda) const { return operator *(1.0/Lambda); }
+    
+public:
+    void Save(TSOut& SOut) { Mat.Save(SOut); }
+    void Load(TSIn& SIn) { Mat.Load(SIn); }
+};
