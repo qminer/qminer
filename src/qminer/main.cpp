@@ -227,6 +227,11 @@ public:
 		if (TDir::Exists(GuiFPath)) {
 			WwwRootV.Add(TStrPr("admin", GuiFPath));
 		}
+        // check for any default wwwroot
+        TStr DefaultWwwRootFPath = TStr::GetNrAbsFPath("www", RootFPath);
+        if (TDir::Exists(DefaultWwwRootFPath)) {
+            WwwRootV.Add(TStrPr("www", DefaultWwwRootFPath));
+        }
 	}
 };
 
@@ -257,9 +262,9 @@ void ExecUrl(const TStr& UrlStr, const TStr& OkMsgStr, const TStr& ErrMsgStr) {
 	TWebFetchBlocking::GetWebPg(UrlStr, Ok, MsgStr, WebPg);
 	// report on result
 	if (Ok) {
-		TQm::TEnv::Logger->OnStatus(OkMsgStr);
+		TQm::InfoLog(OkMsgStr);
 	} else {
-		TQm::TEnv::Logger->OnStatus(ErrMsgStr + MsgStr);
+		TQm::InfoLog(ErrMsgStr + MsgStr);
 	}	
 }
 
@@ -337,8 +342,8 @@ int main(int argc, char* argv[]) {
 		if (ConfigP) {
 			// check so we don't overwrite any existing configuration file
 			if (TFile::Exists(ConfFNm) && ! OverwriteP) {
-				TQm::TEnv::Logger->OnStatus("Configuration file already exists (" + ConfFNm + ")");
-				TQm::TEnv::Logger->OnStatus("Use -overwrite to force overwrite");
+				TQm::InfoLog("Configuration file already exists (" + ConfFNm + ")");
+				TQm::InfoLog("Use -overwrite to force overwrite");
 				return 2;
 			}
 			// create configuration file
