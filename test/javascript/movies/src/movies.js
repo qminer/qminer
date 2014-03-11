@@ -1,5 +1,4 @@
-import "util.js"
-import "test.js"
+var assert = require('assert.js');
 
 console.say("Test", "Starting test based on IMDB sample");
 
@@ -23,7 +22,7 @@ assert.equals(Movies.name, "Movies", "Movies.name");
 assert.ok(Movies.empty, "Movies.empty");
 assert.equals(Movies.length, 0, "Movies.length");
 assert.equals(Movies.recs.length, 0, "Movies.recs.length");
-assert.equals(Movies.fields.length, 5+1, "Movies.fields.length");
+assert.equals(Movies.fields.length, 5+2, "Movies.fields.length");
 assert.equals(Movies.joins.length, 2, "Movies.joins.length");
 assert.equals(Movies.keys.length, 4, "People.keys.length");
 
@@ -99,13 +98,30 @@ var movie2 = {"Title":"Enteng Kabisote 3: Okay ka fairy ko... The legend goes on
 assert.equals(Movies.add(movie2), 1, "Movies.add");
 assert.equals(Movies.length, 2, "Movies.length");
 assert.equals(People.length, 62, "People.length");
-// check correctly asserted
+// check correctly inserted
 assert.exists(Movies[1], "Movies[1]");
 assert.equals(Movies[1].Title, movie2.Title, "Movies[1].Title");
 assert.equals(Movies[1].Plot, movie2.Plot, "Movies[1].Plot");
 assert.equals(Movies[1].Year, movie2.Year, "Movies[1].Year");
 assert.equals(Movies[1].Genres.length, movie2.Genres.length, "Movies[1].Genres");
 assert.equals(Movies[1].Director.Name, "Reyes Tony Y.", "Movies[1].Director.Name");
+
+// stringify of test for record and record set
+function testStringify(obj, name) {
+	assert.exists(obj.toJSON(), name + ".toJSON()");
+	//console.say(JSON.stringify(obj.toJSON()));
+	assert.exists(obj.toJSON(true), name + ".toJSON(true)");
+	//console.say(JSON.stringify(obj.toJSON(true)));
+	assert.exists(obj.toJSON(true, true), name + ".toJSON(true, true)");
+	//console.say(JSON.stringify(obj.toJSON(true, true)));
+	assert.exists(JSON.stringify(obj), "JSON.stringify(" + name + ")");
+	//console.say(JSON.stringify(obj));
+}
+
+testStringify(People[0], "People[0]");
+testStringify(Movies[0], "Movies[0]");
+testStringify(People.recs, "People.recs");
+testStringify(Movies.recs, "Movies.recs");
 
 // sample
 assert.equals(People.sample(0).length, 0, "People.sample(0).length");
@@ -270,14 +286,6 @@ for (var i = 0; i < queries.length; i++) {
 	}
 }
 
-
-
-
-
-
-
-
-
-
-
-
+http.onGet("test1", function(req,res) { return "OK"; });
+http.onGet("test2", function(req,res) { return "OK"; });
+http.onPost("test3", function(req,res) { return "OK"; });
