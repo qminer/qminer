@@ -45,6 +45,8 @@ qm:
 	mkdir -p $(BUILD)
 	# move in qm commandline tool
 	mv ./qm ./$(BUILD)/
+	# copy qminer javascript environment
+	cp ./$(QMINER)/qminer.js ./$(BUILD)/
 	# copy in unicode definiton files
 	cp ./$(GLIB)/bin/UnicodeDef.Bin ./$(BUILD)/
 	# copy in javascript libraries
