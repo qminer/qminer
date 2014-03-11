@@ -34,7 +34,12 @@ public:
   static void Load(){
     Load(GetDfFNm());}
   static void Load(const TStr& FNm){
-    UnicodeDef.Unicode=new TUnicode(FNm);}
+    try {
+      UnicodeDef.Unicode=new TUnicode(FNm);
+    } catch(...) {
+      fprintf(stderr, "!!! ERROR loading %s; see glib/bin/download.sh\n\n", FNm.CStr());
+    }
+  }
 
   // status
   static bool IsDef(){
@@ -51,16 +56,28 @@ typedef TVec<TUStr> TUStrV;
 class TUStr{
 private:
   TIntV UniChV;
+  TInt PrimHash, SecondHash; 
   static void AssertUnicodeDefOk(){
     EAssertR(TUnicodeDef::IsDef(), "Unicode-Definition-File not loaded!");}
 public:
-  TUStr(): UniChV(){AssertUnicodeDefOk();}
+  TUStr(): UniChV(),PrimHash(),SecondHash(){AssertUnicodeDefOk();}
   TUStr(const TUStr& UStr): UniChV(UStr.UniChV){AssertUnicodeDefOk();}
   TUStr(const TIntV& _UniChV): UniChV(_UniChV){AssertUnicodeDefOk();}
+  TUStr(const int& MxLen, const int& Len): UniChV(MxLen, Len){}
   TUStr(const TStr& Str);
   ~TUStr(){}
   TUStr(TSIn& SIn): UniChV(SIn){AssertUnicodeDefOk();}
+  int GetPrimHashCd() const;
+  int UpdatePrimHashCd();
+  int GetSecHashCd() const;
+  int UpdateSecHashCd();
+  void UpdateHashCd();
+  void UpdateHashCd(const TInt& UnicodeChar);
+  void Reserve(const int& MxLen){this->UniChV = TIntV(MxLen, 0);};
+  void Add(const TInt& UnicodeChar){this->UniChV.Add(UnicodeChar);}
+  void AddV(const TUStr& UnicodeCharV){int Chs = UnicodeCharV.Len(); for(int ChN = 0; ChN < Chs; ChN++){this->UniChV.Add(UnicodeCharV[ChN]);}}
   void Save(TSOut& SOut) const {UniChV.Save(SOut);}
+  void Load(TSIn & SIn){UniChV.Load(SIn);};
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
@@ -69,7 +86,11 @@ public:
   bool operator==(const TUStr& UStr) const {return UniChV==UStr.UniChV;}
 
   TUStr& operator+=(const TUStr& UStr){UniChV.AddV(UStr.UniChV); return *this;}
-  int operator[](const int& UniChN) const {return UniChV[UniChN];}
+  TUStr& operator+=(const TIntV& UStr){UniChV.AddV(UStr); return *this;}
+  TUStr& operator+=(const TInt& UStrChar){UniChV.Add(UStrChar); return *this;}
+  TUStr& operator+=(const int& UStrChar){UniChV.Add(UStrChar); return *this;}
+  TInt& operator[](const int& UniChN) {return UniChV[UniChN];}
+  const TInt& operator[](const int& UniChN) const {return UniChV[UniChN];}  
 
   // basic operations
   void Clr(){UniChV.Clr();}
@@ -80,10 +101,25 @@ public:
   void ToLowerCase();
   void ToUpperCase();
   void ToStarterCase();
+  void ToUc();//ToCap->ToUc
+
+  // remove redundant spaces, normalize; can remove punctuation
+  void ToCompact(bool RemovePunctP = true);
+  //Currently no removing of punctuations is supported
+  TUStr NormalizeSpaces(bool RemovePunctP = false);
+
+  void GetSubValV(const int& BChN, const int& EChN, TUStr& UniChV);
+  TUStr GetSubValV(const int& BChN, const int& EChN);
 
   // word boundaries
+  void GetWordBoundPV(TIntV& WordBoundPosV);
   void GetWordBoundPV(TBoolV& WordBoundPV);
   void GetWordUStrV(TUStrV& UStrV);
+  void GetWordUStrV(TUStrV& WordUStrV, TIntV& TerminalV);
+  void GetWordUStrV(TUStrV& WordUStrV, TBoolV& TerminalV);
+  void GetWordUStrLst(TLst<TUStr>& WordUStrV, TLst<TBool>& TerminalV);
+  void GetWordStrV(TStrV& WordStrV);
+  bool HasTerminal();
 
   // conversions to string
   TStr GetStr() const;
@@ -104,6 +140,11 @@ public:
   static bool IsLowerCase(const int& UniCh);
   static bool IsAlphabetic(const int& UniCh);
   static bool IsMath(const int& UniCh);
+  static bool IsNumeric(const int& UniCh);
+  static bool IsSpace(const int& UniCh);
+  static bool IsTerminal(const int& UniCh);
+
+  bool IsWord();
 
   // converstions to/from UTF8
   static TStr EncodeUtf8(const int& UniCh);
