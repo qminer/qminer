@@ -38,20 +38,20 @@ typedef enum {
 /// Contains extra stuff needed for serialization not included in TFieldDesc.
 class TFieldDescEx  {
 public:
+	/// Where will this field be stored- true means 
+	TStoreLoc FieldStoreLoc;
 	/// Should be stored in codebook?
 	TBool CodebookP;
 	/// Is small string?
 	TBool SmallStringP;  
 	/// Default value if value not specified
 	PJsonVal DefaultVal;  
-	/// Where will this field be stored- true means 
-	TStoreLoc FieldStoreLoc;
 public:
 	TFieldDescEx() {}
-	TFieldDescEx(TSIn& SIn){ Load(SIn); }
-    
-	void Save(TSOut& SOut) const;
-	void Load(TSIn& SIn);
+    TFieldDescEx(const TStoreLoc& _FieldStoreLoc, const bool& _CodebookP, 
+        const bool& _SmallStringP, const PJsonVal& _DefaultVal = NULL):
+            FieldStoreLoc(_FieldStoreLoc), CodebookP(_CodebookP),
+            SmallStringP(_SmallStringP), DefaultVal(_DefaultVal) { }
 };  
 
 ///////////////////////////////
@@ -78,10 +78,6 @@ public:
     
 public:
 	TIndexKeyEx() {}
-	TIndexKeyEx(TSIn& SIn) { Load(SIn); }
-
-	void Save(TSOut& SOut) const;
-	void Load(TSIn& SIn);
 
     /// Is indexed by value
 	bool IsValue() const { return KeyType == oiktValue; }
@@ -511,6 +507,8 @@ private:
     TWPt<TIndexVoc> IndexVoc;
     // list of index keys set for particular store
     TVec<TFieldIndexKey> FieldIndexKeyV;
+    // map from field id to key position in FieldIndexKeyV
+    TIntH FieldIdToKeyN;
     
     /// Index a record using the given key
     void IndexKey(const TFieldIndexKey& Key, const TMem& RecMem, 
@@ -521,6 +519,9 @@ private:
     /// Update value of existing index of a record
     void UpdateKey(const TFieldIndexKey& Key, const TMem& OldRecMem, 
         const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
+    /// Check what needs to be done to update index for a given key
+    void ProcessKey(const TFieldIndexKey& Key, const TMem& OldRecMem, 
+        const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator);
         
 public:
     TRecIndexer() { }
@@ -530,6 +531,9 @@ public:
     void IndexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator);
     /// Deindex existing record
     void DeindexRec(const TMem& RecMem, const uint64& RecId, TRecSerializator& Serializator);
+    /// Update index for existing record
+    void UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem, 
+        const uint64& RecId, const int& ChangedFieldId, TRecSerializator& Serializator);
     /// Update indexes for existing record
     void UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem, 
         const uint64& RecId, TIntSet& ChangedFieldIdSet, TRecSerializator& Serializator);

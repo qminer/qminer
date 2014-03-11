@@ -24,40 +24,6 @@ namespace TQm {
 namespace TStorage {
 
 ///////////////////////////////
-// Schema description of field
-void TFieldDescEx::Save(TSOut& SOut) const {
-    //UseAsName.Save(SOut);
-    CodebookP.Save(SOut);
-    SmallStringP.Save(SOut);
-    DefaultVal.Save(SOut);
-    TInt(FieldStoreLoc).Save(SOut);
-}
-
-void TFieldDescEx::Load(TSIn& SIn) {
-    //UseAsName.Load(SIn);
-    CodebookP.Load(SIn);
-    SmallStringP.Load(SIn);
-    DefaultVal = PJsonVal(SIn);
-    FieldStoreLoc = TStoreLoc(TInt(SIn).Val);
-}
-
-///////////////////////////////
-/// Schema description of index key
-void TIndexKeyEx::Save(TSOut& SOut) const {
-    FieldName.Save(SOut); _x_FieldId.Save(SOut); TInt(_x_FieldType).Save(SOut);
-    KeyIndexName.Save(SOut); TInt(KeyType).Save(SOut); TInt(SortType).Save(SOut);
-    WordVocName.Save(SOut); _x_WordVocId.Save(SOut);
-}
-
-void TIndexKeyEx::Load(TSIn& SIn) {
-    FieldName.Load(SIn); _x_FieldId.Load(SIn);
-    _x_FieldType = (TFieldType)TInt(SIn).Val; KeyIndexName.Load(SIn);
-    KeyType = (TIndexKeyType)TInt(SIn).Val;
-    SortType = (TIndexKeySortType)TInt(SIn).Val;
-    WordVocName.Load(SIn); _x_WordVocId.Load(SIn);
-}
-
-///////////////////////////////
 // Store window description
 TStr TStoreWndDesc::SysInsertedAtFieldName = "_sys_inserted_at";
 
@@ -277,15 +243,15 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 			TJoinDescEx JoinDescEx = ParseJoinDescEx(JoinDef);
             // add new field in case of field join
 			if (JoinDescEx.JoinType == osjtField) {
-				// prepare field description
-				TFieldDesc FieldDesc(JoinDescEx.JoinName + "Id", oftUInt64, false, true, true);
-				FieldH.AddDat(FieldDesc.GetFieldNm(), FieldDesc);
+                // we create two fields for each field join: record Id and frequency
+                TStr JoinRecFieldNm = JoinDescEx.JoinName + "Id";
+                TStr JoinFqFieldNm = JoinDescEx.JoinName + "Fq";
+				// prepare join field descriptions
+				FieldH.AddDat(JoinRecFieldNm, TFieldDesc(JoinRecFieldNm, oftUInt64, false, true, true));
+				FieldH.AddDat(JoinFqFieldNm, TFieldDesc(JoinFqFieldNm, oftInt, false, true, true));
                 // prepare extended field description
-				TFieldDescEx FieldDescEx;
-				FieldDescEx.FieldStoreLoc = slMemory;
-				FieldDescEx.SmallStringP = false;
-				FieldDescEx.CodebookP = false;
-				FieldExH.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);
+				FieldExH.AddDat(JoinRecFieldNm, TFieldDescEx(slMemory, false, false));
+				FieldExH.AddDat(JoinFqFieldNm, TFieldDescEx(slMemory, false, false));
 			}
             // remember join
 			JoinDescExV.Add(JoinDescEx);
@@ -1553,6 +1519,28 @@ void TRecIndexer::UpdateKey(const TFieldIndexKey& Key, const TMem& OldRecMem,
     }
 }
 
+void TRecIndexer::ProcessKey(const TFieldIndexKey& Key, const TMem& OldRecMem, 
+        const TMem& NewRecMem, const uint64& RecId, TRecSerializator& Serializator) {
+
+    // check how to process the change
+    const bool OldNullP = Serializator.IsFieldNull(OldRecMem, Key.FieldId);
+    const bool NewNullP = Serializator.IsFieldNull(NewRecMem, Key.FieldId);
+    if (OldNullP && !NewNullP) {
+        // if no value before, just index
+        IndexKey(Key, NewRecMem, RecId, Serializator);
+    } else if (!OldNullP && NewNullP) {
+        // no new value, just deindex
+        DeindexKey(Key, OldRecMem, RecId, Serializator);
+    } else if (!OldNullP && !NewNullP) {
+        // value update, do deindexing of old and indexing of new
+        UpdateKey(Key, OldRecMem, NewRecMem, RecId, Serializator);
+    } else {
+        // nothing before to deindex
+        // nothing now to index
+        // life is easy
+    }
+}
+
 TRecIndexer::TRecIndexer(const TWPt<TIndex>& _Index, const TWPt<TStore>& Store):
         Index(_Index), IndexVoc(_Index->GetIndexVoc()) {
 
@@ -1564,9 +1552,12 @@ TRecIndexer::TRecIndexer(const TWPt<TIndex>& _Index, const TWPt<TStore>& Store):
             const int KeyId = FieldDesc.GetKeyId(KeyIdN);
             const TIndexKey& Key = IndexVoc->GetKey(KeyId);
             // remember the field-key details
-            FieldIndexKeyV.Add(TFieldIndexKey(FieldId, FieldDesc.GetFieldNm(),
-                FieldDesc.GetFieldType(), FieldDesc.GetFieldTypeStr(),
-                KeyId, Key.GetTypeFlags(), Key.GetWordVocId()));
+            const int KeyN = FieldIndexKeyV.Add(TFieldIndexKey(FieldId, 
+                FieldDesc.GetFieldNm(), FieldDesc.GetFieldType(), 
+                FieldDesc.GetFieldTypeStr(), KeyId, Key.GetTypeFlags(), 
+                Key.GetWordVocId()));
+            // remember mapping from field id to key position
+            FieldIdToKeyN.AddDat(FieldId, KeyN);
         }
     }
 }
@@ -1597,29 +1588,31 @@ void TRecIndexer::DeindexRec(const TMem& RecMem, const uint64& RecId, TRecSerial
 	}
 }
 
+void TRecIndexer::UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem, 
+        const uint64& RecId, const int& ChangedFieldId, TRecSerializator& Serializator) {
+    
+    // check if we have a key for the field
+    if (FieldIdToKeyN.IsKey(ChangedFieldId)) {
+        // get field index key
+        const int FieldIndexKeyN = FieldIdToKeyN.GetDat(ChangedFieldId);
+		const TFieldIndexKey& Key = FieldIndexKeyV[FieldIndexKeyN];
+        // check how to process the change
+        ProcessKey(Key, OldRecMem, NewRecMem, RecId, Serializator);
+    }
+}
+
 void TRecIndexer::UpdateRec(const TMem& OldRecMem, const TMem& NewRecMem,
         const uint64& RecId, TIntSet& ChangedFieldIdSet, TRecSerializator& Serializator) {
 
 	// go over all keys associated with the store and its fields
 	for (int FieldIndexKeyN = 0; FieldIndexKeyN < FieldIndexKeyV.Len(); FieldIndexKeyN++) {
 		const TFieldIndexKey& Key = FieldIndexKeyV[FieldIndexKeyN];
-        // check if field is handled by the serializator
-        if (!Serializator.IsFieldId(Key.FieldId)) { continue; }
         // check if field is changed
         if (!ChangedFieldIdSet.IsKey(Key.FieldId)) { continue; }
+        // check if field is handled by the serializator
+        if (!Serializator.IsFieldId(Key.FieldId)) { continue; }
         // check how to process the change
-        const bool OldNullP = Serializator.IsFieldNull(OldRecMem, Key.FieldId);
-        const bool NewNullP = Serializator.IsFieldNull(NewRecMem, Key.FieldId);
-        if (OldNullP && !NewNullP) {
-            // if no value before, just index
-            IndexKey(Key, NewRecMem, RecId, Serializator);
-        } else if (!OldNullP && NewNullP) {
-            // no new value, just deindex
-            DeindexKey(Key, OldRecMem, RecId, Serializator);
-        } else if (!OldNullP && !NewNullP) {
-            // value update, do deindexing of old and indexing of new
-            UpdateKey(Key, OldRecMem, NewRecMem, RecId, Serializator);
-        }
+        ProcessKey(Key, OldRecMem, NewRecMem, RecId, Serializator);
     }
 }
 
@@ -1989,9 +1982,7 @@ void TStoreImpl::GarbageCollect() {
             for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
                 // remove joins with all matched records, one by one
                 const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                // in case of field join we do not know what is the return frequency
-                // for now we just assume max, to make sure we fully delete inverse join
-                const int JoinFq = JoinDesc.IsFieldJoin() ? JoinRecSet->GetRecFq(JoinRecN) : TInt::Mx;
+                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
                 DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
             }
 		}
@@ -2078,85 +2069,113 @@ void TStoreImpl::GetFieldBowSpV(const uint64& RecId, const int& FieldId, PBowSpV
 
 void TStoreImpl::SetFieldNull(const uint64& RecId, const int& FieldId) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldNull(InRecMem, OutRecMem, FieldId);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldNull(InRecMem, OutRecMem, FieldId);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldInt(const uint64& RecId, const int& FieldId, const int& Int) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldInt(InRecMem, OutRecMem, FieldId, Int);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldInt(InRecMem, OutRecMem, FieldId, Int);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldIntV(const uint64& RecId, const int& FieldId, const TIntV& IntV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldIntV(InRecMem, OutRecMem, FieldId, IntV);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldIntV(InRecMem, OutRecMem, FieldId, IntV);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldUInt64(const uint64& RecId, const int& FieldId, const uint64& UInt64) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldUInt64(InRecMem, OutRecMem, FieldId, UInt64);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldUInt64(InRecMem, OutRecMem, FieldId, UInt64);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldStr(const uint64& RecId, const int& FieldId, const TStr& Str) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldStr(InRecMem, OutRecMem, FieldId, Str);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldStr(InRecMem, OutRecMem, FieldId, Str);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldStrV(const uint64& RecId, const int& FieldId, const TStrV& StrV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldStrV(InRecMem, OutRecMem, FieldId, StrV);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldStrV(InRecMem, OutRecMem, FieldId, StrV);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldBool(const uint64& RecId, const int& FieldId, const bool& Bool) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldBool(InRecMem, OutRecMem, FieldId, Bool);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldBool(InRecMem, OutRecMem, FieldId, Bool);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldFlt(const uint64& RecId, const int& FieldId, const double& Flt) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldFlt(InRecMem, OutRecMem, FieldId, Flt);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldFlt(InRecMem, OutRecMem, FieldId, Flt);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldFltPr(const uint64& RecId, const int& FieldId, const TFltPr& FltPr) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldFltPr(InRecMem, OutRecMem, FieldId, FltPr);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldFltPr(InRecMem, OutRecMem, FieldId, FltPr);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldFltV(const uint64& RecId, const int& FieldId, const TFltV& FltV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldFltV(InRecMem, OutRecMem, FieldId, FltV);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldFltV(InRecMem, OutRecMem, FieldId, FltV);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldTm(const uint64& RecId, const int& FieldId, const TTm& Tm) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldTm(InRecMem, OutRecMem, FieldId, Tm);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldTm(InRecMem, OutRecMem, FieldId, Tm);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldTmMSecs(const uint64& RecId, const int& FieldId, const uint64& TmMSecs) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldTmMSecs(InRecMem, OutRecMem, FieldId, TmMSecs);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldTmMSecs(InRecMem, OutRecMem, FieldId, TmMSecs);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldNumSpV(InRecMem, OutRecMem, FieldId, SpV);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldNumSpV(InRecMem, OutRecMem, FieldId, SpV);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
 void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV) {
 	TMem InRecMem; GetRecMem(RecId, FieldId, InRecMem);
-    TMem OutRecMem; GetFieldSerializator(FieldId).SetFieldBowSpV(InRecMem, OutRecMem, FieldId, SpV);
+    TRecSerializator& FieldSerializator = GetFieldSerializator(FieldId);
+    TMem OutRecMem; FieldSerializator.SetFieldBowSpV(InRecMem, OutRecMem, FieldId, SpV);
+    RecIndexer.UpdateRec(InRecMem, OutRecMem, RecId, FieldId, FieldSerializator);
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
@@ -2212,9 +2231,10 @@ void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal,
             // check join type
 			if (JoinDescEx.JoinType == osjtField) {
 				// field join
-				int JoinFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Id");
+				int JoinRecFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Id");
+				int JoinFqFieldId = Store->GetFieldId(JoinDescEx.JoinName + "Fq");
 				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
-                    JoinStore->GetStoreId(), JoinFieldId));
+                    JoinStore->GetStoreId(), JoinRecFieldId, JoinFqFieldId));
 			} else if (JoinDescEx.JoinType == osjtIndex) {
 				// index join
 				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
