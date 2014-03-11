@@ -139,7 +139,8 @@ TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId,
 	JoinStoreId = _JoinStoreId;
 	JoinNm = _JoinNm;
 	JoinType = osjtIndex;
-	JoinFieldId = -1;
+	JoinRecFieldId = -1;
+	JoinFqFieldId = -1;
 	// create an internal join key in the index
 	TStr JoinKeyNm = "Join" + JoinNm;
 	JoinKeyId = IndexVoc->AddInternalKey(StoreId, JoinKeyNm, JoinNm);
@@ -148,14 +149,15 @@ TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId,
 }
 
 TJoinDesc::TJoinDesc(TSIn& SIn): JoinId(SIn), JoinNm(SIn), JoinStoreId(SIn),
-        JoinKeyId(SIn), JoinFieldId(SIn), InverseJoinId(SIn) {
+        JoinKeyId(SIn), JoinRecFieldId(SIn), JoinFqFieldId(SIn), InverseJoinId(SIn) {
 
 	JoinType = TStoreJoinType(TInt(SIn).Val);
 }
 
 void TJoinDesc::Save(TSOut& SOut) const { 
 	JoinId.Save(SOut); JoinNm.Save(SOut); JoinStoreId.Save(SOut);
-	JoinKeyId.Save(SOut); JoinFieldId.Save(SOut); InverseJoinId.Save(SOut);
+	JoinKeyId.Save(SOut); JoinRecFieldId.Save(SOut); JoinFqFieldId.Save(SOut);
+    InverseJoinId.Save(SOut);
 	TInt(JoinType).Save(SOut);
 }
 
@@ -454,7 +456,8 @@ void TStore::AddJoinRec(const uint64& RecId, const PJsonVal& RecVal) {
         } else {
             // we don't have join specified, set field joins to point to nothing (TUInt64::Mx)
             if (JoinDesc.IsFieldJoin()) {
-                SetFieldUInt64(RecId, JoinDesc.GetJoinFieldId(), TUInt64::Mx);
+                SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+                SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
             }
         }
 	}    
@@ -535,7 +538,10 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
     if (JoinDesc.IsIndexJoin()) {
         Index->IndexJoin(this, JoinId, RecId, JoinRecId, JoinFq);
     } else if (JoinDesc.IsFieldJoin()) {
-        SetFieldUInt64(RecId, JoinDesc.GetJoinFieldId(), JoinRecId);
+        // TODO: check if we already have an existing join here
+        // and figure out if it needs deleting first (probably yes)
+        SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), JoinRecId);
+        SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), JoinFq);
     }
     // check if inverse join is defined
     if (JoinDesc.IsInverseJoinId()) {
@@ -547,7 +553,8 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
         if (InverseJoinDesc.IsIndexJoin()) {
             Index->IndexJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
         } else if (InverseJoinDesc.IsFieldJoin()) {
-            JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinFieldId(), RecId);
+            JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), RecId);
+            JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), JoinFq);
         }
     }
 }
@@ -558,7 +565,8 @@ void TStore::DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
     if (JoinDesc.IsIndexJoin()) {
         Index->DeleteJoin(this, JoinId, RecId, JoinRecId, JoinFq);
     } else if (JoinDesc.IsFieldJoin()) {
-        SetFieldUInt64(RecId, JoinDesc.GetJoinFieldId(), TUInt64::Mx);
+        SetFieldUInt64(RecId, JoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+        SetFieldInt(RecId, JoinDesc.GetJoinFqFieldId(), 0);
     }
     // check if inverse join is defined
     if (JoinDesc.IsInverseJoinId()) {
@@ -570,7 +578,8 @@ void TStore::DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
         if (InverseJoinDesc.IsIndexJoin()) {
             Index->DeleteJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
         }else {
-            JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinFieldId(), TUInt64::Mx);
+            JoinStore->SetFieldUInt64(JoinRecId, InverseJoinDesc.GetJoinRecFieldId(), TUInt64::Mx);
+            JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), 0);
         }
     }
 }
@@ -1332,7 +1341,7 @@ PRecSet TRec::ToRecSet() const {
 
 PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
     if (IsByRef()) {
-		// by reference, use rec-set code for joins
+		// by reference, use rec-set code for joins (TODO: do all here)
 		Assert(Store->IsRecId(GetRecId()));
         PRecSet RecSet = TRecSet::New(Store, GetRecId());
         return RecSet->DoJoin(Base, JoinId, -1, false);
@@ -1350,11 +1359,15 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const int& JoinId) const {
 			}
 	    } else if (JoinDesc.IsFieldJoin()) {
 		    // do join using store field
-		    const int JoinFieldId = JoinDesc.GetJoinFieldId();
-			const uint64 JoinRecId = GetFieldUInt64(JoinFieldId);
+		    const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+			const uint64 JoinRecId = GetFieldUInt64(JoinRecFieldId);
+            // get join weight
+		    const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
+			const int JoinRecFq = GetFieldInt(JoinFqFieldId);
+            // return record set
 			if (JoinRecId != TUInt64::Mx) {
 				// return record
-				return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecId);
+				return TRecSet::New(JoinDesc.GetJoinStore(Base), JoinRecId, JoinRecFq);
 			} else {
 				// no record, return empty set
 				return TRecSet::New(JoinDesc.GetJoinStore(Base));
@@ -1497,6 +1510,12 @@ void TRecSet::LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV) {
 	RecIdFqV = SampleRecIdFqV;
 }
 
+TRecSet::TRecSet(const TWPt<TStore>& _Store, const uint64& RecId, const int& Wgt): 
+        Store(_Store), WgtP(Wgt > 1) { 
+    
+    RecIdFqV.Gen(1, 0); RecIdFqV.Add(TUInt64IntKd(RecId, Wgt));
+}
+
 TRecSet::TRecSet(const TWPt<TStore>& _Store, const TUInt64V& RecIdV): Store(_Store), WgtP(false) { 
     RecIdFqV.Gen(RecIdV.Len(), 0);
     for (int RecN = 0; RecN < RecIdV.Len(); RecN++) {
@@ -1521,13 +1540,13 @@ PRecSet TRecSet::New(const TWPt<TStore>& Store) {
 	return new TRecSet(Store, TUInt64V()); 
 }
 
-PRecSet TRecSet::New(const TWPt<TStore>& Store, const uint64& RecId) {
-	return new TRecSet(Store, TUInt64V::GetV(RecId)); 
+PRecSet TRecSet::New(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt) {
+	return new TRecSet(Store, RecId, Wgt); 
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store, const TRec& Rec) {
 	Assert(Rec.IsByRef()); 
-	return new TRecSet(Rec.GetStore(), TUInt64V::GetV(Rec.GetRecId())); 
+	return new TRecSet(Rec.GetStore(), Rec.GetRecId(), 1); 
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store, const TUInt64V& RecIdV) {
@@ -1591,9 +1610,7 @@ void TRecSet::SortByFq(const bool& Asc) {
 	RecIdFqV.SortCmp(TCmpKeyDatByDat<TUInt64, TInt>(Asc));
 }
 
-void TRecSet::SortByField(const TWPt<TStore>& Store, 
-		const bool& Asc, const int& SortFieldId) {
-
+void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(SortFieldId);
     // apply appropriate comparator
@@ -1610,7 +1627,7 @@ void TRecSet::SortByField(const TWPt<TStore>& Store,
 	}
 }
 
-void TRecSet::FilterByExists(const TWPt<TStore>& Store) {
+void TRecSet::FilterByExists() {
     // apply filter
     FilterBy(TRecFilterByExists(Store));
 }
@@ -1630,9 +1647,7 @@ void TRecSet::FilterByFq(const int& MinFq, const int& MaxFq) {
     FilterBy(TRecFilterByRecFq(MinFq, MaxFq));
 }
 
-void TRecSet::FilterByFieldInt(const TWPt<TStore>& Store,
-		const int& FieldId, const int& MinVal, const int& MaxVal) {
-
+void TRecSet::FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal) {
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsInt(), "Wrong field type, integer expected");
@@ -1640,9 +1655,7 @@ void TRecSet::FilterByFieldInt(const TWPt<TStore>& Store,
     FilterBy(TRecFilterByFieldInt(Store, FieldId, MinVal, MaxVal));
 }
 
-void TRecSet::FilterByFieldFlt(const TWPt<TStore>& Store,
-		const int& FieldId, const double& MinVal, const double& MaxVal) {
-
+void TRecSet::FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal) {
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsFlt(), "Wrong field type, numeric expected");
@@ -1650,7 +1663,7 @@ void TRecSet::FilterByFieldFlt(const TWPt<TStore>& Store,
     FilterBy(TRecFilterByFieldFlt(Store, FieldId, MinVal, MaxVal));
 }
 
-void TRecSet::FilterByFieldStr(const TWPt<TStore>& Store, const int& FieldId, const TStr& FldVal) {
+void TRecSet::FilterByFieldStr(const int& FieldId, const TStr& FldVal) {
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
@@ -1658,7 +1671,7 @@ void TRecSet::FilterByFieldStr(const TWPt<TStore>& Store, const int& FieldId, co
     FilterBy(TRecFilterByFieldStr(Store, FieldId, FldVal));
 }
 
-void TRecSet::FilterByFieldStrSet(const TWPt<TStore>& Store, const int& FieldId, const TStrSet& ValSet) {
+void TRecSet::FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet) {
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsStr(), "Wrong field type, string expected");
@@ -1666,8 +1679,7 @@ void TRecSet::FilterByFieldStrSet(const TWPt<TStore>& Store, const int& FieldId,
     FilterBy(TRecFilterByFieldStrSet(Store, FieldId, ValSet));
 }
 
-void TRecSet::FilterByFieldTm(const TWPt<TStore>& Store,
-		const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
+void TRecSet::FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal) {
 
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
@@ -1676,9 +1688,7 @@ void TRecSet::FilterByFieldTm(const TWPt<TStore>& Store,
     FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
 }
 
-void TRecSet::FilterByFieldTm(const TWPt<TStore>& Store, 
-		const int& FieldId, const TTm& MinVal, const TTm& MaxVal) {
-
+void TRecSet::FilterByFieldTm(	const int& FieldId, const TTm& MinVal, const TTm& MaxVal) {
     // get store and field type
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     QmAssertR(Desc.IsTm(), "Wrong field type, time expected");
@@ -1786,11 +1796,13 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId,
 	} else if (JoinDesc.IsFieldJoin()) {
 		// do join using store field
 		TUInt64H JoinRecIdFqH;
-		const int JoinFieldId = JoinDesc.GetJoinFieldId();
+    	const int JoinRecFieldId = JoinDesc.GetJoinRecFieldId();
+        const int JoinFqFieldId = JoinDesc.GetJoinFqFieldId();
 		for (int RecN = 0; RecN < SampleRecs; RecN++) {
 			const uint64 RecId = SampleRecIdKdV[RecN].Key;
-			const uint64 JoinRecId = Store->GetFieldUInt64(RecId, JoinFieldId);
-			if (JoinRecId != TUInt64::Mx) { JoinRecIdFqH.AddDat(JoinRecId)++; }
+			const uint64 JoinRecId = Store->GetFieldUInt64(RecId, JoinRecFieldId);
+            const int JoinRecFq = Store->GetFieldInt(RecId, JoinFqFieldId);
+			if (JoinRecId != TUInt64::Mx) { JoinRecIdFqH.AddDat(JoinRecId) += JoinRecFq; }
 		}
 		JoinRecIdFqH.GetKeyDatKdV(JoinRecIdFqV);
 	} else {
@@ -2407,6 +2419,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				// handle subordinate items
 				ItemV.Add(TQueryItem(oqitNot, TQueryItem(Base, Store, KeyVal)));
 			} else if (KeyNm == "$record") {
+                InfoLog("Warning: $record in query language is deprecated. Used $id or $name instead to refer to record.");
 				uint64 RecId = TUInt64::Mx;
 				if (KeyVal->IsStr()) {
 					TStr RecNm = KeyVal->GetStr();
@@ -2422,6 +2435,16 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 					throw TQmExcept::New("Query: unsupported $record value");
 				}
 				ItemV.Add(TQueryItem(Store, RecId));
+			} else if (KeyNm == "$id") {
+                QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
+                const uint64 _RecId = (uint64)KeyVal->GetInt();
+                const uint64 RecId = Store->IsRecId(_RecId) ? _RecId : TUInt64::Mx.Val;
+                ItemV.Add(TQueryItem(Store, RecId));
+			} else if (KeyNm == "$name") {
+                QmAssertR(KeyVal->IsStr(), "Query: unsupported $name value");
+                TStr RecNm = KeyVal->GetStr();  
+                const uint64 RecId = Store->IsRecNm(RecNm) ? Store->GetRecId(RecNm) : TUInt64::Mx.Val;
+                ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$join") {
 				// ignore
 			} else if (KeyNm == "$from") {
@@ -2728,7 +2751,10 @@ uchar TQueryItem::GetStoreId(const TWPt<TBase>& Base) const {
 		// and check where does the join bring us to
 		const TWPt<TStore>& Store = Base->GetStoreByStoreId(StoreId);
 		return Store->GetJoinDesc(JoinId).GetJoinStoreId();
-	} else {
+	} else if (IsStore()) {
+        // we are returning complete store
+        return StoreId;
+    } else {
 		// if there are no subordinate nodes, we have a problem
 		QmAssertR(!ItemV.Empty(), "QueryItem: Non-leaf node without children"); 
 		// otherwise must ask subordinate nodes and make sure they agree
@@ -2872,7 +2898,7 @@ TWPt<TStore> TQuery::GetStore(const TWPt<TBase>& Base) {
 }
 
 void TQuery::Sort(const TWPt<TBase>& Base, const PRecSet& RecSet) {
-	RecSet->SortByField(RecSet->GetStore(), SortAscP, SortFieldId);
+	RecSet->SortByField(SortAscP, SortFieldId);
 }
 
 PRecSet TQuery::GetLimit(const PRecSet& RecSet) {
@@ -4165,8 +4191,31 @@ void TBase::AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr) {
 	GetStreamAggrBase(StoreId)->AddStreamAggr(StreamAggr);
 }
 
+void TBase::AddStreamAggr(const TUChV& StoreIdV, const PStreamAggr& StreamAggr) {
+    for (int StoreN = 0; StoreN < StoreIdV.Len(); StoreN++) {
+        // create new stream aggregate base for the store if one does not exist yet
+        uchar StoreId = StoreIdV[StoreN];
+        if (!IsStreamAggrBase(StoreId)) {
+            // create empty base
+            PStreamAggrBase StreamAggrBase = TStreamAggrBase::New();
+            // create trigger for the base
+            GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
+            // remember the base
+			StreamAggrBaseV[(int)StoreId] = StreamAggrBase;
+        }
+        // add new aggregate to the stream aggregate base
+        GetStreamAggrBase(StoreId)->AddStreamAggr(StreamAggr);
+    }
+}
+
 void TBase::AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr) {
 	AddStreamAggr(GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
+}
+
+void TBase::AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr) {
+	for (int StoreN = 0; StoreN < StoreNmV.Len(); StoreN++) {
+		AddStreamAggr(GetStoreByStoreNm(StoreNmV[StoreN])->GetStoreId(), StreamAggr);
+	}
 }
 
 void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {

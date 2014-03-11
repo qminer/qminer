@@ -163,10 +163,12 @@ private:
 	TUCh JoinStoreId;
 	/// Join type
 	TStoreJoinType JoinType;
-	/// Corresponding KeyID, used for for index joins
+	/// Corresponding KeyID, used for index joins
 	TInt JoinKeyId;
-	/// Corresponding FieldId, used for for field joins
-	TInt JoinFieldId;
+	/// Corresponding FieldId, used for field joins
+	TInt JoinRecFieldId;
+    /// Corresponding Frequency, used for field joins
+    TInt JoinFqFieldId;
     /// Inverse join ID (-1 means not defined)
     TInt InverseJoinId;
 
@@ -177,10 +179,10 @@ public:
 	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId,
 		const uchar& StoreId, const TWPt<TIndexVoc>& IndexVoc);
 	/// Create a field based join (1-1)
-	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId, const int& _JoinFieldId): 
-        JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), JoinType(osjtField), 
-        JoinKeyId(-1), JoinFieldId(_JoinFieldId), InverseJoinId(-1) { 
-            TValidNm::AssertValidNm(JoinNm); }
+	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId, const int& _JoinRecFieldId,
+        const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
+        JoinType(osjtField), JoinKeyId(-1), JoinRecFieldId(_JoinRecFieldId), 
+        JoinFqFieldId(_JoinFqFieldId), InverseJoinId(-1) { TValidNm::AssertValidNm(JoinNm); }
 
 	TJoinDesc(TSIn& SIn);
 	void Save(TSOut& SOut) const;
@@ -193,7 +195,8 @@ public:
 	bool IsIndexJoin() const { return JoinType == osjtIndex; }
 	int GetJoinKeyId() const { return JoinKeyId; }
 	bool IsFieldJoin() const { return JoinType == osjtField; }
-	int GetJoinFieldId() const { return JoinFieldId; }
+	int GetJoinRecFieldId() const { return JoinRecFieldId; }
+	int GetJoinFqFieldId() const { return JoinFqFieldId; }
     void PutInverseJoinId(const int& _InverseJoinId) { InverseJoinId = _InverseJoinId; }
     bool IsInverseJoinId() const { return InverseJoinId != -1; }
     int GetInverseJoinId() const { return InverseJoinId; }
@@ -1200,6 +1203,7 @@ private:
 	void LimitToSampleRecIdV(const TUInt64IntKdV& SampleRecIdFqV);
 
 	TRecSet() { }
+    TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt);
     TRecSet(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
 	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _WgtP);
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
@@ -1210,7 +1214,7 @@ public:
 	/// Create empty set for a given store
 	static PRecSet New(const TWPt<TStore>& Store);
 	/// Create record set with one record
-	static PRecSet New(const TWPt<TStore>& Store, const uint64& RecId);
+	static PRecSet New(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt = 1);
 	/// Create record set with one record (must be by reference)
 	static PRecSet New(const TWPt<TStore>& Store, const TRec& Rec);
 	/// Create record set from a given vector of record ids
@@ -1275,12 +1279,12 @@ public:
 	void SortByFq(const bool& Asc = true);
 	/// Sort records according to filed with id `SortFieldId'
 	/// @param Asc True for sorting in increasing order
-	void SortByField(const TWPt<TStore>& Store, const bool& Asc, const int& SortFieldId);
+	void SortByField(const bool& Asc, const int& SortFieldId);
 	/// Sort records according to given comparator
 	template <class TCmp> void SortCmp(const TCmp& Cmp) { TInt::SetRndSeed(1); RecIdFqV.SortCmp(Cmp); }
 
 	/// Filter records to keep only the ones which actually exist
-	void FilterByExists(const TWPt<TStore>& Store);
+	void FilterByExists();
 	/// Filter records to keep only the ones with id between `MinRecId' and `MaxRecId'.
 	void FilterByRecId(const uint64& MinRecId, const uint64& MaxRecId);
 	/// Filter records to keep only the ones that are present in provided `RecIdSet'
@@ -1288,17 +1292,17 @@ public:
 	/// Filter records to keep only the ones with weight between `MinFq' and `MaxFq'
 	void FilterByFq(const int& MinFq, const int& MaxFq);
 	/// Filter records to keep only the ones with values of a given field within given range
-	void FilterByFieldInt(const TWPt<TStore>& Store, const int& FieldId, const int& MinVal, const int& MaxVal);
+	void FilterByFieldInt(const int& FieldId, const int& MinVal, const int& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
-	void FilterByFieldFlt(const TWPt<TStore>& Store, const int& FieldId, const double& MinVal, const double& MaxVal);
+	void FilterByFieldFlt(const int& FieldId, const double& MinVal, const double& MaxVal);
 	/// Filter records to keep only the ones with values of a given field equal to `FldVal'
-	void FilterByFieldStr(const TWPt<TStore>& Store, const int& FieldId, const TStr& FldVal);
+	void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
 	/// Filter records to keep only the ones with values of a given field present in `ValSet'
-	void FilterByFieldStrSet(const TWPt<TStore>& Store, const int& FieldId, const TStrSet& ValSet);
+	void FilterByFieldStrSet(const int& FieldId, const TStrSet& ValSet);
 	/// Filter records to keep only the ones with values of a given field within given range
-	void FilterByFieldTm(const TWPt<TStore>& Store, const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
+	void FilterByFieldTm(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
-	void FilterByFieldTm(const TWPt<TStore>& Store, const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
+	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
 
@@ -2575,7 +2579,9 @@ public:
 	const PStreamAggr& GetStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
 	void AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const TUChV& StoreIdV, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
     // aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 
