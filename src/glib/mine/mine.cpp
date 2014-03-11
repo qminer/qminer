@@ -49,6 +49,9 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
+// Linear-Regresion
+#include "onlinereg.cpp"
+
 // Active-Learning
 #include "bowactlearn.cpp"
 

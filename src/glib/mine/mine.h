@@ -56,6 +56,9 @@
 #include "kmpp.h"
 #include "hac.h"
 
+// Online-Adaptive-Regresion
+#include "onlinereg.h"
+
 // Active-Learning
 #include "bowactlearn.h"
 
