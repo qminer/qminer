@@ -171,12 +171,21 @@ class TSASFunFPath : public TSAppSrvFun {
 private:
 	TStr BaseUrl;
 	TStr FPath;
+	TStr DefaultFNm;
 	
 public:
 	TSASFunFPath(const TStr& _BaseUrl, const TStr& _FPath): 
-	  TSAppSrvFun(_BaseUrl, saotCustom), BaseUrl(_BaseUrl), FPath(_FPath) { }
+	  TSAppSrvFun(_BaseUrl, saotCustom), BaseUrl(_BaseUrl), FPath(_FPath), DefaultFNm("index.html") {}
+
+	TSASFunFPath(const TStr& _BaseUrl, const TStr& _FPath, const TStr& _DefaultFNm): 
+	  TSAppSrvFun(_BaseUrl, saotCustom), BaseUrl(_BaseUrl), FPath(_FPath), DefaultFNm(_DefaultFNm) { }
+
+
 	static PSAppSrvFun New(const TStr& BaseUrl, const TStr& FPath) { 
         return new TSASFunFPath(BaseUrl, FPath); }
+	static PSAppSrvFun New(const TStr& BaseUrl, const TStr& FPath, const TStr& DefaultFNm) {
+		return new TSASFunFPath(BaseUrl, FPath, DefaultFNm); }
+
 
     TStr GetFunNm() const { return BaseUrl; }
 

@@ -719,6 +719,72 @@ TStr THttpRq::GetStr() const {
   return ChA;
 }
 
+bool THttpRq::IsMobileUsrAgent() const {
+	TStr UserAgentStr = GetUsrAgent();
+
+	if (UserAgentStr.IsStrIn("Tablet")) {
+		return false;
+	} else if (UserAgentStr.IsStrIn("Mobile")) {		//this should also cover Android
+		return true;
+	} else if (UserAgentStr.IsStrIn("iPhone") || UserAgentStr.IsStrIn("iPod")) {				
+		return true;			
+	} else if (UserAgentStr.IsStrIn("BlackBerry")) {				
+		return true;			
+	} else if (UserAgentStr.IsStrIn("Symbian")) {				
+		return true;
+	} else if (UserAgentStr.IsStrIn("Opera Mini")) {
+		return true;
+	} else if (UserAgentStr.IsStrIn("Windows Phone")) {
+		return true;
+	}
+	return false;
+}
+
+bool THttpRq::IsTabletUsrAgent() const {
+	TStr UserAgentStr = GetUsrAgent();
+
+	if (!IsMobileUsrAgent()) {
+		if (UserAgentStr.IsStrIn("Android")) {
+			return true;
+		} else if (UserAgentStr.IsStrIn("iPad")) {
+			return true;
+		} else if (UserAgentStr.IsStrIn("Tablet")) {
+			return true;
+		}
+	}
+	return false;
+}
+
+TUserAgentDeviceType THttpRq::GetUsrAgentDeviceType() const {
+	if (IsMobileUsrAgent())
+		return uadtMobile;
+	else if (IsTabletUsrAgent())
+		return uadtTablet;
+	else return uadtDesktop;
+}
+
+TUserAgentOSType THttpRq::GetUsrAgentOSType() const {
+	TStr UserAgentStr = GetUsrAgent();
+
+	if (UserAgentStr.IsStrIn("Windows NT"))
+		return uaotWindows;
+	if (UserAgentStr.IsStrIn("iPhone OS"))
+		return uaotIOS;
+	if (UserAgentStr.IsStrIn("Android"))
+		return uaotAndroid;
+	if (UserAgentStr.IsStrIn("Linux"))
+		return uaotLinux;
+	if (UserAgentStr.IsStrIn("Mac OS X"))
+		return uaotMacOSX;
+	if (UserAgentStr.IsStrIn("Symbian"))
+		return uaotSymbian;
+	if (UserAgentStr.IsStrIn("BlackBerry"))
+		return uadtBlackBerry;
+
+	// I'll return windows by default since it's the most common
+	return uaotWindows;
+}
+
 /////////////////////////////////////////////////
 // Http-Response
 void THttpResp::AddHdFld(const TStr& FldNm, const TStr& FldVal, TChA& HdChA){

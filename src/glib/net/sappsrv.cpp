@@ -185,7 +185,7 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
         EAssertR(RqUrl->IsOk(), "Bad request URL!");
         // extract function name
         PUrl HttpRqUrl = HttpRq->GetUrl();
-        TStr FunNm = HttpRqUrl->GetPathSeg(0);
+		TStr FunNm = HttpRqUrl->GetPathSeg(0);
 		// check if we have the function registered
 		if (FunNm == "favicon.ico") {
 			PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd,
@@ -283,7 +283,7 @@ PSIn TSASFunFPath::ExecSIn(const TStrKdV& FldNmValPrV,
         // nothing specified, do the default
         TStr PathSeg = Url->GetPathSeg(0);
         if (PathSeg.LastCh() != '/') { FNm += "/"; }
-        FNm += "index.html"; 
+        FNm += DefaultFNm; 
     } else {
         // extract file name
         for (int PathSegN = 1; PathSegN < PathSegs; PathSegN++) {

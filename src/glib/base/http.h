@@ -88,6 +88,14 @@ typedef enum {
   hrmUndef, hrmGet, hrmHead, hrmPost, hrmPut, hrmPatch,
   hrmOptions, hrmDelete} THttpRqMethod;
 
+typedef enum {
+	uadtDesktop, uadtMobile, uadtTablet
+} TUserAgentDeviceType;
+
+typedef enum {
+	uaotWindows, uaotIOS, uaotAndroid, uaotMacOSX, uaotLinux, uaotSymbian, uadtBlackBerry
+} TUserAgentOSType;
+
 ClassTP(THttpRq, PHttpRq)//{
 private:
   bool Ok;
@@ -101,6 +109,9 @@ private:
   TMem BodyMem;
   void ParseSearch(const TStr& SearchStr);
   void ParseHttpRq(const PSIn& SIn);
+  bool IsMobileUsrAgent() const;
+  bool IsTabletUsrAgent() const;
+  bool IsPcUsrAgent() const { return !IsMobileUsrAgent() && !IsTabletUsrAgent(); }
 public:
   THttpRq(const PSIn& SIn);
   static PHttpRq New(const PSIn& SIn){
@@ -133,6 +144,11 @@ public:
   bool IsFldVal(const TStr& FldNm, const TStr& FldVal) const;
   void AddFldVal(const TStr& FldNm, const TStr& FldVal);
   const TStrStrH& GetFldValH() const;
+
+  // user-agent
+  TStr GetUsrAgent() const { return GetFldVal("User-Agent"); }
+  TUserAgentDeviceType GetUsrAgentDeviceType() const;
+  TUserAgentOSType GetUsrAgentOSType() const;
 
   // header & body
   TStr GetHdStr() const {return HdStr;}
