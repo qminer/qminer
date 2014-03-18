@@ -49,8 +49,9 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
-// Linear-Regresion
-#include "onlinereg.cpp"
+
+// Signal-Processing
+#include "signalproc.cpp"
 
 // Active-Learning
 #include "bowactlearn.cpp"

@@ -17,49 +17,59 @@
  * 
  */
 
+namespace TFtrGen {
+
 ///////////////////////////////////////
-// Numeric-Feature-Generator
-void TFtrGenNumeric::Update(const double& Val) { 
-    MnVal = TFlt::GetMn(MnVal, Val); 
-    MxVal = TFlt::GetMx(MxVal, Val); 
-}
-
-double TFtrGenNumeric::GetFtr(const double& Val) const { 
+// Numeric-Feature-Generator  
+void TNumeric::Update(const double& Val) { 
 	if (NormalizeP) {
-		return MnVal != MxVal ? (double(Val) - MnVal) / (MxVal - MnVal) : 0.0; 
-	}
-	return Val;
+        MnVal = TFlt::GetMn(MnVal, Val); 
+        MxVal = TFlt::GetMx(MxVal, Val); 
+    }
 }
 
-void TFtrGenNumeric::AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const {
-    SpV.Add(TIntFltKd(Offset, GetFtr(Val))); 
-    Offset++; 
+double TNumeric::GetFtr(const double& Val) const { 
+	if (NormalizeP) {
+		return (MnVal < MxVal) ? (double(Val) - MnVal) / (MxVal - MnVal) : 0.0; 
+	} else {
+        return Val;
+    }
+}
+
+void TNumeric::AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const {
+    SpV.Add(TIntFltKd(Offset, GetFtr(Val)));
+    Offset++;
+}
+
+void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
+    FullV[Offset] = GetFtr(Val); 
+    Offset++;
 }
 
 ///////////////////////////////////////
 // Nominal-Feature-Generator
-void TFtrGenNominal::Update(const TStr& Val) { 
+void TNominal::Update(const TStr& Val) { 
     if (!Val.Empty()) { ValH.AddKey(Val); }
 }
 
-void TFtrGenNominal::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
+void TNominal::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
     if (ValH.IsKey(Val)) { SpV.Add(TIntFltKd(Offset + ValH.GetKeyId(Val), 1.0)); } 
     Offset += ValH.Len(); 
 }
 
 ///////////////////////////////////////
 // Multi-Feature-Generator
-void TFtrGenMultiNom::Update(const TStr& Str) { 
+void TMultiNom::Update(const TStr& Str) { 
 	FtrGen.Update(Str);
 }
 
-void TFtrGenMultiNom::Update(const TStrV& StrV) {
+void TMultiNom::Update(const TStrV& StrV) {
 	for (int StrN = 0; StrN < StrV.Len(); StrN++) {
 		FtrGen.Update(StrV[StrN]);
 	}
 }
 
-void TFtrGenMultiNom::AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const {
+void TMultiNom::AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const {
 	const int FtrId = FtrGen.GetFtr(Str);
 	if (FtrId != -1) {
 		SpV.Add(TIntFltKd(Offset + FtrId, 1.0));
@@ -67,7 +77,7 @@ void TFtrGenMultiNom::AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) cons
     Offset += GetVals();
 }
 
-void TFtrGenMultiNom::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const {
+void TMultiNom::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const {
 	// generate feature vector just for this feature generate
 	TIntFltKdV MultiNomSpV(StrV.Len(), 0);
 	for (int StrN = 0; StrN < StrV.Len(); StrN++) {
@@ -111,21 +121,21 @@ void TFtrGenMultiNom::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) co
 
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
-TFtrGenToken::TFtrGenToken(TSIn& SIn) { 
+TToken::TToken(TSIn& SIn) { 
 	SwSet = PSwSet(SIn);
 	Stemmer = PStemmer(SIn);
 	Docs.Load(SIn);
 	TokenH.Load(SIn);
 }
 
-void TFtrGenToken::Save(TSOut& SOut) const { 
+void TToken::Save(TSOut& SOut) const { 
 	SwSet.Save(SOut);
 	Stemmer.Save(SOut);
 	Docs.Save(SOut);
 	TokenH.Save(SOut);
 }
 
-void TFtrGenToken::Update(const TStr& Val) {
+void TToken::Update(const TStr& Val) {
     TStrV TokenStrV; GetTokenV(Val, TokenStrV); TStrH TokenStrH;
     for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
         const TStr& TokenStr = TokenStrV[TokenStrN];
@@ -139,11 +149,11 @@ void TFtrGenToken::Update(const TStr& Val) {
     Docs++;
 }
 
-void TFtrGenToken::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
+void TToken::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
 	int Offset = 0; AddFtr(Val, SpV, Offset);
 }
 
-void TFtrGenToken::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
+void TToken::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
     // step (1): tokenize
     TStrV TokenStrV; GetTokenV(Val, TokenStrV);
     // step (2): aggregate token counts
@@ -175,7 +185,7 @@ void TFtrGenToken::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
     Offset += TokenH.Len(); 
 }
 
-void TFtrGenToken::GetTokenV(const TStr& Str, TStrV& TokenStrV) const {
+void TToken::GetTokenV(const TStr& Str, TStrV& TokenStrV) const {
     THtmlLx HtmlLx(TStrIn::New(Str));
     while (HtmlLx.Sym != hsyEof){
         if (HtmlLx.Sym == hsyStr){ 
@@ -193,18 +203,20 @@ void TFtrGenToken::GetTokenV(const TStr& Str, TStrV& TokenStrV) const {
 
 ///////////////////////////////////////
 // Sparse-Numeric-Feature-Generator
-void TFtrGenSparseNumeric::Update(const TIntFltKdV& SpV) { 
+void TSparseNumeric::Update(const TIntFltKdV& SpV) { 
     for (int SpN = 0; SpN < SpV.Len(); SpN++) {
 		MxId = TInt::GetMx(SpV[SpN].Key, MxId);
 		FtrGen.Update(SpV[SpN].Dat);
     }
 }
 
-void TFtrGenSparseNumeric::AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offset) const {
+void TSparseNumeric::AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offset) const {
     for (int SpN = 0; SpN < InSpV.Len(); SpN++) {
 		const int Id = InSpV[SpN].Key;
 		double Val = FtrGen.GetFtr(InSpV[SpN].Dat);
 		SpV.Add(TIntFltKd(Offset + Id, Val));
     }
     Offset += GetVals();
+}
+
 }

@@ -17,33 +17,37 @@
  * 
  */
 
+namespace TFtrGen {
+
 ///////////////////////////////////////
 // Numeric-Feature-Generator
-class TFtrGenNumeric {
+class TNumeric {
 private:        
 	TBool NormalizeP;
     TFlt MnVal;
     TFlt MxVal;
 
 public:
-	TFtrGenNumeric(const bool& _NormalizeP = true): NormalizeP(_NormalizeP), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
-	TFtrGenNumeric(TSIn& SIn): NormalizeP(SIn), MnVal(SIn), MxVal(SIn) { }
+	TNumeric(const bool& _NormalizeP = true):
+        NormalizeP(_NormalizeP), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+	TNumeric(TSIn& SIn): NormalizeP(SIn), MnVal(SIn), MxVal(SIn) { }
 	void Save(TSOut& SOut) const { NormalizeP.Save(SOut); MnVal.Save(SOut); MxVal.Save(SOut); }
 
     void Update(const double& Val);
 	double GetFtr(const double& Val) const;
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
 };
 
 ///////////////////////////////////////
 // Nominal-Feature-Generator
-class TFtrGenNominal {
+class TNominal {
 private:
     TStrH ValH;   
 
 public:
-    TFtrGenNominal() { }
-	TFtrGenNominal(TSIn& SIn): ValH(SIn) { }
+    TNominal() { }
+	TNominal(TSIn& SIn): ValH(SIn) { }
 	void Save(TSOut& SOut) const { ValH.Save(SOut);}
 
     void Update(const TStr& Val);
@@ -56,13 +60,13 @@ public:
 
 ///////////////////////////////////////
 // MultiNomial-Feature-Generator
-class TFtrGenMultiNom {
+class TMultiNom {
 private:
-	TFtrGenNominal FtrGen;
+	TNominal FtrGen;
 
 public:
-	TFtrGenMultiNom() { }
-	TFtrGenMultiNom(TSIn& SIn): FtrGen(SIn) { }
+	TMultiNom() { }
+	TMultiNom(TSIn& SIn): FtrGen(SIn) { }
 	void Save(TSOut& SOut) const { FtrGen.Save(SOut); }
 
     void Update(const TStr& Str);
@@ -76,7 +80,7 @@ public:
 
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
-class TFtrGenToken {
+class TToken {
 private:
     PSwSet SwSet;
     PStemmer Stemmer;
@@ -84,8 +88,8 @@ private:
     TStrH TokenH;
 
 public:
-    TFtrGenToken(PSwSet _SwSet, PStemmer _Stemmer): SwSet(_SwSet), Stemmer(_Stemmer) { }
-	TFtrGenToken(TSIn& SIn);
+    TToken(PSwSet _SwSet, PStemmer _Stemmer): SwSet(_SwSet), Stemmer(_Stemmer) { }
+	TToken(TSIn& SIn);
 	void Save(TSOut& SOut) const;
 
     void Update(const TStr& Val);
@@ -102,14 +106,14 @@ public:
 
 ///////////////////////////////////////
 // Sparse-Feature-Generator
-class TFtrGenSparseNumeric {
+class TSparseNumeric {
 private:
     TInt MxId;
-	TFtrGenNumeric FtrGen;
+	TNumeric FtrGen;
 
 public:
-	TFtrGenSparseNumeric()  { }
-	TFtrGenSparseNumeric(TSIn& SIn): MxId(SIn), FtrGen(SIn) { }
+	TSparseNumeric()  { }
+	TSparseNumeric(TSIn& SIn): MxId(SIn), FtrGen(SIn) { }
 	void Save(TSOut& SOut) const { MxId.Save(SOut); FtrGen.Save(SOut); }
 
     void Update(const TIntFltKdV& SpV);
@@ -117,3 +121,5 @@ public:
 
     int GetVals() const { return MxId + 1; } 
 };
+
+}
