@@ -11,6 +11,14 @@
 *.lai
 *.la
 *.a
-/.project
 
+# project files from various SDKs
+/.project
 nbproject
+
+# build results
+build
+
+# test partial results
+qm.conf
+db
