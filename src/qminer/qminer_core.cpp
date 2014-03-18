@@ -1423,7 +1423,8 @@ TRec TRec::DoSingleJoin(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq) const 
 }
 
 PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
-		const bool& StoreInfoP, const bool& JoinRecsP, const bool& JoinRecFieldsP) const {
+		const bool& StoreInfoP, const bool& JoinRecsP, const bool& JoinRecFieldsP,
+        const bool& RecInfoP) const {
 
 	// export result set as XML
 	PJsonVal RecVal = TJsonVal::NewObj();
@@ -1434,27 +1435,30 @@ PJsonVal TRec::GetJson(const TWPt<TBase>& Base, const bool& FieldsP,
 		RecVal->AddToObj("$store", StoreVal);
 	}
 	// record name and id only if stored by reference
-	if (ByRefP) {
+	if (ByRefP && RecInfoP) {
 		RecVal->AddToObj("$id", (int)RecId);
-		// put name only when no fields displayed
-		if (!FieldsP) { RecVal->AddToObj("$name", Store->GetRecNm(RecId)); }
+		// put name only when no fields displayed and one exists in the store
+		if (!FieldsP && Store->HasRecNm()) { 
+            RecVal->AddToObj("$name", Store->GetRecNm(RecId)); 
+        }
 	}
 	// if no fields and stuff, just return what we have
-	if (!FieldsP) { return RecVal; }
-	// get the fields
-	const int Fields = Store->GetFields();
-	for (int FieldN = 0; FieldN < Fields; FieldN++) {
-		const TFieldDesc& Desc = Store->GetFieldDesc(FieldN);
-		// skip internal fields (e.g. record ids for joins)
-		if (Desc.IsInternal()) { continue; }
-		if (ByRefP) {
-			if (Store->IsFieldNull(RecId, FieldN)) { continue; }
-			RecVal->AddToObj(Desc.GetFieldNm(), Store->GetFieldJson(RecId, FieldN));
-		} else {
-			if (IsFieldNull(FieldN)) { continue; }
-			RecVal->AddToObj(Desc.GetFieldNm(), GetFieldJson(FieldN));
-		}
-	}
+	if (FieldsP) { 
+        // get the fields
+        const int Fields = Store->GetFields();
+        for (int FieldN = 0; FieldN < Fields; FieldN++) {
+            const TFieldDesc& Desc = Store->GetFieldDesc(FieldN);
+            // skip internal fields (e.g. record ids for joins)
+            if (Desc.IsInternal()) { continue; }
+            if (ByRefP) {
+                if (Store->IsFieldNull(RecId, FieldN)) { continue; }
+                RecVal->AddToObj(Desc.GetFieldNm(), Store->GetFieldJson(RecId, FieldN));
+            } else {
+                if (IsFieldNull(FieldN)) { continue; }
+                RecVal->AddToObj(Desc.GetFieldNm(), GetFieldJson(FieldN));
+            }
+        }
+    }
 	// get the join fields
 	if (JoinRecsP) { 
 		const int Joins = Store->GetJoins();
@@ -3702,6 +3706,9 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TNumeric>();
     Register<TStreamAggrs::TNumericGroup>();
     Register<TStreamAggrs::TItem>();
+    Register<TStreamAggrs::TTimeSeriesTick>();
+    Register<TStreamAggrs::TEma>();
+    Register<TStreamAggrs::TResampler>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): 
@@ -3845,7 +3852,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize): InitP(false) {
 	// prepare index
 	IndexVoc = TIndexVoc::New();
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
-	// prepare tokanizer
+	// prepare tokenizer
 	IndexVoc->PutTokenizer(TTokenizerHtmlUnicode::New(
 		TSwSet::New(swstEn425), TStemmer::New(stmtPorter, true)));
 	// add standard operators
@@ -3876,7 +3883,7 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
-	// load tokanizer
+	// load tokenizer
 	TFIn TokenizerFIn(FPath + "Tokenizer.dat");
 	IndexVoc->PutTokenizer(TTokenizerHtmlUnicode::Load(TokenizerFIn));
 	// add standard operators
@@ -3928,8 +3935,12 @@ void TBase::LoadStreamAggrBaseV(TSIn& SIn) {
     const int StreamAggrBases = TInt(SIn);
     for (int StreamAggrBaseN = 0; StreamAggrBaseN < StreamAggrBases; StreamAggrBaseN++) {
         const uchar StoreId = TUCh(SIn);
+        // load stream aggregate base
         PStreamAggrBase StreamAggrBase = TStreamAggrBase::Load(this, SIn);
-        StreamAggrBaseV[StoreId] = StreamAggrBase;
+        // create trigger for the aggregate base
+        GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
+        // remember the aggregate base for the store
+        StreamAggrBaseV[(int)StoreId] = StreamAggrBase;
     }    
 }
 
@@ -4132,10 +4143,18 @@ TWPt<TIndex> TBase::GetIndex() const {
 	return TempIndex.Empty() ? TWPt<TIndex>(Index) : TempIndex->GetIndex(); 
 }
 
-
 void TBase::AddStore(const PStore& NewStore) {
-	StoreV[(int)NewStore->GetStoreId()] = NewStore;
+    const int StoreId = NewStore->GetStoreId();
+    // remember pointer to store
+	StoreV[StoreId] = NewStore;
+    // fast map from store name to store
     StoreH.AddDat(NewStore->GetStoreNm(), NewStore);
+    // create stream aggregate base for the store
+    PStreamAggrBase StreamAggrBase = TStreamAggrBase::New();
+    // create trigger for the aggregate base
+    NewStore->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
+    // remember the aggregate base for the store
+    StreamAggrBaseV[StoreId] = StreamAggrBase; 
 }
 
 const TWPt<TStore> TBase::GetStoreByStoreN(const int& StoreN) const {
@@ -4157,10 +4176,6 @@ PJsonVal TBase::GetStoreJson(const TWPt<TStore>& Store) {
     return Store->GetStoreJson(this);
 }
 
-bool TBase::IsStreamAggrBase(const uchar& StoreId) const { 
-	return !StreamAggrBaseV[(int)StoreId].Empty(); 
-}
-
 const PStreamAggrBase& TBase::GetStreamAggrBase(const uchar& StoreId) const {
 	return StreamAggrBaseV[(int)StoreId]; 
 }
@@ -4178,33 +4193,13 @@ const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamA
 }
 
 void TBase::AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr) {
-	// create new stream aggregate base for the store if one does not exist yet
-	if (!IsStreamAggrBase(StoreId)) {
-		// create empty base
-		PStreamAggrBase StreamAggrBase = TStreamAggrBase::New();
-		// create trigger for the base
-		GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
-		// remember the base
-		StreamAggrBaseV[(int)StoreId] = StreamAggrBase; 
-	}
 	// add new aggregate to the stream aggregate base
 	GetStreamAggrBase(StoreId)->AddStreamAggr(StreamAggr);
 }
 
 void TBase::AddStreamAggr(const TUChV& StoreIdV, const PStreamAggr& StreamAggr) {
     for (int StoreN = 0; StoreN < StoreIdV.Len(); StoreN++) {
-        // create new stream aggregate base for the store if one does not exist yet
-        uchar StoreId = StoreIdV[StoreN];
-        if (!IsStreamAggrBase(StoreId)) {
-            // create empty base
-            PStreamAggrBase StreamAggrBase = TStreamAggrBase::New();
-            // create trigger for the base
-            GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
-            // remember the base
-			StreamAggrBaseV[(int)StoreId] = StreamAggrBase;
-        }
-        // add new aggregate to the stream aggregate base
-        GetStreamAggrBase(StoreId)->AddStreamAggr(StreamAggr);
+        AddStreamAggr(StoreIdV[StoreN], StreamAggr);
     }
 }
 

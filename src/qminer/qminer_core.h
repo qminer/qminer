@@ -908,7 +908,7 @@ public:
 	/// Get record as JSon object
 	PJsonVal GetJson(const TWPt<TBase>& Base, const bool& FieldsP = true, 
 		const bool& StoreInfoP = true, const bool& JoinRecsP = false, 
-		const bool& JoinRecFieldsP = false) const;
+		const bool& JoinRecFieldsP = false, const bool& RecInfoP = true) const;
 };
 
 ///////////////////////////////
@@ -2379,6 +2379,9 @@ public:
 	/// Recored already added to the aggregate is being deleted from the store 
 	virtual void OnDeleteRec(const TWPt<TStore>& Store, const uint64& RecId) { }
 
+    // retrieving input aggregate names
+    virtual void GetInAggrNmV(TStrV& InAggrNmV) const { };
+
 	/// Print latest statistics to logger
 	virtual void PrintStat() const { }
 	/// Serialization current status to JSon
@@ -2405,6 +2408,9 @@ namespace TStreamAggrOut {
 		// retireving value from the aggregate
 		virtual uint64 GetTmMSecs() const = 0;
 	};
+    
+    // combination of numeric value and timestamp
+    class IFltTm: public IFlt, public ITm { };
 
 	class IFltVec {
 	public:
@@ -2427,12 +2433,6 @@ namespace TStreamAggrOut {
 		virtual bool IsNm(const TStr& Nm) const = 0;
 		virtual double GetNmInt(const TStr& Nm) const = 0;
 		virtual void GetNmIntV(TStrIntPrV& NmIntV) const = 0;
-	};
-
-	class IInAggrNames {
-	public:
-		// retrieving input aggregate names
-		virtual void GetInAggrNmV(TStrV& InAggrNmV) const = 0;
 	};
 }
 ///////////////////////////////
@@ -2573,7 +2573,6 @@ public:
     PJsonVal GetStoreJson(const TWPt<TStore>& Store);
 
 	// stream aggregates
-	bool IsStreamAggrBase(const uchar& StoreId) const;
 	const PStreamAggrBase& GetStreamAggrBase(const uchar& StoreId) const;
 	bool IsStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;

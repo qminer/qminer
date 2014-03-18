@@ -28,7 +28,7 @@
 namespace TQm {
 
 ///////////////////////////////
-// QMiner-Feature-Extractor
+/// Feature extractor.
 class TFtrExt;
 typedef TPt<TFtrExt> PFtrExt;
 typedef TVec<PFtrExt> TFtrExtV;
@@ -79,18 +79,19 @@ public:
 
 	/// Name of the feature (e.g. field name, store name)
 	virtual TStr GetNm() const { return "[undefined]"; };
-	// dimensionality of the feature space
+	/// Dimensionality of the feature space
 	virtual int GetDim() const = 0;
 	// string representation of the FtrN-th feature
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
-	// for defining the feature space (required for generating sparse vectors)
-	virtual void Update(const TRec& Rec) { };
-	// finish defining the feature space (called after last Update and before first GetSpV);
-	virtual void FinishUpdate() { };
-	// attaches features to a sparse feature vectors
+	/// Update the feature extractor using the info from the given record.
+    /// Returns true if the update changes the dimensionality.
+	virtual bool Update(const TRec& Rec) = 0;
+	/// Attaches features to a given sparse feature vectors with a given offset
 	virtual void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const = 0;
+	/// Attaches features to a given full feature vectors with a given offset
+	virtual void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
 	// attaches values to the given vector, keeps what is in there already
@@ -98,20 +99,20 @@ public:
 	virtual void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
 	virtual void ExtractTmV(const TRec& Rec, TTmV& TmV) const;
 
-	// supported starting stores
+	/// Check if the given store is one of the allowed start stores
 	bool IsStartStore(const uchar& StoreId) const { return JoinSeqH.IsKey(StoreId); }
-	// join sequences
+	/// Is there a join to be done when starting from the given store
 	bool IsJoin(const uchar& StoreId) const { return JoinSeqH.GetDat(StoreId).IsJoin(); }
+    /// Get the join sequence required to be executed for the given store
 	const TJoinSeq& GetJoinSeq(const uchar& StoreId) const { return JoinSeqH.GetDat(StoreId); }
+    /// Get the join IDs required to be executed for the given store
 	const TIntPrV& GetJoinIdV(const uchar& StoreId) const { return JoinSeqH.GetDat(StoreId).GetJoinIdV(); }
-	// store from which the features come
+	/// Store from which the features come
 	TWPt<TStore> GetFtrStore() const { return FtrStore; }
 };
 
 ///////////////////////////////////////////////
-// QMiner-Feature-Space
-typedef enum { fsmUndef, fsmUpdate, fsmDef, fsmOnline } TFtrSpaceMode;
-
+/// Feature space.
 class TFtrSpace {
 private: 
 	// smart-pointer
@@ -120,63 +121,69 @@ private:
     /// QMiner Base pointer
     TWPt<TBase> Base;
     
-	/// Current mode of feature space
-	TFtrSpaceMode Mode;
     /// Current dimensionality of feature space
 	TInt Dim;
-    /// Partial dimensionalities. N-th element contains dimensionality 
+    /// Partial dimensions. N-th element contains dimensionality 
     /// of the first N feature extractors summed together
 	TIntV DimV;
+    /// List of feature extractors with variable dimensionality
+    TIntV VarDimFtrExtNV;
     /// Feature extractors composing the feature space
 	TFtrExtV FtrExtV;
     
+    void Init();
 
-	TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt, const bool& OnlineP): 
-        Base(_Base), Mode(OnlineP ? fsmOnline : fsmUpdate) { FtrExtV.Add(FtrExt); }
-	TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV, const bool& OnlineP): 
-        Base(_Base), Mode(OnlineP ? fsmOnline : fsmUpdate), FtrExtV(_FtrExtV) { }
+	TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt): 
+        Base(_Base), FtrExtV(TFtrExtV::GetV(FtrExt)) { Init(); }
+	TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV): 
+        Base(_Base), FtrExtV(_FtrExtV) { Init(); }
 public:
-	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PFtrExt& FtrExt,
-        const bool& OnlineP = false) { return new TFtrSpace(Base, FtrExt, OnlineP); }
-	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV, 
-        const bool& OnlineP = false) { return new TFtrSpace(Base, FtrExtV, OnlineP); }
+	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PFtrExt& FtrExt) { 
+        return new TFtrSpace(Base, FtrExt); }
+	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV) { 
+        return new TFtrSpace(Base, FtrExtV); }
 
 	/// Generate a name of feature space. Composed by concatenating feature extractor names.
 	TStr GetNm() const;
 
-	/// Clear existing future space
+	/// Clear existing future space. Calls all internal feature extractors
 	void Clr();
-    /// Check if in update mode
-    bool IsUpdateMode() const { return Mode == fsmUpdate; }
-    bool IsDefMode() const { return Mode == fsmDef; }
-
-	// defining the feature space
-	void Update(const TRec& Rec);
-	void Update(const PRecSet& RecSet);
-	void FinishUpdate();
-    // extract feature vector from a record
+	/// Update feature extractors given a record
+	bool Update(const TRec& Rec);
+	/// Update feature extractors given a set of records
+	bool Update(const PRecSet& RecSet);
+    /// Extract sparse feature vector from a record
 	void GetSpV(const TRec& Rec, TIntFltKdV& SpV) const;
-	// extracting feature vectors from a record set
+    /// Extract full feature vector from a record
+    void GetFullV(const TRec& Rec, TFltV& FullV) const;
+	/// Extracting sparse feature vectors from a record set
 	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const;
-	// compute centroid of a given record set
+	/// Extracting full feature vectors from a record set
+	void GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV) const;
+	/// Compute sparse centroid of a given record set
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
+	/// Compute full centroid of a given record set
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
-    // string vector for a record transformed by a feature extractor
+    
+    /// String vector for a record transformed by a feature extractor
     void ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const;
 
-	// dimensionality of the feature space
+	/// Dimensionality of the feature space
 	int GetDim() const;
-	// string representation of the FtrN-th feature
+	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
-	// prepares an empty bow and registers all the features
+
+	/// Prepares an empty bow and registers all the features
 	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);    
 };
 typedef TPt<TFtrSpace> PFtrSpace;
 
+///////////////////////////////////////////////
+/// Implemented feature extractors.
 namespace TFtrExts {
 
 ///////////////////////////////////////////////
-/// Random Feature Extractor
+/// Random feature extractor.
 class TRandom : public TFtrExt {
 private:
 	// random feature generator
@@ -195,8 +202,9 @@ public:
 	TStr GetFtr(const int& FtrN) const { return "Random"; }
 
 	void Clr() { };
-	// sparse vector extraction
-	void AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const;
+    bool Update(const TRec& Rec) { return false; }
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -209,19 +217,27 @@ public:
 /// Numeric Feature Extractor
 class TNumeric : public TFtrExt {
 private:
-	/// Numeric feature generator
-	TFtrGenNumeric FtrGen;
+    /// numeric extractor type
+    typedef enum { tNone, tNormalize, tMnMxVal } TType;
+private:
+    /// Feature generator type
+    TType Type;
+    /// Minimal value for normalization
+    TFlt MnVal;
+    /// Maximal value for normalization
+    TFlt MxVal;
+    
 	/// Field Id
 	TInt FieldId;
     /// Field description
     TFieldDesc FieldDesc;
 
-	double _GetVal(const PRecSet& FtrRecSet) const; 
-	double _GetVal(const TRec& FtrRec) const; 
-	double GetVal(const TRec& Rec) const; 
+    /// Get value from a given record
+	double GetRecVal(const TRec& Rec) const; 
+	double GetFtrVal(const TRec& Rec) const; 
 
 	TNumeric(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
-        const int& _FieldId, const bool& NormalizeP);
+        const int& _FieldId, const bool& _NormalizeP);
     TNumeric(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
@@ -236,10 +252,11 @@ public:
 	int GetDim() const { return 1; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
-	void Clr() { FtrGen = TFtrGenNumeric(); }
+	void Clr();
 	// sparse vector extraction
-	void Update(const TRec& Rec);
+	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
@@ -258,7 +275,7 @@ public:
 class TCategorical : public TFtrExt {
 private:
 	// nominal feature generator
-	TFtrGenNominal FtrGen;
+	TFtrGen::TNominal FtrGen;
 	// field Id
 	TInt FieldId;
     // field description
@@ -279,9 +296,9 @@ public:
 	int GetDim() const { return FtrGen.GetVals(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
-	void Clr() { FtrGen = TFtrGenNominal(); }
+	void Clr() { FtrGen = TFtrGen::TNominal(); }
 	// sparse vector extraction
-	void Update(const TRec& Rec);
+	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 
 	// flat feature extraction
@@ -302,7 +319,7 @@ public:
 class TMultinomial : public TFtrExt {
 private:
 	// multinomial feature generator
-	TFtrGenMultiNom FtrGen;
+	TFtrGen::TMultiNom FtrGen;
 	// field Id
 	TInt FieldId;
     // field description
@@ -325,9 +342,9 @@ public:
 	int GetDim() const { return FtrGen.GetVals(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
-	void Clr() { FtrGen = TFtrGenMultiNom(); }
+	void Clr() { FtrGen = TFtrGen::TMultiNom(); }
 	// sparse vector extraction
-	void Update(const TRec& Rec);
+	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 
 	// flat feature extraction
@@ -345,7 +362,7 @@ typedef enum { bowmConcat, bowmCentroid } TBagOfWordsMode;
 class TBagOfWords : public TFtrExt {
 private:
 	// numeric feature generator
-	TFtrGenToken FtrGen;
+	TFtrGen::TToken FtrGen;
 	// field Id
 	TInt FieldId;
     // field description
@@ -376,9 +393,9 @@ public:
 	int GetDim() const { return FtrGen.GetVals(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
-	void Clr() { FtrGen = TFtrGenToken(FtrGen.GetSwSet(), FtrGen.GetStemmer()); }
+	void Clr() { FtrGen = TFtrGen::TToken(FtrGen.GetSwSet(), FtrGen.GetStemmer()); }
 	// sparse vector extraction
-	void Update(const TRec& Rec);
+	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 
 	// flat feature extraction
@@ -425,6 +442,7 @@ public:
 	TStr GetFtr(const int& FtrN) const { return GetFtrStore()->GetStoreNm(); }
 		
 	void Clr() { Def(); }
+	bool Update(const TRec& Rec) { return false; }
 	// sparse vector extraction
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 
@@ -470,7 +488,7 @@ public:
 
 	void Clr() { FtrValH = TStrHash<TInt>(); FtrIdPairH.Clr(); }
 	// sparse vector extraction
-	void Update(const TRec& FtrRec);
+	bool Update(const TRec& FtrRec);
 	void AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const;
 
 	// flat feature extraction

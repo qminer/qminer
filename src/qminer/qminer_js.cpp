@@ -535,7 +535,9 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
     // get module filename
     TStr ModuleFNm = TJsObjUtil<TScript>::GetArgStr(Args, 0);
     // check if one of built-in modules
-    if (ModuleFNm == "geoip") { 
+    if (ModuleFNm == "analytics") { 
+        return TJsAnalytics::New(Script);
+    } else if (ModuleFNm == "geoip") { 
         return TJsGeoIp::New();
     } else if (ModuleFNm == "time") {
         return TJsTm::New();
@@ -859,7 +861,6 @@ v8::Handle<v8::Value> TJsConsole::say(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Base
-
 TJsBase::TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base) { }
 
 v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
@@ -892,6 +893,7 @@ v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::
 v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Info);
+    InfoLog("Warning: qm.analytics will be deprecated, use require('analytics') instead.");
 	return TJsAnalytics::New(JsBase->Js);
 }
 
@@ -919,7 +921,6 @@ v8::Handle<v8::Value> TJsBase::getStoreList(const v8::Arguments& Args) {
     PJsonVal JsonVal = TJsonVal::NewArr(StoreValV);
     return HandleScope.Close(TJsUtil::ParseJson(JsonVal));
 }
-
 
 /// Create stores from the JS interface
 v8::Handle<v8::Value> TJsBase::createStore(const v8::Arguments& Args) {
@@ -1154,10 +1155,11 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
     // get parameter
-    TStr TypeNm = TJsStoreUtil::GetArgStr(Args, 0);
-    PJsonVal ParamVal = TJsStoreUtil::GetArgJson(Args, 1);
+    PJsonVal ParamVal = TJsStoreUtil::GetArgJson(Args, 0);
     // add store parameter
-    ParamVal->NewObj("store", JsStore->Store->GetStoreNm());
+    ParamVal->AddToObj("store", JsStore->Store->GetStoreNm());
+    // get type
+    TStr TypeNm = ParamVal->GetObjStr("type");
     // create new aggregate
     PStreamAggr StreamAggr = TStreamAggr::New(JsStore->Js->Base, TypeNm, ParamVal);
     JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), StreamAggr);
@@ -1837,7 +1839,8 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
         JsRegisterFunction(TmpTemp, trainSvmRegression);
         JsRegisterFunction(TmpTemp, trainKMeans);						
         JsRegisterFunction(TmpTemp, newActiveLearner);						
-        JsRegisterFunction(TmpTemp, delActiveLearner);						
+        JsRegisterFunction(TmpTemp, delActiveLearner);	
+        JsRegisterFunction(TmpTemp, newRecLinReg);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2074,6 +2077,26 @@ v8::Handle<v8::Value> TJsAnalytics::delActiveLearner(const v8::Arguments& Args) 
 
 	return v8::Undefined();
 }
+// 
+// linRegLearn(records, parameters)
+v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+   
+    int dim = ParamVal->GetObjInt("dim");
+    double ForgetFact = ParamVal->GetObjInt("forgetFact");
+
+    try {
+        TSignalProc::PRecLinReg linReg = TSignalProc::TRecLinReg::New(dim, ForgetFact);
+        return TJsRecLinRegModel::New(JsAnalytics->Js, linReg);
+    }
+    catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+    }
+    return v8::Undefined();
+}
 
 ///////////////////////////////
 // QMiner-JavaScript-Feature-Space
@@ -2087,6 +2110,8 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 		JsRegisterFunction(TmpTemp, updateRecords);
 		JsRegisterFunction(TmpTemp, finishUpdate);					
 		JsRegisterFunction(TmpTemp, extractStrings);						
+		JsRegisterFunction(TmpTemp, ftrSpVec);						
+		JsRegisterFunction(TmpTemp, ftrVec);						
 		//JsRegisterFunction(TmpTemp, extractNumbers);						
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -2114,9 +2139,9 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    TRec Rec = TJsRec::GetArgRec(Args, 0);
+    TJsRec* JsRec = TJsObjUtil<TJsRec>::GetArgObj(Args, 0);
     // update with new records
-    JsFtrSpace->FtrSpace->Update(Rec);
+    JsFtrSpace->FtrSpace->Update(JsRec->Rec);
 	// return
 	return HandleScope.Close(v8::Null());
 }
@@ -2134,10 +2159,7 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsFtrSpace::finishUpdate(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    // finish update
-    JsFtrSpace->FtrSpace->FinishUpdate();
+    InfoLog("Warning: featureSpace.finishUpdate() is no longer necessary and hence deprecated.");
 	// return
 	return HandleScope.Close(v8::Null());
 }
@@ -2149,16 +2171,40 @@ v8::Handle<v8::Value> TJsFtrSpace::extractStrings(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     PJsonVal RecVal = TJsFtrSpaceUtil::GetArgJson(Args, 0);
     uint32 DimN = TJsFtrSpaceUtil::GetArgInt32(Args, 1, 0);
-    TStrV StrV;
-    
-    JsFtrSpace->FtrSpace->ExtractStrV(DimN, RecVal, StrV);
-
-	// return
+    // get strings
+    TStrV StrV; JsFtrSpace->FtrSpace->ExtractStrV(DimN, RecVal, StrV);
+	// return as JS array
 	v8::Handle<v8::Array> StrArr = v8::Array::New(StrV.Len());
     for(int StrN = 0; StrN < StrV.Len(); StrN++) {
 		StrArr->Set(v8::Uint32::New(StrN), v8::String::New(StrV.GetVal(StrN).CStr()));
 	}
 	return HandleScope.Close(StrArr);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    TRec Rec = TJsRec::GetArgRec(Args, 0);
+    // create feature vector
+    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
+    TFltV& FltV = TJsFltV::GetFltV(JsFltV);
+    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// return
+	return HandleScope.Close(JsFltV);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    TRec Rec = TJsRec::GetArgRec(Args, 0);
+    // create feature vector
+    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
+    TFltV& FltV = TJsFltV::GetFltV(JsFltV);
+    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// return
+	return HandleScope.Close(JsFltV);
 }
 
 ///////////////////////////////
@@ -2284,6 +2330,54 @@ v8::Handle<v8::Value> TJsAL::getPositives(const v8::Arguments& Args) {
     JsAL->AL->GetAllPosDocs(PosDIdV);
     PJsonVal Positives = TJsonVal::NewArr(PosDIdV);
     return HandleScope.Close(TJsUtil::ParseJson(Positives));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Recursive-Linear-Regression
+v8::Persistent<v8::ObjectTemplate> TJsRecLinRegModel::Template;
+
+v8::Handle<v8::ObjectTemplate> TJsRecLinRegModel::GetTemplate() {
+	v8::HandleScope HandleScope;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, learn);
+		JsRegisterFunction(TmpTemp, predict);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
+    // get feature vector
+    QmAssertR(TJsRecLinRegModelUtil::IsArgClass(Args, 0, "TFltV"), 
+        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+    // make sure dimensions match
+    QmAssertR(JsRecLinRegModel->Model->GetDim() == JsVec->Vec.Len(), 
+        "RecLinRegModel.learn: model dimension != passed argument dimension");				
+    const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
+    // learn
+    JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::predict(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
+    // get feature vector
+    QmAssertR(TJsRecLinRegModelUtil::IsArgClass(Args, 0, "TFltV"), 
+        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+    QmAssertR(JsRecLinRegModel->Model->GetDim() == JsVec->Vec.Len(), 
+        "RecLinRegModel.learn: model dimension != sample dimension");				
+    const double Predict = JsRecLinRegModel->Model->Predict(JsVec->Vec);
+    return HandleScope.Close(v8::Number::New(Predict));
 }
 
 ///////////////////////////////
@@ -2423,8 +2517,7 @@ v8::Handle<v8::Value> TJsFs::openWrite(const v8::Arguments& Args) { // call with
 	v8::HandleScope HandleScope;
 	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
     TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");    
 	return TJsFOut::New(FNm);
 }
 
@@ -2433,7 +2526,6 @@ v8::Handle<v8::Value> TJsFs::openAppend(const v8::Arguments& Args) { // call wit
 	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
     TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
     QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    //QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
 	return TJsFOut::New(FNm, true);
 }
 

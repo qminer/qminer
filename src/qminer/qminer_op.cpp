@@ -391,7 +391,6 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 	PRecSet RecSet = TRecSet::New(Store, InRecIdV);
 	// initialize the features
 	FtrSpace->Update(RecSet);
-	FtrSpace->FinishUpdate();
 	// create feature vectors
 	TVec<TIntFltKdV> SpVV;
 	FtrSpace->GetSpVV(RecSet, SpVV);
@@ -426,7 +425,6 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 	PRecSet RecSet = TRecSet::New(Store, InRecIdV);
 	// initialize the features
 	FtrSpace->Update( RecSet);
-	FtrSpace->FinishUpdate();
 	// create feature vectors
 	TVec<TIntFltKdV> SpVV;
 	FtrSpace->GetSpVV(RecSet, SpVV);
@@ -460,7 +458,6 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 	PRecSet RecSet = TRecSet::New(Store, InRecIdV);
 	// initialize the features
 	FtrSpace->Update(RecSet);
-	FtrSpace->FinishUpdate();
 	// create feature vectors
 	TVec<TIntFltKdV> SpVV;
 	FtrSpace->GetSpVV(RecSet, SpVV);

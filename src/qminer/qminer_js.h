@@ -374,6 +374,8 @@ public:
 
 	/// Check if argument ArgN belongs to a given class
 	static bool IsArgClass(const v8::Arguments& Args, const int& ArgN, const TStr& ClassNm) {
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()));
+        QmAssertR(Args[ArgN]->IsObject(), "Argument expected to be '" + ClassNm + "' but is not even an object!");
 		v8::Handle<v8::Value> Val = Args[ArgN];
 	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);			
 		TStr ClassStr = GetClass(Data);
@@ -920,6 +922,7 @@ public:
 	JsDeclareFunction(trainKMeans);
 	JsDeclareFunction(newActiveLearner);
 	JsDeclareFunction(delActiveLearner);
+	JsDeclareFunction(newRecLinReg);
 };
 
 ///////////////////////////////
@@ -943,10 +946,15 @@ public:
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
+    // for batch learning of feature space
 	JsDeclareFunction(updateRecord);
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate);
+    // use feature extractors to extract string features (E.g. words)
     JsDeclareFunction(extractStrings);
+    // mapping of records to feature vectors
+    JsDeclareFunction(ftrSpVec);
+    JsDeclareFunction(ftrVec);
 };
 
 ///////////////////////////////
@@ -1008,6 +1016,26 @@ public:
     JsDeclareFunction(getQuestion);
 	JsDeclareFunction(answerQuestion);
 	JsDeclareFunction(getPositives);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Recursive-Linear-Regression
+class TJsRecLinRegModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+	/// RecLinReg Model
+	TSignalProc::PRecLinReg Model;    
+private:
+	typedef TJsObjUtil<TJsRecLinRegModel> TJsRecLinRegModelUtil;
+	static v8::Persistent<v8::ObjectTemplate> Template;    
+	TJsRecLinRegModel(TWPt<TScript> _Js, const TSignalProc::PRecLinReg& _Model): Js(_Js), Model(_Model) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PRecLinReg& Model) {
+		return TJsRecLinRegModelUtil::New(new TJsRecLinRegModel(Js, Model)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	JsDeclareFunction(learn);
+	JsDeclareFunction(predict);
 };
 
 ///////////////////////////////
@@ -1254,9 +1282,8 @@ public:
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
-	JsDeclareFunction(newVec);	
-	JsDeclareFunction(newMat);	
-
+	JsDeclareFunction(newVec);
+	JsDeclareFunction(newMat);
 };
 
 ///////////////////////////////
@@ -1298,7 +1325,7 @@ public:
 	JsDeclareFunction(inner);
 	// add vectors
 	JsDeclareFunction(plus);
-	// substract vectors
+	// subtract vectors
 	JsDeclareFunction(minus);
 	// scalar multiply
 	JsDeclareFunction(multiply);

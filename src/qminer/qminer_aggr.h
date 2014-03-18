@@ -25,6 +25,7 @@
 
 #include "qminer_core.h"
 #include "qminer_ftr.h"
+#include "qminer_gs.h"
 
 namespace TQm {
 
@@ -452,6 +453,7 @@ public:
 ///////////////////////////////
 // QMiner-Grouped-Numeric-Stream-Aggregator
 //   aggregates numeric values in batches, restarts after time window is full
+// TODO: remove
 class TNumericGroup : public TTimeNumStreamAggr, public TStreamAggrOut::INmFlt, private TTmWnd::TCallback {
 private:
 	TJoinSeq GroupJoinSeq;
@@ -546,6 +548,194 @@ public:
 
     // stream aggregator type name 
     static TStr GetType() { return "item"; }
+};
+
+///////////////////////////////
+// Time series tick.
+// Wrapper for exposing time series to signal processing aggregates 
+class TTimeSeriesTick : public TStreamAggr, public TStreamAggrOut::IFltTm {
+private:
+	TInt TimeFieldId;
+	TInt TickValFieldId;
+    // initialized after first value
+    TBool InitP;
+	// last value
+	TFlt TickVal;
+	TUInt64 TmMSecs;
+	
+protected:
+	void OnAddRec(const TWPt<TStore>& Store, const uint64& RecId);
+
+	TTimeSeriesTick(const TWPt<TBase>& Base,  const TStr& StoreNm, const TStr& AggrNm,
+		const TStr& TimeFieldNm, const TStr& TickValFieldNm);
+    TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& AggrNm,
+		const TStr& TimeFieldNm, const TStr& TickValFieldNm);
+    // json constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);       
+
+	// did we finish initialization
+	bool IsInit() const { return InitP; }
+    
+	// current values
+	double GetFlt() const { return TickVal; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+
+	// serilization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+    
+    // stream aggregator type name 
+    static TStr GetType() { return "timeSeriesTick"; }        
+};
+
+///////////////////////////////
+// Exponential Moving Average.
+class TEma : public TStreamAggr, public TStreamAggrOut::IFltTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
+	TInt InTypeId;
+	// indicator
+	TSignalProc::TEma Ema;
+
+protected:
+	void OnAddRec(const TWPt<TStore>& Store, const uint64& RecId);
+    
+	TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& Decay, 
+        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const uint64& InitMinMSecs, const TStr& InAggrNm, 
+        const TWPt<TStreamAggrBase> SABase);
+	TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& TmInterval,
+		const TSignalProc::TEmaType& Type, const uint64& InitMinMSecs, 
+        const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
+	TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
+
+public:
+    // TmInterval == how many milliseconds it tames for a value to drop below 1/e
+    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const uint64& InitMinMSecs, const TStr& InStoreNm, const TStr& InAggrNm);
+    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const uint64& InitMinMSecs, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
+    // json constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
+    
+	// did we finish initialization
+	bool IsInit() const { return Ema.IsInit(); }
+	// current values
+	double GetFlt() const { return Ema.GetEma(); }
+	uint64 GetTmMSecs() const { return Ema.GetTmMSecs(); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm());}
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+    
+    // stream aggregator type name 
+    static TStr GetType() { return "ema"; }    
+};
+
+///////////////////////////////
+// Merger field map and interpolator
+class TMergerFieldMap {
+private:
+    /// Input store ID
+    TUCh InStoreId;
+    /// Input field ID
+    TInt InFieldId;
+    /// Output field Name (before output store created)
+    TStr OutFieldNm;
+    /// Field interpolator (supports only floats)
+    TSignalProc::PInterpolator Interpolator;    
+    
+public:
+    TMergerFieldMap() { }
+    TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& InFieldNm, 
+        const TStr& OutFieldNm, const TSignalProc::PInterpolator& Interpolator);
+    TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& InFieldNm, 
+        const TSignalProc::PInterpolator& Interpolator);
+       
+    uchar GetInStoreId() const { return InStoreId; }
+    int GetInFieldId() const { return InFieldId; }
+    TStr GetOutFieldNm() const { return OutFieldNm; }
+    
+    const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
+};
+
+///////////////////////////////
+// Merger
+class TMerger : public TStreamAggr {
+private:
+    /// Map from store id to time field
+    TIntV InTimeFieldIdV;
+	/// Map of old store id and field id to new field id
+    TVec<TMergerFieldMap> FieldMapV;
+    /// List of time fields for each store
+    /// New store name
+    TWPt<TStore> OutStore;
+    /// New store time field
+    TInt TimeFieldId;
+    
+protected:	
+	void OnAddRec(const TWPt<TStore>& Store, const uint64& RecId);
+
+private:
+    void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
+public:
+    TMerger(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
+        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, 
+        const TStr& NewTimeFieldNm, const bool& CreateStoreP = false);
+
+	PJsonVal SaveJson(const int& Limit) const;
+    
+    // stream aggregator type name 
+    static TStr GetType() { return "merger"; }
+};
+
+///////////////////////////////
+// Resampler
+class TResampler : public TStreamAggr {
+private:
+    // input store
+    TWPt<TStore> InStore;
+    // input field IDs
+	TIntV InFieldIdV;
+    // field interpolators
+	TVec<TSignalProc::PInterpolator> InterpolatorV;
+    // output store
+    TWPt<TStore> OutStore;
+    // input time field
+    TInt TimeFieldId;
+
+    // interval size
+    TUInt64 IntervalMSecs;
+    // Timestamp of last inserted record
+	TUInt64 InterpPointMSecs;
+	
+protected:	
+	void OnAddRec(const TWPt<TStore>& Store, const uint64& RecId);
+    
+private:
+	void CreateStore(const TStr& NewStoreNm);    
+    
+    // InterpolatorV contains pair (input field, interpolator)
+	TResampler(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,  
+		const TStr& TimeFieldNm, const TStrPrV& FieldInterpolatorPrV, const TStr& OutStoreNm,
+		const uint64& _IntervalMSecs, const uint64& StartMSecs, const bool& CreateStoreP);
+	TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal);        
+public:
+    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,  
+		const TStr& TimeFieldNm, const TStrPrV& FieldInterpolatorPrV, const TStr& OutStoreNm,
+		const uint64& IntervalMSecs, const uint64& StartMSecs = 0, 
+        const bool& CreateStoreP = false);
+    // json constructor
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
+    
+	PJsonVal SaveJson(const int& Limit) const;
+
+    // stream aggregator type name 
+    static TStr GetType() { return "resampler"; }    
 };
 
 } // TStreamAggrs namespace
