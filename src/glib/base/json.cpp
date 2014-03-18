@@ -130,13 +130,13 @@ void TJsonVal::GetArrStrV(TStrV& StrV) const {
 
 PJsonVal TJsonVal::GetObjKey(const TStr& Key) const {
   EAssert(IsObj());
-  EAssertR(IsObjKey(Key), "Unknown key " + Key); 
+  EAssertR(IsObjKey(Key), "Unknown key '" + Key + "'"); 
   return KeyValH.GetDat(Key);
 }
 
 PJsonVal TJsonVal::GetObjKey(const char *Key) const {
   EAssert(IsObj());
-  EAssertR(IsObjKey(Key), TStr::Fmt("Unknown key %s", Key)); 
+  EAssertR(IsObjKey(Key), TStr::Fmt("Unknown key '%s'", Key)); 
   return KeyValH.GetDat(Key);
 }
 
