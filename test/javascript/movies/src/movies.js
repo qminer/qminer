@@ -1,9 +1,11 @@
 var assert = require('assert.js');
 
-console.say("Test", "Starting test based on IMDB sample");
+console.say("Movies", "Starting test based on IMDB sample");
 
 // only report failours
 assert.silent = process.isArg("-nopass");
+// name of the debug process
+assert.consoleTitle = "Movies";
 
 assert.exists(qm.store("People"), "Retrieve 'People' store");
 assert.exists(qm.store("Movies"), "Retrieve 'Movies' store");
@@ -24,7 +26,7 @@ assert.equals(Movies.length, 0, "Movies.length");
 assert.equals(Movies.recs.length, 0, "Movies.recs.length");
 assert.equals(Movies.fields.length, 5+2, "Movies.fields.length");
 assert.equals(Movies.joins.length, 2, "Movies.joins.length");
-assert.equals(Movies.keys.length, 4, "People.keys.length");
+assert.equals(Movies.keys.length, 4, "Movies.keys.length");
 
 // insert triggers
 var PeopleAdd = 0, PeopleUpdate = 0;
