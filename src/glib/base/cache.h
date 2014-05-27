@@ -92,7 +92,7 @@ TValCache<TVal>::TValCache(const TStr& _FNmPrefix, const TFAccess& _Access,
     FNmPrefix = _FNmPrefix;
     Access = _Access;
 	// initialize cache parameters
-    CacheResetThreshold = int64(0.1 * double(MxCacheMem));
+	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
     ValBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
@@ -351,7 +351,7 @@ TBlockCache<TVal>::TBlockCache(const TStr& _FNmPrefix, const int64& MxCacheMem,
     FNmPrefix = _FNmPrefix;
     Access = faCreate;
 	// initialize cache parameters
-    CacheResetThreshold = int64(0.1 * double(MxCacheMem));
+	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
 	try {
@@ -376,7 +376,7 @@ TBlockCache<TVal>::TBlockCache(const TStr& _FNmPrefix, const TFAccess& _Access,
     FNmPrefix = _FNmPrefix;
     Access = _Access;
 	// initialize cache parameters
-    CacheResetThreshold = int64(0.1 * double(MxCacheMem));
+	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
     BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
@@ -686,7 +686,7 @@ TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const int64& MxCach
 	FNmPrefix = _FNmPrefix;
 	Access = faCreate;
 	// initialize cache parameters
-	CacheResetThreshold = int64(0.1 * double(MxCacheMem));
+	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
 	try {
@@ -709,7 +709,7 @@ TWndBlockCache<TVal>::TWndBlockCache(const TStr& _FNmPrefix, const TFAccess& _Ac
 	FNmPrefix = _FNmPrefix;
 	Access = _Access;
 	// initialize cache parameters
-	CacheResetThreshold = int64(0.1 * double(MxCacheMem));
+	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
 	BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);

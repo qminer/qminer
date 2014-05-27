@@ -20,6 +20,22 @@
 namespace TSignalProc {
 
 /////////////////////////////////////////////////
+// Online Moving Average (M1))
+class TMa {
+private:	
+    TFlt Ma; // current computed MA value 
+	TUInt64 TmMSecs; // timestamp of current MA	    
+public:
+	TMa() { Ma = 0; };	
+    TMa(const PJsonVal& ParamVal) { TMa(); };
+
+	void Update(const double& InVal, const uint64& InTmMSecs, 
+        const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
+	double GetMa() const { return Ma; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+    
+/////////////////////////////////////////////////
 // Exponential Moving Average
 typedef enum { etPreviousPoint, etLinear, etNextPoint } TEmaType;
 class TEma {
@@ -53,6 +69,42 @@ public:
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
+/////////////////////////////////////////////////
+// Online M2 (variance)
+class TVar {
+private:	
+    TFlt Ma; // current computed MA value 
+    TFlt M2; // current computed M2 value 
+	TUInt64 TmMSecs; // timestamp of current WMA	
+    TFlt pNo;
+public:
+	TVar() { Ma = 0; M2 = 0; };	
+    TVar(const PJsonVal& ParamVal) { TVar(); };
+
+	void Update(const double& InVal, const uint64& InTmMSecs, 
+        const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
+	double GetM2() const { return M2/pNo; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
+/////////////////////////////////////////////////
+// Online M2(X,Y) (covariance)
+class TCov {
+private:	
+    TFlt MaX, MaY; // current computed MA value        
+    TFlt Cov;
+	TUInt64 TmMSecs; // timestamp of current WMA	
+    TFlt pNo;
+public:
+	TCov() {  };	
+    TCov(const PJsonVal& ParamVal) { TCov(); };
+
+	void Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
+        const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N);	
+	double GetCov() const { return Cov/pNo; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
 ///////////////////////////////
 // Sequence buffer
 template <class TVal>
@@ -69,29 +121,34 @@ public:
 	TBuffer(const int& BufferLen_): BufferLen(BufferLen_), 
         NextValN(0), ValV(BufferLen_, 0) { }
     
-    // add new value to the buffer
+    /// add new value to the buffer
     void Update(const TVal& Val){
-        if (ValV.Len() < BufferLen) {
-            ValV.Add(Val);
-            NextValN++;
-        } else {
-            ValV[NextValN] = Val;
-            NextValN++;
-        }
+        // we add to the end while not full
+        if (ValV.Len() < BufferLen) { ValV.Add(Val); }
+        // after we overwrite existing
+        else { ValV[NextValN] = Val; }
+        // we always point to next empty(-to-be) place
+        NextValN++;
+        // reset count once we come to BufferLen
         NextValN = NextValN % BufferLen;
     }
     
     /// Is buffered initialized 
-    bool Init() const { return ValV.Len() == BufferLen; }
+    bool IsInit() const { return ValV.Len() == BufferLen; }
+    /// Is buffer empty
+    bool Empty() const { return ValV.Empty(); }
     /// Number of elements at the moment
     int Len() const { return ValV.Len(); }
         
-	/// Get values from buffer
+	/// Get values from buffer (older values = larger index): example buffer = [x_(t-3) x_(t-2) x_(t-1) x_t] => GetVal(i) returns x_(t-1)
 	const TVal& GetVal(const int& ValN) const {
 		return ValV[(NextValN + BufferLen - 1 - ValN) % BufferLen]; }
     /// Get the oldest value
-	const TVal& GetVal() const {
-		return Init() ? ValV[NextValN] : (ValV.Empty() ? TVal() : ValV[0]); }
+	const TVal& GetOldest() const {
+        Assert(!Empty()); return IsInit() ? GetVal(BufferLen - 1) : ValV[0]; }
+	/// Get the most recent value
+	const TVal& GetNewest() const {
+        Assert(!Empty()); return IsInit() ?  GetVal(0) : ValV.Last(); }
 };
 
 /////////////////////////////////////////
@@ -102,10 +159,18 @@ class TInterpolator {
 private:
     TCRef CRef;
     friend class TPt<TInterpolator>;
-public:	
+private:
+    const TStr InterpolatorType;
+protected:
+    TInterpolator(const TStr& _InterpolatorType): InterpolatorType(_InterpolatorType) {}
+public:
     static PInterpolator New(const TStr& InterpolatorType);
-    
-	virtual ~TInterpolator() { }
+    static PInterpolator Load(TSIn& SIn);
+
+ 	virtual ~TInterpolator() { }
+
+	virtual void Save(TSOut& SOut) const { InterpolatorType.Save(SOut); }
+
 	virtual double Interpolate(const uint64& Time) const = 0;    
 	virtual void Update(const double& Val, const uint64& Tm) = 0;
 };
@@ -120,40 +185,53 @@ private:
     // current value, waiting to become previous value
     TFlt CurrVal;
     
-	TPreviousPoint() { }
+	TPreviousPoint(): TInterpolator(TPreviousPoint::GetType()) { }
+	TPreviousPoint(TSIn& SIn): TInterpolator(TPreviousPoint::GetType()), PrevVal(SIn), CurrVal(SIn) {}
 public:	
     static PInterpolator New() { return new TPreviousPoint; }
+    static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
+	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PrevVal.Save(SOut); CurrVal.Save(SOut); };
     
 	double Interpolate(const uint64& TmMSecs) const { return PrevVal; }
 	void Update(const double& Val, const uint64& TmMSecs) { PrevVal = CurrVal; CurrVal = Val; }
+
+	static TStr GetType() { return "previous"; }
 };
 
 /////////////////////////////////////////
 // Recursive Linear Regression
 ClassTP(TRecLinReg, PRecLinReg)// {
 private:
-	TFlt ForgetFact;
-	TFullMatrix P;
-	TVector Coeffs;
-	int NSamples;
+	TFlt ForgetFact;	// forgetting factor
+	TFlt RegFact;		// regularization
+
+	TFullMatrix P;		// correlation matrix
+	TVector Coeffs;		// model
 
 	PNotify Notify;
 
-	TRecLinReg(const TRecLinReg& LinReg): ForgetFact(LinReg.ForgetFact), P(LinReg.P), Coeffs(LinReg.Coeffs), NSamples(LinReg.NSamples), Notify(LinReg.Notify) {}
-	TRecLinReg(const TRecLinReg&& LinReg): ForgetFact(std::move(LinReg.ForgetFact)),
-		P(std::move(LinReg.P)), Coeffs(std::move(LinReg.Coeffs)), NSamples(std::move(LinReg.NSamples)), Notify(std::move(LinReg.Notify)) {}
+	// copy constructor
+	TRecLinReg(const TRecLinReg& LinReg);
+	// move constructor
+	TRecLinReg(const TRecLinReg&& LinReg);
 public:
-	TRecLinReg(const int& Dim, const double _ForgetFact=1, const PNotify _Notify=TStdNotify::New()):
-		ForgetFact(_ForgetFact), P(TFullMatrix::Identity(Dim)), Coeffs(Dim), NSamples(0), Notify(_Notify) {}
+	// default constructor
+	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact=1.0, const PNotify _Notify=TStdNotify::New());
+	static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact, const PNotify Notify=TStdNotify::New())
+			{ return new TRecLinReg(Dim, RegFact, ForgetFact, Notify); }
 
+	virtual ~TRecLinReg() {}
+
+	// assign operator
 	TRecLinReg& operator =(TRecLinReg LinReg);
 
-	static PRecLinReg New(const int& Dim, const bool& _AutoBias)
-		{ return new TRecLinReg(Dim, _AutoBias); }
-
 	int GetDim() const { return Coeffs.GetDim(); }
+	// learns a new sample
 	void Learn(const TFltV& Sample, const double& SampleVal);
-	double Predict(const TFltV& Sample) const;
+	// predicts a value
+	double Predict(const TFltV& Sample);
+	// copies the current models coefficients into the specified list
+	void GetCoeffs(TFltV& Coef) const;
 };
 
 }

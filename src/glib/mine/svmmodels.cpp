@@ -638,6 +638,78 @@ TSimMatrixTrainSet::TSimMatrixTrainSet(const TFltVV& _SimMatrix,
     }
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Reference-Sparse-Training-Set
+TRefSparseTrainSet::TRefSparseTrainSet(const TVec<TIntFltKdV>& _VecV, 
+        const TFltV& _ClsV): TSVMTrainSet(ststSparse), VecV(_VecV), ClsV(_ClsV) {
+    
+    EAssert(VecV.Len() == ClsV.Len());
+    // pre-computed stuff
+    NormV.Gen(ClsV.Len(), 0);
+    for (int VecN = 0; VecN < VecV.Len(); VecN++) {
+        const TIntFltKdV& Vec = VecV[VecN];
+        // make sure it's sorted by IDs (just in debug mode)
+        Assert(Vec.IsSorted());
+        // norm
+        NormV.Add(TLinAlg::Norm(Vec));
+        // get dimensionality        
+        if (!Vec.Empty()) { MaxDim = TInt::GetMx(MaxDim, Vec.Last().Key + 1); }
+    }
+}
+
+double TRefSparseTrainSet::DotProduct(const int& VecId1, double* Vec2, const int& n) const { 
+    double Res = 0.0;
+    const TIntFltKdV& Vec1 = VecV[VecId1];    
+    for (int i = 0; i < Vec1.Len(); i++) {  
+        const int key = Vec1[i].Key;
+        if (key < n) Res += Vec1[i].Dat * Vec2[key]; 
+    }
+    return Res;
+}
+
+void TRefSparseTrainSet::AddVec(const int& VecId1, double* Vec2, 
+        const int& n, const double& K) const { 
+    
+    const TIntFltKdV& Vec1 = VecV[VecId1];
+    for (int i = 0; i < Vec1.Len(); i++) {  
+        Assert(Vec1[i].Key < n);
+        Vec2[Vec1[i].Key] += K * Vec1[i].Dat; 
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Reference-Dense-Training-Set
+TRefDenseTrainSet::TRefDenseTrainSet(const TFltVV& _VecV, const TFltV& _ClsV): 
+        TSVMTrainSet(ststDense), VecV(_VecV), ClsV(_ClsV) {
+    
+    EAssert(VecV.GetCols() == ClsV.Len());
+    // pre-computed stuff
+    NormV.Gen(ClsV.Len(), 0);
+    for (int VecN = 0; VecN < ClsV.Len(); VecN++) {
+        // norm
+        NormV.Add(TLinAlg::Norm(VecV, VecN));
+    }
+    MaxDim = VecV.GetRows();
+}
+
+double TRefDenseTrainSet::DotProduct(const int& VecId1, double* Vec2, const int& n) const { 
+    Assert(VecV.GetRows() == n);
+    double Res = 0.0; const int len = VecV.GetRows();
+    for (int i = 0; i < len; i++) {
+        Res += VecV(i, VecId1) * Vec2[n];
+    }
+    return Res;    
+}
+
+void TRefDenseTrainSet::AddVec(const int& VecId1, double* Vec2, 
+        const int& n, const double& K) const { 
+
+    Assert(VecV.GetRows() == n);
+    const int len = VecV.GetRows();
+    for (int i = 0; i < len; i++) {
+        Vec2[n] += K * VecV(i, VecId1);
+    }
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Bag-Of-Words-Base to SVM-Train-Set

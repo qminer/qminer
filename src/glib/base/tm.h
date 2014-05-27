@@ -53,10 +53,12 @@ public:
   static bool IsMonthNm(const TStr& MonthNm, const TLoc& Loc=lUs){
     return GetMonthN(MonthNm, Loc)!=-1;}
   static TStr GetMonthNm(const int& MonthN, const TLoc& Loc=lUs);
+  static const TStrV& GetMonthNmV(const TLoc& Loc=lUs);  
   static int GetDayOfWeekN(const TStr& DayOfWeekNm, const TLoc& Loc=lUs);
   static bool IsDayOfWeekNm(const TStr& DayOfWeekNm, const TLoc& Loc=lUs){
     return GetDayOfWeekN(DayOfWeekNm, Loc)!=-1;}
   static TStr GetDayOfWeekNm(const int& DayOfWeekN, const TLoc& Loc=lUs);
+  static const TStrV& GetDayOfWeekNmV(const TLoc& Loc=lUs);  
   static TStr GetHmFromMins(const int& Mins);
   static int GetTmUnitSecs(const TTmUnit& TmUnit);
   static TStr GetTmUnitStr(const TTmUnit& TmUnit);
@@ -457,12 +459,17 @@ private:
 	// callback
 	TCallback* Callback;
 public:
-	TTmWnd(const uint64& _TimeWndMSecs, TCallback* _Callback = NULL):
+	TTmWnd(const uint64& _TimeWndMSecs = 0, TCallback* _Callback = NULL):
 		TimeWndMSecs(_TimeWndMSecs), Callback(_Callback) { }
 	TTmWnd(TSIn& SIn, TCallback* _Callback = NULL): 
 		TimeWndMSecs(SIn), StartMSecs(SIn), Callback(_Callback) { }
 	void Save(TSOut& SOut) const { TimeWndMSecs.Save(SOut); StartMSecs.Save(SOut); }
 
+    // tells if the time window was initialized
+    bool IsInit() const { return (TimeWndMSecs > 0) && (Callback != NULL); }
+    
+    // set time window
+    void SetTimeWndMSecs(const uint64& _TimeWndMSecs) { TimeWndMSecs = _TimeWndMSecs; }
 	// set callback
 	void SetCallback(TCallback* _Callback) { Callback = _Callback; }
 

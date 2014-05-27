@@ -367,6 +367,28 @@ TStr TJsonVal::GetStrFromVal(const PJsonVal& Val){
   return ChA;
 }
 
+uint64 TJsonVal::GetMSecsFromJsonVal(const PJsonVal& Val) {
+    if (Val->IsNum()) {
+        return (uint64)TFlt::Round(Val->GetNum());
+    } else if (Val->IsObj()) {
+        TStr Unit = Val->GetObjStr("unit", "second");
+        const double Value = Val->GetObjNum("value");
+        if (Unit == "second") {
+            return (uint64)TFlt::Round(Value * 1000.0);
+        } else if (Unit == "minute") {
+            return (uint64)TFlt::Round(Value * 60.0*1000.0);
+        } else if (Unit == "hour") {
+            return (uint64)TFlt::Round(Value * 60.0*60.0*1000.0);
+        } else if (Unit == "day") {
+            return (uint64)TFlt::Round(Value * 24.0*60.0*60.0*1000.0);
+        } else {
+            throw TExcept::New("Invalid window size unit " + Unit);
+        }
+    } else {
+        throw TExcept::New("Invalid window size parameter");
+    }    
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 // TBsonObj methods
 int64 TBsonObj::GetMemUsedRecursive(const TJsonVal& JsonVal, bool UseVoc) {

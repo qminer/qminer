@@ -232,6 +232,22 @@ public:
 };
 
 /////////////////////////////////////////////////
+// System-Memory-Status
+class TSysMemStat {
+public:
+    TUInt64 Size;
+    TUInt64 Resident;
+    TUInt64 Share;
+    TUInt64 Text;
+    TUInt64 Lib;
+    TUInt64 Data;
+    TUInt64 Dt;
+    
+public:
+    TSysMemStat();
+};
+
+/////////////////////////////////////////////////
 // System-Messages
 class TSysMsg{
 public:

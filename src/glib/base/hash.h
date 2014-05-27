@@ -997,7 +997,7 @@ public:
   TCache(const TCache&);
   TCache(const int64& _MxMemUsed, const int& Ports, void* _RefToBs):
     MxMemUsed(_MxMemUsed), CurMemUsed(0),
-    KeyDatH(Ports), TimeKeyL(), RefToBs(_RefToBs){}
+    KeyDatH(/*Ports*/), TimeKeyL(), RefToBs(_RefToBs){}
 
   TCache& operator=(const TCache&);
   int64 GetMemUsed() const;

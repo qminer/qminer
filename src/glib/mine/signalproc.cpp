@@ -18,6 +18,26 @@
  */
 
 namespace TSignalProc {
+    
+/////////////////////////////////////////////////
+// Online Moving Average 
+void TMa::Update(const double& InVal, const uint64& InTmMSecs, 
+        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N){
+    
+    int tempN = N - 1 + OutValV.Len();
+    double delta;    
+    // remove old values from the mean
+    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+    {        
+        tempN--;       
+        delta = OutValV[ValN] - Ma;
+        Ma = Ma - delta/tempN;                 
+    }
+    //add the new value to the resulting mean    
+    delta = InVal - Ma;
+    Ma = Ma + delta/N;
+    TmMSecs = InTmMSecs;
+}
 
 /////////////////////////////////////////////////
 // Exponential Moving Average
@@ -58,14 +78,15 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	uint64 TmInterval1;
-	if(NewTmMSecs==TmMSecs){
+	if(NewTmMSecs == TmMSecs) {
 		TmInterval1 = 1;
     } else{
-        TmInterval1 = NewTmMSecs - TmMSecs;}
+        TmInterval1 = NewTmMSecs - TmMSecs;
+    }
 	if (InitP) {
 		// computer parameters for EMA
 		double Alpha;
-		if(Decay == 0.0) {			
+		if (Decay == 0.0) {			
 			Alpha = (double)(TmInterval1) / TmInterval;
 		} else {			
 			Alpha = (double)((TmInterval1)) /((double)(TmInterval))  * (-1) * TMath::Log(Decay);
@@ -87,9 +108,7 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 			// compute weights for each value in buffer
 			TFltV WeightV(Vals, 0);
 			for (int ValN = 0; ValN < Vals; ValN++) {
-				
 				const double Alpha = (double)(TmInterval1) / Decay;
-				//const double Alpha = (double)((NewTmMSecs - TmMSecs)/(double)(TmInterval)) * (-1) * TMath::Log(Decay);
 				WeightV.Add(exp(-Alpha));
 			}
 			// normalize weights so they sum to 1.0
@@ -106,17 +125,96 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	TmMSecs = NewTmMSecs;
 }
 
+/////////////////////////////////////////////////
+// Online Moving Standard M2 
+void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
+        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N){
+    
+    pNo = N;
+    int tempN = N - 1 + OutValV.Len();
+    double delta;    
+    // remove old values from the mean
+    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+    {        
+        tempN--;       
+        delta = OutValV[ValN] - Ma;
+        Ma = Ma - delta/tempN;  
+        M2 = M2 - delta * (OutValV[ValN] - Ma);
+    }
+    //add the new value to the resulting mean    
+    delta = InVal - Ma;
+    Ma = Ma + delta/N;
+    M2 = M2 + delta * (InVal - Ma);
+    TmMSecs = InTmMSecs;
+}
+
+/////////////////////////////////////////////////
+// Online Moving Covariance (assumes X and Y have the same time stamp)
+void TCov::Update(const double& InValX, const double& InValY, const uint64& InTmMSecs, 
+        const TFltV& OutValVX, const TFltV& OutValVY, const TUInt64V& OutTmMSecsV, const int& N){
+    
+    pNo = N;
+    int tempN = N - 1 + OutValVX.Len();
+    double deltaX, deltaY;    
+    // remove old values from the mean
+    for (int ValN = 0; ValN < OutValVX.Len(); ValN++)
+    {        
+        tempN--;       
+        deltaX = OutValVX[ValN] - MaX;
+        deltaY = OutValVY[ValN] - MaY;
+        MaX = MaX - deltaX/tempN;  
+        MaY = MaY - deltaY/tempN;  
+        Cov = Cov - (OutValVX[ValN] - MaX) * (OutValVY[ValN] - MaY);
+    }
+    //add the new value to the resulting mean    
+    deltaX = InValX - MaX;
+    deltaY = InValY - MaY;
+    MaX = MaX + deltaX/N;
+    MaY = MaY + deltaY/N;
+    Cov = Cov + (InValX - MaX) * (InValY - MaY);
+    TmMSecs = InTmMSecs;
+}
+
 /////////////////////////////////////////
 // Time series interpolator interface
 PInterpolator TInterpolator::New(const TStr& InterpolatorType) {
-    if(InterpolatorType == "previous") {
+    if(InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New();
 	}    
     throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
 
+PInterpolator TInterpolator::Load(TSIn& SIn) {
+	TStr InterpolatorType(SIn);
+	if(InterpolatorType == TPreviousPoint::GetType()) {
+		return TPreviousPoint::New(SIn);
+	}
+	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
+}
+
 ///////////////////////////////////////////////////////////////////
 // Recursive Linear Regression
+TRecLinReg::TRecLinReg(const TRecLinReg& LinReg):
+		ForgetFact(LinReg.ForgetFact),
+		RegFact(LinReg.RegFact),
+		P(LinReg.P),
+		Coeffs(LinReg.Coeffs),
+		Notify(LinReg.Notify) {}
+
+TRecLinReg::TRecLinReg(const TRecLinReg&& LinReg):
+		ForgetFact(std::move(LinReg.ForgetFact)),
+		RegFact(std::move(LinReg.RegFact)),
+		P(std::move(LinReg.P)),
+		Coeffs(std::move(LinReg.Coeffs)),
+		Notify(std::move(LinReg.Notify)) {}
+
+TRecLinReg::TRecLinReg(const int& Dim, const double& _RegFact, const double& _ForgetFact, const PNotify _Notify):
+		ForgetFact(_ForgetFact),
+		RegFact(_RegFact),
+		P(TFullMatrix::Identity(Dim) / RegFact),
+		Coeffs(Dim, true),
+		Notify(_Notify) {}
+
 TRecLinReg& TRecLinReg::operator =(TRecLinReg LinReg) {
 	std::swap(ForgetFact, LinReg.ForgetFact);
 	std::swap(P, LinReg.P);
@@ -125,23 +223,28 @@ TRecLinReg& TRecLinReg::operator =(TRecLinReg LinReg) {
 	return *this;
 }
 
-double TRecLinReg::Predict(const TFltV& Sample) const {
-	return Coeffs.DotProduct(Sample);
+double TRecLinReg::Predict(const TFltV& Sample) {
+    return Coeffs.DotProduct(Sample);
 }
 
 void TRecLinReg::Learn(const TFltV& Sample, const double& SampleVal) {
-	double PredVal = Predict(Sample);
-	TVector x(Sample);
+    double PredVal = Predict(Sample);
 
-	TVector Px = P * x;
+    TVector x(Sample);
+
+    TVector Px = P * x;
 	double xPx = Px.DotProduct(Sample);
 
-	P = (P - (Px * Px.GetT()) / (ForgetFact + xPx)) / ForgetFact;
-	Coeffs += Px*(SampleVal - PredVal);
+	/*
+	 * linreg.P = (linreg.P - (Px * Px') / (linreg.lambda + xPx)) / linreg.lambda;
+	 * linreg.w = linreg.w + Px*((y - y_hat)/(linreg.lambda + xPx));
+	 */
+	P = (P - (Px*Px.GetT()) / (ForgetFact + xPx)) / ForgetFact;
+	Coeffs += Px*((SampleVal - PredVal) / (ForgetFact + xPx));
+}
 
-	if (++NSamples % 1000 == 0) {
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "TRecLinReg: %d samples\n", NSamples);
-	}
+void TRecLinReg::GetCoeffs(TFltV& Coef) const {
+	Coef = Coeffs.GetVec();
 }
 
 }

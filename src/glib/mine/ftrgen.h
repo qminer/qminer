@@ -20,106 +20,187 @@
 namespace TFtrGen {
 
 ///////////////////////////////////////
-// Numeric-Feature-Generator
+/// Numeric feature generator
 class TNumeric {
-private:        
-	TBool NormalizeP;
+private:
+    typedef enum { ntNone, ntNormalize, ntMnMxVal } TNumericType;
+    
+private:
+    /// Feature generator type
+    TNumericType Type;
+    /// Minimal value for normalization
     TFlt MnVal;
-    TFlt MxVal;
+    /// Maximal value for normalization
+    TFlt MxVal;   
 
 public:
-	TNumeric(const bool& _NormalizeP = true):
-        NormalizeP(_NormalizeP), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
-	TNumeric(TSIn& SIn): NormalizeP(SIn), MnVal(SIn), MxVal(SIn) { }
-	void Save(TSOut& SOut) const { NormalizeP.Save(SOut); MnVal.Save(SOut); MxVal.Save(SOut); }
+    TNumeric(const bool& NormalizeP = true):
+        Type(NormalizeP ? ntNone : ntNormalize), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+    TNumeric(const double& _MnVal, const double& _MxVal):
+        Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
+    TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }
+    void Save(TSOut& SOut) const;
 
-    void Update(const double& Val);
-	double GetFtr(const double& Val) const;
+    void Clr();
+    bool Update(const double& Val);
+    double GetFtr(const double& Val) const;
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
+    
+    int GetDim() const { return 1; }
 };
 
 ///////////////////////////////////////
-// Nominal-Feature-Generator
-class TNominal {
+/// Categorical feature generator
+class TCategorical {
 private:
-    TStrH ValH;   
+    typedef enum { ctOpen, ctFixed, ctHash } TCategoricalType;
+    
+private:
+    /// Feature generator type
+    TCategoricalType Type;
+    /// Feature value range    
+    TStrSet ValSet;
+    /// Hash dimensionality
+    TInt HashDim;
 
 public:
-    TNominal() { }
-	TNominal(TSIn& SIn): ValH(SIn) { }
-	void Save(TSOut& SOut) const { ValH.Save(SOut);}
+    TCategorical(): Type(ctOpen) { }
+    TCategorical(const TStrV& ValV): Type(ctFixed), ValSet(ValV) { }
+    TCategorical(const int& _HashDim): Type(ctHash), HashDim(_HashDim) { }
+    TCategorical(TSIn& SIn): Type(LoadEnum<TCategoricalType>(SIn)), ValSet(SIn), HashDim(SIn) { }
+    void Save(TSOut& SOut) const;
 
-    void Update(const TStr& Val);
-	int GetFtr(const TStr& Val) const { return ValH.IsKey(Val) ? ValH.GetKeyId(Val) : -1; }
+    void Clr();
+    bool Update(const TStr& Val);
+    int GetFtr(const TStr& Val) const;
     void AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const;
 
-    int GetVals() const { return ValH.Len(); } 
-    TStr GetVal(const int& ValN) const { return ValH.GetKey(ValN); }
+    int GetDim() const { return (Type == ctHash) ? HashDim.Val : ValSet.Len(); }
+    TStr GetVal(const int& ValN) const { return (Type == ctHash) ? "hash" : ValSet.GetKey(ValN); }
 };
 
 ///////////////////////////////////////
-// MultiNomial-Feature-Generator
-class TMultiNom {
+// Multinomial feature generator
+class TMultinomial {
 private:
-	TNominal FtrGen;
+    typedef enum { mtNone, mtNormalize } TMultinomialType;
+    
+private:
+    /// Feature generator type
+    TMultinomialType Type;
+    /// Feature generation handled by categorical feature generator
+    TCategorical FtrGen;
 
+    
 public:
-	TMultiNom() { }
-	TMultiNom(TSIn& SIn): FtrGen(SIn) { }
-	void Save(TSOut& SOut) const { FtrGen.Save(SOut); }
+    TMultinomial(const bool& NormalizeP = true): FtrGen() { }
+    TMultinomial(const bool& NormalizeP, const TStrV& ValV): FtrGen(ValV) { }
+    TMultinomial(const bool& NormalizeP, const int& HashDim): FtrGen(HashDim) { }
+    TMultinomial(TSIn& SIn): Type(LoadEnum<TMultinomialType>(SIn)), FtrGen(SIn) { }
+    void Save(TSOut& SOut) const;
 
-    void Update(const TStr& Str);
-    void Update(const TStrV& StrV);
+    void Clr() { FtrGen.Clr(); }
+    bool Update(const TStr& Str);
+    bool Update(const TStrV& StrV);
     void AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const;
     void AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const;
 
-    int GetVals() const { return FtrGen.GetVals(); } 
-	TStr GetVal(const int& ValN) const { return FtrGen.GetVal(ValN); }
+    int GetDim() const { return FtrGen.GetDim(); }
+    TStr GetVal(const int& ValN) const { return FtrGen.GetVal(ValN); }
 };
 
 ///////////////////////////////////////
-// Tokenizable-Feature-Generator
-class TToken {
+/// Bag of words feature generator.
+/// Can produce just word counts, or normalized with TFIDF weights.
+class TBagOfWords {
 private:
+    /// Settings:
+    ///  - how to weight each word: TF or TFIDF
+    ///  - normalize resulting vector to L2-norm 1.0
+    typedef enum {
+        btTf = (1 << 0),
+        btIdf = (1 << 1),
+        btNormalize = (1 << 2),
+        btHashing = (1 << 3)
+    } TBagOfWordsType;
+    
+private:
+    /// Feature generation settings
+    TInt Type;
+    /// Tokenizer
+    PTokenizer Tokenizer;
+    /// Stop word set
     PSwSet SwSet;
+    /// Stemmer
     PStemmer Stemmer;
+    /// Vocabulary (not use in case of hashing)
+    TStrSet TokenSet;
+    /// Hashing dimension
+    TInt HashDim;
+    
+    /// Number of documents processed so far
     TInt Docs;
-    TStrH TokenH;
+    /// Document frequency for each token
+    TIntV DocFqV;
+    
+    /// True after first Forget call
+    TBool ForgetP;
+    /// Number of documents before last forget
+    TFlt OldDocs;
+    /// Document frequency counts before last forget
+    TFltV OldDocFqV;
 
 public:
-    TToken(PSwSet _SwSet, PStemmer _Stemmer): SwSet(_SwSet), Stemmer(_Stemmer) { }
-	TToken(TSIn& SIn);
-	void Save(TSOut& SOut) const;
+    TBagOfWords() { }
+    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
+        PSwSet _SwSet, PStemmer _Stemmer, const int& _HashDim = -1);
+    TBagOfWords(TSIn& SIn);
+    void Save(TSOut& SOut) const;
 
-    void Update(const TStr& Val);
+    // Settings getters
+    bool IsTf() const { return ((Type & btTf) != 0); }
+    bool IsIdf() const { return ((Type & btIdf) != 0); }
+    bool IsNormalize() const { return ((Type & btNormalize) != 0); }
+    bool IsHashing() const { return ((Type & btHashing) != 0); }    
+    
+    void Clr();
+    bool Update(const TStr& Val);
+    void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
     void AddFtr(const TStr& Val, TIntFltKdV& SpV) const;
     void AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const;
+    
+    /// Forgetting, assumes calling on equally spaced time interval.
+    void Forget(const double& Factor);
 
-    int GetVals() const { return TokenH.Len(); } 
-    TStr GetVal(const int& ValN) const { return TokenH.GetKey(ValN); }
-    void GetTokenV(const TStr& Str, TStrV& TokenStrV) const;
-
-	PSwSet GetSwSet() const { return SwSet; }
-	PStemmer GetStemmer() const { return Stemmer; }
-};   
+    int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
+    TStr GetVal(const int& ValN) const { return IsHashing() ? "hash" : TokenSet.GetKey(ValN); }
+    
+    PSwSet GetSwSet() const { return SwSet; }
+    PStemmer GetStemmer() const { return Stemmer; }
+}; 
 
 ///////////////////////////////////////
 // Sparse-Feature-Generator
 class TSparseNumeric {
 private:
     TInt MxId;
-	TNumeric FtrGen;
+    TNumeric FtrGen;
 
 public:
-	TSparseNumeric()  { }
-	TSparseNumeric(TSIn& SIn): MxId(SIn), FtrGen(SIn) { }
-	void Save(TSOut& SOut) const { MxId.Save(SOut); FtrGen.Save(SOut); }
+    TSparseNumeric() { }
+    TSparseNumeric(TSIn& SIn): MxId(SIn), FtrGen(SIn) { }
+    void Save(TSOut& SOut) const { MxId.Save(SOut); FtrGen.Save(SOut); }
 
     void Update(const TIntFltKdV& SpV);
     void AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offset) const;
 
-    int GetVals() const { return MxId + 1; } 
+    int GetVals() const { return MxId + 1; }
 };
 
 }

@@ -35,7 +35,7 @@ void TTmInfo::InitMonthNmV(){
   // slovene
   SiMonthNmV.Add("jan"); SiMonthNmV.Add("feb"); SiMonthNmV.Add("mar");
   SiMonthNmV.Add("apr"); SiMonthNmV.Add("maj"); SiMonthNmV.Add("jun");
-  SiMonthNmV.Add("jul"); SiMonthNmV.Add("aug"); SiMonthNmV.Add("sep");
+  SiMonthNmV.Add("jul"); SiMonthNmV.Add("avg"); SiMonthNmV.Add("sep");
   SiMonthNmV.Add("okt"); SiMonthNmV.Add("nov"); SiMonthNmV.Add("dec");
   IAssert(SiMonthNmV.Len()==12);
 }
@@ -76,6 +76,15 @@ TStr TTmInfo::GetMonthNm(const int& MonthN, const TLoc& Loc){
   }
 }
 
+const TStrV& TTmInfo::GetMonthNmV(const TLoc& Loc) {
+  EnsureInit();
+  switch (Loc){
+    case lUs: return UsMonthNmV;
+    case lSi: return SiMonthNmV;
+    default: Fail; return UsMonthNmV;
+  }   
+}
+
 int TTmInfo::GetDayOfWeekN(const TStr& DayOfWeekNm, const TLoc& Loc){
   EnsureInit();
   int DayOfWeekN=-1;
@@ -95,6 +104,15 @@ TStr TTmInfo::GetDayOfWeekNm(const int& DayOfWeekN, const TLoc& Loc){
     case lSi: return SiDayOfWeekNmV[DayOfWeekN-1];
     default: Fail; return TStr();
   }
+}
+
+const TStrV& TTmInfo::GetDayOfWeekNmV(const TLoc& Loc) {
+  EnsureInit();
+  switch (Loc){
+    case lUs: return UsDayOfWeekNmV;
+    case lSi: return SiDayOfWeekNmV;
+    default: Fail; return UsDayOfWeekNmV;
+  }   
 }
 
 TStr TTmInfo::GetHmFromMins(const int& Mins){

@@ -389,7 +389,7 @@ void TKMeans<V, LA, M>::Apply() {
 			int BestClust = 0;
 			for (int c = 0; c < k; c++) {
 				double Sim = DCSim[c][DId];
-				Assert(Sim <= 1 + 1e-6);
+				AssertR(Sim <= 1 + 1e-6, TFlt::GetStr(Sim));
 				// just in case
 				if (ShouldReassign(Sim, BestSim, DId)) {
 					BestSim = Sim;

@@ -832,6 +832,30 @@ bool TSysProc::ExeProc(const TStr& ExeFNm, TStr& ParamStr) {
 }
 
 /////////////////////////////////////////////////
+// System-Memory-Status
+TSysMemStat::TSysMemStat() {
+    struct {
+        unsigned long size,resident,share,text,lib,data,dt;
+    } result;
+    // read process information
+    FILE *f = fopen("/proc/self/statm", "r");
+    EAssertR(f != NULL, "Error reading /proc/self/statm");
+    EAssertR(7 == fscanf(f, "%ld %ld %ld %ld %ld %ld %ld", &result.size, 
+        &result.resident, &result.share, &result.text, &result.lib, 
+        &result.data, &result.dt), "Error parsing /proc/self/statm");
+    // close file
+    fclose(f);
+    // transform from Kb to bytes
+    Size = (uint64)(result.size) * 1024LL;
+    Resident = (uint64)(result.resident) * 1024LL;
+    Share = (uint64)(result.share) * 1024LL;
+    Text = (uint64)(result.text) * 1024LL;
+    Lib = (uint64)(result.lib) * 1024LL;
+    Data = (uint64)(result.data) * 1024LL;
+    Dt = (uint64)(result.dt) * 1024LL;
+}
+
+/////////////////////////////////////////////////
 // System-Messages
 //void TSysMsg::Loop() {
 //    //bn!!! zdej mamo pa problem. kaksne msgje? samo za sockete?

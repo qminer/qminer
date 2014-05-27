@@ -67,6 +67,7 @@ public:
   void AddToObj(const TStr& KeyNm, const PJsonVal& Val){
     EAssert(JsonValType==jvtObj); KeyValH.AddDat(KeyNm, Val);}
   void AddToObj(const TStr& KeyNm, const int& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
+  void AddToObj(const TStr& KeyNm, const uint& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const double& Val){ AddToObj(KeyNm, NewNum(Val)); }
   void AddToObj(const TStr& KeyNm, const double& Val1, const double& Val2){ AddToObj(KeyNm, NewArr(Val1, Val2)); }
   void AddToObj(const TStr& KeyNm, const TStr& Val){ AddToObj(KeyNm, NewStr(Val)); }
@@ -157,6 +158,12 @@ public:
   static void AddQChAFromStr(const TStr& Str, TChA& ChA);
   static void GetChAFromVal(const PJsonVal& Val, TChA& ChA);
   static TStr GetStrFromVal(const PJsonVal& Val);
+  
+  // parsing json object to milliseconds from following supported formats:
+  //  - 123  => milliseconds to milliseconds
+  //  - {"value":12,"unit":"hour"} => parse out value and unit (second, minute, hour, day)
+  //  - {"value":60} => assumes default unit second
+  static uint64 GetMSecsFromJsonVal(const PJsonVal& Val);  
 };
 
 //////////////////////////////////////////////////////////////////////////////

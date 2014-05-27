@@ -44,8 +44,8 @@ private:
     bool Transposed;
 protected:
     virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const = 0;
-    virtual void PMultiply(const TFltV& Vec, TFltV& Result) const = 0;
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const = 0;
+    virtual void PMultiply(const TFltV& Vec, TFltV& Result) const = 0;
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const = 0;
 	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const = 0;	
 	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const = 0;
@@ -61,16 +61,17 @@ public:
         if (Transposed) { PMultiplyT(B, ColId, Result); }
         else { PMultiply(B, ColId, Result); }
     }	
-    // Result = A * Vec
-    void Multiply(const TFltV& Vec, TFltV& Result) const {
-        if (Transposed) { PMultiplyT(Vec, Result); }
-        else { PMultiply(Vec, Result); }
-    }
     // Result = A' * B(:,ColId)
     void MultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
         if (Transposed) { PMultiply(B, ColId, Result); }
         else { PMultiplyT(B, ColId, Result); }
     }	
+
+    // Result = A * Vec
+    void Multiply(const TFltV& Vec, TFltV& Result) const {
+        if (Transposed) { PMultiplyT(Vec, Result); }
+        else { PMultiply(Vec, Result); }
+    }
     // Result = A' * Vec
     void MultiplyT(const TFltV& Vec, TFltV& Result) const{
         if (Transposed) { PMultiply(Vec, Result); }
@@ -115,9 +116,9 @@ protected:
     // Result = A' * Vec
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
 	// Result = A * B
-	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const;
 	// Result = A' * B
-	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
 
     int PGetRows() const { return RowN; }
     int PGetCols() const { return ColN; }
@@ -247,7 +248,7 @@ public:
 	TStructuredCovarianceMatrix(const int XRowN_, const int YRowN_, const int SampleN_, const TFltV& MeanX_, const TFltV& MeanY_, const TTriple<TIntV, TIntV, TFltV>& X_, const TTriple<TIntV, TIntV, TFltV>& Y_): TMatrix(), XRows(XRowN_), YRows(YRowN_), Samples(SampleN_), MeanX(MeanX_), MeanY(MeanY_), X(X_), Y(Y_) {};
     void Save(TSOut& SOut) {SOut.Save(XRows); SOut.Save(YRows); SOut.Save(Samples); MeanX.Save(SOut); MeanY.Save(SOut); X.Save(SOut); Y.Save(SOut);}
     void Load(TSIn& SIn) {SIn.Load(XRows); SIn.Load(YRows); SIn.Load(Samples); MeanX.Load(SIn); MeanY.Load(SIn); X.Load(SIn); Y.Load(SIn);}
-};	
+};
 
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
@@ -275,6 +276,8 @@ public:
 	// Z := p * X + q * Y
     static void LinComb(const double& p, const TFltVV& X,
         const double& q, const TFltVV& Y, TFltVV& Z);
+	// z = p * x + q * y
+    static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);	  
     // z := p * x + (1 - p) * y
     static void ConvexComb(const double& p, const TFltV& x, const TFltV& y, TFltV& z);
 
@@ -297,6 +300,8 @@ public:
 
     // Result = SUM(x)
     static double SumVec(const TFltV& x);
+	// Result = SUM(x)
+    static double SumVec(const TIntFltKdV& x);
     // Result = SUM(k*x + y)
     static double SumVec(double k, const TFltV& x, const TFltV& y);
 
@@ -315,13 +320,20 @@ public:
 	static double FrobDist2(const TFltV& A, const TFltV& B);
 	// Dense to sparse transform
 	static void Sparse(const TFltVV& A, TTriple<TIntV, TIntV, TFltV>& B);
+	// Dense to sparse transform
+	static void Sparse(const TFltVV& A, TVec<TIntFltKdV>& B);
 	// Sparse to dense transform
-	static void Full(const TTriple<TIntV, TIntV, TFltV>&A, TFltVV& B, int rows, int cols);
+	static void Full(const TTriple<TIntV, TIntV, TFltV>& A, TFltVV& B, const int Rows, const int Cols);
+	// Sparse to dense transform
+	static void Full(const TVec<TIntFltKdV>& A, TFltVV& B, const int Rows);
 	// Transpose
 	static void Transpose(const TTriple<TIntV, TIntV, TFltV>& A, TTriple<TIntV, TIntV, TFltV>& At);
+	// Transpose
+	static void Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows = -1);
 	// Vector of sparse vectors to sparse matrix (coordinate representation)
 	static void Convert(const TVec<TPair<TIntV, TFltV> >& A, TTriple<TIntV, TIntV, TFltV>& B);
-
+	// Vector of sparse vectors to sparse matrix (coordinate representation)
+	static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>& B);
 	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
 	static void Sum(const TFltVV& X, TFltV& y, const int Dimension = 1);
 	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
@@ -339,6 +351,8 @@ public:
 	static void NormalizeColumns(TFltVV& X);
 	// Normalize the columns of X
 	static void NormalizeColumns(TTriple<TIntV, TIntV, TFltV>& X);
+	// Normalize the columns of X
+	static void NormalizeColumns(TVec<TIntFltKdV>& X);
 
     // ||x||^2 (Euclidian), x is sparse
     static double Norm2(const TIntFltKdV& x);
@@ -371,6 +385,14 @@ public:
     static void NormalizeLinf(TFltV& x);
     // x := x / ||x||_inf, , x is sparse
     static void NormalizeLinf(TIntFltKdV& x);
+	// find the index of maximum elements for a given row of X
+	static int GetRowMaxIdx(const TFltVV& X, const int& RowN);
+	// find the index of maximum elements for a given each col of X
+	static int GetColMaxIdx(const TFltVV& X, const int& ColN);
+	// find the index of maximum elements for each row of X
+	static void GetRowMaxIdxV(const TFltVV& X, TIntV& IdxV);
+	// find the index of maximum elements for each col of X
+	static void GetColMaxIdxV(const TFltVV& X, TIntV& IdxV);
 
     // y := k * x
     static void MultiplyScalar(const double& k, const TFltV& x, TFltV& y);
@@ -378,6 +400,8 @@ public:
     static void MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y);
     // Y := k * X
     static void MultiplyScalar(const double& k, const TFltVV& X, TFltVV& Y);
+	// Y := k * X
+    static void MultiplyScalar(const double& k, const TVec<TIntFltKdV>& X, TVec<TIntFltKdV>& Y);
     
     // y := A * x
     static void Multiply(const TFltVV& A, const TFltV& x, TFltV& y);
@@ -396,9 +420,8 @@ public:
 	static void QRcolpbasis(const TFltVV& A, TFltVV& Q);
 	static void thinSVD(const TFltVV& A, TFltVV& U, TFltV& S, TFltVV& VT);
 #endif
-#if defined(LAPACKE) && defined(EIGEN)
-    static int ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V);
-#endif
+	static int ComputeThinSVD(const TMatrix& X, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters = 2, const double Tol = 1e-6);	
+
 //Full matrix times sparse vector
 #ifdef INTEL	
 	//No need to reserve anything outside, functions currently take care of memory managment for safety
@@ -434,6 +457,20 @@ public:
 	static void Multiply(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C);
 	// C:= A' * B
 	static void MultiplyT(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, TFltVV& C);
+	// DENSE-SPARSECOLMAT, SPARSECOLMAT-DENSE
+	// C := A * B
+	static void Multiply(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C);
+	// C:= A' * B
+	static void MultiplyT(const TFltVV& A, const TVec<TIntFltKdV>& B, TFltVV& C);
+	// C := A * B
+	static void Multiply(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C, const int RowsA = -1);
+	// C:= A' * B
+	static void MultiplyT(const TVec<TIntFltKdV>& A, const TFltVV& B, TFltVV& C);
+	// SPARSECOLMAT-SPARSECOLMAT
+	// C := A * B
+	static void Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C, const int RowsA = -1);
+	// C:= A' * B
+	static void MultiplyT(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFltVV& C);
 
 //#ifdef INTEL
 //	static void Multiply(const TFltVV & ProjMat, const TPair<TIntV, TFltV> & Doc, TFltV & Result);
@@ -622,8 +659,10 @@ public:
         TFltV& SgnValV, TFltVV& LeftSgnVecVV, TFltVV& RightSgnVecVV);
 
     // slow - ortogonal iteration
-    static void OrtoIterSVD(const TMatrix& Matrix,
-        int NumSV, int IterN, TFltV& SgnValV);
+    static void OrtoIterSVD(const TMatrix& Matrix, int NumSV, int IterN, TFltV& SgnValV);
+	// slow - ortogonal iteration
+    static void OrtoIterSVD(const TMatrix& Matrix, const int k, TFltV& S, TFltVV& U, 
+		TFltVV& V, const int Iters = 100, const double Tol = 1e-6);
 
     // projects sparse vector to space spanned by columns of matrix U
     static void Project(const TIntFltKdV& Vec, const TFltVV& U, TFltV& ProjVec);
@@ -696,16 +735,22 @@ public:
     static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
     // prints vector to screen
     static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
+	// print matrix to string
+	static void PrintTFltVVToStr(const TFltVV& A, TStr& Out);
 	// print matrixt to screen
 	static void PrintTFltVV(const TFltVV& A, const TStr& MatrixNm);
 	// print sparse matrix to screen
 	static void PrintSpMat(const TTriple<TIntV, TIntV, TFltV>& A, const TStr& MatrixNm);
+	// print sparse matrix to screen
+	static void PrintSpMat(const TVec<TIntFltKdV>& A, const TStr& MatrixNm);
     // prints vector to screen
     static void PrintTIntV(const TIntV& Vec, const TStr& VecNm);
     // fills vector with random numbers
     static void FillRnd(TFltV& Vec) { TRnd Rnd(0); FillRnd(Vec.Len(), Vec, Rnd); }
-    static void FillRnd(TFltV& Vec, TRnd& Rnd) { FillRnd(Vec.Len(), Vec, Rnd); }
-    static void FillRnd(const int64& Len, TFltV& Vec, TRnd& Rnd);
+    static void FillRnd(TFltV& Vec, TRnd& Rnd) { FillRnd(Vec.Len(), Vec, Rnd); }	
+    static void FillRnd(TFltVV& Mat) { TRnd Rnd(0); FillRnd(Mat, Rnd); }
+	static void FillRnd(TFltVV& Mat, TRnd& Rnd) { FillRnd(Mat.Get1DVec(), Rnd); }
+	static void FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd);	
     // set all components
     static void Fill(TFltVV& M, const double& Val);
     // sets all compnents to zero
@@ -715,7 +760,7 @@ public:
     static void FillIdentity(TFltVV& M);
     static void FillIdentity(TFltVV& M, const double& Elt);
     // set vector to range
-    static void FillRange(const int64& Vals, TFltV& Vec);
+    static void FillRange(const int& Vals, TFltV& Vec);
     // sums elements in vector
     static int SumVec(const TIntV& Vec);
     static double SumVec(const TFltV& Vec);
@@ -724,7 +769,14 @@ public:
         const double& CutWordWgtSumPrc = 0.0);
     // converts sparse vector to full
     static void ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen);
+	// creates a diagonal matrix
 	static void Diag(const TFltV& Vec, TFltVV& Mat);
+	// creates a diagonal matrix
+	static void Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat);
+	// gets the maximal index of a sparse vector
+	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
+	// gets the maximal row index of a sparse column matrix
+	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);	
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -734,6 +786,17 @@ class TSparseOps {
 private:
 	typedef TVec<TKeyDat<TKey, TDat> > TKeyDatV;
 public:
+	static void CoordinateCreateSparseColMatrix(const TVec<TKey>& RowIdxV, const TVec<TKey>& ColIdxV, const TVec<TDat>& ValV, TVec<TKeyDatV>& ColMatrix, const TKey& Cols) {
+		ColMatrix.Gen(Cols);
+		Assert(RowIdxV.Len() == ColIdxV.Len() && RowIdxV.Len() == ValV.Len());
+		TKey Els = RowIdxV.Len();
+		for (TKey ElN = 0; ElN < Els; ElN++) {
+			ColMatrix[ColIdxV[ElN]].Add(TKeyDat<TKey, TDat>(RowIdxV[ElN], ValV[ElN]));
+		}
+		for (TKey ColN = 0; ColN < Cols; ColN++) {
+			ColMatrix[ColN].Sort();
+		}
+	}
 	static void SparseMerge(const TKeyDatV& SrcV1, const TKeyDatV& SrcV2, TKeyDatV& DstV) {
 		DstV.Clr();
 		const int Src1Len = SrcV1.Len();
@@ -752,6 +815,24 @@ public:
 		while (Src1N < Src1Len) { DstV.Add(SrcV1[Src1N]); Src1N++; }
 		while (Src2N < Src2Len) { DstV.Add(SrcV2[Src2N]); Src2N++; }
 	}
+	static void SparseLinComb(const double& p, const TKeyDatV& SrcV1, const double& q, const TKeyDatV& SrcV2, TKeyDatV& DstV) {
+		DstV.Clr();
+		const int Src1Len = SrcV1.Len();
+		const int Src2Len = SrcV2.Len();
+		int Src1N = 0, Src2N = 0;
+		while (Src1N < Src1Len && Src2N < Src2Len) {
+			if (SrcV1[Src1N].Key < SrcV2[Src2N].Key) { 
+				DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++;
+			} else if (SrcV1[Src1N].Key > SrcV2[Src2N].Key) { 
+				DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++;
+			} else { 
+				DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat + q * SrcV2[Src2N].Dat));
+				Src1N++;  Src2N++; 
+			}
+		}
+		while (Src1N < Src1Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++; }
+		while (Src2N < Src2Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++; }
+	}
 };
 
 typedef TSparseOps<TInt, TFlt> TSparseOpsIntFlt;
@@ -764,45 +845,28 @@ class TVector { friend class TFullMatrix;
 private: 
     bool IsColVector;
     TFltV Vec;
-public: 
+public:
+    TVector(): IsColVector(true), Vec() {}
     TVector(const int& Dim, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Dim) {}
     TVector(const TFltV& Vect, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Vect) {}
-
-    // Copy constructor
-    TVector(const TVector& Vector) {
-        printf("TVector: copied\n");
-        IsColVector = Vector.IsColVector;		
-        Vec = Vector.Vec;		
-    }
-    
+    // copy constructor
+    TVector(const TVector& Vector);
     // Move constructor
-    TVector(const TVector&& Vector) {
-        printf("TVector: move constructor\n");
-        IsColVector = Vector.IsColVector;		
-        Vec = std::move(Vector.Vec);		
-    }
+    TVector(const TVector&& Vector);
     // Move assignment
-    TVector& operator=(TVector Vector) {
-        printf("TVector: move assignment\n");
-        std::swap(IsColVector, Vector.IsColVector);
-        std::swap(Vec, Vector.Vec);
-        return *this;
-    }
+    TVector& operator=(TVector Vector);
 
-    TFlt& operator [] (const int& Idx) { return Vec[Idx]; }
-
-    double DotProduct(const TFltV& y) const {
-		EAssert(GetDim() == y.Len());
-		return TLinAlg::DotProduct(Vec, y);
-	}
-    double DotProduct(const TVector& y) const {
-        EAssert(GetDim() == y.GetDim() && IsRowVec() && y.IsColVec());
-        return DotProduct(y.Vec);
-    }
+    // returns a new zero vector
+    static TVector Init(const int& Dim, const bool _IsColVect) { return TVector(Dim, _IsColVect); }
 
     TVector GetT() const;
 	void Transpose() { IsColVector = !IsColVector; }
-	    
+
+	double DotProduct(const TFltV& y) const;
+	double DotProduct(const TVector& y) const;
+
+	TFlt& operator [] (const int& Idx) { return Vec[Idx]; }
+
     TFullMatrix operator *(const TVector& y) const;
     TVector operator *(const TFullMatrix& Mat) const;
 
@@ -822,6 +886,7 @@ public:
     int GetDim() const {return Vec.Len();}
     bool IsColVec() const { return IsColVector; }
     bool IsRowVec() const { return !IsColVec(); }
+    bool Empty() const { return Vec.Empty(); }
     
     const TFltV& GetVec() const { return Vec; }
 };
@@ -834,17 +899,24 @@ private:
     
 public:
     // constructors/destructors
-    TFullMatrix(const int& _XDim, const int& _YDim): Mat(_XDim, _YDim) {}
+    // empty matrix with 0 rows and 0 cols
+    TFullMatrix(): Mat(0,0) {}
+    // zero matrix with the specified number of rows and cols
+    TFullMatrix(const int& _Rows, const int& _Cols): Mat(_Rows, _Cols) {}
+    // matrix from TFltVV
     TFullMatrix(const TFltVV& _Mat): Mat(_Mat) {}
 
-    TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) { printf("Matrix copied\n"); }
-    TFullMatrix(const TFullMatrix&& _Mat): Mat(std::move(_Mat.Mat)) { printf("Matrix moved\n"); }
-    virtual ~TFullMatrix() {}
+    // copy constructor
+	TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) {} // { printf("Matrix copied\n"); }
+	// move constructor
+	TFullMatrix(const TFullMatrix&& _Mat): Mat(std::move(_Mat.Mat)) {} // { printf("Matrix moved\n"); }
+    // destructor
+	virtual ~TFullMatrix() {}
 
-    // the move and copy constructors merged into one
+    // the move and copy assignment operator merged into one
     TFullMatrix& operator =(TFullMatrix _Mat);
     
-    // static initializers
+    // identity matrix
     static TFullMatrix Identity(const int& Dim);
 
 protected:
@@ -858,14 +930,15 @@ protected:
     // getters
     virtual int PGetRows() const { return Mat.GetRows(); }
     virtual int PGetCols() const { return Mat.GetCols(); }
-    
-    const TFltVV& GetMat() const { return Mat; }
 public:
+    // returns the underlying TFltVV
+    const TFltVV& GetMat() const { return Mat; }
     // transposed
     virtual void Transpose();
     TFullMatrix GetT() const;
     double At(const int& i, const int& j) { return Mat(i,j); }
     void Set(const double& Val, const int& i, const int& j) { Mat(i,j) = Val; }
+    bool Empty() const { return Mat.Empty(); }
     
     // operators
     double operator ()(const int& i, const int& j) { return At(i,j); }

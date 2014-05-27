@@ -20,201 +20,387 @@
 namespace TFtrGen {
 
 ///////////////////////////////////////
-// Numeric-Feature-Generator  
-void TNumeric::Update(const double& Val) { 
-	if (NormalizeP) {
+// Numeric-Feature-Generator
+void TNumeric::Save(TSOut& SOut) const { 
+    SaveEnum<TNumericType>(SOut, Type); 
+    MnVal.Save(SOut); MxVal.Save(SOut); 
+}
+    
+void TNumeric::Clr() {
+    if (Type == ntNone) {
+        MnVal = 0.0; MxVal = 0.0;
+    } else if (Type == ntNormalize) {
+        MnVal = TFlt::Mx; MxVal = TFlt::Mn;
+    } else if (Type == ntMnMxVal) {
+        // nothing to do
+    }
+}
+
+bool TNumeric::Update(const double& Val) {
+	if (Type == ntNormalize) {
         MnVal = TFlt::GetMn(MnVal, Val); 
-        MxVal = TFlt::GetMx(MxVal, Val); 
-    }
+        MxVal = TFlt::GetMx(MxVal, Val);         
+    }   
+    return false;
 }
 
-double TNumeric::GetFtr(const double& Val) const { 
-	if (NormalizeP) {
-		return (MnVal < MxVal) ? (double(Val) - MnVal) / (MxVal - MnVal) : 0.0; 
-	} else {
-        return Val;
-    }
+double TNumeric::GetFtr(const double& Val) const {
+	if ((Type != ntNone) && (MnVal < MxVal)) {
+        return (Val - MnVal) / (MxVal - MnVal);
+	}
+    return Val;        
 }
-
+    
 void TNumeric::AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const {
-    SpV.Add(TIntFltKd(Offset, GetFtr(Val)));
-    Offset++;
+    SpV.Add(TIntFltKd(Offset, GetFtr(Val))); Offset++;
 }
 
 void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
-    FullV[Offset] = GetFtr(Val); 
-    Offset++;
+    FullV[Offset] = GetFtr(Val); Offset++;
 }
 
 ///////////////////////////////////////
 // Nominal-Feature-Generator
-void TNominal::Update(const TStr& Val) { 
-    if (!Val.Empty()) { ValH.AddKey(Val); }
+void TCategorical::Save(TSOut& SOut) const { 
+    SaveEnum<TCategoricalType>(SOut, Type);
+    ValSet.Save(SOut);
+    HashDim.Save(SOut);
 }
 
-void TNominal::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
-    if (ValH.IsKey(Val)) { SpV.Add(TIntFltKd(Offset + ValH.GetKeyId(Val), 1.0)); } 
-    Offset += ValH.Len(); 
+void TCategorical::Clr() {
+    if (Type == ctOpen) { ValSet.Clr(); }
+}
+
+bool TCategorical::Update(const TStr& Val) {
+    if ((Type == ctOpen) && !Val.Empty()) {
+        // check if new value
+        const bool NewP = !ValSet.IsKey(Val);
+        // remember if new
+        if (NewP) { ValSet.AddKey(Val); }
+        // return if we increased dimensionality
+        return NewP;
+    }
+    // otherwise we have fixed dimensionality
+    return false;
+}
+
+int TCategorical::GetFtr(const TStr& Val) const { 
+    if (Type == ctHash) {
+        // get hash
+        return Val.GetPrimHashCd() % HashDim;
+    } else {
+        // get key id
+        return ValSet.IsKey(Val) ? ValSet.GetKeyId(Val) : -1; 
+    }
+}
+
+void TCategorical::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
+    // get dimension to set to 1.0
+    const int Dim = GetFtr(Val);
+    // set to 1.0 if we get a dimension
+    if (Dim != -1) { SpV.Add(TIntFltKd(Offset + Dim, 1.0)); }
+    // update offset
+    Offset += GetDim();
+}
+
+void TCategorical::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
+    // get dimension to set to 1.0
+    const int Dim = GetFtr(Val);
+    // set to 1.0 if we get a dimension
+    if (Dim != -1) { FullV[Offset + Dim] = 1.0; }
+    // update offset
+    Offset += GetDim();
 }
 
 ///////////////////////////////////////
 // Multi-Feature-Generator
-void TMultiNom::Update(const TStr& Str) { 
-	FtrGen.Update(Str);
+void TMultinomial::Save(TSOut& SOut) const { 
+    SaveEnum<TMultinomialType>(SOut, Type); 
+    FtrGen.Save(SOut); 
 }
 
-void TMultiNom::Update(const TStrV& StrV) {
-	for (int StrN = 0; StrN < StrV.Len(); StrN++) {
-		FtrGen.Update(StrV[StrN]);
-	}
+bool TMultinomial::Update(const TStr& Str) {
+    return FtrGen.Update(Str);
 }
 
-void TMultiNom::AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const {
-	const int FtrId = FtrGen.GetFtr(Str);
-	if (FtrId != -1) {
-		SpV.Add(TIntFltKd(Offset + FtrId, 1.0));
-	}
-    Offset += GetVals();
+bool TMultinomial::Update(const TStrV& StrV) {
+    bool UpdateP = false;
+    for (int StrN = 0; StrN < StrV.Len(); StrN++) {
+        const bool StrUpdateP = FtrGen.Update(StrV[StrN]);
+        UpdateP = UpdateP || StrUpdateP;
+    }
+    return UpdateP;
 }
 
-void TMultiNom::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const {
-	// generate feature vector just for this feature generate
-	TIntFltKdV MultiNomSpV(StrV.Len(), 0);
-	for (int StrN = 0; StrN < StrV.Len(); StrN++) {
-		const int FtrId = FtrGen.GetFtr(StrV[StrN]);
-		// only use features we've seen during updates
-		if (FtrId != -1) {
-			MultiNomSpV.Add(TIntFltKd(Offset + FtrId, 1.0));
-		}
-	}
-	MultiNomSpV.Sort(); 
-	// merge elements with same id
-	double NormSq = 0.0; int GoodSpN = 0;
-	for (int SpN = 1; SpN < MultiNomSpV.Len(); SpN++) {
-		if (MultiNomSpV[GoodSpN].Key == MultiNomSpV[SpN].Key) {
-			// repeatition of previous id
-			MultiNomSpV[GoodSpN].Dat += MultiNomSpV[SpN].Dat; 
-		} else { // new id
-			// keep track of norm
-			NormSq += TMath::Sqr(MultiNomSpV[GoodSpN].Dat);
-			// increase the pointer to the next good position
-			GoodSpN++;
-			// and move the new value down to the good position
-			MultiNomSpV[GoodSpN] = MultiNomSpV[SpN]; 
-		}
-	}
-	// only bother if there is something to add
-	if (MultiNomSpV.Len() > 0) {
-		// update the norm with the last element
-		NormSq += TMath::Sqr(MultiNomSpV[GoodSpN].Dat);
-		// truncate the vector
-		MultiNomSpV.Trunc(GoodSpN+1);
-		// normalize
-		double Norm = TMath::Sqrt(NormSq);
-		TLinAlg::MultiplyScalar(1.0 / Norm, MultiNomSpV, MultiNomSpV); 
-		// add the the full feature vector and increase offset count
-		SpV.AddV(MultiNomSpV);
-	}
-	// increase the offset by the dimension
-    Offset += GetVals();
+void TMultinomial::AddFtr(const TStr& Str, TIntFltKdV& SpV, int& Offset) const {
+    const int FtrId = FtrGen.GetFtr(Str);
+    if (FtrId != -1) {
+        SpV.Add(TIntFltKd(Offset + FtrId, 1.0));
+    }
+    Offset += GetDim();
+}
+
+void TMultinomial::AddFtr(const TStr& Str, TFltV& FullV, int& Offset) const {
+    const int FtrId = FtrGen.GetFtr(Str);
+    if (FtrId != -1) {
+        FullV[Offset + FtrId] = 1.0;
+    }
+    Offset += GetDim();    
+}
+
+void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV) const {
+    // generate internal feature vector
+    SpV.Gen(StrV.Len(), 0);
+    for (int StrN = 0; StrN < StrV.Len(); StrN++) {
+        const int FtrId = FtrGen.GetFtr(StrV[StrN]);
+        // only use features we've seen during updates
+        if (FtrId != -1) {
+            SpV.Add(TIntFltKd(FtrId, 1.0));
+        }
+    }
+    SpV.Sort();
+    // merge elements with the same id
+    int GoodSpN = 0;
+    for (int SpN = 1; SpN < SpV.Len(); SpN++) {
+        if (SpV[GoodSpN].Key == SpV[SpN].Key) {
+            // repetition of previous id, sum counts
+            SpV[GoodSpN].Dat += SpV[SpN].Dat;
+        } else {
+            // increase the pointer to the next good position
+            GoodSpN++;
+            // and move the new value down to the good position
+            SpV[GoodSpN] = SpV[SpN];
+        }
+    }
+    // truncate the vector
+    SpV.Trunc(GoodSpN + 1);
+    // final normalization, if needed
+    if (Type == mtNormalize) { TLinAlg::Normalize(SpV); }    
+}
+
+void TMultinomial::AddFtr(const TStrV& StrV, TIntFltKdV& SpV, int& Offset) const {
+    // generate feature 
+    TIntFltKdV ValSpV; AddFtr(StrV, ValSpV);    
+    // add to the full feature vector and increase offset count
+    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
+        const TIntFltKd& ValSp = ValSpV[ValSpN];
+        SpV.Add(TIntFltKd(Offset + ValSp.Key, ValSp.Dat));
+    }
+    // increase the offset by the dimension
+    Offset += GetDim();
+}
+
+void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
+    // generate feature 
+    TIntFltKdV ValSpV; AddFtr(StrV, ValSpV);    
+    // add to the full feature vector and increase offset count
+    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
+        const TIntFltKd& ValSp = ValSpV[ValSpN];
+        FullV[Offset + ValSp.Key] = ValSp.Dat;
+    }
+    // increase the offset by the dimension
+    Offset += GetDim();
 }
 
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
-TToken::TToken(TSIn& SIn) { 
-	SwSet = PSwSet(SIn);
-	Stemmer = PStemmer(SIn);
-	Docs.Load(SIn);
-	TokenH.Load(SIn);
+TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
+        PSwSet _SwSet, PStemmer _Stemmer, const int& _HashDim): SwSet(_SwSet), Stemmer(_Stemmer) { 
+
+    // initialize tokenizer
+    Tokenizer = TTokenizerHtmlUnicode::New(SwSet, Stemmer);
+    // get settings flags
+    Type = 0;
+    if (TfP) { Type.Val |= btTf; }
+    if (IdfP) { Type.Val |= btIdf; }
+    if (NormalizeP) { Type.Val |= btNormalize; }
+    // initialize for case of hashing
+    if (_HashDim != -1) { 
+        // remember the type ...
+        Type.Val |= btHashing;
+        // .. and the dimension
+        HashDim = _HashDim;
+        // initialize DF counts for hashes
+        DocFqV.Gen(HashDim); DocFqV.PutAll(0);
+        OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
+    }
+    
 }
 
-void TToken::Save(TSOut& SOut) const { 
-	SwSet.Save(SOut);
-	Stemmer.Save(SOut);
-	Docs.Save(SOut);
-	TokenH.Save(SOut);
+TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
+    Tokenizer(TTokenizerHtmlUnicode::Load(SIn)), SwSet(SIn), Stemmer(SIn), 
+    TokenSet(SIn), HashDim(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn),
+    OldDocs(SIn), OldDocFqV(SIn) { }
+
+void TBagOfWords::Save(TSOut& SOut) const {
+    Type.Save(SOut);
+    Tokenizer->Save(SOut);
+    SwSet.Save(SOut);
+    Stemmer.Save(SOut);
+    TokenSet.Save(SOut);
+    HashDim.Save(SOut);
+    Docs.Save(SOut);
+    DocFqV.Save(SOut);
+    ForgetP.Save(SOut);
+    OldDocs.Save(SOut);
+    OldDocFqV.Save(SOut);
 }
 
-void TToken::Update(const TStr& Val) {
-    TStrV TokenStrV; GetTokenV(Val, TokenStrV); TStrH TokenStrH;
+void TBagOfWords::Clr() {
+    Docs = 0; ForgetP = false; OldDocs = 0.0; 
+    if (IsHashing()) {
+        // if hashing, allocate the document counts and set to zero
+        DocFqV.Gen(HashDim); DocFqV.PutAll(0);
+        OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
+    } else {
+        // if normal vector space, just forget the existing tokens and document counts
+        TokenSet.Clr(); DocFqV.Clr(); OldDocFqV.Clr();
+    }
+}
+
+bool TBagOfWords::Update(const TStr& Val) {
+    // step (1): tokenize given text
+    TStrV TokenStrV; GetFtr(Val, TokenStrV);
+    // step (2): consolidate tokens
+    TStrH TokenStrH;
     for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
         const TStr& TokenStr = TokenStrV[TokenStrN];
         TokenStrH.AddKey(TokenStr);
     }
+    // step (3): update document counts and (when not hashing) update vocabulary with new tokens
+    bool UpdateP = false;
     int KeyId = TokenStrH.FFirstKeyId();
     while (TokenStrH.FNextKeyId(KeyId)) {
+        // get token
         const TStr& TokenStr = TokenStrH.GetKey(KeyId);
-        TokenH.AddDat(TokenStr)++;
+        // different processing for hashing
+        if (IsHashing()) {
+            // get hashing token ID
+            const int TokenId = TokenStr.GetPrimHashCd() % HashDim;
+            // update DF
+            DocFqV[TokenId]++;
+        } else {
+            int TokenId = TokenSet.GetKeyId(TokenStr);
+            if (TokenId == -1) {
+                // new token, remember the dimensionality change
+                UpdateP = true;
+                // remember the new token
+                TokenId = TokenSet.AddKey(TokenStr);
+                // increase document count table
+                const int TokenDfId = DocFqV.Add(0);
+                // increase also the old count table
+                OldDocFqV.Add(0.0);
+                // make sure we DF vector and TokenSet still in sync
+                IAssert(TokenId == TokenDfId);
+                IAssert(DocFqV.Len() == OldDocFqV.Len());
+            }
+            // document count update
+            DocFqV[TokenId]++;
+        }
     }
+    // step (4): update document count
     Docs++;
+    // tell if dimension changed
+    return UpdateP;
 }
 
-void TToken::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
-	int Offset = 0; AddFtr(Val, SpV, Offset);
+void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
+    // outsource to tokenizer
+    Tokenizer->GetTokens(Str, TokenStrV);
 }
 
-void TToken::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
+void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
     // step (1): tokenize
-    TStrV TokenStrV; GetTokenV(Val, TokenStrV);
+    TStrV TokenStrV; GetFtr(Val, TokenStrV);
     // step (2): aggregate token counts
-    TIntH TokenFqH;
+    TIntH TermFqH;
     for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
         const TStr& TokenStr = TokenStrV[TokenStrN];
-        if (TokenH.IsKey(TokenStr)) { 
-            const int TokenId = TokenH.GetKeyId(TokenStr);
-            TokenFqH.AddDat(TokenId)++;
+        // get token ID
+        const int TokenId = IsHashing() ?
+            (TokenStr.GetPrimHashCd() % HashDim) : // hashing
+            TokenSet.GetKeyId(TokenStr); // vocabulary
+        // add if known token
+        if (TokenId != -1) {
+            TermFqH.AddDat(TokenId)++;
         }
     }
     // step (3): make a sparse vector out of it
-    TIntFltKdV ValSpV(TokenFqH.Len(), 0);
-    int KeyId = TokenFqH.FFirstKeyId();
-    while (TokenFqH.FNextKeyId(KeyId)) {
-        const int TokenId = TokenFqH.GetKey(KeyId);
-        const int TokenFq = TokenFqH[KeyId];
-        const int TokenDocFq = TokenH[TokenId];
-        const double IDF = log(double(Docs) / double(TokenDocFq));
-        ValSpV.Add(TIntFltKd(TokenId, double(TokenFq) * IDF));
-    }
-    ValSpV.Sort(); TLinAlg::Normalize(ValSpV);
-    // step (4): add the sparse vector to the final feature vector  
-    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
-        const int Key = ValSpV[ValSpN].Key + Offset;
-        const double Dat = ValSpV[ValSpN].Dat;
-        SpV.Add(TIntFltKd(Key, Dat));
-    }
-    Offset += TokenH.Len(); 
-}
-
-void TToken::GetTokenV(const TStr& Str, TStrV& TokenStrV) const {
-    THtmlLx HtmlLx(TStrIn::New(Str));
-    while (HtmlLx.Sym != hsyEof){
-        if (HtmlLx.Sym == hsyStr){ 
-            TStr TokenStr = HtmlLx.UcChA;
-            if (SwSet.Empty() || !SwSet->IsIn(TokenStr)) { 
-                if (!Stemmer.Empty()) { 
-                    TokenStr = Stemmer->GetStem(TokenStr); } 
-                TokenStrV.Add(TokenStr);
+    SpV.Gen(TermFqH.Len(), 0);
+    int KeyId = TermFqH.FFirstKeyId();
+    while (TermFqH.FNextKeyId(KeyId)) {
+        const int TermId = TermFqH.GetKey(KeyId);
+        double TermVal = 1.0;
+        if (IsTf()) { TermVal *= double(TermFqH[KeyId]); }
+        if (IsIdf()) {
+            if (ForgetP) {
+                const double DocFq = double(DocFqV[TermId]) + OldDocFqV[TermId];
+                if (DocFq > 0.1) { TermVal *= log((double(Docs) + OldDocs) / DocFq); }
+            } else {
+                TermVal *= log(double(Docs) / double(DocFqV[TermId]));
             }
         }
-        // get next symbol
-        HtmlLx.GetSym();
+        SpV.Add(TIntFltKd(TermId, TermVal));
+    }
+    SpV.Sort();
+    // step (4): normalize the vector if so required
+    if (IsNormalize()) { TLinAlg::Normalize(SpV); }
+}
+
+void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
+    TIntFltKdV ValSpV; AddFtr(Val, ValSpV);
+    // add to the full feature vector and increase offset count
+    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
+        const TIntFltKd& ValSp = ValSpV[ValSpN];
+        SpV.Add(TIntFltKd(Offset + ValSp.Key, ValSp.Dat));
+    }    
+    // increase the offset by the dimension
+    Offset += GetDim();
+}
+
+void TBagOfWords::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
+    TIntFltKdV ValSpV; AddFtr(Val, ValSpV);
+    // add to the full feature vector and increase offset count
+    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
+        const TIntFltKd& ValSp = ValSpV[ValSpN];
+        FullV[Offset + ValSp.Key] = ValSp.Dat;
+    }
+    // increase the offset by the dimension
+    Offset += GetDim();    
+}
+
+void TBagOfWords::Forget(const double& Factor) {
+    // remember we started forgeting
+    ForgetP = true;
+    // update old document count
+    OldDocs = double(Docs) + Factor * OldDocs;    
+    // reset current counts
+    Docs = 0;
+    // do same for document frequencies
+    const int Dims = GetDim();
+    for (int Dim = 0; Dim < Dims; Dim++) {
+        // update old document frequency
+        OldDocFqV[Dim] = double(DocFqV[Dim]) + Factor * OldDocFqV[Dim];
+        // reset current count
+        DocFqV[Dim] = 0;
     }
 }
 
 ///////////////////////////////////////
 // Sparse-Numeric-Feature-Generator
-void TSparseNumeric::Update(const TIntFltKdV& SpV) { 
+
+void TSparseNumeric::Update(const TIntFltKdV& SpV) {
     for (int SpN = 0; SpN < SpV.Len(); SpN++) {
-		MxId = TInt::GetMx(SpV[SpN].Key, MxId);
-		FtrGen.Update(SpV[SpN].Dat);
+        MxId = TInt::GetMx(SpV[SpN].Key, MxId);
+        FtrGen.Update(SpV[SpN].Dat);
     }
 }
 
 void TSparseNumeric::AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offset) const {
     for (int SpN = 0; SpN < InSpV.Len(); SpN++) {
-		const int Id = InSpV[SpN].Key;
-		double Val = FtrGen.GetFtr(InSpV[SpN].Dat);
-		SpV.Add(TIntFltKd(Offset + Id, Val));
+        const int Id = InSpV[SpN].Key;
+        double Val = FtrGen.GetFtr(InSpV[SpN].Dat);
+        SpV.Add(TIntFltKd(Offset + Id, Val));
     }
     Offset += GetVals();
 }

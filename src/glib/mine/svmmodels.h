@@ -372,6 +372,77 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////
+// Reference-Sparse-Training-Set, holding no data, just reference to it
+class TRefSparseTrainSet : public TSVMTrainSet {
+private:
+    // references to data
+    const TVec<TIntFltKdV>& VecV;
+    const TFltV& ClsV;
+    // additional pre-computed stuff
+    TInt MaxDim;
+    TFltV NormV;
+
+public:
+    TRefSparseTrainSet(const TVec<TIntFltKdV>& _VecV, const TFltV& _ClsV);
+    static PSVMTrainSet New(const TVec<TIntFltKdV>& VecV, const TFltV& ClsV) { 
+        return new TRefSparseTrainSet(VecV, ClsV); }
+
+    // necessary stuff
+    int Len() const { return ClsV.Len(); }
+    int Dim() const { return MaxDim; }
+    double GetNorm2(const int& VecId) const { return NormV[VecId]; }
+    double GetVecParam(const int& VecId) const { return ClsV[VecId]; }
+
+    double DotProduct(const int& VecId1, const int& VecId2) const {
+        return TLinAlg::DotProduct(VecV[VecId1], VecV[VecId2]); }
+    double DotProduct(const int& VecId1, double* vec2, const int& n) const;
+    double DotProduct(const int& VecId1, const TFltV& Vec2) const {
+        return TLinAlg::DotProduct(Vec2, VecV[VecId1]); }
+
+    void AddVec(const int& VecId1, double* vec2, const int& n, const double& K) const;
+    void AddVec(const int& VecId1, TFltV& vec2, const double& K) const {
+        TLinAlg::AddVec(K, VecV[VecId1], vec2); }
+
+    PSVMTrainSet Clone(const TIntV& VecIdV) const { Fail; return NULL; }
+};
+
+//////////////////////////////////////////////////////////////////////////
+// Reference-Dense-Training-Set, holding no data, just reference to it
+class TRefDenseTrainSet : public TSVMTrainSet {
+private:
+    // references to data
+    const TFltVV& VecV;
+    const TFltV& ClsV;
+    // additional pre-computed stuff
+    TInt MaxDim;
+    TFltV NormV;
+
+public:
+    TRefDenseTrainSet(const TFltVV& _VecV, const TFltV& _ClsV);
+    static PSVMTrainSet New(const TFltVV& VecV, const TFltV& ClsV) { 
+        return new TRefDenseTrainSet(VecV, ClsV); }
+
+    // necessary stuff
+    int Len() const { return ClsV.Len(); }
+    int Dim() const { return MaxDim; }
+    double GetNorm2(const int& VecId) const { return NormV[VecId]; }
+    double GetVecParam(const int& VecId) const { return ClsV[VecId]; }
+
+    double DotProduct(const int& VecId1, const int& VecId2) const {
+        return TLinAlg::DotProduct(VecV, VecId1, VecV, VecId2); }
+    double DotProduct(const int& VecId1, double* vec2, const int& n) const;
+    double DotProduct(const int& VecId1, const TFltV& Vec2) const {
+        return TLinAlg::DotProduct(VecV, VecId1, Vec2); }
+
+    void AddVec(const int& VecId1, double* Vec2, const int& n, const double& K) const;
+    void AddVec(const int& VecId1, TFltV& Vec2, const double& K) const {
+        TLinAlg::AddVec(K, VecV, VecId1, Vec2); }
+
+    PSVMTrainSet Clone(const TIntV& VecIdV) const { Fail; return NULL; }
+};
+
+
+//////////////////////////////////////////////////////////////////////////
 // Bag-Of-Words-Base to SVM-Train-Set
 class TBowDocBs2TrainSet {
 private:

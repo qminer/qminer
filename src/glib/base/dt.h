@@ -197,6 +197,21 @@ public:
 };
 
 /////////////////////////////////////////////////
+// Output-Memory (TMem stored by reference)
+class TRefMemOut: public TSOut{
+private:
+  TMem& Mem;
+public:
+  TRefMemOut(TMem& _Mem);
+  static PSOut New(TMem& Mem){return new TRefMemOut(Mem);}
+  ~TRefMemOut(){}
+
+  int PutCh(const char& Ch){Mem += Ch; return Ch;}
+  int PutBf(const void* LBf, const TSize& LBfL);
+  void Flush(){}
+};
+
+/////////////////////////////////////////////////
 // Output-Memory
 class TMemOut: public TSOut{
 private:
@@ -1563,3 +1578,14 @@ public:
   TStr GetStr() const;
 };
 
+/////////////////////////////////////////////////
+// Saving and loading enums
+template <class TVal>
+void SaveEnum(TSOut& SOut, const TVal& Val) {
+    TInt((int)Val).Save(SOut);
+}
+
+template <class TVal>
+TVal LoadEnum(TSIn& SIn) {
+    return (TVal)(TInt(SIn).Val);
+}

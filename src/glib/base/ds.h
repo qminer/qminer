@@ -107,6 +107,7 @@ typedef TPair<TInt, TStrV> TIntStrVPr;
 typedef TPair<TIntPr, TInt> TIntPrIntPr;
 typedef TPair<TUInt, TUInt> TUIntUIntPr;
 typedef TPair<TUInt, TInt> TUIntIntPr;
+typedef TPair<TUInt, TStr> TUIntStrPr;
 typedef TPair<TUInt64, TInt> TUInt64IntPr;
 typedef TPair<TUInt64, TUInt64> TUInt64Pr;
 typedef TPair<TUInt64, TFlt> TUInt64FltPr;
@@ -633,7 +634,7 @@ public:
   /// Sorts the elements of the vector. ##TVec::Sort
   void Sort(const bool& Asc=true);
   /// Sorts the elements of the vector in a new copy and returns the permutation. ##TVec::SortGetPerm
-  void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc = true);
+  static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc = true);
   /// Checks whether the vector is sorted in ascending (if \c Asc=true) or descending (if \c Asc=false) order.
   bool IsSorted(const bool& Asc=true) const;
   /// Randomly shuffles the elements of the vector.
@@ -2134,7 +2135,12 @@ public:
     Assert((0<=X)&&(X<TSizeTy(XDim))&&(0<=Y)&&(Y<TSizeTy(YDim)));
     return ValV[X*YDim+Y];}
   void GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const;
+  // Get a pointer to the row (no copying involved)
+  void GetRowPtr(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec);
   void GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const;
+
+  void SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec);
+  void SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec);
 
   void SwapX(const TSizeTy& X1, const TSizeTy& X2);
   void SwapY(const TSizeTy& Y1, const TSizeTy& Y2);
@@ -2263,18 +2269,39 @@ void TVVec<TVal, TSizeTy>::DelY(const TSizeTy& Y){
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::GetRow(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) const {
-  Vec.Gen(GetCols(), 0);
-  for (TSizeTy col = 0; col < GetCols(); col++) {
-    Vec.Add(At(RowN, col));
-  }
+	Vec.Gen(GetCols(), 0);
+	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
+		Vec.Add(At(RowN, ColN));
+	}
+}
+
+template <class TVal, class TSizeTy>
+void TVVec<TVal, TSizeTy>::GetRowPtr(const TSizeTy& RowN, TVec<TVal, TSizeTy>& Vec) {
+	Assert((0<=RowN)&&(RowN<TSizeTy(XDim)));	
+	Vec.GenExt(&ValV[RowN*YDim], YDim);	
 }
 
 template <class TVal, class TSizeTy>
 void TVVec<TVal, TSizeTy>::GetCol(const TSizeTy& ColN, TVec<TVal, TSizeTy>& Vec) const {
-  Vec.Gen(GetRows(), 0);
-  for (TSizeTy row = 0; row < GetRows(); row++) {
-    Vec.Add(At(row, ColN));
-  }
+	Vec.Gen(GetRows(), 0);
+	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
+		Vec.Add(At(RowN, ColN));
+	}
+}
+template <class TVal, class TSizeTy>
+void TVVec<TVal, TSizeTy>::SetRow(const TSizeTy& RowN, const TVec<TVal, TSizeTy>& Vec) {
+	Assert((0<=RowN)&&(RowN<TSizeTy(XDim))&&(Vec.Len()==TSizeTy(YDim)));
+	for (TSizeTy ColN = 0; ColN < YDim; ColN++) {
+		At(RowN, ColN) = Vec[ColN];
+	}
+}
+
+template <class TVal, class TSizeTy>
+void TVVec<TVal, TSizeTy>::SetCol(const TSizeTy& ColN, const TVec<TVal, TSizeTy>& Vec) {
+	Assert((0<=ColN)&&(ColN<TSizeTy(YDim))&&(Vec.Len()==TSizeTy(XDim)));
+	for (TSizeTy RowN = 0; RowN < XDim; RowN++) {
+		At(RowN, ColN) = Vec[RowN];
+	}
 }
 
 /////////////////////////////////////////////////

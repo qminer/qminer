@@ -308,10 +308,10 @@ void TMem::Del(const int& BChN, const int& EChN){
 //}
 
 void TMem::AddBf(const void* _Bf, const int& _BfL){
-	IAssert((_BfL>=0) && (_Bf != NULL));
+  IAssert((_BfL>=0) && (_Bf != NULL));
   Reserve(Len() + _BfL, false);
   memcpy(Bf + BfL, _Bf, _BfL);  
-   BfL+=_BfL;
+  BfL+=_BfL;
   //char* ChBf=(char*)Bf;
   //for (int BfC=0; BfC<BfL; BfC++){
   //  char Ch=ChBf[BfC];
@@ -346,6 +346,20 @@ bool TMemIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TMemIn::GetNextLnBf: not implemented").CStr());
   return false;
+}
+
+/////////////////////////////////////////////////
+// Output-Memory
+TRefMemOut::TRefMemOut(TMem& _Mem): TSBase("Output-Reference-Memory"), 
+    TSOut("Output-Reference-Memory"), Mem(_Mem){}
+
+int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
+  int LBfS=0;
+  for (TSize LBfC=0; LBfC<LBfL; LBfC++){
+    char Ch=((char*)LBf)[LBfC];
+    LBfS+=Ch; Mem+=Ch;
+  }
+  return LBfS;
 }
 
 /////////////////////////////////////////////////
