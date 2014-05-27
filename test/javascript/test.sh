@@ -1,5 +1,5 @@
-cd ./movies/
-./test.sh
-cd ../timeseries/
-./test.sh
-cd ..
+CURRENT_PATH=`pwd`
+export QMINER_HOME=$CURRENT_PATH/../../build/
+export PATH=$CURRENT_PATH/../../build/:$PATH
+
+qm start -prerun="./test-init.sh" -noserver
