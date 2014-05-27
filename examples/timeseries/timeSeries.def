@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Raw", 
+    "fields": [ 
+      { "name": "Time", "type": "datetime" },
+      { "name": "Value", "type": "float" }
+    ], 
+    "joins": [ ],
+    "keys": [ ]
+  },
+  {
+    "name": "Resampled", 
+    "fields": [ 
+      { "name": "Time", "type": "datetime" },
+      { "name": "Value", "type": "float" },
+      { "name": "Ema1", "type": "float", "null": true },
+      { "name": "Ema2", "type": "float", "null": true },
+      { "name": "Prediction", "type": "float", "null": true }
+    ], 
+    "joins": [ ],
+    "keys": [ ]
+  }
+]
