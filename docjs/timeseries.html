@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>timeseries.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="movies.html">
+                movies.js
+              </a>
+            
+              
+              <a class="source" href="timeseries.html">
+                timeseries.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>timeseries.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>Import analytics module</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> analytics = <span class="hljs-built_in">require</span>(<span class="hljs-string">'analytics.js'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Prepare shortcuts to raw time series and resampled store</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> Raw = qm.store(<span class="hljs-string">"Raw"</span>);
+<span class="hljs-keyword">var</span> Resampled = qm.store(<span class="hljs-string">"Resampled"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Initialize resamper from Raw to Resampled store. This results in
+in an equaly spaced time series with 10 second interval.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Raw.addStreamAggr({ name: <span class="hljs-string">"Resample10second"</span>, type: <span class="hljs-string">"resampler"</span>,
+    outStore: <span class="hljs-string">"Resampled"</span>, timestamp: <span class="hljs-string">"Time"</span>, 
+    fields: [ { name: <span class="hljs-string">"Value"</span>, interpolator: <span class="hljs-string">"previous"</span> } ],
+    createStore: <span class="hljs-literal">false</span>, interval: <span class="hljs-number">10</span>*<span class="hljs-number">1000</span> });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Initialize stream aggregates on Resampled store for computing
+1 minute and 10 minute exponential moving averages.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Resampled.addStreamAggr({ name: <span class="hljs-string">"tick"</span>, type: <span class="hljs-string">"timeSeriesTick"</span>, 
+    timestamp: <span class="hljs-string">"Time"</span>, value: <span class="hljs-string">"Value"</span> });
+Resampled.addStreamAggr({ name: <span class="hljs-string">"ema1m"</span>, type: <span class="hljs-string">"ema"</span>,
+    inAggr: <span class="hljs-string">"tick"</span>, emaType: <span class="hljs-string">"previous"</span>, interval: <span class="hljs-number">60</span>*<span class="hljs-number">1000</span>, initWindow: <span class="hljs-number">10</span>*<span class="hljs-number">1000</span> });
+Resampled.addStreamAggr({ name: <span class="hljs-string">"ema10m"</span>, type: <span class="hljs-string">"ema"</span>,
+    inAggr: <span class="hljs-string">"tick"</span>, emaType: <span class="hljs-string">"previous"</span>, interval: <span class="hljs-number">600</span>*<span class="hljs-number">1000</span>, initWindow: <span class="hljs-number">10</span>*<span class="hljs-number">1000</span> });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Buffer for keeping track of the record from 1 minute ago (6 records
+behind, which equals 60 seconds since Resampled store is equally spaced
+with 10 second rate).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Resampled.addStreamAggr({ name: <span class="hljs-string">"delay"</span>, type: <span class="hljs-string">"recordBuffer"</span>, size: <span class="hljs-number">6</span>});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Declare features from the resampled timeseries which we will use
+to train the recursive linear regression.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> ftrSpace = analytics.newFeatureSpace([
+    { type: <span class="hljs-string">"numeric"</span>, source: <span class="hljs-string">"Resampled"</span>, field: <span class="hljs-string">"Value"</span> },
+    { type: <span class="hljs-string">"numeric"</span>, source: <span class="hljs-string">"Resampled"</span>, field: <span class="hljs-string">"Ema1"</span> },
+    { type: <span class="hljs-string">"numeric"</span>, source: <span class="hljs-string">"Resampled"</span>, field: <span class="hljs-string">"Ema2"</span> },
+    { type: <span class="hljs-string">"multinomial"</span>, source: <span class="hljs-string">"Resampled"</span>, field: <span class="hljs-string">"Time"</span>, datetime: <span class="hljs-literal">true</span> }
+]);
+console.log(<span class="hljs-string">"Feature space has "</span> + ftrSpace.dim + <span class="hljs-string">" dimensions"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Initialize linear regression model.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> linreg = analytics.newRecLinReg({ <span class="hljs-string">"dim"</span>: ftrSpace.dim, <span class="hljs-string">"forgetFact"</span>: <span class="hljs-number">1.0</span> });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>We register a trigger to Resampled store, which takes the latest record
+and updates the recursive linear regression model.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Resampled.addTrigger({
+    onAdd: <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(val)</span> {</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Get the latest value for EMAs and store them along the 
+record in the Resampled store.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        val.Ema1 = Resampled.getStreamAggr(<span class="hljs-string">"ema1m"</span>).EMA;
+        val.Ema2 = Resampled.getStreamAggr(<span class="hljs-string">"ema10m"</span>).EMA;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>See what would the current model would predict given
+the new record, and store this for evaluation later on.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        val.Prediction = linreg.predict(ftrSpace.ftrVec(val))</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Get the id of the record from a minute ago.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> trainRecId = Resampled.getStreamAggr(<span class="hljs-string">"delay"</span>).last;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Update the model, once we have at leats 1 minute worth of data</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> (trainRecId &gt; <span class="hljs-number">0</span>) { linreg.learn(ftrSpace.ftrVec(Resampled[trainRecId]), val.Value); }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Get the current value and compare against prediction for a minute ago</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> diff = val.Value - Resampled[trainRecId].Prediction;
+        console.log(<span class="hljs-string">"Diff: "</span> + diff + <span class="hljs-string">", Value: "</span> + val.Value + <span class="hljs-string">", Prediction: "</span> + Resampled[trainRecId].Prediction);
+    }
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Load training data from CSV file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> fin = fs.openRead(<span class="hljs-string">"./sandbox/timeseries/series.csv"</span>);
+<span class="hljs-keyword">var</span> header = fin.readLine(); <span class="hljs-keyword">var</span> lines = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">while</span> (!fin.eof) {
+    lines = lines + <span class="hljs-number">1</span>;
+    <span class="hljs-keyword">if</span> (lines % <span class="hljs-number">1000</span> == <span class="hljs-number">0</span>) { console.log(<span class="hljs-string">"Loaded: "</span> + lines); }
+    <span class="hljs-keyword">var</span> line = fin.readLine();
+    <span class="hljs-keyword">if</span> (line == <span class="hljs-string">""</span>) { <span class="hljs-keyword">continue</span>; }
+    <span class="hljs-keyword">try</span> {
+        <span class="hljs-keyword">var</span> vals = line.split(<span class="hljs-string">','</span>);
+        <span class="hljs-keyword">var</span> rec = { <span class="hljs-string">"Time"</span>: vals[<span class="hljs-number">1</span>], <span class="hljs-string">"Value"</span>: <span class="hljs-built_in">parseFloat</span>(vals[<span class="hljs-number">0</span>]) };
+        Raw.add(rec);
+    } <span class="hljs-keyword">catch</span> (err) { 
+        console.say(<span class="hljs-string">"Raw"</span>, err);
+    }
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

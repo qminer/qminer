@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>movies.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="movies.html">
+                movies.js
+              </a>
+            
+              
+              <a class="source" href="timeseries.html">
+                timeseries.js
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>movies.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>Import analytics module</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> analytics = <span class="hljs-built_in">require</span>(<span class="hljs-string">"analytics.js"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>Prepare shortcuts to people and movies store</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> People = qm.store(<span class="hljs-string">"People"</span>);
+<span class="hljs-keyword">var</span> Movies = qm.store(<span class="hljs-string">"Movies"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>Check if we are starting for the first time</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">if</span> (Movies.empty) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>We are, we start by loading in the dataset.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    console.log(<span class="hljs-string">"Movies"</span>, <span class="hljs-string">"Loading and indexing input data"</span>)
+    <span class="hljs-keyword">var</span> filename = <span class="hljs-string">"./sandbox/movies/movies.json"</span>
+    qm.load.jsonFile(Movies, filename);
+    console.log(<span class="hljs-string">"Loaded "</span> + Movies.length + <span class="hljs-string">" movies and "</span> + People.length + <span class="hljs-string">" people."</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Declare the features we will use to build genre classification models</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> genreFeatures = [
+        { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Title"</span> },
+        { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Plot"</span> },        
+        { type: <span class="hljs-string">"multinomial"</span>, source: { store: <span class="hljs-string">"Movies"</span>, join: <span class="hljs-string">"Actor"</span> }, field: <span class="hljs-string">"Name"</span> },
+        { type: <span class="hljs-string">"multinomial"</span>, source: { store: <span class="hljs-string">"Movies"</span>, join: <span class="hljs-string">"Director"</span>}, field: <span class="hljs-string">"Name"</span> }
+    ];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Create a model for the Genres field, using all the movies as training set.
+Since the target field is discrete the underlaying model will be based on classification.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> genreModel = analytics.newBatchModel(Movies.recs, genreFeatures, Movies.field(<span class="hljs-string">"Genres"</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Serialize the model to disk so we can use it later</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> genreOut = fs.openWrite(<span class="hljs-string">"./sandbox/movies/genre.dat"</span>);
+    genreModel.save(genreOut); genreOut.close();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Declare the features we will use to build the rating regression model</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> ratingFeatures = [
+        { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Title"</span> },
+        { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Plot"</span> },        
+        { type: <span class="hljs-string">"multinomial"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Genres"</span> },
+        { type: <span class="hljs-string">"multinomial"</span>, source: { store: <span class="hljs-string">"Movies"</span>, join: <span class="hljs-string">"Actor"</span> }, field: <span class="hljs-string">"Name"</span> },
+        { type: <span class="hljs-string">"multinomial"</span>, source: { store: <span class="hljs-string">"Movies"</span>, join: <span class="hljs-string">"Director"</span>}, field: <span class="hljs-string">"Name"</span> }
+    ];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Create a model for the Rating field, using all the movies as training set.
+Since the target field is discrete the underlaying model will be based on regression.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> ratingModel = analytics.newBatchModel(Movies.recs, ratingFeatures, Movies.field(<span class="hljs-string">"Rating"</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Serialize the model to disk so we can use it later</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> ratingOut = fs.openWrite(<span class="hljs-string">"./sandbox/movies/rating.dat"</span>);
+    ratingModel.save(ratingOut); ratingOut.close();
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Load the models for genres and rating from disk</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> genreModel = analytics.loadBatchModel(fs.openRead(<span class="hljs-string">"./sandbox/movies/genre.dat"</span>));
+<span class="hljs-keyword">var</span> ratingModel = analytics.loadBatchModel(fs.openRead(<span class="hljs-string">"./sandbox/movies/rating.dat"</span>));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Test de-serialized models on two new movies</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> newHorrorMovie = Movies.newRec({
+    <span class="hljs-string">"Title"</span>:<span class="hljs-string">"Unnatural Selection"</span>,
+    <span class="hljs-string">"Plot"</span>:<span class="hljs-string">"When corpses are found with internal organs missing, Liz Shaw and P.R.O.B.E. "</span> +
+           <span class="hljs-string">"investigate a defunct government project from the 1970s that aimed to predict "</span> +
+           <span class="hljs-string">"the course of human evolution. But was the creature it produced really destroyed,"</span> +
+           <span class="hljs-string">"or has it resurfaced twenty years on?"</span>, 
+    <span class="hljs-string">"Year"</span>:<span class="hljs-number">1996.000000</span>, 
+    <span class="hljs-string">"Rating"</span>:<span class="hljs-number">6.200000</span>, 
+    <span class="hljs-string">"Genres"</span>:[<span class="hljs-string">"Horror"</span>, <span class="hljs-string">"Sci-Fi"</span>], 
+    <span class="hljs-string">"Director"</span>:{<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Baggs Bill"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Unknown"</span>},
+    <span class="hljs-string">"Actor"</span>:[
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Beevers Geoffrey"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Bradshaw Stephen (I)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Brooks Keith (III)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Gatiss Mark"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Kay Charles"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Kirk Alexander (I)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Moore Mark (II)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Murphy George A."</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Mykaj Gabriel"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Rigby Jonathan"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Wolfe Simon (I)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Jameson Louise"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"John Caroline"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Merrick Patricia"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Randall Zoe"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Rayner Kathryn"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}
+    ]
+});
+console.log(<span class="hljs-built_in">JSON</span>.stringify(genreModel.predict(newHorrorMovie)));
+console.log(<span class="hljs-built_in">JSON</span>.stringify(ratingModel.predict(newHorrorMovie)) + <span class="hljs-string">" vs. "</span> + newHorrorMovie.Rating);
+<span class="hljs-keyword">var</span> newComedyMovie = Movies.newRec({
+    <span class="hljs-string">"Title"</span>:<span class="hljs-string">"Die Feuerzangenbowle"</span>, 
+    <span class="hljs-string">"Plot"</span>:<span class="hljs-string">"Hans Pfeiffer and some of his friends are drinking \"Feuerzangenbowle\". Talking "</span> +
+           <span class="hljs-string">"about their school-time they discover that Hans never was at a regular school and "</span> +
+           <span class="hljs-string">"so, as they think, missed an important part of his youth. They decide to send him "</span> +
+           <span class="hljs-string">"back to school to do all the things he never could do before."</span>, 
+    <span class="hljs-string">"Year"</span>:<span class="hljs-number">1944.000000</span>, 
+    <span class="hljs-string">"Rating"</span>:<span class="hljs-number">7.800000</span>, 
+    <span class="hljs-string">"Genres"</span>:[<span class="hljs-string">"Comedy"</span>], 
+    <span class="hljs-string">"Director"</span>:{<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Weiss Helmut"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Unknown"</span>}, 
+    <span class="hljs-string">"Actor"</span>:[
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Biegel Erwin"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Etlinger Karl"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Florath Albert"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Gutz Lutz"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Gulstorff Max"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Hasse Clemens"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Henckels Paul"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Leibelt Hans"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Platen Karl"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Ponto Erich"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Richter Hans (I)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Ruhmann Heinz"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Schippel Rudi"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Schnell Georg H."</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Vogel Egon (I)"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Vogelsang Georg"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Wenck Ewald"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Werner Walter"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Male"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Himboldt Karin"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Litto Maria"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>},
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Schun Margarete"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Sessak Hilde"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Wangel Hedwig"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
+        {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Wurtz Anneliese"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}
+    ]
+});
+console.log(<span class="hljs-built_in">JSON</span>.stringify(genreModel.predict(newComedyMovie)));
+console.log(<span class="hljs-built_in">JSON</span>.stringify(ratingModel.predict(newComedyMovie)) + <span class="hljs-string">" vs. "</span> + newHorrorMovie.Rating);</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
