@@ -53,6 +53,9 @@ public:
 	/// Get current version as string
 	static TStr GetVersion() { return TStr::Fmt("%d.%d.%d", Version.Val1.Val, Version.Val2.Val, Version.Val3.Val); }
 	
+    /// Maximal number of stores allowed, also sets the upper limit to valid store IDs
+    static uint GetMxStores() { return 0x4000; } // == 16384
+    
 	/// Path to QMiner
 	static TStr QMinerFPath;
 	/// Default QMiner notification facility
@@ -160,7 +163,7 @@ private:
 	/// Join name, unique within a store
 	TStr JoinNm;
 	/// Destination store of the join
-	TUCh JoinStoreId;
+	TUInt JoinStoreId;
 	/// Join type
 	TStoreJoinType JoinType;
 	/// Corresponding KeyID, used for index joins
@@ -174,12 +177,12 @@ private:
 
 public:
 	/// Create an empty join description
-	TJoinDesc(): JoinId(-1), JoinStoreId(255), JoinType(osjtUndef), InverseJoinId(-1) { } 
+	TJoinDesc(): JoinId(-1), JoinStoreId(TUInt::Mx), JoinType(osjtUndef), InverseJoinId(-1) { } 
 	/// Create an index based join (1-N or N-M)
-	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId,
-		const uchar& StoreId, const TWPt<TIndexVoc>& IndexVoc);
+	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
+		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc);
 	/// Create a field based join (1-1)
-	TJoinDesc(const TStr& _JoinNm, const uchar& _JoinStoreId, const int& _JoinRecFieldId,
+	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
         const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
         JoinType(osjtField), JoinKeyId(-1), JoinRecFieldId(_JoinRecFieldId), 
         JoinFqFieldId(_JoinFqFieldId), InverseJoinId(-1) { TValidNm::AssertValidNm(JoinNm); }
@@ -190,7 +193,7 @@ public:
 	void PutJoinId(const int& _JoinId) { JoinId = _JoinId; }
     int GetJoinId() const { return JoinId; };
 	const TStr& GetJoinNm() const { return JoinNm; }
-	uchar GetJoinStoreId() const { return JoinStoreId; }
+	uint GetJoinStoreId() const { return JoinStoreId; }
 	TWPt<TStore> GetJoinStore(const TWPt<TBase>& Base) const;
 	bool IsIndexJoin() const { return JoinType == osjtIndex; }
 	int GetJoinKeyId() const { return JoinKeyId; }
@@ -208,40 +211,40 @@ typedef TVec<TJoinDesc> TJoinDescV;
 class TJoinSeq {
 private:
 	/// Initial store ID
-	TUCh StartStoreId;
+	TUInt StartStoreId;
 	/// Sequence of (JoinID, SampleSize) pairs, defining the join sequence.
 	/// Sample size of -1 corresponds to everything.
 	TIntPrV JoinIdV;
 
 public:
-	TJoinSeq(): StartStoreId(TUCh::Mx) { }
+	TJoinSeq(): StartStoreId(TUInt::Mx) { }
 	/// Create empty join sequence (valid, but performs no joins)
 	TJoinSeq(const TWPt<TStore>& StartStore);
 	/// Create empty join sequence (valid, but performs no joins)
-	TJoinSeq(const uchar& _StartStoreId): StartStoreId(_StartStoreId) { }
+	TJoinSeq(const uint& _StartStoreId): StartStoreId(_StartStoreId) { }
 	/// Create single step join sequence	
-	TJoinSeq(const uchar& _StartStoreId, const int& JoinId, const int& Sample = -1);
+	TJoinSeq(const uint& _StartStoreId, const int& JoinId, const int& Sample = -1);
 	/// Create a sequence from given (join,sample) pair list.
-	TJoinSeq(const uchar& _StartStoreId, const TIntPrV& _JoinIdV);
+	TJoinSeq(const uint& _StartStoreId, const TIntPrV& _JoinIdV);
 	/// Extracts join sequence from JSon
-	TJoinSeq(const TWPt<TBase>& Base, const uchar& _StartStoreId, const PJsonVal& JoinSeqVal);
+	TJoinSeq(const TWPt<TBase>& Base, const uint& _StartStoreId, const PJsonVal& JoinSeqVal);
 	
 	TJoinSeq(TSIn& SIn): StartStoreId(SIn), JoinIdV(SIn) { }
 	void Save(TSOut& SOut) const { StartStoreId.Save(SOut); JoinIdV.Save(SOut); }
 
 	/// Is the join sequence valid
-	bool Empty() const { return (StartStoreId.Val == TUCh::Mx); }
+	bool Empty() const { return (StartStoreId.Val == TUInt::Mx); }
 	/// Does sequnence have any joins
 	bool IsJoin() const { return !JoinIdV.Empty(); }
 
 	/// Get join start store
 	TWPt<TStore> GetStartStore(const TWPt<TBase>& Base) const;
 	/// Get join start store ID
-	uchar GetStartStoreId() const { return StartStoreId.Val; }
+	uint GetStartStoreId() const { return StartStoreId.Val; }
 	/// Get join end store
 	TWPt<TStore> GetEndStore(const TWPt<TBase>& Base) const;
 	/// Get join end store ID
-	uchar GetEndStoreId(const TWPt<TBase>& Base) const;
+	uint GetEndStoreId(const TWPt<TBase>& Base) const;
 	/// Get join sequence
 	const TIntPrV& GetJoinIdV() const { return JoinIdV; }
 
@@ -253,6 +256,7 @@ typedef TVec<TJoinSeq> TJoinSeqV;
 ///////////////////////////////
 /// Field Type
 typedef enum { 
+    oftUndef    = -1,///< Undefined
 	oftInt		= 0, ///< Integer
 	oftIntV		= 9, ///< Vector of integers
 	oftUInt64	= 8, ///< Unsigned 64bit integer
@@ -290,7 +294,7 @@ private:
 	TIntV KeyIdV;
 
 public:
-	TFieldDesc(): FieldId(-1) { }
+	TFieldDesc(): FieldId(-1), FieldNm(), FieldType(oftUndef) { }
 	/// Create new field description
 	/// @param _FieldNm Field name
 	/// @param _FieldType Field type
@@ -300,7 +304,7 @@ public:
         const bool& NullP, const bool& InternalP);
 	
 	TFieldDesc(TSIn& SIn);
-	void Save(TSOut& SOut);
+	void Save(TSOut& SOut) const;
 
 	// basic properties
 	void PutFieldId(const int& _FieldId) { FieldId = _FieldId; }
@@ -367,9 +371,15 @@ private:
 	/// Number of all records
 	uint64 RecIds;
 
-	TStoreIterVec(const uint64& _RecIds);
+    /// Empty vector
+	TStoreIterVec();
+    /// Vector has _RecIds with first ID being 0
+	TStoreIterVec(const uint64& _RecIds);    
+    /// Vector has elements from MinId till MaxId
 	TStoreIterVec(const uint64& MinId, const uint64& MaxId);
 public:
+	/// Create new iterator for empty vector
+	static PStoreIter New() { return new TStoreIterVec; }
 	/// Create new iterator for vector, which starts with RecId = 0
 	static PStoreIter New(const uint64& RecIds) { return new TStoreIterVec(RecIds); }
 	/// Create new iterator for vector, which starts with RecId = MinId
@@ -417,12 +427,12 @@ public:
 
 	/// Called when trigger added to the store
     virtual void Init(const TWPt<TStore>& Store) { }
-	/// Called after record with ID RecId is added to the store Store
-    virtual void OnAdd(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId) { }
-	/// Called after record with ID RecId is updated in the store Store
-    virtual void OnUpdate(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId) { }
-	/// Called before record with ID RecId is deleted from the store Store
-    virtual void OnDelete(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId) { }
+	/// Called after record added to the store
+    virtual void OnAdd(const TRec& Rec) = 0;
+	/// Called after record updated in the store
+    virtual void OnUpdate(const TRec& Rec) = 0;
+	/// Called before record from the store
+    virtual void OnDelete(const TRec& Rec) = 0;
 
 	/// Unique ID of the trigger
 	const TStr& GetGuid() const { return Guid; }
@@ -447,7 +457,7 @@ private:
     TWPt<TIndex> Index;
 	
 	/// Store unique ID
-    TUCh StoreId;
+    TUInt StoreId;
 	/// Store unique Name
     TStr StoreNm;
 	/// Join meta-data description
@@ -467,7 +477,7 @@ private:
     void LoadStore(TSIn& SIn);
 protected:
 	/// Create new store with given ID and name
-	TStore(const TWPt<TBase>& _Base, uchar _StoreId, const TStr& _StoreNm);
+	TStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm);
 	/// Load store from input stream
 	TStore(const TWPt<TBase>& _Base, TSIn& SIn);
 	/// Load store from file
@@ -489,11 +499,11 @@ protected:
     PExcept FieldError(const int& FieldId, const TStr& TypeStr) const;
 
     /// Should be called after record RecId added; executes OnAdd event in all register triggers
-    void OnAdd(const TWPt<TBase>& Base, const uint64& RecId);
+    void OnAdd(const uint64& RecId);
     /// Should be called after record RecId updated; executes OnUpdate event in all register triggers
-    void OnUpdate(const TWPt<TBase>& Base, const uint64& RecId);
+    void OnUpdate(const uint64& RecId);
     /// Should be called before record RecId deleted; executes OnDelete event in all register triggers
-    void OnDelete(const TWPt<TBase>& Base, const uint64& RecId);
+    void OnDelete(const uint64& RecId);
 
 	/// Helper function for handling string and vector pools
     void StrVToIntV(const TStrV& StrV, TStrHash<TInt, TBigStrPool>& WordH, TIntV& IntV);
@@ -507,7 +517,7 @@ protected:
 
 public:
     /// Get store ID
-    uchar GetStoreId() const { return StoreId; }
+    uint GetStoreId() const { return StoreId; }
 	/// Get store name
     TStr GetStoreNm() const { return StoreNm; }
 
@@ -754,7 +764,6 @@ public:
 ///////////////////////////////
 /// Record.
 /// Holds record by reference (store ID and record ID) or by value (store ID and all field values).
-/// TODO: replace THash and THashSet with TMem serialization of fields
 class TRec {
 private:
     /// Record store
@@ -763,34 +772,14 @@ private:
 	TBool ByRefP;
 	/// Record ID (by reference)
 	TUInt64 RecId;
-    /// Field values (by value)
-	THashSet<TInt> FieldIdNullSet;
-    /// Field values (by value)
-    THash<TInt, TInt> FieldIdIntH;
-    /// Field values (by value)
-    THash<TInt, TIntV> FieldIdIntVH;
-    /// Field values (by value)
-    THash<TInt, TUInt64> FieldIdUInt64H;
-    /// Field values (by value)
-    THash<TInt, TStr> FieldIdStrH;
-    /// Field values (by value)
-    THash<TInt, TStrV> FieldIdStrVH;
-    /// Field values (by value)
-    THash<TInt, TBool> FieldIdBoolH;
-    /// Field values (by value)
-    THash<TInt, TFlt> FieldIdFltH;
-    /// Field values (by value)
-    THash<TInt, TFltV> FieldIdFltVH;
-    /// Field values (by value)
-    THash<TInt, TFltPr> FieldIdFltPrH;
-    /// Field values (by value)
-    THash<TInt, TTm> FieldIdTmH;
-    /// Field values (by value)
-    THash<TInt, TIntFltKdV> FieldIdNumSpVH;
-    /// Field values (by value)
-    THash<TInt, PBowSpV> FieldIdBowSpVH;
-	// Joins (by value)
-	THash<TInt, PRecSet> JoinIdRecSetH;
+    /// Field position in serialization (by value)
+    THash<TInt, TInt> FieldIdPosH;
+    /// Join position in serialization (by value)
+    THash<TInt, TInt> JoinIdPosH;
+    /// Record serialization (by value);    
+    TMem RecVal;
+    /// Output stream for serialization; points to RecVal (by value)
+    TRefMemOut RecValOut;
 
 private:
 	/// Get QMiner exception for requesting wrong field-type combinations
@@ -798,19 +787,31 @@ private:
 
 public:
 	/// Create empty record (no reference, no value)
-    TRec(): ByRefP(false), RecId(TUInt64::Mx) { }
+    TRec(): ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
 	/// Create empty record from a given store. Used to create records by value, 
 	/// expects field values to be added using AddField methods.
-    TRec(const TWPt<TStore>& _Store): Store(_Store), ByRefP(false), RecId(TUInt64::Mx) { }
+    TRec(const TWPt<TStore>& _Store): Store(_Store), 
+        ByRefP(false), RecId(TUInt64::Mx), RecValOut(RecVal) { }
 	/// Create record by reference
-    TRec(const TWPt<TStore>& _Store, const uint64& _RecId): Store(_Store), ByRefP(true), RecId(_RecId) { }
+    TRec(const TWPt<TStore>& _Store, const uint64& _RecId): Store(_Store), 
+        ByRefP(true), RecId(_RecId), RecValOut(RecVal) { }
+    /// Constructor from JSon
+    TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal);    
+    /// Copy-constructor
+    TRec(const TRec& Rec);
+    /// Assignment operator
+    TRec& operator=(const TRec& Rec);
+    
+    // TODO
+    TRec(TSIn& SIn): RecValOut(RecVal) { Fail; }
+    void Save(TSOut& SOut) const { Fail; };
 
 	/// Check if record is well defined
     bool IsDef() const { return !Store.Empty() && ((ByRefP && (RecId != TUInt64::Mx)) || !ByRefP); }
 	/// Get record's store
 	const TWPt<TStore>& GetStore() const { return Store; }
 	/// Get record's store ID    
-	uchar GetStoreId() const { return Store->GetStoreId(); }
+	uint GetStoreId() const { return Store->GetStoreId(); }
 	/// True when by reference
     bool IsByRef() const { return ByRefP; }
 	/// True when by value
@@ -843,6 +844,8 @@ public:
     /// Field value retrieval
     void GetFieldTm(const int& FieldId, TTm& Tm) const;
     /// Field value retrieval
+    uint64 GetFieldTmMSecs(const int& FieldId) const;    
+    /// Field value retrieval
     void GetFieldNumSpV(const int& FieldId, TIntFltKdV& NumSpV) const;
     /// Field value retrieval
     void GetFieldBowSpV(const int& FieldId, PBowSpV& BowSpV) const;
@@ -853,33 +856,33 @@ public:
 	TStr GetFieldText(const int& FieldId) const;
     
     /// Set field value to NULL
-	void AddFieldNull(const int& FieldId) { FieldIdNullSet.AddKey(FieldId); }
+	void SetFieldNull(const int& FieldId);
     /// Set field value
-	void AddFieldInt(const int& FieldId, const int& Int) { FieldIdIntH.AddDat(FieldId, Int); }
+	void SetFieldInt(const int& FieldId, const int& Int);
     /// Set field value
-    void AddFieldIntV(const int& FieldId, const TIntV& IntV) { FieldIdIntVH.AddDat(FieldId, IntV); }
+    void SetFieldIntV(const int& FieldId, const TIntV& IntV);
     /// Set field value
-    void AddFieldUInt64(const int& FieldId, const uint64& UInt64) { FieldIdUInt64H.AddDat(FieldId, UInt64); }
+    void SetFieldUInt64(const int& FieldId, const uint64& UInt64);
     /// Set field value
-	void AddFieldStr(const int& FieldId, const TStr& Str) { FieldIdStrH.AddDat(FieldId, Str); }
+	void SetFieldStr(const int& FieldId, const TStr& Str);
     /// Set field value
-	void AddFieldStrV(const int& FieldId, const TStrV& StrV) { FieldIdStrVH.AddDat(FieldId, StrV); }
+	void SetFieldStrV(const int& FieldId, const TStrV& StrV);
     /// Set field value
-	void AddFieldBool(const int& FieldId, const bool& Bool) { FieldIdBoolH.AddDat(FieldId, Bool); }
+	void SetFieldBool(const int& FieldId, const bool& Bool);
     /// Set field value
-    void AddFieldFlt(const int& FieldId, const double& Flt) { FieldIdFltH.AddDat(FieldId, Flt); }
+    void SetFieldFlt(const int& FieldId, const double& Flt);
     /// Set field value
-    void AddFieldFltV(const int& FieldId, const TFltV& FltV) { FieldIdFltVH.AddDat(FieldId, FltV); }
+    void SetFieldFltV(const int& FieldId, const TFltV& FltV);
     /// Set field value
-    void AddFieldFltPr(const int& FieldId, const TFltPr& FltPr) { FieldIdFltPrH.AddDat(FieldId, FltPr); }
+    void SetFieldFltPr(const int& FieldId, const TFltPr& FltPr);
     /// Set field value
-    void AddFieldTm(const int& FieldId, const TTm& Tm) { FieldIdTmH.AddDat(FieldId, Tm); }
+    void SetFieldTm(const int& FieldId, const TTm& Tm);
     /// Set field value
-    void AddFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV) { FieldIdNumSpVH.AddDat(FieldId, NumSpV); }
+    void SetFieldNumSpV(const int& FieldId, const TIntFltKdV& NumSpV);
     /// Set field value
-    void AddFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV) { FieldIdBowSpVH.AddDat(FieldId, BowSpV); }
+    void SetFieldBowSpV(const int& FieldId, const PBowSpV& BowSpV);
 	/// Add join
-	void AddJoin(const int& JoinId, const PRecSet& JoinRecSet) { JoinIdRecSetH.AddDat(JoinId, JoinRecSet); }
+	void AddJoin(const int& JoinId, const PRecSet& JoinRecSet);
 
     /// Get record set containing only this record (by reference)
     PRecSet ToRecSet() const;
@@ -1205,6 +1208,7 @@ private:
 	TRecSet() { }
     TRecSet(const TWPt<TStore>& Store, const uint64& RecId, const int& Wgt);
     TRecSet(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
+	TRecSet(const TWPt<TStore>& Store, const TIntV& RecIdV);
 	TRecSet(const TWPt<TStore>& Store, const TUInt64IntKdV& _RecIdFqV, const bool& _WgtP);
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
 
@@ -1219,6 +1223,8 @@ public:
 	static PRecSet New(const TWPt<TStore>& Store, const TRec& Rec);
 	/// Create record set from a given vector of record ids
 	static PRecSet New(const TWPt<TStore>& Store, const TUInt64V& RecIdV);
+	/// Create record set from a given vector of record ids
+	static PRecSet New(const TWPt<TStore>& Store, const TIntV& RecIdV);
 	/// Create record set from given vector of (Record id, weight) pairs
 	/// @param WgtP true when RecIdFqV contains valid weights 
 	static PRecSet New(const TWPt<TStore>& Store, const TUInt64IntKdV& RecIdFqV, const bool& WgtP);
@@ -1235,7 +1241,7 @@ public:
     /// Get store of the record set
     const TWPt<TStore>& GetStore() const { return Store; }
 	/// Get store id of the record set
-	uchar GetStoreId() const { return Store->GetStoreId(); }
+	uint GetStoreId() const { return Store->GetStoreId(); }
 
 	/// Number of records in the set
 	int GetRecs() const { return RecIdFqV.Len(); }
@@ -1415,7 +1421,7 @@ typedef enum {
 class TIndexKey {
 private:
 	/// Store ID of records indexed by this key
-	TUCh StoreId;
+	TUInt StoreId;
 	/// Key ID, unique on the level of Base
 	TInt KeyId;
 	/// Key name, unique on the level of Base
@@ -1433,14 +1439,14 @@ private:
 
 public:
 	/// Empty constructor creates undefined key
-	TIndexKey(): StoreId(TUCh::Mx), KeyId(-1), KeyNm(""), 
+	TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""), 
 		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) { }
 	/// Create internal key, used for index joins
-	TIndexKey(const uchar& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm): 
+	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm): 
 		StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1), TypeFlags(oiktInternal), 
 		SortType(oikstUndef), JoinNm(_JoinNm) { TValidNm::AssertValidNm(KeyNm); }
 	/// Create new key using given word vocabulary
-	TIndexKey(const uchar& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
+	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
 		const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
 	
 	/// Deserialize key from the stream
@@ -1451,7 +1457,7 @@ public:
 	/// True when key is well defined
 	bool IsDef() const { return !KeyNm.Empty(); }
 	/// Get store id which is being index by the key
-	uchar GetStoreId() const { return StoreId; }
+	uint GetStoreId() const { return StoreId; }
 	/// Get key id
 	int GetKeyId() const { return KeyId; }
 	/// Get key name
@@ -1580,9 +1586,9 @@ private:
 	/// Default Tokenizer
 	PTokenizer Tokenizer;
     /// List of all the keys
-    THash<TUChStrPr, TIndexKey> KeyH;
+    THash<TUIntStrPr, TIndexKey> KeyH;
     /// Keys split by stores
-    THash<TUCh, TIntSet> StoreIdKeyIdSetH;
+    THash<TUInt, TIntSet> StoreIdKeyIdSetH;
 	/// Word vocabularies
     TIndexWordVocV WordVocV;
 	/// Used to return empty set by reference
@@ -1608,17 +1614,17 @@ public:
 	/// Checks if key with given id exists
 	bool IsKeyId(const int& KeyId) const;
 	/// Checks if key with given name exists
-	bool IsKeyNm(const uchar& StoreId, const TStr& KeyNm) const;
+	bool IsKeyNm(const uint& StoreId, const TStr& KeyNm) const;
 	/// Get ID of key with a given name from a given store
-	int GetKeyId(const uchar& StoreId, const TStr& KeyNm) const;
+	int GetKeyId(const uint& StoreId, const TStr& KeyNm) const;
 	/// Get store indexed by given key
-	uchar GetKeyStoreId(const int& KeyId) const;
+	uint GetKeyStoreId(const int& KeyId) const;
 	/// Get name of the given key
 	TStr GetKeyNm(const int& KeyId) const;
 	/// Get reference to key description
 	const TIndexKey& GetKey(const int& KeyId) const;
 	/// Get reference to key description
-	const TIndexKey& GetKey(const uchar& StoreId, const TStr& KeyNm) const;
+	const TIndexKey& GetKey(const uint& StoreId, const TStr& KeyNm) const;
 	
 	/// Create new word vocabulary, returns its ID
 	int NewWordVoc() { return WordVocV.Add(TIndexWordVoc::New()); }
@@ -1628,16 +1634,16 @@ public:
     void SetWordVocNm(const int& WordVocId, const TStr& WordVocNm);
     
 	/// Create new key in the index vocabulary
-	int AddKey(const uchar& StoreId, const TStr& KeyNm, const int& WordVocId, 
+	int AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
 	/// Create new internal key
-	int AddInternalKey(const uchar& StoreId, const TStr& KeyNm, const TStr& JoinNm);
+	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm);
 	/// Linking key to a field
-	void AddKeyField(const int& KeyId, const uchar& StoreId, const int& FieldId);
+	void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
     /// Check if store has any index keys
-    bool IsStoreKeys(const uchar& StoreId) const;
+    bool IsStoreKeys(const uint& StoreId) const;
 	/// Get set of all the keys for a given store
-    const TIntSet& GetStoreKeys(const uchar& StoreId) const;
+    const TIntSet& GetStoreKeys(const uint& StoreId) const;
 
     /// Checks if given key contains a word vocabulary
 	bool IsWordVoc(const int& KeyId) const;
@@ -1741,7 +1747,7 @@ private:
     /// Record which this query node returns
 	TRec Rec;
 	/// Store which this query node returns
-	TUCh StoreId;
+	TUInt StoreId;
 	
 	/// Parse Value for leaf nodes (result stored in WordIdV)
 	void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc);
@@ -1779,7 +1785,7 @@ public:
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId, const TStr& WordStr, 
 		const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
-    TQueryItem(const TWPt<TBase>& Base, const uchar& StoreId, const TStr& KeyNm, 
+    TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm, 
 		const TStr& WordStr, const TQueryCmpType& _CmpType = oqctEqual);
 	/// Create new inverted index leaf query
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm, 
@@ -1789,7 +1795,7 @@ public:
 		const TFltPr& _Loc, const int& _LocLimit = 100, 
 		const double& _LocRadius = -1.0);
 	/// New leaf location query (limit always required, range used when positive)
-	TQueryItem(const TWPt<TBase>& Base, const uchar& StoreId, 
+	TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, 
 		const TStr& KeyNm, const TFltPr& _Loc, const int& _LocLimit = 100,
 		const double& _LocRadius = -1.0);
 	/// New leaf location query (limit always required, range used when positive)
@@ -1833,7 +1839,7 @@ public:
 	bool IsStore() const { return (Type == oqitStore); }
 
 	/// Get result store id
-	uchar GetStoreId(const TWPt<TBase>& Base) const;
+	uint GetStoreId(const TWPt<TBase>& Base) const;
 	/// Get result store id
 	TWPt<TStore> GetStore(const TWPt<TBase>& Base) const;
 	/// Check if there are no subordinate items or values
@@ -1885,7 +1891,7 @@ public:
 	/// Get query item record set
 	const PRecSet& GetRecSet() const { return RecSet; }
 	/// Access to store parameters
-	uchar GetStoreId() const { return StoreId; }
+	uint GetStoreId() const { return StoreId; }
 
 	friend class TQuery;
 };
@@ -2101,22 +2107,22 @@ public:
 	void Index(const int& KeyId, const TStrIntPrV& WordStrFqV, const uint64& RecId);	
 	/// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
 	/// Repeated words have associated weight based on their count, in case of text keys.
-    void Index(const uchar& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
+    void Index(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
-    void Index(const uchar& StoreId, const TStr& KeyNm, const TStrV& WordStrV, const uint64& RecId);
+    void Index(const uint& StoreId, const TStr& KeyNm, const TStrV& WordStrV, const uint64& RecId);
 	/// Index RecId under (Key, Word). WordStrV is sent through index vocabulary.
 	/// Each word indexed given the weight (frequency) from the input.
-	void Index(const uchar& StoreId, const TStr& KeyNm, const TStrIntPrV& WordStrFqV, const uint64& RecId);
+	void Index(const uint& StoreId, const TStr& KeyNm, const TStrIntPrV& WordStrFqV, const uint64& RecId);
 	/// Index RecId under (Key, Word). Each word is sent through index vocabulary
-	void Index(const uchar& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
+	void Index(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
 	/// Index RecId under given Key. Tokenize and clean given free text to derive words.
 	void IndexText(const int& KeyId, const TStr& TextStr, const uint64& RecId);
 	/// Index RecId under given Key. Tokenize and clean given free text to derive words.
-	void IndexText(const uchar& StoreId, const TStr& KeyNm, const TStr& TextStr, const uint64& RecId);
+	void IndexText(const uint& StoreId, const TStr& KeyNm, const TStr& TextStr, const uint64& RecId);
 	/// Index RecId under given Key. Tokenize and clean given free text to derive words.
 	void IndexText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId);
 	/// Index RecId under given Key. Tokenize and clean given free text to derive words.
-	void IndexText(const uchar& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
+	void IndexText(const uint& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
 	/// Index a join between RecId and JoinRecId
 	void IndexJoin(const TWPt<TStore>& Store, const int& JoinId, 
 		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = 1);
@@ -2132,19 +2138,19 @@ public:
 	/// Repeated words have associated weight based on their count.
 	void Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
 	/// Delete index for RecId under (Key, Word). WordStr is sent through index vocabulary.
-	void Delete(const uchar& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
+	void Delete(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId);
     /// Delete index for RecId under (Key, Word)
-	void Delete(const uchar& StoreId, const TStr& KeyNm, const uint64& WordId, const uint64& RecId);
+	void Delete(const uint& StoreId, const TStr& KeyNm, const uint64& WordId, const uint64& RecId);
 	/// Delete index for RecId under (Key, Word). Each word is sent through index vocabulary
-	void Delete(const uchar& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
+	void Delete(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId);
 	/// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
 	void DeleteText(const int& KeyId, const TStr& TextStr, const uint64& RecId);
 	/// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
-	void DeleteText(const uchar& StoreId, const TStr& KeyNm, const TStr& TextStr, const uint64& RecId);
+	void DeleteText(const uint& StoreId, const TStr& KeyNm, const TStr& TextStr, const uint64& RecId);
 	/// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
 	void DeleteText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId);
 	/// Delete index for RecId under given Key. Tokenize and clean given free text to derive words.
-	void DeleteText(const uchar& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
+	void DeleteText(const uint& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
 	// Remove join from index
 	void DeleteJoin(const TWPt<TStore>& Store, const int& JoinId, 
 		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq);
@@ -2155,15 +2161,15 @@ public:
 	void Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
 
 	/// Add RecId to location index under key (Key, Loc)
-    void Index(const uchar& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
+    void Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
 	/// Add RecId to location index under key (Key, Loc)
 	void Index(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
 	/// Delete RecId from location index under (Key, Loc)
-	void Delete(const uchar& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
+	void Delete(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId);
 	/// Delete RecId from location index under (Key, Loc)
 	void Delete(const int& KeyId, const TFltPr& Loc, const uint64& RecId);
 	/// Checks if two locations point to the same place
-	bool LocEquals(const uchar& StoreId, const TStr& KeyNm, const TFltPr& Loc1, const TFltPr& Loc2) const;
+	bool LocEquals(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc1, const TFltPr& Loc2) const;
 	/// Checks if two locations point to the same place
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
@@ -2243,7 +2249,7 @@ private:
 	TCRef CRef;
 	friend class TPt<TOp>;
 	/// Operator name
-	TStr OpNm;
+	const TStr OpNm;
 
 protected:
 	/// Create new operator with a given name. Name is validated against naming constraints.
@@ -2294,7 +2300,7 @@ private:
     /// QMiner Base pointer
     TWPt<TBase> Base;    
 	/// Aggreagte name
-	TStr AggrNm;
+	const TStr AggrNm;
 
 protected:
 	TAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
@@ -2345,8 +2351,10 @@ private:
     /// QMiner Base pointer
     TWPt<TBase> Base;
 	/// Stream aggreagte name
-	TStr AggrNm;
+	const TStr AggrNm;
 
+	/// Each trigger has a unique internal ID
+	TStr Guid;
 protected:
 	/// Create new stream aggregate
 	TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm);
@@ -2362,10 +2370,11 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
     /// Virtual destructor!
 	virtual ~TStreamAggr() { }
-	/// Save basic class of stream aggregate to stream
-	virtual void Save(TSOut& SOut) const;
+    
 	/// Load stream aggregate from stream
 	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	/// Save basic class of stream aggregate to stream
+	virtual void Save(TSOut& SOut) const;
 
 	/// Get aggregate name
 	const TStr& GetAggrNm() const { return AggrNm; }
@@ -2373,11 +2382,11 @@ public:
 	virtual bool IsInit() const { return true; }
 
 	/// Add new record to aggregate
-	virtual void OnAddRec(const TWPt<TStore>& Store, const uint64& RecId) = 0;
+	virtual void OnAddRec(const TRec& Rec) = 0;
 	/// Recored already added to the aggregate is being updated
-	virtual void OnUpdateRec(const TWPt<TStore>& Store, const uint64& RecId) { }
+	virtual void OnUpdateRec(const TRec& Rec) { }
 	/// Recored already added to the aggregate is being deleted from the store 
-	virtual void OnDeleteRec(const TWPt<TStore>& Store, const uint64& RecId) { }
+	virtual void OnDeleteRec(const TRec& Rec) { }
 
     // retrieving input aggregate names
     virtual void GetInAggrNmV(TStrV& InAggrNmV) const { };
@@ -2386,6 +2395,9 @@ public:
 	virtual void PrintStat() const { }
 	/// Serialization current status to JSon
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
+    
+	/// Unique ID of the trigger
+	const TStr& GetGuid() const { return Guid; }    
 };
 
 ///////////////////////////////
@@ -2411,6 +2423,15 @@ namespace TStreamAggrOut {
     
     // combination of numeric value and timestamp
     class IFltTm: public IFlt, public ITm { };
+    
+    class IFltTmIO {
+    public:
+        virtual double GetInFlt() const = 0;
+        virtual uint64 GetInTmMSecs() const = 0;
+		virtual void GetOutFltV(TFltV& ValV) const = 0;
+        virtual void GetOutTmMSecsV(TUInt64V& MSecsV) const = 0;
+        virtual int GetN() const = 0;
+    };
 
 	class IFltVec {
 	public:
@@ -2466,9 +2487,9 @@ public:
 	bool GetNextStreamAggrId(int& AggrId) const;
 	
 	// forward the calls to stream aggregates
-    void OnAddRec(const TWPt<TStore>& Store, const uint64& RecId);
-    void OnUpdateRec(const TWPt<TStore>& Store, const uint64& RecId);
-	void OnDeleteRec(const TWPt<TStore>& Store, const uint64& RecId);
+    void OnAddRec(const TRec& Rec);
+    void OnUpdateRec(const TRec& Rec);
+	void OnDeleteRec(const TRec& Rec);
 	
 	// serialize the base into json
 	PJsonVal SaveJson(const int& Limit) const;
@@ -2485,9 +2506,9 @@ public:
 	static PStoreTrigger New(const PStreamAggrBase& StreamAggrBase);
 
 	// forward the calls to stream aggreagte base
-    void OnAdd(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId);
-    void OnUpdate(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId);
-	void OnDelete(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId);
+    void OnAdd(const TRec& Rec);
+    void OnUpdate(const TRec& Rec);
+	void OnDelete(const TRec& Rec);
 };
 
 ///////////////////////////////
@@ -2565,20 +2586,20 @@ public:
     int GetStores() const { return StoreH.Len(); }
     bool IsStoreN(const uchar& StoreN) const { return 0 <= StoreN && StoreN < StoreH.Len(); }
     const TWPt<TStore> GetStoreByStoreN(const int& StoreN) const;
-    bool IsStoreId(const uchar& StoreId) const { return !StoreV[(int)StoreId].Empty(); }
-    const TWPt<TStore> GetStoreByStoreId(const uchar& StoreId) const;
+    bool IsStoreId(const uint& StoreId) const { return !StoreV[StoreId].Empty(); }
+    const TWPt<TStore> GetStoreByStoreId(const uint& StoreId) const;
     bool IsStoreNm(const TStr& StoreNm) const { return StoreH.IsKey(StoreNm); }
 	const TWPt<TStore> GetStoreByStoreNm(const TStr& StoreNm) const;
 	/// Helper function for returning JSon definition of store
     PJsonVal GetStoreJson(const TWPt<TStore>& Store);
 
 	// stream aggregates
-	const PStreamAggrBase& GetStreamAggrBase(const uchar& StoreId) const;
-	bool IsStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;
-	const PStreamAggr& GetStreamAggr(const uchar& StoreId, const TStr& StreamAggrNm) const;
+	const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
+	bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
+	const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
-	void AddStreamAggr(const uchar& StoreId, const PStreamAggr& StreamAggr);
-	void AddStreamAggr(const TUChV& StoreIdV, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
     // aggregate records
@@ -2622,7 +2643,7 @@ public:
     /// Add new record to a give store
 	uint64 AddRec(const TStr& StoreNm, const PJsonVal& RecVal);
     /// Add new record to a give store
-	uint64 AddRec(const int StoreId, const PJsonVal& RecVal);
+	uint64 AddRec(const uint& StoreId, const PJsonVal& RecVal);
     
     // searching records (default search interface)
 	PRecSet Search(const PQuery& Query);

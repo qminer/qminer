@@ -52,6 +52,23 @@ namespace TQm {
 		} \
 	}
 
+#define JsDeclareTemplatedFunction(Function) \
+	static v8::Handle<v8::Value> _ ## Function(const v8::Arguments& Args) { \
+		v8::HandleScope HandleScope; \
+		try { \
+			return HandleScope.Close(Function(Args)); \
+		} catch(PExcept Except) { \
+			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
+				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
+				v8::ThrowException(Why); \
+				return v8::Undefined(); \
+			} else { \
+				throw Except; \
+			} \
+		} \
+	} \
+	static v8::Handle<v8::Value> Function(const v8::Arguments& Args) { throw TQmExcept::New("Not implemented!"); }
+	
 // Property declaration and registration 
 #define JsRegisterProperty(Template, Function) \
 	Template->SetAccessor(v8::String::New(#Function), _ ## Function);
@@ -74,6 +91,40 @@ namespace TQm {
 		} \
 	}
 
+// Property declaration and registration 
+#define JsRegisterSetProperty(Template, JsFunction, GetCppFunction, SetCppFunction) \
+	Template->SetAccessor(v8::String::New(JsFunction), _ ## GetCppFunction, _ ## SetCppFunction);
+#define JsDeclareSetProperty(GetFunction, SetFunction) \
+	static v8::Handle<v8::Value> GetFunction(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info); \
+	static v8::Handle<v8::Value> _ ## GetFunction(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) { \
+		v8::HandleScope HandleScope; \
+		try { \
+			return HandleScope.Close(GetFunction(Properties, Info)); \
+		} catch(PExcept Except) { \
+			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
+				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
+				v8::ThrowException(Why); \
+				return v8::Undefined(); \
+			} else { \
+				throw Except; \
+			} \
+		} \
+	} \
+	static void SetFunction(v8::Local<v8::String> Properties, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info); \
+	static void _ ## SetFunction(v8::Local<v8::String> Properties, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) { \
+		v8::HandleScope HandleScope; \
+		try { \
+			SetFunction(Properties, Value, Info); \
+		} catch(PExcept Except) { \
+			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
+				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
+				v8::ThrowException(Why); \
+			} else { \
+				throw Except; \
+			} \
+		} \
+	}
+	
 // Indexed property declaration and registration 
 #define JsRegIndexedProperty(Template, Function) \
 	Template->SetIndexedPropertyHandler(_ ## Function);
@@ -94,12 +145,48 @@ namespace TQm {
 		} \
 	}
 
+// Indexed property getter/setter declaration and registration 
+#define JsRegGetSetIndexedProperty(Template, FunctionGetter, FunctionSetter) \
+	Template->SetIndexedPropertyHandler(_ ## FunctionGetter , _## FunctionSetter);
+#define JsDeclGetSetIndexedProperty(FunctionGetter, FunctionSetter) \
+	static v8::Handle<v8::Value> FunctionGetter(uint32_t Index, const v8::AccessorInfo& Info); \
+	static v8::Handle<v8::Value> _ ## FunctionGetter(uint32_t Index, const v8::AccessorInfo& Info) { \
+		v8::HandleScope HandleScope; \
+		try { \
+			return HandleScope.Close(FunctionGetter(Index, Info)); \
+		} catch(PExcept Except) { \
+			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
+				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
+				v8::ThrowException(Why); \
+				return v8::Undefined(); \
+			} else { \
+				throw Except; \
+			} \
+		} \
+	} \
+	static v8::Handle<v8::Value> FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info); \
+	static v8::Handle<v8::Value> _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) { \
+		v8::HandleScope HandleScope; \
+		try { \
+			return HandleScope.Close(FunctionSetter(Index, Value, Info)); \
+		} catch(PExcept Except) { \
+			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
+				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
+				v8::ThrowException(Why); \
+				return v8::Undefined(); \
+			} else { \
+				throw Except; \
+			} \
+		} \
+	}
+
 ///////////////////////////////
 // Forward declarations 
 class TScript; typedef TPt<TScript> PScript;
 class TJsBase; typedef TPt<TJsBase> PJsBase;
 class TJsFetch;
 class TJsFetchRq;
+class TJsHttpResp;
 
 ///////////////////////////////
 /// JavaScript Utility Function
@@ -116,7 +203,24 @@ private:
 	static v8::Persistent<v8::Function> JsonParser;
 	static v8::Persistent<v8::Function> JsonString;
 
+    /// Count of current number of objects of each type
+    static TStrH ObjNameH;
+    /// Number of changes (new/delete) so far
+    static TInt ObjCount;    
+    /// How often to print the statistics 
+    static TInt ObjCountRate;
 public:
+    /// Add new object to the count table
+	static void AddObj(const TStr& ObjName);
+    /// Remove existing object from the count table
+	static void DelObj(const TStr& ObjName);
+    /// Print statistics each so often
+	static void CountObj();
+    /// Get current statistics
+    static TStrIntPrV GetObjStat();
+    /// Set rate at which statistics is printed
+    static void SetObjStatRate(const int& _ObjCountRate);
+        
 	/// Parsing V8 exceptions, throws PJsExcept
 	static void HandleTryCatch(const v8::TryCatch& try_catch);
 
@@ -143,7 +247,7 @@ public:
 	static v8::Handle<v8::Value> GetCurrV8Date();
 
     /// Converts HttpRq from glib to JSON
-    static PJsonVal HttpRqToJson(PHttpRq HttpRq);
+    static v8::Handle<v8::Object> HttpRqToJson(PHttpRq HttpRq);
 };
 
 ///////////////////////////////
@@ -175,12 +279,13 @@ template <class TJsObj>
 class TJsObjUtil {
 public:  
 	/// Creates new empty JavaScript object around TJsObj
-	static v8::Persistent<v8::Object> New(TJsObj* JsObj) {
+	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const bool& MakeWeakP = true) {
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::ObjectTemplate> Template = TJsObj::GetTemplate();
 		v8::Persistent<v8::Object> Object = v8::Persistent<v8::Object>::New(Template->NewInstance());
 		Object->SetInternalField(0, v8::External::New(JsObj));
-		Object.MakeWeak(NULL, &Clean);
+		if (MakeWeakP) { Object.MakeWeak(NULL, &Clean); }
+		TJsUtil::AddObj(GetTypeNm<TJsObj>(*JsObj));
 		return Object;
 	}
 
@@ -190,6 +295,7 @@ public:
 		v8::Persistent<v8::Object> Object = v8::Persistent<v8::Object>::New(Template->NewInstance());
 		Object->SetInternalField(0, v8::External::New(JsObj));
 		Object.MakeWeak(NULL, &Clean);
+		TJsUtil::AddObj(GetTypeNm<TJsObj>(*JsObj));
 		return Object;
 	}
 
@@ -198,6 +304,7 @@ public:
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Handle);
 		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Object->GetInternalField(0));
+                TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
 		delete static_cast<TJsObj*>(WrappedObject->Value());
 		Handle.Dispose();
 		Handle.Clear();
@@ -231,8 +338,9 @@ public:
 	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
 	static TStr GetClass(const v8::Handle<v8::Object> Obj) {
 		v8::HandleScope HandleScope;
-		v8::Handle<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::New("class"));
-		if (!ClassNm->IsString()) return "";		
+		v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::New("class"));
+		const bool EmptyP = ClassNm.IsEmpty();
+		if (EmptyP) { return ""; }
 		v8::String::Utf8Value Utf8(ClassNm);
 		return TStr(*Utf8);		
 	}
@@ -313,6 +421,19 @@ public:
 		}
 		return DefVal;
 	}
+	
+	/// Extract argument ArgN property as bool
+	static bool GetArgBool(const v8::Arguments& Args, const int& ArgN, const TStr& Property, const bool& DefVal) {
+		v8::HandleScope HandleScope;
+		if (Args.Length() > ArgN) {			
+			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr()))) {
+				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+				 QmAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d, property %s expected to be boolean", ArgN, Property.CStr()));
+				 return static_cast<bool>(Val->BooleanValue());
+			}
+		}
+		return DefVal;
+	}
         
 	/// Check if argument ArgN is of type integer
 	static bool IsArgInt32(const v8::Arguments& Args, const int& ArgN) {
@@ -344,10 +465,9 @@ public:
 	/// Extract argument ArgN property as int
 	static int GetArgInt32(const v8::Arguments& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
 		v8::HandleScope HandleScope;
-		if (Args.Length() > ArgN) {
-			//TODO: check IsObject()
-			if (Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr()))) {
-				v8::Handle<v8::Value> Val = Args[0]->ToObject()->Get(v8::String::New(Property.CStr()));
+		if (Args.Length() > ArgN) {			
+			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr()))) {
+				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
 				 QmAssertR(Val->IsInt32(), TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()));
 				 return Val->ToNumber()->Int32Value();
 			}
@@ -480,7 +600,7 @@ public:
 	/// QMiner Base
 	TWPt<TBase> Base;
 	/// List of declared triggers
-	TVec<TPair<TUCh, PStoreTrigger> > TriggerV;
+	TVec<TPair<TUInt, PStoreTrigger> > TriggerV;
 	/// HTTP web fetcher
 	TWPt<TJsFetch> JsFetch;
 	
@@ -515,6 +635,8 @@ public:
 	/// Execute JavaScript callback in this script's context
 	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
 	/// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
@@ -531,13 +653,13 @@ public:
 	/// Add new server function
 	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
 	/// Execute stored server function
-	void ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespObj);
+	void ExecuteSrvFun(const PHttpRq& HttpRq, const TWPt<TJsHttpResp>& JsHttpResp);
     /// Get array of registered server function rules
     PJsonVal GetSrvFunRules() const { return TJsonVal::NewArr(SrvFunRuleV); }
 	/// Add new fetch request
 	void AddFetchRq(const TJsFetchRq& Rq);
 	/// Remember new trigger
-	void AddTrigger(const uchar& StoreId, const PStoreTrigger& Trigger);
+	void AddTrigger(const uint& StoreId, const PStoreTrigger& Trigger);
 
 	/// Callback for loading modules in from javascript
 	JsDeclareFunction(require);
@@ -573,6 +695,21 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Server Function
+class TJsAdminSrvFun : public TSAppSrvFun {
+private:
+    /// List of existing JS contexts
+    TVec<TWPt<TScript> > ScriptV;
+
+	TJsAdminSrvFun(const TVec<PScript>& _ScriptV, const TStr& _FunNm): 
+        TSAppSrvFun(_FunNm, saotCustom) { }
+public:
+	static PSAppSrvFun New(const TVec<PScript>& ScriptV, const TStr& FunNm) { 
+		return new TJsAdminSrvFun(ScriptV, FunNm); }
+	void Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+};
+
+///////////////////////////////
 // JavaScript Store Trigger
 class TJsStoreTrigger : public TStoreTrigger {
 private:
@@ -588,9 +725,9 @@ public:
 	static PStoreTrigger New(TWPt<TScript> Js, v8::Handle<v8::Object> TriggerVal) {
 		return new TJsStoreTrigger(Js, TriggerVal); }
 
-	void OnAdd(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId);
-	void OnUpdate(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId);
-	void OnDelete(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId);
+	void OnAdd(const TRec& Rec);
+	void OnUpdate(const TRec& Rec);
+	void OnDelete(const TRec& Rec);
 };
 
 ///////////////////////////////
@@ -671,6 +808,7 @@ public:
 
 	// functions
 	JsDeclareFunction(say);
+	JsDeclareFunction(getln);
 };
 
 ///////////////////////////////
@@ -699,6 +837,7 @@ public:
 	//JsDeclareProperty(correlation);
 	JsDeclareProperty(args);
 	JsDeclareProperty(analytics);
+    JsDeclareProperty(sysStat);
 	// basic functions
 	JsDeclareFunction(store);
 	JsDeclareFunction(getStoreList);
@@ -717,7 +856,6 @@ private:
 	TWPt<TStore> Store;
 
 	typedef TJsObjUtil<TJsStore> TJsStoreUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
 
 	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
 public:
@@ -740,7 +878,10 @@ public:
 	// functions
 	JsDeclareFunction(rec);
 	JsDeclareFunction(add);
+	JsDeclareFunction(newRec);
+	JsDeclareFunction(newRecSet);
 	JsDeclareFunction(sample);
+	JsDeclareFunction(field);
 	JsDeclareFunction(key);
 	JsDeclareFunction(addTrigger);
     JsDeclareFunction(addStreamAggr);
@@ -793,7 +934,6 @@ private:
 	PRecSet RecSet;	
 
 	typedef TJsObjUtil<TJsRecSet> TJsRecSetUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
 
 	TJsRecSet(TWPt<TScript> _Js, const PRecSet& _RecSet);
 public:
@@ -826,6 +966,7 @@ public:
 	JsDeclareFunction(filterByFq);
 	JsDeclareFunction(filterByField);
 	JsDeclareFunction(filter);
+	JsDeclareFunction(deleteRecs);
 	JsDeclareFunction(toJSON);
 };
 
@@ -859,7 +1000,7 @@ public:
     JsDeclareProperty(id);
     JsDeclareProperty(name);
 	JsDeclareProperty(fq);
-	JsDeclareProperty(field);
+	JsDeclareSetProperty(getField, setField);
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
     // function
@@ -877,7 +1018,6 @@ private:
 	TIndexKey IndexKey;
 
 	typedef TJsObjUtil<TJsIndexKey> TJsIndexKeyUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
 
 	TJsIndexKey(TWPt<TScript> _Js, const TIndexKey& _IndexKey): 
 		Js(_Js), IndexKey(_IndexKey) { }	
@@ -906,7 +1046,6 @@ public:
     
 private:
 	typedef TJsObjUtil<TJsAnalytics> TJsAnalyticsUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
     
 	TJsAnalytics(TWPt<TScript> _Js): Js(_Js) { }
 public:
@@ -915,14 +1054,35 @@ public:
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
-	JsDeclareFunction(getLanguageOptions);
+    // get options for text parsing (stemmers, stop word lists)
+	JsDeclareFunction(getLanguageOptions);    
+    // feature space
+    // newFeatureSpace(feature extractor declarations)
     JsDeclareFunction(newFeatureSpace);
+    // loadFeatureSpace(fin)
+    JsDeclareFunction(loadFeatureSpace);
+    
+    // support vector machine
+    // trainSvmClassify(matrix, vector, parameters)
 	JsDeclareFunction(trainSvmClassify);
+    // trainSvmRegression(matrix, vector, parameters)
     JsDeclareFunction(trainSvmRegression);
+    // loadSvmModel(fin)
+	JsDeclareFunction(loadSvmModel);
+    
+    // recursive linear regression
+    // linRegLearn(records, parameters)    
+    JsDeclareFunction(newRecLinReg);	
+    
+    // clustering (TODO: still depends directly on feature space)
+    // trainKMeans(featureSpace, positives, negatives, parameters)
 	JsDeclareFunction(trainKMeans);
+    
+    // active learning (TODO: replace with one implemented around TJsLinAlg)
+    // newActiveLearner(featureSpace, records, query, parameters)
 	JsDeclareFunction(newActiveLearner);
+    // delActiveLearner(name)
 	JsDeclareFunction(delActiveLearner);
-	JsDeclareFunction(newRecLinReg);
 };
 
 ///////////////////////////////
@@ -936,7 +1096,6 @@ public:
     
 private:
 	typedef TJsObjUtil<TJsFtrSpace> TJsFtrSpaceUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
     
 	TJsFtrSpace(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace): Js(_Js), FtrSpace(_FtrSpace) { }
 public:
@@ -946,6 +1105,10 @@ public:
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
+    // dimensionality of feature space
+    JsDeclareProperty(dim);    
+    // serilization
+    JsDeclareFunction(save);
     // for batch learning of feature space
 	JsDeclareFunction(updateRecord);
 	JsDeclareFunction(updateRecords);
@@ -955,6 +1118,9 @@ public:
     // mapping of records to feature vectors
     JsDeclareFunction(ftrSpVec);
     JsDeclareFunction(ftrVec);
+	// maping of record sets to matrices (records correspond to columns)
+	JsDeclareFunction(ftrSpColMat);
+    JsDeclareFunction(ftrColMat);
 };
 
 ///////////////////////////////
@@ -963,32 +1129,22 @@ class TJsSvmModel {
 public:
 	/// JS script context
 	TWPt<TScript> Js;	
-    /// Feature Space
-    PFtrSpace FtrSpace;    
-    /// Should vectors be normalized prior to usage
-    TBool NormalizeP;
-    /// Does model have probabilistic sigmoid mapping
-    TBool ProbP;
     /// SVM Model
     PSVMModel Model;
     
 private:
 	typedef TJsObjUtil<TJsSvmModel> TJsSvmModelUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
     
-	TJsSvmModel(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace, 
-        const bool& _NormalizeP, const PSVMModel& _Model): 
-            Js(_Js), FtrSpace(_FtrSpace), NormalizeP(_NormalizeP), 
-            ProbP(false), Model(_Model) { }
+	TJsSvmModel(TWPt<TScript> _Js, const PSVMModel& _Model): Js(_Js), Model(_Model) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace, 
-        const bool& NormalizeP, const PSVMModel& Model) { return TJsSvmModelUtil::New(
-            new TJsSvmModel(Js, FtrSpace, NormalizeP, Model)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PSVMModel& Model) { 
+        return TJsSvmModelUtil::New(new TJsSvmModel(Js, Model)); }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
-    JsDeclareProperty(featureSpace);
-	JsDeclareFunction(classify);
+	JsDeclareFunction(predict);
+	JsDeclareFunction(getWeights);    
+	JsDeclareFunction(save);
 };
 
 ///////////////////////////////
@@ -1002,15 +1158,11 @@ public:
     
 private:
 	typedef TJsObjUtil<TJsAL> TJsALUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
     
-	TJsAL(TWPt<TScript> _Js, const PBowAL& _AL): 
-            Js(_Js), AL(_AL) { }
+	TJsAL(TWPt<TScript> _Js, const PBowAL& _AL): Js(_Js), AL(_AL) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js,
-            const PBowAL& AL) { return TJsALUtil::New(
-            new TJsAL(Js, AL)); }
-
+        const PBowAL& AL) { return TJsALUtil::New(new TJsAL(Js, AL)); }
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
     JsDeclareFunction(getQuestion);
@@ -1028,14 +1180,16 @@ public:
 	TSignalProc::PRecLinReg Model;    
 private:
 	typedef TJsObjUtil<TJsRecLinRegModel> TJsRecLinRegModelUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;    
 	TJsRecLinRegModel(TWPt<TScript> _Js, const TSignalProc::PRecLinReg& _Model): Js(_Js), Model(_Model) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PRecLinReg& Model) {
 		return TJsRecLinRegModelUtil::New(new TJsRecLinRegModel(Js, Model)); }
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
 	JsDeclareFunction(learn);
 	JsDeclareFunction(predict);
+	JsDeclareFunction(getWeights);
+	JsDeclareProperty(dim);
 };
 
 ///////////////////////////////
@@ -1044,8 +1198,6 @@ class TJsCorrelation {
 
 private:
 	typedef TJsObjUtil<TJsCorrelation> TJsCorrelationUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-
 public:
 	explicit TJsCorrelation() { }	
 	static v8::Persistent<v8::Object> New() { return TJsCorrelationUtil::New(new TJsCorrelation); }
@@ -1068,8 +1220,6 @@ private:
 
 private:
 	typedef TJsObjUtil<TJsGeoIp> TJsGeoIpUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-
 	explicit TJsGeoIp() { }	
 public:
 	static v8::Persistent<v8::Object> New() { return TJsGeoIpUtil::New(new TJsGeoIp); }
@@ -1128,18 +1278,17 @@ public:
 	PSIn SIn;
 private:
 	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-
 	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
 public:
 	static v8::Persistent<v8::Object> New(const TStr& FNm) {
 		return TJsFInUtil::New(new TJsFIn(FNm)); }
+    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
 
    	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	JsDeclareFunction(peekCh);
 	JsDeclareFunction(getCh);
-	JsDeclareFunction(getNextLn);
+	JsDeclareFunction(readLine);
 	JsDeclareProperty(eof);
 	JsDeclareProperty(length);
 };
@@ -1151,19 +1300,20 @@ public:
 	PSOut SOut;
 private:
 	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
 	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
 	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
 
 public:
 	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
 		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
-
+    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
+    
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	JsDeclareFunction(write);
 	JsDeclareFunction(writeLine);
 	JsDeclareFunction(flush);
+  	JsDeclareFunction(close);
 };
 
 ///////////////////////////////
@@ -1211,14 +1361,13 @@ public:
     
 private:
 	typedef TJsObjUtil<TJsHttpResp> TJsHttpRespUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
     
+public:
 	TJsHttpResp(TWebSrv* _WebSrv, const uint64& _SockId): WebSrv(_WebSrv),
         SockId(_SockId), StatusCode(THttp::OkStatusCd), 
         ContTypeStr(THttp::AppJSonFldVal), DoneP(false) { }
-public:
-	static v8::Persistent<v8::Object> New(TWebSrv* WebSrv, const uint64& SockId) { 
-		return TJsHttpRespUtil::New(new TJsHttpResp(WebSrv, SockId)); }
+	static v8::Persistent<v8::Object> _New(TWebSrv* WebSrv, const uint64& SockId) { 
+		return TJsHttpRespUtil::New(new TJsHttpResp(WebSrv, SockId), false); }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
@@ -1237,7 +1386,6 @@ public:
     TTm Tm;
 private:
 	typedef TJsObjUtil<TJsTm> TJsTmUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
     
 	TJsTm(const TTm& _Tm): Tm(_Tm) { }
 public:
@@ -1269,8 +1417,7 @@ class TJsLinAlg {
 public:
 	/// JS script context
 	TWPt<TScript> Js;    
-private:
-	TFltV Vec;
+private:	
 	/// Object utility class
 	typedef TJsObjUtil<TJsLinAlg> TJsLinAlgUtil;
     
@@ -1283,57 +1430,272 @@ public:
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	JsDeclareFunction(newVec);
+	JsDeclareFunction(newIntVec);
 	JsDeclareFunction(newMat);
+	JsDeclareFunction(newSpVec);
+	JsDeclareFunction(newSpMat);
+	JsDeclareFunction(svd);
 };
 
 ///////////////////////////////
-// QMiner-FltV
-class TJsFltV {
+// QMiner-Vector
+template <class TVal, class TAux> class TJsVec;
+
+class TAuxFltV {
+public:	
+	static const TStr ClassId; //ClassId is set to "TFltV"
+	static v8::Handle<v8::Value> GetObjVal(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+	static double GetArgVal(const v8::Arguments& Args, const int& ArgN) {
+		return TJsObjUtil<TJsVec<TFlt, TAuxFltV> >::GetArgFlt(Args, ArgN);
+	}
+	static double CastVal(const v8::Local<v8::Value>& Value) {
+		return Value->ToNumber()->Value();
+	}
+};
+
+class TAuxIntV {
+public:	
+	static const TStr ClassId; //ClassId is set to "TIntV"
+	static v8::Handle<v8::Value> GetObjVal(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Integer::New(Val));
+	}
+	static int GetArgVal(const v8::Arguments& Args, const int& ArgN) {
+		return TJsObjUtil<TJsVec<TInt, TAuxIntV> >::GetArgInt32(Args, ArgN);
+	}
+	static int CastVal(const v8::Local<v8::Value>& Value) {
+		return Value->ToInt32()->Value();
+	}
+};
+
+template <class TVal = TFlt, class TAux = TAuxFltV>
+class TJsVec {
 public:
 	/// JS script context
 	TWPt<TScript> Js;    
-	TFltV Vec;
+	typedef TVec<TVal> TValV;
+	TValV Vec;
 private:	
 	/// Object utility class
-	typedef TJsObjUtil<TJsFltV> TJsFltVUtil;    
-    explicit TJsFltV(TWPt<TScript> _Js): Js(_Js) { }	
-public:
+	typedef TJsObjUtil<TJsVec<TVal, TAux> > TJsVecUtil;
+    explicit TJsVec(TWPt<TScript> _Js): Js(_Js) { }	
+public:	
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
-		v8::Persistent<v8::Object> obj = TJsFltVUtil::New(new TJsFltV(Js));
+		v8::Persistent<v8::Object> obj = TJsVecUtil::New(new TJsVec(Js));
 		v8::Handle<v8::String> key = v8::String::New("class");
-		v8::Handle<v8::String> value = v8::String::New("TFltV");
-		obj->SetHiddenValue(key, value);
+		v8::Handle<v8::String> value = v8::String::New(TAux::ClassId.CStr());
+		obj->SetHiddenValue(key, value);		
 		return  obj;
 	}
-	static TFltV& GetFltV(const v8::Handle<v8::Object> Obj) {
-		return TJsFltVUtil::GetSelf(Obj)->Vec;
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TValV& _Vec) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsVec::SetVec(obj, _Vec);		
+		return  obj;
 	}
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
+	static TValV& GetVec(const v8::Handle<v8::Object> Obj) {
+		return TJsVecUtil::GetSelf(Obj)->Vec;
+	}
+	static void SetVec(const v8::Handle<v8::Object> Obj, const TValV& _Vec) {
+		TJsVecUtil::GetSelf(Obj)->Vec = _Vec;
+	}
+	
+	/// template	
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 	// get element
-	JsDeclareFunction(at);	
+	JsDeclareFunction(at);
+	// index
+	JsDeclGetSetIndexedProperty(indexGet, indexSet);
 	// set element, returns undefined
 	JsDeclareFunction(put);	
 	// INPLACE : append an element, returns undefined
 	JsDeclareFunction(push);	
 	// sum elements
 	JsDeclareFunction(sum);
+	// sum elements
+	JsDeclareFunction(getMaxIdx);
+	// sort (returns a new vector)
+	JsDeclareFunction(sort);
+	// sort, result has two objects: result.vec, result.perm
+	JsDeclareTemplatedFunction(sortPerm);	
 	// outer product
-	JsDeclareFunction(outer);
+	JsDeclareTemplatedFunction(outer);
 	// inner product
-	JsDeclareFunction(inner);
+	JsDeclareTemplatedFunction(inner);
 	// add vectors
-	JsDeclareFunction(plus);
+	JsDeclareTemplatedFunction(plus);
 	// subtract vectors
-	JsDeclareFunction(minus);
+	JsDeclareTemplatedFunction(minus);
 	// scalar multiply
-	JsDeclareFunction(multiply);
+	JsDeclareTemplatedFunction(multiply);
 	// INPLACE : normalizes the vector, returns undefined
-	JsDeclareFunction(normalize);
+	JsDeclareTemplatedFunction(normalize);
 	// gets vector length
 	JsDeclareProperty(length);
+	// print vector
+	JsDeclareFunction(print);
+	// get diagonal matrix
+	JsDeclareTemplatedFunction(diag);
+	// get sparse diagonal matrix
+	JsDeclareTemplatedFunction(spDiag);
+	// get norm
+	JsDeclareTemplatedFunction(norm);
+	// to sparse
+	JsDeclareTemplatedFunction(sparse);
 };
+typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
+typedef TJsVec<TInt, TAuxIntV> TJsIntV;
+
+template <class TVal, class TAux>
+v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, at);	
+		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, push);	
+		JsRegisterFunction(TmpTemp, sum);
+		JsRegisterFunction(TmpTemp, getMaxIdx);
+		JsRegisterFunction(TmpTemp, sort);
+		JsRegisterFunction(TmpTemp, sortPerm);
+		JsRegisterFunction(TmpTemp, outer);
+		JsRegisterFunction(TmpTemp, inner);
+		JsRegisterFunction(TmpTemp, plus);
+		JsRegisterFunction(TmpTemp, minus);
+		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, normalize);
+		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, print);
+		JsRegisterFunction(TmpTemp, diag);
+		JsRegisterFunction(TmpTemp, spDiag);	
+		JsRegisterFunction(TmpTemp, norm);
+		JsRegisterFunction(TmpTemp, sparse);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
+	}
+	return Template;
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::at(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	TInt Index = TJsVecUtil::GetArgInt32(Args, 0);	
+	QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector at: index out of bounds");
+	TVal result = JsVec->Vec[Index];
+	return TAux::GetObjVal(result, HandleScope);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::indexGet(uint32_t Index, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Info);	
+	QmAssertR(Index < (uint32_t)JsVec->Vec.Len(), "vector at: index out of bounds");
+	TVal result = JsVec->Vec[Index];
+	return TAux::GetObjVal(result, HandleScope);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::put(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	if (Args.Length() == 2) {
+		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
+		QmAssertR(Args[1]->IsNumber(), "the second argument should be a number");				
+		TInt Index = TJsVecUtil::GetArgInt32(Args, 0);
+		TVal Val = TAux::GetArgVal(Args, 1);	
+		QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector put: index out of bounds");		
+		JsVec->Vec[Index] = Val;
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Info);
+	QmAssertR(Index < (uint32_t)JsVec->Vec.Len(), "vector at: index out of bounds");
+	TVal Val = TAux::CastVal(Value);	
+	JsVec->Vec[Index] = Val;	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::push(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	TVal Val = TAux::GetArgVal(Args, 0);	
+	int result = JsVec->Vec.Add(Val);	
+	return HandleScope.Close(v8::Integer::New(result));	
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::sum(const v8::Arguments& Args) {
+	// currently only float vectors are supported
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	double result = 0.0;
+	int Els = JsVec->Vec.Len();
+	if (Els > 0) {
+		for (int ElN = 0; ElN < Els; ElN++) {
+			result += JsVec->Vec[ElN];
+		}
+	}
+	return HandleScope.Close(v8::Number::New(result));
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::getMaxIdx(const v8::Arguments& Args) {
+	// currently only float vectors are supported
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	double Val = TFlt::Mn;
+	int Idx = -1;	
+	int Els = JsVec->Vec.Len();
+	for (int ElN = 0; ElN < Els; ElN++) {
+		if (JsVec->Vec[ElN] > Val) {
+			Val = JsVec->Vec[ElN];
+			Idx = ElN;
+		}		
+	}
+	return HandleScope.Close(v8::Int32::New(Idx));
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::sort(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	bool Asc = true;
+	if (Args.Length() > 0) {
+		if (Args[0]->IsBoolean()) {
+			Asc = Args[0]->BooleanValue();
+		}
+	}
+	v8::Persistent<v8::Object> JsResult = TJsVec<TVal,TAux>::New(JsVec->Js);
+	TVec<TVal>& Result = JsVec->Vec;
+	Result.Sort(Asc);
+	return HandleScope.Close(JsResult);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Info);	
+	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec<TVal, TAux>* JsVec = TJsVecUtil::GetSelf(Args);
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ElN++) {
+		printf("%s ", JsVec->Vec[ElN].GetStr().CStr());		
+	}
+	printf("\n");	
+	return HandleScope.Close(v8::Undefined());	
+}
 
 ///////////////////////////////
 // QMiner-FltVV
@@ -1345,7 +1707,7 @@ public:
 private:	
 	/// Object utility class
 	typedef TJsObjUtil<TJsFltVV> TJsFltVVUtil;    
-    explicit TJsFltVV(TWPt<TScript> _Js): Js(_Js) { }	
+    explicit TJsFltVV(TWPt<TScript> _Js): Js(_Js) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 		
 		v8::Persistent<v8::Object> obj = TJsFltVVUtil::New(new TJsFltVV(Js));
@@ -1354,8 +1716,16 @@ public:
 		obj->SetHiddenValue(key, value);
 		return  obj;
 	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TFltVV& _Mat) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsFltVV::SetFltVV(obj, _Mat);		
+		return  obj;
+	}
 	static TFltVV& GetFltVV(const v8::Handle<v8::Object> Obj) {
 		return TJsFltVVUtil::GetSelf(Obj)->Mat;
+	}
+	static void SetFltVV(const v8::Handle<v8::Object> Obj, const TFltVV& _Mat) {
+		TJsFltVVUtil::GetSelf(Obj)->Mat = _Mat;
 	}
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -1363,8 +1733,10 @@ public:
 	JsDeclareFunction(at);	
 	// set element, returns undefined
 	JsDeclareFunction(put);
-	// matrix x scalar, matrix x vector, matrix x matrix
+	// matrix * scalar, matrix * vector, matrix * matrix
 	JsDeclareFunction(multiply);
+	// matrix' * scalar, matrix' * vector, matrix' * matrix
+	JsDeclareFunction(multiplyT);
 	// matrix + matrix
 	JsDeclareFunction(plus);
 	// matrix - matrix
@@ -1373,12 +1745,174 @@ public:
 	JsDeclareFunction(transpose);
 	// solves a linear system A x = y. Input: y, Output: x
 	JsDeclareFunction(solve);
+	// get row norms
+	JsDeclareFunction(rowNorms);
+	// get col norms
+	JsDeclareFunction(colNorms);
 	// INPLACE : changes the matrix by normalizing columns, return undefined
 	JsDeclareFunction(normalizeCols);
+	// get sparse column matrix
+	JsDeclareFunction(sparse);
+	// get frobenious norm
+	JsDeclareFunction(frob);
 	// get number of rows
 	JsDeclareProperty(rows);
 	// get number of columns
 	JsDeclareProperty(cols);
+	// get print matrix string
+	JsDeclareFunction(printStr);
+	// print matrix
+	JsDeclareFunction(print);
+	// get the index of the maximum element in a given row
+	JsDeclareFunction(rowMaxIdx);
+	// get the index of the maximum element in a given col
+	JsDeclareFunction(colMaxIdx);
+	// get a copy of a given column
+	JsDeclareFunction(getCol);
+	// set a column given a vector
+	JsDeclareFunction(setCol);
+	// get a copy of a given row
+	JsDeclareFunction(getRow);
+	// set a row given a vector
+	JsDeclareFunction(setRow);
+};
+
+///////////////////////////////
+// QMiner-Sparse-Vector
+class TJsSpV {
+public:
+	/// JS script context
+	TWPt<TScript> Js;    
+	TIntFltKdV Vec;
+	int Dim;
+private:	
+	/// Object utility class
+	typedef TJsObjUtil<TJsSpV> TJsSpVUtil;    
+	explicit TJsSpV(TWPt<TScript> _Js) : Js(_Js), Dim(-1) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		v8::Persistent<v8::Object> obj = TJsSpVUtil::New(new TJsSpV(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TIntFltKdV");
+		obj->SetHiddenValue(key, value);		
+		return  obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIntFltKdV& _Vec) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpV::SetSpV(obj, _Vec);
+		return  obj;
+	}
+	static TIntFltKdV& GetSpV(const v8::Handle<v8::Object> Obj) {
+		return TJsSpVUtil::GetSelf(Obj)->Vec;
+	}
+	static void SetSpV(const v8::Handle<v8::Object> Obj, const TIntFltKdV& _Vec) {
+		TJsSpVUtil::GetSelf(Obj)->Vec = _Vec;
+	}
+	static void SetDim(const v8::Handle<v8::Object> Obj, const int& _Dim) {
+		TJsSpVUtil::GetSelf(Obj)->Dim = _Dim;
+	}
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	// get element
+	JsDeclareFunction(at);	
+	// set element, returns undefined
+	JsDeclareFunction(put);		
+	// sum elements
+	JsDeclareFunction(sum);	
+	// inner product
+	JsDeclareFunction(inner);	
+	// scalar multiply
+	JsDeclareFunction(multiply);
+	// INPLACE : normalizes the vector, returns undefined
+	JsDeclareFunction(normalize);
+	// gets the number of nonzero elements
+	JsDeclareProperty(nnz);	
+	// gets the number of nonzero elements
+	JsDeclareProperty(dim);	
+	// print
+	JsDeclareFunction(print);
+	// norm
+	JsDeclareFunction(norm);
+	// full
+	JsDeclareFunction(full);
+};
+
+
+///////////////////////////////
+// QMiner-Sparse-Col-Matrix
+class TJsSpMat {
+public:
+	/// JS script context
+	TWPt<TScript> Js;    
+	// 
+	TVec<TIntFltKdV> Mat;	
+	int Rows;
+private:	
+	/// Object utility class
+	typedef TJsObjUtil<TJsSpMat> TJsSpMatUtil;    
+	explicit TJsSpMat(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 		
+		v8::Persistent<v8::Object> obj = TJsSpMatUtil::New(new TJsSpMat(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TVec<TIntFltKdV>");
+		obj->SetHiddenValue(key, value);
+		SetRows(obj, -1);
+		return  obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TVec<TIntFltKdV>& _Mat) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpMat::SetSpMat(obj, _Mat);		
+		return  obj;
+	}
+	static TVec<TIntFltKdV>& GetSpMat(const v8::Handle<v8::Object> Obj) {
+		return TJsSpMatUtil::GetSelf(Obj)->Mat;
+	}
+	static void SetSpMat(const v8::Handle<v8::Object> Obj, const TVec<TIntFltKdV>& _Mat) {
+		TJsSpMatUtil::GetSelf(Obj)->Mat = _Mat;
+	}
+	static void SetRows(const v8::Handle<v8::Object> Obj, const int& _Rows) {
+		TJsSpMatUtil::GetSelf(Obj)->Rows = _Rows;
+	}
+	static int GetRows(const v8::Handle<v8::Object> Obj) {
+		return TJsSpMatUtil::GetSelf(Obj)->Rows;
+	}
+	static int GetCols(const v8::Handle<v8::Object> Obj) {
+		return TJsSpMatUtil::GetSelf(Obj)->Mat.Len();
+	}
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// get element
+	JsDeclareFunction(at);
+	// set element, returns undefined
+	JsDeclareFunction(put);
+	// add a sparse column vector to the matrix
+	JsDeclareFunction(push);
+	// matrix * scalar, matrix * vector, matrix * matrix
+	JsDeclareFunction(multiply);
+	// matrix' * scalar, matrix' * vector, matrix' * matrix
+	JsDeclareFunction(multiplyT);
+	// matrix + matrix
+	JsDeclareFunction(plus);
+	// matrix - matrix
+	JsDeclareFunction(minus);
+	// returns the transpose of a matrix
+	JsDeclareFunction(transpose);	
+	// get column norms
+	JsDeclareFunction(colNorms);
+	// INPLACE : changes the matrix by normalizing columns, return undefined
+	JsDeclareFunction(normalizeCols);
+	// get dense matrix
+	JsDeclareFunction(full);
+	// get frobenious norm
+	JsDeclareFunction(frob);
+	// get number of rows
+	JsDeclareProperty(rows);
+	// get number of columns
+	JsDeclareProperty(cols);
+	// print
+	JsDeclareFunction(print);
 };
 
 }

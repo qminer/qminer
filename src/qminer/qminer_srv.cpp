@@ -78,7 +78,7 @@ void TSfWordVoc::GetWordVoc(const TStrKdV& FldNmValPrV, TStrIntPrV& WordStrFqV) 
 		// parse store
 		TStr StoreNm = GetFldVal(FldNmValPrV, "store");
 		if (!Base->IsStoreNm(StoreNm)) { throw TQmExcept::New("Unknown store " + StoreNm); }
-		const uchar StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
+		const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
 		// parse key
 		TStr KeyNm = GetFldVal(FldNmValPrV, "key");
 		if (!IndexVoc->IsKeyNm(StoreId, KeyNm)) { throw TQmExcept::New("Unknown key " + StoreNm + "." + KeyNm); }
@@ -165,7 +165,7 @@ TWPt<TStore> TSfStoreRec::GetStore(const TStrKdV& FldNmValPrV) const {
 	if (IsFldNm(FldNmValPrV, "storeid")) {
 		TStr StoreIdStr = GetFldVal(FldNmValPrV, "storeid");
 		QmAssertR(StoreIdStr.IsInt(), "Missing or invalid store ID " + StoreIdStr);
-		const uchar StoreId = (uchar)StoreIdStr.GetInt();
+		const uint StoreId = StoreIdStr.GetUInt();
 		QmAssertR(Base->IsStoreId(StoreId), "No store with ID " + StoreIdStr);
 		return Base->GetStoreByStoreId(StoreId);
 	} else if (IsFldNm(FldNmValPrV, "store")) {

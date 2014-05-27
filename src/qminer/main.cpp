@@ -236,9 +236,17 @@ public:
 };
 
 // initialize javascript
-void InitJs(const TQmParam& Param, const TQm::PBase& Base, TVec<TQm::PScript>& ScriptV) {
+void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScriptNm, TVec<TQm::PScript>& ScriptV) {
+    if (!OnlyScriptNm.Empty()) {
+        TQm::InfoLog("Set limit to script " + OnlyScriptNm);
+    }
 	for (int JsN = 0; JsN < Param.JsParamV.Len(); JsN++) {
 		const TQmParam::TJsParam& JsParam = Param.JsParamV[JsN];
+        // skip if required
+        if (!OnlyScriptNm.Empty() && JsParam.Nm != OnlyScriptNm) {
+            TQm::InfoLog("Skipping script " + JsParam.Nm); continue;        
+        }
+        // otherwise continue with load
 		TQm::InfoLog("Loading script " + JsParam.FNm.GetFMid() + "...");
         try {
             // initialize javascript engine		
@@ -249,7 +257,7 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, TVec<TQm::PScript>& S
             ScriptV.Add(Script);
             // done
             TQm::InfoLog("  done");
-        } catch (PExcept Except) {
+        } catch (PExcept& Except) {
             TQm::ErrorLog("Error loading script " + JsParam.FNm.GetFMid() + ":");
             TQm::ErrorLog("  " + Except->GetMsgStr());
         }
@@ -315,6 +323,7 @@ int main(int argc, char* argv[]) {
 		if (!Env.IsSilent()) { printf("\nStart parameters:\n"); }
 		const bool RdOnlyP = Env.IsArgStr("-rdonly", "Open database in Read-only mode");
 		const bool NoLoopP = Env.IsArgStr("-noserver", "Do not start server after script execution");
+		TStr OnlyScriptNm = Env.GetIfArgPrefixStr("-script=", "", "Only run this script");
 		// read stop-specific parameters
 		if (!Env.IsSilent()) { printf("\nStop parameters:\n"); }
 		const int ReturnCode = Env.GetIfArgPrefixInt("-return=", 0, "Return code");
@@ -325,10 +334,14 @@ int main(int argc, char* argv[]) {
 		if (!Env.IsSilent()) { printf("\nDebug parameters:\n"); }
 		TStr DebugFNm = Env.GetIfArgPrefixStr("-prefix=", "Debug-", "Prefix of debug output files");
 		TStrV DebugTaskV = Env.GetIfArgPrefixStrV("-task=", "Debug tasks [indexvoc, index, stores, <store>, <store>_ALL]");
+		const int JsStatRate = Env.GetIfArgPrefixInt("-jsmemstat=", 0, "Frequency of JavaScript memory statistics");        
 		// read logging specific parameters
 		if (!Env.IsSilent()) { printf("\nLogging parameters:\n"); }
 		TStr LogFPath = Env.GetIfArgPrefixStr("-log=", "std", "Log Folder (std for standard output, null for silent)");
 		const bool Verbose = Env.IsArgStr("-v", "Verbose output (used for debugging)");
+		if (!Env.IsSilent()) { printf("\nPre-run file:\n"); }		
+		const TStr PreRunFNm = Env.GetIfArgPrefixStr("-prerun=", "", "Pre-run file name");
+		if (!PreRunFNm.Empty()) { system(PreRunFNm.CStr()); }
 		if (!Env.IsSilent()) { printf("\n"); }
 
 		// stop if no action specified
@@ -409,9 +422,12 @@ int main(int argc, char* argv[]) {
 					SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
 				}
 				// initialize javascript contexts
-				TVec<TQm::PScript> ScriptV; InitJs(Param, Base, ScriptV);
+                TQm::TJsUtil::SetObjStatRate(JsStatRate);
+				TVec<TQm::PScript> ScriptV; InitJs(Param, Base, OnlyScriptNm, ScriptV);
 				// start server
 				if (!NoLoopP) {
+                    // register admin services
+                    SrvFunV.Add(TQm::TJsAdminSrvFun::New(ScriptV, "admin"));
 					// register javascript contexts
 					for (int ScriptN = 0; ScriptN < ScriptV.Len(); ScriptN++) {
 						// register server function

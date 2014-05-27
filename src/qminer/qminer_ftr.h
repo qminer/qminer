@@ -41,15 +41,20 @@ private:
     
 	/// New constructor delegate
 	typedef PFtrExt (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-    /// Stream aggregate descriptions
-	static TFunRouter<PFtrExt, TNewF> NewRouter;   
+    /// Feature extractor New constructor router
+	static TFunRouter<PFtrExt, TNewF> NewRouter;
+    /// Load constructor delegate
+	typedef PFtrExt (*TLoadF)(const TWPt<TBase>& Base, TSIn& SIn);   
+    /// Feature extractor Load constructor router
+	static TFunRouter<PFtrExt, TLoadF> LoadRouter;
 public:
-    /// Register default aggregates
+    /// Register default feature extractors
     static void Init();
-    /// Register new aggregate
-    template <class TObj> static void Register() { 
+    /// Register new feature extractor
+    template <class TObj> static void Register() {
         NewRouter.Register(TObj::GetType(), TObj::New);
-    }    
+        LoadRouter.Register(TObj::GetType(), TObj::Load);
+    }
 private:    
     /// QMiner Base pointer
     TWPt<TBase> Base;
@@ -63,7 +68,7 @@ protected:
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
 
-	/// Checkes the record store and uses appropriate join sequence 
+	/// Checks the record store and uses appropriate join sequence 
     /// to derive a single join record from feature store
 	TRec DoSingleJoin(const TRec& Rec) const;
 
@@ -71,12 +76,20 @@ protected:
 	TFtrExt(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV);
     /// Feature extractor parsed from JSon parameters
 	TFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	/// Load basic class of feature extractor   
+	TFtrExt(const TWPt<TBase>& _Base, TSIn& SIn);
+    
 public:
     /// Create new feature extractor from JSon parameters
 	static PFtrExt New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
-    
+    /// Virtual destructor!
 	virtual ~TFtrExt() { }
 
+	/// Load feature extractor from stream
+	static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+	/// Save basic class of feature extractor to stream
+	virtual void Save(TSOut& SOut) const;   
+   
 	/// Name of the feature (e.g. field name, store name)
 	virtual TStr GetNm() const { return "[undefined]"; };
 	/// Dimensionality of the feature space
@@ -100,13 +113,13 @@ public:
 	virtual void ExtractTmV(const TRec& Rec, TTmV& TmV) const;
 
 	/// Check if the given store is one of the allowed start stores
-	bool IsStartStore(const uchar& StoreId) const { return JoinSeqH.IsKey(StoreId); }
+	bool IsStartStore(const uint& StoreId) const { return JoinSeqH.IsKey(StoreId); }
 	/// Is there a join to be done when starting from the given store
-	bool IsJoin(const uchar& StoreId) const { return JoinSeqH.GetDat(StoreId).IsJoin(); }
+	bool IsJoin(const uint& StoreId) const { return JoinSeqH.GetDat(StoreId).IsJoin(); }
     /// Get the join sequence required to be executed for the given store
-	const TJoinSeq& GetJoinSeq(const uchar& StoreId) const { return JoinSeqH.GetDat(StoreId); }
+	const TJoinSeq& GetJoinSeq(const uint& StoreId) const { return JoinSeqH.GetDat(StoreId); }
     /// Get the join IDs required to be executed for the given store
-	const TIntPrV& GetJoinIdV(const uchar& StoreId) const { return JoinSeqH.GetDat(StoreId).GetJoinIdV(); }
+	const TIntPrV& GetJoinIdV(const uint& StoreId) const { return JoinSeqH.GetDat(StoreId).GetJoinIdV(); }
 	/// Store from which the features come
 	TWPt<TStore> GetFtrStore() const { return FtrStore; }
 };
@@ -133,15 +146,18 @@ private:
     
     void Init();
 
-	TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt): 
-        Base(_Base), FtrExtV(TFtrExtV::GetV(FtrExt)) { Init(); }
-	TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV): 
-        Base(_Base), FtrExtV(_FtrExtV) { Init(); }
+	TFtrSpace(const TWPt<TBase>& _Base, const PFtrExt& FtrExt);
+	TFtrSpace(const TWPt<TBase>& _Base, const TFtrExtV& _FtrExtV);
+    TFtrSpace(const TWPt<TBase>& _Base, TSIn& SIn);
 public:
-	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PFtrExt& FtrExt) { 
-        return new TFtrSpace(Base, FtrExt); }
-	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV) { 
-        return new TFtrSpace(Base, FtrExtV); }
+    /// Create feature space with one feature extractor
+	static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const PFtrExt& FtrExt); 
+    /// Create feature space with multiple feature extractors
+    static TPt<TFtrSpace> New(const TWPt<TBase>& Base, const TFtrExtV& FtrExtV);
+    /// Load existing feature space from stream
+    static TPt<TFtrSpace> Load(const TWPt<TBase>& Base, TSIn& SIn);
+    /// Save feature space to stream
+	void Save(TSOut& SOut) const;       
 
 	/// Generate a name of feature space. Composed by concatenating feature extractor names.
 	TStr GetNm() const;
@@ -160,6 +176,8 @@ public:
 	void GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const;
 	/// Extracting full feature vectors from a record set
 	void GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV) const;
+	/// Extracting full feature vectors (columns) from a record set
+	void GetFullVV(const PRecSet& RecSet, TFltVV& FullVV) const;
 	/// Compute sparse centroid of a given record set
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	/// Compute full centroid of a given record set
@@ -191,11 +209,16 @@ private:
 
 	TRandom(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& RndSeed);
 	TRandom(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TRandom(const TWPt<TBase>& Base, TSIn& SIn);
+
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& RndSeed);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& RndSeed);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& RndSeed);
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return "Random"; };
 	int GetDim() const { return 1; }
@@ -217,28 +240,22 @@ public:
 /// Numeric Feature Extractor
 class TNumeric : public TFtrExt {
 private:
-    /// numeric extractor type
-    typedef enum { tNone, tNormalize, tMnMxVal } TType;
-private:
-    /// Feature generator type
-    TType Type;
-    /// Minimal value for normalization
-    TFlt MnVal;
-    /// Maximal value for normalization
-    TFlt MxVal;
-    
+    /// Feature generator
+    TFtrGen::TNumeric FtrGen;
 	/// Field Id
 	TInt FieldId;
     /// Field description
     TFieldDesc FieldDesc;
 
     /// Get value from a given record
-	double GetRecVal(const TRec& Rec) const; 
-	double GetFtrVal(const TRec& Rec) const; 
+	double _GetVal(const TRec& Rec) const; 
+    /// Check if there is join, and forward to _GetVal
+	double GetVal(const TRec& Rec) const; 
 
 	TNumeric(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
         const int& _FieldId, const bool& _NormalizeP);
     TNumeric(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TNumeric(const TWPt<TBase>& Base, TSIn& SIn);    
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
         const int& FieldId, const bool& NormalizeP = true);
@@ -248,11 +265,14 @@ public:
         const int& FieldId, const bool& NormalizeP = true);
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
 	TStr GetNm() const { return "Numeric[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
 	int GetDim() const { return 1; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
-	void Clr();
+	void Clr() { FtrGen.Clr(); }
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
@@ -275,7 +295,7 @@ public:
 class TCategorical : public TFtrExt {
 private:
 	// nominal feature generator
-	TFtrGen::TNominal FtrGen;
+	TFtrGen::TCategorical FtrGen;
 	// field Id
 	TInt FieldId;
     // field description
@@ -286,20 +306,26 @@ private:
 
 	TCategorical(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId);
     TCategorical(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TCategorical(const TWPt<TBase>& Base, TSIn& SIn);    
+    
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId);
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
 	TStr GetNm() const { return "Categorical[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
-	int GetDim() const { return FtrGen.GetVals(); }
+	int GetDim() const { return FtrGen.GetDim(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
-	void Clr() { FtrGen = TFtrGen::TNominal(); }
+	void Clr() { FtrGen.Clr(); }
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -319,7 +345,7 @@ public:
 class TMultinomial : public TFtrExt {
 private:
 	// multinomial feature generator
-	TFtrGen::TMultiNom FtrGen;
+	TFtrGen::TMultinomial FtrGen;
 	// field Id
 	TInt FieldId;
     // field description
@@ -332,20 +358,26 @@ private:
 
 	TMultinomial(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId);
     TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TMultinomial(const TWPt<TBase>& Base, TSIn& SIn);
+    
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId);
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
 	TStr GetNm() const { return "Multinomial[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
-	int GetDim() const { return FtrGen.GetVals(); }
+	int GetDim() const { return FtrGen.GetDim(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
-	void Clr() { FtrGen = TFtrGen::TMultiNom(); }
+	void Clr() { FtrGen.Clr(); }
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -359,24 +391,41 @@ public:
 // Bag-of-words Feature Extractor.
 typedef enum { bowmConcat, bowmCentroid } TBagOfWordsMode;
 
-class TBagOfWords : public TFtrExt {
+class TBagOfWords : public TFtrExt, protected TTmWnd::TCallback {
 private:
-	// numeric feature generator
-	TFtrGen::TToken FtrGen;
-	// field Id
+	/// Bag of words feature generator
+	TFtrGen::TBagOfWords FtrGen;
+    
+	/// Field Id
 	TInt FieldId;
-    // field description
+    /// Field description
     TFieldDesc FieldDesc;
- 	// how to deal with multiple instances
+
+ 	/// How to deal with multiple instances
 	TBagOfWordsMode Mode;
+    
+    /// Time field id, when provided
+    TInt TimeFieldId;
+    /// Time window calling Forget on feature generator
+    TTmWnd TmWnd;
+    /// Forgetting factor
+    TFlt ForgetFactor;            
 
 	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
 	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
 	void GetVal(const TRec& Rec, TStrV& StrV) const; 
 
-	TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId,
-	  const TBagOfWordsMode& _Mode, const PSwSet& SwSet, const PStemmer& Stemmer);
+protected:
+    // time window callback
+    void NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSecs);
+
+private:
+    TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId,
+	  const TBagOfWordsMode& _Mode, const PSwSet& SwSet, const PStemmer& Stemmer, 
+      const int& HashDim = -1);
     TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn);
+    
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
         const TBagOfWordsMode& Mode = bowmConcat, const PSwSet& SwSet = TSwSet::New(swstEn523), 
@@ -389,14 +438,18 @@ public:
         const PStemmer& Stemmer = TStemmer::New(stmtPorter, false));
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;
+    
 	TStr GetNm() const { return "BagOfWords[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
-	int GetDim() const { return FtrGen.GetVals(); }
+	int GetDim() const { return FtrGen.GetDim(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
-	void Clr() { FtrGen = TFtrGen::TToken(FtrGen.GetSwSet(), FtrGen.GetStemmer()); }
+	void Clr() { FtrGen.Clr(); }
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -432,11 +485,16 @@ private:
 
 	TJoin(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _BucketSize);
     TJoin(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TJoin(const TWPt<TBase>& Base, TSIn& SIn);
+    
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& BucketSize = 1);
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& BucketSize = 1);
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;
+    
 	TStr GetNm() const { return "Join[" + GetFtrStore()->GetStoreNm() + "]"; }
 	int GetDim() const { return Dim; }
 	TStr GetFtr(const int& FtrN) const { return GetFtrStore()->GetStoreNm(); }
@@ -445,6 +503,7 @@ public:
 	bool Update(const TRec& Rec) { return false; }
 	// sparse vector extraction
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -473,6 +532,7 @@ private:
 	TPair(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
         const PFtrExt& _FtrExt1, const PFtrExt& _FtrExt2);
     TPair(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TPair(const TWPt<TBase>& Base, TSIn& SIn);
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
         const PFtrExt& FtrExt1, const PFtrExt& FtrExt2);
@@ -482,6 +542,9 @@ public:
         const PFtrExt& FtrExt1, const PFtrExt& FtrExt2);
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;    
+    
 	TStr GetNm() const { return "Pair[" + FtrExt1->GetNm() + "," + FtrExt2->GetNm() + "]"; };
 	int GetDim() const { return FtrIdPairH.Len(); }
 	TStr GetFtr(const int& FtrN) const;
@@ -490,6 +553,7 @@ public:
 	// sparse vector extraction
 	bool Update(const TRec& FtrRec);
 	void AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const;
+	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& FtrRec, TStrV& StrV) const;

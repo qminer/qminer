@@ -59,6 +59,44 @@ v8::Persistent<v8::Context> TJsUtil::ParseContext;
 v8::Persistent<v8::Function> TJsUtil::JsonParser;
 v8::Persistent<v8::Function> TJsUtil::JsonString;
 
+TStrH TJsUtil::ObjNameH = TStrH();
+TInt TJsUtil::ObjCount = 0;
+TInt TJsUtil::ObjCountRate = 0;
+
+void TJsUtil::AddObj(const TStr& ObjName) {
+    ObjNameH.AddDat(ObjName)++;
+    CountObj();
+}
+
+void TJsUtil::DelObj(const TStr& ObjName) {
+    QmAssert(ObjNameH.IsKey(ObjName));
+    ObjNameH.GetDat(ObjName)--;
+    CountObj();
+}
+
+void TJsUtil::CountObj() {
+    ObjCount++;
+    if ((ObjCountRate > 0) && (ObjCount % ObjCountRate == 0)) {
+        int KeyId = ObjNameH.FFirstKeyId();
+        DebugLog("COUNT start ----------------\n");
+        while (ObjNameH.FNextKeyId(KeyId)) {
+            TEnv::Logger->OnStatusFmt("COUNT: %s %d \n",
+                ObjNameH.GetKey(KeyId).CStr(), ObjNameH[KeyId].Val);
+        }
+        InfoLog("COUNT end ------------------\n");
+    }
+}
+
+TStrIntPrV TJsUtil::GetObjStat() {
+    TStrIntPrV ObjNameCountV;
+    ObjNameH.GetKeyDatPrV(ObjNameCountV);
+    return ObjNameCountV;
+}
+
+void TJsUtil::SetObjStatRate(const int& _ObjCountRate) {
+    ObjCountRate = _ObjCountRate;
+}
+
 void TJsUtil::HandleTryCatch(const v8::TryCatch& TryCatch) {
 	v8::HandleScope HandleScope;
 	if (!TryCatch.HasCaught()) { return; }
@@ -151,50 +189,47 @@ v8::Handle<v8::Value> TJsUtil::GetCurrV8Date() {
 	return HandleScope.Close(Date);
 }
 
-PJsonVal TJsUtil::HttpRqToJson(PHttpRq HttpRq) {
-    PJsonVal Request = TJsonVal::NewObj();
+v8::Handle<v8::Object> TJsUtil::HttpRqToJson(PHttpRq HttpRq) {
+	v8::HandleScope HandleScope;
+    v8::Handle<v8::Object> Request = v8::Object::New();
     // Headers
     for (int FieldN = 0; FieldN < HttpRq->GetFldValH().Len(); FieldN++) {
         TStr KeyVal = HttpRq->GetFldValH().GetKey(FieldN);
-        Request->AddToObj(KeyVal, HttpRq->GetFldValH().GetDat(KeyVal));
+        Request->Set(v8::String::New(KeyVal.CStr()), v8::String::New(HttpRq->GetFldValH().GetDat(KeyVal).CStr()));
     }
     // Method
-    Request->AddToObj("method", HttpRq->GetMethodNm());
+    Request->Set(v8::String::New("method"), v8::String::New(HttpRq->GetMethodNm().CStr()));
     // URL
     // - scheme
-    Request->AddToObj("scheme", HttpRq->GetUrl()->GetSchemeNm());
+    Request->Set(v8::String::New("scheme"), v8::String::New(HttpRq->GetUrl()->GetSchemeNm().CStr()));
     // - path
-    Request->AddToObj("path", HttpRq->GetUrl()->GetPathStr());
+    Request->Set(v8::String::New("path"), v8::String::New(HttpRq->GetUrl()->GetPathStr().CStr()));
     // GET arguments
-    PJsonVal Args = TJsonVal::NewObj();
+    v8::Handle<v8::Object> Args = v8::Object::New();
     for (int KeyN = 0; KeyN < HttpRq->GetUrlEnv()->GetKeys(); KeyN++) {
-        PJsonVal ArgVals = TJsonVal::NewArr();
         TStr ArgKey = HttpRq->GetUrlEnv()->GetKeyNm(KeyN);
+        v8::Handle<v8::Array> ArgVals = v8::Array::New(HttpRq->GetUrlEnv()->GetVals(ArgKey));
         for (int ValN = 0; ValN < HttpRq->GetUrlEnv()->GetVals(ArgKey); ValN++) {
-            ArgVals->AddToArr(TJsonVal::NewStr(HttpRq->GetUrlEnv()->GetVal(ArgKey, ValN)));
+            ArgVals->Set(ValN, v8::String::New(HttpRq->GetUrlEnv()->GetVal(ArgKey, ValN).CStr()));
         }
-        Args->AddToObj(ArgKey, ArgVals);
+        Args->Set(v8::String::New(ArgKey.CStr()), ArgVals);
     }
-    Request->AddToObj("args", Args);
+    Request->Set(v8::String::New("args"), Args);
     // Request Body
     // - raw data
     TStr Data;
     if (HttpRq->IsBody()) {
         Data = HttpRq->GetBodyAsStr();
-        TEnv::Debug->OnStatusFmt("Data Received %s ", Data.CStr());
+        //TEnv::Debug->OnStatusFmt("Data Received %s ", Data.CStr());
         // parse JSON
         if (HttpRq->IsContType(THttp::AppJSonFldVal)) {
-            PJsonVal BodyVal = TJsonVal::GetValFromSIn(HttpRq->GetBodyAsSIn());
-            // check we got a valid JSon
-            if (BodyVal->IsObj() || BodyVal->IsArr()) {
-                // yes
-                Request->AddToObj("jsonData", BodyVal);
-            }
+            v8::Handle<v8::Value> BodyVal = TJsUtil::ParseJson(HttpRq->GetBodyAsStr());
+            Request->Set(v8::String::New("jsonData"), BodyVal);
         }
     }
-    Request->AddToObj("data", Data);
-
-    return Request;
+    Request->Set(v8::String::New("data"), v8::String::New(Data.CStr()));
+	return HandleScope.Close(Request); 
+    //return Request;
 }
 
 ///////////////////////////////
@@ -285,7 +320,7 @@ void TScript::Reload() {
 	JsNmFunH.Clr();
 	// clear any existing triggers
 	for (int TriggerN = 0; TriggerN < TriggerV.Len(); TriggerN++) {
-		const uchar StoreId = TriggerV[TriggerN].Val1;
+		const uint StoreId = TriggerV[TriggerN].Val1;
 		PStoreTrigger Trigger = TriggerV[TriggerN].Val2;
 		Base->GetStoreByStoreId(StoreId)->DelTrigger(Trigger);
 	}
@@ -323,6 +358,15 @@ void TScript::Execute(v8::Handle<v8::Function> Fun, const PJsonVal& Arg1, v8::Ha
 	v8::TryCatch TryCatch;
 	const int Argc = 2;
 	v8::Handle<v8::Value> Argv[Argc] = { TJsUtil::ParseJson(Arg1), Arg2 };
+	Fun->Call(Context->Global(), Argc, Argv);
+	TJsUtil::HandleTryCatch(TryCatch);
+}
+
+void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>&  Arg1, v8::Handle<v8::Object>& Arg2) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 2;
+	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
 	Fun->Call(Context->Global(), Argc, Argv);
 	TJsUtil::HandleTryCatch(TryCatch);
 }
@@ -443,7 +487,7 @@ void TScript::AddSrvFun(const TStr& ScriptNm, const TStr& FunNm,
     JsNmFunH.AddDat(TInt(SrvFunRuleV.Len()-1), JsFun);
 }
 
-void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespObj) {
+void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, const TWPt<TJsHttpResp>& JsHttpResp) {
 	v8::HandleScope HandleScope;
     // Get the Verb
     TStr Verb = HttpRq->GetMethodNm();
@@ -454,7 +498,7 @@ void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespO
 
     // Search the rules
     int SelectedRule = -1;
-    PJsonVal Params;
+    v8::Handle<v8::Object> Params = v8::Object::New();
     bool RuleMatched = false;
     for(int RuleN = 0; RuleN < SrvFunRuleV.Len(); RuleN++) {
         PJsonVal Rule = SrvFunRuleV.GetVal(RuleN);
@@ -468,12 +512,12 @@ void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespO
         }
         int Seg = 0;
         bool IsMatch = true;
-        Params = TJsonVal::NewObj();
         for(int PathN = 0; PathN < Rule->GetArrVals(); PathN++) {
             if(Rule->GetArrVal(PathN)->GetObjStr("path") == Url->GetPathSeg(Seg)) {
                 if(Rule->GetArrVal(PathN)->IsObjKey(("param"))) {
                     Seg++;
-                    Params->AddToObj(Rule->GetArrVal(PathN)->GetObjStr("param"), Url->GetPathSeg(Seg));
+                    Params->Set(v8::String::New(Rule->GetArrVal(PathN)->GetObjStr("param").CStr()),
+                                v8::String::New(Url->GetPathSeg(Seg).CStr()));
                 }
                 Seg++;
             }
@@ -498,16 +542,17 @@ void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespO
     }
     // Get the function
     // Request
-    PJsonVal Request = TJsUtil::HttpRqToJson(HttpRq);
+    v8::Handle<v8::Object> Request = TJsUtil::HttpRqToJson(HttpRq);
     // @TODO add request args
-    Request->AddToObj("params", Params);
+    Request->Set(v8::String::New("params"), Params);
     // Exec
     if(RuleMatched && SelectedRule >= 0) {
         // get function
         v8::Persistent<v8::Function> JsFun = JsNmFunH.GetDat(SelectedRule);
         // execute
         try {
-            Execute(JsFun, Request, RespObj);
+            v8::Handle<v8::Object> HttpResp = TJsObjUtil<TJsHttpResp>::New(JsHttpResp());
+            Execute(JsFun, Request, HttpResp);
         } catch (const PExcept& Except) {
             InfoLog("Error handling request: " + Except->GetMsgStr());
             throw TQmExcept::New("Error handling request: " + Except->GetMsgStr());
@@ -521,44 +566,56 @@ void TScript::ExecuteSrvFun(const PHttpRq& HttpRq, v8::Handle<v8::Object>& RespO
     }
 }
 
-void TScript::AddTrigger(const uchar& StoreId, const PStoreTrigger& Trigger) { 
-	TriggerV.Add(TPair<TUCh, PStoreTrigger>(StoreId, Trigger)); 
+void TScript::AddTrigger(const uint& StoreId, const PStoreTrigger& Trigger) { 
+	TriggerV.Add(TPair<TUInt, PStoreTrigger>(StoreId, Trigger)); 
 }
 
 v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-    // get pointer to the context and script
-    v8::Handle<v8::Object> Self = Args.Holder();
-    v8::Handle<v8::Context> Context = Self->CreationContext();
-	v8::Context::Scope ContextScope(Context);    
-    TWPt<TScript> Script = TScript::GetGlobal(Context);
-    // get module filename
-    TStr ModuleFNm = TJsObjUtil<TScript>::GetArgStr(Args, 0);
-    // check if one of built-in modules
-    if (ModuleFNm == "analytics") { 
-        return TJsAnalytics::New(Script);
-    } else if (ModuleFNm == "geoip") { 
-        return TJsGeoIp::New();
-    } else if (ModuleFNm == "time") {
-        return TJsTm::New();
+    TStr ModuleFNm;
+    try {
+        // get pointer to the context and script
+        v8::Handle<v8::Object> Self = Args.Holder();
+        v8::Handle<v8::Context> Context = Self->CreationContext();
+        v8::Context::Scope ContextScope(Context);    
+        TWPt<TScript> Script = TScript::GetGlobal(Context);
+        // get module filename
+        ModuleFNm = TJsObjUtil<TScript>::GetArgStr(Args, 0);
+        // check if one of built-in modules
+        if (ModuleFNm == "__analytics__") { 
+            return TJsAnalytics::New(Script);
+        } else if (ModuleFNm == "geoip") { 
+            return TJsGeoIp::New();
+        } else if (ModuleFNm == "time") {
+            return TJsTm::New();
+        } else if (ModuleFNm == "analytics") { 
+            InfoLog("Warning: require('analytics') is deprecated, use require('analytics.js') instead");
+            return TJsAnalytics::New(Script);
+        }
+        // load the source of the module
+        InfoLog("Loading " + ModuleFNm);
+        TStr ModuleSource = Script->LoadModuleSrc(ModuleFNm);
+        // handle JS exceptions
+        v8::TryCatch TryCatch;
+        // compile the module
+        v8::Handle<v8::Script> Module = v8::Script::Compile(
+            v8::String::New(ModuleSource.CStr()),
+             v8::String::New(ModuleFNm.CStr()));
+        // execute the module
+        Module->Run();
+        // collect the result
+        v8::Handle<v8::Function> ModuleFun = v8::Handle<v8::Function>::Cast(
+            Context->Global()->Get(v8::String::New("module")));
+        v8::Handle<v8::Value> RetVal = ModuleFun->Call(Context->Global(), 0, NULL);
+        // handle errors
+        TJsUtil::HandleTryCatch(TryCatch);
+        // return result
+        return HandleScope.Close(RetVal);
+    } catch (PExcept Except) {
+        ErrorLog("Error loading module " + ModuleFNm + ": " + Except->GetMsgStr());
     }
-    // load the source of the module
-    InfoLog("Loading " + ModuleFNm);
-    TStr ModuleSource = Script->LoadModuleSrc(ModuleFNm);
-    // handle JS exceptions
-    v8::TryCatch TryCatch;
-    // compile the module
-    v8::Handle<v8::Script> Module = v8::Script::Compile(v8::String::New(ModuleSource.CStr()));
-    // execute the module
-    Module->Run();
-    // collect the result
-    v8::Handle<v8::Function> ModuleFun = v8::Handle<v8::Function>::Cast(
-        Context->Global()->Get(v8::String::New("module")));
-    v8::Handle<v8::Value> RetVal = ModuleFun->Call(Context->Global(), 0, NULL);
-    // handle errors
-    TJsUtil::HandleTryCatch(TryCatch);
-    // return result
-    return HandleScope.Close(RetVal);
+    // return null
+    return HandleScope.Close(v8::Null());    
 }
 
 void TScript::Init() {
@@ -727,18 +784,37 @@ void TJsSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
         // no parameters, just list the rules
         PJsonVal SrvFunRules = Js->GetSrvFunRules();
 		// prepare response
-		PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd, THttp::AppJSonFldVal, 
+		PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd, THttp::AppJSonFldVal,
             false, TMIn::New(TJsonVal::GetStrFromVal(SrvFunRules)));
         // send response
-       	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);         
+       	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);
     } else {
         // prepare response object
     	v8::HandleScope HandleScope;
-    	v8::Context::Scope ContextScope(Js->Context);        
-        v8::Handle<v8::Object> HttpResp = TJsHttpResp::New(RqEnv->GetWebSrv(), RqEnv->GetSockId());
+    	v8::Context::Scope ContextScope(Js->Context);
+        TWPt<TJsHttpResp> JsHttpResp = new TJsHttpResp(RqEnv->GetWebSrv(), RqEnv->GetSockId());
 		// call appropriate JavaScript function
-		Js->ExecuteSrvFun(HttpRq, HttpResp);
-	}		
+		Js->ExecuteSrvFun(HttpRq, JsHttpResp);
+	}
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Server-Function
+void TJsAdminSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
+    TChA ResChA;
+    // get memory statistics
+    TStrIntPrV ObjNameCountV = TJsUtil::GetObjStat();
+    ResChA += "Objects currently in memory:\n";
+    for (int ObjNameCountN = 0; ObjNameCountN < ObjNameCountV.Len(); ObjNameCountN++) {
+        ResChA += ObjNameCountV[ObjNameCountN].Val1;
+        ResChA += "\t";
+        ResChA += ObjNameCountV[ObjNameCountN].Val2.GetStr();
+        ResChA += "\n";
+    }    
+    // return statistics
+    PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd,
+        THttp::TextPlainFldVal, false, TMIn::New(ResChA));
+    RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);         
 }	
 
 ///////////////////////////////
@@ -762,24 +838,24 @@ TJsStoreTrigger::TJsStoreTrigger(TWPt<TScript> _Js, v8::Handle<v8::Object> Trigg
 	}
 }
 
-void TJsStoreTrigger::OnAdd(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId) {
+void TJsStoreTrigger::OnAdd(const TRec& Rec) {
 	v8::HandleScope HandleScope;
 	if (!OnAddFun.IsEmpty()) { 
-		Js->Execute(OnAddFun, TJsRec::New(Js, Store->GetRec(RecId)));
+		Js->Execute(OnAddFun, TJsRec::New(Js, Rec));
 	}
 }
 
-void TJsStoreTrigger::OnUpdate(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId) {
+void TJsStoreTrigger::OnUpdate(const TRec& Rec) {
 	v8::HandleScope HandleScope;
 	if (!OnUpdateFun.IsEmpty()) { 
-		Js->Execute(OnUpdateFun, TJsRec::New(Js, Store->GetRec(RecId)));
+		Js->Execute(OnUpdateFun, TJsRec::New(Js, Rec));
 	}
 }
 
-void TJsStoreTrigger::OnDelete(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const uint64& RecId) {
+void TJsStoreTrigger::OnDelete(const TRec& Rec) {
 	v8::HandleScope HandleScope;
 	if (!OnDeleteFun.IsEmpty()) { 
-		Js->Execute(OnDeleteFun, TJsRec::New(Js, Store->GetRec(RecId)));
+		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
 	}
 }
 
@@ -788,6 +864,7 @@ void TJsStoreTrigger::OnDelete(const TWPt<TBase>& Base, const TWPt<TStore>& Stor
 void TJsFetch::OnFetch(const int& FId, const PWebPg& WebPg) {
 	// execute callback
 	{
+        QmAssert(CallbackH.IsKey(FId));
 		const TJsFetchRq& Rq = CallbackH.GetDat(FId);
 		//TEnv::Logger->OnStatusFmt("OnFetch[%s]", Rq.GetUrlStr().CStr());
 		// is there a callback to call
@@ -818,6 +895,7 @@ void TJsFetch::OnFetch(const int& FId, const PWebPg& WebPg) {
 void TJsFetch::OnError(const int& FId, const TStr& MsgStr) {
 	// execute callback
 	{
+        QmAssert(CallbackH.IsKey(FId));
 		const TJsFetchRq& Rq = CallbackH.GetDat(FId);
 		//TEnv::Logger->OnStatusFmt("OnError[%s]: %s", Rq.GetUrlStr().CStr(), MsgStr.CStr());
 		// is there a callback to call
@@ -837,11 +915,16 @@ void TJsFetch::Fetch(const TJsFetchRq& Rq) {
 // QMiner-JavaScript-Console
 v8::Handle<v8::ObjectTemplate> TJsConsole::GetTemplate() {
 	v8::HandleScope HandleScope;
-    v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-    JsRegisterFunction(TmpTemp, say);
-    JsLongRegisterFunction(TmpTemp, "log", say);
-    TmpTemp->SetInternalFieldCount(1);
-    return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, say);
+		JsRegisterFunction(TmpTemp, getln);
+		JsLongRegisterFunction(TmpTemp, "log", say);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
 }
 
 v8::Handle<v8::Value> TJsConsole::say(const v8::Arguments& Args) {
@@ -859,30 +942,37 @@ v8::Handle<v8::Value> TJsConsole::say(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsConsole::getln(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;		
+	TStdIn StdIn; TStr LnStr;
+	StdIn.GetNextLn(LnStr);
+	return HandleScope.Close(v8::String::New(LnStr.CStr()));	
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Base
 TJsBase::TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base) { }
 
 v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 	v8::HandleScope HandleScope;
-	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-	JsRegisterProperty(TmpTemp, args);
-	JsRegisterProperty(TmpTemp, analytics);
-	JsRegisterFunction(TmpTemp, store);
-	JsRegisterFunction(TmpTemp, getStoreList);
-	JsRegisterFunction(TmpTemp, createStore);
-	JsRegisterFunction(TmpTemp, search);
-	JsLongRegisterFunction(TmpTemp, "operator", op);
-	JsRegisterFunction(TmpTemp, gc);
-	TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-	TmpTemp->SetInternalFieldCount(1);
-	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, args);
+		JsRegisterProperty(TmpTemp, analytics);
+		JsRegisterProperty(TmpTemp, sysStat);
+		JsRegisterFunction(TmpTemp, store);
+		JsRegisterFunction(TmpTemp, getStoreList);
+		JsRegisterFunction(TmpTemp, createStore);
+		JsRegisterFunction(TmpTemp, search);
+		JsLongRegisterFunction(TmpTemp, "operator", op);
+		JsRegisterFunction(TmpTemp, gc);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
 }
-
-/*v8::Handle<v8::Value> TJsBase::correlation(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	return TJsCorrelation::New();
-}*/
 
 v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
@@ -895,6 +985,18 @@ v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Info);
     InfoLog("Warning: qm.analytics will be deprecated, use require('analytics') instead.");
 	return TJsAnalytics::New(JsBase->Js);
+}
+
+v8::Handle<v8::Value> TJsBase::sysStat(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    PJsonVal StatVal = TJsonVal::NewObj();
+#ifdef GLib_LINUX   
+    TSysMemStat MemStat;
+    StatVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
+    StatVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
+    StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
+#endif    	
+	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
 }
 
 v8::Handle<v8::Value> TJsBase::store(const v8::Arguments& Args) {
@@ -926,12 +1028,28 @@ v8::Handle<v8::Value> TJsBase::getStoreList(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsBase::createStore(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
-        PJsonVal SchemaVal = TJsBaseUtil::GetArgJson(Args, 0);
     // check we can write
     QmAssertR(!JsBase->Base->IsRdOnly(), "Base opened as read-only");
-    //TODO: ability to pass store sizes via function parameter
-    // for now 1GB is assumed for each store
-    TStorage::CreateStoresFromSchema(JsBase->Base, SchemaVal, (uint64)TInt::Giga);   
+    // parse arguments
+    PJsonVal SchemaVal = TJsBaseUtil::GetArgJson(Args, 0);
+	uint64 DefStoreSize = (uint64) TJsBaseUtil::GetArgInt32(Args, 1, 1024);
+    // Note: CreateStoresFromSchema is probably already taking KBs (luis.rei)
+    //TODO allow schema key-value store size definitions
+    DefStoreSize = DefStoreSize * TInt::Kilo; // kilo * kilo = MB
+    //DefStoreSize = DefStoreSize * TInt::Mega;
+    // create new stores
+    TVec<TWPt<TStore> > NewStoreV = TStorage::CreateStoresFromSchema(
+        JsBase->Base, SchemaVal, DefStoreSize);   
+    // return store (if only one) or array of stores (if more)
+    if (NewStoreV.Len() == 1) { 
+        return TJsStore::New(JsBase->Js, NewStoreV[0]);
+    } else if (NewStoreV.Len() > 1) {
+		v8::Local<v8::Array> JsNewStoreV = v8::Array::New(NewStoreV.Len());
+		for (int NewStoreN = 0; NewStoreN < NewStoreV.Len(); NewStoreN++) {
+			JsNewStoreV->Set(v8::Number::New(NewStoreN),
+                TJsStore::New(JsBase->Js, NewStoreV[NewStoreN]));
+		}         
+    }
     return HandleScope.Close(v8::Null());
 }
 
@@ -949,7 +1067,7 @@ v8::Handle<v8::Value> TJsBase::search(const v8::Arguments& Args) {
 	}
 	return HandleScope.Close(v8::Null());
 }
-	
+
 v8::Handle<v8::Value> TJsBase::op(const v8::Arguments& Args) {	
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);	
@@ -983,10 +1101,9 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Store
-v8::Persistent<v8::ObjectTemplate> TJsStore::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, name);
@@ -999,7 +1116,10 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegIndexedProperty(TmpTemp, indexId);
 		JsRegisterFunction(TmpTemp, rec);
 		JsRegisterFunction(TmpTemp, add);
+		JsRegisterFunction(TmpTemp, newRec);
+		JsRegisterFunction(TmpTemp, newRecSet);
 		JsRegisterFunction(TmpTemp, sample);
+		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
         JsRegisterFunction(TmpTemp, addStreamAggr);
@@ -1042,21 +1162,47 @@ v8::Handle<v8::Value> TJsStore::recs(v8::Local<v8::String> Properties, const v8:
 v8::Handle<v8::Value> TJsStore::fields(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
-	v8::Local<v8::Array> FieldNmV = v8::Array::New(JsStore->Store->GetFields());
-	for (int FieldN = 0; FieldN < JsStore->Store->GetFields(); FieldN++) {
-		FieldNmV->Set(v8::Number::New(FieldN), v8::String::New(JsStore->Store->GetFieldNm(FieldN).CStr()));
+	v8::Local<v8::Array> FieldV = v8::Array::New(JsStore->Store->GetFields());
+	for (int FieldId = 0; FieldId < JsStore->Store->GetFields(); FieldId++) {
+        const TFieldDesc& FieldDesc = JsStore->Store->GetFieldDesc(FieldId);
+        v8::Local<v8::Object> Field = v8::Object::New();
+        Field->Set(v8::String::New("id"), v8::Int32::New(FieldDesc.GetFieldId()));
+        Field->Set(v8::String::New("name"), v8::String::New(FieldDesc.GetFieldNm().CStr()));
+        Field->Set(v8::String::New("type"), v8::String::New(FieldDesc.GetFieldTypeStr().CStr()));
+        Field->Set(v8::String::New("nullable"), v8::Boolean::New(FieldDesc.IsNullable()));
+        Field->Set(v8::String::New("internal"), v8::Boolean::New(FieldDesc.IsInternal()));
+        Field->Set(v8::String::New("primary"), v8::Boolean::New(FieldDesc.IsPrimary()));
+		FieldV->Set(v8::Number::New(FieldId), Field);
 	}	
-	return HandleScope.Close(FieldNmV);
+	return HandleScope.Close(FieldV);
 }
 
 v8::Handle<v8::Value> TJsStore::joins(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
-	v8::Local<v8::Array> JoinNmV = v8::Array::New(JsStore->Store->GetJoins());
-	for (int JoinN = 0; JoinN < JsStore->Store->GetJoins(); JoinN++) {
-		JoinNmV->Set(v8::Number::New(JoinN), v8::String::New(JsStore->Store->GetJoinNm(JoinN).CStr()));
+	v8::Local<v8::Array> JoinV = v8::Array::New(JsStore->Store->GetJoins());
+	for (int JoinId = 0; JoinId < JsStore->Store->GetJoins(); JoinId++) {
+        const TJoinDesc& JoinDesc = JsStore->Store->GetJoinDesc(JoinId);
+        TWPt<TStore> JoinStore = JoinDesc.GetJoinStore(JsStore->Js->Base);
+        v8::Local<v8::Object> Join = v8::Object::New();
+        Join->Set(v8::String::New("id"), v8::Int32::New(JoinDesc.GetJoinId()));
+        Join->Set(v8::String::New("name"), v8::String::New(JoinDesc.GetJoinNm().CStr()));
+        Join->Set(v8::String::New("store"), v8::String::New(JoinStore->GetStoreNm().CStr()));
+        if (JoinDesc.IsInverseJoinId()) {
+            Join->Set(v8::String::New("inverse"), v8::String::New(JoinStore->GetJoinNm(JoinDesc.GetInverseJoinId()).CStr()));
+        }        
+        if (JoinDesc.IsFieldJoin()) {
+            Join->Set(v8::String::New("type"), v8::String::New("field"));
+            Join->Set(v8::String::New("recordField"), v8::String::New(JsStore->Store->GetFieldNm(JoinDesc.GetJoinRecFieldId()).CStr()));
+            Join->Set(v8::String::New("weightField"), v8::String::New(JsStore->Store->GetFieldNm(JoinDesc.GetJoinFqFieldId()).CStr()));           
+        } else if (JoinDesc.IsIndexJoin()) {
+            Join->Set(v8::String::New("type"), v8::String::New("index"));            
+        	TWPt<TIndexVoc> IndexVoc = JsStore->Js->Base->GetIndexVoc();
+            Join->Set(v8::String::New("key"), TJsIndexKey::New(JsStore->Js, IndexVoc->GetKey(JoinDesc.GetJoinKeyId())));;
+        }
+		JoinV->Set(v8::Number::New(JoinId), Join);
 	}
-	return HandleScope.Close(JoinNmV);
+	return HandleScope.Close(JoinV);
 }
 
 v8::Handle<v8::Value> TJsStore::keys(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -1115,12 +1261,53 @@ v8::Handle<v8::Value> TJsStore::add(const v8::Arguments& Args) {
 	return v8::Null();
 }
 
+v8::Handle<v8::Value> TJsStore::newRec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+    PJsonVal RecVal = TJsStoreUtil::GetArgJson(Args, 0);
+    TRec Rec(JsStore->Store(), RecVal);
+    return TJsRec::New(JsStore->Js, Rec);
+}
+
+v8::Handle<v8::Value> TJsStore::newRecSet(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+        // argument 0 = TJsIntV of record ids
+		QmAssertR(TJsStoreUtil::IsArgClass(Args, 0, "TIntV"), 
+			"Store.getRecSetByIdV: The first argument must be a TIntV (js linalg full int vector)");
+		TJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+		PRecSet ResultSet = TRecSet::New(JsStore->Store, JsVec->Vec);
+		return TJsRecSet::New(JsStore->Js, ResultSet);
+	}
+	return TJsRecSet::New(JsStore->Js, TRecSet::New());
+}
+
 v8::Handle<v8::Value> TJsStore::sample(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
 	const int SampleSize = TJsStoreUtil::GetArgInt32(Args, 0);
 	PRecSet ResultSet = JsStore->Store->GetRndRecs(SampleSize);
 	return TJsRecSet::New(JsStore->Js, ResultSet); 
+}
+
+v8::Handle<v8::Value> TJsStore::field(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	const TStr FieldNm = TJsStoreUtil::GetArgStr(Args, 0);
+    if (JsStore->Store->IsFieldNm(FieldNm)) {
+        const int FieldId = JsStore->Store->GetFieldId(FieldNm);
+        const TFieldDesc& FieldDesc = JsStore->Store->GetFieldDesc(FieldId);
+        v8::Local<v8::Object> Field = v8::Object::New();
+        Field->Set(v8::String::New("id"), v8::Int32::New(FieldDesc.GetFieldId()));
+        Field->Set(v8::String::New("name"), v8::String::New(FieldDesc.GetFieldNm().CStr()));
+        Field->Set(v8::String::New("type"), v8::String::New(FieldDesc.GetFieldTypeStr().CStr()));
+        Field->Set(v8::String::New("nullable"), v8::Boolean::New(FieldDesc.IsNullable()));
+        Field->Set(v8::String::New("internal"), v8::Boolean::New(FieldDesc.IsInternal()));
+        Field->Set(v8::String::New("primary"), v8::Boolean::New(FieldDesc.IsPrimary()));
+        return HandleScope.Close(Field);
+    }
+	return HandleScope.Close(v8::Null());
 }
 
 v8::Handle<v8::Value> TJsStore::key(const v8::Arguments& Args) {
@@ -1147,7 +1334,7 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	// add to store
 	JsStore->Store->AddTrigger(Trigger);
 	// add to JS context, in case we reload
-	JsStore->Js->TriggerV.Add(TPair<TUCh, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
+	JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
 	return HandleScope.Close(v8::Null());
 }
 
@@ -1173,7 +1360,7 @@ v8::Handle<v8::Value> TJsStore::getStreamAggr(const v8::Arguments& Args) {
 	const int Limit = TJsStoreUtil::GetArgInt32(Args, 1, 100);
 	// TODO
     TWPt<TBase> Base = JsStore->Js->Base;
-    const uchar StoreId = JsStore->Store->GetStoreId();
+    const uint StoreId = JsStore->Store->GetStoreId();
 	if (Base->IsStreamAggr(StoreId, AggrNm)) {
         PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
 		PJsonVal StreamAggrVal = StreamAggr->SaveJson(Limit);
@@ -1205,8 +1392,6 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 
 ///////////////////////////////
 // QMiner-JavaScript-Record-Set
-v8::Persistent<v8::ObjectTemplate> TJsRecSet::Template;
-
 TJsRecSet::TJsRecSet(TWPt<TScript> _Js, const PRecSet& _RecSet):
     Js(_Js), Store(_RecSet->GetStore()), RecSet(_RecSet) { RecSet->FilterByExists(); }
 
@@ -1231,6 +1416,7 @@ PRecSet TJsRecSet::GetArgRecSet(const v8::Arguments& Args, const int& ArgN) {
     
 v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, store);
@@ -1253,6 +1439,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filterByFq);
 		JsRegisterFunction(TmpTemp, filterByField);
 		JsRegisterFunction(TmpTemp, filter);
+		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -1512,6 +1699,15 @@ v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsRecSet::deleteRecs(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+    TUInt64Set RecIdSet; RecSet->GetRecIdSet(RecIdSet);
+    JsRecSet->RecSet->RemoveRecIdSet(RecIdSet);
+	return v8::Undefined();
+}
+
 v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
@@ -1538,11 +1734,11 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 	// initialize template vector on the first call
 	if (TemplateV.Empty()) {
 		// reserve space for maximal number of stores
-		TemplateV.Gen(TUCh::Mx);
+		TemplateV.Gen(TEnv::GetMxStores());
 	}
 	// make sure template id is a valid
-    const uchar StoreId = Store->GetStoreId();
-	QmAssert(TUCh::Mn <= StoreId && StoreId < TUCh::Mx);
+    const uint StoreId = Store->GetStoreId();
+	QmAssert(StoreId < TEnv::GetMxStores());
 	// initialize template if not already prepared
 	if (TemplateV[(int)StoreId].IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
@@ -1555,7 +1751,7 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 		// register all the fields
 		for (int FieldN = 0; FieldN < Store->GetFields(); FieldN++) {
             TStr FieldNm = Store->GetFieldDesc(FieldN).GetFieldNm();
-            JsLongRegisterProperty(TmpTemp, FieldNm.CStr(), field);
+            JsRegisterSetProperty(TmpTemp, FieldNm.CStr(), getField, setField);
 		}
         for (int JoinId = 0; JoinId < Store->GetJoins(); JoinId++) {
             const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
@@ -1609,7 +1805,7 @@ v8::Handle<v8::Value> TJsRec::fq(v8::Local<v8::String> Properties, const v8::Acc
 	return HandleScope.Close(v8::Integer::New(JsRec->Fq));
 }
 
-v8::Handle<v8::Value> TJsRec::field(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
 	const TRec& Rec = JsRec->Rec; 
@@ -1617,78 +1813,120 @@ v8::Handle<v8::Value> TJsRec::field(v8::Local<v8::String> Properties, const v8::
     TStr FieldNm = TJsRecUtil::GetStr(Properties);
 	const int FieldId = Store->GetFieldId(FieldNm);
 	// check if null
-	if (Rec.IsByRef()) {
-		if (Store->IsFieldNull(Rec.GetRecId(), FieldId)) { return HandleScope.Close(v8::Null()); }
-	} else {
-		if (Rec.IsFieldNull(FieldId)) { return HandleScope.Close(v8::Null()); }
-	}
+    if (Rec.IsFieldNull(FieldId)) { return HandleScope.Close(v8::Null()); }
 	// not null, get value
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
     if (Desc.IsInt()) {
-		const int Val = Rec.IsByRef() ? Store->GetFieldInt(Rec.GetRecId(), FieldId) : Rec.GetFieldInt(FieldId);
+		const int Val = Rec.GetFieldInt(FieldId);
 		return HandleScope.Close(v8::Integer::New(Val));
     } else if (Desc.IsIntV()) {
-        TIntV IntV; Rec.IsByRef() ? Store->GetFieldIntV(Rec.GetRecId(), FieldId, IntV) : Rec.GetFieldIntV(FieldId, IntV); 
-		v8::Handle<v8::Array> JsIntV = v8::Array::New(IntV.Len());
-		for (int IntN = 0; IntN < IntV.Len(); IntN++) {
-			JsIntV->Set(IntN, v8::Integer::New(IntV[IntN]));
-		}
-		return HandleScope.Close(JsIntV);
+        v8::Persistent<v8::Object> JsIntV = TJsIntV::New(JsRec->Js);
+        Rec.GetFieldIntV(FieldId, TJsIntV::GetVec(JsIntV));
+        return JsIntV;
     } else if (Desc.IsUInt64()) {
-		const uint64 Val = Rec.IsByRef() ? Store->GetFieldUInt64(Rec.GetRecId(), FieldId) : Rec.GetFieldUInt64(FieldId);
+		const uint64 Val = Rec.GetFieldUInt64(FieldId);
 		return HandleScope.Close(v8::Integer::New((int)Val));
 	} else if (Desc.IsStr()) {
-		const TStr Val = Rec.IsByRef() ? Store->GetFieldStr(Rec.GetRecId(), FieldId) : Rec.GetFieldStr(FieldId);
+		const TStr Val = Rec.GetFieldStr(FieldId);
 		return HandleScope.Close(v8::String::New(Val.CStr()));
     } else if (Desc.IsStrV()) {
-        TStrV StrV; Rec.IsByRef() ? Store->GetFieldStrV(Rec.GetRecId(), FieldId, StrV) : Rec.GetFieldStrV(FieldId, StrV); 
+        TStrV StrV; Rec.GetFieldStrV(FieldId, StrV); 
 		v8::Handle<v8::Array> JsStrV = v8::Array::New(StrV.Len());
 		for (int StrN = 0; StrN < StrV.Len(); StrN++) {
 			JsStrV->Set(StrN, v8::String::New(StrV[StrN].CStr()));
 		}
 		return HandleScope.Close(JsStrV);
 	} else if (Desc.IsBool()) {
-		const bool Val = Rec.IsByRef() ? Store->GetFieldBool(Rec.GetRecId(), FieldId) : Rec.GetFieldBool(FieldId);
+		const bool Val = Rec.GetFieldBool(FieldId);
 		return HandleScope.Close(v8::Boolean::New(Val));
 	} else if (Desc.IsFlt()) {
-		const double Val = Rec.IsByRef() ? Store->GetFieldFlt(Rec.GetRecId(), FieldId) : Rec.GetFieldFlt(FieldId);
+		const double Val = Rec.GetFieldFlt(FieldId);
 		return HandleScope.Close(v8::Number::New(Val));
 	} else if (Desc.IsFltPr()) {
-		const TFltPr FltPr = Rec.IsByRef() ? Store->GetFieldFltPr(Rec.GetRecId(), FieldId) : Rec.GetFieldFltPr(FieldId);
+		const TFltPr FltPr = Rec.GetFieldFltPr(FieldId);
 		v8::Handle<v8::Array> JsFltPr = v8::Array::New(2);
 		JsFltPr->Set(0, v8::Number::New(FltPr.Val1));
 		JsFltPr->Set(1, v8::Number::New(FltPr.Val2));
 		return HandleScope.Close(JsFltPr);    
 	} else if (Desc.IsFltV()) {
-        TFltV FltV; Rec.IsByRef() ? Store->GetFieldFltV(Rec.GetRecId(), FieldId, FltV) : Rec.GetFieldFltV(FieldId, FltV); 
-		v8::Handle<v8::Array> JsFltV = v8::Array::New(FltV.Len());
-		for (int FltN = 0; FltN < FltV.Len(); FltN++) {
-			JsFltV->Set(FltN, v8::Number::New(FltV[FltN]));
-		}
-		return HandleScope.Close(JsFltV);
+        v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsRec->Js);
+        Rec.GetFieldFltV(FieldId, TJsFltV::GetVec(JsFltV)); 
+        return JsFltV;        
 	} else if (Desc.IsTm()) {
-        TTm FieldTm; Rec.IsByRef() ? Store->GetFieldTm(Rec.GetRecId(), FieldId, FieldTm) : Rec.GetFieldTm(FieldId, FieldTm); 
+        TTm FieldTm; Rec.GetFieldTm(FieldId, FieldTm); 
 		if (FieldTm.IsDef()) { 
-			//return HandleScope.Close(v8::String::New(FieldTm.GetWebLogDateTimeStr(false, "T", false).CStr()));
 			return TJsTm::New(FieldTm);
 		} else { 
 			return HandleScope.Close(v8::Null());
 		}
 	} else if (Desc.IsNumSpV()) {
-        TIntFltKdV IntFltKdV; Rec.IsByRef() ? Store->GetFieldNumSpV(Rec.GetRecId(), FieldId, IntFltKdV) : Rec.GetFieldNumSpV(FieldId, IntFltKdV); 
-		v8::Handle<v8::Array> JsIntFltKdV = v8::Array::New(IntFltKdV.Len());
-		for (int IntFltKdN = 0; IntFltKdN < IntFltKdV.Len(); IntFltKdN++) {
-			const TIntFltKd& IntFltKd = IntFltKdV[IntFltKdN];
-			v8::Handle<v8::Object> JsIntFltKd = v8::Object::New();
-			JsIntFltKd->Set(v8::String::New("id"), v8::Integer::New(IntFltKd.Key));
-			JsIntFltKd->Set(v8::String::New("value"), v8::Number::New(IntFltKd.Dat));
-			JsIntFltKdV->Set(IntFltKdN, JsIntFltKd);
-		}
-		return HandleScope.Close(JsIntFltKdV);
+        v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsRec->Js);
+        Rec.GetFieldNumSpV(FieldId, TJsSpV::GetSpV(JsSpV)); 
+        return JsSpV;
 	} else if (Desc.IsBowSpV()) {
 		return HandleScope.Close(v8::Null()); //TODO
     }
 	throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+}
+
+void TJsRec::setField(v8::Local<v8::String> Properties,
+        v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) {
+    
+	v8::HandleScope HandleScope;
+	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
+	TRec& Rec = JsRec->Rec;
+    const TWPt<TStore>& Store = JsRec->Store;
+    TStr FieldNm = TJsRecUtil::GetStr(Properties);
+	const int FieldId = Store->GetFieldId(FieldNm);
+	//TODO: for now we don't support by-value records, fix this
+    QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
+	// not null, get value
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    if (Value->IsNull()) {
+        QmAssertR(Desc.IsNullable(), "Field " + FieldNm + " not nullable");
+        Rec.SetFieldNull(FieldId);
+    } else if (Desc.IsInt()) {
+        QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not int");
+        const int Int = Value->Int32Value();
+        Rec.SetFieldInt(FieldId, Int);
+    } else if (Desc.IsIntV()) {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+    } else if (Desc.IsUInt64()) {
+        QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
+        const uint64 UInt64 = (uint64)Value->IntegerValue();
+        Rec.SetFieldUInt64(FieldId, UInt64);
+	} else if (Desc.IsStr()) {
+        QmAssertR(Value->IsString(), "Field " + FieldNm + " not string");
+        v8::String::Utf8Value Utf8(Value);
+        Rec.SetFieldStr(FieldId, TStr(*Utf8));
+    } else if (Desc.IsStrV()) {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+	} else if (Desc.IsBool()) {
+        QmAssertR(Value->IsBoolean(), "Field " + FieldNm + " not boolean");
+        Rec.SetFieldBool(FieldId, Value->BooleanValue());
+	} else if (Desc.IsFlt()) {
+        QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
+        Rec.SetFieldFlt(FieldId, Value->NumberValue());
+	} else if (Desc.IsFltPr()) {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+	} else if (Desc.IsFltV()) {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+	} else if (Desc.IsTm()) {
+        QmAssertR(Value->IsObject() || Value->IsString(), "Field " + FieldNm + " not object or string");            
+        if (Value->IsObject()){
+            TJsTm* JsTm = TJsObjUtil<TJsTm>:: GetSelf(Value->ToObject());                
+            Rec.SetFieldTm(FieldId, JsTm->Tm);
+        } else if (Value->IsString()){
+            v8::String::Utf8Value Utf8(Value);                
+            Rec.SetFieldTm(FieldId, TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T'));            
+        }        
+	} else if (Desc.IsNumSpV()) {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+	} else if (Desc.IsBowSpV()) {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+    } else {
+        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+    }
 }
 
 v8::Handle<v8::Value> TJsRec::join(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -1766,10 +2004,9 @@ v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-IndexKey
-v8::Persistent<v8::ObjectTemplate> TJsIndexKey::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsIndexKey::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, store);				
@@ -1787,7 +2024,7 @@ v8::Handle<v8::ObjectTemplate> TJsIndexKey::GetTemplate() {
 v8::Handle<v8::Value> TJsIndexKey::store(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsIndexKey* JsIndexKey = TJsIndexKeyUtil::GetSelf(Info);
-	const uchar StoreId = JsIndexKey->IndexKey.GetStoreId();
+	const uint StoreId = JsIndexKey->IndexKey.GetStoreId();
 	TStr StoreNm = JsIndexKey->Js->Base->GetStoreByStoreId(StoreId)->GetStoreNm();
 	return HandleScope.Close(v8::String::New(StoreNm.CStr()));
 }
@@ -1827,20 +2064,22 @@ v8::Handle<v8::Value> TJsIndexKey::fq(v8::Local<v8::String> Properties, const v8
 // QMiner-JavaScript-Support-Vector-Machine
 THash<TStr, PBowAL> TJsAnalytics::ActiveLearnerH; 
 
-v8::Persistent<v8::ObjectTemplate> TJsAnalytics::Template;
 
 v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
         JsRegisterFunction(TmpTemp, getLanguageOptions);
         JsRegisterFunction(TmpTemp, newFeatureSpace);
+        JsRegisterFunction(TmpTemp, loadFeatureSpace);
         JsRegisterFunction(TmpTemp, trainSvmClassify);		
         JsRegisterFunction(TmpTemp, trainSvmRegression);
+		JsRegisterFunction(TmpTemp, loadSvmModel);
+        JsRegisterFunction(TmpTemp, newRecLinReg);
         JsRegisterFunction(TmpTemp, trainKMeans);						
         JsRegisterFunction(TmpTemp, newActiveLearner);						
         JsRegisterFunction(TmpTemp, delActiveLearner);	
-        JsRegisterFunction(TmpTemp, newRecLinReg);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1850,22 +2089,18 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 
 v8::Handle<v8::Value> TJsAnalytics::getLanguageOptions(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-    
     // 0) create response object
 	PJsonVal LangOpts = TJsonVal::NewObj();
-
     // 1) get available stemmers
     TStrV StemmerTypeNmV, StemmerTypeDNmV;
     TStemmer::GetStemmerTypeNmV(StemmerTypeNmV, StemmerTypeDNmV);
     PJsonVal ArrStemmer = TJsonVal::NewArr(StemmerTypeNmV);
     LangOpts->AddToObj("stemmer", ArrStemmer);
-
     // 2) get available stopword lists
     TStrV SwSetTypeNmV, SwSetTypeDNmV;
     TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
     PJsonVal ArrStopword = TJsonVal::NewArr(SwSetTypeNmV);
 	LangOpts->AddToObj("stopwords", ArrStopword);
-
 	return HandleScope.Close(TJsUtil::ParseJson(LangOpts));
 }
 
@@ -1895,85 +2130,132 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
-// svm.trainSvmClassify(featureSpace, positives, negatives, parameters)
+v8::Handle<v8::Value> TJsAnalytics::loadFeatureSpace(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    // parse parameters
+    PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+    // load feature space from stream
+    PFtrSpace FtrSpace = TFtrSpace::Load(JsAnalytics->Js->Base, *SIn);
+    // done
+    return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
+}
+
 v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
 	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 0);
-    PRecSet PosRecSet = TJsRecSet::GetArgRecSet(Args, 1);
-    PRecSet NegRecSet = TJsRecSet::GetArgRecSet(Args, 2);
-    PJsonVal SvmParamVal = TJsAnalyticsUtil::IsArgJson(Args, 3) ?
-        TJsAnalyticsUtil::GetArgJson(Args, 3) : TJsonVal::NewObj();
+    QmAssertR(Args.Length() >= 2, "trainSvmClassify: missing arguments!");
+    // get class information
+    QmAssertR(Args[1]->IsObject(), "trainSvmClassify: second argument expected to be object");
+    TFltV& ClsV = TJsFltV::GetVec(Args[1]->ToObject());
     // parse SVM parameters
+    PJsonVal SvmParamVal = TJsonVal::NewObj();
+    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
+        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double C = SvmParamVal->GetObjNum("c", 1.0);
     const double j = SvmParamVal->GetObjNum("j", 1.0);
-    const bool NormalizeP = SvmParamVal->GetObjBool("normalize", true);
-    // do SVM
+    // check what kind of input data we got
+    PSVMTrainSet TrainSet;
+    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+        // we have sparse matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
+        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
+    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+        // we have dense matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
+        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
+    } else {
+        // TODO support JavaScript array of TJsFltV or TJsSpV
+        throw TQmExcept::New("trainSvmClassify: unsupported type of the first argument");
+    }
+    // train and return the model
     try {
-        // add records to SVM training set
-        PSVMTrainSet TrainSet = TSparseTrainSet::New(PosRecSet->GetRecs() + NegRecSet->GetRecs());
-        for (int RecN = 0; RecN < PosRecSet->GetRecs(); RecN++) {
-            TRec Rec = PosRecSet->GetRec(RecN);
-            TIntFltKdV SpV; FtrSpace->GetSpV(Rec, SpV);
-            TrainSet->AddAttrV(SpV, 1.0, NormalizeP);
-        }
-        for (int RecN = 0; RecN < NegRecSet->GetRecs(); RecN++) {
-            TRec Rec = NegRecSet->GetRec(RecN);
-            TIntFltKdV SpV; FtrSpace->GetSpV(Rec, SpV);
-            TrainSet->AddAttrV(SpV, -1.0, NormalizeP);
-        }
-        // train SVM
         PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, C, j);
-    	// return
-        return TJsSvmModel::New(JsAnalytics->Js, FtrSpace, NormalizeP, Model);
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
+        return TJsSvmModel::New(JsAnalytics->Js, Model);
+    } catch (const PExcept& Except) {
+        InfoLog("[except] trainSvmClassify: " + Except->GetMsgStr());
+    }    
 	return v8::Undefined();
 }
 
-// svm.trainSvmRegression(featureSpace, records, values, parameters)
 v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
 	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 0);
-    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 1);
-    PJsonVal ValArr = TJsAnalyticsUtil::GetArgJson(Args, 2);
-    QmAssertR(ValArr->IsArr(), "Regression target values must be passed as array");
-    TFltV ValV; ValArr->GetArrNumV(ValV);
-    QmAssertR(ValV.Len() == RecSet->GetRecs(), "Number of records does not match number of provided target variables");
-    PJsonVal SvmParamVal = TJsAnalyticsUtil::IsArgJson(Args, 3) ?
-        TJsAnalyticsUtil::GetArgJson(Args, 3) : TJsonVal::NewObj();
+    QmAssertR(Args.Length() >= 2, "trainSvmRegression: missing arguments!");
+    // get target value information
+    QmAssertR(Args[1]->IsObject(), "trainSvmRegression: second argument expected to be object");
+    TFltV& ValV = TJsFltV::GetVec(Args[1]->ToObject());
     // parse SVM parameters
+    PJsonVal SvmParamVal = TJsonVal::NewObj();
+    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
+        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double C = SvmParamVal->GetObjNum("c", 1.0);
     const double E = SvmParamVal->GetObjNum("eps", 1.0);
-    const bool NormalizeP = SvmParamVal->GetObjBool("normalize", true);
-    // do SVM
+    // check what kind of input data we got
+    PSVMTrainSet TrainSet;
+    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+        // we have sparse matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
+        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefSparseTrainSet::New(VecV, ValV);
+    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+        // we have dense matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
+        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefDenseTrainSet::New(VecV, ValV);
+    } else {
+        // TODO support JavaScript array of TJsFltV or TJsSpV
+        throw TQmExcept::New("trainSvmRegression: unsupported type of the first argument");
+    }
+    // train and return the model
     try {
-        // add records to SVM training set
-        PSVMTrainSet TrainSet = TSparseTrainSet::New(RecSet->GetRecs());
-        for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-            // get record
-            TRec Rec = RecSet->GetRec(RecN);
-            TIntFltKdV SpV; FtrSpace->GetSpV(Rec, SpV);
-            // get value
-            const double Val = ValV[RecN];
-            // add to trainset
-            TrainSet->AddAttrV(SpV, Val, NormalizeP);
-        }
-        // train SVM
         PSVMModel Model = TSVMModel::NewRegLinear(TrainSet, E, C);
-    	// return
-        return TJsSvmModel::New(JsAnalytics->Js, FtrSpace, NormalizeP, Model);
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
+        return TJsSvmModel::New(JsAnalytics->Js, Model);
+    } catch (const PExcept& Except) {
+        InfoLog("[except] trainSvmRegression: " + Except->GetMsgStr());
+    }    
 	return v8::Undefined();
 }
 
-// trainKMeans(featureSpace, positives, negatives, parameters)
+v8::Handle<v8::Value> TJsAnalytics::loadSvmModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);	
+	if (Args.Length() > 0) {
+        PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+		PSVMModel Model = TSVMModel::Load(*SIn);
+		return HandleScope.Close(TJsSvmModel::New(JsAnalytics->Js, Model));
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+   
+    int dim = ParamVal->GetObjInt("dim");
+	double ForgetFact = ParamVal->GetObjNum("forgetFact", 1.0);
+	double RegFact = ParamVal->GetObjNum("regFact", 1.0);
+
+    try {
+        TSignalProc::PRecLinReg linReg = TSignalProc::TRecLinReg::New(dim, RegFact, ForgetFact);
+        return TJsRecLinRegModel::New(JsAnalytics->Js, linReg);
+    }
+    catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+    }
+    return v8::Undefined();
+}
+
 v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
@@ -1991,6 +2273,9 @@ v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
         // prepare feature vectors
         TVec<TIntFltKdV> SpVV; SpVV.Clr();
         FtrSpace->GetSpVV(RecSet, SpVV);
+        // normalize as KMeans assumes normalized inputs
+        for (int SpVN = 0; SpVN < SpVV.Len(); SpVN++) {
+            TLinAlg::Normalize(SpVV[SpVN]); }
         // convert to sparse matrix with records as columns
         TSparseColMatrix FtrMatrix(SpVV, FtrSpace->GetDim(), SpVV.Len());
         // do the clustering
@@ -2063,7 +2348,6 @@ v8::Handle<v8::Value> TJsAnalytics::newActiveLearner(const v8::Arguments& Args) 
 	return v8::Undefined();
 }
 
-// delActiveLearner(name)
 v8::Handle<v8::Value> TJsAnalytics::delActiveLearner(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
@@ -2077,41 +2361,24 @@ v8::Handle<v8::Value> TJsAnalytics::delActiveLearner(const v8::Arguments& Args) 
 
 	return v8::Undefined();
 }
-// 
-// linRegLearn(records, parameters)
-v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
-   
-    int dim = ParamVal->GetObjInt("dim");
-    double ForgetFact = ParamVal->GetObjInt("forgetFact");
-
-    try {
-        TSignalProc::PRecLinReg linReg = TSignalProc::TRecLinReg::New(dim, ForgetFact);
-        return TJsRecLinRegModel::New(JsAnalytics->Js, linReg);
-    }
-    catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-    }
-    return v8::Undefined();
-}
 
 ///////////////////////////////
 // QMiner-JavaScript-Feature-Space
-v8::Persistent<v8::ObjectTemplate> TJsFtrSpace::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+        JsRegisterProperty(TmpTemp, dim);
+		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
 		JsRegisterFunction(TmpTemp, finishUpdate);					
 		JsRegisterFunction(TmpTemp, extractStrings);						
 		JsRegisterFunction(TmpTemp, ftrSpVec);						
-		JsRegisterFunction(TmpTemp, ftrVec);						
+		JsRegisterFunction(TmpTemp, ftrVec);	
+		JsRegisterFunction(TmpTemp, ftrSpColMat);						
+		JsRegisterFunction(TmpTemp, ftrColMat);	
 		//JsRegisterFunction(TmpTemp, extractNumbers);						
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -2133,6 +2400,23 @@ PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN
     // cast it to record set
     TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
     return JsFtrSpace->FtrSpace;    
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Integer::New(JsFtrSpace->FtrSpace->GetDim()));
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+    // save to stream
+    JsFtrSpace->FtrSpace->Save(*SOut);
+	// return
+	return HandleScope.Close(v8::Null());
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
@@ -2187,11 +2471,11 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     TRec Rec = TJsRec::GetArgRec(Args, 0);
     // create feature vector
-    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-    TFltV& FltV = TJsFltV::GetFltV(JsFltV);
-    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js);
+	TIntFltKdV& SpV = TJsSpV::GetSpV(JsSpV);
+	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
 	// return
-	return HandleScope.Close(JsFltV);
+	return HandleScope.Close(JsSpV);
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
@@ -2201,22 +2485,49 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
     TRec Rec = TJsRec::GetArgRec(Args, 0);
     // create feature vector
     v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-    TFltV& FltV = TJsFltV::GetFltV(JsFltV);
+    TFltV& FltV = TJsFltV::GetVec(JsFltV);
     JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
 	// return
 	return HandleScope.Close(JsFltV);
 }
 
+v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+    // create feature matrix
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js);
+	TVec<TIntFltKdV>& SpMat = TJsSpMat::GetSpMat(JsSpMat);
+	JsFtrSpace->FtrSpace->GetSpVV(RecSet, SpMat);
+	// return
+	return HandleScope.Close(JsSpMat);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrColMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+    // create feature matrix
+	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js);
+	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
+	JsFtrSpace->FtrSpace->GetFullVV(RecSet, Mat);
+	// return
+	return HandleScope.Close(JsMat);
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
-v8::Persistent<v8::ObjectTemplate> TJsSvmModel::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsSvmModel::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-        JsRegisterProperty(TmpTemp, featureSpace);
-		JsRegisterFunction(TmpTemp, classify);						
+		JsRegisterFunction(TmpTemp, predict);
+		JsLongRegisterFunction(TmpTemp, "classify", predict);
+		JsRegisterFunction(TmpTemp, getWeights);
+		JsRegisterFunction(TmpTemp, save);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2224,34 +2535,49 @@ v8::Handle<v8::ObjectTemplate> TJsSvmModel::GetTemplate() {
 	return Template;
 }
 
-v8::Handle<v8::Value> TJsSvmModel::featureSpace(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Info);	
-	return TJsFtrSpace::New(JsSvmModel->Js, JsSvmModel->FtrSpace);
-}
-
-// svm.trainClassify(featureSpace, positives, negatives, parameters)
-v8::Handle<v8::Value> TJsSvmModel::classify(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsSvmModel::predict(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
 	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);	
-    TRec Rec = TJsRec::GetArgRec(Args, 0);
+    // get vector vector
+    QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
+    if (TJsSvmModelUtil::IsArgClass(Args, 0, "TFltV")) {
+        const double Res = JsSvmModel->Model->GetRes(TJsFltV::GetVec(Args[0]->ToObject()));
+    	return HandleScope.Close(v8::Number::New(Res));
+    } else if (TJsSvmModelUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+        const double Res = JsSvmModel->Model->GetRes(TJsSpV::GetSpV(Args[0]->ToObject()));
+    	return HandleScope.Close(v8::Number::New(Res));
+    }
+    throw TQmExcept::New("svm.predict: unsupported type of the first argument");
+}
+
+v8::Handle<v8::Value> TJsSvmModel::getWeights(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);	
     // get feature vector
-    TIntFltKdV SpV; JsSvmModel->FtrSpace->GetSpV(Rec, SpV);
-    if (JsSvmModel->NormalizeP) { TLinAlg::Normalize(SpV); }
-    // classify
-    const double Res = JsSvmModel->Model->GetRes(SpV);
-    v8::Local<v8::Number> JsRes = v8::Number::New(Res);
-	// return
-	return HandleScope.Close(JsRes);
+	TFltV WgtV; JsSvmModel->Model->GetWgtV(WgtV);
+	v8::Persistent<v8::Object> JsWgtV = TJsFltV::New(JsSvmModel->Js, WgtV);
+    return HandleScope.Close(JsWgtV);
+}
+
+v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+		JsSvmModel->Model->Save(*SOut);
+	}
+	return HandleScope.Close(v8::Undefined());
 }
 
 ///////////////////////////////
 // QMiner-JavaScript-Active-Learner
-v8::Persistent<v8::ObjectTemplate> TJsAL::Template;
 
 v8::Handle<v8::ObjectTemplate> TJsAL::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
         JsRegisterFunction(TmpTemp, getQuestion);
@@ -2334,14 +2660,15 @@ v8::Handle<v8::Value> TJsAL::getPositives(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Recursive-Linear-Regression
-v8::Persistent<v8::ObjectTemplate> TJsRecLinRegModel::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsRecLinRegModel::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;    
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, learn);
 		JsRegisterFunction(TmpTemp, predict);
+		JsRegisterFunction(TmpTemp, getWeights);
+		JsRegisterProperty(TmpTemp, dim);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2380,12 +2707,29 @@ v8::Handle<v8::Value> TJsRecLinRegModel::predict(const v8::Arguments& Args) {
     return HandleScope.Close(v8::Number::New(Predict));
 }
 
+v8::Handle<v8::Value> TJsRecLinRegModel::getWeights(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
+    // get feature vector
+	TFltV Coef;
+	JsRecLinRegModel->Model->GetCoeffs(Coef);	    
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsRecLinRegModel->Js, Coef);
+    return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Integer::New(JsRecLinRegModel->Model->GetDim()));
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Correlation
-v8::Persistent<v8::ObjectTemplate> TJsCorrelation::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsCorrelation::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, pearson);						
@@ -2416,10 +2760,9 @@ PGeoIpBs TJsGeoIp::GetGeoIpBs() {
 	return GeoIpBs;
 }
 
-v8::Persistent<v8::ObjectTemplate> TJsGeoIp::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsGeoIp::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, country);				
@@ -2470,22 +2813,26 @@ v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
 // QMiner-JavaScript-Fs
 v8::Handle<v8::ObjectTemplate> TJsFs::GetTemplate() {
 	v8::HandleScope HandleScope;
-	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-	JsRegisterFunction(TmpTemp, openRead);
-	JsRegisterFunction(TmpTemp, openWrite);
-	JsRegisterFunction(TmpTemp, openAppend);
-	JsRegisterFunction(TmpTemp, exists);
-	JsRegisterFunction(TmpTemp, copy);
-	JsRegisterFunction(TmpTemp, move);
-	JsRegisterFunction(TmpTemp, del);
-	JsRegisterFunction(TmpTemp, rename);
-	JsRegisterFunction(TmpTemp, fileInfo);
-	JsRegisterFunction(TmpTemp, mkdir);
-	JsRegisterFunction(TmpTemp, rmdir);
-	JsRegisterFunction(TmpTemp, listFile);
-	TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-	TmpTemp->SetInternalFieldCount(1);
-	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, openRead);
+		JsRegisterFunction(TmpTemp, openWrite);
+		JsRegisterFunction(TmpTemp, openAppend);
+		JsRegisterFunction(TmpTemp, exists);
+		JsRegisterFunction(TmpTemp, copy);
+		JsRegisterFunction(TmpTemp, move);
+		JsRegisterFunction(TmpTemp, del);
+		JsRegisterFunction(TmpTemp, rename);
+		JsRegisterFunction(TmpTemp, fileInfo);
+		JsRegisterFunction(TmpTemp, mkdir);
+		JsRegisterFunction(TmpTemp, rmdir);
+		JsRegisterFunction(TmpTemp, listFile);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
 }
 
 bool TJsFs::CanAccess(const TStr& FPath) {
@@ -2640,15 +2987,30 @@ v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-FIn
-v8::Persistent<v8::ObjectTemplate> TJsFIn::Template;
+PSIn TJsFIn::GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
+    v8::HandleScope HandleScope;
+    // check we have the argument at all
+    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    // check it's of the right type
+    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    // get the wrapped 
+    v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
+    // cast it to record set
+    TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
+    return JsFIn->SIn;    
+}
 
 v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, peekCh);
 		JsRegisterFunction(TmpTemp, getCh);
-		JsRegisterFunction(TmpTemp, getNextLn);
+		JsRegisterFunction(TmpTemp, readLine);
+		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
 		JsRegisterProperty(TmpTemp, eof);
 		JsRegisterProperty(TmpTemp, length);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -2671,7 +3033,7 @@ v8::Handle<v8::Value> TJsFIn::peekCh(const v8::Arguments& Args) {
 	return v8::String::New(TStr(JsFIn->SIn->PeekCh()).CStr());
 }
 
-v8::Handle<v8::Value> TJsFIn::getNextLn(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsFIn::readLine(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
 	TChA LnChA; JsFIn->SIn->GetNextLn(LnChA);
@@ -2692,15 +3054,30 @@ v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8:
 
 ///////////////////////////////
 // QMiner-JavaScript-FOut
-v8::Persistent<v8::ObjectTemplate> TJsFOut::Template;
+PSOut TJsFOut::GetArgFOut(const v8::Arguments& Args, const int& ArgN) {
+    v8::HandleScope HandleScope;
+    // check we have the argument at all
+    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    // check it's of the right type
+    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    // get the wrapped 
+    v8::Handle<v8::Object> _JsFOut = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFOut->GetInternalField(0));
+    // cast it to record set
+    TJsFOut* JsFOut = static_cast<TJsFOut*>(WrappedObject->Value());
+    return JsFOut->SOut;    
+}
 
 v8::Handle<v8::ObjectTemplate> TJsFOut::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, write);
 		JsRegisterFunction(TmpTemp, writeLine);
         JsRegisterFunction(TmpTemp, flush);
+        JsRegisterFunction(TmpTemp, close);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2712,6 +3089,7 @@ v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     QmAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     int OutN = 0;
 	if(TJsFOutUtil::IsArgFlt(Args, 0)) {
         OutN = JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
@@ -2733,6 +3111,7 @@ v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
     int OutN = Res->Int32Value();
     // then we make a new line
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);  
+    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     OutN += JsFOut->SOut->PutLn();
 	return v8::Integer::New(OutN);
 }
@@ -2740,7 +3119,15 @@ v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
 	JsFOut->SOut->Flush();
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+	JsFOut->SOut.Clr();
 	return v8::Undefined();
 }
 
@@ -2748,14 +3135,18 @@ v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
 // QMiner-JavaScript-Console
 v8::Handle<v8::ObjectTemplate> TJsHttp::GetTemplate() {
 	v8::HandleScope HandleScope;
-    v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
- 	JsRegisterFunction(TmpTemp, onRequest);
-	JsLongRegisterFunction(TmpTemp, "get", get);
-	JsLongRegisterFunction(TmpTemp, "getStr", get);
-	JsLongRegisterFunction(TmpTemp, "post", post);
-	JsLongRegisterFunction(TmpTemp, "postStr", post);
-    TmpTemp->SetInternalFieldCount(1);
-    return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, onRequest);
+		JsLongRegisterFunction(TmpTemp, "get", get);
+		JsLongRegisterFunction(TmpTemp, "getStr", get);
+		JsLongRegisterFunction(TmpTemp, "post", post);
+		JsLongRegisterFunction(TmpTemp, "postStr", post);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
 }
 
 v8::Handle<v8::Value> TJsHttp::onRequest(const v8::Arguments& Args) {
@@ -2814,10 +3205,9 @@ v8::Handle<v8::Value> TJsHttp::post(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Http-Response
-v8::Persistent<v8::ObjectTemplate> TJsHttpResp::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsHttpResp::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, setStatusCode);
@@ -2887,7 +3277,7 @@ v8::Handle<v8::Value> TJsHttpResp::close(const v8::Arguments& Args) {
     PHttpResp HttpResp = THttpResp::New(JsHttpResp->StatusCode, 
         JsHttpResp->ContTypeStr, false, BodySIn);
     // Execute response
-    JsHttpResp->WebSrv->SendHttpResp(JsHttpResp->SockId, HttpResp); 
+    JsHttpResp->WebSrv->SendHttpResp(JsHttpResp->SockId, HttpResp);
     return v8::Undefined();
 }
 
@@ -2902,10 +3292,9 @@ v8::Handle<v8::Value> TJsHttpResp::send(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Time
-v8::Persistent<v8::ObjectTemplate> TJsTm::Template;
-
 v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, string);
@@ -3017,25 +3406,66 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
 // QMiner-LinAlg
 v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 	v8::HandleScope HandleScope;
-    v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
- 	JsRegisterFunction(TmpTemp, newVec);
-	JsRegisterFunction(TmpTemp, newMat);
-	
-    TmpTemp->SetInternalFieldCount(1);
-    return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newVec);
+		JsRegisterFunction(TmpTemp, newIntVec);
+		JsRegisterFunction(TmpTemp, newMat);
+		JsRegisterFunction(TmpTemp, newSpVec);
+		JsRegisterFunction(TmpTemp, newSpMat);
+		JsRegisterFunction(TmpTemp, svd);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
 	v8::Persistent<v8::Object> JsVec = TJsFltV::New(JsLinAlg->Js);
-	TFltV& Vec = TJsFltV::GetFltV(JsVec);
+	TFltV& Vec = TJsFltV::GetVec(JsVec);
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		int Length = Array->Length();		
 		Vec.Gen(Length, 0);
 		for (int ElN = 0; ElN < Length; ElN++) {			
 			Vec.Add(Array->Get(ElN)->NumberValue());
+		}
+		return HandleScope.Close(JsVec);
+	}
+	if (Args[0]->IsObject()) {
+        // we got another vector as paremeter, make a copy of it
+		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
+			// get argument vector
+			TJsFltV* JsVec2 = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+			Vec = JsVec2->Vec;
+			return HandleScope.Close(JsVec);
+		}
+        // we have object with parameters, parse them out
+		int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
+		int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", 0);
+        if (MxVals >= 0) {
+			Vec.Gen(MxVals, Vals);
+		} else {
+			Vec.Gen(Vals);
+		}
+	}
+	return HandleScope.Close(JsVec);	
+}
+
+v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsVec = TJsIntV::New(JsLinAlg->Js);
+	TIntV& Vec = TJsIntV::GetVec(JsVec);
+	if (Args[0]->IsArray()) {
+		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+		int Length = Array->Length();		
+		Vec.Gen(Length, 0);
+		for (int ElN = 0; ElN < Length; ElN++) {			
+			Vec.Add(Array->Get(ElN)->Int32Value());
 		}
 		return HandleScope.Close(JsVec);
 	}
@@ -3087,83 +3517,205 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 			return HandleScope.Close(JsMat);
 		}
 	}
-	if (Args[0]->IsObject()) {		
+	if (Args[0]->IsObject()) {
+		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+			// get argument matrix
+			TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+			Mat = JsMat2->Mat;
+			return HandleScope.Close(JsMat);
+		}
+		bool GenRandom = TJsLinAlgUtil::GetArgBool(Args, 0, "random", false);
 		int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
 		int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", 0);		
 		if (Cols > 0 && Rows > 0) {
 			Mat.Gen(Rows, Cols);
+			if (GenRandom) {
+				TLAMisc::FillRnd(Mat);
+			}
 		}		
 	}
 	return HandleScope.Close(JsMat);
 }
 
+v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsSpVec = TJsSpV::New(JsLinAlg->Js);
+	TJsSpV::SetDim(JsSpVec, -1);
+	TIntFltKdV& Vec = TJsSpV::GetSpV(JsSpVec);
+	if (Args.Length() > 0) {
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+			int Length = Array->Length();		
+			Vec.Gen(Length, 0);
+			for (int ElN = 0; ElN < Length; ElN++) {			
+				if (Array->Get(ElN)->IsArray()) {
+					v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(Array->Get(ElN));
+					if (KdPair->Length() >= 2) {
+						if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+							Vec.Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
+						}
+					}
+				}				
+			}			
+			if (Args.Length() > 1 && Args[1]->IsObject()) {
+				int Dim = TJsLinAlgUtil::GetArgInt32(Args, 1, "dim", -1);
+				TJsSpV::SetDim(JsSpVec, Dim);
+			}
+			Vec.Sort();
+			return HandleScope.Close(JsSpVec);
+		} else if (Args[0]->IsObject()) {		
+			int Dim = TJsLinAlgUtil::GetArgInt32(Args, 0, "dim", -1);
+			TJsSpV::SetDim(JsSpVec, Dim);
+		}
+	}
+	return HandleScope.Close(JsSpVec);
+}
+
+v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsLinAlg->Js);
+	TJsSpMat::SetRows(JsSpMat, -1);	
+	TVec<TIntFltKdV>& Mat = TJsSpMat::GetSpMat(JsSpMat);
+	
+	if (Args.Length() > 0) {
+		// corrdinate
+		if (Args.Length() == 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV") && TJsObjUtil<TJsSpMat>::IsArgInt32(Args, 3)) {
+			TJsIntV* RowIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
+			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
+			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
+			int Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols); 
+			return HandleScope.Close(JsSpMat);
+		}
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+			int Cols = Array->Length();
+			Mat.Gen(Cols);
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				if (Array->Get(ColN)->IsArray()) {
+					v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
+					int Els = SpVecArray->Length();
+					for (int ElN = 0; ElN < Els; ElN++) {
+						if (SpVecArray->Get(ElN)->IsArray()) {
+							v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
+							if (KdPair->Length() >= 2) {
+								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+									Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
+								}
+							}
+						}
+					}
+				}
+				Mat[ColN].Sort();
+			}
+			if (Args.Length() > 1 && Args[1]->IsObject()) {
+				int Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
+				TJsSpMat::SetRows(JsSpMat, Rows);
+			}			
+			return HandleScope.Close(JsSpMat);
+		} else if (Args[0]->IsObject()) {		
+			int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
+			int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
+			TJsSpMat::SetRows(JsSpMat, Rows);
+			Mat.Gen(Cols);
+		}
+	}
+	return HandleScope.Close(JsSpMat);	
+}
+
+v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	
+	v8::Persistent<v8::Object> JsU = TJsFltVV::New(JsLinAlg->Js);
+	TFltVV& U = TJsFltVV::GetFltVV(JsU);
+	v8::Persistent<v8::Object> JsV = TJsFltVV::New(JsLinAlg->Js);
+	TFltVV& V = TJsFltVV::GetFltVV(JsV);
+	v8::Persistent<v8::Object> Jss = TJsFltV::New(JsLinAlg->Js);
+	TFltV& s = TJsFltV::GetVec(Jss);
+
+	v8::Handle<v8::Object> JsObj = v8::Object::New();
+	v8::Persistent<v8::Object> JsResult = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), JsObj);
+	
+	if (Args.Length() > 1) {
+		int Iters = 2;
+		double Tol = 1e-6;
+		if (Args.Length() > 2) {			
+			PJsonVal ParamVal = TJsLinAlgUtil::GetArgJson(Args, 2);   
+			Iters = ParamVal->GetObjInt("iter", 2);
+			Tol = ParamVal->GetObjNum("tol", 1e-6);
+		}
+		if (Args[0]->IsObject() && Args[1]->IsInt32()) {
+			int k = Args[1]->Int32Value();
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+				// get argument matrix
+				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+				TFullMatrix Mat2(JsMat2->Mat);
+				TLinAlg::ComputeThinSVD(Mat2, k, U, s, V, Iters, Tol);		
+				JsResult->Set(v8::Handle<v8::String>(v8::String::New("U")), JsU);
+				JsResult->Set(v8::Handle<v8::String>(v8::String::New("V")), JsV);
+				JsResult->Set(v8::Handle<v8::String>(v8::String::New("s")), Jss);
+				return HandleScope.Close(JsResult);
+			}
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+				// get argument matrix
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				if (JsMat2->Rows != -1) {					
+					TSparseColMatrix Mat2(JsMat2->Mat, JsMat2->Rows, JsMat2->Mat.Len());
+					TLinAlg::ComputeThinSVD(Mat2, k, U, s, V, Iters, Tol);					
+				} else {
+					TSparseColMatrix Mat2(JsMat2->Mat);
+					TLinAlg::ComputeThinSVD(Mat2, k, U, s, V, Iters, Tol);					
+				}
+				JsResult->Set(v8::Handle<v8::String>(v8::String::New("U")), JsU);
+				JsResult->Set(v8::Handle<v8::String>(v8::String::New("V")), JsV);
+				JsResult->Set(v8::Handle<v8::String>(v8::String::New("s")), Jss);
+				return HandleScope.Close(JsResult);
+			}
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
 ///////////////////////////////
-// QMiner-FltV
-v8::Handle<v8::ObjectTemplate> TJsFltV::GetTemplate() {
-	v8::HandleScope HandleScope;
-    v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
- 	JsRegisterFunction(TmpTemp, at);
-	JsRegisterFunction(TmpTemp, put);
-	JsRegisterFunction(TmpTemp, push);
-	JsRegisterFunction(TmpTemp, sum);
-	JsRegisterFunction(TmpTemp, outer);
-	JsRegisterFunction(TmpTemp, inner);
-	JsRegisterFunction(TmpTemp, plus);
-	JsRegisterFunction(TmpTemp, minus);
-	JsRegisterFunction(TmpTemp, multiply);
-	JsRegisterFunction(TmpTemp, normalize);
-	JsRegisterProperty(TmpTemp, length);
-    TmpTemp->SetInternalFieldCount(1);
-    return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);	
-}
+// QMiner-Vector
+const TStr TAuxFltV::ClassId = "TFltV";
+const TStr TAuxIntV::ClassId = "TIntV";
 
-v8::Handle<v8::Value> TJsFltV::at(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sortPerm(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
-	TInt Index = TJsFltVUtil::GetArgInt32(Args, 0);	
-	QmAssertR(Index >= 0 && Index < JsFltV->Vec.Len(), "vector at: index out of bounds");
-	double result = JsFltV->Vec[Index];
-	return HandleScope.Close(v8::Number::New(result));
-}
-
-v8::Handle<v8::Value> TJsFltV::put(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
-	if (Args.Length() == 2) {
-		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
-		QmAssertR(Args[1]->IsNumber(), "the second argument should be a number");				
-		TInt Index = TJsFltVUtil::GetArgInt32(Args, 0);	
-		TFlt Val = TJsFltVUtil::GetArgFlt(Args, 1);	
-		QmAssertR(Index >= 0 && Index < JsFltV->Vec.Len(), "vector put: index out of bounds");		
-		JsFltV->Vec[Index] = Val;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	bool Asc = true;
+	if (Args.Length() > 0) {
+		if (Args[0]->IsBoolean()) {
+			Asc = Args[0]->BooleanValue();
+		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+
+	v8::Persistent<v8::Object> JsSortedV = TJsFltV::New(JsVec->Js);
+	TFltV& SortedV = TJsFltV::GetVec(JsSortedV);
+	v8::Persistent<v8::Object> JsPermV = TJsIntV::New(JsVec->Js);
+	TVec<int>& PermV = TJsVec<int, TAuxIntV>::GetVec(JsPermV);
+
+	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
+
+	v8::Handle<v8::Object> JsObj = v8::Object::New();
+	v8::Persistent<v8::Object> JsResult = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), JsObj);
+	JsResult->Set(v8::Handle<v8::String>(v8::String::New("vec")), JsSortedV);
+	JsResult->Set(v8::Handle<v8::String>(v8::String::New("perm")), JsPermV);
+	return HandleScope.Close(JsResult);
 }
 
-v8::Handle<v8::Value> TJsFltV::push(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::outer(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
-	TFlt Val = TJsFltVUtil::GetArgFlt(Args, 0);
-	int result = JsFltV->Vec.Add(Val);	
-	return HandleScope.Close(v8::Number::New(result));
-}
-
-v8::Handle<v8::Value> TJsFltV::sum(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
-	double result = 0.0;
-	if (JsFltV->Vec.Len() > 0) {
-		result = TLinAlg::SumVec(JsFltV->Vec);
-	}
-	return HandleScope.Close(v8::Number::New(result));
-}
-
-v8::Handle<v8::Value> TJsFltV::outer(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
+	TJsFltV* JsFltV = TJsVecUtil::GetSelf(Args);
 	if (Args.Length() > 0) {		
 		if (Args[0]->IsObject()) {
-			if (TJsFltVUtil::IsArgClass(Args, 0, "TFltV")) {
+			if (TJsObjUtil<TJsVec>::IsArgClass(Args, 0, "TFltV")) {
 				// get argument vector
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() > 0 && JsVec->Vec.Len(), "vectors must have nonzero length");
@@ -3177,15 +3729,16 @@ v8::Handle<v8::Value> TJsFltV::outer(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return HandleScope.Close(v8::Undefined());
 }
 
-v8::Handle<v8::Value> TJsFltV::inner(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::inner(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
+	TJsFltV* JsFltV =  TJsObjUtil<TJsVec>::GetSelf(Args);
 	double result = 0.0;
 	if (Args[0]->IsObject()) {
-		if (TJsFltVUtil::IsArgClass(Args, 0, "TFltV")) {
+		if ( TJsObjUtil<TJsVec>::IsArgClass(Args, 0, "TFltV")) {
 			TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 			QmAssertR(JsFltV->Vec.Len() == JsVec->Vec.Len(), "vector' * vector: dimensions mismatch");
 			result = TLinAlg::DotProduct(JsFltV->Vec, JsVec->Vec);
@@ -3194,20 +3747,35 @@ v8::Handle<v8::Value> TJsFltV::inner(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Number::New(result));
 }
 
-v8::Handle<v8::Value> TJsFltV::plus(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::plus(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
+	TJsFltV* JsFltV =  TJsObjUtil<TJsVec>::GetSelf(Args);
 	if (Args.Length() > 0) {		
 		if (Args[0]->IsObject()) {
-			if (TJsFltVUtil::IsArgClass(Args, 0, "TFltV")) {
+			if ( TJsObjUtil<TJsVec>::IsArgClass(Args, 0, "TFltV")) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() == JsVec->Vec.Len(), "vector + vector: dimensions mismatch");
 				// create JS result and get the internal data				
 				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
-				TFltV& Result = TJsFltV::GetFltV(JsResult);
+				TFltV& Result = TJsVec::GetVec(JsResult);
 				// computation
 				Result.Gen(JsFltV->Vec.Len());
 				TLinAlg::LinComb(1.0, JsFltV->Vec, 1.0, JsVec->Vec, Result);
+				return HandleScope.Close(JsResult);			
+			}
+			if ( TJsObjUtil<TJsVec>::IsArgClass(Args, 0, "TIntFltKdV")) {
+				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+				QmAssertR(JsFltV->Vec.Len() >= JsVec->Dim, "vector + sp_vector: dimensions mismatch");
+				if (JsVec->Dim == -1) {
+					QmAssertR(JsFltV->Vec.Len() >= TLAMisc::GetMaxDimIdx(JsVec->Vec), "vector + sp_vector: index overflow");
+				}
+				// create JS result and get the internal data				
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
+				TFltV& Result = TJsVec::GetVec(JsResult);
+				// computation
+				Result.Gen(JsFltV->Vec.Len());
+				TLinAlg::AddVec(1.0, JsVec->Vec, JsFltV->Vec, Result);
 				return HandleScope.Close(JsResult);			
 			}
 		}
@@ -3215,17 +3783,18 @@ v8::Handle<v8::Value> TJsFltV::plus(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());	
 }
 
-v8::Handle<v8::Value> TJsFltV::minus(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::minus(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
+	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);
 	if (Args.Length() > 0) {		
 		if (Args[0]->IsObject()) {
-			if (TJsFltVUtil::IsArgClass(Args, 0, "TFltV")) {
+			if (TJsObjUtil<TJsVec>::IsArgClass(Args, 0, "TFltV")) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() == JsVec->Vec.Len(), "vector - vector: dimensions mismatch");
 				// create JS result and get the internal data				
 				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
-				TFltV& Result = TJsFltV::GetFltV(JsResult);
+				TFltV& Result = TJsVec::GetVec(JsResult);
 				// computation
 				Result.Gen(JsFltV->Vec.Len());
 				TLinAlg::LinComb(1.0, JsFltV->Vec, -1.0, JsVec->Vec, Result);
@@ -3236,15 +3805,16 @@ v8::Handle<v8::Value> TJsFltV::minus(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());	
 }
 
-v8::Handle<v8::Value> TJsFltV::multiply(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::multiply(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);
-	if (TJsFltVUtil::IsArgFlt(Args, 0)) {		
-		double Scalar = TJsFltVUtil::GetArgFlt(Args, 0);
+	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);
+	if (TJsObjUtil<TJsVec>::IsArgFlt(Args, 0)) {		
+		double Scalar = TJsObjUtil<TJsVec>::GetArgFlt(Args, 0);
 		// create output object
 		v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
 		// get the internal glib vector
-		TFltV& Result = TJsFltV::GetFltV(JsResult);
+		TFltV& Result = TJsVec::GetVec(JsResult);
 		// computation
 		Result.Gen(JsFltV->Vec.Len());
 		TLinAlg::MultiplyScalar(Scalar, JsFltV->Vec, Result);
@@ -3254,39 +3824,91 @@ v8::Handle<v8::Value> TJsFltV::multiply(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());
 }
 
-
-v8::Handle<v8::Value> TJsFltV::normalize(const v8::Arguments& Args) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::normalize(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Args);		
+	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);		
 	if (JsFltV->Vec.Len() > 0) {
 		TLinAlg::Normalize(JsFltV->Vec);
 	}
 	return HandleScope.Close(v8::Undefined());	
 }
 
-v8::Handle<v8::Value> TJsFltV::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::diag(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsFltV* JsFltV = TJsFltVUtil::GetSelf(Info);	
-	return HandleScope.Close(v8::Number::New(JsFltV->Vec.Len()));
+	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsFltV->Js);
+	TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+	// computation
+	TLAMisc::Diag(JsFltV->Vec, Result);
+	return HandleScope.Close(JsResult);	
+}
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::spDiag(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsFltV->Js);
+	TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+	// computation
+	TLAMisc::Diag(JsFltV->Vec, Result);
+	return HandleScope.Close(JsResult);	
+}
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::norm(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	double result = TLinAlg::Norm(JsVec->Vec);
+	return HandleScope.Close(v8::Number::New(result));
+}
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	TIntFltKdV Res;
+	TLAMisc::ToSpVec(JsVec->Vec, Res);		
+	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);	
 }
 
 ///////////////////////////////
 // QMiner-FltVV
+
 v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 	v8::HandleScope HandleScope;
-    v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-	JsRegisterFunction(TmpTemp, at);
-	JsRegisterFunction(TmpTemp, put);
-	JsRegisterFunction(TmpTemp, multiply);
-	JsRegisterFunction(TmpTemp, plus);
-	JsRegisterFunction(TmpTemp, minus);
-	JsRegisterFunction(TmpTemp, transpose);
-	JsRegisterFunction(TmpTemp, solve);
-	JsRegisterFunction(TmpTemp, normalizeCols);
- 	JsRegisterProperty(TmpTemp, rows);
-	JsRegisterProperty(TmpTemp, cols);
-    TmpTemp->SetInternalFieldCount(1);
-    return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);	
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, at);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, multiplyT);
+		JsRegisterFunction(TmpTemp, plus);
+		JsRegisterFunction(TmpTemp, minus);
+		JsRegisterFunction(TmpTemp, transpose);
+		JsRegisterFunction(TmpTemp, solve);
+		JsRegisterFunction(TmpTemp, rowNorms);
+		JsRegisterFunction(TmpTemp, colNorms);
+		JsRegisterFunction(TmpTemp, normalizeCols);
+		JsRegisterFunction(TmpTemp, sparse);
+		JsRegisterFunction(TmpTemp, frob);
+		JsRegisterProperty(TmpTemp, rows);
+		JsRegisterProperty(TmpTemp, cols);
+		JsRegisterFunction(TmpTemp, printStr);
+		JsRegisterFunction(TmpTemp, print);
+		JsRegisterFunction(TmpTemp, rowMaxIdx);
+		JsRegisterFunction(TmpTemp, colMaxIdx);
+		JsRegisterFunction(TmpTemp, getCol);
+		JsRegisterFunction(TmpTemp, setCol);
+		JsRegisterFunction(TmpTemp, getRow);
+		JsRegisterFunction(TmpTemp, setRow);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
 }
 
 v8::Handle<v8::Value> TJsFltVV::at(const v8::Arguments& Args) {
@@ -3337,13 +3959,11 @@ v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltV")) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "matrix * vector: dimensions mismatch");
-				// create JS result and get the internal data				
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js);
-				TFltV& Result = TJsFltV::GetFltV(JsResult);
-				// computation
-				Result.Gen(JsMat->Mat.GetRows());
+				// computation				
+				TFltV Result(JsMat->Mat.GetRows());				
 				TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
-
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
 				return HandleScope.Close(JsResult);			
 			}
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
@@ -3357,6 +3977,107 @@ v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
 				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
 
 				return HandleScope.Close(JsResult);
+			}
+
+			if (TJsFltVVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.GetCols() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "matrix * sparse_vector: dimensions mismatch");
+				int Rows = JsMat->Mat.GetRows();
+				TFltVV Result(Rows, 1);
+				// Copy could be omitted if we implemented SparseColMat * SparseVec
+				TVec<TIntFltKdV> TempSpMat(1);				
+				TempSpMat[0] = JsVec->Vec;				
+				TLinAlg::Multiply(JsMat->Mat, TempSpMat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
+				return HandleScope.Close(JsResult);			
+			}
+
+			if (TJsFltVVUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.GetCols() >= JsMat2->Rows, "matrix * sparse_col_matrix: dimensions mismatch");
+				// computation				
+				int Rows = JsMat->Mat.GetRows();
+				int Cols = JsMat->Mat.GetCols();
+				if (JsMat2->Rows == -1) {
+					QmAssertR(Cols > TLAMisc::GetMaxDimIdx(JsMat2->Mat), "matrix * sparse_col_matrix: dimensions mismatch");
+				}
+				TFltVV Result(Rows, JsMat2->Mat.Len());					
+				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
+				return HandleScope.Close(JsResult);			
+			}
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::multiplyT(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsFltVVUtil::IsArgFlt(Args, 0)) {
+			double Scalar = TJsFltVVUtil::GetArgFlt(Args, 0);
+			// create JS result and get the internal data				
+			v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
+			TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+			// computation
+			Result = JsMat->Mat;
+			Result.Transpose();
+			TLinAlg::MultiplyScalar(Scalar, Result, Result);
+			return HandleScope.Close(JsResult);	
+		}
+		if (Args[0]->IsObject()) {
+			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltV")) {
+				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len(), "matrix' * vector: dimensions mismatch");
+				// computation				
+				TFltV Result(JsMat->Mat.GetCols());				
+				TLinAlg::MultiplyT(JsMat->Mat, JsVec->Vec, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
+				return HandleScope.Close(JsResult);			
+			}
+			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
+				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix' * matrix: dimensions mismatch");
+				// create JS result and get the internal data
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
+				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				// computation
+				Result.Gen(JsMat->Mat.GetCols(), JsMat2->Mat.GetCols());
+				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
+				return HandleScope.Close(JsResult);
+			}
+
+			if (TJsFltVVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.GetRows() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "matrix' * sparse_vector: dimensions mismatch");
+				TFltVV Result(JsMat->Mat.GetCols(), 1);
+				// Copy could be omitted if we implemented SparseColMat * SparseVec
+				TVec<TIntFltKdV> TempSpMat(1);				
+				TempSpMat[0] = JsVec->Vec;				
+				TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
+				return HandleScope.Close(JsResult);			
+			}
+
+			if (TJsFltVVUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.GetRows() >= JsMat2->Rows, "matrix' * sparse_col_matrix: dimensions mismatch");
+				// computation				
+				int Rows = JsMat->Mat.GetRows();
+				int Cols = JsMat->Mat.GetCols();
+				if (JsMat2->Rows == -1) {
+					QmAssertR(Rows > TLAMisc::GetMaxDimIdx(JsMat2->Mat), "matrix' * sparse_col_matrix: dimensions mismatch");
+				}
+				TFltVV Result(Cols, JsMat2->Mat.Len());				
+				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
+				return HandleScope.Close(JsResult);			
 			}
 		}
 	}	
@@ -3427,7 +4148,7 @@ v8::HandleScope HandleScope;
 				QmAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "matrix \\ vector: dimensions mismatch");
 				// create JS result and get the internal data				
 				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js);
-				TFltV& Result = TJsFltV::GetFltV(JsResult);
+				TFltV& Result = TJsFltV::GetVec(JsResult);
 				// computation
 				Result.Gen(JsMat->Mat.GetCols());
 				TNumericalStuff::SolveLinearSystem(JsMat->Mat, JsVec->Vec, Result);			
@@ -3439,11 +4160,64 @@ v8::HandleScope HandleScope;
 	return HandleScope.Close(v8::Undefined());		
 }
 
+v8::Handle<v8::Value> TJsFltVV::rowNorms(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltVV->Js);
+	TFltV& Result = TJsFltV::GetVec(JsResult);	
+	int Rows = JsFltVV->Mat.GetRows();
+	int Cols = JsFltVV->Mat.GetCols();
+	Result.Gen(Rows);	
+	Result.PutAll(0.0);
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			Result[RowN] += TMath::Sqr(JsFltVV->Mat.At(RowN, ColN));
+		}
+		Result[RowN] = TMath::Sqrt(Result[RowN]);
+	}
+	return HandleScope.Close(JsResult);		
+}
+
+v8::Handle<v8::Value> TJsFltVV::colNorms(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltVV->Js);
+	TFltV& Result = TJsFltV::GetVec(JsResult);	
+	int Cols = JsFltVV->Mat.GetCols();
+	Result.Gen(Cols);	
+	Result.PutAll(0.0);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		Result[ColN] = TLinAlg::Norm(JsFltVV->Mat, ColN);
+	}
+	return HandleScope.Close(JsResult);
+}
+
 v8::Handle<v8::Value> TJsFltVV::normalizeCols(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
 	TLinAlg::NormalizeColumns(JsFltVV->Mat);
 	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::sparse(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
+	TVec<TIntFltKdV> SpMat = TVec<TIntFltKdV>();
+	TLinAlg::Sparse(JsFltVV->Mat, SpMat);	
+	v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsFltVV->Js, SpMat);
+	TJsSpMat::SetRows(JsResult, JsFltVV->Mat.GetRows());
+	return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsFltVV::frob(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
+	double FrobNorm = 0.0;
+	int Cols = JsFltVV->Mat.GetCols();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		FrobNorm += TLinAlg::Norm2(JsFltVV->Mat, ColN);
+	}
+	return HandleScope.Close(v8::Number::New(TMath::Sqrt(FrobNorm)));
 }
 
 v8::Handle<v8::Value> TJsFltVV::rows(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -3456,6 +4230,707 @@ v8::Handle<v8::Value> TJsFltVV::cols(v8::Local<v8::String> Properties, const v8:
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Info);	
 	return HandleScope.Close(v8::Number::New(JsFltVV->Mat.GetCols()));
+}
+
+v8::Handle<v8::Value> TJsFltVV::printStr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
+	TStr Out = "";
+	TLAMisc::PrintTFltVVToStr(JsFltVV->Mat, Out);
+	return HandleScope.Close(v8::String::New(Out.CStr()));	
+}
+
+v8::Handle<v8::Value> TJsFltVV::print(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
+	TLAMisc::PrintTFltVV(JsFltVV->Mat, "");	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::rowMaxIdx(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsFltVVUtil::IsArgInt32(Args, 0)) {
+			int RowN = TJsFltVVUtil::GetArgInt32(Args, 0);
+			int Idx = TLinAlg::GetRowMaxIdx(JsMat->Mat, RowN);
+			return HandleScope.Close(v8::Integer::New(Idx));
+		}
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::colMaxIdx(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsFltVVUtil::IsArgInt32(Args, 0)) {
+			int ColN = TJsFltVVUtil::GetArgInt32(Args, 0);
+			int Idx = TLinAlg::GetColMaxIdx(JsMat->Mat, ColN);
+			return HandleScope.Close(v8::Integer::New(Idx));
+		}
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::getCol(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsFltVVUtil::IsArgInt32(Args, 0)) {
+			int ColN = TJsFltVVUtil::GetArgInt32(Args, 0);
+			QmAssertR(ColN < JsMat->Mat.GetCols() , "matrix: get col vector: index out of bounds");
+			TFltV Result;
+			JsMat->Mat.GetCol(ColN, Result);
+			v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
+			return HandleScope.Close(JsResult);	
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::setCol(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 1) {
+		QmAssertR(Args[1]->IsObject() && TJsFltVVUtil::IsArgClass(Args, 1, "TFltV") && TJsFltVVUtil::IsArgInt32(Args, 0), "arg[0] should be an integer, arg[1] should be a TFltV");
+		TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
+		int ColN = TJsFltVVUtil::GetArgInt32(Args, 0);	
+		QmAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len() , "matrix: set col vector: dimensions mismatch");
+		QmAssertR(ColN < JsMat->Mat.GetCols() , "matrix: set col vector: index out of bounds");
+		int Rows = JsMat->Mat.GetRows();
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			JsMat->Mat.At(RowN, ColN) = JsVec->Vec[RowN];
+		}
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::getRow(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsFltVVUtil::IsArgInt32(Args, 0)) {
+			int RowN = TJsFltVVUtil::GetArgInt32(Args, 0);
+			QmAssertR(RowN < JsMat->Mat.GetRows() , "matrix: get row vector: index out of bounds");
+			TFltV Result;
+			JsMat->Mat.GetRow(RowN, Result);
+			v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
+			return HandleScope.Close(JsResult);	
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsFltVV::setRow(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	if (Args.Length() > 1) {
+		QmAssertR(Args[1]->IsObject() && TJsFltVVUtil::IsArgClass(Args, 1, "TFltV") && TJsFltVVUtil::IsArgInt32(Args, 0), "arg[0] should be an integer, arg[1] should be a TFltV");
+		TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
+		int RowN = TJsFltVVUtil::GetArgInt32(Args, 0);	
+		QmAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len() , "matrix: set row vector: dimensions mismatch");
+		QmAssertR(RowN < JsMat->Mat.GetRows() , "matrix: set row vector: index out of bounds");
+		int Cols = JsMat->Mat.GetCols();
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			JsMat->Mat.At(RowN, ColN) = JsVec->Vec[ColN];
+		}
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+
+
+///////////////////////////////
+// QMiner-SparseVec
+
+v8::Handle<v8::ObjectTemplate> TJsSpV::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, at);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, sum);
+		JsRegisterFunction(TmpTemp, inner);
+		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, normalize);
+		JsRegisterProperty(TmpTemp, nnz);
+		JsRegisterProperty(TmpTemp, dim);
+		JsRegisterFunction(TmpTemp, print);
+		JsRegisterFunction(TmpTemp, norm);
+		JsRegisterFunction(TmpTemp, full);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsSpV::at(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	TInt Index = TJsSpVUtil::GetArgInt32(Args, 0);		
+	QmAssertR(JsSpV->Dim == -1 || Index < JsSpV->Dim, "sparse vector at: index out of bounds");
+	double result = 0.0;
+	for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
+		if (JsSpV->Vec[ElN].Key == Index) {
+			result = JsSpV->Vec[ElN].Dat;
+			break;
+		}
+	}
+	return HandleScope.Close(v8::Number::New(result));
+}
+
+v8::Handle<v8::Value> TJsSpV::put(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	if (Args.Length() == 2) {
+		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
+		QmAssertR(Args[1]->IsNumber(), "the second argument should be a number");				
+		TInt Index = TJsSpVUtil::GetArgInt32(Args, 0);	
+		TFlt Val = TJsSpVUtil::GetArgFlt(Args, 1);	
+		bool Found = false;
+		for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
+			if (JsSpV->Vec[ElN].Key == Index) {
+				JsSpV->Vec[ElN].Dat = Val;
+				Found = true;
+				break;
+			}
+		}
+		if (!Found) {
+			JsSpV->Vec.Add(TIntFltKd(Index, Val));
+			JsSpV->Vec.Sort();
+		}		
+		// update dimension
+		if (JsSpV->Dim != -1) {
+			if (Index >= JsSpV->Dim) {
+				JsSpV->Dim = Index + 1;
+			}
+		}
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpV::sum(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	double result = 0.0;
+	if (JsSpV->Vec.Len() > 0) {
+		result = TLinAlg::SumVec(JsSpV->Vec);
+	}
+	return HandleScope.Close(v8::Number::New(result));
+}
+
+v8::Handle<v8::Value> TJsSpV::inner(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	double result = 0.0;
+	if (Args[0]->IsObject()) {
+		if (TJsSpVUtil::IsArgClass(Args, 0, "TFltV")) {
+			TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+			QmAssertR(JsSpV->Dim == -1 || JsSpV->Dim == JsVec->Vec.Len(), "sparse_vector' * vector: dimensions mismatch");
+			result = TLinAlg::DotProduct(JsVec->Vec, JsSpV->Vec);
+		}
+		if (TJsSpVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+			TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+			QmAssertR(JsSpV->Dim == -1 || JsVec->Dim == -1 || JsSpV->Dim == JsVec->Dim, "sparse_vector' * sparse_vector: dimensions mismatch");
+			result = TLinAlg::DotProduct(JsVec->Vec, JsSpV->Vec);
+		}
+	}
+	return HandleScope.Close(v8::Number::New(result));
+}
+
+v8::Handle<v8::Value> TJsSpV::multiply(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	if (TJsSpVUtil::IsArgFlt(Args, 0)) {		
+		double Scalar = TJsSpVUtil::GetArgFlt(Args, 0);
+		// create output object
+		v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpV->Js);
+		// get the internal glib vector
+		TIntFltKdV& Result = TJsSpV::GetSpV(JsResult);
+		// computation
+		Result.Gen(JsSpV->Vec.Len());
+		TLinAlg::MultiplyScalar(Scalar, JsSpV->Vec, Result);		
+		return HandleScope.Close(JsResult);
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsSpV::normalize(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);		
+	if (JsSpV->Vec.Len() > 0) {
+		TLinAlg::Normalize(JsSpV->Vec);
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpV::nnz(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Info);	
+	return HandleScope.Close(v8::Number::New(JsSpV->Vec.Len()));
+}
+
+v8::Handle<v8::Value> TJsSpV::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Info);	
+	return HandleScope.Close(v8::Number::New(JsSpV->Dim));
+}
+
+v8::Handle<v8::Value> TJsSpV::print(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);		
+	printf("Sparse vector dimension: %d\n", JsSpV->Dim);
+	for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
+		printf("%d %f\n", JsSpV->Vec[ElN].Key.Val, JsSpV->Vec[ElN].Dat.Val);
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpV::norm(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	double result = TLinAlg::Norm(JsSpV->Vec);
+	return HandleScope.Close(v8::Number::New(result));
+}
+
+v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	
+	int Len = JsSpV->Dim;
+	if (Args.Length() > 0) {
+		if (TJsSpVUtil::IsArgInt32(Args, 0)) {		
+			Len = TJsSpVUtil::GetArgInt32(Args, 0);
+		}
+	}
+	if (Len == -1) {
+		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec);
+	}
+	TFltV Res;
+	TLAMisc::ToVec(JsSpV->Vec, Res, Len);		
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsSpV->Js, Res);
+	return HandleScope.Close(JsResult);	
+}
+
+///////////////////////////////
+// QMiner-Sparse-Col-Matrix
+
+v8::Handle<v8::ObjectTemplate> TJsSpMat::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, at);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, push);
+		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, multiplyT);
+		JsRegisterFunction(TmpTemp, plus);
+		JsRegisterFunction(TmpTemp, minus);
+		JsRegisterFunction(TmpTemp, transpose);
+		JsRegisterFunction(TmpTemp, colNorms);
+		JsRegisterFunction(TmpTemp, normalizeCols);
+		JsRegisterFunction(TmpTemp, full);
+		JsRegisterFunction(TmpTemp, frob);
+		JsRegisterProperty(TmpTemp, rows);
+		JsRegisterProperty(TmpTemp, cols);
+		JsRegisterFunction(TmpTemp, print);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsSpMat::at(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);	
+	TInt Row = TJsSpMatUtil::GetArgInt32(Args, 0);	
+	TInt Col = TJsSpMatUtil::GetArgInt32(Args, 1);
+	TInt Rows = JsSpMat->Rows;
+	TInt Cols = JsSpMat->Mat.Len();
+	QmAssertR(Row >= 0 &&  (Row < Rows || Rows == -1) && Col >= 0 && Col < Cols, "sparse col matrix at: index out of bounds");		
+	double result = 0.0;
+	int Els = JsSpMat->Mat[Col].Len();
+	for (int ElN = 0; ElN < Els; ElN++) {
+		if (JsSpMat->Mat[Col][ElN].Key == Row) {
+			result = JsSpMat->Mat[Col][ElN].Dat;
+			break;
+		}
+	}
+	return HandleScope.Close(v8::Number::New(result));
+
+}
+
+v8::Handle<v8::Value> TJsSpMat::put(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);	
+	if (Args.Length() == 3) {
+		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
+		QmAssertR(Args[1]->IsInt32(), "the second argument should be an integer");
+		QmAssertR(Args[2]->IsNumber(), "the third argument should be a number");
+		TInt Row = TJsSpMatUtil::GetArgInt32(Args, 0);	
+		TInt Col = TJsSpMatUtil::GetArgInt32(Args, 1);	
+		TInt Rows = JsSpMat->Rows;
+		TInt Cols = JsSpMat->Mat.Len();
+		QmAssertR(Row >= 0 &&  (Row < Rows || Rows == -1) && Col >= 0 && Col < Cols, "sparse col matrix put: index out of bounds");		
+		TFlt Val = TJsSpMatUtil::GetArgFlt(Args, 2);
+		bool Found = false;
+		int Els = JsSpMat->Mat[Col].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			if (JsSpMat->Mat[Col][ElN].Key == Row) {
+				JsSpMat->Mat[Col][ElN].Dat = Val;
+				Found = true;
+				break;
+			}
+		}
+		if (!Found) {
+			JsSpMat->Mat[Col].Add(TIntFltKd(Row, Val));
+			JsSpMat->Mat[Col].Sort();
+		}		
+		// update dimension
+		if (JsSpMat->Rows != -1) {
+			if (Row >= JsSpMat->Rows) {
+				JsSpMat->Rows = Row + 1;
+			}
+		}
+	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpMat::push(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsMat = TJsSpMatUtil::GetSelf(Args);	
+	if (Args.Length() > 0) {		
+		if (Args[0]->IsObject()) {			
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+				JsMat->Mat.Add(JsVec->Vec);
+				if (JsMat->Rows != -1) {
+					JsMat->Rows = MAX(JsMat->Rows, TLAMisc::GetMaxDimIdx(JsVec->Vec) + 1);
+				}		
+			}
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsMat = TJsSpMatUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsSpMatUtil::IsArgFlt(Args, 0)) {
+			double Scalar = TJsSpMatUtil::GetArgFlt(Args, 0);
+			// create JS result and get the internal data				
+			v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);
+			TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+			// computation			
+			TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, Result);
+			return HandleScope.Close(JsResult);			
+		}
+		if (Args[0]->IsObject()) {
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltV")) {
+				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.Len() == JsVec->Vec.Len(), "sparse_col_matrix * vector: dimensions mismatch");
+				// computation				
+				int Rows = JsMat->Rows;				
+				if (JsMat->Rows == -1) {
+					Rows = TLAMisc::GetMaxDimIdx(JsMat->Mat) + 1;
+				}
+				TFltVV Result(Rows, 1);
+				// Copy could be omitted if we implemented SparseColMat * TFltV
+				TLinAlg::Multiply(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result, Rows);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
+				return HandleScope.Close(JsResult);			
+			}
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltVV")) {			
+				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);				
+				QmAssertR(JsMat->Mat.Len() == JsMat2->Mat.GetRows(), "sparse_col_matrix * matrix: dimensions mismatch");
+				// create JS result and get the internal data
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
+				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				// computation
+				int Rows = JsMat->Rows;
+				if (Rows == -1) {
+					Rows = TLAMisc::GetMaxDimIdx(JsMat->Mat) + 1;
+				}
+				Result.Gen(Rows, JsMat2->Mat.GetCols());
+				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result, Rows);
+				return HandleScope.Close(JsResult);
+			}
+			
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.Len() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "sparse_col_matrix * sparse_vector: dimensions mismatch");
+				// computation				
+				int Rows = JsMat->Rows;				
+				if (JsMat->Rows == -1) {
+					Rows = TLAMisc::GetMaxDimIdx(JsMat->Mat) + 1;					
+				}
+				TFltVV Result(Rows, 1);
+				// Copy could be omitted if we implemented SparseColMat * SparseVec
+				TVec<TIntFltKdV> TempSpMat(1);
+				TempSpMat[0] = JsVec->Vec;				
+				TLinAlg::Multiply(JsMat->Mat, TempSpMat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
+				return HandleScope.Close(JsResult);			
+			}
+
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Mat.Len() >= JsMat2->Rows, "sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
+				// computation				
+				int Rows = JsMat->Rows;				
+				if (JsMat->Rows == -1) {
+					Rows = TLAMisc::GetMaxDimIdx(JsMat->Mat) + 1;					
+				}
+				if (JsMat2->Rows == -1) {
+					QmAssertR(JsMat->Mat.Len() >= TLAMisc::GetMaxDimIdx(JsMat2->Mat) + 1, "sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
+				}
+				TFltVV Result(Rows, JsMat2->Mat.Len());					
+				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
+				return HandleScope.Close(JsResult);			
+			}
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsMat = TJsSpMatUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsSpMatUtil::IsArgFlt(Args, 0)) {
+			double Scalar = TJsSpMatUtil::GetArgFlt(Args, 0);
+			// create JS result and get the internal data				
+			v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);
+			TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+			// computation
+			int Rows = JsMat->Rows;
+			if (Rows == -1) {
+				Rows = TLAMisc::GetMaxDimIdx(JsMat->Mat) + 1;
+			}
+			TLinAlg::Transpose(JsMat->Mat, Result, Rows);
+			TLinAlg::MultiplyScalar(Scalar, Result, Result);
+			return HandleScope.Close(JsResult);			
+		}
+		if (Args[0]->IsObject()) {
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltV")) {
+				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(), "sparse_col_matrix' * vector: dimensions mismatch");
+				if (JsMat->Rows == -1) {
+					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsVec->Vec.Len(), "sparse_col_matrix' * vector: dimensions mismatch");
+				}
+				// computation				
+				int Cols = JsMat->Mat.Len();				
+				TFltVV Result(Cols, 1);
+				// Copy could be omitted if we implemented SparseColMat * TFltV
+				TLinAlg::MultiplyT(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
+				return HandleScope.Close(JsResult);			
+			}
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltVV")) {			
+				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);				
+				QmAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
+				if (JsMat->Rows == -1) {
+					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
+				}
+				// create JS result and get the internal data
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
+				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				// computation
+				int Cols = JsMat->Mat.Len();
+				Result.Gen(Cols, JsMat2->Mat.GetCols());
+				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
+				return HandleScope.Close(JsResult);
+			}
+			
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Rows == -1 || JsVec->Dim == -1 || JsMat->Rows == JsVec->Dim, "sparse_col_matrix' * sparse_vector: dimensions mismatch");
+				// computation				
+				int Cols = JsMat->Mat.Len();
+				TFltVV Result(Cols, 1);
+				// Copy could be omitted if we implemented SparseColMat * SparseVec
+				TVec<TIntFltKdV> TempSpMat(1);
+				TempSpMat[0] = JsVec->Vec;				
+				TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
+				return HandleScope.Close(JsResult);
+			}
+
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
+				// computation				
+				int Cols = JsMat->Mat.Len();
+				TFltVV Result(Cols, JsMat2->Mat.Len());					
+				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
+				// create JS result with the Result vector	
+				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
+				return HandleScope.Close(JsResult);			
+			}
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpMat::plus(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsMat = TJsSpMatUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (Args[0]->IsObject()) {			
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {			
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "matrix - matrix: dimensions mismatch");
+				// create JS result and get the internal data
+				v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);				
+				TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+				// computation				
+				Result.Gen(MAX(JsMat->Mat.Len(), JsMat2->Mat.Len()));
+				int Len1 = JsMat->Mat.Len();
+				int Len2 = JsMat2->Mat.Len();
+				int Len = Result.Len();
+				for (int ColN = 0; ColN < Len; ColN++) {
+					if (ColN < Len1 && ColN < Len2) {
+						TLinAlg::LinComb(1.0, JsMat->Mat[ColN], 1.0, JsMat2->Mat[ColN], Result[ColN]);
+					}
+					if (ColN >= Len1 && ColN < Len2) {
+						Result[ColN] = JsMat2->Mat[ColN];
+					}
+					if (ColN < Len1 && ColN >= Len2) {
+						Result[ColN] = JsMat->Mat[ColN];
+					}
+				}
+				if (JsMat->Rows == -1 && JsMat2->Rows == -1) {
+					TJsSpMat::SetRows(JsResult, TLAMisc::GetMaxDimIdx(Result) + 1);
+				} else {
+					TJsSpMat::SetRows(JsResult, MAX(JsMat->Rows, JsMat2->Rows));
+				}
+				return HandleScope.Close(JsResult);
+			}
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());		
+}
+
+v8::Handle<v8::Value> TJsSpMat::minus(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsMat = TJsSpMatUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (Args[0]->IsObject()) {			
+			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {			
+				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
+				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "matrix - matrix: dimensions mismatch");
+				// create JS result and get the internal data
+				v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);
+				TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+				// computation				
+				Result.Gen(MAX(JsMat->Mat.Len(), JsMat2->Mat.Len()));
+				int Len1 = JsMat->Mat.Len();
+				int Len2 = JsMat2->Mat.Len();
+				int Len = Result.Len();
+				for (int ColN = 0; ColN < Len; ColN++) {
+					if (ColN < Len1 && ColN < Len2) {
+						TLinAlg::LinComb(1.0, JsMat->Mat[ColN], -1.0, JsMat2->Mat[ColN], Result[ColN]);
+					}
+					if (ColN >= Len1 && ColN < Len2) {
+						Result[ColN].Gen(JsMat2->Mat[ColN].Len());
+						TLinAlg::MultiplyScalar(-1, JsMat2->Mat[ColN], Result[ColN]);
+					}
+					if (ColN < Len1 && ColN >= Len2) {
+						Result[ColN] = JsMat->Mat[ColN];
+					}
+				}
+				if (JsMat->Rows == -1 && JsMat2->Rows == -1) {
+					TJsSpMat::SetRows(JsResult, TLAMisc::GetMaxDimIdx(Result) + 1);
+				} else {
+					TJsSpMat::SetRows(JsResult, MAX(JsMat->Rows, JsMat2->Rows));
+				}
+				return HandleScope.Close(JsResult);
+			}
+		}
+	}	
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpMat::transpose(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsSpMat->Js);
+	TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);	
+	TLinAlg::Transpose(JsSpMat->Mat, Result);
+	return HandleScope.Close(JsResult);	
+}
+
+v8::Handle<v8::Value> TJsSpMat::colNorms(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);	
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsSpMat->Js);
+	TFltV& Result = TJsFltV::GetVec(JsResult);	
+	int Cols = JsSpMat->Mat.Len();
+	Result.Gen(Cols);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		Result[ColN] = TLinAlg::Norm(JsSpMat->Mat[ColN]);
+	}
+	return HandleScope.Close(JsResult);	
+}
+
+v8::Handle<v8::Value> TJsSpMat::normalizeCols(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	TLinAlg::NormalizeColumns(JsSpMat->Mat);
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsSpMat::full(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	TFltVV FullMat;
+	int Rows = JsSpMat->Rows;
+	if (Rows == -1) {
+		Rows = TLAMisc::GetMaxDimIdx(JsSpMat->Mat) + 1;
+	}
+	TLinAlg::Full(JsSpMat->Mat, FullMat, Rows);	
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsSpMat->Js, FullMat);
+	return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsSpMat::frob(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	double FrobNorm = 0.0;
+	int Cols = JsSpMat->Mat.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		FrobNorm += TLinAlg::Norm2(JsSpMat->Mat[ColN]);
+	}
+	return HandleScope.Close(v8::Number::New(TMath::Sqrt(FrobNorm)));
+}
+
+v8::Handle<v8::Value> TJsSpMat::rows(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
+	return HandleScope.Close(v8::Number::New(JsSpMat->Rows));
+}
+
+v8::Handle<v8::Value> TJsSpMat::cols(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
+	return HandleScope.Close(v8::Number::New(JsSpMat->Mat.Len()));
+}
+
+v8::Handle<v8::Value> TJsSpMat::print(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	TLAMisc::PrintSpMat(JsSpMat->Mat, "");
+	return HandleScope.Close(v8::Undefined());
 }
 
 }

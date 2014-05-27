@@ -50,7 +50,7 @@ public:
 typedef enum { oolstLess, oolstEqual, oolstNotEqual, oolstGreater, oolstIsInRange, oolstIsIn, oolstIsNotIn } TOpLinSearchType;
 class TOpLinSearch : public TOp {
 private:
-	void ParseQuery(const TWPt<TBase>& Base, const uchar& StoreId, const PJsonVal& QueryElt, 
+	void ParseQuery(const TWPt<TBase>& Base, const uint& StoreId, const PJsonVal& QueryElt, 
 		int& FieldId, TOpLinSearchType& LinSearchType, TStr& FieldVal);
 public:
 	TOpLinSearch(): TOp("SearchLin") { }
@@ -61,15 +61,15 @@ public:
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV);
 	bool IsFunctional() { return true; }
 	// actual interface, over full store
-	PRecSet Exec(const TWPt<TBase>& Base, const uchar& StoreId, const int& FieldId, 
+	PRecSet Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const TOpLinSearchType& OpLinSearchType, const int& FieldVal);
-	PRecSet Exec(const TWPt<TBase>& Base, const uchar& StoreId, const int& FieldId, 
+	PRecSet Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const TOpLinSearchType& OpLinSearchType, const TTm& FieldVal);
-	PRecSet Exec(const TWPt<TBase>& Base, const uchar& StoreId, const int& FieldId, 
+	PRecSet Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const TTm& MnFieldVal, const TTm& MxFieldVal);
-	PRecSet Exec(const TWPt<TBase>& Base, const int& StoreId, const int& FieldId, 
+	PRecSet Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const uint64& MnFieldVal, const uint64& MxFieldVal);
-	PRecSet Exec(const TWPt<TBase>& Base, const int& StoreId, const int& FieldId, 
+	PRecSet Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const TOpLinSearchType& OpLinSearchType, const TIntV& FieldVals);		
 	// actual interface, over given record set
 	PRecSet Exec(const TWPt<TBase>& Base, const PRecSet& RecSet, const int& FieldId, 
@@ -92,7 +92,7 @@ public:
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV);
 	bool IsFunctional() { return false; }
 	// actual interface
-	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uchar& StoreId, 
+	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uint& StoreId, 
 		const int& FieldId, TRecSetV& OutRecSetV);
 };
 ////////////////////////////////////
@@ -107,7 +107,7 @@ public:
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV);
 	bool IsFunctional() { return false; }
 	// actual interface
-	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uchar& StoreId, 
+	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uint& StoreId, 
 		const int& FieldId, const int& SplitWinSize, TRecSetV& OutRecSetV);
 };
 
@@ -129,11 +129,11 @@ public:
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV);
 	bool IsFunctional() { return false; }
 	// actual interface
-	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uchar& StoreId, 
+	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uint& StoreId, 
 		const int& FieldId, const int& ClusterN, TRecSetV& OutRecSetV);
-	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uchar& StoreId, 
+	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uint& StoreId, 
 		const int& FieldId, const double& Sim, TRecSetV& OutRecSetV);
-	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uchar& StoreId, 
+	void Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, const uint& StoreId, 
 		const int& FieldId, TRecSetV& OutRecSetV);
 };
 

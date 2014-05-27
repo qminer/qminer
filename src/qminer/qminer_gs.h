@@ -167,7 +167,7 @@ public:
     /// Store name
 	TStr StoreName;
     /// Store ID (not requireD)
-	TUCh StoreId;
+	TUInt StoreId;
     /// True when specified store ID is valid
 	TBool HasStoreIdP;
     /// Window settings
@@ -233,8 +233,8 @@ public:
 	void DelVals(int Vals);
 
 	uint64 Len() const;
-	uint64 GetMinId() const;
-	uint64 GetMaxId() const;
+	uint64 GetFirstValId() const;
+	uint64 GetLastValId() const;
 };
 
 ////////////////////////////////////
@@ -283,7 +283,7 @@ private:
     /////////////////////////////////////////////////
 	/// Thin Input-Memory. Used to present existing TMem as TSIn. 
     /// It doesn't allocate or release any memory.
-	class TThinMIn: public TSIn{
+	class TThinMIn: public TSIn {
 	private:
 		uchar* Bf;
 		int BfC, BfL;
@@ -564,10 +564,14 @@ private:
 	/// Hash map from record name to record Id. Used when we have primary field.
 	THash<TStr, TUInt64> RecNmIdH; 
 	
+    /// Flag if we are using cache store
+    TBool DataCacheP;
     /// Store for parts of records that go to disk
-	TWndBlockCache<TMem> JsonC;
+	TWndBlockCache<TMem> DataCache;
+    /// Flag if we are using in-memory store
+    TBool DataMemP;
 	/// Store for parts of records that should be in-memory
-	TInMemStorage JsonM; 
+	TInMemStorage DataMem; 
 	/// Serializator to disk
 	TRecSerializator SerializatorCache;
 	/// Serializator to memory
@@ -611,10 +615,12 @@ private:
     TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
     
 	/// Initialize from given store schema
-	void InitFromSchema(const TStoreSchema& StoreSchema);
+	void InitFromSchema(const TStoreSchema& StoreSchema);    
+    /// Initialize field location flags
+    void InitDataFlags();
 
 public:
-	TStoreImpl(const TWPt<TBase>& _Base, const uchar& StoreId, 
+	TStoreImpl(const TWPt<TBase>& _Base, const uint& StoreId, 
         const TStr& StoreName, const TStoreSchema& StoreSchema, 
         const TStr& _StoreFNm, const int64& _MxCacheSize);
 	TStoreImpl(const TWPt<TBase>& _Base, const TStr& _StoreFNm,
@@ -622,12 +628,12 @@ public:
 	// need to override destructor, to clear cache
 	~TStoreImpl();
 
-	bool IsRecId(const uint64& RecId) const { return JsonC.IsValId(RecId); }
+	bool IsRecId(const uint64& RecId) const;
 	bool HasRecNm() const { return RecNmFieldP; }
 	bool IsRecNm(const TStr& RecNm) const { return RecNmIdH.IsKey(RecNm); }
 	TStr GetRecNm(const uint64& RecId) const;
 	uint64 GetRecId(const TStr& RecNm) const;
-	uint64 GetRecs() const { return JsonC.Len(); }
+	uint64 GetRecs() const;
 	PStoreIter GetIter() const;
     
 	/// Add new record
@@ -699,7 +705,7 @@ public:
 
 ///////////////////////////////
 /// Create new stores from a schema and add them to an existing base
-void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
     const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H());
 
 ///////////////////////////////

@@ -201,8 +201,8 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 	// get id (optional)
 	if (StoreVal->IsObjKey("id")) {
 		const int _StoreId = StoreVal->GetObjInt("id");
-		QmAssertR(_StoreId >= 0 && _StoreId < 0xFF, "Store " + StoreName + " ID out of range");
-        StoreId = (uchar)_StoreId;
+		QmAssertR(_StoreId >= 0 && _StoreId < (int)TEnv::GetMxStores(), "Store " + StoreName + " ID out of range");
+        StoreId = (uint)_StoreId;
         HasStoreIdP = true;
 	}
 	// fields
@@ -318,7 +318,7 @@ void TStoreSchema::ParseSchema(const PJsonVal& SchemaVal, TStoreSchemaV& SchemaV
 
 void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& SchemaV) {
 	TStrH StoreNameH;
-	TIntV ReqStoreIdV;
+	TUIntV ReqStoreIdV;
 
 	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++){
 		TStoreSchema& Schema = SchemaV[SchemaN];
@@ -328,7 +328,7 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 		StoreNameH.AddDat(StoreName, 0);
 		// check unique store ids
 		if (SchemaV[SchemaN].HasStoreIdP) {
-			int ReqStoreId = Schema.StoreId;
+			uint ReqStoreId = Schema.StoreId;
 			for (int ReqStoreIdN = 0; ReqStoreIdN < ReqStoreIdV.Len(); ReqStoreIdN++) {
 				QmAssertR(ReqStoreId != ReqStoreIdV[ReqStoreIdN],
                     "Duplicate store id " + TInt::GetStr(ReqStoreId));
@@ -405,7 +405,9 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 // In-memory storage
 TInMemStorage::TInMemStorage(const TStr& _FNm): FNm(_FNm), Access(faCreate) { }
 
-TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access): FNm(_FNm), Access(_Access) {
+TInMemStorage::TInMemStorage(const TStr& _FNm, const TFAccess& _Access): 
+        FNm(_FNm), Access(_Access) {
+    
 	// load vector
 	TFIn FIn(FNm); ValV.Load(FIn);
 	// load rest
@@ -454,12 +456,12 @@ uint64 TInMemStorage::Len() const {
 	return ValV.Len();
 }
 
-uint64 TInMemStorage::GetMinId() const {
+uint64 TInMemStorage::GetFirstValId() const {
 	return FirstValOffset;
 }
 
-uint64 TInMemStorage::GetMaxId() const {
-	return GetMinId() + ValV.Len();
+uint64 TInMemStorage::GetLastValId() const {
+	return GetFirstValId() + ValV.Len() - 1;
 }
 
 ///////////////////////////////
@@ -1633,9 +1635,9 @@ void TStoreImpl::InitFieldLocV() {
 
 void TStoreImpl::GetRecMem(const TStoreLoc& RecLoc, const uint64& RecId, TMem& Rec) const {
     if (RecLoc == slDisk) {
-        JsonC.GetVal(RecId, Rec);
+        DataCache.GetVal(RecId, Rec);
     } else if (RecLoc == slMemory)  {
-        JsonM.GetVal(RecId, Rec);
+        DataMem.GetVal(RecId, Rec);
     } else {
         throw TQmExcept::New("Unknown storage location");
     }
@@ -1647,9 +1649,9 @@ void TStoreImpl::GetRecMem(const uint64& RecId, const int& FieldId, TMem& Rec) c
 
 void TStoreImpl::PutRecMem(const TStoreLoc& RecLoc, const uint64& RecId, const TMem& Rec) {
     if (RecLoc == slDisk) {
-        JsonC.SetVal(RecId, Rec);
+        DataCache.SetVal(RecId, Rec);
     } else if (RecLoc == slMemory)  {
-        JsonM.SetVal(RecId, Rec);
+        DataMem.SetVal(RecId, Rec);
     } else {
         throw TQmExcept::New("Unknown storage location");
     }
@@ -1729,21 +1731,35 @@ void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
 	WndDesc =  StoreSchema.WndDesc;
 }
 
-TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uchar& StoreId, 
+void TStoreImpl::InitDataFlags() {
+    // go over all the fields and remember if we use in-memory or cache storage
+    DataCacheP = false;
+    DataMemP = false;
+    for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
+        DataCacheP = DataCacheP || (FieldLocV[FieldId] == slDisk);
+        DataMemP = DataMemP || (FieldLocV[FieldId] == slMemory);
+    }    
+    // at least one must be true, otherwise we have no fields, which is not good
+    EAssert(DataCacheP || DataMemP);    
+}
+
+TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId, 
     const TStr& StoreName, const TStoreSchema& StoreSchema, const TStr& _StoreFNm, 
     const int64& _MxCacheSize): 
         TStore(Base, StoreId, StoreName), StoreFNm(_StoreFNm), FAccess(faCreate), 
-        JsonC(_StoreFNm + ".Cache", _MxCacheSize, 1024), JsonM(_StoreFNm + ".MemCache") {
+        DataCache(_StoreFNm + ".Cache", _MxCacheSize, 1024), DataMem(_StoreFNm + ".MemCache") {
 
     InitFromSchema(StoreSchema);
+    // initialize data storage flags
+    InitDataFlags();    
 }
 
 TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm, 
     const TFAccess& _FAccess, const int64& _MxCacheSize): 
         TStore(Base, _StoreFNm + ".BaseStore"), 
         StoreFNm(_StoreFNm), FAccess(_FAccess), 
-        JsonC(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
-        JsonM(_StoreFNm + ".MemCache", _FAccess)  {
+        DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
+        DataMem(_StoreFNm + ".MemCache", _FAccess)  {
 
     // load members
 	TFIn FIn(StoreFNm + ".GenericStore");
@@ -1758,6 +1774,9 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm,
     InitFieldLocV();
     // initialize record indexer
     RecIndexer = TRecIndexer(GetIndex(), this);
+    
+    // initialize data storage flags
+    InitDataFlags();    
 }
 
 TStoreImpl::~TStoreImpl() {
@@ -1780,6 +1799,14 @@ TStoreImpl::~TStoreImpl() {
 	}
 }
 
+bool TStoreImpl::IsRecId(const uint64& RecId) const { 
+    return DataMemP ? DataMem.IsValId(RecId) : DataCache.IsValId(RecId); 
+}
+
+uint64 TStoreImpl::GetRecs() const { 
+    return DataMemP ? DataMem.Len() : DataCache.Len(); 
+}
+
 TStr TStoreImpl::GetRecNm(const uint64& RecId) const {
 	// return empty string when no primary key
 	if (!HasRecNm()) { return TStr(); }
@@ -1792,7 +1819,10 @@ uint64 TStoreImpl::GetRecId(const TStr& RecNm) const {
 }
 
 PStoreIter TStoreImpl::GetIter() const {
-	return TStoreIterVec::New(JsonC.GetFirstValId(), JsonC.GetLastValId() + 1);
+    if (Empty()) { return TStoreIterVec::New(); }
+	return DataMemP ? 
+        TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId()) :
+        TStoreIterVec::New(DataCache.GetFirstValId(), DataCache.GetLastValId());
 }
 
 uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
@@ -1830,27 +1860,38 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 	// always add system field that means "inserted_at"
 	RecVal->AddToObj(TStoreWndDesc::SysInsertedAtFieldName, TTm::GetCurUniTm().GetStr());
 
-    // serialize
-	TMem CacheRecMem; SerializatorCache.Serialize(RecVal, CacheRecMem, this);
-	TMem MemRecMem; SerializatorMem.Serialize(RecVal, MemRecMem, this);
+    // for storing record id
+    uint64 RecId = TUInt64::Mx;    
+    uint64 CacheRecId = TUInt64::Mx;    
+    uint64 MemRecId = TUInt64::Mx;        
     // store to disk storage
-	const uint64 RecId = JsonC.AddVal(CacheRecMem);
+    if (DataCacheP) {
+    	TMem CacheRecMem; SerializatorCache.Serialize(RecVal, CacheRecMem, this);
+    	CacheRecId = DataCache.AddVal(CacheRecMem);
+        RecId = CacheRecId;
+        // index new record
+        RecIndexer.IndexRec(CacheRecMem, RecId, SerializatorCache);      
+    }
     // store to in-memory storage
-	const uint64 _RecId = JsonM.AddVal(MemRecMem);
+    if (DataMemP) {
+        TMem MemRecMem; SerializatorMem.Serialize(RecVal, MemRecMem, this);
+        MemRecId = DataMem.AddVal(MemRecMem);
+        RecId = MemRecId;
+        // index new record
+        RecIndexer.IndexRec(MemRecMem, RecId, SerializatorMem);
+    }
     // make sure we are consistent with respect to Ids!
-	EAssert(RecId == _RecId);
+	if (DataCacheP && DataMemP) {
+        EAssert(CacheRecId == MemRecId);
+    }
     
 	// remember name-recordId map when primary field available
 	if (!RecNm.Empty()) { RecNmIdH.AddDat(RecNm, RecId); }
-
-    // index new record
-    RecIndexer.IndexRec(CacheRecMem, RecId, SerializatorCache);
-    RecIndexer.IndexRec(MemRecMem, RecId, SerializatorMem);
-    
+   
 	// insert nested join records
 	AddJoinRec(RecId, RecVal);
 	// call add triggers
-	OnAdd(GetBase(), RecId);
+	OnAdd(RecId);
     
 	// return record Id of the new record
 	return RecId;
@@ -1872,24 +1913,24 @@ void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
     // update disk serialization when necessary
 	if (CacheP) {
         // update serialization
-        TMem CacheOldRecMem; JsonC.GetVal(RecId, CacheOldRecMem);
+        TMem CacheOldRecMem; DataCache.GetVal(RecId, CacheOldRecMem);
         TMem CacheNewRecMem; TIntSet CacheChangedFieldIdSet;
         SerializatorCache.SerializeUpdate(RecVal, CacheOldRecMem,
             CacheNewRecMem, this, CacheChangedFieldIdSet);
         // update the stored serializations with new values
-    	JsonC.SetVal(RecId, CacheNewRecMem);
+    	DataCache.SetVal(RecId, CacheNewRecMem);
         // update indexes pointing to the record
         RecIndexer.UpdateRec(CacheOldRecMem, CacheNewRecMem, RecId, CacheChangedFieldIdSet, SerializatorCache);
     }
     // update in-memory serialization when necessary
     if (MemP) {
         // update serialization
-        TMem MemOldRecMem; JsonM.GetVal(RecId, MemOldRecMem);
+        TMem MemOldRecMem; DataMem.GetVal(RecId, MemOldRecMem);
         TMem MemNewRecMem; TIntSet MemChangedFieldIdSet;
         SerializatorMem.SerializeUpdate(RecVal, MemOldRecMem,
             MemNewRecMem, this, MemChangedFieldIdSet);
         // update the stored serializations with new values
-        JsonM.SetVal(RecId, MemNewRecMem);
+        DataMem.SetVal(RecId, MemNewRecMem);
         // update indexes pointing to the record
         RecIndexer.UpdateRec(MemOldRecMem, MemNewRecMem, RecId, MemChangedFieldIdSet, SerializatorMem);
     }
@@ -1900,7 +1941,7 @@ void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
         RecNmIdH.AddDat(NewRecNm) = RecId;
     }
     // call update triggers
-	OnUpdate(GetBase(), RecId);
+	OnUpdate(RecId);
 }
 
 void TStoreImpl::GarbageCollect() {
@@ -1916,7 +1957,7 @@ void TStoreImpl::GarbageCollect() {
 	TUInt64V DelRecIdV;
 	if (WndDesc.WindowType == swtTime) {
         // get last added record
-		const uint64 LastRecId = JsonC.GetLastValId();
+		const uint64 LastRecId = DataCache.GetLastValId();
         // not sure why this here, report as error for now
 		if (!IsRecId(LastRecId)) { ErrorLog("Invalid last record in garbage collection"); return; }
         // get time window field
@@ -1965,13 +2006,13 @@ void TStoreImpl::GarbageCollect() {
         // what are we deleting now
 		const uint64 DelRecId = DelRecIdV[DelRecN];
 		// executed triggers before deletion
-		OnDelete(GetBase(), DelRecId);
+		OnDelete(DelRecId);
         // delete record from name-id map
         if (HasRecNm()) { RecNmIdH.DelIfKey(GetRecNm(DelRecId)); }
 		// delete record from indexes
-    	TMem CacheRecMem; JsonC.GetVal(DelRecId, CacheRecMem);
+    	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
         RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
-    	TMem MemRecMem; JsonM.GetVal(DelRecId, MemRecMem);
+    	TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
         RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
 		// delete record from joins
         TRec Rec(this, DelRecId);
@@ -1989,9 +2030,9 @@ void TStoreImpl::GarbageCollect() {
 
 	}
     // delete records from disk
-	JsonC.DelVals(DelRecIdV.Len());
+	DataCache.DelVals(DelRecIdV.Len());
     // delete records from in-memory store
-	JsonM.DelVals(DelRecIdV.Len());
+	DataMem.DelVals(DelRecIdV.Len());
     
     // report success :-)
 	TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
@@ -2181,21 +2222,22 @@ void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const P
 
 ///////////////////////////////
 /// Create new stores in an existing base from a schema definition
-void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
        const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH) {
 
     // parse and validate the schema
-    InfoLog("  Parsing schema");
+    InfoLog("Parsing schema");
 	TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(SchemaVal, SchemaV);
 	TStoreSchema::ValidateSchema(Base, SchemaV);
     
     // create stores	
+    TVec<TWPt<TStore> > NewStoreV;
 	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
 		TStoreSchema StoreSchema = SchemaV[SchemaN];
 		TStr StoreNm = StoreSchema.StoreName;
-        InfoLog("  Creating " + StoreNm);
+        InfoLog("Creating " + StoreNm);
 		// figure out store id
-		uchar StoreId = 0;
+		uint StoreId = 0;
 		if (StoreSchema.HasStoreIdP) {
 			StoreId = StoreSchema.StoreId;
             // check if we already have store with same ID
@@ -2204,7 +2246,7 @@ void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal,
             // find lowest unused StoreId
             while (Base->IsStoreId(StoreId)) {
                 StoreId++;
-                QmAssertR(StoreId < 0xFF, "Out of store Ids -- to many stores!");
+                QmAssertR(StoreId < TEnv::GetMxStores(), "Out of store Ids -- to many stores!");
             }
 		}
         // get cache size for the store
@@ -2215,10 +2257,12 @@ void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal,
             StoreSchema, Base->GetFPath() + StoreNm, StoreCacheSize);
         // add store to base
 		Base->AddStore(Store);
+        // remember we create the store
+        NewStoreV.Add(Store);
 	}
 
 	// Create joins
-    InfoLog("  Creating joins");
+    InfoLog("Creating joins");
 	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
         // get store
 		TStoreSchema StoreSchema = SchemaV[SchemaN];
@@ -2247,7 +2291,7 @@ void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal,
 	}
 
 	// Update inverse joins IDs
-    InfoLog("  Updating inverse join maps");
+    InfoLog("Updating inverse join maps");    
 	for (int SchemaN = 0; SchemaN < SchemaV.Len(); SchemaN++) {
         // get store
 		TStoreSchema StoreSchema = SchemaV[SchemaN];
@@ -2266,7 +2310,10 @@ void CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal,
 				Store->PutInverseJoinId(JoinId, InverseJoinId);
 			}
 		}
-	}    
+	}
+    
+    // done
+    return NewStoreV;
 }
 
 ///////////////////////////////

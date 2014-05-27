@@ -43,7 +43,7 @@ PRecSet TOpSearch::Exec(const TWPt<TBase>& Base, const PQuery& Query) {
 ///////////////////////////////
 // QMiner-Operator-Linear-Search
 //TODO: make it use same query style as Base->Search
-void TOpLinSearch::ParseQuery(const TWPt<TBase>& Base, const uchar& StoreId, 
+void TOpLinSearch::ParseQuery(const TWPt<TBase>& Base, const uint& StoreId, 
 		const PJsonVal& QueryElt, int& FieldId, TOpLinSearchType& LinSearchType, TStr& FieldVal) {
 
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);			
@@ -71,7 +71,7 @@ void TOpLinSearch::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV){
 
 	// parse store id parameter
-	const uchar StoreId = uchar(TFlt::Round(ParamVal->GetObjNum("storeid")));		
+	const uint StoreId = uint(ParamVal->GetObjInt("storeid"));		
 	QmAssertR(Base->IsStoreId(StoreId), "Invalid StoreID");
 	// parse query elements
 	int FieldId; TOpLinSearchType LinSearchType; TStr FieldVal; 
@@ -93,7 +93,7 @@ void TOpLinSearch::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 	}
 }
 	
-PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uchar& StoreId, const int& FieldId, 
+PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const TOpLinSearchType& OpLinSearchType, const int& FieldVal){
 
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);	
@@ -116,7 +116,7 @@ PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uchar& StoreId, const 
 	return TRecSet::New(Store, RecsV);
 }
 
-PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uchar& StoreId, const int& FieldId, 
+PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uint& StoreId, const int& FieldId, 
 		const TOpLinSearchType& OpLinSearchType, const TTm& FieldVal) {
 		
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
@@ -141,7 +141,7 @@ PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uchar& StoreId, const 
     return TRecSet::New(Store, RecsV);
 }
 
-PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uchar& StoreId,
+PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uint& StoreId,
 		const int& FieldId, const TTm& MnFieldVal, const TTm& MxFieldVal) {
 
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
@@ -158,7 +158,7 @@ PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uchar& StoreId,
 }
 
 // return items in the range between MinFieldVal and MaxFieldVal
-PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const int& StoreId,
+PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uint& StoreId,
 		const int& FieldId, const uint64& MinFieldVal, const uint64& MaxFieldVal) {
 			
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
@@ -172,7 +172,7 @@ PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const int& StoreId,
     return TRecSet::New(Store, RecsV);
 }
 
-PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const int& StoreId,
+PRecSet TOpLinSearch::Exec(const TWPt<TBase>& Base, const uint& StoreId,
 		const int& FieldId, const TOpLinSearchType& OpLinSearchType, const TIntV& FieldVals) {
 	
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
@@ -264,14 +264,14 @@ void TOpGroupBy::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV) {
 
 	for (int InRecN = 0; InRecN < InRecSetV.Len(); InRecN++) {
-		uchar StoreId = InRecSetV[InRecN]->GetStoreId();
+		uint StoreId = InRecSetV[InRecN]->GetStoreId();
 		int FieldId = TFlt::Round(ParamVal->GetObjNum("fieldid"));
 		Exec(Base, InRecSetV[InRecN], StoreId, FieldId, OutRecSetV);
 	}
 }
 
 void TOpGroupBy::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, 
-		const uchar& StoreId, const int& FieldId, TRecSetV& OutRecSetV) {
+		const uint& StoreId, const int& FieldId, TRecSetV& OutRecSetV) {
 
 	// check all is fine
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
@@ -299,7 +299,7 @@ void TOpSplitBy::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV) {
 
 	for (int InRecN = 0; InRecN < InRecSetV.Len(); InRecN++) {
-		int StoreId = InRecSetV[InRecN]->GetStoreId();
+		uint StoreId = InRecSetV[InRecN]->GetStoreId();
 		int FieldId = TFlt::Round(ParamVal->GetObjNum("fieldid"));
 		int SplitWin = TFlt::Round(ParamVal->GetObjNum("spwin"));
 		Exec(Base, InRecSetV[InRecN], StoreId, FieldId, SplitWin, OutRecSetV);
@@ -307,7 +307,7 @@ void TOpSplitBy::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 }
 
 void TOpSplitBy::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, 
-		const uchar& StoreId, const int& FieldId, const int& SplitWinSize, 
+		const uint& StoreId, const int& FieldId, const int& SplitWinSize, 
 		TRecSetV& OutRecSetV) {
 	
 	QmAssertR(Base->GetStoreByStoreId(StoreId)->IsFieldId(FieldId), 
@@ -356,7 +356,7 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV) {
 
 	for (int InRecN = 0; InRecN < InRecSetV.Len(); InRecN++) {
-		uchar StoreId = InRecSetV[InRecN]->GetStoreId();
+		uint StoreId = InRecSetV[InRecN]->GetStoreId();
 		int FieldId = TFlt::Round(ParamVal->GetObjNum("fieldid"));				
 		if (ParamVal->IsObjKey("clustern")) {
 			int ClusterN = TFlt::Round(ParamVal->GetObjNum("clustern"));
@@ -373,7 +373,7 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV,
 }
 
 void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, 
-		const uchar& StoreId, const int& FieldId, const int& ClusterN, 
+		const uint& StoreId, const int& FieldId, const int& ClusterN, 
 		TRecSetV& OutRecSetV) {
 
 	// check all is fine
@@ -407,7 +407,7 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 }
 
 void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, 
-		const uchar& StoreId, const int& FieldId, const double& Sim, 
+		const uint& StoreId, const int& FieldId, const double& Sim, 
 		TRecSetV& OutRecSetV) {
 
 	// check all is fine
@@ -441,7 +441,7 @@ void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 }
 
 void TOpAggClust::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet, 
-		const uchar& StoreId, const int& FieldId, TRecSetV& OutRecSetV) {
+		const uint& StoreId, const int& FieldId, TRecSetV& OutRecSetV) {
 
 	// check all is fine
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
