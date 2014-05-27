@@ -88,14 +88,15 @@ uninstall:
 	rm /etc/profile.d/qm.sh
 
 doc: cleandoc
-	rm -rf doc log-doxygen-dev.txt
+	docco -o ./docjs/ examples/movies/src/movies.js examples/timeseries/src/timeseries.js
 	sed "s/00000000/$(DOXYGEN_STIME)/" Doxyfile | sed "s/11111111/$(DOXYGEN_SLVER)/" > Doxyfile-tmp
 	$(DOXYGEN) Doxyfile-tmp
-
+	
 cleandoc:
 	rm -rf doc
 	rm -rf Doxyfile-tmp
 	rm -rf log-doxygen.txt
+	rm -rf docjs
 
 installdoc: doc
 	scp -r doc blazf@agava:www/qminer-$(DOXYGEN_TIME)
