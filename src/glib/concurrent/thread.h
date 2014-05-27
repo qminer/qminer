@@ -22,6 +22,11 @@
 
 #include <base.h>
 
+enum TCriticalSectionType {
+	cstFast,
+	cstRecursive
+};
+
 #if defined(GLib_WIN)
 
 #include "win/thread_win.h"

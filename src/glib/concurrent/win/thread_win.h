@@ -49,7 +49,7 @@ private:
 	CRITICAL_SECTION Cs;
 
 public:
-	TCriticalSection();
+	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
 	~TCriticalSection();
 
 	// start of critical section

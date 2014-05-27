@@ -56,11 +56,25 @@ void TMutex::GetLock() {
 	pthread_mutex_lock(&MutexHandle);
 }
 
-TCriticalSection::TCriticalSection() {
-	pthread_mutex_init(&Cs, NULL);
+TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type): Type(_Type) {
+	pthread_mutexattr_init(&CsAttr);
+
+	switch (Type) {
+	case TCriticalSectionType::cstFast:
+		pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_NORMAL);
+		break;
+	case TCriticalSectionType::cstRecursive:
+		pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
+		break;
+	default:
+		throw TExcept::New("Invalid critical section type!", "TCriticalSection::Init()");
+	}
+
+	pthread_mutex_init(&Cs, &CsAttr);
 }
 TCriticalSection::~TCriticalSection() {
 	pthread_mutex_destroy(&Cs);
+	pthread_mutexattr_destroy(&CsAttr);
 }
 void TCriticalSection::Enter() {
 	pthread_mutex_lock(&Cs);

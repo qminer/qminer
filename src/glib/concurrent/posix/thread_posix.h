@@ -178,10 +178,12 @@ public:
 class TCriticalSection {
 protected:
 	//CRITICAL_SECTION Cs;
+	TCriticalSectionType Type;
 	pthread_mutex_t Cs;
+	pthread_mutexattr_t CsAttr;
 
 public:
-	TCriticalSection();
+	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
 	~TCriticalSection();
 
 	void Enter();
