@@ -1,0 +1,129 @@
+Stanford Network Analysis Platform (SNAP) is a general purpose, high
+performance system for graph and network manipulation and analysis.
+
+This file contains a high-level description of changes in SNAP releases.
+
+Release 2.0, May 13, 2013
+
+- significantly changed several classes and methods, not backward compatible.
+  This version is not able to read binary files or class serializations,
+  produced by previous SNAP versions.
+- added support for 64-bit vector length in TVec
+- added support for 64-bit vector length in TVecPool
+- implemented a new hash function for TVec with 10x improvement over the
+  previous one. This change is not backward compatible for hash tables. Old
+  hash functions are available in TVecHashF_OldGLib.
+- implemented new 10x faster hash functions for TPair, TTriple, TQuad and TTuple
+- added 64-bit random number generators GetUniDevInt64() and GetUniDevUInt64()
+- implemented new TVec method UnionLen() and GetMemSize()
+- moved vector access functions in TLocClust from private to public
+- added new examples agmfit, bigclam, circles, zygote, XcodeTest
+- added new tutorials for bfsdfs, cncom, gviz, triad
+- added new unit tests for alg, bfsdfs, cncom, gvi, THashSet, triad
+- added Mac OS X Xcode support for examples
+- added Mac OS X support for doxygen
+- fixed #36 normalized eigenvector centrality values to use L2 rather than L1
+- fixed #17 integer overflow bug in TSnap::GenRndGnm()
+- fixed a bug in THashSet::Defrag()
+- fixed a bug in IsTree()
+- fixed a bug in TVec::NextPerm()
+- fixed GetNodeTriads(), it was not checking for an empty group
+- changed GetTriads and GetClustCf to return triads as int64 rather than int
+  to prevent integer overflow for large graphs
+- implemented much faster TSsParser
+- added OpenMP compilation flags
+- implemented stackdump for g++
+- merged updates from the most recent version of GLib
+- undefined __STDC_LIMIT_MACROS in base.h to prevent double definition warnings
+- removed include <stdio.h> in examples/*/stdefx.h to correctly define SIZE_MAX
+- removed a redundant GetNodeTriads() variant
+- changed type of PGraph::TNodeI to PGraph::TObj::TNodeI in triad.h
+- fixed warnings about implicit conversions from int64 to int in dt.h, tm.h,
+  os.h.
+
+Release 1.11, Dec 21, 2012
+
+- added new examples netinf, infopath
+- added new advanced modules cascnetinf, cascdynetinf
+- added new distribution functions to glib-core/dt.h::TRnd: GetRayleigh(),
+  GetWeibull()
+- added demo programs for graph input/output (gio.h), graph generators
+  (ggen.h), THash
+- added tests for graph input/output (gio.h), graph generators (ggen.h), THash
+- unified the names of intermediate files for demos and tests to demo*.dat
+  and test*.dat
+- added cases to test edge iterator with very few nodes
+- expanded TUNGraph test to include graphs with loops and the number of
+  edges in such graphs
+- added ManipulateEdges test for TUNGraph
+- added test in TUNGraph for checking edge iterator following deletion
+- added OSX Xcode project
+- updated snap-test Xcode project with gtest code completion/syntax.
+- improved tutorial and test Makefiles to work on Mac OS X
+- improved Snap.o make rule, added dependencies for *.h, *.cpp in glib-core
+  and snap-core
+- improved demo Makefile so that individual targets do not need to be
+  specified
+- added path to snap-exp to examples makefiles
+- changed function parameters in TStrPool to const reference
+- added assertion for DegSeq vector to be sorted
+- added an assertion for edges in random graphs to prevent infinite loops
+- fixed #27 - No node checking when load Epinions in signnet.cpp
+- fixed #28 - no TGraphViz class in signnet.cpp
+- fixed #29 - no check for inserting node in bfsdfs.h
+- fixed #17 "example/cliques" does not compile with gcc 4.7
+- fixed #21, undetected 32-bit overflow in TGraphAnf<PGraph>::InitAnfBits(),
+  the calculation is now done in 64-bits and an exception is thrown if the
+  final result is more than 32-bit
+- fixed bug in LoadPajek for graph files with colors
+- changed EFailR() to FailR() when out of memory
+- included bd.h in all files that use Class... macros, so that doxygen
+  correctly documents those classes
+- added #7, add Snap version number to reference manuals
+- implemented #8, improve the front page for reference manuals
+- added .gitignore file for Xcode project
+
+Release 1.10, Oct 15, 2012
+
+- fixed TUNGraph to return correct number of edges, not backward compatible.
+  This version is not able to read binary TUNGraphs, saved by previous SNAP
+  versions.
+- added a new example graphhash
+- fixed #13, GHash incorrectly handles non-existent keys
+- fixed #12, Graphviz keeps outputting a PostScript file on non-Windows
+- fixed #15, bug in netevol.cpp
+- fixed #14, TSnap::GenCircle creates self-loops
+- fixed a bug in TSnap::GetBfsTree which failed for revised AddNode()
+- included "<new>" in unicode.h to support Xcode with the Apple compiler
+- fixed bug in TUNGraph:BegEI(), some edges could be missed by the iterator
+
+Release 1.9.2, Oct 2, 2012
+
+- removed a default parameter in triad.h so that the code compiles in
+  Visual Studio 2010
+- in source code converted all 8bit characters to 7bit characters \xnn
+
+Release 1.9.1, Sep 28, 2012
+
+- fixed name mismatch between GetUniq... and CntUniq... to CntUniq...
+- reversed the changes in centr.h:GetNodeEcc() name and definition to pre-1.9
+
+Release 1.9, Sep 26, 2012
+
+- names of functions in gviz.h have been changed, not backward compatible
+- neighbor abbreviations have been changed thoughout the code,
+    nbh -> nbr, Nbh -> Nbr, not backward compatible
+- a new class TBPGraph has been added to support bipartite graphs
+- new examples have been added agmgen, circles, kronem, magfit, maggen
+- code automatically detects gnuplot version to address "set ticks"
+- makefiles automatically detect OS version
+- snap directory has been split to snap-core, snap-adv, snap-exp
+- glib directory has been split to glib-core and glib-adv
+- reference manuals have been created for users and developers
+- tutorials have been created for many classes
+- tests have been created for many classes
+- programming guide has been created for developers
+- code has been changed to remove compilation warnings
+- merged with the latest glib version
+- numerous code improvements and bug fixes
+
