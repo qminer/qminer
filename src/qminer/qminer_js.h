@@ -883,7 +883,7 @@ public:
 	JsDeclareFunction(search);   
     //#-- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#JSIMPLEMENT:src/qminer.js    
+	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
 ///////////////////////////////
@@ -1249,7 +1249,7 @@ public:
 	JsDeclareFunction(newSpMat);
 	//#- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
 	JsDeclareFunction(svd);	
-	//#JSIMPLEMENT:src/linalg.js
+	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 
 ///////////////////////////////
@@ -1816,7 +1816,7 @@ public:
     //#     `options.stemmer` and `options.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
     
-    //#JSIMPLEMENT:src/jslib/analytics.js
+    //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
 ///////////////////////////////
@@ -2000,7 +2000,7 @@ public:
 //#
 //# ### Process
 //# 
-//#JSIMPLEMENT:src/process.js    
+//#JSIMPLEMENT:src/qminer/process.js    
 
 ///////////////////////////////
 // JavaScript Console
@@ -2040,7 +2040,7 @@ public:
     //#- `line = console.getln()` -- reads a line from command line and returns
     //#     it as string
 	JsDeclareFunction(getln);
-    //#JSIMPLEMENT:src/console.js    
+    //#JSIMPLEMENT:src/qminer/console.js    
 };
 
 ///////////////////////////////
@@ -2207,7 +2207,7 @@ public:
 	JsDeclareFunction(post);
     //#- `http.onRequest(path, verb, callback)`
 	JsDeclareFunction(onRequest);
-    //#JSIMPLEMENT:src/http.js    
+    //#JSIMPLEMENT:src/qminer/http.js    
 };
 
 ///////////////////////////////

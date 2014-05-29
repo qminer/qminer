@@ -1,1 +1,469 @@
 
+QMiner functionality is accessible through a JavaScript API. The JavaScript environment
+is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
+The API includes a simple HTTP server with RESTful web-service support for defining
+application specific web-service APIs.
+
+The JavaScript API is implemented using [V8 JavaScript Engine](https://code.google.com/p/v8/),
+which lives in the same process as core QMiner objects. This allows for fast manipulation
+of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
+Currently, version 3.18 of V8 is used.
+
+JavaScript API requires [initialized work environment](Quick-Start).
+    
+## Libraries
+
+Scripts can load external libraries or modules in the same way as Node.js.
+
+Library is loaded using `require` function:
+```JavaScript
+var test = require('testModule.js');
+```
+
+Modules export functionality by defining properties or functions on the `exports` object, 
+for example (taken from Node.js documentation):
+```JavaScript
+var PI = Math.PI;
+exports.area = function (r) {
+  return PI * r * r;
+};
+exports.circumference = function (r) {
+  return 2 * PI * r;
+};
+```
+
+Libraries are loaded from two places. The first is project's library folder (`src/lib/`) 
+and the second is QMiner library folder (`QMINER_HOME/lib/`). Project's library folder 
+has priority in case the library with the same name exists in both places. Some libraries 
+are implemented in C++, for example `analytics` and `time`.
+
+The QMiner system comes with the following libraries:
+- `analytics.js` -- main API for analytics techniques
+- `utilities.js` -- useful JavaScript utilities, e.g., checking variable type
+- `time` -- wrapper around user-friendly date-time object
+- `assert.js` -- support for writing unit tests
+
+## Core QMiner objects
+
+### QMiner
+
+QMiner (`qm`) is the core object in the API and is available in any script.
+
+**Functions and properties:**
+
+- `s = qm.store(storeName)` -- store with name `storeName`; `null` when no such store
+- `a = qm.getStoreList()` -- an array listing all existing stores
+- `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
+- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
+  and returns a record set `rs` with results
+-- `qm.gc()` -- start garbage collection to remove records outside time windows
+- `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+  line by line, parsing each line as JSON and adding it as record to `store`.
+  When `limit != -1` only first first `limit` lines are loaded
+- `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+  parsing each line as JSON and adding it as record to `store`
+
+### Store
+
+Store holds records. Each record has a unique 64-bit ID. Record ID can be used to directly
+access the record from the store using index operator:
+```JavaScript
+var store = qm.store("storeName");
+var record = store[1234];
+```
+
+**Functions and properties:**
+    
+- `store.name` -- name of the store
+- `store.empty` -- `true` when store is empty
+- `store.length` -- number of records in the store
+- `rs = store.recs` -- create a record set containing all the records from the store
+- `store.fields` -- array of all the field names
+- `store.joins` -- array of all the join names
+- `store.keys` -- array of all the [index keys](#index-key)
+- `r = store[recordId]` -- get record with ID `recordId`; 
+    returns `null` when no such record exists
+- `r = store.rec(recordName)` -- get record named `recordName`; 
+    returns `null` when no such record exists
+- `store.add(record)` -- add `record` to the store 
+- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
+- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
+    array is expected to be of type `linalg.newIntVec`
+- `rs = store.sample(sampleSize)` -- create a record set containing a random 
+    sample of `sampleSize` records
+- `field = store.field(fieldName)` -- get details of field named `fieldName`
+- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
+- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
+- `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
+    of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
+- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
+
+**Examples**:
+
+```JavaScript
+// adding new record
+qm.store("Movies").add({
+  Title: "The Hobbit: An Unexpected Journey", 
+  Year: 2012, 
+  directedBy: {
+    Name: "Peter Jackson",
+    Gender: "Male"
+  }
+}
+
+// adding a trigger
+qm.store("People").addTrigger({
+  onAdd : function (person) { console.log("New record: " + person.Name); },
+  onUpdate : function (person) { console.log("Updated record: " + person.Name); },
+  onDelete : function (person) { console.log("Deleted record: " + person.Name); }
+});
+
+// iterating over records
+var rs = qm.store("People");
+for (var i = 0; i < rs.length; i++) {
+  var rec = rs[i];
+  console.log(rec.Name + " (" + rec.Gender + ")");
+}
+```    
+
+### Record set
+
+Record set holds a subset of records from a store. Records are stored in a vector. 
+It can also hold a vector of aggregates, which were computed over the records from 
+the set.
+
+**Functions and properties:**
+  
+- `rs.store` -- store of the records
+- `rs.length` -- number of records in the set
+- `rs.empty` -- `true` when record set is empty
+- `rs.weighted` -- true when records in the set are assigned weights
+- `rec = rs[n]` -- return n-th record from the record set
+- `crs = rs.clone()` -- creates new instance of record set
+- `jrs = rs.join(JoinName)` -- executes a join `JoinName` on the records in the set, result is another record set
+- `jrs = rs.join(JoinName, SampleSize)` -- executes a join `JoinName` on a sample of `SampleSize` records in the set, result is another record set
+- `aggr = rs.aggr()` -- returns an array of all the aggregates contained in the records set
+- `aggr = rs.aggr(Query)` -- creates a new aggregates based on the `Query` parameters
+- `rs.trunc(Recs)` -- truncate to first `Recs` record
+- `srs = rs.sample(Recs)` -- create new record set by randomly sampling `Recs` records
+- `rs.shuffle(Seed)` -- shuffle order using random seed `Seed`
+- `rs.reverse()` -- reverse record order
+- `rs.sortById(Asc)` -- sort records according to record id; if `Asc > 0` sorted in ascending order
+- `rs.sortByFq(Asc)` -- sort records according to weight; if `Asc > 0` sorted in ascending order
+- `rs.sortByField(FieldName, Asc)` -- sort records according to value of field `FieldName`; if `Asc > 0` sorted in ascending order
+- `rs.sort(comparator)` -- sort records according to `comparator` callback
+- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`
+- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`
+- `rs.filterByField(FieldName, minVal, maxVal)` -- keeps only records with numeric value of field `FieldName` between `minVal` and `maxVal`
+- `rs.filterByField(FieldName, Val)` -- keeps only records with string value of field `FieldName` equal to `Val`
+- `rs.filter(filter)` -- keeps only records that pass `filter` callback
+- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
+- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+
+**Examples**:
+
+```JavaScript
+TODO
+```        
+
+### Record
+
+
+**Functions and properties:**
+  
+- `rec.$id`
+- `rec.$name`
+- `rec.$fq`
+- `rec.fieldName`
+- `rec.joinName`
+- `rec.addJoin(joinName, joinRecord)`
+- `rec.addJoin(joinName, joinRecord, joinFrequency)`
+- `rec.delJoin(joinName, joinRecord)`
+- `rec.delJoin(joinName, joinRecord, joinFrequency)`
+- `rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+
+### Index key
+
+
+**Functions and properties:**
+  
+- `key.store`    
+- `key.name`    
+- `key.voc`    
+- `key.fq`    
+
+## Linear Algebra
+
+A global object `la` is used to construct vectors (sparse, dense) and matrices and 
+it is available in any script. The object includes
+several functions from linear algebra.
+
+**Functions and properties:**
+
+- `vec = la.newVec()` -- generate an empty float vector
+- `vec = la.newVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
+- `vec = la.newVec(a)` -- copy a javascript number array `a` 
+- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
+- `vec = la.newIntVec()` -- generate an empty float vector
+- `vec = la.newIntVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
+- `vec = la.newIntVec(a)` -- copy a javascript int array `a` 
+- `vec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+- `mat = la.newMat()` -- generates a 0x0 matrix
+- `mat = la.newMat(a)` -- generates a matrix from a javascript array `a`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
+- `mat = la.newMat({"rows":r, "cols":c, "random":b})` -- creates a matrix with `r` rows and `c` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
+- `vec = la.newSpVec(dim)` -- creates an empty sparse vector `vec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
+- `vec = la.newSpVec(a, dim)` -- creats a sparse vector `vec` from a javascript array `a`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
+- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
+- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
+- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+- `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
+- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
+- `la.printVec(vec)` -- print the vector in the console, `vec` can be int or float vector
+- `la.printArray(arr)` -- print the javascript array `arr` in the console
+- `la.printMat(matrix)` -- print the `matrix` (dense or sparse) in the console as a dense matrix
+- `x = la.genRandom()` -- `x` is a sample from a standard normal random variable
+- `vec = la.genRandomVector(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
+- `p = la.genRandomPerm(k)` -- returns a permutation of `k` elements. `p` is a javascript array of integers
+- `i = la.randInt(n)` -- returns an integer `i` which is randomly selected from the set of integers `[0, ..., n-1]`
+- `vec = la.randIntVec(n, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
+- `mat = la.genRandomMatrix(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
+
+### Vector
+
+Vector is an array of objects implemented in glib/base/ds.h. 
+Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
+
+```JavaScript
+var fltv = la.newVec(); //empty vector
+var intv = la.newIntVec(); //empty vector
+// refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
+```
+
+
+## Analytics.js
+
+Analytics algorithms for working with records stored in
+QMiner and with linear algebra objects created by `la`.
+
+To start using it must be loaded using `var analytics = require('analytics.js');`.
+
+**Functions and properties:**
+    
+- `fs = analytics.newFeatureSpace(featureExtractors)` -- create new
+    feature space consisting of [Feature Extractor](Feature-Extractors),
+    declared in JSon `featureExtractors`
+- `fs = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+    space from `fin` stream
+- `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
+    classification model using columns from `matrix` as training data and
+    `vector` as target variable (must be of values either 1 or -1); optional
+    training `parameters` are a JSon with parameter `c` (SVM cost parameter,
+    default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
+    examples with (default is 1.0)); result is a linear model
+- `model = analytics.trainSvmRegression(matrix, vector, parameters)` -- trains 
+    regression model using columns from `matrix` as training data and `vector` as 
+    target variable; optional training `parameters` are a JSon with parameter `c` 
+    (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
+    epsilon size tunnel around the model, default is 1.0)); result is a linear model
+- `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
+    from `fin` stream
+- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
+    model; training `parameters` are `dim` (dimensionality of feature space, e.g.
+    `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    (regularization parameter to avoid over-fitting, default is 1.0).)
+- `options = analytics.getLanguageOptions()` -- get options for text parsing 
+    (stemmers, stop word lists) as a json object, with two arrays:
+    `options.stemmer` and `options.stopwords`
+- `model = analytics.newBatchModel(records, features, target)` -- learns a new batch model
+    using `records` as training data and `features` as feature space; `target` is
+    a field for the records which we are trying to predict (e.g. store.field("Rating");
+    if target field string or string vector, the result is a SVM classification model,
+    and if target field is a float, the result is a SVM regression model; resulting 
+    model has the following functions:
+  - `result = model.predict(record)` -- creates feature vector from `record`, sends it
+    through the model and returns the result as an array of scores.
+  - `model.save(fout)` -- saves the model to `fout` output stream
+- `analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
+
+
+### Feature Space
+
+Holds the definition of the feature space and feature extractors, which
+can create feature vectors from QMiner records. Feature space is created
+by calling `analytics.newFeatureSpace` and providing [Feature Extractor](Feature-Extractors) 
+declarations as parameters.
+
+**Functions and properties:**
+    
+- `fs.dim` -- dimensionality of feature space
+- `fs.save(fout)` -- serialize feature space to `fout` output stream
+- `fs.updateRecord(record)` -- update feature space definitions and extractors
+    by exposing them to `record`. For example, this can update the vocabulary
+    used by bag-of-words extractor by taking into account new text.
+- `fs.updateRecord(recordSet)` -- update feature space definitions and extractors
+    by exposing them to records from `recordSet`. For example, this can update 
+    the vocabulary used by bag-of-words extractor by taking into account new text.
+- `strVec = fs.extractStrings(record)` -- use feature extractors to extract string 
+    features from `record` (e.g. words from string fields); results are returned
+    as a string array
+- `spVec = ftrSpVec(record)` -- extracts sparse feature vector from `record`
+- `vec = ftrVec(record)` -- extracts feature vector from `record`
+- `spMatrix = ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
+    records in `recordSet` and returnes them as columns in a sparse matrix.
+- `matrix = ftrColMat(recordSet)` -- extracts feature vectors from 
+    records in `recordSet` and returnes them as columns in a matrix.
+
+### Support Vector Machine model
+
+Holds SVM classification or regression model. This object is result of
+`analytics.trainSvmClassify` or `analytics.trainSvmRegression`.
+
+**Functions and properties:**
+    
+- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    model and returns the prediction as a real number
+- `vec = model.weights` -- weights of the SVM linear model as a full vector
+- `model.save(fout)` -- saves model to output stream `fout`
+
+### Recursive Linear Regression model
+
+Holds online regression model. This object is result of `analytics.newRecLinReg`.
+
+**Functions and properties:**
+    
+- `model.learn(vector, target)` -- updates the model using full `vector` as
+    `target` number as training data
+- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    model and returns the prediction as a real number
+- `vec = model.weights` -- weights of the linear model as a full vector    
+- `model.dim` -- dimensionality of the feature space on which this model works
+
+## System and I/O
+
+### Process
+
+- `a = process.args` -- array of command-line arguments 
+    used to start current QMiner instance
+- `process.isArg(arg)` -- returns true when `arg` among the 
+    command-line arguments used to start current QMiner instance
+- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+
+### Console
+
+Writing and reading from console. Also very useful to create
+"interactive breakpoints" using `console.start()`. All outputs
+are automatically prefixed by current date and time.
+
+**Functions and properties:**
+    
+- `console.log(message)` -- writes `message` to standard output, using
+    prefix `[console]` to indicate the text came from console object;
+    `message` must be of type string
+- `console.log(prefix, message)` -- writes `message` to standard output, 
+    using provided prefix `[prefix]`; both `message` and `prefix` must
+    be of type string
+- `line = console.getln()` -- reads a line from command line and returns
+    it as string
+- `console.start` - start interactive console; does not see local variables
+- `console.startx(evalFun)` -- useful for debugging;
+    insert in code: console.startx(function (x) { return eval(x); })
+    in order for console to see and interact with local variables
+
+### File system
+
+
+**Functions and properties:**
+    
+- `fin = fs.openRead(fileName)`
+- `fout = fs.openWrite(fileName)`
+- `fout = fs.openAppend(fileName)`
+- `fs.exists(fileName)`
+- `fs.copy(fromFileName, toFileName)`
+- `fs.move(fromFileName, toFileName)`
+- `fs.del(fileName)`
+- `fs.rename(fromFileName, toFileName)`
+- `info = fs.fileInfo(fileName,)`
+- `fs.mkdir(dirName)`
+- `fs.rmdir(dirName)`
+- `list = fs.listFile(dirName, fileExtension)`
+- `list = fs.listFile(dirName, fileExtension, recursive)`
+
+### Input File Stream
+
+
+**Functions and properties:**
+    
+- `char = fin.peekCh()`
+- `char = fin.getCh()`
+- `line = fin.readLine()`
+- `fin.eof`
+- `fin.length`
+
+### Output File Stream
+
+
+**Functions and properties:**
+    
+- `fout.write(data)`
+- `fout.writeLine(data)`
+- `fout.flush()`
+- `fout.close()`
+
+### HTTP
+
+
+**Functions and properties:**
+    
+- `http.get(url)`
+- `http.get(url, success_callback)`
+- `http.get(url, success_callback, error_callback)`
+- `http.getStr(url)`
+- `http.getStr(url, success_callback)`
+- `http.getStr(url, success_callback, error_callback)`
+- `http.post(url, mimeType, data)`
+- `http.post(url, mimeType, data, success_callback)`
+- `http.post(url, mimeType, data, success_callback, error_callback)`
+- `http.postStr(url)`
+- `http.postStr(url, mimeType, data, success_callback)`
+- `http.postStr(url, mimeType, data, success_callback, error_callback)`
+- `http.onRequest(path, verb, callback)`
+
+### HTTP Response
+
+
+**Functions and properties:**
+    
+- `resp.setStatusCode(statusCode)`
+- `resp.setStatusCode(mimeType)`
+- `resp.add(data)`
+- `resp.close()`
+- `resp.send(data)`
+
+### Date-Time
+
+Wrapper around GLib's TTm. Used as return for `DateTime` field type. 
+New one can be created using `tm = require('time')`.
+
+**Functions and properties:**
+
+- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
+- `tm.string` -- string representation of date (e.g. 2014-05-29)
+- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
+- `tm.year`
+- `tm.month`
+- `tm.day`
+- `tm.dayOfWeek`
+- `tm.hour`
+- `tm.minute`
+- `tm.second`
+- `tm.milisecond`
+- `tm.now` -- returns new time object representing current local time
+- `tm.nowUTC` -- returns new time object represented current UTC time
+- `tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+    of `val`, options are `second` (default), `minute`, `hour`, and `day`.
+- `tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defines the 
+    unit, same as in `add`
+- `tm.toJSON()` -- returns json representation of time    
+- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
+    as Date-Time object

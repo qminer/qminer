@@ -1,14 +1,14 @@
 #!/bin/bash    
 
-mkdir docjs
-mkdir docjs/temp
+mkdir -p docjs
+mkdir -p docjs/temp
 
 function getmarkdown {
     #find lines that contain '//#', then remove white space, then cut three chars, then remove white space
     grep '//#' $1 | sed 's/^[ \t]*//' | cut -c 4-
 } 
 
-getmarkdown src/qminer_js.h > ./docjs/temp/jsdoc_1.txt
+getmarkdown src/qminer/qminer_js.h > ./docjs/temp/jsdoc_1.txt
 
 # over each line in jsdoc.txt
 #  if 'JSIMPLEMENT:x' is found, then (append!) getmarkdown x jsfinal.txt
