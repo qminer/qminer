@@ -1329,47 +1329,50 @@ public:
 	
 	/// template	
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// get element
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `x = vec.at(elN)` -- gets the value `x` at index `elN` of vector `vec` (0-based indexing)
 	JsDeclareFunction(at);
-	// index
+	//#- `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	// set element, returns undefined
+	//#- `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
 	JsDeclareFunction(put);	
-	// INPLACE : append an element, returns undefined
+	//#- `vec.push(y)` -- append value `y` to vector `vec`
 	JsDeclareFunction(push);
-	// INPLACE : append a vector
+	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors.
 	JsDeclareTemplatedFunction(pushV);
-	// sum elements
+	//#- `x = vec.sum()` -- sums the elements of `vec`
 	JsDeclareFunction(sum);
-	// sum elements
+	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
 	JsDeclareFunction(getMaxIdx);
-	// sort (returns a new vector)
+	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
-	// sort, result has two objects: result.vec, result.perm
+	//#- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order
 	JsDeclareTemplatedFunction(sortPerm);	
-	// outer product
+	//#- outer: outer product
 	JsDeclareTemplatedFunction(outer);
-	// inner product
+	//#- inner: inner product
 	JsDeclareTemplatedFunction(inner);
-	// add vectors
+	//#- plus: add vectors
 	JsDeclareTemplatedFunction(plus);
-	// subtract vectors
+	//#- minus: subtract vectors
 	JsDeclareTemplatedFunction(minus);
-	// scalar multiply
+	//#- multiply: scalar multiply
 	JsDeclareTemplatedFunction(multiply);
-	// INPLACE : normalizes the vector, returns undefined
+	//#- normalize: INPLACE : normalizes the vector, returns undefined
 	JsDeclareTemplatedFunction(normalize);
-	// gets vector length
+	//#- length: gets vector length
 	JsDeclareProperty(length);
-	// print vector
+	//#- print: print vector
 	JsDeclareFunction(print);
-	// get diagonal matrix
+	//#- diag: get diagonal matrix
 	JsDeclareTemplatedFunction(diag);
-	// get sparse diagonal matrix
+	//#- spDiag: get sparse diagonal matrix
 	JsDeclareTemplatedFunction(spDiag);
-	// get norm
+	//#- norm: get norm
 	JsDeclareTemplatedFunction(norm);
-	// Gets a sparse representation
+	//#- sparse: Gets a sparse representation
 	JsDeclareTemplatedFunction(sparse);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
@@ -1530,6 +1533,17 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-FltVV
+//# 
+//# ### Matrix (dense matrix)
+//# 
+//# Matrix is a double 2D array implemented in glib/base/ds.h. 
+//# Using the global `la` object, dense matrices are generated in several ways:
+//# 
+//# ```JavaScript
+//# var fltv = la.newVec(); //empty matrix
+//# // refer to la.newMat function for alternative ways to generate dense matrices
+//# ```
+//# 
 class TJsFltVV {
 public:
 	/// JS script context
@@ -1560,56 +1574,70 @@ public:
 	}
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// get element
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- at: get element
 	JsDeclareFunction(at);	
-	// set element, returns undefined
+	//#- put: set element, returns undefined
 	JsDeclareFunction(put);
-	// matrix * scalar, matrix * vector, matrix * matrix
+	//#- multiply: matrix * scalar, matrix * vector, matrix * matrix
 	JsDeclareFunction(multiply);
-	// matrix' * scalar, matrix' * vector, matrix' * matrix
+	//#- multiplyT: matrix' * scalar, matrix' * vector, matrix' * matrix
 	JsDeclareFunction(multiplyT);
-	// matrix + matrix
+	//#- plus: matrix + matrix
 	JsDeclareFunction(plus);
-	// matrix - matrix
+	//#- minus: matrix - matrix
 	JsDeclareFunction(minus);
-	// returns the transpose of a matrix
+	//#- transpose: returns the transpose of a matrix
 	JsDeclareFunction(transpose);
-	// solves a linear system A x = y. Input: y, Output: x
+	//#- solve: solves a linear system A x = y. Input: y, Output: x
 	JsDeclareFunction(solve);
-	// get row norms
+	//#- rowNorms: get row norms
 	JsDeclareFunction(rowNorms);
-	// get col norms
+	//#- colNorms: get col norms
 	JsDeclareFunction(colNorms);
-	// INPLACE : changes the matrix by normalizing columns, return undefined
+	//#- normalizeCols: INPLACE : changes the matrix by normalizing columns, return undefined
 	JsDeclareFunction(normalizeCols);
-	// get sparse column matrix
+	//#- sparse: get sparse column matrix
 	JsDeclareFunction(sparse);
-	// get frobenious norm
+	//#- frob: get frobenious norm
 	JsDeclareFunction(frob);
-	// get number of rows
+	//#- rows: get number of rows
 	JsDeclareProperty(rows);
-	// get number of columns
+	//#- cols: get number of columns
 	JsDeclareProperty(cols);
-	// get print matrix string
+	//#- printStr: get print matrix string
 	JsDeclareFunction(printStr);
-	// print matrix
+	//#- print: print matrix
 	JsDeclareFunction(print);
-	// get the index of the maximum element in a given row
+	//#- rowMaxIdx: get the index of the maximum element in a given row
 	JsDeclareFunction(rowMaxIdx);
-	// get the index of the maximum element in a given col
+	//#- colMaxIdx: get the index of the maximum element in a given col
 	JsDeclareFunction(colMaxIdx);
-	// get a copy of a given column
+	//#- getCol: get a copy of a given column
 	JsDeclareFunction(getCol);
-	// set a column given a vector
+	//#- setCol: set a column given a vector
 	JsDeclareFunction(setCol);
-	// get a copy of a given row
+	//#- getRow: get a copy of a given row
 	JsDeclareFunction(getRow);
-	// set a row given a vector
+	//#- setRow: set a row given a vector
 	JsDeclareFunction(setRow);
 };
 
 ///////////////////////////////
 // QMiner-Sparse-Vector
+//# 
+//# ### SpVector (sparse vector)
+//# 
+//# Sparse vector is an array of (int,double) pairs that represent column indices and values (TIntFltKdV is implemented in glib/base/ds.h.)
+//# Using the global `la` object, sparse vectors can be generated in the following ways:
+//# 
+//# ```JavaScript
+//# var spVec = la.newSpVec(); //empty vector
+//# // refer to la.newSpVec for alternative ways to generate sparse vectors
+//# ```
+//# 
 class TJsSpV {
 public:
 	/// JS script context
@@ -1644,34 +1672,47 @@ public:
 	}
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	// get element
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- at: get element
 	JsDeclareFunction(at);	
-	// set element, returns undefined
+	//#- put: set element, returns undefined
 	JsDeclareFunction(put);		
-	// sum elements
+	//#- sum: sum elements
 	JsDeclareFunction(sum);	
-	// inner product
+	//#- inner:inner product
 	JsDeclareFunction(inner);	
-	// scalar multiply
+	//#- multiply:scalar multiply
 	JsDeclareFunction(multiply);
-	// INPLACE : normalizes the vector, returns undefined
+	//#- normalize:INPLACE : normalizes the vector, returns undefined
 	JsDeclareFunction(normalize);
-	// gets the number of nonzero elements
+	//#- nnz:gets the number of nonzero elements
 	JsDeclareProperty(nnz);	
-	// gets the number of nonzero elements
+	//#- dim:gets the number of nonzero elements
 	JsDeclareProperty(dim);	
-	// print
+	//#- print:print
 	JsDeclareFunction(print);
-	// norm
+	//#- norm:norm
 	JsDeclareFunction(norm);
-	// full
+	//#- full:full
 	JsDeclareFunction(full);
 };
 
 
 ///////////////////////////////
 // QMiner-Sparse-Col-Matrix
+//# 
+//# ### SpMatrix (sparse column matrix)
+//# 
+//# SpMatrix is a sparse matrix represented as a dense vector of sparse vectors which correspond to matrix columns (TVec<TIntFltKdV>, implemented in glib/base/ds.h.)
+//# Using the global `la` object, sparse matrices are generated in several ways:
+//# 
+//# ```JavaScript
+//# var spMat = la.newSpMat(); //empty matrix
+//# // refer to la.newSpMat function for alternative ways to generate sparse matrices
+//# ```
+//# 
 class TJsSpMat {
 public:
 	/// JS script context
@@ -1714,37 +1755,40 @@ public:
 	}
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// get element
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- at:get element
 	JsDeclareFunction(at);
-	// set element, returns undefined
+	//#- put:set element, returns undefined
 	JsDeclareFunction(put);
-	// index
+	//#- []:index
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	// add a sparse column vector to the matrix
+	//#- push:add a sparse column vector to the matrix
 	JsDeclareFunction(push);
-	// matrix * scalar, matrix * vector, matrix * matrix
+	//#- multiply:matrix * scalar, matrix * vector, matrix * matrix
 	JsDeclareFunction(multiply);
-	// matrix' * scalar, matrix' * vector, matrix' * matrix
+	//#- multiplyT:matrix' * scalar, matrix' * vector, matrix' * matrix
 	JsDeclareFunction(multiplyT);
-	// matrix + matrix
+	//#- plus:matrix + matrix
 	JsDeclareFunction(plus);
-	// matrix - matrix
+	//#- minus:matrix - matrix
 	JsDeclareFunction(minus);
-	// returns the transpose of a matrix
+	//#- transpose:returns the transpose of a matrix
 	JsDeclareFunction(transpose);	
-	// get column norms
+	//#- colNorms:get column norms
 	JsDeclareFunction(colNorms);
-	// INPLACE : changes the matrix by normalizing columns, return undefined
+	//#- normalizeCols:INPLACE : changes the matrix by normalizing columns, return undefined
 	JsDeclareFunction(normalizeCols);
-	// get dense matrix
+	//#- full:get dense matrix
 	JsDeclareFunction(full);
-	// get frobenious norm
+	//#- frob:get frobenious norm
 	JsDeclareFunction(frob);
-	// get number of rows
+	//#- rows:get number of rows
 	JsDeclareProperty(rows);
-	// get number of columns
+	//#- cols:get number of columns
 	JsDeclareProperty(cols);
-	// print
+	//#- print:print
 	JsDeclareFunction(print);
 };
 
@@ -1752,7 +1796,7 @@ public:
 ///////////////////////////////
 // QMiner-JavaScript-Machine-Learning
 //#
-//# ## Analytics.js
+//# ## Analytics.js (use require)
 //#
 //# Analytics algorithms for working with records stored in
 //# QMiner and with linear algebra objects created by `la`.
@@ -2001,6 +2045,16 @@ public:
 //# ### Process
 //# 
 //#JSIMPLEMENT:src/qminer/process.js    
+
+//#
+//# ### Utilities.js (use require)
+//# 
+//#JSIMPLEMENT:src/qminer/js/utilities.js    
+
+//#
+//# ### Assert.js (use require)
+//# 
+//#JSIMPLEMENT:src/qminer/js/assert.js    
 
 ///////////////////////////////
 // JavaScript Console

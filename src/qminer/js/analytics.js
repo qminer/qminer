@@ -145,11 +145,11 @@ exports.loadBatchModel = function (sin) {
 }
 
 // active learning (analytics:function activeLearner, parameters
-//# 
+//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)`
 exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query) {
     var store = recSet.store;
-    var X = linalg.newSpMat();
-    var y = linalg.newVec();
+    var X = la.newSpMat();
+    var y = la.newVec();
     // QUERY MODE
     var queryMode = true;
     // bow similarity between query and training set 
@@ -168,11 +168,11 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
 
     // SVM MODE
     var svm;
-    var posIdxV = linalg.newIntVec(); //indices in recordSet
-    var negIdxV = linalg.newIntVec(); //indices in recordSet
-    var posIdV = linalg.newIntVec(); //record IDs
-    var negIdV = linalg.newIntVec(); //record IDs
-    var classVec = linalg.newVec({ "vals": recSet.length }); //svm scores for record set
+    var posIdxV = la.newIntVec(); //indices in recordSet
+    var negIdxV = la.newIntVec(); //indices in recordSet
+    var posIdV = la.newIntVec(); //record IDs
+    var negIdV = la.newIntVec(); //record IDs
+    var classVec = la.newVec({ "vals": recSet.length }); //svm scores for record set
 
     // returns record set index of the unlabeled record that is closest to the margin
     this.selectQuestion = function () {
@@ -249,4 +249,224 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
     };
     //this.saveLabeled
     //this.loadLabeled
+};
+
+
+//////////// RIDGE REGRESSION 
+// solve a regularized least squares problem
+//#- `model = new analytics.ridgeRegression(kapa, dim, buffer)`
+exports.ridgeRegression = function(kapa, dim, buffer) {
+    var X = [];
+    var y = [];
+    buffer = typeof buffer !== 'undefined' ? buffer : -1;
+    var w = la.newVec({ "vals": dim });
+
+    this.add = function (x, target) {
+        X.push(x);
+        y.push(target);
+        if (buffer > 0) {
+            if (X.length > buffer) {
+                this.forget(X.length - buffer);
+            }
+        }
+    };
+    this.addupdate = function (x, target) {
+        this.add(x, target);
+        this.update();
+    }
+    this.forget = function (ndeleted) {
+        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
+        ndeleted = Math.min(X.length, ndeleted);
+        X.splice(0, ndeleted);
+        y.splice(0, ndeleted);
+    };
+    this.update = function () {
+        var A = this.getMatrix();
+        var b = la.copyFltArrayToVec(y);
+        w = this.compute(A, b);
+    };
+    this.getModel = function () {
+        return w;
+    };
+    this.getMatrix = function () {
+        if (X.length > 0) {
+            var A = la.newMat({ "cols": X[0].length, "rows": X.length });
+            for (var i = 0; i < X.length; i++) {
+                A.setRow(i, X[i]);
+            }
+            return A;
+        }
+    };
+    this.compute = function (A, b) {
+        var I = la.eye(A.cols);
+        var coefs = (A.transpose().multiply(A).plus(I.multiply(kapa))).solve(A.transpose().multiply(b));
+        return coefs;
+    };
+
+    this.predict = function (x) {
+        return w.inner(x);
+    };
+};
+
+///////// CLUSTERING BATCH K-MEANS
+//#- `model = new analytics.kmeans(X, k, iter)`
+exports.kmeans = function(X, k, iter) {
+    // select random k columns of X, returns a dense C++ matrix
+    this.selectCols = function (X, k) {
+        var idx = la.randIntVec(X.cols, k);
+        var idxMat = la.newSpMat({ "rows": X.cols });
+        for (var i = 0; i < idx.length; i++) {
+            var spVec = la.newSpVec([[idx[i], 1.0]], { "dim": X.cols });
+            idxMat.push(spVec);
+        }
+        var C = X.multiply(idxMat);
+        var result = new Object();
+        result.C = C;
+        result.idx = idx;
+        return result;
+    };
+
+    // modified k-means algorithm that avoids empty centroids
+    // A Modified k-means Algorithm to Avoid Empty Clusters, Malay K. Pakhira
+    // http://www.academypublisher.com/ijrte/vol01/no01/ijrte0101220226.pdf
+    this.getCentroids = function (X, idx, oldC) {
+        // select random k columns of X, returns a dense matrix
+        // 1. construct a sparse matrix (coordinate representation) that encodes the closest centroids
+        var idxvec = la.copyIntArrayToVec(idx);
+        var rangeV = la.rangeVec(0, X.cols - 1);
+        var ones_cols = la.ones(X.cols);
+        var idxMat = la.newSpMat(idxvec, rangeV, ones_cols, X.cols);
+        idxMat = idxMat.transpose();
+        var ones_n = la.ones(X.cols);
+        // 2. compute the number of points that belong to each centroid, invert
+        var colSum = idxMat.multiplyT(ones_n);
+        for (var i = 0; i < colSum.length; i++) {
+            var val = 1.0 / (1.0 + colSum.at(i)); // modification
+            colSum.put(i, val);
+        }
+        // 3. compute the centroids
+        var w = new util.clsStopwatch();
+        w.tic();
+        var sD = colSum.spDiag();
+        var C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
+        return C;
+    };
+
+
+    // X: column examples
+    // k: number of centroids
+    // iter: number of iterations
+    assert.ok(k <= X.cols, "k <= X.cols");
+    var w = new util.clsStopwatch();
+    var norX2 = la.square(X.colNorms());
+    var initialCentroids = this.selectCols(X, k);
+    var C = initialCentroids.C;
+    var idxvOld = initialCentroids.idx;
+    //printArray(idxvOld); // DEBUG
+    var ones_n = la.ones(X.cols).multiply(0.5);
+    var ones_k = la.ones(k).multiply(0.5);
+    w.tic();
+    for (var i = 0; i < iter; i++) {
+        console.say("iter: " + i);
+        var norC2 = la.square(C.colNorms());
+        //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
+        var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
+        var idxv = la.findMaxIdx(D);
+        //var energy = 0.0;
+        //for (var j = 0; j < X.cols; j++) {            
+        //    if (D.at(idxv[j],j) < 0) {
+        //        energy += Math.sqrt(-2 * D.at(idxv[j], j));
+        //    }
+        //}
+        //console.say("energy: " + 1.0/ X.cols * energy);
+        if (util.arraysIdentical(idxv, idxvOld)) {
+            console.say("converged at iter: " + i); //DEBUG
+            break;
+        }
+        idxvOld = idxv.slice();
+        C = this.getCentroids(X, idxv, C); //drag
+    }
+    w.toc("end");
+    return C;
+};
+
+////////////// ONLINE CLUSTERING (LLOYD ALGORITHM)
+//#- `model = new analytics.lloyd(dim, k)`
+exports.lloyd = function (dim, k) {
+    // Private vars
+    var C = la.genRandomMatrix(dim, k);//linalg.newMat({ "rows": dim, "cols": k, "random": true });;
+    var counts = la.ones(k);
+    var norC2 = la.square(C.colNorms());
+
+    this.init = function () {
+        C = la.genRandomMatrix(dim, k); //linalg.newMat({ "rows": dim, "cols": k, "random": true });
+        counts = la.ones(k);
+        norC2 = la.square(C.colNorms());
+    };
+
+    this.getC = function () {
+        return C;
+    };
+
+    this.giveAll = function () {
+        var result = new Object();
+        result.C = C;
+        result.counts = counts;
+        result.norC2 = norC2;
+        return result;
+    };
+    this.setC = function (C_) {
+        C = la.newMat(C_);
+        norC2 = la.square(C.colNorms());
+    };
+    this.update = function (x) {
+        var idx = this.getCentroidIdx(x);
+        //C(:, idx) = 1/(counts[idx] + 1)* (counts[idx] * C(:, idx)  + x);
+        var vec = ((C.getCol(idx).multiply(counts[idx])).plus(x)).multiply(1.0 / (counts[idx] + 1.0));
+        C.setCol(idx, vec);
+        counts[idx] = counts[idx] + 1;
+        norC2[idx] = la.square(vec.norm());
+    };
+    this.getCentroid = function (x) {
+        var idx = this.getCentroidIdx(x);
+        var vec = C.getCol(idx);
+        return vec;
+    };
+    this.getCentroidIdx = function (x) {
+        var D = C.multiplyT(x);
+        D = D.minus(norC2.multiply(0.5));
+        var idxv = la.findMaxIdx(D);
+        return idxv[0];
+    };
+};
+
+/////////// perceptron : 0/1 classification
+//#- `model = new analytics.perceptron(dim, use_bias)`
+exports.perceptron = function (dim, use_bias) {
+    use_bias = typeof use_bias !== 'undefined' ? use_bias : false;
+    var w = la.newVec({ "vals": dim });
+    var b = 0;
+
+    this.update = function (x, y) {
+        var yp = (w.inner(x) + b) > 0;
+        if (y != yp) {
+            var e = y - yp;
+            w = w.plus(x.multiply(e));
+            if (use_bias) {
+                b = b + e;
+            }
+        }
+    };
+
+    this.predict = function (x) {
+        return (w.inner(x) + b) > 0;
+    };
+
+    this.getModel = function () {
+        var model;
+        model.w = w;
+        model.b = b;
+        return model;
+    };
+
 };
