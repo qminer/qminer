@@ -23,3 +23,11 @@ build
 qm.conf
 db
 *.dat
+*.opensdf
+*.sdf
+*.lib
+*.user
+*.suo
+Debug
+
+Release
