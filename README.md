@@ -7,7 +7,8 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 **[Main project homepage](http://qminer.ijs.si/)**
 
-QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at [Jozef Stefan Institute](http://www.ijs.si/) and [Quintelligence](http://quintelligence.com).
+QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at 
+[Jozef Stefan Institute](http://www.ijs.si/) and [Quintelligence](http://quintelligence.com).
 
 ### Installation
 
@@ -22,7 +23,8 @@ make
 
 + [Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
 + [Examples](https://github.com/qminer/qminer/wiki/Example)
-+ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 + [QMiner Wiki](https://github.com/qminer/qminer/wiki)
++ [JavaScript API](https://github.com/qminer/qminer/wiki/JavaScript)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
++ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 
