@@ -65,4 +65,7 @@
 // visualization
 #include "vizmap.h"
 
+// special datasets
+#include "dmoz.h"
+
 #endif

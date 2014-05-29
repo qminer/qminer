@@ -4,6 +4,7 @@
 # Prerequisites for documentation:
 #  - doxygen:  sudo apt-get install doxygen
 #  - GraphViz: sudo apt-get install graphviz
+#  - docco:    sudo npm install -g docco
 #
 
 include ./Makefile.config
@@ -15,18 +16,19 @@ VERSION = 0.5.0
 THIRD_PARTY = src/third_party
 LIBUV = $(THIRD_PARTY)/libuv
 LIBV8 = $(THIRD_PARTY)/v8/out/x64.release/obj.target/tools/gyp
+LIBSNAP = $(THIRD_PARTY)/Snap/snap-core
 GLIB = src/glib
 QMINER = src/qminer
 BUILD = build
 
 # lib includes
-STATIC_LIBS = $(GLIB)/glib.a $(LIBUV)/libuv.a \
+STATIC_LIBS = $(LIBSNAP)/libsnap.a $(GLIB)/glib.a $(LIBUV)/libuv.a \
 	$(LIBV8)/libv8_base.x64.a $(LIBV8)/libv8_snapshot.a
 
 # QMiner code
 QMOBJS = $(QMINER)/qminer_core.o $(QMINER)/qminer_ftr.o $(QMINER)/qminer_aggr.o \
 	$(QMINER)/qminer_op.o $(QMINER)/qminer_gs.o $(QMINER)/qminer_js.o \
-	$(QMINER)/qminer_srv.o
+	$(QMINER)/qminer_srv.o $(QMINER)/qminer_snap.o
 MAINOBJ = $(QMINER)/main.o
 
 all: qm
@@ -46,7 +48,7 @@ qm:
 	# move in qm commandline tool
 	mv ./qm ./$(BUILD)/
 	# copy qminer javascript environment
-	cp ./$(QMINER)/qminer.js ./$(BUILD)/
+	cp ./$(QMINER)/*.js ./$(BUILD)/
 	# copy in unicode definiton files
 	cp ./$(GLIB)/bin/UnicodeDef.Bin ./$(BUILD)/
 	# copy in javascript libraries
@@ -66,6 +68,7 @@ clean:
 	rm -rf ./$(BUILD)/
 
 lib:
+	make -C $(GLIB)
 	make -C $(THIRD_PARTY)
 
 install: 
@@ -88,6 +91,7 @@ uninstall:
 	rm /etc/profile.d/qm.sh
 
 doc: cleandoc
+	./genJSdoc.sh
 	docco -o ./docjs/ examples/movies/src/movies.js examples/timeseries/src/timeseries.js
 	sed "s/00000000/$(DOXYGEN_STIME)/" Doxyfile | sed "s/11111111/$(DOXYGEN_SLVER)/" > Doxyfile-tmp
 	$(DOXYGEN) Doxyfile-tmp
@@ -96,7 +100,6 @@ cleandoc:
 	rm -rf doc
 	rm -rf Doxyfile-tmp
 	rm -rf log-doxygen.txt
-	rm -rf docjs
 
 installdoc: doc
 	scp -r doc blazf@agava:www/qminer-$(DOXYGEN_TIME)

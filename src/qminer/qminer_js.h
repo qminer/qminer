@@ -28,6 +28,54 @@
 
 namespace TQm {
 
+// All comments starting with / / # (no spaces) are copied to JavaScript API documentation
+// available on QMiner wiki page https://github.com/qminer/qminer/wiki/JavaScript
+// every so often.
+    
+//# QMiner functionality is accessible through a JavaScript API. The JavaScript environment
+//# is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
+//# The API includes a simple HTTP server with RESTful web-service support for defining
+//# application specific web-service APIs.
+//# 
+//# The JavaScript API is implemented using [V8 JavaScript Engine](https://code.google.com/p/v8/),
+//# which lives in the same process as core QMiner objects. This allows for fast manipulation
+//# of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
+//# Currently, version 3.18 of V8 is used.
+//# 
+//# JavaScript API requires [initialized work environment](Quick-Start).
+//#     
+//# ## Libraries
+//# 
+//# Scripts can load external libraries or modules in the same way as Node.js.
+//# 
+//# Library is loaded using `require` function:
+//# ```JavaScript
+//# var test = require('testModule.js');
+//# ```
+//# 
+//# Modules export functionality by defining properties or functions on the `exports` object, 
+//# for example (taken from Node.js documentation):
+//# ```JavaScript
+//# var PI = Math.PI;
+//# exports.area = function (r) {
+//#   return PI * r * r;
+//# };
+//# exports.circumference = function (r) {
+//#   return 2 * PI * r;
+//# };
+//# ```
+//# 
+//# Libraries are loaded from two places. The first is project's library folder (`src/lib/`) 
+//# and the second is QMiner library folder (`QMINER_HOME/lib/`). Project's library folder 
+//# has priority in case the library with the same name exists in both places. Some libraries 
+//# are implemented in C++, for example `analytics` and `time`.
+//# 
+//# The QMiner system comes with the following libraries:
+//# - `analytics.js` -- main API for analytics techniques
+//# - `utilities.js` -- useful JavaScript utilities, e.g., checking variable type
+//# - `time` -- wrapper around user-friendly date-time object
+//# - `assert.js` -- support for writing unit tests
+    
 ///////////////////////////////
 // JavaScript-Exceptions-related macros 
 
@@ -788,31 +836,13 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Console
-class TJsConsole {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-    
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsConsole> TJsConsoleUtil;
-    
-    explicit TJsConsole(TWPt<TScript> _Js): Js(_Js) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
-		return TJsConsoleUtil::New(new TJsConsole(Js)); }
-
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	// functions
-	JsDeclareFunction(say);
-	JsDeclareFunction(getln);
-};
-
-///////////////////////////////
 // JavaScript QMiner Base
+//# 
+//# ## Core QMiner objects
+//# 
+//# ### QMiner
+//# 
+//# QMiner (`qm`) is the core object in the API and is available in any script.
 class TJsBase {
 public:
 	/// JS script context
@@ -832,23 +862,41 @@ public:
 
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	
-	// property
-	//JsDeclareProperty(correlation);
-	JsDeclareProperty(args);
-	JsDeclareProperty(analytics);
-    JsDeclareProperty(sysStat);
-	// basic functions
+
+    // temporary stuff
+	JsDeclareProperty(analytics); // deprecated    
+	JsDeclareProperty(args); // to be moved to TJsProcess once created
+    JsDeclareProperty(sysStat);  // to be moved to TJsProcess once created
+	JsDeclareFunction(op); // soon to be deprecated, functionality moved to TJsRecSet
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+    //#- `s = qm.store(storeName)` -- store with name `storeName`; `null` when no such store
 	JsDeclareFunction(store);
+    //#- `a = qm.getStoreList()` -- an array listing all existing stores
 	JsDeclareFunction(getStoreList);
+    //#- `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
 	JsDeclareFunction(createStore);
+    //#- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
+    //#   and returns a record set `rs` with results
 	JsDeclareFunction(search);   
-	JsDeclareFunction(op);
+    //#-- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
+	//#JSIMPLEMENT:src/qminer.js    
 };
 
 ///////////////////////////////
 // QMiner-JavaScript-Store
+//# 
+//# ### Store
+//# 
+//# Store holds records. Each record has a unique 64-bit ID. Record ID can be used to directly
+//# access the record from the store using index operator:
+//# ```JavaScript
+//# var store = qm.store("storeName");
+//# var record = store[1234];
+//# ```
 class TJsStore {
 private:
 	/// JS script context
@@ -865,28 +913,82 @@ public:
 
 	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// properties
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+    //#- `store.name` -- name of the store
 	JsDeclareProperty(name);
+    //#- `store.empty` -- `true` when store is empty
 	JsDeclareProperty(empty);
+    //#- `store.length` -- number of records in the store
 	JsDeclareProperty(length);
+    //#- `rs = store.recs` -- create a record set containing all the records from the store
 	JsDeclareProperty(recs);
+    //#- `store.fields` -- array of all the field names
 	JsDeclareProperty(fields);
+    //#- `store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
+    //#- `store.keys` -- array of all the [index keys](#index-key)
 	JsDeclareProperty(keys);	
-	// index
+    //#- `r = store[recordId]` -- get record with ID `recordId`; 
+    //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
-	// functions
+    //#- `r = store.rec(recordName)` -- get record named `recordName`; 
+    //#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
+    //#- `store.add(record)` -- add `record` to the store 
 	JsDeclareFunction(add);
-	JsDeclareFunction(newRec);
+    //#- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
+    JsDeclareFunction(newRec);
+    //#- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
+    //#     array is expected to be of type `linalg.newIntVec`
 	JsDeclareFunction(newRecSet);
+    //#- `rs = store.sample(sampleSize)` -- create a record set containing a random 
+    //#     sample of `sampleSize` records
 	JsDeclareFunction(sample);
+    //#- `field = store.field(fieldName)` -- get details of field named `fieldName`
 	JsDeclareFunction(field);
+    //#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
+    //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
 	JsDeclareFunction(addTrigger);
+    //#- `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
+    //#     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
     JsDeclareFunction(addStreamAggr);
+    //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
 	JsDeclareFunction(getStreamAggr);
+    
+    //# 
+    //# **Examples**:
+    //# 
+    //# ```JavaScript
+    //# // adding new record
+    //# qm.store("Movies").add({
+    //#   Title: "The Hobbit: An Unexpected Journey", 
+    //#   Year: 2012, 
+    //#   directedBy: {
+    //#     Name: "Peter Jackson",
+    //#     Gender: "Male"
+    //#   }
+    //# }
+    //# 
+    //# // adding a trigger
+    //# qm.store("People").addTrigger({
+    //#   onAdd : function (person) { console.log("New record: " + person.Name); },
+    //#   onUpdate : function (person) { console.log("Updated record: " + person.Name); },
+    //#   onDelete : function (person) { console.log("Deleted record: " + person.Name); }
+    //# });
+    //# 
+    //# // iterating over records
+    //# var rs = qm.store("People");
+    //# for (var i = 0; i < rs.length; i++) {
+    //#   var rec = rs[i];
+    //#   console.log(rec.Name + " (" + rec.Gender + ")");
+    //# }
+    //# ```    
 };
+    
 
 ///////////////////////////////
 // JavaScript Record Comparator
@@ -926,6 +1028,12 @@ public:
 
 ///////////////////////////////
 // QMiner-JavaScript-Record-Set
+//#
+//# ### Record set
+//#
+//# Record set holds a subset of records from a store. Records are stored in a vector. 
+//# It can also hold a vector of aggregates, which were computed over the records from 
+//# the set.
 class TJsRecSet {
 private:
 	/// JS script context
@@ -943,35 +1051,70 @@ public:
 
 	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// properties
+	//# 
+	//# **Functions and properties:**
+	//#   
+	//#- `rs.store` -- store of the records
 	JsDeclareProperty(store);
+	//#- `rs.length` -- number of records in the set
 	JsDeclareProperty(length);
+	//#- `rs.empty` -- `true` when record set is empty
 	JsDeclareProperty(empty);
+	//#- `rs.weighted` -- true when records in the set are assigned weights
 	JsDeclareProperty(weighted);
-	// index
+    //#- `rec = rs[n]` -- return n-th record from the record set
 	JsDeclIndexedProperty(indexId);
-	// functions
+	//#- `crs = rs.clone()` -- creates new instance of record set
 	JsDeclareFunction(clone);
+	//#- `jrs = rs.join(JoinName)` -- executes a join `JoinName` on the records in the set, result is another record set
+	//#- `jrs = rs.join(JoinName, SampleSize)` -- executes a join `JoinName` on a sample of `SampleSize` records in the set, result is another record set
 	JsDeclareFunction(join);
+	//#- `aggr = rs.aggr()` -- returns an array of all the aggregates contained in the records set
+	//#- `aggr = rs.aggr(Query)` -- creates a new aggregates based on the `Query` parameters
 	JsDeclareFunction(aggr);
+	//#- `rs.trunc(Recs)` -- truncate to first `Recs` record
 	JsDeclareFunction(trunc);
+	//#- `srs = rs.sample(Recs)` -- create new record set by randomly sampling `Recs` records
 	JsDeclareFunction(sample);
+	//#- `rs.shuffle(Seed)` -- shuffle order using random seed `Seed`
 	JsDeclareFunction(shuffle);
+	//#- `rs.reverse()` -- reverse record order
 	JsDeclareFunction(reverse);
+	//#- `rs.sortById(Asc)` -- sort records according to record id; if `Asc > 0` sorted in ascending order
 	JsDeclareFunction(sortById);
+	//#- `rs.sortByFq(Asc)` -- sort records according to weight; if `Asc > 0` sorted in ascending order
 	JsDeclareFunction(sortByFq);
+	//#- `rs.sortByField(FieldName, Asc)` -- sort records according to value of field `FieldName`; if `Asc > 0` sorted in ascending order
 	JsDeclareFunction(sortByField);
+	//#- `rs.sort(comparator)` -- sort records according to `comparator` callback
    	JsDeclareFunction(sort);
+	//#- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`
 	JsDeclareFunction(filterById);
+	//#- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`
 	JsDeclareFunction(filterByFq);
+	//#- `rs.filterByField(FieldName, minVal, maxVal)` -- keeps only records with numeric value of field `FieldName` between `minVal` and `maxVal`
+	//#- `rs.filterByField(FieldName, Val)` -- keeps only records with string value of field `FieldName` equal to `Val`
 	JsDeclareFunction(filterByField);
+	//#- `rs.filter(filter)` -- keeps only records that pass `filter` callback
 	JsDeclareFunction(filter);
+    //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
 	JsDeclareFunction(deleteRecs);
+    //#- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
+
+    //# 
+    //# **Examples**:
+    //# 
+    //# ```JavaScript
+    //# TODO
+    //# ```        
 };
 
 ///////////////////////////////
 // QMiner-JavaScript-Record
+//#
+//# ### Record
+//#
 class TJsRec {
 public:
 	/// JS script context
@@ -994,23 +1137,37 @@ public:
 
 	~TJsRec() { }
 
-	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate(const TWPt<TBase>& Base, const TWPt<TStore>& Store);
-	// properties
+
+	//# 
+	//# **Functions and properties:**
+	//#   
+    //#- `rec.$id`
     JsDeclareProperty(id);
+    //#- `rec.$name`
     JsDeclareProperty(name);
+    //#- `rec.$fq`
 	JsDeclareProperty(fq);
+    //#- `rec.fieldName`
 	JsDeclareSetProperty(getField, setField);
+    //#- `rec.joinName`
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
-    // function
+    //#- `rec.addJoin(joinName, joinRecord)`
+    //#- `rec.addJoin(joinName, joinRecord, joinFrequency)`
     JsDeclareFunction(addJoin);
+    //#- `rec.delJoin(joinName, joinRecord)`
+    //#- `rec.delJoin(joinName, joinRecord, joinFrequency)`
     JsDeclareFunction(delJoin);
+    //#- `rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
     JsDeclareFunction(toJSON);
 };
 
 ///////////////////////////////
 // QMiner-JavaScript-IndexKey
+//# 
+//# ### Index key
+//# 
 class TJsIndexKey {
 private:
 	/// JS script context
@@ -1026,393 +1183,29 @@ public:
 		return TJsIndexKeyUtil::New(new TJsIndexKey(Js, IndexKey)); }
 	~TJsIndexKey() { }
 
-	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// properties
+
+	//# 
+	//# **Functions and properties:**
+	//#   
+    //#- `key.store`    
 	JsDeclareProperty(store);				
+    //#- `key.name`    
 	JsDeclareProperty(name);
+    //#- `key.voc`    
 	JsDeclareProperty(voc);
+    //#- `key.fq`    
 	JsDeclareProperty(fq);
 };
 
 ///////////////////////////////
-// QMiner-JavaScript-Machine-Learning
-class TJsAnalytics {
-public:
-	/// JS script context
-	TWPt<TScript> Js;	
-    /// maps an AL id string to an AL object
-    static THash<TStr, PBowAL> ActiveLearnerH; 
-    
-private:
-	typedef TJsObjUtil<TJsAnalytics> TJsAnalyticsUtil;
-    
-	TJsAnalytics(TWPt<TScript> _Js): Js(_Js) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
-        return TJsAnalyticsUtil::New(new TJsAnalytics(Js)); }
-
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    // get options for text parsing (stemmers, stop word lists)
-	JsDeclareFunction(getLanguageOptions);    
-    // feature space
-    // newFeatureSpace(feature extractor declarations)
-    JsDeclareFunction(newFeatureSpace);
-    // loadFeatureSpace(fin)
-    JsDeclareFunction(loadFeatureSpace);
-    
-    // support vector machine
-    // trainSvmClassify(matrix, vector, parameters)
-	JsDeclareFunction(trainSvmClassify);
-    // trainSvmRegression(matrix, vector, parameters)
-    JsDeclareFunction(trainSvmRegression);
-    // loadSvmModel(fin)
-	JsDeclareFunction(loadSvmModel);
-    
-    // recursive linear regression
-    // linRegLearn(records, parameters)    
-    JsDeclareFunction(newRecLinReg);	
-    
-    // clustering (TODO: still depends directly on feature space)
-    // trainKMeans(featureSpace, positives, negatives, parameters)
-	JsDeclareFunction(trainKMeans);
-    
-    // active learning (TODO: replace with one implemented around TJsLinAlg)
-    // newActiveLearner(featureSpace, records, query, parameters)
-	JsDeclareFunction(newActiveLearner);
-    // delActiveLearner(name)
-	JsDeclareFunction(delActiveLearner);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Feature-Space
-class TJsFtrSpace {
-public:
-	/// JS script context
-	TWPt<TScript> Js;	
-    /// Feature space 
-    PFtrSpace FtrSpace;    
-    
-private:
-	typedef TJsObjUtil<TJsFtrSpace> TJsFtrSpaceUtil;
-    
-	TJsFtrSpace(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace): Js(_Js), FtrSpace(_FtrSpace) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace) { 
-		return TJsFtrSpaceUtil::New(new TJsFtrSpace(Js, FtrSpace)); }
-    static PFtrSpace GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN);
-
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    // dimensionality of feature space
-    JsDeclareProperty(dim);    
-    // serilization
-    JsDeclareFunction(save);
-    // for batch learning of feature space
-	JsDeclareFunction(updateRecord);
-	JsDeclareFunction(updateRecords);
-    JsDeclareFunction(finishUpdate);
-    // use feature extractors to extract string features (E.g. words)
-    JsDeclareFunction(extractStrings);
-    // mapping of records to feature vectors
-    JsDeclareFunction(ftrSpVec);
-    JsDeclareFunction(ftrVec);
-	// maping of record sets to matrices (records correspond to columns)
-	JsDeclareFunction(ftrSpColMat);
-    JsDeclareFunction(ftrColMat);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Support-Vector-Machine-Model
-class TJsSvmModel {
-public:
-	/// JS script context
-	TWPt<TScript> Js;	
-    /// SVM Model
-    PSVMModel Model;
-    
-private:
-	typedef TJsObjUtil<TJsSvmModel> TJsSvmModelUtil;
-    
-	TJsSvmModel(TWPt<TScript> _Js, const PSVMModel& _Model): Js(_Js), Model(_Model) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PSVMModel& Model) { 
-        return TJsSvmModelUtil::New(new TJsSvmModel(Js, Model)); }
-
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	JsDeclareFunction(predict);
-	JsDeclareFunction(getWeights);    
-	JsDeclareFunction(save);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Active-Learner
-class TJsAL {
-public:
-	/// JS script context
-	TWPt<TScript> Js;	
-    /// AL Model
-    PBowAL AL;
-    
-private:
-	typedef TJsObjUtil<TJsAL> TJsALUtil;
-    
-	TJsAL(TWPt<TScript> _Js, const PBowAL& _AL): Js(_Js), AL(_AL) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js,
-        const PBowAL& AL) { return TJsALUtil::New(new TJsAL(Js, AL)); }
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    JsDeclareFunction(getQuestion);
-	JsDeclareFunction(answerQuestion);
-	JsDeclareFunction(getPositives);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Recursive-Linear-Regression
-class TJsRecLinRegModel {
-public:
-	/// JS script context
-	TWPt<TScript> Js;	
-	/// RecLinReg Model
-	TSignalProc::PRecLinReg Model;    
-private:
-	typedef TJsObjUtil<TJsRecLinRegModel> TJsRecLinRegModelUtil;
-	TJsRecLinRegModel(TWPt<TScript> _Js, const TSignalProc::PRecLinReg& _Model): Js(_Js), Model(_Model) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PRecLinReg& Model) {
-		return TJsRecLinRegModelUtil::New(new TJsRecLinRegModel(Js, Model)); }
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-    
-	JsDeclareFunction(learn);
-	JsDeclareFunction(predict);
-	JsDeclareFunction(getWeights);
-	JsDeclareProperty(dim);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Correlation
-class TJsCorrelation {
-
-private:
-	typedef TJsObjUtil<TJsCorrelation> TJsCorrelationUtil;
-public:
-	explicit TJsCorrelation() { }	
-	static v8::Persistent<v8::Object> New() { return TJsCorrelationUtil::New(new TJsCorrelation); }
-	~TJsCorrelation() { }
-
-	// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// function
-	JsDeclareFunction(pearson);					
-};
-
-///////////////////////////////
-// QMiner-JavaScript-GeoIP
-class TJsGeoIp {
-private:
-	// this is singleton
-	static bool InitP;
-	static PGeoIpBs GeoIpBs;	
-	static PGeoIpBs GetGeoIpBs();
-
-private:
-	typedef TJsObjUtil<TJsGeoIp> TJsGeoIpUtil;
-	explicit TJsGeoIp() { }	
-public:
-	static v8::Persistent<v8::Object> New() { return TJsGeoIpUtil::New(new TJsGeoIp); }
-	~TJsGeoIp() { }
-
-	// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// function
-	JsDeclareFunction(country);				
-	JsDeclareFunction(location);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Filesystem
-class TJsFs {
-public:
-	// directories we're allowed to access 
-	TVec<TJsFPath> AllowedFPathV;
-	
-private:
-	typedef TJsObjUtil<TJsFs> TJsFsUtil;
-
-	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
-public:
-	static v8::Persistent<v8::Object> New(TScript* Js) { 
-		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
-	~TJsFs() { }
-	
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    /// Are we allowed to access given path
-	bool CanAccess(const TStr& FPath);
-    /// Are we allowed to access given path
-	static bool CanAccess(const v8::Arguments& Args);
-
-	// functions
-	JsDeclareFunction(openRead);
-	JsDeclareFunction(openWrite);
-	JsDeclareFunction(openAppend);
-	JsDeclareFunction(exists);
-	JsDeclareFunction(copy);
-	JsDeclareFunction(move);
-	JsDeclareFunction(del);
-	JsDeclareFunction(rename);
-	JsDeclareFunction(fileInfo);
-	JsDeclareFunction(mkdir);
-	JsDeclareFunction(rmdir);
-	JsDeclareFunction(listFile);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-class TJsFIn {
-public:
-	PSIn SIn;
-private:
-	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
-	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FNm) {
-		return TJsFInUtil::New(new TJsFIn(FNm)); }
-    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
-
-   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	JsDeclareFunction(peekCh);
-	JsDeclareFunction(getCh);
-	JsDeclareFunction(readLine);
-	JsDeclareProperty(eof);
-	JsDeclareProperty(length);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-class TJsFOut {
-public:
-	PSOut SOut;
-private:
-	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
-	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
-	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
-		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
-    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
-    
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	JsDeclareFunction(write);
-	JsDeclareFunction(writeLine);
-	JsDeclareFunction(flush);
-  	JsDeclareFunction(close);
-};
-
-///////////////////////////////
-// JavaScript Http
-class TJsHttp {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-    
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsHttp> TJsHttpUtil;
-    
-    explicit TJsHttp(TWPt<TScript> _Js): Js(_Js) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
-		return TJsHttpUtil::New(new TJsHttp(Js)); }
-
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	// server
-	JsDeclareFunction(onRequest);
-    // client
-	JsDeclareFunction(get);
-	JsDeclareFunction(post);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Http-Response
-class TJsHttpResp {
-public:
-    /// Callback to the webserver for sending response    
-	TWebSrv* WebSrv;
-    /// Request ID for reference when responding
-    TUInt64 SockId;
-    /// Response status code
-    TInt StatusCode;
-    /// Content Type
-    TStr ContTypeStr;
-    /// Content Body
-    TMem BodyMem;
-    /// True when finished and response already sent
-    TBool DoneP;
-    
-private:
-	typedef TJsObjUtil<TJsHttpResp> TJsHttpRespUtil;
-    
-public:
-	TJsHttpResp(TWebSrv* _WebSrv, const uint64& _SockId): WebSrv(_WebSrv),
-        SockId(_SockId), StatusCode(THttp::OkStatusCd), 
-        ContTypeStr(THttp::AppJSonFldVal), DoneP(false) { }
-	static v8::Persistent<v8::Object> _New(TWebSrv* WebSrv, const uint64& SockId) { 
-		return TJsHttpRespUtil::New(new TJsHttpResp(WebSrv, SockId), false); }
-
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	JsDeclareFunction(setStatusCode);
-    JsDeclareFunction(setContentType);
-	JsDeclareFunction(add);	
-	JsDeclareFunction(close);
-    JsDeclareFunction(send);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Time
-class TJsTm {
-public:
-    /// Date-time
-    TTm Tm;
-private:
-	typedef TJsObjUtil<TJsTm> TJsTmUtil;
-    
-	TJsTm(const TTm& _Tm): Tm(_Tm) { }
-public:
-	static v8::Persistent<v8::Object> New() { 
-		return TJsTmUtil::New(new TJsTm(TTm::GetCurUniTm())); }
-	static v8::Persistent<v8::Object> New(const TTm& Tm) { 
-		return TJsTmUtil::New(new TJsTm(Tm)); }
-
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    // object properties
-    JsDeclareProperty(string);
-    JsDeclareProperty(timestamp);
-    // for creating new objects
-    JsDeclareProperty(now);
-    JsDeclareProperty(nowUTC);
-    
-    // object functions
-    JsDeclareFunction(add);
-    JsDeclareFunction(sub); 
-    JsDeclareFunction(toJSON);
-    // for creating new objects
-    JsDeclareFunction(parse)
-};
-
-///////////////////////////////
 // QMiner-LinAlg
+//# 
+//# ## Linear Algebra
+//# 
+//# A global object `la` is used to construct vectors (sparse, dense) and matrices and 
+//# it is available in any script. The object includes
+//# several functions from linear algebra.
 class TJsLinAlg {
 public:
 	/// JS script context
@@ -1428,17 +1221,51 @@ public:
 
 	/// template
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `vec = la.newVec()` -- generate an empty float vector
+	//#- `vec = la.newVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
+	//#- `vec = la.newVec(a)` -- copy a javascript number array `a` 
+	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
+	//#- `vec = la.newIntVec()` -- generate an empty float vector
+	//#- `vec = la.newIntVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
+	//#- `vec = la.newIntVec(a)` -- copy a javascript int array `a` 
+	//#- `vec = la.newIntVec(vec2)` -- clone an int vector `vec2`
 	JsDeclareFunction(newIntVec);
+	//#- `mat = la.newMat()` -- generates a 0x0 matrix
+	//#- `mat = la.newMat(a)` -- generates a matrix from a javascript array `a`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
+	//#- `mat = la.newMat({"rows":r, "cols":c, "random":b})` -- creates a matrix with `r` rows and `c` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
 	JsDeclareFunction(newMat);
+	//#- `vec = la.newSpVec(dim)` -- creates an empty sparse vector `vec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `vec = la.newSpVec(a, dim)` -- creats a sparse vector `vec` from a javascript array `a`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
 	JsDeclareFunction(newSpVec);
+	//#- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
+	//#- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
+	//#- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	//#- `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
 	JsDeclareFunction(newSpMat);
-	JsDeclareFunction(svd);
+	//#- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
+	JsDeclareFunction(svd);	
+	//#JSIMPLEMENT:src/linalg.js
 };
 
 ///////////////////////////////
 // QMiner-Vector
+//# 
+//# ### Vector
+//# 
+//# Vector is an array of objects implemented in glib/base/ds.h. 
+//# Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
+//# 
+//# ```JavaScript
+//# var fltv = la.newVec(); //empty vector
+//# var intv = la.newIntVec(); //empty vector
+//# // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
+//# ```
+//# 
 template <class TVal, class TAux> class TJsVec;
 
 class TAuxFltV {
@@ -1509,7 +1336,9 @@ public:
 	// set element, returns undefined
 	JsDeclareFunction(put);	
 	// INPLACE : append an element, returns undefined
-	JsDeclareFunction(push);	
+	JsDeclareFunction(push);
+	// INPLACE : append a vector
+	JsDeclareTemplatedFunction(pushV);
 	// sum elements
 	JsDeclareFunction(sum);
 	// sum elements
@@ -1540,7 +1369,7 @@ public:
 	JsDeclareTemplatedFunction(spDiag);
 	// get norm
 	JsDeclareTemplatedFunction(norm);
-	// to sparse
+	// Gets a sparse representation
 	JsDeclareTemplatedFunction(sparse);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
@@ -1556,6 +1385,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
 		JsRegisterFunction(TmpTemp, push);	
+		JsRegisterFunction(TmpTemp, pushV);
 		JsRegisterFunction(TmpTemp, sum);
 		JsRegisterFunction(TmpTemp, getMaxIdx);
 		JsRegisterFunction(TmpTemp, sort);
@@ -1625,7 +1455,8 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8:
 template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::push(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);	
+	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);	
 	int result = JsVec->Vec.Add(Val);	
 	return HandleScope.Close(v8::Integer::New(result));	
@@ -1887,6 +1718,8 @@ public:
 	JsDeclareFunction(at);
 	// set element, returns undefined
 	JsDeclareFunction(put);
+	// index
+	JsDeclGetSetIndexedProperty(indexGet, indexSet);
 	// add a sparse column vector to the matrix
 	JsDeclareFunction(push);
 	// matrix * scalar, matrix * vector, matrix * matrix
@@ -1913,6 +1746,580 @@ public:
 	JsDeclareProperty(cols);
 	// print
 	JsDeclareFunction(print);
+};
+
+
+///////////////////////////////
+// QMiner-JavaScript-Machine-Learning
+//#
+//# ## Analytics.js
+//#
+//# Analytics algorithms for working with records stored in
+//# QMiner and with linear algebra objects created by `la`.
+//# 
+//# To start using it must be loaded using `var analytics = require('analytics.js');`.
+class TJsAnalytics {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    
+private:
+	typedef TJsObjUtil<TJsAnalytics> TJsAnalyticsUtil;
+    
+	TJsAnalytics(TWPt<TScript> _Js): Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
+        return TJsAnalyticsUtil::New(new TJsAnalytics(Js)); }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+    //#- `fs = analytics.newFeatureSpace(featureExtractors)` -- create new
+    //#     feature space consisting of [Feature Extractor](Feature-Extractors),
+    //#     declared in JSon `featureExtractors`
+    JsDeclareFunction(newFeatureSpace);
+    //#- `fs = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+    //#     space from `fin` stream
+    JsDeclareFunction(loadFeatureSpace);
+    
+    //#- `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
+    //#     classification model using columns from `matrix` as training data and
+    //#     `vector` as target variable (must be of values either 1 or -1); optional
+    //#     training `parameters` are a JSon with parameter `c` (SVM cost parameter,
+    //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
+    //#     examples with (default is 1.0)); result is a linear model
+	JsDeclareFunction(trainSvmClassify);
+    //#- `model = analytics.trainSvmRegression(matrix, vector, parameters)` -- trains 
+    //#     regression model using columns from `matrix` as training data and `vector` as 
+    //#     target variable; optional training `parameters` are a JSon with parameter `c` 
+    //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
+    //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
+    JsDeclareFunction(trainSvmRegression);
+    //#- `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
+    //#     from `fin` stream
+	JsDeclareFunction(loadSvmModel);
+    
+    //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
+    //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
+    //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    //#     (regularization parameter to avoid over-fitting, default is 1.0).)
+    JsDeclareFunction(newRecLinReg);	
+    
+    // clustering (TODO: still depends directly on feature space)
+    // trainKMeans(featureSpace, positives, negatives, parameters)
+	JsDeclareFunction(trainKMeans);
+    
+    //#- `options = analytics.getLanguageOptions()` -- get options for text parsing 
+    //#     (stemmers, stop word lists) as a json object, with two arrays:
+    //#     `options.stemmer` and `options.stopwords`
+	JsDeclareFunction(getLanguageOptions);     
+    
+    //#JSIMPLEMENT:src/jslib/analytics.js
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Feature-Space
+//#
+//# ### Feature Space
+//#
+//# Holds the definition of the feature space and feature extractors, which
+//# can create feature vectors from QMiner records. Feature space is created
+//# by calling `analytics.newFeatureSpace` and providing [Feature Extractor](Feature-Extractors) 
+//# declarations as parameters.
+class TJsFtrSpace {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// Feature space 
+    PFtrSpace FtrSpace;    
+    
+private:
+	typedef TJsObjUtil<TJsFtrSpace> TJsFtrSpaceUtil;
+    
+	TJsFtrSpace(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace): Js(_Js), FtrSpace(_FtrSpace) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace) { 
+		return TJsFtrSpaceUtil::New(new TJsFtrSpace(Js, FtrSpace)); }
+    static PFtrSpace GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+    //#- `fs.dim` -- dimensionality of feature space
+    JsDeclareProperty(dim);    
+    //#- `fs.save(fout)` -- serialize feature space to `fout` output stream
+    JsDeclareFunction(save);
+    //#- `fs.updateRecord(record)` -- update feature space definitions and extractors
+    //#     by exposing them to `record`. For example, this can update the vocabulary
+    //#     used by bag-of-words extractor by taking into account new text.
+	JsDeclareFunction(updateRecord);
+    //#- `fs.updateRecord(recordSet)` -- update feature space definitions and extractors
+    //#     by exposing them to records from `recordSet`. For example, this can update 
+    //#     the vocabulary used by bag-of-words extractor by taking into account new text.
+	JsDeclareFunction(updateRecords);
+    JsDeclareFunction(finishUpdate); // deprecated
+    //#- `strVec = fs.extractStrings(record)` -- use feature extractors to extract string 
+    //#     features from `record` (e.g. words from string fields); results are returned
+    //#     as a string array
+    JsDeclareFunction(extractStrings);
+    //#- `spVec = ftrSpVec(record)` -- extracts sparse feature vector from `record`
+    JsDeclareFunction(ftrSpVec);
+    //#- `vec = ftrVec(record)` -- extracts feature vector from `record`
+    JsDeclareFunction(ftrVec);
+    //#- `spMatrix = ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
+    //#     records in `recordSet` and returnes them as columns in a sparse matrix.
+	JsDeclareFunction(ftrSpColMat);
+    //#- `matrix = ftrColMat(recordSet)` -- extracts feature vectors from 
+    //#     records in `recordSet` and returnes them as columns in a matrix.
+    JsDeclareFunction(ftrColMat);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Machine-Model
+//#
+//# ### Support Vector Machine model
+//#
+//# Holds SVM classification or regression model. This object is result of
+//# `analytics.trainSvmClassify` or `analytics.trainSvmRegression`.
+class TJsSvmModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// SVM Model
+    PSVMModel Model;
+    
+private:
+	typedef TJsObjUtil<TJsSvmModel> TJsSvmModelUtil;
+    
+	TJsSvmModel(TWPt<TScript> _Js, const PSVMModel& _Model): Js(_Js), Model(_Model) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PSVMModel& Model) { 
+        return TJsSvmModelUtil::New(new TJsSvmModel(Js, Model)); }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    //#     model and returns the prediction as a real number
+	JsDeclareFunction(predict);
+    //#- `vec = model.weights` -- weights of the SVM linear model as a full vector
+	JsDeclareProperty(weights);   
+    //#- `model.save(fout)` -- saves model to output stream `fout`
+	JsDeclareFunction(save);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Recursive-Linear-Regression
+//#
+//# ### Recursive Linear Regression model
+//#
+//# Holds online regression model. This object is result of `analytics.newRecLinReg`.
+class TJsRecLinRegModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+	/// RecLinReg Model
+	TSignalProc::PRecLinReg Model;    
+private:
+	typedef TJsObjUtil<TJsRecLinRegModel> TJsRecLinRegModelUtil;
+	TJsRecLinRegModel(TWPt<TScript> _Js, const TSignalProc::PRecLinReg& _Model): Js(_Js), Model(_Model) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PRecLinReg& Model) {
+		return TJsRecLinRegModelUtil::New(new TJsRecLinRegModel(Js, Model)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
+    
+	//# 
+	//# **Functions and properties:**
+	//#     
+    //#- `model.learn(vector, target)` -- updates the model using full `vector` as
+    //#     `target` number as training data
+	JsDeclareFunction(learn);
+    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    //#     model and returns the prediction as a real number
+	JsDeclareFunction(predict);
+    //#- `vec = model.weights` -- weights of the linear model as a full vector    
+	JsDeclareProperty(weights);
+    //#- `model.dim` -- dimensionality of the feature space on which this model works
+	JsDeclareProperty(dim);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-GeoIP
+class TJsGeoIp {
+private:
+	// this is singleton
+	static bool InitP;
+	static PGeoIpBs GeoIpBs;	
+	static PGeoIpBs GetGeoIpBs();
+
+private:
+	typedef TJsObjUtil<TJsGeoIp> TJsGeoIpUtil;
+	explicit TJsGeoIp() { }	
+public:
+	static v8::Persistent<v8::Object> New() { return TJsGeoIpUtil::New(new TJsGeoIp); }
+	~TJsGeoIp() { }
+
+	// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// function
+	JsDeclareFunction(country);				
+	JsDeclareFunction(location);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-DMoz
+class TJsDMoz {
+private:
+	// this is singleton
+	static bool InitP;
+	static PDMozCfy DMozCfy;	
+	static const PDMozCfy& GetDMozCfy();
+
+private:
+	typedef TJsObjUtil<TJsDMoz> TJsDMozUtil;
+	explicit TJsDMoz() { }	
+public:
+	static v8::Persistent<v8::Object> New() { return TJsDMozUtil::New(new TJsDMoz); }
+	~TJsDMoz() { }
+
+	// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// function
+	JsDeclareFunction(classify);				
+};
+
+//#
+//# ## System and I/O
+//#
+//# ### Process
+//# 
+//#JSIMPLEMENT:src/process.js    
+
+///////////////////////////////
+// JavaScript Console
+//#
+//# ### Console
+//# 
+//# Writing and reading from console. Also very useful to create
+//# "interactive breakpoints" using `console.start()`. All outputs
+//# are automatically prefixed by current date and time.
+class TJsConsole {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+    
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsConsole> TJsConsoleUtil;
+    
+    explicit TJsConsole(TWPt<TScript> _Js): Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
+		return TJsConsoleUtil::New(new TJsConsole(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `console.log(message)` -- writes `message` to standard output, using
+    //#     prefix `[console]` to indicate the text came from console object;
+    //#     `message` must be of type string
+    //#- `console.log(prefix, message)` -- writes `message` to standard output, 
+    //#     using provided prefix `[prefix]`; both `message` and `prefix` must
+    //#     be of type string
+	JsDeclareFunction(log);
+    //#- `line = console.getln()` -- reads a line from command line and returns
+    //#     it as string
+	JsDeclareFunction(getln);
+    //#JSIMPLEMENT:src/console.js    
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Filesystem
+//#
+//# ### File system
+//# 
+class TJsFs {
+public:
+	// directories we're allowed to access 
+	TVec<TJsFPath> AllowedFPathV;
+	
+private:
+	typedef TJsObjUtil<TJsFs> TJsFsUtil;
+
+	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
+public:
+	static v8::Persistent<v8::Object> New(TScript* Js) { 
+		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
+	~TJsFs() { }
+	
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    /// Are we allowed to access given path
+	bool CanAccess(const TStr& FPath);
+    /// Are we allowed to access given path
+	static bool CanAccess(const v8::Arguments& Args);
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `fin = fs.openRead(fileName)`
+	JsDeclareFunction(openRead);
+    //#- `fout = fs.openWrite(fileName)`
+	JsDeclareFunction(openWrite);
+    //#- `fout = fs.openAppend(fileName)`
+	JsDeclareFunction(openAppend);
+    //#- `fs.exists(fileName)`
+	JsDeclareFunction(exists);
+    //#- `fs.copy(fromFileName, toFileName)`
+	JsDeclareFunction(copy);
+    //#- `fs.move(fromFileName, toFileName)`
+	JsDeclareFunction(move);
+    //#- `fs.del(fileName)`
+	JsDeclareFunction(del);
+    //#- `fs.rename(fromFileName, toFileName)`
+	JsDeclareFunction(rename);
+    //#- `info = fs.fileInfo(fileName,)`
+	JsDeclareFunction(fileInfo);
+    //#- `fs.mkdir(dirName)`
+	JsDeclareFunction(mkdir);
+    //#- `fs.rmdir(dirName)`
+	JsDeclareFunction(rmdir);
+    //#- `list = fs.listFile(dirName, fileExtension)`
+    //#- `list = fs.listFile(dirName, fileExtension, recursive)`
+	JsDeclareFunction(listFile);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+//#
+//# ### Input File Stream
+//# 
+class TJsFIn {
+public:
+	PSIn SIn;
+private:
+	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
+	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FNm) {
+		return TJsFInUtil::New(new TJsFIn(FNm)); }
+    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
+
+   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `char = fin.peekCh()`
+	JsDeclareFunction(peekCh);
+    //#- `char = fin.getCh()`
+	JsDeclareFunction(getCh);
+    //#- `line = fin.readLine()`
+	JsDeclareFunction(readLine);
+    //#- `fin.eof`
+	JsDeclareProperty(eof);
+    //#- `fin.length`
+	JsDeclareProperty(length);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+//#
+//# ### Output File Stream
+//# 
+class TJsFOut {
+public:
+	PSOut SOut;
+private:
+	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
+	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
+	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
+
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
+		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
+    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
+    
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `fout.write(data)`
+	JsDeclareFunction(write);
+    //#- `fout.writeLine(data)`
+	JsDeclareFunction(writeLine);
+    //#- `fout.flush()`
+	JsDeclareFunction(flush);
+    //#- `fout.close()`
+  	JsDeclareFunction(close);
+};
+
+///////////////////////////////
+// JavaScript Http
+//#
+//# ### HTTP
+//# 
+class TJsHttp {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+    
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsHttp> TJsHttpUtil;
+    
+    explicit TJsHttp(TWPt<TScript> _Js): Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
+		return TJsHttpUtil::New(new TJsHttp(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `http.get(url)`
+    //#- `http.get(url, success_callback)`
+    //#- `http.get(url, success_callback, error_callback)`
+    //#- `http.getStr(url)`
+    //#- `http.getStr(url, success_callback)`
+    //#- `http.getStr(url, success_callback, error_callback)`
+	JsDeclareFunction(get);
+    //#- `http.post(url, mimeType, data)`
+    //#- `http.post(url, mimeType, data, success_callback)`
+    //#- `http.post(url, mimeType, data, success_callback, error_callback)`
+    //#- `http.postStr(url)`
+    //#- `http.postStr(url, mimeType, data, success_callback)`
+    //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
+	JsDeclareFunction(post);
+    //#- `http.onRequest(path, verb, callback)`
+	JsDeclareFunction(onRequest);
+    //#JSIMPLEMENT:src/http.js    
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Http-Response
+//#
+//# ### HTTP Response
+//# 
+class TJsHttpResp {
+public:
+    /// Callback to the webserver for sending response    
+	TWebSrv* WebSrv;
+    /// Request ID for reference when responding
+    TUInt64 SockId;
+    /// Response status code
+    TInt StatusCode;
+    /// Content Type
+    TStr ContTypeStr;
+    /// Content Body
+    TMem BodyMem;
+    /// True when finished and response already sent
+    TBool DoneP;
+    
+private:
+	typedef TJsObjUtil<TJsHttpResp> TJsHttpRespUtil;
+    
+public:
+	TJsHttpResp(TWebSrv* _WebSrv, const uint64& _SockId): WebSrv(_WebSrv),
+        SockId(_SockId), StatusCode(THttp::OkStatusCd), 
+        ContTypeStr(THttp::AppJSonFldVal), DoneP(false) { }
+	static v8::Persistent<v8::Object> _New(TWebSrv* WebSrv, const uint64& SockId) { 
+		return TJsHttpRespUtil::New(new TJsHttpResp(WebSrv, SockId), false); }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `resp.setStatusCode(statusCode)`
+	JsDeclareFunction(setStatusCode);
+    //#- `resp.setStatusCode(mimeType)`
+    JsDeclareFunction(setContentType);
+    //#- `resp.add(data)`
+	JsDeclareFunction(add);	
+    //#- `resp.close()`
+	JsDeclareFunction(close);
+    //#- `resp.send(data)`
+    JsDeclareFunction(send);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Time
+//#
+//# ### Date-Time
+//#
+//# Wrapper around GLib's TTm. Used as return for `DateTime` field type. 
+//# New one can be created using `tm = require('time')`.
+class TJsTm {
+public:
+    /// Date-time
+    TTm Tm;
+private:
+	typedef TJsObjUtil<TJsTm> TJsTmUtil;
+    
+	TJsTm(const TTm& _Tm): Tm(_Tm) { }
+public:
+	static v8::Persistent<v8::Object> New() { 
+		return TJsTmUtil::New(new TJsTm(TTm::GetCurUniTm())); }
+	static v8::Persistent<v8::Object> New(const TTm& Tm) { 
+		return TJsTmUtil::New(new TJsTm(Tm)); }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#
+    //#- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
+    JsDeclareProperty(string);
+    //#- `tm.string` -- string representation of date (e.g. 2014-05-29)
+    JsDeclareProperty(dateString);
+    //#- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
+    JsDeclareProperty(timestamp);
+    //#- `tm.year`
+    JsDeclareProperty(year);
+    //#- `tm.month`
+    JsDeclareProperty(month);
+    //#- `tm.day`
+    JsDeclareProperty(day);
+    //#- `tm.dayOfWeek`
+    JsDeclareProperty(dayOfWeek);
+    //#- `tm.hour`
+    JsDeclareProperty(hour);
+    //#- `tm.minute`
+    JsDeclareProperty(minute);
+    //#- `tm.second`
+    JsDeclareProperty(second);
+    //#- `tm.milisecond`
+    JsDeclareProperty(milisecond);
+    //#- `tm.now` -- returns new time object representing current local time
+    JsDeclareProperty(now);
+    //#- `tm.nowUTC` -- returns new time object represented current UTC time
+    JsDeclareProperty(nowUTC);    
+    //#- `tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+    //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
+    JsDeclareFunction(add);
+    //#- `tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defines the 
+    //#     unit, same as in `add`
+    JsDeclareFunction(sub); 
+    //#- `tm.toJSON()` -- returns json representation of time    
+    JsDeclareFunction(toJSON);
+    //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
+    //#     as Date-Time object
+    JsDeclareFunction(parse)
 };
 
 }

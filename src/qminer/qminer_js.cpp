@@ -649,8 +649,13 @@ void TScript::Init() {
     Context->Global()->Set(v8::String::New("require"), RequireFun);
 	// install core objects
 	Install();
-	// execute the script    
+	// execute the script    	
+	Execute(TEnv::QMinerFPath + "process.js");
+	Execute(TEnv::QMinerFPath + "console.js");
     Execute(TEnv::QMinerFPath + "qminer.js");
+	Execute(TEnv::QMinerFPath + "fs.js");
+	Execute(TEnv::QMinerFPath + "http.js");
+	Execute(TEnv::QMinerFPath + "linalg.js");
 	Execute(ScriptFNm);
 }
 
@@ -661,7 +666,7 @@ void TScript::Install() {
 	Context->Global()->Delete(v8::String::New("qm"));
 	Context->Global()->Delete(v8::String::New("fs"));
 	Context->Global()->Delete(v8::String::New("http"));
-	Context->Global()->Delete(v8::String::New("linalg"));
+	Context->Global()->Delete(v8::String::New("la"));
 	// create fresh ones
     DebugLog("Installing 'console' object");
 	Context->Global()->Set(v8::String::New("console"), TJsConsole::New(this));
@@ -671,8 +676,8 @@ void TScript::Install() {
 	Context->Global()->Set(v8::String::New("fs"), TJsFs::New(this));
     DebugLog("Installing 'http' object");
 	Context->Global()->Set(v8::String::New("http"), TJsHttp::New(this));
-	DebugLog("Installing 'linalg' object");
-	Context->Global()->Set(v8::String::New("linalg"), TJsLinAlg::New(this));
+	DebugLog("Installing 'la' object");
+	Context->Global()->Set(v8::String::New("la"), TJsLinAlg::New(this));
 }
 
 TStr TScript::LoadSource(const TStr& FNm) {
@@ -912,44 +917,6 @@ void TJsFetch::Fetch(const TJsFetchRq& Rq) {
 }
 
 ///////////////////////////////
-// QMiner-JavaScript-Console
-v8::Handle<v8::ObjectTemplate> TJsConsole::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, say);
-		JsRegisterFunction(TmpTemp, getln);
-		JsLongRegisterFunction(TmpTemp, "log", say);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsConsole::say(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	if (Args.Length() == 1) {      
-		const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 0);
-		InfoLog("[console] " + MsgStr);
-	} else if (Args.Length() > 1) {
-		const TStr TitleStr = TJsConsoleUtil::GetArgStr(Args, 0);
-		const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 1);
-		TEnv::Logger->OnStatusFmt("[%s] %s", TitleStr.CStr(), MsgStr.CStr());
-	} else {
-		InfoLog("[console]");
-	}
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsConsole::getln(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;		
-	TStdIn StdIn; TStr LnStr;
-	StdIn.GetNextLn(LnStr);
-	return HandleScope.Close(v8::String::New(LnStr.CStr()));	
-}
-
-///////////////////////////////
 // QMiner-JavaScript-Base
 TJsBase::TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base) { }
 
@@ -958,8 +925,8 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterProperty(TmpTemp, args);
 		JsRegisterProperty(TmpTemp, analytics);
+		JsRegisterProperty(TmpTemp, args);
 		JsRegisterProperty(TmpTemp, sysStat);
 		JsRegisterFunction(TmpTemp, store);
 		JsRegisterFunction(TmpTemp, getStoreList);
@@ -974,17 +941,17 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 	return Template;
 }
 
-v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	PJsonVal ArgsVal = TJsonVal::NewArr(Env.GetArgV());
-	return HandleScope.Close(TJsUtil::ParseJson(ArgsVal));
-}
-
 v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Info);
     InfoLog("Warning: qm.analytics will be deprecated, use require('analytics') instead.");
 	return TJsAnalytics::New(JsBase->Js);
+}
+
+v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	PJsonVal ArgsVal = TJsonVal::NewArr(Env.GetArgV());
+	return HandleScope.Close(TJsUtil::ParseJson(ArgsVal));
 }
 
 v8::Handle<v8::Value> TJsBase::sysStat(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -997,6 +964,26 @@ v8::Handle<v8::Value> TJsBase::sysStat(v8::Local<v8::String> Properties, const v
     StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
 #endif    	
 	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
+}
+	
+v8::Handle<v8::Value> TJsBase::op(const v8::Arguments& Args) {	
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);	
+	try {		
+		PRecSet InRecSet = TJsRecSet::GetArgRecSet(Args, 0);
+		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 1);
+		// execute the query
+		TRecSetV RecSetV; JsBase->Base->Operator(TRecSetV::GetV(InRecSet), ParamVal, RecSetV);		
+		// return results
+		v8::Local<v8::Array> JsRecSetV = v8::Array::New(RecSetV.Len());
+		for (int RsN = 0; RsN < RecSetV.Len(); RsN++) {
+			JsRecSetV->Set(v8::Number::New(RsN), TJsRecSet::New(JsBase->Js, RecSetV[RsN]));
+		} 
+		return HandleScope.Close(JsRecSetV);		
+	} catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+	}
+	return HandleScope.Close(v8::Null());
 }
 
 v8::Handle<v8::Value> TJsBase::store(const v8::Arguments& Args) {
@@ -1062,26 +1049,6 @@ v8::Handle<v8::Value> TJsBase::search(const v8::Arguments& Args) {
 		PRecSet RecSet = JsBase->Base->Search(QueryStr);
 		// return results
 		return TJsRecSet::New(JsBase->Js, RecSet);
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
-	return HandleScope.Close(v8::Null());
-}
-
-v8::Handle<v8::Value> TJsBase::op(const v8::Arguments& Args) {	
-	v8::HandleScope HandleScope;
-	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);	
-	try {		
-		PRecSet InRecSet = TJsRecSet::GetArgRecSet(Args, 0);
-		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 1);
-		// execute the query
-		TRecSetV RecSetV; JsBase->Base->Operator(TRecSetV::GetV(InRecSet), ParamVal, RecSetV);		
-		// return results
-		v8::Local<v8::Array> JsRecSetV = v8::Array::New(RecSetV.Len());
-		for (int RsN = 0; RsN < RecSetV.Len(); RsN++) {
-			JsRecSetV->Set(v8::Number::New(RsN), TJsRecSet::New(JsBase->Js, RecSetV[RsN]));
-		} 
-		return HandleScope.Close(JsRecSetV);		
 	} catch (const PExcept& Except) {
 		InfoLog("[except] " + Except->GetMsgStr());
 	}
@@ -2061,1348 +2028,6 @@ v8::Handle<v8::Value> TJsIndexKey::fq(v8::Local<v8::String> Properties, const v8
 }
 
 ///////////////////////////////
-// QMiner-JavaScript-Support-Vector-Machine
-THash<TStr, PBowAL> TJsAnalytics::ActiveLearnerH; 
-
-
-v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-        JsRegisterFunction(TmpTemp, getLanguageOptions);
-        JsRegisterFunction(TmpTemp, newFeatureSpace);
-        JsRegisterFunction(TmpTemp, loadFeatureSpace);
-        JsRegisterFunction(TmpTemp, trainSvmClassify);		
-        JsRegisterFunction(TmpTemp, trainSvmRegression);
-		JsRegisterFunction(TmpTemp, loadSvmModel);
-        JsRegisterFunction(TmpTemp, newRecLinReg);
-        JsRegisterFunction(TmpTemp, trainKMeans);						
-        JsRegisterFunction(TmpTemp, newActiveLearner);						
-        JsRegisterFunction(TmpTemp, delActiveLearner);	
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsAnalytics::getLanguageOptions(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // 0) create response object
-	PJsonVal LangOpts = TJsonVal::NewObj();
-    // 1) get available stemmers
-    TStrV StemmerTypeNmV, StemmerTypeDNmV;
-    TStemmer::GetStemmerTypeNmV(StemmerTypeNmV, StemmerTypeDNmV);
-    PJsonVal ArrStemmer = TJsonVal::NewArr(StemmerTypeNmV);
-    LangOpts->AddToObj("stemmer", ArrStemmer);
-    // 2) get available stopword lists
-    TStrV SwSetTypeNmV, SwSetTypeDNmV;
-    TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
-    PJsonVal ArrStopword = TJsonVal::NewArr(SwSetTypeNmV);
-	LangOpts->AddToObj("stopwords", ArrStopword);
-	return HandleScope.Close(TJsUtil::ParseJson(LangOpts));
-}
-
-v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-	try {
-        // get first argument as json
-        PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
-        // parse definitions of feature extractors
-        TFtrExtV FtrExtV;
-        if (ParamVal->IsObj()) {
-            FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
-        } else if (ParamVal->IsArr()) {
-            for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
-                PJsonVal ArrVal = ParamVal->GetArrVal(ArrValN);
-                FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ArrVal->GetObjStr("type"), ArrVal));            
-            }
-        }
-        // create feature space
-        PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
-		// done
-        return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::loadFeatureSpace(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    // parse parameters
-    PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-    // load feature space from stream
-    PFtrSpace FtrSpace = TFtrSpace::Load(JsAnalytics->Js->Base, *SIn);
-    // done
-    return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
-}
-
-v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    QmAssertR(Args.Length() >= 2, "trainSvmClassify: missing arguments!");
-    // get class information
-    QmAssertR(Args[1]->IsObject(), "trainSvmClassify: second argument expected to be object");
-    TFltV& ClsV = TJsFltV::GetVec(Args[1]->ToObject());
-    // parse SVM parameters
-    PJsonVal SvmParamVal = TJsonVal::NewObj();
-    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
-        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
-    const double C = SvmParamVal->GetObjNum("c", 1.0);
-    const double j = SvmParamVal->GetObjNum("j", 1.0);
-    // check what kind of input data we got
-    PSVMTrainSet TrainSet;
-    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
-        // we have sparse matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
-        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
-    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
-        // we have dense matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
-        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
-    } else {
-        // TODO support JavaScript array of TJsFltV or TJsSpV
-        throw TQmExcept::New("trainSvmClassify: unsupported type of the first argument");
-    }
-    // train and return the model
-    try {
-        PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, C, j);
-        return TJsSvmModel::New(JsAnalytics->Js, Model);
-    } catch (const PExcept& Except) {
-        InfoLog("[except] trainSvmClassify: " + Except->GetMsgStr());
-    }    
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    QmAssertR(Args.Length() >= 2, "trainSvmRegression: missing arguments!");
-    // get target value information
-    QmAssertR(Args[1]->IsObject(), "trainSvmRegression: second argument expected to be object");
-    TFltV& ValV = TJsFltV::GetVec(Args[1]->ToObject());
-    // parse SVM parameters
-    PJsonVal SvmParamVal = TJsonVal::NewObj();
-    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
-        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
-    const double C = SvmParamVal->GetObjNum("c", 1.0);
-    const double E = SvmParamVal->GetObjNum("eps", 1.0);
-    // check what kind of input data we got
-    PSVMTrainSet TrainSet;
-    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
-        // we have sparse matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
-        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefSparseTrainSet::New(VecV, ValV);
-    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
-        // we have dense matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
-        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefDenseTrainSet::New(VecV, ValV);
-    } else {
-        // TODO support JavaScript array of TJsFltV or TJsSpV
-        throw TQmExcept::New("trainSvmRegression: unsupported type of the first argument");
-    }
-    // train and return the model
-    try {
-        PSVMModel Model = TSVMModel::NewRegLinear(TrainSet, E, C);
-        return TJsSvmModel::New(JsAnalytics->Js, Model);
-    } catch (const PExcept& Except) {
-        InfoLog("[except] trainSvmRegression: " + Except->GetMsgStr());
-    }    
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::loadSvmModel(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);	
-	if (Args.Length() > 0) {
-        PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-		PSVMModel Model = TSVMModel::Load(*SIn);
-		return HandleScope.Close(TJsSvmModel::New(JsAnalytics->Js, Model));
-	}
-	return HandleScope.Close(v8::Undefined());
-}
-
-v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
-   
-    int dim = ParamVal->GetObjInt("dim");
-	double ForgetFact = ParamVal->GetObjNum("forgetFact", 1.0);
-	double RegFact = ParamVal->GetObjNum("regFact", 1.0);
-
-    try {
-        TSignalProc::PRecLinReg linReg = TSignalProc::TRecLinReg::New(dim, RegFact, ForgetFact);
-        return TJsRecLinRegModel::New(JsAnalytics->Js, linReg);
-    }
-    catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-    }
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 0);
-    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 1);
-    PJsonVal KMeansParamVal = TJsAnalyticsUtil::IsArgJson(Args, 2) ?
-        TJsAnalyticsUtil::GetArgJson(Args, 2) : TJsonVal::NewObj();
-    // parse SVM parameters
-    const int Clusts = KMeansParamVal->GetObjInt("k");
-    const int MaxIter = KMeansParamVal->GetObjInt("maxIterations", 50);
-    const int RndSeed = KMeansParamVal->GetObjInt("randomSeed", 1);
-    // do kmeans
-    try {
-        // prepare feature vectors
-        TVec<TIntFltKdV> SpVV; SpVV.Clr();
-        FtrSpace->GetSpVV(RecSet, SpVV);
-        // normalize as KMeans assumes normalized inputs
-        for (int SpVN = 0; SpVN < SpVV.Len(); SpVN++) {
-            TLinAlg::Normalize(SpVV[SpVN]); }
-        // convert to sparse matrix with records as columns
-        TSparseColMatrix FtrMatrix(SpVV, FtrSpace->GetDim(), SpVV.Len());
-        // do the clustering
-        TRnd Rnd(RndSeed);
-        TSparseKMeans KMeans(&FtrMatrix, Clusts, MaxIter, TEnv::Logger, Rnd); 
-        KMeans.Init(); KMeans.Apply();
-        // get assignments
-        TVec<TUInt64V> ClusterRecIdV(Clusts);
-        const TIntV& Assignment = KMeans.GetAssignment();
-        for(int RecN = 0; RecN < KMeans.GetDocs(); RecN++) {
-            // cluster id
-            const int ClustN = Assignment[RecN];
-            // record id
-            const uint64 RecId = RecSet->GetRecId(RecN);
-            // remember assignment
-            ClusterRecIdV[ClustN].Add(RecId);
-        }
-    	// return
-		v8::Local<v8::Array> JsRecSetV = v8::Array::New(Clusts);
-		for (int ClustN = 0; ClustN < Clusts; ClustN++) {
-            PRecSet ClusterRecSet = TRecSet::New(RecSet->GetStore(), ClusterRecIdV[ClustN]);
-			JsRecSetV->Set(v8::Number::New(ClustN), TJsRecSet::New(JsAnalytics->Js, ClusterRecSet));
-		} 
-		return HandleScope.Close(JsRecSetV);		
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
-	return v8::Undefined();
-}
-
-// newActiveLearner(featureSpace, records, query, parameters)
-v8::Handle<v8::Value> TJsAnalytics::newActiveLearner(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);   
-    // arg 0 is either a string or a feature space
-    if(TJsAnalyticsUtil::IsArgStr(Args, 0)) {
-        TStr name = TJsAnalyticsUtil::GetArgStr(Args, 0);
-        // Check if AL exists
-        if(!TJsAnalytics::ActiveLearnerH.IsKey(name)) {
-            return HandleScope.Close(v8::Null());
-        }
-        // Load existing AL and return
-        PBowAL AL = TJsAnalytics::ActiveLearnerH.GetDat(name);
-        return TJsAL::New(JsAnalytics->Js, AL);
-    }
-    // if it's something else (i.e. FeatureSpace)
-    PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 0);
-    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 1);
-    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2);
-    // parse  parameters
-    TStr name = ParamVal->GetObjStr("name", TStr("default"));
-    TStr Query = ParamVal->GetObjStr("query", TStr(""));
-    const double C = ParamVal->GetObjNum("c", 1.0);
-    const double j = ParamVal->GetObjNum("j", 3.0);
-    const uint32 MnDocs = (uint32) ParamVal->GetObjNum("MnDocs", 2);
-    try {
-        // Run the feature extraction, state is stored in object. BOW representation
-        PBowDocBs BowDocBs = FtrSpace->MakeBowDocBs(RecSet);
-        // create AL
-        PBowAL AL = TBowAL::NewFromQuery(BowDocBs, Query, MnDocs, MnDocs, C, j);
-        // Generate questions
-        AL->GenQueryDIdV(true);
-        // Store AL
-        TJsAnalytics::ActiveLearnerH.AddDat(name, AL);
-    	// create and return TJsAL
-        return TJsAL::New(JsAnalytics->Js, AL);
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::delActiveLearner(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TStr name = TJsAnalyticsUtil::GetArgStr(Args, 0);
-    // Check if AL exists
-    if(!TJsAnalytics::ActiveLearnerH.IsKey(name)) {
-        return HandleScope.Close(v8::Null());
-    }
-    // Delete AL
-    TJsAnalytics::ActiveLearnerH.DelKey(name);
-
-	return v8::Undefined();
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Feature-Space
-v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-        JsRegisterProperty(TmpTemp, dim);
-		JsRegisterFunction(TmpTemp, save);
-		JsRegisterFunction(TmpTemp, updateRecord);
-		JsRegisterFunction(TmpTemp, updateRecords);
-		JsRegisterFunction(TmpTemp, finishUpdate);					
-		JsRegisterFunction(TmpTemp, extractStrings);						
-		JsRegisterFunction(TmpTemp, ftrSpVec);						
-		JsRegisterFunction(TmpTemp, ftrVec);	
-		JsRegisterFunction(TmpTemp, ftrSpColMat);						
-		JsRegisterFunction(TmpTemp, ftrColMat);	
-		//JsRegisterFunction(TmpTemp, extractNumbers);						
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN) {
-    v8::HandleScope HandleScope;
-    // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-    // get the wrapped 
-    v8::Handle<v8::Object> FtrSpace = v8::Handle<v8::Object>::Cast(Val);
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(FtrSpace->GetInternalField(0));
-    // cast it to record set
-    TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
-    return JsFtrSpace->FtrSpace;    
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
-	return HandleScope.Close(v8::Integer::New(JsFtrSpace->FtrSpace->GetDim()));
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-    // save to stream
-    JsFtrSpace->FtrSpace->Save(*SOut);
-	// return
-	return HandleScope.Close(v8::Null());
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    TJsRec* JsRec = TJsObjUtil<TJsRec>::GetArgObj(Args, 0);
-    // update with new records
-    JsFtrSpace->FtrSpace->Update(JsRec->Rec);
-	// return
-	return HandleScope.Close(v8::Null());
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
-    // update with new records
-    JsFtrSpace->FtrSpace->Update(RecSet);
-	// return
-	return HandleScope.Close(v8::Null());
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::finishUpdate(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    InfoLog("Warning: featureSpace.finishUpdate() is no longer necessary and hence deprecated.");
-	// return
-	return HandleScope.Close(v8::Null());
-}
-
-// extractStrings(String, Dimension=0)
-v8::Handle<v8::Value> TJsFtrSpace::extractStrings(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    PJsonVal RecVal = TJsFtrSpaceUtil::GetArgJson(Args, 0);
-    uint32 DimN = TJsFtrSpaceUtil::GetArgInt32(Args, 1, 0);
-    // get strings
-    TStrV StrV; JsFtrSpace->FtrSpace->ExtractStrV(DimN, RecVal, StrV);
-	// return as JS array
-	v8::Handle<v8::Array> StrArr = v8::Array::New(StrV.Len());
-    for(int StrN = 0; StrN < StrV.Len(); StrN++) {
-		StrArr->Set(v8::Uint32::New(StrN), v8::String::New(StrV.GetVal(StrN).CStr()));
-	}
-	return HandleScope.Close(StrArr);
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    TRec Rec = TJsRec::GetArgRec(Args, 0);
-    // create feature vector
-	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js);
-	TIntFltKdV& SpV = TJsSpV::GetSpV(JsSpV);
-	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
-	// return
-	return HandleScope.Close(JsSpV);
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    TRec Rec = TJsRec::GetArgRec(Args, 0);
-    // create feature vector
-    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-    TFltV& FltV = TJsFltV::GetVec(JsFltV);
-    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
-	// return
-	return HandleScope.Close(JsFltV);
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
-    // create feature matrix
-	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js);
-	TVec<TIntFltKdV>& SpMat = TJsSpMat::GetSpMat(JsSpMat);
-	JsFtrSpace->FtrSpace->GetSpVV(RecSet, SpMat);
-	// return
-	return HandleScope.Close(JsSpMat);
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::ftrColMat(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
-    // create feature matrix
-	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js);
-	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
-	JsFtrSpace->FtrSpace->GetFullVV(RecSet, Mat);
-	// return
-	return HandleScope.Close(JsMat);
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Support-Vector-Machine-Model
-v8::Handle<v8::ObjectTemplate> TJsSvmModel::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, predict);
-		JsLongRegisterFunction(TmpTemp, "classify", predict);
-		JsRegisterFunction(TmpTemp, getWeights);
-		JsRegisterFunction(TmpTemp, save);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsSvmModel::predict(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);	
-    // get vector vector
-    QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
-    if (TJsSvmModelUtil::IsArgClass(Args, 0, "TFltV")) {
-        const double Res = JsSvmModel->Model->GetRes(TJsFltV::GetVec(Args[0]->ToObject()));
-    	return HandleScope.Close(v8::Number::New(Res));
-    } else if (TJsSvmModelUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
-        const double Res = JsSvmModel->Model->GetRes(TJsSpV::GetSpV(Args[0]->ToObject()));
-    	return HandleScope.Close(v8::Number::New(Res));
-    }
-    throw TQmExcept::New("svm.predict: unsupported type of the first argument");
-}
-
-v8::Handle<v8::Value> TJsSvmModel::getWeights(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);	
-    // get feature vector
-	TFltV WgtV; JsSvmModel->Model->GetWgtV(WgtV);
-	v8::Persistent<v8::Object> JsWgtV = TJsFltV::New(JsSvmModel->Js, WgtV);
-    return HandleScope.Close(JsWgtV);
-}
-
-v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	// parse arguments
-	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);
-	if (Args.Length() > 0) {
-		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-		JsSvmModel->Model->Save(*SOut);
-	}
-	return HandleScope.Close(v8::Undefined());
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Active-Learner
-
-v8::Handle<v8::ObjectTemplate> TJsAL::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-        JsRegisterFunction(TmpTemp, getQuestion);
-		JsRegisterFunction(TmpTemp, answerQuestion);						
-        JsRegisterFunction(TmpTemp, getPositives);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsAL::getQuestion(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsAL* JsAL = TJsALUtil::GetSelf(Args);	
-    int32 QId = TJsALUtil::GetArgInt32(Args, 0, 0);
-
-    // Check if there are questions
-    if(JsAL->AL->GetQueryDIds() == 0) {
-        return HandleScope.Close(v8::Number::New(-1));
-    }
-
-    // Get Question
-    int DId;
-    double Dist;
-    JsAL->AL->GetQueryDistDId(QId, Dist, DId);
-	
-    // Get the number of docs currently assigned
-    int DocN = JsAL->AL->GetPosDocN();
-    // Get the InfoRetMode - Negating makes more sense here.
-    bool InfoRetMode = !JsAL->AL->GetInfoRetMode();
-    // Get Keywords for positive docs
-    TStr Keywords = JsAL->AL->GetKeyWdStr();
-    
-    // Form Question Object
-    PJsonVal QuestionObj = TJsonVal::NewObj();
-    QuestionObj->AddToObj("questionId", DId); // this is actually the Doc Id for the AL
-    QuestionObj->AddToObj("keywords", Keywords);
-    QuestionObj->AddToObj("count",  DocN);
-    QuestionObj->AddToObj("mode",  InfoRetMode);
-
-	return HandleScope.Close(TJsUtil::ParseJson(QuestionObj));
-}
-
-v8::Handle<v8::Value> TJsAL::answerQuestion(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsAL* JsAL = TJsALUtil::GetSelf(Args);	
-    int32 DId = TJsALUtil::GetArgInt32(Args, 0);
-    bool Positive = TJsALUtil::GetArgBool(Args, 1, true);
-
-    // check if there are questions
-    if(JsAL->AL->GetQueryDIds() == 0) {
-        return HandleScope.Close(v8::Number::New(-1));
-    }
-    
-    // answer
-    JsAL->AL->MarkQueryDoc(DId, Positive);
-    // regenerate questions
-    JsAL->AL->GenQueryDIdV(true);
-   
-    return HandleScope.Close(v8::Null());
-}
-
-v8::Handle<v8::Value> TJsAL::getPositives(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsAL* JsAL = TJsALUtil::GetSelf(Args);	
-
-    // Check if it is ready
-    if(!JsAL->AL->GetInfoRetMode()) {
-        return HandleScope.Close(v8::Number::New(-1));
-    }
-
-    TIntV PosDIdV;
-    JsAL->AL->GetAllPosDocs(PosDIdV);
-    PJsonVal Positives = TJsonVal::NewArr(PosDIdV);
-    return HandleScope.Close(TJsUtil::ParseJson(Positives));
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Recursive-Linear-Regression
-v8::Handle<v8::ObjectTemplate> TJsRecLinRegModel::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;    
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, learn);
-		JsRegisterFunction(TmpTemp, predict);
-		JsRegisterFunction(TmpTemp, getWeights);
-		JsRegisterProperty(TmpTemp, dim);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
-    // get feature vector
-    QmAssertR(TJsRecLinRegModelUtil::IsArgClass(Args, 0, "TFltV"), 
-        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
-    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-    // make sure dimensions match
-    QmAssertR(JsRecLinRegModel->Model->GetDim() == JsVec->Vec.Len(), 
-        "RecLinRegModel.learn: model dimension != passed argument dimension");				
-    const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
-    // learn
-    JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
-	return HandleScope.Close(v8::Undefined());	
-}
-
-v8::Handle<v8::Value> TJsRecLinRegModel::predict(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
-    // get feature vector
-    QmAssertR(TJsRecLinRegModelUtil::IsArgClass(Args, 0, "TFltV"), 
-        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
-    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-    QmAssertR(JsRecLinRegModel->Model->GetDim() == JsVec->Vec.Len(), 
-        "RecLinRegModel.learn: model dimension != sample dimension");				
-    const double Predict = JsRecLinRegModel->Model->Predict(JsVec->Vec);
-    return HandleScope.Close(v8::Number::New(Predict));
-}
-
-v8::Handle<v8::Value> TJsRecLinRegModel::getWeights(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
-    // get feature vector
-	TFltV Coef;
-	JsRecLinRegModel->Model->GetCoeffs(Coef);	    
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsRecLinRegModel->Js, Coef);
-    return HandleScope.Close(JsResult);
-}
-
-v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	// parse arguments
-    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Info);
-	return HandleScope.Close(v8::Integer::New(JsRecLinRegModel->Model->GetDim()));
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Correlation
-v8::Handle<v8::ObjectTemplate> TJsCorrelation::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, pearson);						
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsCorrelation::pearson(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	// return
-	return HandleScope.Close(v8::Null());
-}
-
-///////////////////////////////
-// QMiner-JavaScript-GeoIP
-bool TJsGeoIp::InitP = false;
-PGeoIpBs TJsGeoIp::GeoIpBs = NULL;
-
-PGeoIpBs TJsGeoIp::GetGeoIpBs() {
-	if (!InitP) {
-		InitP = true;
-		//TODO: check for folder
-		GeoIpBs = TGeoIpBs::LoadBin("./dbs/GeoIP-Full.GeoIP");
-	}
-	return GeoIpBs;
-}
-
-v8::Handle<v8::ObjectTemplate> TJsGeoIp::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, country);				
-		JsRegisterFunction(TmpTemp, location);	
-		
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsGeoIp::country(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	// read IP address
-	TStr IpNumStr = TJsGeoIpUtil::GetArgStr(Args, 0);
-	QmAssertR(TUInt::IsIpStr(IpNumStr), "Invalid IP address " + IpNumStr);
-	// get country
-	PGeoIpBs GeoIpBs = GetGeoIpBs();
-	const int OrgId = GeoIpBs->GetOrgId(IpNumStr);
-	if (OrgId == -1) { return HandleScope.Close(v8::Null()); }
-	const TStr CountryNm = GeoIpBs->GetCountryNm(OrgId);
-	// return
-	return HandleScope.Close(v8::String::New(CountryNm.CStr()));
-}
-
-v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	// read IP address
-	TStr IpNumStr = TJsGeoIpUtil::GetArgStr(Args, 0);
-	QmAssertR(TUInt::IsIpStr(IpNumStr), "Invalid IP address " + IpNumStr);
-	// get location
-	PGeoIpBs GeoIpBs = GetGeoIpBs();
-	const int OrgId = GeoIpBs->GetOrgId(IpNumStr);
-	if (OrgId == -1) { return HandleScope.Close(v8::Null()); }
-	// prepare response
-	PJsonVal LocVal = TJsonVal::NewObj();
-	LocVal->AddToObj("country", GeoIpBs->GetCountryNm(OrgId));
-	LocVal->AddToObj("region", GeoIpBs->GetRegionNm(OrgId));
-	LocVal->AddToObj("city", GeoIpBs->GetCityNm(OrgId));
-	LocVal->AddToObj("ISP", GeoIpBs->GetIspNm(OrgId));
-	LocVal->AddToObj("organization", GeoIpBs->GetOrgNm(OrgId));
-	// return
-	return HandleScope.Close(TJsUtil::ParseJson(LocVal));
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Fs
-v8::Handle<v8::ObjectTemplate> TJsFs::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, openRead);
-		JsRegisterFunction(TmpTemp, openWrite);
-		JsRegisterFunction(TmpTemp, openAppend);
-		JsRegisterFunction(TmpTemp, exists);
-		JsRegisterFunction(TmpTemp, copy);
-		JsRegisterFunction(TmpTemp, move);
-		JsRegisterFunction(TmpTemp, del);
-		JsRegisterFunction(TmpTemp, rename);
-		JsRegisterFunction(TmpTemp, fileInfo);
-		JsRegisterFunction(TmpTemp, mkdir);
-		JsRegisterFunction(TmpTemp, rmdir);
-		JsRegisterFunction(TmpTemp, listFile);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-bool TJsFs::CanAccess(const TStr& FPath) {
-	TJsFPath JsFPath(FPath);
-    for (int AllowedFPathN = 0; AllowedFPathN < AllowedFPathV.Len(); AllowedFPathN++) {
-        if (JsFPath.IsSubdir(AllowedFPathV[AllowedFPathN])) { return true; }
-    }
-    return false;
-}
-
-bool TJsFs::CanAccess(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-	return JsFs->CanAccess(FPath);
-}
-
-// TODO: Perform standard check for file existence, etc.
-v8::Handle<v8::Value> TJsFs::openRead(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
-	return TJsFIn::New(FNm);
-}
-
-v8::Handle<v8::Value> TJsFs::openWrite(const v8::Arguments& Args) { // call withb AppendP = false
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");    
-	return TJsFOut::New(FNm);
-}
-
-v8::Handle<v8::Value> TJsFs::openAppend(const v8::Arguments& Args) { // call with AppendP = true 
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-	return TJsFOut::New(FNm, true);
-}
-
-v8::Handle<v8::Value> TJsFs::exists(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-	return v8::Boolean::New(TFile::Exists(FNm));
-}
-
-v8::Handle<v8::Value> TJsFs::copy(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
-    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
-    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
-	TFile::Copy(SrcFNm, DstFNm);
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::move(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
-    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
-    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
-	TFile::Copy(SrcFNm, DstFNm);
-	TFile::Del(SrcFNm, false); // ThrowExceptP = false 
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::del(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
-	TFile::Del(FNm, false); // ThrowExceptP = false 
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::rename(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
-    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
-    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
-	TFile::Rename(SrcFNm, DstFNm);
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::fileInfo(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
-	const uint64 CreateTm = TFile::GetCreateTm(FNm);
-	const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
-	const uint64 LastWriteTm = TFile::GetLastWriteTm(FNm);
-	const uint64 Size = TFile::GetSize(FNm);
-	v8::Handle<v8::Object> Obj = v8::Object::New();
-	Obj->Set(v8::String::New("createTime"), v8::String::New(TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr()));
-	Obj->Set(v8::String::New("lastAccessTime"), v8::String::New(TTm::GetTmFromMSecs(LastAccessTm).GetWebLogDateTimeStr().CStr()));
-	Obj->Set(v8::String::New("lastWriteTime"), v8::String::New(TTm::GetTmFromMSecs(LastWriteTm).GetWebLogDateTimeStr().CStr()));
-	Obj->Set(v8::String::New("size"), v8::Number::New(static_cast<double>(Size)));
-	return HandleScope.Close(Obj);
-}
-
-v8::Handle<v8::Value> TJsFs::mkdir(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-	const bool GenDirP = TDir::GenDir(FPath);
-	return v8::Boolean::New(GenDirP);
-}
-
-v8::Handle<v8::Value> TJsFs::rmdir(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-	const bool DelDirP = TDir::DelDir(FPath);
-	return HandleScope.Close(v8::Boolean::New(DelDirP));
-}
-
-v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    // read parameters
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-    TStr FExt = TJsFsUtil::GetArgStr(Args, 1);
-    const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
-    // get file list
-	TStrV FNmV;
-	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
-	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
-	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
-		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
-	}
-	return HandleScope.Close(FNmArr);
-}
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-PSIn TJsFIn::GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
-    v8::HandleScope HandleScope;
-    // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-    // get the wrapped 
-    v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
-    // cast it to record set
-    TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
-    return JsFIn->SIn;    
-}
-
-v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, peekCh);
-		JsRegisterFunction(TmpTemp, getCh);
-		JsRegisterFunction(TmpTemp, readLine);
-		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
-		JsRegisterProperty(TmpTemp, eof);
-		JsRegisterProperty(TmpTemp, length);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-// takes no arguments 
-v8::Handle<v8::Value> TJsFIn::getCh(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	return v8::String::New(TStr(JsFIn->SIn->GetCh()).CStr());
-}
-
-v8::Handle<v8::Value> TJsFIn::peekCh(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	return v8::String::New(TStr(JsFIn->SIn->PeekCh()).CStr());
-}
-
-v8::Handle<v8::Value> TJsFIn::readLine(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	TChA LnChA; JsFIn->SIn->GetNextLn(LnChA);
-	return v8::String::New(LnChA.CStr());
-}
-
-v8::Handle<v8::Value> TJsFIn::eof(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
-	return v8::Boolean::New(JsFIn->SIn->Eof());
-}
-
-v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
-	return v8::Uint32::New(JsFIn->SIn->Len());
-}
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-PSOut TJsFOut::GetArgFOut(const v8::Arguments& Args, const int& ArgN) {
-    v8::HandleScope HandleScope;
-    // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-    // get the wrapped 
-    v8::Handle<v8::Object> _JsFOut = v8::Handle<v8::Object>::Cast(Val);
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFOut->GetInternalField(0));
-    // cast it to record set
-    TJsFOut* JsFOut = static_cast<TJsFOut*>(WrappedObject->Value());
-    return JsFOut->SOut;    
-}
-
-v8::Handle<v8::ObjectTemplate> TJsFOut::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, write);
-		JsRegisterFunction(TmpTemp, writeLine);
-        JsRegisterFunction(TmpTemp, flush);
-        JsRegisterFunction(TmpTemp, close);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    QmAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
-    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-    int OutN = 0;
-	if(TJsFOutUtil::IsArgFlt(Args, 0)) {
-        OutN = JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
-	} else if(TJsFOutUtil::IsArgJson(Args, 0)) {
-        OutN = JsFOut->SOut->PutStr(TJsFOutUtil::GetArgJsonStr(Args, 0));
-	} else if (TJsFOutUtil::IsArgStr(Args, 0)) {
-        OutN = JsFOut->SOut->PutStr(TJsFOutUtil::GetArgStr(Args, 0));
-	} else {
-        throw TQmExcept::New("Invalid parameter type to fout.write()");
-	}
-	//JsFOut->SOut->Flush();
-	return v8::Integer::New(OutN);
-}
-
-v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // first we write
-    v8::Handle<v8::Value> Res = write(Args);
-    int OutN = Res->Int32Value();
-    // then we make a new line
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);  
-    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-    OutN += JsFOut->SOut->PutLn();
-	return v8::Integer::New(OutN);
-}
-
-v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
-    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-	JsFOut->SOut->Flush();
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
-	JsFOut->SOut.Clr();
-	return v8::Undefined();
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Console
-v8::Handle<v8::ObjectTemplate> TJsHttp::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, onRequest);
-		JsLongRegisterFunction(TmpTemp, "get", get);
-		JsLongRegisterFunction(TmpTemp, "getStr", get);
-		JsLongRegisterFunction(TmpTemp, "post", post);
-		JsLongRegisterFunction(TmpTemp, "postStr", post);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsHttp::onRequest(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHttp* JsHttp = TJsHttpUtil::GetSelf(Args);
-	// get function name and callback
-	TStr SrvFunNm = TJsHttpUtil::GetArgStr(Args, 0);
-	TStr Verb = TJsHttpUtil::GetArgStr(Args, 1);
-	v8::Persistent<v8::Function> Callback = TJsHttpUtil::GetArgFunPer(Args, 2);
-	// register
-	TEnv::Logger->OnStatusFmt("Mapping URL '/%s/%s' %s to JS function.", 
-        JsHttp->Js->GetScriptNm().CStr(), SrvFunNm.CStr(), Verb.CStr());
-
-	JsHttp->Js->AddSrvFun(JsHttp->Js->GetScriptNm(), SrvFunNm, Verb, Callback);
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsHttp::get(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHttp* JsHttp = TJsHttpUtil::GetSelf(Args);
-	// get function name and callback
-	TStr UrlStr = TJsHttpUtil::GetArgStr(Args, 0);
-	v8::Persistent<v8::Function> OnSuccess = (Args.Length() > 1) ? 
-		TJsHttpUtil::GetArgFunPer(Args, 1) : v8::Persistent<v8::Function>();
-	v8::Persistent<v8::Function> OnError = (Args.Length() > 2) ? 
-		TJsHttpUtil::GetArgFunPer(Args, 2) : v8::Persistent<v8::Function>();
-	// what should we return
-	const bool JsonP = (TJsHttpUtil::GetFunNm(Args) == "get");
-	// fetch
-	TEnv::Logger->OnStatusFmt("Fetching URL '%s'", UrlStr.CStr());
-	JsHttp->Js->JsFetch->Fetch(TJsFetchRq(THttpRq::New(TUrl::New(UrlStr)), JsonP, OnSuccess, OnError));
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsHttp::post(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHttp* JsHttp = TJsHttpUtil::GetSelf(Args);
-	// get function name and callback
-	TStr UrlStr = TJsHttpUtil::GetArgStr(Args, 0);
-	TStr MimeTypeStr = TJsHttpUtil::GetArgStr(Args, 1);
-	TStr BodyStr = TJsHttpUtil::GetArgStr(Args, 2);
-	v8::Persistent<v8::Function> OnSuccess = (Args.Length() > 3) ? 
-		TJsHttpUtil::GetArgFunPer(Args, 3) : v8::Persistent<v8::Function>();
-	v8::Persistent<v8::Function> OnError = (Args.Length() > 4) ? 
-		TJsHttpUtil::GetArgFunPer(Args, 4) : v8::Persistent<v8::Function>();
-	// what should we return
-	const bool JsonP = (TJsHttpUtil::GetFunNm(Args) == "post");
-	// prepare request
-	TMem BodyMem; BodyMem.AddBf(BodyStr.CStr(), BodyStr.Len());
-	PHttpRq HttpRq = THttpRq::New(hrmPost, TUrl::New(UrlStr), MimeTypeStr, BodyMem);
-	// fetch
-	TEnv::Logger->OnStatusFmt("Fetching URL '%s'", UrlStr.CStr());
-	JsHttp->Js->JsFetch->Fetch(TJsFetchRq(HttpRq, JsonP, OnSuccess, OnError));
-	return v8::Undefined();
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Http-Response
-v8::Handle<v8::ObjectTemplate> TJsHttpResp::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, setStatusCode);
-		JsRegisterFunction(TmpTemp, setContentType);
-		JsRegisterFunction(TmpTemp, add);
-		JsRegisterFunction(TmpTemp, close);
-		JsRegisterFunction(TmpTemp, send);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-//TODO change to property
-v8::Handle<v8::Value> TJsHttpResp::setStatusCode(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // check we are still allowed to do anything    
-    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
-    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
-    // update response code
-    QmAssertR(Args.Length() == 1, "Invalid number of arguments to httpResponse.setStatusCode()");
-    JsHttpResp->StatusCode = TJsHttpRespUtil::GetArgInt32(Args, 0);
-    return v8::Undefined();
-}
-
-//TODO change to property
-v8::Handle<v8::Value> TJsHttpResp::setContentType(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // check we are still allowed to do anything    
-    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
-    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
-    // update content type
-    QmAssertR(Args.Length() == 1, "Invalid number of arguments to httpResponse.setContentType()");
-    JsHttpResp->ContTypeStr = TJsHttpRespUtil::GetArgStr(Args, 0);
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsHttpResp::add(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // check we are still allowed to do anything    
-    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
-    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
-    // in case we have arguments, add them to the buffer
-    if (Args.Length() > 0) {
-        QmAssertR(Args.Length() == 1, "Invalid number of arguments to httpResponse.add()");
-        if(TJsHttpRespUtil::IsArgJson(Args, 0)) {
-            JsHttpResp->BodyMem += TJsHttpRespUtil::GetArgJsonStr(Args, 0);
-        } else if (TJsHttpRespUtil::IsArgStr(Args, 0)) {
-            JsHttpResp->BodyMem += TJsHttpRespUtil::GetArgStr(Args, 0);
-        } else {
-            throw TQmExcept::New("Invalid parameter type to httpResponse.add()");
-        }
-    }
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsHttpResp::close(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // check we are still allowed to do anything    
-    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
-    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
-    // First mark we are done (we can only send response once)
-    JsHttpResp->DoneP = true;
-    // Prepare response
-    PSIn BodySIn = JsHttpResp->BodyMem.GetSIn();
-    PHttpResp HttpResp = THttpResp::New(JsHttpResp->StatusCode, 
-        JsHttpResp->ContTypeStr, false, BodySIn);
-    // Execute response
-    JsHttpResp->WebSrv->SendHttpResp(JsHttpResp->SockId, HttpResp);
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsHttpResp::send(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // first add the data to the buffer
-    TJsHttpResp::add(Args);
-    // and execute the response
-    TJsHttpResp::close(Args);
-    return v8::Undefined();
-}
-
-///////////////////////////////
-// QMiner-JavaScript-Time
-v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterProperty(TmpTemp, string);
-		JsRegisterProperty(TmpTemp, timestamp);
-        JsRegisterProperty(TmpTemp, now);
-        JsRegisterProperty(TmpTemp, nowUTC);
-        JsRegisterFunction(TmpTemp, add);
-		JsRegisterFunction(TmpTemp, sub);
-		JsRegisterFunction(TmpTemp, toJSON);
-		JsRegisterFunction(TmpTemp, parse);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsTm::string(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
-    TStr TmStr = JsTm->Tm.GetWebLogDateTimeStr(true, "T", true);   
-	return HandleScope.Close(v8::String::New(TmStr.CStr()));
-}
-
-v8::Handle<v8::Value> TJsTm::timestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
-    const int Timestamp = TTm::GetDateTimeIntFromTm(JsTm->Tm);
-	return HandleScope.Close(v8::Int32::New(Timestamp));
-}
-
-v8::Handle<v8::Value> TJsTm::now(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	return HandleScope.Close(TJsTm::New(TTm::GetCurLocTm()));
-}
-
-v8::Handle<v8::Value> TJsTm::nowUTC(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	return HandleScope.Close(TJsTm::New(TTm::GetCurUniTm()));
-}
-
-v8::Handle<v8::Value> TJsTm::add(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
-    // parse arguments
-    const int Val = TJsTmUtil::GetArgInt32(Args, 0);
-    const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "second");
-    // add according to the unit
-    if (Unit == "second") {
-        JsTm->Tm.AddTime(0, 0, Val);
-    } else if (Unit == "minute") {
-        JsTm->Tm.AddTime(0, Val);        
-    } else if (Unit == "hour") {
-        JsTm->Tm.AddTime(Val);        
-    } else if (Unit == "day") {
-        JsTm->Tm.AddDays(Val);        
-    }
-    // nothing to return
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
-    // parse arguments
-    const int Val = TJsTmUtil::GetArgInt32(Args, 0);
-    const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "second");
-    // add according to the unit
-    if (Unit == "second") {
-        JsTm->Tm.SubTime(0, 0, Val);
-    } else if (Unit == "minute") {
-        JsTm->Tm.SubTime(0, Val);        
-    } else if (Unit == "hour") {
-        JsTm->Tm.SubTime(Val);        
-    } else if (Unit == "day") {
-        JsTm->Tm.SubDays(Val);        
-    }
-    // nothing to return
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
-    // prepare response object
-    v8::Local<v8::Object> TmJson = v8::Object::New();
-    TmJson->Set(v8::String::New("year"), v8::Int32::New(JsTm->Tm.GetYear()));
-    TmJson->Set(v8::String::New("month"), v8::Int32::New(JsTm->Tm.GetMonth()));
-    TmJson->Set(v8::String::New("day"), v8::Int32::New(JsTm->Tm.GetDay()));
-    TmJson->Set(v8::String::New("hour"), v8::Int32::New(JsTm->Tm.GetHour()));
-    TmJson->Set(v8::String::New("minute"), v8::Int32::New(JsTm->Tm.GetMin()));
-    TmJson->Set(v8::String::New("second"), v8::Int32::New(JsTm->Tm.GetSec()));
-    TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
-    // return constructed json
-    return HandleScope.Close(TmJson);
-}
-
-v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // read string argument
-    TStr TmStr = TJsTmUtil::GetArgStr(Args, 0);
-    // prepare response object
-    TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
-    // return constructed json
-    return HandleScope.Close(TJsTm::New(Tm));
-}
-
-///////////////////////////////
 // QMiner-LinAlg
 v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 	v8::HandleScope HandleScope;
@@ -3470,6 +2095,14 @@ v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
 		return HandleScope.Close(JsVec);
 	}
 	if (Args[0]->IsObject()) {		
+		// we got another vector as paremeter, make a copy of it
+		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TIntV")) {
+			// get argument vector
+			TJsIntV* JsVec2 = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+			Vec = JsVec2->Vec;
+			return HandleScope.Close(JsVec);
+		}
+		// we have object with parameters, parse them out
 		int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
 		int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", -1);		
 		if (MxVals > 0 && Vals >= 0) {
@@ -3590,6 +2223,7 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 			return HandleScope.Close(JsSpMat);
 		}
 		if (Args[0]->IsArray()) {
+			// javascript arrays
 			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 			int Cols = Array->Length();
 			Mat.Gen(Cols);
@@ -3683,6 +2317,35 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 // QMiner-Vector
 const TStr TAuxFltV::ClassId = "TFltV";
 const TStr TAuxIntV::ClassId = "TIntV";
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::pushV(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	if (Args[0]->IsObject()) {
+		if (TJsVecUtil::IsArgClass(Args, 0, "TFltV")) {
+			TJsFltV* JsVec2 = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+			JsVec->Vec.AddV(JsVec2->Vec);
+			return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));	
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+
+template <>
+v8::Handle<v8::Value> TJsVec<TInt, TAuxIntV>::pushV(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	if (Args[0]->IsObject()) {
+		if (TJsVecUtil::IsArgClass(Args, 0, "TIntV")) {
+			TJsIntV* JsVec2 = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+			JsVec->Vec.AddV(JsVec2->Vec);
+			return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));	
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
 
 template <>
 v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sortPerm(const v8::Arguments& Args) {
@@ -4524,6 +3187,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpMat::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, at);
 		JsRegisterFunction(TmpTemp, put);
+		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, push);
 		JsRegisterFunction(TmpTemp, multiply);
 		JsRegisterFunction(TmpTemp, multiplyT);
@@ -4596,6 +3260,23 @@ v8::Handle<v8::Value> TJsSpMat::put(const v8::Arguments& Args) {
 			}
 		}
 	}
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsSpMat::indexGet(uint32_t Index, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
+	QmAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "sp matrix index at: index out of bounds");
+	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index]);
+	return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
+	QmAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "sp matrix index set: index out of bounds");
+	v8::Handle<v8::Object> ValObj = v8::Handle<v8::Object>::Cast(Value);
+	JsSpMat->Mat[Index] = TJsSpV::GetSpV(ValObj);	
 	return HandleScope.Close(v8::Undefined());	
 }
 
@@ -4931,6 +3612,1226 @@ v8::Handle<v8::Value> TJsSpMat::print(const v8::Arguments& Args) {
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
 	TLAMisc::PrintSpMat(JsSpMat->Mat, "");
 	return HandleScope.Close(v8::Undefined());
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Machine
+v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+        JsRegisterFunction(TmpTemp, getLanguageOptions);
+        JsRegisterFunction(TmpTemp, newFeatureSpace);
+        JsRegisterFunction(TmpTemp, loadFeatureSpace);
+        JsRegisterFunction(TmpTemp, trainSvmClassify);		
+        JsRegisterFunction(TmpTemp, trainSvmRegression);
+		JsRegisterFunction(TmpTemp, loadSvmModel);
+        JsRegisterFunction(TmpTemp, newRecLinReg);
+        JsRegisterFunction(TmpTemp, trainKMeans);						
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+	try {
+        // get first argument as json
+        PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+        // parse definitions of feature extractors
+        TFtrExtV FtrExtV;
+        if (ParamVal->IsObj()) {
+            FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+        } else if (ParamVal->IsArr()) {
+            for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
+                PJsonVal ArrVal = ParamVal->GetArrVal(ArrValN);
+                FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ArrVal->GetObjStr("type"), ArrVal));            
+            }
+        }
+        // create feature space
+        PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
+		// done
+        return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
+	} catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+	}
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsAnalytics::loadFeatureSpace(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    // parse parameters
+    PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+    // load feature space from stream
+    PFtrSpace FtrSpace = TFtrSpace::Load(JsAnalytics->Js->Base, *SIn);
+    // done
+    return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
+}
+
+v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    QmAssertR(Args.Length() >= 2, "trainSvmClassify: missing arguments!");
+    // get class information
+    QmAssertR(Args[1]->IsObject(), "trainSvmClassify: second argument expected to be object");
+    TFltV& ClsV = TJsFltV::GetVec(Args[1]->ToObject());
+    // parse SVM parameters
+    PJsonVal SvmParamVal = TJsonVal::NewObj();
+    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
+        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
+    const double C = SvmParamVal->GetObjNum("c", 1.0);
+    const double j = SvmParamVal->GetObjNum("j", 1.0);
+    // check what kind of input data we got
+    PSVMTrainSet TrainSet;
+    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+        // we have sparse matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
+        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
+    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+        // we have dense matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
+        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
+    } else {
+        // TODO support JavaScript array of TJsFltV or TJsSpV
+        throw TQmExcept::New("trainSvmClassify: unsupported type of the first argument");
+    }
+    // train and return the model
+    try {
+        PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, C, j);
+        return TJsSvmModel::New(JsAnalytics->Js, Model);
+    } catch (const PExcept& Except) {
+        InfoLog("[except] trainSvmClassify: " + Except->GetMsgStr());
+    }    
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    QmAssertR(Args.Length() >= 2, "trainSvmRegression: missing arguments!");
+    // get target value information
+    QmAssertR(Args[1]->IsObject(), "trainSvmRegression: second argument expected to be object");
+    TFltV& ValV = TJsFltV::GetVec(Args[1]->ToObject());
+    // parse SVM parameters
+    PJsonVal SvmParamVal = TJsonVal::NewObj();
+    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
+        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
+    const double C = SvmParamVal->GetObjNum("c", 1.0);
+    const double E = SvmParamVal->GetObjNum("eps", 1.0);
+    // check what kind of input data we got
+    PSVMTrainSet TrainSet;
+    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+        // we have sparse matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
+        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefSparseTrainSet::New(VecV, ValV);
+    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+        // we have dense matrix on the input
+        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
+        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+        // create training set for SVM
+        TrainSet = TRefDenseTrainSet::New(VecV, ValV);
+    } else {
+        // TODO support JavaScript array of TJsFltV or TJsSpV
+        throw TQmExcept::New("trainSvmRegression: unsupported type of the first argument");
+    }
+    // train and return the model
+    try {
+        PSVMModel Model = TSVMModel::NewRegLinear(TrainSet, E, C);
+        return TJsSvmModel::New(JsAnalytics->Js, Model);
+    } catch (const PExcept& Except) {
+        InfoLog("[except] trainSvmRegression: " + Except->GetMsgStr());
+    }    
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsAnalytics::loadSvmModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);	
+	if (Args.Length() > 0) {
+        PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+		PSVMModel Model = TSVMModel::Load(*SIn);
+		return HandleScope.Close(TJsSvmModel::New(JsAnalytics->Js, Model));
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+   
+    int dim = ParamVal->GetObjInt("dim");
+	double ForgetFact = ParamVal->GetObjNum("forgetFact", 1.0);
+	double RegFact = ParamVal->GetObjNum("regFact", 1.0);
+
+    try {
+        TSignalProc::PRecLinReg linReg = TSignalProc::TRecLinReg::New(dim, RegFact, ForgetFact);
+        return TJsRecLinRegModel::New(JsAnalytics->Js, linReg);
+    }
+    catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+    }
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 0);
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 1);
+    PJsonVal KMeansParamVal = TJsAnalyticsUtil::IsArgJson(Args, 2) ?
+        TJsAnalyticsUtil::GetArgJson(Args, 2) : TJsonVal::NewObj();
+    // parse SVM parameters
+    const int Clusts = KMeansParamVal->GetObjInt("k");
+    const int MaxIter = KMeansParamVal->GetObjInt("maxIterations", 50);
+    const int RndSeed = KMeansParamVal->GetObjInt("randomSeed", 1);
+    // do kmeans
+    try {
+        // prepare feature vectors
+        TVec<TIntFltKdV> SpVV; SpVV.Clr();
+        FtrSpace->GetSpVV(RecSet, SpVV);
+        // normalize as KMeans assumes normalized inputs
+        for (int SpVN = 0; SpVN < SpVV.Len(); SpVN++) {
+            TLinAlg::Normalize(SpVV[SpVN]); }
+        // convert to sparse matrix with records as columns
+        TSparseColMatrix FtrMatrix(SpVV, FtrSpace->GetDim(), SpVV.Len());
+        // do the clustering
+        TRnd Rnd(RndSeed);
+        TSparseKMeans KMeans(&FtrMatrix, Clusts, MaxIter, TEnv::Logger, Rnd); 
+        KMeans.Init(); KMeans.Apply();
+        // get assignments
+        TVec<TUInt64V> ClusterRecIdV(Clusts);
+        const TIntV& Assignment = KMeans.GetAssignment();
+        for(int RecN = 0; RecN < KMeans.GetDocs(); RecN++) {
+            // cluster id
+            const int ClustN = Assignment[RecN];
+            // record id
+            const uint64 RecId = RecSet->GetRecId(RecN);
+            // remember assignment
+            ClusterRecIdV[ClustN].Add(RecId);
+        }
+    	// return
+		v8::Local<v8::Array> JsRecSetV = v8::Array::New(Clusts);
+		for (int ClustN = 0; ClustN < Clusts; ClustN++) {
+            PRecSet ClusterRecSet = TRecSet::New(RecSet->GetStore(), ClusterRecIdV[ClustN]);
+			JsRecSetV->Set(v8::Number::New(ClustN), TJsRecSet::New(JsAnalytics->Js, ClusterRecSet));
+		} 
+		return HandleScope.Close(JsRecSetV);		
+	} catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+	}
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsAnalytics::getLanguageOptions(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // 0) create response object
+	PJsonVal LangOpts = TJsonVal::NewObj();
+    // 1) get available stemmers
+    TStrV StemmerTypeNmV, StemmerTypeDNmV;
+    TStemmer::GetStemmerTypeNmV(StemmerTypeNmV, StemmerTypeDNmV);
+    PJsonVal ArrStemmer = TJsonVal::NewArr(StemmerTypeNmV);
+    LangOpts->AddToObj("stemmer", ArrStemmer);
+    // 2) get available stopword lists
+    TStrV SwSetTypeNmV, SwSetTypeDNmV;
+    TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
+    PJsonVal ArrStopword = TJsonVal::NewArr(SwSetTypeNmV);
+	LangOpts->AddToObj("stopwords", ArrStopword);
+	return HandleScope.Close(TJsUtil::ParseJson(LangOpts));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Feature-Space
+
+v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+        JsRegisterProperty(TmpTemp, dim);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, updateRecord);
+		JsRegisterFunction(TmpTemp, updateRecords);
+		JsRegisterFunction(TmpTemp, finishUpdate);					
+		JsRegisterFunction(TmpTemp, extractStrings);						
+		JsRegisterFunction(TmpTemp, ftrSpVec);						
+		JsRegisterFunction(TmpTemp, ftrVec);	
+		JsRegisterFunction(TmpTemp, ftrSpColMat);						
+		JsRegisterFunction(TmpTemp, ftrColMat);	
+		//JsRegisterFunction(TmpTemp, extractNumbers);						
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN) {
+    v8::HandleScope HandleScope;
+    // check we have the argument at all
+    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    // check it's of the right type
+    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    // get the wrapped 
+    v8::Handle<v8::Object> FtrSpace = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(FtrSpace->GetInternalField(0));
+    // cast it to record set
+    TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
+    return JsFtrSpace->FtrSpace;    
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Integer::New(JsFtrSpace->FtrSpace->GetDim()));
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+    // save to stream
+    JsFtrSpace->FtrSpace->Save(*SOut);
+	// return
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    TJsRec* JsRec = TJsObjUtil<TJsRec>::GetArgObj(Args, 0);
+    // update with new records
+    JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+	// return
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+    // update with new records
+    JsFtrSpace->FtrSpace->Update(RecSet);
+	// return
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::finishUpdate(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    InfoLog("Warning: featureSpace.finishUpdate() is no longer necessary and hence deprecated.");
+	// return
+	return HandleScope.Close(v8::Null());
+}
+
+// extractStrings(String, Dimension=0)
+v8::Handle<v8::Value> TJsFtrSpace::extractStrings(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PJsonVal RecVal = TJsFtrSpaceUtil::GetArgJson(Args, 0);
+    uint32 DimN = TJsFtrSpaceUtil::GetArgInt32(Args, 1, 0);
+    // get strings
+    TStrV StrV; JsFtrSpace->FtrSpace->ExtractStrV(DimN, RecVal, StrV);
+	// return as JS array
+	v8::Handle<v8::Array> StrArr = v8::Array::New(StrV.Len());
+    for(int StrN = 0; StrN < StrV.Len(); StrN++) {
+		StrArr->Set(v8::Uint32::New(StrN), v8::String::New(StrV.GetVal(StrN).CStr()));
+	}
+	return HandleScope.Close(StrArr);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    TRec Rec = TJsRec::GetArgRec(Args, 0);
+    // create feature vector
+	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js);
+	TIntFltKdV& SpV = TJsSpV::GetSpV(JsSpV);
+	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
+	// return
+	return HandleScope.Close(JsSpV);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    TRec Rec = TJsRec::GetArgRec(Args, 0);
+    // create feature vector
+    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
+    TFltV& FltV = TJsFltV::GetVec(JsFltV);
+    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// return
+	return HandleScope.Close(JsFltV);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+    // create feature matrix
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js);
+	TVec<TIntFltKdV>& SpMat = TJsSpMat::GetSpMat(JsSpMat);
+	JsFtrSpace->FtrSpace->GetSpVV(RecSet, SpMat);
+	// return
+	return HandleScope.Close(JsSpMat);
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrColMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+    PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+    // create feature matrix
+	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js);
+	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
+	JsFtrSpace->FtrSpace->GetFullVV(RecSet, Mat);
+	// return
+	return HandleScope.Close(JsMat);
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Machine-Model
+
+v8::Handle<v8::ObjectTemplate> TJsSvmModel::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, predict);
+		JsLongRegisterFunction(TmpTemp, "classify", predict);
+		JsRegisterProperty(TmpTemp, weights);
+		JsRegisterFunction(TmpTemp, save);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsSvmModel::predict(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);	
+    // get vector vector
+    QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
+    if (TJsSvmModelUtil::IsArgClass(Args, 0, "TFltV")) {
+        const double Res = JsSvmModel->Model->GetRes(TJsFltV::GetVec(Args[0]->ToObject()));
+    	return HandleScope.Close(v8::Number::New(Res));
+    } else if (TJsSvmModelUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+        const double Res = JsSvmModel->Model->GetRes(TJsSpV::GetSpV(Args[0]->ToObject()));
+    	return HandleScope.Close(v8::Number::New(Res));
+    }
+    throw TQmExcept::New("svm.predict: unsupported type of the first argument");
+}
+
+v8::Handle<v8::Value> TJsSvmModel::weights(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Info);	
+    // get feature vector
+	TFltV WgtV; JsSvmModel->Model->GetWgtV(WgtV);
+	v8::Persistent<v8::Object> JsWgtV = TJsFltV::New(JsSvmModel->Js, WgtV);
+    return HandleScope.Close(JsWgtV);
+}
+
+v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+		JsSvmModel->Model->Save(*SOut);
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Recursive-Linear-Regression
+
+v8::Handle<v8::ObjectTemplate> TJsRecLinRegModel::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;    
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, learn);
+		JsRegisterFunction(TmpTemp, predict);
+		JsRegisterProperty(TmpTemp, weights);
+		JsRegisterProperty(TmpTemp, dim);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
+    // get feature vector
+    QmAssertR(TJsRecLinRegModelUtil::IsArgClass(Args, 0, "TFltV"), 
+        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+    // make sure dimensions match
+    QmAssertR(JsRecLinRegModel->Model->GetDim() == JsVec->Vec.Len(), 
+        "RecLinRegModel.learn: model dimension != passed argument dimension");				
+    const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
+    // learn
+    JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
+	return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::predict(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Args);
+    // get feature vector
+    QmAssertR(TJsRecLinRegModelUtil::IsArgClass(Args, 0, "TFltV"), 
+        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+    QmAssertR(JsRecLinRegModel->Model->GetDim() == JsVec->Vec.Len(), 
+        "RecLinRegModel.learn: model dimension != sample dimension");				
+    const double Predict = JsRecLinRegModel->Model->Predict(JsVec->Vec);
+    return HandleScope.Close(v8::Number::New(Predict));
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::weights(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Info);
+    // get feature vector
+	TFltV Coef;
+	JsRecLinRegModel->Model->GetCoeffs(Coef);	    
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsRecLinRegModel->Js, Coef);
+    return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+    TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Integer::New(JsRecLinRegModel->Model->GetDim()));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-GeoIP
+bool TJsGeoIp::InitP = false;
+PGeoIpBs TJsGeoIp::GeoIpBs = NULL;
+
+PGeoIpBs TJsGeoIp::GetGeoIpBs() {
+	if (!InitP) {
+		InitP = true;
+		//TODO: check for folder
+		GeoIpBs = TGeoIpBs::LoadBin("./dbs/GeoIP-Full.GeoIP");
+	}
+	return GeoIpBs;
+}
+
+
+v8::Handle<v8::ObjectTemplate> TJsGeoIp::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, country);				
+		JsRegisterFunction(TmpTemp, location);	
+		
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsGeoIp::country(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read IP address
+	TStr IpNumStr = TJsGeoIpUtil::GetArgStr(Args, 0);
+	QmAssertR(TUInt::IsIpStr(IpNumStr), "Invalid IP address " + IpNumStr);
+	// get country
+	PGeoIpBs GeoIpBs = GetGeoIpBs();
+	const int OrgId = GeoIpBs->GetOrgId(IpNumStr);
+	if (OrgId == -1) { return HandleScope.Close(v8::Null()); }
+	const TStr CountryNm = GeoIpBs->GetCountryNm(OrgId);
+	// return
+	return HandleScope.Close(v8::String::New(CountryNm.CStr()));
+}
+
+v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read IP address
+	TStr IpNumStr = TJsGeoIpUtil::GetArgStr(Args, 0);
+	QmAssertR(TUInt::IsIpStr(IpNumStr), "Invalid IP address " + IpNumStr);
+	// get location
+	PGeoIpBs GeoIpBs = GetGeoIpBs();
+	const int OrgId = GeoIpBs->GetOrgId(IpNumStr);
+	if (OrgId == -1) { return HandleScope.Close(v8::Null()); }
+	// prepare response
+	PJsonVal LocVal = TJsonVal::NewObj();
+	LocVal->AddToObj("country", GeoIpBs->GetCountryNm(OrgId));
+	LocVal->AddToObj("region", GeoIpBs->GetRegionNm(OrgId));
+	LocVal->AddToObj("city", GeoIpBs->GetCityNm(OrgId));
+	LocVal->AddToObj("ISP", GeoIpBs->GetIspNm(OrgId));
+	LocVal->AddToObj("organization", GeoIpBs->GetOrgNm(OrgId));
+	// return
+	return HandleScope.Close(TJsUtil::ParseJson(LocVal));
+}
+
+
+///////////////////////////////
+// QMiner-JavaScript-Console
+v8::Handle<v8::ObjectTemplate> TJsConsole::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, log);
+		JsRegisterFunction(TmpTemp, getln);
+		JsLongRegisterFunction(TmpTemp, "say", log);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsConsole::log(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	if (Args.Length() == 1) {      
+		const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 0);
+		InfoLog("[console] " + MsgStr);
+	} else if (Args.Length() > 1) {
+		const TStr TitleStr = TJsConsoleUtil::GetArgStr(Args, 0);
+		const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 1);
+		TEnv::Logger->OnStatusFmt("[%s] %s", TitleStr.CStr(), MsgStr.CStr());
+	} else {
+		InfoLog("[console]");
+	}
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsConsole::getln(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;		
+	TStdIn StdIn;
+	TStr LnStr;
+	StdIn.GetNextLn(LnStr);
+	return HandleScope.Close(v8::String::New(LnStr.CStr()));	
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Fs
+v8::Handle<v8::ObjectTemplate> TJsFs::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, openRead);
+		JsRegisterFunction(TmpTemp, openWrite);
+		JsRegisterFunction(TmpTemp, openAppend);
+		JsRegisterFunction(TmpTemp, exists);
+		JsRegisterFunction(TmpTemp, copy);
+		JsRegisterFunction(TmpTemp, move);
+		JsRegisterFunction(TmpTemp, del);
+		JsRegisterFunction(TmpTemp, rename);
+		JsRegisterFunction(TmpTemp, fileInfo);
+		JsRegisterFunction(TmpTemp, mkdir);
+		JsRegisterFunction(TmpTemp, rmdir);
+		JsRegisterFunction(TmpTemp, listFile);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+bool TJsFs::CanAccess(const TStr& FPath) {
+	TJsFPath JsFPath(FPath);
+    for (int AllowedFPathN = 0; AllowedFPathN < AllowedFPathV.Len(); AllowedFPathN++) {
+        if (JsFPath.IsSubdir(AllowedFPathV[AllowedFPathN])) { return true; }
+    }
+    return false;
+}
+
+bool TJsFs::CanAccess(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+	return JsFs->CanAccess(FPath);
+}
+
+// TODO: Perform standard check for file existence, etc.
+v8::Handle<v8::Value> TJsFs::openRead(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+	return TJsFIn::New(FNm);
+}
+
+v8::Handle<v8::Value> TJsFs::openWrite(const v8::Arguments& Args) { // call withb AppendP = false
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");    
+	return TJsFOut::New(FNm);
+}
+
+v8::Handle<v8::Value> TJsFs::openAppend(const v8::Arguments& Args) { // call with AppendP = true 
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	return TJsFOut::New(FNm, true);
+}
+
+v8::Handle<v8::Value> TJsFs::exists(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	return v8::Boolean::New(TFile::Exists(FNm));
+}
+
+v8::Handle<v8::Value> TJsFs::copy(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
+    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
+    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
+	TFile::Copy(SrcFNm, DstFNm);
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::move(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
+    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
+    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
+	TFile::Copy(SrcFNm, DstFNm);
+	TFile::Del(SrcFNm, false); // ThrowExceptP = false 
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::del(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+	TFile::Del(FNm, false); // ThrowExceptP = false 
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::rename(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
+    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
+    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
+	TFile::Rename(SrcFNm, DstFNm);
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::fileInfo(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+	const uint64 CreateTm = TFile::GetCreateTm(FNm);
+	const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
+	const uint64 LastWriteTm = TFile::GetLastWriteTm(FNm);
+	const uint64 Size = TFile::GetSize(FNm);
+	v8::Handle<v8::Object> Obj = v8::Object::New();
+	Obj->Set(v8::String::New("createTime"), v8::String::New(TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr()));
+	Obj->Set(v8::String::New("lastAccessTime"), v8::String::New(TTm::GetTmFromMSecs(LastAccessTm).GetWebLogDateTimeStr().CStr()));
+	Obj->Set(v8::String::New("lastWriteTime"), v8::String::New(TTm::GetTmFromMSecs(LastWriteTm).GetWebLogDateTimeStr().CStr()));
+	Obj->Set(v8::String::New("size"), v8::Number::New(static_cast<double>(Size)));
+	return HandleScope.Close(Obj);
+}
+
+v8::Handle<v8::Value> TJsFs::mkdir(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+	const bool GenDirP = TDir::GenDir(FPath);
+	return v8::Boolean::New(GenDirP);
+}
+
+v8::Handle<v8::Value> TJsFs::rmdir(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+	const bool DelDirP = TDir::DelDir(FPath);
+	return HandleScope.Close(v8::Boolean::New(DelDirP));
+}
+
+v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+    // read parameters
+    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+    TStr FExt = TJsFsUtil::GetArgStr(Args, 1);
+    const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
+    // get file list
+	TStrV FNmV;
+	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
+	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
+	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
+		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
+	}
+	return HandleScope.Close(FNmArr);
+}
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+PSIn TJsFIn::GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
+    v8::HandleScope HandleScope;
+    // check we have the argument at all
+    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    // check it's of the right type
+    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    // get the wrapped 
+    v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
+    // cast it to record set
+    TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
+    return JsFIn->SIn;    
+}
+
+v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, peekCh);
+		JsRegisterFunction(TmpTemp, getCh);
+		JsRegisterFunction(TmpTemp, readLine);
+		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
+		JsRegisterProperty(TmpTemp, eof);
+		JsRegisterProperty(TmpTemp, length);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+// takes no arguments 
+v8::Handle<v8::Value> TJsFIn::getCh(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	return v8::String::New(TStr(JsFIn->SIn->GetCh()).CStr());
+}
+
+v8::Handle<v8::Value> TJsFIn::peekCh(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	return v8::String::New(TStr(JsFIn->SIn->PeekCh()).CStr());
+}
+
+v8::Handle<v8::Value> TJsFIn::readLine(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	TChA LnChA; JsFIn->SIn->GetNextLn(LnChA);
+	return v8::String::New(LnChA.CStr());
+}
+
+v8::Handle<v8::Value> TJsFIn::eof(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
+	return v8::Boolean::New(JsFIn->SIn->Eof());
+}
+
+v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
+	return v8::Uint32::New(JsFIn->SIn->Len());
+}
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+PSOut TJsFOut::GetArgFOut(const v8::Arguments& Args, const int& ArgN) {
+    v8::HandleScope HandleScope;
+    // check we have the argument at all
+    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    // check it's of the right type
+    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    // get the wrapped 
+    v8::Handle<v8::Object> _JsFOut = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFOut->GetInternalField(0));
+    // cast it to record set
+    TJsFOut* JsFOut = static_cast<TJsFOut*>(WrappedObject->Value());
+    return JsFOut->SOut;    
+}
+
+v8::Handle<v8::ObjectTemplate> TJsFOut::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, write);
+		JsRegisterFunction(TmpTemp, writeLine);
+        JsRegisterFunction(TmpTemp, flush);
+        JsRegisterFunction(TmpTemp, close);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    QmAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+    int OutN = 0;
+	if(TJsFOutUtil::IsArgFlt(Args, 0)) {
+        OutN = JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
+	} else if(TJsFOutUtil::IsArgJson(Args, 0)) {
+        OutN = JsFOut->SOut->PutStr(TJsFOutUtil::GetArgJsonStr(Args, 0));
+	} else if (TJsFOutUtil::IsArgStr(Args, 0)) {
+        OutN = JsFOut->SOut->PutStr(TJsFOutUtil::GetArgStr(Args, 0));
+	} else {
+        throw TQmExcept::New("Invalid parameter type to fout.write()");
+	}
+	//JsFOut->SOut->Flush();
+	return v8::Integer::New(OutN);
+}
+
+v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // first we write
+    v8::Handle<v8::Value> Res = write(Args);
+    int OutN = Res->Int32Value();
+    // then we make a new line
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);  
+    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+    OutN += JsFOut->SOut->PutLn();
+	return v8::Integer::New(OutN);
+}
+
+v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+	JsFOut->SOut->Flush();
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+	JsFOut->SOut.Clr();
+	return v8::Undefined();
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Console
+v8::Handle<v8::ObjectTemplate> TJsHttp::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, onRequest);
+		JsLongRegisterFunction(TmpTemp, "get", get);
+		JsLongRegisterFunction(TmpTemp, "getStr", get);
+		JsLongRegisterFunction(TmpTemp, "post", post);
+		JsLongRegisterFunction(TmpTemp, "postStr", post);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsHttp::onRequest(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHttp* JsHttp = TJsHttpUtil::GetSelf(Args);
+	// get function name and callback
+	TStr SrvFunNm = TJsHttpUtil::GetArgStr(Args, 0);
+	TStr Verb = TJsHttpUtil::GetArgStr(Args, 1);
+	v8::Persistent<v8::Function> Callback = TJsHttpUtil::GetArgFunPer(Args, 2);
+	// register
+	TEnv::Logger->OnStatusFmt("Mapping URL '/%s/%s' %s to JS function.", 
+        JsHttp->Js->GetScriptNm().CStr(), SrvFunNm.CStr(), Verb.CStr());
+
+	JsHttp->Js->AddSrvFun(JsHttp->Js->GetScriptNm(), SrvFunNm, Verb, Callback);
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsHttp::get(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHttp* JsHttp = TJsHttpUtil::GetSelf(Args);
+	// get function name and callback
+	TStr UrlStr = TJsHttpUtil::GetArgStr(Args, 0);
+	v8::Persistent<v8::Function> OnSuccess = (Args.Length() > 1) ? 
+		TJsHttpUtil::GetArgFunPer(Args, 1) : v8::Persistent<v8::Function>();
+	v8::Persistent<v8::Function> OnError = (Args.Length() > 2) ? 
+		TJsHttpUtil::GetArgFunPer(Args, 2) : v8::Persistent<v8::Function>();
+	// what should we return
+	const bool JsonP = (TJsHttpUtil::GetFunNm(Args) == "get");
+	// fetch
+	TEnv::Logger->OnStatusFmt("Fetching URL '%s'", UrlStr.CStr());
+	JsHttp->Js->JsFetch->Fetch(TJsFetchRq(THttpRq::New(TUrl::New(UrlStr)), JsonP, OnSuccess, OnError));
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsHttp::post(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHttp* JsHttp = TJsHttpUtil::GetSelf(Args);
+	// get function name and callback
+	TStr UrlStr = TJsHttpUtil::GetArgStr(Args, 0);
+	TStr MimeTypeStr = TJsHttpUtil::GetArgStr(Args, 1);
+	TStr BodyStr = TJsHttpUtil::GetArgStr(Args, 2);
+	v8::Persistent<v8::Function> OnSuccess = (Args.Length() > 3) ? 
+		TJsHttpUtil::GetArgFunPer(Args, 3) : v8::Persistent<v8::Function>();
+	v8::Persistent<v8::Function> OnError = (Args.Length() > 4) ? 
+		TJsHttpUtil::GetArgFunPer(Args, 4) : v8::Persistent<v8::Function>();
+	// what should we return
+	const bool JsonP = (TJsHttpUtil::GetFunNm(Args) == "post");
+	// prepare request
+	TMem BodyMem; BodyMem.AddBf(BodyStr.CStr(), BodyStr.Len());
+	PHttpRq HttpRq = THttpRq::New(hrmPost, TUrl::New(UrlStr), MimeTypeStr, BodyMem);
+	// fetch
+	TEnv::Logger->OnStatusFmt("Fetching URL '%s'", UrlStr.CStr());
+	JsHttp->Js->JsFetch->Fetch(TJsFetchRq(HttpRq, JsonP, OnSuccess, OnError));
+	return v8::Undefined();
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Http-Response
+
+v8::Handle<v8::ObjectTemplate> TJsHttpResp::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, setStatusCode);
+		JsRegisterFunction(TmpTemp, setContentType);
+		JsRegisterFunction(TmpTemp, add);
+		JsRegisterFunction(TmpTemp, close);
+		JsRegisterFunction(TmpTemp, send);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+//TODO change to property
+v8::Handle<v8::Value> TJsHttpResp::setStatusCode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // check we are still allowed to do anything    
+    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
+    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
+    // update response code
+    QmAssertR(Args.Length() == 1, "Invalid number of arguments to httpResponse.setStatusCode()");
+    JsHttpResp->StatusCode = TJsHttpRespUtil::GetArgInt32(Args, 0);
+    return v8::Undefined();
+}
+
+//TODO change to property
+v8::Handle<v8::Value> TJsHttpResp::setContentType(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // check we are still allowed to do anything    
+    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
+    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
+    // update content type
+    QmAssertR(Args.Length() == 1, "Invalid number of arguments to httpResponse.setContentType()");
+    JsHttpResp->ContTypeStr = TJsHttpRespUtil::GetArgStr(Args, 0);
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsHttpResp::add(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // check we are still allowed to do anything    
+    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
+    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
+    // in case we have arguments, add them to the buffer
+    if (Args.Length() > 0) {
+        QmAssertR(Args.Length() == 1, "Invalid number of arguments to httpResponse.add()");
+        if(TJsHttpRespUtil::IsArgJson(Args, 0)) {
+            JsHttpResp->BodyMem += TJsHttpRespUtil::GetArgJsonStr(Args, 0);
+        } else if (TJsHttpRespUtil::IsArgStr(Args, 0)) {
+            JsHttpResp->BodyMem += TJsHttpRespUtil::GetArgStr(Args, 0);
+        } else {
+            throw TQmExcept::New("Invalid parameter type to httpResponse.add()");
+        }
+    }
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsHttpResp::close(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // check we are still allowed to do anything    
+    TJsHttpResp* JsHttpResp = TJsHttpRespUtil::GetSelf(Args);
+    QmAssertR(!JsHttpResp->DoneP, "HTTP response already completed.");
+    // First mark we are done (we can only send response once)
+    JsHttpResp->DoneP = true;
+    // Prepare response
+    PSIn BodySIn = JsHttpResp->BodyMem.GetSIn();
+    PHttpResp HttpResp = THttpResp::New(JsHttpResp->StatusCode, 
+        JsHttpResp->ContTypeStr, false, BodySIn);
+    // Execute response
+    JsHttpResp->WebSrv->SendHttpResp(JsHttpResp->SockId, HttpResp);
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsHttpResp::send(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // first add the data to the buffer
+    TJsHttpResp::add(Args);
+    // and execute the response
+    TJsHttpResp::close(Args);
+    return v8::Undefined();
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Time
+
+v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, string);
+		JsRegisterProperty(TmpTemp, timestamp);
+        JsRegisterProperty(TmpTemp, now);
+        JsRegisterProperty(TmpTemp, nowUTC);
+        JsRegisterFunction(TmpTemp, add);
+		JsRegisterFunction(TmpTemp, sub);
+		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, parse);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsTm::string(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
+    TStr TmStr = JsTm->Tm.GetWebLogDateTimeStr(true, "T", true);   
+	return HandleScope.Close(v8::String::New(TmStr.CStr()));
+}
+
+v8::Handle<v8::Value> TJsTm::timestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
+    const int Timestamp = TTm::GetDateTimeIntFromTm(JsTm->Tm);
+	return HandleScope.Close(v8::Int32::New(Timestamp));
+}
+
+v8::Handle<v8::Value> TJsTm::now(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(TJsTm::New(TTm::GetCurLocTm()));
+}
+
+v8::Handle<v8::Value> TJsTm::nowUTC(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(TJsTm::New(TTm::GetCurUniTm()));
+}
+
+v8::Handle<v8::Value> TJsTm::add(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
+    // parse arguments
+    const int Val = TJsTmUtil::GetArgInt32(Args, 0);
+    const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "second");
+    // add according to the unit
+    if (Unit == "second") {
+        JsTm->Tm.AddTime(0, 0, Val);
+    } else if (Unit == "minute") {
+        JsTm->Tm.AddTime(0, Val);        
+    } else if (Unit == "hour") {
+        JsTm->Tm.AddTime(Val);        
+    } else if (Unit == "day") {
+        JsTm->Tm.AddDays(Val);        
+    }
+    // nothing to return
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
+    // parse arguments
+    const int Val = TJsTmUtil::GetArgInt32(Args, 0);
+    const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "second");
+    // add according to the unit
+    if (Unit == "second") {
+        JsTm->Tm.SubTime(0, 0, Val);
+    } else if (Unit == "minute") {
+        JsTm->Tm.SubTime(0, Val);        
+    } else if (Unit == "hour") {
+        JsTm->Tm.SubTime(Val);        
+    } else if (Unit == "day") {
+        JsTm->Tm.SubDays(Val);        
+    }
+    // nothing to return
+    return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
+    // prepare response object
+    v8::Local<v8::Object> TmJson = v8::Object::New();
+    TmJson->Set(v8::String::New("year"), v8::Int32::New(JsTm->Tm.GetYear()));
+    TmJson->Set(v8::String::New("month"), v8::Int32::New(JsTm->Tm.GetMonth()));
+    TmJson->Set(v8::String::New("day"), v8::Int32::New(JsTm->Tm.GetDay()));
+    TmJson->Set(v8::String::New("hour"), v8::Int32::New(JsTm->Tm.GetHour()));
+    TmJson->Set(v8::String::New("minute"), v8::Int32::New(JsTm->Tm.GetMin()));
+    TmJson->Set(v8::String::New("second"), v8::Int32::New(JsTm->Tm.GetSec()));
+    TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
+    // return constructed json
+    return HandleScope.Close(TmJson);
+}
+
+v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // read string argument
+    TStr TmStr = TJsTmUtil::GetArgStr(Args, 0);
+    // prepare response object
+    TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+    // return constructed json
+    return HandleScope.Close(TJsTm::New(Tm));
 }
 
 }

@@ -1,3 +1,19 @@
+// QMiner - Open Source Analytics Platform
+// 
+// Copyright (C) 2014 Jozef Stefan Institute
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License, version 3,
+// as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 //////////////////////////////////////////
 // is parameter an object
 exports.isObject = function (arg) {
@@ -52,4 +68,16 @@ exports.isString = function (s) {
 // checks if null, and returns default value
 exports.ifNull = function (val, defVal) {
     return val ? val : defVal
+}
+
+//////////////////////////////////////////
+// Hash table
+exports.hashTable = function() {
+    this._data = new Object();
+    this.keys = new Array();
+    this.vals = new Array();
+    this.put = function (key) { this._data[key] = ""; this.keys.push(key); }
+    this.put = function (key, dat) { this._data[key] = dat; this.keys.push(key); this.vals.push(dat); }
+    this.contains = function (key) { return this._data.hasOwnProperty(key); }
+    this.get = function (key) { return this._data.hasOwnProperty(key) ? this._data[key] : null; }
 }
