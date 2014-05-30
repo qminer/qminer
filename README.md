@@ -6,6 +6,7 @@ unstructured data. It is designed to for scaling to millions of instances on hig
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
 **[Main project homepage](http://qminer.ijs.si/)**
+
 **[Mailing list](https://groups.google.com/forum/#!forum/qminer)**
 
 QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at 
