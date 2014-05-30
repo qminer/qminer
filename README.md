@@ -16,10 +16,15 @@ QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at
 
 ```
 git clone git@github.com:qminer/qminer.git
+cd qminer
 make lib
 make
 ./test/javascript/test.sh
 ```
+
+For more detailed installation check the following instructions:
+- [Linux installation](https://github.com/qminer/qminer/wiki/Installation-in-Linux)
+- [Windows installation](https://github.com/qminer/qminer/wiki/Installation-in-Windows)
 
 ## Documentation
 
