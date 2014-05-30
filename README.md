@@ -23,8 +23,8 @@ make
 ```
 
 For more detailed installation check the following instructions:
-- [Linux installation](Installation-in-Linux)
-- [Windows installation](Installation-in-Windows)
+- [Linux installation](https://github.com/qminer/qminer/wiki/Installation-in-Linux)
+- [Windows installation](https://github.com/qminer/qminer/wiki/Installation-in-Windows)
 
 ## Documentation
 
