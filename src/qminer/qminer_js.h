@@ -2339,7 +2339,7 @@ public:
 	//#
     //#- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
     JsDeclareProperty(string);
-    //#- `tm.string` -- string representation of date (e.g. 2014-05-29)
+    //#- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
     JsDeclareProperty(dateString);
     //#- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
     JsDeclareProperty(timestamp);
