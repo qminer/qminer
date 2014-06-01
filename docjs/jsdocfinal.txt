@@ -228,6 +228,15 @@ several functions from linear algebra.
 - `i = la.randInt(n)` -- returns an integer `i` which is randomly selected from the set of integers `[0, ..., n-1]`
 - `vec = la.randIntVec(n, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
 - `mat = la.genRandomMatrix(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
+- `I = la.eye(dim)` -- `I` is a `dim`-by-`dim` identity matrix
+- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
+- `vec = la.rangeVec(min, max)` -- `vec` is an integer(!) vector: `[min, min+1,..., max]`.
+- `la.square(vec)` -- when `vec` is a vector, squares all elements of a vector (inplace)
+- `sq = la.square(num)` -- when `num` is a number, `sq = num * num`.
+- `idxArray = la.findMaxIdx(X)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `X`. If `X` is a dense vector, the result has one element.
+- `vec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `vec`
+- `vec = la.copyFltArrayToVec(arr)` -- copies a JS array of numbers `arr` into a float vector `vec`
+- `la.saveMat(X, fout)` -- writes a matrix `X` to output file stream `fout`
 
 ### Vector
 
@@ -241,7 +250,126 @@ var intv = la.newIntVec(); //empty vector
 ```
 
 
-## Analytics.js
+**Functions and properties:**
+
+- `x = vec.at(elN)` -- gets the value `x` at index `elN` of vector `vec` (0-based indexing)
+- `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
+- `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
+- `vec.push(y)` -- append value `y` to vector `vec`
+- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors.
+- `x = vec.sum()` -- sums the elements of `vec`
+- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
+- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
+- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order
+- outer: outer product
+- inner: inner product
+- plus: add vectors
+- minus: subtract vectors
+- multiply: scalar multiply
+- normalize: INPLACE : normalizes the vector, returns undefined
+- length: gets vector length
+- print: print vector
+- diag: get diagonal matrix
+- spDiag: get sparse diagonal matrix
+- norm: get norm
+- sparse: Gets a sparse representation
+
+### Matrix (dense matrix)
+
+Matrix is a double 2D array implemented in glib/base/ds.h. 
+Using the global `la` object, dense matrices are generated in several ways:
+
+```JavaScript
+var fltv = la.newVec(); //empty matrix
+// refer to la.newMat function for alternative ways to generate dense matrices
+```
+
+
+**Functions and properties:**
+
+- at: get element
+- put: set element, returns undefined
+- multiply: matrix * scalar, matrix * vector, matrix * matrix
+- multiplyT: matrix' * scalar, matrix' * vector, matrix' * matrix
+- plus: matrix + matrix
+- minus: matrix - matrix
+- transpose: returns the transpose of a matrix
+- solve: solves a linear system A x = y. Input: y, Output: x
+- rowNorms: get row norms
+- colNorms: get col norms
+- normalizeCols: INPLACE : changes the matrix by normalizing columns, return undefined
+- sparse: get sparse column matrix
+- frob: get frobenious norm
+- rows: get number of rows
+- cols: get number of columns
+- printStr: get print matrix string
+- print: print matrix
+- rowMaxIdx: get the index of the maximum element in a given row
+- colMaxIdx: get the index of the maximum element in a given col
+- getCol: get a copy of a given column
+- setCol: set a column given a vector
+- getRow: get a copy of a given row
+- setRow: set a row given a vector
+
+### SpVector (sparse vector)
+
+Sparse vector is an array of (int,double) pairs that represent column indices and values (TIntFltKdV is implemented in glib/base/ds.h.)
+Using the global `la` object, sparse vectors can be generated in the following ways:
+
+```JavaScript
+var spVec = la.newSpVec(); //empty vector
+// refer to la.newSpVec for alternative ways to generate sparse vectors
+```
+
+
+**Functions and properties:**
+
+- at: get element
+- put: set element, returns undefined
+- sum: sum elements
+- inner:inner product
+- multiply:scalar multiply
+- normalize:INPLACE : normalizes the vector, returns undefined
+- nnz:gets the number of nonzero elements
+- dim:gets the number of nonzero elements
+- print:print
+- norm:norm
+- full:full
+
+### SpMatrix (sparse column matrix)
+
+SpMatrix is a sparse matrix represented as a dense vector of sparse vectors which correspond to matrix columns (TVec<TIntFltKdV>, implemented in glib/base/ds.h.)
+Using the global `la` object, sparse matrices are generated in several ways:
+
+```JavaScript
+var spMat = la.newSpMat(); //empty matrix
+// refer to la.newSpMat function for alternative ways to generate sparse matrices
+```
+
+
+**Functions and properties:**
+
+- at:get element
+- put:set element, returns undefined
+- []:index
+- push:add a sparse column vector to the matrix
+- multiply:matrix * scalar, matrix * vector, matrix * matrix
+- multiplyT:matrix' * scalar, matrix' * vector, matrix' * matrix
+- plus:matrix + matrix
+- minus:matrix - matrix
+- transpose:returns the transpose of a matrix
+- colNorms:get column norms
+- normalizeCols:INPLACE : changes the matrix by normalizing columns, return undefined
+- full:get dense matrix
+- frob:get frobenious norm
+- rows:get number of rows
+- cols:get number of columns
+- print:print
+- `la.spMat` -- the prototype object for sparse column matrices
+- `spMat.toString()` -- displays rows, columns and number of non-zero elements of a sparse column matrix `spMat`
+- `var n = spMat.nnz();` -- `n` is the number of non-zero elements of sparse column matrix `spMat`
+
+## Analytics.js (use require)
 
 Analytics algorithms for working with records stored in
 QMiner and with linear algebra objects created by `la`.
@@ -285,7 +413,11 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     through the model and returns the result as an array of scores.
   - `model.save(fout)` -- saves the model to `fout` output stream
 - `analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
-
+- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)`
+- `model = new analytics.ridgeRegression(kapa, dim, buffer)`
+- `model = new analytics.kmeans(X, k, iter)`
+- `model = new analytics.lloyd(dim, k)`
+- `model = new analytics.perceptron(dim, use_bias)`
 
 ### Feature Space
 
@@ -348,6 +480,35 @@ Holds online regression model. This object is result of `analytics.newRecLinReg`
 - `process.isArg(arg)` -- returns true when `arg` among the 
     command-line arguments used to start current QMiner instance
 - `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+
+### Utilities.js (use require)
+
+- `utilities.isObject(arg)` -- is parameter an object?
+- `utilities.isArray(arg)` -- is parameter an array?
+- `utilities.isInArray(array, value)` -- is element in an array?
+- `utilities.isNumber(n)` -- is `n` a number?
+- `utilities.isString(s)` -- is `s` a string?
+- `utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
+- `h = new utilities.hashTable()` -- creates a hash table
+ - `utilities.hashTable._vals` -- 
+ - `utilities.hashTable.keys` -- 
+ - `utilities.hashTable.vals` -- 
+ - `utilities.hashTable.put(key)` -- 
+ - `utilities.hashTable.put(key, dat)` -- 
+ - `utilities.hashTable.contains(key)` -- 
+ - `utilities.hashTable.get(key)` -- 
+- `sw = new utilities.clsStopwatch()` -- creates a stop watch object `sw`
+- `sw.start()` --
+- `sw.stop()` --
+- `sw.reset()` --
+- `sw.time()` --
+- `sw.saytime(msg)` --
+- `sw.tic()` --
+- `sw.toc(msg)` --
+- `q = utilities.arraysIdentical(arr1, arr2)` -- `q` is true if array `arr1` is identical to array `arr2`
+
+### Assert.js (use require)
+
 
 ### Console
 
@@ -448,7 +609,7 @@ New one can be created using `tm = require('time')`.
 **Functions and properties:**
 
 - `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
-- `tm.string` -- string representation of date (e.g. 2014-05-29)
+- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
 - `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
 - `tm.year`
 - `tm.month`

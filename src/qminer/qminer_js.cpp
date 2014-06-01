@@ -656,6 +656,7 @@ void TScript::Init() {
 	Execute(TEnv::QMinerFPath + "fs.js");
 	Execute(TEnv::QMinerFPath + "http.js");
 	Execute(TEnv::QMinerFPath + "linalg.js");
+	Execute(TEnv::QMinerFPath + "spMat.js");
 	Execute(ScriptFNm);
 }
 
