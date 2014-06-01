@@ -15,34 +15,6 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 //////////////////////////////////////////
-// process wrapper 
-var process = function() {
-	var _obj = {};
-	_obj.isArg = function(arg) {
-        for (var i = 0; i < qm.args.length; i++) {
-            if (qm.args[i] == arg) { return true; }
-		}
-		return false;
-	}	
-
-	return _obj;
-}();
-
-//////////////////////////////////////////
-// Console 
-
-// Start interactive console
-console.start = function () {
-    while (true) {        
-        try {
-            console.log("" + eval(console.getln()));
-        } catch (err) {
-            console.log("Error: " + err.message);
-        }
-    }
-}
-
-//////////////////////////////////////////
 // QMiner 
 
 // loading data into stores
