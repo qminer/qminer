@@ -1849,7 +1849,7 @@ public:
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-    JsDeclareFunction(newRecLinReg);	
+  JsDeclareFunction(newRecLinReg);	
     
     // clustering (TODO: still depends directly on feature space)
     // trainKMeans(featureSpace, positives, negatives, parameters)
@@ -1859,7 +1859,10 @@ public:
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `options.stemmer` and `options.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
-    
+  
+	  //#- `model = analytics.newRecLinReg(stream, params)` -- create new
+		//#  incremental decision tree learner; parameters are passed as JSON
+  JsDeclareFunction(newHoeffdingTree);
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -2374,6 +2377,31 @@ public:
     //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
     //#     as Date-Time object
     JsDeclareFunction(parse)
+};
+
+///////////////////////////////
+// QMiner-JavaScript-HoeffdingTree
+class TJsHoeffdingTree {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	// HoeffdingTree, the learner 
+	THoeffding::PHoeffdingTree HoeffdingTree;
+private:
+	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+
+	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
+		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig) { 
+		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
+	
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(process);
+	JsDeclareFunction(classify);
+	JsDeclareFunction(exportModel);
 };
 
 }
