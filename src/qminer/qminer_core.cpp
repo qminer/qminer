@@ -3955,7 +3955,9 @@ void TAggr::Init() {
     Register<TAggrs::THistogram>();
     Register<TAggrs::TKeywords>();
     Register<TAggrs::TTimeLine>();
+	#ifndef IGNORE_OG_AGGR_TWITTER
 	Register<TAggrs::TTwitterGraph>();
+	#endif
 	#ifdef OG_AGGR_DOC_ATLAS
     Register<TAggrs::TDocAtlas>();
     #endif
