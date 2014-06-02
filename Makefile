@@ -16,7 +16,8 @@ VERSION = 0.5.0
 THIRD_PARTY = src/third_party
 LIBUV = $(THIRD_PARTY)/libuv
 LIBV8 = $(THIRD_PARTY)/v8/out/x64.release/obj.target/tools/gyp
-LIBSNAP = $(THIRD_PARTY)/Snap/snap-core
+SNAP = $(THIRD_PARTY)/Snap
+LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib
 QMINER = src/qminer
 BUILD = build
@@ -36,6 +37,8 @@ all: qm
 qm:
 	# compile glib
 	make -C $(GLIB)
+	# compile SNAP
+	make -C $(SNAP)	
 	# compile qminer
 	make -C $(QMINER)
 	# create qm commandline tool
@@ -60,9 +63,10 @@ qm:
 	
 cleanall: clean cleandoc
 	make -C $(THIRD_PARTY) clean
-	make -C $(GLIB) clean
 
 clean:
+	make -C $(GLIB) clean
+	make -C $(SNAP) clean
 	make -C $(QMINER) clean
 	rm -f *.o *.gch *.a qm
 	rm -rf ./$(BUILD)/

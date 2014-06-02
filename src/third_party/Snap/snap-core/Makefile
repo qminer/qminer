@@ -10,7 +10,7 @@ testSnap: testSnap.cpp Snap.o
 	$(CC) -o testSnap testSnap.cpp $(CXXFLAGS) Snap.o -I$(CSNAP) -I$(CGLIBMISC) -I$(CGLIBADV) -I$(CGLIB) $(LDFLAGS) $(LIBS)
 
 Snap.o: *.h *.cpp
-	$(CC) -c $(CXXFLAGS) Snap.cpp -I$(CGLIBMISC) -I$(CGLIBADV) -I$(CGLIB)  
+	$(CC) -c $(CXXFLAGS) Snap.cpp -I$(CGLIBMISC) -I$(CGLIBADV) -I$(CGLIB) $(LDFLAGS)
 
 lib: Snap.o
 	rm -f libsnap.a
