@@ -1693,6 +1693,12 @@ public:
 		TJsSpV::SetSpV(obj, _Vec);
 		return  obj;
 	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIntFltKdV& _Vec, const int _Dim) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpV::SetSpV(obj, _Vec);
+		TJsSpV::SetDim(obj, _Dim);
+		return  obj;
+	}
 	static TIntFltKdV& GetSpV(const v8::Handle<v8::Object> Obj) {
 		return TJsSpVUtil::GetSelf(Obj)->Vec;
 	}
