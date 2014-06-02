@@ -237,6 +237,7 @@ several functions from linear algebra.
 - `vec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `vec`
 - `vec = la.copyFltArrayToVec(arr)` -- copies a JS array of numbers `arr` into a float vector `vec`
 - `la.saveMat(X, fout)` -- writes a matrix `X` to output file stream `fout`
+- `la.conjgrad(A,b,x)` -- solves the system A*x = b, where `A` is a matrix (sparse or dense) and `b` and `x` are dense vectors
 
 ### Vector
 

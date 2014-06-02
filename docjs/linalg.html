@@ -213,13 +213,93 @@ B[<span class="hljs-number">1</span>].print();</pre></div></div>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
-              <p>a.print();
-a.toString();
-a.nnz();</p>
+              <p>Create a symmetric positive definite matrix (so that we can test the conjugate gradient method):</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>console.start();</pre></div></div>
+            <div class="content"><div class='highlight'><pre>A = A.multiply(A.transpose());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>Linear system: solve A*x=b
+Generate true solution</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> x = la.genRandomVector(<span class="hljs-number">3</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Generate RHS</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> b = A.multiply(x);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Solve the system (dense matrix only)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> x2 = A.solve(b);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Compare the solution x2 to the true x</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>console.say(<span class="hljs-string">"Generate x. Set b := A*x; Compute x2 := A^(-1) b"</span>)
+console.say(<span class="hljs-string">"||x - x2|| = "</span> + x.minus(x2).norm());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Solve using CG (works for sparse and dense matrices, since it is a black box method)
+Create a random initial vector</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> x0 = la.genRandomVector(<span class="hljs-number">3</span>);
+<span class="hljs-keyword">var</span> x3 = la.conjgrad(A.sparse(), b, x0); <span class="hljs-comment">// convert A to a sparse matrix and test the CG method</span>
+console.say(<span class="hljs-string">"||x3 - x2|| = "</span> + x3.minus(x2).norm());
+
+console.start();</pre></div></div>
             
         </li>
         
