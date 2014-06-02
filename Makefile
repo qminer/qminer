@@ -99,6 +99,7 @@ doc: cleandoc
 	docco -o ./docjs/ examples/movies/src/movies.js
 	docco -o ./docjs/ examples/timeseries/src/timeseries.js
 	docco -o ./docjs/ examples/linalg/src/linalg.js
+	docco -o ./docjs/ examples/twitter/src/twitter.js
 	sed "s/00000000/$(DOXYGEN_STIME)/" Doxyfile | sed "s/11111111/$(DOXYGEN_SLVER)/" > Doxyfile-tmp
 	$(DOXYGEN) Doxyfile-tmp
 	
