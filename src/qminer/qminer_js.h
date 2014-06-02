@@ -1371,7 +1371,7 @@ public:
 	JsDeclareFunction(put);	
 	//#- `vec.push(y)` -- append value `y` to vector `vec`
 	JsDeclareFunction(push);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors.
+	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(pushV);
 	//#- `x = vec.sum()` -- sums the elements of `vec`
 	JsDeclareFunction(sum);
@@ -1379,31 +1379,31 @@ public:
 	JsDeclareFunction(getMaxIdx);
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
-	//#- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order
+	//#- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(sortPerm);	
-	//#- outer: outer product
+	//#- `mat = vec1.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec1 * vec2^T`. Implemented for dense float vectors. 
 	JsDeclareTemplatedFunction(outer);
-	//#- inner: inner product
+	//#- `x = vec1.inner(vec2)` -- `x` is the standard dot product between vectors `vec1` and `vec2`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(inner);
-	//#- plus: add vectors
+	//#- `vec3 = vec1.plus(vec2)` --`vec3` is the sum of vectors `vec1` and `vec2`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(plus);
-	//#- minus: subtract vectors
+	//#- `vec3 = vec1.minus(vec2)` --`vec3` is the difference of vectors `vec1` and `vec2`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(minus);
-	//#- multiply: scalar multiply
+	//#- `vec2 = vec1.multiply(a)` --`vec2` is a vector obtained by multiplying vector `vec1` with a scalar (number) `a`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(multiply);
-	//#- normalize: INPLACE : normalizes the vector, returns undefined
+	//#- `vec.normalize();` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(normalize);
-	//#- length: gets vector length
+	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
 	JsDeclareProperty(length);
-	//#- print: print vector
+	//#- `vec.print()` -- print vector in console
 	JsDeclareFunction(print);
-	//#- diag: get diagonal matrix
+	//#- `D = vec.diag()` -- `D` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(diag);
-	//#- spDiag: get sparse diagonal matrix
+	//#- `D = vec.spDiag()` -- `D` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(spDiag);
-	//#- norm: get norm
+	//#- `x = vec.norm()` -- `x` is the Euclidean norm of `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(norm);
-	//#- sparse: Gets a sparse representation
+	//#- `vec2 = vec.sparse()` -- `vec2` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(sparse);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
