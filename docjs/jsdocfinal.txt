@@ -288,9 +288,9 @@ var fltv = la.newVec(); //empty matrix
 
 **Functions and properties:**
 
-- `val = mat.at(i,j)` -- number `val` is the element in the `i`-th row, `j`-th column (zero based indexing)
-- `mat.put(i,j, val)` -- sets the element at `i`-th row and `j`-th col to `val`
-- `y = mat.multiply(x)` -- matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
+- `val = mat.at(i,j)` -- Gets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
+- `mat.put(i, j, val)` -- Sets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
+- `y = mat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
 - `y = mat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
 - `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
 - `mat3 = mat1.plus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
@@ -325,17 +325,17 @@ var spVec = la.newSpVec(); //empty vector
 
 **Functions and properties:**
 
-- at: get element
-- put: set element, returns undefined
-- sum: sum elements
-- inner:inner product
-- multiply:scalar multiply
-- normalize:INPLACE : normalizes the vector, returns undefined
-- nnz:gets the number of nonzero elements
-- dim:gets the number of nonzero elements
-- print:print
-- norm:norm
-- full:full
+- `val = spVec.at(i)` -- Gets the element of a sparse vector `spVec`. Input: index `i` (integer). Output: value `val` (number). Uses 0-based indexing
+- `spVec.put(i, val)` -- Set the element of a sparse vector `spVec`. Inputs: index `i` (integer), value `val` (number). Uses 0-based indexing
+- `x = spVec.sum()` -- `x` is the sum of elements of `spVec`
+- `x = spVec.inner(y)` -- `x` is the inner product between `spVec` and vector (sparse or dense) `y`.
+- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `a` (number) and vector `spVec`
+- `spVec.normalize()` -- normalizes the vector spVec (inplace operation)
+- `n = spVec.nnz` -- gets the number of nonzero elements `n` of vector `spVec`
+- `d = spVec.dim` -- gets the dimension `d` (-1 means that it is unknown)
+- `spVec.print()` -- prints the vector to console
+- `x = spVec.norm()` -- returns `x` - the norm of `spVec`
+- `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
 
 ### SpMatrix (sparse column matrix)
 
