@@ -322,6 +322,119 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Script
+class TScript {
+private: 
+	// smart pointer
+	TCRef CRef;
+	friend class TPt<TScript>;
+	
+	// qm and fs require access to private members
+	friend class TJsBase;
+	friend class TJsFs;
+
+	/// Script name
+	TStr ScriptNm;
+	/// Script filename
+	TStr ScriptFNm;
+
+	/// Directories with include libraries available to this script
+	TStrV IncludeFPathV;
+	/// Directories this script has read and/or write privileges to
+	TVec<TJsFPath> AllowedFPathV;
+	
+	/// Security token for JavaScript context
+	TStr SecurityToken;
+	/// Map from server Rules to JavaScript callbacks
+    TJsonValV SrvFunRuleV;
+    THash<TInt, v8::Persistent<v8::Function> > JsNmFunH;;
+	
+public:
+	/// JavaScript context
+	v8::Persistent<v8::Context> Context; 
+	/// QMiner Base
+	TWPt<TBase> Base;
+	/// List of declared triggers
+	TVec<TPair<TUInt, PStoreTrigger> > TriggerV;
+	/// HTTP web fetcher
+	TWPt<TJsFetch> JsFetch;
+	
+public:
+	TScript(const PBase& _Base, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
+		const TStrV& _IncludeFPathV, const TVec<TJsFPath>& _AllowedFPathV);
+	static PScript New(const PBase& Base, const TStr& ScriptNm, const TStr& ScriptFNm, 
+		const TStrV& IncludeFPathV, const TVec<TJsFPath>& AllowedFPathV) { 
+			return new TScript(Base, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
+    
+    // get TScript from global context
+    static TWPt<TScript> GetGlobal(v8::Handle<v8::Context>& Context);
+    
+	~TScript();
+	
+	/// Get script name
+	const TStr& GetScriptNm() const { return ScriptNm; }
+	/// Get script filename
+	const TStr& GetScriptFNm() const { return ScriptFNm; }
+	
+	/// Register as server function
+	void RegSrvFun(TSAppSrvFunV& SrvFunV);
+	/// Reloads the file with the script
+	void Reload();
+
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
+	/// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context
+    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
+	/// Execute JavaScript callback in this script's context
+    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg1, 
+        const v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
+	/// Execute JavaScript callback in this script's context
+	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
+
+	/// Add new server function
+	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
+	/// Execute stored server function
+	void ExecuteSrvFun(const PHttpRq& HttpRq, const TWPt<TJsHttpResp>& JsHttpResp);
+    /// Get array of registered server function rules
+    PJsonVal GetSrvFunRules() const { return TJsonVal::NewArr(SrvFunRuleV); }
+	/// Add new fetch request
+	void AddFetchRq(const TJsFetchRq& Rq);
+	/// Remember new trigger
+	void AddTrigger(const uint& StoreId, const PStoreTrigger& Trigger);
+
+	/// Callback for loading modules in from javascript
+	JsDeclareFunction(require);
+private:
+	/// Initializes main objects and runs the whole script 
+	void Init();
+	/// Installs main objects in the context
+	void Install();
+	/// Loads the script from disk and runs preprocessor (imports)
+	TStr LoadSource(const TStr& FNm);
+	/// Runs the whole script
+	void Execute(const TStr& FNm);
+	
+	/// Load module from given file
+	TStr LoadModuleSrc(const TStr& ModuleFNm);
+	/// Get library full name (search over all include folders
+	TStr GetLibFNm(const TStr& LibNm); 
+};
+
+///////////////////////////////
 // QMiner-JavaScript-Object-Utility
 template <class TJsObj>
 class TJsObjUtil {
@@ -346,15 +459,14 @@ public:
 			printf("%s ", CStr);
 		}
 	}
-
 	
 	static v8::Persistent<v8::Object> New(TJsObj* JsObj, TWPt<TScript> Js, const TStr& ProtoObjPath, const bool& MakeWeakP = true) {
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::ObjectTemplate> Template = TJsObj::GetTemplate();
 		// Get prototype object Obj
-		v8::Handle<v8::Object> global =  Js->Context->Global();
+		v8::Handle<v8::Object> Global =  Js->Context->Global();
 		TStrV ProtoPathV; ProtoObjPath.SplitOnAllCh('.', ProtoPathV, true);
-		v8::Handle<v8::Value> Val = global->Get(v8::String::New(ProtoPathV[0].CStr()));
+		v8::Handle<v8::Value> Val = Global->Get(v8::String::New(ProtoPathV[0].CStr()));
 		v8::Handle<v8::Object> Obj = v8::Handle<v8::Object>::Cast(Val);
 		for (int ObjN = 1; ObjN < ProtoPathV.Len(); ObjN++) {
 			Val = Obj->Get(v8::String::New(ProtoPathV[ObjN].CStr()));
@@ -644,119 +756,6 @@ public:
 		QmAssertR(Val->IsFunction(), TStr::Fmt("Argument %d expected to be function", ArgN));
 		return v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Val));
 	}
-};
-
-///////////////////////////////
-// JavaScript Script
-class TScript {
-private: 
-	// smart pointer
-	TCRef CRef;
-	friend class TPt<TScript>;
-	
-	// qm and fs require access to private members
-	friend class TJsBase;
-	friend class TJsFs;
-
-	/// Script name
-	TStr ScriptNm;
-	/// Script filename
-	TStr ScriptFNm;
-
-	/// Directories with include libraries available to this script
-	TStrV IncludeFPathV;
-	/// Directories this script has read and/or write privileges to
-	TVec<TJsFPath> AllowedFPathV;
-	
-	/// Security token for JavaScript context
-	TStr SecurityToken;
-	/// Map from server Rules to JavaScript callbacks
-    TJsonValV SrvFunRuleV;
-    THash<TInt, v8::Persistent<v8::Function> > JsNmFunH;;
-	
-public:
-	/// JavaScript context
-	v8::Persistent<v8::Context> Context; 
-	/// QMiner Base
-	TWPt<TBase> Base;
-	/// List of declared triggers
-	TVec<TPair<TUInt, PStoreTrigger> > TriggerV;
-	/// HTTP web fetcher
-	TWPt<TJsFetch> JsFetch;
-	
-public:
-	TScript(const PBase& _Base, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
-		const TStrV& _IncludeFPathV, const TVec<TJsFPath>& _AllowedFPathV);
-	static PScript New(const PBase& Base, const TStr& ScriptNm, const TStr& ScriptFNm, 
-		const TStrV& IncludeFPathV, const TVec<TJsFPath>& AllowedFPathV) { 
-			return new TScript(Base, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
-    
-    // get TScript from global context
-    static TWPt<TScript> GetGlobal(v8::Handle<v8::Context>& Context);
-    
-	~TScript();
-	
-	/// Get script name
-	const TStr& GetScriptNm() const { return ScriptNm; }
-	/// Get script filename
-	const TStr& GetScriptFNm() const { return ScriptFNm; }
-	
-	/// Register as server function
-	void RegSrvFun(TSAppSrvFunV& SrvFunV);
-	/// Reloads the file with the script
-	void Reload();
-
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
-	/// Execute JavaScript callback in this script's context
-    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
-	/// Execute JavaScript callback in this script's context
-    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
-	/// Execute JavaScript callback in this script's context
-    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
-	/// Execute JavaScript callback in this script's context
-    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg1, 
-        const v8::Handle<v8::Object>& Arg2);
-	/// Execute JavaScript callback in this script's context
-	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
-	/// Execute JavaScript callback in this script's context
-	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
-
-	/// Add new server function
-	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
-	/// Execute stored server function
-	void ExecuteSrvFun(const PHttpRq& HttpRq, const TWPt<TJsHttpResp>& JsHttpResp);
-    /// Get array of registered server function rules
-    PJsonVal GetSrvFunRules() const { return TJsonVal::NewArr(SrvFunRuleV); }
-	/// Add new fetch request
-	void AddFetchRq(const TJsFetchRq& Rq);
-	/// Remember new trigger
-	void AddTrigger(const uint& StoreId, const PStoreTrigger& Trigger);
-
-	/// Callback for loading modules in from javascript
-	JsDeclareFunction(require);
-private:
-	/// Initializes main objects and runs the whole script 
-	void Init();
-	/// Installs main objects in the context
-	void Install();
-	/// Loads the script from disk and runs preprocessor (imports)
-	TStr LoadSource(const TStr& FNm);
-	/// Runs the whole script
-	void Execute(const TStr& FNm);
-	
-	/// Load module from given file
-	TStr LoadModuleSrc(const TStr& ModuleFNm);
-	/// Get library full name (search over all include folders
-	TStr GetLibFNm(const TStr& LibNm); 
 };
 
 ///////////////////////////////
