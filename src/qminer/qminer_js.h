@@ -1608,11 +1608,11 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `val = mat.at(i,j)` -- number `val` is the element in the `i`-th row, `j`-th column (zero based indexing)
+	//#- `val = mat.at(i,j)` -- Gets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
-	//#- `mat.put(i,j, val)` -- sets the element at `i`-th row and `j`-th col to `val`
+	//#- `mat.put(i, j, val)` -- Sets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(put);
-	//#- `y = mat.multiply(x)` -- matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
+	//#- `y = mat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
 	JsDeclareFunction(multiply);
 	//#- `y = mat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
 	JsDeclareFunction(multiplyT);
@@ -1712,27 +1712,27 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- at: get element
+	//#- `val = spVec.at(i)` -- Gets the element of a sparse vector `spVec`. Input: index `i` (integer). Output: value `val` (number). Uses 0-based indexing
 	JsDeclareFunction(at);	
-	//#- put: set element, returns undefined
+	//#- `spVec.put(i, val)` -- Set the element of a sparse vector `spVec`. Inputs: index `i` (integer), value `val` (number). Uses 0-based indexing
 	JsDeclareFunction(put);		
-	//#- sum: sum elements
+	//#- `x = spVec.sum()` -- `x` is the sum of elements of `spVec`
 	JsDeclareFunction(sum);	
-	//#- inner:inner product
+	//#- `x = spVec.inner(y)` -- `x` is the inner product between `spVec` and vector (sparse or dense) `y`.
 	JsDeclareFunction(inner);	
-	//#- multiply:scalar multiply
+	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `a` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- normalize:INPLACE : normalizes the vector, returns undefined
+	//#- `spVec.normalize()` -- normalizes the vector spVec (inplace operation)
 	JsDeclareFunction(normalize);
-	//#- nnz:gets the number of nonzero elements
+	//#- `n = spVec.nnz` -- gets the number of nonzero elements `n` of vector `spVec`
 	JsDeclareProperty(nnz);	
-	//#- dim:gets the number of nonzero elements
+	//#- `d = spVec.dim` -- gets the dimension `d` (-1 means that it is unknown)
 	JsDeclareProperty(dim);	
-	//#- print:print
+	//#- `spVec.print()` -- prints the vector to console
 	JsDeclareFunction(print);
-	//#- norm:norm
+	//#- `x = spVec.norm()` -- returns `x` - the norm of `spVec`
 	JsDeclareFunction(norm);
-	//#- full:full
+	//#- `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
 };
 
