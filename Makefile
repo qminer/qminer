@@ -96,7 +96,9 @@ uninstall:
 
 doc: cleandoc
 	./genJSdoc.sh
-	docco -o ./docjs/ examples/movies/src/movies.js examples/timeseries/src/timeseries.js
+	docco -o ./docjs/ examples/movies/src/movies.js
+	docco -o ./docjs/ examples/timeseries/src/timeseries.js
+	docco -o ./docjs/ examples/linalg/src/linalg.js
 	sed "s/00000000/$(DOXYGEN_STIME)/" Doxyfile | sed "s/11111111/$(DOXYGEN_SLVER)/" > Doxyfile-tmp
 	$(DOXYGEN) Doxyfile-tmp
 	
