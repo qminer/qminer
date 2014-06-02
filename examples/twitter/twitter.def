@@ -1,0 +1,59 @@
+[
+  { 
+    "name": "Tweets", 
+    "fields": [ 
+      { "name": "ID", "type": "string", "primary": true }, 
+      { "name": "Date", "type": "datetime" } ,
+      { "name": "Text", "type": "string", "store": "cache" },
+      { "name": "Geo", "type": "float_pair", "null": true },
+      { "name": "Sentiment", "type": "int", "null": true }  
+    ], 
+    "joins": [
+      { "name": "author", "type": "field", "store": "Users", "inverse" : "author" },
+      { "name": "hasUser", "type": "index", "store": "Users", "inverse" : "hasUser" },
+      { "name": "hasHashtag", "type": "index", "store": "Hashtags", "inverse" : "hasHashtag" },
+      { "name": "hasPages", "type": "index", "store": "Pages", "inverse" : "hasPages" },
+      { "name": "hasMedia", "type": "index", "store": "Pages", "inverse" : "hasMedia" }
+    ],
+    "keys": [ 
+      { "field": "Text", "type": "text" },
+      { "field": "Geo", "type": "location" }
+    ]
+  }, 
+  { 
+    "name": "Users", 
+    "fields": [
+      { "name": "Username", "type": "string", "primary": true }, 
+      { "name": "Name", "type": "string", "null": true }, 
+	  { "name": "Location", "type": "string", "null": true }, 
+      { "name": "Followers", "type": "int", "null": true }, 
+      { "name": "Friends", "type": "int", "null": true }
+    ], 
+    "joins": [ 
+      { "name": "author", "type": "index", "store": "Tweets", "inverse" : "author" }, 
+      { "name": "hasUser", "type": "index", "store": "Tweets", "inverse" : "hasUser" } 
+    ], 
+    "keys": [ 
+      { "field": "Location", "type": "value" }
+    ] 
+  },
+  { 
+    "name": "Hashtags", 
+    "fields": [
+      { "name": "Name", "type": "string", "primary": true }
+    ], 
+    "joins": [ 
+      { "name": "hasHashtag", "type": "index", "store": "Tweets", "inverse" : "hasHashtag" }
+    ] 
+  },
+  { 
+    "name": "Pages", 
+    "fields": [
+      { "name": "URL", "type": "string", "primary": true }
+    ], 
+    "joins": [ 
+      { "name": "hasPages", "type": "index", "store": "Tweets", "inverse" : "hasPages" }, 
+      { "name": "hasMedia", "type": "index", "store": "Tweets", "inverse" : "hasMedia" } 
+    ] 
+  }
+]
