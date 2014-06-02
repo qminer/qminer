@@ -2815,8 +2815,9 @@ v8::HandleScope HandleScope;
 				TFltV& Result = TJsFltV::GetVec(JsResult);
 				// computation
 				Result.Gen(JsMat->Mat.GetCols());
-				TNumericalStuff::SolveLinearSystem(JsMat->Mat, JsVec->Vec, Result);			
-
+				TFltVV Mat2 = JsMat->Mat;
+				TFltV Vec2 = JsVec->Vec;
+				TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
 				return HandleScope.Close(JsResult);			
 			}			
 		}

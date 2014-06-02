@@ -22,16 +22,29 @@ var res = la.svd(A, 2);
 // How close is rank-2 SVD to A?
 console.say("Rank-2 SVD: ||A - U*diag(s)*V^T||_F = " + (res.U.multiply(res.s.spDiag()).multiply(res.V.transpose()).minus(A)).frob());
 
-
 // Generate a dense matrix from JS array and convert it to sparse
 var B = la.newMat([[1, 0], [3, 4]]).sparse();
 // Get the number of non-zero elements (implemented in spMat.js)
 console.say("B.nnz() = " + B.nnz());
-//Get the second column of B(sparse vector) and print it:
+// Get the second column of B(sparse vector) and print it:
 console.say("Second column of B (row index, value representation): ");
 B[1].print();
+// Create a symmetric positive definite matrix (so that we can test the conjugate gradient method):
+A = A.multiply(A.transpose());
+// Linear system: solve A*x=b
+// Generate true solution
+var x = la.genRandomVector(3);
+// Generate RHS
+var b = A.multiply(x);
+// Solve the system (dense matrix only)
+var x2 = A.solve(b);
+// Compare the solution x2 to the true x
+console.say("Generate x. Set b := A*x; Compute x2 := A^(-1) b")
+console.say("||x - x2|| = " + x.minus(x2).norm());
+// Solve using CG (works for sparse and dense matrices, since it is a black box method)
+// Create a random initial vector
+var x0 = la.genRandomVector(3);
+var x3 = la.conjgrad(A.sparse(), b, x0); // convert A to a sparse matrix and test the CG method
+console.say("||x3 - x2|| = " + x3.minus(x2).norm());
 
-//a.print();
-//a.toString();
-//a.nnz();
 console.start();
