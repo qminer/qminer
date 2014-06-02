@@ -136,6 +136,7 @@
     <Copy SourceFiles="@(JsLibFiles)" DestinationFiles="@(JsLibFiles->'build\lib\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="src\qminer\qminer.js" DestinationFiles="build\qminer.js" />
     <Copy SourceFiles="src\qminer\linalg.js" DestinationFiles="build\linalg.js" />
+    <Copy SourceFiles="src\qminer\spMat.js" DestinationFiles="build\spMat.js" />
     <Copy SourceFiles="src\qminer\console.js" DestinationFiles="build\console.js" />
     <Copy SourceFiles="src\qminer\fs.js" DestinationFiles="build\fs.js" />
     <Copy SourceFiles="src\qminer\http.js" DestinationFiles="build\http.js" />

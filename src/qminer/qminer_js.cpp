@@ -656,6 +656,7 @@ void TScript::Init() {
 	Execute(TEnv::QMinerFPath + "fs.js");
 	Execute(TEnv::QMinerFPath + "http.js");
 	Execute(TEnv::QMinerFPath + "linalg.js");
+	Execute(TEnv::QMinerFPath + "spMat.js");
 	Execute(ScriptFNm);
 }
 
@@ -3267,7 +3268,7 @@ v8::Handle<v8::Value> TJsSpMat::indexGet(uint32_t Index, const v8::AccessorInfo&
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
 	QmAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "sp matrix index at: index out of bounds");
-	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index]);
+	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index], JsSpMat->Rows);	
 	return HandleScope.Close(JsResult);
 }
 

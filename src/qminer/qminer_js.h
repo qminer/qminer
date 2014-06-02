@@ -337,6 +337,38 @@ public:
 		return Object;
 	}
 
+	static void PrintObjProperties(v8::Handle<v8::Object> Obj) {
+		v8::Local<v8::Array> ValueArr = Obj->GetPropertyNames();
+		for (uint32 i = 0; i < ValueArr->Length(); i++) {
+			v8::Local<v8::String> Str = ValueArr->Get(i)->ToString();
+			v8::String::Utf8Value UtfString(Str);
+			const char *CStr = *UtfString;
+			printf("%s ", CStr);
+		}
+	}
+
+	
+	static v8::Persistent<v8::Object> New(TJsObj* JsObj, TWPt<TScript> Js, const TStr& ProtoObjPath, const bool& MakeWeakP = true) {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::ObjectTemplate> Template = TJsObj::GetTemplate();
+		// Get prototype object Obj
+		v8::Handle<v8::Object> global =  Js->Context->Global();
+		TStrV ProtoPathV; ProtoObjPath.SplitOnAllCh('.', ProtoPathV, true);
+		v8::Handle<v8::Value> Val = global->Get(v8::String::New(ProtoPathV[0].CStr()));
+		v8::Handle<v8::Object> Obj = v8::Handle<v8::Object>::Cast(Val);
+		for (int ObjN = 1; ObjN < ProtoPathV.Len(); ObjN++) {
+			Val = Obj->Get(v8::String::New(ProtoPathV[ObjN].CStr()));
+			Obj = v8::Handle<v8::Object>::Cast(Val);
+		}
+		v8::Local<v8::Object> Temp = Template->NewInstance();
+		Temp->SetPrototype(Obj);
+		v8::Persistent<v8::Object> Object = v8::Persistent<v8::Object>::New(Temp);
+		Object->SetInternalField(0, v8::External::New(JsObj));
+		if (MakeWeakP) { Object.MakeWeak(NULL, &Clean); }
+		TJsUtil::AddObj(GetTypeNm<TJsObj>(*JsObj));
+		return Object;
+	}
+	
 	/// Creates new JavaScript object around TJsObj, using supplied template
 	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const v8::Handle<v8::ObjectTemplate>& Template) {
 		v8::HandleScope HandleScope;
@@ -1661,6 +1693,12 @@ public:
 		TJsSpV::SetSpV(obj, _Vec);
 		return  obj;
 	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIntFltKdV& _Vec, const int _Dim) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpV::SetSpV(obj, _Vec);
+		TJsSpV::SetDim(obj, _Dim);
+		return  obj;
+	}
 	static TIntFltKdV& GetSpV(const v8::Handle<v8::Object> Obj) {
 		return TJsSpVUtil::GetSelf(Obj)->Vec;
 	}
@@ -1726,7 +1764,7 @@ private:
 	explicit TJsSpMat(TWPt<TScript> _Js) : Js(_Js) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 		
-		v8::Persistent<v8::Object> obj = TJsSpMatUtil::New(new TJsSpMat(Js));
+		v8::Persistent<v8::Object> obj = TJsSpMatUtil::New(new TJsSpMat(Js), Js, "la.spMat");
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New("TVec<TIntFltKdV>");
 		obj->SetHiddenValue(key, value);
@@ -1790,6 +1828,7 @@ public:
 	JsDeclareProperty(cols);
 	//#- print:print
 	JsDeclareFunction(print);
+	//#JSIMPLEMENT:src/qminer/spMat.js
 };
 
 
@@ -2339,7 +2378,7 @@ public:
 	//#
     //#- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
     JsDeclareProperty(string);
-    //#- `tm.string` -- string representation of date (e.g. 2014-05-29)
+    //#- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
     JsDeclareProperty(dateString);
     //#- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
     JsDeclareProperty(timestamp);

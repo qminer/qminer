@@ -365,6 +365,9 @@ var spMat = la.newSpMat(); //empty matrix
 - rows:get number of rows
 - cols:get number of columns
 - print:print
+- `la.spMat` -- the prototype object for sparse column matrices
+- `spMat.toString()` -- displays rows, columns and number of non-zero elements of a sparse column matrix `spMat`
+- `var n = spMat.nnz();` -- `n` is the number of non-zero elements of sparse column matrix `spMat`
 
 ## Analytics.js (use require)
 
@@ -606,7 +609,7 @@ New one can be created using `tm = require('time')`.
 **Functions and properties:**
 
 - `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
-- `tm.string` -- string representation of date (e.g. 2014-05-29)
+- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
 - `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
 - `tm.year`
 - `tm.month`
