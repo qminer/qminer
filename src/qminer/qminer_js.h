@@ -1608,51 +1608,51 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- at: get element
+	//#- `val = mat.at(i,j)` -- number `val` is the element in the `i`-th row, `j`-th column (zero based indexing)
 	JsDeclareFunction(at);	
-	//#- put: set element, returns undefined
+	//#- `mat.put(i,j, val)` -- sets the element at `i`-th row and `j`-th col to `val`
 	JsDeclareFunction(put);
-	//#- multiply: matrix * scalar, matrix * vector, matrix * matrix
+	//#- `y = mat.multiply(x)` -- matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
 	JsDeclareFunction(multiply);
-	//#- multiplyT: matrix' * scalar, matrix' * vector, matrix' * matrix
+	//#- `y = mat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
 	JsDeclareFunction(multiplyT);
-	//#- plus: matrix + matrix
+	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
 	JsDeclareFunction(plus);
-	//#- minus: matrix - matrix
+	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
 	JsDeclareFunction(minus);
-	//#- transpose: returns the transpose of a matrix
+	//#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat1` transposed
 	JsDeclareFunction(transpose);
-	//#- solve: solves a linear system A x = y. Input: y, Output: x
+	//#- `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
 	JsDeclareFunction(solve);
-	//#- rowNorms: get row norms
+	//#- `vec = mat.rowNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	JsDeclareFunction(rowNorms);
-	//#- colNorms: get col norms
+	//#- `vec = mat.colNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
-	//#- normalizeCols: INPLACE : changes the matrix by normalizing columns, return undefined
+	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- sparse: get sparse column matrix
+	//#- `smat = mat.sparse()` -- get sparse column matrix representation `smat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
-	//#- frob: get frobenious norm
+	//#- `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
 	JsDeclareFunction(frob);
-	//#- rows: get number of rows
+	//#- `r = mat.rows` -- integer `r` corresponds to the number of rows of `mat`
 	JsDeclareProperty(rows);
-	//#- cols: get number of columns
+	//#- `c = mat.cols` -- integer `c` corresponds to the number of columns of `mat`
 	JsDeclareProperty(cols);
-	//#- printStr: get print matrix string
+	//#- `str = mat.printStr()` -- print matrix `mat` to a string `str`
 	JsDeclareFunction(printStr);
-	//#- print: print matrix
+	//#- `mat.print()` -- print matrix `mat` to console
 	JsDeclareFunction(print);
-	//#- rowMaxIdx: get the index of the maximum element in a given row
+	//#- `i = mat.rowMaxIdx(j)`: get the index `i` of the maximum element in row `j` of dense matrix `mat`
 	JsDeclareFunction(rowMaxIdx);
-	//#- colMaxIdx: get the index of the maximum element in a given col
+	//#- `i = mat.colMaxIdx(j)`: get the index `i` of the maximum element in column `j` of dense matrix `mat`
 	JsDeclareFunction(colMaxIdx);
-	//#- getCol: get a copy of a given column
+	//#- `vec = mat.getCol(i)` -- `vec` corresponds to the `i`-th column of dense matrix `mat`. `i` must be an integer.
 	JsDeclareFunction(getCol);
-	//#- setCol: set a column given a vector
+	//#- `mat.setCol(i, vec)` -- Sets the column of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
 	JsDeclareFunction(setCol);
-	//#- getRow: get a copy of a given row
+	//#- `vec = mat.getRow(i)` -- `vec` corresponds to the `i`-th row of dense matrix `mat`. `i` must be an integer.
 	JsDeclareFunction(getRow);
-	//#- setRow: set a row given a vector
+	//#- `mat.setRow(i, vec)` -- Sets the row of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
 	JsDeclareFunction(setRow);
 };
 

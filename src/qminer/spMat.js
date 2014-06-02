@@ -1,5 +1,5 @@
 /////// Sparse Column matrix prototype
-//#- `la.spMat` -- the prototype object for sparse column matrices
+//#- `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
 la.spMat = function() {};
 //#- `spMat.toString()` -- displays rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 la.spMat.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
