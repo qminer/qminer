@@ -18,6 +18,10 @@ nbproject
 
 # build results
 build
+doc
+Doxyfile-tmp
+log-doxygen.txt
+temp
 
 # test partial results
 qm.conf
