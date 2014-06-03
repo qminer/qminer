@@ -989,6 +989,8 @@ public:
     JsDeclareFunction(addStreamAggr);
     //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
 	JsDeclareFunction(getStreamAggr);
+	//#- `arr = store.getStreamAggrArr()` -- returns the names of all stream aggregators as an array of strings `arr`
+	JsDeclareFunction(getStreamAggrNames);
     
     //# 
     //# **Examples**:

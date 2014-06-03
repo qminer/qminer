@@ -1092,6 +1092,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, addTrigger);
         JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
+		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1335,6 +1336,25 @@ v8::Handle<v8::Value> TJsStore::getStreamAggr(const v8::Arguments& Args) {
 		return HandleScope.Close(TJsUtil::ParseJson(StreamAggrVal));
 	}
 	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsStore::getStreamAggrNames(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	TWPt<TBase> Base = JsStore->Js->Base;
+	const uint StoreId = JsStore->Store->GetStoreId();
+	PStreamAggrBase SABase = Base->GetStreamAggrBase(StoreId);
+	int Aggrs = SABase->Len();
+	int AggrId = SABase->GetFirstStreamAggrId();
+	
+	v8::Local<v8::Array> Arr = v8::Array::New();
+	uint32 Counter = 0;
+	while (SABase->GetNextStreamAggrId(AggrId)) {
+		v8::Local<v8::String> AggrNm = v8::String::New(SABase->GetStreamAggr(AggrId)->GetAggrNm().CStr());
+		Arr->Set(Counter, AggrNm);
+		Counter++;
+	}
+	return HandleScope.Close(Arr);
 }
 
 ///////////////////////////////

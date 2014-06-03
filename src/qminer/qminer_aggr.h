@@ -459,10 +459,12 @@ protected:
 
 public:
     // TmInterval == how many milliseconds it tames for a value to drop below 1/e
+	// Gets stream aggr base from store name
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
         const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InStoreNm, const TStr& InAggrNm);
-    static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
+	// Gets stream aggr base directly
+	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
         const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
     // json constructor
@@ -717,6 +719,18 @@ public:
     // stream aggregator type name 
     static TStr GetType() { return "resampler"; }
 };
+
+//////////////////////////////////////////////
+// Registrator functions
+class TRegistrator {
+private:
+public:
+	// Creates and connects IterN Ema aggregates and returns the vector of their names. Result[0] corresponds to the aggregate that is connected to the InAggrNm
+	TStrV ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt Order, const double& TmInterval, const TSignalProc::TEmaType& Type,
+		const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
+		TWPt<TQm::TStreamAggrBase>& SABase);
+};
+
 
 } // TStreamAggrs namespace
 

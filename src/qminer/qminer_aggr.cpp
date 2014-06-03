@@ -1320,6 +1320,28 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 	return Val;
 }
 
+//////////////////////////////////////////////
+// Registrator functions
+TStrV TRegistrator::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
+	const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
+	TWPt<TQm::TStreamAggrBase>& SABase){
+	// Table of EMA names - starts with 1, because it will be pushed in RegItEmaMA
+	TStrV ItEmaNames(NumIter);
+	ItEmaNames[0] = Prefix + "_1";
+	// first iteration takes parameter InStoreNm as input name
+	SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[0], TmInterval, Type,
+		InitMinMSecs, InAggrNm, SABase));
+
+	// the rest get previous iteration as input name
+	for (int Iter = 1; Iter < NumIter; Iter++){
+		ItEmaNames[Iter] = Prefix + "_" + TInt::GetStr(Iter + 1);
+		SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[Iter], TmInterval, Type,
+			InitMinMSecs, ItEmaNames[Iter - 1], SABase));
+	}       
+	return ItEmaNames;
+}
+
+
 }
 
 }

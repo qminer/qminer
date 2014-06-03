@@ -43,3 +43,5 @@ jsdoc_2.txt
 /examples/twitter/sandbox/twitter/graph2.gv
 /examples/twitter/sandbox/twitter/svmFilter.bin
 /examples/twitter/sandbox/twitter/svmSentiment.bin
+timeseriesHack
+twitterHack
