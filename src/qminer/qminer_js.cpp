@@ -4240,8 +4240,9 @@ v8::Handle<v8::ObjectTemplate> TJsConsole::GetTemplate() {
 
 v8::Handle<v8::Value> TJsConsole::log(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	if (Args.Length() == 1) {      
-		const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 0);
+	if (Args.Length() == 1) {
+		TStr MsgStr = TJsConsoleUtil::GetStr(Args[0]->ToString());
+		//const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 0);
 		InfoLog("[console] " + MsgStr);
 	} else if (Args.Length() > 1) {
 		const TStr TitleStr = TJsConsoleUtil::GetArgStr(Args, 0);
