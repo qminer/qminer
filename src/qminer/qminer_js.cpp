@@ -4245,8 +4245,8 @@ v8::Handle<v8::Value> TJsConsole::log(const v8::Arguments& Args) {
 		//const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 0);
 		InfoLog("[console] " + MsgStr);
 	} else if (Args.Length() > 1) {
-		const TStr TitleStr = TJsConsoleUtil::GetArgStr(Args, 0);
-		const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 1);
+		const TStr TitleStr = TJsConsoleUtil::GetStr(Args[0]->ToString());
+		const TStr MsgStr = TJsConsoleUtil::GetStr(Args[1]->ToString());
 		TEnv::Logger->OnStatusFmt("[%s] %s", TitleStr.CStr(), MsgStr.CStr());
 	} else {
 		InfoLog("[console]");
