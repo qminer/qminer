@@ -973,7 +973,7 @@ public:
     //#- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
     JsDeclareFunction(newRec);
     //#- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    //#     array is expected to be of type `linalg.newIntVec`
+    //#     array is expected to be of type `la.newIntVec`
 	JsDeclareFunction(newRecSet);
     //#- `rs = store.sample(sampleSize)` -- create a record set containing a random 
     //#     sample of `sampleSize` records
