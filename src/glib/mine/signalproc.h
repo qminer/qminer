@@ -57,7 +57,7 @@ private:
 	double GetNi(const double& Alpha, const double& Mi);
 public:
 	TEma(const double& _Decay, const TEmaType& _Type, 
-        const uint64& _InitMinMSecs, const uint64& _TmInterval);
+        const uint64& _InitMinMSecs, const double& _TmInterval);
 	TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,
         const double& _TmInterval);
     TEma(const PJsonVal& ParamVal);

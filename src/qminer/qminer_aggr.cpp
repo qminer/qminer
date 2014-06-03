@@ -785,7 +785,7 @@ void TEma::OnAddRec(const TRec& Rec) {
 }
 
 TEma::TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& Decay, 
-        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase): 
             TStreamAggr(Base, AggrNm), Ema(Decay, Type, InitMinMSecs, TmInterval) {
 						 
@@ -818,15 +818,15 @@ TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
 }
 
 PStreamAggr TEma::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
-        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InStoreNm, const TStr& InAggrNm) {
     
     const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
-    return new TEma(Base, AggrNm, (double)TmInterval, Type, InitMinMSecs, InAggrNm, Base->GetStreamAggrBase(InStoreId));        
+    return new TEma(Base, AggrNm, TmInterval, Type, InitMinMSecs, InAggrNm, Base->GetStreamAggrBase(InStoreId));        
 }
 
 PStreamAggr TEma::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
-        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
     
     return new TEma(Base, AggrNm, (double)TmInterval, Type, InitMinMSecs, InAggrNm, SABase);        
@@ -1321,8 +1321,16 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 }
 
 //////////////////////////////////////////////
-// Registrator functions
-TStrV TRegistrator::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
+// Composed stream aggregators
+bool TCompositional::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
+	if (TypeNm.EqI("itEma")) {
+		ItEma(Base, ParamVal);
+		return true;
+	} 
+	return false;	
+};
+
+TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
 	const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
 	TWPt<TQm::TStreamAggrBase>& SABase){
 	// Table of EMA names - starts with 1, because it will be pushed in RegItEmaMA
@@ -1331,7 +1339,6 @@ TStrV TRegistrator::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, T
 	// first iteration takes parameter InStoreNm as input name
 	SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[0], TmInterval, Type,
 		InitMinMSecs, InAggrNm, SABase));
-
 	// the rest get previous iteration as input name
 	for (int Iter = 1; Iter < NumIter; Iter++){
 		ItEmaNames[Iter] = Prefix + "_" + TInt::GetStr(Iter + 1);
@@ -1340,6 +1347,18 @@ TStrV TRegistrator::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, T
 	}       
 	return ItEmaNames;
 }
+TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	// Get arguments from ParamVal
+	TInt NumIter = ParamVal->GetObjInt("numIter", 1);
+	double TmInterval = ParamVal->GetObjNum("tmInterval", 1000.0);
+	uint64 InitMinMSecs = (uint64)ParamVal->GetObjInt("initMinMSecs", 0);
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr Prefix = ParamVal->GetObjStr("prefix", "itema");
+	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
+	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, TSignalProc::TEmaType::etLinear,
+		InitMinMSecs, InAggrNm, Prefix, SABase);
+};
 
 
 }

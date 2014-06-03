@@ -52,7 +52,7 @@ double TEma::GetNi(const double& Alpha, const double& Mi) {
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs, 
-    const uint64& _TmInterval): Decay(_Decay), Type(_Type), TmInterval((double)_TmInterval), 
+    const double& _TmInterval): Decay(_Decay), Type(_Type), TmInterval(_TmInterval), 
     InitP(false), InitMinMSecs(_InitMinMSecs) { }
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
@@ -77,19 +77,19 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
 }
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
-	uint64 TmInterval1;
+	double TmInterval1;
 	if(NewTmMSecs == TmMSecs) {
-		TmInterval1 = 1;
+		TmInterval1 = 1.0;
     } else{
-        TmInterval1 = NewTmMSecs - TmMSecs;
+		TmInterval1 = (double)(NewTmMSecs - TmMSecs);
     }
 	if (InitP) {
 		// computer parameters for EMA
 		double Alpha;
 		if (Decay == 0.0) {			
-			Alpha = (double)(TmInterval1) / TmInterval;
+			Alpha = TmInterval1 / TmInterval;
 		} else {			
-			Alpha = (double)((TmInterval1)) /((double)(TmInterval))  * (-1) * TMath::Log(Decay);
+			Alpha = TmInterval1 / TmInterval  * (-1.0) * TMath::Log(Decay);
 		}
 		const double Mi = exp(-Alpha);
 		const double Ni = GetNi(Alpha, Mi);

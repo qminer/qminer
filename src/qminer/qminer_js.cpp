@@ -1316,7 +1316,11 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
     ParamVal->AddToObj("store", JsStore->Store->GetStoreNm());
     // get type
     TStr TypeNm = ParamVal->GetObjStr("type");
-    // create new aggregate
+    // check if the aggregate is composed (called from registrator)
+	if (TQm::TStreamAggrs::TCompositional::New(JsStore->Js->Base, TypeNm, ParamVal)) {
+		return HandleScope.Close(v8::Null());
+	}
+	// create new aggregate
     PStreamAggr StreamAggr = TStreamAggr::New(JsStore->Js->Base, TypeNm, ParamVal);
     JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), StreamAggr);
 	return HandleScope.Close(v8::Null());

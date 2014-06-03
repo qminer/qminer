@@ -449,7 +449,7 @@ protected:
 	void OnAddRec(const TRec& Rec);
     
 	TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& Decay, 
-        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InAggrNm, 
         const TWPt<TStreamAggrBase> SABase);
 	TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& TmInterval,
@@ -461,11 +461,11 @@ public:
     // TmInterval == how many milliseconds it tames for a value to drop below 1/e
 	// Gets stream aggr base from store name
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
-        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InStoreNm, const TStr& InAggrNm);
 	// Gets stream aggr base directly
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
-        const uint64& TmInterval, const TSignalProc::TEmaType& Type, 
+        const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
     // json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
@@ -721,14 +721,18 @@ public:
 };
 
 //////////////////////////////////////////////
-// Registrator functions
-class TRegistrator {
+// Composed stream aggregators
+class TCompositional {
 private:
 public:
+	// Calls the constructor given type
+	static bool New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
 	// Creates and connects IterN Ema aggregates and returns the vector of their names. Result[0] corresponds to the aggregate that is connected to the InAggrNm
-	TStrV ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt Order, const double& TmInterval, const TSignalProc::TEmaType& Type,
+	static TStrV ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt Order, const double& TmInterval, const TSignalProc::TEmaType& Type,
 		const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
 		TWPt<TQm::TStreamAggrBase>& SABase);
+	static TStrV ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
 };
 
 
