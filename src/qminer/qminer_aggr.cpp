@@ -1356,7 +1356,7 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	TStr InStoreNm = ParamVal->GetObjStr("store");
 	TStr Prefix = ParamVal->GetObjStr("prefix", "itema");
 	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
-	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, TSignalProc::TEmaType::etLinear,
+	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval,  TSignalProc::etLinear,
 		InitMinMSecs, InAggrNm, Prefix, SABase);
 };
 
