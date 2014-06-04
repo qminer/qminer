@@ -61,6 +61,20 @@ qm.load = function() {
     return _obj;
 }();
 
+//# - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
+qm.printStreamAggr = function(store) {
+	var names = store.getStreamAggrNames();
+	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
+	for (var saggrN = 0; saggrN < names.length; saggrN++) {
+		var saggr = store.getStreamAggr(names[saggrN]);
+		var keys = Object.keys(saggr);
+		for (var keyN = 0; keyN < keys.length; keyN++) {
+			console.print(store.name + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
+		}
+	}
+}
+
+
 ///////////////////////////////////////// DEPRECATED
 function jsonp(req, res, data) {
     console.log("Warning: jsonp is deprecated, please use http.jsonp instead");

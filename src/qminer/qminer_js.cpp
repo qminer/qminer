@@ -4235,6 +4235,7 @@ v8::Handle<v8::ObjectTemplate> TJsConsole::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, log);
 		JsRegisterFunction(TmpTemp, getln);
+		JsRegisterFunction(TmpTemp, print);
 		JsLongRegisterFunction(TmpTemp, "say", log);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -4259,11 +4260,18 @@ v8::Handle<v8::Value> TJsConsole::log(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsConsole::getln(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;		
+	v8::HandleScope HandleScope;
 	TStdIn StdIn;
 	TStr LnStr;
 	StdIn.GetNextLn(LnStr);
-	return HandleScope.Close(v8::String::New(LnStr.CStr()));	
+	return HandleScope.Close(v8::String::New(LnStr.CStr()));
+}
+
+v8::Handle<v8::Value> TJsConsole::print(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TStr Str = TJsConsoleUtil::GetStr(Args[0]->ToString());
+	printf("%s", Str.CStr());
+	return HandleScope.Close(v8::Undefined());
 }
 
 ///////////////////////////////

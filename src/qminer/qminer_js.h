@@ -2134,6 +2134,8 @@ public:
     //#- `line = console.getln()` -- reads a line from command line and returns
     //#     it as string
 	JsDeclareFunction(getln);
+	//#- `console.print(str)` -- prints a string to standard output
+	JsDeclareFunction(print);
     //#JSIMPLEMENT:src/qminer/console.js    
 };
 

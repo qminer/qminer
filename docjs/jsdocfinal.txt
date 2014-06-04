@@ -62,6 +62,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
   When `limit != -1` only first first `limit` lines are loaded
 - `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
   parsing each line as JSON and adding it as record to `store`
+- `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
 
 ### Store
 
@@ -97,6 +98,7 @@ var record = store[1234];
 - `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
 - `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
+- `arr = store.getStreamAggrArr()` -- returns the names of all stream aggregators as an array of strings `arr`
 
 **Examples**:
 
@@ -527,10 +529,13 @@ are automatically prefixed by current date and time.
     be of type string
 - `line = console.getln()` -- reads a line from command line and returns
     it as string
-- `console.start` - start interactive console; does not see local variables
+- `console.print(str)` -- prints a string to standard output
+- `console.start()` - start interactive console; does not see local variables.
+    Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.startx(evalFun)` -- useful for debugging;
     insert in code: console.startx(function (x) { return eval(x); })
-    in order for console to see and interact with local variables
+    in order for console to see and interact with local variables.
+    Receiving empty imput (Enter was pressed) exits the interactive mode.
 
 ### File system
 
