@@ -89,7 +89,7 @@ var record = store[1234];
 - `store.add(record)` -- add `record` to the store 
 - `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
 - `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    array is expected to be of type `linalg.newIntVec`
+    array is expected to be of type `la.newIntVec`
 - `rs = store.sample(sampleSize)` -- create a record set containing a random 
     sample of `sampleSize` records
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
@@ -595,6 +595,12 @@ are automatically prefixed by current date and time.
 - `http.postStr(url, mimeType, data, success_callback)`
 - `http.postStr(url, mimeType, data, success_callback, error_callback)`
 - `http.onRequest(path, verb, callback)`
+- onGet(path, callback)
+- `onPost(path, callback)`
+- `onPut(path, callback)`
+- `onDelete(path, callback)`
+- `onPatch(path, callback)`
+- `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
 
 ### HTTP Response
 
