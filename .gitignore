@@ -15,6 +15,7 @@
 # project files from various SDKs
 .project	# eclipse
 .cproject	# eclipse
+.settings	# eclipse
 nbproject	# netbeans
 
 # build results
