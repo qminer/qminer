@@ -322,6 +322,119 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Script
+class TScript {
+private: 
+	// smart pointer
+	TCRef CRef;
+	friend class TPt<TScript>;
+	
+	// qm and fs require access to private members
+	friend class TJsBase;
+	friend class TJsFs;
+
+	/// Script name
+	TStr ScriptNm;
+	/// Script filename
+	TStr ScriptFNm;
+
+	/// Directories with include libraries available to this script
+	TStrV IncludeFPathV;
+	/// Directories this script has read and/or write privileges to
+	TVec<TJsFPath> AllowedFPathV;
+	
+	/// Security token for JavaScript context
+	TStr SecurityToken;
+	/// Map from server Rules to JavaScript callbacks
+    TJsonValV SrvFunRuleV;
+    THash<TInt, v8::Persistent<v8::Function> > JsNmFunH;;
+	
+public:
+	/// JavaScript context
+	v8::Persistent<v8::Context> Context; 
+	/// QMiner Base
+	TWPt<TBase> Base;
+	/// List of declared triggers
+	TVec<TPair<TUInt, PStoreTrigger> > TriggerV;
+	/// HTTP web fetcher
+	TWPt<TJsFetch> JsFetch;
+	
+public:
+	TScript(const PBase& _Base, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
+		const TStrV& _IncludeFPathV, const TVec<TJsFPath>& _AllowedFPathV);
+	static PScript New(const PBase& Base, const TStr& ScriptNm, const TStr& ScriptFNm, 
+		const TStrV& IncludeFPathV, const TVec<TJsFPath>& AllowedFPathV) { 
+			return new TScript(Base, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
+    
+    // get TScript from global context
+    static TWPt<TScript> GetGlobal(v8::Handle<v8::Context>& Context);
+    
+	~TScript();
+	
+	/// Get script name
+	const TStr& GetScriptNm() const { return ScriptNm; }
+	/// Get script filename
+	const TStr& GetScriptFNm() const { return ScriptFNm; }
+	
+	/// Register as server function
+	void RegSrvFun(TSAppSrvFunV& SrvFunV);
+	/// Reloads the file with the script
+	void Reload();
+
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
+	/// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context
+    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
+	/// Execute JavaScript callback in this script's context
+    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg1, 
+        const v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context
+	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
+	/// Execute JavaScript callback in this script's context
+	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
+
+	/// Add new server function
+	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
+	/// Execute stored server function
+	void ExecuteSrvFun(const PHttpRq& HttpRq, const TWPt<TJsHttpResp>& JsHttpResp);
+    /// Get array of registered server function rules
+    PJsonVal GetSrvFunRules() const { return TJsonVal::NewArr(SrvFunRuleV); }
+	/// Add new fetch request
+	void AddFetchRq(const TJsFetchRq& Rq);
+	/// Remember new trigger
+	void AddTrigger(const uint& StoreId, const PStoreTrigger& Trigger);
+
+	/// Callback for loading modules in from javascript
+	JsDeclareFunction(require);
+private:
+	/// Initializes main objects and runs the whole script 
+	void Init();
+	/// Installs main objects in the context
+	void Install();
+	/// Loads the script from disk and runs preprocessor (imports)
+	TStr LoadSource(const TStr& FNm);
+	/// Runs the whole script
+	void Execute(const TStr& FNm);
+	
+	/// Load module from given file
+	TStr LoadModuleSrc(const TStr& ModuleFNm);
+	/// Get library full name (search over all include folders
+	TStr GetLibFNm(const TStr& LibNm); 
+};
+
+///////////////////////////////
 // QMiner-JavaScript-Object-Utility
 template <class TJsObj>
 class TJsObjUtil {
@@ -337,6 +450,37 @@ public:
 		return Object;
 	}
 
+	static void PrintObjProperties(v8::Handle<v8::Object> Obj) {
+		v8::Local<v8::Array> ValueArr = Obj->GetPropertyNames();
+		for (uint32 i = 0; i < ValueArr->Length(); i++) {
+			v8::Local<v8::String> Str = ValueArr->Get(i)->ToString();
+			v8::String::Utf8Value UtfString(Str);
+			const char *CStr = *UtfString;
+			printf("%s ", CStr);
+		}
+	}
+	
+	static v8::Persistent<v8::Object> New(TJsObj* JsObj, TWPt<TScript> Js, const TStr& ProtoObjPath, const bool& MakeWeakP = true) {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::ObjectTemplate> Template = TJsObj::GetTemplate();
+		// Get prototype object Obj
+		v8::Handle<v8::Object> Global =  Js->Context->Global();
+		TStrV ProtoPathV; ProtoObjPath.SplitOnAllCh('.', ProtoPathV, true);
+		v8::Handle<v8::Value> Val = Global->Get(v8::String::New(ProtoPathV[0].CStr()));
+		v8::Handle<v8::Object> Obj = v8::Handle<v8::Object>::Cast(Val);
+		for (int ObjN = 1; ObjN < ProtoPathV.Len(); ObjN++) {
+			Val = Obj->Get(v8::String::New(ProtoPathV[ObjN].CStr()));
+			Obj = v8::Handle<v8::Object>::Cast(Val);
+		}
+		v8::Local<v8::Object> Temp = Template->NewInstance();
+		Temp->SetPrototype(Obj);
+		v8::Persistent<v8::Object> Object = v8::Persistent<v8::Object>::New(Temp);
+		Object->SetInternalField(0, v8::External::New(JsObj));
+		if (MakeWeakP) { Object.MakeWeak(NULL, &Clean); }
+		TJsUtil::AddObj(GetTypeNm<TJsObj>(*JsObj));
+		return Object;
+	}
+	
 	/// Creates new JavaScript object around TJsObj, using supplied template
 	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const v8::Handle<v8::ObjectTemplate>& Template) {
 		v8::HandleScope HandleScope;
@@ -615,119 +759,6 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Script
-class TScript {
-private: 
-	// smart pointer
-	TCRef CRef;
-	friend class TPt<TScript>;
-	
-	// qm and fs require access to private members
-	friend class TJsBase;
-	friend class TJsFs;
-
-	/// Script name
-	TStr ScriptNm;
-	/// Script filename
-	TStr ScriptFNm;
-
-	/// Directories with include libraries available to this script
-	TStrV IncludeFPathV;
-	/// Directories this script has read and/or write privileges to
-	TVec<TJsFPath> AllowedFPathV;
-	
-	/// Security token for JavaScript context
-	TStr SecurityToken;
-	/// Map from server Rules to JavaScript callbacks
-    TJsonValV SrvFunRuleV;
-    THash<TInt, v8::Persistent<v8::Function> > JsNmFunH;;
-	
-public:
-	/// JavaScript context
-	v8::Persistent<v8::Context> Context; 
-	/// QMiner Base
-	TWPt<TBase> Base;
-	/// List of declared triggers
-	TVec<TPair<TUInt, PStoreTrigger> > TriggerV;
-	/// HTTP web fetcher
-	TWPt<TJsFetch> JsFetch;
-	
-public:
-	TScript(const PBase& _Base, const TStr& _ScriptNm, const TStr& _ScriptFNm, 
-		const TStrV& _IncludeFPathV, const TVec<TJsFPath>& _AllowedFPathV);
-	static PScript New(const PBase& Base, const TStr& ScriptNm, const TStr& ScriptFNm, 
-		const TStrV& IncludeFPathV, const TVec<TJsFPath>& AllowedFPathV) { 
-			return new TScript(Base, ScriptNm, ScriptFNm, IncludeFPathV, AllowedFPathV); }
-    
-    // get TScript from global context
-    static TWPt<TScript> GetGlobal(v8::Handle<v8::Context>& Context);
-    
-	~TScript();
-	
-	/// Get script name
-	const TStr& GetScriptNm() const { return ScriptNm; }
-	/// Get script filename
-	const TStr& GetScriptFNm() const { return ScriptFNm; }
-	
-	/// Register as server function
-	void RegSrvFun(TSAppSrvFunV& SrvFunV);
-	/// Reloads the file with the script
-	void Reload();
-
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
-	/// Execute JavaScript callback in this script's context
-    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
-	/// Execute JavaScript callback in this script's context
-    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
-	/// Execute JavaScript callback in this script's context
-    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
-	/// Execute JavaScript callback in this script's context
-    bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg1, 
-        const v8::Handle<v8::Object>& Arg2);
-	/// Execute JavaScript callback in this script's context
-	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
-	/// Execute JavaScript callback in this script's context
-	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
-	/// Execute JavaScript callback in this script's context
-	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
-
-	/// Add new server function
-	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
-	/// Execute stored server function
-	void ExecuteSrvFun(const PHttpRq& HttpRq, const TWPt<TJsHttpResp>& JsHttpResp);
-    /// Get array of registered server function rules
-    PJsonVal GetSrvFunRules() const { return TJsonVal::NewArr(SrvFunRuleV); }
-	/// Add new fetch request
-	void AddFetchRq(const TJsFetchRq& Rq);
-	/// Remember new trigger
-	void AddTrigger(const uint& StoreId, const PStoreTrigger& Trigger);
-
-	/// Callback for loading modules in from javascript
-	JsDeclareFunction(require);
-private:
-	/// Initializes main objects and runs the whole script 
-	void Init();
-	/// Installs main objects in the context
-	void Install();
-	/// Loads the script from disk and runs preprocessor (imports)
-	TStr LoadSource(const TStr& FNm);
-	/// Runs the whole script
-	void Execute(const TStr& FNm);
-	
-	/// Load module from given file
-	TStr LoadModuleSrc(const TStr& ModuleFNm);
-	/// Get library full name (search over all include folders
-	TStr GetLibFNm(const TStr& LibNm); 
-};
-
-///////////////////////////////
 // JavaScript Server Function
 class TJsSrvFun : public TSAppSrvFun {
 private:
@@ -942,7 +973,7 @@ public:
     //#- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
     JsDeclareFunction(newRec);
     //#- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    //#     array is expected to be of type `linalg.newIntVec`
+    //#     array is expected to be of type `la.newIntVec`
 	JsDeclareFunction(newRecSet);
     //#- `rs = store.sample(sampleSize)` -- create a record set containing a random 
     //#     sample of `sampleSize` records
@@ -1661,6 +1692,12 @@ public:
 		TJsSpV::SetSpV(obj, _Vec);
 		return  obj;
 	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIntFltKdV& _Vec, const int _Dim) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpV::SetSpV(obj, _Vec);
+		TJsSpV::SetDim(obj, _Dim);
+		return  obj;
+	}
 	static TIntFltKdV& GetSpV(const v8::Handle<v8::Object> Obj) {
 		return TJsSpVUtil::GetSelf(Obj)->Vec;
 	}
@@ -1726,7 +1763,7 @@ private:
 	explicit TJsSpMat(TWPt<TScript> _Js) : Js(_Js) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 		
-		v8::Persistent<v8::Object> obj = TJsSpMatUtil::New(new TJsSpMat(Js));
+		v8::Persistent<v8::Object> obj = TJsSpMatUtil::New(new TJsSpMat(Js), Js, "la.spMat");
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New("TVec<TIntFltKdV>");
 		obj->SetHiddenValue(key, value);
@@ -1790,6 +1827,7 @@ public:
 	JsDeclareProperty(cols);
 	//#- print:print
 	JsDeclareFunction(print);
+	//#JSIMPLEMENT:src/qminer/spMat.js
 };
 
 
@@ -1849,7 +1887,7 @@ public:
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-  JsDeclareFunction(newRecLinReg);	
+    JsDeclareFunction(newRecLinReg);	
     
     // clustering (TODO: still depends directly on feature space)
     // trainKMeans(featureSpace, positives, negatives, parameters)
@@ -1859,10 +1897,40 @@ public:
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `options.stemmer` and `options.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
-  
-	  //#- `model = analytics.newRecLinReg(stream, params)` -- create new
-		//#  incremental decision tree learner; parameters are passed as JSON
-  JsDeclareFunction(newHoeffdingTree);
+    //#- `model = analytics.newRecLinReg(jsonStream, jsonParams)` -- create new
+    //#  incremental decision tree learner; parameters are passed as JSON
+    //# First, we have to initialize the learner. 
+    //# We specify the order of attributes in a stream example, and describe each attribute.
+    //# For each attribute, we specifty its type and --- in case of discrete attributes --- enumerate
+    //# all possible values of the attribute. See titanicConfig below. 
+    //#
+    //# The HoeffdingTree algorithm comes with many parameters:
+    //# (*) gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
+    //#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+    //#	    is the most expensive operation in the algorithm; we have to recompute gains at each
+    //#	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
+    //# (*) splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
+    //#	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
+    //#	    uses Hoeffding inequality (http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
+    //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
+    //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
+    //#	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
+    //# (*) tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
+    //#	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
+    //#	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
+    //#	    the attributes are equally good, we don't care on which one we split.)
+    //# (*) conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
+    //#	    we use a variant of CVFDT learner [2]; if set to false, we use a variant of VFDT learner [1].
+    //# (*) driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
+    //#	    examples and swaps the tree 
+    //# (*) windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
+    //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
+    //#	    the window in order to ``forget'' the example when it becomes too old. 
+    //#
+	//# [1] http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf 
+	//# [2] http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf 
+	//# 
+    JsDeclareFunction(newHoeffdingTree);    
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -1995,6 +2063,37 @@ public:
 	JsDeclareProperty(weights);
     //#- `model.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-HoeffdingTree
+class TJsHoeffdingTree {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	// HoeffdingTree, the learner 
+	THoeffding::PHoeffdingTree HoeffdingTree;
+private:
+	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+
+	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
+		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig) { 
+		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
+	
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//#- `ht.process(discreteV, numericV, label)` -- processes the stream example; `discreteV` is vector of discrete attribute values;
+	//#   `numericV` is vector of numeric attribute values; `label` is class label of the example; returns nothing;
+	//#- `ht.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
+	JsDeclareFunction(process);
+	//#- `ht.classify(discreteV, numericV)` -- classifies the stream example; `discreteV` is vector of discrete attribute values; `numericV` is vector of numeric attribute values; returns the class label 
+	//#- `ht.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
+	JsDeclareFunction(classify);
+	//#- `ht.exportModel(outParams)` -- writes the current model into file `outParams.file` in format `outParams.type`;
+	//#   here, `outParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
+	JsDeclareFunction(exportModel);
 };
 
 ///////////////////////////////
@@ -2342,7 +2441,7 @@ public:
 	//#
     //#- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
     JsDeclareProperty(string);
-    //#- `tm.string` -- string representation of date (e.g. 2014-05-29)
+    //#- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
     JsDeclareProperty(dateString);
     //#- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
     JsDeclareProperty(timestamp);
@@ -2377,31 +2476,6 @@ public:
     //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
     //#     as Date-Time object
     JsDeclareFunction(parse)
-};
-
-///////////////////////////////
-// QMiner-JavaScript-HoeffdingTree
-class TJsHoeffdingTree {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-	// HoeffdingTree, the learner 
-	THoeffding::PHoeffdingTree HoeffdingTree;
-private:
-	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-
-	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
-		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig) { 
-		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
-	
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	JsDeclareFunction(process);
-	JsDeclareFunction(classify);
-	JsDeclareFunction(exportModel);
 };
 
 }

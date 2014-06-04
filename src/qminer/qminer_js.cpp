@@ -656,6 +656,7 @@ void TScript::Init() {
 	Execute(TEnv::QMinerFPath + "fs.js");
 	Execute(TEnv::QMinerFPath + "http.js");
 	Execute(TEnv::QMinerFPath + "linalg.js");
+	Execute(TEnv::QMinerFPath + "spMat.js");
 	Execute(ScriptFNm);
 }
 
@@ -1970,6 +1971,84 @@ v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
 }
 
 ///////////////////////////////
+// QMiner-JavaScript-HoeffdingTree
+v8::Handle<v8::ObjectTemplate> TJsHoeffdingTree::GetTemplate() {
+	v8::HandleScope HandleScope;
+	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+	JsRegisterFunction(TmpTemp, process);
+	JsRegisterFunction(TmpTemp, classify);
+	JsRegisterFunction(TmpTemp, exportModel);
+	TmpTemp->SetInternalFieldCount(1);
+	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+}
+
+// NOTE: It is your responsibility to make sure the input line is a valid stream example 
+v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	if(Args.Length() == 1 && Args[0]->IsString()) {
+		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
+		printf("Line '%s'\n", Line.CStr());
+		JsHoeffdingTree->HoeffdingTree->Process(Line);
+		// printf("End\n");
+	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
+		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
+		TStr Label = TJsHoeffdingTreeUtil::GetArgStr(Args, 2);
+		TStrV DisV; TFltV NumV;
+		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
+			DiscreteVal->GetArrStrV(DisV);
+			NumericVal->GetArrNumV(NumV);
+			JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+// NOTE: It is your responsibility to make sure the input line is a valid stream example 
+v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	if(Args.Length() == 1 && Args[0]->IsString()) {
+		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
+		THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
+		return HandleScope.Close(v8::Number::New(Label));
+	} else if(Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
+		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
+		TStrV DisV; TFltV NumV;
+		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
+			DiscreteVal->GetArrStrV(DisV);
+			NumericVal->GetArrNumV(NumV);
+			THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			return HandleScope.Close(v8::Number::New(Label));
+		} // else { EFailR("No such function"); }
+	} // else { EFailR("Unsupported."); }
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHoeffdingTree::exportModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// Save model to fileName in the choosen format 
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	if(Args.Length() == 1 && Args[0]->IsObject()) {
+		PJsonVal Val = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		if(Val->IsObjKey("file") && Val->IsObjKey("type")) {
+			TStr FNm = Val->GetObjStr("file");
+			TStr Type = Val->GetObjStr("type");
+			THoeffding::TExportType ExportType;
+			// When supported, accept JSON 
+			if(Type == "DOT") { ExportType = THoeffding::TExportType::DOT; }
+			else if(Type == "JSON") { ExportType = THoeffding::TExportType::JSON; }
+			else { ExportType = THoeffding::TExportType::XML; }
+			JsHoeffdingTree->HoeffdingTree->Export(FNm, ExportType);
+			return HandleScope.Close(v8::Boolean::New(true));
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+///////////////////////////////
 // QMiner-JavaScript-IndexKey
 v8::Handle<v8::ObjectTemplate> TJsIndexKey::GetTemplate() {
 	v8::HandleScope HandleScope;
@@ -2814,8 +2893,9 @@ v8::HandleScope HandleScope;
 				TFltV& Result = TJsFltV::GetVec(JsResult);
 				// computation
 				Result.Gen(JsMat->Mat.GetCols());
-				TNumericalStuff::SolveLinearSystem(JsMat->Mat, JsVec->Vec, Result);			
-
+				TFltVV Mat2 = JsMat->Mat;
+				TFltV Vec2 = JsVec->Vec;
+				TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
 				return HandleScope.Close(JsResult);			
 			}			
 		}
@@ -3267,7 +3347,7 @@ v8::Handle<v8::Value> TJsSpMat::indexGet(uint32_t Index, const v8::AccessorInfo&
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
 	QmAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "sp matrix index at: index out of bounds");
-	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index]);
+	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index], JsSpMat->Rows);	
 	return HandleScope.Close(JsResult);
 }
 
@@ -3628,8 +3708,7 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
         JsRegisterFunction(TmpTemp, trainSvmRegression);
 		JsRegisterFunction(TmpTemp, loadSvmModel);
         JsRegisterFunction(TmpTemp, newRecLinReg);
-        JsRegisterFunction(TmpTemp, trainKMeans);
-				JsRegisterFunction(TmpTemp, newHoeffdingTree);
+        JsRegisterFunction(TmpTemp, trainKMeans);						
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -3789,6 +3868,22 @@ v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
     return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsAnalytics::newHoeffdingTree(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    PJsonVal StreamConfig = TJsAnalyticsUtil::GetArgJson(Args, 0);
+		PJsonVal JsonConfig = TJsAnalyticsUtil::GetArgJson(Args, 1);
+		
+		try {
+        return TJsHoeffdingTree::New(JsAnalytics->Js, StreamConfig, JsonConfig);
+    }
+    catch (const PExcept& Except) {
+			InfoLog("[except] " + Except->GetMsgStr());
+    }
+    return v8::Undefined();
+}
+
 v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
@@ -3837,22 +3932,6 @@ v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
 		InfoLog("[except] " + Except->GetMsgStr());
 	}
 	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::newHoeffdingTree(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    PJsonVal StreamConfig = TJsAnalyticsUtil::GetArgJson(Args, 0);
-		PJsonVal JsonConfig = TJsAnalyticsUtil::GetArgJson(Args, 1);
-		
-		try {
-        return TJsHoeffdingTree::New(JsAnalytics->Js, StreamConfig, JsonConfig);
-    }
-    catch (const PExcept& Except) {
-			InfoLog("[except] " + Except->GetMsgStr());
-    }
-    return v8::Undefined();
 }
 
 v8::Handle<v8::Value> TJsAnalytics::getLanguageOptions(const v8::Arguments& Args) {
@@ -4747,7 +4826,16 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, string);
+        JsRegisterProperty(TmpTemp, dateString);
 		JsRegisterProperty(TmpTemp, timestamp);
+        JsRegisterProperty(TmpTemp, year);
+        JsRegisterProperty(TmpTemp, month);
+        JsRegisterProperty(TmpTemp, day);
+        JsRegisterProperty(TmpTemp, dayOfWeek);
+        JsRegisterProperty(TmpTemp, hour);
+        JsRegisterProperty(TmpTemp, minute);
+        JsRegisterProperty(TmpTemp, second);
+        JsRegisterProperty(TmpTemp, milisecond);                
         JsRegisterProperty(TmpTemp, now);
         JsRegisterProperty(TmpTemp, nowUTC);
         JsRegisterFunction(TmpTemp, add);
@@ -4768,11 +4856,59 @@ v8::Handle<v8::Value> TJsTm::string(v8::Local<v8::String> Properties, const v8::
 	return HandleScope.Close(v8::String::New(TmStr.CStr()));
 }
 
+v8::Handle<v8::Value> TJsTm::dateString(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
+    TStr TmStr = JsTm->Tm.GetWebLogDateStr();   
+	return HandleScope.Close(v8::String::New(TmStr.CStr()));
+}
+
 v8::Handle<v8::Value> TJsTm::timestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
     const int Timestamp = TTm::GetDateTimeIntFromTm(JsTm->Tm);
 	return HandleScope.Close(v8::Int32::New(Timestamp));
+}
+
+v8::Handle<v8::Value> TJsTm::year(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetYear()));
+}
+
+v8::Handle<v8::Value> TJsTm::month(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMonth()));
+}
+
+v8::Handle<v8::Value> TJsTm::day(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetDay()));
+}
+
+v8::Handle<v8::Value> TJsTm::dayOfWeek(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    TSecTm SecTm(TJsTmUtil::GetSelf(Info)->Tm);
+	return HandleScope.Close(v8::String::New(SecTm.GetDayOfWeekNm().CStr()));
+}
+
+v8::Handle<v8::Value> TJsTm::hour(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetHour()));
+}
+
+v8::Handle<v8::Value> TJsTm::minute(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMin()));
+}
+
+v8::Handle<v8::Value> TJsTm::second(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetSec()));
+}
+
+v8::Handle<v8::Value> TJsTm::milisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
 }
 
 v8::Handle<v8::Value> TJsTm::now(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -4801,8 +4937,7 @@ v8::Handle<v8::Value> TJsTm::add(const v8::Arguments& Args) {
     } else if (Unit == "day") {
         JsTm->Tm.AddDays(Val);        
     }
-    // nothing to return
-    return v8::Undefined();
+    return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
@@ -4821,8 +4956,7 @@ v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
     } else if (Unit == "day") {
         JsTm->Tm.SubDays(Val);        
     }
-    // nothing to return
-    return v8::Undefined();
+    return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {
@@ -4849,84 +4983,6 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
     TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
     // return constructed json
     return HandleScope.Close(TJsTm::New(Tm));
-}
-
-///////////////////////////////
-// QMiner-JavaScript-HoeffdingTree
-v8::Handle<v8::ObjectTemplate> TJsHoeffdingTree::GetTemplate() {
-	v8::HandleScope HandleScope;
-	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-	JsRegisterFunction(TmpTemp, process);
-	JsRegisterFunction(TmpTemp, classify);
-	JsRegisterFunction(TmpTemp, exportModel);
-	TmpTemp->SetInternalFieldCount(1);
-	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-}
-
-// NOTE: It is your responsibility to make sure the input line is a valid stream example 
-v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
-	if(Args.Length() == 1 && Args[0]->IsString()) {
-		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		printf("Line '%s'\n", Line.CStr());
-		JsHoeffdingTree->HoeffdingTree->Process(Line);
-		// printf("End\n");
-	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
-		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
-		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
-		TStr Label = TJsHoeffdingTreeUtil::GetArgStr(Args, 2);
-		TStrV DisV; TFltV NumV;
-		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
-			DiscreteVal->GetArrStrV(DisV);
-			NumericVal->GetArrNumV(NumV);
-			JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
-		}
-	}
-	return HandleScope.Close(v8::Undefined());
-}
-
-// NOTE: It is your responsibility to make sure the input line is a valid stream example 
-v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
-	if(Args.Length() == 1 && Args[0]->IsString()) {
-		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
-		return HandleScope.Close(v8::Number::New(Label));
-	} else if(Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
-		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
-		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
-		TStrV DisV; TFltV NumV;
-		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
-			DiscreteVal->GetArrStrV(DisV);
-			NumericVal->GetArrNumV(NumV);
-			THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			return HandleScope.Close(v8::Number::New(Label));
-		} // else { EFailR("No such function"); }
-	} // else { EFailR("Unsupported."); }
-	return HandleScope.Close(v8::Undefined());
-}
-
-v8::Handle<v8::Value> TJsHoeffdingTree::exportModel(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	// Save model to fileName in the choosen format 
-	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
-	if(Args.Length() == 1 && Args[0]->IsObject()) {
-		PJsonVal Val = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
-		if(Val->IsObjKey("file") && Val->IsObjKey("type")) {
-			TStr FNm = Val->GetObjStr("file");
-			TStr Type = Val->GetObjStr("type");
-			THoeffding::TExportType ExportType;
-			// When supported, accept JSON 
-			if(Type == "DOT") { ExportType = THoeffding::TExportType::DOT; }
-			else if(Type == "JSON") { ExportType = THoeffding::TExportType::JSON; }
-			else { ExportType = THoeffding::TExportType::XML; }
-			JsHoeffdingTree->HoeffdingTree->Export(FNm, ExportType);
-			return HandleScope.Close(v8::Boolean::New(true));
-		}
-	}
-	return HandleScope.Close(v8::Undefined());
 }
 
 }
