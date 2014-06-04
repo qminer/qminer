@@ -208,23 +208,28 @@ private:
 	TFullMatrix P;		// correlation matrix
 	TVector Coeffs;		// model
 
-	PNotify Notify;
-
 	// copy constructor
 	TRecLinReg(const TRecLinReg& LinReg);
 	// move constructor
 	TRecLinReg(const TRecLinReg&& LinReg);
+	// load constructor
+	TRecLinReg(TSIn& SIn);
 public:
 	// default constructor
-	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact=1.0, const PNotify _Notify=TStdNotify::New());
-	static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact, const PNotify Notify=TStdNotify::New())
-			{ return new TRecLinReg(Dim, RegFact, ForgetFact, Notify); }
+	TRecLinReg(const int& Dim, const double& _RegFact = 1.0, const double& _ForgetFact=1.0);
+	// new method
+	static PRecLinReg New(const int& Dim, const double& RegFact, const double& ForgetFact)
+			{ return new TRecLinReg(Dim, RegFact, ForgetFact); }
 
 	virtual ~TRecLinReg() {}
+
+	void Save(TSOut& SOut) const;
+	static PRecLinReg Load(TSIn& SIn);
 
 	// assign operator
 	TRecLinReg& operator =(TRecLinReg LinReg);
 
+	// returns the dimension of the instances
 	int GetDim() const { return Coeffs.GetDim(); }
 	// learns a new sample
 	void Learn(const TFltV& Sample, const double& SampleVal);

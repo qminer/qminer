@@ -95,6 +95,9 @@ public:
     int GetCols() const { return Transposed ? PGetRows() : PGetCols(); }
 
     virtual void Transpose() { Transposed = !Transposed; }
+
+    void Save(TSOut& SOut) const { TBool(Transposed).Save(SOut); }
+    void Load(TSIn& SIn) { Transposed = TBool(SIn); }
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -889,6 +892,9 @@ public:
     bool Empty() const { return Vec.Empty(); }
     
     const TFltV& GetVec() const { return Vec; }
+
+    void Save(TSOut& SOut) const { TBool(IsColVector).Save(SOut); Vec.Save(SOut); }
+    void Load(TSIn& SIn) { IsColVector = TBool(SIn); Vec.Load(SIn); }
 };
 
 /////////////////////////////////////////////////////////////////////////
@@ -960,6 +966,6 @@ public:
     TFullMatrix operator /(const double& Lambda) const { return operator *(1.0/Lambda); }
     
 public:
-    void Save(TSOut& SOut) { Mat.Save(SOut); }
-    void Load(TSIn& SIn) { Mat.Load(SIn); }
+    void Save(TSOut& SOut) const { TMatrix::Save(SOut); Mat.Save(SOut); }
+    void Load(TSIn& SIn) { TMatrix::Load(SIn); Mat.Load(SIn); }
 };

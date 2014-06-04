@@ -13,8 +13,9 @@
 *.a
 
 # project files from various SDKs
-/.project
-nbproject
+.project	# eclipse
+.cproject	# eclipse
+nbproject	# netbeans
 
 # build results
 build

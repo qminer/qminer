@@ -198,22 +198,38 @@ TRecLinReg::TRecLinReg(const TRecLinReg& LinReg):
 		ForgetFact(LinReg.ForgetFact),
 		RegFact(LinReg.RegFact),
 		P(LinReg.P),
-		Coeffs(LinReg.Coeffs),
-		Notify(LinReg.Notify) {}
+		Coeffs(LinReg.Coeffs) {}
 
 TRecLinReg::TRecLinReg(const TRecLinReg&& LinReg):
 		ForgetFact(std::move(LinReg.ForgetFact)),
 		RegFact(std::move(LinReg.RegFact)),
 		P(std::move(LinReg.P)),
-		Coeffs(std::move(LinReg.Coeffs)),
-		Notify(std::move(LinReg.Notify)) {}
+		Coeffs(std::move(LinReg.Coeffs)) {}
 
-TRecLinReg::TRecLinReg(const int& Dim, const double& _RegFact, const double& _ForgetFact, const PNotify _Notify):
+TRecLinReg::TRecLinReg(TSIn& SIn):
+		ForgetFact(SIn),
+		RegFact(SIn) {
+	P.Load(SIn);
+	Coeffs.Load(SIn);
+}
+
+TRecLinReg::TRecLinReg(const int& Dim, const double& _RegFact,
+			const double& _ForgetFact):
 		ForgetFact(_ForgetFact),
 		RegFact(_RegFact),
 		P(TFullMatrix::Identity(Dim) / RegFact),
-		Coeffs(Dim, true),
-		Notify(_Notify) {}
+		Coeffs(Dim, true) {}
+
+void TRecLinReg::Save(TSOut& SOut) const {
+	ForgetFact.Save(SOut);
+	RegFact.Save(SOut);
+	P.Save(SOut);
+	Coeffs.Save(SOut);
+}
+
+PRecLinReg TRecLinReg::Load(TSIn& SIn) {
+	return new TRecLinReg(SIn);
+}
 
 TRecLinReg& TRecLinReg::operator =(TRecLinReg LinReg) {
 	std::swap(ForgetFact, LinReg.ForgetFact);
