@@ -1,0 +1,7 @@
+language: cpp
+compiler: gcc
+install:
+  - echo $LANG
+  - make lib
+script: make
+os: linux
