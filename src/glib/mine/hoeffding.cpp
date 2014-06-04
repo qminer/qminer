@@ -508,7 +508,7 @@ namespace THoeffding {
 	// Attribute-Managment
 	TAttrMan::TAttrMan(const THash<TStr, TInt>& AttrH_, const THash<TInt, TStr>& InvAttrH_,
 		const int& Id_, const TStr& Nm_, const TAttrType& Type_)
-		: AttrH(AttrH_), InvAttrH(InvAttrH_), Id(Id_), Nm(Nm_), Type(Type_) {
+		: AttrH(AttrH_), InvAttrH(InvAttrH_), Type(Type_), Nm(Nm_), Id(Id_) {
 			AttrH.GetDatV(ValueV); // Possible values; there is a single value for numeric attributes 
 	}
 	
@@ -526,10 +526,11 @@ namespace THoeffding {
 	// Node
 	// Copy constructor 
 	TNode::TNode(const TNode& Node)
-		: CndAttrIdx(Node.CndAttrIdx), ExamplesN(Node.ExamplesN), UsedAttrs(Node.UsedAttrs),
-		Avg(Node.Avg), VarSum(Node.VarSum), Err(Node.Err), TestModeN(Node.TestModeN), Id(Node.Id),
-		Correct(Node.Correct), All(Node.All), PartitionV(Node.PartitionV), HistH(Node.HistH),
-		Type(Node.Type), Val(Node.Val), ExamplesV(Node.ExamplesV) { }
+		: CndAttrIdx(Node.CndAttrIdx), ExamplesN(Node.ExamplesN), Val(Node.Val), 
+		Avg(Node.Avg), VarSum(Node.VarSum), Err(Node.Err), TestModeN(Node.TestModeN),
+        Type(Node.Type), ExamplesV(Node.ExamplesV), PartitionV(Node.PartitionV), 
+        UsedAttrs(Node.UsedAttrs), HistH(Node.HistH), Id(Node.Id), 
+        Correct(Node.Correct), All(Node.All) { }
 	// Assignment operator 
 	TNode& TNode::operator=(const TNode& Node) {
 		if (*this != Node) {
@@ -866,7 +867,7 @@ namespace THoeffding {
 					EAssertR(Node->Counts.GetDat(Idx)-- >= 0, "Negative id-value-label triple count.");
 				} else {
 					Print(Example);
-					printf("Example ID: %d; Node ID: %d; Node examples: %d\n", Example->LeafId, Node->Id, Node->ExamplesN);
+					printf("Example ID: %d; Node ID: %d; Node examples: %d\n", Example->LeafId.Val, Node->Id, Node->ExamplesN);
 					if(!IsLeaf(Node)) { printf("Node test attribute: %s\n", AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr()); }
 					printf("Problematic attribute: %s = %s\n", AttrManV.GetVal(It->Id).Nm.CStr(), AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
 					EFailR("Corresponding id-value-label triple is missing in counts hashtable."); // NOTE: For dbugging purposes; this fail probably indicates serious problems 
@@ -973,7 +974,7 @@ namespace THoeffding {
 			const double EstG = SplitAttr.Val3;
 			printf("EstG = %f\n", EstG);
 			if ((EstG < 1.0-Eps /*|| Eps < TieBreaking*/) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
-				printf("[DEBUG] Selected split attribute: %d\n", SplitAttr.Val1.Val1);
+				printf("[DEBUG] Selected split attribute: %d\n", SplitAttr.Val1.Val1.Val);
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
 		}
@@ -991,7 +992,7 @@ namespace THoeffding {
 				printf("[DEBUG] t = %f :: n = %d\n", Eps, Leaf->ExamplesN);
 				printf("[DEBUG] Splitting at %d examples on attribute `%s' with confidence %f\n", Leaf->ExamplesN, AttrManV.GetVal(SplitAttr.Val1.Val1).Nm.CStr(), 1.0-SplitConfidence);
 				if (Leaf->UsedAttrs.Len() > 0) {
-					printf("[DEBUG] Previous attribute = %d; so far used %d attributes on this path.\n", Leaf->UsedAttrs.Last(), Leaf->UsedAttrs.LastValN()+1);
+					printf("[DEBUG] Previous attribute = %d; so far used %d attributes on this path.\n", Leaf->UsedAttrs.Last().Val, Leaf->UsedAttrs.LastValN()+1);
 				}
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
@@ -1079,7 +1080,7 @@ namespace THoeffding {
 		if (Node->AltTreesV.Empty() && Node->Type != TNodeType::ROOT) { return false; }
 		if (Node->All == 2000) { // Swap with the best performing subtree 
 			PNode BestAlt = Node;
-			const double Acc = 1.0*BestAlt->Correct/BestAlt->All; // Classification accuracy 
+			//const double Acc = 1.0*BestAlt->Correct/BestAlt->All; // Classification accuracy 
 			for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
 				if (1.0*(*It)->Correct/(*It)->All > 1.0*BestAlt->Correct/BestAlt->All) { BestAlt = *It; }
 				else { (*It)->All = (*It)->Correct = 0; } // Reset 
@@ -1161,17 +1162,17 @@ namespace THoeffding {
 	}
 	PNode THoeffdingTree::GetNextNodeCls(PNode Node, PExample Example) const {
 		if (!IsLeaf(Node)) {
-			printf("CndAttrIdx = %d\n", Node->CndAttrIdx);
+			//printf("CndAttrIdx = %d\n", Node->CndAttrIdx);
 			const TAttrType AttrType = AttrManV.GetVal(Node->CndAttrIdx).Type;
 			if (AttrType == TAttrType::DISCRETE) {
-				printf("# = %d\n", Node->ChildrenV.Len());
+				//printf("# = %d\n", Node->ChildrenV.Len());
 				// XXX: THIS IS THE BUG! 
 				// TODO: Check whether all JS/C++ conversion are OK. 
-				printf("first ATTR VAL = %d\n", Example->AttributesV.GetVal(0));
-				printf("ATTR VAL = %d\n", Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
+				//printf("first ATTR VAL = %d\n", Example->AttributesV.GetVal(0));
+				//printf("ATTR VAL = %d\n", Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
 				PNode RetNode = Node->ChildrenV.GetVal(Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
-				printf("OK\n");
-				printf("return node ID: %d\n", RetNode->Id);
+				//printf("OK\n");
+				//printf("return node ID: %d\n", RetNode->Id);
 				return Node->ChildrenV.GetVal(Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
 			} else { // Numeric attribute 
 				const double Num = Example->AttributesV.GetVal(Node->CndAttrIdx).Num;
@@ -1452,7 +1453,7 @@ namespace THoeffding {
 		for (auto It = Example->AttributesV.BegI(); It != Example->AttributesV.EndI(); ++It) {
 			switch (AttrManV.GetVal(It->Id).Type) {
 				case TAttrType::CONTINUOUS: {
-					printf("%f\t", It->Num);
+					printf("%f\t", It->Num.Val);
 					break;
 				}
 				case TAttrType::DISCRETE: {
@@ -1465,7 +1466,7 @@ namespace THoeffding {
 	}
 	void THoeffdingTree::Print(const TCh& Ch, const TInt& Num) {
 		for (int ChN = 0; ChN < Num; ++ChN) {
-			printf("%c", Ch);
+			printf("%c", Ch.Val);
 		}
 		printf("\n");
 	}
@@ -1478,7 +1479,7 @@ namespace THoeffding {
 		const int AttrsN = Example->AttributesV.Len();
 		const int LabelsN = AttrManV.Last().ValueV.Len();
 		double pk = 0.0, pc = 0.0;
-		int nk = 0, Maj = 0;
+		int nk = 0;// Maj = 0;
 		int MxLabel = 0;
 		double MxProb = 0;
 		TVec<TInt> SubExamplesN;

@@ -203,7 +203,7 @@ namespace THoeffding {
 	class TBin {
 	public:
 		TBin(const double& _Value = 0.0, const int& _Id = 0, const int& _Count = 0)
-			: Value(_Value), Id(_Id), Count(_Count), S(0.0), Mean(0.0), T(0.0) { }
+			: S(0.0), Mean(0.0), T(0.0), Value(_Value), Count(_Count), Id(_Id) { }
 		// { printf("INIT = %f\n", Value); getchar(); }
 		
 		// TBin(const TBin& Bin); // Default behavious is OK 
@@ -309,7 +309,7 @@ namespace THoeffding {
 		TAttribute(const int& Id_ = -1, const int& Value_ = -1)
 			: Id(Id_), Value(Value_), Num(-1) { }
 		TAttribute(const int& Id_, const double& Num_)
-			: Id(Id_), Num(Num_), Value(-1) { }
+			: Id(Id_), Value(-1), Num(Num_) { }
 		
 		//TAttribute(const TAttribute&& Attribute) // Default behaviour is OK
 		//TAttribute(TAttribute& Attribute) // Default behaviour is OK
@@ -351,7 +351,7 @@ namespace THoeffding {
 		TExample(const TAttributeV& AttributesV_, const int& Label_)
 			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(Label_), Value(0) { }
 		TExample(const TAttributeV& AttributesV_, const double& Value_)
-			: LeafId(0), BinId(0), AttributesV(AttributesV_), Value(Value_), Label(-1) { }
+			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(-1), Value(Value_) { }
 		TExample(const TExample& Example_) // Is this even necessary? Default seems OK 
 			: LeafId(Example_.LeafId), BinId(Example_.BinId), AttributesV(Example_.AttributesV), Label(Example_.Label), Value(Example_.Value) { }
 		// TExample(TExample&& Example); // TODO: Think about this 
@@ -397,13 +397,13 @@ namespace THoeffding {
 
 		// TODO: Initialize PartitionV class label distribution counts 
 		TNode(const int& LabelsN = 2, const TIntV& UsedAttrs_ = TIntV(), const int& Id_ = 0, const TNodeType& Type_ = TNodeType::LEAF)
-			: CndAttrIdx(-1), ExamplesN(0), UsedAttrs(UsedAttrs_), Avg(0), VarSum(0),
-			Err(0), TestModeN(0), Id(Id_), Correct(0), All(0), Type(Type_) {
+			: CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
+			Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_), Correct(0), All(0) {
 			PartitionV.Reserve(LabelsN, LabelsN);
 		}
 		TNode(const int& LabelsN, const TIntV& UsedAttrs_, const TAttrManV& AttrManV, const int& Id_, const TNodeType& Type_)
-			: CndAttrIdx(-1), ExamplesN(0), UsedAttrs(UsedAttrs_), Avg(0), VarSum(0),
-				Err(0), TestModeN(0), Id(Id_), Correct(0), All(0), Type(Type_) {
+			: CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
+				Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_), Correct(0), All(0) {
 			PartitionV.Reserve(LabelsN, LabelsN); Init(AttrManV);
 		}
 		TNode(const TNode& Node); // TODO: Default seems OK; no need to define it explicitly 
@@ -452,7 +452,7 @@ namespace THoeffding {
 		TVec<PExample> ExamplesV;
 		// TIntV IdxV; // Sacrificed example indices 
 //	#if GLIB_OK
-		THash<TExample, TBool> SeenH; // examples sacfrificed for self-evaluation 
+		THash<TExample, TBool> SeenH; // examples sacrificed for self-evaluation 
 //	#else
 //		std::map<TExample, bool> seen_h;
 //	#endif
@@ -474,22 +474,23 @@ namespace THoeffding {
 	public:
 		THoeffdingTree(const TStr& ConfigNm_, const int& GracePeriod_, const double& SplitConfidence_, const double& TieBreaking_,
 			const int& DriftCheck_ = 100, const int& WindowSize_ = 10000, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
-			: GracePeriod(GracePeriod_), SplitConfidence(SplitConfidence_), TieBreaking(TieBreaking_), DriftExamplesN(0),
-			DriftCheck(DriftCheck_), WindowSize(WindowSize_), BinsN(1000), MxId(1), IsAlt(IsAlt_), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true), ExportN(0) {
+			: ExportN(0), TieBreaking(TieBreaking_), SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_),
+			DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000), MxId(1), 
+            AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), ConceptDriftP(true) {
 				if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
 				Init(ConfigNm_);
 		}
 		THoeffdingTree(PJsonVal JsonConfig_, const int& GracePeriod_, const double& SplitConfidence_, const double& TieBreaking_,
 			const int& DriftCheck_ = 100, const int& WindowSize_ = 10000, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
-			: GracePeriod(GracePeriod_), SplitConfidence(SplitConfidence_), TieBreaking(TieBreaking_), DriftExamplesN(0),
-			DriftCheck(DriftCheck_), WindowSize(WindowSize_), BinsN(1000), MxId(1), IsAlt(IsAlt_), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true), ExportN(0) {
+			: ExportN(0), TieBreaking(TieBreaking_), SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_), DriftCheck(DriftCheck_), 
+            WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
+            ConceptDriftP(true) {
 				if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
 				Init(JsonConfig_);
 		}
 		// TODO: Check whether the consturctor is OK 
 		THoeffdingTree(PJsonVal JsonConfig_, PJsonVal JsonParams_, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
-			: BinsN(1000), MxId(1), IsAlt(IsAlt_), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true), ExportN(0)
-		{
+			: ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true)	{
 			if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
 			// NOTE: SetParams() must execute BEFORE Init() to initialize the paramters
 			SetParams(JsonParams_); Init(JsonConfig_);
