@@ -72,7 +72,6 @@ clean:
 	rm -rf ./$(BUILD)/
 
 lib:
-	make -C $(GLIB)
 	make -C $(THIRD_PARTY)
 
 install: 
