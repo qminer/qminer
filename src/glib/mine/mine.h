@@ -68,7 +68,4 @@
 // special datasets
 #include "dmoz.h"
 
-// HoeffdingTree
-#include "hoeffding.h"
-
 #endif
