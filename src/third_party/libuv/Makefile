@@ -22,6 +22,8 @@ SRCDIR ?= $(CURDIR)
 
 ifeq (,$(builddir_name))
 
+CC = cc
+
 VPATH := $(SRCDIR)
 include $(SRCDIR)/build.mk
 
