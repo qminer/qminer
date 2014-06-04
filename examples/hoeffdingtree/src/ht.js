@@ -1,10 +1,10 @@
 console.say("HoeffdingTree test");
-var analytics = require('analytics');
+var analytics = require('analytics.js');
 var assert = require('assert.js');
 
 // describe the data stream 
 var titanicConfig = {
-	"dataFormat": ["status", "sex", "age", "survived"], 
+	"dataFormat": ["status", "age", "sex", "survived"], 
 	"sex": {
 		"type": "discrete",
 		"values": ["male", "female"]
@@ -37,7 +37,7 @@ var htParams = {
 var ht = analytics.newHoeffdingTree(titanicConfig, htParams);
 
 // train the model
-var streamData = fs.openRead("./sandbox/hoeffdingtree/titanic-220K.dat");
+var streamData = fs.openRead("./sandbox/ht/titanic-50K.txt");
 while(!streamData.eof) {
 	var line = streamData.getNextLn().split(",");
 	// get discrete attributes
@@ -55,4 +55,4 @@ var label = ht.classify(["first", "adult", "female"], []);
 console.say("Were high society women likely to survive? " + label);
 
 // export the model 
-ht.exportModel({ "file": "./sandbox/hoeffdingtree/titanic.gv", "type": "DOT" });
+ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
