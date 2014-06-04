@@ -205,4 +205,26 @@ la.saveMat = function(X, fout) {
     //outFile.flush();
 };
 
+//#- `la.conjgrad(A,b,x)` -- solves the system A*x = b, where `A` is a matrix (sparse or dense) and `b` and `x` are dense vectors
+la.conjgrad = function (A, b, x) {
+    var r = b.minus(A.multiply(x));
+    var p = la.newVec(r); //clone
+    var rsold = r.inner(r);
+    for (var i = 0; i < 2*x.length; i++) {
+        var Ap = A.multiply(p);
+        var alpha = rsold / Ap.inner(p);
+        x = x.plus(p.multiply(alpha));
+        r = r.minus(Ap.multiply(alpha));
+        var rsnew = r.inner(r);
+        console.say("resid = " + rsnew);
+        if (Math.sqrt(rsnew) < 1e-6) {
+            break;
+        }
+        p = r.plus(p.multiply(rsnew/rsold));
+        rsold = rsnew;
+    }
+    return x;
+}
+
+
 var linalg = la;

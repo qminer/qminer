@@ -17,7 +17,7 @@
 //////////////////////////////////////////
 // FileSystem
 
-// read file and return it as string
+//#- `data = fs.readFile(fileName)` - read file and return it as string
 fs.readFile = function (fileName) {
     var fin = fs.openRead(fileName);
     var out = ""; 

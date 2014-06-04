@@ -2305,6 +2305,8 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& Sc
 				const int JoinId = Store->GetJoinId(JoinDescEx.JoinName);
                 const TJoinDesc& JoinDesc = Store->GetJoinDesc(JoinId);
 				TWPt<TStore> JoinStore = Base->GetStoreByStoreId(JoinDesc.GetJoinStoreId());
+                QmAssertR(JoinStore->IsJoinNm(JoinDescEx.InverseJoinName), 
+                    "Invalid inverse join " + JoinDescEx.InverseJoinName);
 				const int InverseJoinId = JoinStore->GetJoinId(JoinDescEx.InverseJoinName);
                 // mark the map
 				Store->PutInverseJoinId(JoinId, InverseJoinId);
