@@ -4765,7 +4765,16 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, string);
+        JsRegisterProperty(TmpTemp, dateString);
 		JsRegisterProperty(TmpTemp, timestamp);
+        JsRegisterProperty(TmpTemp, year);
+        JsRegisterProperty(TmpTemp, month);
+        JsRegisterProperty(TmpTemp, day);
+        JsRegisterProperty(TmpTemp, dayOfWeek);
+        JsRegisterProperty(TmpTemp, hour);
+        JsRegisterProperty(TmpTemp, minute);
+        JsRegisterProperty(TmpTemp, second);
+        JsRegisterProperty(TmpTemp, milisecond);                
         JsRegisterProperty(TmpTemp, now);
         JsRegisterProperty(TmpTemp, nowUTC);
         JsRegisterFunction(TmpTemp, add);
@@ -4786,11 +4795,59 @@ v8::Handle<v8::Value> TJsTm::string(v8::Local<v8::String> Properties, const v8::
 	return HandleScope.Close(v8::String::New(TmStr.CStr()));
 }
 
+v8::Handle<v8::Value> TJsTm::dateString(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
+    TStr TmStr = JsTm->Tm.GetWebLogDateStr();   
+	return HandleScope.Close(v8::String::New(TmStr.CStr()));
+}
+
 v8::Handle<v8::Value> TJsTm::timestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
     const int Timestamp = TTm::GetDateTimeIntFromTm(JsTm->Tm);
 	return HandleScope.Close(v8::Int32::New(Timestamp));
+}
+
+v8::Handle<v8::Value> TJsTm::year(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetYear()));
+}
+
+v8::Handle<v8::Value> TJsTm::month(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMonth()));
+}
+
+v8::Handle<v8::Value> TJsTm::day(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetDay()));
+}
+
+v8::Handle<v8::Value> TJsTm::dayOfWeek(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    TSecTm SecTm(TJsTmUtil::GetSelf(Info)->Tm);
+	return HandleScope.Close(v8::String::New(SecTm.GetDayOfWeekNm().CStr()));
+}
+
+v8::Handle<v8::Value> TJsTm::hour(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetHour()));
+}
+
+v8::Handle<v8::Value> TJsTm::minute(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMin()));
+}
+
+v8::Handle<v8::Value> TJsTm::second(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetSec()));
+}
+
+v8::Handle<v8::Value> TJsTm::milisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
 }
 
 v8::Handle<v8::Value> TJsTm::now(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -4819,8 +4876,7 @@ v8::Handle<v8::Value> TJsTm::add(const v8::Arguments& Args) {
     } else if (Unit == "day") {
         JsTm->Tm.AddDays(Val);        
     }
-    // nothing to return
-    return v8::Undefined();
+    return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
@@ -4839,8 +4895,7 @@ v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
     } else if (Unit == "day") {
         JsTm->Tm.SubDays(Val);        
     }
-    // nothing to return
-    return v8::Undefined();
+    return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {

@@ -17,28 +17,32 @@
 //////////////////////////////////////////
 // HTTP 
 
-// shortcuts
+//#- onGet(path, callback)
 http.onGet = function (path, callback) {
     http.onRequest(path, "GET", callback);
 }
 
+//#- `onPost(path, callback)`
 http.onPost = function (path, callback) {
     http.onRequest(path, "POST", callback);
 }
 
+//#- `onPut(path, callback)`
 http.onPut = function (path, callback) {
     http.onRequest(path, "PUT", callback);
 }
 
+//#- `onDelete(path, callback)`
 http.onDelete = function (path, callback) {
     http.onRequest(path, "DELETE", callback);
 }
 
+//#- `onPatch(path, callback)`
 http.onPatch = function (path, callback) {
     http.onRequest(path, "PATCH", callback);
 }
 
-// packaging reply as jsonp when callback parameter is provided in URL
+//#- `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
 http.jsonp = function (req, res, data) {
     // convert to string
     var dataStr;
