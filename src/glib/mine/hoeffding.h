@@ -414,10 +414,8 @@ namespace THoeffding {
 		TNode& operator=(const TNode& Node); // TODO: Default seems OK; no need to define it explicitly 
 		// TNode& operator=(TNode&& Node);
 
-		inline bool operator==(const TNode& Node) const;
-		inline bool operator!=(const TNode& Node) const {
-			return !(*this == Node);
-		}
+		bool operator==(const TNode& Node) const;
+		bool operator!=(const TNode& Node) const { return !(*this == Node); }
 		double ComputeEntropy() const;
 		double ComputeGini() const;
 		double InfoGain(const int& AttrIndex, const TVec<TAttrMan>& AttrManV) const; // classification 

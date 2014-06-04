@@ -1348,9 +1348,7 @@ v8::Handle<v8::Value> TJsStore::getStreamAggrNames(const v8::Arguments& Args) {
 	TWPt<TBase> Base = JsStore->Js->Base;
 	const uint StoreId = JsStore->Store->GetStoreId();
 	PStreamAggrBase SABase = Base->GetStreamAggrBase(StoreId);
-	int Aggrs = SABase->Len();
 	int AggrId = SABase->GetFirstStreamAggrId();
-	
 	v8::Local<v8::Array> Arr = v8::Array::New();
 	uint32 Counter = 0;
 	while (SABase->GetNextStreamAggrId(AggrId)) {
@@ -3725,14 +3723,15 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-        JsRegisterFunction(TmpTemp, getLanguageOptions);
         JsRegisterFunction(TmpTemp, newFeatureSpace);
         JsRegisterFunction(TmpTemp, loadFeatureSpace);
         JsRegisterFunction(TmpTemp, trainSvmClassify);		
         JsRegisterFunction(TmpTemp, trainSvmRegression);
 		JsRegisterFunction(TmpTemp, loadSvmModel);
         JsRegisterFunction(TmpTemp, newRecLinReg);
+        JsRegisterFunction(TmpTemp, newHoeffdingTree);
         JsRegisterFunction(TmpTemp, trainKMeans);						
+        JsRegisterFunction(TmpTemp, getLanguageOptions);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -3897,13 +3896,12 @@ v8::Handle<v8::Value> TJsAnalytics::newHoeffdingTree(const v8::Arguments& Args) 
     // parse arguments
     TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
     PJsonVal StreamConfig = TJsAnalyticsUtil::GetArgJson(Args, 0);
-		PJsonVal JsonConfig = TJsAnalyticsUtil::GetArgJson(Args, 1);
-		
-		try {
+	PJsonVal JsonConfig = TJsAnalyticsUtil::GetArgJson(Args, 1);
+	try {
         return TJsHoeffdingTree::New(JsAnalytics->Js, StreamConfig, JsonConfig);
     }
     catch (const PExcept& Except) {
-			InfoLog("[except] " + Except->GetMsgStr());
+		InfoLog("[except] " + Except->GetMsgStr());
     }
     return v8::Undefined();
 }

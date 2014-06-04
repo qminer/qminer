@@ -1890,6 +1890,10 @@ public:
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
     JsDeclareFunction(newRecLinReg);	
+
+    //#- `model = analytics.newRecLinReg(jsonStream, jsonParams)` -- create new
+    //#     incremental decision tree learner; parameters are passed as JSON
+    JsDeclareFunction(newHoeffdingTree);    
     
     // clustering (TODO: still depends directly on feature space)
     // trainKMeans(featureSpace, positives, negatives, parameters)
@@ -1899,40 +1903,6 @@ public:
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `options.stemmer` and `options.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
-    //#- `model = analytics.newRecLinReg(jsonStream, jsonParams)` -- create new
-    //#  incremental decision tree learner; parameters are passed as JSON
-    //# First, we have to initialize the learner. 
-    //# We specify the order of attributes in a stream example, and describe each attribute.
-    //# For each attribute, we specifty its type and --- in case of discrete attributes --- enumerate
-    //# all possible values of the attribute. See titanicConfig below. 
-    //#
-    //# The HoeffdingTree algorithm comes with many parameters:
-    //# (*) gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
-    //#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
-    //#	    is the most expensive operation in the algorithm; we have to recompute gains at each
-    //#	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
-    //# (*) splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
-    //#	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
-    //#	    uses Hoeffding inequality (http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
-    //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
-    //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-    //#	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
-    //# (*) tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
-    //#	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
-    //#	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
-    //#	    the attributes are equally good, we don't care on which one we split.)
-    //# (*) conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
-    //#	    we use a variant of CVFDT learner [2]; if set to false, we use a variant of VFDT learner [1].
-    //# (*) driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
-    //#	    examples and swaps the tree 
-    //# (*) windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
-    //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
-    //#	    the window in order to ``forget'' the example when it becomes too old. 
-    //#
-	//# [1] http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf 
-	//# [2] http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf 
-	//# 
-    JsDeclareFunction(newHoeffdingTree);    
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -1988,10 +1958,10 @@ public:
     //#- `vec = ftrVec(record)` -- extracts feature vector from `record`
     JsDeclareFunction(ftrVec);
     //#- `spMatrix = ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
-    //#     records in `recordSet` and returnes them as columns in a sparse matrix.
+    //#     records in `recordSet` and returns them as columns in a sparse matrix.
 	JsDeclareFunction(ftrSpColMat);
     //#- `matrix = ftrColMat(recordSet)` -- extracts feature vectors from 
-    //#     records in `recordSet` and returnes them as columns in a matrix.
+    //#     records in `recordSet` and returns them as columns in a matrix.
     JsDeclareFunction(ftrColMat);
 };
 
@@ -2051,7 +2021,6 @@ public:
 		return TJsRecLinRegModelUtil::New(new TJsRecLinRegModel(Js, Model)); }
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
     
-    
 	//# 
 	//# **Functions and properties:**
 	//#     
@@ -2069,6 +2038,39 @@ public:
 
 ///////////////////////////////
 // QMiner-JavaScript-HoeffdingTree
+//#
+//# ### Hoeffding Tree model
+//#
+//# First, we have to initialize the learner. 
+//# We specify the order of attributes in a stream example, and describe each attribute.
+//# For each attribute, we specifty its type and --- in case of discrete attributes --- enumerate
+//# all possible values of the attribute. See titanicConfig below. 
+//#
+//# The HoeffdingTree algorithm comes with many parameters:
+//# (*) gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
+//#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+//#	    is the most expensive operation in the algorithm; we have to recompute gains at each
+//#	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
+//# (*) splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
+//#	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
+//#	    uses Hoeffding inequality (http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
+//#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
+//#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
+//#	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
+//# (*) tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
+//#	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
+//#	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
+//#	    the attributes are equally good, we don't care on which one we split.)
+//# (*) conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
+//#	    we use a variant of CVFDT learner [2]; if set to false, we use a variant of VFDT learner [1].
+//# (*) driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
+//#	    examples and swaps the tree 
+//# (*) windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
+//#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
+//#	    the window in order to ``forget'' the example when it becomes too old. 
+//#
+//# [1] http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf 
+//# [2] http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf 
 class TJsHoeffdingTree {
 public:
 	/// JS script context
@@ -2086,6 +2088,10 @@ public:
 		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
 	
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
 	//#- `ht.process(discreteV, numericV, label)` -- processes the stream example; `discreteV` is vector of discrete attribute values;
 	//#   `numericV` is vector of numeric attribute values; `label` is class label of the example; returns nothing;
 	//#- `ht.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
