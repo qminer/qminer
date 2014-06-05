@@ -46,3 +46,6 @@ console.startx = function (x) {
         }
     }
 }
+
+//#- `console.pause()` -- waits until enter is pressed
+console.pause = console.getln;

@@ -37,26 +37,26 @@ namespace THoeffding {
 	const int BinsN = 100;
 
 	// model in the leaves for regression 
-	enum class TRegressLeaves : char { MEAN, LINEAR_REGRESSION };
+	typedef enum { rlMEAN, rlLINEAR_REGRESSION } TRegressLeaves;
 	// classifier in the leaves 
-	enum class TClassifyLeaves : char { MAJORITY, NAIVE_BAYES };
+	typedef enum { clMAJORITY, clNAIVE_BAYES } TClassifyLeaves;
 	// learning task type 
-	enum class TTaskType : char { CLASSIFICATION, REGRESSION };
+	typedef enum { ttCLASSIFICATION, ttREGRESSION } TTaskType;
 	// attribute value type 
-	enum class TAttrType : char { DISCRETE, CONTINUOUS };
+	typedef enum { atDISCRETE, atCONTINUOUS } TAttrType;
 	// node type 
-	enum class TNodeType : char { ROOT, INTERNAL, LEAF };
+	typedef enum { ntROOT, ntINTERNAL, ntLEAF } TNodeType;
 	// export type 
-	enum class TExportType : char { XML, JSON, DOT };
+	typedef enum { etXML, etJSON, etDOT } TExportType;
 	// attribute heuristic measures 
-	enum class TAttrHeuristic : char { INFO_GAIN, GINI_GAIN };
+	typedef enum { ahINFO_GAIN, ahGINI_GAIN } TAttrHeuristic;
 
-	enum class TTokType : char { DFORMAT, DISCRETE, NUMERIC, COLON, COMMA, EQU, END, ID, LPARENTHESIS, RPARENTHESIS, SEMIC };
+	typedef enum { totDFORMAT, totDISCRETE, totNUMERIC, totCOLON, totCOMMA, totEQU, totEND, totID, totLPARENTHESIS, totRPARENTHESIS, totSEMIC } TTokType;
 
 	///////////////////////////////
 	// Token
 	struct TToken {
-		TToken(const TStr& Val = "", const TTokType& Type = TTokType::END, const int& LineN = 0)
+		TToken(const TStr& Val = "", const TTokType& Type = totEND, const int& LineN = 0)
 			: Val(Val), Type(Type), LineN(LineN) { }
 		TStr Val;
 		TTokType Type;
@@ -107,7 +107,7 @@ namespace THoeffding {
 	// Config-Parsing
 	class TParser {
 	public:
-		enum class TAttrHeuristic : char { INFO_GAIN, GINI };
+		typedef enum { ahINFO_GAIN, ahGINI } TAttrHeuristic;
 		TParser(const TStr& FNm) {
 			CfgParse(FNm);
 		}
@@ -286,7 +286,7 @@ namespace THoeffding {
 	class TAttrMan {
 	public:
 		TAttrMan(const THash<TStr, TInt>& AttrH_ = THash<TStr, TInt>(), const THash<TInt, TStr>& InvAttrH_ = THash<TInt, TStr>(),
-			const int& Id_ = -1, const TStr& Nm_ = "Anon", const TAttrType& Type_ = TAttrType::DISCRETE);
+			const int& Id_ = -1, const TStr& Nm_ = "Anon", const TAttrType& Type_ = atDISCRETE);
 
 		// TAttrMan(const TAttrMan& AttrMan); // Default behaviour is OK 
 		// TAttrMan(TAttrMan&& AttrMan); // 
@@ -388,15 +388,15 @@ namespace THoeffding {
 	ClassTP(TNode, PNode) // { 
 		friend class THoeffdingTree;
 	public:
-		static PNode New(const int& LabelsN = 2, const TIntV& UsedAttrs = TVec<TInt>(), const int& Id = 0, const TNodeType& Type = TNodeType::LEAF) {
+		static PNode New(const int& LabelsN = 2, const TIntV& UsedAttrs = TVec<TInt>(), const int& Id = 0, const TNodeType& Type = ntLEAF) {
 			return new TNode(LabelsN, UsedAttrs, Id, Type);
 		}
-		static PNode New(const int& LabelsN, const TIntV& UsedAttrV, const TAttrManV& AttrManV, const int& Id, const TNodeType& Type = TNodeType::LEAF) {
+		static PNode New(const int& LabelsN, const TIntV& UsedAttrV, const TAttrManV& AttrManV, const int& Id, const TNodeType& Type = ntLEAF) {
 			return new TNode(LabelsN, UsedAttrV, AttrManV, Id, Type);
 		}
 
 		// TODO: Initialize PartitionV class label distribution counts 
-		TNode(const int& LabelsN = 2, const TIntV& UsedAttrs_ = TIntV(), const int& Id_ = 0, const TNodeType& Type_ = TNodeType::LEAF)
+		TNode(const int& LabelsN = 2, const TIntV& UsedAttrs_ = TIntV(), const int& Id_ = 0, const TNodeType& Type_ = ntLEAF)
 			: CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
 			Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_), Correct(0), All(0) {
 			PartitionV.Reserve(LabelsN, LabelsN);
@@ -424,7 +424,7 @@ namespace THoeffding {
 		double ComputeTreshold(const double& Delta, const int& LabelsN) const;
 		void Split(const int& AttrIndex, const TAttrManV& AttrManV, PIdGen IdGen); // split the leaf on the AttrIndex attribute 
 		void Clr(); // forget accumulated examples 
-		TBstAttr BestAttr(const TAttrManV& AttrManV, const TTaskType& TaskType = TTaskType::CLASSIFICATION);
+		TBstAttr BestAttr(const TAttrManV& AttrManV, const TTaskType& TaskType = ttCLASSIFICATION);
 		TBstAttr BestRegAttr(const TAttrManV& AttrManV); // regression 
 		TBstAttr BestClsAttr(const TAttrManV& AttrManV, const TIntV& BannedAttrV = TVec<TInt>()); // classification 
 		void UpdateStats(PExample Example); // regression 
@@ -542,7 +542,7 @@ namespace THoeffding {
 			Process(Preprocess(Line, Delimiter));
 		}
 		void Process(PExample Example) {
-			if(TaskType == TTaskType::CLASSIFICATION) {
+			if(TaskType == ttCLASSIFICATION) {
 				ProcessCls(Example);
 			} else {
 				ProcessReg(Example);
@@ -553,7 +553,7 @@ namespace THoeffding {
 		PExample Preprocess(const TStr& Line, const TCh& Delimiter = ',') const;
 		PNode GetNextNodeCls(PNode Node, PExample Example) const;
 		void Clr(PNode Node, PNode SubRoot = nullptr);
-		void Export(const TStr& FileNm, const TExportType& ExportType = TExportType::XML) const;
+		void Export(const TStr& FileNm, const TExportType& ExportType = etXML) const;
 		TLabel NaiveBayes(PNode Node, PExample Example) const;
 		inline TLabel Majority(PNode Node) const {
 			return Node->PartitionV.GetMxValN();

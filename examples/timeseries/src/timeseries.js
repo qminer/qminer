@@ -73,6 +73,7 @@ while (!fin.eof) {
         var vals = line.split(',');
         var rec = { "Time": vals[1], "Value": parseFloat(vals[0]) };
         Raw.add(rec);
+        //console.pause();
     } catch (err) { 
         console.say("Raw", err);
     }

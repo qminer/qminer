@@ -18,22 +18,22 @@ namespace THoeffding {
 
 		switch (CurrCh) {
 		case '(':
-			LastTok = TToken("(", TTokType::LPARENTHESIS, LineN);
+			LastTok = TToken("(", totLPARENTHESIS, LineN);
 			return LastTok;
 		case ')':
-			LastTok = TToken(")", TTokType::RPARENTHESIS, LineN);
+			LastTok = TToken(")", totRPARENTHESIS, LineN);
 			return LastTok;
 		case ':':
-			LastTok = TToken(":", TTokType::COLON, LineN);
+			LastTok = TToken(":", totCOLON, LineN);
 			return LastTok;
 		case ';':
-			LastTok = TToken(";", TTokType::SEMIC, LineN);
+			LastTok = TToken(";", totSEMIC, LineN);
 			return LastTok;
 		case ',':
-			LastTok = TToken(",", TTokType::COMMA, LineN);
+			LastTok = TToken(",", totCOMMA, LineN);
 			return LastTok;
 		case '=':
-			LastTok = TToken("=", TTokType::EQU, LineN);
+			LastTok = TToken("=", totEQU, LineN);
 			return LastTok;
 		}
 		// identifier?
@@ -45,20 +45,20 @@ namespace THoeffding {
 				ChA.AddCh(CurrCh);
 			}
 			if (ChA == "dataFormat") {
-				LastTok = TToken(ChA, TTokType::DFORMAT, LineN);
+				LastTok = TToken(ChA, totDFORMAT, LineN);
 			} else if (ChA == "discrete") {
-				LastTok = TToken(ChA, TTokType::DISCRETE, LineN);
+				LastTok = TToken(ChA, totDISCRETE, LineN);
 			} else if (ChA == "numeric") {
-				LastTok = TToken(ChA, TTokType::NUMERIC, LineN);
+				LastTok = TToken(ChA, totNUMERIC, LineN);
 			} else {
-				LastTok = TToken(ChA, TTokType::ID, LineN);
+				LastTok = TToken(ChA, totID, LineN);
 			}
 		} else {
 			if (!SIn->Eof()) {
 				printf("[Line %d] Illegal character: '%c'.\n", LineN, CurrCh);
 				Fail;
 			}
-			LastTok = TToken("", TTokType::END, LineN); // end-of-file
+			LastTok = TToken("", totEND, LineN); // end-of-file
 		}
 		return LastTok;
 	}
@@ -78,7 +78,7 @@ namespace THoeffding {
 	void TParser::CfgParse(const TStr& FileNm) {
 		TLexer Lexer(FileNm);
 		TToken Tok;
-		//while ((Tok = Lexer.GetNextTok()).Type != TTokType::END) {
+		//while ((Tok = Lexer.GetNextTok()).Type != totEND) {
 		//	printf("\tToken: %s\n", Tok.Val.CStr());
 		//}
 		printf("--------- Parsing format specification ---------\n");
@@ -91,19 +91,19 @@ namespace THoeffding {
 	void TParser::InitLine(TLexer& Lexer) {
 		TToken Tok;
 		Tok = Lexer.GetNextTok();
-		if (Tok.Type != TTokType::DFORMAT) {
+		if (Tok.Type != totDFORMAT) {
 			printf("[Line %d] Expected 'dataFormat' keyword instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 			Fail;
 		}
 		// =
 		Tok = Lexer.GetNextTok();
-		if (Tok.Type != TTokType::COLON) {
+		if (Tok.Type != totCOLON) {
 			printf("[Line %d] Expected ':' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 			Fail;
 		}
 		// (
 		Tok = Lexer.GetNextTok();
-		if (Tok.Type != TTokType::LPARENTHESIS) {
+		if (Tok.Type != totLPARENTHESIS) {
 			printf("[Line %d] Expected '(' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 			Fail;
 		}
@@ -111,7 +111,7 @@ namespace THoeffding {
 		InitParam(Lexer);
 		// )
 		Tok = Lexer.GetNextTok();
-		if (Tok.Type != TTokType::RPARENTHESIS) {
+		if (Tok.Type != totRPARENTHESIS) {
 			printf("[Line %d] Expected ')' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 			Fail;
 		}
@@ -123,7 +123,7 @@ namespace THoeffding {
 		while (true) {
 			// id
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type != TTokType::ID) {
+			if (Tok.Type != totID) {
 				printf("[Line %d] Expected identifier instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 				Fail;
 			}
@@ -132,8 +132,8 @@ namespace THoeffding {
 			InvDataFormatH.AddDat(IdxN, Tok.Val);
 			// ,
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type == TTokType::RPARENTHESIS) { break; } // end of parameter list 
-			if (Tok.Type != TTokType::COMMA) {
+			if (Tok.Type == totRPARENTHESIS) { break; } // end of parameter list 
+			if (Tok.Type != totCOMMA) {
 				printf("[Line %d] Expected ',' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 				Fail;
 			}
@@ -151,9 +151,9 @@ namespace THoeffding {
 		while (true) {
 			// id
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type == TTokType::END) { break; } // end-of-file
+			if (Tok.Type == totEND) { break; } // end-of-file
 				
-			if (Tok.Type != TTokType::ID) {
+			if (Tok.Type != totID) {
 				printf("[Line %d] Expected identifier instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 				Fail;
 			}
@@ -165,28 +165,28 @@ namespace THoeffding {
 			}
 			// :
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type != TTokType::COLON) {
+			if (Tok.Type != totCOLON) {
 				printf("[Line %d] Expected ':' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 				Fail;
 			}
 			// discrete/numeric
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type == TTokType::DISCRETE) {
+			if (Tok.Type == totDISCRETE) {
 				printf("Nominal attirubte %s\n", AttrNm.CStr());
 				// (
 				Tok = Lexer.GetNextTok();
-				if (Tok.Type != TTokType::LPARENTHESIS) {
+				if (Tok.Type != totLPARENTHESIS) {
 					printf("[Line %d] Expected '(' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 					Fail;
 				}
 				AttrParam(Lexer, AttrNm);
 				// )
 				Tok = Lexer.GetNextTok();
-				if (Tok.Type != TTokType::RPARENTHESIS) {
+				if (Tok.Type != totRPARENTHESIS) {
 					printf("[Line %d] Expected ')' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 					Fail;
 				}
-			} else if (Tok.Type == TTokType::NUMERIC) {
+			} else if (Tok.Type == totNUMERIC) {
 				printf("Numeric atribute\n");
 				const int CountN = DataFormatH.GetDat(AttrNm);
 				AttrsHV.GetVal(CountN).AddDat("", 0);
@@ -206,7 +206,7 @@ namespace THoeffding {
 		while (true) { // loop through all values 
 			// id
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type != TTokType::ID) {
+			if (Tok.Type != totID) {
 				printf("[Line %d] Expected identifier instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 				Fail;
 			}
@@ -216,8 +216,8 @@ namespace THoeffding {
 			InvAttrsHV.GetVal(CountN).AddDat(IdxN, ValNm);
 			// ,
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type == TTokType::RPARENTHESIS) { break; } // end of parameter list 
-			if (Tok.Type != TTokType::COMMA) {
+			if (Tok.Type == totRPARENTHESIS) { break; } // end of parameter list 
+			if (Tok.Type != totCOMMA) {
 				printf("[Line %d] Expected ',' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
 				Fail;
 			}
@@ -641,7 +641,7 @@ namespace THoeffding {
 	double TNode::StdGain(const int& AttrIdx, const TAttrManV& AttrManV) const {
 		// NOTE: Compute variances Var(S_i) for all possible values attribute A_i can take 
 		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
-		EAssertR(AttrType == TAttrType::DISCRETE, "This function works with nominal attributes.");
+		EAssertR(AttrType == atDISCRETE, "This function works with nominal attributes.");
 		const int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
 		TVec<TTriple<TFlt, TFlt, TInt> > VarV; // Vector of (mean, variance, n) pairs 
 		// TODO: Avoid iterating over the vector twice --- is there a faster way to initialize the thing?
@@ -670,7 +670,7 @@ namespace THoeffding {
 		return CrrStd;
 	}
 	TBstAttr TNode::BestAttr(const TAttrManV& AttrManV, const TTaskType& TaskType) {
-		if (TaskType == TTaskType::CLASSIFICATION) {
+		if (TaskType == ttCLASSIFICATION) {
 			return BestClsAttr(AttrManV);
 		} else {
 			return BestRegAttr(AttrManV);
@@ -684,7 +684,7 @@ namespace THoeffding {
 		Idx1 = Idx2 = 0;
 		for (int AttrN = 0; AttrN < AttrsN; ++AttrN) {
 			const TAttrType AttrType = AttrManV.GetVal(AttrN).Type;
-			if (AttrType == TAttrType::DISCRETE) { // Discrete 
+			if (AttrType == atDISCRETE) { // Discrete 
 				if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
 					// Compute standard deviation reduction 
 					CrrSdr = StdGain(AttrN, AttrManV);
@@ -711,7 +711,7 @@ namespace THoeffding {
 		for (int AttrN = 0; AttrN < AttrsN; ++AttrN) {
 			// NOTE: BannedAttrV almost never contains more than two indices 
 			if (BannedAttrV.IsIn(AttrN)) { continue; }
-			if (AttrManV.GetVal(AttrN).Type == TAttrType::DISCRETE) {
+			if (AttrManV.GetVal(AttrN).Type == atDISCRETE) {
 				if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
 					Crr = InfoGain(AttrN, AttrManV);
 				}
@@ -742,7 +742,7 @@ namespace THoeffding {
 		CndAttrIdx = AttrIdx;
 		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
 		int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
-		if (AttrType == TAttrType::DISCRETE) { // Categorial attributes can only be used once 
+		if (AttrType == atDISCRETE) { // Categorial attributes can only be used once 
 			UsedAttrs.Add(AttrIdx);
 		} else {
 			ValsN = 2;
@@ -753,7 +753,7 @@ namespace THoeffding {
 		for (int ValN = 0; ValN < ValsN; ++ValN) {
 			ChildrenV.Add(TNode::New(LabelsN, UsedAttrs, AttrManV, IdGen->GetNextLeafId())); // Leaf node 
 		}
-		if(Type != TNodeType::ROOT) { Type = TNodeType::INTERNAL; }
+		if(Type != ntROOT) { Type = ntINTERNAL; }
 	}
 	void TNode::Clr() { // Forget training examples 
 		ExamplesV.Clr(); PartitionV.Clr(); Counts.Clr();
@@ -777,7 +777,7 @@ namespace THoeffding {
 	}
 	void TNode::Init(const TAttrManV& AttrManV) {
 		for (int AttrN = 0; AttrN < AttrManV.Len(); ++AttrN) {
-			if (AttrManV.GetVal(AttrN).Type == TAttrType::CONTINUOUS) {
+			if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
 				// const int LabelsN = AttrManV.GetVal(AttrN).ValueV.Last();
 				HistH.AddDat(AttrN, THist());
 			}
@@ -790,7 +790,7 @@ namespace THoeffding {
 		PNode CrrNode = Root;
 		while (CrrNode->CndAttrIdx != -1) {
 			const TAttrType AttrType = AttrManV.GetVal(CrrNode->CndAttrIdx).Type;
-			if (AttrType == TAttrType::DISCRETE) {
+			if (AttrType == atDISCRETE) {
 				CrrNode = CrrNode->ChildrenV.GetVal(Example->AttributesV.GetVal(CrrNode->CndAttrIdx).Value);
 			} else { // Numeric attribute 
 				const double Val = Example->AttributesV.GetVal(CrrNode->CndAttrIdx).Num;
@@ -812,11 +812,11 @@ namespace THoeffding {
 		const int AttrsN = AttrManV.Len();
 		for (int AttrN = 0; AttrN < AttrsN-1; ++AttrN) {
 			switch (AttrManV.GetVal(AttrN).Type) {
-			case TAttrType::DISCRETE:
+			case atDISCRETE:
 				// printf(DiscreteV.GetVal(DisIdx).CStr());
 				AttributesV.Add(TAttribute(AttrN, AttrsHashV.GetVal(AttrN).GetDat(DiscreteV.GetVal(DisIdx++))));
 				break;
-			case TAttrType::CONTINUOUS:
+			case atCONTINUOUS:
 				AttributesV.Add(TAttribute(AttrN, NumericV.GetVal(FltIdx++)));
 				break;
 			default:
@@ -838,7 +838,7 @@ namespace THoeffding {
 		int AttrN = 0;
 		for (auto It = Example->AttributesV.BegI(); It != Example->AttributesV.EndI(); ++It) {
 			switch (AttrManV.GetVal(It->Id).Type) {
-			case TAttrType::DISCRETE: {
+			case atDISCRETE: {
 				TTriple<TInt, TInt, TInt> Idx(It->Id, It->Value, Example->Label);
 				if (Node->Counts.IsKey(Idx)) {
 					Node->Counts.GetDat(Idx)++;
@@ -846,7 +846,7 @@ namespace THoeffding {
 					Node->Counts.AddDat(Idx, 1);
 				}
 				break;										}
-			case TAttrType::CONTINUOUS:
+			case atCONTINUOUS:
 				Node->HistH.GetDat(AttrN).IncCls(Example, AttrN, IdGen);
 				break;
 			default:
@@ -861,7 +861,7 @@ namespace THoeffding {
 		int AttrN = 0;
 		for (auto It = Example->AttributesV.BegI(); It != Example->AttributesV.EndI(); ++It) {
 			switch (AttrManV.GetVal(It->Id).Type) {
-			case TAttrType::DISCRETE: {
+			case atDISCRETE: {
 				TTriple<TInt, TInt, TInt> Idx(It->Id, It->Value, Example->Label);
 				if (Node->Counts.IsKey(Idx)) {
 					EAssertR(Node->Counts.GetDat(Idx)-- >= 0, "Negative id-value-label triple count.");
@@ -873,7 +873,7 @@ namespace THoeffding {
 					EFailR("Corresponding id-value-label triple is missing in counts hashtable."); // NOTE: For dbugging purposes; this fail probably indicates serious problems 
 				}
 				break;										}
-			case TAttrType::CONTINUOUS:
+			case atCONTINUOUS:
 				Node->HistH.GetDat(AttrN).DecCls(Example, AttrN);
 				break;
 			default:
@@ -921,7 +921,7 @@ namespace THoeffding {
 					// Grow alternate tree 
 					Print('-');
 					printf("Starting alternate tree for node splitting on `%s' with `%s' at root ; tie = %d\n", AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr(), AttrManV.GetVal(SpltAttr.Val1.Val1).Nm.CStr(), EstG <= Eps);
-					// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", TExportType::DOT);
+					// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", etDOT);
 					const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
 					PNode AltHt = TNode::New(LabelsN, CrrNode->UsedAttrs, AttrManV, IdGen->GetNextLeafId());
 					AltHt->Split(SpltAttr.Val1.Val1, AttrManV, IdGen);
@@ -960,7 +960,7 @@ namespace THoeffding {
 		// Leaf->ExamplesV.Add(Example);
 		const int AttrsN = Example->AttributesV.Len();
 		for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
-			if (AttrManV.GetVal(AttrN).Type == TAttrType::CONTINUOUS) {
+			if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
 				// TODO: Find an efficient way to compute s(A) from s(A1) and s(A2) if A1 and A2 parition A
 				Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
 				// EFailR("Current regression discretization is deprecated.");
@@ -1077,7 +1077,7 @@ namespace THoeffding {
 		++Node->All;
 	}
 	bool THoeffdingTree::TestMode(PNode Node) {
-		if (Node->AltTreesV.Empty() && Node->Type != TNodeType::ROOT) { return false; }
+		if (Node->AltTreesV.Empty() && Node->Type != ntROOT) { return false; }
 		if (Node->All == 2000) { // Swap with the best performing subtree 
 			PNode BestAlt = Node;
 			//const double Acc = 1.0*BestAlt->Correct/BestAlt->All; // Classification accuracy 
@@ -1087,13 +1087,13 @@ namespace THoeffding {
 			}
 			if (BestAlt != Node) {
 				printf("[DEBUG] Swapping node with an alternate tree.\n");
-				// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", TExportType::DOT);
-				if(Node->Type == TNodeType::ROOT) { BestAlt->Type = TNodeType::ROOT; }
+				// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", etDOT);
+				if(Node->Type == ntROOT) { BestAlt->Type = ntROOT; }
 				*Node = *BestAlt;
 			}
 			Node->All = Node->Correct = 0; // Reset 
 			/*
-			if(Node->Type == TNodeType::ROOT) {
+			if(Node->Type == ntROOT) {
 				TStr FNm = ConceptDriftP ? "err-cvfdt.dat" : "err-vfdt.dat";
 				PSOut FOut = TFOut::New(FNm, true);
 				FOut->PutFlt(1.0-Acc); FOut->PutLn();
@@ -1113,11 +1113,11 @@ namespace THoeffding {
 		TAttributeV AttributesV;
 		for (int AttrN = 0; AttrN < AttrManV.Len()-1; ++AttrN) {
 			switch (AttrManV.GetVal(AttrN).Type) {
-			case TAttrType::DISCRETE:
+			case atDISCRETE:
 				// printf(DiscreteV.GetVal(DisIdx).CStr());
 				AttributesV.Add(TAttribute(AttrN, AttrsHashV.GetVal(AttrN).GetDat(DiscreteV.GetVal(DisIdx++))));
 				break;
-			case TAttrType::CONTINUOUS:
+			case atCONTINUOUS:
 				AttributesV.Add(TAttribute(AttrN, NumericV.GetVal(FltIdx++)));
 				break;
 			default:
@@ -1137,7 +1137,7 @@ namespace THoeffding {
 			// (2) Get appropriate raw value from input attribute vector 
 			// (3) Map raw attribute value to TInt with hash table 
 			switch (AttrManV.GetVal(CountN).Type) {
-			case TAttrType::DISCRETE:
+			case atDISCRETE:
 				if (LineV.GetVal(CountN)  == "?") {
 					// EFailR("Missing values are not allowed.");
 					// printf("[WARNING] Missing value; assuming default.\n");
@@ -1147,14 +1147,14 @@ namespace THoeffding {
 				}
 				AttributesV.Add(TAttribute(CountN, ValN));
 				break;
-			case TAttrType::CONTINUOUS:
+			case atCONTINUOUS:
 				AttributesV.Add(TAttribute(CountN, LineV.GetVal(CountN).GetFlt()));
 				break;
 			default:
 				EFailR("Unsupported attribute type.");
 			}
 		}
-		if (TaskType == TTaskType::CLASSIFICATION) {
+		if (TaskType == ttCLASSIFICATION) {
 			return TExample::New(AttributesV, AttrsHashV.GetVal(AttrsN).GetDat(LineV.GetVal(AttrsN)));
 		} else {
 			return TExample::New(AttributesV, LineV.Last().GetFlt());
@@ -1164,7 +1164,7 @@ namespace THoeffding {
 		if (!IsLeaf(Node)) {
 			//printf("CndAttrIdx = %d\n", Node->CndAttrIdx);
 			const TAttrType AttrType = AttrManV.GetVal(Node->CndAttrIdx).Type;
-			if (AttrType == TAttrType::DISCRETE) {
+			if (AttrType == atDISCRETE) {
 				//printf("# = %d\n", Node->ChildrenV.Len());
 				// XXX: THIS IS THE BUG! 
 				// TODO: Check whether all JS/C++ conversion are OK. 
@@ -1207,15 +1207,15 @@ namespace THoeffding {
 		printf("Writing the decision tree to `%s'.\n", FileNm.CStr());
 		TFOut FOut(FileNm);
 		switch (ExportType) {
-		case TExportType::XML:
+		case etXML:
 			FOut.PutStrLn("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>");
 			FOut.PutStrFmtLn("<dt classes=%d>", LabelH.Len());
 			PrintXML(Root, 1, FOut);
 			FOut.PutStrFmtLn("</dt>");
 			break;
-		case TExportType::JSON:
+		case etJSON:
 			EFailR("Not yet supported.");
-		case TExportType::DOT:
+		case etDOT:
 			FOut.PutStrFmtLn("digraph dt_fig {"); // %s {", FileNm.GetFBase().CStr());
 			PrintDOT(Root, FOut, true);
 			FOut.PutStrLn("}");
@@ -1316,20 +1316,20 @@ namespace THoeffding {
 		const int AttrsN = AttrsHashV.Len();
 		for (int CountN = 0; CountN < AttrsN; ++CountN) {
 			if (AttrsHashV.GetVal(CountN).Len() == 1) { // Continuous attributes have, in a sense, a `single' value 
-				AttrManV.Add(TAttrMan(AttrsHashV.GetVal(CountN), InvAttrsHashV.GetVal(CountN), CountN, InvLabelH.GetDat(CountN), TAttrType::CONTINUOUS));
+				AttrManV.Add(TAttrMan(AttrsHashV.GetVal(CountN), InvAttrsHashV.GetVal(CountN), CountN, InvLabelH.GetDat(CountN), atCONTINUOUS));
 			} else {
 				// printf("%s\n", InvAttrsHashV.GetVal(CountN).GetDat(0).CStr());
-				AttrManV.Add(TAttrMan(AttrsHashV.GetVal(CountN), InvAttrsHashV.GetVal(CountN), CountN, InvLabelH.GetDat(CountN), TAttrType::DISCRETE));
+				AttrManV.Add(TAttrMan(AttrsHashV.GetVal(CountN), InvAttrsHashV.GetVal(CountN), CountN, InvLabelH.GetDat(CountN), atDISCRETE));
 			}
 		}
 		const TAttrType PredType = AttrManV.Last().Type;
-		// EAssert(PredType == TAttrType::DISCRETE);
-		if (PredType == TAttrType::DISCRETE) {
-			TaskType = TTaskType::CLASSIFICATION;
+		// EAssert(PredType == atDISCRETE);
+		if (PredType == atDISCRETE) {
+			TaskType = ttCLASSIFICATION;
 		} else {
-			TaskType = TTaskType::REGRESSION;
+			TaskType = ttREGRESSION;
 		}
-		Root = TNode::New(LabelH.Len(), TVec<TInt>(), AttrManV, IdGen->GetNextLeafId(), TNodeType::ROOT); // Initialize the root node 
+		Root = TNode::New(LabelH.Len(), TVec<TInt>(), AttrManV, IdGen->GetNextLeafId(), ntROOT); // Initialize the root node 
 	}
 
 	// Pre-order depth-first tree traversal 
@@ -1345,7 +1345,7 @@ namespace THoeffding {
 		const int ChildrenN = Node->ChildrenV.Len();
 		for (int ChildN = 0; ChildN < ChildrenN; ++ChildN) {
 			FOut.PutStr(Indent);
-			if (AttrManV.GetVal(Node->CndAttrIdx).Type == TAttrType::DISCRETE) {
+			if (AttrManV.GetVal(Node->CndAttrIdx).Type == atDISCRETE) {
 				ValNm = GetNodeValueNm(Node, ChildN);
 			} else {
 				ValNm = (ChildN ? ">" : "<=");
@@ -1368,7 +1368,7 @@ namespace THoeffding {
 		int NodeId = 0; // Used to achieve uniqueness 
 		Queue.Push(TPair<PNode, TInt>(Node, NodeId));
 		if (Node->ChildrenV.Empty()) {
-			if (TaskType == TTaskType::CLASSIFICATION) {
+			if (TaskType == ttCLASSIFICATION) {
 				FOut.PutStrFmtLn("\t\"%s\";", GetMajorityNm(Node).CStr());
 			} else {
 				FOut.PutStrFmtLn("\t\"%f\";", Node->Avg);
@@ -1383,7 +1383,7 @@ namespace THoeffding {
 			for (int NodeN = 0; NodeN < CrrNode->ChildrenV.Len(); ++NodeN) {
 				++NodeId;
 				PNode TmpNode = CrrNode->ChildrenV[NodeN];
-				if (AttrManV.GetVal(CrrNode->CndAttrIdx).Type == TAttrType::DISCRETE) {
+				if (AttrManV.GetVal(CrrNode->CndAttrIdx).Type == atDISCRETE) {
 					ValueNm = GetNodeValueNm(CrrNode, NodeN);
 				} else {
 					ValueNm = NodeN == 0 ? "<= " : "> ";
@@ -1392,7 +1392,7 @@ namespace THoeffding {
 				TStr TmpValueNm = ValueNm;
 				TmpValueNm.ChangeCh('-', 'D'); // Make sure DOT doesn't crash later beacuse of illegal labels 
 				if (TmpNode->ChildrenV.Empty()) {
-					if (TaskType == TTaskType::CLASSIFICATION) {
+					if (TaskType == ttCLASSIFICATION) {
 						FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\"];", GetNodeNm(CrrNode).CStr(), CurrPair.Val2, GetMajorityNm(TmpNode).CStr(), NodeId, TmpValueNm.CStr());
 					} else {
 						FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\"];", GetNodeNm(CrrNode).CStr(), CurrPair.Val2, TFlt::GetStr(TmpNode->Avg).CStr(), NodeId, TmpValueNm.CStr());
@@ -1408,7 +1408,7 @@ namespace THoeffding {
 				PNode TmpNode = CrrNode->AltTreesV[TreeN];
 				ValueNm = "*"; // Marks alternate tree 
 				if (TmpNode->ChildrenV.Empty()) {
-					if (TaskType == TTaskType::CLASSIFICATION) {
+					if (TaskType == ttCLASSIFICATION) {
 						FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\",style=\"dotted\"];", GetNodeNm(CrrNode).CStr(), CurrPair.Val2, GetMajorityNm(TmpNode).CStr(), NodeId, ValueNm.CStr());
 					} else {
 						FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\",style=\"dotted\"];", GetNodeNm(CrrNode).CStr(), CurrPair.Val2, TFlt::GetStr(TmpNode->Avg).CStr(), NodeId, ValueNm.CStr());
@@ -1428,7 +1428,7 @@ namespace THoeffding {
 		// Find the first numeric attribute if any 
 		// for(TAttrManV::TIter It = AttrManV.BegI(); It != AttrManV.EndI(); ++It) {
 		TAttrManV::TIter It = AttrManV.BegI(); ++It; ++It;
-			if (It->Type == TAttrType::CONTINUOUS) {
+			if (It->Type == atCONTINUOUS) {
 				const int AttrN = It->Id;
 				printf("Numeric distribution for '%s' attribute.\n", It->Nm.CStr());
 				Root->HistH.GetDat(AttrN).InfoGain(SplitVal);
@@ -1452,11 +1452,11 @@ namespace THoeffding {
 	void THoeffdingTree::Print(PExample Example) const {
 		for (auto It = Example->AttributesV.BegI(); It != Example->AttributesV.EndI(); ++It) {
 			switch (AttrManV.GetVal(It->Id).Type) {
-				case TAttrType::CONTINUOUS: {
+				case atCONTINUOUS: {
 					printf("%f\t", It->Num.Val);
 					break;
 				}
-				case TAttrType::DISCRETE: {
+				case atDISCRETE: {
 					printf("%s\t", AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
 					break;
 				}

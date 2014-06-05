@@ -580,6 +580,7 @@ are automatically prefixed by current date and time.
     insert in code: console.startx(function (x) { return eval(x); })
     in order for console to see and interact with local variables.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
+- `console.pause()` -- waits until enter is pressed
 
 ### File system
 

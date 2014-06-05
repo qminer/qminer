@@ -2060,9 +2060,9 @@ v8::Handle<v8::Value> TJsHoeffdingTree::exportModel(const v8::Arguments& Args) {
 			TStr Type = Val->GetObjStr("type");
 			THoeffding::TExportType ExportType;
 			// When supported, accept JSON 
-			if(Type == "DOT") { ExportType = THoeffding::TExportType::DOT; }
-			else if(Type == "JSON") { ExportType = THoeffding::TExportType::JSON; }
-			else { ExportType = THoeffding::TExportType::XML; }
+			if(Type == "DOT") { ExportType = THoeffding::etDOT; }
+			else if(Type == "JSON") { ExportType = THoeffding::etJSON; }
+			else { ExportType = THoeffding::etXML; }
 			JsHoeffdingTree->HoeffdingTree->Export(FNm, ExportType);
 			return HandleScope.Close(v8::Boolean::New(true));
 		}
