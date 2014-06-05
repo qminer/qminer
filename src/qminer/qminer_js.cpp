@@ -3633,6 +3633,7 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
         JsRegisterFunction(TmpTemp, trainSvmRegression);
 		JsRegisterFunction(TmpTemp, loadSvmModel);
         JsRegisterFunction(TmpTemp, newRecLinReg);
+        JsRegisterFunction(TmpTemp, loadRecLinRegModel);
         JsRegisterFunction(TmpTemp, trainKMeans);						
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -3791,6 +3792,17 @@ v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
 		InfoLog("[except] " + Except->GetMsgStr());
     }
     return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsAnalytics::loadRecLinRegModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+        PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+        TSignalProc::PRecLinReg Model = TSignalProc::TRecLinReg::Load(*SIn);
+		return HandleScope.Close(TJsRecLinRegModel::New(JsAnalytics->Js, Model));
+	}
+	return HandleScope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
@@ -4082,6 +4094,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecLinRegModel::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, learn);
 		JsRegisterFunction(TmpTemp, predict);
+		JsRegisterFunction(TmpTemp, save);
 		JsRegisterProperty(TmpTemp, weights);
 		JsRegisterProperty(TmpTemp, dim);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -4131,6 +4144,18 @@ v8::Handle<v8::Value> TJsRecLinRegModel::weights(v8::Local<v8::String> Propertie
 	JsRecLinRegModel->Model->GetCoeffs(Coef);	    
 	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsRecLinRegModel->Js, Coef);
     return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::save(const v8::Arguments& Args) {
+	QmAssertR(Args.Length() > 0, "TJsRecLinRegModel::save: SOut not specified!");
+
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsRecLinRegModel* JsModel = TJsRecLinRegModelUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	JsModel->Model->Save(*SOut);
+
+	return HandleScope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

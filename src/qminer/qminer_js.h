@@ -163,7 +163,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			SetFunction(Properties, Value, Info); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -1887,7 +1887,10 @@ public:
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-    JsDeclareFunction(newRecLinReg);	
+    JsDeclareFunction(newRecLinReg);
+    //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+	//#     from `fin` stream
+	JsDeclareFunction(loadRecLinRegModel);
     
     // clustering (TODO: still depends directly on feature space)
     // trainKMeans(featureSpace, positives, negatives, parameters)
@@ -2030,6 +2033,8 @@ public:
 	JsDeclareProperty(weights);
     //#- `model.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
+	//#- `model.save(fout)` -- saves model to output stream `fout`
+	JsDeclareFunction(save);
 };
 
 ///////////////////////////////
