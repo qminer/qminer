@@ -663,12 +663,15 @@ void TScript::Init() {
 void TScript::Install() {
 	v8::HandleScope HandleScope;
 	// delete existing objects, if they exist
+	Context->Global()->Delete(v8::String::New("process"));
 	Context->Global()->Delete(v8::String::New("console"));
 	Context->Global()->Delete(v8::String::New("qm"));
 	Context->Global()->Delete(v8::String::New("fs"));
 	Context->Global()->Delete(v8::String::New("http"));
 	Context->Global()->Delete(v8::String::New("la"));
 	// create fresh ones
+	DebugLog("Installing 'process' object");
+	Context->Global()->Set(v8::String::New("process"), TJsProcess::New(this));
     DebugLog("Installing 'console' object");
 	Context->Global()->Set(v8::String::New("console"), TJsConsole::New(this));
     DebugLog("Installing 'qm' object");
@@ -4199,6 +4202,31 @@ v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
 	LocVal->AddToObj("organization", GeoIpBs->GetOrgNm(OrgId));
 	// return
 	return HandleScope.Close(TJsUtil::ParseJson(LocVal));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Process
+v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, sleep);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	const TInt Millis = TJsProcessUtil::GetArgInt32(Args,0);
+	QmAssertR(Millis >= 0, "Sleep time must be greater or equal to than 0!");
+
+	TSysProc::Sleep(TUInt(Millis));
+
+	return v8::Undefined();
 }
 
 
