@@ -32,7 +32,7 @@ console.start = function () {
 }
 
 //#- `console.startx(evalFun)` -- useful for debugging;
-//#     insert in code: console.startx(function (x) { return eval(x); })
+//#     insert in code: `console.startx(function (x) { return eval(x); })`
 //#     in order for console to see and interact with local variables.
 //#     Receiving empty imput (Enter was pressed) exits the interactive mode.
 console.startx = function (x) {
@@ -48,4 +48,4 @@ console.startx = function (x) {
 }
 
 //#- `console.pause()` -- waits until enter is pressed
-console.pause = console.getln;
+console.pause = function() {console.getln()};

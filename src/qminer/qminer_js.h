@@ -2484,7 +2484,7 @@ public:
     JsDeclareFunction(toJSON);
     //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
     //#     as Date-Time object
-    JsDeclareFunction(parse)
+	JsDeclareFunction(parse);
 };
 
 }

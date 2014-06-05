@@ -577,7 +577,7 @@ are automatically prefixed by current date and time.
 - `console.start()` - start interactive console; does not see local variables.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.startx(evalFun)` -- useful for debugging;
-    insert in code: console.startx(function (x) { return eval(x); })
+    insert in code: `console.startx(function (x) { return eval(x); })`
     in order for console to see and interact with local variables.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.pause()` -- waits until enter is pressed
@@ -639,12 +639,12 @@ are automatically prefixed by current date and time.
 - `http.postStr(url)`
 - `http.postStr(url, mimeType, data, success_callback)`
 - `http.postStr(url, mimeType, data, success_callback, error_callback)`
-- `http.onRequest(path, verb, callback)`
-- onGet(path, callback)
-- `onPost(path, callback)`
-- `onPut(path, callback)`
-- `onDelete(path, callback)`
-- `onPatch(path, callback)`
+- `http.onRequest(path, verb, function (request, response) { ... })`
+- `onGet(path, function (request, response) { ... })`
+- `onPost(path, function (request, response) { ... })`
+- `onPut(path, function (request, response) { ... })`
+- `onDelete(path, function (request, response) { ... })`
+- `onPatch(path, function (request, response) { ... })`
 - `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
 
 ### HTTP Response
