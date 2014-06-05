@@ -1,7 +1,13 @@
 language: cpp
 compiler: gcc
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq uuid-dev
 install:
-  - echo $LANG
   - make lib
 script: make
 os: linux
+notifications:
+  email:
+    - blaz.fortuna@ijs.si
+    - jan.rupnik@ijs.si

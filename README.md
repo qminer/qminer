@@ -1,4 +1,4 @@
-QMiner
+QMiner [![Build Status](https://travis-ci.org/qminer/qminer.svg?branch=master)](https://travis-ci.org/qminer/qminer)
 ======
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and

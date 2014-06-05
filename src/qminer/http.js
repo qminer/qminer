@@ -17,27 +17,27 @@
 //////////////////////////////////////////
 // HTTP 
 
-//#- onGet(path, callback)
+//#- `onGet(path, function (request, response) { ... })`
 http.onGet = function (path, callback) {
     http.onRequest(path, "GET", callback);
 }
 
-//#- `onPost(path, callback)`
+//#- `onPost(path, function (request, response) { ... })`
 http.onPost = function (path, callback) {
     http.onRequest(path, "POST", callback);
 }
 
-//#- `onPut(path, callback)`
+//#- `onPut(path, function (request, response) { ... })`
 http.onPut = function (path, callback) {
     http.onRequest(path, "PUT", callback);
 }
 
-//#- `onDelete(path, callback)`
+//#- `onDelete(path, function (request, response) { ... })`
 http.onDelete = function (path, callback) {
     http.onRequest(path, "DELETE", callback);
 }
 
-//#- `onPatch(path, callback)`
+//#- `onPatch(path, function (request, response) { ... })`
 http.onPatch = function (path, callback) {
     http.onRequest(path, "PATCH", callback);
 }
