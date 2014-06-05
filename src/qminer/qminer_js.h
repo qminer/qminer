@@ -89,7 +89,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -105,7 +105,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -128,7 +128,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Properties, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -148,7 +148,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(GetFunction(Properties, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -163,7 +163,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			SetFunction(Properties, Value, Info); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -182,7 +182,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Index, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -202,7 +202,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(FunctionGetter(Index, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -217,7 +217,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(FunctionSetter(Index, Value, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -989,7 +989,7 @@ public:
     JsDeclareFunction(addStreamAggr);
     //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
 	JsDeclareFunction(getStreamAggr);
-	//#- `arr = store.getStreamAggrArr()` -- returns the names of all stream aggregators as an array of strings `arr`
+	//#- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
 	JsDeclareFunction(getStreamAggrNames);
     
     //# 
@@ -1373,7 +1373,7 @@ public:
 	JsDeclareFunction(put);	
 	//#- `vec.push(y)` -- append value `y` to vector `vec`
 	JsDeclareFunction(push);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors. Implemented for dense float vectors.
+	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
 	JsDeclareTemplatedFunction(pushV);
 	//#- `x = vec.sum()` -- sums the elements of `vec`
 	JsDeclareFunction(sum);
@@ -1889,7 +1889,10 @@ public:
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-    JsDeclareFunction(newRecLinReg);	
+    JsDeclareFunction(newRecLinReg);
+    //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+	//#     from `fin` stream
+	JsDeclareFunction(loadRecLinRegModel);
 
     //#- `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
     //#     incremental decision tree learner; parameters are passed as JSON
@@ -2034,6 +2037,8 @@ public:
 	JsDeclareProperty(weights);
     //#- `model.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
+	//#- `model.save(fout)` -- saves model to output stream `fout`
+	JsDeclareFunction(save);
 };
 
 ///////////////////////////////
@@ -2153,7 +2158,33 @@ public:
 //#
 //# ### Process
 //# 
-//#JSIMPLEMENT:src/qminer/process.js    
+class TJsProcess {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsProcess> TJsProcessUtil;
+
+	explicit TJsProcess(TWPt<TScript> _Js): Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsProcessUtil::New(new TJsProcess(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //#
+	//# **Functions and properties:**
+	//#
+	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
+    JsDeclareFunction(sleep);
+
+    //#JSIMPLEMENT:src/qminer/process.js
+};
+
 
 //#
 //# ### Utilities.js (use require)
