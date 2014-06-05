@@ -2370,7 +2370,7 @@ public:
     //#- `http.postStr(url, mimeType, data, success_callback)`
     //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
 	JsDeclareFunction(post);
-    //#- `http.onRequest(path, verb, callback)`
+    //#- `http.onRequest(path, verb, function (request, response) { ... })`
 	JsDeclareFunction(onRequest);
     //#JSIMPLEMENT:src/qminer/http.js    
 };
