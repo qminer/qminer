@@ -1373,6 +1373,8 @@ public:
 	JsDeclareFunction(put);	
 	//#- `vec.push(y)` -- append value `y` to vector `vec`
 	JsDeclareFunction(push);
+	//#- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
+	JsDeclareFunction(unshift);
 	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
 	JsDeclareTemplatedFunction(pushV);
 	//#- `x = vec.sum()` -- sums the elements of `vec`
@@ -1420,7 +1422,8 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, at);	
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
-		JsRegisterFunction(TmpTemp, push);	
+		JsRegisterFunction(TmpTemp, push);
+		JsRegisterFunction(TmpTemp, unshift);
 		JsRegisterFunction(TmpTemp, pushV);
 		JsRegisterFunction(TmpTemp, sum);
 		JsRegisterFunction(TmpTemp, getMaxIdx);
@@ -1496,6 +1499,17 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::push(const v8::Arguments& Args) {
 	TVal Val = TAux::GetArgVal(Args, 0);	
 	int result = JsVec->Vec.Add(Val);	
 	return HandleScope.Close(v8::Integer::New(result));	
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	// assume number
+	TVal Val = TAux::GetArgVal(Args, 0);
+	//
+	JsVec->Vec.Ins(0, Val);
+	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
 
 template <class TVal, class TAux>
