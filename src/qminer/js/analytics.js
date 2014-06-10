@@ -283,6 +283,7 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
         // +k query // rank unlabeled according to query, ask for k most similar
         // -k query // rank unlabeled according to query, ask for k least similar
     };
+    //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
         if (queryMode) {
@@ -307,7 +308,7 @@ exports.ridgeRegression = function(kappa, dim, buffer) {
     var y = [];
     buffer = typeof buffer !== 'undefined' ? buffer : -1;
     var w = la.newVec({ "vals": dim });
-    //#-- `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
+    //#   - `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
     this.add = function (x, target) {
         X.push(x);
         y.push(target);
@@ -317,25 +318,25 @@ exports.ridgeRegression = function(kappa, dim, buffer) {
             }
         }
     };
-    //#-- `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
+    //#   - `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
     this.addupdate = function (x, target) {
         this.add(x, target);
         this.update();
     }
-    //#-- `model.forget(n)` -- deletes first `n` (integer) examples from the training set
+    //#   - `model.forget(n)` -- deletes first `n` (integer) examples from the training set
     this.forget = function (ndeleted) {
         ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
         ndeleted = Math.min(X.length, ndeleted);
         X.splice(0, ndeleted);
         y.splice(0, ndeleted);
     };
-    //#-- `model.update()` -- recomputes the model
+    //#   - `model.update()` -- recomputes the model
     this.update = function () {
         var A = this.getMatrix();
         var b = la.copyFltArrayToVec(y);
         w = this.compute(A, b);
     };
-    //#-- `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
+    //#   - `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
     this.getModel = function () {
         return w;
     };
@@ -348,7 +349,7 @@ exports.ridgeRegression = function(kappa, dim, buffer) {
             return A;
         }
     };
-    //#-- `w = model.compute(A, b)` -- computes the model parameters `w`, given 
+    //#   - `w = model.compute(A, b)` -- computes the model parameters `w`, given 
     //#    a column training example matrix `A` (dense or sparse matrix) and target 
     //#    vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
     this.compute = function (A, b) {
@@ -356,7 +357,7 @@ exports.ridgeRegression = function(kappa, dim, buffer) {
         var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
         return coefs;
     };
-    //#-- `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
+    //#   - `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
     this.predict = function (x) {
         return w.inner(x);
     };
@@ -455,13 +456,13 @@ exports.lloyd = function (dim, k) {
     var C = la.genRandomMatrix(dim, k);//linalg.newMat({ "rows": dim, "cols": k, "random": true });;
     var counts = la.ones(k);
     var norC2 = la.square(C.colNorms());
-    //#-- `model.init()` -- initializes the model with random centroids
+    //#   - `model.init()` -- initializes the model with random centroids
     this.init = function () {
         C = la.genRandomMatrix(dim, k); //linalg.newMat({ "rows": dim, "cols": k, "random": true });
         counts = la.ones(k);
         norC2 = la.square(C.colNorms());
     };
-    //#-- `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
+    //#   - `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
     this.getC = function () {
         return C;
     };
@@ -473,12 +474,12 @@ exports.lloyd = function (dim, k) {
         result.norC2 = norC2;
         return result;
     };
-    //#-- `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
+    //#   - `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
     this.setC = function (C_) {
         C = la.newMat(C_);
         norC2 = la.square(C.colNorms());
     };
-    //#-- `model.update(x)` -- updates the model with a vector `x` dense or sparse
+    //#   - `model.update(x)` -- updates the model with a vector `x` dense or sparse
     this.update = function (x) {
         var idx = this.getCentroidIdx(x);
         //C(:, idx) = 1/(counts[idx] + 1)* (counts[idx] * C(:, idx)  + x);
@@ -487,13 +488,13 @@ exports.lloyd = function (dim, k) {
         counts[idx] = counts[idx] + 1;
         norC2[idx] = la.square(vec.norm());
     };
-    //#-- `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
+    //#   - `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
     this.getCentroid = function (x) {
         var idx = this.getCentroidIdx(x);
         var vec = C.getCol(idx);
         return vec;
     };
-    //#-- `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
+    //#   - `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
     this.getCentroidIdx = function (x) {
         var D = C.multiplyT(x);
         D = D.minus(norC2.multiply(0.5));
@@ -510,7 +511,7 @@ exports.perceptron = function (dim, use_bias) {
     use_bias = typeof use_bias !== 'undefined' ? use_bias : false;
     var w = la.newVec({ "vals": dim });
     var b = 0;
-    //#-- `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
+    //#   - `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
     this.update = function (x, y) {
         var yp = (w.inner(x) + b) > 0;
         if (y != yp) {
@@ -521,11 +522,11 @@ exports.perceptron = function (dim, use_bias) {
             }
         }
     };
-    //#-- `class = model.predict(x)` -- returns the prediction (0 or 1)
+    //#   - `class = model.predict(x)` -- returns the prediction (0 or 1)
     this.predict = function (x) {
         return (w.inner(x) + b) > 0 ? 1 : 0;
     };
-    //#-- `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
+    //#   - `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
     this.getModel = function () {
         var model;
         model.w = w;

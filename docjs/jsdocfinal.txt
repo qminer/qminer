@@ -434,37 +434,38 @@ To start using it must be loaded using `var analytics = require('analytics.js');
    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
    examples that have to be identified in the query mode before the program enters SVM mode. The final
   parameter is the `query` (string) which should be related to positive examples.
+  - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
 - `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
  regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
--- `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
--- `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
--- `model.forget(n)` -- deletes first `n` (integer) examples from the training set
--- `model.update()` -- recomputes the model
--- `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
--- `w = model.compute(A, b)` -- computes the model parameters `w`, given 
+  - `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
+  - `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
+  - `model.forget(n)` -- deletes first `n` (integer) examples from the training set
+  - `model.update()` -- recomputes the model
+  - `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
+  - `w = model.compute(A, b)` -- computes the model parameters `w`, given 
    a column training example matrix `A` (dense or sparse matrix) and target 
    vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
--- `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
+  - `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
 - `C = new analytics.kmeans(X, k, iter)`-- solves the k-means algorithm based on a training
   set `X` (sparse or dense matrix) where colums represent examples, `k` (integer) the number of centroids and
   `iter` (integer), the number of iterations. The solution `C` is a dense matrix, where each column
    is a cluster centroid.
 - `model = new analytics.lloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
  requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
--- `model.init()` -- initializes the model with random centroids
--- `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
--- `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
--- `model.update(x)` -- updates the model with a vector `x` dense or sparse
--- `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
--- `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
+  - `model.init()` -- initializes the model with random centroids
+  - `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
+  - `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
+  - `model.update(x)` -- updates the model with a vector `x` dense or sparse
+  - `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
+  - `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
 - `model = new analytics.perceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
--- `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
--- `class = model.predict(x)` -- returns the prediction (0 or 1)
--- `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
+  - `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
+  - `class = model.predict(x)` -- returns the prediction (0 or 1)
+  - `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
 
 ### Feature Space
 
