@@ -98,7 +98,7 @@ var record = store[1234];
 - `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
 - `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
-- `arr = store.getStreamAggrArr()` -- returns the names of all stream aggregators as an array of strings `arr`
+- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
 
 **Examples**:
 
@@ -259,7 +259,8 @@ var intv = la.newIntVec(); //empty vector
 - `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
 - `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
 - `vec.push(y)` -- append value `y` to vector `vec`
-- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors. Implemented for dense float vectors.
+- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
+- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
 - `x = vec.sum()` -- sums the elements of `vec`
 - `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
 - `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
@@ -403,6 +404,8 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     (regularization parameter to avoid over-fitting, default is 1.0).)
+- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+    from `fin` stream
 - `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
     incremental decision tree learner; parameters are passed as JSON
 - `options = analytics.getLanguageOptions()` -- get options for text parsing 
@@ -414,8 +417,11 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
+  - `model.target` -- array of categories for which we have models
   - `result = model.predict(record)` -- creates feature vector from `record`, sends it
     through the model and returns the result as an array of scores.
+  - `result = model.predictTop(record)` -- creates feature vector from `record`, 
+    sends it through the model and returns the top ranked label.
   - `model.save(fout)` -- saves the model to `fout` output stream
 - `analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
 - `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)`
@@ -475,6 +481,7 @@ Holds online regression model. This object is result of `analytics.newRecLinReg`
     model and returns the prediction as a real number
 - `vec = model.weights` -- weights of the linear model as a full vector    
 - `model.dim` -- dimensionality of the feature space on which this model works
+- `model.save(fout)` -- saves model to output stream `fout`
 
 ### Hoeffding Tree model
 
@@ -522,6 +529,10 @@ The HoeffdingTree algorithm comes with many parameters:
 
 ### Process
 
+
+**Functions and properties:**
+
+- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `process.isArg(arg)` -- returns true when `arg` among the 
