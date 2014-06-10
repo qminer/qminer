@@ -1418,7 +1418,7 @@ PJsonVal TRec::GetFieldJson(const int& FieldId) const {
 		return TJsonVal::NewArr(FieldFltV);
     } else if (Desc.IsTm()) {
         TTm FieldTm; GetFieldTm(FieldId, FieldTm);		
-		if (FieldTm.IsDef()) { return TJsonVal::NewStr(FieldTm.GetWebLogDateTimeStr(true, "T", false)); } else { return TJsonVal::NewNull();	}
+		if (FieldTm.IsDef()) { return TJsonVal::NewStr(FieldTm.GetWebLogDateTimeStr(true, "T", true)); } else { return TJsonVal::NewNull();	}
 	} else if (Desc.IsNumSpV()) {
 		TIntFltKdV FieldIntFltKdV; GetFieldNumSpV(FieldId, FieldIntFltKdV); 
 		return TJsonVal::NewStr(TStrUtil::GetStr(FieldIntFltKdV));
