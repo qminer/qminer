@@ -258,28 +258,39 @@ void TBagOfWords::Clr() {
     }
 }
 
-bool TBagOfWords::Update(const TStr& Val) {
-    // step (1): tokenize given text
+bool TBagOfWords::Update(const TStr& Val) {    
+    // tokenize given text
     TStrV TokenStrV; GetFtr(Val, TokenStrV);
-    // step (2): consolidate tokens
-    TStrH TokenStrH;
-    for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-        const TStr& TokenStr = TokenStrV[TokenStrN];
-        TokenStrH.AddKey(TokenStr);
-    }
-    // step (3): update document counts and (when not hashing) update vocabulary with new tokens
+    // process tokens to update DF counts
     bool UpdateP = false;
-    int KeyId = TokenStrH.FFirstKeyId();
-    while (TokenStrH.FNextKeyId(KeyId)) {
-        // get token
-        const TStr& TokenStr = TokenStrH.GetKey(KeyId);
-        // different processing for hashing
-        if (IsHashing()) {
-            // get hashing token ID
+    if (IsHashing()) {  
+        // consolidate tokens and get their hashed IDs
+        TIntSet TokenIdH;
+        for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
+            const TStr& TokenStr = TokenStrV[TokenStrN];
             const int TokenId = TokenStr.GetPrimHashCd() % HashDim;
+            TokenIdH.AddKey(TokenId);
+        }
+        // update document counts
+        int KeyId = TokenIdH.FFirstKeyId();
+        while (TokenIdH.FNextKeyId(KeyId)) {
+            const int TokenId = TokenIdH.GetKey(KeyId);
             // update DF
             DocFqV[TokenId]++;
-        } else {
+        }
+    } else {
+        // consolidate tokens
+        TStrH TokenStrH;
+        for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
+            const TStr& TokenStr = TokenStrV[TokenStrN];
+            TokenStrH.AddKey(TokenStr);
+        }
+        // update document counts and update vocabulary with new tokens
+        int KeyId = TokenStrH.FFirstKeyId();
+        while (TokenStrH.FNextKeyId(KeyId)) {
+            // get token
+            const TStr& TokenStr = TokenStrH.GetKey(KeyId);
+            // different processing for hashing
             int TokenId = TokenSet.GetKeyId(TokenStr);
             if (TokenId == -1) {
                 // new token, remember the dimensionality change
@@ -298,7 +309,7 @@ bool TBagOfWords::Update(const TStr& Val) {
             DocFqV[TokenId]++;
         }
     }
-    // step (4): update document count
+    // update document count
     Docs++;
     // tell if dimension changed
     return UpdateP;
@@ -310,9 +321,9 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
 }
 
 void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
-    // step (1): tokenize
+    // tokenize
     TStrV TokenStrV; GetFtr(Val, TokenStrV);
-    // step (2): aggregate token counts
+    // aggregate token counts
     TIntH TermFqH;
     for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
         const TStr& TokenStr = TokenStrV[TokenStrN];
@@ -325,7 +336,7 @@ void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
             TermFqH.AddDat(TokenId)++;
         }
     }
-    // step (3): make a sparse vector out of it
+    // make a sparse vector out of it
     SpV.Gen(TermFqH.Len(), 0);
     int KeyId = TermFqH.FFirstKeyId();
     while (TermFqH.FNextKeyId(KeyId)) {
