@@ -1470,6 +1470,12 @@ void TXmlDoc::SaveStr(TStr& Str){
   Str=MOut.GetAsStr();
 }
 
+TStr TXmlDoc::SaveStr(){
+  PSOut SOut=TMOut::New(); TMOut& MOut=*(TMOut*)SOut();
+  SaveTxt(SOut);
+  return MOut.GetAsStr();
+}
+
 /////////////////////////////////////////////////
 // Fast and dirty XML parser
 // very basic it does only <item>string</item>, no comments, no arguments
