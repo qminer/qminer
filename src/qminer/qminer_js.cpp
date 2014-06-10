@@ -807,19 +807,27 @@ void TJsSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
 ///////////////////////////////
 // QMiner-JavaScript-Server-Function
 void TJsAdminSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
-    TChA ResChA;
+    PJsonVal JsonVal = TJsonVal::NewObj();
     // get memory statistics
     TStrIntPrV ObjNameCountV = TJsUtil::GetObjStat();
-    ResChA += "Objects currently in memory:\n";
+    PJsonVal MemObjArr = TJsonVal::NewArr();
     for (int ObjNameCountN = 0; ObjNameCountN < ObjNameCountV.Len(); ObjNameCountN++) {
-        ResChA += ObjNameCountV[ObjNameCountN].Val1;
-        ResChA += "\t";
-        ResChA += ObjNameCountV[ObjNameCountN].Val2.GetStr();
-        ResChA += "\n";
+        MemObjArr->AddToArr(TJsonVal::NewObj(
+            ObjNameCountV[ObjNameCountN].Val1, 
+            ObjNameCountV[ObjNameCountN].Val2));
     }    
+    PJsonVal MemVal = TJsonVal::NewObj();
+    MemVal->AddToObj("objects", MemObjArr);
+#ifdef GLib_LINUX   
+    TSysMemStat MemStat;
+    MemVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
+    MemVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
+    MemVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
+#endif  
+    JsonVal->AddToObj("memory", MemVal);
     // return statistics
     PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd,
-        THttp::TextPlainFldVal, false, TMIn::New(ResChA));
+        THttp::AppJSonFldVal, false, TMIn::New(JsonVal->SaveStr()));
     RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);         
 }	
 
@@ -4337,9 +4345,8 @@ v8::Handle<v8::ObjectTemplate> TJsConsole::GetTemplate() {
 
 v8::Handle<v8::Value> TJsConsole::log(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	if (Args.Length() == 1) {
+	if (Args.Length() == 1) { 
 		TStr MsgStr = TJsConsoleUtil::GetStr(Args[0]->ToString());
-		//const TStr MsgStr = TJsConsoleUtil::GetArgStr(Args, 0);
 		InfoLog("[console] " + MsgStr);
 	} else if (Args.Length() > 1) {
 		const TStr TitleStr = TJsConsoleUtil::GetStr(Args[0]->ToString());
@@ -4663,9 +4670,12 @@ v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-    // first we write
-    v8::Handle<v8::Value> Res = write(Args);
-    int OutN = Res->Int32Value();
+    // first we write, if we have any argument
+    int OutN = 0;
+    if (TJsFOutUtil::IsArg(Args, 0)) {
+        v8::Handle<v8::Value> Res = write(Args);
+        OutN += Res->Int32Value();
+    }
     // then we make a new line
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);  
     QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");

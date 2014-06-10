@@ -31,7 +31,7 @@ qm.load = function() {
 			var line = fin.getNextLn();
 			if (line == "") { continue; }
 			try {
-				var rec = JSON.parse(line);
+				var rec = JSON.parse(line);                
 				store.add(rec);
 				// count, GC and report
 				count++;
