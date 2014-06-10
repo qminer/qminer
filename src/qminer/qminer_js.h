@@ -1640,13 +1640,13 @@ public:
 	JsDeclareFunction(transpose);
 	//#- `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
 	JsDeclareFunction(solve);
-	//#- `vec = mat.rowNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+	//#- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	JsDeclareFunction(rowNorms);
-	//#- `vec = mat.colNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
 	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- `smat = mat.sparse()` -- get sparse column matrix representation `smat` of dense matrix `mat`
+	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
 	//#- `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
 	JsDeclareFunction(frob);
@@ -1811,37 +1811,37 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- at:get element
+	//#- `val = spMat.at(i,j)` -- Gets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
-	//#- put:set element, returns undefined
+	//#- `spMat.put(i, j, val)` -- Sets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(put);
-	//#- []:index
+	//#- `x = spMat[i]; spMat[i] = x` -- setting and getting sparse vectors `x` from sparse column matrix, given column index `i` (integer)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- push:add a sparse column vector to the matrix
+	//#- `spMat.push(x)` -- attaches a column `x` (sparse vector) to `spMat` (sparse matrix)
 	JsDeclareFunction(push);
-	//#- multiply:matrix * scalar, matrix * vector, matrix * matrix
+	//#- `y = spMat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
 	JsDeclareFunction(multiply);
-	//#- multiplyT:matrix' * scalar, matrix' * vector, matrix' * matrix
+	//#- `y = spMat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
 	JsDeclareFunction(multiplyT);
-	//#- plus:matrix + matrix
+	//#- `spMat3 = spMat1.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(plus);
-	//#- minus:matrix - matrix
+	//#- `spMat3 = spMat1.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(minus);
-	//#- transpose:returns the transpose of a matrix
+	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `mat1` (sparse matrix) transposed 
 	JsDeclareFunction(transpose);	
-	//#- colNorms:get column norms
+	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
-	//#- normalizeCols:INPLACE : changes the matrix by normalizing columns, return undefined
+	//#- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- full:get dense matrix
+	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
 	JsDeclareFunction(full);
-	//#- frob:get frobenious norm
+	//#- `x = spMat.frob()` -- number `x` is the Frobenious norm of `spMat` (sparse matrix)
 	JsDeclareFunction(frob);
-	//#- rows:get number of rows
+	//#- `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
 	JsDeclareProperty(rows);
-	//#- cols:get number of columns
+	//#- `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
 	JsDeclareProperty(cols);
-	//#- print:print
+	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
 	JsDeclareFunction(print);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };

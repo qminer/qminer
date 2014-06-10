@@ -180,7 +180,16 @@ exports.loadBatchModel = function (sin) {
 }
 
 // active learning (analytics:function activeLearner, parameters
-//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)`
+//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- starts the
+//#    active learning. The algorithm has two stages: query mode, where the algorithm suggests potential
+//#    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
+//#   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
+//#   is retrained.
+//#   The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
+//#    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
+//#    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
+//#    examples that have to be identified in the query mode before the program enters SVM mode. The final
+//#   parameter is the `query` (string) which should be related to positive examples.
 exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query) {
     var store = recSet.store;
     var X = la.newSpMat();
@@ -289,13 +298,16 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
 
 //////////// RIDGE REGRESSION 
 // solve a regularized least squares problem
-//#- `model = new analytics.ridgeRegression(kapa, dim, buffer)`
-exports.ridgeRegression = function(kapa, dim, buffer) {
+//#- `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+//#  regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+//#  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
+//#  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
+exports.ridgeRegression = function(kappa, dim, buffer) {
     var X = [];
     var y = [];
     buffer = typeof buffer !== 'undefined' ? buffer : -1;
     var w = la.newVec({ "vals": dim });
-
+    //#-- `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
     this.add = function (x, target) {
         X.push(x);
         y.push(target);
@@ -305,21 +317,25 @@ exports.ridgeRegression = function(kapa, dim, buffer) {
             }
         }
     };
+    //#-- `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
     this.addupdate = function (x, target) {
         this.add(x, target);
         this.update();
     }
+    //#-- `model.forget(n)` -- deletes first `n` (integer) examples from the training set
     this.forget = function (ndeleted) {
         ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
         ndeleted = Math.min(X.length, ndeleted);
         X.splice(0, ndeleted);
         y.splice(0, ndeleted);
     };
+    //#-- `model.update()` -- recomputes the model
     this.update = function () {
         var A = this.getMatrix();
         var b = la.copyFltArrayToVec(y);
         w = this.compute(A, b);
     };
+    //#-- `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
     this.getModel = function () {
         return w;
     };
@@ -332,19 +348,25 @@ exports.ridgeRegression = function(kapa, dim, buffer) {
             return A;
         }
     };
+    //#-- `w = model.compute(A, b)` -- computes the model parameters `w`, given 
+    //#    a column training example matrix `A` (dense or sparse matrix) and target 
+    //#    vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
     this.compute = function (A, b) {
         var I = la.eye(A.cols);
-        var coefs = (A.transpose().multiply(A).plus(I.multiply(kapa))).solve(A.transpose().multiply(b));
+        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
         return coefs;
     };
-
+    //#-- `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
     this.predict = function (x) {
         return w.inner(x);
     };
 };
 
 ///////// CLUSTERING BATCH K-MEANS
-//#- `model = new analytics.kmeans(X, k, iter)`
+//#- `C = new analytics.kmeans(X, k, iter)`-- solves the k-means algorithm based on a training
+//#   set `X` (sparse or dense matrix) where colums represent examples, `k` (integer) the number of centroids and
+//#   `iter` (integer), the number of iterations. The solution `C` is a dense matrix, where each column
+//#    is a cluster centroid.
 exports.kmeans = function(X, k, iter) {
     // select random k columns of X, returns a dense C++ matrix
     this.selectCols = function (X, k) {
@@ -426,19 +448,20 @@ exports.kmeans = function(X, k, iter) {
 };
 
 ////////////// ONLINE CLUSTERING (LLOYD ALGORITHM)
-//#- `model = new analytics.lloyd(dim, k)`
+//#- `model = new analytics.lloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
+//#  requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
 exports.lloyd = function (dim, k) {
     // Private vars
     var C = la.genRandomMatrix(dim, k);//linalg.newMat({ "rows": dim, "cols": k, "random": true });;
     var counts = la.ones(k);
     var norC2 = la.square(C.colNorms());
-
+    //#-- `model.init()` -- initializes the model with random centroids
     this.init = function () {
         C = la.genRandomMatrix(dim, k); //linalg.newMat({ "rows": dim, "cols": k, "random": true });
         counts = la.ones(k);
         norC2 = la.square(C.colNorms());
     };
-
+    //#-- `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
     this.getC = function () {
         return C;
     };
@@ -450,10 +473,12 @@ exports.lloyd = function (dim, k) {
         result.norC2 = norC2;
         return result;
     };
+    //#-- `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
     this.setC = function (C_) {
         C = la.newMat(C_);
         norC2 = la.square(C.colNorms());
     };
+    //#-- `model.update(x)` -- updates the model with a vector `x` dense or sparse
     this.update = function (x) {
         var idx = this.getCentroidIdx(x);
         //C(:, idx) = 1/(counts[idx] + 1)* (counts[idx] * C(:, idx)  + x);
@@ -462,11 +487,13 @@ exports.lloyd = function (dim, k) {
         counts[idx] = counts[idx] + 1;
         norC2[idx] = la.square(vec.norm());
     };
+    //#-- `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
     this.getCentroid = function (x) {
         var idx = this.getCentroidIdx(x);
         var vec = C.getCol(idx);
         return vec;
     };
+    //#-- `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
     this.getCentroidIdx = function (x) {
         var D = C.multiplyT(x);
         D = D.minus(norC2.multiply(0.5));
@@ -476,12 +503,14 @@ exports.lloyd = function (dim, k) {
 };
 
 /////////// perceptron : 0/1 classification
-//#- `model = new analytics.perceptron(dim, use_bias)`
+//#- `model = new analytics.perceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
+//#   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
+//#   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
 exports.perceptron = function (dim, use_bias) {
     use_bias = typeof use_bias !== 'undefined' ? use_bias : false;
     var w = la.newVec({ "vals": dim });
     var b = 0;
-
+    //#-- `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
     this.update = function (x, y) {
         var yp = (w.inner(x) + b) > 0;
         if (y != yp) {
@@ -492,11 +521,11 @@ exports.perceptron = function (dim, use_bias) {
             }
         }
     };
-
+    //#-- `class = model.predict(x)` -- returns the prediction (0 or 1)
     this.predict = function (x) {
-        return (w.inner(x) + b) > 0;
+        return (w.inner(x) + b) > 0 ? 1 : 0;
     };
-
+    //#-- `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
     this.getModel = function () {
         var model;
         model.w = w;
