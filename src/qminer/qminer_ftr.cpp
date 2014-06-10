@@ -31,6 +31,7 @@ TFunRouter<PFtrExt, TFtrExt::TLoadF> TFtrExt::LoadRouter;
 
 void TFtrExt::Init() {
     Register<TFtrExts::TRandom>();
+	Register<TFtrExts::TConstant>();
     Register<TFtrExts::TNumeric>();
     Register<TFtrExts::TCategorical>();
     Register<TFtrExts::TMultinomial>();
@@ -345,6 +346,40 @@ PBowDocBs TFtrSpace::MakeBowDocBs(const PRecSet& FtrRecSet) {
 }
 
 namespace TFtrExts {
+
+///////////////////////////////////////////////
+// Constant Feature Extractor
+TConstant::TConstant(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
+	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 0)) { }
+
+TConstant:: TConstant(const TWPt<TBase>& Base, TSIn& SIn): TFtrExt(Base, SIn), Constant(SIn) { }
+
+PFtrExt TConstant::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TConstant(Base, ParamVal); 
+}
+
+PFtrExt TConstant::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+    return new TConstant(Base, SIn);
+}
+
+void TConstant::Save(TSOut& SOut) const {
+    GetType().Save(SOut);
+    TFtrExt::Save(SOut);
+    
+    Constant.Save(SOut);
+}
+
+void TConstant::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
+	SpV.Add(TIntFltKd(Offset, Constant.Val)); Offset++;
+}
+
+void TConstant::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+    FullV[Offset] = Constant.Val; Offset++;
+}
+
+void TConstant::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
+	FltV.Add(Constant.Val);
+}
     
 ///////////////////////////////////////////////
 // Random Feature Extractor

@@ -19,7 +19,7 @@ Resampled.addStreamAggr({ name: "ema1m", type: "ema",
     inAggr: "tick", emaType: "previous", interval: 60*1000, initWindow: 10*1000 });
 Resampled.addStreamAggr({ name: "ema10m", type: "ema",
     inAggr: "tick", emaType: "previous", interval: 600*1000, initWindow: 10*1000 });
-// Add a chain of 5 EMA stream aggregates and attach them to "tick" 
+// Add a chain of 5 EMA stream aggregates (itEma) and attach them to "tick" 
 Resampled.addStreamAggr({ type: "itEma",
     numIter: 5, tmInterval: 10000, initMinMSecs: 0, inAggr: "tick", prefix: "itEma10s"});
 // Buffer for keeping track of the record from 1 minute ago (6 records
@@ -73,6 +73,7 @@ while (!fin.eof) {
         var vals = line.split(',');
         var rec = { "Time": vals[1], "Value": parseFloat(vals[0]) };
         Raw.add(rec);
+        //console.pause();
     } catch (err) { 
         console.say("Raw", err);
     }
