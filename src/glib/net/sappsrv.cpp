@@ -121,37 +121,38 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 			ContTypeVal, false, BodySIn);
     } catch (PExcept Except) {
 		// known internal error
-		TStr ResStr;
+        TStr ResStr, ContTypeVal = THttp::TextPlainFldVal;
 		if (GetFunOutType() == saotXml) {
 			PXmlTok TopTok = TXmlTok::New("error");
 			TopTok->AddSubTok(TXmlTok::New("message", Except->GetMsgStr()));
 			TopTok->AddSubTok(TXmlTok::New("location", Except->GetLocStr()));
 			PXmlDoc ErrorXmlDoc = TXmlDoc::New(TopTok); 
-			ErrorXmlDoc->SaveStr(ResStr);
+			ResStr = XmlHdStr + ErrorXmlDoc->SaveStr();
+            ContTypeVal = THttp::TextXmlFldVal;
 		} else if (GetFunOutType() == saotJSon) {
 			PJsonVal ResVal = TJsonVal::NewObj();
 			ResVal->AddToObj("message", Except->GetMsgStr());
 			ResVal->AddToObj("location", Except->GetLocStr());
-			ResStr = TJsonVal::GetStrFromVal(TJsonVal::NewObj("error", ResVal));
+			ResStr = TJsonVal::NewObj("error", ResVal)->SaveStr();
+            ContTypeVal = THttp::AppJSonFldVal;
 		}
-		// prepare response
-		HttpResp = THttpResp::New(THttp::InternalErrStatusCd, 
-            THttp::TextHtmlFldVal, false, 
-			TMIn::New(XmlHdStr + ResStr));
+        // prepare response
+        HttpResp = THttpResp::New(THttp::InternalErrStatusCd, 
+            ContTypeVal, false, TMIn::New(ResStr));        
     } catch (...) {
 		// unknown internal error
-		TStr ResStr;
+		TStr ResStr, ContTypeVal = THttp::TextPlainFldVal;
 		if (GetFunOutType() == saotXml) {
 			PXmlDoc ErrorXmlDoc = TXmlDoc::New(TXmlTok::New("error")); 
-			ErrorXmlDoc->SaveStr(ResStr);
+			ResStr = XmlHdStr + ErrorXmlDoc->SaveStr();
+            ContTypeVal = THttp::TextXmlFldVal;            
 		} else if (GetFunOutType() == saotJSon) {
-			PJsonVal ResVal = TJsonVal::NewObj("error", "Unknown");
-			ResStr = TJsonVal::GetStrFromVal(ResVal);
+			ResStr = TJsonVal::NewObj("error", "Unknown")->SaveStr();
+            ContTypeVal = THttp::AppJSonFldVal;
 		}
 		// prepare response
         HttpResp = THttpResp::New(THttp::InternalErrStatusCd, 
-            THttp::TextHtmlFldVal, false, 
-			TMIn::New(XmlHdStr + ResStr));
+            ContTypeVal, false, TMIn::New(ResStr));
     }
 	// send response
 	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp); 
@@ -229,44 +230,43 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
 				TExcept::Throw("Unknown page");
 			}
 			// prepare a list of registered functions
-			PXmlTok TopTok = TXmlTok::New("registered-functions");
+            PJsonVal FunArrVal = TJsonVal::NewArr();
 			int KeyId = FunNmToFunH.FFirstKeyId();
 			while (FunNmToFunH.FNextKeyId(KeyId)) {
-				PXmlTok FunTok = TXmlTok::New("function");
-				FunTok->AddArg("name", FunNmToFunH.GetKey(KeyId));
-				TopTok->AddSubTok(FunTok);
+                FunArrVal->AddToArr(TJsonVal::NewObj("name", FunNmToFunH.GetKey(KeyId)));
 			}
-			TStr ResXmlStr; TXmlDoc::New(TopTok)->SaveStr(ResXmlStr);
-			PSIn BodySIn = TMIn::New(TSAppSrvFun::XmlHdStr + ResXmlStr);
+            PJsonVal ResVal = TJsonVal::NewObj();
+            ResVal->AddToObj("port", GetPortN());
+            ResVal->AddToObj("connections", GetConns());            
+            ResVal->AddToObj("functions", FunArrVal);
+			TStr ResStr = ResVal->SaveStr();
 			// prepare response
 			PHttpResp HttpResp = THttpResp::New(THttp::OkStatusCd, 
-				THttp::TextXmlFldVal, false, BodySIn);
+				THttp::AppJSonFldVal, false, TMIn::New(ResStr));
 			// send response
 			SendHttpResp(SockId, HttpResp); 
 		}
     } catch (PExcept Except) {
 		// known internal error
-		PXmlTok TopTok = TXmlTok::New("error");
-		TopTok->AddSubTok(TXmlTok::New("message", Except->GetMsgStr()));
-		TopTok->AddSubTok(TXmlTok::New("location", Except->GetLocStr()));
-		PXmlDoc ErrorXmlDoc = TXmlDoc::New(TopTok); 
-        TStr ResXmlStr; ErrorXmlDoc->SaveStr(ResXmlStr);
+        PJsonVal ErrorVal = TJsonVal::NewObj();
+        ErrorVal->AddToObj("message", Except->GetMsgStr());
+        ErrorVal->AddToObj("location", Except->GetLocStr());
+        PJsonVal ResVal = TJsonVal::NewObj("error", ErrorVal);
+        TStr ResStr = ResVal->SaveStr();
         // prepare response
-		PHttpResp HttpResp = THttpResp::New(ErrStatusCd, 
-            THttp::TextHtmlFldVal, false, 
-			TMIn::New(TSAppSrvFun::XmlHdStr + ResXmlStr));
+		PHttpResp HttpResp = THttpResp::New(ErrStatusCd,
+            THttp::AppJSonFldVal, false, TMIn::New(ResStr));
         // send response
-	    SendHttpResp(SockId, HttpResp); 
+	    SendHttpResp(SockId, HttpResp);
     } catch (...) {
 		// unknown internal error
-		PXmlDoc ErrorXmlDoc = TXmlDoc::New(TXmlTok::New("error")); 
-        TStr ResXmlStr; ErrorXmlDoc->SaveStr(ResXmlStr);
+        PJsonVal ResVal = TJsonVal::NewObj("error", "Unknown internal error");
+        TStr ResStr = ResVal->SaveStr();
         // prepare response
-        PHttpResp HttpResp = THttpResp::New(ErrStatusCd, 
-            THttp::TextHtmlFldVal, false, 
-			TMIn::New(TSAppSrvFun::XmlHdStr + ResXmlStr));
+		PHttpResp HttpResp = THttpResp::New(ErrStatusCd,
+            THttp::AppJSonFldVal, false, TMIn::New(ResStr));
         // send response
-	    SendHttpResp(SockId, HttpResp); 
+	    SendHttpResp(SockId, HttpResp);
     }
 }
 
