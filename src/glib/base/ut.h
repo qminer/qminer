@@ -21,19 +21,35 @@
 
 /////////////////////////////////////////////////
 // Type-Name
+
+// required to demangle class names
+#ifdef GLib_GCC
+    #include <cxxabi.h>
+#endif
+
 template <class Type>
 class TTypeNm: public TStr{
 public:
-  static TStr GetNrTypeNm(const TStr& TypeNm){
-    if (TypeNm.IsPrefix("class ")){
-      return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
-    else {return TypeNm;}}
+  static TStr GetNrTypeNm(const TStr& TypeNm){    
+    #ifdef GLib_GCC
+      // GCC requires some additional cleaning of object names
+      int DemangleStatus = 0;
+      char* DemangleTypeCStr = abi::__cxa_demangle(TypeNm.CStr(), 0, 0, &DemangleStatus);        
+      TStr DemangleTypeStr(DemangleTypeCStr);
+      free(DemangleTypeCStr);
+      return DemangleTypeStr;
+    #else
+      if (TypeNm.IsPrefix("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
+      else {return TypeNm;}
+    #endif    
+  }
 public:
   TTypeNm(): TStr(GetNrTypeNm((char*)(typeid(Type).name()))){}
 };
+
 template <class Type>
 TStr GetTypeNm(const Type& Var){
-  TStr TypeNm=TStr(typeid(Var).name());
+  TStr TypeNm = TStr(typeid(Var).name());   
   return TTypeNm<Type>::GetNrTypeNm(TypeNm);
 }
 
