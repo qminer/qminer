@@ -663,12 +663,15 @@ void TScript::Init() {
 void TScript::Install() {
 	v8::HandleScope HandleScope;
 	// delete existing objects, if they exist
+	Context->Global()->Delete(v8::String::New("process"));
 	Context->Global()->Delete(v8::String::New("console"));
 	Context->Global()->Delete(v8::String::New("qm"));
 	Context->Global()->Delete(v8::String::New("fs"));
 	Context->Global()->Delete(v8::String::New("http"));
 	Context->Global()->Delete(v8::String::New("la"));
 	// create fresh ones
+	DebugLog("Installing 'process' object");
+	Context->Global()->Set(v8::String::New("process"), TJsProcess::New(this));
     DebugLog("Installing 'console' object");
 	Context->Global()->Set(v8::String::New("console"), TJsConsole::New(this));
     DebugLog("Installing 'qm' object");
@@ -3729,8 +3732,7 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
         JsRegisterFunction(TmpTemp, trainSvmRegression);
 		JsRegisterFunction(TmpTemp, loadSvmModel);
         JsRegisterFunction(TmpTemp, newRecLinReg);
-        JsRegisterFunction(TmpTemp, newHoeffdingTree);
-        JsRegisterFunction(TmpTemp, trainKMeans);						
+        JsRegisterFunction(TmpTemp, newHoeffdingTree);        JsRegisterFunction(TmpTemp, loadRecLinRegModel);        JsRegisterFunction(TmpTemp, trainKMeans);						
         JsRegisterFunction(TmpTemp, getLanguageOptions);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -3891,6 +3893,17 @@ v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
     return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsAnalytics::loadRecLinRegModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+        PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+        TSignalProc::PRecLinReg Model = TSignalProc::TRecLinReg::Load(*SIn);
+		return HandleScope.Close(TJsRecLinRegModel::New(JsAnalytics->Js, Model));
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
 v8::Handle<v8::Value> TJsAnalytics::newHoeffdingTree(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     // parse arguments
@@ -3905,6 +3918,7 @@ v8::Handle<v8::Value> TJsAnalytics::newHoeffdingTree(const v8::Arguments& Args) 
     }
     return v8::Undefined();
 }
+
 
 v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -4195,6 +4209,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecLinRegModel::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, learn);
 		JsRegisterFunction(TmpTemp, predict);
+		JsRegisterFunction(TmpTemp, save);
 		JsRegisterProperty(TmpTemp, weights);
 		JsRegisterProperty(TmpTemp, dim);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -4244,6 +4259,18 @@ v8::Handle<v8::Value> TJsRecLinRegModel::weights(v8::Local<v8::String> Propertie
 	JsRecLinRegModel->Model->GetCoeffs(Coef);	    
 	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsRecLinRegModel->Js, Coef);
     return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsRecLinRegModel::save(const v8::Arguments& Args) {
+	QmAssertR(Args.Length() > 0, "TJsRecLinRegModel::save: SOut not specified!");
+
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsRecLinRegModel* JsModel = TJsRecLinRegModelUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	JsModel->Model->Save(*SOut);
+
+	return HandleScope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -4315,6 +4342,31 @@ v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
 	LocVal->AddToObj("organization", GeoIpBs->GetOrgNm(OrgId));
 	// return
 	return HandleScope.Close(TJsUtil::ParseJson(LocVal));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Process
+v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, sleep);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	const TInt Millis = TJsProcessUtil::GetArgInt32(Args,0);
+	QmAssertR(Millis >= 0, "Sleep time must be greater or equal to than 0!");
+
+	TSysProc::Sleep(TUInt(Millis));
+
+	return v8::Undefined();
 }
 
 
