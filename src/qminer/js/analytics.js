@@ -21,6 +21,9 @@ exports = require("__analytics__");
 function createBatchModel(featureSpace, models) {
     this.featureSpace = featureSpace;
     this.models = models;
+    // get targets
+    this.target = [];
+    for (var cat in this.models) { this.target.push(cat); }
     // serialize to stream
     this.save = function (sout) {
         // save list
@@ -41,6 +44,22 @@ function createBatchModel(featureSpace, models) {
         }
         return result;
     }
+    // test
+    this.predictTop = function (record) {
+        var result = this.predict(record);
+        var top = null;
+        for (var cat in result) {
+            if (top) {
+                if (top.weight > result[cat]) {
+                    top.category = cat;
+                    top.weight = result[cat];
+                }
+            } else {
+                top = { category : cat, weight: result[cat] }
+            }
+        }
+        return top.category;
+    }
     return this;
 }
 
@@ -50,8 +69,11 @@ function createBatchModel(featureSpace, models) {
 //#     if target field string or string vector, the result is a SVM classification model,
 //#     and if target field is a float, the result is a SVM regression model; resulting 
 //#     model has the following functions:
+//#   - `model.target` -- array of categories for which we have models
 //#   - `result = model.predict(record)` -- creates feature vector from `record`, sends it
 //#     through the model and returns the result as an array of scores.
+//#   - `result = model.predictTop(record)` -- creates feature vector from `record`, 
+//#     sends it through the model and returns the top ranked label.
 //#   - `model.save(fout)` -- saves the model to `fout` output stream
 exports.newBatchModel = function (records, features, target) {
     console.log("newBatchModel", "Start");
@@ -94,6 +116,19 @@ exports.newBatchModel = function (records, features, target) {
             var cats = records[i][target.name];
             for (var cat in targets) {
                 targets[cat].target.push(util.isInArray(cats, cat) ? 1.0 : -1.0);
+            }
+        }
+    } else if (target.type === "string") {
+        // get all possible values for the field
+        for (var i = 0; i < records.length; i++) {
+            var recCat = records[i][target.name];
+            initCats(targets, recCat);
+        }
+        // initialized with +1 or -1 for each category
+        for (var i = 0; i < records.length; i++) {
+            var recCat = records[i][target.name];
+            for (var cat in targets) {
+                targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
             }
         }
     } else if (target.type === "float") {
