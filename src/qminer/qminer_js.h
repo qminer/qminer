@@ -1507,7 +1507,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);
-	//
+
 	JsVec->Vec.Ins(0, Val);
 	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
