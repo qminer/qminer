@@ -64,7 +64,7 @@ if (learnSvmFilter) {
     // Constructs the active learner
     var AL = new analytics.activeLearner(ftrSpace, "Text", recSet, nPos, nNeg, relevantQuery);
     // Starts the active learner (use the keyword stop to quit)
-    AL.selectQuestion();
+    AL.startLoop();
     // Save the model
     var fout = fs.openWrite('./sandbox/twitter/svmFilter.bin');
     AL.saveSvmModel(fout);
@@ -81,7 +81,7 @@ if (learnSvmSentiment) {
     // Constructs the active learner
     var AL = new analytics.activeLearner(ftrSpace, "Text", recSet, nPos, nNeg, sentimentQuery);
     // Starts the active learner
-    AL.selectQuestion();
+    AL.startLoop();
     // Saves the sentiment model
     var fout = fs.openWrite('./sandbox/twitter/svmSentiment.bin');
     AL.saveSvmModel(fout);
