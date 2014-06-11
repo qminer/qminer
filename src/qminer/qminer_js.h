@@ -1494,8 +1494,8 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::push(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);	
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);	
-	int result = JsVec->Vec.Add(Val);	
-	return HandleScope.Close(v8::Integer::New(result));	
+	JsVec->Vec.Add(Val);	
+	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));	
 }
 
 template <class TVal, class TAux>
