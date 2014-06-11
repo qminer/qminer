@@ -89,7 +89,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -105,7 +105,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -128,7 +128,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Properties, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -148,7 +148,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(GetFunction(Properties, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -163,7 +163,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			SetFunction(Properties, Value, Info); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -182,7 +182,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Index, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -202,7 +202,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(FunctionGetter(Index, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -217,7 +217,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(FunctionSetter(Index, Value, Info)); \
-		} catch(PExcept Except) { \
+		} catch(const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -989,7 +989,7 @@ public:
     JsDeclareFunction(addStreamAggr);
     //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
 	JsDeclareFunction(getStreamAggr);
-	//#- `arr = store.getStreamAggrArr()` -- returns the names of all stream aggregators as an array of strings `arr`
+	//#- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
 	JsDeclareFunction(getStreamAggrNames);
     
     //# 
@@ -1373,7 +1373,9 @@ public:
 	JsDeclareFunction(put);	
 	//#- `vec.push(y)` -- append value `y` to vector `vec`
 	JsDeclareFunction(push);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors. Implemented for dense float vectors.
+	//#- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
+	JsDeclareFunction(unshift);
+	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
 	JsDeclareTemplatedFunction(pushV);
 	//#- `x = vec.sum()` -- sums the elements of `vec`
 	JsDeclareFunction(sum);
@@ -1420,7 +1422,8 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, at);	
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
-		JsRegisterFunction(TmpTemp, push);	
+		JsRegisterFunction(TmpTemp, push);
+		JsRegisterFunction(TmpTemp, unshift);
 		JsRegisterFunction(TmpTemp, pushV);
 		JsRegisterFunction(TmpTemp, sum);
 		JsRegisterFunction(TmpTemp, getMaxIdx);
@@ -1496,6 +1499,17 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::push(const v8::Arguments& Args) {
 	TVal Val = TAux::GetArgVal(Args, 0);	
 	JsVec->Vec.Add(Val);	
 	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));	
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	// assume number
+	TVal Val = TAux::GetArgVal(Args, 0);
+	//
+	JsVec->Vec.Ins(0, Val);
+	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
 
 template <class TVal, class TAux>
@@ -1626,13 +1640,13 @@ public:
 	JsDeclareFunction(transpose);
 	//#- `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
 	JsDeclareFunction(solve);
-	//#- `vec = mat.rowNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+	//#- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	JsDeclareFunction(rowNorms);
-	//#- `vec = mat.colNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
 	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- `smat = mat.sparse()` -- get sparse column matrix representation `smat` of dense matrix `mat`
+	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
 	//#- `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
 	JsDeclareFunction(frob);
@@ -1797,37 +1811,37 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- at:get element
+	//#- `val = spMat.at(i,j)` -- Gets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
-	//#- put:set element, returns undefined
+	//#- `spMat.put(i, j, val)` -- Sets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(put);
-	//#- []:index
+	//#- `x = spMat[i]; spMat[i] = x` -- setting and getting sparse vectors `x` from sparse column matrix, given column index `i` (integer)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- push:add a sparse column vector to the matrix
+	//#- `spMat.push(x)` -- attaches a column `x` (sparse vector) to `spMat` (sparse matrix)
 	JsDeclareFunction(push);
-	//#- multiply:matrix * scalar, matrix * vector, matrix * matrix
+	//#- `y = spMat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
 	JsDeclareFunction(multiply);
-	//#- multiplyT:matrix' * scalar, matrix' * vector, matrix' * matrix
+	//#- `y = spMat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
 	JsDeclareFunction(multiplyT);
-	//#- plus:matrix + matrix
+	//#- `spMat3 = spMat1.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(plus);
-	//#- minus:matrix - matrix
+	//#- `spMat3 = spMat1.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(minus);
-	//#- transpose:returns the transpose of a matrix
+	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `mat1` (sparse matrix) transposed 
 	JsDeclareFunction(transpose);	
-	//#- colNorms:get column norms
+	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
-	//#- normalizeCols:INPLACE : changes the matrix by normalizing columns, return undefined
+	//#- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- full:get dense matrix
+	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
 	JsDeclareFunction(full);
-	//#- frob:get frobenious norm
+	//#- `x = spMat.frob()` -- number `x` is the Frobenious norm of `spMat` (sparse matrix)
 	JsDeclareFunction(frob);
-	//#- rows:get number of rows
+	//#- `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
 	JsDeclareProperty(rows);
-	//#- cols:get number of columns
+	//#- `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
 	JsDeclareProperty(cols);
-	//#- print:print
+	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
 	JsDeclareFunction(print);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
@@ -1889,7 +1903,10 @@ public:
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-    JsDeclareFunction(newRecLinReg);	
+    JsDeclareFunction(newRecLinReg);
+    //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+	//#     from `fin` stream
+	JsDeclareFunction(loadRecLinRegModel);
 
     //#- `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
     //#     incremental decision tree learner; parameters are passed as JSON
@@ -2034,6 +2051,8 @@ public:
 	JsDeclareProperty(weights);
     //#- `model.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
+	//#- `model.save(fout)` -- saves model to output stream `fout`
+	JsDeclareFunction(save);
 };
 
 ///////////////////////////////
@@ -2153,7 +2172,33 @@ public:
 //#
 //# ### Process
 //# 
-//#JSIMPLEMENT:src/qminer/process.js    
+class TJsProcess {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsProcess> TJsProcessUtil;
+
+	explicit TJsProcess(TWPt<TScript> _Js): Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsProcessUtil::New(new TJsProcess(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //#
+	//# **Functions and properties:**
+	//#
+	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
+    JsDeclareFunction(sleep);
+
+    //#JSIMPLEMENT:src/qminer/process.js
+};
+
 
 //#
 //# ### Utilities.js (use require)

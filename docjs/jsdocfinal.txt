@@ -98,7 +98,7 @@ var record = store[1234];
 - `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
 - `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
-- `arr = store.getStreamAggrArr()` -- returns the names of all stream aggregators as an array of strings `arr`
+- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
 
 **Examples**:
 
@@ -259,7 +259,8 @@ var intv = la.newIntVec(); //empty vector
 - `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
 - `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
 - `vec.push(y)` -- append value `y` to vector `vec`
-- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for integer and float vectors. Implemented for dense float vectors.
+- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
+- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
 - `x = vec.sum()` -- sums the elements of `vec`
 - `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
 - `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
@@ -298,10 +299,10 @@ var fltv = la.newVec(); //empty matrix
 - `mat3 = mat1.plus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
 - `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat1` transposed
 - `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
-- `vec = mat.rowNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
-- `vec = mat.colNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 - `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
-- `smat = mat.sparse()` -- get sparse column matrix representation `smat` of dense matrix `mat`
+- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 - `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
 - `r = mat.rows` -- integer `r` corresponds to the number of rows of `mat`
 - `c = mat.cols` -- integer `c` corresponds to the number of columns of `mat`
@@ -352,22 +353,22 @@ var spMat = la.newSpMat(); //empty matrix
 
 **Functions and properties:**
 
-- at:get element
-- put:set element, returns undefined
-- []:index
-- push:add a sparse column vector to the matrix
-- multiply:matrix * scalar, matrix * vector, matrix * matrix
-- multiplyT:matrix' * scalar, matrix' * vector, matrix' * matrix
-- plus:matrix + matrix
-- minus:matrix - matrix
-- transpose:returns the transpose of a matrix
-- colNorms:get column norms
-- normalizeCols:INPLACE : changes the matrix by normalizing columns, return undefined
-- full:get dense matrix
-- frob:get frobenious norm
-- rows:get number of rows
-- cols:get number of columns
-- print:print
+- `val = spMat.at(i,j)` -- Gets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
+- `spMat.put(i, j, val)` -- Sets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
+- `x = spMat[i]; spMat[i] = x` -- setting and getting sparse vectors `x` from sparse column matrix, given column index `i` (integer)
+- `spMat.push(x)` -- attaches a column `x` (sparse vector) to `spMat` (sparse matrix)
+- `y = spMat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
+- `y = spMat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
+- `spMat3 = spMat1.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
+- `spMat3 = spMat1.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
+- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `mat1` (sparse matrix) transposed 
+- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
+- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
+- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
+- `x = spMat.frob()` -- number `x` is the Frobenious norm of `spMat` (sparse matrix)
+- `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
+- `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
+- `spMat.print()` -- print `spMat` (sparse matrix) to console
 - `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
 - `spMat.toString()` -- displays rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 - `var n = spMat.nnz();` -- `n` is the number of non-zero elements of sparse column matrix `spMat`
@@ -403,6 +404,8 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     (regularization parameter to avoid over-fitting, default is 1.0).)
+- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+    from `fin` stream
 - `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
     incremental decision tree learner; parameters are passed as JSON
 - `options = analytics.getLanguageOptions()` -- get options for text parsing 
@@ -414,15 +417,55 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
+  - `model.target` -- array of categories for which we have models
   - `result = model.predict(record)` -- creates feature vector from `record`, sends it
     through the model and returns the result as an array of scores.
+  - `result = model.predictTop(record)` -- creates feature vector from `record`, 
+    sends it through the model and returns the top ranked label.
   - `model.save(fout)` -- saves the model to `fout` output stream
 - `analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
-- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)`
-- `model = new analytics.ridgeRegression(kapa, dim, buffer)`
-- `model = new analytics.kmeans(X, k, iter)`
-- `model = new analytics.lloyd(dim, k)`
-- `model = new analytics.perceptron(dim, use_bias)`
+- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- starts the
+   active learning. The algorithm has two stages: query mode, where the algorithm suggests potential
+   positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
+  selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
+  is retrained.
+  The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
+   of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
+   that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
+   examples that have to be identified in the query mode before the program enters SVM mode. The final
+  parameter is the `query` (string) which should be related to positive examples.
+  - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+- `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+ regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+ `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
+ the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
+  - `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
+  - `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
+  - `model.forget(n)` -- deletes first `n` (integer) examples from the training set
+  - `model.update()` -- recomputes the model
+  - `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
+  - `w = model.compute(A, b)` -- computes the model parameters `w`, given 
+   a column training example matrix `A` (dense or sparse matrix) and target 
+   vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
+  - `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
+- `C = new analytics.kmeans(X, k, iter)`-- solves the k-means algorithm based on a training
+  set `X` (sparse or dense matrix) where colums represent examples, `k` (integer) the number of centroids and
+  `iter` (integer), the number of iterations. The solution `C` is a dense matrix, where each column
+   is a cluster centroid.
+- `model = new analytics.lloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
+ requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
+  - `model.init()` -- initializes the model with random centroids
+  - `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
+  - `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
+  - `model.update(x)` -- updates the model with a vector `x` dense or sparse
+  - `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
+  - `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
+- `model = new analytics.perceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
+  specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
+  model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
+  - `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
+  - `class = model.predict(x)` -- returns the prediction (0 or 1)
+  - `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
 
 ### Feature Space
 
@@ -475,6 +518,7 @@ Holds online regression model. This object is result of `analytics.newRecLinReg`
     model and returns the prediction as a real number
 - `vec = model.weights` -- weights of the linear model as a full vector    
 - `model.dim` -- dimensionality of the feature space on which this model works
+- `model.save(fout)` -- saves model to output stream `fout`
 
 ### Hoeffding Tree model
 
@@ -522,6 +566,10 @@ The HoeffdingTree algorithm comes with many parameters:
 
 ### Process
 
+
+**Functions and properties:**
+
+- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `process.isArg(arg)` -- returns true when `arg` among the 

@@ -1,10 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" ng-app>
   <head>
-    <title>QMiner Administration</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>QMiner Administrative Interface</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/angular.min.js"></script>
+    <script src="js/qminer.js"></script>
   </head>
   <body>
-    TODO
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">QMiner</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="http://qminer.ijs.si/">Web site</a></li>
+            <li><a href="https://github.com/qminer/qminer/wiki">Documentation</a></li>
+            <li><a href="../exit">Shutdown</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <div class="row" ng-controller="StoreCtrl">
+              <h2 class="sub-header">Stores</h2>
+              <ul>
+                <li ng-repeat="store in stores">
+                    <b>{{store.storeName}}</b> (id={{store.storeId}}, length={{store.storeRecords}})                    
+                </li>
+              </ul>      
+          </div>
+        </div>
+      </div>
+    </div>
+      
+
   </body>
 </html>
-
