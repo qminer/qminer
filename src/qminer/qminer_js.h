@@ -1634,7 +1634,7 @@ public:
 	JsDeclareFunction(multiplyT);
 	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
 	JsDeclareFunction(plus);
-	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
+	//#- `mat3 = mat1.minus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
 	JsDeclareFunction(minus);
 	//#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat1` transposed
 	JsDeclareFunction(transpose);

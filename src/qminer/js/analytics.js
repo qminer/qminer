@@ -497,7 +497,7 @@ exports.lloyd = function (dim, k) {
         counts[idx] = counts[idx] + 1;
         norC2[idx] = la.square(vec.norm());
     };
-    //#   - `c = model.getCentroids(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
+    //#   - `c = model.getCentroid(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
     this.getCentroid = function (x) {
         var idx = this.getCentroidIdx(x);
         var vec = C.getCol(idx);
