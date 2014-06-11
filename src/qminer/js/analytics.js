@@ -180,8 +180,8 @@ exports.loadBatchModel = function (sin) {
 }
 
 // active learning (analytics:function activeLearner, parameters
-//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- starts the
-//#    active learning. The algorithm has two stages: query mode, where the algorithm suggests potential
+//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- initializes the
+//#    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
 //#    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
 //#   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
 //#   is retrained.
@@ -189,7 +189,7 @@ exports.loadBatchModel = function (sin) {
 //#    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
 //#    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
 //#    examples that have to be identified in the query mode before the program enters SVM mode. The final
-//#   parameter is the `query` (string) which should be related to positive examples.
+//#   parameter is the `query` (string) which should be related to positive examples. 
 exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query) {
     var store = recSet.store;
     var X = la.newSpMat();
@@ -219,18 +219,19 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
     var classVec = la.newVec({ "vals": recSet.length }); //svm scores for record set
 
     // returns record set index of the unlabeled record that is closest to the margin
+    //#   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
     this.selectQuestion = function () {
         if (posIdV.length >= nPos && negIdV.length >= nNeg) { queryMode = false; }
         if (queryMode) {
             if (posIdV.length < nPos) {
                 nPosQ = nPosQ + 1;
                 console.say("query mode, try to get pos");
-                this.getAnswer(simVp[simVp.length - 1 - (nPosQ - 1)]);
+                return simVp[simVp.length - 1 - (nPosQ - 1)];
             }
             if (negIdV.length < nNeg) {
                 nNegQ = nNegQ + 1;
                 console.say("query mode, try to get neg");
-                this.getAnswer(simVp[nNegQ - 1]);
+                return simVp[nNegQ - 1];
             }
         }
         else {
@@ -258,31 +259,39 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
             }
             var sorted = classVec.sortPerm();
             console.say("svm mode, margin: " + sorted.vec[0] + ", npos: " + posCount + ", nneg: " + negCount);
-            this.getAnswer(sorted.perm[0]);
+            return sorted.perm[0];            
         }
     };
     // asks the user for class label given a record set index
-    this.getAnswer = function (recSetIdx) {
-        //todo options: ?newQuery        
-        console.say(recSet[recSetIdx].Text + ": y/(n)/stop?");
-        var ALanswer = console.getln();
-        if (ALanswer !== "stop") {
-            if (ALanswer === "y") {
-                posIdxV.push(recSetIdx);
-                posIdV.push(recSet[recSetIdx].$id);
-                X.push(recsMat[recSetIdx]);
-                y.push(1.0);
-            } else {
-                negIdxV.push(recSetIdx);
-                negIdV.push(recSet[recSetIdx].$id);
-                X.push(recsMat[recSetIdx]);
-                y.push(-1.0);
-            }
-            this.selectQuestion();
+    //#   - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+    //#      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
+    this.getAnswer = function (ALanswer, recSetIdx) {
+        //todo options: ?newQuery
+        if (ALanswer === "y") {
+            posIdxV.push(recSetIdx);
+            posIdV.push(recSet[recSetIdx].$id);
+            X.push(recsMat[recSetIdx]);
+            y.push(1.0);
+        } else {
+            negIdxV.push(recSetIdx);
+            negIdV.push(recSet[recSetIdx].$id);
+            X.push(recsMat[recSetIdx]);
+            y.push(-1.0);
         }
         // +k query // rank unlabeled according to query, ask for k most similar
         // -k query // rank unlabeled according to query, ask for k least similar
     };
+    //#   - `model.startLoop()` -- starts the active learning loop in console
+    this.startLoop = function() {
+        while (true) {
+            var recSetIdx = this.selectQuestion();
+            console.say(recSet[recSetIdx].Text + ": y/(n)/stop?");
+            var ALanswer = console.getln();
+            if (ALanswer == "stop") { break; }
+            if (posIdxV.length + negIdxV.length == recSet.length) { break;}
+            this.getAnswer(ALanswer, recSetIdx);            
+        }
+    }
     //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
