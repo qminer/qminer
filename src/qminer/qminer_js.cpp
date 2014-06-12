@@ -362,7 +362,16 @@ void TScript::Execute(v8::Handle<v8::Function> Fun, const PJsonVal& Arg1, v8::Ha
 	TJsUtil::HandleTryCatch(TryCatch);
 }
 
-void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>&  Arg1, v8::Handle<v8::Object>& Arg2) {
+void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 2;
+	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
+	Fun->Call(Context->Global(), Argc, Argv);
+	TJsUtil::HandleTryCatch(TryCatch);
+}
+
+void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
 	const int Argc = 2;
@@ -1442,6 +1451,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filter);
 		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, map);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1724,6 +1734,32 @@ v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
     PJsonVal JsObj = JsRecSet->RecSet->GetJson(JsRecSet->Js->Base, 
 		MxHits, Offset, FieldsP, AggrsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);	
 	return HandleScope.Close(TJsUtil::ParseJson(JsObj));
+}
+
+v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet = JsRecSet->RecSet;
+
+	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+
+	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
+
+	// iterate through the recset
+	const uint64 Recs = RecSet->GetRecs();
+
+	for (uint64 RecIdx = 0; RecIdx < Recs; RecIdx++) {
+		TRec Rec = RecSet->GetRec(RecIdx);
+
+		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdx));
+		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdx);
+
+		// execute callback
+		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
+	}
+
+	return v8::Undefined();
 }
 
 ///////////////////////////////

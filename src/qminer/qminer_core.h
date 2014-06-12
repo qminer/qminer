@@ -1244,7 +1244,7 @@ public:
 	uint GetStoreId() const { return Store->GetStoreId(); }
 
 	/// Number of records in the set
-	int GetRecs() const { return RecIdFqV.Len(); }
+	int GetRecs() const { return RecIdFqV.Len(); }	// FIXME this method should return uint64
 	/// Get RecN-th record as TRec by reference
     TRec GetRec(const int& RecN) const { return TRec(GetStore(), RecIdFqV[RecN].Key); }
 	/// Get id of RecN-th record

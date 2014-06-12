@@ -282,7 +282,7 @@ TStr TFieldDesc::GetFieldTypeStr() const {
         case oftUndef : return "undefined";
         case oftInt : return "int"; 
         case oftIntV : return "int_v"; 
-        case oftUInt64 : return "uint64"; 
+        case oftUInt64 : return "uint64";
         case oftStr : return "string"; 
         case oftStrV : return "string_v"; 
         case oftBool : return "bool"; 
