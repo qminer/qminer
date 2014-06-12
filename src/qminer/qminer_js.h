@@ -391,7 +391,9 @@ public:
 	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
 	/// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
-	/// Execute JavaScript callback in this script's context
+    /// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
@@ -737,6 +739,13 @@ public:
 		PJsonVal Val = TJsonVal::GetValFromStr(JsonStr);
 		if (!Val->IsDef()) { throw TQmExcept::New("Error parsing '" + JsonStr + "'."); }
 		return Val;
+	}
+
+	static bool IsArgFun(const v8::Arguments& Args, const int& ArgN) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		return Val->IsFunction();
 	}
 
 	/// Extract argument ArgN as JavaScript function
@@ -1134,6 +1143,11 @@ public:
 	JsDeclareFunction(deleteRecs);
     //#- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
+	//#- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(map);
+
+
 
     //# 
     //# **Examples**:
@@ -1507,7 +1521,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);
-	//
+
 	JsVec->Vec.Ins(0, Val);
 	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
