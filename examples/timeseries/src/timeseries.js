@@ -79,3 +79,6 @@ while (!fin.eof) {
     }
 }
 
+// Start console
+console.say("Interactive mode: empty line to release");
+console.start();

@@ -74,6 +74,23 @@ qm.printStreamAggr = function(store) {
 	}
 }
 
+//# - `dir(obj, depth, perfix, limit)` -- recursively prints all keys of object `obj`. Depth of recursion is controlled by `depth` (integer, default 1), `prefix` is a string attached to every line (default empty string), width is controlled by `limit` (integer, default 10)
+function dir(obj, depth, prefix, limit) {
+	depth = typeof depth !== 'undefined' ? depth : 1;
+	prefix = typeof prefix !== 'undefined' ? prefix : "";
+	limit = typeof limit !== 'undefined' ? limit : 10;
+	if (depth === parseInt(depth)) {
+		if (depth > 0) {
+			if (typeof obj == 'object') {
+				var keys = Object.keys(obj);			
+				for (var keyN = 0; keyN < Math.min(limit, keys.length); keyN++) {
+					console.println(prefix + "." + keys[keyN]);
+					dir(obj[keys[keyN]], depth - 1, prefix + "." + keys[keyN]);
+				}	    	
+			}
+		}
+	}	 
+}
 
 ///////////////////////////////////////// DEPRECATED
 function jsonp(req, res, data) {

@@ -49,3 +49,6 @@ console.startx = function (x) {
 
 //#- `console.pause()` -- waits until enter is pressed
 console.pause = function() {console.getln()};
+
+//#- `console.println(a)` -- `print(a); print("\n")`
+console.println = function(a) {console.print(a); console.print("\n");}
