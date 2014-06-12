@@ -63,6 +63,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
   parsing each line as JSON and adding it as record to `store`
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
+- `dir(obj, depth, perfix, limit)` -- recursively prints all keys of object `obj`. Depth of recursion is controlled by `depth` (integer, default 1), `prefix` is a string attached to every line (default empty string), width is controlled by `limit` (integer, default 10)
 
 ### Store
 
@@ -161,6 +162,8 @@ the set.
 - `rs.filter(filter)` -- keeps only records that pass `filter` callback
 - `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
 - `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+  `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 
 **Examples**:
 
@@ -633,6 +636,7 @@ are automatically prefixed by current date and time.
     in order for console to see and interact with local variables.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.pause()` -- waits until enter is pressed
+- `console.println(a)` -- `print(a); print("\n")`
 
 ### File system
 
