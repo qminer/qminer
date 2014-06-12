@@ -78,3 +78,7 @@ while (!fin.eof) {
         console.say("Raw", err);
     }
 }
+
+// Start console
+console.say("Interactive mode: empty line to release");
+console.start();

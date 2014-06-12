@@ -5,7 +5,9 @@ before_install:
  - sudo apt-get install -qq uuid-dev
 install:
   - make lib
-script: make
+script: 
+  - make
+  - ./test/javascript/test.sh
 os: linux
 notifications:
   email:
