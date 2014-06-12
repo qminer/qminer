@@ -2154,18 +2154,20 @@ v8::Handle<v8::Value> TJsIndexKey::name(v8::Local<v8::String> Properties, const 
 v8::Handle<v8::Value> TJsIndexKey::voc(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsIndexKey* JsIndexKey = TJsIndexKeyUtil::GetSelf(Info);	
-	TStrV KeyValV;
-	JsIndexKey->Js->Base->GetIndexVoc()->GetAllWordStrV(JsIndexKey->IndexKey.GetKeyId(), KeyValV);
-	v8::Local<v8::Array> KeyValV8 = v8::Array::New(KeyValV.Len());
-	for (int WordN = 0; WordN < KeyValV.Len(); WordN++) {		
-		KeyValV8->Set(v8::Number::New(WordN), v8::String::New(KeyValV[WordN].CStr()));		
-	}
-	return HandleScope.Close(KeyValV8);
+    if (!JsIndexKey->IndexKey.IsWordVoc()) { return v8::Null(); }
+    TStrV KeyValV;
+    JsIndexKey->Js->Base->GetIndexVoc()->GetAllWordStrV(JsIndexKey->IndexKey.GetKeyId(), KeyValV);
+    v8::Local<v8::Array> KeyValV8 = v8::Array::New(KeyValV.Len());
+    for (int WordN = 0; WordN < KeyValV.Len(); WordN++) {		
+        KeyValV8->Set(v8::Number::New(WordN), v8::String::New(KeyValV[WordN].CStr()));		
+    }
+    return HandleScope.Close(KeyValV8);   
 }
 
 v8::Handle<v8::Value> TJsIndexKey::fq(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsIndexKey* JsIndexKey = TJsIndexKeyUtil::GetSelf(Info);	
+    if (!JsIndexKey->IndexKey.IsWordVoc()) { return v8::Null(); }
 	TStrIntPrV KeyValV;
 	JsIndexKey->Js->Base->GetIndexVoc()->GetAllWordStrFqV(JsIndexKey->IndexKey.GetKeyId(), KeyValV);
 	v8::Local<v8::Array> KeyValV8 = v8::Array::New(KeyValV.Len());
