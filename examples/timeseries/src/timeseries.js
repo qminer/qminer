@@ -78,4 +78,3 @@ while (!fin.eof) {
         console.say("Raw", err);
     }
 }
-
