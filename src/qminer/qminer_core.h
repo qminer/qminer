@@ -2669,6 +2669,10 @@ public:
 	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
 	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
+    // JSON dump and load
+	bool SaveJSonDump(const TStr& DumpDir);
+	bool RestoreJSonDump(const TStr& DumpDir);
+    
     // statistics
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);

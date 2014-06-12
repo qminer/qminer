@@ -75,6 +75,7 @@ public:
   void AddToObj(const TStr& KeyNm, const bool& Val){ AddToObj(KeyNm, NewBool(Val)); }
   void AddToObj(const TStr& KeyNm, const TJsonValV& ValV){ AddToObj(KeyNm, NewArr(ValV)); }
   void AddToObj(const PJsonVal& Val);
+  void DelObjKey(const TStr& KeyNm) { KeyValH.DelIfKey(KeyNm); }
 
   // simplified creation of basic elements
   static PJsonVal NewNull() { PJsonVal Val = TJsonVal::New(); Val->PutNull(); return Val; }
