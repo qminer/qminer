@@ -1,5 +1,5 @@
 bash genJSdoc.sh
-cp docjs/jsdocfinal.txt ../qminer.wiki/JavaScript.md
+cp docjs/jsdocfinal.txt ../qminer.wiki/JavaScript.mdconsole after bat file finish stay in folder
 cd ..
 cd qminer.wiki
 git add JavaScript.md
@@ -19,8 +19,6 @@ git commit --message=AutoDoc
 
 @set PLINK_PROTOCOL=ssh
 @if not defined TERM set TERM=msys
-
 git push
-
-@chdir ../qminer
-
+@endlocal
+cd ..\qminer

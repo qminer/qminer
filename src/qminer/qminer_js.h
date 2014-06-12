@@ -2545,6 +2545,10 @@ public:
     //#     as Date-Time object
 	JsDeclareFunction(parse);
 };
+//#
+//# ## Other libraries
+//#
+//#JSIMPLEMENT:src/qminer/js/twitter.js 
 
 }
 

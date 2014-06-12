@@ -741,3 +741,18 @@ New one can be created using `tm = require('time')`.
 - `tm.toJSON()` -- returns json representation of time    
 - `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
     as Date-Time object
+
+## Other libraries
+
+
+### twitter.js (use require)
+
+Utilities and store definition for working with Twitter data. 
+The library must be loaded using `var twitter = require('twitter.js');`.
+
+**Functions and properties:**
+
+- `var twitterDef = new twitter.TwitterStore()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
+- `var Parser = new twitter.Parser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
+  - `obj = twitter.Parser.rawJsonToStoreJson(raw)` -- transforms a raw JSON object (result of twitter crawler) `raw` to `twitter.TwitterStore()` compatible json object `obj`
+- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.TwitterStore()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
