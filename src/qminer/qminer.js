@@ -84,7 +84,7 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
     showProto = typeof showProto !== 'undefined' ? showProto : false;
     if (depth === parseInt(depth)) {
         if (depth > 0) {
-            if (typeof obj == 'object') {
+            if (typeof obj == 'object' && obj != null) {
                 var keys = Object.keys(obj);
                 var numOwn = keys.length;
                 if (showProto) {

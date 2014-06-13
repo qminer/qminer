@@ -119,6 +119,19 @@
     <ClInclude Include="src\qminer\qminer_srv.h" />
     <ClInclude Include="src\qminer\qminer_js.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\qminer\console.js" />
+    <None Include="src\qminer\fs.js" />
+    <None Include="src\qminer\http.js" />
+    <None Include="src\qminer\js\analytics.js" />
+    <None Include="src\qminer\js\assert.js" />
+    <None Include="src\qminer\js\twitter.js" />
+    <None Include="src\qminer\js\utilities.js" />
+    <None Include="src\qminer\linalg.js" />
+    <None Include="src\qminer\process.js" />
+    <None Include="src\qminer\qminer.js" />
+    <None Include="src\qminer\spMat.js" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
