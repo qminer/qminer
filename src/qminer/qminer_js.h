@@ -1984,14 +1984,16 @@ public:
     //#     features from `record` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
-    //#- `spVec = ftrSpVec(record)` -- extracts sparse feature vector from `record`
+	//#- `ftrName = fs.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `fs`
+	JsDeclareFunction(getFtr);
+	//#- `spVec = fs.ftrSpVec(record)` -- extracts sparse feature vector from `record`
     JsDeclareFunction(ftrSpVec);
-    //#- `vec = ftrVec(record)` -- extracts feature vector from `record`
+    //#- `vec = fs.ftrVec(record)` -- extracts feature vector from `record`
     JsDeclareFunction(ftrVec);
-    //#- `spMatrix = ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
+    //#- `spMatrix = fs.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
     //#     records in `recordSet` and returns them as columns in a sparse matrix.
 	JsDeclareFunction(ftrSpColMat);
-    //#- `matrix = ftrColMat(recordSet)` -- extracts feature vectors from 
+    //#- `matrix = fs.ftrColMat(recordSet)` -- extracts feature vectors from 
     //#     records in `recordSet` and returns them as columns in a matrix.
     JsDeclareFunction(ftrColMat);
 };

@@ -4046,7 +4046,8 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
 		JsRegisterFunction(TmpTemp, finishUpdate);					
-		JsRegisterFunction(TmpTemp, extractStrings);						
+		JsRegisterFunction(TmpTemp, extractStrings);	
+		JsRegisterFunction(TmpTemp, getFtr);
 		JsRegisterFunction(TmpTemp, ftrSpVec);						
 		JsRegisterFunction(TmpTemp, ftrVec);	
 		JsRegisterFunction(TmpTemp, ftrSpColMat);						
@@ -4136,6 +4137,18 @@ v8::Handle<v8::Value> TJsFtrSpace::extractStrings(const v8::Arguments& Args) {
 	}
 	return HandleScope.Close(StrArr);
 }
+
+// ftrStr = getFtr(FtrN)
+v8::Handle<v8::Value> TJsFtrSpace::getFtr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+	uint32 FtrN = TJsFtrSpaceUtil::GetArgInt32(Args, 0, 0);
+	TStr FtrNm = JsFtrSpace->FtrSpace->GetFtr(FtrN);
+	// return as JS array
+	return HandleScope.Close(v8::String::New(FtrNm.CStr()));
+}
+
 
 v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
