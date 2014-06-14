@@ -25,6 +25,7 @@
 
 #include <base.h>
 #include <mine.h>
+#include <funrouter.h>
 
 namespace TQm {
 
@@ -122,29 +123,6 @@ public:
 
 #define QmAssertR(Cond, MsgStr) \
   ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
-
-///////////////////////////////
-/// Router to constructors based on object types.
-/// Useful for creating and de-serializing derived objects, such as TAggr and TStreamAggr.
-template <class PObj, typename TFun>
-class TFunRouter {
-private:
-    /// Object descriptions
-	THash<TStr, TFun> TypeNmToFunH;
-    
-public:
-    /// Register default stream aggregates
-    TFunRouter() { }
-    
-    /// Register new object
-    void Register(const TStr& TypeNm, TFun Fun) { TypeNmToFunH.AddDat(TypeNm, Fun); }
-    
-    /// Get the function for given type
-    TFun Fun(const TStr& TypeNm) {
-        if (TypeNmToFunH.IsKey(TypeNm)) { return TypeNmToFunH.GetDat(TypeNm); }
-        throw TQmExcept::New("[TFunRouter::Fun] Unknown object type " + TypeNm);
-    }
-};
 
 ///////////////////////////////
 /// Join Types
@@ -1599,7 +1577,7 @@ private:
 	/// Get constant word vocabulary for a given key
 	const PIndexWordVoc& GetWordVoc(const int& KeyId) const;
 
-	TIndexVoc(): Tokenizer(TTokenizerHtml::New()) { }
+	TIndexVoc(): Tokenizer(TTokenizers::THtml::New(TSwSet::New(swstNone), TStemmer::New(stmtNone, false))) { }
     TIndexVoc(TSIn& SIn);
 public:
 	/// Create new index vocabulary

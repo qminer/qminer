@@ -489,14 +489,6 @@ public:
     // feature extractor type name 
     static TStr GetType() { return "text"; }   
     
-private:
-	static PSwSet GetSwSet(const TStr& SwStr);
-	static void AddWords(const PSwSet& SwSet, const PJsonVal& WordsVal);    
-public:
-    /// Extract stop-words from JSon parameters
-    static PSwSet ParseSwSet(const PJsonVal& ParamVal);
-    /// Extract stemmer from JSon parameters.
-    /// In case real word parameter is not give, value of RealWordP is used
     static PStemmer ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP = false);
 };
 

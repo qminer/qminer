@@ -2297,7 +2297,7 @@ const PIndexWordVoc& TIndexVoc::GetWordVoc(const int& KeyId) const {
 }
 
 TIndexVoc::TIndexVoc(TSIn& SIn) {	
-	Tokenizer = TTokenizerHtml::New();
+	Tokenizer = TTokenizers::THtml::New(TSwSet::New(swstNone), TStemmer::New(stmtNone, false));
     KeyH.Load(SIn);
     StoreIdKeyIdSetH.Load(SIn);
     WordVocV.Load(SIn);
@@ -4130,7 +4130,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize): InitP(false) {
 	IndexVoc = TIndexVoc::New();
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
 	// prepare tokenizer
-	IndexVoc->PutTokenizer(TTokenizerHtmlUnicode::New(
+	IndexVoc->PutTokenizer(TTokenizers::THtmlUnicode::New(
 		TSwSet::New(swstEn425), TStemmer::New(stmtPorter, true)));
 	// add standard operators
 	AddOp(TOpLinSearch::New());
@@ -4162,7 +4162,8 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
 	// load tokenizer
 	TFIn TokenizerFIn(FPath + "Tokenizer.dat");
-	IndexVoc->PutTokenizer(TTokenizerHtmlUnicode::Load(TokenizerFIn));
+	IndexVoc->PutTokenizer(TTokenizer::Load(TokenizerFIn));
+	//IndexVoc->PutTokenizer(TTokenizers::THtmlUnicode::Load(TokenizerFIn));
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());

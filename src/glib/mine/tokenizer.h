@@ -18,91 +18,118 @@
  */
 
 ///////////////////////////////
-// Tokenizer
-ClassTP(TTokenizer, PTokenizer) // {
+/// Tokenizer.
+class TTokenizer; typedef TPt<TTokenizer> PTokenizer;
+class TTokenizer {
+private: 
+	// smart-pointer
+	TCRef CRef;
+	friend class TPt<TTokenizer>;
+
+	/// New constructor delegate
+	typedef PTokenizer (*TNewF)(const PJsonVal& JsonVal);
+	typedef PTokenizer (*TLoadF)(TSIn& SIn);
+    /// Stream aggregate descriptions
+	static TFunRouter<PTokenizer, TNewF> NewRouter;   
+	static TFunRouter<PTokenizer, TLoadF> LoadRouter;   
+public:
+    /// Register default aggregates
+    static bool Init();
+    static bool RegP;
+    /// Register new aggregate
+    template <class TObj> static void Register() { 
+        NewRouter.Register(TObj::GetType(), TObj::New);
+        LoadRouter.Register(TObj::GetType(), TObj::Load);
+    }
+
 public:
 	TTokenizer() { }
 	virtual ~TTokenizer() { }
 
 	virtual void Save(TSOut& SOut) const = 0;
+    static PTokenizer Load(TSIn& SIn);
 
 	virtual void GetTokens(const PSIn& SIn, TStrV& TokenV) const = 0;
 	void GetTokens(const TStr& Text, TStrV& TokenV) const;
 	void GetTokens(const TStrV& TextV, TVec<TStrV>& TokenVV) const;
 };
 
+namespace TTokenizers {
+    
 ///////////////////////////////
 // Tokenizer-Simple
 //   Simple whitespace & punctuation tokenizer. 
-//   No stopwords or stemming. Fast, threadsafe.
-class TTokenizerSimple : public TTokenizer {
+class TSimple : public TTokenizer {
 protected:
 	PSwSet SwSet;
 	PStemmer Stemmer;
 	TBool ToUcP;
 public:
-	TTokenizerSimple(const PSwSet& _SwSet = NULL, const PStemmer& _Stemmer = NULL, 
+	TSimple(const PSwSet& _SwSet = NULL, const PStemmer& _Stemmer = NULL, 
 		const bool& _ToUcP = true): SwSet(_SwSet), Stemmer(_Stemmer), ToUcP(_ToUcP) {  }
 	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, bool ToUcP = true) {
-		return new TTokenizerSimple(SwSet, Stemmer, ToUcP); }
-
-	TTokenizerSimple(TSIn& SIn): SwSet(SIn), Stemmer(SIn), ToUcP(SIn) { }
-	static PTokenizer Load(TSIn& SIn) { return new TTokenizerSimple(SIn); }
-	void Save(TSOut& SOut) const { SwSet.Save(SOut); Stemmer.Save(SOut); ToUcP.Save(SOut); }
+		return new TSimple(SwSet, Stemmer, ToUcP); }
+    static PTokenizer New(const PJsonVal& ParamVal);
+    
+	TSimple(TSIn& SIn);
+	static PTokenizer Load(TSIn& SIn) { return new TSimple(SIn); }
+	void Save(TSOut& SOut) const;
 
 	void GetTokens(const PSIn& SIn, TStrV& TokenV) const;
+    
+    static TStr GetType() { return "simple"; }
 };
 
 ///////////////////////////////
 // Tokenizer-Html
 //   HTML-aware tough tokenizer with stopwords and stemming.
 //   WARNING - NOT THREAD SAFE. WILL SEGFAULT
-class TTokenizerHtml : public TTokenizer {
+class THtml : public TTokenizer {
 protected:
 	PSwSet SwSet;
 	PStemmer Stemmer;
 	TBool ToUcP;
-	// for handling n-grams
-	PStreamNGramBs NGramBs;
-	TInt MnNGramFq;
 	
-	TTokenizerHtml(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP,
-		const int& MxNGramLen, const int& MnNGramFq, const int& MxNGramCache);
+	THtml(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP);
 public:
-	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, bool ToUcP = true,
-		const int& MxNGramLen = 1, const int& MnNGramFq = 5, const int& MxNGramCache = 100000000) {
-			return new TTokenizerHtml(SwSet, Stemmer, ToUcP, MxNGramLen, MnNGramFq, MxNGramCache); }
+	static PTokenizer New(PSwSet SwSet, PStemmer Stemmer, bool ToUcP = true) {
+        return new THtml(SwSet, Stemmer, ToUcP); }
+    static PTokenizer New(const PJsonVal& ParamVal);
 
 	// serialization
-	TTokenizerHtml(TSIn& SIn);
-	static PTokenizer Load(TSIn& SIn) { 
-		return new TTokenizerHtml(SIn); }
-	void Save(TSOut& SOut) const;
+	THtml(TSIn& SIn);
+	static PTokenizer Load(TSIn& SIn) { return new THtml(SIn); }
+	void Save(TSOut& SOut, const bool& SaveTypeP) const;
+    void Save(TSOut& SOut) const { Save(SOut, true); }
 
 	void GetTokens(const PSIn& SIn, TStrV& TokenV) const;
+    
+    static TStr GetType() { return "html"; }
 };
 
 ///////////////////////////////
 // Tokenizer-Html-Unicode
 //   Puts string to simple canoniocal form and calls HTML tokenizer, 
-class TTokenizerHtmlUnicode : public TTokenizerHtml {
+class THtmlUnicode : public THtml {
 protected:
-	TTokenizerHtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer,  const bool& _ToUcP, 
-		const int& MxNGramLen, const int& _MnNGramFq, const int& MxNGramCache): 
-			TTokenizerHtml(_SwSet, _Stemmer, _ToUcP, MxNGramLen, _MnNGramFq, MxNGramCache) {
-				EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
+	THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer,  const bool& _ToUcP): 
+        THtml(_SwSet, _Stemmer, _ToUcP) { EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
 public:
-	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, bool ToUcP = true,
-		const int& MxNGramLen = 1, const int& MnNGramFq = 5, const int& MxNGramCache = 100000000) {
-			return new TTokenizerHtmlUnicode(SwSet, Stemmer, ToUcP, MxNGramLen, MnNGramFq, MxNGramCache); }
+	static PTokenizer New(PSwSet SwSet, PStemmer Stemmer, bool ToUcP = true) {
+			return new THtmlUnicode(SwSet, Stemmer, ToUcP); }
+    static PTokenizer New(const PJsonVal& ParamVal);
 
-	TTokenizerHtmlUnicode(TSIn& SIn): TTokenizerHtml(SIn) { 
-		EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
-	static PTokenizer Load(TSIn& SIn) { return new TTokenizerHtmlUnicode(SIn); }
-	void Save(TSOut& SOut) const { TTokenizerHtml::Save(SOut); }
+	THtmlUnicode(TSIn& SIn): THtml(SIn) { 
+        EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
+	static PTokenizer Load(TSIn& SIn) { return new THtmlUnicode(SIn); }
+	void Save(TSOut& SOut) const;
 
 	void GetTokens(const PSIn& SIn, TStrV& TokenV) const;
+    
+    static TStr GetType() { return "unicode"; }    
 };
+
+}
 
 ///////////////////////////////
 // Tokenizer-Utils

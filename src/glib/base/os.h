@@ -20,14 +20,6 @@
 #include "bd.h"
 
 #ifdef GLib_WIN
-/////////////////////////////////////////////////
-// Com
-class TCom{
-public:
-  TCom(){
-    /*EAssertR(::CoInitialize(NULL)==S_OK, "COM initialization failed.");*/}
-  ~TCom(){/*CoUninitialize();*/}
-};
 
 /////////////////////////////////////////////////
 // System-Processes
@@ -119,14 +111,6 @@ public:
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
   void OnStatus(const TStr& MsgStr);
 };
-
-/////////////////////////////////////////////////
-// System-Messages
-//class TSysMsg{
-//public:
-//  static void Loop();
-//  static void Quit();
-//};
 
 /////////////////////////////////////////////////
 // System-Time
@@ -245,14 +229,6 @@ public:
     
 public:
     TSysMemStat();
-};
-
-/////////////////////////////////////////////////
-// System-Messages
-class TSysMsg{
-public:
-  static void Loop();
-  static void Quit();
 };
 
 /////////////////////////////////////////////////

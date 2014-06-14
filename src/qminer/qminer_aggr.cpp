@@ -263,9 +263,13 @@ void TBow::ParseJson(const TWPt<TBase>& Base, const PRecSet& RecSet,
 	const bool TokenizeP = JsonVal->GetObjBool("tokenize", true);
     if (TokenizeP) {    
         // read stemmer    
-        PStemmer Stemmer = TFtrExts::TBagOfWords::ParseStemmer(JsonVal, true);
-        // read stop words (default is no stop words)
-        PSwSet SwSet = TFtrExts::TBagOfWords::ParseSwSet(JsonVal);
+        PStemmer Stemmer = JsonVal->IsObjKey("stemmer") ? 
+            TStemmer::ParseJson(JsonVal->GetObjKey("stemmer"), true) :
+            TStemmer::New(stmtNone, true);
+        // read stop words (default is English)
+        PSwSet SwSet = JsonVal->IsObjKey("stopwords") ? 
+            TSwSet::ParseJson(JsonVal->GetObjKey("stopwords")) :
+            TSwSet::New(swstEn523); 
     	// prepare feature extractor
         FtrExt = TFtrExts::TBagOfWords::New(Base, JoinSeq, 
             FieldId, TFtrExts::bowmConcat, SwSet, Stemmer);
