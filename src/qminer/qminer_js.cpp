@@ -1750,10 +1750,10 @@ v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
 	const uint64 Recs = RecSet->GetRecs();
 
 	for (uint64 RecIdx = 0; RecIdx < Recs; RecIdx++) {
-		TRec Rec = RecSet->GetRec(RecIdx);
+		TRec Rec = RecSet->GetRec((int)RecIdx);
 
-		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdx));
-		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdx);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq((int)RecIdx));
+		v8::Handle<v8::Value> IdxArg = v8::Integer::New((int)RecIdx);
 
 		// execute callback
 		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);

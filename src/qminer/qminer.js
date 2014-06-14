@@ -74,22 +74,40 @@ qm.printStreamAggr = function(store) {
 	}
 }
 
-//# - `dir(obj, depth, perfix, limit)` -- recursively prints all keys of object `obj`. Depth of recursion is controlled by `depth` (integer, default 1), `prefix` is a string attached to every line (default empty string), width is controlled by `limit` (integer, default 10)
-function dir(obj, depth, prefix, limit) {
-	depth = typeof depth !== 'undefined' ? depth : 1;
-	prefix = typeof prefix !== 'undefined' ? prefix : "";
-	limit = typeof limit !== 'undefined' ? limit : 10;
-	if (depth === parseInt(depth)) {
-		if (depth > 0) {
-			if (typeof obj == 'object') {
-				var keys = Object.keys(obj);			
-				for (var keyN = 0; keyN < Math.min(limit, keys.length); keyN++) {
-					console.println(prefix + "." + keys[keyN]);
-					dir(obj[keys[keyN]], depth - 1, prefix + "." + keys[keyN]);
-				}	    	
-			}
-		}
-	}	 
+//# - `dir(obj, printVals, depth, width, perfix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
+//#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
+function dir(obj, printVals, depth, width, prefix, showProto) {
+    printVals = typeof printVals !== 'undefined' ? printVals : false;
+    depth = typeof depth !== 'undefined' ? depth : 1;
+    width = typeof width !== 'undefined' ? width : 50;
+    prefix = typeof prefix !== 'undefined' ? prefix : "";
+    showProto = typeof showProto !== 'undefined' ? showProto : false;
+    if (depth === parseInt(depth)) {
+        if (depth > 0) {
+            if (typeof obj == 'object' && obj != null) {
+                var keys = Object.keys(obj);
+                var numOwn = keys.length;
+                if (showProto) {
+                    keys = keys.concat(Object.getOwnPropertyNames(obj.__proto__));
+                }
+                for (var keyN = 0; keyN < Math.min(width, keys.length) ; keyN++) {
+                    console.print(prefix + "." + keys[keyN] + " - "); if (keyN >= numOwn) { console.print("__proto__ - ");}
+                    if (printVals) {
+                        if (typeof obj[keys[keyN]] == 'string') {
+                            console.print("\""); console.print(obj[keys[keyN]]); console.println("\"");
+                        } else if (typeof obj[keys[keyN]] == 'boolean') {
+                            console.println(obj[keys[keyN]] ? "true" : "false");
+                        } else {
+                            console.println(obj[keys[keyN]]);
+                        }
+                    } else {
+                        console.println("(" + typeof obj[keys[keyN]] + ")");
+                    }
+                    dir(obj[keys[keyN]], printVals, depth - 1, width,  prefix + "." + keys[keyN], showProto);
+                }                
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////// DEPRECATED

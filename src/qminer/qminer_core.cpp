@@ -2008,7 +2008,7 @@ PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 			// compute the end
 			const int End = TInt::GetMn(Offset + Limit, GetRecs());
 			// get all items since offset till end
-			RecIdFqV.GetSubValV(Offset, End, LimitRecIdFqV);
+			RecIdFqV.GetSubValV(Offset, End - 1, LimitRecIdFqV);
 		}
 		return TRecSet::New(Store, LimitRecIdFqV, WgtP);
 	}

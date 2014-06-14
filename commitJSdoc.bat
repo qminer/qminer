@@ -2,12 +2,11 @@ bash genJSdoc.sh
 cp docjs/jsdocfinal.txt ../qminer.wiki/JavaScript.md
 cd ..
 cd qminer.wiki
-git add JavaScript.md
-git commit --message=AutoDoc
-
 
 @rem Do not use "echo off" to not affect any child calls.
 @setlocal
+git add JavaScript.md
+git commit --message=AutoDoc
 
 @rem Get the absolute path to the current directory, which is assumed to be the
 @rem Git installation root.
@@ -19,8 +18,7 @@ git commit --message=AutoDoc
 
 @set PLINK_PROTOCOL=ssh
 @if not defined TERM set TERM=msys
-
+git pull https://github.com/qminer/qminer.wiki.git
 git push
-
-@chdir ../qminer
-
+@endlocal
+cd ..\qminer
