@@ -3516,8 +3516,8 @@ v8::Handle<v8::Value> TJsSpMat::push(const v8::Arguments& Args) {
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
 				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
 				JsMat->Mat.Add(JsVec->Vec);
-				if (JsMat->Rows != -1) {
-					JsMat->Rows = MAX(JsMat->Rows, TLAMisc::GetMaxDimIdx(JsVec->Vec) + 1);
+				if (JsMat->Rows.Val != -1) {
+					JsMat->Rows = MAX(JsMat->Rows.Val, TLAMisc::GetMaxDimIdx(JsVec->Vec) + 1);
 				}		
 			}
 		}
