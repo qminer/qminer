@@ -88,6 +88,7 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
                 var keys = Object.keys(obj);
                 var numOwn = keys.length;
                 if (showProto) {
+                    if (typeof obj.__proto__  !== 'undefined' && obj.__proto__  !== null)
                     keys = keys.concat(Object.getOwnPropertyNames(obj.__proto__));
                 }
                 for (var keyN = 0; keyN < Math.min(width, keys.length) ; keyN++) {
