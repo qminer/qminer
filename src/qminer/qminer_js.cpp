@@ -391,6 +391,18 @@ v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, const PJs
     return HandleScope.Close(RetVal);
 }
 
+double TScript::ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { Arg };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
+	QmAssertR(RetVal->IsNumber(), "Return type expected to be number");
+	return RetVal->NumberValue();
+}
+
 bool TScript::ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
@@ -3870,12 +3882,15 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
         JsRegisterFunction(TmpTemp, newFeatureSpace);
+		JsRegisterFunction(TmpTemp, newFeatureSpace2);
         JsRegisterFunction(TmpTemp, loadFeatureSpace);
         JsRegisterFunction(TmpTemp, trainSvmClassify);		
         JsRegisterFunction(TmpTemp, trainSvmRegression);
 		JsRegisterFunction(TmpTemp, loadSvmModel);
         JsRegisterFunction(TmpTemp, newRecLinReg);
-        JsRegisterFunction(TmpTemp, newHoeffdingTree);        JsRegisterFunction(TmpTemp, loadRecLinRegModel);        JsRegisterFunction(TmpTemp, trainKMeans);						
+        JsRegisterFunction(TmpTemp, newHoeffdingTree);
+		JsRegisterFunction(TmpTemp, loadRecLinRegModel);
+		JsRegisterFunction(TmpTemp, trainKMeans);						
         JsRegisterFunction(TmpTemp, getLanguageOptions);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -3907,8 +3922,59 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
 	} catch (const PExcept& Except) {
 		InfoLog("[except] " + Except->GetMsgStr());
 	}
+
 	return v8::Undefined();
 }
+
+v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace2(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+	QmAssertR(Args.Length() > 0, "analytics.newFeatureSpace : input not specified!");
+	try {
+		if (Args[0]->IsObject()) {
+			// get type
+			TStr Type = TJsAnalyticsUtil::GetArgStr(Args, 0, "type", "");
+			if (Type == "jsfunc") {
+
+			}
+			else {
+				PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+				TFtrExtV FtrExtV;
+				if (ParamVal->IsObj()) {
+					FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+				}
+				// create feature space
+				PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
+				// done
+				return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
+			}
+		}
+
+		// object or (array of such objects)
+		// { type : 'jsfunc', source: { store: 'Movies' }, fun : function(obj) {return obj}}
+		// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+		
+		//// get first argument as json
+		//PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+		//// parse definitions of feature extractors
+		//else if (ParamVal->IsArr()) {
+		//	for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
+		//		PJsonVal ArrVal = ParamVal->GetArrVal(ArrValN);
+		//		FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ArrVal->GetObjStr("type"), ArrVal));
+		//	}
+		//}
+		//// create feature space
+		//PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
+		//// done
+		//return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
+	}
+	catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+	}
+	
+	return v8::Undefined();
+}
+
 
 v8::Handle<v8::Value> TJsAnalytics::loadFeatureSpace(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -5224,6 +5290,41 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
     TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
     // return constructed json
     return HandleScope.Close(TJsTm::New(Tm));
+}
+
+///////////////////////////////////////////////
+// Javascript Function Feature Extractor
+TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
+	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)"); 
+}
+
+TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
+	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TJsFuncFtrExt(Base, ParamVal);
+}
+
+PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+	return new TJsFuncFtrExt(Base, SIn);
+}
+
+void TJsFuncFtrExt::Save(TSOut& SOut) const {
+	GetType().Save(SOut);
+	TFtrExt::Save(SOut);
+}
+
+void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
+	SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
+}
+
+void TJsFuncFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+	FullV[Offset] = ExecuteFunc(Rec); Offset++;
+}
+
+void TJsFuncFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
+	FltV.Add(ExecuteFunc(FtrRec));
 }
 
 }

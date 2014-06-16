@@ -395,6 +395,8 @@ public:
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context, return double
+	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
 	/// Execute JavaScript callback in this script's context
@@ -584,6 +586,20 @@ public:
 			QmAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
 			v8::String::Utf8Value Utf8(Val);
 			return TStr(*Utf8);
+		}
+		return DefVal;
+	}
+
+	/// Extract argument ArgN property as string
+	static TStr GetArgStr(const v8::Arguments& Args, const int& ArgN, const TStr& Property, const TStr& DefVal) {
+		v8::HandleScope HandleScope;
+		if (Args.Length() > ArgN) {
+			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr()))) {
+				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+				QmAssertR(Val->IsString(), TStr::Fmt("Argument %d, property %s expected to be string", ArgN, Property.CStr()));
+				v8::String::Utf8Value Utf8(Val);
+				return TStr(*Utf8);
+			}
 		}
 		return DefVal;
 	}
@@ -1905,6 +1921,7 @@ public:
     //#     feature space consisting of [Feature Extractor](Feature-Extractors),
     //#     declared in JSon `featureExtractors`
     JsDeclareFunction(newFeatureSpace);
+	JsDeclareFunction(newFeatureSpace2);
     //#- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
     JsDeclareFunction(loadFeatureSpace);
@@ -2564,6 +2581,78 @@ public:
 //# ## Other libraries
 //#
 //#JSIMPLEMENT:src/qminer/js/twitter.js 
+
+
+///////////////////////////////////////////////
+/// Javscript Function Feature Extractor.
+//-
+//- ## Numeric Feature Extractor
+//-
+class TJsFuncFtrExt : public TFtrExt {
+// Js wrapper API
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	//typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
+	// private constructor
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(Js->Base, ParamVal) { }
+public:
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
+		return TJsFuncFtrExtUtil::New(new TJsFuncFtrExt(Js, ParamVal, _Fun));
+	}*/
+	// public smart pointer
+	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
+		return new TJsFuncFtrExt(Js, ParamVal, _Fun);
+	}
+	/*static v8::Handle<v8::ObjectTemplate> GetTemplate() {
+		v8::HandleScope HandleScope;
+		static v8::Persistent<v8::ObjectTemplate> Template;
+		if (Template.IsEmpty()) {
+			v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+			TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+			TmpTemp->SetInternalFieldCount(1);
+			Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+		}
+		return Template;
+	}*/
+// Core functionality
+private:
+	// Core part
+	v8::Persistent<v8::Function> Fun;
+	double ExecuteFunc(const TRec& FtrRec) const {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
+		return Js->ExecuteFlt(Fun, RecArg);
+	}
+// Feature extractor API
+private:
+	TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
+	TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+public:
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
+	static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+	void Save(TSOut& SOut) const;
+
+	TStr GetNm() const { return "jsfunc"; }
+	int GetDim() const { return 1; }
+	TStr GetFtr(const int& FtrN) const { return "jsfunc"; }
+
+	void Clr() { };
+	bool Update(const TRec& Rec) { return false; }
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	// flat feature extraction
+	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
+
+	// feature extractor type name 
+	static TStr GetType() { return "jsfunc"; }
+
+	////- `val = ftrExt.extract(rec) -- extracts `val` (number) from `rec` (record) using internal JS function (input for constructing feature exractor)
+	//JsDeclareFunction(extract);
+};
+
 
 }
 
