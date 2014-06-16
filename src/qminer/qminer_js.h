@@ -1146,7 +1146,12 @@ public:
 	//#- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
 	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(map);
-
+	//#- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setintersect);
+	//#- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setunion);
+	//#- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs`\`rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setdiff);
 
 
     //# 
@@ -1764,6 +1769,10 @@ public:
 	JsDeclareFunction(norm);
 	//#- `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
+	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
+	JsDeclareFunction(valVec);
+	//#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
+	JsDeclareFunction(idxVec);
 };
 
 
@@ -1786,7 +1795,7 @@ public:
 	TWPt<TScript> Js;    
 	// 
 	TVec<TIntFltKdV> Mat;	
-	int Rows;
+	TInt Rows;
 private:	
 	/// Object utility class
 	typedef TJsObjUtil<TJsSpMat> TJsSpMatUtil;    
@@ -1857,6 +1866,10 @@ public:
 	JsDeclareProperty(cols);
 	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
 	JsDeclareFunction(print);
+	//#- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
+	JsDeclareFunction(save);
+	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
+	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
 
@@ -1888,11 +1901,11 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fs = analytics.newFeatureSpace(featureExtractors)` -- create new
+    //#- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
     //#     feature space consisting of [Feature Extractor](Feature-Extractors),
     //#     declared in JSon `featureExtractors`
     JsDeclareFunction(newFeatureSpace);
-    //#- `fs = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+    //#- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
     JsDeclareFunction(loadFeatureSpace);
     
@@ -1915,7 +1928,7 @@ public:
     
     //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    //#     `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
     JsDeclareFunction(newRecLinReg);
     //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
@@ -1967,33 +1980,33 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fs.dim` -- dimensionality of feature space
+    //#- `ftrSpace.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `fs.save(fout)` -- serialize feature space to `fout` output stream
+    //#- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
     JsDeclareFunction(save);
-    //#- `fs.updateRecord(record)` -- update feature space definitions and extractors
+    //#- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
     //#     by exposing them to `record`. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `fs.updateRecord(recordSet)` -- update feature space definitions and extractors
+    //#- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
     //#     by exposing them to records from `recordSet`. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate); // deprecated
-    //#- `strVec = fs.extractStrings(record)` -- use feature extractors to extract string 
+    //#- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
     //#     features from `record` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
-	//#- `ftrName = fs.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `fs`
+	//#- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
 	JsDeclareFunction(getFtr);
-	//#- `spVec = fs.ftrSpVec(record)` -- extracts sparse feature vector from `record`
+	//#- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
     JsDeclareFunction(ftrSpVec);
-    //#- `vec = fs.ftrVec(record)` -- extracts feature vector from `record`
+    //#- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
     JsDeclareFunction(ftrVec);
-    //#- `spMatrix = fs.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
+    //#- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
     //#     records in `recordSet` and returns them as columns in a sparse matrix.
 	JsDeclareFunction(ftrSpColMat);
-    //#- `matrix = fs.ftrColMat(recordSet)` -- extracts feature vectors from 
+    //#- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
     //#     records in `recordSet` and returns them as columns in a matrix.
     JsDeclareFunction(ftrColMat);
 };

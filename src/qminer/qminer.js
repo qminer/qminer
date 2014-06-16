@@ -74,7 +74,7 @@ qm.printStreamAggr = function(store) {
 	}
 }
 
-//# - `dir(obj, printVals, depth, width, perfix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
+//# - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
 //#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 function dir(obj, printVals, depth, width, prefix, showProto) {
     printVals = typeof printVals !== 'undefined' ? printVals : false;

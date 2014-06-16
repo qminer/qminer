@@ -1452,6 +1452,9 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, map);
+		JsRegisterFunction(TmpTemp, setunion);
+		JsRegisterFunction(TmpTemp, setintersect);
+		JsRegisterFunction(TmpTemp, setdiff);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1760,6 +1763,46 @@ v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
 	}
 
 	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsRecSet::setintersect(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
+	QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setintersect: the record sets do not point to the same store!");
+	// Coputation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
+	PRecSet RecSet2 = JsRecSet->RecSet->Clone();
+	TUInt64Set RecIdSet;
+	RecSet1->GetRecIdSet(RecIdSet);
+	//second parameter in filter is false -> keep only records in RecIdSet
+	TRecFilterByRecIdSet Filter(RecIdSet, true);
+	RecSet2->FilterBy(Filter);
+	return HandleScope.Close(TJsRecSet::New(JsRecSet->Js, RecSet2));
+}
+
+v8::Handle<v8::Value> TJsRecSet::setunion(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
+	QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setunion: the record sets do not point to the same store!");
+	// GetMerge sorts the argument!
+	PRecSet RecSet1Clone = RecSet1->Clone();
+	PRecSet RecSet2 = JsRecSet->RecSet->GetMerge(RecSet1Clone);
+	return HandleScope.Close(TJsRecSet::New(JsRecSet->Js, RecSet2));
+}
+
+v8::Handle<v8::Value> TJsRecSet::setdiff(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
+	QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setdiff: the record sets do not point to the same store!");
+	// Computation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
+	PRecSet RecSet2 = JsRecSet->RecSet->Clone();
+	TUInt64Set RecIdSet;
+	RecSet1->GetRecIdSet(RecIdSet);
+	//second parameter in filter is false -> keep only records NOT in RecIdSet
+	RecSet2->FilterBy(TRecFilterByRecIdSet(RecIdSet, false));
+	return HandleScope.Close(TJsRecSet::New(JsRecSet->Js, RecSet2));
 }
 
 ///////////////////////////////
@@ -3174,6 +3217,8 @@ v8::Handle<v8::ObjectTemplate> TJsSpV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, print);
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, full);
+		JsRegisterFunction(TmpTemp, valVec);
+		JsRegisterFunction(TmpTemp, idxVec);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3328,6 +3373,36 @@ v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
 	return HandleScope.Close(JsResult);	
 }
 
+
+v8::Handle<v8::Value> TJsSpV::valVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	int NNZ = JsSpV->Vec.Len();
+	TFltV Res(NNZ, 0);
+	// copy values to Res
+	for (int ElN = 0; ElN < NNZ; ElN++) {
+		Res.Add(JsSpV->Vec[ElN].Dat);
+	}
+	// wrap result in JS
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsSpV->Js, Res);
+	return HandleScope.Close(JsResult);
+}
+
+v8::Handle<v8::Value> TJsSpV::idxVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	int NNZ = JsSpV->Vec.Len();
+	TIntV Res(NNZ, 0);
+	// copy values to Res
+	for (int ElN = 0; ElN < NNZ; ElN++) {
+		Res.Add(JsSpV->Vec[ElN].Key);
+	}
+	// wrap result in JS
+	v8::Persistent<v8::Object> JsResult = TJsIntV::New(JsSpV->Js, Res);
+	return HandleScope.Close(JsResult);
+}
+
+
 ///////////////////////////////
 // QMiner-Sparse-Col-Matrix
 
@@ -3352,6 +3427,8 @@ v8::Handle<v8::ObjectTemplate> TJsSpMat::GetTemplate() {
 		JsRegisterProperty(TmpTemp, rows);
 		JsRegisterProperty(TmpTemp, cols);
 		JsRegisterFunction(TmpTemp, print);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3762,6 +3839,26 @@ v8::Handle<v8::Value> TJsSpMat::print(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
 	TLAMisc::PrintSpMat(JsSpMat->Mat, "");
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	JsSpMat->Rows.Save(*SOut);
+	JsSpMat->Mat.Save(*SOut);
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	JsSpMat->Rows.Load(*SIn);
+	JsSpMat->Mat.Load(*SIn);
 	return HandleScope.Close(v8::Undefined());
 }
 
