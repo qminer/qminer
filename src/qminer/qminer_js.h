@@ -739,6 +739,14 @@ public:
 		return Val->IsObject();
 	}    
 
+	/// Extract Val as JSon object, and serialize it to TStr
+	static TStr GetValJsonStr(const v8::Handle<v8::Value> Val) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Val->IsObject(), "Val expected to be object");
+		TStr JsonStr = TJsUtil::V8JsonToStr(Val);
+		return JsonStr;
+	}
+
 	/// Extract argument ArgN as JSon object, and serialize it to TStr
 	static TStr GetArgJsonStr(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
@@ -770,13 +778,20 @@ public:
 		return Val;
 	}
 
+	/// Extract Val as JSon object, and transform it to PJsonVal
+	static PJsonVal GetValJson(const v8::Handle<v8::Value> Val) {
+		TStr JsonStr = GetValJsonStr(Val);
+		PJsonVal JsonVal = TJsonVal::GetValFromStr(JsonStr);
+		if (!JsonVal->IsDef()) { throw TQmExcept::New("Error parsing '" + JsonStr + "'."); }
+		return JsonVal;
+	}
+
 	/// Extract argument ArgN property as json
 	static PJsonVal GetArgJson(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
 		v8::HandleScope HandleScope;
 		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgJson : Missing argument %d", ArgN));
-		QmAssertR(Args[ArgN]->IsObject() &&
-			Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())),
-			TStr::Fmt("TJsObjUtil::GetArgJson : Argument %d must be an object with property %s", ArgN, Property.CStr()));
+		QmAssertR(Args[ArgN]->IsObject(), TStr::Fmt("TJsObjUtil::GetArgJson : Argument %d must be an object", ArgN));
+		QmAssertR(Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())), TStr::Fmt("TJsObjUtil::GetArgJson : Argument %d must have property %s", ArgN, Property.CStr()));
 		TStr JsonStr = GetArgJsonStr(Args, ArgN, Property);
 		PJsonVal Val = TJsonVal::GetValFromStr(JsonStr);
 		if (!Val->IsDef()) { throw TQmExcept::New("TJsObjUtil::GetArgJson : Error parsing '" + JsonStr + "'."); }
@@ -2634,49 +2649,66 @@ public:
 	/// JS script context
 	TWPt<TScript> Js;
 private:
-	//typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
+	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
 	// private constructor
-	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(Js->Base, ParamVal) { }
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc");}
 public:
-	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
-		return TJsFuncFtrExtUtil::New(new TJsFuncFtrExt(Js, ParamVal, _Fun));
-	}*/
 	// public smart pointer
 	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
 		return new TJsFuncFtrExt(Js, ParamVal, _Fun);
 	}
-	/*static v8::Handle<v8::ObjectTemplate> GetTemplate() {
-		v8::HandleScope HandleScope;
-		static v8::Persistent<v8::ObjectTemplate> Template;
-		if (Template.IsEmpty()) {
-			v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-			TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-			TmpTemp->SetInternalFieldCount(1);
-			Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-		}
-		return Template;
-	}*/
 // Core functionality
 private:
 	// Core part
+	TStr Name;
 	v8::Persistent<v8::Function> Fun;
 	double ExecuteFunc(const TRec& FtrRec) const {
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
 		return Js->ExecuteFlt(Fun, RecArg);
 	}
+public:
+	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
+	static PJsonVal CopySettings(v8::Local<v8::Object> Obj) {
+		// clone all properties except fun!
+		v8::Local<v8::Array> Properties = Obj->GetOwnPropertyNames();
+		PJsonVal ParamVal = TJsonVal::NewObj();
+		for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
+			// get each property as string, extract arg json and attach it to ParamVal
+			TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
+			PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
+			if (PropStr == "fun") continue;
+			v8::Handle<v8::Value> Val = Obj->Get(Properties->Get(PropN));
+			if (Val->IsNumber()) {
+				ParamVal->AddToObj(PropStr, Val->NumberValue());
+			}
+			if (Val->IsString()) {
+				v8::String::Utf8Value Utf8(Val);
+				TStr ValueStr(*Utf8);
+				ParamVal->AddToObj(PropStr, ValueStr);
+			}
+			if (Val->IsBoolean()) {
+				ParamVal->AddToObj(PropStr, Val->BooleanValue());
+			}
+			if (Val->IsObject() || Val->IsArray()) {
+				ParamVal->AddToObj(PropStr, TJsFuncFtrExtUtil::GetValJson(Val));
+			}
+		}
+		//printf("JSON: %s\n", TJsonVal::GetStrFromVal(ParamVal).CStr());
+		return ParamVal;
+	}
 // Feature extractor API
 private:
-	TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
-	TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+	//TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
+	//TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will fail
 public:
-	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
-	static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will fail
-	void Save(TSOut& SOut) const;
+	//static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
+	//static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+	//void Save(TSOut& SOut) const;
 
-	TStr GetNm() const { return "jsfunc"; }
+	TStr GetNm() const { return Name; }
 	int GetDim() const { return 1; }
-	TStr GetFtr(const int& FtrN) const { return "jsfunc"; }
+	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
 	void Clr() { };
 	bool Update(const TRec& Rec) { return false; }
@@ -2688,9 +2720,6 @@ public:
 
 	// feature extractor type name 
 	static TStr GetType() { return "jsfunc"; }
-
-	////- `val = ftrExt.extract(rec) -- extracts `val` (number) from `rec` (record) using internal JS function (input for constructing feature exractor)
-	//JsDeclareFunction(extract);
 };
 
 

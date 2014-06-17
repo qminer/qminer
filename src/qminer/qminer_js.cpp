@@ -3932,60 +3932,63 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace2(const v8::Arguments& Args) 
 	QmAssertR(Args.Length() > 0, "analytics.newFeatureSpace : input not specified!");
 	try {
 		TFtrExtV FtrExtV;
-
-		if (Args[0]->IsObject()) {
+		// Same as above, for array
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+			for (uint32 ObjectN = 0; ObjectN < Array->Length(); ObjectN++) {
+				if (Array->Get(ObjectN)->IsObject()) {
+					v8::Local<v8::Object> Obj = Array->Get(ObjectN)->ToObject();
+					// get property "type"
+					v8::Handle<v8::Value> TypeVal = Obj->Get(v8::String::New("type"));
+					if (TypeVal->IsString()) {
+						v8::String::Utf8Value Utf8(TypeVal);
+						TStr Type(*Utf8);
+						if (Type == "jsfunc") {
+							QmAssertR(Obj->Has(v8::String::New("fun")), "analytics.newFeatureSpace object of type 'jsfunc' should have a property 'fun'");
+							QmAssertR(Obj->Get(v8::String::New("fun"))->IsFunction(), "analytics.newFeatureSpace object.fun should be a function");
+							v8::Persistent<v8::Function> Fun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Obj->Get(v8::String::New("fun"))));
+							PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Obj);
+							PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
+							FtrExtV.Add(FtrExt);
+						}
+						else {
+							// Json val to glib JSON
+							PJsonVal ParamVal = TJsonVal::GetValFromStr(TJsUtil::V8JsonToStr(Array->Get(ObjectN)));
+							if (ParamVal->IsObj()) {
+								FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+							}
+						}
+					}
+				}
+			}
+		} else if (Args[0]->IsObject()) {
 			// get type
 			TStr Type = TJsAnalyticsUtil::GetArgStr(Args, 0, "type", "");
 			if (Type == "jsfunc") {
 				// All properties should be JSON objects, except for "fun", which is a function
-				// example:
-				// { type : 'jsfunc', source: { store: 'Movies' }, fun : function(obj) {return Object.keys(obj).length}}
-				
+				// example (Twitter text length feature extractor):
+				// { type : 'jsfunc', source: { store: 'Tweets' }, fun : function(rec) {return rec.Text.length;}}
 				// extract function!
 				v8::Persistent<v8::Function> Fun = TJsAnalyticsUtil::GetArgFunPer(Args, 0, "fun");
-				
-				// clone all properties except fun!
-				v8::Local<v8::Array> Properties = Args[0]->ToObject()->GetOwnPropertyNames();
-				PJsonVal ParamVal = TJsonVal::NewObj();
-				for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
-					// get each property as string, extract arg json and attach it to ParamVal
-					TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
-					if (PropStr == "fun") continue;
-					ParamVal->AddToObj(PropStr, TJsAnalyticsUtil::GetArgJson(Args, 0, PropStr));
-				}
+				PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Args[0]->ToObject());
 				PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
 				FtrExtV.Add(FtrExt);
 			}
-			else {
-				// example:
-				// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+			else {				
 				// JSON object expected
+				// example (bag of words extractor)
+				// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
 				PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
 				if (ParamVal->IsObj()) {
 					FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
 				}
 			}
 		}
+		
 		// create feature space
 		PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
 		// done
-		return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
-
-		// object or (array of such objects)
-		
-		//// get first argument as json
-		//PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
-		//// parse definitions of feature extractors
-		//else if (ParamVal->IsArr()) {
-		//	for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
-		//		PJsonVal ArrVal = ParamVal->GetArrVal(ArrValN);
-		//		FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ArrVal->GetObjStr("type"), ArrVal));
-		//	}
-		//}
-		//// create feature space
-		//PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
-		//// done
-		//return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
+		return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);		
 	}
 	catch (const PExcept& Except) {
 		InfoLog("[except] " + Except->GetMsgStr());
@@ -5313,26 +5316,25 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
 
 ///////////////////////////////////////////////
 // Javascript Function Feature Extractor
-TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
-	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)"); 
-}
-
-TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
-	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
-}
-
-PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-	return new TJsFuncFtrExt(Base, ParamVal);
-}
-
-PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	return new TJsFuncFtrExt(Base, SIn);
-}
-
-void TJsFuncFtrExt::Save(TSOut& SOut) const {
-	GetType().Save(SOut);
-	TFtrExt::Save(SOut);
-}
+//TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
+//	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)"); 
+//}
+//
+//TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
+//	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+//}
+//
+//PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+//	return new TJsFuncFtrExt(Base, ParamVal);
+//}
+//
+//PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+//	return new TJsFuncFtrExt(Base, SIn);
+//}
+//void TJsFuncFtrExt::Save(TSOut& SOut) const {
+//	GetType().Save(SOut);
+//	TFtrExt::Save(SOut);
+//}
 
 void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 	SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
