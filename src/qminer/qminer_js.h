@@ -749,11 +749,37 @@ public:
 		return JsonStr;
 	}
 
+	static TStr GetArgJsonStr(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgJsonStr : Missing argument %d", ArgN));
+		QmAssertR(Args[ArgN]->IsObject() &&
+			Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())),
+			TStr::Fmt("TJsObjUtil::GetArgJsonStr : Argument %d must be an object with property %s", ArgN, Property.CStr()));
+
+		v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+		QmAssertR(Val->IsObject(), TStr::Fmt("TJsObjUtil::GetArgJsonStr : Args[%d].%s expected to be json", ArgN, Property.CStr()));
+		TStr JsonStr = TJsUtil::V8JsonToStr(Val);
+		return JsonStr;
+	}
+
 	/// Extract argument ArgN as JSon object, and transform it to PJsonVal
 	static PJsonVal GetArgJson(const v8::Arguments& Args, const int& ArgN) {
 		TStr JsonStr = GetArgJsonStr(Args, ArgN);
 		PJsonVal Val = TJsonVal::GetValFromStr(JsonStr);
 		if (!Val->IsDef()) { throw TQmExcept::New("Error parsing '" + JsonStr + "'."); }
+		return Val;
+	}
+
+	/// Extract argument ArgN property as json
+	static PJsonVal GetArgJson(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgJson : Missing argument %d", ArgN));
+		QmAssertR(Args[ArgN]->IsObject() &&
+			Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())),
+			TStr::Fmt("TJsObjUtil::GetArgJson : Argument %d must be an object with property %s", ArgN, Property.CStr()));
+		TStr JsonStr = GetArgJsonStr(Args, ArgN, Property);
+		PJsonVal Val = TJsonVal::GetValFromStr(JsonStr);
+		if (!Val->IsDef()) { throw TQmExcept::New("TJsObjUtil::GetArgJson : Error parsing '" + JsonStr + "'."); }
 		return Val;
 	}
 
@@ -772,7 +798,7 @@ public:
 		QmAssertR(Val->IsFunction(), TStr::Fmt("Argument %d expected to be function", ArgN));
 		return HandleScope.Close(v8::Handle<v8::Function>::Cast(Val));
 	}
-
+	
 	/// Extract argument ArgN as persistent JavaScript function
 	static v8::Persistent<v8::Function> GetArgFunPer(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
@@ -781,6 +807,20 @@ public:
 		QmAssertR(Val->IsFunction(), TStr::Fmt("Argument %d expected to be function", ArgN));
 		return v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Val));
 	}
+
+	/// Extract argument ArgN property as persistent Javascript function
+	static v8::Persistent<v8::Function> GetArgFunPer(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgFunPer : Missing argument %d", ArgN));
+		QmAssertR(Args[ArgN]->IsObject() &&
+			Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())),
+			TStr::Fmt("TJsObjUtil::GetArgFunPer : Argument %d must be an object with property %s", ArgN, Property.CStr()));
+		v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+		QmAssertR(Val->IsFunction(), TStr::Fmt("TJsObjUtil::GetArgFunPer Argument[%d].%s expected to be function", ArgN, Property.CStr()));
+		//return HandleScope.Close(v8::Handle<v8::Function>::Cast(Val));
+		return v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Val));
+	}
+
 };
 
 ///////////////////////////////

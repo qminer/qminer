@@ -3931,28 +3931,47 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace2(const v8::Arguments& Args) 
 	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
 	QmAssertR(Args.Length() > 0, "analytics.newFeatureSpace : input not specified!");
 	try {
+		TFtrExtV FtrExtV;
+
 		if (Args[0]->IsObject()) {
 			// get type
 			TStr Type = TJsAnalyticsUtil::GetArgStr(Args, 0, "type", "");
 			if (Type == "jsfunc") {
-
+				// All properties should be JSON objects, except for "fun", which is a function
+				// example:
+				// { type : 'jsfunc', source: { store: 'Movies' }, fun : function(obj) {return Object.keys(obj).length}}
+				
+				// extract function!
+				v8::Persistent<v8::Function> Fun = TJsAnalyticsUtil::GetArgFunPer(Args, 0, "fun");
+				
+				// clone all properties except fun!
+				v8::Local<v8::Array> Properties = Args[0]->ToObject()->GetOwnPropertyNames();
+				PJsonVal ParamVal = TJsonVal::NewObj();
+				for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
+					// get each property as string, extract arg json and attach it to ParamVal
+					TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
+					if (PropStr == "fun") continue;
+					ParamVal->AddToObj(PropStr, TJsAnalyticsUtil::GetArgJson(Args, 0, PropStr));
+				}
+				PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
+				FtrExtV.Add(FtrExt);
 			}
 			else {
+				// example:
+				// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+				// JSON object expected
 				PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
-				TFtrExtV FtrExtV;
 				if (ParamVal->IsObj()) {
 					FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
 				}
-				// create feature space
-				PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
-				// done
-				return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
 			}
 		}
+		// create feature space
+		PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
+		// done
+		return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
 
 		// object or (array of such objects)
-		// { type : 'jsfunc', source: { store: 'Movies' }, fun : function(obj) {return obj}}
-		// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
 		
 		//// get first argument as json
 		//PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
