@@ -410,7 +410,7 @@ protected:
 	void OnAddRec(const TRec& Rec);
     
 	TMa(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
-    const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);	
+			const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
 	TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
 
 public:    

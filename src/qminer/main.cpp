@@ -250,7 +250,8 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
 		TQm::InfoLog("Loading script " + JsParam.FNm.GetFMid() + "...");
         try {
             // initialize javascript engine		
-            TVec<TQm::TJsFPath> JsFPathV; TQm::TJsFPath::GetFPathV(JsParam.AccessFPathV, JsFPathV);
+            TVec<TQm::TJsFPath> JsFPathV;
+            TQm::TJsFPath::GetFPathV(JsParam.AccessFPathV, JsFPathV);
             TQm::PScript Script = TQm::TScript::New(Base, JsParam.Nm, 
                 JsParam.FNm, JsParam.IncludeFPathV, JsFPathV);
             // remember the context 
@@ -296,10 +297,10 @@ int main(int argc, char* argv[]) {
 		const bool CreateP = Env.IsArgStr("create");
 		const bool StartP = Env.IsArgStr("start");
 		const bool StopP = Env.IsArgStr("stop");
-		const bool ReloadP = Env.IsArgStr("reload");
+		//const bool ReloadP = Env.IsArgStr("reload");
 		const bool DebugP = Env.IsArgStr("debug");
 		// stop if no action given
-		const bool ActionP = (ConfigP || CreateP || StartP || StopP || ReloadP || DebugP);
+		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP);
 		// provide basic instruction when no action given
 		if (!ActionP) {
 			printf("\n");
@@ -328,8 +329,8 @@ int main(int argc, char* argv[]) {
 		if (!Env.IsSilent()) { printf("\nStop parameters:\n"); }
 		const int ReturnCode = Env.GetIfArgPrefixInt("-return=", 0, "Return code");
 		// read reload-specific parameters
-		if (!Env.IsSilent()) { printf("\nReload parameters:\n"); }
-		TStrV ReloadNmV = Env.GetIfArgPrefixStrV("-name=", "Script name");
+		//if (!Env.IsSilent()) { printf("\nReload parameters:\n"); }
+		//TStrV ReloadNmV = Env.GetIfArgPrefixStrV("-name=", "Script name");
 		// read debug request parameters
 		if (!Env.IsSilent()) { printf("\nDebug parameters:\n"); }
 		TStr DebugFNm = Env.GetIfArgPrefixStr("-prefix=", "Debug-", "Prefix of debug output files");
@@ -341,8 +342,15 @@ int main(int argc, char* argv[]) {
 		const bool Verbose = Env.IsArgStr("-v", "Verbose output (used for debugging)");
 		if (!Env.IsSilent()) { printf("\nPre-run file:\n"); }		
 		const TStr PreRunFNm = Env.GetIfArgPrefixStr("-prerun=", "", "Pre-run file name");
-		if (!PreRunFNm.Empty()) { system(PreRunFNm.CStr()); }
 		if (!Env.IsSilent()) { printf("\n"); }
+
+        // execute pre-run command when provided
+		if (!PreRunFNm.Empty()) { 
+            const int ReturnCd = system(PreRunFNm.CStr());
+            if (ReturnCd != 0) { 
+                TQm::ErrorLog(TStr::Fmt("Error running prerun script: %d", ReturnCd)); 
+            }
+        }
 
 		// stop if no action specified
 		if (!ActionP) { return 0; }
@@ -408,26 +416,26 @@ int main(int argc, char* argv[]) {
 				// load base
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess, 
                     Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
-				// prepare server functions 
-				TSAppSrvFunV SrvFunV;
-				// used to stop the server
-				SrvFunV.Add(TSASFunExit::New());
-				// admin webservices
-				TQm::TSrvFun::RegDefFun(Base, SrvFunV);
-				// initialize static content serving thingies
-				for (int WwwRootN = 0; WwwRootN < Param.WwwRootV.Len(); WwwRootN++) {
-					const TStrPr& WwwRoot = Param.WwwRootV[WwwRootN];
-					const TStr& UrlPath = WwwRoot.Val1, FPath = WwwRoot.Val2;
-					TQm::TEnv::Logger->OnStatusFmt("Registering '%s' at '/%s/'", FPath.CStr(), UrlPath.CStr());
-					SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
-				}
 				// initialize javascript contexts
                 TQm::TJsUtil::SetObjStatRate(JsStatRate);
 				TVec<TQm::PScript> ScriptV; InitJs(Param, Base, OnlyScriptNm, ScriptV);
 				// start server
 				if (!NoLoopP) {
+                    // prepare server functions 
+                    TSAppSrvFunV SrvFunV;
+                    // used to stop the server
+                    SrvFunV.Add(TSASFunExit::New());
+                    // admin webservices
+                    TQm::TSrvFun::RegDefFun(Base, SrvFunV);
+                    // initialize static content serving thingies
+                    for (int WwwRootN = 0; WwwRootN < Param.WwwRootV.Len(); WwwRootN++) {
+                        const TStrPr& WwwRoot = Param.WwwRootV[WwwRootN];
+                        const TStr& UrlPath = WwwRoot.Val1, FPath = WwwRoot.Val2;
+                        TQm::TEnv::Logger->OnStatusFmt("Registering '%s' at '/%s/'", FPath.CStr(), UrlPath.CStr());
+                        SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
+                    }
                     // register admin services
-                    SrvFunV.Add(TQm::TJsAdminSrvFun::New(ScriptV, "admin"));
+                    SrvFunV.Add(TQm::TJsAdminSrvFun::New(ScriptV, "qm_status"));
 					// register javascript contexts
 					for (int ScriptN = 0; ScriptN < ScriptV.Len(); ScriptN++) {
 						// register server function
@@ -454,14 +462,14 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Reload QMiner script
-		if (ReloadP) {
-			for (int ReloadNmN = 0; ReloadNmN < ReloadNmV.Len(); ReloadNmN++) {
-				TStr ScriptNm = ReloadNmV[ReloadNmN];
-				ExecUrl(TStr::Fmt("http://127.0.0.1:%d/%s/admin/reload", Param.PortN, ScriptNm.CStr()), 
-					"Initializing reload of script '" + ScriptNm + "'", 
-					"Error reloading script '" + ScriptNm + "': ");
-			}
-		}
+		//if (ReloadP) {
+		//	for (int ReloadNmN = 0; ReloadNmN < ReloadNmV.Len(); ReloadNmN++) {
+		//		TStr ScriptNm = ReloadNmV[ReloadNmN];
+		//		ExecUrl(TStr::Fmt("http://127.0.0.1:%d/%s/admin/reload", Param.PortN, ScriptNm.CStr()), 
+		//			"Initializing reload of script '" + ScriptNm + "'", 
+		//			"Error reloading script '" + ScriptNm + "': ");
+		//	}
+		//}
 
 		// Debug dumps of database and index
 		if (DebugP) {

@@ -64,7 +64,7 @@ if (learnSvmFilter) {
     // Constructs the active learner
     var AL = new analytics.activeLearner(ftrSpace, "Text", recSet, nPos, nNeg, relevantQuery);
     // Starts the active learner (use the keyword stop to quit)
-    AL.selectQuestion();
+    AL.startLoop();
     // Save the model
     var fout = fs.openWrite('./sandbox/twitter/svmFilter.bin');
     AL.saveSvmModel(fout);
@@ -81,7 +81,7 @@ if (learnSvmSentiment) {
     // Constructs the active learner
     var AL = new analytics.activeLearner(ftrSpace, "Text", recSet, nPos, nNeg, sentimentQuery);
     // Starts the active learner
-    AL.selectQuestion();
+    AL.startLoop();
     // Saves the sentiment model
     var fout = fs.openWrite('./sandbox/twitter/svmSentiment.bin');
     AL.saveSvmModel(fout);
@@ -115,6 +115,6 @@ var u1 = recSet1.aggr({ name: "tgraph1", dotName: "tesi1", type: "twitterGraph",
 // Build the second graph (based on the second record set) and filter the nodes that were not present in the first graph, finally save it in DOT format
 var u2 = recSet2.aggr({ name: "tgraph2", dotName: "tesi2", type: "twitterGraph", fName: "./sandbox/twitter/graph2.gv", userVec: u1 });
 // Start console
-console.say("Interactive mode: use /stop to continue");
+console.say("Interactive mode: empty line to release");
 console.start();
 

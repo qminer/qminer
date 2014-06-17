@@ -21,6 +21,9 @@ exports = require("__analytics__");
 function createBatchModel(featureSpace, models) {
     this.featureSpace = featureSpace;
     this.models = models;
+    // get targets
+    this.target = [];
+    for (var cat in this.models) { this.target.push(cat); }
     // serialize to stream
     this.save = function (sout) {
         // save list
@@ -41,6 +44,22 @@ function createBatchModel(featureSpace, models) {
         }
         return result;
     }
+    // test
+    this.predictTop = function (record) {
+        var result = this.predict(record);
+        var top = null;
+        for (var cat in result) {
+            if (top) {
+                if (top.weight > result[cat]) {
+                    top.category = cat;
+                    top.weight = result[cat];
+                }
+            } else {
+                top = { category : cat, weight: result[cat] }
+            }
+        }
+        return top.category;
+    }
     return this;
 }
 
@@ -50,8 +69,11 @@ function createBatchModel(featureSpace, models) {
 //#     if target field string or string vector, the result is a SVM classification model,
 //#     and if target field is a float, the result is a SVM regression model; resulting 
 //#     model has the following functions:
+//#   - `model.target` -- array of categories for which we have models
 //#   - `result = model.predict(record)` -- creates feature vector from `record`, sends it
 //#     through the model and returns the result as an array of scores.
+//#   - `result = model.predictTop(record)` -- creates feature vector from `record`, 
+//#     sends it through the model and returns the top ranked label.
 //#   - `model.save(fout)` -- saves the model to `fout` output stream
 exports.newBatchModel = function (records, features, target) {
     console.log("newBatchModel", "Start");
@@ -94,6 +116,19 @@ exports.newBatchModel = function (records, features, target) {
             var cats = records[i][target.name];
             for (var cat in targets) {
                 targets[cat].target.push(util.isInArray(cats, cat) ? 1.0 : -1.0);
+            }
+        }
+    } else if (target.type === "string") {
+        // get all possible values for the field
+        for (var i = 0; i < records.length; i++) {
+            var recCat = records[i][target.name];
+            initCats(targets, recCat);
+        }
+        // initialized with +1 or -1 for each category
+        for (var i = 0; i < records.length; i++) {
+            var recCat = records[i][target.name];
+            for (var cat in targets) {
+                targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
             }
         }
     } else if (target.type === "float") {
@@ -145,15 +180,28 @@ exports.loadBatchModel = function (sin) {
 }
 
 // active learning (analytics:function activeLearner, parameters
-//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)`
-exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query) {
+//#- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- initializes the
+//#    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
+//#    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
+//#   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
+//#   is retrained.
+//#   The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
+//#    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
+//#    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
+//#    examples that have to be identified in the query mode before the program enters SVM mode.
+//#   The next parameter is the `query` (string) which should be related to positive examples. 
+//#   Final Parameters `c` and `j` are SVM parameters.
+exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query, c, j) {
+    // svm parameter defaults
+    c = c || 1.0; j = j || 1.0;
     var store = recSet.store;
     var X = la.newSpMat();
     var y = la.newVec();
     // QUERY MODE
     var queryMode = true;
     // bow similarity between query and training set 
-    var queryRec = store.newRec({ textField: query }); // record
+    var queryObj ={}; queryObj[textField] = query;
+    var queryRec = store.newRec(queryObj); // record
     var querySpVec = ftrSpace.ftrSpVec(queryRec); // query sparse vector
     querySpVec.normalize();
     var recsMat = ftrSpace.ftrSpColMat(recSet); //recSet feature matrix
@@ -173,30 +221,37 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
     var posIdV = la.newIntVec(); //record IDs
     var negIdV = la.newIntVec(); //record IDs
     var classVec = la.newVec({ "vals": recSet.length }); //svm scores for record set
-
+    var resultVec = la.newVec({ "vals": recSet.length }); // non-absolute svm scores for record set
     // returns record set index of the unlabeled record that is closest to the margin
+    //#   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
     this.selectQuestion = function () {
         if (posIdV.length >= nPos && negIdV.length >= nNeg) { queryMode = false; }
         if (queryMode) {
             if (posIdV.length < nPos) {
                 nPosQ = nPosQ + 1;
                 console.say("query mode, try to get pos");
-                this.getAnswer(simVp[simVp.length - 1 - (nPosQ - 1)]);
+                return simVp[simVp.length - 1 - (nPosQ - 1)];
             }
             if (negIdV.length < nNeg) {
                 nNegQ = nNegQ + 1;
                 console.say("query mode, try to get neg");
-                this.getAnswer(simVp[nNegQ - 1]);
+                return simVp[nNegQ - 1];
             }
         }
         else {
             ////call svm, get record closest to the margin            
             //console.startx(function (x) { return eval(x); });
-            svm = analytics.trainSvmClassify(X, y); //column examples, y float vector of +1/-1, default svm paramvals
+            svm = analytics.trainSvmClassify(X, y, {c: c, j: j}); //column examples, y float vector of +1/-1, default svm paramvals
             // mark positives
-            for (var i = 0; i < posIdxV.length; i++) { classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; }
+            for (var i = 0; i < posIdxV.length; i++) { 
+              classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; 
+              resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY; 
+            }
             // mark negatives
-            for (var i = 0; i < negIdxV.length; i++) { classVec[negIdxV[i]] = Number.POSITIVE_INFINITY; }
+            for (var i = 0; i < negIdxV.length; i++) { 
+              classVec[negIdxV[i]] = Number.POSITIVE_INFINITY; 
+              resultVec[negIdxV[i]] = Number.NEGATIVE_INFINITY; 
+            }
             var posCount = posIdxV.length;
             var negCount = negIdxV.length;
             // classify unlabeled
@@ -210,35 +265,45 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
                         negCount++;
                     }
                     classVec[recN] = Math.abs(svmMargin);
+                    resultVec[recN] = svmMargin;
                 }
             }
             var sorted = classVec.sortPerm();
             console.say("svm mode, margin: " + sorted.vec[0] + ", npos: " + posCount + ", nneg: " + negCount);
-            this.getAnswer(sorted.perm[0]);
+            return sorted.perm[0];            
         }
     };
     // asks the user for class label given a record set index
-    this.getAnswer = function (recSetIdx) {
-        //todo options: ?newQuery        
-        console.say(recSet[recSetIdx].Text + ": y/(n)/stop?");
-        var ALanswer = console.getln();
-        if (ALanswer !== "stop") {
-            if (ALanswer === "y") {
-                posIdxV.push(recSetIdx);
-                posIdV.push(recSet[recSetIdx].$id);
-                X.push(recsMat[recSetIdx]);
-                y.push(1.0);
-            } else {
-                negIdxV.push(recSetIdx);
-                negIdV.push(recSet[recSetIdx].$id);
-                X.push(recsMat[recSetIdx]);
-                y.push(-1.0);
-            }
-            this.selectQuestion();
+    //#   - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+    //#      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
+    this.getAnswer = function (ALanswer, recSetIdx) {
+        //todo options: ?newQuery
+        if (ALanswer === "y") {
+            posIdxV.push(recSetIdx);
+            posIdV.push(recSet[recSetIdx].$id);
+            X.push(recsMat[recSetIdx]);
+            y.push(1.0);
+        } else {
+            negIdxV.push(recSetIdx);
+            negIdV.push(recSet[recSetIdx].$id);
+            X.push(recsMat[recSetIdx]);
+            y.push(-1.0);
         }
         // +k query // rank unlabeled according to query, ask for k most similar
         // -k query // rank unlabeled according to query, ask for k least similar
     };
+    //#   - `model.startLoop()` -- starts the active learning loop in console
+    this.startLoop = function() {
+        while (true) {
+            var recSetIdx = this.selectQuestion();
+            console.say(recSet[recSetIdx].Text + ": y/(n)/stop?");
+            var ALanswer = console.getln();
+            if (ALanswer == "stop") { break; }
+            if (posIdxV.length + negIdxV.length == recSet.length) { break;}
+            this.getAnswer(ALanswer, recSetIdx);            
+        }
+    };
+    //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
         if (queryMode) {
@@ -247,6 +312,30 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
         }
         svm.save(outputStream);
     };
+    //#   - `model.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it. Must be in SVM mode..
+    this.getPos = function(threshold) {
+      if(this.queryMode) { return null; } // must be in SVM mode to return results
+      if(!threshold) { threshold = 0; }
+      var posIdxArray = [];
+      for (var recN = 0; recN < recSet.length; recN++) {
+        if (resultVec[recN] >= threshold) {
+          posIdxArray.push(recN);
+        }
+      }
+      return posIdxArray;
+    };
+    //#   - `model.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+    this.getQueryMode = function() {
+      return queryMode;
+    };
+    //#   - `model.getnpos()` -- return the  number of examples marked as positive. 
+    this.getnpos = function() { return npos; };
+    //#   - `model.getnneg()` -- return the  number of examples marked as negative.
+    this.getnneg = function() { return nneg; };
+    //#   - `model.setj(nj)` - sets the SVM j parameter to the provided value.
+    this.setj = function(nj) { j = nj; };
+    //#   - `model.setc(nc)` - sets the SVM c parameter to the provided value.
+    this.setc = function(nc) { c = nc; };
     //this.saveLabeled
     //this.loadLabeled
 };
@@ -254,13 +343,16 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
 
 //////////// RIDGE REGRESSION 
 // solve a regularized least squares problem
-//#- `model = new analytics.ridgeRegression(kapa, dim, buffer)`
-exports.ridgeRegression = function(kapa, dim, buffer) {
+//#- `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+//#  regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+//#  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
+//#  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
+exports.ridgeRegression = function(kappa, dim, buffer) {
     var X = [];
     var y = [];
     buffer = typeof buffer !== 'undefined' ? buffer : -1;
     var w = la.newVec({ "vals": dim });
-
+    //#   - `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
     this.add = function (x, target) {
         X.push(x);
         y.push(target);
@@ -270,21 +362,25 @@ exports.ridgeRegression = function(kapa, dim, buffer) {
             }
         }
     };
+    //#   - `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
     this.addupdate = function (x, target) {
         this.add(x, target);
         this.update();
     }
+    //#   - `model.forget(n)` -- deletes first `n` (integer) examples from the training set
     this.forget = function (ndeleted) {
         ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
         ndeleted = Math.min(X.length, ndeleted);
         X.splice(0, ndeleted);
         y.splice(0, ndeleted);
     };
+    //#   - `model.update()` -- recomputes the model
     this.update = function () {
         var A = this.getMatrix();
         var b = la.copyFltArrayToVec(y);
         w = this.compute(A, b);
     };
+    //#   - `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
     this.getModel = function () {
         return w;
     };
@@ -297,19 +393,25 @@ exports.ridgeRegression = function(kapa, dim, buffer) {
             return A;
         }
     };
+    //#   - `w = model.compute(A, b)` -- computes the model parameters `w`, given 
+    //#    a column training example matrix `A` (dense or sparse matrix) and target 
+    //#    vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
     this.compute = function (A, b) {
         var I = la.eye(A.cols);
-        var coefs = (A.transpose().multiply(A).plus(I.multiply(kapa))).solve(A.transpose().multiply(b));
+        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
         return coefs;
     };
-
+    //#   - `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
     this.predict = function (x) {
         return w.inner(x);
     };
 };
 
 ///////// CLUSTERING BATCH K-MEANS
-//#- `model = new analytics.kmeans(X, k, iter)`
+//#- `C = new analytics.kmeans(X, k, iter)`-- solves the k-means algorithm based on a training
+//#   set `X` (sparse or dense matrix) where colums represent examples, `k` (integer) the number of centroids and
+//#   `iter` (integer), the number of iterations. The solution `C` is a dense matrix, where each column
+//#    is a cluster centroid.
 exports.kmeans = function(X, k, iter) {
     // select random k columns of X, returns a dense C++ matrix
     this.selectCols = function (X, k) {
@@ -391,19 +493,20 @@ exports.kmeans = function(X, k, iter) {
 };
 
 ////////////// ONLINE CLUSTERING (LLOYD ALGORITHM)
-//#- `model = new analytics.lloyd(dim, k)`
+//#- `model = new analytics.lloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
+//#  requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
 exports.lloyd = function (dim, k) {
     // Private vars
     var C = la.genRandomMatrix(dim, k);//linalg.newMat({ "rows": dim, "cols": k, "random": true });;
     var counts = la.ones(k);
     var norC2 = la.square(C.colNorms());
-
+    //#   - `model.init()` -- initializes the model with random centroids
     this.init = function () {
         C = la.genRandomMatrix(dim, k); //linalg.newMat({ "rows": dim, "cols": k, "random": true });
         counts = la.ones(k);
         norC2 = la.square(C.colNorms());
     };
-
+    //#   - `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
     this.getC = function () {
         return C;
     };
@@ -415,10 +518,12 @@ exports.lloyd = function (dim, k) {
         result.norC2 = norC2;
         return result;
     };
+    //#   - `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
     this.setC = function (C_) {
         C = la.newMat(C_);
         norC2 = la.square(C.colNorms());
     };
+    //#   - `model.update(x)` -- updates the model with a vector `x` dense or sparse
     this.update = function (x) {
         var idx = this.getCentroidIdx(x);
         //C(:, idx) = 1/(counts[idx] + 1)* (counts[idx] * C(:, idx)  + x);
@@ -427,11 +532,13 @@ exports.lloyd = function (dim, k) {
         counts[idx] = counts[idx] + 1;
         norC2[idx] = la.square(vec.norm());
     };
+    //#   - `c = model.getCentroid(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
     this.getCentroid = function (x) {
         var idx = this.getCentroidIdx(x);
         var vec = C.getCol(idx);
         return vec;
     };
+    //#   - `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
     this.getCentroidIdx = function (x) {
         var D = C.multiplyT(x);
         D = D.minus(norC2.multiply(0.5));
@@ -441,12 +548,14 @@ exports.lloyd = function (dim, k) {
 };
 
 /////////// perceptron : 0/1 classification
-//#- `model = new analytics.perceptron(dim, use_bias)`
+//#- `model = new analytics.perceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
+//#   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
+//#   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
 exports.perceptron = function (dim, use_bias) {
     use_bias = typeof use_bias !== 'undefined' ? use_bias : false;
     var w = la.newVec({ "vals": dim });
     var b = 0;
-
+    //#   - `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
     this.update = function (x, y) {
         var yp = (w.inner(x) + b) > 0;
         if (y != yp) {
@@ -457,11 +566,11 @@ exports.perceptron = function (dim, use_bias) {
             }
         }
     };
-
+    //#   - `class = model.predict(x)` -- returns the prediction (0 or 1)
     this.predict = function (x) {
-        return (w.inner(x) + b) > 0;
+        return (w.inner(x) + b) > 0 ? 1 : 0;
     };
-
+    //#   - `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
     this.getModel = function () {
         var model;
         model.w = w;

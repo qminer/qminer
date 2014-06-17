@@ -391,8 +391,12 @@ public:
 	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
 	/// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
-	/// Execute JavaScript callback in this script's context
+    /// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
+	/// Execute JavaScript callback in this script's context, return double
+	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
 	/// Execute JavaScript callback in this script's context
@@ -585,6 +589,20 @@ public:
 		}
 		return DefVal;
 	}
+
+	/// Extract argument ArgN property as string
+	static TStr GetArgStr(const v8::Arguments& Args, const int& ArgN, const TStr& Property, const TStr& DefVal) {
+		v8::HandleScope HandleScope;
+		if (Args.Length() > ArgN) {
+			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr()))) {
+				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+				QmAssertR(Val->IsString(), TStr::Fmt("Argument %d, property %s expected to be string", ArgN, Property.CStr()));
+				v8::String::Utf8Value Utf8(Val);
+				return TStr(*Utf8);
+			}
+		}
+		return DefVal;
+	}
    
 	/// Check if argument ArgN is of type boolean
 	static bool IsArgBool(const v8::Arguments& Args, const int& ArgN) {
@@ -721,12 +739,33 @@ public:
 		return Val->IsObject();
 	}    
 
+	/// Extract Val as JSon object, and serialize it to TStr
+	static TStr GetValJsonStr(const v8::Handle<v8::Value> Val) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Val->IsObject(), "Val expected to be object");
+		TStr JsonStr = TJsUtil::V8JsonToStr(Val);
+		return JsonStr;
+	}
+
 	/// Extract argument ArgN as JSon object, and serialize it to TStr
 	static TStr GetArgJsonStr(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
 		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be json", ArgN));
+		TStr JsonStr = TJsUtil::V8JsonToStr(Val);
+		return JsonStr;
+	}
+
+	static TStr GetArgJsonStr(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgJsonStr : Missing argument %d", ArgN));
+		QmAssertR(Args[ArgN]->IsObject() &&
+			Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())),
+			TStr::Fmt("TJsObjUtil::GetArgJsonStr : Argument %d must be an object with property %s", ArgN, Property.CStr()));
+
+		v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+		QmAssertR(Val->IsObject(), TStr::Fmt("TJsObjUtil::GetArgJsonStr : Args[%d].%s expected to be json", ArgN, Property.CStr()));
 		TStr JsonStr = TJsUtil::V8JsonToStr(Val);
 		return JsonStr;
 	}
@@ -739,6 +778,33 @@ public:
 		return Val;
 	}
 
+	/// Extract Val as JSon object, and transform it to PJsonVal
+	static PJsonVal GetValJson(const v8::Handle<v8::Value> Val) {
+		TStr JsonStr = GetValJsonStr(Val);
+		PJsonVal JsonVal = TJsonVal::GetValFromStr(JsonStr);
+		if (!JsonVal->IsDef()) { throw TQmExcept::New("Error parsing '" + JsonStr + "'."); }
+		return JsonVal;
+	}
+
+	/// Extract argument ArgN property as json
+	static PJsonVal GetArgJson(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgJson : Missing argument %d", ArgN));
+		QmAssertR(Args[ArgN]->IsObject(), TStr::Fmt("TJsObjUtil::GetArgJson : Argument %d must be an object", ArgN));
+		QmAssertR(Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())), TStr::Fmt("TJsObjUtil::GetArgJson : Argument %d must have property %s", ArgN, Property.CStr()));
+		TStr JsonStr = GetArgJsonStr(Args, ArgN, Property);
+		PJsonVal Val = TJsonVal::GetValFromStr(JsonStr);
+		if (!Val->IsDef()) { throw TQmExcept::New("TJsObjUtil::GetArgJson : Error parsing '" + JsonStr + "'."); }
+		return Val;
+	}
+
+	static bool IsArgFun(const v8::Arguments& Args, const int& ArgN) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		return Val->IsFunction();
+	}
+
 	/// Extract argument ArgN as JavaScript function
 	static v8::Handle<v8::Function> GetArgFun(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
@@ -747,7 +813,7 @@ public:
 		QmAssertR(Val->IsFunction(), TStr::Fmt("Argument %d expected to be function", ArgN));
 		return HandleScope.Close(v8::Handle<v8::Function>::Cast(Val));
 	}
-
+	
 	/// Extract argument ArgN as persistent JavaScript function
 	static v8::Persistent<v8::Function> GetArgFunPer(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
@@ -756,6 +822,20 @@ public:
 		QmAssertR(Val->IsFunction(), TStr::Fmt("Argument %d expected to be function", ArgN));
 		return v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Val));
 	}
+
+	/// Extract argument ArgN property as persistent Javascript function
+	static v8::Persistent<v8::Function> GetArgFunPer(const v8::Arguments& Args, const int& ArgN, const TStr& Property) {
+		v8::HandleScope HandleScope;
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TJsObjUtil::GetArgFunPer : Missing argument %d", ArgN));
+		QmAssertR(Args[ArgN]->IsObject() &&
+			Args[ArgN]->ToObject()->Has(v8::String::New(Property.CStr())),
+			TStr::Fmt("TJsObjUtil::GetArgFunPer : Argument %d must be an object with property %s", ArgN, Property.CStr()));
+		v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::New(Property.CStr()));
+		QmAssertR(Val->IsFunction(), TStr::Fmt("TJsObjUtil::GetArgFunPer Argument[%d].%s expected to be function", ArgN, Property.CStr()));
+		//return HandleScope.Close(v8::Handle<v8::Function>::Cast(Val));
+		return v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Val));
+	}
+
 };
 
 ///////////////////////////////
@@ -1134,6 +1214,16 @@ public:
 	JsDeclareFunction(deleteRecs);
     //#- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
+	//#- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(map);
+	//#- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setintersect);
+	//#- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setunion);
+	//#- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs`\`rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setdiff);
+
 
     //# 
     //# **Examples**:
@@ -1497,8 +1587,8 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::push(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);	
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);	
-	int result = JsVec->Vec.Add(Val);	
-	return HandleScope.Close(v8::Integer::New(result));	
+	JsVec->Vec.Add(Val);	
+	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));	
 }
 
 template <class TVal, class TAux>
@@ -1507,7 +1597,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);
-	//
+
 	JsVec->Vec.Ins(0, Val);
 	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
@@ -1634,19 +1724,19 @@ public:
 	JsDeclareFunction(multiplyT);
 	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
 	JsDeclareFunction(plus);
-	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
+	//#- `mat3 = mat1.minus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
 	JsDeclareFunction(minus);
 	//#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat1` transposed
 	JsDeclareFunction(transpose);
 	//#- `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
 	JsDeclareFunction(solve);
-	//#- `vec = mat.rowNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+	//#- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	JsDeclareFunction(rowNorms);
-	//#- `vec = mat.colNorms()` -- `vec` is dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
 	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- `smat = mat.sparse()` -- get sparse column matrix representation `smat` of dense matrix `mat`
+	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
 	//#- `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
 	JsDeclareFunction(frob);
@@ -1750,6 +1840,10 @@ public:
 	JsDeclareFunction(norm);
 	//#- `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
+	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
+	JsDeclareFunction(valVec);
+	//#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
+	JsDeclareFunction(idxVec);
 };
 
 
@@ -1772,7 +1866,7 @@ public:
 	TWPt<TScript> Js;    
 	// 
 	TVec<TIntFltKdV> Mat;	
-	int Rows;
+	TInt Rows;
 private:	
 	/// Object utility class
 	typedef TJsObjUtil<TJsSpMat> TJsSpMatUtil;    
@@ -1811,38 +1905,42 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- at:get element
+	//#- `val = spMat.at(i,j)` -- Gets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
-	//#- put:set element, returns undefined
+	//#- `spMat.put(i, j, val)` -- Sets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
 	JsDeclareFunction(put);
-	//#- []:index
+	//#- `x = spMat[i]; spMat[i] = x` -- setting and getting sparse vectors `x` from sparse column matrix, given column index `i` (integer)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- push:add a sparse column vector to the matrix
+	//#- `spMat.push(x)` -- attaches a column `x` (sparse vector) to `spMat` (sparse matrix)
 	JsDeclareFunction(push);
-	//#- multiply:matrix * scalar, matrix * vector, matrix * matrix
+	//#- `y = spMat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
 	JsDeclareFunction(multiply);
-	//#- multiplyT:matrix' * scalar, matrix' * vector, matrix' * matrix
+	//#- `y = spMat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
 	JsDeclareFunction(multiplyT);
-	//#- plus:matrix + matrix
+	//#- `spMat3 = spMat1.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(plus);
-	//#- minus:matrix - matrix
+	//#- `spMat3 = spMat1.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(minus);
-	//#- transpose:returns the transpose of a matrix
+	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `mat1` (sparse matrix) transposed 
 	JsDeclareFunction(transpose);	
-	//#- colNorms:get column norms
+	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
-	//#- normalizeCols:INPLACE : changes the matrix by normalizing columns, return undefined
+	//#- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
 	JsDeclareFunction(normalizeCols);
-	//#- full:get dense matrix
+	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
 	JsDeclareFunction(full);
-	//#- frob:get frobenious norm
+	//#- `x = spMat.frob()` -- number `x` is the Frobenious norm of `spMat` (sparse matrix)
 	JsDeclareFunction(frob);
-	//#- rows:get number of rows
+	//#- `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
 	JsDeclareProperty(rows);
-	//#- cols:get number of columns
+	//#- `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
 	JsDeclareProperty(cols);
-	//#- print:print
+	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
 	JsDeclareFunction(print);
+	//#- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
+	JsDeclareFunction(save);
+	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
+	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
 
@@ -1874,11 +1972,11 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fs = analytics.newFeatureSpace(featureExtractors)` -- create new
+    //#- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
     //#     feature space consisting of [Feature Extractor](Feature-Extractors),
     //#     declared in JSon `featureExtractors`
     JsDeclareFunction(newFeatureSpace);
-    //#- `fs = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+    //#- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
     JsDeclareFunction(loadFeatureSpace);
     
@@ -1901,7 +1999,7 @@ public:
     
     //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    //#     `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
     JsDeclareFunction(newRecLinReg);
     //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
@@ -1953,31 +2051,33 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fs.dim` -- dimensionality of feature space
+    //#- `ftrSpace.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `fs.save(fout)` -- serialize feature space to `fout` output stream
+    //#- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
     JsDeclareFunction(save);
-    //#- `fs.updateRecord(record)` -- update feature space definitions and extractors
+    //#- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
     //#     by exposing them to `record`. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `fs.updateRecord(recordSet)` -- update feature space definitions and extractors
+    //#- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
     //#     by exposing them to records from `recordSet`. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate); // deprecated
-    //#- `strVec = fs.extractStrings(record)` -- use feature extractors to extract string 
+    //#- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
     //#     features from `record` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
-    //#- `spVec = ftrSpVec(record)` -- extracts sparse feature vector from `record`
+	//#- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
+	JsDeclareFunction(getFtr);
+	//#- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
     JsDeclareFunction(ftrSpVec);
-    //#- `vec = ftrVec(record)` -- extracts feature vector from `record`
+    //#- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
     JsDeclareFunction(ftrVec);
-    //#- `spMatrix = ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
+    //#- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
     //#     records in `recordSet` and returns them as columns in a sparse matrix.
 	JsDeclareFunction(ftrSpColMat);
-    //#- `matrix = ftrColMat(recordSet)` -- extracts feature vectors from 
+    //#- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
     //#     records in `recordSet` and returns them as columns in a matrix.
     JsDeclareFunction(ftrColMat);
 };
@@ -2531,6 +2631,96 @@ public:
     //#     as Date-Time object
 	JsDeclareFunction(parse);
 };
+//#
+//# ## Other libraries
+//#
+//#JSIMPLEMENT:src/qminer/js/twitter.js 
+
+
+///////////////////////////////////////////////
+/// Javscript Function Feature Extractor.
+//-
+//- ## Numeric Feature Extractor
+//-
+class TJsFuncFtrExt : public TFtrExt {
+// Js wrapper API
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
+	// private constructor
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc");}
+public:
+	// public smart pointer
+	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
+		return new TJsFuncFtrExt(Js, ParamVal, _Fun);
+	}
+// Core functionality
+private:
+	// Core part
+	TStr Name;
+	v8::Persistent<v8::Function> Fun;
+	double ExecuteFunc(const TRec& FtrRec) const {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
+		return Js->ExecuteFlt(Fun, RecArg);
+	}
+public:
+	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
+	static PJsonVal CopySettings(v8::Local<v8::Object> Obj) {
+		// clone all properties except fun!
+		v8::Local<v8::Array> Properties = Obj->GetOwnPropertyNames();
+		PJsonVal ParamVal = TJsonVal::NewObj();
+		for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
+			// get each property as string, extract arg json and attach it to ParamVal
+			TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
+			PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
+			if (PropStr == "fun") continue;
+			v8::Handle<v8::Value> Val = Obj->Get(Properties->Get(PropN));
+			if (Val->IsNumber()) {
+				ParamVal->AddToObj(PropStr, Val->NumberValue());
+			}
+			if (Val->IsString()) {
+				v8::String::Utf8Value Utf8(Val);
+				TStr ValueStr(*Utf8);
+				ParamVal->AddToObj(PropStr, ValueStr);
+			}
+			if (Val->IsBoolean()) {
+				ParamVal->AddToObj(PropStr, Val->BooleanValue());
+			}
+			if (Val->IsObject() || Val->IsArray()) {
+				ParamVal->AddToObj(PropStr, TJsFuncFtrExtUtil::GetValJson(Val));
+			}
+		}
+		//printf("JSON: %s\n", TJsonVal::GetStrFromVal(ParamVal).CStr());
+		return ParamVal;
+	}
+// Feature extractor API
+private:
+	//TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
+	//TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+public:
+	//static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
+	//static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+	//void Save(TSOut& SOut) const;
+
+	TStr GetNm() const { return Name; }
+	int GetDim() const { return 1; }
+	TStr GetFtr(const int& FtrN) const { return GetNm(); }
+
+	void Clr() { };
+	bool Update(const TRec& Rec) { return false; }
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	// flat feature extraction
+	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
+
+	// feature extractor type name 
+	static TStr GetType() { return "jsfunc"; }
+};
+
 
 }
 

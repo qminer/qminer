@@ -88,6 +88,9 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;src/third_party/v8_base.x64.lib;src/third_party/v8_snapshot.lib;src/third_party/libuv.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>src\glib\mine\StemmingTokenization</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>del /F /Q "$(IntDir)\$(MSBuildProjectName).lastbuildstate"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\glib\base\base.cpp" />
@@ -115,6 +118,19 @@
     <ClInclude Include="src\qminer\qminer_gs.h" />
     <ClInclude Include="src\qminer\qminer_srv.h" />
     <ClInclude Include="src\qminer\qminer_js.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\qminer\console.js" />
+    <None Include="src\qminer\fs.js" />
+    <None Include="src\qminer\http.js" />
+    <None Include="src\qminer\js\analytics.js" />
+    <None Include="src\qminer\js\assert.js" />
+    <None Include="src\qminer\js\twitter.js" />
+    <None Include="src\qminer\js\utilities.js" />
+    <None Include="src\qminer\linalg.js" />
+    <None Include="src\qminer\process.js" />
+    <None Include="src\qminer\qminer.js" />
+    <None Include="src\qminer\spMat.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

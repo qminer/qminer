@@ -31,7 +31,7 @@ qm.load = function() {
 			var line = fin.getNextLn();
 			if (line == "") { continue; }
 			try {
-				var rec = JSON.parse(line);
+				var rec = JSON.parse(line);                
 				store.add(rec);
 				// count, GC and report
 				count++;
@@ -74,6 +74,42 @@ qm.printStreamAggr = function(store) {
 	}
 }
 
+//# - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
+//#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
+function dir(obj, printVals, depth, width, prefix, showProto) {
+    printVals = typeof printVals !== 'undefined' ? printVals : false;
+    depth = typeof depth !== 'undefined' ? depth : 1;
+    width = typeof width !== 'undefined' ? width : 50;
+    prefix = typeof prefix !== 'undefined' ? prefix : "";
+    showProto = typeof showProto !== 'undefined' ? showProto : false;
+    if (depth === parseInt(depth)) {
+        if (depth > 0) {
+            if (typeof obj == 'object' && obj != null) {
+                var keys = Object.keys(obj);
+                var numOwn = keys.length;
+                if (showProto) {
+                    if (typeof obj.__proto__  !== 'undefined' && obj.__proto__  !== null)
+                    keys = keys.concat(Object.getOwnPropertyNames(obj.__proto__));
+                }
+                for (var keyN = 0; keyN < Math.min(width, keys.length) ; keyN++) {
+                    console.print(prefix + "." + keys[keyN] + " - "); if (keyN >= numOwn) { console.print("__proto__ - ");}
+                    if (printVals) {
+                        if (typeof obj[keys[keyN]] == 'string') {
+                            console.print("\""); console.print(obj[keys[keyN]]); console.println("\"");
+                        } else if (typeof obj[keys[keyN]] == 'boolean') {
+                            console.println(obj[keys[keyN]] ? "true" : "false");
+                        } else {
+                            console.println(obj[keys[keyN]]);
+                        }
+                    } else {
+                        console.println("(" + typeof obj[keys[keyN]] + ")");
+                    }
+                    dir(obj[keys[keyN]], printVals, depth - 1, width,  prefix + "." + keys[keyN], showProto);
+                }                
+            }
+        }
+    }
+}
 
 ///////////////////////////////////////// DEPRECATED
 function jsonp(req, res, data) {

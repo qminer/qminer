@@ -25,6 +25,27 @@ la.printVec = function(vec) {
 	console.say(str);
 };
 
+//#- `la.printSpFeatVec(spVec, fsp, sortedAsc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
+la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
+    sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
+    // get index and value vectors
+    var valVec = spVec.valVec();
+    var idxVec = spVec.idxVec();
+    // with sorting
+    if (sortedAsc != 0.5) {
+        //returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order. Implemented for dense float vectors.
+        res = valVec.sortPerm(sortedAsc > 0.5);
+        for (var elN = 0; elN < idxVec.length; elN++) {
+            console.println(idxVec[res.perm[elN]] + " " + valVec[res.perm[elN]] + " : " + fsp.getFtr(idxVec[res.perm[elN]]));
+        }
+        return;
+    }
+    // no sorting
+    for (var elN = 0; elN < idxVec.length; elN++) {
+        console.println(idxVec[elN] + " " + valVec[elN] + " : " + fsp.getFtr(idxVec[elN]));
+    }
+}
+
 //#- `la.printArray(arr)` -- print the javascript array `arr` in the console
 la.printArray = function (arr) {
     var els = arr.length;

@@ -405,6 +405,7 @@ public:
     PSOut SOut=TFOut::New(FNm, Append); SaveTxt(SOut);}
   static PXmlDoc LoadStr(const TStr& Str);
   void SaveStr(TStr& Str);
+  TStr SaveStr();
 };
 
 /////////////////////////////////////////////////

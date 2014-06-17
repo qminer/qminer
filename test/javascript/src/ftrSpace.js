@@ -78,7 +78,7 @@ var ftrSpace1 = analytics.newFeatureSpace([
     { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 },
-    { type: "text", source: "FtrSpaceTest", field: "Text" },
+    { type: "text", source: "FtrSpaceTest", field: "Text", hashDimension: 4 },
     { type: "pair", source: "FtrSpaceTest",
         first: { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
         second: { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }
