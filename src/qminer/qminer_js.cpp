@@ -3882,7 +3882,6 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
         JsRegisterFunction(TmpTemp, newFeatureSpace);
-		JsRegisterFunction(TmpTemp, newFeatureSpace2);
         JsRegisterFunction(TmpTemp, loadFeatureSpace);
         JsRegisterFunction(TmpTemp, trainSvmClassify);		
         JsRegisterFunction(TmpTemp, trainSvmRegression);
@@ -3900,33 +3899,6 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 }
 
 v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-	try {
-        // get first argument as json
-        PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
-        // parse definitions of feature extractors
-        TFtrExtV FtrExtV;
-        if (ParamVal->IsObj()) {
-            FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
-        } else if (ParamVal->IsArr()) {
-            for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
-                PJsonVal ArrVal = ParamVal->GetArrVal(ArrValN);
-                FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ArrVal->GetObjStr("type"), ArrVal));            
-            }
-        }
-        // create feature space
-        PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
-		// done
-        return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);
-	} catch (const PExcept& Except) {
-		InfoLog("[except] " + Except->GetMsgStr());
-	}
-
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace2(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
 	QmAssertR(Args.Length() > 0, "analytics.newFeatureSpace : input not specified!");

@@ -1976,7 +1976,6 @@ public:
     //#     feature space consisting of [Feature Extractor](Feature-Extractors),
     //#     declared in JSon `featureExtractors`
     JsDeclareFunction(newFeatureSpace);
-	JsDeclareFunction(newFeatureSpace2);
     //#- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
     JsDeclareFunction(loadFeatureSpace);
