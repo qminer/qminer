@@ -63,7 +63,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
   parsing each line as JSON and adding it as record to `store`
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
-- `dir(obj, printVals, depth, width, perfix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
+- `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 
 ### Store
@@ -165,6 +165,9 @@ the set.
 - `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 - `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs``rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
 
 **Examples**:
 
@@ -226,6 +229,7 @@ several functions from linear algebra.
 - `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
 - `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
 - `la.printVec(vec)` -- print the vector in the console, `vec` can be int or float vector
+- `la.printSpFeatVec(spVec, fsp, sortedAsc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
 - `la.printArray(arr)` -- print the javascript array `arr` in the console
 - `la.printMat(matrix)` -- print the `matrix` (dense or sparse) in the console as a dense matrix
 - `x = la.genRandom()` -- `x` is a sample from a standard normal random variable
@@ -343,6 +347,8 @@ var spVec = la.newSpVec(); //empty vector
 - `spVec.print()` -- prints the vector to console
 - `x = spVec.norm()` -- returns `x` - the norm of `spVec`
 - `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
+- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
+- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
 
 ### SpMatrix (sparse column matrix)
 
@@ -373,6 +379,8 @@ var spMat = la.newSpMat(); //empty matrix
 - `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
 - `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
 - `spMat.print()` -- print `spMat` (sparse matrix) to console
+- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
+- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
 - `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
 - `spMat.toString()` -- displays rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 - `var n = spMat.nnz();` -- `n` is the number of non-zero elements of sparse column matrix `spMat`
@@ -386,10 +394,10 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 
 **Functions and properties:**
     
-- `fs = analytics.newFeatureSpace(featureExtractors)` -- create new
+- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
     feature space consisting of [Feature Extractor](Feature-Extractors),
     declared in JSon `featureExtractors`
-- `fs = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     space from `fin` stream
 - `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
     classification model using columns from `matrix` as training data and
@@ -406,7 +414,7 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     from `fin` stream
 - `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
     (regularization parameter to avoid over-fitting, default is 1.0).)
 - `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
     from `fin` stream
@@ -436,13 +444,20 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
-   examples that have to be identified in the query mode before the program enters SVM mode. The final
-  parameter is the `query` (string) which should be related to positive examples. 
+   examples that have to be identified in the query mode before the program enters SVM mode.
+  The next parameter is the `query` (string) which should be related to positive examples. 
+  Final Parameters `c` and `j` are SVM parameters.
   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
   - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
   - `model.startLoop()` -- starts the active learning loop in console
   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+  - `model.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it. Must be in SVM mode..
+  - `model.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+  - `model.getnpos()` -- return the  number of examples marked as positive. 
+  - `model.getnneg()` -- return the  number of examples marked as negative.
+  - `model.setj(nj)` - sets the SVM j parameter to the provided value.
+  - `model.setc(nc)` - sets the SVM c parameter to the provided value.
 - `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
  regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
@@ -484,22 +499,23 @@ declarations as parameters.
 
 **Functions and properties:**
     
-- `fs.dim` -- dimensionality of feature space
-- `fs.save(fout)` -- serialize feature space to `fout` output stream
-- `fs.updateRecord(record)` -- update feature space definitions and extractors
+- `ftrSpace.dim` -- dimensionality of feature space
+- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
+- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
     by exposing them to `record`. For example, this can update the vocabulary
     used by bag-of-words extractor by taking into account new text.
-- `fs.updateRecord(recordSet)` -- update feature space definitions and extractors
+- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
     by exposing them to records from `recordSet`. For example, this can update 
     the vocabulary used by bag-of-words extractor by taking into account new text.
-- `strVec = fs.extractStrings(record)` -- use feature extractors to extract string 
+- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
     features from `record` (e.g. words from string fields); results are returned
     as a string array
-- `spVec = ftrSpVec(record)` -- extracts sparse feature vector from `record`
-- `vec = ftrVec(record)` -- extracts feature vector from `record`
-- `spMatrix = ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
+- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
+- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
+- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
+- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
     records in `recordSet` and returns them as columns in a sparse matrix.
-- `matrix = ftrColMat(recordSet)` -- extracts feature vectors from 
+- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
     records in `recordSet` and returns them as columns in a matrix.
 
 ### Support Vector Machine model

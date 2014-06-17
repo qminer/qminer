@@ -3903,31 +3903,32 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
 	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
 	QmAssertR(Args.Length() > 0, "analytics.newFeatureSpace : input not specified!");
 	try {
-		TFtrExtV FtrExtV;
-		// Same as above, for array
+		TFtrExtV FtrExtV;		
 		if (Args[0]->IsArray()) {
 			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 			for (uint32 ObjectN = 0; ObjectN < Array->Length(); ObjectN++) {
 				if (Array->Get(ObjectN)->IsObject()) {
 					v8::Local<v8::Object> Obj = Array->Get(ObjectN)->ToObject();
 					// get property "type"
-					v8::Handle<v8::Value> TypeVal = Obj->Get(v8::String::New("type"));
-					if (TypeVal->IsString()) {
-						v8::String::Utf8Value Utf8(TypeVal);
-						TStr Type(*Utf8);
-						if (Type == "jsfunc") {
-							QmAssertR(Obj->Has(v8::String::New("fun")), "analytics.newFeatureSpace object of type 'jsfunc' should have a property 'fun'");
-							QmAssertR(Obj->Get(v8::String::New("fun"))->IsFunction(), "analytics.newFeatureSpace object.fun should be a function");
-							v8::Persistent<v8::Function> Fun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Obj->Get(v8::String::New("fun"))));
-							PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Obj);
-							PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
-							FtrExtV.Add(FtrExt);
-						}
-						else {
-							// Json val to glib JSON
-							PJsonVal ParamVal = TJsonVal::GetValFromStr(TJsUtil::V8JsonToStr(Array->Get(ObjectN)));
-							if (ParamVal->IsObj()) {
-								FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+					if (Obj->Has(v8::String::New("type"))) {
+						v8::Handle<v8::Value> TypeVal = Obj->Get(v8::String::New("type"));
+						if (TypeVal->IsString()) {
+							v8::String::Utf8Value Utf8(TypeVal);
+							TStr Type(*Utf8);
+							if (Type == "jsfunc") {
+								QmAssertR(Obj->Has(v8::String::New("fun")), "analytics.newFeatureSpace object of type 'jsfunc' should have a property 'fun'");
+								QmAssertR(Obj->Get(v8::String::New("fun"))->IsFunction(), "analytics.newFeatureSpace object.fun should be a function");
+								v8::Persistent<v8::Function> Fun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(Obj->Get(v8::String::New("fun"))));
+								PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Obj);
+								PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
+								FtrExtV.Add(FtrExt);
+							}
+							else {
+								// Json val to glib JSON
+								PJsonVal ParamVal = TJsonVal::GetValFromStr(TJsUtil::V8JsonToStr(Array->Get(ObjectN)));
+								if (ParamVal->IsObj()) {
+									FtrExtV.Add(TFtrExt::New(JsAnalytics->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+								}
 							}
 						}
 					}
