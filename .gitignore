@@ -12,11 +12,12 @@
 *.la
 *.a
 
-# project files from various SDKs
-.project	# eclipse
-.cproject	# eclipse
-.settings	# eclipse
-nbproject	# netbeans
+# project files from Eclipse
+.project
+.cproject
+.settings
+# project files from NetBeans
+nbproject
 
 # build results
 build

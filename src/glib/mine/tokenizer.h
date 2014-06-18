@@ -64,11 +64,12 @@ protected:
 	PSwSet SwSet;
 	PStemmer Stemmer;
 	TBool ToUcP;
+
+	TSimple(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP): 
+        SwSet(_SwSet), Stemmer(_Stemmer), ToUcP(_ToUcP) {  }
 public:
-	TSimple(const PSwSet& _SwSet = NULL, const PStemmer& _Stemmer = NULL, 
-		const bool& _ToUcP = true): SwSet(_SwSet), Stemmer(_Stemmer), ToUcP(_ToUcP) {  }
-	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, bool ToUcP = true) {
-		return new TSimple(SwSet, Stemmer, ToUcP); }
+	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, 
+        bool ToUcP = true) { return new TSimple(SwSet, Stemmer, ToUcP); }
     static PTokenizer New(const PJsonVal& ParamVal);
     
 	TSimple(TSIn& SIn);
@@ -92,8 +93,8 @@ protected:
 	
 	THtml(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP);
 public:
-	static PTokenizer New(PSwSet SwSet, PStemmer Stemmer, bool ToUcP = true) {
-        return new THtml(SwSet, Stemmer, ToUcP); }
+	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL,
+        bool ToUcP = true) { return new THtml(SwSet, Stemmer, ToUcP); }
     static PTokenizer New(const PJsonVal& ParamVal);
 
 	// serialization
@@ -109,17 +110,18 @@ public:
 
 ///////////////////////////////
 // Tokenizer-Html-Unicode
-//   Puts string to simple canoniocal form and calls HTML tokenizer, 
+//   Puts string to simple canonical form and calls HTML tokenizer, 
 class THtmlUnicode : public THtml {
 protected:
-	THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer,  const bool& _ToUcP): 
-        THtml(_SwSet, _Stemmer, _ToUcP) { EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
+	THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer,  
+        const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
+            EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
 public:
-	static PTokenizer New(PSwSet SwSet, PStemmer Stemmer, bool ToUcP = true) {
-			return new THtmlUnicode(SwSet, Stemmer, ToUcP); }
+	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, 
+        bool ToUcP = true) { return new THtmlUnicode(SwSet, Stemmer, ToUcP); }
     static PTokenizer New(const PJsonVal& ParamVal);
 
-	THtmlUnicode(TSIn& SIn): THtml(SIn) { 
+	THtmlUnicode(TSIn& SIn): THtml(SIn) {
         EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
 	static PTokenizer Load(TSIn& SIn) { return new THtmlUnicode(SIn); }
 	void Save(TSOut& SOut) const;

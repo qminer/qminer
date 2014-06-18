@@ -61,7 +61,7 @@ PTokenizer TSimple::New(const PJsonVal& ParamVal) {
     PStemmer Stemmer = ParamVal->IsObjKey("stemmer") ? 
         TStemmer::ParseJson(ParamVal->GetObjKey("stemmer"), false) :
         TStemmer::New(stmtNone, false);
-    const bool ToUcP = ParamVal->GetObjBool("uppercase", true);
+    const bool ToUcP = ParamVal->GetObjNULLBool("uppercase", true);
     return new TSimple(SwSet, Stemmer, ToUcP);
 }
 
