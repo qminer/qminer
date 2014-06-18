@@ -2739,6 +2739,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);		
 	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
+	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
 	return HandleScope.Close(JsResult);	
 }
 
@@ -3377,7 +3378,7 @@ v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
 		}
 	}
 	if (Len == -1) {
-		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec);
+		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec) + 1;
 	}
 	TFltV Res;
 	TLAMisc::ToVec(JsSpV->Vec, Res, Len);		
@@ -4569,6 +4570,8 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, sleep);
+		JsRegisterProperty(TmpTemp, scriptNm);
+		JsRegisterProperty(TmpTemp, scriptFNm);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4584,6 +4587,20 @@ v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
 	TSysProc::Sleep(TUInt(Millis));
 
 	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsProcess::scriptNm(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptNm = v8::String::New(JsProc->Js->GetScriptNm().CStr());
+	return HandleScope.Close(ScriptNm);
+}
+
+v8::Handle<v8::Value> TJsProcess::scriptFNm(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptFNm = v8::String::New(JsProc->Js->GetScriptFNm().CStr());
+	return HandleScope.Close(ScriptFNm);
 }
 
 
