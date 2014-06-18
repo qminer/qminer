@@ -4315,9 +4315,9 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     TRec Rec = TJsRec::GetArgRec(Args, 0);
     // create feature vector
-	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js);
-	TIntFltKdV& SpV = TJsSpV::GetSpV(JsSpV);
+	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
+	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js, SpV);
 	// return
 	return HandleScope.Close(JsSpV);
 }
@@ -4328,12 +4328,31 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     TRec Rec = TJsRec::GetArgRec(Args, 0);
     // create feature vector
-    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-    TFltV& FltV = TJsFltV::GetVec(JsFltV);
+    // access violation (javascript function) if object is created before feature extraction:	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
+	TFltV FltV;
     JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// todo: investigate why this is OK and above option isnt	
+	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(JsFltV->GetInternalField(0));
+	TJsFltV* JsObj = static_cast<TJsFltV*>(WrappedObject->Value());
+	JsObj->Vec = FltV;
 	// return
 	return HandleScope.Close(JsFltV);
 }
+
+//v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
+//	v8::HandleScope HandleScope;
+//	// parse arguments
+//	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+//	TRec Rec = TJsRec::GetArgRec(Args, 0);
+//	// create feature vector, compute
+//	TFltV FltV;
+//	JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+//	// Create result and append vector
+//	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js, FltV);
+//	// return
+//	return HandleScope.Close(JsFltV);
+//}
 
 v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -4341,9 +4360,10 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     // create feature matrix
-	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js);
-	TVec<TIntFltKdV>& SpMat = TJsSpMat::GetSpMat(JsSpMat);
+	TVec<TIntFltKdV> SpMat;
 	JsFtrSpace->FtrSpace->GetSpVV(RecSet, SpMat);
+	// create result
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js, SpMat);
 	// return
 	return HandleScope.Close(JsSpMat);
 }
@@ -4354,9 +4374,10 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrColMat(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     // create feature matrix
-	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js);
-	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
+	TFltVV Mat;
 	JsFtrSpace->FtrSpace->GetFullVV(RecSet, Mat);
+	// create result
+	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js, Mat);
 	// return
 	return HandleScope.Close(JsMat);
 }
