@@ -2739,6 +2739,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);		
 	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
+	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
 	return HandleScope.Close(JsResult);	
 }
 
@@ -3377,7 +3378,7 @@ v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
 		}
 	}
 	if (Len == -1) {
-		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec);
+		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec) + 1;
 	}
 	TFltV Res;
 	TLAMisc::ToVec(JsSpV->Vec, Res, Len);		
