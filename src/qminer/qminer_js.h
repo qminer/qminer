@@ -2295,7 +2295,10 @@ public:
 	//#
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
-
+	//#- `process.scriptNm` -- Returns the name of the script.
+	JsDeclareProperty(scriptNm);
+	//#- `process.scriptFNm` -- Returns absolute script file path.
+	JsDeclareProperty(scriptFNm);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 

@@ -594,6 +594,8 @@ The HoeffdingTree algorithm comes with many parameters:
 **Functions and properties:**
 
 - `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
+- `process.scriptNm` -- Returns the name of the script.
+- `process.scriptFNm` -- Returns absolute script file path.
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `process.isArg(arg)` -- returns true when `arg` among the 
