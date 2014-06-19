@@ -595,7 +595,7 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
         const TRec& OldestRec = Buffer.GetOldest();
         const TRec& NewestRec = Buffer.GetNewest();
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
-        JsonVal->AddToObj("newest", OldestRec.GetJson(GetBase(), true, false, false, false, true));    
+        JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));    
         // deprecated, only works when records passed by reference {
         if (OldestRec.IsByRef()) { JsonVal->AddToObj("first", (int)OldestRec.GetRecId()); }
         if (NewestRec.IsByRef()) { JsonVal->AddToObj("last", (int)NewestRec.GetRecId()); }
