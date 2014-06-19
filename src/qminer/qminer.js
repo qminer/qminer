@@ -73,16 +73,27 @@ qm.printStreamAggr = function(store) {
 		}
 	}
 }
-
+//# - `dir()` -- prints all global variables
 //# - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
 //#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 function dir(obj, printVals, depth, width, prefix, showProto) {
+    // dir();
+    if (arguments.length == 0) {
+        var globalNames = process.getGlobals();
+        for (var nameN = 0; nameN < globalNames.length; nameN++) {
+            dir(eval(globalNames[nameN]), false, -1, 100, globalNames[nameN], false);
+        }
+    }
     printVals = typeof printVals !== 'undefined' ? printVals : false;
     depth = typeof depth !== 'undefined' ? depth : 1;
     width = typeof width !== 'undefined' ? width : 50;
     prefix = typeof prefix !== 'undefined' ? prefix : "";
     showProto = typeof showProto !== 'undefined' ? showProto : false;
     if (depth === parseInt(depth)) {
+        if (depth == -1) {
+            console.print(prefix + " - ");
+            console.println("(" + typeof obj + ")");
+        }
         if (depth > 0) {
             if (typeof obj == 'object' && obj != null) {
                 var keys = Object.keys(obj);

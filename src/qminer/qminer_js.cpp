@@ -4322,37 +4322,37 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
 	return HandleScope.Close(JsSpV);
 }
 
-v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    TRec Rec = TJsRec::GetArgRec(Args, 0);
-    // create feature vector
-    // access violation (javascript function) if object is created before feature extraction:	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-	TFltV FltV;
-    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
-	// todo: investigate why this is OK and above option isnt	
-	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(JsFltV->GetInternalField(0));
-	TJsFltV* JsObj = static_cast<TJsFltV*>(WrappedObject->Value());
-	JsObj->Vec = FltV;
-	// return
-	return HandleScope.Close(JsFltV);
-}
-
 //v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
 //	v8::HandleScope HandleScope;
-//	// parse arguments
-//	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
-//	TRec Rec = TJsRec::GetArgRec(Args, 0);
-//	// create feature vector, compute
+//    // parse arguments
+//	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
+//    TRec Rec = TJsRec::GetArgRec(Args, 0);
+//    // create feature vector
+//    // access violation (javascript function) if object is created before feature extraction:	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
 //	TFltV FltV;
-//	JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
-//	// Create result and append vector
-//	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js, FltV);
+//    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+//	// todo: investigate why this is OK and above option isnt	
+//	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
+//	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(JsFltV->GetInternalField(0));
+//	TJsFltV* JsObj = static_cast<TJsFltV*>(WrappedObject->Value());
+//	JsObj->Vec = FltV;
 //	// return
 //	return HandleScope.Close(JsFltV);
 //}
+
+v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+	TRec Rec = TJsRec::GetArgRec(Args, 0);
+	// create feature vector, compute
+	TFltV FltV;
+	JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// Create result and append vector
+	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js, FltV);
+	// return
+	return HandleScope.Close(JsFltV);
+}
 
 v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -4593,6 +4593,7 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterFunction(TmpTemp, sleep);
 		JsRegisterProperty(TmpTemp, scriptNm);
 		JsRegisterProperty(TmpTemp, scriptFNm);
+		JsRegisterFunction(TmpTemp, getGlobals);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4624,6 +4625,24 @@ v8::Handle<v8::Value> TJsProcess::scriptFNm(v8::Local<v8::String> Properties, co
 	return HandleScope.Close(ScriptFNm);
 }
 
+v8::Handle<v8::Value> TJsProcess::getGlobals(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Args);
+	v8::Local<v8::Object> Obj = JsProc->Js->Context->Global();
+	v8::Local<v8::Array> Properties = Obj->GetPropertyNames();	
+	//for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
+	//	// get each property as string, extract arg json and attach it to ParamVal
+	//	TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
+	//	PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
+	//	printf("%s", PropStr.CStr());
+	//	if (PropN < Properties->Length() - 1) {
+	//		printf(", ");
+	//	}
+	//	else { printf("\n"); }
+	//}
+	return HandleScope.Close(Properties);
+	//return v8::Undefined();
+}
 
 ///////////////////////////////
 // QMiner-JavaScript-Console

@@ -2299,6 +2299,8 @@ public:
 	JsDeclareProperty(scriptNm);
 	//#- `process.scriptFNm` -- Returns absolute script file path.
 	JsDeclareProperty(scriptFNm);
+	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
+	JsDeclareFunction(getGlobals);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 
