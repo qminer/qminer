@@ -905,8 +905,6 @@ public:
 
     // temporary stuff
 	JsDeclareProperty(analytics); // deprecated    
-	JsDeclareProperty(args); // to be moved to TJsProcess once created
-    JsDeclareProperty(sysStat);  // to be moved to TJsProcess once created
 	JsDeclareFunction(op); // soon to be deprecated, functionality moved to TJsRecSet
 
 	//# 
@@ -2207,8 +2205,16 @@ public:
     //#
 	//# **Functions and properties:**
 	//#
+	//#- `process.stop()` -- Stopes the current process.
+	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
+    JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
+    //#- `a = process.args` -- array of command-line arguments 
+    //#     used to start current QMiner instance
+	JsDeclareProperty(args);
+    //#- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+    JsDeclareProperty(sysStat);
 
     //#JSIMPLEMENT:src/qminer/process.js
 };

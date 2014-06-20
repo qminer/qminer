@@ -947,8 +947,6 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, analytics);
-		JsRegisterProperty(TmpTemp, args);
-		JsRegisterProperty(TmpTemp, sysStat);
 		JsRegisterFunction(TmpTemp, store);
 		JsRegisterFunction(TmpTemp, getStoreList);
 		JsRegisterFunction(TmpTemp, createStore);
@@ -969,24 +967,6 @@ v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const
 	return TJsAnalytics::New(JsBase->Js);
 }
 
-v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	PJsonVal ArgsVal = TJsonVal::NewArr(Env.GetArgV());
-	return HandleScope.Close(TJsUtil::ParseJson(ArgsVal));
-}
-
-v8::Handle<v8::Value> TJsBase::sysStat(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-    PJsonVal StatVal = TJsonVal::NewObj();
-#ifdef GLib_LINUX   
-    TSysMemStat MemStat;
-    StatVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
-    StatVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
-    StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
-#endif    	
-	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
-}
-	
 v8::Handle<v8::Value> TJsBase::op(const v8::Arguments& Args) {	
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);	
@@ -4397,24 +4377,53 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, stop);
 		JsRegisterFunction(TmpTemp, sleep);
+		JsRegisterProperty(TmpTemp, args);
+		JsRegisterProperty(TmpTemp, sysStat);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
 	return Template;
 }
 
-v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsProcess::stop(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-
-	const TInt Millis = TJsProcessUtil::GetArgInt32(Args,0);
-	QmAssertR(Millis >= 0, "Sleep time must be greater or equal to than 0!");
-
-	TSysProc::Sleep(TUInt(Millis));
-
+    if (TJsProcessUtil::IsArg(Args, 0)) {
+        // we have return code, get it
+        TEnv::ReturnCode = TJsProcessUtil::GetArgInt32(Args, 0);
+    }
+    // send message to server to quit
+    TLoop::Stop();
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	const TInt Millis = TJsProcessUtil::GetArgInt32(Args,0);
+	QmAssertR(Millis >= 0, "Sleep time must be greater or equal to than 0!");
+	TSysProc::Sleep(TUInt(Millis));
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsProcess::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	PJsonVal ArgsVal = TJsonVal::NewArr(Env.GetArgV());
+	return HandleScope.Close(TJsUtil::ParseJson(ArgsVal));
+}
+
+v8::Handle<v8::Value> TJsProcess::sysStat(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    PJsonVal StatVal = TJsonVal::NewObj();
+#ifdef GLib_LINUX   
+    TSysMemStat MemStat;
+    StatVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
+    StatVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
+    StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
+#endif    	
+	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
+}
+	
 
 ///////////////////////////////
 // QMiner-JavaScript-Console
