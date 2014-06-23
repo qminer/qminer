@@ -1913,6 +1913,11 @@ public:
     //#     from `fin` stream
 	JsDeclareFunction(loadSvmModel);
     
+    //#- `model = analytics.newNN(parameters)` -- create new neural network
+    //#     model; constructing `parameters` are `layout` (vector of ints, where every int represents number of neurons in a layer
+    //#     ), `learnRate` (learn rate, default is 0.1), `momentum` (momentum, default is 0.1),
+    //#     `tFuncHidden` (transfer function in hidden layers) and `tFuncOut` (transfer function in the output layer)
+    JsDeclareFunction(newNN);
     //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `fs.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
@@ -2030,6 +2035,36 @@ public:
 	JsDeclareProperty(weights);   
     //#- `model.save(fout)` -- saves model to output stream `fout`
 	JsDeclareFunction(save);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Neural-Networks
+//#
+//# ### Neural network model
+//#
+//# Holds the neural network model. This object is result of `analytics.newNN`.
+class TJsNN {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// NN Model
+    TSignalProc::PNNet NN;
+
+private:
+    typedef TJsObjUtil<TJsNN> TJsNNUtil;
+	TJsNN(TWPt<TScript> _Js, const TSignalProc::PNNet& _NN): Js(_Js), NN(_NN) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PNNet& NN) {
+		return TJsNNUtil::New(new TJsNN(Js, NN)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
+	//# 
+	//# **Functions and properties:**
+	//#     
+    JsDeclareFunction(learn);
+    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    //#     model and returns the prediction as a vector
+	JsDeclareFunction(predict);
 };
 
 ///////////////////////////////
