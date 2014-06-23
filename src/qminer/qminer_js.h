@@ -1998,9 +1998,10 @@ public:
 	JsDeclareFunction(loadSvmModel);
     
     //#- `model = analytics.newNN(parameters)` -- create new neural network
-    //#     model; constructing `parameters` are `layout` (vector of ints, where every int represents number of neurons in a layer
-    //#     ), `learnRate` (learn rate, default is 0.1), `momentum` (momentum, default is 0.1),
-    //#     `tFuncHidden` (transfer function in hidden layers) and `tFuncOut` (transfer function in the output layer)
+    //#     model; constructing `parameters` are a JSON object with properties: `parameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    //#     ), `parameters.learnRate` (number learn rate, default is 0.1), `parameters.momentum` (number momentum, default is 0.1),
+    //#     `parameters.tFuncHidden` (a string representing transfer function in hidden layers) and `parameters.tFuncOut` (a string representing transfer function in the output layer). 
+	//#     The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
     JsDeclareFunction(newNN);
     //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
