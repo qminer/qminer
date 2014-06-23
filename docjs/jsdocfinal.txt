@@ -56,7 +56,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
 - `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
   and returns a record set `rs` with results
--- `qm.gc()` -- start garbage collection to remove records outside time windows
+- `qm.gc()` -- start garbage collection to remove records outside time windows
 - `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
   When `limit != -1` only first first `limit` lines are loaded
