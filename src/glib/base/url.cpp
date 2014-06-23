@@ -285,6 +285,40 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   */
 }
 
+TUrl::TUrl(TSIn& SIn) : 
+  Scheme(usUndef),
+  UrlStr(),
+  SchemeNm(), HostNm(),
+  PortStr(), PathStr(), SearchStr(), FragIdStr(),
+  PortN(-1), PathSegV(),
+  IpNum(),
+  FinalUrlStr(), FinalHostNm(),
+  HttpRqStr()
+{
+  RelUrlStr = TStr(SIn);
+  BaseUrlStr = TStr(SIn);
+
+  RelUrlStr.ToTrunc();
+  RelUrlStr.ChangeStrAll(" ", "%20");
+  try {
+    if (IsAbs(RelUrlStr)){
+      GetAbs(RelUrlStr);
+    } else
+    if (IsAbs(BaseUrlStr)){
+      GetAbsFromBase(RelUrlStr, BaseUrlStr);
+    } else {
+      Scheme=usUndef;
+    }
+  }
+  catch (PExcept&){Scheme=usUndef;}
+}
+
+void TUrl::Save(TSOut& SOut)
+{
+	RelUrlStr.Save(SOut);
+	BaseUrlStr.Save(SOut);
+}
+
 TStr TUrl::GetDmNm(const int& MxDmSegs) const {
   EAssert(IsOk());
   TChA DmChA; int DmSegs=0;
@@ -391,7 +425,7 @@ TStr TUrl::GetUrlSearchStr(const TStr& Str){
     if (Ch==' '){
       OutChA+='+';
     } else
-    if ((' '<Ch)&&(Ch<='~')&&(Ch!='+')&&(Ch!='&')&&(Ch!='%')){
+	if ((' '<Ch)&&(Ch<='~')&&(Ch!='+')&&(Ch!='&')&&(Ch!='%')&&(Ch!='#')){
       OutChA+=Ch;
     } else {
       OutChA+='%';
