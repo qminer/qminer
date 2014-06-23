@@ -585,6 +585,8 @@ public:
   TStr Right(const int& BChN) const {return BChN>=0 ? GetSubStr(BChN, Len()-1) : GetSubStr(Len()+BChN, Len()-1);}
   TStr Slice(int BChN, int EChNP1) const { if(BChN<0){BChN=Len()+BChN;} if(EChNP1<=0){EChNP1=Len()+EChNP1;} return GetSubStr(BChN, EChNP1-1); }
   TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
+  TStr TrimLeft(const TStr& StartStr) const { return IsPrefix(StartStr) ? GetSubStr(StartStr.Len()) : TStr(*this); }
+  TStr TrimRight(const TStr& EndStr) const { return IsSuffix(EndStr) ? GetSubStr(0, Len()-EndStr.Len()-1) : TStr(*this); }
 
   int CountCh(const char& Ch, const int& BChN=0) const;
   int SearchCh(const char& Ch, const int& BChN=0) const;
@@ -721,6 +723,7 @@ public:
     return GetStr(Str, FmtStr.CStr());}
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
   static TStr Fmt(const char *FmtStr, ...);
+  static TStr FmtBf(char* Bf, int BfSize, const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
   //BF: This is dangerously easy to confuse with CStr()
   //char* GetCStr() const {
@@ -955,6 +958,8 @@ public:
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val;}
 
+  TStr GetStr() const {return TBool::GetStr(Val);}
+
   static bool GetRnd(){return Rnd.GetUniDevInt(2)==1;}
 
   static TStr GetStr(const bool& Val){
@@ -993,6 +998,7 @@ public:
   TCh(const char& _Val): Val(_Val){}
   operator char() const {return Val;}
   explicit TCh(TSIn& SIn){SIn.Load(Val);}
+  void Load(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
@@ -1005,7 +1011,10 @@ public:
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val;}
+  TStr GetStr() const { return TStr(Val); }
 
+  static bool IsPunct(const char& Ch) {
+	  return (Ch>=33 && Ch <=47) || (Ch>=58 && Ch <= 64) || (Ch >= 91 && Ch <= 96) || (Ch >= 123 && Ch <= 126); }
   static bool IsWs(const char& Ch){
     return (Ch==' ')||(Ch==TabCh)||(Ch==CrCh)||(Ch==LfCh);}
   static bool IsAlpha(const char& Ch){
@@ -1048,9 +1057,11 @@ public:
   TUCh(const uchar& _Val): Val(_Val){}
   operator uchar() const {return Val;}
   explicit TUCh(TSIn& SIn){SIn.Load(Val);}
+  void Load(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
+  TStr GetStr() const { return TStr::Fmt("%u", Val); }
 
   TUCh& operator=(const TUCh& UCh){Val=UCh.Val; return *this;}
   bool operator==(const TUCh& UCh) const {return Val==UCh.Val;}

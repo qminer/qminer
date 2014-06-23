@@ -1683,6 +1683,15 @@ TStr TStr::GetNullStr(){
   return NullStr;
 }
 
+TStr TStr::FmtBf(char* Bf, int BfSize, const char *FmtStr, ...)
+{
+	va_list valist;
+	va_start(valist, FmtStr);
+	const int RetVal = vsnprintf(Bf, BfSize, FmtStr, valist);
+	va_end(valist);
+	return RetVal != -1 ? TStr(Bf) : TStr::GetNullStr();
+}
+
 TStr operator+(const TStr& LStr, const TStr& RStr){
   if (LStr.Empty()){return RStr;}
   else if (RStr.Empty()){return LStr;}
