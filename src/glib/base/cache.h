@@ -379,7 +379,16 @@ TBlockCache<TVal>::TBlockCache(const TStr& _FNmPrefix, const TFAccess& _Access,
 	CacheResetThreshold = MAX(int64(0.1 * double(MxCacheMem)), int64(10*1024*1024));
 	NewCacheSizeInc = 0;
 	// initialize value disk store
-    BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
+    try 
+	{
+		BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);
+	}
+	catch (...) 
+	{ 
+		TMBlobBs::New(FNmPrefix + "BlobBs", faRestore);
+		BlockBlobBs = TMBlobBs::New(FNmPrefix + "BlobBs", Access);	// open it then in a normal fashion
+	}
+
 	// make sure we are not trying to create
 	EAssertR(Access != faCreate, "First call create constructor!");
 	// load BlockId map and BlockSize
