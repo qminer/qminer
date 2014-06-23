@@ -20,6 +20,7 @@
 #ifndef base_h
 #define base_h
 
+#define CPP11
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)
