@@ -177,6 +177,8 @@ public:
 
   void GetVal(TVal1& _Val1, TVal2& _Val2, TVal3& _Val3) const {
     _Val1=Val1; _Val2=Val2; _Val3=Val3;}
+  TStr GetStr() const {
+    return TStr("Triple(")+Val1.GetStr()+", "+Val2.GetStr()+", "+Val3.GetStr()+")";}
 };
 
 typedef TTriple<TCh, TCh, TCh> TChTr;
@@ -265,6 +267,8 @@ public:
 
   void GetVal(TVal1& _Val1, TVal2& _Val2, TVal3& _Val3, TVal4& _Val4) const {
     _Val1=Val1; _Val2=Val2; _Val3=Val3; _Val4=Val4;}
+  TStr GetStr() const {
+    return TStr("Quad(")+Val1.GetStr()+", "+Val2.GetStr()+", "+Val3.GetStr()+", "+Val4.GetStr()+")";}
 };
 
 typedef TQuad<TStr, TStr, TInt, TInt> TStrStrIntIntQu;
@@ -461,10 +465,13 @@ protected:
 public:
   TVec(): MxVals(0), Vals(0), ValT(NULL){}
   TVec(const TVec<TVal, TSizeTy>& Vec);
+#ifdef CPP11
   // Move constructor
   TVec(TVec<TVal, TSizeTy>&& Vec);
   // Move assignment
   TVec<TVal, TSizeTy>& operator=(TVec<TVal, TSizeTy>&& Vec);
+#endif
+
   /// Constructs a vector (an array) of length \c _Vals.
   explicit TVec(const TSizeTy& _Vals){
     IAssert(0<=_Vals); MxVals=Vals=_Vals;
@@ -609,6 +616,8 @@ public:
   void DelAll(const TVal& Val);
   /// Sets all elements of the vector to value \c Val.
   void PutAll(const TVal& Val);
+  /// Sets element at pos ValN to value \c Val.
+  void PutAt(const TSizeTy& ValN, const TVal& Val);
   
   /// Swaps elements at positions \c ValN1 and \c ValN2.
   void Swap(const TSizeTy& ValN1, const TSizeTy& ValN2){ const TVal Val=ValT[ValN1]; ValT[ValN1]=ValT[ValN2]; ValT[ValN2]=Val;}
@@ -645,6 +654,8 @@ public:
   void Reverse(TSizeTy LValN, TSizeTy RValN){ Assert(LValN>=0 && RValN<Len()); while (LValN < RValN){Swap(LValN++, RValN--);} }
   /// Sorts the vector and only keeps a single element of each value.
   void Merge();
+
+  TStr GetStr() const { return TStr("<Vector>");}
 
   /// Picks three random elements at positions <tt>BI...EI</tt> and returns the middle one under the comparator \c Cmp.
   template <class TCmp>
@@ -812,6 +823,7 @@ TVec<TVal, TSizeTy>::TVec(const TVec<TVal, TSizeTy>& Vec){
   for (TSizeTy ValN=0; ValN<Vec.Vals; ValN++){ValT[ValN]=Vec.ValT[ValN];}
 }
 
+#ifdef CPP11
 template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT() {
 	//TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
@@ -837,6 +849,7 @@ TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
 	}
 	return *this;
 }
+#endif 
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Load(TSIn& SIn){
@@ -859,6 +872,7 @@ int TVec<TVal, TSizeTy>::WriteN(int fd, char *ptr, int nbytes) {
   int nwritten;
 
   nleft = nbytes;
+#ifndef SWIG
   while (nleft > 0) {
     nwritten = write(fd, ptr, nleft);
     if (nwritten <= 0) {
@@ -867,6 +881,7 @@ int TVec<TVal, TSizeTy>::WriteN(int fd, char *ptr, int nbytes) {
     nleft -= nwritten;
     ptr += nwritten;
   }
+#endif
   return (nbytes-nleft);
 }
 
@@ -1068,6 +1083,8 @@ TSizeTy TVec<TVal, TSizeTy>::AddUnique(const TVal& Val){
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+  if (Len() == 0 || _BValN >= Len() || _BValN >= _EValN)
+    return;
   const TSizeTy BValN=TInt::GetInRng(_BValN, 0, Len()-1);
   const TSizeTy EValN=TInt::GetInRng(_EValN, 0, Len()-1);
   const TSizeTy SubVals=TInt::GetMx(0, EValN-BValN+1);
@@ -1123,6 +1140,11 @@ void TVec<TVal, TSizeTy>::DelAll(const TVal& Val){
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::PutAll(const TVal& Val){
   for (TSizeTy ValN=0; ValN<Vals; ValN++){ValT[ValN]=Val;}
+}
+
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::PutAt(const TSizeTy& ValN, const TVal& Val){
+	ValT[ValN]=Val;
 }
 
 template <class TVal, class TSizeTy>
@@ -2535,6 +2557,9 @@ public:
   void Save(TSOut& SOut) const {
     MxLast.Save(SOut); MxLen.Save(SOut);
     First.Save(SOut); Last.Save(SOut); ValV.Save(SOut);}
+  void Load(TSIn& SIn){
+    MxLast.Load(SIn); MxLen.Load(SIn);
+    First.Load(SIn); Last.Load(SIn); ValV.Load(SIn);}
 
   TQQueue& operator=(const TQQueue& Queue){
     if (this!=&Queue){MxLast=Queue.MxLast; MxLen=Queue.MxLen;
@@ -2620,11 +2645,12 @@ private:
 public:
   TLst(): Nds(0), FirstNd(NULL), LastNd(NULL){}
   TLst(const TLst&);
+  TLst<TVal>& operator=(const TLst<TVal>& Val);
   ~TLst(){Clr();}
   explicit TLst(TSIn& SIn);
   void Save(TSOut& SOut) const;
 
-  TLst& operator=(const TLst&);
+  //TLst& operator=(const TLst&);
 
   void Clr(){
     PLstNd Nd=FirstNd;
@@ -2662,6 +2688,19 @@ TLst<TVal>::TLst(TSIn& SIn):
   int CheckNds=0; SIn.Load(CheckNds);
   for (int NdN=0; NdN<CheckNds; NdN++){AddBack(TVal(SIn));}
   Assert(Nds==CheckNds);
+}
+
+template <class TVal>
+TLst<TVal>& TLst<TVal>::operator=(const TLst<TVal>& Val){
+	if (this != &Val) {
+		Clr();
+		PLstNd Nd = Val.First();
+		while (Nd != NULL) { 
+			AddBack(TVal(Nd->Val));
+			Nd = Nd->NextNd; 
+		}
+	}
+	return *this;
 }
 
 template <class TVal>
