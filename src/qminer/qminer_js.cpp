@@ -4322,24 +4322,6 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
 	return HandleScope.Close(JsSpV);
 }
 
-//v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
-//	v8::HandleScope HandleScope;
-//    // parse arguments
-//	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-//    TRec Rec = TJsRec::GetArgRec(Args, 0);
-//    // create feature vector
-//    // access violation (javascript function) if object is created before feature extraction:	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-//	TFltV FltV;
-//    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
-//	// todo: investigate why this is OK and above option isnt	
-//	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-//	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(JsFltV->GetInternalField(0));
-//	TJsFltV* JsObj = static_cast<TJsFltV*>(WrappedObject->Value());
-//	JsObj->Vec = FltV;
-//	// return
-//	return HandleScope.Close(JsFltV);
-//}
-
 v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	// parse arguments
@@ -5346,25 +5328,24 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
 
 ///////////////////////////////////////////////
 // Javascript Function Feature Extractor
-//TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
-//	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)"); 
-//}
-//
-//TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
-//	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
-//}
-//
-//PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-//	return new TJsFuncFtrExt(Base, ParamVal);
-//}
-//
-//PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-//	return new TJsFuncFtrExt(Base, SIn);
-//}
-//void TJsFuncFtrExt::Save(TSOut& SOut) const {
-//	GetType().Save(SOut);
-//	TFtrExt::Save(SOut);
-//}
+TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
+	throw TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
+	throw TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TJsFuncFtrExt(Base, ParamVal);
+}
+
+PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+	return new TJsFuncFtrExt(Base, SIn);
+}
+void TJsFuncFtrExt::Save(TSOut& SOut) const {
+	throw TQmExcept::New("TJsFuncFtrExt::Save(TSOut& Sout) : saving is not supported");
+}
 
 void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 	SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;

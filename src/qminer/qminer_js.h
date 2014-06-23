@@ -992,7 +992,7 @@ public:
     //#- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
     //#   and returns a record set `rs` with results
 	JsDeclareFunction(search);   
-    //#-- `qm.gc()` -- start garbage collection to remove records outside time windows
+    //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
@@ -2703,12 +2703,12 @@ public:
 	}
 // Feature extractor API
 private:
-	//TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
-	//TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+	TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
+	TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
 public:
-	//static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
-	//static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will fail
-	//void Save(TSOut& SOut) const;
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
+	static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
+	void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return Name; }
 	int GetDim() const { return 1; }
