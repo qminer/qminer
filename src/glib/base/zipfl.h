@@ -38,6 +38,7 @@ private:
     FILE* ZipStdoutRd, *ZipStdoutWr;
   #endif
   uint64 FLen, CurFPos;
+  bool UnknownLength;
   char* Bf;
   int BfC, BfL;
 private:

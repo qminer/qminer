@@ -58,11 +58,32 @@ void TZipIn::FillBf(){
   #ifdef GLib_WIN
   // Read output from the child process
   DWORD BytesRead;
-  EAssert(ReadFile(ZipStdoutRd, Bf, MxBfL, &BytesRead, NULL) != 0);
+  if(ReadFile(ZipStdoutRd, Bf, MxBfL, &BytesRead, NULL) == 0) {
+	  DWORD error = GetLastError();
+	  if (error != ERROR_HANDLE_EOF) {
+		  EFailR(TStr::Fmt("Error reading archive. %d", error));
+	  }
+  }
   #else
-  size_t BytesRead = fread(Bf, 1, MxBfL, ZipStdoutRd);
-  EAssert(BytesRead != 0);
+  size_t BytesRead;
+  if (UnknownLength && feof(ZipStdoutRd)) {
+	  // if full length is unknown, check EOF flag
+	  // useful in case the last read was final but stilled filled the buffer
+	  FLen = CurFPos;
+	  BfL = 0;
+	  BfC = 0;
+  } else {
+	  BytesRead = fread(Bf, 1, MxBfL, ZipStdoutRd);
+	  EAssertR(BytesRead != 0, "Error reading archive.");
+  }
   #endif
+
+  if (UnknownLength && BytesRead < MxBfL) {
+	  // if full length is unknown and this read did not fill the buffer,
+	  // consider this to be the final read and set the computed length
+	  FLen = CurFPos + BytesRead;
+  }
+
   BfL = (int) BytesRead;
   CurFPos += BytesRead;
   EAssertR((BfC!=0)||(BfL!=0), "Error reading file '"+GetSNm()+"'.");
