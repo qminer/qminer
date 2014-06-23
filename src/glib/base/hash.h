@@ -1098,7 +1098,10 @@ void TCache<TKey, TDat, THashFunc>::Flush(){
   printf("Flush: 0/%d\r", KeyDatH.Len());
   int KeyId=KeyDatH.FFirstKeyId(); int Done = 0;
   while (KeyDatH.FNextKeyId(KeyId)){
-    if (Done%10000==0){printf("Flush: %d/%d\r", Done, KeyDatH.Len());}
+    if (Done%10000==0){
+		double Perc = Done / (0.01 * (double) KeyDatH.Len());
+		printf("Flush: %d/%d (%.1f%%)\r", Done, KeyDatH.Len(), Perc);
+	}
     const TKey& Key=KeyDatH.GetKey(KeyId);
     TKeyLNDatPr& KeyLNDatPr=KeyDatH[KeyId];
     TDat Dat=KeyLNDatPr.Val2;
