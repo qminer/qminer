@@ -71,11 +71,13 @@ namespace TQm {
 //# are implemented in C++, for example `analytics` and `time`.
 //# 
 //# The QMiner system comes with the following libraries:
-//#- `analytics.js` -- main API for analytics techniques
-//#- `utilities.js` -- useful JavaScript utilities, e.g., checking variable type
-//#- `time` -- wrapper around user-friendly date-time object
-//#- `assert.js` -- support for writing unit tests
-    
+//#- **analytics.js** -- main API for analytics techniques
+//#- **utilities.js** -- useful JavaScript utilities, e.g., checking variable type
+//#- **time** -- wrapper around user-friendly date-time object
+//#- **assert.js** -- support for writing unit tests
+//#- **twitter.js** -- support for processing tweets
+
+
 ///////////////////////////////
 // JavaScript-Exceptions-related macros 
 
@@ -1064,7 +1066,7 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
 	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
+    //#- `store.addStreamAggr(TypeName, Parameters)` -- add new [Stream Aggregate](Stream-Aggregates) 
     //#     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
     JsDeclareFunction(addStreamAggr);
     //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
@@ -1368,7 +1370,7 @@ public:
 	//#- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
 	//#- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
 	//#- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-	//#- `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
+	//#- `mat = la.newSpMat({"rows":r, "cols":c})` --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
 	JsDeclareFunction(newSpMat);
 	//#- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
 	JsDeclareFunction(svd);	
@@ -1485,7 +1487,7 @@ public:
 	JsDeclareTemplatedFunction(minus);
 	//#- `vec2 = vec1.multiply(a)` --`vec2` is a vector obtained by multiplying vector `vec1` with a scalar (number) `a`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(multiply);
-	//#- `vec.normalize();` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
+	//#- `vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
 	JsDeclareProperty(length);
@@ -2440,7 +2442,7 @@ public:
 	JsDeclareFunction(del);
     //#- `fs.rename(fromFileName, toFileName)`
 	JsDeclareFunction(rename);
-    //#- `info = fs.fileInfo(fileName,)`
+    //#- `info = fs.fileInfo(fileName)`
 	JsDeclareFunction(fileInfo);
     //#- `fs.mkdir(dirName)`
 	JsDeclareFunction(mkdir);
@@ -2556,7 +2558,7 @@ public:
     //#- `http.postStr(url, mimeType, data, success_callback)`
     //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
 	JsDeclareFunction(post);
-    //#- `http.onRequest(path, verb, function (request, response) { ... })`
+    //#- `http.onRequest(path, verb, function (request, response) { /*...*/ })`
 	JsDeclareFunction(onRequest);
     //#JSIMPLEMENT:src/qminer/http.js    
 };
@@ -2668,7 +2670,7 @@ public:
     JsDeclareFunction(sub); 
     //#- `tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
-    //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
+    //#- `date = tm.parse('2014-05-29T10:09:12')` -- parses string and returns it
     //#     as Date-Time object
 	JsDeclareFunction(parse);
 };

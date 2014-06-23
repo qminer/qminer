@@ -566,7 +566,7 @@ exports.perceptron = function (dim, use_bias) {
             }
         }
     };
-    //#   - `class = model.predict(x)` -- returns the prediction (0 or 1)
+    //#   - `c = model.predict(x)` -- returns the prediction (0 or 1)
     this.predict = function (x) {
         return (w.inner(x) + b) > 0 ? 1 : 0;
     };

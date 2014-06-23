@@ -27,7 +27,7 @@
 //# 
 //# **Functions and properties:**
 //#
-//#- `var twitterDef = new twitter.TwitterStore()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
+//#- `twitterDef = new twitter.TwitterStore()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
 exports.TwitterStore = function () {
     var defJSON = [
     {
@@ -196,7 +196,7 @@ exports.TwitterStore = function () {
     ];
     return defJSON;
 }
-//#- `var Parser = new twitter.Parser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
+//#- `parser = new twitter.Parser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
 exports.Parser = function () {
     // support functions for parsing new tweets
     var months = {};
