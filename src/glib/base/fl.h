@@ -309,9 +309,9 @@ private:
   TFIn& operator=(const TFIn&);
 public:
   TFIn(const TStr& FNm);
-  TFIn(const TStr& FNm, bool& OpenedP);
+  TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   static PSIn New(const TStr& FNm);
-  static PSIn New(const TStr& FNm, bool& OpenedP);
+  static PSIn New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP = false);
   ~TFIn();
 
   bool Eof(){

@@ -297,21 +297,24 @@ TFIn::TFIn(const TStr& FNm):
   Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();
 }
 
-TFIn::TFIn(const TStr& FNm, bool& OpenedP):
+TFIn::TFIn(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP):
   TSBase(FNm.CStr()), TSIn(FNm), FileId(NULL), Bf(NULL), BfC(0), BfL(0){
   EAssertR(!FNm.Empty(), "Empty file-name.");
   FileId=fopen(FNm.CStr(), "rb");
   OpenedP=(FileId!=NULL);
   if (OpenedP){
-    Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();}
+	Bf=new char[MxBfL]; BfC=BfL=-1; FillBf();
+	if (IgnoreBOMIfExistsP && Bf[0] == (char)0xEF && Bf[1] == (char)0xBB && Bf[2] == (char)0xBF) 
+		BfC = 3;
+  }
 }
 
 PSIn TFIn::New(const TStr& FNm){
   return PSIn(new TFIn(FNm));
 }
 
-PSIn TFIn::New(const TStr& FNm, bool& OpenedP){
-  return PSIn(new TFIn(FNm, OpenedP));
+PSIn TFIn::New(const TStr& FNm, bool& OpenedP, const bool IgnoreBOMIfExistsP){
+  return PSIn(new TFIn(FNm, OpenedP, IgnoreBOMIfExistsP));
 }
 
 TFIn::~TFIn(){
