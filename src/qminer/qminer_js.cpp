@@ -2739,6 +2739,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);		
 	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
+	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
 	return HandleScope.Close(JsResult);	
 }
 
@@ -3377,7 +3378,7 @@ v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
 		}
 	}
 	if (Len == -1) {
-		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec);
+		Len = TLAMisc::GetMaxDimIdx(JsSpV->Vec) + 1;
 	}
 	TFltV Res;
 	TLAMisc::ToVec(JsSpV->Vec, Res, Len);		
@@ -4314,22 +4315,23 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     TRec Rec = TJsRec::GetArgRec(Args, 0);
     // create feature vector
-	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js);
-	TIntFltKdV& SpV = TJsSpV::GetSpV(JsSpV);
+	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
+	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js, SpV);
 	// return
 	return HandleScope.Close(JsSpV);
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::ftrVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
-    TRec Rec = TJsRec::GetArgRec(Args, 0);
-    // create feature vector
-    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js);
-    TFltV& FltV = TJsFltV::GetVec(JsFltV);
-    JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+	TRec Rec = TJsRec::GetArgRec(Args, 0);
+	// create feature vector, compute
+	TFltV FltV;
+	JsFtrSpace->FtrSpace->GetFullV(Rec, FltV);
+	// Create result and append vector
+	v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsFtrSpace->Js, FltV);
 	// return
 	return HandleScope.Close(JsFltV);
 }
@@ -4340,9 +4342,10 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpColMat(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     // create feature matrix
-	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js);
-	TVec<TIntFltKdV>& SpMat = TJsSpMat::GetSpMat(JsSpMat);
+	TVec<TIntFltKdV> SpMat;
 	JsFtrSpace->FtrSpace->GetSpVV(RecSet, SpMat);
+	// create result
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsFtrSpace->Js, SpMat);
 	// return
 	return HandleScope.Close(JsSpMat);
 }
@@ -4353,9 +4356,10 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrColMat(const v8::Arguments& Args) {
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);	
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     // create feature matrix
-	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js);
-	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
+	TFltVV Mat;
 	JsFtrSpace->FtrSpace->GetFullVV(RecSet, Mat);
+	// create result
+	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsFtrSpace->Js, Mat);
 	// return
 	return HandleScope.Close(JsMat);
 }
@@ -4569,6 +4573,9 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, sleep);
+		JsRegisterProperty(TmpTemp, scriptNm);
+		JsRegisterProperty(TmpTemp, scriptFNm);
+		JsRegisterFunction(TmpTemp, getGlobals);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4586,6 +4593,38 @@ v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsProcess::scriptNm(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptNm = v8::String::New(JsProc->Js->GetScriptNm().CStr());
+	return HandleScope.Close(ScriptNm);
+}
+
+v8::Handle<v8::Value> TJsProcess::scriptFNm(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptFNm = v8::String::New(JsProc->Js->GetScriptFNm().CStr());
+	return HandleScope.Close(ScriptFNm);
+}
+
+v8::Handle<v8::Value> TJsProcess::getGlobals(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Args);
+	v8::Local<v8::Object> Obj = JsProc->Js->Context->Global();
+	v8::Local<v8::Array> Properties = Obj->GetPropertyNames();	
+	//for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
+	//	// get each property as string, extract arg json and attach it to ParamVal
+	//	TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
+	//	PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
+	//	printf("%s", PropStr.CStr());
+	//	if (PropN < Properties->Length() - 1) {
+	//		printf(", ");
+	//	}
+	//	else { printf("\n"); }
+	//}
+	return HandleScope.Close(Properties);
+	//return v8::Undefined();
+}
 
 ///////////////////////////////
 // QMiner-JavaScript-Console
@@ -5289,25 +5328,24 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
 
 ///////////////////////////////////////////////
 // Javascript Function Feature Extractor
-//TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
-//	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)"); 
-//}
-//
-//TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
-//	FailR("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
-//}
-//
-//PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-//	return new TJsFuncFtrExt(Base, ParamVal);
-//}
-//
-//PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-//	return new TJsFuncFtrExt(Base, SIn);
-//}
-//void TJsFuncFtrExt::Save(TSOut& SOut) const {
-//	GetType().Save(SOut);
-//	TFtrExt::Save(SOut);
-//}
+TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) { 
+	throw TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
+	throw TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+PFtrExt TJsFuncFtrExt::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TJsFuncFtrExt(Base, ParamVal);
+}
+
+PFtrExt TJsFuncFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+	return new TJsFuncFtrExt(Base, SIn);
+}
+void TJsFuncFtrExt::Save(TSOut& SOut) const {
+	throw TQmExcept::New("TJsFuncFtrExt::Save(TSOut& Sout) : saving is not supported");
+}
 
 void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 	SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;

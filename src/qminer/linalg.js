@@ -46,6 +46,25 @@ la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     }
 }
 
+//#- `la.printFeatVec(Vec, fsp, limit, sortedAsc)` -- Print a feature vector `Vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
+la.printFeatVec = function (Vec, fsp, limit, sortedAsc) {
+    limit = limit || Vec.length;
+    sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
+    // with sorting
+    if (sortedAsc != 0.5) {
+        //returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order. Implemented for dense float vectors.
+        res = Vec.sortPerm(sortedAsc > 0.5);
+        for (var elN = 0; elN < limit; elN++) {
+            console.println(res.perm[elN] + " " + Vec[res.perm[elN]] + " : " + fsp.getFtr(res.perm[elN]));
+        }
+        return;
+    }
+    // no sorting
+    for (var elN = 0; elN < limit; elN++) {
+        console.println(elN + " " + Vec[elN] + " : " + fsp.getFtr(elN));
+    }
+}
+
 //#- `la.printArray(arr)` -- print the javascript array `arr` in the console
 la.printArray = function (arr) {
     var els = arr.length;

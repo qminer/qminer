@@ -63,6 +63,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
   parsing each line as JSON and adding it as record to `store`
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
+- `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 
@@ -230,6 +231,7 @@ several functions from linear algebra.
 - `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
 - `la.printVec(vec)` -- print the vector in the console, `vec` can be int or float vector
 - `la.printSpFeatVec(spVec, fsp, sortedAsc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
+- `la.printFeatVec(Vec, fsp, limit, sortedAsc)` -- Print a feature vector `Vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
 - `la.printArray(arr)` -- print the javascript array `arr` in the console
 - `la.printMat(matrix)` -- print the `matrix` (dense or sparse) in the console as a dense matrix
 - `x = la.genRandom()` -- `x` is a sample from a standard normal random variable
@@ -594,6 +596,9 @@ The HoeffdingTree algorithm comes with many parameters:
 **Functions and properties:**
 
 - `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
+- `process.scriptNm` -- Returns the name of the script.
+- `process.scriptFNm` -- Returns absolute script file path.
+- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `process.isArg(arg)` -- returns true when `arg` among the 
