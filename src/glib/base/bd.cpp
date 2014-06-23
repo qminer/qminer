@@ -17,11 +17,10 @@
  * 
  */
 
-#define SW_TRACE 0
-
-#if SW_TRACE
+#ifdef GLib_LINUX
 #include <execinfo.h>
 #endif
+
 
 /////////////////////////////////////////////////
 // Mathmatical-Errors
@@ -81,8 +80,20 @@ void SaveToErrLog(const char* MsgCStr){
   delete[] FNm;
 }
 
-#if SW_TRACE
+#ifdef GLib_LINUX
+char exe_name_buff[1024];
+
+void initialiseExecutableName()
+{
+	char pid_buf[30];
+	sprintf(pid_buf, "%d", getpid());
+
+	exe_name_buff[readlink("/proc/self/exe", exe_name_buff, 1023)] = 0;
+	printf("Executable name initialised: %s\n", exe_name_buff);
+}
+
 void PrintBacktrace() {
+	/*
   // stack dump, works for g++
   void *array[20];
   size_t size;
@@ -93,12 +104,24 @@ void PrintBacktrace() {
   // get the trace and print it to stdout
   size = backtrace(array, 20);
   backtrace_symbols_fd(array, size, 1);
-}
+	*/
+	void *trace[16];
+	char **messages = (char **) NULL;
+	int i, trace_size = 0;
 
-void Crash() {
-  char *p;
-  p = (char *) 0;
-  *p = 1234;
+	trace_size = backtrace(trace, 16);
+	/* overwrite sigaction with caller's address */
+	//trace[1] = (void *)ctx.eip;
+	messages = backtrace_symbols(trace, trace_size);
+	/* skip first stack frame (points here) */
+	initialiseExecutableName();
+	for (i = 1; i<trace_size; ++i) {
+		printf("[bt] #%d %s\n", i, messages[i]);
+
+		char syscom[256];
+		sprintf(syscom, "addr2line %p -e %s", trace[i], exe_name_buff); //last parameter is the name of this app
+		system(syscom);
+	}
 }
 #endif
 
@@ -111,11 +134,9 @@ void ExeStop(
  const char* CondCStr, const char* FNm, const int& LnN){
   char ReasonMsgCStr[1000];
 
-#if SW_TRACE
-  PrintBacktrace();
-  Crash();
+#if Glib_WIN
+  TFileStackWalker::WriteStackTrace();
 #endif
-
   // construct reason message
   if (ReasonCStr==NULL){ReasonMsgCStr[0]=0;}
   else {sprintf(ReasonMsgCStr, " [Reason:'%s']", ReasonCStr);}

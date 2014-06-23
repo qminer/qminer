@@ -210,6 +210,7 @@ public: \
 class TSIn;
 class TSOut;
 class TStr;
+class TChA;
 class TXmlObjSer;
 class TXmlObjSerTagNm;
 template <class TRec> class TPt;
@@ -309,8 +310,8 @@ void ExeStop(
   ((Cond) ? static_cast<void>(0) : TExcept::Throw(MsgStr, ArgStr1, ArgStr2))
 
 #define ESAssert(Cond) \
-  ((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), \
-  TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ TStr(#Cond)))
+	((Cond) ? static_cast<void>(0) : TExcept::Throw(TSysStr::GetLastMsgCStr(), TStr(__FILE__) + TStr(" line ") + TInt::GetStr(__LINE__) + TStr(": ")+ TStr(#Cond) ))
+
 
 // compile time assert
 // #define STATIC_ASSERT(x) { const char temp[ (((x) == 0) ? 0 : 1) ] = {'\0'}; }
