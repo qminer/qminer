@@ -146,6 +146,11 @@ public:
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;
   void GetObjStrV(const char *Key, TStrV& StrV) const;
 
+  // removing value
+  void DelObjKey(const TStr& Key) {EAssert(IsObj()); KeyValH.DelIfKey(Key); }
+  void DelObjKey(const char *Key) {EAssert(IsObj()); KeyValH.DelIfKey(Key); }
+  void DelArrVal(const int& ValN) { EAssert(IsArr()); ValV.Del(ValN); }
+
   // (de)serialization
   static PJsonVal GetValFromLx(TILx& Lx);
   static PJsonVal GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr);
@@ -184,7 +189,7 @@ public:
 	static PJsonVal GetJsonVoc(TSIn& SIn, TStrHash<TInt, TBigStrPool>& Voc) { 
         return GetJsonRecursive(SIn, &Voc); };
 
-	static void UnitTest();
+	static void UnitTest() { }
 
 private:
 	static void CreateBsonRecursive(const TJsonVal& JsonVal, 

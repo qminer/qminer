@@ -246,7 +246,7 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
     Val=GetValFromLx(Lx);
 	Ok=true; TStr MsgStr="Ok";
   }
-  catch (PExcept Except){
+  catch (const PExcept& Except){
     Val=TJsonVal::New();
     Ok=false; MsgStr=Except->GetMsgStr();
   }
