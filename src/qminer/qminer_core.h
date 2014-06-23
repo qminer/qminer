@@ -113,7 +113,13 @@ private:
 public:
 	/// Create new QMiner exception
 	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) { 
-		return PExcept(new TQmExcept(MsgStr, LocStr));
+		TChA Stack = LocStr;
+		if (Stack.Len() > 0)
+			Stack += "\n";
+#ifdef GLib_WIN
+		Stack += "Stack trace:\n" + TBufferStackWalker::GetStackTrace();
+#endif
+		return PExcept(new TQmExcept(MsgStr, Stack));
 	}
 };
 
@@ -371,13 +377,14 @@ private:
 	/// Number of all records
 	uint64 RecIds;
 
+public:
     /// Empty vector
 	TStoreIterVec();
     /// Vector has _RecIds with first ID being 0
 	TStoreIterVec(const uint64& _RecIds);    
     /// Vector has elements from MinId till MaxId
 	TStoreIterVec(const uint64& MinId, const uint64& MaxId);
-public:
+
 	/// Create new iterator for empty vector
 	static PStoreIter New() { return new TStoreIterVec; }
 	/// Create new iterator for vector, which starts with RecId = 0
@@ -587,6 +594,8 @@ public:
 	TRec GetRec(const TStr& RecNm);
 	/// Get number of records in the store
 	virtual uint64 GetRecs() const = 0; 
+	virtual uint64 GetFirstRecId() const = 0;
+	virtual uint64 GetLastRecId() const = 0;
 	/// Get iterator to go over all records in the store
 	virtual PStoreIter GetIter() const = 0;
 	/// Get record set with all the records in the store
@@ -603,9 +612,14 @@ public:
 	virtual void UpdateRec(const uint64& RecId, const PJsonVal& RecVal) = 0;
     
     /// Add join
-    void AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq);
+    void AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = 1);
+	void AddJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = 1);
     /// Delete join
-    void DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq);
+    void DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = TInt::Mx);
+	void DelJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq = TInt::Mx);
+	/// Delete joins
+	void DelJoins(const int& JoinId, const uint64& RecId);
+	void DelJoins(const TStr& JoinNm, const uint64& RecId);
     
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
 	virtual void GarbageCollect() { }
@@ -751,9 +765,9 @@ public:
     /// Prints record set with all the field values, useful for debugging
 	void PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, const TStr& FNm) const;
     /// Prints all records with all the field values, useful for debugging
-    void PrintAll(const TWPt<TBase>& Base, TSOut& SOut) const;
+    void PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& IncludingJoins = false);
     /// Prints all records with all the field values, useful for debugging
-    void PrintAll(const TWPt<TBase>& Base, const TStr& FNm) const;
+	void PrintAll(const TWPt<TBase>& Base, const TStr& FNm, const bool& IncludingJoins = false);
     /// Prints registered fields and joins, useful for debugging
     void PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const;
     /// Prints registered fields and joins, useful for debugging
@@ -1329,6 +1343,8 @@ public:
 	/// Merging does not assume any sort order. In the process, records in this record set 
 	/// are sorted by ids.
 	PRecSet GetMerge(const PRecSet& RecSet) const;
+    static PRecSet GetMerge(const TVec<PRecSet>& RecSetV);
+
 	/// Merges provided record set with `this'. Merging does not assume  any sort order. 
 	/// In the process, records in this record set are sorted by ids.
 	void Merge(const PRecSet& RecSet);
@@ -2153,10 +2169,10 @@ public:
 	void DeleteText(const uint& StoreId, const TStr& KeyNm, const TStrV& TextStrV, const uint64& RecId);
 	// Remove join from index
 	void DeleteJoin(const TWPt<TStore>& Store, const int& JoinId, 
-		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq);
+		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = TInt::Mx);
 	// Remove join from index
 	void DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm, 
-		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq);
+		const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = TInt::Mx);
 	// Delete record from inverted index
 	void Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq);
 
