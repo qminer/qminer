@@ -1997,6 +1997,12 @@ public:
     //#     from `fin` stream
 	JsDeclareFunction(loadSvmModel);
     
+    //#- `model = analytics.newNN(parameters)` -- create new neural network
+    //#     model; constructing `parameters` are a JSON object with properties: `parameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    //#     ), `parameters.learnRate` (number learn rate, default is 0.1), `parameters.momentum` (number momentum, default is 0.1),
+    //#     `parameters.tFuncHidden` (a string representing transfer function in hidden layers) and `parameters.tFuncOut` (a string representing transfer function in the output layer). 
+	//#     The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
+    JsDeclareFunction(newNN);
     //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     //#     `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
@@ -2116,6 +2122,36 @@ public:
 	JsDeclareProperty(weights);   
     //#- `model.save(fout)` -- saves model to output stream `fout`
 	JsDeclareFunction(save);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Neural-Networks
+//#
+//# ### Neural network model
+//#
+//# Holds the neural network model. This object is result of `analytics.newNN`.
+class TJsNN {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// NN Model
+    TSignalProc::PNNet NN;
+
+private:
+    typedef TJsObjUtil<TJsNN> TJsNNUtil;
+	TJsNN(TWPt<TScript> _Js, const TSignalProc::PNNet& _NN): Js(_Js), NN(_NN) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PNNet& NN) {
+		return TJsNNUtil::New(new TJsNN(Js, NN)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
+	//# 
+	//# **Functions and properties:**
+	//#     
+    JsDeclareFunction(learn);
+    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    //#     model and returns the prediction as a vector
+	JsDeclareFunction(predict);
 };
 
 ///////////////////////////////

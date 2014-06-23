@@ -414,6 +414,11 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     epsilon size tunnel around the model, default is 1.0)); result is a linear model
 - `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
     from `fin` stream
+- `model = analytics.newNN(parameters)` -- create new neural network
+    model; constructing `parameters` are a JSON object with properties: `parameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    ), `parameters.learnRate` (number learn rate, default is 0.1), `parameters.momentum` (number momentum, default is 0.1),
+    `parameters.tFuncHidden` (a string representing transfer function in hidden layers) and `parameters.tFuncOut` (a string representing transfer function in the output layer). 
+    The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
 - `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
     `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
@@ -531,6 +536,15 @@ Holds SVM classification or regression model. This object is result of
     model and returns the prediction as a real number
 - `vec = model.weights` -- weights of the SVM linear model as a full vector
 - `model.save(fout)` -- saves model to output stream `fout`
+
+### Neural network model
+
+Holds the neural network model. This object is result of `analytics.newNN`.
+
+**Functions and properties:**
+    
+- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
+    model and returns the prediction as a vector
 
 ### Recursive Linear Regression model
 

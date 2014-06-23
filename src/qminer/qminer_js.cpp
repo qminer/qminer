@@ -3887,6 +3887,7 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
         JsRegisterFunction(TmpTemp, trainSvmClassify);		
         JsRegisterFunction(TmpTemp, trainSvmRegression);
 		JsRegisterFunction(TmpTemp, loadSvmModel);
+        JsRegisterFunction(TmpTemp, newNN);
         JsRegisterFunction(TmpTemp, newRecLinReg);
         JsRegisterFunction(TmpTemp, newHoeffdingTree);
 		JsRegisterFunction(TmpTemp, loadRecLinRegModel);
@@ -4077,6 +4078,59 @@ v8::Handle<v8::Value> TJsAnalytics::loadSvmModel(const v8::Arguments& Args) {
 	}
 	return HandleScope.Close(v8::Undefined());
 }
+
+v8::Handle<v8::Value> TJsAnalytics::newNN(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+    PJsonVal ParamVal = TJsAnalyticsUtil::GetArgJson(Args, 0);
+   
+    TIntV LayoutV; ParamVal->GetObjIntV("layout", LayoutV);
+    double LearnRate = ParamVal->GetObjNum("learnRate", 0.1);
+    double Momentum = ParamVal->GetObjNum("momentum", 0.5);
+    TStr TFuncHiddenLStr = ParamVal->GetObjStr("tFuncHidden", "tanHyper");
+    TStr TFuncOutLStr = ParamVal->GetObjStr("tFuncOut", "tanHyper");
+    TSignalProc::TTFunc TFuncHiddenL;
+    TSignalProc::TTFunc TFuncOutL;
+    
+    if (TFuncHiddenLStr == "tanHyper") { 
+        TFuncHiddenL = TSignalProc::TTFunc::tanHyper;
+    } else if (TFuncHiddenLStr == "sigmoid") {
+        TFuncHiddenL = TSignalProc::TTFunc::sigmoid;
+    } else if (TFuncHiddenLStr == "fastTanh") {
+        TFuncHiddenL = TSignalProc::TTFunc::fastTanh;
+    } else if (TFuncHiddenLStr == "fastSigmoid") {
+        TFuncHiddenL = TSignalProc::TTFunc::fastSigmoid;
+    } else if (TFuncHiddenLStr == "linear") {
+        TFuncHiddenL = TSignalProc::TTFunc::linear;
+    } else {
+        throw TExcept::New("Unknown transfer function type " + TFuncHiddenLStr);
+    }
+
+    if (TFuncOutLStr == "tanHyper") { 
+        TFuncOutL = TSignalProc::TTFunc::tanHyper;
+    } else if (TFuncOutLStr == "sigmoid") {
+        TFuncOutL = TSignalProc::TTFunc::sigmoid;
+    } else if (TFuncOutLStr == "fastTanh") {
+        TFuncOutL = TSignalProc::TTFunc::fastTanh;
+    } else if (TFuncOutLStr == "fastSigmoid") {
+        TFuncOutL = TSignalProc::TTFunc::fastSigmoid;
+    } else if (TFuncOutLStr == "linear") {
+        TFuncOutL = TSignalProc::TTFunc::linear;
+    } else {
+        throw TExcept::New("Unknown transfer function type " + TFuncOutLStr);
+    }
+
+    try {
+        TSignalProc::PNNet NN = TSignalProc::TNNet::New(LayoutV, LearnRate, Momentum, TFuncHiddenL, TFuncOutL);
+        return TJsNN::New(JsAnalytics->Js, NN);
+    }
+    catch (const PExcept& Except) {
+		InfoLog("[except] " + Except->GetMsgStr());
+    }
+    return v8::Undefined();
+}
+
 
 v8::Handle<v8::Value> TJsAnalytics::newRecLinReg(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -4418,6 +4472,58 @@ v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
 		JsSvmModel->Model->Save(*SOut);
 	}
 	return HandleScope.Close(v8::Undefined());
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Neural-Networks
+v8::Handle<v8::ObjectTemplate> TJsNN::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;    
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, learn);
+		JsRegisterFunction(TmpTemp, predict);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+// TODO: learn without feedforward, if we know the values in out layer are correct
+v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
+    // get feature vector
+    QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
+        "NeuralNetwork.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+    QmAssertR(TJsNNUtil::IsArgClass(Args, 1, "TFltV"), 
+        "NeuralNetwork.learn: The second argument must be a JsTFltV (js linalg full vector)"); 
+    TJsFltV* JsVecIn = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+    TJsFltV* JsVecTarget = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
+    // TODO: do some checking of dimensions etc..
+    // first get output values
+    JsNN->NN->FeedFwd(JsVecIn->Vec);
+    // then check how we performed and learn
+    JsNN->NN->BackProp(JsVecTarget->Vec);
+    
+    return HandleScope.Close(v8::Undefined());	
+}
+
+v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
+    // get feature vector
+    QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
+        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+    JsNN->NN->FeedFwd(JsVec->Vec);
+    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
+    TFltV& FltV = TJsFltV::GetVec(JsFltV);
+    JsNN->NN->GetResults(FltV);
+
+    return HandleScope.Close(JsFltV);
 }
 
 ///////////////////////////////
