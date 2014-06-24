@@ -547,7 +547,7 @@ uv_buf_t TSockSys::OnAlloc(uv_handle_t* SockHnd, size_t SuggestedSize) {
 	// allocate buffer of max size 1MB
 	uv_buf_t Buffer;
 	Buffer.len = (ULONG)(SuggestedSize > (size_t)TInt::Mega ? (size_t)TInt::Mega : SuggestedSize);
-	Buffer.base = new char[Buffer.len];
+	Buffer.base = (char*) malloc(Buffer.len);
 	return Buffer;
 }
 

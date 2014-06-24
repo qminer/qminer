@@ -52,6 +52,8 @@ public:
 	static TStr GetFldVal(const TStrKdV& FldNmValPrV, const TStr& FldNm, const TStr& DefFldVal = "");
 	static int GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm); 
 	static int GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm, const int& DefInt); 
+	static bool GetFldBool(const TStrKdV& FldNmValPrV, const TStr& FldNm, const bool& DefVal);
+	static uint64 GetFldUInt64(const TStrKdV& FldNmValPrV, const TStr& FldNm, const uint64& DefVal);
 	static void GetFldValV(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrV& FldValV);
 	static void GetFldValSet(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrSet& FldValSet);
 	static bool IsFldNmVal(const TStrKdV& FldNmValPrV,	const TStr& FldNm, const TStr& FldVal);
@@ -75,10 +77,27 @@ protected:
 	virtual PSIn ExecSIn(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv,
 		TStr& ContTypeStr) { EAssert(OutType != saotCustom); return NULL; };
 
+	void LogReqRes(const TStrKdV& FldNmValPrV, const PHttpResp& HttpResp);
+
+	bool NotifyOnRequest;
+	bool ReportResponseSize;
+	bool LogRqToFile;
+	TStr LogRqFolder;
+
 public:
 	TSAppSrvFun(const TStr& _FunNm, const TSAppOutType& _OutType = saotXml): 
-	  FunNm(_FunNm), OutType(_OutType) { EAssert(!FunNm.Empty()); }
+		FunNm(_FunNm), OutType(_OutType) {
+		EAssert(!FunNm.Empty()); 
+		NotifyOnRequest = true; 
+		LogRqToFile = false; 
+		ReportResponseSize = false;
+	 }
 	virtual ~TSAppSrvFun() { }
+
+	void SetNotifyOnRequest(const bool& Val) { NotifyOnRequest = Val; }
+	void SetLogRqToFile(const bool& Val) { LogRqToFile = Val; }
+	void SetLogRqFolder(const TStr& Path) { LogRqFolder = Path; }
+	void SetReportResponseSize(const bool& Val) { ReportResponseSize = Val; }
 
 	// output type
 	TSAppOutType GetFunOutType() const { return OutType; }

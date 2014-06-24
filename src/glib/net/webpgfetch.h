@@ -26,26 +26,31 @@ private:
   int MxContLen;
   int MxRetries;
   int LastFId;
-  TIdUrlPrQ WaitFIdUrlPrQ;
-  THash<TInt, PSockEvent> ConnFIdToEventH;
   PSockEvent LastDelEvent;
   TStr ProxyStr;
   TStr UserAgentStr;
   int GetNextFId(){LastFId++; return LastFId;}
-  void PushWait(const int& FId, const PUrl& Url);
+  void PushWait(const int& FId, const PUrl& Url, const bool& QueueAtEnd = true);
   void PopWait(int& FId, PUrl& Url);
   void OpenConn(const int& FId, const PUrl& Url);
   void CloseConn(const int& FId);
-  void ConnUrl(const int& FId=-1, const PUrl& Url=NULL);
+  void ConnUrl(const int& FId = -1, const PUrl& Url = NULL, const bool& QueueAtEnd = true);
   void DisconnUrl(const int& FId);
   UndefCopyAssign(TWebPgFetch);
+protected:
+  TIdUrlPrL WaitFIdUrlPrL;
+  THash<TInt, PSockEvent> ConnFIdToEventH;
 public:
   TWebPgFetch():
     TimeOutMSecs(30*1000), MxConns(-1), MxContLen(-1), MxRetries(1), LastFId(0),
-    WaitFIdUrlPrQ(), ConnFIdToEventH(1000), LastDelEvent(), 
+    WaitFIdUrlPrL(), ConnFIdToEventH(1000), LastDelEvent(), 
     ProxyStr(), UserAgentStr(){}
   static PWebPgFetch New(){return new TWebPgFetch();}
   virtual ~TWebPgFetch();
+
+  // load, save
+  virtual void Load(TSIn& SIn) {}
+  virtual void Save(TSOut& SOut) const {};
 
   // connections constraints
   void PutTimeOutMSecs(const int& _TimeOutMSecs){
@@ -65,7 +70,7 @@ public:
     return (MxContLen==-1)||(ContLen<=MxContLen);}
 
   // active connections
-  int GetWaitUrls() const {return WaitFIdUrlPrQ.Len();}
+  int GetWaitUrls() const {return WaitFIdUrlPrL.Len();}
   int GetConnUrls() const {return ConnFIdToEventH.Len();}
   bool Empty() const {return (GetWaitUrls()==0)&&(GetConnUrls()==0);}
   bool IsConn(const int& ConnFId) const {
@@ -84,7 +89,7 @@ public:
   void PutUserAgentStrIE8(){UserAgentStr="Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)";}
   TStr GetUserAgentStr() const {return UserAgentStr;}
 
-  int FetchUrl(const PUrl& Url);
+  int FetchUrl(const PUrl& Url, const bool& QueueAtEnd = true);
   int FetchUrl(const TStr& RelUrlStr, const TStr& BaseUrlStr=TStr());
   int FetchHttpRq(const PHttpRq& HttpRq);
   int EnqueueUrl(const TStr& RelUrlStr, const TStr& BaseUrlStr=TStr());

@@ -121,8 +121,8 @@ TWebPgFetchEvent::TWebPgFetchEvent(TWebPgFetch* _Fetch, const int& _FId,
 }
 
 void TWebPgFetchEvent::OnFetchError(const TStr& MsgStr){
-  CloseConn(); Fetch->DisconnUrl(FId);
   Fetch->OnError(FId, MsgStr+" ["+CurUrl->GetUrlStr()+"]");
+  CloseConn(); Fetch->DisconnUrl(FId);
 }
 
 void TWebPgFetchEvent::OnFetchEnd(const PHttpResp& HttpResp){
@@ -273,14 +273,19 @@ void TWebPgFetchEvent::OnGetHost(const PSockHost& SockHost) {
 
 /////////////////////////////////////////////////
 // Web-Page-Fetch
-void TWebPgFetch::PushWait(const int& FId, const PUrl& Url){
-  WaitFIdUrlPrQ.Push(TIdUrlPr(FId, Url));
+void TWebPgFetch::PushWait(const int& FId, const PUrl& Url, const bool& QueueAtEnd){
+  if (QueueAtEnd)
+    WaitFIdUrlPrL.AddBack(TIdUrlPr(FId, Url));
+  // add item to the front of the queue
+  else
+    WaitFIdUrlPrL.AddFront(TIdUrlPr(FId, Url));
 }
 
 void TWebPgFetch::PopWait(int& FId, PUrl& Url){
-  FId=WaitFIdUrlPrQ.Top().Val1;
-  Url=WaitFIdUrlPrQ.Top().Val2;
-  WaitFIdUrlPrQ.Pop();
+	TLstNd<TIdUrlPr>* LstNd = WaitFIdUrlPrL.First();
+	FId=LstNd->Val.Val1;
+	Url = LstNd->Val.Val2;
+	WaitFIdUrlPrL.Del(LstNd);
 }
 
 void TWebPgFetch::OpenConn(const int& FId, const PUrl& Url){
@@ -294,15 +299,19 @@ void TWebPgFetch::OpenConn(const int& FId, const PUrl& Url){
 }
 
 void TWebPgFetch::CloseConn(const int& FId){
-  PSockEvent Event=ConnFIdToEventH.GetDat(FId);
-  TSockEvent::UnReg(Event);
-  ConnFIdToEventH.DelKey(FId);
-  Event->CloseConn();
-  LastDelEvent=Event;
+	if (ConnFIdToEventH.IsKey(FId)) {
+		PSockEvent Event=ConnFIdToEventH.GetDat(FId);
+		TSockEvent::UnReg(Event);
+		ConnFIdToEventH.DelKey(FId);
+		Event->CloseConn();
+		LastDelEvent=Event;
+	}
 }
 
-void TWebPgFetch::ConnUrl(const int& FId, const PUrl& Url){
-  if (FId!=-1){PushWait(FId, Url);}
+void TWebPgFetch::ConnUrl(const int& FId, const PUrl& Url, const bool& QueueAtEnd){
+  if (FId!=-1) {
+	  PushWait(FId, Url, QueueAtEnd);
+  }
   while ((IsOkConns(GetConnUrls()))&&(GetWaitUrls()>0)){
     int FId; PUrl Url; PopWait(FId, Url);
     OpenConn(FId, Url);
@@ -326,11 +335,11 @@ PUrl TWebPgFetch::GetConnUrl(const int& ConnFId) const {
   return Event->GetUrl();
 }
 
-int TWebPgFetch::FetchUrl(const PUrl& Url){
+int TWebPgFetch::FetchUrl(const PUrl& Url, const bool& QueueAtEnd){
   int FId=-1;
   if (Url->IsOk(usHttp) && Url->IsPortOk()){
     FId=GetNextFId();
-    ConnUrl(FId, Url);
+	ConnUrl(FId, Url, QueueAtEnd);
   } else {
     TStr MsgStr=TStr("Invalid URL [")+Url->GetUrlStr()+"]";
     OnError(FId, MsgStr);

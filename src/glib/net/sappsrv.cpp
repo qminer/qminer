@@ -52,6 +52,20 @@ int TSAppSrvFun::GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm, const 
 	return IntStr.GetInt();
 }
 
+bool TSAppSrvFun::GetFldBool(const TStrKdV& FldNmValPrV, const TStr& FldNm, const bool& DefVal)
+{
+	if (!IsFldNm(FldNmValPrV, FldNm)) return DefVal;
+	TStr Val = GetFldVal(FldNmValPrV, FldNm, "").GetLc();
+	if (Val == "1" || Val == "true") return true;
+	return false;
+}
+
+uint64 TSAppSrvFun::GetFldUInt64(const TStrKdV& FldNmValPrV, const TStr& FldNm, const uint64& DefVal) {
+	TStr IntStr = GetFldVal(FldNmValPrV, FldNm, TUInt64(DefVal).GetStr());
+	EAssertR(IntStr.IsUInt64(), "Parameter '" + FldNm + "' not a number");
+	return IntStr.GetUInt64();
+}
+
 void TSAppSrvFun::GetFldValV(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrV& FldValV) {
 	FldValV.Clr();
 	int ValN = FldNmValPrV.SearchForw(TStrKd(FldNm, ""));
@@ -97,7 +111,8 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 	PHttpResp HttpResp;
 	try {
         // log the call
-        Notify->OnStatus(TStr::Fmt("[AppSrv] RequestStart %s", FunNm.CStr()));
+		if (NotifyOnRequest)
+			Notify->OnStatus(TStr::Fmt("[%s] RequestStart  %s", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), FunNm.CStr()));
 		TTmStopWatch StopWatch(true);
 		// execute the actual function, according to the type
 		PSIn BodySIn; TStr ContTypeVal;
@@ -113,14 +128,19 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
 		} else {
 			BodySIn = ExecSIn(FldNmValPrV, RqEnv, ContTypeVal);
 		}
-		// log finis of the call
-		Notify->OnStatus(TStr::Fmt("[AppSrv] RequestFinish %s [%d ms]", 
-				FunNm.CStr(), StopWatch.GetMSecInt()));
+		if (ReportResponseSize)
+			Notify->OnStatusFmt("[%s] Response size: %.1f KB", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), BodySIn->Len() / (double) TInt::Kilo);
+		// log finish of the call
+		if (NotifyOnRequest)
+			Notify->OnStatus(TStr::Fmt("[%s] RequestFinish %s [request took %d ms]", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), FunNm.CStr(), StopWatch.GetMSecInt()));
 		// prepare response
 		HttpResp = THttpResp::New(THttp::OkStatusCd, 
 			ContTypeVal, false, BodySIn);
     } catch (PExcept Except) {
 		// known internal error
+        // known internal error
+        Notify->OnStatusFmt("[%s] Exception: %s", TTm::GetCurLocTm().GetWebLogDateTimeStr(true, " ", false).CStr(), Except->GetMsgStr().CStr());
+        Notify->OnStatusFmt("Location: %s", Except->GetLocStr().CStr());
         TStr ResStr, ContTypeVal = THttp::TextPlainFldVal;
 		if (GetFunOutType() == saotXml) {
 			PXmlTok TopTok = TXmlTok::New("error");
@@ -154,8 +174,31 @@ void TSAppSrvFun::Exec(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv) {
         HttpResp = THttpResp::New(THttp::InternalErrStatusCd, 
             ContTypeVal, false, TMIn::New(ResStr));
     }
+
+	if (LogRqToFile)
+		LogReqRes(FldNmValPrV, HttpResp);
 	// send response
 	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp); 
+}
+
+void TSAppSrvFun::LogReqRes(const TStrKdV& FldNmValPrV, const PHttpResp& HttpResp)
+{
+	if (LogRqFolder == "")
+		return;
+	try	 {
+		TDir::GenDir(LogRqFolder);
+		TStr TimeNow = TTm::GetCurLocTm().GetWebLogDateTimeStr(true);
+		TimeNow.ChangeChAll(':', '.');
+		PSOut Output = TFOut::New(LogRqFolder + "/" + TimeNow + ".txt", false);
+		Output->PutStr(FunNm.CStr()); Output->PutCh('\n');
+		for (int N=0; N < FldNmValPrV.Len(); N++)
+			Output->PutStrFmt("  %s: %s\n", FldNmValPrV[N].Key.CStr(), FldNmValPrV[N].Dat.CStr());
+		Output->PutCh('\n');
+		Output->PutStr(HttpResp->GetBodyAsStr(), false);
+	} catch (...) {
+		/*const PNotify& Notify = RqEnv->GetWebSrv()->GetNotify();
+		Notify->OnStatus("Unable to log request for function '" + GetFunNm() + "'!");*/
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
