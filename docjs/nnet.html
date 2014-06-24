@@ -41,8 +41,7 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
-              <p>NEURAL NETWORKS XOR EXAMPLE —————————————————
-Create a new net, specify it’s layout, eg. how many neurons do we want in each layer. There are more options available which are explained in the next example.</p>
+              <p>Create a new net, specify it’s layout, eg. how many neurons do we want in each layer. There are more options available which are explained in the next example.</p>
 
             </div>
             
@@ -111,7 +110,9 @@ dimensions of the vectors should match the dimensions of the input and output la
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> inVec = linalg.newVec([in1, in2])
-    <span class="hljs-keyword">var</span> outVec = linalg.newVec([out1])</pre></div></div>
+    <span class="hljs-keyword">var</span> outVec = linalg.newVec([out1])
+    console.log(<span class="hljs-string">"In 1: "</span> + in1 + <span class="hljs-string">" In 2: "</span> + in2)
+    console.log(<span class="hljs-string">"Target: "</span> + out1)</pre></div></div>
             
         </li>
         
@@ -122,13 +123,13 @@ dimensions of the vectors should match the dimensions of the input and output la
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
-              <p>console.log(“In 1: “ + in1 + “ In 2: “ + in2)
-console.log(“Target: “ + out1)
-first we predict based on the inputs (feed-forward)</p>
+              <p>first we predict based on the inputs (feed-forward)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> predictions = NN.predict(inVec)</pre></div></div>
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> predictions = NN.predict(inVec)
+    console.log(<span class="hljs-string">"Result: "</span> + predictions[<span class="hljs-number">0</span>])
+    console.log(<span class="hljs-string">"Diff: "</span> + (out1 - predictions[<span class="hljs-number">0</span>]))</pre></div></div>
             
         </li>
         
@@ -139,9 +140,7 @@ first we predict based on the inputs (feed-forward)</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
-              <p>console.log(“Result: “ + predictions[0])
-console.log(“Diff: “ + (out1 - predictions[0]))
-then we learn the net with inputs and expected outputs (back propagation)</p>
+              <p>then we learn the net with inputs and expected outputs (back propagation)</p>
 
             </div>
             
@@ -157,8 +156,7 @@ then we learn the net with inputs and expected outputs (back propagation)</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
-              <p>NEURAL NETWORKS SINE EXAMPLE —————————————————
-Create a new net, set the layout, activation functions in hidden and output layer, learning rate and momentum</p>
+              <p>Create a new net, set the layout, activation functions in hidden and output layer, learning rate and momentum</p>
 
             </div>
             
