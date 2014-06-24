@@ -80,6 +80,7 @@ public:
 	int GetDim() const;
 	const TFltV& GetCentroid(int ClusterId) const;
 	const TIntV& GetAssignment() const;
+	double GetDocClusterSim(const int& ClusterId, const int& DocId);
     double GetClusterCompactness(const TFltV & Cluster) const;
     double GetClusteringCompactness() const;
     double GetClusteringQualityBySize(const TIntV & ClusterSizes) const;
@@ -354,6 +355,15 @@ void TKMeans<V, LA, M>::MakeCentroids(TVec<TIntV> & ClusterDocs,
 template<class V, class LA, class M>
 const TIntV& TKMeans<V, LA, M>::GetAssignment() const {
 	return Assignment;
+}
+
+// return similarity of the document to the given cluster
+template<class V, class LA, class M>
+double TKMeans<V, LA, M>::GetDocClusterSim(const int& ClusterId, const int& DocId)
+{
+	AssertR(ClusterId < k, "Requested info about non-existent cluster");
+	AssertR(DocId < GetDocs(), "Requested info about non-existend document");
+	return DCSim[ClusterId][DocId];
 }
 
 template<class V, class LA, class M>
