@@ -149,7 +149,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	// check if it is a valid field name
 	QmAssertR(FieldH.IsKey(IndexKeyEx.FieldName), "Target field for key-index unknown");
 	// get field type to avoid further lookups when indexing
-	IndexKeyEx._x_FieldType = FieldH.GetDat(IndexKeyEx.FieldName).GetFieldType();
+	TFieldType FieldType = FieldH.GetDat(IndexKeyEx.FieldName).GetFieldType();
 	// parse out key name, use field name as default
 	IndexKeyEx.KeyIndexName = IndexKeyVal->GetObjStr("name", IndexKeyEx.FieldName);
 	// get and parse key type
@@ -164,11 +164,11 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
 	}
 	// check field type and index type match
-	if (IndexKeyEx._x_FieldType == oftStr && IndexKeyEx.IsValue()) {
-	} else if (IndexKeyEx._x_FieldType == oftStr && IndexKeyEx.IsText()) {
-	} else if (IndexKeyEx._x_FieldType == oftStrV && IndexKeyEx.IsValue()) {
-	} else if (IndexKeyEx._x_FieldType == oftTm && IndexKeyEx.IsValue()) {
-	} else if (IndexKeyEx._x_FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
+	if (FieldType == oftStr && IndexKeyEx.IsValue()) {
+	} else if (FieldType == oftStr && IndexKeyEx.IsText()) {
+	} else if (FieldType == oftStrV && IndexKeyEx.IsValue()) {
+	} else if (FieldType == oftTm && IndexKeyEx.IsValue()) {
+	} else if (FieldType == oftFltPr && IndexKeyEx.IsLocation()) {
 	} else {
 		// not supported, lets complain about it...
 		throw TQmExcept::New("Indexing '" + KeyTypeStr + "' not supported for field " + IndexKeyEx.FieldName);
@@ -190,6 +190,18 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	}
 	// parse out word vocabulary
 	IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
+    // parse out tokenizer
+    if (IndexKeyEx.KeyType == oiktText) {
+        if (IndexKeyVal->IsObjKey("tokenizer")) {
+            PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
+            QmAssertR(TokenizerVal->IsObjKey("type"), 
+                "Missing tokenizer type " + TokenizerVal->SaveStr());
+            const TStr& TypeNm = TokenizerVal->GetObjStr("type");
+            IndexKeyEx.Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);            
+        } else {
+            IndexKeyEx.Tokenizer = TTokenizers::THtmlUnicode::New();
+        }
+    }
 	return IndexKeyEx;
 }
 
@@ -222,7 +234,7 @@ TStoreSchema::TStoreSchema(const PJsonVal& StoreVal): StoreId(0), HasStoreIdP(fa
 		FieldExH.AddDat(FieldDesc.GetFieldNm(), FieldDescEx);
 	}
 
-	// parse indexes
+	// parse keys
 	if (StoreVal->IsObjKey("keys")) {
 		PJsonVal KeyDefs = StoreVal->GetObjKey("keys");
 		QmAssertR(KeyDefs->IsArr(), "Bad key list.");
@@ -1717,8 +1729,10 @@ void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
 		// if we are given vocabulary name, check if we have one with such name already
         const int WordVocId = GetBase()->NewIndexWordVoc(IndexKeyEx.KeyType, IndexKeyEx.WordVocName);
         // create new index key
-		GetBase()->NewFieldIndexKey(this, IndexKeyEx.KeyIndexName, 
+		const int KeyId = GetBase()->NewFieldIndexKey(this, IndexKeyEx.KeyIndexName, 
             FieldId, WordVocId, IndexKeyEx.KeyType, IndexKeyEx.SortType);
+        // assign tokenizer to it if we have one
+        if (IndexKeyEx.IsTokenizer()) { IndexVoc->PutTokenizer(KeyId, IndexKeyEx.Tokenizer); }
 	}
 	// prepare serializators for disk and in-memory store
 	SerializatorCache = TRecSerializator(this, StoreSchema, slDisk);

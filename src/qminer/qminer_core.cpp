@@ -2180,18 +2180,18 @@ TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordV
 }
 	
 TIndexKey::TIndexKey(TSIn& SIn): StoreId(SIn), KeyId(SIn), 
-		KeyNm(SIn), WordVocId(SIn), FieldIdV(SIn), JoinNm(SIn) { 
-
-	TypeFlags = (TIndexKeyType)TInt(SIn).Val; 
-	SortType = (TIndexKeySortType)TInt(SIn).Val; 
-}
+    KeyNm(SIn), WordVocId(SIn), 
+    TypeFlags(LoadEnum<TIndexKeyType>(SIn)),
+    SortType(LoadEnum<TIndexKeySortType>(SIn)),
+    FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn) { }
 
 void TIndexKey::Save(TSOut& SOut) const {
 	StoreId.Save(SOut);
 	KeyId.Save(SOut); KeyNm.Save(SOut); WordVocId.Save(SOut);
+    SaveEnum<TIndexKeyType>(SOut, TypeFlags);
+    SaveEnum<TIndexKeySortType>(SOut, SortType);
 	FieldIdV.Save(SOut); JoinNm.Save(SOut);
-	TInt((int)TypeFlags).Save(SOut);
-	TInt((int)SortType).Save(SOut);
+    Tokenizer.Save(SOut);
 }
 
 ///////////////////////////////
@@ -2297,7 +2297,6 @@ const PIndexWordVoc& TIndexVoc::GetWordVoc(const int& KeyId) const {
 }
 
 TIndexVoc::TIndexVoc(TSIn& SIn) {	
-	Tokenizer = TTokenizers::THtml::New(TSwSet::New(swstNone), TStemmer::New(stmtNone, false));
     KeyH.Load(SIn);
     StoreIdKeyIdSetH.Load(SIn);
     WordVocV.Load(SIn);
@@ -2428,7 +2427,7 @@ uint64 TIndexVoc::GetWordId(const int& KeyId, const TStr& WordStr) const {
 void TIndexVoc::GetWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV) const {
 	QmAssert(IsWordVoc(KeyId));
 	// tokenize string
-	TStrV TokV; Tokenizer->GetTokens(TextStr, TokV);
+	TStrV TokV; GetTokenizer(KeyId)->GetTokens(TextStr, TokV);
 	// get word ids for tokens
 	WordIdV.Gen(TokV.Len(), 0);
 	for(int TokN = 0; TokN < TokV.Len(); TokN++) {
@@ -2450,7 +2449,7 @@ uint64 TIndexVoc::AddWordStr(const int& KeyId, const TStr& WordStr) {
 void TIndexVoc::AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV) {
 	QmAssert(IsWordVoc(KeyId));
 	// tokenize string
-	TStrV TokV; Tokenizer->GetTokens(TextStr, TokV);
+	TStrV TokV; GetTokenizer(KeyId)->GetTokens(TextStr, TokV);
 	WordIdV.Gen(TokV.Len(), 0); const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
 	for(int TokN = 0; TokN < TokV.Len(); TokN++) {
 		WordIdV.Add(WordVoc->AddWordStr(TokV[TokN]));
@@ -2462,6 +2461,7 @@ void TIndexVoc::AddWordIdV(const int& KeyId, const TStrV& TextStrV, TUInt64V& Wo
 	QmAssert(IsWordVoc(KeyId));
 	// tokenize string
 	TStrV TokV;
+    const PTokenizer& Tokenizer = GetTokenizer(KeyId);
 	for (int StrN = 0; StrN < TextStrV.Len(); StrN++) {
 		Tokenizer->GetTokens(TextStrV[StrN], TokV);
 	}
@@ -2513,6 +2513,14 @@ void TIndexVoc::GetAllLessV(const int& KeyId,
 	for (int WordN = 0; WordN < WordIdV.Len(); WordN++) { 
 		AllLessV.Add(TKeyWord(KeyId, (uint64)WordIdV[WordN]));
 	}
+}
+
+const PTokenizer& TIndexVoc::GetTokenizer(const int& KeyId) const {
+    return KeyH[KeyId].GetTokenizer();
+}
+
+void TIndexVoc::PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer) {
+    KeyH[KeyId].PutTokenizer(Tokenizer);
 }
 
 void TIndexVoc::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const {
@@ -4129,9 +4137,6 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize): InitP(false) {
 	// prepare index
 	IndexVoc = TIndexVoc::New();
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
-	// prepare tokenizer
-	IndexVoc->PutTokenizer(TTokenizers::THtmlUnicode::New(
-		TSwSet::New(swstEn425), TStemmer::New(stmtPorter, true)));
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -4160,10 +4165,6 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
-	// load tokenizer
-	TFIn TokenizerFIn(FPath + "Tokenizer.dat");
-	IndexVoc->PutTokenizer(TTokenizer::Load(TokenizerFIn));
-	//IndexVoc->PutTokenizer(TTokenizers::THtmlUnicode::Load(TokenizerFIn));
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -4181,9 +4182,6 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
 		IndexVoc->Save(IndexVocFOut);
-		TEnv::Logger->OnStatus("Saving tokenizer ...");
-		TFOut TokenizerFOut(FPath + "Tokenizer.dat");
-		IndexVoc->GetTokenizer()->Save(TokenizerFOut);
 		TEnv::Logger->OnStatus("Saving stream aggregates ...");
 		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
         SaveStreamAggrBaseV(StreamAggrFOut);
@@ -4402,7 +4400,6 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 bool TBase::Exists(const TStr& FPath) {
 	return TIndex::Exists(FPath) &&
 		TFile::Exists(FPath + "IndexVoc.dat") &&
-		TFile::Exists(FPath + "Tokenizer.dat") &&
 		TFile::Exists(FPath + "StreamAggr.dat");
 }
 

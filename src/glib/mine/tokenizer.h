@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-
+    /// Getr 
 ///////////////////////////////
 /// Tokenizer.
 class TTokenizer; typedef TPt<TTokenizer> PTokenizer;
@@ -44,6 +44,7 @@ public:
 
 public:
 	TTokenizer() { }
+    static PTokenizer New(const TStr& TypeNm, const PJsonVal& JsonVal);
 	virtual ~TTokenizer() { }
 
 	virtual void Save(TSOut& SOut) const = 0;

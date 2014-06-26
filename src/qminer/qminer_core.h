@@ -1414,6 +1414,8 @@ private:
 	TIntV FieldIdV;
 	/// Linked join (only for internal field)
 	TStr JoinNm;
+    /// Tokenizer, when key requires one (e.g. text)
+    PTokenizer Tokenizer;
 
 public:
 	/// Empty constructor creates undefined key
@@ -1443,10 +1445,7 @@ public:
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
 
-	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
-	bool IsWordVoc() const { return WordVocId != -1; }
-	/// Get id of word vocabulary used by the key
-	int GetWordVocId() const { return WordVocId; }
+
     /// Get key type
     TIndexKeyType GetTypeFlags() const { return TypeFlags; }
 	/// Checks key type is value
@@ -1468,6 +1467,11 @@ public:
 	bool IsSortByFlt() const { return SortType == oikstByFlt; }
 	/// Checks if key is sortable by word id in the vocabulary
 	bool IsSortById() const { return SortType == oikstById; }
+    
+	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
+	bool IsWordVoc() const { return WordVocId != -1; }
+	/// Get id of word vocabulary used by the key
+	int GetWordVocId() const { return WordVocId; }    
 
 	/// Link key to store fields
 	void AddField(const int& FieldId) { FieldIdV.Add(FieldId); }
@@ -1480,6 +1484,13 @@ public:
 
 	/// Get name of associated join
 	const TStr& GetJoinNm() const { return JoinNm; }
+    
+    /// Do we have a tokenizer
+    bool IsTokenizer() const { return !Tokenizer.Empty(); }
+    /// Get the tokenizer
+    const PTokenizer& GetTokenizer() const { return Tokenizer; }
+    /// Set the tokenizer
+    void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
 };
 
 ///////////////////////////////
@@ -1561,8 +1572,6 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TIndexVoc>;
-	/// Default Tokenizer
-	PTokenizer Tokenizer;
     /// List of all the keys
     THash<TUIntStrPr, TIndexKey> KeyH;
     /// Keys split by stores
@@ -1577,7 +1586,7 @@ private:
 	/// Get constant word vocabulary for a given key
 	const PIndexWordVoc& GetWordVoc(const int& KeyId) const;
 
-	TIndexVoc(): Tokenizer(TTokenizers::THtml::New(TSwSet::New(swstNone), TStemmer::New(stmtNone, false))) { }
+	TIndexVoc() { }
     TIndexVoc(TSIn& SIn);
 public:
 	/// Create new index vocabulary
@@ -1651,16 +1660,16 @@ public:
 	void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
 	/// Get vector of all words from a key that match given wildchar query
 	void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
-    // Get all words from a key that are greater than `startWordId
+    /// Get all words from a key that are greater than `startWordId
     void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllGreaterV);
-    // Get all words from a key that are smaller than `startWordId
+    /// Get all words from a key that are smaller than `startWordId
     void GetAllLessV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllLessV);
+    
+    /// Get tokenizer from a key
+    const PTokenizer& GetTokenizer(const int& KeyId) const;
+    /// Set tokenizer for a key
+    void PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer);
 
-	/// Access to default tokenizer
-	PTokenizer GetTokenizer() const { return Tokenizer; }
-	/// Set default tokenizer
-	void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
-	
 	/// Save human-readable statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const;
 };
