@@ -8,7 +8,7 @@ fr = open('intellitesi.js', 'r')
 fw = open('intelli_body.js', 'w')
 fwProblems = open('problems.js', 'w');
 
-globalVars = {'la'}
+globalVars = set(['la'])
 
 funDict = {};
 
@@ -230,8 +230,8 @@ fw3.close()
 
 
 # head
-shutil.copy2('intelli_head.js', 'intellitesiOut.js')
-fw2 = open('intellitesiOut.js', 'a')
+# shutil.copy2('intelli_head.js', 'intellitesiOut.js')
+fw2 = open('intellitesiOut.js', 'w')
 # body
 fr = open('intelli_body2.js', 'r')
 for line in fr:
