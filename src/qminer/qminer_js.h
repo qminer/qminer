@@ -1350,29 +1350,29 @@ public:
 	//# **Functions and properties:**
 	//# 
 	//#- `vec = la.newVec()` -- generate an empty float vector
-	//#- `vec = la.newVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-	//#- `vec = la.newVec(a)` -- copy a javascript number array `a` 
+	//#- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
-	//#- `vec = la.newIntVec()` -- generate an empty float vector
-	//#- `vec = la.newIntVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-	//#- `vec = la.newIntVec(a)` -- copy a javascript int array `a` 
-	//#- `vec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+	//#- `intVec = la.newIntVec()` -- generate an empty float vector
+	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
+	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
 	JsDeclareFunction(newIntVec);
 	//#- `mat = la.newMat()` -- generates a 0x0 matrix
-	//#- `mat = la.newMat(a)` -- generates a matrix from a javascript array `a`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-	//#- `mat = la.newMat({"rows":r, "cols":c, "random":b})` -- creates a matrix with `r` rows and `c` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 	//#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
 	JsDeclareFunction(newMat);
-	//#- `vec = la.newSpVec(dim)` -- creates an empty sparse vector `vec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
-	//#- `vec = la.newSpVec(a, dim)` -- creats a sparse vector `vec` from a javascript array `a`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
+	//#- `vec = la.newSpVec(len)` -- creates an empty sparse vector `vec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `vec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `vec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
 	JsDeclareFunction(newSpVec);
 	//#- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
-	//#- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
-	//#- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-	//#- `mat = la.newSpMat({"rows":r, "cols":c})` --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
+	//#- `mat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+	//#- `mat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	//#- `mat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
-	//#- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
+	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
@@ -1386,8 +1386,8 @@ public:
 //# Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
 //# 
 //# ```JavaScript
-//# var fltv = la.newVec(); //empty vector
-//# var intv = la.newIntVec(); //empty vector
+//# var vec = la.newVec(); //empty vector
+//# var intVec = la.newIntVec(); //empty vector
 //# // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
 //# ```
 //# 
