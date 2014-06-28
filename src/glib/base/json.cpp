@@ -348,7 +348,7 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
       break;
     case jvtObj:
       ChA+="{";
-      for (int ObjKeyN=0; ObjKeyN<Val->GetObjKeys(); ObjKeyN++){
+	  for (int ObjKeyN = Val->KeyValH.FFirstKeyId(); Val->KeyValH.FNextKeyId(ObjKeyN);) {
         if (ObjKeyN>0){ChA+=", ";}
         TStr ObjKey; PJsonVal ObjVal; Val->GetObjKeyVal(ObjKeyN, ObjKey, ObjVal);
         AddQChAFromStr(ObjKey, ChA);

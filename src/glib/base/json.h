@@ -65,7 +65,9 @@ public:
     EAssert(JsonValType==jvtArr); ValV.Add(Val);}
   void PutObj(){JsonValType=jvtObj;}
   void AddToObj(const TStr& KeyNm, const PJsonVal& Val){
-    EAssert(JsonValType==jvtObj); KeyValH.AddDat(KeyNm, Val);}
+    EAssert(JsonValType==jvtObj); 
+	EAssert(KeyNm != "");
+	KeyValH.AddDat(KeyNm, Val);}
   void AddToObj(const TStr& KeyNm, const int& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const uint& Val){ AddToObj(KeyNm, NewNum((double)Val)); }
   void AddToObj(const TStr& KeyNm, const double& Val){ AddToObj(KeyNm, NewNum(Val)); }
