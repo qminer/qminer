@@ -399,6 +399,8 @@ public:
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context, return double
 	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context, write result to vector
+	void ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
 	/// Execute JavaScript callback in this script's context
@@ -1726,13 +1728,21 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `val = mat.at(i,j)` -- Gets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
+	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
-	//#- `mat.put(i, j, val)` -- Sets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
+	//#- `mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(put);
-	//#- `y = mat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
+	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
+	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
+	//#- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
+	//#- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
+	//#- `mat2 = mat.multiply(spMat)` -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
 	JsDeclareFunction(multiply);
-	//#- `y = mat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
+	//#- `mat2 = mat.multiplyT(num)` -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `vec2 = mat.multiplyT(vec)` -- Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `vec = mat.multiplyT(spVec)` -- Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `mat3 = mat.multiplyT(mat2)` -- Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `mat2 = mat.multiplyT(spMat)` -- Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
 	JsDeclareFunction(multiplyT);
 	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
 	JsDeclareFunction(plus);
@@ -1772,6 +1782,8 @@ public:
 	JsDeclareFunction(getRow);
 	//#- `mat.setRow(i, vec)` -- Sets the row of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
 	JsDeclareFunction(setRow);
+	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+	JsDeclareFunction(diag);
 };
 
 ///////////////////////////////
@@ -2693,7 +2705,7 @@ public:
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
 //-
-//- ## Numeric Feature Extractor
+//- ## Javascript Feature Extractor
 //-
 class TJsFuncFtrExt : public TFtrExt {
 // Js wrapper API
@@ -2703,7 +2715,7 @@ public:
 private:
 	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
 	// private constructor
-	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc");}
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc"); Dim = ParamVal->GetObjInt("dim", 1); }
 public:
 	// public smart pointer
 	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
@@ -2712,12 +2724,19 @@ public:
 // Core functionality
 private:
 	// Core part
+	TInt Dim;
 	TStr Name;
 	v8::Persistent<v8::Function> Fun;
 	double ExecuteFunc(const TRec& FtrRec) const {
 		v8::HandleScope HandleScope;
-		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
 		return Js->ExecuteFlt(Fun, RecArg);
+	}
+	
+	void ExecuteFuncVec(const TRec& FtrRec, TFltV& Vec) const {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
+		Js->ExecuteFltVec(Fun, RecArg, Vec);
 	}
 public:
 	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
@@ -2759,7 +2778,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return Name; }
-	int GetDim() const { return 1; }
+	int GetDim() const { return Dim; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
 	void Clr() { };
