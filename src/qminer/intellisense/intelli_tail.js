@@ -15,6 +15,8 @@ function _addIntellisenseVar(key, val, hideVar) {
 // ignore suggest list! (all non global variables)
 // locals (js)
 _addIntellisenseVar("_idx", "1");
+_addIntellisenseVar("_rowIdx", "1");
+_addIntellisenseVar("_colIdx", "1");
 _addIntellisenseVar("_num", "1");
 _addIntellisenseVar("_num2", "1");
 _addIntellisenseVar("_len", "1");
