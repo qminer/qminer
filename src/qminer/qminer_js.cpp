@@ -403,6 +403,22 @@ double TScript::ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Va
 	return RetVal->NumberValue();
 }
 
+void TScript::ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { Arg };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// Cast as FltV and copy result
+	v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
+	// cast it to js vector and copy internal vector
+	TJsFltV* JsVec = static_cast<TJsFltV*>(WrappedObject->Value());
+	Vec = JsVec->Vec;
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
+}
+
 bool TScript::ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
@@ -5454,15 +5470,41 @@ void TJsFuncFtrExt::Save(TSOut& SOut) const {
 }
 
 void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
-	SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
+	if (Dim == 1) {
+		SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
+	}
+	else {
+		// TODO
+		/*TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
+		FltV.AddV(Res);*/
+	}
 }
 
 void TJsFuncFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
-	FullV[Offset] = ExecuteFunc(Rec); Offset++;
+	if (Dim == 1) {
+		FullV[Offset] = ExecuteFunc(Rec); Offset++;
+	}
+	else {
+		// TODO
+		/*TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
+		FltV.AddV(Res);*/
+	}
 }
 
 void TJsFuncFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
-	FltV.Add(ExecuteFunc(FtrRec));
+	if (Dim == 1) {
+		FltV.Add(ExecuteFunc(FtrRec));
+	}
+	else {
+		TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
+		FltV.AddV(Res);
+	}
 }
 
 }

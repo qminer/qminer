@@ -399,6 +399,8 @@ public:
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context, return double
 	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context, write result to vector
+	void ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
 	/// Execute JavaScript callback in this script's context
@@ -2693,7 +2695,7 @@ public:
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
 //-
-//- ## Numeric Feature Extractor
+//- ## Javascript Feature Extractor
 //-
 class TJsFuncFtrExt : public TFtrExt {
 // Js wrapper API
@@ -2703,7 +2705,7 @@ public:
 private:
 	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
 	// private constructor
-	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc");}
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc"); Dim = ParamVal->GetObjInt("dim", 1); }
 public:
 	// public smart pointer
 	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
@@ -2712,12 +2714,19 @@ public:
 // Core functionality
 private:
 	// Core part
+	TInt Dim;
 	TStr Name;
 	v8::Persistent<v8::Function> Fun;
 	double ExecuteFunc(const TRec& FtrRec) const {
 		v8::HandleScope HandleScope;
-		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
 		return Js->ExecuteFlt(Fun, RecArg);
+	}
+	
+	void ExecuteFuncVec(const TRec& FtrRec, TFltV& Vec) const {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
+		Js->ExecuteFltVec(Fun, RecArg, Vec);
 	}
 public:
 	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
@@ -2759,7 +2768,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return Name; }
-	int GetDim() const { return 1; }
+	int GetDim() const { return Dim; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
 	void Clr() { };
