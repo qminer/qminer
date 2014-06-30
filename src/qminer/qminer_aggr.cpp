@@ -1200,10 +1200,10 @@ void TResampler::OnAddRec(const TRec& Rec) {
             const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);            
             JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
         }
-        // add new record
-        //TODO use TRec instead of PJsonVal
+		//TODO use TRec instead of PJsonVal
+		// add new record
+		uint64 NewRecId = OutStore->AddRec(JsonVal);
 		if (OutStore->IsJoinNm("source")) {
-			uint64 NewRecId = OutStore->AddRec(JsonVal);
 			OutStore->AddJoin(OutStore->GetJoinId("source"), NewRecId, Rec.GetRecId(), 1);
 		}
         // increase interpolation time
