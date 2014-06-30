@@ -21,7 +21,7 @@
 qm.load = function() {
 	var _obj = {};
 	
-    //# - `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+    //#- `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
     //#   line by line, parsing each line as JSON and adding it as record to `store`.
     //#   When `limit != -1` only first first `limit` lines are loaded
 	_obj.jsonFileLimit = function (store, file, limit) {
@@ -52,7 +52,7 @@ qm.load = function() {
 		return count;
 	}
 
-    //# - `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+    //#- `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
     //#   parsing each line as JSON and adding it as record to `store`
 	_obj.jsonFile = function (store, file) {
         return _obj.jsonFileLimit(store, file, -1);
@@ -61,7 +61,7 @@ qm.load = function() {
     return _obj;
 }();
 
-//# - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
+//#- `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
 qm.printStreamAggr = function(store) {
 	var names = store.getStreamAggrNames();
 	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
@@ -73,8 +73,8 @@ qm.printStreamAggr = function(store) {
 		}
 	}
 }
-//# - `dir()` -- prints all global variables
-//# - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
+//#- `dir()` -- prints all global variables
+//#- `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
 //#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 function dir(obj, printVals, depth, width, prefix, showProto) {
     // dir();

@@ -71,11 +71,13 @@ namespace TQm {
 //# are implemented in C++, for example `analytics` and `time`.
 //# 
 //# The QMiner system comes with the following libraries:
-//# - `analytics.js` -- main API for analytics techniques
-//# - `utilities.js` -- useful JavaScript utilities, e.g., checking variable type
-//# - `time` -- wrapper around user-friendly date-time object
-//# - `assert.js` -- support for writing unit tests
-    
+//#- **analytics.js** -- main API for analytics techniques
+//#- **utilities.js** -- useful JavaScript utilities, e.g., checking variable type
+//#- **time** -- wrapper around user-friendly date-time object
+//#- **assert.js** -- support for writing unit tests
+//#- **twitter.js** -- support for processing tweets
+
+
 ///////////////////////////////
 // JavaScript-Exceptions-related macros 
 
@@ -397,6 +399,8 @@ public:
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context, return double
 	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context, write result to vector
+	void ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
 	/// Execute JavaScript callback in this script's context
@@ -1064,7 +1068,7 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
 	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
+    //#- `store.addStreamAggr(TypeName, Parameters)` -- add new [Stream Aggregate](Stream-Aggregates) 
     //#     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
     JsDeclareFunction(addStreamAggr);
     //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
@@ -1348,29 +1352,29 @@ public:
 	//# **Functions and properties:**
 	//# 
 	//#- `vec = la.newVec()` -- generate an empty float vector
-	//#- `vec = la.newVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-	//#- `vec = la.newVec(a)` -- copy a javascript number array `a` 
+	//#- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
-	//#- `vec = la.newIntVec()` -- generate an empty float vector
-	//#- `vec = la.newIntVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-	//#- `vec = la.newIntVec(a)` -- copy a javascript int array `a` 
-	//#- `vec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+	//#- `intVec = la.newIntVec()` -- generate an empty float vector
+	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
+	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
 	JsDeclareFunction(newIntVec);
 	//#- `mat = la.newMat()` -- generates a 0x0 matrix
-	//#- `mat = la.newMat(a)` -- generates a matrix from a javascript array `a`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-	//#- `mat = la.newMat({"rows":r, "cols":c, "random":b})` -- creates a matrix with `r` rows and `c` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 	//#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
 	JsDeclareFunction(newMat);
-	//#- `vec = la.newSpVec(dim)` -- creates an empty sparse vector `vec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
-	//#- `vec = la.newSpVec(a, dim)` -- creats a sparse vector `vec` from a javascript array `a`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
+	//#- `vec = la.newSpVec(len)` -- creates an empty sparse vector `vec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `vec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `vec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
 	JsDeclareFunction(newSpVec);
 	//#- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
-	//#- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
-	//#- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-	//#- `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
+	//#- `mat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+	//#- `mat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	//#- `mat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
-	//#- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
+	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
@@ -1384,8 +1388,8 @@ public:
 //# Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
 //# 
 //# ```JavaScript
-//# var fltv = la.newVec(); //empty vector
-//# var intv = la.newIntVec(); //empty vector
+//# var vec = la.newVec(); //empty vector
+//# var intVec = la.newIntVec(); //empty vector
 //# // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
 //# ```
 //# 
@@ -1455,49 +1459,59 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `x = vec.at(elN)` -- gets the value `x` at index `elN` of vector `vec` (0-based indexing)
+	//#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
+	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 	JsDeclareFunction(at);
-	//#- `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
+	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
+	//#- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
+	//#- `intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)
 	JsDeclareFunction(put);	
-	//#- `vec.push(y)` -- append value `y` to vector `vec`
+	//#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
+	//#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
 	JsDeclareFunction(push);
-	//#- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
+	//#- `len = vec.unshift(num)` -- insert value `num` to the begining of vector `vec`. Returns the length of the modified array.
+	//#- `len = intVec.unshift(num)` -- insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.
 	JsDeclareFunction(unshift);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
+	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
+	//#- `intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
 	JsDeclareTemplatedFunction(pushV);
-	//#- `x = vec.sum()` -- sums the elements of `vec`
+	//#- `num = vec.sum()` -- return `num`: the sum of elements of vector `vec`
+	//#- `num = intVec.sum()` -- return `num`: the sum of elements of integer vector `intVec`
 	JsDeclareFunction(sum);
-	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
+	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
+	//#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
 	JsDeclareFunction(getMaxIdx);
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
+	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
-	//#- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order. Implemented for dense float vectors.
+	//#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
 	JsDeclareTemplatedFunction(sortPerm);	
-	//#- `mat = vec1.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec1 * vec2^T`. Implemented for dense float vectors. 
+	//#- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors. 
 	JsDeclareTemplatedFunction(outer);
-	//#- `x = vec1.inner(vec2)` -- `x` is the standard dot product between vectors `vec1` and `vec2`. Implemented for dense float vectors.
+	//#- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(inner);
-	//#- `vec3 = vec1.plus(vec2)` --`vec3` is the sum of vectors `vec1` and `vec2`. Implemented for dense float vectors.
+	//#- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(plus);
-	//#- `vec3 = vec1.minus(vec2)` --`vec3` is the difference of vectors `vec1` and `vec2`. Implemented for dense float vectors.
+	//#- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(minus);
-	//#- `vec2 = vec1.multiply(a)` --`vec2` is a vector obtained by multiplying vector `vec1` with a scalar (number) `a`. Implemented for dense float vectors.
+	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(multiply);
-	//#- `vec.normalize();` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
+	//#- `vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
+	//#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
 	JsDeclareProperty(length);
 	//#- `vec.print()` -- print vector in console
+	//#- `intVec.print()` -- print integer vector in console
 	JsDeclareFunction(print);
-	//#- `D = vec.diag()` -- `D` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors.
+	//#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(diag);
-	//#- `D = vec.spDiag()` -- `D` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors.
+	//#- `spMat = vec.spDiag()` -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(spDiag);
-	//#- `x = vec.norm()` -- `x` is the Euclidean norm of `vec`. Implemented for dense float vectors.
+	//#- `num = vec.norm()` -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(norm);
-	//#- `vec2 = vec.sparse()` -- `vec2` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors.
+	//#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors.
 	JsDeclareTemplatedFunction(sparse);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
@@ -2203,26 +2217,26 @@ public:
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
-//# - gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
+//#- gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
 //#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
 //#	    is the most expensive operation in the algorithm; we have to recompute gains at each
 //#	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
-//# - splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
+//#- splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
 //#	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
 //#	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
 //#	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
-//# - tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
+//#- tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
 //#	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
 //#	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
 //#	    the attributes are equally good, we don't care on which one we split.)
-//# - conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
+//#- conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
 //#	    we use a variant of [CVFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf );
 //#     if set to false, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
-//# - driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
+//#- driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
 //#	    examples and swaps the tree 
-//# - windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
+//#- windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
 //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 //#	    the window in order to ``forget'' the example when it becomes too old. 
 class TJsHoeffdingTree {
@@ -2440,7 +2454,7 @@ public:
 	JsDeclareFunction(del);
     //#- `fs.rename(fromFileName, toFileName)`
 	JsDeclareFunction(rename);
-    //#- `info = fs.fileInfo(fileName,)`
+    //#- `info = fs.fileInfo(fileName)`
 	JsDeclareFunction(fileInfo);
     //#- `fs.mkdir(dirName)`
 	JsDeclareFunction(mkdir);
@@ -2556,7 +2570,7 @@ public:
     //#- `http.postStr(url, mimeType, data, success_callback)`
     //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
 	JsDeclareFunction(post);
-    //#- `http.onRequest(path, verb, function (request, response) { ... })`
+    //#- `http.onRequest(path, verb, function (request, response) { /*...*/ })`
 	JsDeclareFunction(onRequest);
     //#JSIMPLEMENT:src/qminer/http.js    
 };
@@ -2668,7 +2682,7 @@ public:
     JsDeclareFunction(sub); 
     //#- `tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
-    //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
+    //#- `date = tm.parse('2014-05-29T10:09:12')` -- parses string and returns it
     //#     as Date-Time object
 	JsDeclareFunction(parse);
 };
@@ -2681,7 +2695,7 @@ public:
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
 //-
-//- ## Numeric Feature Extractor
+//- ## Javascript Feature Extractor
 //-
 class TJsFuncFtrExt : public TFtrExt {
 // Js wrapper API
@@ -2691,7 +2705,7 @@ public:
 private:
 	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
 	// private constructor
-	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc");}
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc"); Dim = ParamVal->GetObjInt("dim", 1); }
 public:
 	// public smart pointer
 	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
@@ -2700,12 +2714,19 @@ public:
 // Core functionality
 private:
 	// Core part
+	TInt Dim;
 	TStr Name;
 	v8::Persistent<v8::Function> Fun;
 	double ExecuteFunc(const TRec& FtrRec) const {
 		v8::HandleScope HandleScope;
-		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
 		return Js->ExecuteFlt(Fun, RecArg);
+	}
+	
+	void ExecuteFuncVec(const TRec& FtrRec, TFltV& Vec) const {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
+		Js->ExecuteFltVec(Fun, RecArg, Vec);
 	}
 public:
 	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
@@ -2747,7 +2768,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return Name; }
-	int GetDim() const { return 1; }
+	int GetDim() const { return Dim; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
 	void Clr() { };
