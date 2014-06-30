@@ -2790,6 +2790,7 @@ v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, setCol);
 		JsRegisterFunction(TmpTemp, getRow);
 		JsRegisterFunction(TmpTemp, setRow);
+		JsRegisterFunction(TmpTemp, diag);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3225,7 +3226,18 @@ v8::Handle<v8::Value> TJsFltVV::setRow(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());	
 }
 
-
+v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	QmAssertR(JsMat->Mat.GetRows() == JsMat->Mat.GetCols(), "matrix: diag: square matrix expected! ");
+	TFltV Result(JsMat->Mat.GetRows());
+	for (int ElN = 0; ElN < JsMat->Mat.GetRows(); ElN++) {
+		Result[ElN] = JsMat->Mat.At(ElN, ElN);
+	}
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
+	return HandleScope.Close(JsResult);
+	return HandleScope.Close(v8::Undefined());
+}
 
 ///////////////////////////////
 // QMiner-SparseVec

@@ -1774,6 +1774,8 @@ public:
 	JsDeclareFunction(getRow);
 	//#- `mat.setRow(i, vec)` -- Sets the row of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
 	JsDeclareFunction(setRow);
+	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+	JsDeclareFunction(diag);
 };
 
 ///////////////////////////////

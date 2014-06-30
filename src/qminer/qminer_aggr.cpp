@@ -1194,6 +1194,7 @@ void TResampler::OnAddRec(const TRec& Rec) {
         // update timestamp
         TStr RecTmStr = TTm::GetTmFromMSecs(InterpPointMSecs).GetWebLogDateTimeStr(true, "T", true);
         JsonVal->AddToObj(InStore->GetFieldNm(TimeFieldId), RecTmStr);
+
         // update fields
         for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {            
             const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);            
@@ -1201,7 +1202,10 @@ void TResampler::OnAddRec(const TRec& Rec) {
         }
         // add new record
         //TODO use TRec instead of PJsonVal
-        OutStore->AddRec(JsonVal);
+		if (OutStore->IsJoinNm("source")) {
+			uint64 NewRecId = OutStore->AddRec(JsonVal);
+			OutStore->AddJoin(OutStore->GetJoinId("source"), NewRecId, Rec.GetRecId(), 1);
+		}
         // increase interpolation time
         InterpPointMSecs += IntervalMSecs;
     }
@@ -1224,6 +1228,15 @@ void TResampler::CreateStore(const TStr& NewStoreNm) {
 		FieldsVal->AddToArr(FieldVal);
 	}
 	StoreVal->AddToObj("fields", FieldsVal);
+	// join that points to the original store (each record in the resampled 
+	// store points to the most recent record in the orinal store)
+	PJsonVal JoinsVal = TJsonVal::NewArr();
+	PJsonVal JoinVal = TJsonVal::NewObj();
+	JoinVal->AddToObj("name", "source");
+	JoinVal->AddToObj("type", "field");
+	JoinVal->AddToObj("store", InStore->GetStoreNm());
+	JoinsVal->AddToArr(JoinVal);
+	StoreVal->AddToObj("joins", JoinsVal);
     // create store
     InfoLog("Creating new store '" + NewStoreNm + "'");    
 	TStorage::CreateStoresFromSchema(GetBase(), StoreVal, 1024);
