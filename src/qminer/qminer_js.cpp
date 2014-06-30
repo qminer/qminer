@@ -409,14 +409,14 @@ void TScript::ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::V
 	const int Argc = 1;
 	v8::Handle<v8::Value> Argv[Argc] = { Arg };
 	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
 	// Cast as FltV and copy result
 	v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
 	// cast it to js vector and copy internal vector
 	TJsFltV* JsVec = static_cast<TJsFltV*>(WrappedObject->Value());
 	Vec = JsVec->Vec;
-	// handle errors
-	TJsUtil::HandleTryCatch(TryCatch);
 }
 
 bool TScript::ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg) {
@@ -5474,11 +5474,13 @@ void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) con
 		SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
 	}
 	else {
-		// TODO
-		/*TFltV Res;
+		TFltV Res;
 		ExecuteFuncVec(FtrRec, Res);
-		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
-		FltV.AddV(Res);*/
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::AddSpV Dim != result dimension!");
+		for (int ElN = 0; ElN < Dim; ElN++) {
+			SpV.Add(TIntFltKd(Offset + ElN, Res[ElN]));
+		}
+		Offset += Dim;
 	}
 }
 
@@ -5486,12 +5488,14 @@ void TJsFuncFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
 	if (Dim == 1) {
 		FullV[Offset] = ExecuteFunc(Rec); Offset++;
 	}
-	else {
-		// TODO
-		/*TFltV Res;
-		ExecuteFuncVec(FtrRec, Res);
-		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
-		FltV.AddV(Res);*/
+	else {		
+		TFltV Res;
+		ExecuteFuncVec(Rec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::AddFullV Dim != result dimension!");
+		for (int ElN = 0; ElN < Dim; ElN++) {
+			FullV[Offset + ElN] = Res[ElN];
+		}
+		Offset += Dim;
 	}
 }
 
