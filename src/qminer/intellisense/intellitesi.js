@@ -10,13 +10,38 @@ mat = la.newMat()$SEPARATOR$ -- generates a 0x0 matrix
 mat = la.newMat({"rows":num, "cols":num2, "random":bool})$SEPARATOR$ -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 mat = la.newMat(nestedArr)$SEPARATOR$ -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 mat = la.newMat(mat2)$SEPARATOR$ -- clones a dense matrix `mat2`
-vec = la.newSpVec(len)$SEPARATOR$ -- creates an empty sparse vector `vec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-vec = la.newSpVec(nestedArr, len)$SEPARATOR$ -- creats a sparse vector `vec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-mat = la.newSpMat()$SEPARATOR$ -- creates an empty sparse matrix `mat`
-mat = la.newSpMat(rowIdxVec, colIdxVec, valVec)$SEPARATOR$ -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
-mat = la.newSpMat(doubleNestedArr, rows)$SEPARATOR$ -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-mat = la.newSpMat({"rows":num, "cols":num2})$SEPARATOR$ --- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-svdRes = la.svd(mat, k, {"iter":num, "tol":num2})$SEPARATOR$ -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+spVec = la.newSpVec(len)$SEPARATOR$ -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+spVec = la.newSpVec(nestedArr, len)$SEPARATOR$ -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
+spMat = la.newSpMat()$SEPARATOR$ -- creates an empty sparse matrix `spMat`
+spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)$SEPARATOR$ -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+spMat = la.newSpMat(doubleNestedArr, rows)$SEPARATOR$ -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+spMat = la.newSpMat({"rows":num, "cols":num2})$SEPARATOR$ -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
+svdRes = la.svd(mat, k, {"iter":num, "tol":num2})$SEPARATOR$ -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})$SEPARATOR$ -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+la.printVec(vecec)$SEPARATOR$ -- print the vector `vec` in the console
+la.printVec(intVec)$SEPARATOR$ -- print the int vector `intVec` in the console
+la.printSpFeatVec(spVec, fsp, asc)$SEPARATOR$ -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
+la.printFeatVec(vec, fsp, limit, asc)$SEPARATOR$ -- Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
+la.printArray(arr)$SEPARATOR$ -- print the javascript array `arr` in the console
+la.printMat(mat)$SEPARATOR$ -- print the matrix `mat` in the console
+num = la.genRandom()$SEPARATOR$ -- `num` is a sample from a standard normal random variable
+vec = la.genRandomVector(dim)$SEPARATOR$ -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
+arr = la.genRandomPerm(k)$SEPARATOR$ -- returns a permutation of `k` elements. `arr` is a javascript array of integers
+num2 = la.randInt(num)$SEPARATOR$ -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num]`
+vec = la.randIntVec(num, k)$SEPARATOR$ -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`
+mat = la.genRandomMatrix(rows, cols)$SEPARATOR$ -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
+mat = la.eye(dim)$SEPARATOR$ -- `mat` is a `dim`-by-`dim` identity matrix
+vec = la.ones(k)$SEPARATOR$ -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
+intVec = la.rangeVec(num, num2)$SEPARATOR$ -- `intVec` is an integer vector: `[num, num + 1, ..., num2].
+la.square(vec)$SEPARATOR$ -- squares all elements of a vector `vec` (inplace).
+num = la.square(num)$SEPARATOR$ -- returns `sq` which is the quare of number `num`.
+arr = la.findMaxIdx(mat)$SEPARATOR$ -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `mat`.
+arr = la.findMaxIdx(vec)$SEPARATOR$ -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.
+intVec = la.copyIntArrayToVec(arr)$SEPARATOR$ -- copies a JS array of integers `arr` into an integer vector `intVec`
+vec = la.copyFltArrayToVec(arr)$SEPARATOR$ -- copies a JS array of numbers `arr` into a float vector `vec`
+la.saveMat(mat, fout)$SEPARATOR$ -- writes a dense matrix `mat` to output file stream `fout`
+la.conjgrad(mat,vec,vec2)$SEPARATOR$ -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
+la.conjgrad(spMat,vec,vec2)$SEPARATOR$ -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
 num = vec.at(idx)$SEPARATOR$ -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 num = intVec.at(idx)$SEPARATOR$ -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 num = vec[idx]; vec[idx] = num$SEPARATOR$ -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
@@ -35,17 +60,92 @@ idx = intVec.getMaxIdx()$SEPARATOR$ -- returns the integer index `idx` of the ma
 vec2 = vec.sort(asc)$SEPARATOR$ -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 intVec2 = intVec.sort(asc)$SEPARATOR$ -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 sortRes = vec.sortPerm(asc)$SEPARATOR$ -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
-mat = vec.outer(vec2)$SEPARATOR$ -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors.
-num = vec.inner(vec2)$SEPARATOR$ -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors.
-vec3 = vec.plus(vec2)$SEPARATOR$ --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors.
-vec3 = vec.minus(vec2)$SEPARATOR$ --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors.
-vec2 = vec.multiply(num)$SEPARATOR$ --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors.
-vec.normalize()$SEPARATOR$ -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
+mat = vec.outer(vec2)$SEPARATOR$ -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only.
+num = vec.inner(vec2)$SEPARATOR$ -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
+vec3 = vec.plus(vec2)$SEPARATOR$ --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
+vec3 = vec.minus(vec2)$SEPARATOR$ --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
+vec2 = vec.multiply(num)$SEPARATOR$ --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
+vec.normalize()$SEPARATOR$ -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.
 len = vec.length$SEPARATOR$ -- integer `len` is the length of vector `vec`
 len = intVec.length$SEPARATOR$ -- integer `len` is the length of integer vector `vec`
 vec.print()$SEPARATOR$ -- print vector in console
 intVec.print()$SEPARATOR$ -- print integer vector in console
-mat = vec.diag()$SEPARATOR$ -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors.
-spMat = vec.spDiag()$SEPARATOR$ -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors.
-num = vec.norm()$SEPARATOR$ -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors.
-spVec = vec.sparse()$SEPARATOR$ -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors.
+mat = vec.diag()$SEPARATOR$ -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
+spMat = vec.spDiag()$SEPARATOR$ -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
+num = vec.norm()$SEPARATOR$ -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.
+spVec = vec.sparse()$SEPARATOR$ -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
+num = mat.at(rowIdx,colIdx)$SEPARATOR$ -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
+mat.put(rowIdx, colIdx, num)$SEPARATOR$ -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+mat2 = mat.multiply(num)$SEPARATOR$ -- Matrix multiplication: `num` is a number, `mat2` is a matrix
+vec2 = mat.multiply(vec)$SEPARATOR$ -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
+vec = mat.multiply(spVec)$SEPARATOR$ -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
+mat3 = mat.multiply(mat2)$SEPARATOR$ -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
+mat2 = mat.multiply(spMat)$SEPARATOR$ -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
+mat2 = mat.multiplyT(num)$SEPARATOR$ -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+vec2 = mat.multiplyT(vec)$SEPARATOR$ -- Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+vec = mat.multiplyT(spVec)$SEPARATOR$ -- Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+mat3 = mat.multiplyT(mat2)$SEPARATOR$ -- Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+mat2 = mat.multiplyT(spMat)$SEPARATOR$ -- Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+mat3 = mat.plus(mat2)$SEPARATOR$ -- `mat3` is the sum of matrices `mat` and `mat2`
+mat3 = mat.minus(mat2)$SEPARATOR$ -- `mat3` is the difference of matrices `mat` and `mat2`
+mat2 = mat.transpose()$SEPARATOR$ -- matrix `mat2` is matrix `mat` transposed
+vec2 = mat.solve(vec)$SEPARATOR$ -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
+vec = mat.rowNorms()$SEPARATOR$ -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+vec = mat.colNorms()$SEPARATOR$ -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+mat.normalizeCols()$SEPARATOR$ -- normalizes each column of matrix `mat` (inplace operation)
+spMat = mat.sparse()$SEPARATOR$ -- get sparse column matrix representation `spMat` of dense matrix `mat`
+num = mat.frob()$SEPARATOR$ -- number `num` is the Frobenious norm of matrix `mat`
+num = mat.rows$SEPARATOR$ -- integer `num` corresponds to the number of rows of `mat`
+num = mat.cols$SEPARATOR$ -- integer `num` corresponds to the number of columns of `mat`
+str = mat.printStr()$SEPARATOR$ -- print matrix `mat` to a string `str`
+mat.print()$SEPARATOR$ -- print matrix `mat` to console
+colIdx = mat.rowMaxIdx(rowIdx)$SEPARATOR$: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
+rowIdx = mat.colMaxIdx(colIdx)$SEPARATOR$: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
+vec = mat.getCol(colIdx)$SEPARATOR$ -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
+mat.setCol(colIdx, vec)$SEPARATOR$ -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.
+vec = mat.getRow(rowIdx)$SEPARATOR$ -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
+mat.setRow(rowIdx, vec)$SEPARATOR$ -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
+vec = mat.diag()$SEPARATOR$ -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+num = spVec.at(idx)$SEPARATOR$ -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
+spVec.put(idx, num)$SEPARATOR$ -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing
+num = spVec.sum()$SEPARATOR$ -- `num` is the sum of elements of `spVec`
+num = spVec.inner(vec)$SEPARATOR$ -- `num` is the inner product between `spVec` and dense vector `vec`.
+num = spVec.inner(spVec)$SEPARATOR$ -- `num` is the inner product between `spVec` and sparse vector `spVec`.
+spVec2 = spVec.multiply(a)$SEPARATOR$ -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
+spVec.normalize()$SEPARATOR$ -- normalizes the vector spVec (inplace operation)
+num = spVec.nnz$SEPARATOR$ -- gets the number of nonzero elements `num` of vector `spVec`
+num = spVec.dim$SEPARATOR$ -- gets the dimension `num` (-1 means that it is unknown)
+spVec.print()$SEPARATOR$ -- prints the vector to console
+num = spVec.norm()$SEPARATOR$ -- returns `num` - the norm of `spVec`
+vec = spVec.full()$SEPARATOR$ --  returns `vec` - a dense vector representation of sparse vector `spVec`.
+valVec = spVec.valVec()$SEPARATOR$ --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
+idxVec = spVec.idxVec()$SEPARATOR$ --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
+num = spMat.at(rowIdx,colIdx)$SEPARATOR$ -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
+spMat.put(rowIdx, colIdx, num)$SEPARATOR$ -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+spVec = spMat[colIdx]; spMat[colIdx] = spVec$SEPARATOR$ -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
+spMat.push(spVec)$SEPARATOR$ -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)
+spMat2 = spMat.multiply(num)$SEPARATOR$ -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
+vec2 = spMat.multiply(vec)$SEPARATOR$ -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
+vec = spMat.multiply(spVec)$SEPARATOR$ -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector
+mat2 = spMat.multiply(mat)$SEPARATOR$ -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix
+mat = spMat.multiply(spMat2)$SEPARATOR$ -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix
+spMat2 = spMat.multiplyT(num)$SEPARATOR$ -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+vec2 = spMat.multiplyT(vec)$SEPARATOR$ -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+vec = spMat.multiplyT(spVec)$SEPARATOR$ -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+mat2 = spMat.multiplyT(mat)$SEPARATOR$ -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+mat = spMat.multiplyT(spMat2)$SEPARATOR$ -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.
+spMat3 = spMat.plus(spMat2)$SEPARATOR$ -- `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
+spMat3 = spMat.minus(spMat2)$SEPARATOR$ -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
+spMat2 = spMat.transpose()$SEPARATOR$ -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed
+vec = spMat.colNorms()$SEPARATOR$ -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
+spMat.normalizeCols()$SEPARATOR$ -- normalizes each column of a sparse matrix `spMat` (inplace operation)
+mat = spMat.full()$SEPARATOR$ -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
+num = spMat.frob()$SEPARATOR$ -- number `num` is the Frobenious norm of `spMat` (sparse matrix)
+num = spMat.rows$SEPARATOR$ -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
+num = spMat.cols$SEPARATOR$ -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
+spMat.print()$SEPARATOR$ -- print `spMat` (sparse matrix) to console
+spMat.save(fout)$SEPARATOR$ -- print `spMat` (sparse matrix) to output stream `fout`
+spMat.load(fin)$SEPARATOR$ -- load `spMat` (sparse matrix) from input steam `fin`
+la.spMat$SEPARATOR$ -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
+str = spMat.toString()$SEPARATOR$ -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
+num = spMat.nnz()$SEPARATOR$ -- `num` is the number of non-zero elements of sparse column matrix `spMat`

@@ -55,7 +55,8 @@ for line in fr:
             funDict[rhs].append({'noObjPath': funPathNoObj, 'rhs':rhs, 'return':lhs, 'obj':objName, 'comment':commentLine, 'isFun':False, 'zline':line})
         else:
             print("not OK!: properties should have a return value!)")
-            sys.exit()
+            fwProblems.write(line + '\n')
+			# sys.exit()
     else:
         print("fun: " + line)
         # empty body by default
