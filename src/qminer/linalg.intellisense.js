@@ -1187,7 +1187,7 @@ intellisenseIgnore["_spMat"] = "{}";
 
 _vec[0] = 1; // vec is indexed and returns numbers
 _intVec[0] = 1; // vec is indexed and returns numbers
-_spMat[0] = spVec; // spMat is indexed and returns sparse column vectors
+_spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
 _addIntellisenseVar("_vec2", "_vec");
 _addIntellisenseVar("_vec3", "_vec");
 _addIntellisenseVar("_valVec", "_vec");
