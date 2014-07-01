@@ -1,3 +1,78 @@
+store = qm.store(storeName)$SEPARATOR$ -- store with name `storeName`; `store = null` when no such store
+strArr = qm.getStoreList()$SEPARATOR$ -- an array of strings listing all existing stores
+qm.createStore(storeDef)$SEPARATOR$ -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+rs = qm.search(query)$SEPARATOR$ -- execute `query` (Json) specified in [QMiner Query Language](Query Language)
+qm.gc()$SEPARATOR$ -- start garbage collection to remove records outside time windows
+num = qm.load.jsonFileLimit(store, fileName, limit)$SEPARATOR$ -- load file `fileName`
+num = qm.load.jsonFile(store, fileName)$SEPARATOR$ -- load file `fileName` line by line,
+qm.printStreamAggr(store)$SEPARATOR$ -- prints all current field values of every stream aggregate attached to the store `store`
+dir()$SEPARATOR$ -- prints all global variables
+dir(obj, printVals, depth, width, prefix, showProto)$SEPARATOR$ -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false).
+str = store.name$SEPARATOR$ -- name of the store
+bool = store.empty$SEPARATOR$ -- `bool = true` when store is empty
+len = store.length$SEPARATOR$ -- number of records in the store
+rs = store.recs$SEPARATOR$ -- create a record set containing all the records from the store
+objArr = store.fields$SEPARATOR$ -- array of all the field descriptor JSON objects
+objArr = store.joins$SEPARATOR$ -- array of all the join names
+objArr = store.keys$SEPARATOR$ -- array of all the [index keys](#index-key) objects
+rec = store[recId]$SEPARATOR$ -- get record with ID `recId`;
+rec = store.rec(recName)$SEPARATOR$ -- get record named `recName`;
+recId = store.add(rec)$SEPARATOR$ -- add record `rec` to the store and return its ID `recId`
+rec = store.newRec(recordJson)$SEPARATOR$ -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+rs = store.newRecSet(idVec)$SEPARATOR$ -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
+rs = store.sample(sampleSize)$SEPARATOR$ -- create a record set containing a random
+field = store.field(fieldName)$SEPARATOR$ -- get details of field named `fieldName`
+key = store.key(keyName)$SEPARATOR$ -- get [index key](#index-key) named `keyName`
+store.addTrigger(trigger)$SEPARATOR$ -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+store.addStreamAggr(typeName, paramJSON)$SEPARATOR$ -- add new [Stream Aggregate](Stream-Aggregates)
+objJSON = store.getStreamAggr(saName)$SEPARATOR$ -- returns current JSON value of stream aggregate `saName`
+strArr = store.getStreamAggrNames()$SEPARATOR$ -- returns the names of all stream aggregators as an array of strings `strArr`
+storeName = rs.store$SEPARATOR$ -- store of the records
+len = rs.length$SEPARATOR$ -- number of records in the set
+bool = rs.empty$SEPARATOR$ -- `bool = true` when record set is empty
+bool =  rs.weighted$SEPARATOR$ -- `bool = true` when records in the set are assigned weights
+rec = rs[n]$SEPARATOR$ -- return n-th record from the record set
+rs2 = rs.clone()$SEPARATOR$ -- creates new instance of record set
+rs2 = rs.join(joinName)$SEPARATOR$ -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
+rs2 = rs.join(joinName, sampleSize)$SEPARATOR$ -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
+aggrsJSON = rs.aggr()$SEPARATOR$ -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
+aggr = rs.aggr(aggrQueryJSON)$SEPARATOR$ -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
+rs.trunc(num)$SEPARATOR$ -- truncate to first `num` record. Inplace operation.
+rs2 = rs.sample(num)$SEPARATOR$ -- create new record set by randomly sampling `num` records.
+rs.shuffle(seed)$SEPARATOR$ -- shuffle order using random integer seed `seed`. Inplace operation.
+rs.reverse()$SEPARATOR$ -- reverse record order. Inplace operation.
+rs.sortById(asc)$SEPARATOR$ -- sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.
+rs.sortByFq(asc)$SEPARATOR$ -- sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.
+rs.sortByField(fieldName, asc)$SEPARATOR$ -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.
+rs.sort(comparatorCallback)$SEPARATOR$ -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.
+rs.filterById(minId, maxId)$SEPARATOR$ -- keeps only records with ids between `minId` and `maxId`. Inplace operation.
+rs.filterByFq(minFq, maxFq)$SEPARATOR$ -- keeps only records with weight between `minFq` and `maxFq`. Inplace operation.
+rs.filterByField(fieldName, minVal, maxVal)$SEPARATOR$ -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+rs.filterByField(fieldName, minTm, maxTm)$SEPARATOR$ -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+rs.filterByField(fieldName, str)$SEPARATOR$ -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
+rs.filter(filterCallback)$SEPARATOR$ -- keeps only records that pass `filterCallback` function
+rs.deleteRecs(rs2)$SEPARATOR$ -- delete from `rs` records that are also in `rs2`. Inplace operation.
+objsJSON = rs.toJSON()$SEPARATOR$ -- provide json version of record set, useful when calling JSON.stringify
+rs.map(mapCallback)$SEPARATOR$ -- iterates through the record set and executes the callback function `mapCallback` on each element:
+rs3 = rs.setintersect(rs2)$SEPARATOR$ -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+rs3 = rs.setunion(rs2)$SEPARATOR$ -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+rs3 = rs.setdiff(rs2)$SEPARATOR$ -- returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+recId = rec.$id$SEPARATOR$ -- returns record ID
+recName = rec.$name$SEPARATOR$ -- returns record name
+recFq = rec.$fq$SEPARATOR$ -- returns record frequency (used for randomized joins)
+rec['fieldName'] = val$SEPARATOR$ -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
+val = rec['fieldName']$SEPARATOR$ -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
+rs = rec['joinName']$SEPARATOR$ -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
+rec2 = rec['joinName']$SEPARATOR$ -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
+rec.addJoin(joinName, joinRecord)$SEPARATOR$ -- adds a join record `joinRecord` to join `jonName` (string)
+rec.addJoin(joinName, joinRecord, joinFrequency)$SEPARATOR$ -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+rec.delJoin(joinName, joinRecord)$SEPARATOR$ -- deletes join record `joinRecord` from join `joinName` (string)
+rec.delJoin(joinName, joinRecord, joinFrequency)$SEPARATOR$ -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`
+objJSON = rec.toJSON()$SEPARATOR$ -- provide json version of record, useful when calling JSON.stringify
+storeName = key.store$SEPARATOR$ -- gets the store name `storeName`
+keyName = key.name$SEPARATOR$ -- gets the key name
+strArr = key.voc$SEPARATOR$ -- gets the array of words (as strings) in the vocabulary
+strArr = key.fq$SEPARATOR$ -- gets the array of weights (as strings) in the vocabulary
 vec = la.newVec()$SEPARATOR$ -- generate an empty float vector
 vec = la.newVec({"vals":num, "mxvals":num2})$SEPARATOR$ -- generate a vector with `num` zeros and reserve additional `num - num2` elements
 vec = la.newVec(arr)$SEPARATOR$ -- copy a javascript number array `arr`

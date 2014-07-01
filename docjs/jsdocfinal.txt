@@ -52,17 +52,19 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 
 **Functions and properties:**
 
-- `s = qm.store(storeName)` -- store with name `storeName`; `null` when no such store
-- `a = qm.getStoreList()` -- an array listing all existing stores
-- `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
-- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
+- `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
+- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
+- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
   and returns a record set `rs` with results
 - `qm.gc()` -- start garbage collection to remove records outside time windows
-- `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
-  When `limit != -1` only first first `limit` lines are loaded
-- `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
-  parsing each line as JSON and adding it as record to `store`
+  When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
+  the number of lines loaded.
+- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+  parsing each line as JSON and adding it as record to `store`. Returns `num`:
+  the number of lines loaded.
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
@@ -79,30 +81,29 @@ var record = store[1234];
 
 **Functions and properties:**
     
-- `store.name` -- name of the store
-- `store.empty` -- `true` when store is empty
-- `store.length` -- number of records in the store
+- `str = store.name` -- name of the store
+- `bool = store.empty` -- `bool = true` when store is empty
+- `len = store.length` -- number of records in the store
 - `rs = store.recs` -- create a record set containing all the records from the store
-- `store.fields` -- array of all the field names
-- `store.joins` -- array of all the join names
-- `store.keys` -- array of all the [index keys](#index-key)
-- `r = store[recordId]` -- get record with ID `recordId`; 
+- `objArr = store.fields` -- array of all the field descriptor JSON objects
+- `objArr = store.joins` -- array of all the join names
+- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
+- `rec = store[recId]` -- get record with ID `recId`; 
     returns `null` when no such record exists
-- `r = store.rec(recordName)` -- get record named `recordName`; 
+- `rec = store.rec(recName)` -- get record named `recName`; 
     returns `null` when no such record exists
-- `store.add(record)` -- add `record` to the store 
-- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
-- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    array is expected to be of type `la.newIntVec`
+- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
+- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 - `rs = store.sample(sampleSize)` -- create a record set containing a random 
     sample of `sampleSize` records
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
-- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
-- `store.addStreamAggr(TypeName, Parameters)` -- add new [Stream Aggregate](Stream-Aggregates) 
-    of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
-- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
-- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
+- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+- `store.addStreamAggr(typeName, paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates) 
+    of type `typeName` to the store; stream aggregate is passed `paramJSON` JSon
+- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
+- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
 
 **Examples**:
 
@@ -140,36 +141,37 @@ the set.
 
 **Functions and properties:**
   
-- `rs.store` -- store of the records
-- `rs.length` -- number of records in the set
-- `rs.empty` -- `true` when record set is empty
-- `rs.weighted` -- true when records in the set are assigned weights
+- `storeName = rs.store` -- store of the records
+- `len = rs.length` -- number of records in the set
+- `bool = rs.empty` -- `bool = true` when record set is empty
+- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 - `rec = rs[n]` -- return n-th record from the record set
-- `crs = rs.clone()` -- creates new instance of record set
-- `jrs = rs.join(JoinName)` -- executes a join `JoinName` on the records in the set, result is another record set
-- `jrs = rs.join(JoinName, SampleSize)` -- executes a join `JoinName` on a sample of `SampleSize` records in the set, result is another record set
-- `aggr = rs.aggr()` -- returns an array of all the aggregates contained in the records set
-- `aggr = rs.aggr(Query)` -- creates a new aggregates based on the `Query` parameters
-- `rs.trunc(Recs)` -- truncate to first `Recs` record
-- `srs = rs.sample(Recs)` -- create new record set by randomly sampling `Recs` records
-- `rs.shuffle(Seed)` -- shuffle order using random seed `Seed`
-- `rs.reverse()` -- reverse record order
-- `rs.sortById(Asc)` -- sort records according to record id; if `Asc > 0` sorted in ascending order
-- `rs.sortByFq(Asc)` -- sort records according to weight; if `Asc > 0` sorted in ascending order
-- `rs.sortByField(FieldName, Asc)` -- sort records according to value of field `FieldName`; if `Asc > 0` sorted in ascending order
-- `rs.sort(comparator)` -- sort records according to `comparator` callback
-- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`
-- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`
-- `rs.filterByField(FieldName, minVal, maxVal)` -- keeps only records with numeric value of field `FieldName` between `minVal` and `maxVal`
-- `rs.filterByField(FieldName, Val)` -- keeps only records with string value of field `FieldName` equal to `Val`
-- `rs.filter(filter)` -- keeps only records that pass `filter` callback
-- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
-- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
-- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+- `rs2 = rs.clone()` -- creates new instance of record set
+- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
+- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
+- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
+- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
+- `rs.trunc(num)` -- truncate to first `num` record. Inplace operation.
+- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
+- `rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Inplace operation.
+- `rs.reverse()` -- reverse record order. Inplace operation.
+- `rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.
+- `rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.
+- `rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.
+- `rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.
+- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Inplace operation.
+- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Inplace operation.
+- `rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+- `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+- `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
+- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
+- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
+- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+- `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:
   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
-- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
-- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
-- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs``rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
+- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 
 **Examples**:
 
@@ -182,26 +184,28 @@ TODO
 
 **Functions and properties:**
   
-- `rec.$id`
-- `rec.$name`
-- `rec.$fq`
-- `rec.fieldName`
-- `rec.joinName`
-- `rec.addJoin(joinName, joinRecord)`
-- `rec.addJoin(joinName, joinRecord, joinFrequency)`
-- `rec.delJoin(joinName, joinRecord)`
-- `rec.delJoin(joinName, joinRecord, joinFrequency)`
-- `rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+- `recId = rec.$id` -- returns record ID
+- `recName = rec.$name` -- returns record name
+- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
+- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
+- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
+- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
+- `rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string)
+- `rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+- `rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string)
+- `rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`
+- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
 
 ### Index key
 
 
 **Functions and properties:**
   
-- `key.store`    
-- `key.name`    
-- `key.voc`    
-- `key.fq`    
+- `storeName = key.store` -- gets the store name `storeName`
+- `keyName = key.name` -- gets the key name
+- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
+- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
 
 ## Linear Algebra
 

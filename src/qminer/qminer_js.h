@@ -987,13 +987,13 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-    //#- `s = qm.store(storeName)` -- store with name `storeName`; `null` when no such store
+    //#- `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `a = qm.getStoreList()` -- an array listing all existing stores
+    //#- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
 	JsDeclareFunction(getStoreList);
-    //#- `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
+    //#- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 	JsDeclareFunction(createStore);
-    //#- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
+    //#- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
     //#   and returns a record set `rs` with results
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
@@ -1032,32 +1032,31 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `store.name` -- name of the store
+    //#- `str = store.name` -- name of the store
 	JsDeclareProperty(name);
-    //#- `store.empty` -- `true` when store is empty
+    //#- `bool = store.empty` -- `bool = true` when store is empty
 	JsDeclareProperty(empty);
-    //#- `store.length` -- number of records in the store
+    //#- `len = store.length` -- number of records in the store
 	JsDeclareProperty(length);
     //#- `rs = store.recs` -- create a record set containing all the records from the store
 	JsDeclareProperty(recs);
-    //#- `store.fields` -- array of all the field names
+    //#- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	JsDeclareProperty(fields);
-    //#- `store.joins` -- array of all the join names
+    //#- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
-    //#- `store.keys` -- array of all the [index keys](#index-key)
+    //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
 	JsDeclareProperty(keys);	
-    //#- `r = store[recordId]` -- get record with ID `recordId`; 
+    //#- `rec = store[recId]` -- get record with ID `recId`; 
     //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
-    //#- `r = store.rec(recordName)` -- get record named `recordName`; 
+    //#- `rec = store.rec(recName)` -- get record named `recName`; 
     //#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
-    //#- `store.add(record)` -- add `record` to the store 
+    //#- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
 	JsDeclareFunction(add);
-    //#- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
+    //#- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
     JsDeclareFunction(newRec);
-    //#- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    //#     array is expected to be of type `la.newIntVec`
+    //#- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 	JsDeclareFunction(newRecSet);
     //#- `rs = store.sample(sampleSize)` -- create a record set containing a random 
     //#     sample of `sampleSize` records
@@ -1066,14 +1065,14 @@ public:
 	JsDeclareFunction(field);
     //#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
-    //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
+    //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(TypeName, Parameters)` -- add new [Stream Aggregate](Stream-Aggregates) 
-    //#     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
+    //#- `store.addStreamAggr(typeName, paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates) 
+    //#     of type `typeName` to the store; stream aggregate is passed `paramJSON` JSon
     JsDeclareFunction(addStreamAggr);
-    //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
+    //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
-	//#- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
+	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
     
     //# 
@@ -1171,61 +1170,62 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#   
-	//#- `rs.store` -- store of the records
+	//#- `storeName = rs.store` -- store of the records
 	JsDeclareProperty(store);
-	//#- `rs.length` -- number of records in the set
+	//#- `len = rs.length` -- number of records in the set
 	JsDeclareProperty(length);
-	//#- `rs.empty` -- `true` when record set is empty
+	//#- `bool = rs.empty` -- `bool = true` when record set is empty
 	JsDeclareProperty(empty);
-	//#- `rs.weighted` -- true when records in the set are assigned weights
+	//#- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	JsDeclareProperty(weighted);
     //#- `rec = rs[n]` -- return n-th record from the record set
 	JsDeclIndexedProperty(indexId);
-	//#- `crs = rs.clone()` -- creates new instance of record set
+	//#- `rs2 = rs.clone()` -- creates new instance of record set
 	JsDeclareFunction(clone);
-	//#- `jrs = rs.join(JoinName)` -- executes a join `JoinName` on the records in the set, result is another record set
-	//#- `jrs = rs.join(JoinName, SampleSize)` -- executes a join `JoinName` on a sample of `SampleSize` records in the set, result is another record set
+	//#- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
+	//#- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
 	JsDeclareFunction(join);
-	//#- `aggr = rs.aggr()` -- returns an array of all the aggregates contained in the records set
-	//#- `aggr = rs.aggr(Query)` -- creates a new aggregates based on the `Query` parameters
+	//#- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
+	//#- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
-	//#- `rs.trunc(Recs)` -- truncate to first `Recs` record
+	//#- `rs.trunc(num)` -- truncate to first `num` record. Inplace operation.
 	JsDeclareFunction(trunc);
-	//#- `srs = rs.sample(Recs)` -- create new record set by randomly sampling `Recs` records
+	//#- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	JsDeclareFunction(sample);
-	//#- `rs.shuffle(Seed)` -- shuffle order using random seed `Seed`
+	//#- `rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Inplace operation.
 	JsDeclareFunction(shuffle);
-	//#- `rs.reverse()` -- reverse record order
+	//#- `rs.reverse()` -- reverse record order. Inplace operation.
 	JsDeclareFunction(reverse);
-	//#- `rs.sortById(Asc)` -- sort records according to record id; if `Asc > 0` sorted in ascending order
+	//#- `rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.
 	JsDeclareFunction(sortById);
-	//#- `rs.sortByFq(Asc)` -- sort records according to weight; if `Asc > 0` sorted in ascending order
+	//#- `rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.
 	JsDeclareFunction(sortByFq);
-	//#- `rs.sortByField(FieldName, Asc)` -- sort records according to value of field `FieldName`; if `Asc > 0` sorted in ascending order
+	//#- `rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.
 	JsDeclareFunction(sortByField);
-	//#- `rs.sort(comparator)` -- sort records according to `comparator` callback
+	//#- `rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.
    	JsDeclareFunction(sort);
-	//#- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`
+	//#- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Inplace operation.
 	JsDeclareFunction(filterById);
-	//#- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`
+	//#- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Inplace operation.
 	JsDeclareFunction(filterByFq);
-	//#- `rs.filterByField(FieldName, minVal, maxVal)` -- keeps only records with numeric value of field `FieldName` between `minVal` and `maxVal`
-	//#- `rs.filterByField(FieldName, Val)` -- keeps only records with string value of field `FieldName` equal to `Val`
+	//#- `rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+	//#- `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+	//#- `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
 	JsDeclareFunction(filterByField);
-	//#- `rs.filter(filter)` -- keeps only records that pass `filter` callback
+	//#- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
 	JsDeclareFunction(filter);
-    //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
+    //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
 	JsDeclareFunction(deleteRecs);
-    //#- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+    //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+	//#- `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:
 	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(map);
-	//#- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	//#- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setintersect);
-	//#- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	//#- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setunion);
-	//#- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs`\`rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
+	//#- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	JsDeclareFunction(setdiff);
 
 
@@ -1269,24 +1269,26 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#   
-    //#- `rec.$id`
+    //#- `recId = rec.$id` -- returns record ID
     JsDeclareProperty(id);
-    //#- `rec.$name`
+    //#- `recName = rec.$name` -- returns record name
     JsDeclareProperty(name);
-    //#- `rec.$fq`
+    //#- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	JsDeclareProperty(fq);
-    //#- `rec.fieldName`
+    //#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
+	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
-    //#- `rec.joinName`
+    //#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
+	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
-    //#- `rec.addJoin(joinName, joinRecord)`
-    //#- `rec.addJoin(joinName, joinRecord, joinFrequency)`
+    //#- `rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string)
+    //#- `rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
     JsDeclareFunction(addJoin);
-    //#- `rec.delJoin(joinName, joinRecord)`
-    //#- `rec.delJoin(joinName, joinRecord, joinFrequency)`
+    //#- `rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string)
+    //#- `rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`
     JsDeclareFunction(delJoin);
-    //#- `rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+    //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
     JsDeclareFunction(toJSON);
 };
 
@@ -1315,13 +1317,13 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#   
-    //#- `key.store`    
+    //#- `storeName = key.store` -- gets the store name `storeName`
 	JsDeclareProperty(store);				
-    //#- `key.name`    
+    //#- `keyName = key.name` -- gets the key name
 	JsDeclareProperty(name);
-    //#- `key.voc`    
+    //#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
 	JsDeclareProperty(voc);
-    //#- `key.fq`    
+    //#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
 	JsDeclareProperty(fq);
 };
 
