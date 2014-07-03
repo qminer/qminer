@@ -15,7 +15,11 @@ VERSION = 0.5.0
 # dependencies
 THIRD_PARTY = src/third_party
 LIBUV = $(THIRD_PARTY)/libuv
-LIBV8 = $(THIRD_PARTY)/v8/out/x64.release/obj.target/tools/gyp
+ifeq ($(UNAME), Linux)
+  LIBV8 = $(THIRD_PARTY)/v8/out/x64.release/obj.target/tools/gyp
+else ifeq ($(UNAME), Darwin)
+  LIBV8 = $(THIRD_PARTY)/v8/out/x64.release
+endif
 SNAP = $(THIRD_PARTY)/Snap
 LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib

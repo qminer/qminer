@@ -136,6 +136,12 @@
   #define GLib_POSIX_1j "1003.1j"
 #endif
 
+#if defined(GLib_MACOSX)
+  // On OS X Maverics there is not default support for OpenMP
+#else
+  #define GLib_OPENMP
+#endif
+
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
