@@ -37,10 +37,12 @@ _addIntellisenseVar("_minFq", "1");
 _addIntellisenseVar("_maxFq", "1");
 _addIntellisenseVar("_seed", "1");
 _addIntellisenseVar("_joinFrequency", "1");
-
+_addIntellisenseVar("_millis", "1");
 
 // arrays
+_addIntellisenseVar("_array", "[]");
 _addIntellisenseVar("_arr", "[1]");
+_addIntellisenseVar("_numArr", "[1]");
 _addIntellisenseVar("_objArr", "[{}]");
 _addIntellisenseVar("_strArr", "['']");
 _addIntellisenseVar("_nestedArr", "[_arr]");
@@ -50,6 +52,10 @@ _addIntellisenseVar("_bool", "true");
 _addIntellisenseVar("_asc", "true");
 // strings
 _addIntellisenseVar("_str", "''");
+_addIntellisenseVar("_argStr", "''");
+_addIntellisenseVar("_line", "''");
+_addIntellisenseVar("_labelStr", "''");
+_addIntellisenseVar("_message", "''");
 _addIntellisenseVar("_fileName", "''");
 _addIntellisenseVar("_recName", "''");
 _addIntellisenseVar("_storeName", "''");
@@ -57,7 +63,12 @@ _addIntellisenseVar("_keyName", "''");
 _addIntellisenseVar("_typeName", "''");
 _addIntellisenseVar("_saName", "''");
 _addIntellisenseVar("_joinName", "''");
+_addIntellisenseVar("_ftrName", "''");
+_addIntellisenseVar("_scriptNm", "''");
+_addIntellisenseVar("_scriptFNm", "''");
+
 // json objects
+_addIntellisenseVar("_obj", "{}");
 _addIntellisenseVar("_objJSON", "{}");
 _addIntellisenseVar("_paramJSON", "{}");
 _addIntellisenseVar("_aggrsJSON", "{}");
@@ -68,11 +79,12 @@ _addIntellisenseVar("_sortRes", "{ vec: _vec, perm: _intVec }");
 _addIntellisenseVar("_vecCtrParam", "{ vals: 1, mxvals: 1 }");
 _addIntellisenseVar("_svdRes", "{ U: _mat, V: _mat, s: _vec }");
 _addIntellisenseVar("_storeDef", "{ id: '', name: '', fields: [], joins: [], keys: []}");
-_addIntellisenseVar("_trigger", "{ onAdd: function() {}, onUpdate: function() {}, onDelete: function() {}}");
+_addIntellisenseVar("_trigger", "{ onAdd: function(_rec) {}, onUpdate: function(_rec) {}, onDelete: function(_rec) {}}");
 _addIntellisenseVar("_field", "{ id: 1, name: '', type: '', nullable: false, internal: false, primary: false}");
 _addIntellisenseVar("_mapCallback", "function (_rec, _idx) {}");
 _addIntellisenseVar("_filterCallback", "function (_rec) { return _bool}");
 _addIntellisenseVar("_comparatorCallback", "function (_rec, _rec2) { return _bool}");
+_addIntellisenseVar("_langOptionsJson", "{stemmer: _strArr , stopwords: _strArr}");
 
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case
@@ -90,6 +102,11 @@ intellisenseIgnore["_rs"] = "{}"; // record set
 intellisenseIgnore["_store"] = "{}";
 intellisenseIgnore["_key"] = "{}";
 intellisenseIgnore["_tm"] = "{}";
+intellisenseIgnore["_svmModel"] = "{}";
+intellisenseIgnore["_nnModel"] = "{}";
+intellisenseIgnore["_recLinRegModel"] = "{}";
+intellisenseIgnore["_htModel"] = "{}";
+intellisenseIgnore["_fsp"] = "{}";
 
 _vec[0] = 1; // vec is indexed and returns numbers
 _intVec[0] = 1; // vec is indexed and returns numbers
@@ -98,6 +115,8 @@ _rs[0] = _rec; // record set at index returns a record
 
 _addIntellisenseVar("_vec2", "_vec");
 _addIntellisenseVar("_vec3", "_vec");
+_addIntellisenseVar("_inVec", "_vec");
+_addIntellisenseVar("_outVec", "_vec");
 _addIntellisenseVar("_valVec", "_vec");
 _addIntellisenseVar("_spVec2", "_spVec");
 _addIntellisenseVar("_spVec3", "_spVec");
@@ -114,6 +133,20 @@ _addIntellisenseVar("_spMat3", "_spMat");
 _addIntellisenseVar("_rs2", "_rs");
 _addIntellisenseVar("_rs3", "_rs");
 _addIntellisenseVar("_joinRec", "_rec");
+
+
+require = function (libName) {
+    if (libName === 'analytics.js') return _analytics;
+    if (libName === 'utilities.js') return _utilities;
+    if (libName === 'assert.js') return _assert;
+    if (libName === 'twitter.js') return _twitter;
+};
+
+intellisenseIgnore["_analytics"] = "{}";
+intellisenseIgnore["_utilities"] = "{}";
+intellisenseIgnore["_assert"] = "{}";
+intellisenseIgnore["_twitter"] = "{}";
+
 
 // implement ignore
 intellisense.addEventListener('statementcompletion', function (event) {

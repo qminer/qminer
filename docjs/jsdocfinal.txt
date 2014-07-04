@@ -419,7 +419,7 @@ var spMat = la.newSpMat(); //empty matrix
 - `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 - `spMat.print()` -- print `spMat` (sparse matrix) to console
 - `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
-- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
+- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.
 - `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
 - `str = spMat.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 - `num = spMat.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
@@ -433,40 +433,40 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 
 **Functions and properties:**
     
-- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
+- `fsp = analytics.newFeatureSpace(featureExtractors)` -- create new
     feature space consisting of [Feature Extractor](Feature-Extractors),
     declared in JSon `featureExtractors`
-- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     space from `fin` stream
-- `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
-    classification model using columns from `matrix` as training data and
-    `vector` as target variable (must be of values either 1 or -1); optional
-    training `parameters` are a JSon with parameter `c` (SVM cost parameter,
+- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
+    classification model using columns from `mat` as training data and vector
+    `vec` as target variable (must be of values either 1 or -1); optional
+    training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
     examples with (default is 1.0)); result is a linear model
-- `model = analytics.trainSvmRegression(matrix, vector, parameters)` -- trains 
-    regression model using columns from `matrix` as training data and `vector` as 
-    target variable; optional training `parameters` are a JSon with parameter `c` 
+- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
+    regression model using columns from `mat` as training data and vector `vec` as 
+    target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
     epsilon size tunnel around the model, default is 1.0)); result is a linear model
-- `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
+- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     from `fin` stream
-- `model = analytics.newNN(parameters)` -- create new neural network
-    model; constructing `parameters` are a JSON object with properties: `parameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
-    ), `parameters.learnRate` (number learn rate, default is 0.1), `parameters.momentum` (number momentum, default is 0.1),
-    `parameters.tFuncHidden` (a string representing transfer function in hidden layers) and `parameters.tFuncOut` (a string representing transfer function in the output layer). 
+- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
+    model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
+    `nnParameters.tFuncHidden` (a string representing transfer function in hidden layers) and `nnParameters.tFuncOut` (a string representing transfer function in the output layer). 
     The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
-- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
-    model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+- `recLinRegModel = analytics.newRecLinReg(recLinRegParameters)` -- create new recursive linear regression
+    model; training `recLinRegParameters` are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
+    `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
     (regularization parameter to avoid over-fitting, default is 1.0).)
-- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+- `recLinRegModel = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
     from `fin` stream
-- `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
-    incremental decision tree learner; parameters are passed as JSON
-- `options = analytics.getLanguageOptions()` -- get options for text parsing 
+- `htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)` -- create new
+    incremental decision tree learner; parameters `htJsonParams` are passed as JSON
+- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     (stemmers, stop word lists) as a json object, with two arrays:
-    `options.stemmer` and `options.stopwords`
+    `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
 - `model = analytics.newBatchModel(records, features, target)` -- learns a new batch model
     using `records` as training data and `features` as feature space; `target` is
     a field for the records which we are trying to predict (e.g. store.field("Rating");
@@ -543,24 +543,24 @@ declarations as parameters.
 
 **Functions and properties:**
     
-- `ftrSpace.dim` -- dimensionality of feature space
-- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
-- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
-    by exposing them to `record`. For example, this can update the vocabulary
+- `num = fsp.dim` -- dimensionality of feature space
+- `fsp.save(fout)` -- serialize feature space to `fout` output stream
+- `fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    by exposing them to record `rec`. For example, this can update the vocabulary
     used by bag-of-words extractor by taking into account new text.
-- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
-    by exposing them to records from `recordSet`. For example, this can update 
+- `fsp.updateRecord(rs)` -- update feature space definitions and extractors
+    by exposing them to records from record set `rs`. For example, this can update 
     the vocabulary used by bag-of-words extractor by taking into account new text.
-- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
-    features from `record` (e.g. words from string fields); results are returned
+- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    features from record `rec` (e.g. words from string fields); results are returned
     as a string array
-- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
-- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
-- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
-- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
-    records in `recordSet` and returns them as columns in a sparse matrix.
-- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
-    records in `recordSet` and returns them as columns in a matrix.
+- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from 
+    record set `rs` and returns them as columns in a sparse matrix `spMat`.
+- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
+    record set `rs` and returns them as columns in a matrix `mat`.
 
 ### Support Vector Machine model
 
@@ -569,10 +569,10 @@ Holds SVM classification or regression model. This object is result of
 
 **Functions and properties:**
     
-- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    model and returns the prediction as a real number
-- `vec = model.weights` -- weights of the SVM linear model as a full vector
-- `model.save(fout)` -- saves model to output stream `fout`
+- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
+- `svmModel.save(fout)` -- saves model to output stream `fout`
 
 ### Neural network model
 
@@ -580,8 +580,8 @@ Holds the neural network model. This object is result of `analytics.newNN`.
 
 **Functions and properties:**
     
-- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    model and returns the prediction as a vector
+- `nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.
+- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 
 ### Recursive Linear Regression model
 
@@ -589,13 +589,12 @@ Holds online regression model. This object is result of `analytics.newRecLinReg`
 
 **Functions and properties:**
     
-- `model.learn(vector, target)` -- updates the model using full `vector` as
-    `target` number as training data
-- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    model and returns the prediction as a real number
-- `vec = model.weights` -- weights of the linear model as a full vector    
-- `model.dim` -- dimensionality of the feature space on which this model works
-- `model.save(fout)` -- saves model to output stream `fout`
+- `recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data
+- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the 
+    model and returns the prediction as a real number `num`
+- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`   
+- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
+- `recLinRegModel.save(fout)` -- saves model to output stream `fout`
 
 ### Hoeffding Tree model
 
@@ -631,13 +630,13 @@ The HoeffdingTree algorithm comes with many parameters:
 
 **Functions and properties:**
     
-- `ht.process(discreteV, numericV, label)` -- processes the stream example; `discreteV` is vector of discrete attribute values;
-  `numericV` is vector of numeric attribute values; `label` is class label of the example; returns nothing;
-- `ht.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
-- `ht.classify(discreteV, numericV)` -- classifies the stream example; `discreteV` is vector of discrete attribute values; `numericV` is vector of numeric attribute values; returns the class label 
-- `ht.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
-- `ht.exportModel(outParams)` -- writes the current model into file `outParams.file` in format `outParams.type`;
-  here, `outParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
+- `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+  `numArr` is ab array of numeric attribute values (numbers); `labelStr` is class label of the example; returns nothing;
+- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
+- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label 
+- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
+- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`;
+  here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
 
 ## System and I/O
 
@@ -650,37 +649,37 @@ The HoeffdingTree algorithm comes with many parameters:
 - `process.scriptNm` -- Returns the name of the script.
 - `process.scriptFNm` -- Returns absolute script file path.
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
-- `a = process.args` -- array of command-line arguments 
+- `strArr = process.args` -- array of command-line arguments 
     used to start current QMiner instance
-- `process.isArg(arg)` -- returns true when `arg` among the 
+- `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
     command-line arguments used to start current QMiner instance
-- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+- `sysStatJson = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
 
 ### Utilities.js (use require)
 
-- `utilities.isObject(arg)` -- is parameter an object?
-- `utilities.isArray(arg)` -- is parameter an array?
-- `utilities.isInArray(array, value)` -- is element in an array?
-- `utilities.isNumber(n)` -- is `n` a number?
-- `utilities.isString(s)` -- is `s` a string?
-- `utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
-- `h = new utilities.hashTable()` -- creates a hash table
- - `utilities.hashTable._vals` -- 
- - `utilities.hashTable.keys` -- 
- - `utilities.hashTable.vals` -- 
- - `utilities.hashTable.put(key)` -- 
- - `utilities.hashTable.put(key, dat)` -- 
- - `utilities.hashTable.contains(key)` -- 
- - `utilities.hashTable.get(key)` -- 
-- `sw = new utilities.clsStopwatch()` -- creates a stop watch object `sw`
-- `sw.start()` --
-- `sw.stop()` --
-- `sw.reset()` --
-- `sw.time()` --
-- `sw.saytime(msg)` --
-- `sw.tic()` --
-- `sw.toc(msg)` --
-- `q = utilities.arraysIdentical(arr1, arr2)` -- `q` is true if array `arr1` is identical to array `arr2`
+- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
+- `bool = utilities.isObject(arg)` -- is parameter an object?
+- `bool = utilities.isArray(arg)` -- is parameter an array?
+- `bool = utilities.isInArray(array, value)` -- is element in an array?
+- `bool = utilities.isNumber(n)` -- is `n` a number?
+- `bool = utilities.isString(s)` -- is `s` a string?
+- `returnVal = utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
+- `hashTable = utilities.newHashTable()` -- creates a hash table
+ - `strArr = hashTable.keys` -- array of keys (strings)
+ - `array = hashTable.vals` -- array of values
+ - `hashTable.put(key)` -- add a key
+ - `hashTable.put(key, dat)` -- add key-dat
+ - `bool = hashTable.contains(key)` -- does the table contain the key?
+ - `dat = hashTable.get(key)` -- get data
+- `sw = utilities.newStopWatch()` -- creates a stop watch object `sw`
+- `sw.start()` -- starts the stopwatch
+- `sw.stop()` -- stops the stopwatch
+- `sw.reset()` -- resets 
+- `num = sw.time()` -- returns unix epoch time in milliseconds
+- `sw.saytime(message)` -- displays elpased time from tic
+- `sw.tic()` -- resets and starts the stop watch
+- `sw.toc(str)` -- displays time from tic and message `str`
+- `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
 
 ### Assert.js (use require)
 
@@ -709,7 +708,7 @@ are automatically prefixed by current date and time.
     in order for console to see and interact with local variables.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.pause()` -- waits until enter is pressed
-- `console.println(a)` -- `print(a); print("\n")`
+- `console.println(str)` -- `print(str); print("\n")`
 
 ### File system
 

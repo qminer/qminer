@@ -8,7 +8,7 @@ fr = open('intellitesi.js', 'r')
 fw = open('intelli_body.js', 'w')
 fwProblems = open('problems.js', 'w');
 
-globalVars = set(['qm', 'la'])
+globalVars = set(['qm', 'la', 'process', 'http', 'console', 'fs'])
 
 funDict = {};
 
@@ -25,6 +25,14 @@ for line in fr:
         continue
     # currently ignore functions that take json objects
     if "{" in line:
+        # not handled yet 
+        fwProblems.write(line + '\n')
+        continue
+    if "'" in line:
+        # not handled yet 
+        fwProblems.write(line + '\n')
+        continue
+    if "\"" in line:
         # not handled yet 
         fwProblems.write(line + '\n')
         continue

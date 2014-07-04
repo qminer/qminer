@@ -1975,7 +1975,7 @@ public:
 	JsDeclareFunction(print);
 	//#- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
 	JsDeclareFunction(save);
-	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
+	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.
 	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
@@ -1984,7 +1984,7 @@ public:
 ///////////////////////////////
 // QMiner-JavaScript-Machine-Learning
 //#
-//# ## Analytics.js (use require)
+//# ## analytics.js (use require)
 //#
 //# Analytics algorithms for working with records stored in
 //# QMiner and with linear algebra objects created by `la`.
@@ -2008,57 +2008,57 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
+    //#- `fsp = analytics.newFeatureSpace(featureExtractors)` -- create new
     //#     feature space consisting of [Feature Extractor](Feature-Extractors),
     //#     declared in JSon `featureExtractors`
     JsDeclareFunction(newFeatureSpace);
-    //#- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+    //#- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
     JsDeclareFunction(loadFeatureSpace);
     
-    //#- `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
-    //#     classification model using columns from `matrix` as training data and
-    //#     `vector` as target variable (must be of values either 1 or -1); optional
-    //#     training `parameters` are a JSon with parameter `c` (SVM cost parameter,
+    //#- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
+    //#     classification model using columns from `mat` as training data and vector
+    //#     `vec` as target variable (must be of values either 1 or -1); optional
+    //#     training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
     //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
     //#     examples with (default is 1.0)); result is a linear model
 	JsDeclareFunction(trainSvmClassify);
-    //#- `model = analytics.trainSvmRegression(matrix, vector, parameters)` -- trains 
-    //#     regression model using columns from `matrix` as training data and `vector` as 
-    //#     target variable; optional training `parameters` are a JSon with parameter `c` 
+    //#- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
+    //#     regression model using columns from `mat` as training data and vector `vec` as 
+    //#     target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
     //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
     //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
     JsDeclareFunction(trainSvmRegression);
-    //#- `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
+    //#- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     //#     from `fin` stream
 	JsDeclareFunction(loadSvmModel);
     
-    //#- `model = analytics.newNN(parameters)` -- create new neural network
-    //#     model; constructing `parameters` are a JSON object with properties: `parameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
-    //#     ), `parameters.learnRate` (number learn rate, default is 0.1), `parameters.momentum` (number momentum, default is 0.1),
-    //#     `parameters.tFuncHidden` (a string representing transfer function in hidden layers) and `parameters.tFuncOut` (a string representing transfer function in the output layer). 
+    //#- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
+    //#     model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    //#     ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
+    //#     `nnParameters.tFuncHidden` (a string representing transfer function in hidden layers) and `nnParameters.tFuncOut` (a string representing transfer function in the output layer). 
 	//#     The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
     JsDeclareFunction(newNN);
-    //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
-    //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    //#     `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    //#- `recLinRegModel = analytics.newRecLinReg(recLinRegParameters)` -- create new recursive linear regression
+    //#     model; training `recLinRegParameters` are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
+    //#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
     JsDeclareFunction(newRecLinReg);
-    //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+    //#- `recLinRegModel = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
 	//#     from `fin` stream
 	JsDeclareFunction(loadRecLinRegModel);
 
-    //#- `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
-    //#     incremental decision tree learner; parameters are passed as JSON
+    //#- `htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)` -- create new
+    //#     incremental decision tree learner; parameters `htJsonParams` are passed as JSON
     JsDeclareFunction(newHoeffdingTree);    
     
     // clustering (TODO: still depends directly on feature space)
     // trainKMeans(featureSpace, positives, negatives, parameters)
 	JsDeclareFunction(trainKMeans);
     
-    //#- `options = analytics.getLanguageOptions()` -- get options for text parsing 
+    //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
-    //#     `options.stemmer` and `options.stopwords`
+    //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
@@ -2093,34 +2093,34 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `ftrSpace.dim` -- dimensionality of feature space
+    //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
+    //#- `fsp.save(fout)` -- serialize feature space to `fout` output stream
     JsDeclareFunction(save);
-    //#- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
-    //#     by exposing them to `record`. For example, this can update the vocabulary
+    //#- `fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    //#     by exposing them to record `rec`. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
-    //#     by exposing them to records from `recordSet`. For example, this can update 
+    //#- `fsp.updateRecord(rs)` -- update feature space definitions and extractors
+    //#     by exposing them to records from record set `rs`. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate); // deprecated
-    //#- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
-    //#     features from `record` (e.g. words from string fields); results are returned
+    //#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    //#     features from record `rec` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
-	//#- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
 	JsDeclareFunction(getFtr);
-	//#- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
+	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
-    //#- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
+    //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
     JsDeclareFunction(ftrVec);
-    //#- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
-    //#     records in `recordSet` and returns them as columns in a sparse matrix.
+    //#- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from 
+    //#     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 	JsDeclareFunction(ftrSpColMat);
-    //#- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
-    //#     records in `recordSet` and returns them as columns in a matrix.
+    //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
+    //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
 };
 
@@ -2151,12 +2151,12 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    //#     model and returns the prediction as a real number
+    //#- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	//#- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 	JsDeclareFunction(predict);
-    //#- `vec = model.weights` -- weights of the SVM linear model as a full vector
+    //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);   
-    //#- `model.save(fout)` -- saves model to output stream `fout`
+    //#- `svmModel.save(fout)` -- saves model to output stream `fout`
 	JsDeclareFunction(save);
 };
 
@@ -2184,9 +2184,9 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    JsDeclareFunction(learn);
-    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    //#     model and returns the prediction as a vector
+	//#- `nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.
+	JsDeclareFunction(learn);
+    //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 	JsDeclareFunction(predict);
 };
 
@@ -2213,17 +2213,16 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `model.learn(vector, target)` -- updates the model using full `vector` as
-    //#     `target` number as training data
+    //#- `recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data
 	JsDeclareFunction(learn);
-    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    //#     model and returns the prediction as a real number
+    //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the 
+    //#     model and returns the prediction as a real number `num`
 	JsDeclareFunction(predict);
-    //#- `vec = model.weights` -- weights of the linear model as a full vector    
+    //#- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`   
 	JsDeclareProperty(weights);
-    //#- `model.dim` -- dimensionality of the feature space on which this model works
+    //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
-	//#- `model.save(fout)` -- saves model to output stream `fout`
+	//#- `recLinRegModel.save(fout)` -- saves model to output stream `fout`
 	JsDeclareFunction(save);
 };
 
@@ -2282,15 +2281,15 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-	//#- `ht.process(discreteV, numericV, label)` -- processes the stream example; `discreteV` is vector of discrete attribute values;
-	//#   `numericV` is vector of numeric attribute values; `label` is class label of the example; returns nothing;
-	//#- `ht.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
+	//#- `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+	//#   `numArr` is ab array of numeric attribute values (numbers); `labelStr` is class label of the example; returns nothing;
+	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
 	JsDeclareFunction(process);
-	//#- `ht.classify(discreteV, numericV)` -- classifies the stream example; `discreteV` is vector of discrete attribute values; `numericV` is vector of numeric attribute values; returns the class label 
-	//#- `ht.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
+	//#- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label 
+	//#- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
 	JsDeclareFunction(classify);
-	//#- `ht.exportModel(outParams)` -- writes the current model into file `outParams.file` in format `outParams.type`;
-	//#   here, `outParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
+	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`;
+	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
 	JsDeclareFunction(exportModel);
 };
 

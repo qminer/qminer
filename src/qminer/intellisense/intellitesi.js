@@ -220,7 +220,73 @@ num = spMat.rows$SEPARATOR$ -- integer `num` corresponds to the number of rows o
 num = spMat.cols$SEPARATOR$ -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 spMat.print()$SEPARATOR$ -- print `spMat` (sparse matrix) to console
 spMat.save(fout)$SEPARATOR$ -- print `spMat` (sparse matrix) to output stream `fout`
-spMat.load(fin)$SEPARATOR$ -- load `spMat` (sparse matrix) from input steam `fin`
+spMat.load(fin)$SEPARATOR$ -- load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.
 la.spMat$SEPARATOR$ -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
 str = spMat.toString()$SEPARATOR$ -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 num = spMat.nnz()$SEPARATOR$ -- `num` is the number of non-zero elements of sparse column matrix `spMat`
+fsp = analytics.newFeatureSpace(featureExtractors)$SEPARATOR$ -- create new
+fsp = analytics.loadFeatureSpace(fin)$SEPARATOR$ -- load serialized feature
+svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)$SEPARATOR$ -- trains binary
+svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)$SEPARATOR$ -- trains
+svmModel = analytics.loadSvmModel(fin)$SEPARATOR$ -- load serialized linear model
+nnModel = analytics.newNN(nnParameters)$SEPARATOR$ -- create new neural network
+recLinRegModel = analytics.newRecLinReg(recLinRegParameters)$SEPARATOR$ -- create new recursive linear regression
+recLinRegModel = analytics.loadRecLinRegModel(fin)$SEPARATOR$ -- load serialized linear model
+htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)$SEPARATOR$ -- create new
+langOptionsJson = analytics.getLanguageOptions()$SEPARATOR$ -- get options for text parsing
+num = fsp.dim$SEPARATOR$ -- dimensionality of feature space
+fsp.save(fout)$SEPARATOR$ -- serialize feature space to `fout` output stream
+fsp.updateRecord(rec)$SEPARATOR$ -- update feature space definitions and extractors
+fsp.updateRecord(rs)$SEPARATOR$ -- update feature space definitions and extractors
+strArr = fsp.extractStrings(rec)$SEPARATOR$ -- use feature extractors to extract string
+ftrName = fsp.getFtr(idx)$SEPARATOR$ -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+spVec = fsp.ftrSpVec(rec)$SEPARATOR$ -- extracts sparse feature vector `spVec` from record `rec`
+vec = fsp.ftrVec(rec)$SEPARATOR$ -- extracts feature vector `vec` from record  `rec`
+spMat = fsp.ftrSpColMat(rs)$SEPARATOR$ -- extracts sparse feature vectors from
+mat = fsp.ftrColMat(rs)$SEPARATOR$ -- extracts feature vectors from
+num = svmModel.predict(vec)$SEPARATOR$ -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+num = svmModel.predict(spVec)$SEPARATOR$ -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+vec = svmModel.weights$SEPARATOR$ -- weights of the SVM linear model as a full vector `vec`
+svmModel.save(fout)$SEPARATOR$ -- saves model to output stream `fout`
+nnModel.learn(inVec, outVec)$SEPARATOR$ -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.
+vec2 = nnModel.predict(vec)$SEPARATOR$ -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
+recLinRegModel.learn(vec, num)$SEPARATOR$ -- updates the model using full vector `vec` and target number `num`as training data
+num = recLinRegModel.predict(vec)$SEPARATOR$ -- sends vector `vec` through the
+vec = recLinRegModel.weights$SEPARATOR$ -- weights of the linear model as a full vector `vec`
+num = recLinRegModel.dim$SEPARATOR$ -- dimensionality of the feature space on which this model works
+recLinRegModel.save(fout)$SEPARATOR$ -- saves model to output stream `fout`
+htModel.process(strArr, numArr, labelStr)$SEPARATOR$ -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+htModel.process(line)$SEPARATOR$ -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
+htModel.classify(strArr, numArr)$SEPARATOR$ -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label
+htModel.classify(line)$SEPARATOR$ -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label
+htModel.exportModel(htOutParams)$SEPARATOR$ -- writes the current model into file `htOutParams.file` in format `htOutParams.type`;
+process.sleep(millis)$SEPARATOR$ -- Halts execution for the given amount of milliseconds `millis`.
+process.scriptNm$SEPARATOR$ -- Returns the name of the script.
+process.scriptFNm$SEPARATOR$ -- Returns absolute script file path.
+globalVarNames = process.getGlobals()$SEPARATOR$ -- Returns an array of all global variable names
+strArr = process.args$SEPARATOR$ -- array of command-line arguments
+bool = process.isArg(argStr)$SEPARATOR$ -- returns true when `argStr` among the
+sysStatJson = process.sysStat$SEPARATOR$ -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
+utilities = require('utilities.js')$SEPARATOR$ -- imports utilities library to variable `utilities`
+bool = utilities.isObject(arg)$SEPARATOR$ -- is parameter an object?
+bool = utilities.isArray(arg)$SEPARATOR$ -- is parameter an array?
+bool = utilities.isInArray(array, value)$SEPARATOR$ -- is element in an array?
+bool = utilities.isNumber(n)$SEPARATOR$ -- is `n` a number?
+bool = utilities.isString(s)$SEPARATOR$ -- is `s` a string?
+returnVal = utilities.ifNull(val, defVal)$SEPARATOR$ -- checks if `val` is null and returns default value `defVal`
+hashTable = utilities.newHashTable()$SEPARATOR$ -- creates a hash table
+strArr = hashTable.keys$SEPARATOR$ -- array of keys (strings)
+array = hashTable.vals$SEPARATOR$ -- array of values
+hashTable.put(key)$SEPARATOR$ -- add a key
+hashTable.put(key, dat)$SEPARATOR$ -- add key-dat
+bool = hashTable.contains(key)$SEPARATOR$ -- does the table contain the key?
+dat = hashTable.get(key)$SEPARATOR$ -- get data
+sw = utilities.newStopWatch()$SEPARATOR$ -- creates a stop watch object `sw`
+sw.start()$SEPARATOR$ -- starts the stopwatch
+sw.stop()$SEPARATOR$ -- stops the stopwatch
+sw.reset()$SEPARATOR$ -- resets
+num = sw.time()$SEPARATOR$ -- returns unix epoch time in milliseconds
+sw.saytime(message)$SEPARATOR$ -- displays elpased time from tic
+sw.tic()$SEPARATOR$ -- resets and starts the stop watch
+sw.toc(str)$SEPARATOR$ -- displays time from tic and message `str`
+bool = utilities.arraysIdentical(arr, arr2)$SEPARATOR$ -- `bool` is true if array `arr` is identical to array `arr2`

@@ -104,249 +104,97 @@ var _spVec = {
 
 }
 
-var _mat = {
-	/// <field value = "_num"> integer `num` corresponds to the number of columns of `mat`</field>
-	cols: _num,
-	put: function () {
+var _analytics = {
+	newRecLinReg: function () {
 	/// <signature>
-	/// <summary> Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <summary> create new recursive linear regression</summary>
+	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	},
 
-	normalizeCols: function () {
+	loadRecLinRegModel: function () {
 	/// <signature>
-	/// <summary> normalizes each column of matrix `mat` (inplace operation)</summary>
-	/// <returns value =""/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	},
 
-	/// <field value = "_num"> integer `num` corresponds to the number of rows of `mat`</field>
-	rows: _num,
-	diag: function () {
+	newHoeffdingTree: function () {
 	/// <signature>
-	/// <summary> Returns the diagonal of matrix `mat` as `vec` (dense vector).</summary>
-	/// <returns value ="_vec"/>
+	/// <summary> create new</summary>
+	/// <param name="_jsonStream" value="_jsonStream">param</param>
+	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
+	/// <returns value ="_htModel"/>
 	/// </signature>
 
 	},
 
-	frob: function () {
+	loadSvmModel: function () {
 	/// <signature>
-	/// <summary> number `num` is the Frobenious norm of matrix `mat`</summary>
-	/// <returns value ="_num"/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 
 	},
 
-	multiplyT: function () {
+	getLanguageOptions: function () {
 	/// <signature>
-	/// <summary> Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_mat2"/>
+	/// <summary> get options for text parsing</summary>
+	/// <returns value ="_langOptionsJson"/>
 	/// </signature>
 
+	},
+
+	newNN: function () {
 	/// <signature>
-	/// <summary> Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
+	/// </signature>
+
+	},
+
+	loadFeatureSpace: function () {
+	/// <signature>
+	/// <summary> load serialized feature</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+
+	},
+
+	newFeatureSpace: function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+
+	},
+
+	trainSvmRegression: function () {
+	/// <signature>
+	/// <summary> trains</summary>
+	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat3"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
-	/// <param name="_spMat" value="_spMat">param</param>
-	/// <returns value ="_mat2"/>
+	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 
 	},
 
-	getRow: function () {
+	trainSvmClassify: function () {
 	/// <signature>
-	/// <summary> `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	printStr: function () {
-	/// <signature>
-	/// <summary> print matrix `mat` to a string `str`</summary>
-	/// <returns value ="_str"/>
-	/// </signature>
-
-	},
-
-	multiply: function () {
-	/// <signature>
-	/// <summary> Matrix multiplication: `num` is a number, `mat2` is a matrix</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_mat2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix multiplication: `vec` is a vector, `vec2` is a vector</summary>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat3"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix</summary>
-	/// <param name="_spMat" value="_spMat">param</param>
-	/// <returns value ="_mat2"/>
-	/// </signature>
-
-	},
-
-	print: function () {
-	/// <signature>
-	/// <summary> print matrix `mat` to console</summary>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	plus: function () {
-	/// <signature>
-	/// <summary> `mat3` is the sum of matrices `mat` and `mat2`</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat3"/>
-	/// </signature>
-
-	},
-
-	colNorms: function () {
-	/// <signature>
-	/// <summary> `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	transpose: function () {
-	/// <signature>
-	/// <summary> matrix `mat2` is matrix `mat` transposed</summary>
-	/// <returns value ="_mat2"/>
-	/// </signature>
-
-	},
-
-	setCol: function () {
-	/// <signature>
-	/// <summary> Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.</summary>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	colMaxIdx: function () {
-	/// <signature>
-	/// <summary>: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`</summary>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <returns value ="_rowIdx"/>
-	/// </signature>
-
-	},
-
-	rowNorms: function () {
-	/// <signature>
-	/// <summary> `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	getCol: function () {
-	/// <signature>
-	/// <summary> `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.</summary>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	rowMaxIdx: function () {
-	/// <signature>
-	/// <summary>: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <returns value ="_colIdx"/>
-	/// </signature>
-
-	},
-
-	solve: function () {
-	/// <signature>
-	/// <summary> vector `vec2` is the solution to the linear system `mat * vec2 = vec`</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec2"/>
-	/// </signature>
-
-	},
-
-	sparse: function () {
-	/// <signature>
-	/// <summary> get sparse column matrix representation `spMat` of dense matrix `mat`</summary>
-	/// <returns value ="_spMat"/>
-	/// </signature>
-
-	},
-
-	setRow: function () {
-	/// <signature>
-	/// <summary> Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	minus: function () {
-	/// <signature>
-	/// <summary> `mat3` is the difference of matrices `mat` and `mat2`</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat3"/>
-	/// </signature>
-
-	},
-
-	at: function () {
-	/// <signature>
-	/// <summary> Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <returns value ="_num"/>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 
 	},
@@ -469,317 +317,118 @@ var _store = {
 
 }
 
-var la = {
-	newVec: function () {
+var _recLinRegModel = {
+	predict: function () {
 	/// <signature>
-	/// <summary> generate an empty float vector</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> copy a javascript number array `arr`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> clone a float vector `vec2`</summary>
-	/// <param name="_vec2" value="_vec2">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	square: function () {
-	/// <signature>
-	/// <summary> squares all elements of a vector `vec` (inplace).</summary>
+	/// <summary> sends vector `vec` through the</summary>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> returns `sq` which is the quare of number `num`.</summary>
-	/// <param name="_num" value="_num">param</param>
 	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
-	printArray: function () {
+	/// <field value = "_num"> dimensionality of the feature space on which this model works</field>
+	dim: _num,
+	save: function () {
 	/// <signature>
-	/// <summary> print the javascript array `arr` in the console</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	newSpMat: function () {
-	/// <signature>
-	/// <summary> creates an empty sparse matrix `spMat`</summary>
-	/// <returns value ="_spMat"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`</summary>
-	/// <param name="_rowIdxVec" value="_rowIdxVec">param</param>
-	/// <param name="_colIdxVec" value="_colIdxVec">param</param>
-	/// <param name="_valVec" value="_valVec">param</param>
-	/// <returns value ="_spMat"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`</summary>
-	/// <param name="_doubleNestedArr" value="_doubleNestedArr">param</param>
-	/// <param name="_rows" value="_rows">param</param>
-	/// <returns value ="_spMat"/>
-	/// </signature>
-
-	},
-
-	genRandomMatrix: function () {
-	/// <signature>
-	/// <summary> `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)</summary>
-	/// <param name="_rows" value="_rows">param</param>
-	/// <param name="_cols" value="_cols">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-
-	},
-
-	copyFltArrayToVec: function () {
-	/// <signature>
-	/// <summary> copies a JS array of numbers `arr` into a float vector `vec`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	genRandomVector: function () {
-	/// <signature>
-	/// <summary> `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	randIntVec: function () {
-	/// <signature>
-	/// <summary> returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	rangeVec: function () {
-	/// <signature>
-	/// <summary> `intVec` is an integer vector: `[num, num + 1, ..., num2].</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <param name="_num2" value="_num2">param</param>
-	/// <returns value ="_intVec"/>
-	/// </signature>
-
-	},
-
-	printSpFeatVec: function () {
-	/// <signature>
-	/// <summary> Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	randInt: function () {
-	/// <signature>
-	/// <summary> returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num]`</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_num2"/>
-	/// </signature>
-
-	},
-
-	newSpVec: function () {
-	/// <signature>
-	/// <summary> creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension</summary>
-	/// <param name="_len" value="_len">param</param>
-	/// <returns value ="_spVec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension</summary>
-	/// <param name="_nestedArr" value="_nestedArr">param</param>
-	/// <param name="_len" value="_len">param</param>
-	/// <returns value ="_spVec"/>
-	/// </signature>
-
-	},
-
-	printVec: function () {
-	/// <signature>
-	/// <summary> print the vector `vec` in the console</summary>
-	/// <param name="_vecec" value="_vecec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> print the int vector `intVec` in the console</summary>
-	/// <param name="_intVec" value="_intVec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	newIntVec: function () {
-	/// <signature>
-	/// <summary> generate an empty float vector</summary>
-	/// <returns value ="_intVec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> copy a javascript int array `arr`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <returns value ="_intVec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> clone an int vector `vec2`</summary>
-	/// <param name="_vec2" value="_vec2">param</param>
-	/// <returns value ="_intVec"/>
-	/// </signature>
-
-	},
-
-	printMat: function () {
-	/// <signature>
-	/// <summary> print the matrix `mat` in the console</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	ones: function () {
-	/// <signature>
-	/// <summary> `vec` is a `k`-dimensional vector whose entries are set to `1.0`.</summary>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	eye: function () {
-	/// <signature>
-	/// <summary> `mat` is a `dim`-by-`dim` identity matrix</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-
-	},
-
-	saveMat: function () {
-	/// <signature>
-	/// <summary> writes a dense matrix `mat` to output file stream `fout`</summary>
-	/// <param name="_mat" value="_mat">param</param>
+	/// <summary> saves model to output stream `fout`</summary>
 	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	genRandomPerm: function () {
+	/// <field value = "_vec"> weights of the linear model as a full vector `vec`</field>
+	weights: _vec,
+	learn: function () {
 	/// <signature>
-	/// <summary> returns a permutation of `k` elements. `arr` is a javascript array of integers</summary>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_arr"/>
-	/// </signature>
-
-	},
-
-	conjgrad: function () {
-	/// <signature>
-	/// <summary> solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors</summary>
-	/// <param name="_mat" value="_mat">param</param>
+	/// <summary> updates the model using full vector `vec` and target number `num`as training data</summary>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_vec2" value="_vec2">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors</summary>
-	/// <param name="_spMat" value="_spMat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_vec2" value="_vec2">param</param>
+	/// <param name="_num" value="_num">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	newMat: function () {
-	/// <signature>
-	/// <summary> generates a 0x0 matrix</summary>
-	/// <returns value ="_mat"/>
-	/// </signature>
+}
 
+var _intVec = {
+	sort: function () {
 	/// <signature>
-	/// <summary> generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)</summary>
-	/// <param name="_nestedArr" value="_nestedArr">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> clones a dense matrix `mat2`</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat"/>
+	/// <summary> integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order</summary>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value ="_intVec2"/>
 	/// </signature>
 
 	},
 
-	genRandom: function () {
+	getMaxIdx: function () {
 	/// <signature>
-	/// <summary> `num` is a sample from a standard normal random variable</summary>
+	/// <summary> returns the integer index `idx` of the maximal element in integer vector `vec`</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+
+	},
+
+	pushV: function () {
+	/// <signature>
+	/// <summary> append integer vector `intVec2` to integer vector `intVec`.</summary>
+	/// <param name="_intVec2" value="_intVec2">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	unshift: function () {
+	/// <signature>
+	/// <summary> insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_len"/>
+	/// </signature>
+
+	},
+
+	sum: function () {
+	/// <signature>
+	/// <summary> return `num`: the sum of elements of integer vector `intVec`</summary>
 	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
-	copyIntArrayToVec: function () {
+	put: function () {
 	/// <signature>
-	/// <summary> copies a JS array of integers `arr` into an integer vector `intVec`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <returns value ="_intVec"/>
+	/// <summary> set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	findMaxIdx: function () {
+	push: function () {
 	/// <signature>
-	/// <summary> returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `mat`.</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <returns value ="_arr"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_arr"/>
+	/// <summary> append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_len"/>
 	/// </signature>
 
 	},
 
-	printFeatVec: function () {
+	/// <field value = "_len"> integer `len` is the length of integer vector `vec`</field>
+	length: _len,
+	at: function () {
 	/// <signature>
-	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_limit" value="_limit">param</param>
-	/// <param name="_asc" value="_asc">param</param>
+	/// <summary> gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	print: function () {
+	/// <signature>
+	/// <summary> print integer vector in console</summary>
 	/// <returns value =""/>
 	/// </signature>
 
@@ -798,10 +447,95 @@ var _key = {
 	voc: _strArr,
 }
 
+var _utilities = {
+	isArray: function () {
+	/// <signature>
+	/// <summary> is parameter an array?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isString: function () {
+	/// <signature>
+	/// <summary> is `s` a string?</summary>
+	/// <param name="_s" value="_s">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	arraysIdentical: function () {
+	/// <signature>
+	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <param name="_arr2" value="_arr2">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isInArray: function () {
+	/// <signature>
+	/// <summary> is element in an array?</summary>
+	/// <param name="_array" value="_array">param</param>
+	/// <param name="_value" value="_value">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	ifNull: function () {
+	/// <signature>
+	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_defVal" value="_defVal">param</param>
+	/// <returns value ="_returnVal"/>
+	/// </signature>
+
+	},
+
+	newStopWatch: function () {
+	/// <signature>
+	/// <summary> creates a stop watch object `sw`</summary>
+	/// <returns value ="_sw"/>
+	/// </signature>
+
+	},
+
+	newHashTable: function () {
+	/// <signature>
+	/// <summary> creates a hash table</summary>
+	/// <returns value ="_hashTable"/>
+	/// </signature>
+
+	},
+
+	isNumber: function () {
+	/// <signature>
+	/// <summary> is `n` a number?</summary>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isObject: function () {
+	/// <signature>
+	/// <summary> is parameter an object?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+}
+
 var _spMat = {
 	load: function () {
 	/// <signature>
-	/// <summary> load `spMat` (sparse matrix) from input steam `fin`</summary>
+	/// <summary> load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.</summary>
 	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value =""/>
 	/// </signature>
@@ -1179,84 +913,820 @@ var _vec = {
 
 }
 
-var _intVec = {
-	sort: function () {
+var la = {
+	newVec: function () {
 	/// <signature>
-	/// <summary> integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order</summary>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value ="_intVec2"/>
+	/// <summary> generate an empty float vector</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> copy a javascript number array `arr`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> clone a float vector `vec2`</summary>
+	/// <param name="_vec2" value="_vec2">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 
 	},
 
-	getMaxIdx: function () {
+	square: function () {
 	/// <signature>
-	/// <summary> returns the integer index `idx` of the maximal element in integer vector `vec`</summary>
-	/// <returns value ="_idx"/>
-	/// </signature>
-
-	},
-
-	pushV: function () {
-	/// <signature>
-	/// <summary> append integer vector `intVec2` to integer vector `intVec`.</summary>
-	/// <param name="_intVec2" value="_intVec2">param</param>
+	/// <summary> squares all elements of a vector `vec` (inplace).</summary>
+	/// <param name="_vec" value="_vec">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
-	},
-
-	unshift: function () {
 	/// <signature>
-	/// <summary> insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.</summary>
+	/// <summary> returns `sq` which is the quare of number `num`.</summary>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_len"/>
-	/// </signature>
-
-	},
-
-	sum: function () {
-	/// <signature>
-	/// <summary> return `num`: the sum of elements of integer vector `intVec`</summary>
 	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
+	printArray: function () {
+	/// <signature>
+	/// <summary> print the javascript array `arr` in the console</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	newSpMat: function () {
+	/// <signature>
+	/// <summary> creates an empty sparse matrix `spMat`</summary>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`</summary>
+	/// <param name="_rowIdxVec" value="_rowIdxVec">param</param>
+	/// <param name="_colIdxVec" value="_colIdxVec">param</param>
+	/// <param name="_valVec" value="_valVec">param</param>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`</summary>
+	/// <param name="_doubleNestedArr" value="_doubleNestedArr">param</param>
+	/// <param name="_rows" value="_rows">param</param>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	},
+
+	genRandomMatrix: function () {
+	/// <signature>
+	/// <summary> `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)</summary>
+	/// <param name="_rows" value="_rows">param</param>
+	/// <param name="_cols" value="_cols">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	copyFltArrayToVec: function () {
+	/// <signature>
+	/// <summary> copies a JS array of numbers `arr` into a float vector `vec`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	genRandomVector: function () {
+	/// <signature>
+	/// <summary> `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	randIntVec: function () {
+	/// <signature>
+	/// <summary> returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	rangeVec: function () {
+	/// <signature>
+	/// <summary> `intVec` is an integer vector: `[num, num + 1, ..., num2].</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <param name="_num2" value="_num2">param</param>
+	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	},
+
+	printSpFeatVec: function () {
+	/// <signature>
+	/// <summary> Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	randInt: function () {
+	/// <signature>
+	/// <summary> returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num]`</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_num2"/>
+	/// </signature>
+
+	},
+
+	newSpVec: function () {
+	/// <signature>
+	/// <summary> creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension</summary>
+	/// <param name="_len" value="_len">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension</summary>
+	/// <param name="_nestedArr" value="_nestedArr">param</param>
+	/// <param name="_len" value="_len">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+
+	},
+
+	printVec: function () {
+	/// <signature>
+	/// <summary> print the vector `vec` in the console</summary>
+	/// <param name="_vecec" value="_vecec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> print the int vector `intVec` in the console</summary>
+	/// <param name="_intVec" value="_intVec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	newIntVec: function () {
+	/// <signature>
+	/// <summary> generate an empty float vector</summary>
+	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> copy a javascript int array `arr`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> clone an int vector `vec2`</summary>
+	/// <param name="_vec2" value="_vec2">param</param>
+	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	},
+
+	printMat: function () {
+	/// <signature>
+	/// <summary> print the matrix `mat` in the console</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	ones: function () {
+	/// <signature>
+	/// <summary> `vec` is a `k`-dimensional vector whose entries are set to `1.0`.</summary>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	eye: function () {
+	/// <signature>
+	/// <summary> `mat` is a `dim`-by-`dim` identity matrix</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	saveMat: function () {
+	/// <signature>
+	/// <summary> writes a dense matrix `mat` to output file stream `fout`</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	genRandomPerm: function () {
+	/// <signature>
+	/// <summary> returns a permutation of `k` elements. `arr` is a javascript array of integers</summary>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+
+	},
+
+	conjgrad: function () {
+	/// <signature>
+	/// <summary> solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_vec2" value="_vec2">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_vec2" value="_vec2">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	newMat: function () {
+	/// <signature>
+	/// <summary> generates a 0x0 matrix</summary>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)</summary>
+	/// <param name="_nestedArr" value="_nestedArr">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> clones a dense matrix `mat2`</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	genRandom: function () {
+	/// <signature>
+	/// <summary> `num` is a sample from a standard normal random variable</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	copyIntArrayToVec: function () {
+	/// <signature>
+	/// <summary> copies a JS array of integers `arr` into an integer vector `intVec`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	},
+
+	findMaxIdx: function () {
+	/// <signature>
+	/// <summary> returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+
+	},
+
+	printFeatVec: function () {
+	/// <signature>
+	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _process = {
+	isArg: function () {
+	/// <signature>
+	/// <summary> returns true when `argStr` among the</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	getGlobals: function () {
+	/// <signature>
+	/// <summary> Returns an array of all global variable names</summary>
+	/// <returns value ="_globalVarNames"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_strArr"> array of command-line arguments</field>
+	args: _strArr,
+	sleep: function () {
+	/// <signature>
+	/// <summary> Halts execution for the given amount of milliseconds `millis`.</summary>
+	/// <param name="_millis" value="_millis">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_sysStatJson"> statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.</field>
+	sysStat: _sysStatJson,
+}
+
+var _svmModel = {
+	predict: function () {
+	/// <signature>
+	/// <summary> sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	save: function () {
+	/// <signature>
+	/// <summary> saves model to output stream `fout`</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
+	weights: _vec,
+}
+
+var _fsp = {
+	/// <field value = "_num"> dimensionality of feature space</field>
+	dim: _num,
+	ftrSpColMat: function () {
+	/// <signature>
+	/// <summary> extracts sparse feature vectors from</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	},
+
+	extractStrings: function () {
+	/// <signature>
+	/// <summary> use feature extractors to extract string</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	},
+
+	getFtr: function () {
+	/// <signature>
+	/// <summary> returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_ftrName"/>
+	/// </signature>
+
+	},
+
+	updateRecord: function () {
+	/// <signature>
+	/// <summary> update feature space definitions and extractors</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> update feature space definitions and extractors</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	ftrSpVec: function () {
+	/// <signature>
+	/// <summary> extracts sparse feature vector `spVec` from record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+
+	},
+
+	ftrVec: function () {
+	/// <signature>
+	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	ftrColMat: function () {
+	/// <signature>
+	/// <summary> extracts feature vectors from</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	save: function () {
+	/// <signature>
+	/// <summary> serialize feature space to `fout` output stream</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _mat = {
+	/// <field value = "_num"> integer `num` corresponds to the number of columns of `mat`</field>
+	cols: _num,
 	put: function () {
 	/// <signature>
-	/// <summary> set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)</summary>
-	/// <param name="_idx" value="_idx">param</param>
+	/// <summary> Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <param name="_num" value="_num">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	push: function () {
+	normalizeCols: function () {
 	/// <signature>
-	/// <summary> append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_len"/>
+	/// <summary> normalizes each column of matrix `mat` (inplace operation)</summary>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	/// <field value = "_len"> integer `len` is the length of integer vector `vec`</field>
-	length: _len,
-	at: function () {
+	/// <field value = "_num"> integer `num` corresponds to the number of rows of `mat`</field>
+	rows: _num,
+	diag: function () {
 	/// <signature>
-	/// <summary> gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)</summary>
-	/// <param name="_idx" value="_idx">param</param>
+	/// <summary> Returns the diagonal of matrix `mat` as `vec` (dense vector).</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	frob: function () {
+	/// <signature>
+	/// <summary> number `num` is the Frobenious norm of matrix `mat`</summary>
 	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	multiplyT: function () {
+	/// <signature>
+	/// <summary> Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat3"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	},
+
+	getRow: function () {
+	/// <signature>
+	/// <summary> `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	printStr: function () {
+	/// <signature>
+	/// <summary> print matrix `mat` to a string `str`</summary>
+	/// <returns value ="_str"/>
+	/// </signature>
+
+	},
+
+	multiply: function () {
+	/// <signature>
+	/// <summary> Matrix multiplication: `num` is a number, `mat2` is a matrix</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix multiplication: `vec` is a vector, `vec2` is a vector</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat3"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
+	/// <returns value ="_mat2"/>
 	/// </signature>
 
 	},
 
 	print: function () {
 	/// <signature>
-	/// <summary> print integer vector in console</summary>
+	/// <summary> print matrix `mat` to console</summary>
 	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	plus: function () {
+	/// <signature>
+	/// <summary> `mat3` is the sum of matrices `mat` and `mat2`</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat3"/>
+	/// </signature>
+
+	},
+
+	colNorms: function () {
+	/// <signature>
+	/// <summary> `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	transpose: function () {
+	/// <signature>
+	/// <summary> matrix `mat2` is matrix `mat` transposed</summary>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	},
+
+	setCol: function () {
+	/// <signature>
+	/// <summary> Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.</summary>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	colMaxIdx: function () {
+	/// <signature>
+	/// <summary>: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`</summary>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <returns value ="_rowIdx"/>
+	/// </signature>
+
+	},
+
+	rowNorms: function () {
+	/// <signature>
+	/// <summary> `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	getCol: function () {
+	/// <signature>
+	/// <summary> `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.</summary>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	rowMaxIdx: function () {
+	/// <signature>
+	/// <summary>: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <returns value ="_colIdx"/>
+	/// </signature>
+
+	},
+
+	solve: function () {
+	/// <signature>
+	/// <summary> vector `vec2` is the solution to the linear system `mat * vec2 = vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	},
+
+	sparse: function () {
+	/// <signature>
+	/// <summary> get sparse column matrix representation `spMat` of dense matrix `mat`</summary>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	},
+
+	setRow: function () {
+	/// <signature>
+	/// <summary> Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	minus: function () {
+	/// <signature>
+	/// <summary> `mat3` is the difference of matrices `mat` and `mat2`</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat3"/>
+	/// </signature>
+
+	},
+
+	at: function () {
+	/// <signature>
+	/// <summary> Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+}
+
+var _nnModel = {
+	predict: function () {
+	/// <signature>
+	/// <summary> sends vector `vec` through the model and returns the prediction as a vector `vec2`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	},
+
+	learn: function () {
+	/// <signature>
+	/// <summary> uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.</summary>
+	/// <param name="_inVec" value="_inVec">param</param>
+	/// <param name="_outVec" value="_outVec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _htModel = {
+	process: function () {
+	/// <signature>
+	/// <summary> processes the stream example; `strArr` is an array of discrete attribute values (strings);</summary>
+	/// <param name="_strArr" value="_strArr">param</param>
+	/// <param name="_numArr" value="_numArr">param</param>
+	/// <param name="_labelStr" value="_labelStr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;</summary>
+	/// <param name="_line" value="_line">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	exportModel: function () {
+	/// <signature>
+	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`;</summary>
+	/// <param name="_htOutParams" value="_htOutParams">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	classify: function () {
+	/// <signature>
+	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label</summary>
+	/// <param name="_strArr" value="_strArr">param</param>
+	/// <param name="_numArr" value="_numArr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label</summary>
+	/// <param name="_line" value="_line">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _hashTable = {
+	/// <field value = "_strArr"> array of keys (strings)</field>
+	keys: _strArr,
+	put: function () {
+	/// <signature>
+	/// <summary> add a key</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> add key-dat</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <param name="_dat" value="_dat">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	contains: function () {
+	/// <signature>
+	/// <summary> does the table contain the key?</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_array"> array of values</field>
+	vals: _array,
+	get: function () {
+	/// <signature>
+	/// <summary> get data</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_dat"/>
 	/// </signature>
 
 	},
@@ -1547,6 +2017,67 @@ var _rs = {
 
 }
 
+var _sw = {
+	reset: function () {
+	/// <signature>
+	/// <summary> resets</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	saytime: function () {
+	/// <signature>
+	/// <summary> displays elpased time from tic</summary>
+	/// <param name="_message" value="_message">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	stop: function () {
+	/// <signature>
+	/// <summary> stops the stopwatch</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	start: function () {
+	/// <signature>
+	/// <summary> starts the stopwatch</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	time: function () {
+	/// <signature>
+	/// <summary> returns unix epoch time in milliseconds</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	toc: function () {
+	/// <signature>
+	/// <summary> displays time from tic and message `str`</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	tic: function () {
+	/// <signature>
+	/// <summary> resets and starts the stop watch</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
 var _rec = {
 	delJoin: function () {
 	/// <signature>
@@ -1639,10 +2170,12 @@ _addIntellisenseVar("_minFq", "1");
 _addIntellisenseVar("_maxFq", "1");
 _addIntellisenseVar("_seed", "1");
 _addIntellisenseVar("_joinFrequency", "1");
-
+_addIntellisenseVar("_millis", "1");
 
 // arrays
+_addIntellisenseVar("_array", "[]");
 _addIntellisenseVar("_arr", "[1]");
+_addIntellisenseVar("_numArr", "[1]");
 _addIntellisenseVar("_objArr", "[{}]");
 _addIntellisenseVar("_strArr", "['']");
 _addIntellisenseVar("_nestedArr", "[_arr]");
@@ -1652,6 +2185,10 @@ _addIntellisenseVar("_bool", "true");
 _addIntellisenseVar("_asc", "true");
 // strings
 _addIntellisenseVar("_str", "''");
+_addIntellisenseVar("_argStr", "''");
+_addIntellisenseVar("_line", "''");
+_addIntellisenseVar("_labelStr", "''");
+_addIntellisenseVar("_message", "''");
 _addIntellisenseVar("_fileName", "''");
 _addIntellisenseVar("_recName", "''");
 _addIntellisenseVar("_storeName", "''");
@@ -1659,7 +2196,12 @@ _addIntellisenseVar("_keyName", "''");
 _addIntellisenseVar("_typeName", "''");
 _addIntellisenseVar("_saName", "''");
 _addIntellisenseVar("_joinName", "''");
+_addIntellisenseVar("_ftrName", "''");
+_addIntellisenseVar("_scriptNm", "''");
+_addIntellisenseVar("_scriptFNm", "''");
+
 // json objects
+_addIntellisenseVar("_obj", "{}");
 _addIntellisenseVar("_objJSON", "{}");
 _addIntellisenseVar("_paramJSON", "{}");
 _addIntellisenseVar("_aggrsJSON", "{}");
@@ -1670,11 +2212,12 @@ _addIntellisenseVar("_sortRes", "{ vec: _vec, perm: _intVec }");
 _addIntellisenseVar("_vecCtrParam", "{ vals: 1, mxvals: 1 }");
 _addIntellisenseVar("_svdRes", "{ U: _mat, V: _mat, s: _vec }");
 _addIntellisenseVar("_storeDef", "{ id: '', name: '', fields: [], joins: [], keys: []}");
-_addIntellisenseVar("_trigger", "{ onAdd: function() {}, onUpdate: function() {}, onDelete: function() {}}");
+_addIntellisenseVar("_trigger", "{ onAdd: function(_rec) {}, onUpdate: function(_rec) {}, onDelete: function(_rec) {}}");
 _addIntellisenseVar("_field", "{ id: 1, name: '', type: '', nullable: false, internal: false, primary: false}");
 _addIntellisenseVar("_mapCallback", "function (_rec, _idx) {}");
 _addIntellisenseVar("_filterCallback", "function (_rec) { return _bool}");
 _addIntellisenseVar("_comparatorCallback", "function (_rec, _rec2) { return _bool}");
+_addIntellisenseVar("_langOptionsJson", "{stemmer: _strArr , stopwords: _strArr}");
 
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case
@@ -1692,6 +2235,11 @@ intellisenseIgnore["_rs"] = "{}"; // record set
 intellisenseIgnore["_store"] = "{}";
 intellisenseIgnore["_key"] = "{}";
 intellisenseIgnore["_tm"] = "{}";
+intellisenseIgnore["_svmModel"] = "{}";
+intellisenseIgnore["_nnModel"] = "{}";
+intellisenseIgnore["_recLinRegModel"] = "{}";
+intellisenseIgnore["_htModel"] = "{}";
+intellisenseIgnore["_fsp"] = "{}";
 
 _vec[0] = 1; // vec is indexed and returns numbers
 _intVec[0] = 1; // vec is indexed and returns numbers
@@ -1700,6 +2248,8 @@ _rs[0] = _rec; // record set at index returns a record
 
 _addIntellisenseVar("_vec2", "_vec");
 _addIntellisenseVar("_vec3", "_vec");
+_addIntellisenseVar("_inVec", "_vec");
+_addIntellisenseVar("_outVec", "_vec");
 _addIntellisenseVar("_valVec", "_vec");
 _addIntellisenseVar("_spVec2", "_spVec");
 _addIntellisenseVar("_spVec3", "_spVec");
@@ -1716,6 +2266,15 @@ _addIntellisenseVar("_spMat3", "_spMat");
 _addIntellisenseVar("_rs2", "_rs");
 _addIntellisenseVar("_rs3", "_rs");
 _addIntellisenseVar("_joinRec", "_rec");
+
+
+require = function (libName) { if (libName === 'utilities.js') return _utilities; };
+
+
+//_addIntellisenseVar("_analytics", "require('utilities.js')");
+//_addIntellisenseVar("_utilities", "require('utilities.js')");
+
+
 
 // implement ignore
 intellisense.addEventListener('statementcompletion', function (event) {
