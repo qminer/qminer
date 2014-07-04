@@ -17,10 +17,6 @@
 //////////////////////////////////////////
 // process wrapper 
 
-//#- `a = process.args` -- array of command-line arguments 
-//#     used to start current QMiner instance
-process.args = qm.args;
-
 //#- `process.isArg(arg)` -- returns true when `arg` among the 
 //#     command-line arguments used to start current QMiner instance
 process.isArg = function(arg) {
@@ -29,6 +25,3 @@ process.isArg = function(arg) {
 	}
 	return false;
 }
-
-//#- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
-process.sysStat = qm.sysStat;

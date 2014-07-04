@@ -980,8 +980,6 @@ public:
 
     // temporary stuff
 	JsDeclareProperty(analytics); // deprecated    
-	JsDeclareProperty(args); // to be moved to TJsProcess once created
-    JsDeclareProperty(sysStat);  // to be moved to TJsProcess once created
 	JsDeclareFunction(op); // soon to be deprecated, functionality moved to TJsRecSet
 
 	//# 
@@ -2365,8 +2363,16 @@ public:
     //#
 	//# **Functions and properties:**
 	//#
+	//#- `process.stop()` -- Stopes the current process.
+	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
+    JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
+    //#- `a = process.args` -- array of command-line arguments 
+    //#     used to start current QMiner instance
+    JsDeclareProperty(args);
+    //#- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+    JsDeclareProperty(sysStat);
 	//#- `process.scriptNm` -- Returns the name of the script.
 	JsDeclareProperty(scriptNm);
 	//#- `process.scriptFNm` -- Returns absolute script file path.
@@ -2727,18 +2733,22 @@ public:
 private:
 	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
 	// private constructor
-	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc"); Dim = ParamVal->GetObjInt("dim", 1); }
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun): 
+        TFtrExt(_Js->Base, ParamVal), Js(_Js), Fun(_Fun) { 
+            Name = ParamVal->GetObjStr("name", "jsfunc"); 
+            Dim = ParamVal->GetObjInt("dim", 1); }
 public:
 	// public smart pointer
-	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
-		return new TJsFuncFtrExt(Js, ParamVal, _Fun);
-	}
+	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, 
+        const v8::Persistent<v8::Function>& _Fun) {
+            return new TJsFuncFtrExt(Js, ParamVal, _Fun); }
 // Core functionality
 private:
 	// Core part
 	TInt Dim;
 	TStr Name;
 	v8::Persistent<v8::Function> Fun;
+    
 	double ExecuteFunc(const TRec& FtrRec) const {
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
