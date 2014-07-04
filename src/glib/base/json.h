@@ -142,6 +142,7 @@ public:
   double GetObjNum(const char *Key, const double& DefNum) const;
   int GetObjInt(const TStr& Key, const int& DefNum) const;
   int GetObjInt(const char *Key, const int& DefNum) const;
+  void GetObjIntV(const TStr& Key, TIntV& IntV) const;
   TStr GetObjStr(const TStr& Key, const TStr& DefStr) const;
   TStr GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;

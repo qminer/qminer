@@ -188,16 +188,20 @@ exports.loadBatchModel = function (sin) {
 //#   The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
 //#    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
 //#    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
-//#    examples that have to be identified in the query mode before the program enters SVM mode. The final
-//#   parameter is the `query` (string) which should be related to positive examples. 
-exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query) {
+//#    examples that have to be identified in the query mode before the program enters SVM mode.
+//#   The next parameter is the `query` (string) which should be related to positive examples. 
+//#   Final Parameters `c` and `j` are SVM parameters.
+exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query, c, j) {
+    // svm parameter defaults
+    c = c || 1.0; j = j || 1.0;
     var store = recSet.store;
     var X = la.newSpMat();
     var y = la.newVec();
     // QUERY MODE
     var queryMode = true;
     // bow similarity between query and training set 
-    var queryRec = store.newRec({ textField: query }); // record
+    var queryObj ={}; queryObj[textField] = query;
+    var queryRec = store.newRec(queryObj); // record
     var querySpVec = ftrSpace.ftrSpVec(queryRec); // query sparse vector
     querySpVec.normalize();
     var recsMat = ftrSpace.ftrSpColMat(recSet); //recSet feature matrix
@@ -217,7 +221,7 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
     var posIdV = la.newIntVec(); //record IDs
     var negIdV = la.newIntVec(); //record IDs
     var classVec = la.newVec({ "vals": recSet.length }); //svm scores for record set
-
+    var resultVec = la.newVec({ "vals": recSet.length }); // non-absolute svm scores for record set
     // returns record set index of the unlabeled record that is closest to the margin
     //#   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
     this.selectQuestion = function () {
@@ -237,11 +241,17 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
         else {
             ////call svm, get record closest to the margin            
             //console.startx(function (x) { return eval(x); });
-            svm = analytics.trainSvmClassify(X, y); //column examples, y float vector of +1/-1, default svm paramvals
+            svm = analytics.trainSvmClassify(X, y, {c: c, j: j}); //column examples, y float vector of +1/-1, default svm paramvals
             // mark positives
-            for (var i = 0; i < posIdxV.length; i++) { classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; }
+            for (var i = 0; i < posIdxV.length; i++) { 
+              classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; 
+              resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY; 
+            }
             // mark negatives
-            for (var i = 0; i < negIdxV.length; i++) { classVec[negIdxV[i]] = Number.POSITIVE_INFINITY; }
+            for (var i = 0; i < negIdxV.length; i++) { 
+              classVec[negIdxV[i]] = Number.POSITIVE_INFINITY; 
+              resultVec[negIdxV[i]] = Number.NEGATIVE_INFINITY; 
+            }
             var posCount = posIdxV.length;
             var negCount = negIdxV.length;
             // classify unlabeled
@@ -255,6 +265,7 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
                         negCount++;
                     }
                     classVec[recN] = Math.abs(svmMargin);
+                    resultVec[recN] = svmMargin;
                 }
             }
             var sorted = classVec.sortPerm();
@@ -291,7 +302,7 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
             if (posIdxV.length + negIdxV.length == recSet.length) { break;}
             this.getAnswer(ALanswer, recSetIdx);            
         }
-    }
+    };
     //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
@@ -301,6 +312,30 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
         }
         svm.save(outputStream);
     };
+    //#   - `model.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it. Must be in SVM mode..
+    this.getPos = function(threshold) {
+      if(this.queryMode) { return null; } // must be in SVM mode to return results
+      if(!threshold) { threshold = 0; }
+      var posIdxArray = [];
+      for (var recN = 0; recN < recSet.length; recN++) {
+        if (resultVec[recN] >= threshold) {
+          posIdxArray.push(recN);
+        }
+      }
+      return posIdxArray;
+    };
+    //#   - `model.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+    this.getQueryMode = function() {
+      return queryMode;
+    };
+    //#   - `model.getnpos()` -- return the  number of examples marked as positive. 
+    this.getnpos = function() { return npos; };
+    //#   - `model.getnneg()` -- return the  number of examples marked as negative.
+    this.getnneg = function() { return nneg; };
+    //#   - `model.setj(nj)` - sets the SVM j parameter to the provided value.
+    this.setj = function(nj) { j = nj; };
+    //#   - `model.setc(nc)` - sets the SVM c parameter to the provided value.
+    this.setc = function(nc) { c = nc; };
     //this.saveLabeled
     //this.loadLabeled
 };
@@ -531,7 +566,7 @@ exports.perceptron = function (dim, use_bias) {
             }
         }
     };
-    //#   - `class = model.predict(x)` -- returns the prediction (0 or 1)
+    //#   - `c = model.predict(x)` -- returns the prediction (0 or 1)
     this.predict = function (x) {
         return (w.inner(x) + b) > 0 ? 1 : 0;
     };

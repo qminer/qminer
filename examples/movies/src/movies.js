@@ -36,7 +36,7 @@ if (Movies.empty) {
         { type: "multinomial", source: { store: "Movies", join: "Director"}, field: "Name" }
     ];
     // Create a model for the Rating field, using all the movies as training set.
-    // Since the target field is discrete the underlaying model will be based on regression.
+    // Since the target field is numeric the underlaying model will be based on regression.
     var ratingModel = analytics.newBatchModel(Movies.recs, ratingFeatures, Movies.field("Rating"));
     // Serialize the model to disk so we can use it later
     var ratingOut = fs.openWrite("./sandbox/movies/rating.dat");

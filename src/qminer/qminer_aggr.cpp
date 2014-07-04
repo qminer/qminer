@@ -599,7 +599,7 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
         const TRec& OldestRec = Buffer.GetOldest();
         const TRec& NewestRec = Buffer.GetNewest();
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
-        JsonVal->AddToObj("newest", OldestRec.GetJson(GetBase(), true, false, false, false, true));    
+        JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));    
         // deprecated, only works when records passed by reference {
         if (OldestRec.IsByRef()) { JsonVal->AddToObj("first", (int)OldestRec.GetRecId()); }
         if (NewestRec.IsByRef()) { JsonVal->AddToObj("last", (int)NewestRec.GetRecId()); }
@@ -1198,14 +1198,18 @@ void TResampler::OnAddRec(const TRec& Rec) {
         // update timestamp
         TStr RecTmStr = TTm::GetTmFromMSecs(InterpPointMSecs).GetWebLogDateTimeStr(true, "T", true);
         JsonVal->AddToObj(InStore->GetFieldNm(TimeFieldId), RecTmStr);
+
         // update fields
         for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {            
             const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);            
             JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
         }
-        // add new record
-        //TODO use TRec instead of PJsonVal
-        OutStore->AddRec(JsonVal);
+		//TODO use TRec instead of PJsonVal
+		// add new record
+		uint64 NewRecId = OutStore->AddRec(JsonVal);
+		if (OutStore->IsJoinNm("source")) {
+			OutStore->AddJoin(OutStore->GetJoinId("source"), NewRecId, Rec.GetRecId(), 1);
+		}
         // increase interpolation time
         InterpPointMSecs += IntervalMSecs;
     }
@@ -1228,6 +1232,15 @@ void TResampler::CreateStore(const TStr& NewStoreNm) {
 		FieldsVal->AddToArr(FieldVal);
 	}
 	StoreVal->AddToObj("fields", FieldsVal);
+	// join that points to the original store (each record in the resampled 
+	// store points to the most recent record in the orinal store)
+	PJsonVal JoinsVal = TJsonVal::NewArr();
+	PJsonVal JoinVal = TJsonVal::NewObj();
+	JoinVal->AddToObj("name", "source");
+	JoinVal->AddToObj("type", "field");
+	JoinVal->AddToObj("store", InStore->GetStoreNm());
+	JoinsVal->AddToArr(JoinVal);
+	StoreVal->AddToObj("joins", JoinsVal);
     // create store
     InfoLog("Creating new store '" + NewStoreNm + "'");    
 	TStorage::CreateStoresFromSchema(GetBase(), StoreVal, 1024);

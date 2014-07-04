@@ -98,7 +98,7 @@ Resampled.addStreamAggr({ name: <span class="hljs-string">"ema10m"</span>, type:
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
-              <p>Add a chain of 5 EMA stream aggregates and attach them to “tick” </p>
+              <p>Add a chain of 5 EMA stream aggregates (itEma) and attach them to “tick” </p>
 
             </div>
             
@@ -280,11 +280,41 @@ the new record, and store this for evaluation later on.</p>
     <span class="hljs-keyword">try</span> {
         <span class="hljs-keyword">var</span> vals = line.split(<span class="hljs-string">','</span>);
         <span class="hljs-keyword">var</span> rec = { <span class="hljs-string">"Time"</span>: vals[<span class="hljs-number">1</span>], <span class="hljs-string">"Value"</span>: <span class="hljs-built_in">parseFloat</span>(vals[<span class="hljs-number">0</span>]) };
-        Raw.add(rec);
-    } <span class="hljs-keyword">catch</span> (err) { 
+        Raw.add(rec);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>console.pause();</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    } <span class="hljs-keyword">catch</span> (err) { 
         console.say(<span class="hljs-string">"Raw"</span>, err);
     }
 }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Start console</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>console.say(<span class="hljs-string">"Interactive mode: empty line to release"</span>);
+console.start();</pre></div></div>
             
         </li>
         
