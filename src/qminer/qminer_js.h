@@ -2372,9 +2372,9 @@ public:
     JsDeclareProperty(args);
     //#- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
     JsDeclareProperty(sysStat);
-	//#- `process.scriptNm` -- Returns the name of the script.
+	//#- `str = process.scriptNm` -- Returns the name of the script.
 	JsDeclareProperty(scriptNm);
-	//#- `process.scriptFNm` -- Returns absolute script file path.
+	//#- `str = process.scriptFNm` -- Returns absolute script file path.
 	JsDeclareProperty(scriptFNm);
 	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 	JsDeclareFunction(getGlobals);
@@ -2383,12 +2383,12 @@ public:
 
 
 //#
-//# ### Utilities.js (use require)
+//# ### utilities.js (use require)
 //# 
 //#JSIMPLEMENT:src/qminer/js/utilities.js    
 
 //#
-//# ### Assert.js (use require)
+//# ### assert.js (use require)
 //# 
 //#JSIMPLEMENT:src/qminer/js/assert.js    
 
@@ -2423,8 +2423,8 @@ public:
     //#- `console.log(message)` -- writes `message` to standard output, using
     //#     prefix `[console]` to indicate the text came from console object;
     //#     `message` must be of type string
-    //#- `console.log(prefix, message)` -- writes `message` to standard output, 
-    //#     using provided prefix `[prefix]`; both `message` and `prefix` must
+    //#- `console.log(prefixStr, message)` -- writes `message` to standard output, 
+    //#     using provided prefix `[prefixStr]`; both `message` and `prefixStr` must
     //#     be of type string
 	JsDeclareFunction(log);
     //#- `line = console.getln()` -- reads a line from command line and returns
@@ -2465,30 +2465,30 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fin = fs.openRead(fileName)`
+    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
 	JsDeclareFunction(openRead);
-    //#- `fout = fs.openWrite(fileName)`
+    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
 	JsDeclareFunction(openWrite);
-    //#- `fout = fs.openAppend(fileName)`
+    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
 	JsDeclareFunction(openAppend);
-    //#- `fs.exists(fileName)`
+    //#- `bool = fs.exists(fileName)` -- does file exist?
 	JsDeclareFunction(exists);
-    //#- `fs.copy(fromFileName, toFileName)`
+    //#- `fs.copy(fromFileName, toFileName)` -- copy file
 	JsDeclareFunction(copy);
-    //#- `fs.move(fromFileName, toFileName)`
+    //#- `fs.move(fromFileName, toFileName)` -- move file
 	JsDeclareFunction(move);
-    //#- `fs.del(fileName)`
+    //#- `fs.del(fileName)` -- delete file
 	JsDeclareFunction(del);
-    //#- `fs.rename(fromFileName, toFileName)`
+    //#- `fs.rename(fromFileName, toFileName)` -- rename file
 	JsDeclareFunction(rename);
-    //#- `info = fs.fileInfo(fileName)`
+    //#- `infoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
 	JsDeclareFunction(fileInfo);
-    //#- `fs.mkdir(dirName)`
+    //#- `fs.mkdir(dirName)` -- make folder
 	JsDeclareFunction(mkdir);
-    //#- `fs.rmdir(dirName)`
+    //#- `fs.rmdir(dirName)` -- delete folder
 	JsDeclareFunction(rmdir);
-    //#- `list = fs.listFile(dirName, fileExtension)`
-    //#- `list = fs.listFile(dirName, fileExtension, recursive)`
+    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 	JsDeclareFunction(listFile);
 };
 
@@ -2513,15 +2513,15 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `char = fin.peekCh()`
+    //#- `char = fin.peekCh()` -- peeks a character
 	JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()`
+    //#- `char = fin.getCh()` -- reads a character
 	JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()`
+    //#- `line = fin.readLine()` -- reads a line
 	JsDeclareFunction(readLine);
-    //#- `fin.eof`
+    //#- `bool = fin.eof` -- end of stream?
 	JsDeclareProperty(eof);
-    //#- `fin.length`
+    //#- `len = fin.length` -- returns the length of input stream
 	JsDeclareProperty(length);
 };
 
@@ -2548,13 +2548,13 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fout.write(data)`
+    //#- `fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
 	JsDeclareFunction(write);
-    //#- `fout.writeLine(data)`
+    //#- `fout.writeLine(data)` -- writes data to output stream and adds newline
 	JsDeclareFunction(writeLine);
-    //#- `fout.flush()`
+    //#- `fout.flush()` -- flushes output stream
 	JsDeclareFunction(flush);
-    //#- `fout.close()`
+    //#- `fout.close()` -- closes output stream
   	JsDeclareFunction(close);
 };
 

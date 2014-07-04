@@ -1,206 +1,3 @@
-var _spVec = {
-	normalize: function () {
-	/// <signature>
-	/// <summary> normalizes the vector spVec (inplace operation)</summary>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_num"> gets the dimension `num` (-1 means that it is unknown)</field>
-	dim: _num,
-	full: function () {
-	/// <signature>
-	/// <summary>  returns `vec` - a dense vector representation of sparse vector `spVec`.</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	},
-
-	sum: function () {
-	/// <signature>
-	/// <summary> `num` is the sum of elements of `spVec`</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	put: function () {
-	/// <signature>
-	/// <summary> Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	idxVec: function () {
-	/// <signature>
-	/// <summary>  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.</summary>
-	/// <returns value ="_idxVec"/>
-	/// </signature>
-
-	},
-
-	print: function () {
-	/// <signature>
-	/// <summary> prints the vector to console</summary>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_num"> gets the number of nonzero elements `num` of vector `spVec`</field>
-	nnz: _num,
-	inner: function () {
-	/// <signature>
-	/// <summary> `num` is the inner product between `spVec` and dense vector `vec`.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> `num` is the inner product between `spVec` and sparse vector `spVec`.</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	multiply: function () {
-	/// <signature>
-	/// <summary> `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`</summary>
-	/// <param name="_a" value="_a">param</param>
-	/// <returns value ="_spVec2"/>
-	/// </signature>
-
-	},
-
-	valVec: function () {
-	/// <signature>
-	/// <summary>  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.</summary>
-	/// <returns value ="_valVec"/>
-	/// </signature>
-
-	},
-
-	norm: function () {
-	/// <signature>
-	/// <summary> returns `num` - the norm of `spVec`</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	at: function () {
-	/// <signature>
-	/// <summary> Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-}
-
-var _analytics = {
-	newRecLinReg: function () {
-	/// <signature>
-	/// <summary> create new recursive linear regression</summary>
-	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-
-	},
-
-	loadRecLinRegModel: function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-
-	},
-
-	newHoeffdingTree: function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_jsonStream" value="_jsonStream">param</param>
-	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
-	/// <returns value ="_htModel"/>
-	/// </signature>
-
-	},
-
-	loadSvmModel: function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-
-	},
-
-	getLanguageOptions: function () {
-	/// <signature>
-	/// <summary> get options for text parsing</summary>
-	/// <returns value ="_langOptionsJson"/>
-	/// </signature>
-
-	},
-
-	newNN: function () {
-	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
-	/// </signature>
-
-	},
-
-	loadFeatureSpace: function () {
-	/// <signature>
-	/// <summary> load serialized feature</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-
-	},
-
-	newFeatureSpace: function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-
-	},
-
-	trainSvmRegression: function () {
-	/// <signature>
-	/// <summary> trains</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-
-	},
-
-	trainSvmClassify: function () {
-	/// <signature>
-	/// <summary> trains binary</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmParameters" value="_svmParameters">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-
-	},
-
-}
-
 var _store = {
 	key: function () {
 	/// <signature>
@@ -317,418 +114,51 @@ var _store = {
 
 }
 
-var _recLinRegModel = {
-	predict: function () {
+var process = {
+	/// <field value = "_str"> Returns the name of the script.</field>
+	scriptNm: _str,
+	/// <field value = "_str"> Returns absolute script file path.</field>
+	scriptFNm: _str,
+	isArg: function () {
 	/// <signature>
-	/// <summary> sends vector `vec` through the</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_num"> dimensionality of the feature space on which this model works</field>
-	dim: _num,
-	save: function () {
-	/// <signature>
-	/// <summary> saves model to output stream `fout`</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_vec"> weights of the linear model as a full vector `vec`</field>
-	weights: _vec,
-	learn: function () {
-	/// <signature>
-	/// <summary> updates the model using full vector `vec` and target number `num`as training data</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-}
-
-var _intVec = {
-	sort: function () {
-	/// <signature>
-	/// <summary> integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order</summary>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value ="_intVec2"/>
-	/// </signature>
-
-	},
-
-	getMaxIdx: function () {
-	/// <signature>
-	/// <summary> returns the integer index `idx` of the maximal element in integer vector `vec`</summary>
-	/// <returns value ="_idx"/>
-	/// </signature>
-
-	},
-
-	pushV: function () {
-	/// <signature>
-	/// <summary> append integer vector `intVec2` to integer vector `intVec`.</summary>
-	/// <param name="_intVec2" value="_intVec2">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	unshift: function () {
-	/// <signature>
-	/// <summary> insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_len"/>
-	/// </signature>
-
-	},
-
-	sum: function () {
-	/// <signature>
-	/// <summary> return `num`: the sum of elements of integer vector `intVec`</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	put: function () {
-	/// <signature>
-	/// <summary> set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	push: function () {
-	/// <signature>
-	/// <summary> append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_len"/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_len"> integer `len` is the length of integer vector `vec`</field>
-	length: _len,
-	at: function () {
-	/// <signature>
-	/// <summary> gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	print: function () {
-	/// <signature>
-	/// <summary> print integer vector in console</summary>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-}
-
-var _key = {
-	/// <field value = "_strArr"> gets the array of weights (as strings) in the vocabulary</field>
-	fq: _strArr,
-	/// <field value = "_keyName"> gets the key name</field>
-	name: _keyName,
-	/// <field value = "_storeName"> gets the store name `storeName`</field>
-	store: _storeName,
-	/// <field value = "_strArr"> gets the array of words (as strings) in the vocabulary</field>
-	voc: _strArr,
-}
-
-var _utilities = {
-	isArray: function () {
-	/// <signature>
-	/// <summary> is parameter an array?</summary>
-	/// <param name="_arg" value="_arg">param</param>
+	/// <summary> returns true when `argStr` among the</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
 	/// <returns value ="_bool"/>
 	/// </signature>
 
 	},
 
-	isString: function () {
+	/// <field value = "_a"> array of command-line arguments</field>
+	args: _a,
+	stop: function () {
 	/// <signature>
-	/// <summary> is `s` a string?</summary>
-	/// <param name="_s" value="_s">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> Stopes the current process.</summary>
+	/// <returns value =""/>
 	/// </signature>
 
-	},
-
-	arraysIdentical: function () {
 	/// <signature>
-	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <param name="_arr2" value="_arr2">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	isInArray: function () {
-	/// <signature>
-	/// <summary> is element in an array?</summary>
-	/// <param name="_array" value="_array">param</param>
-	/// <param name="_value" value="_value">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	ifNull: function () {
-	/// <signature>
-	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_defVal" value="_defVal">param</param>
-	/// <returns value ="_returnVal"/>
-	/// </signature>
-
-	},
-
-	newStopWatch: function () {
-	/// <signature>
-	/// <summary> creates a stop watch object `sw`</summary>
-	/// <returns value ="_sw"/>
-	/// </signature>
-
-	},
-
-	newHashTable: function () {
-	/// <signature>
-	/// <summary> creates a hash table</summary>
-	/// <returns value ="_hashTable"/>
-	/// </signature>
-
-	},
-
-	isNumber: function () {
-	/// <signature>
-	/// <summary> is `n` a number?</summary>
-	/// <param name="_n" value="_n">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	isObject: function () {
-	/// <signature>
-	/// <summary> is parameter an object?</summary>
-	/// <param name="_arg" value="_arg">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-}
-
-var _spMat = {
-	load: function () {
-	/// <signature>
-	/// <summary> load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.</summary>
-	/// <param name="_fin" value="_fin">param</param>
+	/// <summary> Stopes the current process and returns `returnCode</summary>
+	/// <param name="_returnCode" value="_returnCode">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	full: function () {
+	/// <field value = "_sysStatJson"> statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.</field>
+	sysStat: _sysStatJson,
+	sleep: function () {
 	/// <signature>
-	/// <summary> get dense matrix representation `mat` of `spMat (sparse column matrix)`</summary>
-	/// <returns value ="_mat"/>
-	/// </signature>
-
-	},
-
-	normalizeCols: function () {
-	/// <signature>
-	/// <summary> normalizes each column of a sparse matrix `spMat` (inplace operation)</summary>
+	/// <summary> Halts execution for the given amount of milliseconds `millis`.</summary>
+	/// <param name="_millis" value="_millis">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	push: function () {
+	getGlobals: function () {
 	/// <signature>
-	/// <summary> attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	transpose: function () {
-	/// <signature>
-	/// <summary> `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed</summary>
-	/// <returns value ="_spMat2"/>
-	/// </signature>
-
-	},
-
-	frob: function () {
-	/// <signature>
-	/// <summary> number `num` is the Frobenious norm of `spMat` (sparse matrix)</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	put: function () {
-	/// <signature>
-	/// <summary> Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_num"> integer `num` corresponds to the number of columns of `spMat` (sparse matrix)</field>
-	cols: _num,
-	multiplyT: function () {
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_spMat2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <returns value ="_mat2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.</summary>
-	/// <param name="_spMat2" value="_spMat2">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-
-	},
-
-	print: function () {
-	/// <signature>
-	/// <summary> print `spMat` (sparse matrix) to console</summary>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	nnz: function () {
-	/// <signature>
-	/// <summary> `num` is the number of non-zero elements of sparse column matrix `spMat`</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_num"> integer `num` corresponds to the number of rows of `spMat` (sparse matrix)</field>
-	rows: _num,
-	plus: function () {
-	/// <signature>
-	/// <summary> `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)</summary>
-	/// <param name="_spMat2" value="_spMat2">param</param>
-	/// <returns value ="_spMat3"/>
-	/// </signature>
-
-	},
-
-	at: function () {
-	/// <signature>
-	/// <summary> Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	multiply: function () {
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_spMat2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <returns value ="_mat2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix</summary>
-	/// <param name="_spMat2" value="_spMat2">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-
-	},
-
-	toString: function () {
-	/// <signature>
-	/// <summary> returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`</summary>
-	/// <returns value ="_str"/>
-	/// </signature>
-
-	},
-
-	save: function () {
-	/// <signature>
-	/// <summary> print `spMat` (sparse matrix) to output stream `fout`</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	minus: function () {
-	/// <signature>
-	/// <summary> `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)</summary>
-	/// <param name="_spMat2" value="_spMat2">param</param>
-	/// <returns value ="_spMat3"/>
-	/// </signature>
-
-	},
-
-	colNorms: function () {
-	/// <signature>
-	/// <summary> `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`</summary>
-	/// <returns value ="_vec"/>
+	/// <summary> Returns an array of all global variable names</summary>
+	/// <returns value ="_globalVarNames"/>
 	/// </signature>
 
 	},
@@ -907,6 +337,298 @@ var _vec = {
 	/// <summary> `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+}
+
+var _analytics = {
+	newRecLinReg: function () {
+	/// <signature>
+	/// <summary> create new recursive linear regression</summary>
+	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
+	/// <returns value ="_recLinRegModel"/>
+	/// </signature>
+
+	},
+
+	loadRecLinRegModel: function () {
+	/// <signature>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_recLinRegModel"/>
+	/// </signature>
+
+	},
+
+	newHoeffdingTree: function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_jsonStream" value="_jsonStream">param</param>
+	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
+	/// <returns value ="_htModel"/>
+	/// </signature>
+
+	},
+
+	loadSvmModel: function () {
+	/// <signature>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	},
+
+	getLanguageOptions: function () {
+	/// <signature>
+	/// <summary> get options for text parsing</summary>
+	/// <returns value ="_langOptionsJson"/>
+	/// </signature>
+
+	},
+
+	newNN: function () {
+	/// <signature>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
+	/// </signature>
+
+	},
+
+	loadFeatureSpace: function () {
+	/// <signature>
+	/// <summary> load serialized feature</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+
+	},
+
+	newFeatureSpace: function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+
+	},
+
+	trainSvmRegression: function () {
+	/// <signature>
+	/// <summary> trains</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	},
+
+	trainSvmClassify: function () {
+	/// <signature>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	},
+
+}
+
+var _rec = {
+	delJoin: function () {
+	/// <signature>
+	/// <summary> deletes join record `joinRecord` from join `joinName` (string)</summary>
+	/// <param name="_joinName" value="_joinName">param</param>
+	/// <param name="_joinRecord" value="_joinRecord">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`</summary>
+	/// <param name="_joinName" value="_joinName">param</param>
+	/// <param name="_joinRecord" value="_joinRecord">param</param>
+	/// <param name="_joinFrequency" value="_joinFrequency">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	addJoin: function () {
+	/// <signature>
+	/// <summary> adds a join record `joinRecord` to join `jonName` (string)</summary>
+	/// <param name="_joinName" value="_joinName">param</param>
+	/// <param name="_joinRecord" value="_joinRecord">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`</summary>
+	/// <param name="_joinName" value="_joinName">param</param>
+	/// <param name="_joinRecord" value="_joinRecord">param</param>
+	/// <param name="_joinFrequency" value="_joinFrequency">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_recId"> returns record ID</field>
+	$id: _recId,
+	/// <field value = "_recFq"> returns record frequency (used for randomized joins)</field>
+	$fq: _recFq,
+	/// <field value = "_recName"> returns record name</field>
+	$name: _recName,
+	toJSON: function () {
+	/// <signature>
+	/// <summary> provide json version of record, useful when calling JSON.stringify</summary>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+
+	},
+
+}
+
+var _fin = {
+	getCh: function () {
+	/// <signature>
+	/// <summary> reads a character</summary>
+	/// <returns value ="_char"/>
+	/// </signature>
+
+	},
+
+	peekCh: function () {
+	/// <signature>
+	/// <summary> peeks a character</summary>
+	/// <returns value ="_char"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_len"> returns the length of input stream</field>
+	length: _len,
+	/// <field value = "_bool"> end of stream?</field>
+	eof: _bool,
+	readLine: function () {
+	/// <signature>
+	/// <summary> reads a line</summary>
+	/// <returns value ="_line"/>
+	/// </signature>
+
+	},
+
+}
+
+var _hashTable = {
+	/// <field value = "_strArr"> array of keys (strings)</field>
+	keys: _strArr,
+	put: function () {
+	/// <signature>
+	/// <summary> add a key</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> add key-dat</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <param name="_dat" value="_dat">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	contains: function () {
+	/// <signature>
+	/// <summary> does the table contain the key?</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_array"> array of values</field>
+	vals: _array,
+	get: function () {
+	/// <signature>
+	/// <summary> get data</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_dat"/>
+	/// </signature>
+
+	},
+
+}
+
+var console = {
+	startx: function () {
+	/// <signature>
+	/// <summary> useful for debugging;</summary>
+	/// <param name="_evalFun" value="_evalFun">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	pause: function () {
+	/// <signature>
+	/// <summary> waits until enter is pressed</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	log: function () {
+	/// <signature>
+	/// <summary> writes `message` to standard output, using</summary>
+	/// <param name="_message" value="_message">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> writes `message` to standard output,</summary>
+	/// <param name="_prefixStr" value="_prefixStr">param</param>
+	/// <param name="_message" value="_message">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	start: function () {
+	/// <signature>
+	/// <summary> start interactive console; does not see local variables.</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	getln: function () {
+	/// <signature>
+	/// <summary> reads a line from command line and returns</summary>
+	/// <returns value ="_line"/>
+	/// </signature>
+
+	},
+
+	println: function () {
+	/// <signature>
+	/// <summary> `print(str); print("\n")`</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	print: function () {
+	/// <signature>
+	/// <summary> prints a string to standard output</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
@@ -1231,37 +953,207 @@ var la = {
 
 }
 
-var _process = {
-	isArg: function () {
+var _spMat = {
+	load: function () {
 	/// <signature>
-	/// <summary> returns true when `argStr` among the</summary>
-	/// <param name="_argStr" value="_argStr">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	getGlobals: function () {
-	/// <signature>
-	/// <summary> Returns an array of all global variable names</summary>
-	/// <returns value ="_globalVarNames"/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_strArr"> array of command-line arguments</field>
-	args: _strArr,
-	sleep: function () {
-	/// <signature>
-	/// <summary> Halts execution for the given amount of milliseconds `millis`.</summary>
-	/// <param name="_millis" value="_millis">param</param>
+	/// <summary> load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.</summary>
+	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	/// <field value = "_sysStatJson"> statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.</field>
-	sysStat: _sysStatJson,
+	full: function () {
+	/// <signature>
+	/// <summary> get dense matrix representation `mat` of `spMat (sparse column matrix)`</summary>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	normalizeCols: function () {
+	/// <signature>
+	/// <summary> normalizes each column of a sparse matrix `spMat` (inplace operation)</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	push: function () {
+	/// <signature>
+	/// <summary> attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	transpose: function () {
+	/// <signature>
+	/// <summary> `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed</summary>
+	/// <returns value ="_spMat2"/>
+	/// </signature>
+
+	},
+
+	frob: function () {
+	/// <signature>
+	/// <summary> number `num` is the Frobenious norm of `spMat` (sparse matrix)</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	put: function () {
+	/// <signature>
+	/// <summary> Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_num"> integer `num` corresponds to the number of columns of `spMat` (sparse matrix)</field>
+	cols: _num,
+	multiplyT: function () {
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_spMat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.</summary>
+	/// <param name="_spMat2" value="_spMat2">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	print: function () {
+	/// <signature>
+	/// <summary> print `spMat` (sparse matrix) to console</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	nnz: function () {
+	/// <signature>
+	/// <summary> `num` is the number of non-zero elements of sparse column matrix `spMat`</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_num"> integer `num` corresponds to the number of rows of `spMat` (sparse matrix)</field>
+	rows: _num,
+	plus: function () {
+	/// <signature>
+	/// <summary> `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)</summary>
+	/// <param name="_spMat2" value="_spMat2">param</param>
+	/// <returns value ="_spMat3"/>
+	/// </signature>
+
+	},
+
+	at: function () {
+	/// <signature>
+	/// <summary> Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	multiply: function () {
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_spMat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix</summary>
+	/// <param name="_spMat2" value="_spMat2">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	toString: function () {
+	/// <signature>
+	/// <summary> returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`</summary>
+	/// <returns value ="_str"/>
+	/// </signature>
+
+	},
+
+	save: function () {
+	/// <signature>
+	/// <summary> print `spMat` (sparse matrix) to output stream `fout`</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	minus: function () {
+	/// <signature>
+	/// <summary> `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)</summary>
+	/// <param name="_spMat2" value="_spMat2">param</param>
+	/// <returns value ="_spMat3"/>
+	/// </signature>
+
+	},
+
+	colNorms: function () {
+	/// <signature>
+	/// <summary> `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
 }
 
 var _svmModel = {
@@ -1293,83 +1185,660 @@ var _svmModel = {
 	weights: _vec,
 }
 
-var _fsp = {
-	/// <field value = "_num"> dimensionality of feature space</field>
+var _fout = {
+	write: function () {
+	/// <signature>
+	/// <summary> writes to output stream. `data` can be a number, a json object or a string.</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	close: function () {
+	/// <signature>
+	/// <summary> closes output stream</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	writeLine: function () {
+	/// <signature>
+	/// <summary> writes data to output stream and adds newline</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	flush: function () {
+	/// <signature>
+	/// <summary> flushes output stream</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _rs = {
+	/// <field value = "_bool"> `bool = true` when records in the set are assigned weights</field>
+	weighted: _bool,
+	shuffle: function () {
+	/// <signature>
+	/// <summary> shuffle order using random integer seed `seed`. Inplace operation.</summary>
+	/// <param name="_seed" value="_seed">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	sample: function () {
+	/// <signature>
+	/// <summary> create new record set by randomly sampling `num` records.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_rs2"/>
+	/// </signature>
+
+	},
+
+	sortByField: function () {
+	/// <signature>
+	/// <summary> sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	toJSON: function () {
+	/// <signature>
+	/// <summary> provide json version of record set, useful when calling JSON.stringify</summary>
+	/// <returns value ="_objsJSON"/>
+	/// </signature>
+
+	},
+
+	setdiff: function () {
+	/// <signature>
+	/// <summary> returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.</summary>
+	/// <param name="_rs2" value="_rs2">param</param>
+	/// <returns value ="_rs3"/>
+	/// </signature>
+
+	},
+
+	deleteRecs: function () {
+	/// <signature>
+	/// <summary> delete from `rs` records that are also in `rs2`. Inplace operation.</summary>
+	/// <param name="_rs2" value="_rs2">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	setunion: function () {
+	/// <signature>
+	/// <summary> returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.</summary>
+	/// <param name="_rs2" value="_rs2">param</param>
+	/// <returns value ="_rs3"/>
+	/// </signature>
+
+	},
+
+	filterById: function () {
+	/// <signature>
+	/// <summary> keeps only records with ids between `minId` and `maxId`. Inplace operation.</summary>
+	/// <param name="_minId" value="_minId">param</param>
+	/// <param name="_maxId" value="_maxId">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	filterByField: function () {
+	/// <signature>
+	/// <summary> keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <param name="_minVal" value="_minVal">param</param>
+	/// <param name="_maxVal" value="_maxVal">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <param name="_minTm" value="_minTm">param</param>
+	/// <param name="_maxTm" value="_maxTm">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	setintersect: function () {
+	/// <signature>
+	/// <summary> returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.</summary>
+	/// <param name="_rs2" value="_rs2">param</param>
+	/// <returns value ="_rs3"/>
+	/// </signature>
+
+	},
+
+	sortById: function () {
+	/// <signature>
+	/// <summary> sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_storeName"> store of the records</field>
+	store: _storeName,
+	sort: function () {
+	/// <signature>
+	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.</summary>
+	/// <param name="_comparatorCallback" value="_comparatorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	map: function () {
+	/// <signature>
+	/// <summary> iterates through the record set and executes the callback function `mapCallback` on each element:</summary>
+	/// <param name="_mapCallback" value="_mapCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	sortByFq: function () {
+	/// <signature>
+	/// <summary> sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	clone: function () {
+	/// <signature>
+	/// <summary> creates new instance of record set</summary>
+	/// <returns value ="_rs2"/>
+	/// </signature>
+
+	},
+
+	filterByFq: function () {
+	/// <signature>
+	/// <summary> keeps only records with weight between `minFq` and `maxFq`. Inplace operation.</summary>
+	/// <param name="_minFq" value="_minFq">param</param>
+	/// <param name="_maxFq" value="_maxFq">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	trunc: function () {
+	/// <signature>
+	/// <summary> truncate to first `num` record. Inplace operation.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	join: function () {
+	/// <signature>
+	/// <summary> executes a join `joinName` on the records in the set, result is another record set `rs2`.</summary>
+	/// <param name="_joinName" value="_joinName">param</param>
+	/// <returns value ="_rs2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.</summary>
+	/// <param name="_joinName" value="_joinName">param</param>
+	/// <param name="_sampleSize" value="_sampleSize">param</param>
+	/// <returns value ="_rs2"/>
+	/// </signature>
+
+	},
+
+	reverse: function () {
+	/// <signature>
+	/// <summary> reverse record order. Inplace operation.</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	filter: function () {
+	/// <signature>
+	/// <summary> keeps only records that pass `filterCallback` function</summary>
+	/// <param name="_filterCallback" value="_filterCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_len"> number of records in the set</field>
+	length: _len,
+	/// <field value = "_bool"> `bool = true` when record set is empty</field>
+	empty: _bool,
+	aggr: function () {
+	/// <signature>
+	/// <summary> returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set</summary>
+	/// <returns value ="_aggrsJSON"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.</summary>
+	/// <param name="_aggrQueryJSON" value="_aggrQueryJSON">param</param>
+	/// <returns value ="_aggr"/>
+	/// </signature>
+
+	},
+
+}
+
+var _spVec = {
+	normalize: function () {
+	/// <signature>
+	/// <summary> normalizes the vector spVec (inplace operation)</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_num"> gets the dimension `num` (-1 means that it is unknown)</field>
 	dim: _num,
-	ftrSpColMat: function () {
+	full: function () {
 	/// <signature>
-	/// <summary> extracts sparse feature vectors from</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <returns value ="_spMat"/>
-	/// </signature>
-
-	},
-
-	extractStrings: function () {
-	/// <signature>
-	/// <summary> use feature extractors to extract string</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_strArr"/>
-	/// </signature>
-
-	},
-
-	getFtr: function () {
-	/// <signature>
-	/// <summary> returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_ftrName"/>
-	/// </signature>
-
-	},
-
-	updateRecord: function () {
-	/// <signature>
-	/// <summary> update feature space definitions and extractors</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> update feature space definitions and extractors</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	ftrSpVec: function () {
-	/// <signature>
-	/// <summary> extracts sparse feature vector `spVec` from record `rec`</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_spVec"/>
-	/// </signature>
-
-	},
-
-	ftrVec: function () {
-	/// <signature>
-	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
-	/// <param name="_rec" value="_rec">param</param>
+	/// <summary>  returns `vec` - a dense vector representation of sparse vector `spVec`.</summary>
 	/// <returns value ="_vec"/>
 	/// </signature>
 
 	},
 
-	ftrColMat: function () {
+	sum: function () {
 	/// <signature>
-	/// <summary> extracts feature vectors from</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <returns value ="_mat"/>
+	/// <summary> `num` is the sum of elements of `spVec`</summary>
+	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
+	put: function () {
+	/// <signature>
+	/// <summary> Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	idxVec: function () {
+	/// <signature>
+	/// <summary>  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.</summary>
+	/// <returns value ="_idxVec"/>
+	/// </signature>
+
+	},
+
+	print: function () {
+	/// <signature>
+	/// <summary> prints the vector to console</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_num"> gets the number of nonzero elements `num` of vector `spVec`</field>
+	nnz: _num,
+	inner: function () {
+	/// <signature>
+	/// <summary> `num` is the inner product between `spVec` and dense vector `vec`.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> `num` is the inner product between `spVec` and sparse vector `spVec`.</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	multiply: function () {
+	/// <signature>
+	/// <summary> `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`</summary>
+	/// <param name="_a" value="_a">param</param>
+	/// <returns value ="_spVec2"/>
+	/// </signature>
+
+	},
+
+	valVec: function () {
+	/// <signature>
+	/// <summary>  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.</summary>
+	/// <returns value ="_valVec"/>
+	/// </signature>
+
+	},
+
+	norm: function () {
+	/// <signature>
+	/// <summary> returns `num` - the norm of `spVec`</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	at: function () {
+	/// <signature>
+	/// <summary> Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+}
+
+var fs = {
+	rename: function () {
+	/// <signature>
+	/// <summary> rename file</summary>
+	/// <param name="_fromFileName" value="_fromFileName">param</param>
+	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	openWrite: function () {
+	/// <signature>
+	/// <summary> open file in write mode and return file output stream `fout`</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+
+	},
+
+	exists: function () {
+	/// <signature>
+	/// <summary> does file exist?</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	openRead: function () {
+	/// <signature>
+	/// <summary> open file in read mode and return file input stream `fin`</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_fin"/>
+	/// </signature>
+
+	},
+
+	openAppend: function () {
+	/// <signature>
+	/// <summary> open file in append mode and return file output stream `fout`</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+
+	},
+
+	move: function () {
+	/// <signature>
+	/// <summary> move file</summary>
+	/// <param name="_fromFileName" value="_fromFileName">param</param>
+	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	mkdir: function () {
+	/// <signature>
+	/// <summary> make folder</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	listFile: function () {
+	/// <signature>
+	/// <summary> returns list of files in directory given file extension</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <param name="_fileExtension" value="_fileExtension">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> returns list of files in directory given extension. `recursive` is a boolean</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <param name="_fileExtension" value="_fileExtension">param</param>
+	/// <param name="_recursive" value="_recursive">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	},
+
+	del: function () {
+	/// <signature>
+	/// <summary> delete file</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	rmdir: function () {
+	/// <signature>
+	/// <summary> delete folder</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	fileInfo: function () {
+	/// <signature>
+	/// <summary> returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_infoJson"/>
+	/// </signature>
+
+	},
+
+	copy: function () {
+	/// <signature>
+	/// <summary> copy file</summary>
+	/// <param name="_fromFileName" value="_fromFileName">param</param>
+	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _recLinRegModel = {
+	predict: function () {
+	/// <signature>
+	/// <summary> sends vector `vec` through the</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_num"> dimensionality of the feature space on which this model works</field>
+	dim: _num,
 	save: function () {
 	/// <signature>
-	/// <summary> serialize feature space to `fout` output stream</summary>
+	/// <summary> saves model to output stream `fout`</summary>
 	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_vec"> weights of the linear model as a full vector `vec`</field>
+	weights: _vec,
+	learn: function () {
+	/// <signature>
+	/// <summary> updates the model using full vector `vec` and target number `num`as training data</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _htModel = {
+	process: function () {
+	/// <signature>
+	/// <summary> processes the stream example; `strArr` is an array of discrete attribute values (strings);</summary>
+	/// <param name="_strArr" value="_strArr">param</param>
+	/// <param name="_numArr" value="_numArr">param</param>
+	/// <param name="_labelStr" value="_labelStr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;</summary>
+	/// <param name="_line" value="_line">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	exportModel: function () {
+	/// <signature>
+	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`;</summary>
+	/// <param name="_htOutParams" value="_htOutParams">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	classify: function () {
+	/// <signature>
+	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label</summary>
+	/// <param name="_strArr" value="_strArr">param</param>
+	/// <param name="_numArr" value="_numArr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label</summary>
+	/// <param name="_line" value="_line">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _utilities = {
+	isArray: function () {
+	/// <signature>
+	/// <summary> is parameter an array?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isString: function () {
+	/// <signature>
+	/// <summary> is `s` a string?</summary>
+	/// <param name="_s" value="_s">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	arraysIdentical: function () {
+	/// <signature>
+	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <param name="_arr2" value="_arr2">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isInArray: function () {
+	/// <signature>
+	/// <summary> is element in an array?</summary>
+	/// <param name="_array" value="_array">param</param>
+	/// <param name="_value" value="_value">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	ifNull: function () {
+	/// <signature>
+	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_defVal" value="_defVal">param</param>
+	/// <returns value ="_returnVal"/>
+	/// </signature>
+
+	},
+
+	newStopWatch: function () {
+	/// <signature>
+	/// <summary> creates a stop watch object `sw`</summary>
+	/// <returns value ="_sw"/>
+	/// </signature>
+
+	},
+
+	newHashTable: function () {
+	/// <signature>
+	/// <summary> creates a hash table</summary>
+	/// <returns value ="_hashTable"/>
+	/// </signature>
+
+	},
+
+	isNumber: function () {
+	/// <signature>
+	/// <summary> is `n` a number?</summary>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isObject: function () {
+	/// <signature>
+	/// <summary> is parameter an object?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
 	/// </signature>
 
 	},
@@ -1625,6 +2094,100 @@ var _mat = {
 
 }
 
+var _key = {
+	/// <field value = "_strArr"> gets the array of weights (as strings) in the vocabulary</field>
+	fq: _strArr,
+	/// <field value = "_keyName"> gets the key name</field>
+	name: _keyName,
+	/// <field value = "_storeName"> gets the store name `storeName`</field>
+	store: _storeName,
+	/// <field value = "_strArr"> gets the array of words (as strings) in the vocabulary</field>
+	voc: _strArr,
+}
+
+var _fsp = {
+	/// <field value = "_num"> dimensionality of feature space</field>
+	dim: _num,
+	ftrSpColMat: function () {
+	/// <signature>
+	/// <summary> extracts sparse feature vectors from</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	},
+
+	extractStrings: function () {
+	/// <signature>
+	/// <summary> use feature extractors to extract string</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	},
+
+	getFtr: function () {
+	/// <signature>
+	/// <summary> returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_ftrName"/>
+	/// </signature>
+
+	},
+
+	updateRecord: function () {
+	/// <signature>
+	/// <summary> update feature space definitions and extractors</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> update feature space definitions and extractors</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	ftrSpVec: function () {
+	/// <signature>
+	/// <summary> extracts sparse feature vector `spVec` from record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+
+	},
+
+	ftrVec: function () {
+	/// <signature>
+	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	ftrColMat: function () {
+	/// <signature>
+	/// <summary> extracts feature vectors from</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
+	save: function () {
+	/// <signature>
+	/// <summary> serialize feature space to `fout` output stream</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
 var _nnModel = {
 	predict: function () {
 	/// <signature>
@@ -1647,86 +2210,84 @@ var _nnModel = {
 
 }
 
-var _htModel = {
-	process: function () {
+var _intVec = {
+	sort: function () {
 	/// <signature>
-	/// <summary> processes the stream example; `strArr` is an array of discrete attribute values (strings);</summary>
-	/// <param name="_strArr" value="_strArr">param</param>
-	/// <param name="_numArr" value="_numArr">param</param>
-	/// <param name="_labelStr" value="_labelStr">param</param>
-	/// <returns value =""/>
+	/// <summary> integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order</summary>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value ="_intVec2"/>
 	/// </signature>
 
+	},
+
+	getMaxIdx: function () {
 	/// <signature>
-	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;</summary>
-	/// <param name="_line" value="_line">param</param>
+	/// <summary> returns the integer index `idx` of the maximal element in integer vector `vec`</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+
+	},
+
+	pushV: function () {
+	/// <signature>
+	/// <summary> append integer vector `intVec2` to integer vector `intVec`.</summary>
+	/// <param name="_intVec2" value="_intVec2">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	exportModel: function () {
+	unshift: function () {
 	/// <signature>
-	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`;</summary>
-	/// <param name="_htOutParams" value="_htOutParams">param</param>
-	/// <returns value =""/>
+	/// <summary> insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_len"/>
 	/// </signature>
 
 	},
 
-	classify: function () {
+	sum: function () {
 	/// <signature>
-	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label</summary>
-	/// <param name="_strArr" value="_strArr">param</param>
-	/// <param name="_numArr" value="_numArr">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label</summary>
-	/// <param name="_line" value="_line">param</param>
-	/// <returns value =""/>
+	/// <summary> return `num`: the sum of elements of integer vector `intVec`</summary>
+	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
-}
-
-var _hashTable = {
-	/// <field value = "_strArr"> array of keys (strings)</field>
-	keys: _strArr,
 	put: function () {
 	/// <signature>
-	/// <summary> add a key</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> add key-dat</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <param name="_dat" value="_dat">param</param>
+	/// <summary> set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <param name="_num" value="_num">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	contains: function () {
+	push: function () {
 	/// <signature>
-	/// <summary> does the table contain the key?</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_len"/>
 	/// </signature>
 
 	},
 
-	/// <field value = "_array"> array of values</field>
-	vals: _array,
-	get: function () {
+	/// <field value = "_len"> integer `len` is the length of integer vector `vec`</field>
+	length: _len,
+	at: function () {
 	/// <signature>
-	/// <summary> get data</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value ="_dat"/>
+	/// <summary> gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	print: function () {
+	/// <signature>
+	/// <summary> print integer vector in console</summary>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
@@ -1782,235 +2343,6 @@ var qm = {
 	/// <signature>
 	/// <summary> an array of strings listing all existing stores</summary>
 	/// <returns value ="_strArr"/>
-	/// </signature>
-
-	},
-
-}
-
-var _rs = {
-	/// <field value = "_bool"> `bool = true` when records in the set are assigned weights</field>
-	weighted: _bool,
-	shuffle: function () {
-	/// <signature>
-	/// <summary> shuffle order using random integer seed `seed`. Inplace operation.</summary>
-	/// <param name="_seed" value="_seed">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	sample: function () {
-	/// <signature>
-	/// <summary> create new record set by randomly sampling `num` records.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_rs2"/>
-	/// </signature>
-
-	},
-
-	sortByField: function () {
-	/// <signature>
-	/// <summary> sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	toJSON: function () {
-	/// <signature>
-	/// <summary> provide json version of record set, useful when calling JSON.stringify</summary>
-	/// <returns value ="_objsJSON"/>
-	/// </signature>
-
-	},
-
-	setdiff: function () {
-	/// <signature>
-	/// <summary> returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.</summary>
-	/// <param name="_rs2" value="_rs2">param</param>
-	/// <returns value ="_rs3"/>
-	/// </signature>
-
-	},
-
-	deleteRecs: function () {
-	/// <signature>
-	/// <summary> delete from `rs` records that are also in `rs2`. Inplace operation.</summary>
-	/// <param name="_rs2" value="_rs2">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	setunion: function () {
-	/// <signature>
-	/// <summary> returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.</summary>
-	/// <param name="_rs2" value="_rs2">param</param>
-	/// <returns value ="_rs3"/>
-	/// </signature>
-
-	},
-
-	filterById: function () {
-	/// <signature>
-	/// <summary> keeps only records with ids between `minId` and `maxId`. Inplace operation.</summary>
-	/// <param name="_minId" value="_minId">param</param>
-	/// <param name="_maxId" value="_maxId">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	filterByField: function () {
-	/// <signature>
-	/// <summary> keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <param name="_minVal" value="_minVal">param</param>
-	/// <param name="_maxVal" value="_maxVal">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <param name="_minTm" value="_minTm">param</param>
-	/// <param name="_maxTm" value="_maxTm">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <param name="_str" value="_str">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	setintersect: function () {
-	/// <signature>
-	/// <summary> returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.</summary>
-	/// <param name="_rs2" value="_rs2">param</param>
-	/// <returns value ="_rs3"/>
-	/// </signature>
-
-	},
-
-	sortById: function () {
-	/// <signature>
-	/// <summary> sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_storeName"> store of the records</field>
-	store: _storeName,
-	sort: function () {
-	/// <signature>
-	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.</summary>
-	/// <param name="_comparatorCallback" value="_comparatorCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	map: function () {
-	/// <signature>
-	/// <summary> iterates through the record set and executes the callback function `mapCallback` on each element:</summary>
-	/// <param name="_mapCallback" value="_mapCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	sortByFq: function () {
-	/// <signature>
-	/// <summary> sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	clone: function () {
-	/// <signature>
-	/// <summary> creates new instance of record set</summary>
-	/// <returns value ="_rs2"/>
-	/// </signature>
-
-	},
-
-	filterByFq: function () {
-	/// <signature>
-	/// <summary> keeps only records with weight between `minFq` and `maxFq`. Inplace operation.</summary>
-	/// <param name="_minFq" value="_minFq">param</param>
-	/// <param name="_maxFq" value="_maxFq">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	trunc: function () {
-	/// <signature>
-	/// <summary> truncate to first `num` record. Inplace operation.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	join: function () {
-	/// <signature>
-	/// <summary> executes a join `joinName` on the records in the set, result is another record set `rs2`.</summary>
-	/// <param name="_joinName" value="_joinName">param</param>
-	/// <returns value ="_rs2"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.</summary>
-	/// <param name="_joinName" value="_joinName">param</param>
-	/// <param name="_sampleSize" value="_sampleSize">param</param>
-	/// <returns value ="_rs2"/>
-	/// </signature>
-
-	},
-
-	reverse: function () {
-	/// <signature>
-	/// <summary> reverse record order. Inplace operation.</summary>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	filter: function () {
-	/// <signature>
-	/// <summary> keeps only records that pass `filterCallback` function</summary>
-	/// <param name="_filterCallback" value="_filterCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_len"> number of records in the set</field>
-	length: _len,
-	/// <field value = "_bool"> `bool = true` when record set is empty</field>
-	empty: _bool,
-	aggr: function () {
-	/// <signature>
-	/// <summary> returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set</summary>
-	/// <returns value ="_aggrsJSON"/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.</summary>
-	/// <param name="_aggrQueryJSON" value="_aggrQueryJSON">param</param>
-	/// <returns value ="_aggr"/>
 	/// </signature>
 
 	},
@@ -2078,59 +2410,6 @@ var _sw = {
 
 }
 
-var _rec = {
-	delJoin: function () {
-	/// <signature>
-	/// <summary> deletes join record `joinRecord` from join `joinName` (string)</summary>
-	/// <param name="_joinName" value="_joinName">param</param>
-	/// <param name="_joinRecord" value="_joinRecord">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`</summary>
-	/// <param name="_joinName" value="_joinName">param</param>
-	/// <param name="_joinRecord" value="_joinRecord">param</param>
-	/// <param name="_joinFrequency" value="_joinFrequency">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	addJoin: function () {
-	/// <signature>
-	/// <summary> adds a join record `joinRecord` to join `jonName` (string)</summary>
-	/// <param name="_joinName" value="_joinName">param</param>
-	/// <param name="_joinRecord" value="_joinRecord">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`</summary>
-	/// <param name="_joinName" value="_joinName">param</param>
-	/// <param name="_joinRecord" value="_joinRecord">param</param>
-	/// <param name="_joinFrequency" value="_joinFrequency">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	/// <field value = "_recId"> returns record ID</field>
-	$id: _recId,
-	/// <field value = "_recFq"> returns record frequency (used for randomized joins)</field>
-	$fq: _recFq,
-	/// <field value = "_recName"> returns record name</field>
-	$name: _recName,
-	toJSON: function () {
-	/// <signature>
-	/// <summary> provide json version of record, useful when calling JSON.stringify</summary>
-	/// <returns value ="_objJSON"/>
-	/// </signature>
-
-	},
-
-}
-
 
 // Manual override
 // contains keys of variables that should not show in intellisense
@@ -2185,6 +2464,7 @@ _addIntellisenseVar("_bool", "true");
 _addIntellisenseVar("_asc", "true");
 // strings
 _addIntellisenseVar("_str", "''");
+_addIntellisenseVar("_char", "''");
 _addIntellisenseVar("_argStr", "''");
 _addIntellisenseVar("_line", "''");
 _addIntellisenseVar("_labelStr", "''");
@@ -2199,6 +2479,8 @@ _addIntellisenseVar("_joinName", "''");
 _addIntellisenseVar("_ftrName", "''");
 _addIntellisenseVar("_scriptNm", "''");
 _addIntellisenseVar("_scriptFNm", "''");
+_addIntellisenseVar("_prefixStr", "''");
+_addIntellisenseVar("_dirName", "''");
 
 // json objects
 _addIntellisenseVar("_obj", "{}");
@@ -2240,6 +2522,8 @@ intellisenseIgnore["_nnModel"] = "{}";
 intellisenseIgnore["_recLinRegModel"] = "{}";
 intellisenseIgnore["_htModel"] = "{}";
 intellisenseIgnore["_fsp"] = "{}";
+intellisenseIgnore["_twitterParser"] = "{}";
+intellisenseIgnore["_twitterDef"] = "{}";
 
 _vec[0] = 1; // vec is indexed and returns numbers
 _intVec[0] = 1; // vec is indexed and returns numbers
@@ -2268,12 +2552,17 @@ _addIntellisenseVar("_rs3", "_rs");
 _addIntellisenseVar("_joinRec", "_rec");
 
 
-require = function (libName) { if (libName === 'utilities.js') return _utilities; };
+require = function (libName) {
+    if (libName === 'analytics.js') return _analytics;
+    if (libName === 'utilities.js') return _utilities;
+    if (libName === 'assert.js') return _assert;
+    if (libName === 'twitter.js') return _twitter;
+};
 
-
-//_addIntellisenseVar("_analytics", "require('utilities.js')");
-//_addIntellisenseVar("_utilities", "require('utilities.js')");
-
+intellisenseIgnore["_analytics"] = "{}";
+intellisenseIgnore["_utilities"] = "{}";
+intellisenseIgnore["_assert"] = "{}";
+intellisenseIgnore["_twitter"] = "{}";
 
 
 // implement ignore

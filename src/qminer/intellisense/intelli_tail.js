@@ -52,6 +52,7 @@ _addIntellisenseVar("_bool", "true");
 _addIntellisenseVar("_asc", "true");
 // strings
 _addIntellisenseVar("_str", "''");
+_addIntellisenseVar("_char", "''");
 _addIntellisenseVar("_argStr", "''");
 _addIntellisenseVar("_line", "''");
 _addIntellisenseVar("_labelStr", "''");
@@ -66,6 +67,8 @@ _addIntellisenseVar("_joinName", "''");
 _addIntellisenseVar("_ftrName", "''");
 _addIntellisenseVar("_scriptNm", "''");
 _addIntellisenseVar("_scriptFNm", "''");
+_addIntellisenseVar("_prefixStr", "''");
+_addIntellisenseVar("_dirName", "''");
 
 // json objects
 _addIntellisenseVar("_obj", "{}");
@@ -107,6 +110,8 @@ intellisenseIgnore["_nnModel"] = "{}";
 intellisenseIgnore["_recLinRegModel"] = "{}";
 intellisenseIgnore["_htModel"] = "{}";
 intellisenseIgnore["_fsp"] = "{}";
+intellisenseIgnore["_twitterParser"] = "{}";
+intellisenseIgnore["_twitterDef"] = "{}";
 
 _vec[0] = 1; // vec is indexed and returns numbers
 _intVec[0] = 1; // vec is indexed and returns numbers

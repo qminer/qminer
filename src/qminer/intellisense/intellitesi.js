@@ -260,9 +260,13 @@ htModel.process(line)$SEPARATOR$ -- processes the stream example; `line` is comm
 htModel.classify(strArr, numArr)$SEPARATOR$ -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label
 htModel.classify(line)$SEPARATOR$ -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label
 htModel.exportModel(htOutParams)$SEPARATOR$ -- writes the current model into file `htOutParams.file` in format `htOutParams.type`;
+process.stop()$SEPARATOR$ -- Stopes the current process.
+process.stop(returnCode)$SEPARATOR$ -- Stopes the current process and returns `returnCode
 process.sleep(millis)$SEPARATOR$ -- Halts execution for the given amount of milliseconds `millis`.
-process.scriptNm$SEPARATOR$ -- Returns the name of the script.
-process.scriptFNm$SEPARATOR$ -- Returns absolute script file path.
+a = process.args$SEPARATOR$ -- array of command-line arguments
+process.sysStat$SEPARATOR$ -- statistics about system and qminer process (E.g. memory consumption).
+str = process.scriptNm$SEPARATOR$ -- Returns the name of the script.
+str = process.scriptFNm$SEPARATOR$ -- Returns absolute script file path.
 globalVarNames = process.getGlobals()$SEPARATOR$ -- Returns an array of all global variable names
 strArr = process.args$SEPARATOR$ -- array of command-line arguments
 bool = process.isArg(argStr)$SEPARATOR$ -- returns true when `argStr` among the
@@ -290,3 +294,33 @@ sw.saytime(message)$SEPARATOR$ -- displays elpased time from tic
 sw.tic()$SEPARATOR$ -- resets and starts the stop watch
 sw.toc(str)$SEPARATOR$ -- displays time from tic and message `str`
 bool = utilities.arraysIdentical(arr, arr2)$SEPARATOR$ -- `bool` is true if array `arr` is identical to array `arr2`
+console.log(message)$SEPARATOR$ -- writes `message` to standard output, using
+console.log(prefixStr, message)$SEPARATOR$ -- writes `message` to standard output,
+line = console.getln()$SEPARATOR$ -- reads a line from command line and returns
+console.print(str)$SEPARATOR$ -- prints a string to standard output
+console.start()$SEPARATOR$ - start interactive console; does not see local variables.
+console.startx(evalFun)$SEPARATOR$ -- useful for debugging;
+console.pause()$SEPARATOR$ -- waits until enter is pressed
+console.println(str)$SEPARATOR$ -- `print(str); print("\n")`
+fin = fs.openRead(fileName)$SEPARATOR$ -- open file in read mode and return file input stream `fin`
+fout = fs.openWrite(fileName)$SEPARATOR$ -- open file in write mode and return file output stream `fout`
+fout = fs.openAppend(fileName)$SEPARATOR$ -- open file in append mode and return file output stream `fout`
+bool = fs.exists(fileName)$SEPARATOR$ -- does file exist?
+fs.copy(fromFileName, toFileName)$SEPARATOR$ -- copy file
+fs.move(fromFileName, toFileName)$SEPARATOR$ -- move file
+fs.del(fileName)$SEPARATOR$ -- delete file
+fs.rename(fromFileName, toFileName)$SEPARATOR$ -- rename file
+infoJson = fs.fileInfo(fileName)$SEPARATOR$ -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+fs.mkdir(dirName)$SEPARATOR$ -- make folder
+fs.rmdir(dirName)$SEPARATOR$ -- delete folder
+strArr = fs.listFile(dirName, fileExtension)$SEPARATOR$ -- returns list of files in directory given file extension
+strArr = fs.listFile(dirName, fileExtension, recursive)$SEPARATOR$ -- returns list of files in directory given extension. `recursive` is a boolean
+char = fin.peekCh()$SEPARATOR$ -- peeks a character
+char = fin.getCh()$SEPARATOR$ -- reads a character
+line = fin.readLine()$SEPARATOR$ -- reads a line
+bool = fin.eof$SEPARATOR$ -- end of stream?
+len = fin.length$SEPARATOR$ -- returns the length of input stream
+fout.write(data)$SEPARATOR$ -- writes to output stream. `data` can be a number, a json object or a string.
+fout.writeLine(data)$SEPARATOR$ -- writes data to output stream and adds newline
+fout.flush()$SEPARATOR$ -- flushes output stream
+fout.close()$SEPARATOR$ -- closes output stream

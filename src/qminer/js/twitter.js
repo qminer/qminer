@@ -27,7 +27,11 @@
 //# 
 //# **Functions and properties:**
 //#
-//#- `twitterDef = new twitter.TwitterStore()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
+
+//#- `twitterDef = twitter.getTwitterStoreJson()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
+exports.getTwitterStoreJson = function () {
+    return new exports.TwitterStore();
+}
 exports.TwitterStore = function () {
     var defJSON = [
     {
@@ -196,7 +200,11 @@ exports.TwitterStore = function () {
     ];
     return defJSON;
 }
-//#- `parser = new twitter.Parser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
+
+//#- `twitterParser = twitter.newParser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
+exports.newParser = function () {
+    return new exports.Parser();
+}
 exports.Parser = function () {
     // support functions for parsing new tweets
     var months = {};
@@ -226,7 +234,7 @@ exports.Parser = function () {
             _parseTwitterTime(second);
     };
 
-    //#   - `obj = twitter.Parser.rawJsonToStoreJson(raw)` -- transforms a raw JSON object (result of twitter crawler) `raw` to `twitter.TwitterStore()` compatible json object `obj`
+    //#   - `objJSON = twitterParser.rawJsonToStoreJson(rawTweetJSON)` -- transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`
     this.rawJsonToStoreJson = function (raw) {
         var tweet = {};
         tweet.ID = raw.id_str;
@@ -282,7 +290,7 @@ exports.Parser = function () {
     };
 };
 
-//#- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.TwitterStore()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
+//#- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.getTwitterStoreJson()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
 exports.RawToStore = function (fin, fout) {
     var Parser = new exports.Parser();
     var count = 0;

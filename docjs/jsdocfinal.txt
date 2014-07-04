@@ -424,7 +424,7 @@ var spMat = la.newSpMat(); //empty matrix
 - `str = spMat.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 - `num = spMat.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
 
-## Analytics.js (use require)
+## analytics.js (use require)
 
 Analytics algorithms for working with records stored in
 QMiner and with linear algebra objects created by `la`.
@@ -645,9 +645,14 @@ The HoeffdingTree algorithm comes with many parameters:
 
 **Functions and properties:**
 
+- `process.stop()` -- Stopes the current process.
+- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
 - `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
-- `process.scriptNm` -- Returns the name of the script.
-- `process.scriptFNm` -- Returns absolute script file path.
+- `a = process.args` -- array of command-line arguments 
+    used to start current QMiner instance
+- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+- `str = process.scriptNm` -- Returns the name of the script.
+- `str = process.scriptFNm` -- Returns absolute script file path.
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 - `strArr = process.args` -- array of command-line arguments 
     used to start current QMiner instance
@@ -655,7 +660,7 @@ The HoeffdingTree algorithm comes with many parameters:
     command-line arguments used to start current QMiner instance
 - `sysStatJson = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
 
-### Utilities.js (use require)
+### utilities.js (use require)
 
 - `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 - `bool = utilities.isObject(arg)` -- is parameter an object?
@@ -681,7 +686,7 @@ The HoeffdingTree algorithm comes with many parameters:
 - `sw.toc(str)` -- displays time from tic and message `str`
 - `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
 
-### Assert.js (use require)
+### assert.js (use require)
 
 
 ### Console
@@ -695,8 +700,8 @@ are automatically prefixed by current date and time.
 - `console.log(message)` -- writes `message` to standard output, using
     prefix `[console]` to indicate the text came from console object;
     `message` must be of type string
-- `console.log(prefix, message)` -- writes `message` to standard output, 
-    using provided prefix `[prefix]`; both `message` and `prefix` must
+- `console.log(prefixStr, message)` -- writes `message` to standard output, 
+    using provided prefix `[prefixStr]`; both `message` and `prefixStr` must
     be of type string
 - `line = console.getln()` -- reads a line from command line and returns
     it as string
@@ -715,40 +720,40 @@ are automatically prefixed by current date and time.
 
 **Functions and properties:**
     
-- `fin = fs.openRead(fileName)`
-- `fout = fs.openWrite(fileName)`
-- `fout = fs.openAppend(fileName)`
-- `fs.exists(fileName)`
-- `fs.copy(fromFileName, toFileName)`
-- `fs.move(fromFileName, toFileName)`
-- `fs.del(fileName)`
-- `fs.rename(fromFileName, toFileName)`
-- `info = fs.fileInfo(fileName)`
-- `fs.mkdir(dirName)`
-- `fs.rmdir(dirName)`
-- `list = fs.listFile(dirName, fileExtension)`
-- `list = fs.listFile(dirName, fileExtension, recursive)`
+- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+- `bool = fs.exists(fileName)` -- does file exist?
+- `fs.copy(fromFileName, toFileName)` -- copy file
+- `fs.move(fromFileName, toFileName)` -- move file
+- `fs.del(fileName)` -- delete file
+- `fs.rename(fromFileName, toFileName)` -- rename file
+- `infoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+- `fs.mkdir(dirName)` -- make folder
+- `fs.rmdir(dirName)` -- delete folder
+- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 
 ### Input File Stream
 
 
 **Functions and properties:**
     
-- `char = fin.peekCh()`
-- `char = fin.getCh()`
-- `line = fin.readLine()`
-- `fin.eof`
-- `fin.length`
+- `char = fin.peekCh()` -- peeks a character
+- `char = fin.getCh()` -- reads a character
+- `line = fin.readLine()` -- reads a line
+- `bool = fin.eof` -- end of stream?
+- `len = fin.length` -- returns the length of input stream
 
 ### Output File Stream
 
 
 **Functions and properties:**
     
-- `fout.write(data)`
-- `fout.writeLine(data)`
-- `fout.flush()`
-- `fout.close()`
+- `fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+- `fout.writeLine(data)` -- writes data to output stream and adds newline
+- `fout.flush()` -- flushes output stream
+- `fout.close()` -- closes output stream
 
 ### HTTP
 
@@ -824,7 +829,7 @@ The library must be loaded using `var twitter = require('twitter.js');`.
 
 **Functions and properties:**
 
-- `twitterDef = new twitter.TwitterStore()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
-- `parser = new twitter.Parser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
-  - `obj = twitter.Parser.rawJsonToStoreJson(raw)` -- transforms a raw JSON object (result of twitter crawler) `raw` to `twitter.TwitterStore()` compatible json object `obj`
-- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.TwitterStore()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
+- `twitterDef = twitter.getTwitterStoreJson()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
+- `twitterParser = twitter.newParser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
+  - `objJSON = twitterParser.rawJsonToStoreJson(rawTweetJSON)` -- transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`
+- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.getTwitterStoreJson()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
