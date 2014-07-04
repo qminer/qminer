@@ -208,7 +208,7 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
         PSwSet _SwSet, PStemmer _Stemmer, const int& _HashDim): SwSet(_SwSet), Stemmer(_Stemmer) { 
 
     // initialize tokenizer
-    Tokenizer = TTokenizerHtmlUnicode::New(SwSet, Stemmer);
+    Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     // get settings flags
     Type = 0;
     if (TfP) { Type.Val |= btTf; }
@@ -228,7 +228,7 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
 }
 
 TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
-    Tokenizer(TTokenizerHtmlUnicode::Load(SIn)), SwSet(SIn), Stemmer(SIn), 
+    Tokenizer(TTokenizer::Load(SIn)), SwSet(SIn), Stemmer(SIn), 
     TokenSet(SIn), HashDim(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn),
     OldDocs(SIn), OldDocFqV(SIn) { }
 

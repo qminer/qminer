@@ -45,7 +45,12 @@ bool TMutex::Wait(const int& MxMSecs) {
 	timespec waitTime;
 	long nano = MxMSecs * 1000000;
 	waitTime.tv_nsec = nano;
+#ifdef GLib_MACOSX
+    //TODO: does not work on OS X
+    Fail; return false;
+#else
 	return pthread_mutex_timedlock(&MutexHandle, &waitTime) == 0;
+#endif
 }
 
 bool TMutex::Release() {

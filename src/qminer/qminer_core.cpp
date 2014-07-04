@@ -2180,18 +2180,18 @@ TIndexKey::TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordV
 }
 	
 TIndexKey::TIndexKey(TSIn& SIn): StoreId(SIn), KeyId(SIn), 
-		KeyNm(SIn), WordVocId(SIn), FieldIdV(SIn), JoinNm(SIn) { 
-
-	TypeFlags = (TIndexKeyType)TInt(SIn).Val; 
-	SortType = (TIndexKeySortType)TInt(SIn).Val; 
-}
+    KeyNm(SIn), WordVocId(SIn), 
+    TypeFlags(LoadEnum<TIndexKeyType>(SIn)),
+    SortType(LoadEnum<TIndexKeySortType>(SIn)),
+    FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn) { }
 
 void TIndexKey::Save(TSOut& SOut) const {
 	StoreId.Save(SOut);
 	KeyId.Save(SOut); KeyNm.Save(SOut); WordVocId.Save(SOut);
+    SaveEnum<TIndexKeyType>(SOut, TypeFlags);
+    SaveEnum<TIndexKeySortType>(SOut, SortType);
 	FieldIdV.Save(SOut); JoinNm.Save(SOut);
-	TInt((int)TypeFlags).Save(SOut);
-	TInt((int)SortType).Save(SOut);
+    Tokenizer.Save(SOut);
 }
 
 ///////////////////////////////
@@ -2297,7 +2297,6 @@ const PIndexWordVoc& TIndexVoc::GetWordVoc(const int& KeyId) const {
 }
 
 TIndexVoc::TIndexVoc(TSIn& SIn) {	
-	Tokenizer = TTokenizerHtml::New();
     KeyH.Load(SIn);
     StoreIdKeyIdSetH.Load(SIn);
     WordVocV.Load(SIn);
@@ -2428,7 +2427,7 @@ uint64 TIndexVoc::GetWordId(const int& KeyId, const TStr& WordStr) const {
 void TIndexVoc::GetWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV) const {
 	QmAssert(IsWordVoc(KeyId));
 	// tokenize string
-	TStrV TokV; Tokenizer->GetTokens(TextStr, TokV);
+	TStrV TokV; GetTokenizer(KeyId)->GetTokens(TextStr, TokV);
 	// get word ids for tokens
 	WordIdV.Gen(TokV.Len(), 0);
 	for(int TokN = 0; TokN < TokV.Len(); TokN++) {
@@ -2450,7 +2449,7 @@ uint64 TIndexVoc::AddWordStr(const int& KeyId, const TStr& WordStr) {
 void TIndexVoc::AddWordIdV(const int& KeyId, const TStr& TextStr, TUInt64V& WordIdV) {
 	QmAssert(IsWordVoc(KeyId));
 	// tokenize string
-	TStrV TokV; Tokenizer->GetTokens(TextStr, TokV);
+	TStrV TokV; GetTokenizer(KeyId)->GetTokens(TextStr, TokV);
 	WordIdV.Gen(TokV.Len(), 0); const PIndexWordVoc& WordVoc = GetWordVoc(KeyId);
 	for(int TokN = 0; TokN < TokV.Len(); TokN++) {
 		WordIdV.Add(WordVoc->AddWordStr(TokV[TokN]));
@@ -2462,6 +2461,7 @@ void TIndexVoc::AddWordIdV(const int& KeyId, const TStrV& TextStrV, TUInt64V& Wo
 	QmAssert(IsWordVoc(KeyId));
 	// tokenize string
 	TStrV TokV;
+    const PTokenizer& Tokenizer = GetTokenizer(KeyId);
 	for (int StrN = 0; StrN < TextStrV.Len(); StrN++) {
 		Tokenizer->GetTokens(TextStrV[StrN], TokV);
 	}
@@ -2513,6 +2513,14 @@ void TIndexVoc::GetAllLessV(const int& KeyId,
 	for (int WordN = 0; WordN < WordIdV.Len(); WordN++) { 
 		AllLessV.Add(TKeyWord(KeyId, (uint64)WordIdV[WordN]));
 	}
+}
+
+const PTokenizer& TIndexVoc::GetTokenizer(const int& KeyId) const {
+    return KeyH[KeyId].GetTokenizer();
+}
+
+void TIndexVoc::PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer) {
+    KeyH[KeyId].PutTokenizer(Tokenizer);
 }
 
 void TIndexVoc::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const {
@@ -4129,9 +4137,6 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize): InitP(false) {
 	// prepare index
 	IndexVoc = TIndexVoc::New();
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
-	// prepare tokenizer
-	IndexVoc->PutTokenizer(TTokenizerHtmlUnicode::New(
-		TSwSet::New(swstEn425), TStemmer::New(stmtPorter, true)));
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -4160,9 +4165,6 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 	IndexVoc = TIndexVoc::Load(IndexVocFIn);
 	Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
-	// load tokenizer
-	TFIn TokenizerFIn(FPath + "Tokenizer.dat");
-	IndexVoc->PutTokenizer(TTokenizerHtmlUnicode::Load(TokenizerFIn));
 	// add standard operators
 	AddOp(TOpLinSearch::New());
 	AddOp(TOpGroupBy::New());
@@ -4180,9 +4182,6 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
 		IndexVoc->Save(IndexVocFOut);
-		TEnv::Logger->OnStatus("Saving tokenizer ...");
-		TFOut TokenizerFOut(FPath + "Tokenizer.dat");
-		IndexVoc->GetTokenizer()->Save(TokenizerFOut);
 		TEnv::Logger->OnStatus("Saving stream aggregates ...");
 		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
         SaveStreamAggrBaseV(StreamAggrFOut);
@@ -4401,7 +4400,6 @@ TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::P
 bool TBase::Exists(const TStr& FPath) {
 	return TIndex::Exists(FPath) &&
 		TFile::Exists(FPath + "IndexVoc.dat") &&
-		TFile::Exists(FPath + "Tokenizer.dat") &&
 		TFile::Exists(FPath + "StreamAggr.dat");
 }
 
@@ -4629,6 +4627,193 @@ void TBase::GarbageCollect() {
 void TBase::InitTempIndex(const uint64& IndexCacheSize) { 
 	TempIndex = TTempIndex::New(TempFPath, IndexCacheSize); 
 	TempIndex->NewIndex(IndexVoc);
+}
+
+bool TBase::SaveJSonDump(const TStr& DumpDir) {
+	TStrSet SeenJoinsH;
+
+	const int Stores = GetStores();
+	TTm CurrentTime = TTm::GetCurLocTm();
+
+	for (int S = 0; S < Stores; S++) {
+		const PStore Store = GetStoreByStoreN(S);
+		const TStr StoreNm = Store->GetStoreNm();
+		PSOut OutRecs = TFOut::New(DumpDir + StoreNm + ".json");
+		PSOut OutJoins = TFOut::New(DumpDir + StoreNm + "-joins.json");
+
+		// joins to store - only index joins and the ones we didn't already store by reverse join
+		TStrV JoinV;
+		for (int J = 0; J < Store->GetJoins(); J++) {
+			TJoinDesc JoinDesc = Store->GetJoinDesc(J);
+			const TStr JoinNm = JoinDesc.GetJoinNm();
+
+			if (JoinDesc.IsInverseJoinId()) {
+				const int InvJoinId = JoinDesc.GetInverseJoinId();
+				const PStore InvStore = JoinDesc.GetJoinStore(this);
+				const TJoinDesc InvJoinDesc = InvStore->GetJoinDesc(InvJoinId);
+				// if we've already added the inverse join, ignore this one
+				if (SeenJoinsH.IsKey(InvStore->GetStoreNm() + "-" + InvJoinDesc.GetJoinNm())) {
+					continue;
+                }
+			}
+			SeenJoinsH.AddKey(StoreNm + "-" + JoinNm);
+			JoinV.Add(JoinNm);
+			OutJoins->PutStrFmtLn("# JoinNm: %s, JoinId: %d", JoinNm.CStr(), JoinDesc.GetJoinId());
+		}
+
+		TQm::TEnv::Logger->OnStatusFmt("Backing up store %s", StoreNm.CStr());
+
+		const uint64 Recs = Store->GetRecs();
+		PStoreIter Iter = Store->GetIter();
+		while (Iter->Next()) {
+			const uint64 RecId = Iter->GetRecId();
+
+			// easy part. dump records
+			const PJsonVal RecJson = Store->GetRec(RecId).GetJson(this, true, false);
+			const TStr JsonStr = TJsonVal::GetStrFromVal(RecJson);
+			OutRecs->PutStrLn(JsonStr);
+
+			// dump joins
+			for (int J = 0; J < JoinV.Len(); J++) {
+				PRecSet RecSet = Store->GetRec(RecId).DoJoin(this, JoinV[J]);
+				if (RecSet->GetRecs() > 0) {
+					OutJoins->PutStrFmt("%I64u|%d|", RecId, Store->GetJoinId(JoinV[J]));
+					const int Recs = RecSet->GetRecs();
+					for (int R = 0; R < Recs; R++) {
+						OutJoins->PutStrFmt("%I64u,%d", RecSet->GetRecId(R), RecSet->GetRecFq(R));
+						if (R < Recs - 1)
+							OutJoins->PutStr(";");
+					}
+					OutJoins->PutLn();
+				}
+			}
+
+			if (RecId % 1000 == 0) {
+				TQm::TEnv::Logger->OnStatusFmt("Record %I64u / %I64u (%.1f%%)\r", RecId, Recs, 100 * RecId / (double) Recs);
+            }
+		}
+	}
+	uint64 DiffSecs = TTm::GetDiffSecs(TTm::GetCurLocTm(), CurrentTime);
+	int Mins = (int) (DiffSecs / 60);
+	TQm::TEnv::Logger->OnStatusFmt("Time needed to make the backup: %d min, %d sec", Mins, (int) (DiffSecs - (Mins * 60)));
+
+	return true;
+}
+
+bool TBase::RestoreJSonDump(const TStr& DumpDir) {
+	const int Stores = GetStores();
+	TTm CurrentTime = TTm::GetCurLocTm();
+
+	THash<TStr, THash<TUInt64, TUInt64> > StoreOldToNewIdHH;
+	for (int S = 0; S < Stores; S++) {
+		PStore Store = GetStoreByStoreN(S);
+		const TStr StoreNm = Store->GetStoreNm();
+		THash<TUInt64, TUInt64> OldToNewIdH;
+		TQm::TEnv::Logger->OnStatusFmt("Adding recs for store %s", StoreNm.CStr());
+		if (TFile::Exists(DumpDir + StoreNm + ".json")) {
+			PSIn InRecs = TFIn::New(DumpDir + StoreNm + ".json");
+			TStr Line;
+			while (InRecs->GetNextLn(Line)) {
+				const PJsonVal Json = TJsonVal::GetValFromStr(Line);
+				const uint64 ExRecId = Json->IsObjKey("$id") ? (uint64) Json->GetObjNum("$id") : TUInt64::Mx.Val;
+				Json->DelObjKey("$id");
+				const uint64 RecId = Store->AddRec(Json);
+				OldToNewIdH.AddDat(ExRecId, RecId);
+				// validate that the added rec id is the same as the one that was saved in json
+				// if this fails then we have a problem since the joins will point different records than in the original data
+				//AssertR(ExRecId == TUInt64::Mx || ExRecId == RecId, "The added record id does not match the one in the record json");
+				if (RecId % 1000 == 0) {
+					TQm::TEnv::Logger->OnStatusFmt("Added record %I64u\r", RecId);
+                }
+			}
+		} else {
+			TQm::TEnv::Logger->OnStatusFmt("WARNING: File for store %s is missing. No data was imported.", StoreNm.CStr());
+        }
+		StoreOldToNewIdHH.AddDat(StoreNm, OldToNewIdH);
+	}
+
+	for (int S = 0; S < Stores; S++) {
+		const PStore Store = GetStoreByStoreN(S);
+		const TStr StoreNm = Store->GetStoreNm();
+
+		if (TFile::Exists(DumpDir + StoreNm + "-joins.json")) {
+			TQm::TEnv::Logger->OnStatusFmt("Adding joins for store %s", StoreNm.CStr());
+
+			THash<TUInt64, TUInt64>& OldToNewIdH = StoreOldToNewIdHH.GetDat(StoreNm);
+			PSIn InRecs = TFIn::New(DumpDir + StoreNm + "-joins.json");
+			TStr Line;
+			// if the schema was changed then join ids are likely different. we have to use the 
+            // name of the stored id and see into which it maps now in the new schema.
+			// mapping from old join ids (from old schema) to new join ids (in new schema)
+            THash<TInt, TInt> OldJoinIdToNewIdH;		
+			// mapping from new join ids (from new schema) to store name
+            THash<TInt, TStr> NewJoinIdToStoreNmH;		
+			while (InRecs->GetNextLn(Line)) {
+				if (Line.Len() > 0 && Line[0] == '#') {
+					// parse join name and join id when the data was stored
+					// "# JoinNm: %s, JoinId: %d
+					const int NameStart = Line.SearchCh(':') + 2;
+					const int NameEnd = Line.SearchCh(',', NameStart);
+					const int IdStart = Line.SearchChBack(':') + 2;
+					const TStr OldName = Line.GetSubStr(NameStart, NameEnd - 1);
+					const TStr OldIdStr = Line.GetSubStr(IdStart);
+					const int OldId = OldIdStr.GetInt(TInt::Mx);
+					AssertR(OldId != TInt::Mx, "Failed to parse join id from the header: " + Line);
+
+					if (!Store->IsJoinNm(OldName)) {
+						TQm::TEnv::Logger->OnStatusFmt("WARNING: The new schema does not contain join named %s. Ignoring it.", OldName.CStr());
+                    }
+					const int NewId = Store->GetJoinId(OldName);
+					OldJoinIdToNewIdH.AddDat(OldId, NewId);
+					TStr JoinStoreNm = Store->GetJoinDesc(NewId).GetJoinStore(this)->GetStoreNm();
+					NewJoinIdToStoreNmH.AddDat(NewId, JoinStoreNm);
+					if (OldId != NewId) {
+						TQm::TEnv::Logger->OnStatusFmt("INFO: Join id for %s changed from %d to %d.", OldName.CStr(), OldId, NewId);
+                    }
+					continue;
+				}
+
+				TStrV PartV; Line.SplitOnAllCh('|', PartV, false);
+				AssertR(PartV.Len() == 3, TStr::Fmt("The line with json data did not contain three parts when split with |. Store Name: %s, Line val: %s", StoreNm.CStr(), Line.CStr()));
+				const uint64 OldRecId = PartV[0].GetUInt64();
+				const uint64 NewRecId = OldToNewIdH.GetDat(OldRecId);	// map old rec ids to new rec ids
+				if (!Store->IsRecId(NewRecId)) {
+					TQm::TEnv::Logger->OnStatusFmt("ERROR: Failed to create join for missing record %I64U in store %s.", NewRecId, StoreNm.CStr());
+					continue;
+				}
+
+				const int OldJoinId = PartV[1].GetInt();
+				// if we don't have the old join anymore then ignore the data for it
+				if (OldJoinIdToNewIdH.IsKey(OldJoinId) == false) {
+					continue;
+                }
+
+				// get the id for the new join and then a mapping from old to new ids;
+				const int NewJoinId = OldJoinIdToNewIdH.GetDat(OldJoinId);
+				const TStr JoinStoreNm = NewJoinIdToStoreNmH.GetDat(NewJoinId);
+				THash<TUInt64, TUInt64>& JoinOldToNewIdH = StoreOldToNewIdHH.GetDat(JoinStoreNm);
+
+				TStrV JoinV; PartV[2].SplitOnAllCh(';', JoinV);
+				const int Joins = JoinV.Len();
+				for (int N = 0; N < Joins; N++) {
+					TStr JoinRecIdStr, JoinFqStr; JoinV[N].SplitOnCh(JoinRecIdStr, ',', JoinFqStr);
+					const uint64 OldJoinRecId = JoinRecIdStr.GetUInt64();
+					const uint64 NewJoinRecId = JoinOldToNewIdH.GetDat(OldJoinRecId);		// if some articles or other data was deleted from the index then old and new ids could be different. in most cases it should be the same
+					const int JoinFq = JoinFqStr.GetInt();
+					Store->AddJoin(NewJoinId, NewRecId, NewJoinRecId, JoinFq);
+				}
+				if (NewRecId % 1000 == 0) {
+					TQm::TEnv::Logger->OnStatusFmt("Added joins for rec %I64u\r", NewRecId);
+                }
+			}
+		}
+	}
+
+	uint64 DiffSecs = TTm::GetDiffSecs(TTm::GetCurLocTm(), CurrentTime);
+	int Mins = (int) (DiffSecs / 60);
+	TQm::TEnv::Logger->OnStatusFmt("Time needed to make the restore: %d min, %d sec", Mins, (int) (DiffSecs - (Mins * 60)));
+
+	return true;
 }
 
 void TBase::PrintStores(const TStr& FNm, const bool& FullP) {
