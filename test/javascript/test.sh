@@ -12,6 +12,8 @@ cd $CURRENT_PATH
 
 if [ $CODE -eq 0 ]
 then
-  echo "Errors found"
+  echo "Errors found!"
   exit 1
+else
+  echo "Tests success!"
 fi

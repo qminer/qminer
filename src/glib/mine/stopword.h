@@ -23,11 +23,7 @@
 // reference
 // The stoplist is the SMART system's list of 524 common words, like "the" and "of".)
 
-typedef enum {swstNone,
- swstEn8, swstEn425, swstEn523, swstEnMsdn,
- swstGe, swstEs,
- swstSiYuAscii, swstSiIsoCe,
- swstINetEng, swstINetSlo, swstWebIndex} TSwSetType;
+typedef enum {swstNone, swstEn, swstEn8, swstEn425, swstEn523, swstGe, swstEs, swstSi, swstUndef } TSwSetType;
 
 ClassTP(TSwSet, PSwSet)//{
 private:
@@ -38,16 +34,9 @@ private:
   void MultiAdd(const TStr& Str);
   void AddEn425();
   void AddEn523();
-  void AddEnMsdn();
   void AddEs();
   void AddGe();
-  void AddSiQCPSIYuAscii();
-  void AddSiRYuAscii();
-  void AddSiMYuAscii();
-  void AddSiYuAscii();
-  void AddSiIsoCe();
-  void AddINetEng();
-  void AddINetSlo();
+  void AddSi();
   UndefCopyAssign(TSwSet);
 public:
   TSwSet(const TSwSetType& _SwSetType=swstNone, const int& _MnWordLen=0);
@@ -81,5 +70,8 @@ public:
     if (StopWordP){return GetSwSet(SwSetType);} else {return NULL;}}
   static PSwSet GetSwSet(const TStr& SwSetTypeNm){
     return GetSwSet(true, GetSwSetType(SwSetTypeNm));}
+  
+    /// Extract stop-words from JSon parameters
+  static PSwSet ParseJson(const PJsonVal& JsonVal);
 };
 

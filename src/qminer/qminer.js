@@ -21,9 +21,10 @@
 qm.load = function() {
 	var _obj = {};
 	
-    //#- `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+    //#- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
     //#   line by line, parsing each line as JSON and adding it as record to `store`.
-    //#   When `limit != -1` only first first `limit` lines are loaded
+    //#   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
+    //#   the number of lines loaded.
 	_obj.jsonFileLimit = function (store, file, limit) {
 		var fin = fs.openRead(file);
 		var count = 0;
@@ -52,8 +53,9 @@ qm.load = function() {
 		return count;
 	}
 
-    //#- `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
-    //#   parsing each line as JSON and adding it as record to `store`
+    //#- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+    //#   parsing each line as JSON and adding it as record to `store`. Returns `num`:
+    //#   the number of lines loaded.
 	_obj.jsonFile = function (store, file) {
         return _obj.jsonFileLimit(store, file, -1);
     }
@@ -124,7 +126,7 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
 
 ///////////////////////////////////////// DEPRECATED
 function jsonp(req, res, data) {
-    console.log("Warning: jsonp is deprecated, please use http.jsonp instead");
+    console.log("Warning: jsonp is deprecated 1.7.2014, please use http.jsonp instead");
     http.jsonp(req, res, data);
 }
 
@@ -144,26 +146,26 @@ function hashTable() {
 ////////////////////////////////////////// 
 // deprecated, this are temporary placeholders for warnings so old stuff doesn't break
 function isObject(arg) {
-    console.log("Warning: isObject is deprecated, please use require('utilities.js').isObject instead");
+    console.log("Warning: isObject is deprecated 1.7.2014, please use require('utilities.js').isObject instead");
     return require("utilities.js").isObject(arg);
 }
 
 function isArray(arg) {
-    console.log("Warning: isObject is deprecated, please use require('utilities.js').isArray instead");
+    console.log("Warning: isObject is deprecated 1.7.2014, please use require('utilities.js').isArray instead");
     return require("utilities.js").isArray(arg);
 }
 
 function isNumber(n) {
-    console.log("Warning: isObject is deprecated, please use require('utilities.js').isNumber instead");
+    console.log("Warning: isObject is deprecated 1.7.2014, please use require('utilities.js').isNumber instead");
     return require("utilities.js").isNumber(n);
 }
 
 function isString(s) {
-    console.log("Warning: isObject is deprecated, please use require('utilities.js').isString instead");
+    console.log("Warning: isObject is deprecated 1.7.2014, please use require('utilities.js').isString instead");
     return require("utilities.js").isString(s);
 }
 
 function ifNull(val, defVal) {
-    console.log("Warning: isObject is deprecated, please use require('utilities.js').ifNull instead");
+    console.log("Warning: isObject is deprecated 1.7.2014, please use require('utilities.js').ifNull instead");
     return require("utilities.js").ifNull(val, defVal);
 }

@@ -12,11 +12,12 @@
 *.la
 *.a
 
-# project files from various SDKs
-.project	# eclipse
-.cproject	# eclipse
-.settings	# eclipse
-nbproject	# netbeans
+# project files from Eclipse
+.project
+.cproject
+.settings
+# project files from NetBeans
+nbproject
 
 # build results
 build
@@ -25,7 +26,6 @@ Doxyfile-tmp
 log-doxygen.txt
 temp
 
-# test partial results
 qm.conf
 db
 *.dat
@@ -35,7 +35,6 @@ db
 *.user
 *.suo
 Debug
-
 Release
 lock
 jsdoc_1.txt
@@ -47,6 +46,7 @@ jsdoc_2.txt
 /examples/twitter/sandbox/twitter/svmSentiment.bin
 timeseriesHack
 twitterHack
+.DS_store
 /qminer.aps
 /qminer.rc
 /resource.h

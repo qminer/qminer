@@ -160,6 +160,14 @@ public:
 // Standard-Notifier
 class TStdNotify: public TNotify{
 public:
+/////////////////////////////////////////////////
+// System-Messages
+class TSysMsg{
+public:
+  static void Loop();
+  static void Quit();
+};
+
   TStdNotify(){}
   static PNotify New(){return PNotify(new TStdNotify());}
 
@@ -234,8 +242,3 @@ public:
     if (IsOnExceptF()){(*OnExceptF)(MsgStr);}
     else {throw TExcept::New(MsgStr, LocStr);}}
 };
-
-#define Try try {
-#define Catch } catch (PExcept Except){ErrNotify(Except->GetMsgStr());}
-#define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}
-#define CatchAll } catch (...){}
