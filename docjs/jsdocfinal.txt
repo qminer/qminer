@@ -467,20 +467,20 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 - `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     (stemmers, stop word lists) as a json object, with two arrays:
     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-- `model = analytics.newBatchModel(records, features, target)` -- learns a new batch model
-    using `records` as training data and `features` as feature space; `target` is
-    a field for the records which we are trying to predict (e.g. store.field("Rating");
+- `batchModel = analytics.newBatchModel(rs, fsp, target)` -- learns a new batch model
+    using record set `rs` as training data and feature space `fsp`; `target` is
+    a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
-  - `model.target` -- array of categories for which we have models
-  - `result = model.predict(record)` -- creates feature vector from `record`, sends it
-    through the model and returns the result as an array of scores.
-  - `result = model.predictTop(record)` -- creates feature vector from `record`, 
-    sends it through the model and returns the top ranked label.
-  - `model.save(fout)` -- saves the model to `fout` output stream
-- `analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
-- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- initializes the
+  - `batchModel.target` -- array of categories for which we have models
+  - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
+    through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
+  - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
+    sends it through the model and returns the top ranked label `labelStr`.
+  - `batchModel.save(fout)` -- saves the model to `fout` output stream
+- `batchModel = analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
+- `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
@@ -491,48 +491,58 @@ To start using it must be loaded using `var analytics = require('analytics.js');
    examples that have to be identified in the query mode before the program enters SVM mode.
   The next parameter is the `query` (string) which should be related to positive examples. 
   Final Parameters `c` and `j` are SVM parameters.
-  - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
-  - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+  - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+  - `alModel.getAnswer(alAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
-  - `model.startLoop()` -- starts the active learning loop in console
-  - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
-  - `model.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it. Must be in SVM mode..
-  - `model.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
-  - `model.getnpos()` -- return the  number of examples marked as positive. 
-  - `model.getnneg()` -- return the  number of examples marked as negative.
-  - `model.setj(nj)` - sets the SVM j parameter to the provided value.
-  - `model.setc(nc)` - sets the SVM c parameter to the provided value.
-- `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
- regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+  - `alModel.startLoop()` -- starts the active learning loop in console
+  - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+  - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+  - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+  - `num = alModel.getnpos()` -- return the  number of examples marked as positive. 
+  - `num = alModel.getnneg()` -- return the  number of examples marked as negative.
+  - `alModel.setj(num)` - sets the SVM j parameter to the provided value.
+  - `alModel.setc(num)` - sets the SVM c parameter to the provided value.
+- `ridgeRegressionModel = analytics.newRidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+ regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
-  - `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
-  - `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
-  - `model.forget(n)` -- deletes first `n` (integer) examples from the training set
-  - `model.update()` -- recomputes the model
-  - `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
-  - `w = model.compute(A, b)` -- computes the model parameters `w`, given 
-   a column training example matrix `A` (dense or sparse matrix) and target 
-   vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
-  - `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
-- `C = new analytics.kmeans(X, k, iter)`-- solves the k-means algorithm based on a training
-  set `X` (sparse or dense matrix) where colums represent examples, `k` (integer) the number of centroids and
-  `iter` (integer), the number of iterations. The solution `C` is a dense matrix, where each column
+  - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
+  - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
+  - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
+  - `ridgeRegressionModel.update()` -- recomputes the model
+  - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
+  - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given 
+   a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
+  - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
+   a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
+  - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
+- `mat2 = analytics.computeKmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+  matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
+  `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
    is a cluster centroid.
-- `model = new analytics.lloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
+- `mat2 = analytics.computeKmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+  matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
+  `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
+   is a cluster centroid.
+- `lloydModel = analytics.newLloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
  requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
-  - `model.init()` -- initializes the model with random centroids
-  - `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
-  - `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
-  - `model.update(x)` -- updates the model with a vector `x` dense or sparse
-  - `c = model.getCentroid(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
-  - `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
-- `model = new analytics.perceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
+  - `lloydModel.init()` -- initializes the model with random centroids
+  - `mat = lloydModel.getC()` -- returns the centroid matrix `mat`
+  - `lloydModel.setC(mat)` -- sets the centroid matrix to matrix `mat`
+  - `lloydModel.update(vec)` -- updates the model with a vector `vec`
+  - `lloydModel.update(spVec)` -- updates the model with a sparse vector `spVec`
+  - `vec2 = lloydModel.getCentroid(vec)` -- returns the centroid `vec2` (dense vector) that is the closest to vector `vec`
+  - `vec2 = lloydModel.getCentroid(spVec)` -- returns the centroid `vec2` (dense vector) that is the closest to sparse vector `spVec`
+  - `idx = lloydModel.getCentroidIdx(vec)` -- returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to vector `vec`
+  - `idx = lloydModel.getCentroidIdx(spVec)` -- returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to sparse vector `spVec`
+- `perceptronModel = analytics.newPerceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
-  - `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
-  - `c = model.predict(x)` -- returns the prediction (0 or 1)
-  - `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
+  - `perceptronModel.update(vec,num)` -- updates the internal parameters `w` and `b` based on the training feature vector `vec` and target class `num` (0 or 1)! 
+  - `perceptronModel.update(spVec,num)` -- updates the internal parameters `w` and `b` based on the training sparse feature vector `spVec` and target class `num` (0 or 1)! 
+  - `num = perceptronModel.predict(vec)` -- returns the prediction (0 or 1) for a vector `vec`
+  - `num = perceptronModel.predict(spVec)` -- returns the prediction (0 or 1) for a sparse vector `spVec`
+  - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
 
 ### Feature Space
 

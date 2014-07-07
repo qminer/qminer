@@ -343,97 +343,106 @@ var _vec = {
 
 }
 
-var _analytics = {
-	newRecLinReg: function () {
+var _ridgeRegressionModel = {
+	compute: function () {
 	/// <signature>
-	/// <summary> create new recursive linear regression</summary>
-	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-
-	},
-
-	loadRecLinRegModel: function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-
-	},
-
-	newHoeffdingTree: function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_jsonStream" value="_jsonStream">param</param>
-	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
-	/// <returns value ="_htModel"/>
-	/// </signature>
-
-	},
-
-	loadSvmModel: function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-
-	},
-
-	getLanguageOptions: function () {
-	/// <signature>
-	/// <summary> get options for text parsing</summary>
-	/// <returns value ="_langOptionsJson"/>
-	/// </signature>
-
-	},
-
-	newNN: function () {
-	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
-	/// </signature>
-
-	},
-
-	loadFeatureSpace: function () {
-	/// <signature>
-	/// <summary> load serialized feature</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-
-	},
-
-	newFeatureSpace: function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-
-	},
-
-	trainSvmRegression: function () {
-	/// <signature>
-	/// <summary> trains</summary>
+	/// <summary> computes the model parameters `vec2`, given</summary>
 	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> computes the model parameters `vec2`, given</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
 	/// </signature>
 
 	},
 
-	trainSvmClassify: function () {
+	forget: function () {
 	/// <signature>
-	/// <summary> trains binary</summary>
-	/// <param name="_mat" value="_mat">param</param>
+	/// <summary> deletes first `n` (integer) examples from the training set</summary>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	getModel: function () {
+	/// <signature>
+	/// <summary> returns the parameter vector `vec` (dense vector)</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+
+	},
+
+	update: function () {
+	/// <signature>
+	/// <summary> recomputes the model</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	addupdate: function () {
+	/// <signature>
+	/// <summary> adds a vector `vec` and target `num` (number) to the training set and retrains the model</summary>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmParameters" value="_svmParameters">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	add: function () {
+	/// <signature>
+	/// <summary> adds a vector `vec` and target `num` (number) to the training set</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _hashTable = {
+	/// <field value = "_strArr"> array of keys (strings)</field>
+	keys: _strArr,
+	put: function () {
+	/// <signature>
+	/// <summary> add a key</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> add key-dat</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <param name="_dat" value="_dat">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	contains: function () {
+	/// <signature>
+	/// <summary> does the table contain the key?</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_array"> array of values</field>
+	vals: _array,
+	get: function () {
+	/// <signature>
+	/// <summary> get data</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_dat"/>
 	/// </signature>
 
 	},
@@ -524,41 +533,183 @@ var _fin = {
 
 }
 
-var _hashTable = {
-	/// <field value = "_strArr"> array of keys (strings)</field>
-	keys: _strArr,
-	put: function () {
+var _analytics = {
+	newBatchModel: function () {
 	/// <signature>
-	/// <summary> add a key</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> add key-dat</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <param name="_dat" value="_dat">param</param>
-	/// <returns value =""/>
+	/// <summary> learns a new batch model</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_target" value="_target">param</param>
+	/// <returns value ="_batchModel"/>
 	/// </signature>
 
 	},
 
-	contains: function () {
+	newRecLinReg: function () {
 	/// <signature>
-	/// <summary> does the table contain the key?</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> create new recursive linear regression</summary>
+	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	},
 
-	/// <field value = "_array"> array of values</field>
-	vals: _array,
-	get: function () {
+	loadRecLinRegModel: function () {
 	/// <signature>
-	/// <summary> get data</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value ="_dat"/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_recLinRegModel"/>
+	/// </signature>
+
+	},
+
+	computeKmeans: function () {
+	/// <signature>
+	/// <summary> solves the k-means algorithm based on a training</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_iter" value="_iter">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> solves the k-means algorithm based on a training</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_iter" value="_iter">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	},
+
+	newHoeffdingTree: function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_jsonStream" value="_jsonStream">param</param>
+	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
+	/// <returns value ="_htModel"/>
+	/// </signature>
+
+	},
+
+	loadSvmModel: function () {
+	/// <signature>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	},
+
+	getLanguageOptions: function () {
+	/// <signature>
+	/// <summary> get options for text parsing</summary>
+	/// <returns value ="_langOptionsJson"/>
+	/// </signature>
+
+	},
+
+	newNN: function () {
+	/// <signature>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
+	/// </signature>
+
+	},
+
+	loadFeatureSpace: function () {
+	/// <signature>
+	/// <summary> load serialized feature</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+
+	},
+
+	newFeatureSpace: function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+
+	},
+
+	trainSvmRegression: function () {
+	/// <signature>
+	/// <summary> trains</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	},
+
+	newLloyd: function () {
+	/// <signature>
+	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_lloydModel"/>
+	/// </signature>
+
+	},
+
+	newActiveLearner: function () {
+	/// <signature>
+	/// <summary> initializes the</summary>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_textField" value="_textField">param</param>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <param name="_nPos" value="_nPos">param</param>
+	/// <param name="_nNeg" value="_nNeg">param</param>
+	/// <param name="_query" value="_query">param</param>
+	/// <param name="_c" value="_c">param</param>
+	/// <param name="_j" value="_j">param</param>
+	/// <returns value ="_alModel"/>
+	/// </signature>
+
+	},
+
+	loadBatchModel: function () {
+	/// <signature>
+	/// <summary> loads batch model frm input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_batchModel"/>
+	/// </signature>
+
+	},
+
+	trainSvmClassify: function () {
+	/// <signature>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	},
+
+	newPerceptron: function () {
+	/// <signature>
+	/// <summary> the perceptron learning algorithm initialization requires</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_use_bias" value="_use_bias">param</param>
+	/// <returns value ="_perceptronModel"/>
+	/// </signature>
+
+	},
+
+	newRidgeRegression: function () {
+	/// <signature>
+	/// <summary> solves a regularized ridge</summary>
+	/// <param name="_kappa" value="_kappa">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <returns value ="_ridgeRegressionModel"/>
 	/// </signature>
 
 	},
@@ -1156,6 +1307,36 @@ var _spMat = {
 
 }
 
+var _batchModel = {
+	predict: function () {
+	/// <signature>
+	/// <summary> creates feature vector from record `rec`, sends it</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_scoreArr"/>
+	/// </signature>
+
+	},
+
+	save: function () {
+	/// <signature>
+	/// <summary> saves the model to `fout` output stream</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	predictTop: function () {
+	/// <signature>
+	/// <summary> creates feature vector from record `rec`,</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_labelStr"/>
+	/// </signature>
+
+	},
+
+}
+
 var _svmModel = {
 	predict: function () {
 	/// <signature>
@@ -1183,6 +1364,91 @@ var _svmModel = {
 
 	/// <field value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 	weights: _vec,
+}
+
+var _utilities = {
+	isArray: function () {
+	/// <signature>
+	/// <summary> is parameter an array?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isString: function () {
+	/// <signature>
+	/// <summary> is `s` a string?</summary>
+	/// <param name="_s" value="_s">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	arraysIdentical: function () {
+	/// <signature>
+	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <param name="_arr2" value="_arr2">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isInArray: function () {
+	/// <signature>
+	/// <summary> is element in an array?</summary>
+	/// <param name="_array" value="_array">param</param>
+	/// <param name="_value" value="_value">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	ifNull: function () {
+	/// <signature>
+	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_defVal" value="_defVal">param</param>
+	/// <returns value ="_returnVal"/>
+	/// </signature>
+
+	},
+
+	newStopWatch: function () {
+	/// <signature>
+	/// <summary> creates a stop watch object `sw`</summary>
+	/// <returns value ="_sw"/>
+	/// </signature>
+
+	},
+
+	newHashTable: function () {
+	/// <signature>
+	/// <summary> creates a hash table</summary>
+	/// <returns value ="_hashTable"/>
+	/// </signature>
+
+	},
+
+	isNumber: function () {
+	/// <signature>
+	/// <summary> is `n` a number?</summary>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	isObject: function () {
+	/// <signature>
+	/// <summary> is parameter an object?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
 }
 
 var _fout = {
@@ -1557,123 +1823,73 @@ var _spVec = {
 
 }
 
-var fs = {
-	rename: function () {
+var _lloydModel = {
+	getCentroidIdx: function () {
 	/// <signature>
-	/// <summary> rename file</summary>
-	/// <param name="_fromFileName" value="_fromFileName">param</param>
-	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <summary> returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to vector `vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to sparse vector `spVec`</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+
+	},
+
+	setC: function () {
+	/// <signature>
+	/// <summary> sets the centroid matrix to matrix `mat`</summary>
+	/// <param name="_mat" value="_mat">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	openWrite: function () {
+	getC: function () {
 	/// <signature>
-	/// <summary> open file in write mode and return file output stream `fout`</summary>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value ="_fout"/>
+	/// <summary> returns the centroid matrix `mat`</summary>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	},
 
-	exists: function () {
+	update: function () {
 	/// <signature>
-	/// <summary> does file exist?</summary>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> updates the model with a vector `vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
-	},
-
-	openRead: function () {
 	/// <signature>
-	/// <summary> open file in read mode and return file input stream `fin`</summary>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value ="_fin"/>
-	/// </signature>
-
-	},
-
-	openAppend: function () {
-	/// <signature>
-	/// <summary> open file in append mode and return file output stream `fout`</summary>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value ="_fout"/>
-	/// </signature>
-
-	},
-
-	move: function () {
-	/// <signature>
-	/// <summary> move file</summary>
-	/// <param name="_fromFileName" value="_fromFileName">param</param>
-	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <summary> updates the model with a sparse vector `spVec`</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	mkdir: function () {
+	init: function () {
 	/// <signature>
-	/// <summary> make folder</summary>
-	/// <param name="_dirName" value="_dirName">param</param>
+	/// <summary> initializes the model with random centroids</summary>
 	/// <returns value =""/>
 	/// </signature>
 
 	},
 
-	listFile: function () {
+	getCentroid: function () {
 	/// <signature>
-	/// <summary> returns list of files in directory given file extension</summary>
-	/// <param name="_dirName" value="_dirName">param</param>
-	/// <param name="_fileExtension" value="_fileExtension">param</param>
-	/// <returns value ="_strArr"/>
+	/// <summary> returns the centroid `vec2` (dense vector) that is the closest to vector `vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec2"/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> returns list of files in directory given extension. `recursive` is a boolean</summary>
-	/// <param name="_dirName" value="_dirName">param</param>
-	/// <param name="_fileExtension" value="_fileExtension">param</param>
-	/// <param name="_recursive" value="_recursive">param</param>
-	/// <returns value ="_strArr"/>
-	/// </signature>
-
-	},
-
-	del: function () {
-	/// <signature>
-	/// <summary> delete file</summary>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	rmdir: function () {
-	/// <signature>
-	/// <summary> delete folder</summary>
-	/// <param name="_dirName" value="_dirName">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	fileInfo: function () {
-	/// <signature>
-	/// <summary> returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.</summary>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value ="_infoJson"/>
-	/// </signature>
-
-	},
-
-	copy: function () {
-	/// <signature>
-	/// <summary> copy file</summary>
-	/// <param name="_fromFileName" value="_fromFileName">param</param>
-	/// <param name="_toFileName" value="_toFileName">param</param>
-	/// <returns value =""/>
+	/// <summary> returns the centroid `vec2` (dense vector) that is the closest to sparse vector `spVec`</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_vec2"/>
 	/// </signature>
 
 	},
@@ -1760,85 +1976,101 @@ var _htModel = {
 
 }
 
-var _utilities = {
-	isArray: function () {
+var _alModel = {
+	selectQuestion: function () {
 	/// <signature>
-	/// <summary> is parameter an array?</summary>
-	/// <param name="_arg" value="_arg">param</param>
+	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
+	/// <returns value ="_recSetIdx"/>
+	/// </signature>
+
+	},
+
+	getAnswer: function () {
+	/// <signature>
+	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
+	/// <param name="_alAnswer" value="_alAnswer">param</param>
+	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	getPos: function () {
+	/// <signature>
+	/// <summary> given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.</summary>
+	/// <param name="_thresh" value="_thresh">param</param>
+	/// <returns value ="_numArr"/>
+	/// </signature>
+
+	},
+
+	setc: function () {
+	/// <signature>
+	/// <summary> sets the SVM c parameter to the provided value.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	setj: function () {
+	/// <signature>
+	/// <summary> sets the SVM j parameter to the provided value.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	startLoop: function () {
+	/// <signature>
+	/// <summary> starts the active learning loop in console</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	getnpos: function () {
+	/// <signature>
+	/// <summary> return the  number of examples marked as positive.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	saveSvmModel: function () {
+	/// <signature>
+	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	getQueryMode: function () {
+	/// <signature>
+	/// <summary> returns true if in query mode, false otherwise (SVM mode)</summary>
 	/// <returns value ="_bool"/>
 	/// </signature>
 
 	},
 
-	isString: function () {
+	getnneg: function () {
 	/// <signature>
-	/// <summary> is `s` a string?</summary>
-	/// <param name="_s" value="_s">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> return the  number of examples marked as negative.</summary>
+	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
-	arraysIdentical: function () {
+}
+
+var _model = {
+	predict: function () {
 	/// <signature>
-	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <param name="_arr2" value="_arr2">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	isInArray: function () {
-	/// <signature>
-	/// <summary> is element in an array?</summary>
-	/// <param name="_array" value="_array">param</param>
-	/// <param name="_value" value="_value">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	ifNull: function () {
-	/// <signature>
-	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_defVal" value="_defVal">param</param>
-	/// <returns value ="_returnVal"/>
-	/// </signature>
-
-	},
-
-	newStopWatch: function () {
-	/// <signature>
-	/// <summary> creates a stop watch object `sw`</summary>
-	/// <returns value ="_sw"/>
-	/// </signature>
-
-	},
-
-	newHashTable: function () {
-	/// <signature>
-	/// <summary> creates a hash table</summary>
-	/// <returns value ="_hashTable"/>
-	/// </signature>
-
-	},
-
-	isNumber: function () {
-	/// <signature>
-	/// <summary> is `n` a number?</summary>
-	/// <param name="_n" value="_n">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-
-	},
-
-	isObject: function () {
-	/// <signature>
-	/// <summary> is parameter an object?</summary>
-	/// <param name="_arg" value="_arg">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
@@ -2103,6 +2335,172 @@ var _key = {
 	store: _storeName,
 	/// <field value = "_strArr"> gets the array of words (as strings) in the vocabulary</field>
 	voc: _strArr,
+}
+
+var fs = {
+	rename: function () {
+	/// <signature>
+	/// <summary> rename file</summary>
+	/// <param name="_fromFileName" value="_fromFileName">param</param>
+	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	openWrite: function () {
+	/// <signature>
+	/// <summary> open file in write mode and return file output stream `fout`</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+
+	},
+
+	exists: function () {
+	/// <signature>
+	/// <summary> does file exist?</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	},
+
+	openRead: function () {
+	/// <signature>
+	/// <summary> open file in read mode and return file input stream `fin`</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_fin"/>
+	/// </signature>
+
+	},
+
+	openAppend: function () {
+	/// <signature>
+	/// <summary> open file in append mode and return file output stream `fout`</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+
+	},
+
+	move: function () {
+	/// <signature>
+	/// <summary> move file</summary>
+	/// <param name="_fromFileName" value="_fromFileName">param</param>
+	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	mkdir: function () {
+	/// <signature>
+	/// <summary> make folder</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	listFile: function () {
+	/// <signature>
+	/// <summary> returns list of files in directory given file extension</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <param name="_fileExtension" value="_fileExtension">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> returns list of files in directory given extension. `recursive` is a boolean</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <param name="_fileExtension" value="_fileExtension">param</param>
+	/// <param name="_recursive" value="_recursive">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	},
+
+	del: function () {
+	/// <signature>
+	/// <summary> delete file</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	rmdir: function () {
+	/// <signature>
+	/// <summary> delete folder</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	fileInfo: function () {
+	/// <signature>
+	/// <summary> returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_infoJson"/>
+	/// </signature>
+
+	},
+
+	copy: function () {
+	/// <signature>
+	/// <summary> copy file</summary>
+	/// <param name="_fromFileName" value="_fromFileName">param</param>
+	/// <param name="_toFileName" value="_toFileName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
+var _perceptronModel = {
+	predict: function () {
+	/// <signature>
+	/// <summary> returns the prediction (0 or 1) for a vector `vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> returns the prediction (0 or 1) for a sparse vector `spVec`</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	getModel: function () {
+	/// <signature>
+	/// <summary> returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias.</summary>
+	/// <returns value ="_perceptronParam"/>
+	/// </signature>
+
+	},
+
+	update: function () {
+	/// <signature>
+	/// <summary> updates the internal parameters `w` and `b` based on the training feature vector `vec` and target class `num` (0 or 1)!</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> updates the internal parameters `w` and `b` based on the training sparse feature vector `spVec` and target class `num` (0 or 1)!</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
 }
 
 var _fsp = {
@@ -2430,6 +2828,7 @@ function _addIntellisenseVar(key, val, hideVar) {
 _addIntellisenseVar("_idx", "1");
 _addIntellisenseVar("_rowIdx", "1");
 _addIntellisenseVar("_colIdx", "1");
+_addIntellisenseVar("_recSetIdx", "1");
 _addIntellisenseVar("_num", "1");
 _addIntellisenseVar("_num2", "1");
 _addIntellisenseVar("_len", "1");
@@ -2450,6 +2849,8 @@ _addIntellisenseVar("_maxFq", "1");
 _addIntellisenseVar("_seed", "1");
 _addIntellisenseVar("_joinFrequency", "1");
 _addIntellisenseVar("_millis", "1");
+_addIntellisenseVar("_thresh", "1");
+_addIntellisenseVar("_iter", "1");
 
 // arrays
 _addIntellisenseVar("_array", "[]");
@@ -2481,6 +2882,7 @@ _addIntellisenseVar("_scriptNm", "''");
 _addIntellisenseVar("_scriptFNm", "''");
 _addIntellisenseVar("_prefixStr", "''");
 _addIntellisenseVar("_dirName", "''");
+_addIntellisenseVar("_alAnswer", "''");
 
 // json objects
 _addIntellisenseVar("_obj", "{}");
@@ -2500,6 +2902,9 @@ _addIntellisenseVar("_mapCallback", "function (_rec, _idx) {}");
 _addIntellisenseVar("_filterCallback", "function (_rec) { return _bool}");
 _addIntellisenseVar("_comparatorCallback", "function (_rec, _rec2) { return _bool}");
 _addIntellisenseVar("_langOptionsJson", "{stemmer: _strArr , stopwords: _strArr}");
+_addIntellisenseVar("_scoreArr", "{}");
+_addIntellisenseVar("_perceptronParam", "{w: _vec , b: _num}");
+
 
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case

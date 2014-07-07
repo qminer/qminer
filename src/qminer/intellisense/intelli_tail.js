@@ -18,6 +18,7 @@ function _addIntellisenseVar(key, val, hideVar) {
 _addIntellisenseVar("_idx", "1");
 _addIntellisenseVar("_rowIdx", "1");
 _addIntellisenseVar("_colIdx", "1");
+_addIntellisenseVar("_recSetIdx", "1");
 _addIntellisenseVar("_num", "1");
 _addIntellisenseVar("_num2", "1");
 _addIntellisenseVar("_len", "1");
@@ -38,6 +39,8 @@ _addIntellisenseVar("_maxFq", "1");
 _addIntellisenseVar("_seed", "1");
 _addIntellisenseVar("_joinFrequency", "1");
 _addIntellisenseVar("_millis", "1");
+_addIntellisenseVar("_thresh", "1");
+_addIntellisenseVar("_iter", "1");
 
 // arrays
 _addIntellisenseVar("_array", "[]");
@@ -69,6 +72,9 @@ _addIntellisenseVar("_scriptNm", "''");
 _addIntellisenseVar("_scriptFNm", "''");
 _addIntellisenseVar("_prefixStr", "''");
 _addIntellisenseVar("_dirName", "''");
+_addIntellisenseVar("_alAnswer", "''");
+_addIntellisenseVar("_url", "''");
+_addIntellisenseVar("_mimeType", "''");
 
 // json objects
 _addIntellisenseVar("_obj", "{}");
@@ -88,6 +94,14 @@ _addIntellisenseVar("_mapCallback", "function (_rec, _idx) {}");
 _addIntellisenseVar("_filterCallback", "function (_rec) { return _bool}");
 _addIntellisenseVar("_comparatorCallback", "function (_rec, _rec2) { return _bool}");
 _addIntellisenseVar("_langOptionsJson", "{stemmer: _strArr , stopwords: _strArr}");
+_addIntellisenseVar("_scoreArr", "{}");
+_addIntellisenseVar("_perceptronParam", "{w: _vec , b: _num}");
+_addIntellisenseVar("_fileInfoJson", "{createTime:_str, lastAccessTime:_str, lastWriteTime:_str, size:_num}");
+_addIntellisenseVar("_httpStrSuccessCallback", "function (_str) {}");
+_addIntellisenseVar("_httpJsonSuccessCallback", "function (_objJSON) {}");
+_addIntellisenseVar("_httpErrorCallback", "function (_message) {}");
+
+
 
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case

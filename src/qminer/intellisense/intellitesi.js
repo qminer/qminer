@@ -234,6 +234,50 @@ recLinRegModel = analytics.newRecLinReg(recLinRegParameters)$SEPARATOR$ -- creat
 recLinRegModel = analytics.loadRecLinRegModel(fin)$SEPARATOR$ -- load serialized linear model
 htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)$SEPARATOR$ -- create new
 langOptionsJson = analytics.getLanguageOptions()$SEPARATOR$ -- get options for text parsing
+batchModel = analytics.newBatchModel(rs, fsp, target)$SEPARATOR$ -- learns a new batch model
+batchModel.target$SEPARATOR$ -- array of categories for which we have models
+scoreArr = batchModel.predict(rec)$SEPARATOR$ -- creates feature vector from record `rec`, sends it
+labelStr = batchModel.predictTop(rec)$SEPARATOR$ -- creates feature vector from record `rec`,
+batchModel.save(fout)$SEPARATOR$ -- saves the model to `fout` output stream
+batchModel = analytics.loadBatchModel(fin)$SEPARATOR$ -- loads batch model frm input stream `fin`
+alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)$SEPARATOR$ -- initializes the
+recSetIdx = alModel.selectQuestion()$SEPARATOR$ -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+alModel.getAnswer(alAnswer, recSetIdx)$SEPARATOR$ -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+alModel.startLoop()$SEPARATOR$ -- starts the active learning loop in console
+alModel.saveSvmModel(fout)$SEPARATOR$ -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+numArr = alModel.getPos(thresh)$SEPARATOR$ -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+bool = alModel.getQueryMode()$SEPARATOR$ -- returns true if in query mode, false otherwise (SVM mode)
+num = alModel.getnpos()$SEPARATOR$ -- return the  number of examples marked as positive.
+num = alModel.getnneg()$SEPARATOR$ -- return the  number of examples marked as negative.
+alModel.setj(num)$SEPARATOR$ - sets the SVM j parameter to the provided value.
+alModel.setc(num)$SEPARATOR$ - sets the SVM c parameter to the provided value.
+ridgeRegressionModel = analytics.newRidgeRegression(kappa, dim, buffer)$SEPARATOR$ -- solves a regularized ridge
+ridgeRegressionModel.add(vec, num)$SEPARATOR$ -- adds a vector `vec` and target `num` (number) to the training set
+ridgeRegressionModel.addupdate(vec, num)$SEPARATOR$ -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
+ridgeRegressionModel.forget(n)$SEPARATOR$ -- deletes first `n` (integer) examples from the training set
+ridgeRegressionModel.update()$SEPARATOR$ -- recomputes the model
+vec = ridgeRegressionModel.getModel()$SEPARATOR$ -- returns the parameter vector `vec` (dense vector)
+vec2 = ridgeRegressionModel.compute(mat, vec)$SEPARATOR$ -- computes the model parameters `vec2`, given
+vec2 = ridgeRegressionModel.compute(spMat, vec)$SEPARATOR$ -- computes the model parameters `vec2`, given
+num = model.predict(vec)$SEPARATOR$ -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
+mat2 = analytics.computeKmeans(mat, k, iter)$SEPARATOR$-- solves the k-means algorithm based on a training
+mat2 = analytics.computeKmeans(spMat, k, iter)$SEPARATOR$-- solves the k-means algorithm based on a training
+lloydModel = analytics.newLloyd(dim, k)$SEPARATOR$ -- online clustering based on the Lloyd alogrithm. The model intialization
+lloydModel.init()$SEPARATOR$ -- initializes the model with random centroids
+mat = lloydModel.getC()$SEPARATOR$ -- returns the centroid matrix `mat`
+lloydModel.setC(mat)$SEPARATOR$ -- sets the centroid matrix to matrix `mat`
+lloydModel.update(vec)$SEPARATOR$ -- updates the model with a vector `vec`
+lloydModel.update(spVec)$SEPARATOR$ -- updates the model with a sparse vector `spVec`
+vec2 = lloydModel.getCentroid(vec)$SEPARATOR$ -- returns the centroid `vec2` (dense vector) that is the closest to vector `vec`
+vec2 = lloydModel.getCentroid(spVec)$SEPARATOR$ -- returns the centroid `vec2` (dense vector) that is the closest to sparse vector `spVec`
+idx = lloydModel.getCentroidIdx(vec)$SEPARATOR$ -- returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to vector `vec`
+idx = lloydModel.getCentroidIdx(spVec)$SEPARATOR$ -- returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to sparse vector `spVec`
+perceptronModel = analytics.newPerceptron(dim, use_bias)$SEPARATOR$ -- the perceptron learning algorithm initialization requires
+perceptronModel.update(vec,num)$SEPARATOR$ -- updates the internal parameters `w` and `b` based on the training feature vector `vec` and target class `num` (0 or 1)!
+perceptronModel.update(spVec,num)$SEPARATOR$ -- updates the internal parameters `w` and `b` based on the training sparse feature vector `spVec` and target class `num` (0 or 1)!
+num = perceptronModel.predict(vec)$SEPARATOR$ -- returns the prediction (0 or 1) for a vector `vec`
+num = perceptronModel.predict(spVec)$SEPARATOR$ -- returns the prediction (0 or 1) for a sparse vector `spVec`
+perceptronParam = perceptronModel.getModel()$SEPARATOR$ -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias.
 num = fsp.dim$SEPARATOR$ -- dimensionality of feature space
 fsp.save(fout)$SEPARATOR$ -- serialize feature space to `fout` output stream
 fsp.updateRecord(rec)$SEPARATOR$ -- update feature space definitions and extractors

@@ -2250,8 +2250,8 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 v8::Handle<v8::Value> TJsLinAlg::newVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsVec = TJsFltV::New(JsLinAlg->Js);
-	TFltV& Vec = TJsFltV::GetVec(JsVec);
+	
+	TFltV Vec;
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		int Length = Array->Length();		
@@ -2259,33 +2259,36 @@ v8::Handle<v8::Value> TJsLinAlg::newVec(const v8::Arguments& Args) {
 		for (int ElN = 0; ElN < Length; ElN++) {			
 			Vec.Add(Array->Get(ElN)->NumberValue());
 		}
-		return HandleScope.Close(JsVec);
 	}
-	if (Args[0]->IsObject()) {
-        // we got another vector as paremeter, make a copy of it
-		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
-			// get argument vector
-			TJsFltV* JsVec2 = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-			Vec = JsVec2->Vec;
-			return HandleScope.Close(JsVec);
-		}
-        // we have object with parameters, parse them out
-		int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
-		int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", 0);
-        if (MxVals >= 0) {
-			Vec.Gen(MxVals, Vals);
-		} else {
-			Vec.Gen(Vals);
+	else {
+		if (Args[0]->IsObject()) {
+			// we got another vector as paremeter, make a copy of it
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
+				// get argument vector
+				TJsFltV* JsVec2 = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+				Vec = JsVec2->Vec;
+			}
+			else {
+				// we have object with parameters, parse them out
+				int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
+				int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", 0);
+				if (MxVals >= 0) {
+					Vec.Gen(MxVals, Vals);
+				}
+				else {
+					Vec.Gen(Vals);
+				}
+			}
 		}
 	}
+	v8::Persistent<v8::Object> JsVec = TJsFltV::New(JsLinAlg->Js, Vec);
 	return HandleScope.Close(JsVec);	
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsVec = TJsIntV::New(JsLinAlg->Js);
-	TIntV& Vec = TJsIntV::GetVec(JsVec);
+	TIntV Vec;
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		int Length = Array->Length();		
@@ -2293,34 +2296,36 @@ v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
 		for (int ElN = 0; ElN < Length; ElN++) {			
 			Vec.Add(Array->Get(ElN)->Int32Value());
 		}
-		return HandleScope.Close(JsVec);
 	}
-	if (Args[0]->IsObject()) {		
-		// we got another vector as paremeter, make a copy of it
-		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TIntV")) {
-			// get argument vector
-			TJsIntV* JsVec2 = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
-			Vec = JsVec2->Vec;
-			return HandleScope.Close(JsVec);
-		}
-		// we have object with parameters, parse them out
-		int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
-		int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", -1);		
-		if (MxVals > 0 && Vals >= 0) {
-			Vec.Gen(MxVals, Vals);
-		}
-		if (MxVals == -1 && Vals >= 0) {
-			Vec.Gen(Vals);
+	else {
+		if (Args[0]->IsObject()) {
+			// we got another vector as paremeter, make a copy of it
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TIntV")) {
+				// get argument vector
+				TJsIntV* JsVec2 = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+				Vec = JsVec2->Vec;
+			}
+			else {
+				// we have object with parameters, parse them out
+				int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
+				int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", -1);
+				if (MxVals > 0 && Vals >= 0) {
+					Vec.Gen(MxVals, Vals);
+				}
+				if (MxVals == -1 && Vals >= 0) {
+					Vec.Gen(Vals);
+				}
+			}
 		}
 	}
+	v8::Persistent<v8::Object> JsVec = TJsIntV::New(JsLinAlg->Js, Vec);
 	return HandleScope.Close(JsVec);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsLinAlg->Js);
-	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
+	TFltVV Mat;
 
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
@@ -2331,7 +2336,6 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 			for (int RowN = 0; RowN < Rows; RowN++) {	
 				if (!Array->Get(RowN)->IsArray()) {
 					throw TQmExcept::New("object is not an array of arrays in TJsLinAlg::newMat()");							
-					return HandleScope.Close(JsMat);
 				} else {
 					v8::Handle<v8::Array> Row = v8::Handle<v8::Array>::Cast(Array->Get(RowN));
 					if (RowN == 0) {
@@ -2340,7 +2344,6 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 					} else {
 						if ((int)Row->Length() != Cols) {							
 							throw TQmExcept::New("inconsistent number of columns in TJsLinAlg::newMat()");							
-							return HandleScope.Close(JsMat);
 						}
 					}
 					for (int ColN = 0; ColN < Cols; ColN++) {
@@ -2348,35 +2351,38 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 					}
 				}
 			}				
-			return HandleScope.Close(JsMat);
 		}
 	}
-	if (Args[0]->IsObject()) {
-		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
-			// get argument matrix
-			TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-			Mat = JsMat2->Mat;
-			return HandleScope.Close(JsMat);
-		}
-		bool GenRandom = TJsLinAlgUtil::GetArgBool(Args, 0, "random", false);
-		int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
-		int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", 0);		
-		if (Cols > 0 && Rows > 0) {
-			Mat.Gen(Rows, Cols);
-			if (GenRandom) {
-				TLAMisc::FillRnd(Mat);
+	else {
+		if (Args[0]->IsObject()) {
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+				// get argument matrix
+				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+				Mat = JsMat2->Mat;
 			}
-		}		
+			else {
+				bool GenRandom = TJsLinAlgUtil::GetArgBool(Args, 0, "random", false);
+				int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
+				int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", 0);
+				if (Cols > 0 && Rows > 0) {
+					Mat.Gen(Rows, Cols);
+					if (GenRandom) {
+						TLAMisc::FillRnd(Mat);
+					}
+				}
+			}
+		}
 	}
+
+	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsLinAlg->Js, Mat);
 	return HandleScope.Close(JsMat);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsSpVec = TJsSpV::New(JsLinAlg->Js);
-	TJsSpV::SetDim(JsSpVec, -1);
-	TIntFltKdV& Vec = TJsSpV::GetSpV(JsSpVec);
+	int Dim = -1;
+	TIntFltKdV Vec;
 	if (Args.Length() > 0) {
 		if (Args[0]->IsArray()) {
 			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
@@ -2393,26 +2399,22 @@ v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
 				}				
 			}			
 			if (Args.Length() > 1 && Args[1]->IsObject()) {
-				int Dim = TJsLinAlgUtil::GetArgInt32(Args, 1, "dim", -1);
-				TJsSpV::SetDim(JsSpVec, Dim);
+				Dim = TJsLinAlgUtil::GetArgInt32(Args, 1, "dim", -1);
 			}
 			Vec.Sort();
-			return HandleScope.Close(JsSpVec);
 		} else if (Args[0]->IsObject()) {		
-			int Dim = TJsLinAlgUtil::GetArgInt32(Args, 0, "dim", -1);
-			TJsSpV::SetDim(JsSpVec, Dim);
+			Dim = TJsLinAlgUtil::GetArgInt32(Args, 0, "dim", -1);
 		}
 	}
+	v8::Persistent<v8::Object> JsSpVec = TJsSpV::New(JsLinAlg->Js, Vec, Dim);
 	return HandleScope.Close(JsSpVec);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsLinAlg->Js);
-	TJsSpMat::SetRows(JsSpMat, -1);	
-	TVec<TIntFltKdV>& Mat = TJsSpMat::GetSpMat(JsSpMat);
-	
+	int Rows = -1;	
+	TVec<TIntFltKdV> Mat;	
 	if (Args.Length() > 0) {
 		// corrdinate
 		if (Args.Length() == 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV") && TJsObjUtil<TJsSpMat>::IsArgInt32(Args, 3)) {
@@ -2420,43 +2422,46 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
 			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
 			int Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
-			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols); 
-			return HandleScope.Close(JsSpMat);
+			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
 		}
-		if (Args[0]->IsArray()) {
-			// javascript arrays
-			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-			int Cols = Array->Length();
-			Mat.Gen(Cols);
-			for (int ColN = 0; ColN < Cols; ColN++) {
-				if (Array->Get(ColN)->IsArray()) {
-					v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
-					int Els = SpVecArray->Length();
-					for (int ElN = 0; ElN < Els; ElN++) {
-						if (SpVecArray->Get(ElN)->IsArray()) {
-							v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
-							if (KdPair->Length() >= 2) {
-								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
-									Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
+		else {
+			if (Args[0]->IsArray()) {
+				// javascript arrays
+				v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+				int Cols = Array->Length();
+				Mat.Gen(Cols);
+				for (int ColN = 0; ColN < Cols; ColN++) {
+					if (Array->Get(ColN)->IsArray()) {
+						v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
+						int Els = SpVecArray->Length();
+						for (int ElN = 0; ElN < Els; ElN++) {
+							if (SpVecArray->Get(ElN)->IsArray()) {
+								v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
+								if (KdPair->Length() >= 2) {
+									if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+										Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
+									}
 								}
 							}
 						}
 					}
+					Mat[ColN].Sort();
 				}
-				Mat[ColN].Sort();
+				if (Args.Length() > 1 && Args[1]->IsObject()) {
+					Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
+				}
 			}
-			if (Args.Length() > 1 && Args[1]->IsObject()) {
-				int Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
-				TJsSpMat::SetRows(JsSpMat, Rows);
-			}			
-			return HandleScope.Close(JsSpMat);
-		} else if (Args[0]->IsObject()) {		
-			int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
-			int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
-			TJsSpMat::SetRows(JsSpMat, Rows);
-			Mat.Gen(Cols);
+			else {
+				if (Args[0]->IsObject()) {
+					Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
+					int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
+					Mat.Gen(Cols);
+				}
+			}
 		}
 	}
+
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsLinAlg->Js, Mat, Rows);
 	return HandleScope.Close(JsSpMat);	
 }
 

@@ -1911,6 +1911,12 @@ public:
 		TJsSpMat::SetSpMat(obj, _Mat);		
 		return  obj;
 	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TVec<TIntFltKdV>& _Mat, const TInt& _Rows) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpMat::SetSpMat(obj, _Mat);
+		TJsSpMat::SetRows(obj, _Rows);
+		return  obj;
+	}
 	static TVec<TIntFltKdV>& GetSpMat(const v8::Handle<v8::Object> Obj) {
 		return TJsSpMatUtil::GetSelf(Obj)->Mat;
 	}
@@ -2481,7 +2487,7 @@ public:
 	JsDeclareFunction(del);
     //#- `fs.rename(fromFileName, toFileName)` -- rename file
 	JsDeclareFunction(rename);
-    //#- `infoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
 	JsDeclareFunction(fileInfo);
     //#- `fs.mkdir(dirName)` -- make folder
 	JsDeclareFunction(mkdir);
@@ -2583,12 +2589,12 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `http.get(url)`
-    //#- `http.get(url, success_callback)`
-    //#- `http.get(url, success_callback, error_callback)`
-    //#- `http.getStr(url)`
-    //#- `http.getStr(url, success_callback)`
-    //#- `http.getStr(url, success_callback, error_callback)`
+	//#- `http.get(url)` -- gets url, but does nothing with response
+    //#- `http.get(url, httpJsonSuccessCallback)` -- gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+    //#- `http.get(url, httpJsonSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+	//#- `http.getStr(url)` -- gets url, but does nothing with response
+	//#- `http.getStr(url, httpStrSuccessCallback)` -- gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success. 
+    //#- `http.getStr(url, httpStrSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(get);
     //#- `http.post(url, mimeType, data)`
     //#- `http.post(url, mimeType, data, success_callback)`
@@ -2597,7 +2603,7 @@ public:
     //#- `http.postStr(url, mimeType, data, success_callback)`
     //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
 	JsDeclareFunction(post);
-    //#- `http.onRequest(path, verb, function (request, response) { /*...*/ })`
+    //#- `http.onRequest(path, verb, function (request, response) { /*...*/ })` -- paths
 	JsDeclareFunction(onRequest);
     //#JSIMPLEMENT:src/qminer/http.js    
 };
