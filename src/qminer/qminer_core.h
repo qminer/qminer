@@ -25,6 +25,7 @@
 
 #include <base.h>
 #include <mine.h>
+#include <funrouter.h>
 
 namespace TQm {
 
@@ -122,29 +123,6 @@ public:
 
 #define QmAssertR(Cond, MsgStr) \
   ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
-
-///////////////////////////////
-/// Router to constructors based on object types.
-/// Useful for creating and de-serializing derived objects, such as TAggr and TStreamAggr.
-template <class PObj, typename TFun>
-class TFunRouter {
-private:
-    /// Object descriptions
-	THash<TStr, TFun> TypeNmToFunH;
-    
-public:
-    /// Register default stream aggregates
-    TFunRouter() { }
-    
-    /// Register new object
-    void Register(const TStr& TypeNm, TFun Fun) { TypeNmToFunH.AddDat(TypeNm, Fun); }
-    
-    /// Get the function for given type
-    TFun Fun(const TStr& TypeNm) {
-        if (TypeNmToFunH.IsKey(TypeNm)) { return TypeNmToFunH.GetDat(TypeNm); }
-        throw TQmExcept::New("[TFunRouter::Fun] Unknown object type " + TypeNm);
-    }
-};
 
 ///////////////////////////////
 /// Join Types
@@ -1244,7 +1222,7 @@ public:
 	uint GetStoreId() const { return Store->GetStoreId(); }
 
 	/// Number of records in the set
-	int GetRecs() const { return RecIdFqV.Len(); }
+	int GetRecs() const { return RecIdFqV.Len(); }	// FIXME this method should return uint64
 	/// Get RecN-th record as TRec by reference
     TRec GetRec(const int& RecN) const { return TRec(GetStore(), RecIdFqV[RecN].Key); }
 	/// Get id of RecN-th record
@@ -1436,6 +1414,8 @@ private:
 	TIntV FieldIdV;
 	/// Linked join (only for internal field)
 	TStr JoinNm;
+    /// Tokenizer, when key requires one (e.g. text)
+    PTokenizer Tokenizer;
 
 public:
 	/// Empty constructor creates undefined key
@@ -1465,10 +1445,7 @@ public:
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
 
-	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
-	bool IsWordVoc() const { return WordVocId != -1; }
-	/// Get id of word vocabulary used by the key
-	int GetWordVocId() const { return WordVocId; }
+
     /// Get key type
     TIndexKeyType GetTypeFlags() const { return TypeFlags; }
 	/// Checks key type is value
@@ -1490,6 +1467,11 @@ public:
 	bool IsSortByFlt() const { return SortType == oikstByFlt; }
 	/// Checks if key is sortable by word id in the vocabulary
 	bool IsSortById() const { return SortType == oikstById; }
+    
+	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
+	bool IsWordVoc() const { return WordVocId != -1; }
+	/// Get id of word vocabulary used by the key
+	int GetWordVocId() const { return WordVocId; }    
 
 	/// Link key to store fields
 	void AddField(const int& FieldId) { FieldIdV.Add(FieldId); }
@@ -1502,6 +1484,13 @@ public:
 
 	/// Get name of associated join
 	const TStr& GetJoinNm() const { return JoinNm; }
+    
+    /// Do we have a tokenizer
+    bool IsTokenizer() const { return !Tokenizer.Empty(); }
+    /// Get the tokenizer
+    const PTokenizer& GetTokenizer() const { return Tokenizer; }
+    /// Set the tokenizer
+    void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
 };
 
 ///////////////////////////////
@@ -1583,8 +1572,6 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TIndexVoc>;
-	/// Default Tokenizer
-	PTokenizer Tokenizer;
     /// List of all the keys
     THash<TUIntStrPr, TIndexKey> KeyH;
     /// Keys split by stores
@@ -1599,7 +1586,7 @@ private:
 	/// Get constant word vocabulary for a given key
 	const PIndexWordVoc& GetWordVoc(const int& KeyId) const;
 
-	TIndexVoc(): Tokenizer(TTokenizerHtml::New()) { }
+	TIndexVoc() { }
     TIndexVoc(TSIn& SIn);
 public:
 	/// Create new index vocabulary
@@ -1673,16 +1660,16 @@ public:
 	void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
 	/// Get vector of all words from a key that match given wildchar query
 	void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
-    // Get all words from a key that are greater than `startWordId
+    /// Get all words from a key that are greater than `startWordId
     void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllGreaterV);
-    // Get all words from a key that are smaller than `startWordId
+    /// Get all words from a key that are smaller than `startWordId
     void GetAllLessV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllLessV);
+    
+    /// Get tokenizer from a key
+    const PTokenizer& GetTokenizer(const int& KeyId) const;
+    /// Set tokenizer for a key
+    void PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer);
 
-	/// Access to default tokenizer
-	PTokenizer GetTokenizer() const { return Tokenizer; }
-	/// Set default tokenizer
-	void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
-	
 	/// Save human-readable statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const;
 };
@@ -2669,6 +2656,10 @@ public:
 	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
 	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
+    // JSON dump and load
+	bool SaveJSonDump(const TStr& DumpDir);
+	bool RestoreJSonDump(const TStr& DumpDir);
+    
     // statistics
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);

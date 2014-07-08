@@ -68,13 +68,8 @@ public:
 	TIndexKeySortType SortType;
 	/// Word vocabulary name (used by inverted index)
 	TStr WordVocName;
-
-	/// Word vocabulary id (used by inverted index)
-	TInt _x_WordVocId;
-    /// Indexed field id
-	TInt _x_FieldId;
-    /// Indexed field type
-	TFieldType _x_FieldType;
+    /// Tokenizer (used by inverted index)
+    PTokenizer Tokenizer;
     
 public:
 	TIndexKeyEx() {}
@@ -94,6 +89,9 @@ public:
 	bool IsById() const { return SortType == oikstById; }
     /// Key sortable as numeric value
 	bool IsByFlt() const { return SortType == oikstByFlt; }
+    
+    /// Checkes if we have defined tokenizer
+    bool IsTokenizer() const { return !Tokenizer.Empty(); }
 };
 
 ///////////////////////////////

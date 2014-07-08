@@ -201,6 +201,38 @@ typedef TPt<TFtrSpace> PFtrSpace;
 namespace TFtrExts {
 
 ///////////////////////////////////////////////
+/// Constant feature extractor.
+class TConstant : public TFtrExt {
+private:
+	// constant feature generator
+	mutable TFlt Constant;
+
+	TConstant(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TConstant(const TWPt<TBase>& Base, TSIn& SIn);
+
+public:
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;
+
+	TStr GetNm() const { return "Constant"; };
+	int GetDim() const { return 1; }
+	TStr GetFtr(const int& FtrN) const { return "Constant"; }
+
+	void Clr() { }; 
+    bool Update(const TRec& Rec) { return false; }
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const; 
+
+	// flat feature extraction
+	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
+    
+    // feature extractor type name 
+    static TStr GetType() { return "constant"; } 
+};
+
+///////////////////////////////////////////////
 /// Random feature extractor.
 class TRandom : public TFtrExt {
 private:
@@ -457,14 +489,6 @@ public:
     // feature extractor type name 
     static TStr GetType() { return "text"; }   
     
-private:
-	static PSwSet GetSwSet(const TStr& SwStr);
-	static void AddWords(const PSwSet& SwSet, const PJsonVal& WordsVal);    
-public:
-    /// Extract stop-words from JSon parameters
-    static PSwSet ParseSwSet(const PJsonVal& ParamVal);
-    /// Extract stemmer from JSon parameters.
-    /// In case real word parameter is not give, value of RealWordP is used
     static PStemmer ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP = false);
 };
 

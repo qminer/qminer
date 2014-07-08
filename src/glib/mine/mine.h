@@ -21,8 +21,9 @@
 #define mine_h
 
 #include <base.h>
+#include <funrouter.h>
 
-// utilities
+// utilitiesTFun
 #include "cfyres.h"
 
 // text processing
@@ -67,5 +68,8 @@
 
 // special datasets
 #include "dmoz.h"
+
+// hoeffding trees 
+#include "hoeffding.h"
 
 #endif

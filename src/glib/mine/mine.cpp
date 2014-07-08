@@ -62,3 +62,5 @@
 // special datasets
 #include "dmoz.cpp"
 
+// hoeffding trees 
+#include "hoeffding.cpp"

@@ -164,16 +164,6 @@ void TSysConsoleNotify::OnStatus(const TStr& MsgStr){
 }
 
 /////////////////////////////////////////////////
-// System-Messages
-//void TSysMsg::Loop(){
-//  MSG Msg;
-//  while (GetMessage(&Msg, NULL, 0, 0 )){
-//    TranslateMessage(&Msg); DispatchMessage(&Msg);}
-//}
-//
-//void TSysMsg::Quit(){PostQuitMessage(0);}
-
-/////////////////////////////////////////////////
 // System-Time
 TTm TSysTm::GetCurUniTm(){
   SYSTEMTIME SysTm;
@@ -854,24 +844,6 @@ TSysMemStat::TSysMemStat() {
     Data = (uint64)(result.data) * 1024LL;
     Dt = (uint64)(result.dt) * 1024LL;
 }
-
-/////////////////////////////////////////////////
-// System-Messages
-//void TSysMsg::Loop() {
-//    //bn!!! zdej mamo pa problem. kaksne msgje? samo za sockete?
-//    //!!! tle je treba klicat AsyncSys iz net::sock.cpp
-//    //#define TOTALNAZMEDA
-//    //#ifdef TOTALNAZMEDA
-//    //class TAsyncSys;
-//    //extern TAsyncSys AsyncSys;
-//    //AsyncSys::AsyncLoop();
-//    //#endif
-//  FailR("Not intended for use under Linux!");
-//}
-//
-//void TSysMsg::Quit() {
-//  kill(getpid(), SIGINT);
-//}
 
 /////////////////////////////////////////////////
 // Program StdIn and StdOut redirection using pipes

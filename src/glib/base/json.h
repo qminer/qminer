@@ -75,6 +75,7 @@ public:
   void AddToObj(const TStr& KeyNm, const bool& Val){ AddToObj(KeyNm, NewBool(Val)); }
   void AddToObj(const TStr& KeyNm, const TJsonValV& ValV){ AddToObj(KeyNm, NewArr(ValV)); }
   void AddToObj(const PJsonVal& Val);
+  void DelObjKey(const TStr& KeyNm) { KeyValH.DelIfKey(KeyNm); }
 
   // simplified creation of basic elements
   static PJsonVal NewNull() { PJsonVal Val = TJsonVal::New(); Val->PutNull(); return Val; }
@@ -141,6 +142,7 @@ public:
   double GetObjNum(const char *Key, const double& DefNum) const;
   int GetObjInt(const TStr& Key, const int& DefNum) const;
   int GetObjInt(const char *Key, const int& DefNum) const;
+  void GetObjIntV(const TStr& Key, TIntV& IntV) const;
   TStr GetObjStr(const TStr& Key, const TStr& DefStr) const;
   TStr GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;

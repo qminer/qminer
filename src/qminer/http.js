@@ -17,29 +17,39 @@
 //////////////////////////////////////////
 // HTTP 
 
-// shortcuts
+//#- `onGet(path, function (request, response) { /*...*/ })`
 http.onGet = function (path, callback) {
+    if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "GET", callback);
 }
 
+//#- `onPost(path, function (request, response) { /*...*/ })`
 http.onPost = function (path, callback) {
+    if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "POST", callback);
 }
 
+//#- `onPut(path, function (request, response) { /*...*/ })`
 http.onPut = function (path, callback) {
+    if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "PUT", callback);
 }
 
+//#- `onDelete(path, function (request, response) { /*...*/ })`
 http.onDelete = function (path, callback) {
+    if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "DELETE", callback);
 }
 
+//#- `onPatch(path, function (request, response) { /*...*/ })`
 http.onPatch = function (path, callback) {
+    if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "PATCH", callback);
 }
 
-// packaging reply as jsonp when callback parameter is provided in URL
+//#- `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
 http.jsonp = function (req, res, data) {
+    if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     // convert to string
     var dataStr;
     try {

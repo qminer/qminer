@@ -191,6 +191,231 @@ PInterpolator TInterpolator::Load(TSIn& SIn) {
 	}
 	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
+///////////////////////////////////////////////////////////////////
+// Neural Networks - Neuron
+TRnd TNNet::TNeuron::Rnd = 0;
+
+TNNet::TNeuron::TNeuron(){
+}
+
+TNNet::TNeuron::TNeuron(TInt OutputsN, TInt MyId, TTFunc TransFunc){
+
+    TFuncNm = TransFunc;
+    for(int c = 0; c < OutputsN; ++c){
+        // define the edges, 0 element is weight, 1 element is weight delta
+        OutEdgeV.Add(TIntFltFltTr(c, RandomWeight(), 0.0));
+    }
+
+    Id = MyId;
+}
+
+void TNNet::TNeuron::FeedFwd(const TLayer& PrevLayer){
+    TFlt SumIn = 0.0;
+    // get the previous layer's outputs and sum them up
+    for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
+        SumIn += PrevLayer.GetOutVal(NeuronN) * 
+                PrevLayer.GetWeight(NeuronN, Id);
+    }
+    // not sure if static. maybe different fcn for output nodes
+    OutputVal = TNeuron::TransferFcn(SumIn);
+}
+
+TFlt TNNet::TNeuron::TransferFcn(TFlt Sum){
+    switch (TFuncNm){
+        case tanHyper:
+            // tanh output range [-1.0..1.0]
+            // training data should be scaled to what the transfer function can handle
+           return tanh(Sum);
+        case sigmoid:
+           // sigmoid output range [0.0..1.0]
+           // training data should be scaled to what the transfer function can handle
+           return 1.0 / (1.0 + exp(-Sum));
+        case fastTanh:
+           // sigmoid output range [-1.0..1.0]
+           // training data should be scaled to what the transfer function can handle
+           return Sum / (1.0 + abs(Sum));
+        case fastSigmoid:
+           // sigmoid output range [0.0..1.0]
+           // training data should be scaled to what the transfer function can handle
+           return (Sum / 2.0) / (1.0 + abs(Sum)) + 0.5;
+        case linear:
+            return Sum;         
+    };
+    throw TExcept::New("Unknown transfer function type");
+}
+
+TFlt TNNet::TNeuron::TransferFcnDeriv(TFlt Sum){
+    switch (TFuncNm){
+        case tanHyper:
+            // tanh derivative approximation
+            return 1.0 - Sum * Sum;
+        case sigmoid:{
+           double Fun = 1.0 / (1.0 + exp(-Sum));
+           return Fun * (1.0 - Fun);
+        }
+        case fastTanh:
+           return 1.0 / ((1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+        case fastSigmoid:
+           return 1.0 / (2.0 * (1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+        case linear:
+            return 1;         
+    };
+    throw TExcept::New("Unknown transfer function type");
+}
+
+void TNNet::TNeuron::CalcOutGradient(TFlt TargVal){
+    TFlt Delta = TargVal - OutputVal;
+    // TODO: different ways of calculating gradients
+    Gradient = Delta * TNeuron::TransferFcnDeriv(OutputVal);
+}
+
+void TNNet::TNeuron::CalcHiddenGradient(const TLayer& NextLayer){
+    // calculate error by summing the derivatives of the weights next layer
+    TFlt DerivsOfWeights = SumDOW(NextLayer);
+    Gradient = DerivsOfWeights * TNeuron::TransferFcnDeriv(OutputVal);
+}
+
+TFlt TNNet::TNeuron::SumDOW(const TLayer& NextLayer) const{
+    TFlt sum = 0.0;
+    // sum our contributions of the errors at the nodes we feed
+    for(int NeuronN = 0; NeuronN < NextLayer.GetNeuronN() - 1; ++NeuronN){
+        // weight from us to next layer neuron times its gradient
+        sum += GetWeight(NeuronN) * NextLayer.GetGradient(NeuronN);
+    }
+
+    return sum;
+}
+
+void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate, const TFlt& Momentum){
+    // the weights to be updated are in the OutEdgeV
+    // in the neurons in the preceding layer
+    for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
+        TNeuron& Neuron = PrevLayer.GetNeuron(NeuronN);
+        TFlt OldDeltaWeight = Neuron.GetDeltaWeight(Id);
+        //printf(" LearnRate N: %f \n", LearnRate);
+
+        TFlt NewDeltaWeight = 
+                // individual input magnified by the gradient and train rate
+                LearnRate
+                * Neuron.GetOutVal()
+                * Gradient
+                // add momentum = fraction of previous delta weight
+                + Momentum
+                * OldDeltaWeight;
+
+        Neuron.SetDeltaWeight(Id, NewDeltaWeight);
+        Neuron.UpdateWeight(Id, NewDeltaWeight);
+    }
+}
+    
+/////////////////////////////////////////////////////////////////////////
+//// Neural Networks - Layer of Neurons
+// TODO: why do we need this empty constructor?
+TNNet::TLayer::TLayer(){
+}
+
+TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& TransFunc){
+    // Add neurons to the layer, plus bias neuron
+    for(int NeuronN = 0; NeuronN <= NeuronsN; ++NeuronN){
+        NeuronV.Add(TNeuron(OutputsN, NeuronN, TransFunc));
+        printf("Made a neuron!");
+        printf(" Neuron N: %d", NeuronN);
+        printf(" Neuron H: %d", NeuronV.Len());
+        printf("\n");
+    } 
+    // Force the bias node's output value to 1.0
+    NeuronV.Last().SetOutVal(1.0);
+    printf("\n");
+}
+
+/////////////////////////////////////////////////////////////////////////
+//// Neural Networks - Neural Net
+TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate, 
+            const TFlt& _Momentum, const TTFunc& TFuncHiddenL,
+            const TTFunc& TFuncOutL){
+    // get number of layers
+    int LayersN = LayoutV.Len();
+    LearnRate = _LearnRate;
+    Momentum = _Momentum;
+    // create each layer
+    for(int LayerN = 0; LayerN < LayersN; ++LayerN){
+        // Get number of neurons in the next layer
+        // set number of output connections, if output layer then no output connections
+        TInt OutputsN = LayerN == LayersN - 1 ? TInt(0) : LayoutV[LayerN + 1];
+        // set transfer functions for hidden and output layers
+        TTFunc TransFunc = LayerN == LayersN - 1 ? TFuncOutL : TFuncHiddenL;
+        TInt NeuronsN = LayoutV[LayerN];
+        // Add a layer to the net
+        LayerV.Add(TLayer(NeuronsN, OutputsN, TransFunc));
+        printf("LayerV.Len(): %d \n", LayerV.Len() );
+    }
+}
+
+void TNNet::FeedFwd(const TFltV& InValV){
+    // check if number of input values same as number of input neurons
+    Assert(InValV.Len() == LayerV[0].GetNeuronN() - 1);
+    // assign input values to input neurons
+    for(int InputN = 0; InputN < InValV.Len(); ++InputN){
+        LayerV[0].SetOutVal(InputN, InValV[InputN]);
+    }
+
+    // forward propagation
+    for(int LayerN = 1; LayerN < LayerV.Len(); ++LayerN){
+        TLayer& PrevLayer = LayerV[LayerN - 1];
+        for(int NeuronN = 0; NeuronN < LayerV[LayerN].GetNeuronN() - 1; ++NeuronN){
+            LayerV[LayerN].FeedFwd(NeuronN, PrevLayer);
+        }
+    }
+}
+
+void TNNet::BackProp(const TFltV& TargValV){
+    // calculate overall net error (RMS of output neuron errors)
+    TLayer& OutputLayer = LayerV.Last();
+    Error = 0.0;
+
+    for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
+        TFlt Delta = TargValV[NeuronN] - OutputLayer.GetOutVal(NeuronN);
+        Error += Delta * Delta;
+    }
+    Error /= OutputLayer.GetNeuronN() - 1;
+    Error = sqrt(Error); // RMS
+
+    // recent avg error measurement
+    RecentAvgError = (RecentAvgError * RecentAvgSmoothingFactor + Error)
+            / (RecentAvgSmoothingFactor + 1.0);
+    // Calculate output layer gradients
+    for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
+        OutputLayer.CalcOutGradient(NeuronN, TargValV[NeuronN]);
+    }        
+    // Calculate gradients on hidden layers
+    for(int LayerN = LayerV.Len() - 2; LayerN > 0; --LayerN){
+        TLayer& HiddenLayer = LayerV[LayerN];
+        TLayer& NextLayer = LayerV[LayerN + 1];
+
+        for(int NeuronN = 0; NeuronN < HiddenLayer.GetNeuronN() - 1; ++NeuronN){
+            HiddenLayer.CalcHiddenGradient(NeuronN, NextLayer);
+        }
+
+    }
+    // For all layers from output to first hidden layer
+    // update connection weights
+    for(int LayerN = LayerV.Len() - 1; LayerN > 0; --LayerN){
+        TLayer& Layer = LayerV[LayerN];
+        TLayer& PrevLayer = LayerV[LayerN - 1];
+
+        for(int NeuronN = 0; NeuronN < Layer.GetNeuronN() - 1; ++NeuronN){
+            Layer.UpdateInputWeights(NeuronN, PrevLayer, LearnRate, Momentum);
+        }
+    }
+}
+
+void TNNet::GetResults(TFltV& ResultV) const{
+    ResultV.Clr(true, -1);
+
+    for(int NeuronN = 0; NeuronN < LayerV.Last().GetNeuronN() - 1; ++NeuronN){
+        ResultV.Add(LayerV.Last().GetOutVal(NeuronN));
+    }
+}
 
 ///////////////////////////////////////////////////////////////////
 // Recursive Linear Regression
@@ -198,22 +423,38 @@ TRecLinReg::TRecLinReg(const TRecLinReg& LinReg):
 		ForgetFact(LinReg.ForgetFact),
 		RegFact(LinReg.RegFact),
 		P(LinReg.P),
-		Coeffs(LinReg.Coeffs),
-		Notify(LinReg.Notify) {}
+		Coeffs(LinReg.Coeffs) {}
 
 TRecLinReg::TRecLinReg(const TRecLinReg&& LinReg):
 		ForgetFact(std::move(LinReg.ForgetFact)),
 		RegFact(std::move(LinReg.RegFact)),
 		P(std::move(LinReg.P)),
-		Coeffs(std::move(LinReg.Coeffs)),
-		Notify(std::move(LinReg.Notify)) {}
+		Coeffs(std::move(LinReg.Coeffs)) {}
 
-TRecLinReg::TRecLinReg(const int& Dim, const double& _RegFact, const double& _ForgetFact, const PNotify _Notify):
+TRecLinReg::TRecLinReg(TSIn& SIn):
+		ForgetFact(SIn),
+		RegFact(SIn) {
+	P.Load(SIn);
+	Coeffs.Load(SIn);
+}
+
+TRecLinReg::TRecLinReg(const int& Dim, const double& _RegFact,
+			const double& _ForgetFact):
 		ForgetFact(_ForgetFact),
 		RegFact(_RegFact),
 		P(TFullMatrix::Identity(Dim) / RegFact),
-		Coeffs(Dim, true),
-		Notify(_Notify) {}
+		Coeffs(Dim, true) {}
+
+void TRecLinReg::Save(TSOut& SOut) const {
+	ForgetFact.Save(SOut);
+	RegFact.Save(SOut);
+	P.Save(SOut);
+	Coeffs.Save(SOut);
+}
+
+PRecLinReg TRecLinReg::Load(TSIn& SIn) {
+	return new TRecLinReg(SIn);
+}
 
 TRecLinReg& TRecLinReg::operator =(TRecLinReg LinReg) {
 	std::swap(ForgetFact, LinReg.ForgetFact);

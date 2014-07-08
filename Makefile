@@ -15,7 +15,11 @@ VERSION = 0.5.0
 # dependencies
 THIRD_PARTY = src/third_party
 LIBUV = $(THIRD_PARTY)/libuv
-LIBV8 = $(THIRD_PARTY)/v8/out/x64.release/obj.target/tools/gyp
+ifeq ($(UNAME), Linux)
+  LIBV8 = $(THIRD_PARTY)/v8/out/x64.release/obj.target/tools/gyp
+else ifeq ($(UNAME), Darwin)
+  LIBV8 = $(THIRD_PARTY)/v8/out/x64.release
+endif
 SNAP = $(THIRD_PARTY)/Snap
 LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib
@@ -72,7 +76,6 @@ clean:
 	rm -rf ./$(BUILD)/
 
 lib:
-	make -C $(GLIB)
 	make -C $(THIRD_PARTY)
 
 install: 
@@ -100,6 +103,8 @@ doc: cleandoc
 	docco -o ./docjs/ examples/timeseries/src/timeseries.js
 	docco -o ./docjs/ examples/linalg/src/linalg.js
 	docco -o ./docjs/ examples/twitter/src/twitter.js
+	docco -o ./docjs/ examples/hoeffdingtree/src/ht.js
+	docco -o ./docjs/ examples/nnet/src/nnet.js
 	sed "s/00000000/$(DOXYGEN_STIME)/" Doxyfile | sed "s/11111111/$(DOXYGEN_SLVER)/" > Doxyfile-tmp
 	$(DOXYGEN) Doxyfile-tmp
 	

@@ -8,7 +8,7 @@ assert.silent = process.isArg("-nopass");
 assert.consoleTitle = "FtrSpace";
 
 // create store
-console.log("Size: " + qm.sysStat.size);
+console.log("Size: " + process.sysStat.size);
 for (var i = 1000; i < 100; i++) {
     var diff = qm.sysStat.size;
     qm.createStore({
@@ -22,7 +22,7 @@ for (var i = 1000; i < 100; i++) {
         "joins": [ ],
         "keys": [ ]
       });
-    var diff = qm.sysStat.size - diff;
+    var diff = process.sysStat.size - diff;
     console.log("Size: " + qm.sysStat.size + ", Diff: " + diff);
 }
 
@@ -78,7 +78,7 @@ var ftrSpace1 = analytics.newFeatureSpace([
     { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 2 },
     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] },
     { type: "multinomial", source: "FtrSpaceTest", field: "Categories", hashDimension: 4 },
-    { type: "text", source: "FtrSpaceTest", field: "Text" },
+    { type: "text", source: "FtrSpaceTest", field: "Text", hashDimension: 4 },
     { type: "pair", source: "FtrSpaceTest",
         first: { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] },
         second: { type: "multinomial", source: "FtrSpaceTest", field: "Categories", values: ["a", "b", "c", "q", "w", "e"] }

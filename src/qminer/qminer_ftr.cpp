@@ -31,6 +31,7 @@ TFunRouter<PFtrExt, TFtrExt::TLoadF> TFtrExt::LoadRouter;
 
 void TFtrExt::Init() {
     Register<TFtrExts::TRandom>();
+	Register<TFtrExts::TConstant>();
     Register<TFtrExts::TNumeric>();
     Register<TFtrExts::TCategorical>();
     Register<TFtrExts::TMultinomial>();
@@ -345,6 +346,40 @@ PBowDocBs TFtrSpace::MakeBowDocBs(const PRecSet& FtrRecSet) {
 }
 
 namespace TFtrExts {
+
+///////////////////////////////////////////////
+// Constant Feature Extractor
+TConstant::TConstant(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
+	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 0)) { }
+
+TConstant:: TConstant(const TWPt<TBase>& Base, TSIn& SIn): TFtrExt(Base, SIn), Constant(SIn) { }
+
+PFtrExt TConstant::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TConstant(Base, ParamVal); 
+}
+
+PFtrExt TConstant::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+    return new TConstant(Base, SIn);
+}
+
+void TConstant::Save(TSOut& SOut) const {
+    GetType().Save(SOut);
+    TFtrExt::Save(SOut);
+    
+    Constant.Save(SOut);
+}
+
+void TConstant::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
+	SpV.Add(TIntFltKd(Offset, Constant.Val)); Offset++;
+}
+
+void TConstant::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+    FullV[Offset] = Constant.Val; Offset++;
+}
+
+void TConstant::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
+	FltV.Add(Constant.Val);
+}
     
 ///////////////////////////////////////////////
 // Random Feature Extractor
@@ -935,9 +970,13 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
         TfP = false; IdfP = true;
     }
     // get stopwords
-    PSwSet SwSet = ParseSwSet(ParamVal);
+    PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
+        TSwSet::ParseJson(ParamVal->GetObjKey("stopwords")) :
+        TSwSet::New(swstEn523);   
     // get stemmer
-    PStemmer Stemmer = ParseStemmer(ParamVal, false);
+    PStemmer Stemmer = ParamVal->IsObjKey("stemmer") ? 
+        TStemmer::ParseJson(ParamVal->GetObjKey("stemmer"), false) :
+        TStemmer::New(stmtNone, false);
     // hashing dimension
     const int HashDim = ParamVal->GetObjInt("hashDimension", -1);
     // initialize
@@ -1123,79 +1162,6 @@ void TBagOfWords::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
 	for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
 		FtrGen.GetFtr(RecStrV[RecStrN], StrV);
 	}
-}
-
-PSwSet TBagOfWords::GetSwSet(const TStr& SwStr) {
-    TStrV SwSetTypeNmV, SwSetTypeDNmV;
-    TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
-	if (SwStr == "en") {
-		return TSwSet::New(swstEn523);
-	} else if (SwStr == "si") { 
-		return TSwSet::New(swstSiIsoCe);
-	} else if (SwStr == "es") { 
-		return TSwSet::New(swstEs);
-	} else if (SwStr == "de") { 
-		return TSwSet::New(swstGe);
-	} else if(SwSetTypeNmV.IsIn(SwStr)) {
-        TSwSetType SwSet = TSwSet::GetSwSetType(SwStr);
-        return TSwSet::New(SwSet);
-    }
-	throw TQmExcept::New("Unknown stop-word set '" + SwStr + "'");
-}
-
-void TBagOfWords::AddWords(const PSwSet& SwSet, const PJsonVal& WordsVal) {
-	for (int WordN = 0; WordN < WordsVal->GetArrVals(); WordN++) {
-		PJsonVal WordVal = WordsVal->GetArrVal(WordN);
-		QmAssert(WordVal->IsStr());
-		SwSet->AddWord(WordVal->GetStr().GetUc());
-	}
-}
-
-PSwSet TBagOfWords::ParseSwSet(const PJsonVal& ParamVal) {
-	// read stop words (default is no stop words)
-	PSwSet SwSet = TSwSet::New(swstNone);
-	if (ParamVal->IsObjKey("stopwords")) { 
-		PJsonVal SwVal = ParamVal->GetObjKey("stopwords");
-		if (SwVal->IsStr()) {
-			SwSet = GetSwSet(SwVal->GetStr());
-		} else if (SwVal->IsArr()) {
-			AddWords(SwSet, SwVal);
-		} else if (SwVal->IsObj()) {
-			// load predefined set
-			if (SwVal->IsObjKey("language")) {
-				PJsonVal SwTypeVal = SwVal->GetObjKey("language");
-				QmAssert(SwTypeVal->IsStr());
-				SwSet = GetSwSet(SwTypeVal->GetStr());
-			}
-			// add any additional words
-			if (SwVal->IsObjKey("words")) {
-				PJsonVal SwWordsVal = SwVal->GetObjKey("words");
-				QmAssert(SwWordsVal->IsArr());
-				AddWords(SwSet, SwWordsVal);
-			}
-		} else {
-			throw TQmExcept::New("Unknown stop-word definition '" + SwVal->SaveStr() + "'");
-		}
-	} else {
-		// default is English
-		SwSet = TSwSet::New(swstEn523);
-	}   
-    return SwSet;
-}
-
-PStemmer TBagOfWords::ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP) {
-    if (ParamVal->IsObjKey("stemmer")) {
-        PJsonVal StemmerVal = ParamVal->GetObjKey("stemmer");
-        if (StemmerVal->IsBool()) {
-            return TStemmer::New(StemmerVal->GetBool() ? stmtPorter : stmtNone, RealWordP);
-        } else if (StemmerVal->IsObj()) {
-            TStr StemmerType = StemmerVal->GetObjStr("type", "none");
-            const bool RealWordP = StemmerVal->GetObjBool("realWord", RealWordP);
-            return TStemmer::New((StemmerType == "porter") ? stmtPorter : stmtNone, RealWordP);            
-        }
-    }
-    // default no stemmer
-    return TStemmer::New(stmtNone, false);
 }
 
 ///////////////////////////////////////////////

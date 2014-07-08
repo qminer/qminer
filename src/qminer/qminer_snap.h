@@ -20,6 +20,7 @@
 #ifndef QMINER_SNAP_H
 #define QMINER_SNAP_H
 
+#include <string>
 #include <qminer.h>
 #include <Snap.h>
 

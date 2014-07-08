@@ -17,11 +17,12 @@
 //////////////////////////////////////////
 // Console 
 
-//#- `console.start` - start interactive console; does not see local variables
+//#- `console.start()` - start interactive console; does not see local variables.
+//#     Receiving empty imput (Enter was pressed) exits the interactive mode.
 console.start = function () {
     while (true) {
         var ead1042dc6554fcc8d47d1070268184f = console.getln();
-        if (ead1042dc6554fcc8d47d1070268184f == "/stop") break;
+        if (ead1042dc6554fcc8d47d1070268184f == "") break;
         try {
             console.log("" + eval(ead1042dc6554fcc8d47d1070268184f));
         } catch (err) {
@@ -31,12 +32,13 @@ console.start = function () {
 }
 
 //#- `console.startx(evalFun)` -- useful for debugging;
-//#     insert in code: console.startx(function (x) { return eval(x); })
-//#     in order for console to see and interact with local variables
+//#     insert in code: `console.startx(function (x) { return eval(x); })`
+//#     in order for console to see and interact with local variables.
+//#     Receiving empty imput (Enter was pressed) exits the interactive mode.
 console.startx = function (x) {
     while (true) {
         var ead1042dc6554fcc8d47d1070268184f = console.getln();
-        if (ead1042dc6554fcc8d47d1070268184f == "/stop") break;
+        if (ead1042dc6554fcc8d47d1070268184f == "") break;
         try {
             console.log("" + x(ead1042dc6554fcc8d47d1070268184f));
         } catch (err) {
@@ -44,3 +46,9 @@ console.startx = function (x) {
         }
     }
 }
+
+//#- `console.pause()` -- waits until enter is pressed
+console.pause = function() {console.getln()};
+
+//#- `console.println(str)` -- `print(str); print("\n")`
+console.println = function(a) {console.print(a); console.print("\n");}
