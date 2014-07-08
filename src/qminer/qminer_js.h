@@ -2596,12 +2596,12 @@ public:
 	//#- `http.getStr(url, httpStrSuccessCallback)` -- gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success. 
     //#- `http.getStr(url, httpStrSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(get);
-    //#- `http.post(url, mimeType, data)`
-    //#- `http.post(url, mimeType, data, success_callback)`
-    //#- `http.post(url, mimeType, data, success_callback, error_callback)`
-    //#- `http.postStr(url)`
-    //#- `http.postStr(url, mimeType, data, success_callback)`
-    //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
+    //#- `http.post(url, mimeType, data)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+    //#- `http.post(url, mimeType, data, httpJsonSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+    //#- `http.post(url, mimeType, data, httpJsonSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+    //#- `http.postStr(url)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+    //#- `http.postStr(url, mimeType, data, httpStrSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.
+    //#- `http.postStr(url, mimeType, data, httpStrSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(post);
     //#- `http.onRequest(path, verb, function (request, response) { /*...*/ })` -- paths
 	JsDeclareFunction(onRequest);
