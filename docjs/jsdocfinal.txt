@@ -473,7 +473,7 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
-  - `batchModel.target` -- array of categories for which we have models
+  - `strArr = batchModel.target` -- array of categories for which we have models
   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
     through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
@@ -660,7 +660,7 @@ The HoeffdingTree algorithm comes with many parameters:
 - `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
-- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+- `objJSON = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
 - `str = process.scriptNm` -- Returns the name of the script.
 - `str = process.scriptFNm` -- Returns absolute script file path.
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
@@ -738,7 +738,7 @@ are automatically prefixed by current date and time.
 - `fs.move(fromFileName, toFileName)` -- move file
 - `fs.del(fileName)` -- delete file
 - `fs.rename(fromFileName, toFileName)` -- rename file
-- `infoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
 - `fs.mkdir(dirName)` -- make folder
 - `fs.rmdir(dirName)` -- delete folder
 - `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
@@ -770,63 +770,64 @@ are automatically prefixed by current date and time.
 
 **Functions and properties:**
     
-- `http.get(url)`
-- `http.get(url, success_callback)`
-- `http.get(url, success_callback, error_callback)`
-- `http.getStr(url)`
-- `http.getStr(url, success_callback)`
-- `http.getStr(url, success_callback, error_callback)`
-- `http.post(url, mimeType, data)`
-- `http.post(url, mimeType, data, success_callback)`
-- `http.post(url, mimeType, data, success_callback, error_callback)`
-- `http.postStr(url)`
-- `http.postStr(url, mimeType, data, success_callback)`
-- `http.postStr(url, mimeType, data, success_callback, error_callback)`
-- `http.onRequest(path, verb, function (request, response) { /*...*/ })`
-- `onGet(path, function (request, response) { /*...*/ })`
-- `onPost(path, function (request, response) { /*...*/ })`
-- `onPut(path, function (request, response) { /*...*/ })`
-- `onDelete(path, function (request, response) { /*...*/ })`
-- `onPatch(path, function (request, response) { /*...*/ })`
-- `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
+- `http.get(url)` -- gets url, but does nothing with response
+- `http.get(url, httpJsonSuccessCallback)` -- gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+- `http.get(url, httpJsonSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+- `http.getStr(url)` -- gets url, but does nothing with response
+- `http.getStr(url, httpStrSuccessCallback)` -- gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success. 
+- `http.getStr(url, httpStrSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.
+- `http.post(url, mimeType, data)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+- `http.post(url, mimeType, data, httpJsonSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+- `http.post(url, mimeType, data, httpJsonSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+- `http.postStr(url)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+- `http.postStr(url, mimeType, data, httpStrSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.
+- `http.postStr(url, mimeType, data, httpStrSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.
+- `http.onRequest(path, verb, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onGet(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onGet("test", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onPost(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPost("test", function (req, resp) { })` executed from `script.js` on localhost will execute a post request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onPut(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPut("test", function (req, resp) { })` executed from `script.js` on localhost will execute a put request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onDelete(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onDelete("test", function (req, resp) { })` executed from `script.js` on localhost will execute a delete request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onPatch(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPatch("test", function (req, resp) { })` executed from `script.js` on localhost will execute a patch request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.jsonp(httpRequest, httpResponse, dataJSON)` -- packaging reply as jsonp when callback parameter is provided in URL
 
 ### HTTP Response
 
 
 **Functions and properties:**
     
-- `resp.setStatusCode(statusCode)`
-- `resp.setStatusCode(mimeType)`
-- `resp.add(data)`
-- `resp.close()`
-- `resp.send(data)`
+- `httpResponse.setStatusCode(statusCode)` -- sets status code (integer)
+- `httpResponse.setContentType(mimeType)` -- sets content type (string)
+- `httpResponse.add(dataStr)` -- adds `dataStr` (string) to request body
+- `httpResponse.add(dataJSON)` -- adds `dataJSON` (JSON object) to request body
+- `httpResponse.close()` -- closes and executes the response
+- `httpResponse.send(dataStr)` -- adds `dataStr` (string) and closes the response
+- `httpResponse.send(dataJSON)` -- adds `dataJSON` (JSON object) and closes the response
 
 ### Date-Time
 
 Wrapper around GLib's TTm. Used as return for `DateTime` field type. 
-New one can be created using `tm = require('time')`.
+New one can be created using `tm = require('time.js')`.
 
 **Functions and properties:**
 
-- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
-- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
-- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
-- `tm.year`
-- `tm.month`
-- `tm.day`
-- `tm.dayOfWeek`
-- `tm.hour`
-- `tm.minute`
-- `tm.second`
-- `tm.milisecond`
-- `tm.now` -- returns new time object representing current local time
-- `tm.nowUTC` -- returns new time object represented current UTC time
-- `tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+- `str = tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
+- `str = tm.dateString` -- string representation of date (e.g. 2014-05-29)
+- `num = tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
+- `num = tm.year` -- year (number)
+- `num = tm.month` -- month (number)
+- `num = tm.day` -- day (number)
+- `str = tm.dayOfWeek` -- day of week (string)
+- `num = tm.hour` -- hour (number)
+- `num = tm.minute` -- minute (number)
+- `num = tm.second` -- second (number)
+- `num = tm.milisecond` -- millisecond (number)
+- `tm2 = tm.now` -- returns new time object representing current local time
+- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
+- `tm2 = tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
-- `tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defines the 
-    unit, same as in `add`
-- `tm.toJSON()` -- returns json representation of time    
-- `date = tm.parse('2014-05-29T10:09:12')` -- parses string and returns it
+- `tm2 = tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+- `tmJSON = tm.toJSON()` -- returns json representation of time    
+- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     as Date-Time object
 
 ## Other libraries

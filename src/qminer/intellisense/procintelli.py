@@ -4,7 +4,7 @@ import sys
 import copy
 import pprint
 
-fr = open('intellitesi.js', 'r')
+fr = open('intellisense.js', 'r')
 fw = open('intelli_body.js', 'w')
 fwProblems = open('problems.js', 'w');
 
