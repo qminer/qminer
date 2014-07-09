@@ -1257,38 +1257,6 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 	}
 }
 
-/*
-TStMerger::TStMerger1(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
-        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
-        const bool& CreateStoreP): TStreamAggr(Base, AggrNm), FieldMapV(FieldMapV_) {
-	
-    // if required, create output store
-    if (CreateStoreP) {
-        InfoNotify("Creating store '" + OutStoreNm + "'");
-        CreateStore(OutStoreNm, OutTimeFieldNm);
-    }
-    // parse parameters
-	InterpTableV.Gen(FieldMapV.Len());
-	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
-    TimeFieldId = OutStore->GetFieldId(OutTimeFieldNm);
-   
-	// initialize input store time fields map
-    InTimeFieldIdV.Gen(255); InTimeFieldIdV.PutAll(-1);
-	for (int FieldsAll = 0; FieldsAll<FieldMapV.Len(); FieldsAll++){
-		//copying interpolations from FieldMap to InterpTableV and HashTable
-		InterpTableV[FieldsAll]=FieldMapV[FieldsAll].GetInterpolator();
-		TPair<TStr,TStr> TempPair((Base->GetStoreByStoreId(FieldMapV[FieldsAll].GetInStoreId))->GetStoreNm(),(Base->GetStoreByStoreId(FieldMapV[FieldsAll].GetInStoreId))->GetFieldNm(FieldMapV[FieldsAll].GetInFieldId()));
-		HashTable.AddDat(TempPair, FieldMapV[FieldsAll].GetOutFieldNm());
-	}
-    for (int InTimeFieldN = 0; InTimeFieldN < InStoreTimeFieldNmV.Len(); InTimeFieldN++) {
-          // get store
-		const TStr& StoreNm = InStoreTimeFieldNmV[InTimeFieldN].Val1;
-        TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
-        // get field and remember it in the map
-        const TStr& TimeFieldNm = InStoreTimeFieldNmV[InTimeFieldN].Val2;
-        InTimeFieldIdV[(int)Store->GetStoreId()] = Store->GetFieldId(TimeFieldNm);
-    }
-}*/
 
 TStMerger::TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
 	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
@@ -1305,8 +1273,8 @@ TQm::TStreamAggr(Base, AggrNm){
         CreateStore(OutStoreNm, OutTimeFieldNm);
     }
 	TIntV FltFieldsV = OutStore->GetFieldIdV(oftFlt);
-	if(FltFieldsV.Len()<StoresAndFieldsV.Len()){printf("Not enough flt fields in output store!\n");}	
-
+	//if(FltFieldsV.Len()<StoresAndFieldsV.Len()){printf("Not enough flt fields in output store!\n");}	
+	QmAssertR(FltFieldsV.Len()<StoresAndFieldsV.Len(), "Not enough flt fields in output store!\n");
 	FieldMapV.Gen(StoresAndFieldsV.Len());
 	
     // parse parameters
@@ -1373,7 +1341,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal): TS
 		//Filling HashTable
 		HashTable.AddDat(StoresAndFieldsV[FieldsAll],OutStore->GetFieldNm(FltFieldsV[FieldsAll]));
 	}
-	}
+}
 void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
     // prepare store description
 	PJsonVal JsonStore = TJsonVal::NewObj();
@@ -1397,6 +1365,18 @@ void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
 	JsonStore->AddToObj("fields", FieldsVal);
     // create new store
 	TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
+}
+
+
+PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
+	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
+						   const bool& CreateStoreP) {
+       return new TStMerger(Base, StoresAndFieldsV, AggrNm, InterpolationsV, OutStoreNm,
+		OutTimeFieldNm, CreateStoreP);   
+}
+
+PStreamAggr TStMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TStMerger(Base, ParamVal);
 }
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
@@ -1553,6 +1533,29 @@ PStreamAggr TResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 void TResampler::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	TStreamAggr::Save(SOut);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	InStore->SaveId(SOut);
 	InFieldIdV.Save(SOut);

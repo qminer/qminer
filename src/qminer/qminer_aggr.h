@@ -696,10 +696,6 @@ private:
 	
 	TInt TimeFieldId;
 	
-	   
-   
-	
-
 protected:	
 	void OnAddRec(const TQm::TRec& Rec	);
 	
@@ -710,8 +706,13 @@ public:
 	TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
 	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& NewStoreNm, const TStr& NewTmFieldNm,
 						   const bool& CreateStoreP);
-	TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
+	TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
+	//TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
 	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
+	static PStreamAggr New(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
+					 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, 
+					 const TStr& OutTimeFieldNm, const bool& CreateStoreP);
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	PJsonVal SaveJson(const int& Limit) const;
 };
 
