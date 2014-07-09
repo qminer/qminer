@@ -1315,7 +1315,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal): TS
 		TPair<TStr,TStr> TempPair(StoreNm,FieldNm);
 		StoresAndFieldsV.Add(TempPair);
 		PJsonVal InterpVal = InterpolationsArrVal->GetArrVal(FieldN);
-		InterpolationsV.Add(InterpolationsArrVal->GetObjStr("name"));
+		InterpolationsV.Add(InterpVal->GetObjStr("name"));
 	}
 
 	// if required, create output store
