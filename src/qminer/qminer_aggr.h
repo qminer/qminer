@@ -706,6 +706,9 @@ public:
 	TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
 	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& NewStoreNm, const TStr& NewTmFieldNm,
 						   const bool& CreateStoreP);
+	TStMerger(const TWPt<TQm::TBase>& Base, const TVec<TStrQu> MergingMapV,
+	 const TStr& AggrNm, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
+						   const bool& CreateStoreP=false);
 	TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 	//TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
 	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
