@@ -181,6 +181,9 @@ PInterpolator TInterpolator::New(const TStr& InterpolatorType) {
     if(InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New();
 	}    
+	if(InterpolatorType == TLinear::GetType()) {
+		return TLinear::New();
+	}    
     throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
 
@@ -188,6 +191,9 @@ PInterpolator TInterpolator::Load(TSIn& SIn) {
 	TStr InterpolatorType(SIn);
 	if(InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New(SIn);
+	}
+	if(InterpolatorType == TLinear::GetType()) {
+		return TLinear::New(SIn);
 	}
 	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }

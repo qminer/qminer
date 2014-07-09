@@ -671,6 +671,51 @@ public:
     static TStr GetType() { return "merger"; }
 };
 
+//////////////////////////////////////////////
+// StMerger
+
+class TStMerger : public TQm::TStreamAggr {
+private:
+	/// Map from store id to time field
+    TIntV InTimeFieldIdV;
+	/// Map of old store id and field id to new field id
+	TVec<TMergerFieldMap> FieldMapV;  
+	
+	
+	TVec<TVec<uint64>> WaitingList;			                //buffer of timestamps before interpolation
+	TVec<TVec<TPair<uint64,TFlt>>> BufferMatrix;			//bufer of timestamps with interpolations before adding them as records
+	THash<TPair<TStr,TStr> , TStr> HashTable;				//Hash table;(Store,Field)-> TStr
+	  
+
+	//TWPt<TQm::TBase> Base_; //input Base
+	TStr OutStoreNm;			//name of new store
+	TWPt<TStore> OutStore;
+	TStr TimeFieldNm;		//name of time field in new store
+	TVec<TSignalProc::PInterpolator> InterpTableV;	  //table of interpolations for each field
+	
+	
+	TInt TimeFieldId;
+	
+protected:	
+	void OnAddRec(const TQm::TRec& Rec	);
+	
+public:
+	//TStMerger1(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
+    //    const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, 
+    //    const TStr& NewTimeFieldNm, const bool& CreateStoreP = false);
+	TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
+	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& NewStoreNm, const TStr& NewTmFieldNm,
+						   const bool& CreateStoreP);
+	TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
+	//TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
+	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
+	static PStreamAggr New(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
+					 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, 
+					 const TStr& OutTimeFieldNm, const bool& CreateStoreP);
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	PJsonVal SaveJson(const int& Limit) const;
+};
+
 ///////////////////////////////
 // Resampler
 class TResampler : public TStreamAggr {
@@ -734,6 +779,7 @@ public:
 		const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
 		TWPt<TQm::TStreamAggrBase>& SABase);
 	static TStrV ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
 
 };
 
