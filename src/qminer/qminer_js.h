@@ -1462,6 +1462,9 @@ public:
 	//#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 	JsDeclareFunction(at);
+	//#- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	//#- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	JsDeclareFunction(subVec);
 	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
 	//#- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
@@ -1527,6 +1530,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, at);	
+		JsRegisterFunction(TmpTemp, subVec);
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
 		JsRegisterFunction(TmpTemp, push);
@@ -1563,6 +1567,38 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::at(const v8::Arguments& Args) {
 	QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector at: index out of bounds");
 	TVal result = JsVec->Vec[Index];
 	return TAux::GetObjVal(result, HandleScope);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsVecUtil::IsArgClass(Args, 0, "TIntV")) {
+			TJsIntV* IdxV = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}
+		else if (Args[0]->IsArray()) {
+			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
+			v8::Handle<v8::Object> V8IdxVObj = v8::Handle<v8::Object>::Cast(V8IdxV);
+			v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(V8IdxVObj->GetInternalField(0));
+			TJsIntV* IdxV = static_cast<TJsIntV*>(WrappedObject->Value());
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}		
+	}
+	return HandleScope.Close(v8::Undefined());
 }
 
 template <class TVal, class TAux>
