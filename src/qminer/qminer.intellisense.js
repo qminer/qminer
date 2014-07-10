@@ -144,8 +144,8 @@ var process = {
 
 	},
 
-	/// <field value = "_sysStatJson"> statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.</field>
-	sysStat: _sysStatJson,
+	/// <field value = "_objJSON"> statistics about system and qminer process (E.g. memory consumption).</field>
+	sysStat: _objJSON,
 	sleep: function () {
 	/// <signature>
 	/// <summary> Halts execution for the given amount of milliseconds `millis`.</summary>
@@ -1326,11 +1326,72 @@ var _batchModel = {
 
 	},
 
+	/// <field value = "_strArr"> array of categories for which we have models</field>
+	target: _strArr,
 	predictTop: function () {
 	/// <signature>
 	/// <summary> creates feature vector from record `rec`,</summary>
 	/// <param name="_rec" value="_rec">param</param>
 	/// <returns value ="_labelStr"/>
+	/// </signature>
+
+	},
+
+}
+
+var _httpResponse = {
+	setStatusCode: function () {
+	/// <signature>
+	/// <summary> sets status code (integer)</summary>
+	/// <param name="_statusCode" value="_statusCode">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	close: function () {
+	/// <signature>
+	/// <summary> closes and executes the response</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	add: function () {
+	/// <signature>
+	/// <summary> adds `dataStr` (string) to request body</summary>
+	/// <param name="_dataStr" value="_dataStr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> adds `dataJSON` (JSON object) to request body</summary>
+	/// <param name="_dataJSON" value="_dataJSON">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	send: function () {
+	/// <signature>
+	/// <summary> adds `dataStr` (string) and closes the response</summary>
+	/// <param name="_dataStr" value="_dataStr">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> adds `dataJSON` (JSON object) and closes the response</summary>
+	/// <param name="_dataJSON" value="_dataJSON">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	setContentType: function () {
+	/// <signature>
+	/// <summary> sets content type (string)</summary>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
@@ -1896,6 +1957,187 @@ var _lloydModel = {
 
 }
 
+var http = {
+	onDelete: function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onDelete("test", function (req, resp) { })` executed from `script.js` on localhost will execute a delete request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	onRequest: function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_verb" value="_verb">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	get: function () {
+	/// <signature>
+	/// <summary> gets url, but does nothing with response</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	onPut: function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onPut("test", function (req, resp) { })` executed from `script.js` on localhost will execute a put request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	getStr: function () {
+	/// <signature>
+	/// <summary> gets url, but does nothing with response</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	postStr: function () {
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string)</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	jsonp: function () {
+	/// <signature>
+	/// <summary> packaging reply as jsonp when callback parameter is provided in URL</summary>
+	/// <param name="_httpRequest" value="_httpRequest">param</param>
+	/// <param name="_httpResponse" value="_httpResponse">param</param>
+	/// <param name="_dataJSON" value="_dataJSON">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	onPatch: function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onPatch("test", function (req, resp) { })` executed from `script.js` on localhost will execute a patch request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	post: function () {
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string)</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	onPost: function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onPost("test", function (req, resp) { })` executed from `script.js` on localhost will execute a post request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	onGet: function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onGet("test", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+}
+
 var _recLinRegModel = {
 	predict: function () {
 	/// <signature>
@@ -1929,6 +2171,84 @@ var _recLinRegModel = {
 
 	},
 
+}
+
+var _twitterParser = {
+	rawJsonToStoreJson: function () {
+	/// <signature>
+	/// <summary> transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`</summary>
+	/// <param name="_rawTweetJSON" value="_rawTweetJSON">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+
+	},
+
+}
+
+var _tm = {
+	/// <field value = "_str"> day of week (string)</field>
+	dayOfWeek: _str,
+	sub: function () {
+	/// <signature>
+	/// <summary> subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm2"/>
+	/// </signature>
+
+	},
+
+	toJSON: function () {
+	/// <signature>
+	/// <summary> returns json representation of time</summary>
+	/// <returns value ="_tmJSON"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
+	string: _str,
+	/// <field value = "_num"> hour (number)</field>
+	hour: _num,
+	/// <field value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
+	timestamp: _num,
+	/// <field value = "_tm2"> returns new time object represented current UTC time</field>
+	nowUTC: _tm2,
+	/// <field value = "_str"> string representation of date (e.g. 2014-05-29)</field>
+	dateString: _str,
+	/// <field value = "_num"> month (number)</field>
+	month: _num,
+	parse: function () {
+	/// <signature>
+	/// <summary> parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value ="_tm2"/>
+	/// </signature>
+
+	},
+
+	add: function () {
+	/// <signature>
+	/// <summary> adds `val` to the time; `unit` defines the unit</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm2"/>
+	/// </signature>
+
+	},
+
+	/// <field value = "_num"> year (number)</field>
+	year: _num,
+	/// <field value = "_num"> millisecond (number)</field>
+	milisecond: _num,
+	/// <field value = "_tm2"> returns new time object representing current local time</field>
+	now: _tm2,
+	/// <field value = "_num"> day (number)</field>
+	day: _num,
+	/// <field value = "_num"> minute (number)</field>
+	minute: _num,
+	/// <field value = "_num"> second (number)</field>
+	second: _num,
 }
 
 var _htModel = {
@@ -2337,6 +2657,61 @@ var _key = {
 	voc: _strArr,
 }
 
+var qm = {
+	search: function () {
+	/// <signature>
+	/// <summary> execute `query` (Json) specified in [QMiner Query Language](Query Language)</summary>
+	/// <param name="_query" value="_query">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+
+	},
+
+	gc: function () {
+	/// <signature>
+	/// <summary> start garbage collection to remove records outside time windows</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	printStreamAggr: function () {
+	/// <signature>
+	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
+	/// <param name="_store" value="_store">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	createStore: function () {
+	/// <signature>
+	/// <summary> create new store(s) based on given `storeDef` (Json) [definition](Store Definition)</summary>
+	/// <param name="_storeDef" value="_storeDef">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	store: function () {
+	/// <signature>
+	/// <summary> store with name `storeName`; `store = null` when no such store</summary>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_store"/>
+	/// </signature>
+
+	},
+
+	getStoreList: function () {
+	/// <signature>
+	/// <summary> an array of strings listing all existing stores</summary>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	},
+
+}
+
 var fs = {
 	rename: function () {
 	/// <signature>
@@ -2443,7 +2818,7 @@ var fs = {
 	/// <signature>
 	/// <summary> returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.</summary>
 	/// <param name="_fileName" value="_fileName">param</param>
-	/// <returns value ="_infoJson"/>
+	/// <returns value ="_fileInfoJson"/>
 	/// </signature>
 
 	},
@@ -2692,55 +3067,29 @@ var _intVec = {
 
 }
 
-var qm = {
-	search: function () {
+var _twitter = {
+	getTwitterStoreJson: function () {
 	/// <signature>
-	/// <summary> execute `query` (Json) specified in [QMiner Query Language](Query Language)</summary>
-	/// <param name="_query" value="_query">param</param>
-	/// <returns value ="_rs"/>
+	/// <summary> returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages</summary>
+	/// <returns value ="_twitterDef"/>
 	/// </signature>
 
 	},
 
-	gc: function () {
+	newParser: function () {
 	/// <signature>
-	/// <summary> start garbage collection to remove records outside time windows</summary>
+	/// <summary> creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:</summary>
+	/// <returns value ="_twitterParser"/>
+	/// </signature>
+
+	},
+
+	RawToStore: function () {
+	/// <signature>
+	/// <summary> converts twitter JSON lines to `twitter.getTwitterStoreJson()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	printStreamAggr: function () {
-	/// <signature>
-	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
-	/// <param name="_store" value="_store">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	createStore: function () {
-	/// <signature>
-	/// <summary> create new store(s) based on given `storeDef` (Json) [definition](Store Definition)</summary>
-	/// <param name="_storeDef" value="_storeDef">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	},
-
-	store: function () {
-	/// <signature>
-	/// <summary> store with name `storeName`; `store = null` when no such store</summary>
-	/// <param name="_storeName" value="_storeName">param</param>
-	/// <returns value ="_store"/>
-	/// </signature>
-
-	},
-
-	getStoreList: function () {
-	/// <signature>
-	/// <summary> an array of strings listing all existing stores</summary>
-	/// <returns value ="_strArr"/>
 	/// </signature>
 
 	},
@@ -2851,6 +3200,7 @@ _addIntellisenseVar("_joinFrequency", "1");
 _addIntellisenseVar("_millis", "1");
 _addIntellisenseVar("_thresh", "1");
 _addIntellisenseVar("_iter", "1");
+_addIntellisenseVar("_statusCode", "1");
 
 // arrays
 _addIntellisenseVar("_array", "[]");
@@ -2883,6 +3233,9 @@ _addIntellisenseVar("_scriptFNm", "''");
 _addIntellisenseVar("_prefixStr", "''");
 _addIntellisenseVar("_dirName", "''");
 _addIntellisenseVar("_alAnswer", "''");
+_addIntellisenseVar("_url", "''");
+_addIntellisenseVar("_mimeType", "''");
+_addIntellisenseVar("_dataStr", "''");
 
 // json objects
 _addIntellisenseVar("_obj", "{}");
@@ -2890,6 +3243,8 @@ _addIntellisenseVar("_objJSON", "{}");
 _addIntellisenseVar("_paramJSON", "{}");
 _addIntellisenseVar("_aggrsJSON", "{}");
 _addIntellisenseVar("_aggrQueryJSON", "{}");
+_addIntellisenseVar("_dataJSON", "{}");
+_addIntellisenseVar("_tmJSON", "{year:_num, month:_num, day:_num, hour:_num, minute:_num, second:_num}");
 
 // other structures
 _addIntellisenseVar("_sortRes", "{ vec: _vec, perm: _intVec }");
@@ -2904,6 +3259,15 @@ _addIntellisenseVar("_comparatorCallback", "function (_rec, _rec2) { return _boo
 _addIntellisenseVar("_langOptionsJson", "{stemmer: _strArr , stopwords: _strArr}");
 _addIntellisenseVar("_scoreArr", "{}");
 _addIntellisenseVar("_perceptronParam", "{w: _vec , b: _num}");
+_addIntellisenseVar("_fileInfoJson", "{createTime:_str, lastAccessTime:_str, lastWriteTime:_str, size:_num}");
+_addIntellisenseVar("_httpStrSuccessCallback", "function (_str) {}");
+_addIntellisenseVar("_httpJsonSuccessCallback", "function (_objJSON) {}");
+_addIntellisenseVar("_httpErrorCallback", "function (_message) {}");
+
+_addIntellisenseVar("_httpRequestCallback", "function (_httpRequest,_httpResponse) {}");
+_addIntellisenseVar("_httpRequest", "{host:_str, connection:_str, cache-control:_str, accept:_str, user-agent:_str, accept-language:_str, method:_str, scheme:_str, path:_str, args:_obj, data:_str, params:_obj}");
+
+
 
 
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
@@ -2955,19 +3319,21 @@ _addIntellisenseVar("_spMat3", "_spMat");
 _addIntellisenseVar("_rs2", "_rs");
 _addIntellisenseVar("_rs3", "_rs");
 _addIntellisenseVar("_joinRec", "_rec");
-
+_addIntellisenseVar("_tm2", "_tm");
 
 require = function (libName) {
     if (libName === 'analytics.js') return _analytics;
     if (libName === 'utilities.js') return _utilities;
     if (libName === 'assert.js') return _assert;
     if (libName === 'twitter.js') return _twitter;
+    if (libName === 'time.js') return _tm;
 };
 
 intellisenseIgnore["_analytics"] = "{}";
 intellisenseIgnore["_utilities"] = "{}";
 intellisenseIgnore["_assert"] = "{}";
 intellisenseIgnore["_twitter"] = "{}";
+intellisenseIgnore["_tm"] = "{}";
 
 
 // implement ignore
