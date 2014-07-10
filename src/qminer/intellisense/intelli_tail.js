@@ -41,6 +41,7 @@ _addIntellisenseVar("_joinFrequency", "1");
 _addIntellisenseVar("_millis", "1");
 _addIntellisenseVar("_thresh", "1");
 _addIntellisenseVar("_iter", "1");
+_addIntellisenseVar("_statusCode", "1");
 
 // arrays
 _addIntellisenseVar("_array", "[]");
@@ -75,6 +76,7 @@ _addIntellisenseVar("_dirName", "''");
 _addIntellisenseVar("_alAnswer", "''");
 _addIntellisenseVar("_url", "''");
 _addIntellisenseVar("_mimeType", "''");
+_addIntellisenseVar("_dataStr", "''");
 
 // json objects
 _addIntellisenseVar("_obj", "{}");
@@ -82,6 +84,8 @@ _addIntellisenseVar("_objJSON", "{}");
 _addIntellisenseVar("_paramJSON", "{}");
 _addIntellisenseVar("_aggrsJSON", "{}");
 _addIntellisenseVar("_aggrQueryJSON", "{}");
+_addIntellisenseVar("_dataJSON", "{}");
+_addIntellisenseVar("_tmJSON", "{year:_num, month:_num, day:_num, hour:_num, minute:_num, second:_num}");
 
 // other structures
 _addIntellisenseVar("_sortRes", "{ vec: _vec, perm: _intVec }");
@@ -100,6 +104,10 @@ _addIntellisenseVar("_fileInfoJson", "{createTime:_str, lastAccessTime:_str, las
 _addIntellisenseVar("_httpStrSuccessCallback", "function (_str) {}");
 _addIntellisenseVar("_httpJsonSuccessCallback", "function (_objJSON) {}");
 _addIntellisenseVar("_httpErrorCallback", "function (_message) {}");
+
+_addIntellisenseVar("_httpRequestCallback", "function (_httpRequest,_httpResponse) {}");
+_addIntellisenseVar("_httpRequest", "{host:_str, connection:_str, cache-control:_str, accept:_str, user-agent:_str, accept-language:_str, method:_str, scheme:_str, path:_str, args:_obj, data:_str, params:_obj}");
+
 
 
 
@@ -152,19 +160,21 @@ _addIntellisenseVar("_spMat3", "_spMat");
 _addIntellisenseVar("_rs2", "_rs");
 _addIntellisenseVar("_rs3", "_rs");
 _addIntellisenseVar("_joinRec", "_rec");
-
+_addIntellisenseVar("_tm2", "_tm");
 
 require = function (libName) {
     if (libName === 'analytics.js') return _analytics;
     if (libName === 'utilities.js') return _utilities;
     if (libName === 'assert.js') return _assert;
     if (libName === 'twitter.js') return _twitter;
+    if (libName === 'time.js') return _tm;
 };
 
 intellisenseIgnore["_analytics"] = "{}";
 intellisenseIgnore["_utilities"] = "{}";
 intellisenseIgnore["_assert"] = "{}";
 intellisenseIgnore["_twitter"] = "{}";
+intellisenseIgnore["_tm"] = "{}";
 
 
 // implement ignore

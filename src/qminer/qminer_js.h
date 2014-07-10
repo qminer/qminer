@@ -2376,7 +2376,7 @@ public:
     //#- `a = process.args` -- array of command-line arguments 
     //#     used to start current QMiner instance
     JsDeclareProperty(args);
-    //#- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+    //#- `objJSON = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
     JsDeclareProperty(sysStat);
 	//#- `str = process.scriptNm` -- Returns the name of the script.
 	JsDeclareProperty(scriptNm);
@@ -2596,14 +2596,14 @@ public:
 	//#- `http.getStr(url, httpStrSuccessCallback)` -- gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success. 
     //#- `http.getStr(url, httpStrSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(get);
-    //#- `http.post(url, mimeType, data)`
-    //#- `http.post(url, mimeType, data, success_callback)`
-    //#- `http.post(url, mimeType, data, success_callback, error_callback)`
-    //#- `http.postStr(url)`
-    //#- `http.postStr(url, mimeType, data, success_callback)`
-    //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
+    //#- `http.post(url, mimeType, data)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+    //#- `http.post(url, mimeType, data, httpJsonSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+    //#- `http.post(url, mimeType, data, httpJsonSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+    //#- `http.postStr(url)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+    //#- `http.postStr(url, mimeType, data, httpStrSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.
+    //#- `http.postStr(url, mimeType, data, httpStrSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(post);
-    //#- `http.onRequest(path, verb, function (request, response) { /*...*/ })` -- paths
+    //#- `http.onRequest(path, verb, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 	JsDeclareFunction(onRequest);
     //#JSIMPLEMENT:src/qminer/http.js    
 };
@@ -2643,15 +2643,17 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `resp.setStatusCode(statusCode)`
+    //#- `httpResponse.setStatusCode(statusCode)` -- sets status code (integer)
 	JsDeclareFunction(setStatusCode);
-    //#- `resp.setStatusCode(mimeType)`
+    //#- `httpResponse.setContentType(mimeType)` -- sets content type (string)
     JsDeclareFunction(setContentType);
-    //#- `resp.add(data)`
+    //#- `httpResponse.add(dataStr)` -- adds `dataStr` (string) to request body
+	//#- `httpResponse.add(dataJSON)` -- adds `dataJSON` (JSON object) to request body
 	JsDeclareFunction(add);	
-    //#- `resp.close()`
+    //#- `httpResponse.close()` -- closes and executes the response
 	JsDeclareFunction(close);
-    //#- `resp.send(data)`
+    //#- `httpResponse.send(dataStr)` -- adds `dataStr` (string) and closes the response
+	//#- `httpResponse.send(dataJSON)` -- adds `dataJSON` (JSON object) and closes the response
     JsDeclareFunction(send);
 };
 
@@ -2661,7 +2663,7 @@ public:
 //# ### Date-Time
 //#
 //# Wrapper around GLib's TTm. Used as return for `DateTime` field type. 
-//# New one can be created using `tm = require('time')`.
+//# New one can be created using `tm = require('time.js')`.
 class TJsTm {
 public:
     /// Date-time
@@ -2681,41 +2683,40 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#
-    //#- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
+    //#- `str = tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
     JsDeclareProperty(string);
-    //#- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
+    //#- `str = tm.dateString` -- string representation of date (e.g. 2014-05-29)
     JsDeclareProperty(dateString);
-    //#- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
+    //#- `num = tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
     JsDeclareProperty(timestamp);
-    //#- `tm.year`
+    //#- `num = tm.year` -- year (number)
     JsDeclareProperty(year);
-    //#- `tm.month`
+    //#- `num = tm.month` -- month (number)
     JsDeclareProperty(month);
-    //#- `tm.day`
+    //#- `num = tm.day` -- day (number)
     JsDeclareProperty(day);
-    //#- `tm.dayOfWeek`
+    //#- `str = tm.dayOfWeek` -- day of week (string)
     JsDeclareProperty(dayOfWeek);
-    //#- `tm.hour`
+    //#- `num = tm.hour` -- hour (number)
     JsDeclareProperty(hour);
-    //#- `tm.minute`
+    //#- `num = tm.minute` -- minute (number)
     JsDeclareProperty(minute);
-    //#- `tm.second`
+    //#- `num = tm.second` -- second (number)
     JsDeclareProperty(second);
-    //#- `tm.milisecond`
+    //#- `num = tm.milisecond` -- millisecond (number)
     JsDeclareProperty(milisecond);
-    //#- `tm.now` -- returns new time object representing current local time
+    //#- `tm2 = tm.now` -- returns new time object representing current local time
     JsDeclareProperty(now);
-    //#- `tm.nowUTC` -- returns new time object represented current UTC time
+    //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
     JsDeclareProperty(nowUTC);    
-    //#- `tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+    //#- `tm2 = tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
     //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(add);
-    //#- `tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defines the 
-    //#     unit, same as in `add`
+    //#- `tm2 = tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(sub); 
-    //#- `tm.toJSON()` -- returns json representation of time    
+    //#- `tmJSON = tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
-    //#- `date = tm.parse('2014-05-29T10:09:12')` -- parses string and returns it
+    //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
 };

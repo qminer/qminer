@@ -69,7 +69,7 @@ function createBatchModel(featureSpace, models) {
 //#     if target field string or string vector, the result is a SVM classification model,
 //#     and if target field is a float, the result is a SVM regression model; resulting 
 //#     model has the following functions:
-//#   - `batchModel.target` -- array of categories for which we have models
+//#   - `strArr = batchModel.target` -- array of categories for which we have models
 //#   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
 //#     through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
 //#   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
