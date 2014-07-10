@@ -1307,7 +1307,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal): TS
     TStr OutStoreNm = ParamVal->GetObjStr("outStore");
 	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("MergingMapV");
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
 	TVec<TPair<TStr,TStr>> StoresAndFieldsV;
 	TStrV InterpolationsV;
 	for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
