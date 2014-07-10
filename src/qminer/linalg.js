@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
+/// <reference path="qminer.js">
 
 /////// PRINTING
 //#- `la.printVec(vecec)` -- print the vector `vec` in the console
@@ -162,6 +163,12 @@ la.eye = function(dim) {
     return identity;
 };
 
+//#- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
+la.eye = function (dim) {
+    var vec = la.ones(dim);
+    return vec.spDiag();
+};
+
 // generate a C++ vector of ones
 //#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 la.ones = function(k) {
@@ -269,5 +276,54 @@ la.conjgrad = function (A, b, x) {
     return x;
 }
 
+
+//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+la.pdist2 = function (mat, mat2) {
+    var snorm1 = la.square(mat.colNorms());
+    var snorm2 = la.square(mat2.colNorms());
+    var ones_1 = la.ones(mat.cols);
+    var ones_2 = la.ones(mat2.cols);
+    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+    return D;
+}
+
+//#- `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
+la.repmat = function (mat, m, n) {
+    var rows = mat.rows;
+    var cols = mat.cols;
+    // a block column matrix where blocks are rows-by-rows identity matrices
+    var rowIdxVec1 = la.newIntVec({ "vals": m * rows });
+    var colIdxVec1 = la.newIntVec({ "vals": m * rows });
+    var valVec1 = la.ones(m * rows);
+    for (var rowCellN = 0; rowCellN < m; rowCellN++) {
+        for (var colN = 0; colN < rows; colN++) {
+            var idx = rowCellN * rows + colN;
+            colIdxVec1[idx] = colN;
+            rowIdxVec1[idx] = idx;
+        }
+    }
+    var spMat1 = la.newSpMat(rowIdxVec1, colIdxVec1, valVec1);
+    // a block row matrix where blocks are cols-by-cols identity matrices
+    var rowIdxVec2 = la.newIntVec({ "vals": n * cols });
+    var colIdxVec2 = la.newIntVec({ "vals": n * cols });
+    var valVec2 = la.ones(n * cols);
+    for (var colCellN = 0; colCellN < n; colCellN++) {
+        for (var rowN = 0; rowN < cols; rowN++) {
+            var idx = colCellN * cols + rowN;
+            rowIdxVec2[idx] = rowN;
+            colIdxVec2[idx] = idx;
+        }
+    }
+    var spMat2 = la.newSpMat(rowIdxVec2, colIdxVec2, valVec2);
+    var result = spMat1.multiply(mat).multiply(spMat2);
+    return result;
+}
+
+//#- `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+la.repvec = function (vec, m, n) {
+    var temp = vec.toMat();
+    var result = la.repmat(temp, m, n);
+    return result;
+}
 
 var linalg = la;

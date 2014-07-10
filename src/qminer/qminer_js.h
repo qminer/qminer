@@ -1065,8 +1065,7 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(typeName, paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates) 
-    //#     of type `typeName` to the store; stream aggregate is passed `paramJSON` JSon
+    //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
@@ -1514,6 +1513,9 @@ public:
 	JsDeclareTemplatedFunction(norm);
 	//#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(sparse);
+	//#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
+	//#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
+	JsDeclareTemplatedFunction(toMat);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
 typedef TJsVec<TInt, TAuxIntV> TJsIntV;
@@ -1546,6 +1548,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, spDiag);	
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, sparse);
+		JsRegisterFunction(TmpTemp, toMat);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
 	}
@@ -2368,8 +2371,8 @@ public:
     //#
 	//# **Functions and properties:**
 	//#
-	//#- `process.stop()` -- Stopes the current process.
-	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
+	//#- `process.stop()` -- Stops the current process.
+	//#- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
     JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
