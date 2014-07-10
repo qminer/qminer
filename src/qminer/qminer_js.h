@@ -1065,8 +1065,7 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(typeName, paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates) 
-    //#     of type `typeName` to the store; stream aggregate is passed `paramJSON` JSon
+    //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
@@ -1463,6 +1462,9 @@ public:
 	//#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 	JsDeclareFunction(at);
+	//#- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	//#- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	JsDeclareFunction(subVec);
 	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
 	//#- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
@@ -1514,6 +1516,9 @@ public:
 	JsDeclareTemplatedFunction(norm);
 	//#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(sparse);
+	//#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
+	//#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
+	JsDeclareTemplatedFunction(toMat);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
 typedef TJsVec<TInt, TAuxIntV> TJsIntV;
@@ -1525,6 +1530,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, at);	
+		JsRegisterFunction(TmpTemp, subVec);
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
 		JsRegisterFunction(TmpTemp, push);
@@ -1546,6 +1552,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, spDiag);	
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, sparse);
+		JsRegisterFunction(TmpTemp, toMat);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
 	}
@@ -1560,6 +1567,38 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::at(const v8::Arguments& Args) {
 	QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector at: index out of bounds");
 	TVal result = JsVec->Vec[Index];
 	return TAux::GetObjVal(result, HandleScope);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsVecUtil::IsArgClass(Args, 0, "TIntV")) {
+			TJsIntV* IdxV = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}
+		else if (Args[0]->IsArray()) {
+			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
+			v8::Handle<v8::Object> V8IdxVObj = v8::Handle<v8::Object>::Cast(V8IdxV);
+			v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(V8IdxVObj->GetInternalField(0));
+			TJsIntV* IdxV = static_cast<TJsIntV*>(WrappedObject->Value());
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}		
+	}
+	return HandleScope.Close(v8::Undefined());
 }
 
 template <class TVal, class TAux>
@@ -2368,8 +2407,8 @@ public:
     //#
 	//# **Functions and properties:**
 	//#
-	//#- `process.stop()` -- Stopes the current process.
-	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
+	//#- `process.stop()` -- Stops the current process.
+	//#- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
     JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);

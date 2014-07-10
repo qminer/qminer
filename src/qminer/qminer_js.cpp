@@ -2417,11 +2417,17 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 	TVec<TIntFltKdV> Mat;	
 	if (Args.Length() > 0) {
 		// corrdinate
-		if (Args.Length() == 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV") && TJsObjUtil<TJsSpMat>::IsArgInt32(Args, 3)) {
+		if (Args.Length() >= 3 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV")) {
 			TJsIntV* RowIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
 			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
 			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
-			int Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			int Cols = -1;
+			if (Args.Length() == 4) {
+				Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			}
+			if (Cols == -1) {
+				Cols = ColIdxV->Vec.GetMxVal() + 1;
+			}
 			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
 		}
 		else {
@@ -2742,6 +2748,30 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
 	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
 	return HandleScope.Close(JsResult);	
+}
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::toMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);
+}
+
+
+template <>
+v8::Handle<v8::Value> TJsVec<TInt, TAuxIntV>::toMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	int Len = JsVec->Vec.Len();
+	TFltV Temp(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		Temp[ElN] = JsVec->Vec[ElN];
+	}
+	TFltVV Res(Temp, Len, 1);
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);
 }
 
 ///////////////////////////////
@@ -3223,6 +3253,8 @@ v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
 	return HandleScope.Close(JsResult);
 	return HandleScope.Close(v8::Undefined());
 }
+
+
 
 ///////////////////////////////
 // QMiner-SparseVec

@@ -34,8 +34,7 @@ var _store = {
 	recs: _rs,
 	addStreamAggr: function () {
 	/// <signature>
-	/// <summary> add new [Stream Aggregate](Stream-Aggregates)</summary>
-	/// <param name="_typeName" value="_typeName">param</param>
+	/// <summary> add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object</summary>
 	/// <param name="_paramJSON" value="_paramJSON">param</param>
 	/// <returns value =""/>
 	/// </signature>
@@ -132,12 +131,12 @@ var process = {
 	args: _a,
 	stop: function () {
 	/// <signature>
-	/// <summary> Stopes the current process.</summary>
+	/// <summary> Stops the current process.</summary>
 	/// <returns value =""/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> Stopes the current process and returns `returnCode</summary>
+	/// <summary> Stops the current process and returns `returnCode</summary>
 	/// <param name="_returnCode" value="_returnCode">param</param>
 	/// <returns value =""/>
 	/// </signature>
@@ -166,19 +165,28 @@ var process = {
 }
 
 var _vec = {
-	normalize: function () {
+	multiply: function () {
 	/// <signature>
-	/// <summary> normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.</summary>
-	/// <returns value =""/>
+	/// <summary>`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_vec2"/>
 	/// </signature>
 
 	},
 
-	sort: function () {
+	at: function () {
 	/// <signature>
-	/// <summary> `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order</summary>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value ="_vec2"/>
+	/// <summary> gets the value `num` of vector `vec` at index `idx`  (0-based indexing)</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	normalize: function () {
+	/// <signature>
+	/// <summary> normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.</summary>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
@@ -192,19 +200,10 @@ var _vec = {
 
 	},
 
-	sortPerm: function () {
+	toMat: function () {
 	/// <signature>
-	/// <summary> returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.</summary>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value ="_sortRes"/>
-	/// </signature>
-
-	},
-
-	getMaxIdx: function () {
-	/// <signature>
-	/// <summary> returns the integer index `idx` of the maximal element in vector `vec`</summary>
-	/// <returns value ="_idx"/>
+	/// <summary> `mat` is a matrix with a single column that is equal to dense vector `vec`.</summary>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	},
@@ -234,11 +233,63 @@ var _vec = {
 
 	},
 
-	push: function () {
+	unshift: function () {
 	/// <signature>
-	/// <summary> append value `num` to vector `vec`. Returns `len` - the length  of the modified array</summary>
+	/// <summary> insert value `num` to the begining of vector `vec`. Returns the length of the modified array.</summary>
 	/// <param name="_num" value="_num">param</param>
 	/// <returns value ="_len"/>
+	/// </signature>
+
+	},
+
+	inner: function () {
+	/// <signature>
+	/// <summary> `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.</summary>
+	/// <param name="_vec2" value="_vec2">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	},
+
+	spDiag: function () {
+	/// <signature>
+	/// <summary> `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.</summary>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+
+	},
+
+	print: function () {
+	/// <signature>
+	/// <summary> print vector in console</summary>
+	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	subVec: function () {
+	/// <signature>
+	/// <summary> gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)</summary>
+	/// <param name="_intVec" value="_intVec">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	},
+
+	sort: function () {
+	/// <signature>
+	/// <summary> `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order</summary>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value ="_vec2"/>
+	/// </signature>
+
+	},
+
+	sortPerm: function () {
+	/// <signature>
+	/// <summary> returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.</summary>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value ="_sortRes"/>
 	/// </signature>
 
 	},
@@ -253,18 +304,10 @@ var _vec = {
 
 	},
 
-	sparse: function () {
+	getMaxIdx: function () {
 	/// <signature>
-	/// <summary> `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.</summary>
-	/// <returns value ="_spVec"/>
-	/// </signature>
-
-	},
-
-	print: function () {
-	/// <signature>
-	/// <summary> print vector in console</summary>
-	/// <returns value =""/>
+	/// <summary> returns the integer index `idx` of the maximal element in vector `vec`</summary>
+	/// <returns value ="_idx"/>
 	/// </signature>
 
 	},
@@ -280,37 +323,27 @@ var _vec = {
 
 	},
 
-	at: function () {
+	norm: function () {
 	/// <signature>
-	/// <summary> gets the value `num` of vector `vec` at index `idx`  (0-based indexing)</summary>
-	/// <param name="_idx" value="_idx">param</param>
+	/// <summary> `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.</summary>
 	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
 
-	spDiag: function () {
+	sparse: function () {
 	/// <signature>
-	/// <summary> `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.</summary>
-	/// <returns value ="_spMat"/>
+	/// <summary> `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.</summary>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 
 	},
 
-	unshift: function () {
+	push: function () {
 	/// <signature>
-	/// <summary> insert value `num` to the begining of vector `vec`. Returns the length of the modified array.</summary>
+	/// <summary> append value `num` to vector `vec`. Returns `len` - the length  of the modified array</summary>
 	/// <param name="_num" value="_num">param</param>
 	/// <returns value ="_len"/>
-	/// </signature>
-
-	},
-
-	multiply: function () {
-	/// <signature>
-	/// <summary>`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_vec2"/>
 	/// </signature>
 
 	},
@@ -320,23 +353,6 @@ var _vec = {
 	/// <summary>`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_vec3"/>
-	/// </signature>
-
-	},
-
-	norm: function () {
-	/// <signature>
-	/// <summary> `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-
-	},
-
-	inner: function () {
-	/// <signature>
-	/// <summary> `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.</summary>
-	/// <param name="_vec2" value="_vec2">param</param>
-	/// <returns value ="_num"/>
 	/// </signature>
 
 	},
@@ -882,6 +898,17 @@ var la = {
 
 	},
 
+	repmat: function () {
+	/// <signature>
+	/// <summary> creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_m" value="_m">param</param>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value ="_mat2"/>
+	/// </signature>
+
+	},
+
 	randIntVec: function () {
 	/// <signature>
 	/// <summary> returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`</summary>
@@ -898,6 +925,17 @@ var la = {
 	/// <param name="_num" value="_num">param</param>
 	/// <param name="_num2" value="_num2">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	},
+
+	repvec: function () {
+	/// <signature>
+	/// <summary> creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_m" value="_m">param</param>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	},
@@ -938,6 +976,16 @@ var la = {
 
 	},
 
+	pdist2: function () {
+	/// <signature>
+	/// <summary> computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat3"/>
+	/// </signature>
+
+	},
+
 	printVec: function () {
 	/// <signature>
 	/// <summary> print the vector `vec` in the console</summary>
@@ -969,6 +1017,15 @@ var la = {
 	/// <summary> clone an int vector `vec2`</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	},
+
+	speye: function () {
+	/// <signature>
+	/// <summary> `spMat` is a `dim`-by-`dim` sparse identity matrix</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	},
@@ -2993,6 +3050,14 @@ var _intVec = {
 
 	},
 
+	toMat: function () {
+	/// <signature>
+	/// <summary> `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.</summary>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
 	getMaxIdx: function () {
 	/// <signature>
 	/// <summary> returns the integer index `idx` of the maximal element in integer vector `vec`</summary>
@@ -3061,6 +3126,15 @@ var _intVec = {
 	/// <signature>
 	/// <summary> print integer vector in console</summary>
 	/// <returns value =""/>
+	/// </signature>
+
+	},
+
+	subVec: function () {
+	/// <signature>
+	/// <summary> gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)</summary>
+	/// <param name="_intVec" value="_intVec">param</param>
+	/// <returns value ="_intVec2"/>
 	/// </signature>
 
 	},
