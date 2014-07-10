@@ -1,4 +1,8 @@
 bash genJSdoc.sh
+cd src/qminer/intellisense
+python intellisense.py
+python procintelli.py
+cd ../../..
 cp docjs/jsdocfinal.txt ../qminer.wiki/JavaScript.md
 cd ..
 cd qminer.wiki

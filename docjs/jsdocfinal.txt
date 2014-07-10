@@ -100,8 +100,7 @@ var record = store[1234];
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-- `store.addStreamAggr(typeName, paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates) 
-    of type `typeName` to the store; stream aggregate is passed `paramJSON` JSon
+- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
 - `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
 
@@ -248,6 +247,7 @@ several functions from linear algebra.
 - `vec = la.randIntVec(num, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`
 - `mat = la.genRandomMatrix(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 - `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
+- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
 - `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 - `intVec = la.rangeVec(num, num2)` -- `intVec` is an integer vector: `[num, num + 1, ..., num2].
 - `la.square(vec)` -- squares all elements of a vector `vec` (inplace).
@@ -259,6 +259,9 @@ several functions from linear algebra.
 - `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
 - `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
 - `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
+- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+- `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
+- `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
 
 ### Vector
 
@@ -276,6 +279,8 @@ var intVec = la.newIntVec(); //empty vector
 
 - `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 - `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
+- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
 - `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 - `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
 - `intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)
@@ -306,6 +311,8 @@ var intVec = la.newIntVec(); //empty vector
 - `spMat = vec.spDiag()` -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
 - `num = vec.norm()` -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.
 - `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
+- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
+- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
 
 ### Matrix (dense matrix)
 
@@ -655,8 +662,8 @@ The HoeffdingTree algorithm comes with many parameters:
 
 **Functions and properties:**
 
-- `process.stop()` -- Stopes the current process.
-- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
+- `process.stop()` -- Stops the current process.
+- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
 - `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
