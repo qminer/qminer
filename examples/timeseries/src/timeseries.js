@@ -5,7 +5,7 @@ var analytics = require('analytics.js');
 var Raw = qm.store("Raw");
 var Resampled = qm.store("Resampled");
 
-// Initialize resampler from Raw to Resampled store. This results in
+// Initialize resampler from Raw to Resampled store. This results
 // in an equally spaced time series with 10 second interval.
 Raw.addStreamAggr({ name: "Resample10second", type: "resampler",
     outStore: "Resampled", timestamp: "Time", 
@@ -48,7 +48,7 @@ Resampled.addTrigger({
         // record in the Resampled store.
         val.Ema1 = Resampled.getStreamAggr("ema1m").EMA;
         val.Ema2 = Resampled.getStreamAggr("ema10m").EMA;
-        // See what would the current model would predict given
+        // See what the current model would predict given
         // the new record, and store this for evaluation later on.
         val.Prediction = linreg.predict(ftrSpace.ftrVec(val))
         // Get the id of the record from a minute ago.
