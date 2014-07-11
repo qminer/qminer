@@ -682,29 +682,30 @@ private:
 	TVec<TVec<TUInt64>> WaitingListV;			            //buffer of timestamps before interpolation
 	TVec<TVec<TPair<TUInt64,TFlt>>> BufferMatrixV;			//bufer of timestamps with interpolations before adding them as records
 	THash<TPair<TStr,TStr> , TStr> HashTableH;				//Hash table;(Store,Field)-> TStr
-	TStrV OutFieldsV;										//Output fields
+										//Output fields
 	//TWPt<TQm::TBase> Base_; //input Base
 	TStr OutStoreNm;			//name of new store
 	TWPt<TStore> OutStore;
 	TStr TimeFieldNm;		//name of time field in new store
 	TVec<TSignalProc::PInterpolator> InterpTableV;	  //table of interpolations for each field
-	
+	TStrV OutFieldsV;	
 	TInt TimeFieldId;
-	TStr AggrNmCopy;
+	//TStr AggrNmCopy;
 	
 protected:	
 	void OnAddRec(const TQm::TRec& Rec);
 	
 public:
+	//void SetOutfieldsV(const TStrV& OutFieldsVParam) { OutFieldsV=OutFieldsVParam; }
 	TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
 	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, const TStr& NewTmFieldNm,
-						   const bool& CreateStoreP);
+						   const bool& CreateStoreP, const TStrV& OutFieldsVParam);
 	TStMerger(const TWPt<TQm::TBase>& Base,  const TStr& AggrNm, const PJsonVal& ParamVal);
 	TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
 	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
 	static PStreamAggr New(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
 				 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, 
-				 const TStr& OutTimeFieldNm, const bool& CreateStoreP);
+				 const TStr& OutTimeFieldNm, const bool& CreateStoreP, const TStrV& OutFieldsVParam);
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const PJsonVal& ParamVal);
 	PJsonVal SaveJson(const int& Limit) const;
 	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn) { return new TStMerger(Base, SIn); }
@@ -774,7 +775,7 @@ public:
 	static TStrV ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	static void TStMerger(const TQm::PBase& Base, TVec<TPair<TStr,TStr>> StoresAndFieldsV, 
 		const TStr& AggrNm,	const TStrV& Interpolations,const TStr& NewStoreNm, 
-		const TStr& NewTmFieldNm); 
+		const TStr& NewTmFieldNm, const TStrV& OutFieldsVParam); 
 	static void TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal);
 
 };
