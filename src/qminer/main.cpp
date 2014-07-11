@@ -279,7 +279,7 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
 	v8::Locker locker(isolate);
 
 	v8::Debug::SetDebugMessageDispatchHandler(DispatchDebugMessages, true);
-	v8::Debug::EnableAgent("QMiner", DebugPort, false);
+	v8::Debug::EnableAgent("QMiner", DebugPort, true);
 
 	printf("Debugger listening on port: %d\n", DebugPort);
 	printf("=================================================\n");
