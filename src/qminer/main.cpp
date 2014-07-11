@@ -235,6 +235,7 @@ public:
 	}
 };
 
+#ifndef NDEBUG
 v8::Persistent<v8::Context> debug_message_context;
 
 void DispatchDebugMessages() {
@@ -253,6 +254,7 @@ void DispatchDebugMessages() {
 
   v8::Debug::ProcessDebugMessages();
 }
+#endif
 
 // initialize javascript
 void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScriptNm, TVec<TQm::PScript>& ScriptV) {
@@ -261,7 +263,7 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
     }
 
 #ifndef NDEBUG
-    printf("=================================================");
+    printf("=================================================\n");
     printf("Initializing debugger...\n");
     const int DebugPort = 9222;
 
@@ -280,7 +282,7 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
 	v8::Debug::EnableAgent("QMiner", DebugPort, false);
 
 	printf("Debugger listening on port: %d\n", DebugPort);
-	printf("=================================================");
+	printf("=================================================\n");
 #endif
 
 	for (int JsN = 0; JsN < Param.JsParamV.Len(); JsN++) {
