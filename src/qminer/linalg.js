@@ -326,4 +326,31 @@ la.repvec = function (vec, m, n) {
     return result;
 }
 
+//#- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
+this.elementByElement = function (a, b, callback) {
+    // If input is vector, convert it to matrix
+    var isVec = false;
+    var mat = typeof a.length != 'undefined' && (isVec = true) ? a.toMat() : a;
+    var mat2 = typeof b.length != 'undefined' && (isVec = true) ? b.toMat() : b;
+    // Throw error if dimensions dont agree
+    function exception() {
+        this.message = "Dimensions must agree."
+        this.name = "MatDimNotAgree"
+    }
+    if (mat.cols !== mat2.cols || mat.rows !== mat2.rows) {
+        throw new exception()
+    }
+    // Go element by element and use callback function
+    var rows = mat.rows
+    var cols = mat.cols;
+    var mat3 = la.newMat({ "cols": cols, "rows": rows });
+    for (var colN = 0; colN < cols; colN++) {
+        for (var rowN = 0; rowN < rows; rowN++) {
+            var val = callback(mat.at(rowN, colN), mat2.at(rowN, colN));
+            mat3.put(rowN, colN, val);
+        }
+    }
+    return result = isVec ? mat3.getCol(0) : mat3;
+}
+
 var linalg = la;
