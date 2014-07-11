@@ -4,12 +4,6 @@
 // 
 // Suggestions
 // (*) Add rigorous error checking 
-// (*) Copy constructors and copy assginment operators 
-// (*) Move construcotrs and move assignment operators [1] 
-// 
-// NOTE: GLib doesn't seem to use C++11 move semantics. (Not really: Vector implements move constructor and move assignment operator.)
-// 
-// [1] http://en.cppreference.com/w/cpp/language/move_constructor
 //
 
 namespace THoeffding {
@@ -251,7 +245,7 @@ namespace THoeffding {
 		double Mean; // sample mean 
 		double T; // sum of the sample elements x1+x2+...+xn
 		double Value; // initialize bin with this value 
-		int	Count;
+		int Count;
 		int Id; // ID needed for forgetting 
 		TIntV PartitionV; // for classification 
 	};

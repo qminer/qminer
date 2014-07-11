@@ -398,7 +398,8 @@ namespace THoeffding {
 		MxIdx = 0;
 		for (int BinN = BinsV.Len()-2; BinN >= 0; --BinN) {
 			CurrCount = BinsV.GetVal(BinN+1).Count;
-			Val = BinsV.GetVal(BinN+1).Value;
+			// No need for this: BinsV.GetVal(MxIdx).GetVal()
+			// Val = BinsV.GetVal(BinN+1).Value; 
 			LoCount += CurrCount;
 			HiCount = NArr[BinN];
 			HiImp = GArr[BinN];
