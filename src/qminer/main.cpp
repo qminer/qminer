@@ -235,6 +235,7 @@ public:
 	}
 };
 
+#ifndef NDEBUG
 v8::Persistent<v8::Context> debug_message_context;
 
 void DispatchDebugMessages() {
@@ -253,6 +254,7 @@ void DispatchDebugMessages() {
 
   v8::Debug::ProcessDebugMessages();
 }
+#endif
 
 // initialize javascript
 void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScriptNm, TVec<TQm::PScript>& ScriptV) {
