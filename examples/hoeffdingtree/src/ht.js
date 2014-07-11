@@ -56,3 +56,7 @@ console.say("Were high society women likely to survive? " + label);
 
 // export the model 
 ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
+
+console.say("Interactive mode: empty line to release (press ENTER).");
+console.start();
+
