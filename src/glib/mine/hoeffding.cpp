@@ -802,10 +802,10 @@ namespace THoeffding {
 		// Ikonomovska [Ikonomovska, 2012] trains perceptron in the leaves 
 		return CrrNode->Avg;
 	}
-	TLabel THoeffdingTree::Classify(PNode Node, PExample Example) const {
+	TStr THoeffdingTree::Classify(PNode Node, PExample Example) const {
 		PNode CrrNode = Node;
 		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
-		return Majority(CrrNode);
+		return GetMajorityNm(CrrNode);
 	}
 	TStr THoeffdingTree::Classify(const TStrV& DiscreteV, const TFltV& NumericV) const {
 		int DisIdx = 0, FltIdx = 0;
@@ -825,13 +825,12 @@ namespace THoeffding {
 			}
 		}
 		TLabel Label = AttrsHashV.GetVal(AttrsN-1)[0]; // .operator[](0);
-		TLabel ClassLabel = Classify(TExample::New(AttributesV, Label));
-		return AttrManV.Last().InvAttrH.GetDat(ClassLabel);
+		return Classify(TExample::New(AttributesV, Label));
 	}
-	TLabel THoeffdingTree::Classify(PExample Example) const { // Classification 
+	TStr THoeffdingTree::Classify(PExample Example) const { // Classification 
 		PNode CrrNode = Root;
 		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
-		return Majority(CrrNode);
+		return GetMajorityNm(CrrNode);
 		// return NaiveBayes(CrrNode, Example);
 	}
 	void THoeffdingTree::IncCounts(PNode Node, PExample Example) const {

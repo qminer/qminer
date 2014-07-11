@@ -28,7 +28,7 @@ namespace THoeffding {
 	// another option is struct { int Idx1, Idx2; double Mx1, Mx2, Diff; };
 	typedef TTriple<TPair<TInt, TFlt>, TPair<TInt, TFlt>, TFlt> TBstAttr;
 
-	// numeric-attribute-discretization
+	// numeric attribute discretization
 	const int BinsN = 100;
 
 	// model in the leaves for regression 
@@ -481,7 +481,6 @@ namespace THoeffding {
 				if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
 				Init(JsonConfig_);
 		}
-		// TODO: Check whether the consturctor is OK 
 		THoeffdingTree(PJsonVal JsonConfig_, PJsonVal JsonParams_, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
 			: ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true)	{
 			if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
@@ -507,15 +506,15 @@ namespace THoeffding {
 		// THoeffdingTree& operator=(const THoeffdingTree& HoeffdingTree) =delete;
 		// THoeffdingTree& operator=(THoeffdingTree&& HoeffdingTree) =delete;
 		
-		// double Predcit(TStrV DiscreteV, TFltV NumericV) const;
+		// double Predcit(TStrV DiscreteV, TFltV NumericV) const; // TODO 
 		double Predict(PExample Example) const;
 		inline double Predict(const TStr& Line, const TCh& Delimiter = ',') const {
 			return Predict(Preprocess(Line, Delimiter));
 		}
-		TLabel Classify(PNode Node, PExample Example) const;
+		TStr Classify(PNode Node, PExample Example) const;
 		TStr Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
-		TLabel Classify(PExample Example) const;
-		inline TLabel Classify(const TStr& Line, const TCh& Delimiter = ',') const {
+		TStr Classify(PExample Example) const;
+		inline TStr Classify(const TStr& Line, const TCh& Delimiter = ',') const {
 			if (Line.CountCh(Delimiter) < AttrsHashV.Len()) { // missing label 
 				TStr Label = InvAttrsHashV.Last()[0];
 				return Classify(Preprocess(Line+","+Label, Delimiter));
