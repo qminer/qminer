@@ -5,8 +5,8 @@ var analytics = require('analytics.js');
 var Raw = qm.store("Raw");
 var Resampled = qm.store("Resampled");
 
-// Initialize resamper from Raw to Resampled store. This results in
-// in an equaly spaced time series with 10 second interval.
+// Initialize resampler from Raw to Resampled store. This results in
+// in an equally spaced time series with 10 second interval.
 Raw.addStreamAggr({ name: "Resample10second", type: "resampler",
     outStore: "Resampled", timestamp: "Time", 
     fields: [ { name: "Value", interpolator: "previous" } ],
