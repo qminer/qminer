@@ -235,11 +235,54 @@ public:
 	}
 };
 
+v8::Persistent<v8::Context> debug_message_context;
+
+void DispatchDebugMessages() {
+  // We are in some random thread. We should already have v8::Locker acquired
+  // (we requested this when registered this callback). We was called
+  // because new debug messages arrived; they may have already been processed,
+  // but we shouldn't worry about this.
+  //
+  // All we have to do is to set context and call ProcessDebugMessages.
+  //
+  // We should decide which V8 context to use here. This is important for
+  // "evaluate" command, because it must be executed some context.
+  // In our sample we have only one context, so there is nothing really to
+  // think about.
+  v8::Context::Scope scope(debug_message_context);
+
+  v8::Debug::ProcessDebugMessages();
+}
+
 // initialize javascript
 void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScriptNm, TVec<TQm::PScript>& ScriptV) {
     if (!OnlyScriptNm.Empty()) {
         TQm::InfoLog("Set limit to script " + OnlyScriptNm);
     }
+
+#ifndef NDEBUG
+    printf("=================================================");
+    printf("Initializing debugger...\n");
+    const int DebugPort = 9222;
+
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope handle_scope;
+
+	// Create a template for the global object.
+	v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
+	v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
+
+	debug_message_context = v8::Persistent<v8::Context>::New(isolate, context);
+
+	v8::Locker locker(isolate);
+
+	v8::Debug::SetDebugMessageDispatchHandler(DispatchDebugMessages, true);
+	v8::Debug::EnableAgent("QMiner", DebugPort, false);
+
+	printf("Debugger listening on port: %d\n", DebugPort);
+	printf("=================================================");
+#endif
+
 	for (int JsN = 0; JsN < Param.JsParamV.Len(); JsN++) {
 		const TQmParam::TJsParam& JsParam = Param.JsParamV[JsN];
         // skip if required

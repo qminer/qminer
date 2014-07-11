@@ -1224,7 +1224,7 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 					JsonVal->AddToObj(OutStore->GetFieldNm(TimeFieldId), TTm::GetTmFromMSecs(BufferMatrix[0][0].Val1).GetWebLogDateTimeStr(true, "T", true));  //creating and filling time field in JSon object
 					uint64 TempTm=BufferMatrix[0][0].Val1;
 					for(int BufferIndex3=0;BufferIndex3<BufferMatrix.Len();BufferIndex3++){
-						if(BufferMatrix[BufferIndex3][0].Val1=!TempTm){
+						if(BufferMatrix[BufferIndex3][0].Val1 != TempTm){
 							printf("Error2\n");
 						}
 						JsonVal->AddToObj(HashTable[BufferIndex3].GetStr(),BufferMatrix[BufferIndex3][0].Val2);
@@ -1244,7 +1244,7 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 			}
 			if(WaitingList[HashTblObjN][0] < UIntTm)
 				{
-				if(WaitingList[HashTblObjN].Last() < UIntTm){WaitingList[HashTblObjN].Add(UIntTm);}   //èe timestamp larger than last one, we add at the end
+				if(WaitingList[HashTblObjN].Last() < UIntTm){WaitingList[HashTblObjN].Add(UIntTm);}   //ï¿½e timestamp larger than last one, we add at the end
 				else{																		//else we search and insert
 					int TempIndex = 0;
 					while((WaitingList[HashTblObjN][TempIndex] <= UIntTm)&&(TempIndex<WaitingList[HashTblObjN].Len())){
@@ -1533,29 +1533,6 @@ PStreamAggr TResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 void TResampler::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	TStreamAggr::Save(SOut);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	InStore->SaveId(SOut);
 	InFieldIdV.Save(SOut);
