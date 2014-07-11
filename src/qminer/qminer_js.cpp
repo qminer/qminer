@@ -301,6 +301,11 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 }
 
 TScript::~TScript() {
+#ifndef NDEBUG
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::Locker lock(isolate);
+#endif
+
 	v8::HandleScope HandleScope;
 	// delete fetcher
 	JsFetch.Del();
