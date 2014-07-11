@@ -4,6 +4,7 @@
 // 
 // Suggestions
 // (*) Add rigorous error checking 
+// (*) The constant 0.65 in THoeffdingTree::ProcessLeafCls is hard-coded: do something about this 
 //
 
 namespace THoeffding {
@@ -512,7 +513,7 @@ namespace THoeffding {
 			return Predict(Preprocess(Line, Delimiter));
 		}
 		TLabel Classify(PNode Node, PExample Example) const;
-		TLabel Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
+		TStr Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
 		TLabel Classify(PExample Example) const;
 		inline TLabel Classify(const TStr& Line, const TCh& Delimiter = ',') const {
 			if (Line.CountCh(Delimiter) < AttrsHashV.Len()) { // missing label 
@@ -553,7 +554,7 @@ namespace THoeffding {
 			return Node->PartitionV.GetMxValN();
 		}
 		inline TStr GetNodeNm(PNode Node) const {
-		return AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr();
+			return AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr();
 		}
 		inline TStr GetNodeValueNm(PNode Node, const int& ChildN) const {
 			Assert(ChildN >= 0);

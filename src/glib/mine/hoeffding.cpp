@@ -317,7 +317,7 @@ namespace THoeffding {
 		const int Label = Example->Label;
 		// Idx = BinsV.SearchBin(Val); // Binary search for Val 
 		if ((Idx = BinsV.SearchBin(Val)) == -1 && BinsV.Len() < BinsN) {
-			printf("Searching for value: %f\n", Val);
+			// printf("Searching for value: %f\n", Val);
 			Print();
 			FailR("By construction, the value cannot be missing."); // NOTE: For deubgging purposes 
 		} else { // Find the closest bin 
@@ -374,7 +374,7 @@ namespace THoeffding {
 	// Find best split 
 	double THist::InfoGain(double& SplitVal) const {
 		int HiCount = 0, LoCount = 0, CurrCount = 0, MxIdx = 0;
-		double Val = 0.0, MxGain = 0.0, CurrGain = 0.0;
+		double MxGain = 0.0, CurrGain = 0.0;
 		double LoImp = 0.0, HiImp = 0.0;
 		TIntV LoV, HiV;
 		double* GArr = new double[sizeof(double)*BinsV.Len()]();
@@ -747,7 +747,7 @@ namespace THoeffding {
 			UsedAttrs.Add(AttrIdx);
 		} else {
 			ValsN = 2;
-			printf("[DEBUG] Splitting on continuous value %f\n", Val);
+			// printf("[DEBUG] Splitting on continuous value %f\n", Val);
 		}
 		// UsedAttrs.Add(CondAttrIndex);
 		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
@@ -807,7 +807,7 @@ namespace THoeffding {
 		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
 		return Majority(CrrNode);
 	}
-	TLabel THoeffdingTree::Classify(const TStrV& DiscreteV, const TFltV& NumericV) const {
+	TStr THoeffdingTree::Classify(const TStrV& DiscreteV, const TFltV& NumericV) const {
 		int DisIdx = 0, FltIdx = 0;
 		TAttributeV AttributesV;
 		const int AttrsN = AttrManV.Len();
@@ -825,13 +825,14 @@ namespace THoeffding {
 			}
 		}
 		TLabel Label = AttrsHashV.GetVal(AttrsN-1)[0]; // .operator[](0);
-		return Classify(TExample::New(AttributesV, Label));
+		TLabel ClassLabel = Classify(TExample::New(AttributesV, Label));
+		return AttrManV.Last().InvAttrH.GetDat(ClassLabel);
 	}
 	TLabel THoeffdingTree::Classify(PExample Example) const { // Classification 
 		PNode CrrNode = Root;
 		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
-		// return Majority(CrrNode);
-		return NaiveBayes(CrrNode, Example);
+		return Majority(CrrNode);
+		// return NaiveBayes(CrrNode, Example);
 	}
 	void THoeffdingTree::IncCounts(PNode Node, PExample Example) const {
 		Node->PartitionV.GetVal(Example->Label)++;
@@ -975,7 +976,7 @@ namespace THoeffding {
 			const double EstG = SplitAttr.Val3;
 			printf("EstG = %f\n", EstG);
 			if ((EstG < 1.0-Eps /*|| Eps < TieBreaking*/) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
-				printf("[DEBUG] Selected split attribute: %d\n", SplitAttr.Val1.Val1.Val);
+				//printf("[DEBUG] Selected split attribute: %d\n", SplitAttr.Val1.Val1.Val);
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
 		}
@@ -989,12 +990,12 @@ namespace THoeffding {
 			const double EstG = SplitAttr.Val3;
 			const double Eps = Leaf->ComputeTreshold(SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
 			if (SplitAttr.Val1.Val1 != -1 && (EstG > Eps || (EstG <= Eps && Eps < TieBreaking))) {
-				printf("[DEBUG] best = %d :: tie = %d\n", EstG > Eps, EstG <= Eps && Eps < TieBreaking);
-				printf("[DEBUG] t = %f :: n = %d\n", Eps, Leaf->ExamplesN);
-				printf("[DEBUG] Splitting at %d examples on attribute `%s' with confidence %f\n", Leaf->ExamplesN, AttrManV.GetVal(SplitAttr.Val1.Val1).Nm.CStr(), 1.0-SplitConfidence);
-				if (Leaf->UsedAttrs.Len() > 0) {
-					printf("[DEBUG] Previous attribute = %d; so far used %d attributes on this path.\n", Leaf->UsedAttrs.Last().Val, Leaf->UsedAttrs.LastValN()+1);
-				}
+				//printf("[DEBUG] best = %d :: tie = %d\n", EstG > Eps, EstG <= Eps && Eps < TieBreaking);
+				//printf("[DEBUG] t = %f :: n = %d\n", Eps, Leaf->ExamplesN);
+				//printf("[DEBUG] Splitting at %d examples on attribute `%s' with confidence %f\n", Leaf->ExamplesN, AttrManV.GetVal(SplitAttr.Val1.Val1).Nm.CStr(), 1.0-SplitConfidence);
+				//if (Leaf->UsedAttrs.Len() > 0) {
+				//	printf("[DEBUG] Previous attribute = %d; so far used %d attributes on this path.\n", Leaf->UsedAttrs.Last().Val, Leaf->UsedAttrs.LastValN()+1);
+				//}
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
 		}
@@ -1087,7 +1088,7 @@ namespace THoeffding {
 				else { (*It)->All = (*It)->Correct = 0; } // Reset 
 			}
 			if (BestAlt != Node) {
-				printf("[DEBUG] Swapping node with an alternate tree.\n");
+				//printf("[DEBUG] Swapping node with an alternate tree.\n");
 				// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", etDOT);
 				if(Node->Type == ntROOT) { BestAlt->Type = ntROOT; }
 				*Node = *BestAlt;
@@ -1205,7 +1206,7 @@ namespace THoeffding {
 		Node->Clr();
 	}
 	void THoeffdingTree::Export(const TStr& FileNm, const TExportType& ExportType) const {
-		printf("Writing the decision tree to `%s'.\n", FileNm.CStr());
+		// printf("Writing the decision tree to `%s'.\n", FileNm.CStr());
 		TFOut FOut(FileNm);
 		switch (ExportType) {
 		case etXML:
@@ -1431,7 +1432,7 @@ namespace THoeffding {
 		TAttrManV::TIter It = AttrManV.BegI(); ++It; ++It;
 			if (It->Type == atCONTINUOUS) {
 				const int AttrN = It->Id;
-				printf("Numeric distribution for '%s' attribute.\n", It->Nm.CStr());
+				//printf("Numeric distribution for '%s' attribute.\n", It->Nm.CStr());
 				Root->HistH.GetDat(AttrN).InfoGain(SplitVal);
 				const TBinV BinV = Root->HistH.GetDat(AttrN).BinsV;
 				for (TBinV::TIter It = BinV.BegI(); It != BinV.EndI(); ++It) {
