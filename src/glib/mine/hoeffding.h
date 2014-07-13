@@ -257,10 +257,10 @@ namespace THoeffding {
 	public:
 		THist(const int& BinsN_ = BinsN) { } // BinsV.Reserve(BinsN_, BinsN_); } 
 		
-		// THist(const THist& Hist); // Default behavious is OK 
-		// THist(THist&& Hist); // Default behavious is OK 
-		// THist& operator=(THist&& Hist); // Default behavious is OK 
-		// THist& operator=(const THist& Hist); // Default behavious is OK 
+		// THist(const THist& Hist); // Default behaviour is OK 
+		// THist(THist&& Hist); // Default behaviour is OK 
+		// THist& operator=(THist&& Hist); // Default behaviour is OK 
+		// THist& operator=(const THist& Hist); // Default behaviour is OK 
 
 		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen); // classification
 		void DecCls(PExample Example, const int& AttrIdx); // classification 

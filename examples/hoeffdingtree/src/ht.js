@@ -1,4 +1,4 @@
-console.say("HoeffdingTree test");
+// Import analytics module
 var analytics = require('analytics.js');
 var assert = require('assert.js');
 
@@ -38,7 +38,7 @@ var ht = analytics.newHoeffdingTree(titanicConfig, htParams);
 
 // train the model
 var streamData = fs.openRead("./sandbox/ht/titanic-50K.txt");
-while(!streamData.eof) {
+while (!streamData.eof) {
 	var line = streamData.getNextLn().split(",");
 	// get discrete attributes
 	var example_discrete = line.slice(0,3);
