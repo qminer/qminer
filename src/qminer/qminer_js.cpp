@@ -1119,7 +1119,20 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	}
 
 	// create new aggregate
-	TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+
+	// add the stream aggregate to all the stores specified in the parameters
+	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
+	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
+
+	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
+		PJsonVal Entry = MrgMapV->GetArrVal(i);
+
+		const TStr InStore = Entry->GetObjStr("inStore");
+		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
+
+		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
+	}
 
 	return HandleScope.Close(v8::Null());
 }
