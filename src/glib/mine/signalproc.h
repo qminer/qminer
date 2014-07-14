@@ -208,7 +208,7 @@ private:
 	//Next Record; (Value,Timestamp)
 	TPair<TFlt, TUInt64> NextRec;
 
-	TLinear(): TInterpolator(TLinear::GetType()) { }
+	TLinear(): TInterpolator(TLinear::GetType()), PreviousRec(0, TUInt64::Mx), NextRec(0, TUInt64::Mx) { }
 	TLinear(TSIn& SIn): TInterpolator(TLinear::GetType()), PreviousRec(SIn), NextRec(SIn) {}
 public:	
 	static TStr GetType() { return "linear"; }
@@ -217,11 +217,8 @@ public:
     static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 	double Interpolate(const uint64& Tm) const {
 		TTm TmTTm = TTm::GetTmFromMSecs(Tm);
-		if(NextRec.Val2==Tm){return NextRec.Val1;}
-		if((PreviousRec.Val2<Tm)&&(Tm<NextRec.Val2)){
-			return 	PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
-		}
-		else{return 0.0;}
+		AssertR(PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2, "Time not in the correct interval!");
+		return 	PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
 	}
 	void Update(const double& Val, const uint64& Tm){PreviousRec=NextRec; NextRec.Val1=Val; NextRec.Val2=Tm;}
 };

@@ -676,23 +676,25 @@ public:
 
 class TStMerger : public TQm::TStreamAggr {
 private:
-	/// Map from store id to time field
-	TIntV InTimeFieldIdV;
-			
-	TVec<TVec<TUInt64>> WaitingListV;			            //buffer of timestamps before interpolation
-	TVec<TVec<TPair<TUInt64,TFlt>>> BufferMatrixV;			//bufer of timestamps with interpolations before adding them as records
-	THash<TPair<TStr,TStr> , TStr> HashTableH;				//Hash table;(Store,Field)-> TStr
-
-	TStrV OutFieldsV;
-	TStrV InTimeFldV;
-	TStr OutStoreNm;			//name of new store
 	TWPt<TStore> OutStore;
-	TVec<TSignalProc::PInterpolator> InterpTableV;	  //table of interpolations for each field
+
 	TInt TimeFieldId;
-	TStr TimeFieldNm;		//name of time field in new store
-	
-protected:	
-	void OnAddRec(const TQm::TRec& Rec);
+
+	TIntV InTmFldIdV;					// IDs of the input time fields
+	TIntV InFldIdV;						// IDs of the input value fields
+	TStrV OutFldNmV;					// names of the putput fields
+	THash<TUInt, TInt> StoreIdIdxH;		// <store,idx> hash mapping store names to indexes in internal structures
+
+	TVec<TSignalProc::PInterpolator> InterpV;	  // interpolators
+
+	TVec<TVec<TUInt64FltPr>> BuffV;		// buffer holding values which will get interpolated
+
+	TInt NInFlds;						// number of input signals
+
+	TBoolV InitializedFldV;
+	TBool IsInitialized;
+
+	TInt NextIdx;						// internal index of the next interpolation value
 	
 public:
 	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
@@ -722,7 +724,17 @@ private:
 			const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV,
 			const TStrV& InterpV);
 
-	static int GetTimeFldId(TWPt<TQm::TStore> Store);
+protected:
+	void OnAddRec(const TQm::TRec& Rec);
+
+private:
+	void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
+	bool Initialized();
+	bool CanInterpolate();
+	void FindNextInterpTm();
+	void ShiftBuff(const int& BuffIdx);
+	void InitBuffs();
+	void AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Val);
 };
 
 ///////////////////////////////
