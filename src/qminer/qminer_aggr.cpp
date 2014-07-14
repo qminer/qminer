@@ -1093,6 +1093,16 @@ TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm,
 	OutFieldNm = "Mer" + TGuid::GenGuid(); OutFieldNm.ChangeChAll('-','_');
     Interpolator = Interpolator_;    
 }
+//TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, TSIn& SIn): 
+//    InStoreId(SIn), InFieldId(SIn), OutFieldNm(SIn), Interpolator(SIn) { }
+//void TMergerFieldMap::Save(TSOut& SOut) const {
+//	InStoreId.Save(SOut);
+//	InFieldId.Save(SOut);
+//	OutFieldNm.Save(SOut);
+//	Interpolator.Save(SOut);
+//	GetInterpolator().Save(SOut);
+//}
+
 
 ///////////////////////////////
 // Merger
@@ -1183,49 +1193,48 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 	TTm Tm; 
 	Rec.GetStore()->GetFieldNmTm(Rec.GetRecId(), "UTCTime", Tm);
 	uint64 UIntTm = TTm::GetMSecsFromTm(Tm);
-	for(int HashTblObjN=0; HashTblObjN<HashTable.Len(); HashTblObjN++){  
-		if(HashTable.GetKey(HashTblObjN).Val1==Rec.GetStore()->GetStoreNm()){  //checks if we are in relevant Store
+	for(int HashTblObjN=0; HashTblObjN<HashTableH.Len(); HashTblObjN++){  
+		if(HashTableH.GetKey(HashTblObjN).Val1==Rec.GetStore()->GetStoreNm()){  //checks if we are in relevant Store
 			//if we are in relevant Store, we update interpolation buffer
-			InterpTableV[HashTblObjN]->Update(Rec.GetStore()->GetFieldFlt(Rec.GetRecId(),Rec.GetStore()->GetFieldId(HashTable.GetKey(HashTblObjN).Val2)),TTm::GetMSecsFromTm(Tm));
-			
-			WaitingList[HashTblObjN].Add(UIntTm);
-			while(WaitingList[HashTblObjN].Len()>0){
-				for(int BufferIndex1=0; BufferIndex1<BufferMatrix.Len();BufferIndex1++) {
-					if(WaitingList[HashTblObjN].Len()>0){
-						if ((BufferMatrix[BufferIndex1].Len()>0)&&(BufferMatrix[BufferIndex1][0].Val1>WaitingList[HashTblObjN][0])){
-							WaitingList[HashTblObjN].Del(0);
-						}
-						else {
-							TFlt TempFlt = InterpTableV[HashTblObjN]->Interpolate(WaitingList[HashTblObjN][0]);
-							TPair<uint64,TFlt> TempPair(WaitingList[HashTblObjN][0],TempFlt);
-							BufferMatrix[HashTblObjN].Add(TempPair);
-							if (BufferMatrix[HashTblObjN].Empty() && BufferMatrix[BufferIndex1][0].Val1 > TempPair.Val1) {
-								throw TExcept::New("Record lost!");
-//								WaitingList[HashTblObjN].Del(0);
+			InterpTableV[HashTblObjN]->Update(Rec.GetStore()->GetFieldFlt(Rec.GetRecId(),Rec.GetStore()->GetFieldId(HashTableH.GetKey(HashTblObjN).Val2)),TTm::GetMSecsFromTm(Tm));
+
+			WaitingListV[HashTblObjN].Add(UIntTm);
+			while(WaitingListV[HashTblObjN].Len()>0){
+				for(int BufferIndex1 = 0; BufferIndex1<BufferMatrixV.Len();BufferIndex1++){
+					if(WaitingListV[HashTblObjN].Len()>0){
+						if((BufferMatrixV[BufferIndex1].Len()>0)&&(BufferMatrixV[BufferIndex1][0].Val1>WaitingListV[HashTblObjN][0])){
+							WaitingListV[HashTblObjN].Del(0);
+							}
+						else{
+							TFlt TempFlt = InterpTableV[HashTblObjN]->Interpolate(WaitingListV[HashTblObjN][0]);
+							TPair<TUInt64,TFlt> TempPair(WaitingListV[HashTblObjN][0],TempFlt);
+							BufferMatrixV[HashTblObjN].Add(TempPair);
+							if(BufferMatrixV[HashTblObjN].Empty() && BufferMatrixV[BufferIndex1][0].Val1>TempPair.Val1) {
+								throw TExcept::New("record lost");
 							}
 						}
-						WaitingList[HashTblObjN].Del(0);
+						WaitingListV[HashTblObjN].Del(0);
 					}
 				}
 			}
 			bool IsFull=true;
 			while(IsFull){
-				for(int BufferIndex2=0;BufferIndex2<BufferMatrix.Len();BufferIndex2++){
-					if(BufferMatrix[BufferIndex2].Len()==0){
+				for(int BufferIndex2 = 0;BufferIndex2<BufferMatrixV.Len();BufferIndex2++){
+					if(BufferMatrixV[BufferIndex2].Len()==0){
 						IsFull=false;
 					}
 				}
 				if(IsFull){
 					//AddRecord
 					PJsonVal JsonVal = TJsonVal::NewObj();  //creating JSon object
-					JsonVal->AddToObj(OutStore->GetFieldNm(TimeFieldId), TTm::GetTmFromMSecs(BufferMatrix[0][0].Val1).GetWebLogDateTimeStr(true, "T", true));  //creating and filling time field in JSon object
-					uint64 TempTm=BufferMatrix[0][0].Val1;
-					for(int BufferIndex3=0;BufferIndex3<BufferMatrix.Len();BufferIndex3++){
-						if(BufferMatrix[BufferIndex3][0].Val1 != TempTm) {
-							throw TExcept::New("Incorrect order of timestamps!");
+					JsonVal->AddToObj(OutStore->GetFieldNm(TimeFieldId), TTm::GetTmFromMSecs(BufferMatrixV[0][0].Val1).GetWebLogDateTimeStr(true, "T", true));  //creating and filling time field in JSon object
+					uint64 TempTm=BufferMatrixV[0][0].Val1;
+					for(int BufferIndex3 = 0;BufferIndex3<BufferMatrixV.Len();BufferIndex3++){
+						if(BufferMatrixV[BufferIndex3][0].Val1!=TempTm){
+							throw TExcept::New("Error: Timestamp mismatch.");
 						}
-						JsonVal->AddToObj(HashTable[BufferIndex3].GetStr(),BufferMatrix[BufferIndex3][0].Val2);
-						BufferMatrix[BufferIndex3].Del(0);
+						JsonVal->AddToObj(HashTableH[BufferIndex3].GetStr(),BufferMatrixV[BufferIndex3][0].Val2);
+						BufferMatrixV[BufferIndex3].Del(0);
 					}
 					//addingRec
 					uint64 NewRecId = OutStore->AddRec(JsonVal);
@@ -1236,18 +1245,18 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 			}
 		}
 		else{
-			if(WaitingList[HashTblObjN].Len() == 0){
-				WaitingList[HashTblObjN].Add(UIntTm);
+			if(WaitingListV[HashTblObjN].Len() == 0){
+				WaitingListV[HashTblObjN].Add(UIntTm);
 			}
-			if(WaitingList[HashTblObjN][0] < UIntTm)
+			if(WaitingListV[HashTblObjN][0]<UIntTm)
 				{
-				if(WaitingList[HashTblObjN].Last() < UIntTm){WaitingList[HashTblObjN].Add(UIntTm);}   //�e timestamp larger than last one, we add at the end
+				if(WaitingListV[HashTblObjN].Last() < UIntTm){WaitingListV[HashTblObjN].Add(UIntTm);}   //èe timestamp larger than last one, we add at the end
 				else{																		//else we search and insert
 					int TempIndex = 0;
-					while((WaitingList[HashTblObjN][TempIndex] <= UIntTm)&&(TempIndex<WaitingList[HashTblObjN].Len())){
+					while((WaitingListV[HashTblObjN][TempIndex]<=UIntTm)&&(TempIndex<WaitingListV[HashTblObjN].Len())){
 						TempIndex++;
 					}
-					WaitingList[HashTblObjN].Add(UIntTm,TempIndex);
+					WaitingListV[HashTblObjN].Add(UIntTm,TempIndex);
 				}
 			}
 		}
@@ -1256,74 +1265,99 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 
 
 TStMerger::TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
-	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
-						   const bool& CreateStoreP):
-TQm::TStreamAggr(Base, AggrNm){	
+	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, const TStr& NewTmFieldNm,
+	 const bool& CreateStoreP, const TStrV& OutFieldsVParam = TStrV()):
+				TQm::TStreamAggr(Base, AggrNm),
+				OutFieldsV(OutFieldsVParam),
+				OutStore(Base->GetStoreByStoreNm(OutStoreNm)) {
+	
+	//OutFieldsV.Gen(OutFieldsVParam.Len());
+	//checking if OutFieldVParam matches fields of output store
+	TIntV FltFieldsV = OutStore->GetFieldIdV(oftFlt);
+	if(OutFieldsVParam.Len()>0){
+		for(int MapIndx = 0; MapIndx<OutFieldsV.Len();MapIndx++){
+			bool FieldExists=false;
+			for(int StoreIndx = 0; StoreIndx<FltFieldsV.Len(); StoreIndx++){
+				if((OutFieldsV[MapIndx])==(OutStore->GetFieldNm(FltFieldsV[StoreIndx]))){FieldExists=true;}
+			}
+			if(!FieldExists){
+				throw TExcept::New("There is no field named " + OutFieldsV[MapIndx] + " in output store! Cannot merge.");
+			}
+		}
+	}
+
 	// if required, create output store
+//	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
 	if(StoresAndFieldsV.Len()!=InterpolationsV.Len()){
 		throw TExcept::New("There should be an equal number of fields and interpolations on them to merge!");
 	}
-	
 	if (CreateStoreP) {
-        InfoNotify("Creating store '" + OutStoreNm + "'");
-        CreateStore(OutStoreNm, OutTimeFieldNm);
-    }
-	TIntV FltFieldsV = OutStore->GetFieldIdV(oftFlt);
-	//if(FltFieldsV.Len()<StoresAndFieldsV.Len()){printf("Not enough flt fields in output store!\n");}	
+		//Randomized field names for new store
+		for (int StoreFIndx = 0; StoreFIndx<StoresAndFieldsV.Len();StoreFIndx++){
+			OutFieldsV[StoreFIndx] =("Mer" + TGuid::GenGuid()); 
+			OutFieldsV[StoreFIndx].ChangeChAll('-','_');
+		}
+		InfoNotify("Creating store '" + OutStoreNm + "'");
+		CreateStore(OutStoreNm, NewTmFieldNm);
+	}
 	QmAssertR(FltFieldsV.Len()<StoresAndFieldsV.Len(), "Not enough flt fields in output store!\n");
-	FieldMapV.Gen(StoresAndFieldsV.Len());
-	
-    // parse parameters
+	// parse parameters
 	InterpTableV.Gen(StoresAndFieldsV.Len());
-	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
-    TimeFieldId = OutStore->GetFieldId(OutTimeFieldNm);
-	
+	TimeFieldId = OutStore->GetFieldId(NewTmFieldNm);
+
 	for(int FieldsAll = 0; FieldsAll<StoresAndFieldsV.Len(); FieldsAll++){
 		//Filling InterpTableV
 		InterpTableV[FieldsAll]=(TSignalProc::TInterpolator::New(InterpolationsV[FieldsAll]));
-		//Filling MergerFieldMap
-		TMergerFieldMap BlaBla(Base,StoresAndFieldsV[FieldsAll].Val1,StoresAndFieldsV[FieldsAll].Val2,OutStore->GetFieldNm(FltFieldsV[FieldsAll]), InterpTableV[FieldsAll]);
-		//Filling HashTable
-		HashTable.AddDat(StoresAndFieldsV[FieldsAll],OutStore->GetFieldNm(FltFieldsV[FieldsAll]));
-
+		//Filling HashTableH
+		HashTableH.AddDat(StoresAndFieldsV[FieldsAll],OutStore->GetFieldNm(FltFieldsV[FieldsAll]));
 	}
 }
 
-TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {	
+TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
+		TStreamAggr(Base, ParamVal) {
 	
 	//input parameters
     TStr OutStoreNm = ParamVal->GetObjStr("outStore");
 	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("storesAndFields");
-	PJsonVal InterpolationsArrVal = ParamVal->GetObjKey("interpolations");
-
-	if(FieldArrVal->GetArrVals()!=InterpolationsArrVal->GetArrVals()){
-		printf("There should be an equal number of fields and interpolations on them to merge!\n");
-		return;
-	}
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
 	TVec<TPair<TStr,TStr>> StoresAndFieldsV;
 	TStrV InterpolationsV;
 	for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
 		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);        
-        TStr StoreNm = FieldVal->GetObjStr("inStore");
-        TStr FieldNm = FieldVal->GetObjStr("inField");
-		TPair<TStr,TStr> TempPair(StoreNm,FieldNm);
+        TStr InStoreNm = FieldVal->GetObjStr("inStore");
+        TStr InFieldNm = FieldVal->GetObjStr("inField");
+		TStr OutFieldNm = FieldVal->GetObjStr("outField");
+		TStr InterpNm = FieldVal->GetObjStr("interpolation");
+		TPair<TStr,TStr> TempPair(InStoreNm,InFieldNm);
 		StoresAndFieldsV.Add(TempPair);
-		//PJsonVal InterpVal = InterpolationsArrVal->GetArrVal(FieldN);
-		InterpolationsV.Add(InterpolationsArrVal->GetObjStr("name"));
+		OutFieldsV.Add(OutFieldNm);
+		InterpolationsV.Add(InterpNm);
 	}
 
 	// if required, create output store
 	if (CreateStoreP) {
         InfoNotify("Creating store '" + OutStoreNm + "'");
         CreateStore(OutStoreNm, TimeFieldNm);
+    } else {
+    	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
     }
-	TIntV FltFieldsV = OutStore->GetFieldIdV(oftFlt);
-	if(FltFieldsV.Len()<StoresAndFieldsV.Len()){printf("Not enough flt fields in output store!\n");}	
 
-	FieldMapV.Gen(StoresAndFieldsV.Len());
-	
+	TIntV FltFieldsV = OutStore->GetFieldIdV(oftFlt);
+	if(FltFieldsV.Len() < StoresAndFieldsV.Len()) {
+		throw TExcept::New("Not enough flt fields in output store!");
+	}
+
+	//checking output fields if they exist in output store
+	for(int MapIndx = 0; MapIndx<OutFieldsV.Len();MapIndx++){
+		bool FieldExists=false;
+		for(int StoreIndx = 0; StoreIndx<FltFieldsV.Len(); StoreIndx++){
+			if((OutFieldsV[MapIndx])==(OutStore->GetFieldNm(FltFieldsV[StoreIndx]))){FieldExists=true;}
+		}
+		if(!FieldExists){
+			throw TExcept::New("There is no field named " + OutFieldsV[MapIndx] + " in output store.\nCannot merge.");
+		}
+	}
     // parse parameters
 	InterpTableV.Gen(StoresAndFieldsV.Len());
 	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
@@ -1332,12 +1366,11 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal): TS
 	for(int FieldsAll = 0; FieldsAll<StoresAndFieldsV.Len(); FieldsAll++){
 		//Filling InterpTableV
 		InterpTableV[FieldsAll]=(TSignalProc::TInterpolator::New(InterpolationsV[FieldsAll]));
-		//Filling MergerFieldMap
-		TMergerFieldMap BlaBla(Base,StoresAndFieldsV[FieldsAll].Val1,StoresAndFieldsV[FieldsAll].Val2,OutStore->GetFieldNm(FltFieldsV[FieldsAll]), InterpTableV[FieldsAll]);
-		//Filling HashTable
-		HashTable.AddDat(StoresAndFieldsV[FieldsAll],OutStore->GetFieldNm(FltFieldsV[FieldsAll]));
+		//Filling HashTableH
+		HashTableH.AddDat(StoresAndFieldsV[FieldsAll], OutFieldsV[FieldsAll]);
 	}
 }
+
 void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
     // prepare store description
 	PJsonVal JsonStore = TJsonVal::NewObj();
@@ -1350,10 +1383,10 @@ void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
 	TimeFieldVal->AddToObj("type", "datetime");
 	FieldsVal->AddToArr(TimeFieldVal);	
 	//adding TFlt fields from StoresAndFields vector
-	for (int FieldMapN = 0; FieldMapN < FieldMapV.Len(); FieldMapN++){
+	for (int FieldMapN = 0; FieldMapN < HashTableH.Len(); FieldMapN++){
 		//creating field 
 		PJsonVal FieldVal = TJsonVal::NewObj();
-		FieldVal->AddToObj("name", FieldMapV[FieldMapN].GetOutFieldNm());
+		FieldVal->AddToObj("name", OutFieldsV[FieldMapN]);
 		FieldVal->AddToObj("type", "float");
 		FieldsVal->AddToArr(FieldVal);
 	}
@@ -1363,22 +1396,49 @@ void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
 	TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
 }
 
+TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
+		TStreamAggr(Base, SIn),
+		InTimeFieldIdV(SIn),
+		WaitingListV(SIn),
+		BufferMatrixV(SIn),
+		HashTableH(SIn),
+		OutFieldsV(SIn),
+		OutStoreNm(SIn),
+		OutStore(TStore::LoadById(Base, SIn)),
+		InterpTableV(SIn),
+		TimeFieldId(SIn),
+		TimeFieldNm(SIn) { }
 
 PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
 	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
-						   const bool& CreateStoreP) {
+						   const bool& CreateStoreP, const TStrV& OutFieldsVParam) {
        return new TStMerger(Base, StoresAndFieldsV, AggrNm, InterpolationsV, OutStoreNm,
-		OutTimeFieldNm, CreateStoreP);   
+		   OutTimeFieldNm, CreateStoreP, OutFieldsVParam);   
 }
 
 PStreamAggr TStMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TStMerger(Base, ParamVal);
 }
 
+void TStMerger::Save(TSOut& SOut) const {
+	TStreamAggr::Save(SOut);
+	
+	InTimeFieldIdV.Save(SOut);
+	WaitingListV.Save(SOut);
+	BufferMatrixV.Save(SOut);
+	HashTableH.Save(SOut);
+	OutFieldsV.Save(SOut);
+	OutStoreNm.Save(SOut);
+	OutStore->SaveId(SOut);
+	InterpTableV.Save(SOut);
+	TimeFieldId.Save(SOut);
+	TimeFieldNm.Save(SOut);
+}
+
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Merger", /*LastVal*/0);
-	Val->AddToObj("UTCTime", /*LastTm.GetMSec()*/0);
+	Val->AddToObj("Merger", 0);
+	Val->AddToObj("UTCTime", 0);
 	return Val;
 }
 
@@ -1530,6 +1590,29 @@ void TResampler::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	TStreamAggr::Save(SOut);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	InStore->SaveId(SOut);
 	InFieldIdV.Save(SOut);
 	InterpolatorV.Save(SOut);
@@ -1584,6 +1667,54 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 		InitMinMSecs, InAggrNm, Prefix, SABase);
 };
 
+void TCompositional::TStMerger(const TQm::PBase& Base, TVec<TPair<TStr,TStr>> StoresAndFieldsV, 
+		const TStr& AggrNm,	const TStrV& InterpolationsV,const TStr& OutStoreNm, const bool& CreateStoreP,
+		const TStr& NewTmFieldNm, const TStrV& OutFieldsVParam) {
+		//TStMerger StMerger(TStMerger::New(Base, StoresAndFieldsV, AggrNm,
+		//	InterpolationsV, NewStoreNm, NewTmFieldNm, false));
+		TStrV Stores;
+		TUIntV StoreIdV;
+		for(int StoreN = 0; StoreN < StoresAndFieldsV.Len(); StoreN++){
+			bool IsSame = false;
+			for(int StoreNPlace = 0; StoreNPlace < Stores.Len(); StoreNPlace++){
+				if(StoresAndFieldsV[StoreN].Val1==Stores[StoreNPlace]){
+					IsSame = true;
+				}
+			}
+			if(!IsSame){
+			Stores.Add(StoresAndFieldsV[StoreN].Val1);
+			StoreIdV.Add(Base->GetStoreByStoreNm(StoresAndFieldsV[StoreN].Val1)->GetStoreId());
+			}
+		}
+		Base->AddStreamAggr(StoreIdV,
+			TStMerger::New(Base, StoresAndFieldsV, AggrNm,
+			InterpolationsV, OutStoreNm, NewTmFieldNm, CreateStoreP,OutFieldsVParam));
+
+}
+void TCompositional::TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal) {
+	// Get arguments from ParamVal
+	TStr OutStoreNm = ParamVal->GetObjStr("outStore");
+	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
+
+	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
+	TVec<TPair<TStr,TStr>> StoresAndFieldsV;
+	TStrV InterpolationsV;
+	TStrV OutFieldsV;
+	for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);        
+        TStr InStoreNm = FieldVal->GetObjStr("inStore");
+        TStr InFieldNm = FieldVal->GetObjStr("inField");
+		TStr OutFieldNm = FieldVal->GetObjStr("outField");
+		TStr InterpNm = FieldVal->GetObjStr("interpolation");
+		TPair<TStr,TStr> TempPair(InStoreNm,InFieldNm);
+		StoresAndFieldsV.Add(TempPair);
+		OutFieldsV.Add(OutFieldNm);
+		InterpolationsV.Add(InterpNm);
+	}
+	//TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
+	return TCompositional::TStMerger(Base, StoresAndFieldsV, AggrNm, InterpolationsV, OutStoreNm, CreateStoreP, TimeFieldNm,OutFieldsV);
+};
 
 }
 

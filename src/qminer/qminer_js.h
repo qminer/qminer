@@ -92,7 +92,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(const PExcept& Except) { \
+		} catch (const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \

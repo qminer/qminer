@@ -163,9 +163,10 @@ private:
     const TStr InterpolatorType;
 protected:
     TInterpolator(const TStr& _InterpolatorType): InterpolatorType(_InterpolatorType) {}
+
 public:
-    static PInterpolator New(const TStr& InterpolatorType);
-    static PInterpolator Load(TSIn& SIn);
+	static PInterpolator New(const TStr& InterpolatorType);
+	static PInterpolator Load(TSIn& SIn);
 
  	virtual ~TInterpolator() { }
 
