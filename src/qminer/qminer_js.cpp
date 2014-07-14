@@ -673,7 +673,6 @@ void TScript::Init() {
 
 #ifndef NDEBUG
 	// for debugging JavaScript
-//	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 	v8::Locker lock;
 #endif
 
@@ -1120,15 +1119,7 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	}
 
 	// create new aggregate
-	/*PStreamAggr StreamAggr = */TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-
-	// get the out store
-//	const TStr OutStoreNm = ParamVal->GetObjStr("outStore");
-//	PJsonVal OutConfigV = ParamVal->GetObjKey("mergingMapV");
-
-
-
-	// TODO add StreamAggr to stores???
+	TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 
 	return HandleScope.Close(v8::Null());
 }

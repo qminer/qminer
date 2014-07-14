@@ -24,8 +24,11 @@
 #include <qminer_srv.h>
 #include <qminer_gs.h>
 #include <v8.h>
-#include <v8-debug.h>
 #include <typeinfo>
+
+#ifndef NDEBUG
+	#include <v8-debug.h>
+#endif
 
 namespace TQm {
 
