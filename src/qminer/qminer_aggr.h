@@ -697,7 +697,7 @@ private:
 	TInt TimeFieldId;
 	
 protected:	
-	void OnAddRec(const TQm::TRec& Rec	);
+	void OnAddRec(const TQm::TRec& Rec);
 	
 public:
 	//TStMerger1(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,

@@ -236,7 +236,8 @@ public:
 };
 
 #ifndef NDEBUG
-v8::Persistent<v8::Context> debug_message_context;
+// for debugging JavaScript copied from linneprocessor.cc
+v8::Persistent<v8::Context> DebugContext;
 
 void DispatchDebugMessages() {
   // We are in some random thread. We should already have v8::Locker acquired
@@ -250,7 +251,7 @@ void DispatchDebugMessages() {
   // "evaluate" command, because it must be executed some context.
   // In our sample we have only one context, so there is nothing really to
   // think about.
-  v8::Context::Scope scope(debug_message_context);
+  v8::Context::Scope scope(DebugContext);
 
   v8::Debug::ProcessDebugMessages();
 }
@@ -263,20 +264,20 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
     }
 
 #ifndef NDEBUG
+    // for debugging JavaScript
     printf("=================================================\n");
     printf("Initializing debugger...\n");
     const int DebugPort = 9222;
 
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope handle_scope;
+	v8::HandleScope HandleScope;
 
 	// Create a template for the global object.
 	v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
 	v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
 
-	debug_message_context = v8::Persistent<v8::Context>::New(isolate, context);
+	DebugContext = v8::Persistent<v8::Context>::New(context);
 
-	v8::Locker locker(isolate);
+	v8::Locker Locker;
 
 	v8::Debug::SetDebugMessageDispatchHandler(DispatchDebugMessages, true);
 	v8::Debug::EnableAgent("QMiner", DebugPort, false);

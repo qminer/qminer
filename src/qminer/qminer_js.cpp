@@ -302,8 +302,7 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 
 TScript::~TScript() {
 #ifndef NDEBUG
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::Locker lock(isolate);
+	v8::Locker Locker;
 #endif
 
 	v8::HandleScope HandleScope;
@@ -673,8 +672,9 @@ void TScript::Init() {
 	}
 
 #ifndef NDEBUG
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::Locker lock(isolate);
+	// for debugging JavaScript
+//	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::Locker lock;
 #endif
 
 	// do global initialization if not yet done
@@ -1119,8 +1119,15 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 		return HandleScope.Close(v8::Null());
 	}
 
+	TWPt<Base>& Base = JsBase->Base;
+
 	// create new aggregate
 	PStreamAggr StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+
+	// get the out store
+	const TStr OutStoreNm = ParamVal->GetObjStr("outStore");
+	PJsonVal OutConfigV = ParamVal->GetObjKey("mergingMapV");
+
 
 	// TODO add StreamAggr to stores???
 

@@ -1190,21 +1190,18 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 			
 			WaitingList[HashTblObjN].Add(UIntTm);
 			while(WaitingList[HashTblObjN].Len()>0){
-				for(int BufferIndex1=0; BufferIndex1<BufferMatrix.Len();BufferIndex1++){
+				for(int BufferIndex1=0; BufferIndex1<BufferMatrix.Len();BufferIndex1++) {
 					if(WaitingList[HashTblObjN].Len()>0){
-						if((BufferMatrix[BufferIndex1].Len()>0)&&(BufferMatrix[BufferIndex1][0].Val1>WaitingList[HashTblObjN][0])){
+						if ((BufferMatrix[BufferIndex1].Len()>0)&&(BufferMatrix[BufferIndex1][0].Val1>WaitingList[HashTblObjN][0])){
 							WaitingList[HashTblObjN].Del(0);
-							}
-						else{
+						}
+						else {
 							TFlt TempFlt = InterpTableV[HashTblObjN]->Interpolate(WaitingList[HashTblObjN][0]);
 							TPair<uint64,TFlt> TempPair(WaitingList[HashTblObjN][0],TempFlt);
 							BufferMatrix[HashTblObjN].Add(TempPair);
-							if(BufferMatrix[HashTblObjN].Len()!=0){}
-							else{
-								if(BufferMatrix[BufferIndex1][0].Val1>TempPair.Val1){
-									printf("record lost\n");
-									WaitingList[HashTblObjN].Del(0);
-								}
+							if (BufferMatrix[HashTblObjN].Empty() && BufferMatrix[BufferIndex1][0].Val1 > TempPair.Val1) {
+								throw TExcept::New("Record lost!");
+//								WaitingList[HashTblObjN].Del(0);
 							}
 						}
 						WaitingList[HashTblObjN].Del(0);
@@ -1224,8 +1221,8 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 					JsonVal->AddToObj(OutStore->GetFieldNm(TimeFieldId), TTm::GetTmFromMSecs(BufferMatrix[0][0].Val1).GetWebLogDateTimeStr(true, "T", true));  //creating and filling time field in JSon object
 					uint64 TempTm=BufferMatrix[0][0].Val1;
 					for(int BufferIndex3=0;BufferIndex3<BufferMatrix.Len();BufferIndex3++){
-						if(BufferMatrix[BufferIndex3][0].Val1 != TempTm){
-							printf("Error2\n");
+						if(BufferMatrix[BufferIndex3][0].Val1 != TempTm) {
+							throw TExcept::New("Incorrect order of timestamps!");
 						}
 						JsonVal->AddToObj(HashTable[BufferIndex3].GetStr(),BufferMatrix[BufferIndex3][0].Val2);
 						BufferMatrix[BufferIndex3].Del(0);
@@ -1264,8 +1261,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresA
 TQm::TStreamAggr(Base, AggrNm){	
 	// if required, create output store
 	if(StoresAndFieldsV.Len()!=InterpolationsV.Len()){
-		printf("There should be an equal number of fields and interpolations on them to merge!\n");
-		return;
+		throw TExcept::New("There should be an equal number of fields and interpolations on them to merge!");
 	}
 	
 	if (CreateStoreP) {
