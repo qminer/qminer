@@ -35,7 +35,7 @@ function createBatchModel(featureSpace, models) {
             this.models[cat].model.save(sout);
         }
     }
-    // prediction
+
     this.predict = function (record) {
         var vec = this.featureSpace.ftrSpVec(record);
         var result = { };
@@ -44,7 +44,18 @@ function createBatchModel(featureSpace, models) {
         }
         return result;
     }
-    // test
+
+    this.predictLabels = function (record) {
+        var result = this.predict(record);
+        var labels = [];
+        for (var cat in result) { 
+            if (result[cat] > 0.0) { 
+                labels.push(cat); 
+            }
+        }
+        return labels;
+    }
+    
     this.predictTop = function (record) {
         var result = this.predict(record);
         var top = null;
@@ -63,19 +74,21 @@ function createBatchModel(featureSpace, models) {
     return this;
 }
 
-//#- `batchModel = analytics.newBatchModel(rs, fsp, target)` -- learns a new batch model
-//#     using record set `rs` as training data and feature space `fsp`; `target` is
+//#- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
+//#     using record set `rs` as training data and `features`; `target` is
 //#     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
 //#     if target field string or string vector, the result is a SVM classification model,
 //#     and if target field is a float, the result is a SVM regression model; resulting 
 //#     model has the following functions:
 //#   - `strArr = batchModel.target` -- array of categories for which we have models
 //#   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-//#     through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
+//#     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
+//#   - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
+//#     sends it through the model and returns the labels with positive weights as `labelArr`.
 //#   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
 //#     sends it through the model and returns the top ranked label `labelStr`.
 //#   - `batchModel.save(fout)` -- saves the model to `fout` output stream
-exports.newBatchModel = function (records, features, target) {
+exports.newBatchModel = function (records, features, target, limitCategories) {
     console.log("newBatchModel", "Start");
     // prepare feature space
     console.log("newBatchModel", "  creating feature space");
@@ -93,6 +106,9 @@ exports.newBatchModel = function (records, features, target) {
         if (categories[catName]) {
             categories[catName].count++; 
         } else {
+            // check if we should ignore this category
+            if (limitCategories && !util.isInArray(limitCategories, catName)) { return; }
+            // check if we should ignore this category
             categories[catName] = { 
                 name: catName, 
                 type: "classification",
@@ -148,14 +164,15 @@ exports.newBatchModel = function (records, features, target) {
     console.log("newBatchModel", "  training SVM");
     var models = { };
     for (var cat in targets) {
-        if (targets[cat].count >= 20) {
+        if (targets[cat].count >= 500) {
             models[cat] = {
                 name : targets[cat].name,
                 type : targets[cat].type,
             };
             if (targets[cat].type === "classification") {
                 console.log("newBatchModel", "    ... " + cat + " (classification)");
-                models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target);
+                models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target, 
+                    { maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
             } else if (targets[cat].type === "regression") {
                 console.log("newBatchModel", "    ... " + cat + " (regression)");
                 models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target);
@@ -177,6 +194,169 @@ exports.loadBatchModel = function (sin) {
     }
     // we finished the constructor
     return new createBatchModel(featureSpace, models);    
+}
+
+function round100(num) { return Math.round(num * 100) / 100; }
+
+function classifcationScore(cats) {
+	this.target = { };
+    
+	this.targetList = [ ];
+	for (var i = 0; i < cats.length; i++) {
+		this.target[cats[i]] = { 
+			id: i, count: 0, predictionCount: 0,
+			TP: 0, TN: 0, FP: 0, FN: 0,
+			all : function () { return this.TP + this.FP + this.TN + this.FN; },
+			precision : function () { return this.TP / (this.TP + this.FP); },
+			recall : function () { return this.TP / (this.TP + this.FN); },				
+			accuracy : function () { return (this.TP + this.TN) / this.all(); }
+		};
+		console.log(i + " " + this.targetList.length);
+		this.targetList.push(cats[i]);		
+	}
+	
+	this.confusion = la.newMat({ rows: this.targetList.length, cols: this.targetList.length }); 
+	   
+	this.count = function (correct, predicted) {
+        // wrapt classes in arrays if not already
+        if (util.isString(correct)) { this.count([correct], predicted); return; }
+        if (util.isString(predicted)) { this.count(correct, [predicted]); return; }
+        // go over all possible categories and counts
+        for (cat in this.target) {
+            var catCorrect = util.isInArray(correct, cat);
+            var catPredicted = util.isInArray(predicted, cat);            
+            // update counts for correct categories
+            if (catCorrect) { this.target[cat].count++; }
+            // update counts for how many times category was predicted
+            if (catPredicted) { this.target[cat].predictionCount; }
+            // update true/false positive/negative count
+            if (catCorrect && catPredicted) {
+                // both predicted and correct say true
+                this.target[cat].TP++;
+            } else if (catCorrect) {
+                // this was only correct but not predicted
+                this.target[cat].FN++;
+            } else if (catPredicted) {
+                // this was only predicted but not correct
+                this.target[cat].FP++;
+            } else {
+                // both predicted and correct say false
+                this.target[cat].TN++;
+            }
+            // update confusion matrix
+        }
+        // update confusion matrix for case when are predicting only one label
+//        if (correct.length == 1 && predicted.length == 1) {
+//            var correct_i = this.target[correct[0]].id;
+//            var predicted_i = this.target[predicted[0]].id;	
+//            var old_count = this.confusion.at(correct_i, predicted_i);
+//            this.confusion.put(correct_i, predicted_i, old_count + 1);
+//        }
+	}
+
+	this.report = function () { 
+		for (cat in this.target) {
+			console.log(cat + 
+				": Count " + this.target[cat].count + 
+				", All " + this.target[cat].all() + 
+				", Precission " + round100(this.target[cat].precision()) + 
+				", Recall " +   round100(this.target[cat].recall()) +
+				", Accuracy " +   round100(this.target[cat].accuracy()));
+		}
+	}
+
+	this.reportCSV = function (fout) { 
+		// precison recall
+		fout.writeLine("category,count,precision,recall,accuracy");
+		for (cat in this.target) {
+			fout.writeLine(cat + 
+				"," + this.target[cat].count + 
+				"," + round100(this.target[cat].precision()) + 
+				"," + round100(this.target[cat].recall()) +
+				"," + round100(this.target[cat].accuracy()));
+		}
+		// confusion header
+//		fout.writeLine();		
+//		for (var i = 0; i < this.targetList.length; i++) {
+//			fout.write(",");
+//			fout.write(this.targetList[i]);
+//		}
+//		fout.writeLine();
+//		for (var i = 0; i < this.targetList.length; i++) {
+//			fout.write(this.targetList[i]);
+//			for (var j = 0; j < this.targetList.length; j++) {
+//				fout.write(",");
+//				fout.write(this.confusion.at(i,j));
+//			}
+//			fout.writeLine();
+//		}
+	}
+	
+	this.results = function () {
+		var res = { };
+		for (cat in this.target) {
+			res[cat] = {
+				precision : this.target[cat].precision(),
+				recall    : this.target[cat].recall(),
+				accuracy  : this.target[cat].accuracy(),
+			}
+		}
+	}
+}
+
+//#- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+//#     model for records from record set `rs` using `features; `target` is the
+//#     target field and is assumed discrete; the result is a results object
+//#     with the following API:
+//#     - `result.target` -- an object with categories as keys and the following
+//#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+//#       `all()`, `precision()`, `recall()`, `accuracy()`.
+//#     - `result.confusion` -- confusion matrix between categories
+//#     - `result.report()` -- prints basic report on to the console
+//#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+exports.crossValidation = function (records, features, target, folds, limitCategories) {
+	// create empty folds
+	var fold = [];
+	for (var i = 0; i < folds; i++) {
+		fold.push(la.newIntVec());
+	}
+	// split records into folds
+	records.shuffle(1);
+	var fold_i = 0;
+	for (var i = 0; i < records.length; i++) {
+		fold[fold_i].push(records[i].$id);
+		fold_i++; if (fold_i >= folds) { fold_i = 0; }
+	} 
+	// do cross validation
+	var cfyRes = null;
+	for (var fold_i = 0; fold_i < folds; fold_i++) {		
+		// prepare train and test record sets
+		var train = la.newIntVec();
+		var test = la.newIntVec();
+		for (var i = 0; i < folds; i++) {
+			if (i == fold_i) {
+				test.pushV(fold[i]);
+			} else {
+				train.pushV(fold[i]);
+			}
+		}
+		var trainRecs = records.store.newRecSet(train);
+		var testRecs = records.store.newRecSet(test);
+		console.log("Fold " + fold_i + ": " + trainRecs.length + " training and " + testRecs.length + " testing");
+		// create model for the fold
+		var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
+		// prepare test counts for each target
+		if (!cfyRes) { cfyRes = new classifcationScore(model.target); }
+		// evaluate predictions
+		for (var i = 0; i < testRecs.length; i++) {
+			var correct = testRecs[i][target.name];
+			var predicted = model.predictLabels(testRecs[i]);
+			cfyRes.count(correct, predicted);
+		}
+		// report
+		cfyRes.report();
+	}
+	return cfyRes;
 }
 
 // active learning (analytics:function activeLearner, parameters

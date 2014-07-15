@@ -2105,7 +2105,7 @@ public:
     //#     by exposing them to record `rec`. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `fsp.updateRecord(rs)` -- update feature space definitions and extractors
+    //#- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
     //#     by exposing them to records from record set `rs`. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
@@ -2135,19 +2135,21 @@ public:
 //#
 //# Holds SVM classification or regression model. This object is result of
 //# `analytics.trainSvmClassify` or `analytics.trainSvmRegression`.
+// TODO rewrite to JavaScript
 class TJsSvmModel {
 public:
 	/// JS script context
 	TWPt<TScript> Js;	
     /// SVM Model
-    PSVMModel Model;
+    TSvm::TLinModel Model;
     
 private:
 	typedef TJsObjUtil<TJsSvmModel> TJsSvmModelUtil;
     
-	TJsSvmModel(TWPt<TScript> _Js, const PSVMModel& _Model): Js(_Js), Model(_Model) { }
+	TJsSvmModel(TWPt<TScript> _Js, const TSvm::TLinModel& _Model): 
+        Js(_Js), Model(_Model) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PSVMModel& Model) { 
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSvm::TLinModel& Model) { 
         return TJsSvmModelUtil::New(new TJsSvmModel(Js, Model)); }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -2369,7 +2371,7 @@ public:
 	//# **Functions and properties:**
 	//#
 	//#- `process.stop()` -- Stopes the current process.
-	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode
+	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode`
     JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
