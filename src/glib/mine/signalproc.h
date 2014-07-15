@@ -163,9 +163,10 @@ private:
     const TStr InterpolatorType;
 protected:
     TInterpolator(const TStr& _InterpolatorType): InterpolatorType(_InterpolatorType) {}
+
 public:
-    static PInterpolator New(const TStr& InterpolatorType);
-    static PInterpolator Load(TSIn& SIn);
+	static PInterpolator New(const TStr& InterpolatorType);
+	static PInterpolator Load(TSIn& SIn);
 
  	virtual ~TInterpolator() { }
 
@@ -197,7 +198,30 @@ public:
 
 	static TStr GetType() { return "previous"; }
 };
+/////////////////////////////////////////
+// Linear interpolator.
+// Interpolate by calculating point between two given points
+class TLinear : public TInterpolator {
+private:
+	//Previous Record; (Value,Timestamp)
+	TPair<TFlt, TUInt64> PreviousRec;
+	//Next Record; (Value,Timestamp)
+	TPair<TFlt, TUInt64> NextRec;
 
+	TLinear(): TInterpolator(TLinear::GetType()), PreviousRec(0, TUInt64::Mx), NextRec(0, TUInt64::Mx) { }
+	TLinear(TSIn& SIn): TInterpolator(TLinear::GetType()), PreviousRec(SIn), NextRec(SIn) {}
+public:	
+	static TStr GetType() { return "linear"; }
+	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PreviousRec.Save(SOut); NextRec.Save(SOut); };
+	static PInterpolator New() { return new TLinear; }
+    static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
+	double Interpolate(const uint64& Tm) const {
+		TTm TmTTm = TTm::GetTmFromMSecs(Tm);
+		AssertR(PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2, "Time not in the desired interval!");
+		return 	PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
+	}
+	void Update(const double& Val, const uint64& Tm){PreviousRec=NextRec; NextRec.Val1=Val; NextRec.Val2=Tm;}
+};
 /////////////////////////////////////////
 // Neural Networks - Neural Net
 typedef enum { tanHyper, sigmoid, fastTanh, fastSigmoid, linear } TTFunc;

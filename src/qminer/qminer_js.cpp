@@ -301,6 +301,10 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 }
 
 TScript::~TScript() {
+#ifndef NDEBUG
+	v8::Locker Locker;
+#endif
+
 	v8::HandleScope HandleScope;
 	// delete fetcher
 	JsFetch.Del();
@@ -648,7 +652,7 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         TJsUtil::HandleTryCatch(TryCatch);
         // return result
         return HandleScope.Close(RetVal);
-    } catch (PExcept Except) {
+    } catch (const PExcept& Except) {
         ErrorLog("Error loading module " + ModuleFNm + ": " + Except->GetMsgStr());
     }
     // return null
@@ -666,6 +670,12 @@ void TScript::Init() {
 	for (int AllowedDirsN = 0; AllowedDirsN < AllowedFPathV.Len(); AllowedDirsN++) {
 		InfoLog("  " + AllowedFPathV[AllowedDirsN].GetFPath());
 	}
+
+#ifndef NDEBUG
+	// for debugging JavaScript
+	v8::Locker lock;
+#endif
+
 	// do global initialization if not yet done
 	v8::HandleScope HandleScope;
 	// clear current context
@@ -767,6 +777,7 @@ TStr TScript::LoadSource(const TStr& FNm) {
 void TScript::Execute(const TStr& FNm) {
 	v8::HandleScope HandleScope;
 	v8::Context::Scope ContextScope(Context);
+
 	v8::TryCatch TryCatch;
     // load script source
     TStr Source = LoadSource(FNm);
@@ -981,6 +992,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, search);
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
+		JsRegisterFunction(TmpTemp, addStreamAggr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1093,6 +1105,36 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 		InfoLog("[except] " + Except->GetMsgStr());
 	}
 	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+
+	const TStr TypeNm = ParamVal->GetObjStr("type");
+
+	if (TQm::TStreamAggrs::TCompositional::New(JsBase->Base, TypeNm, ParamVal)) {
+		return HandleScope.Close(v8::Null());
+	}
+
+	// create new aggregate
+	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+
+	// add the stream aggregate to all the stores specified in the parameters
+	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
+	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
+
+	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
+		PJsonVal Entry = MrgMapV->GetArrVal(i);
+
+		const TStr InStore = Entry->GetObjStr("inStore");
+		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
+
+		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
+	}
+
+	return HandleScope.Close(v8::Null());
 }
 
 ///////////////////////////////
