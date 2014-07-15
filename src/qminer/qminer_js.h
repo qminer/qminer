@@ -1000,7 +1000,7 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate of type typeName to the store; stream aggregate is passed paramJSON JSon
+	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 	//# paramJSON must contain field `type` which defies the type of the aggregate
 	JsDeclareFunction(addStreamAggr);
 	//#JSIMPLEMENT:src/qminer/qminer.js    

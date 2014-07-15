@@ -217,7 +217,7 @@ public:
     static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 	double Interpolate(const uint64& Tm) const {
 		TTm TmTTm = TTm::GetTmFromMSecs(Tm);
-		AssertR(PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2, "Time not in the correct interval!");
+		AssertR(PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2, "Time not in the desired interval!");
 		return 	PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
 	}
 	void Update(const double& Val, const uint64& Tm){PreviousRec=NextRec; NextRec.Val1=Val; NextRec.Val2=Tm;}

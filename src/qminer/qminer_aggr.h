@@ -680,21 +680,21 @@ private:
 
 	TInt TimeFieldId;
 
-	TIntV InTmFldIdV;					// IDs of the input time fields
-	TIntV InFldIdV;						// IDs of the input value fields
-	TStrV OutFldNmV;					// names of the putput fields
-	THash<TUInt, TInt> StoreIdIdxH;		// <store,idx> hash mapping store names to indexes in internal structures
+	TIntV InTmFldIdV;									// IDs of the input time fields
+	TIntV InFldIdV;										// IDs of the input value fields
+	TStrV OutFldNmV;									// names of the output fields
+	TVec<TSignalProc::PInterpolator> InterpV;	  		// interpolators
 
-	TVec<TSignalProc::PInterpolator> InterpV;	  // interpolators
+	THash<TUIntIntPr, TInt> StoreIdFldIdPrBuffIdxH;		// a hash table that maps a pair <storeId,fieldId> to the index in the internal structures
+	THash<TUInt, TIntSet> StoreIdFldIdVH;				// a hash table mapping a storeId to a list of input fields
 
-	TVec<TVec<TUInt64FltPr>> BuffV;		// buffer holding values which will get interpolated
-
-	TInt NInFlds;						// number of input signals
+	TInt NInFlds;										// number of input signals
+	TVec<TVec<TUInt64FltPr>> BuffV;						// buffer holding values which will get interpolated
 
 	TBoolV InitializedFldV;
 	TBool IsInitialized;
 
-	TInt NextIdx;						// internal index of the next interpolation value
+	TInt NextIdx;										// internal index of the next signal used for interpolation
 	
 public:
 	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
@@ -728,12 +728,20 @@ protected:
 	void OnAddRec(const TQm::TRec& Rec);
 
 private:
+	void OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr);
+	// add the record to the output store
 	void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
+	// checks if all signals are present
 	bool Initialized();
+	// checks if the conditions for interpolation are true in this iteration
 	bool CanInterpolate();
-	void FindNextInterpTm();
+	// updates the index of the signal which will be used for interpolation next
+	void UpdateNextIdx();
+	// shifts the specified buffer by 1
 	void ShiftBuff(const int& BuffIdx);
+	// initializes the buffers so that old points are forgotten
 	void InitBuffs();
+	// adds a new record to the specified buffer
 	void AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Val);
 };
 
