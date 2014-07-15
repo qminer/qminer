@@ -404,7 +404,7 @@ exports.ridgeRegression = function (kappa, dim, buffer) {
     //#   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
     //#    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
     this.compute = function (A, b) {
-        var I = la.eye(A.cols);
+        var I = la.eye(A.cols).full();
         var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
         return coefs;
     };
@@ -604,7 +604,6 @@ exports.perceptron = function (dim, use_bias) {
 };
 
 
-// power is optional parameter used in Inverse distance weighting average
 ///////// ONLINE KNN REGRESSION 
 //#- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
 //#  requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
@@ -613,9 +612,11 @@ exports.newKNearestNeighbors = function (k, buffer, power) {
     return new analytics.kNearestNeighbors(k, buffer, power);
 }
 exports.kNearestNeighbors = function (k, buffer, power) {
-    this.X = [];
-    this.y = [];
-    var k = k;
+    this.X = la.newMat();
+    this.y = la.newVec();
+    this.k = k;
+
+    // Optional parameters
     var power = typeof power !== 'undefined' ? power : 1;
     buffer = typeof buffer !== 'undefined' ? buffer : -1;
 
@@ -634,10 +635,11 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     //#   - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
     //#   using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
     this.predict = function (vec) {
+        if (this.X.cols < this.k) { return -1 }
         var neighbors = this.getNearestNeighbors(vec); //vector of indexes
         var targetVals = this.y.subVec(neighbors.perm);
-        //var prediction = getAverage(targetVals); // using simple average
-        var prediction = getIDWAverage(targetVals, neighbors.vec, power); // using inverse distance weighting average
+        var prediction = getAverage(targetVals); // using simple average
+        //var prediction = getIDWAverage(targetVals, neighbors.vec, power); // using inverse distance weighting average
         return prediction;
     }
 
@@ -647,9 +649,9 @@ exports.kNearestNeighbors = function (k, buffer, power) {
         var sortRes = distVec.sortPerm(); // object with two vectors: values and indexes
 
         var result = new Object();
-        var newPerm = la.newIntVec({ "vals": k, "mxvals": k });
-        var newVec = la.newVec({ "vals": k, "mxvals": k });
-        for (var ii = 0; ii < k; ii++) {
+        var newPerm = la.newIntVec({ "vals": this.k, "mxvals": this.k });
+        var newVec = la.newVec({ "vals": this.k, "mxvals": this.k });
+        for (var ii = 0; ii < this.k; ii++) {
             newPerm[ii] = sortRes.perm[ii];
             newVec[ii] = sortRes.vec[ii];
         }
