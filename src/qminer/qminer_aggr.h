@@ -694,6 +694,7 @@ private:
 	TBoolV InitializedFldV;
 	TBool IsInitialized;
 
+	TUInt64 NextInterpTm;
 	TInt NextIdx;										// internal index of the next signal used for interpolation
 	
 public:
