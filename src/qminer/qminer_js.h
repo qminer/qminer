@@ -2335,8 +2335,8 @@ public:
 	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
 	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
 	JsDeclareFunction(process);
-	//#- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label.
-	//#- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label.
+	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
 	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
