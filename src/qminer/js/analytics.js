@@ -404,7 +404,7 @@ exports.ridgeRegression = function (kappa, dim, buffer) {
     //#   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
     //#    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
     this.compute = function (A, b) {
-        var I = la.eye(A.cols).full();
+        var I = la.eye(A.cols);
         var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
         return coefs;
     };
