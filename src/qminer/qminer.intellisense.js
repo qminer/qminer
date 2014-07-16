@@ -986,6 +986,16 @@ var la = {
 
 	},
 
+	zeros: function () {
+	/// <signature>
+	/// <summary> `mat` is a `rows`-by-`cols` sparse zero matrix</summary>
+	/// <param name="_rows" value="_rows">param</param>
+	/// <param name="_cols" value="_cols">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	},
+
 	printVec: function () {
 	/// <signature>
 	/// <summary> print the vector `vec` in the console</summary>
@@ -1128,6 +1138,16 @@ var la = {
 	/// <summary> copies a JS array of integers `arr` into an integer vector `intVec`</summary>
 	/// <param name="_arr" value="_arr">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+
+	},
+
+	sparse: function () {
+	/// <signature>
+	/// <summary> `spMat` is a `rows`-by-`cols` sparse zero matrix</summary>
+	/// <param name="_rows" value="_rows">param</param>
+	/// <param name="_cols" value="_cols">param</param>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	},
@@ -2319,7 +2339,7 @@ var _htModel = {
 	/// </signature>
 
 	/// <signature>
-	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;</summary>
+	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.</summary>
 	/// <param name="_line" value="_line">param</param>
 	/// <returns value =""/>
 	/// </signature>
@@ -2328,7 +2348,7 @@ var _htModel = {
 
 	exportModel: function () {
 	/// <signature>
-	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`;</summary>
+	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`.</summary>
 	/// <param name="_htOutParams" value="_htOutParams">param</param>
 	/// <returns value =""/>
 	/// </signature>
@@ -2337,14 +2357,14 @@ var _htModel = {
 
 	classify: function () {
 	/// <signature>
-	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label</summary>
+	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label.</summary>
 	/// <param name="_strArr" value="_strArr">param</param>
 	/// <param name="_numArr" value="_numArr">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label</summary>
+	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label.</summary>
 	/// <param name="_line" value="_line">param</param>
 	/// <returns value =""/>
 	/// </signature>
@@ -2720,6 +2740,15 @@ var qm = {
 	/// <summary> execute `query` (Json) specified in [QMiner Query Language](Query Language)</summary>
 	/// <param name="_query" value="_query">param</param>
 	/// <returns value ="_rs"/>
+	/// </signature>
+
+	},
+
+	addStreamAggr: function () {
+	/// <signature>
+	/// <summary> add new Stream Aggregate of type typeName to the store; stream aggregate is passed paramJSON JSon</summary>
+	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
