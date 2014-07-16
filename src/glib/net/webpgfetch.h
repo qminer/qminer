@@ -141,24 +141,18 @@ private:
   bool OutXmlArgsP;
   TStr OutTxtFNm;
   bool OutTxtUrlP;
-  bool OutTxtTagsP;
   bool OutScrP;
-  bool QuitMsgP;
 public:
   TWebPgToFileFetch(
    const TStr _OutHttpFNm, const TStr _OutHttpBodyFNm,
    const TStr _OutXmlFNm, const bool _OutXmlTextP, const bool _OutXmlUrlP,
    const bool _OutXmlToksP, const bool _OutXmlTagsP, const bool _OutXmlArgsP,
-   const TStr _OutTxtFNm, const bool _OutTxtUrlP, const bool _OutTxtTagsP,
-   const bool _OutScrP,
-   const bool _QuitMsgP):
+   const TStr _OutTxtFNm, const bool _OutTxtUrlP, const bool _OutScrP):
     TWebPgFetch(),
     OutHttpFNm(_OutHttpFNm), OutHttpBodyFNm(_OutHttpBodyFNm),
     OutXmlFNm(_OutXmlFNm), OutXmlTextP(_OutXmlTextP), OutXmlUrlP(_OutXmlUrlP),
     OutXmlToksP(_OutXmlToksP), OutXmlTagsP(_OutXmlTagsP), OutXmlArgsP(_OutXmlArgsP),
-    OutTxtFNm(_OutTxtFNm), OutTxtUrlP(_OutTxtUrlP), OutTxtTagsP(_OutTxtTagsP),
-    OutScrP(_OutScrP),
-    QuitMsgP(_QuitMsgP){}
+    OutTxtFNm(_OutTxtFNm), OutTxtUrlP(_OutTxtUrlP), OutScrP(_OutScrP){}
   void OnFetch(const int& FId, const PWebPg& WebPg);
   void OnError(const int& FId, const TStr& MsgStr);
 };

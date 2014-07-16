@@ -8,7 +8,7 @@ assert.silent = process.isArg("-nopass");
 assert.consoleTitle = "FtrSpace";
 
 // create store
-console.log("Size: " + qm.sysStat.size);
+console.log("Size: " + process.sysStat.size);
 for (var i = 1000; i < 100; i++) {
     var diff = qm.sysStat.size;
     qm.createStore({
@@ -22,7 +22,7 @@ for (var i = 1000; i < 100; i++) {
         "joins": [ ],
         "keys": [ ]
       });
-    var diff = qm.sysStat.size - diff;
+    var diff = process.sysStat.size - diff;
     console.log("Size: " + qm.sysStat.size + ", Diff: " + diff);
 }
 

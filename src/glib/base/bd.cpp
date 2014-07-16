@@ -17,9 +17,11 @@
  * 
  */
 
-#define SW_TRACE 0
+#ifndef NDEBUG
+#define SW_TRACE
+#endif
 
-#if SW_TRACE
+#if defined(SW_TRACE) && defined(GLib_UNIX)
 #include <execinfo.h>
 #endif
 
@@ -81,7 +83,7 @@ void SaveToErrLog(const char* MsgCStr){
   delete[] FNm;
 }
 
-#if SW_TRACE
+#if defined(SW_TRACE) && defined(GLib_UNIX)
 void PrintBacktrace() {
   // stack dump, works for g++
   void *array[20];
@@ -94,12 +96,6 @@ void PrintBacktrace() {
   size = backtrace(array, 20);
   backtrace_symbols_fd(array, size, 1);
 }
-
-void Crash() {
-  char *p;
-  p = (char *) 0;
-  *p = 1234;
-}
 #endif
 
 /////////////////////////////////////////////////
@@ -111,9 +107,8 @@ void ExeStop(
  const char* CondCStr, const char* FNm, const int& LnN){
   char ReasonMsgCStr[1000];
 
-#if SW_TRACE
+#if defined(SW_TRACE) && defined(GLib_UNIX)
   PrintBacktrace();
-  Crash();
 #endif
 
   // construct reason message
@@ -147,9 +142,8 @@ void ExeStop(
     ErrNotify(FullMsgCStr);
 #ifdef GLib_WIN
     abort();
-    //ExitProcess(1);
 #else
-    exit(1);
+    abort();
 #endif
   }
 }

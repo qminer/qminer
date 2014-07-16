@@ -68,6 +68,8 @@ public:
     if (StemmerP){return GetStemmer(StemmerType);} else {return NULL;}}
   static PStemmer GetStemmer(const TStr& StemmerTypeNm){
     return GetStemmer(true, GetStemmerType(StemmerTypeNm));}
+  
+  static PStemmer ParseJson(const PJsonVal& StemmerVal, const bool& RealWordP);
 };
 
 /////////////////////////////////////////////////

@@ -21,7 +21,10 @@
 #define tensor_h
 
 #include "base.h"
-#include <omp.h>
+
+#ifdef GLib_OPENMP
+  #include <omp.h>
+#endif
 
 
 //TDTensor dense tensor

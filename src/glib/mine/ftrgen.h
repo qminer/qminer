@@ -35,7 +35,7 @@ private:
 
 public:
     TNumeric(const bool& NormalizeP = true):
-        Type(NormalizeP ? ntNone : ntNormalize), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+		Type(NormalizeP ? ntNormalize : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
     TNumeric(const double& _MnVal, const double& _MxVal):
         Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
     TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }

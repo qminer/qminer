@@ -403,6 +403,22 @@ double TScript::ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Va
 	return RetVal->NumberValue();
 }
 
+void TScript::ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { Arg };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
+	// Cast as FltV and copy result
+	v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
+	// cast it to js vector and copy internal vector
+	TJsFltV* JsVec = static_cast<TJsFltV*>(WrappedObject->Value());
+	Vec = JsVec->Vec;
+}
+
 bool TScript::ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
@@ -959,8 +975,6 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterProperty(TmpTemp, analytics);
-		JsRegisterProperty(TmpTemp, args);
-		JsRegisterProperty(TmpTemp, sysStat);
 		JsRegisterFunction(TmpTemp, store);
 		JsRegisterFunction(TmpTemp, getStoreList);
 		JsRegisterFunction(TmpTemp, createStore);
@@ -981,24 +995,6 @@ v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const
 	return TJsAnalytics::New(JsBase->Js);
 }
 
-v8::Handle<v8::Value> TJsBase::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	PJsonVal ArgsVal = TJsonVal::NewArr(Env.GetArgV());
-	return HandleScope.Close(TJsUtil::ParseJson(ArgsVal));
-}
-
-v8::Handle<v8::Value> TJsBase::sysStat(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-    PJsonVal StatVal = TJsonVal::NewObj();
-#ifdef GLib_LINUX   
-    TSysMemStat MemStat;
-    StatVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
-    StatVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
-    StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
-#endif    	
-	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
-}
-	
 v8::Handle<v8::Value> TJsBase::op(const v8::Arguments& Args) {	
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);	
@@ -2112,7 +2108,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		printf("Line '%s'\n", Line.CStr());
+		// printf("Line '%s'\n", Line.CStr());
 		JsHoeffdingTree->HoeffdingTree->Process(Line);
 		// printf("End\n");
 	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
@@ -2135,8 +2131,8 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
-		return HandleScope.Close(v8::Number::New(Label));
+		TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
+		return HandleScope.Close(v8::String::New(Label.CStr()));
 	} else if(Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
 		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
 		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
@@ -2144,8 +2140,10 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
 			DiscreteVal->GetArrStrV(DisV);
 			NumericVal->GetArrNumV(NumV);
-			THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			return HandleScope.Close(v8::Number::New(Label));
+			// THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			// return HandleScope.Close(v8::Number::New(Label));
+			return HandleScope.Close(v8::String::New(Label.CStr()));
 		} // else { EFailR("No such function"); }
 	} // else { EFailR("Unsupported."); }
 	return HandleScope.Close(v8::Undefined());
@@ -2254,8 +2252,8 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 v8::Handle<v8::Value> TJsLinAlg::newVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsVec = TJsFltV::New(JsLinAlg->Js);
-	TFltV& Vec = TJsFltV::GetVec(JsVec);
+	
+	TFltV Vec;
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		int Length = Array->Length();		
@@ -2263,33 +2261,36 @@ v8::Handle<v8::Value> TJsLinAlg::newVec(const v8::Arguments& Args) {
 		for (int ElN = 0; ElN < Length; ElN++) {			
 			Vec.Add(Array->Get(ElN)->NumberValue());
 		}
-		return HandleScope.Close(JsVec);
 	}
-	if (Args[0]->IsObject()) {
-        // we got another vector as paremeter, make a copy of it
-		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
-			// get argument vector
-			TJsFltV* JsVec2 = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-			Vec = JsVec2->Vec;
-			return HandleScope.Close(JsVec);
-		}
-        // we have object with parameters, parse them out
-		int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
-		int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", 0);
-        if (MxVals >= 0) {
-			Vec.Gen(MxVals, Vals);
-		} else {
-			Vec.Gen(Vals);
+	else {
+		if (Args[0]->IsObject()) {
+			// we got another vector as paremeter, make a copy of it
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
+				// get argument vector
+				TJsFltV* JsVec2 = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+				Vec = JsVec2->Vec;
+			}
+			else {
+				// we have object with parameters, parse them out
+				int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
+				int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", 0);
+				if (MxVals >= 0) {
+					Vec.Gen(MxVals, Vals);
+				}
+				else {
+					Vec.Gen(Vals);
+				}
+			}
 		}
 	}
+	v8::Persistent<v8::Object> JsVec = TJsFltV::New(JsLinAlg->Js, Vec);
 	return HandleScope.Close(JsVec);	
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsVec = TJsIntV::New(JsLinAlg->Js);
-	TIntV& Vec = TJsIntV::GetVec(JsVec);
+	TIntV Vec;
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		int Length = Array->Length();		
@@ -2297,34 +2298,36 @@ v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
 		for (int ElN = 0; ElN < Length; ElN++) {			
 			Vec.Add(Array->Get(ElN)->Int32Value());
 		}
-		return HandleScope.Close(JsVec);
 	}
-	if (Args[0]->IsObject()) {		
-		// we got another vector as paremeter, make a copy of it
-		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TIntV")) {
-			// get argument vector
-			TJsIntV* JsVec2 = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
-			Vec = JsVec2->Vec;
-			return HandleScope.Close(JsVec);
-		}
-		// we have object with parameters, parse them out
-		int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
-		int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", -1);		
-		if (MxVals > 0 && Vals >= 0) {
-			Vec.Gen(MxVals, Vals);
-		}
-		if (MxVals == -1 && Vals >= 0) {
-			Vec.Gen(Vals);
+	else {
+		if (Args[0]->IsObject()) {
+			// we got another vector as paremeter, make a copy of it
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TIntV")) {
+				// get argument vector
+				TJsIntV* JsVec2 = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+				Vec = JsVec2->Vec;
+			}
+			else {
+				// we have object with parameters, parse them out
+				int MxVals = TJsLinAlgUtil::GetArgInt32(Args, 0, "mxVals", -1);
+				int Vals = TJsLinAlgUtil::GetArgInt32(Args, 0, "vals", -1);
+				if (MxVals > 0 && Vals >= 0) {
+					Vec.Gen(MxVals, Vals);
+				}
+				if (MxVals == -1 && Vals >= 0) {
+					Vec.Gen(Vals);
+				}
+			}
 		}
 	}
+	v8::Persistent<v8::Object> JsVec = TJsIntV::New(JsLinAlg->Js, Vec);
 	return HandleScope.Close(JsVec);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsLinAlg->Js);
-	TFltVV& Mat = TJsFltVV::GetFltVV(JsMat);
+	TFltVV Mat;
 
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
@@ -2335,7 +2338,6 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 			for (int RowN = 0; RowN < Rows; RowN++) {	
 				if (!Array->Get(RowN)->IsArray()) {
 					throw TQmExcept::New("object is not an array of arrays in TJsLinAlg::newMat()");							
-					return HandleScope.Close(JsMat);
 				} else {
 					v8::Handle<v8::Array> Row = v8::Handle<v8::Array>::Cast(Array->Get(RowN));
 					if (RowN == 0) {
@@ -2344,7 +2346,6 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 					} else {
 						if ((int)Row->Length() != Cols) {							
 							throw TQmExcept::New("inconsistent number of columns in TJsLinAlg::newMat()");							
-							return HandleScope.Close(JsMat);
 						}
 					}
 					for (int ColN = 0; ColN < Cols; ColN++) {
@@ -2352,35 +2353,38 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 					}
 				}
 			}				
-			return HandleScope.Close(JsMat);
 		}
 	}
-	if (Args[0]->IsObject()) {
-		if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
-			// get argument matrix
-			TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-			Mat = JsMat2->Mat;
-			return HandleScope.Close(JsMat);
-		}
-		bool GenRandom = TJsLinAlgUtil::GetArgBool(Args, 0, "random", false);
-		int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
-		int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", 0);		
-		if (Cols > 0 && Rows > 0) {
-			Mat.Gen(Rows, Cols);
-			if (GenRandom) {
-				TLAMisc::FillRnd(Mat);
+	else {
+		if (Args[0]->IsObject()) {
+			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+				// get argument matrix
+				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+				Mat = JsMat2->Mat;
 			}
-		}		
+			else {
+				bool GenRandom = TJsLinAlgUtil::GetArgBool(Args, 0, "random", false);
+				int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
+				int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", 0);
+				if (Cols > 0 && Rows > 0) {
+					Mat.Gen(Rows, Cols);
+					if (GenRandom) {
+						TLAMisc::FillRnd(Mat);
+					}
+				}
+			}
+		}
 	}
+
+	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsLinAlg->Js, Mat);
 	return HandleScope.Close(JsMat);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsSpVec = TJsSpV::New(JsLinAlg->Js);
-	TJsSpV::SetDim(JsSpVec, -1);
-	TIntFltKdV& Vec = TJsSpV::GetSpV(JsSpVec);
+	int Dim = -1;
+	TIntFltKdV Vec;
 	if (Args.Length() > 0) {
 		if (Args[0]->IsArray()) {
 			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
@@ -2397,26 +2401,22 @@ v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
 				}				
 			}			
 			if (Args.Length() > 1 && Args[1]->IsObject()) {
-				int Dim = TJsLinAlgUtil::GetArgInt32(Args, 1, "dim", -1);
-				TJsSpV::SetDim(JsSpVec, Dim);
+				Dim = TJsLinAlgUtil::GetArgInt32(Args, 1, "dim", -1);
 			}
 			Vec.Sort();
-			return HandleScope.Close(JsSpVec);
 		} else if (Args[0]->IsObject()) {		
-			int Dim = TJsLinAlgUtil::GetArgInt32(Args, 0, "dim", -1);
-			TJsSpV::SetDim(JsSpVec, Dim);
+			Dim = TJsLinAlgUtil::GetArgInt32(Args, 0, "dim", -1);
 		}
 	}
+	v8::Persistent<v8::Object> JsSpVec = TJsSpV::New(JsLinAlg->Js, Vec, Dim);
 	return HandleScope.Close(JsSpVec);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsLinAlg->Js);
-	TJsSpMat::SetRows(JsSpMat, -1);	
-	TVec<TIntFltKdV>& Mat = TJsSpMat::GetSpMat(JsSpMat);
-	
+	int Rows = -1;	
+	TVec<TIntFltKdV> Mat;	
 	if (Args.Length() > 0) {
 		// corrdinate
 		if (Args.Length() == 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV") && TJsObjUtil<TJsSpMat>::IsArgInt32(Args, 3)) {
@@ -2424,43 +2424,46 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
 			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
 			int Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
-			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols); 
-			return HandleScope.Close(JsSpMat);
+			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
 		}
-		if (Args[0]->IsArray()) {
-			// javascript arrays
-			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-			int Cols = Array->Length();
-			Mat.Gen(Cols);
-			for (int ColN = 0; ColN < Cols; ColN++) {
-				if (Array->Get(ColN)->IsArray()) {
-					v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
-					int Els = SpVecArray->Length();
-					for (int ElN = 0; ElN < Els; ElN++) {
-						if (SpVecArray->Get(ElN)->IsArray()) {
-							v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
-							if (KdPair->Length() >= 2) {
-								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
-									Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
+		else {
+			if (Args[0]->IsArray()) {
+				// javascript arrays
+				v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+				int Cols = Array->Length();
+				Mat.Gen(Cols);
+				for (int ColN = 0; ColN < Cols; ColN++) {
+					if (Array->Get(ColN)->IsArray()) {
+						v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
+						int Els = SpVecArray->Length();
+						for (int ElN = 0; ElN < Els; ElN++) {
+							if (SpVecArray->Get(ElN)->IsArray()) {
+								v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
+								if (KdPair->Length() >= 2) {
+									if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+										Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
+									}
 								}
 							}
 						}
 					}
+					Mat[ColN].Sort();
 				}
-				Mat[ColN].Sort();
+				if (Args.Length() > 1 && Args[1]->IsObject()) {
+					Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
+				}
 			}
-			if (Args.Length() > 1 && Args[1]->IsObject()) {
-				int Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
-				TJsSpMat::SetRows(JsSpMat, Rows);
-			}			
-			return HandleScope.Close(JsSpMat);
-		} else if (Args[0]->IsObject()) {		
-			int Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
-			int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
-			TJsSpMat::SetRows(JsSpMat, Rows);
-			Mat.Gen(Cols);
+			else {
+				if (Args[0]->IsObject()) {
+					Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
+					int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
+					Mat.Gen(Cols);
+				}
+			}
 		}
 	}
+
+	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsLinAlg->Js, Mat, Rows);
 	return HandleScope.Close(JsSpMat);	
 }
 
@@ -2774,6 +2777,7 @@ v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, setCol);
 		JsRegisterFunction(TmpTemp, getRow);
 		JsRegisterFunction(TmpTemp, setRow);
+		JsRegisterFunction(TmpTemp, diag);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3209,7 +3213,18 @@ v8::Handle<v8::Value> TJsFltVV::setRow(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());	
 }
 
-
+v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	QmAssertR(JsMat->Mat.GetRows() == JsMat->Mat.GetCols(), "matrix: diag: square matrix expected! ");
+	TFltV Result(JsMat->Mat.GetRows());
+	for (int ElN = 0; ElN < JsMat->Mat.GetRows(); ElN++) {
+		Result[ElN] = JsMat->Mat.At(ElN, ElN);
+	}
+	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
+	return HandleScope.Close(JsResult);
+	return HandleScope.Close(v8::Undefined());
+}
 
 ///////////////////////////////
 // QMiner-SparseVec
@@ -4681,7 +4696,10 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, stop);
 		JsRegisterFunction(TmpTemp, sleep);
+		JsRegisterProperty(TmpTemp, args);
+		JsRegisterProperty(TmpTemp, sysStat);
 		JsRegisterProperty(TmpTemp, scriptNm);
 		JsRegisterProperty(TmpTemp, scriptFNm);
 		JsRegisterFunction(TmpTemp, getGlobals);
@@ -4691,17 +4709,43 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 	return Template;
 }
 
-v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsProcess::stop(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-
-	const TInt Millis = TJsProcessUtil::GetArgInt32(Args,0);
-	QmAssertR(Millis >= 0, "Sleep time must be greater or equal to than 0!");
-
-	TSysProc::Sleep(TUInt(Millis));
-
+    if (TJsProcessUtil::IsArg(Args, 0)) {
+        // we have return code, get it
+        TEnv::ReturnCode = TJsProcessUtil::GetArgInt32(Args, 0);
+    }
+    // send message to server to quit
+    TLoop::Stop();
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsProcess::sleep(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	const TInt Millis = TJsProcessUtil::GetArgInt32(Args,0);
+	QmAssertR(Millis >= 0, "Sleep time must be greater or equal to than 0!");
+	TSysProc::Sleep(TUInt(Millis));
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsProcess::args(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	PJsonVal ArgsVal = TJsonVal::NewArr(Env.GetArgV());
+	return HandleScope.Close(TJsUtil::ParseJson(ArgsVal));
+}
+
+v8::Handle<v8::Value> TJsProcess::sysStat(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    PJsonVal StatVal = TJsonVal::NewObj();
+#ifdef GLib_LINUX   
+    TSysMemStat MemStat;
+    StatVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
+    StatVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
+    StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
+#endif    	
+	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
+}
+	
 v8::Handle<v8::Value> TJsProcess::scriptNm(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
@@ -5457,15 +5501,45 @@ void TJsFuncFtrExt::Save(TSOut& SOut) const {
 }
 
 void TJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
-	SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
+	if (Dim == 1) {
+		SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
+	}
+	else {
+		TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::AddSpV Dim != result dimension!");
+		for (int ElN = 0; ElN < Dim; ElN++) {
+			SpV.Add(TIntFltKd(Offset + ElN, Res[ElN]));
+		}
+		Offset += Dim;
+	}
 }
 
 void TJsFuncFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
-	FullV[Offset] = ExecuteFunc(Rec); Offset++;
+	if (Dim == 1) {
+		FullV[Offset] = ExecuteFunc(Rec); Offset++;
+	}
+	else {		
+		TFltV Res;
+		ExecuteFuncVec(Rec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::AddFullV Dim != result dimension!");
+		for (int ElN = 0; ElN < Dim; ElN++) {
+			FullV[Offset + ElN] = Res[ElN];
+		}
+		Offset += Dim;
+	}
 }
 
 void TJsFuncFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
-	FltV.Add(ExecuteFunc(FtrRec));
+	if (Dim == 1) {
+		FltV.Add(ExecuteFunc(FtrRec));
+	}
+	else {
+		TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
+		FltV.AddV(Res);
+	}
 }
 
 }

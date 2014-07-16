@@ -182,7 +182,7 @@ assert.equals(MoviesUpdate, 2, "MoviesUpdate");
 
 // search
 var queries = [
-	{query: { $from: "People", Name: "john" }, records: 51},
+	{query: { $from: "People", Name: "john" }, records: 49},
 	{query: { $from: "Movies", $or: [{ Title: "lost" }, { Plot: "lost" }]}, records: 2},
 	{query: { $from: "Movies", Genres: "Horror", $or: [ { Title: "lost" }, { Plot: "lost" }]}, records: 1},
 	{query: { $join: { $name: "Actor", $query: { $from: "Movies", Genres: "Horror", $or: [{ Title: "lost" }, { Plot: "lost" }]}}}, records: 38},

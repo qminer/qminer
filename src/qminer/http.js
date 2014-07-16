@@ -17,37 +17,37 @@
 //////////////////////////////////////////
 // HTTP 
 
-//#- `onGet(path, function (request, response) { ... })`
+//#- `http.onGet(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onGet("test", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 http.onGet = function (path, callback) {
     if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "GET", callback);
 }
 
-//#- `onPost(path, function (request, response) { ... })`
+//#- `http.onPost(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPost("test", function (req, resp) { })` executed from `script.js` on localhost will execute a post request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 http.onPost = function (path, callback) {
     if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "POST", callback);
 }
 
-//#- `onPut(path, function (request, response) { ... })`
+//#- `http.onPut(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPut("test", function (req, resp) { })` executed from `script.js` on localhost will execute a put request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 http.onPut = function (path, callback) {
     if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "PUT", callback);
 }
 
-//#- `onDelete(path, function (request, response) { ... })`
+//#- `http.onDelete(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onDelete("test", function (req, resp) { })` executed from `script.js` on localhost will execute a delete request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 http.onDelete = function (path, callback) {
     if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "DELETE", callback);
 }
 
-//#- `onPatch(path, function (request, response) { ... })`
+//#- `http.onPatch(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPatch("test", function (req, resp) { })` executed from `script.js` on localhost will execute a patch request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 http.onPatch = function (path, callback) {
     if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     http.onRequest(path, "PATCH", callback);
 }
 
-//#- `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
+//#- `http.jsonp(httpRequest, httpResponse, dataJSON)` -- packaging reply as jsonp when callback parameter is provided in URL
 http.jsonp = function (req, res, data) {
     if (process.isArg("noserver")) { console.log("Warning: QMiner running with -noserver parameter, http callbacks will not be executed."); }
     // convert to string

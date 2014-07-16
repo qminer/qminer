@@ -437,9 +437,6 @@ void TWebPgToFileFetch::OnFetch(const int&, const PWebPg& WebPg){
     printf("%s", WebPg->GetHttpHdStr().CStr());
     printf("%s", WebPg->GetHttpBodyAsStr().CStr());
   }
-  //// send quit message
-  //if (QuitMsgP){
-  //  TSysMsg::Quit();}
 }
 
 void TWebPgToFileFetch::OnError(const int&, const TStr& MsgStr){
@@ -469,9 +466,6 @@ void TWebPgToFileFetch::OnError(const int&, const TStr& MsgStr){
   if (OutScrP){
     printf("%s\n", MsgStr.CStr());
   }
-  // send quit message
-  //if (QuitMsgP){
-  //  TSysMsg::Quit();}
 }
 
 /////////////////////////////////////////////////
