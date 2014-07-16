@@ -990,6 +990,7 @@ public:
     //#- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
 	JsDeclareFunction(getStoreList);
     //#- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+    //#- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 	JsDeclareFunction(createStore);
     //#- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
     //#   and returns a record set `rs` with results

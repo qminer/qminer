@@ -1049,10 +1049,7 @@ v8::Handle<v8::Value> TJsBase::createStore(const v8::Arguments& Args) {
     // parse arguments
     PJsonVal SchemaVal = TJsBaseUtil::GetArgJson(Args, 0);
 	uint64 DefStoreSize = (uint64) TJsBaseUtil::GetArgInt32(Args, 1, 1024);
-    // Note: CreateStoresFromSchema is probably already taking KBs (luis.rei)
-    //TODO allow schema key-value store size definitions
-    DefStoreSize = DefStoreSize * TInt::Kilo; // kilo * kilo = MB
-    //DefStoreSize = DefStoreSize * TInt::Mega;
+    DefStoreSize = DefStoreSize * TInt::Mega;
     // create new stores
     TVec<TWPt<TStore> > NewStoreV = TStorage::CreateStoresFromSchema(
         JsBase->Base, SchemaVal, DefStoreSize);   
@@ -4011,7 +4008,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     //const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
+    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 1000);
     const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);

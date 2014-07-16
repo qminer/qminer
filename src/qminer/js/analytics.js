@@ -211,7 +211,6 @@ function classifcationScore(cats) {
 			recall : function () { return this.TP / (this.TP + this.FN); },				
 			accuracy : function () { return (this.TP + this.TN) / this.all(); }
 		};
-		console.log(i + " " + this.targetList.length);
 		this.targetList.push(cats[i]);		
 	}
 	
