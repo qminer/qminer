@@ -172,7 +172,7 @@ public:
 
 	virtual void Save(TSOut& SOut) const { InterpolatorType.Save(SOut); }
 
-	virtual double Interpolate(const uint64& Time) const = 0;    
+	virtual double Interpolate(const uint64& Time) const = 0;
 	virtual void Update(const double& Val, const uint64& Tm) = 0;
 };
 
@@ -217,7 +217,12 @@ public:
     static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 	double Interpolate(const uint64& Tm) const {
 		TTm TmTTm = TTm::GetTmFromMSecs(Tm);
+
 		AssertR(PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2, "Time not in the desired interval!");
+		AssertR(PreviousRec.Val2 != NextRec.Val2 || PreviousRec.Val1 == NextRec.Val1, "Points have the same time stamp but different value!");
+
+		if (PreviousRec.Val2 == NextRec.Val2) { return NextRec.Val1; }
+
 		return 	PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
 	}
 	void Update(const double& Val, const uint64& Tm){PreviousRec=NextRec; NextRec.Val1=Val; NextRec.Val2=Tm;}
