@@ -440,6 +440,8 @@ public:
     void Restart() { StopWatch.Reset(true); }
     // returns true if the time has ran out
     bool IsTimeUp() const { return (StopWatch.GetMSecInt() > MxMSecs); }
+    // get access to stopwatch
+    const TTmStopWatch& GetStopWatch() const { return StopWatch; }
 };
 
 /////////////////////////////////////////////////

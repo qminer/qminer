@@ -81,12 +81,11 @@ public:
     pthread_t GetThreadHandle() const { return ThreadHandle; }
 
 	void Interrupt();
-	void WaitForInterrupt(const int Msecs = TInt::Mx);
+	void WaitForInterrupt(const int Msecs = INFINITE);
 
 	int Join();
 
 	static int GetCoreCount();
-
 };
 
 
