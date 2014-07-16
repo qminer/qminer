@@ -4521,7 +4521,10 @@ v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
     JsNN->NN->FeedFwd(JsVec->Vec);
     v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
     TFltV& FltV = TJsFltV::GetVec(JsFltV);
+    
     JsNN->NN->GetResults(FltV);
+
+    printf("&&Predicted %f \n", (double)FltV[0]);
 
     return HandleScope.Close(JsFltV);
 }

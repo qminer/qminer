@@ -292,7 +292,6 @@ void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate
     for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
         TNeuron& Neuron = PrevLayer.GetNeuron(NeuronN);
         TFlt OldDeltaWeight = Neuron.GetDeltaWeight(Id);
-        //printf(" LearnRate N: %f \n", LearnRate);
 
         TFlt NewDeltaWeight = 
                 // individual input magnified by the gradient and train rate
@@ -302,7 +301,7 @@ void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate
                 // add momentum = fraction of previous delta weight
                 + Momentum
                 * OldDeltaWeight;
-
+        
         Neuron.SetDeltaWeight(Id, NewDeltaWeight);
         Neuron.UpdateWeight(Id, NewDeltaWeight);
     }
