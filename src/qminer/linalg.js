@@ -164,10 +164,27 @@ la.eye = function(dim) {
 };
 
 //#- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
-la.eye = function (dim) {
+la.speye = function (dim) {
     var vec = la.ones(dim);
     return vec.spDiag();
 };
+
+//#- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
+la.sparse = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var spmat = la.newSpMat({ "rows": rows, "cols": cols });
+    return spmat;
+};
+
+//#- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
+la.zeros = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var mat = la.newMat({ "rows": rows, "cols": cols });
+    return mat;
+};
+
+
+
 
 // generate a C++ vector of ones
 //#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
