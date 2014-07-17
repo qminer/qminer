@@ -689,10 +689,10 @@ private:
 	THash<TUInt, TIntSet> StoreIdFldIdVH;				// a hash table mapping a storeId to a list of input fields
 
 	TInt NInFlds;										// number of input signals
-	TVec<TVec<TUInt64FltPr>> BuffV;						// buffer holding values which will get interpolated
+	TVec<TUInt64> Buff;					// buffer of next time points
 
-	TBoolV InitializedFldV;
-	TBool IsInitialized;
+	TBoolV SignalsPresentV;
+	TBool SignalsPresent;
 
 	TUInt64 NextInterpTm;								// time of the next interpolation point
 	
@@ -729,22 +729,18 @@ protected:
 
 private:
 	void OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr);
-	// add the record to the output store
-	void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
-	// checks if all signals are present
-	bool Initialized();
-	// checks if the conditions for interpolation are true in this iteration
-	bool CanInterpolate();
-	// updates the index of the signal which will be used for interpolation next
-	void UpdateNextIdx();
-	// shifts the specified buffer by 1
-	void ShiftBuff(const int& BuffIdx);
-	// shifts all the buffers so that the second value is greater then the current interpolation time
-	void ShiftBuffs();
-	// initializes the buffers so that old points are forgotten
-	void InitBuffs();
 	// adds a new record to the specified buffer
 	void AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Val);
+	// shifts all the buffers so that the second value is greater then the current interpolation time
+	void ShiftBuff();
+	// checks if all signals are present
+	bool AllSignalsPresent();
+	// add the record to the output store
+	void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
+	// checks if the conditions for interpolation are true in this iteration
+	bool CanInterpolate();
+	// updates the next interpolation time
+	void UpdateNextInterpTm();
 };
 
 ///////////////////////////////

@@ -1123,7 +1123,7 @@ void TMerger::OnAddRec(const TRec& Rec) {
         // update interpolators associated with the new record's store
 		if (FieldMap.GetInStoreId() == Rec.GetStoreId()) {
             const double Val = Rec.GetFieldFlt(FieldMap.GetInFieldId());            
-			FieldMap.GetInterpolator()->Update(Val, TmMSecs);
+			FieldMap.GetInterpolator()->AddPoint(Val, TmMSecs);	// TODO won't work, this was Update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		}		
 		// we interpolate value in current field and add to JSon whether we are in relevant Store or not
 		RecVal->AddToObj(FieldMap.GetOutFieldNm(), FieldMap.GetInterpolator()->Interpolate(TmMSecs));  
@@ -1268,9 +1268,9 @@ TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
 		StoreIdFldIdPrBuffIdxH(SIn),
 		StoreIdFldIdVH(SIn),
 		NInFlds(SIn),
-		BuffV(SIn),
-		InitializedFldV(SIn),
-		IsInitialized(SIn),
+		Buff(SIn),
+		SignalsPresentV(SIn),
+		SignalsPresent(SIn),
 		NextInterpTm(SIn) {}
 
 PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
@@ -1295,9 +1295,9 @@ void TStMerger::Save(TSOut& SOut) const {
 	StoreIdFldIdPrBuffIdxH.Save(SOut),
 	StoreIdFldIdVH.Save(SOut),
 	NInFlds.Save(SOut);
-	BuffV.Save(SOut);
-	InitializedFldV.Save(SOut);
-	IsInitialized.Save(SOut);
+	Buff.Save(SOut);
+	SignalsPresentV.Save(SOut);
+	SignalsPresent.Save(SOut);
 	NextInterpTm.Save(SOut);
 }
 
@@ -1375,8 +1375,7 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 		InitFld(Base, InStoreNmV[i], InFldNmV[i], OutFldNmV[i], InterpV[i]);
 	}
 
-	BuffV.Gen(NInFlds);
-	InitializedFldV.Gen(NInFlds);
+	SignalsPresentV.Gen(NInFlds);
 }
 
 void TStMerger::OnAddRec(const TQm::TRec& Rec) {
@@ -1395,51 +1394,50 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 }
 
 void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr) {
-	const int BuffIdx = StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
+	const int InterpIdx = StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
 
 	// get record time
-	TTm Tm; Rec.GetFieldTm(InTmFldIdV[BuffIdx], Tm);
+	TTm Tm; Rec.GetFieldTm(InTmFldIdV[InterpIdx], Tm);
 	const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
 	// get val
-	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[BuffIdx]);
+	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[InterpIdx]);
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
 
-	AddToBuff(BuffIdx, RecTm, RecVal);
+	AddToBuff(InterpIdx, RecTm, RecVal);
 
-	if (Initialized()) {
-		// check edge case, all time series may have had the same timestamp
-		// in this case delete the duplicate with the newly arrived value,
-		// as this is the value we are looking for
-		if (NextInterpTm == TUInt64::Mx) {
+	// check if intialized
+	if (!AllSignalsPresent()) {
+		SignalsPresentV[InterpIdx] = true;
+		if (AllSignalsPresent()) {
 			NextInterpTm = RecTm;
-			ShiftBuff(BuffIdx);
+			ShiftBuff();
+		}
+	}
+
+	// interpolate points
+	while (CanInterpolate()) {
+		// interpolate point
+		TFltV ValV(NInFlds,0);
+		for (int i = 0; i < NInFlds; i++) {
+			ValV.Add(InterpV[i]->Interpolate(NextInterpTm));
 		}
 
-		// all the values are already present
-		// and we already have the next time stamp to interpolate
-		while (CanInterpolate()) {
-			// interpolate
-			TFltV ValV(NInFlds, 0);
-			for (int i = 0; i < NInFlds; i++) {
-				const double& InterpVal = InterpV[i]->Interpolate(NextInterpTm);
-				ValV.Add(InterpVal);
-			}
+		// add the record to the output store
+		AddRec(ValV, NextInterpTm, Rec);
+		// update the next interpolation time
+		UpdateNextInterpTm();
+	}
+}
 
-			// got the values
-			// notify
-			AddRec(ValV, NextInterpTm, Rec);
-			// remove unneeded values
-			ShiftBuffs();
-			// determine next interpolation point
-			UpdateNextIdx();
-		}
-	} else {
-		InitializedFldV[BuffIdx] = true;
-		if (Initialized()) {
-			NextInterpTm = RecTm;
-			InitBuffs();
-		}
+void TStMerger::AddToBuff(const int& InterpIdx, const uint64 RecTm, const TFlt& Val) {
+	TUInt64 LastTm = Buff.Empty() ? TUInt64::Mn : Buff.Last();
+	QmAssertR(RecTm >= LastTm, "TStMerger::AddToBuff: Tried to merge past value!");
+
+	InterpV[InterpIdx]->AddPoint(Val, RecTm);
+
+	if (RecTm > LastTm) {
+		Buff.Add(RecTm);
 	}
 }
 
@@ -1457,16 +1455,27 @@ void TStMerger::AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm
 	}
 }
 
-bool TStMerger::Initialized() {
-	if (IsInitialized) { return true; }
+void TStMerger::ShiftBuff() {
+	while (!Buff.Empty() && Buff[0] < NextInterpTm) {
+		Buff.Del(0);
+	}
+
+	// notify interpolators
+	for (int i = 0; i < NInFlds; i++) {
+		InterpV[i]->SetNextInterpTm(NextInterpTm);
+	}
+}
+
+bool TStMerger::AllSignalsPresent() {
+	if (SignalsPresent) { return true; }
 
 	for (int i = 0; i < NInFlds; i++) {
-		if (!InitializedFldV[i]) {
+		if (!SignalsPresentV[i]) {
 			return false;
 		}
 	}
 
-	IsInitialized = true;
+	SignalsPresent = true;
 	return true;
 }
 
@@ -1482,55 +1491,10 @@ bool TStMerger::CanInterpolate() {
 	return true;
 }
 
-void TStMerger::UpdateNextIdx() {
-	uint64 MinTm = TUInt64::Mx;
-
-	// find the entry at index 1 that has the min time
-	for (int i = 0; i < NInFlds; i++) {
-		if (BuffV[i].Len() > 1 && BuffV[i][1].Val1 < MinTm) {
-			MinTm = BuffV[i][1].Val1;
-		}
-	}
-
-	NextInterpTm = MinTm;
+void TStMerger::UpdateNextInterpTm() {
+	NextInterpTm = Buff.Len() > 1 ? Buff[1] : TUInt64::Mx;
+	ShiftBuff();
 }
-
-void TStMerger::ShiftBuff(const int& BuffIdx) {
-	TVec<TUInt64FltPr>& Buff = BuffV[BuffIdx];
-
-	Buff.Del(0);
-	if (Buff.Len() >= 2) {
-		InterpV[BuffIdx]->Update(Buff[1].Val2, Buff[1].Val1);
-	}
-}
-
-void TStMerger::ShiftBuffs() {
-	for (int i = 0; i < NInFlds; i++) {
-		while (BuffV[i].Len() > 1 && BuffV[i][1].Val1 == NextInterpTm) {
-			ShiftBuff(i);
-		}
-	}
-}
-
-void TStMerger::InitBuffs() {
-	for (int i = 0; i < NInFlds; i++) {
-		TVec<TUInt64FltPr>& Buff = BuffV[i];
-		while (Buff.Len() > 1 && Buff[1].Val1 < NextInterpTm) {
-			ShiftBuff(i);
-		}
-	}
-}
-
-void TStMerger::AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Val) {
-	TVec<TUInt64FltPr>& Buff = BuffV[BuffIdx];
-
-	Buff.Add(TUInt64FltPr(RecTm, Val));
-
-	if (Buff.Len() <= 2) {
-		InterpV[BuffIdx]->Update(Val, RecTm);
-	}
-}
-
 
 ///////////////////////////////
 // Resampler
@@ -1545,7 +1509,8 @@ void TResampler::OnAddRec(const TRec& Rec) {
         // get field value
         const double Val = Rec.GetFieldFlt(InFieldIdV[FieldN]);
         // update interpolator
-        InterpolatorV[FieldN]->Update(Val, RecTmMSecs);
+        InterpolatorV[FieldN]->AddPoint(Val, RecTmMSecs);	// TODO this was update!!!!!!!!!!!!!!!!!!!!!!!!!!
+//        InterpolatorV[FieldN]->Update(Val, RecTmMSecs);
     }  
     // insert new records until we reach new record's time
     while (InterpPointMSecs < RecTmMSecs) {

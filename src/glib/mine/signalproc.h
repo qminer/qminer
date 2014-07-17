@@ -172,9 +172,10 @@ public:
 
 	virtual void Save(TSOut& SOut) const { InterpolatorType.Save(SOut); }
 
+	virtual void SetNextInterpTm(const uint64& Time) = 0;
 	virtual double Interpolate(const uint64& Time) const = 0;
 	virtual bool CanInterpolate(const uint64& Time) const = 0;
-	virtual void Update(const double& Val, const uint64& Tm) = 0;
+	virtual void AddPoint(const double& Val, const uint64& Tm) = 0;
 };
 
 /////////////////////////////////////////
@@ -194,9 +195,10 @@ public:
     static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
 	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PreviousRec.Save(SOut); NextRec.Save(SOut); };
     
+	void SetNextInterpTm(const uint64& Time) {}	// TODO
 	double Interpolate(const uint64& TmMSecs) const { return PreviousRec.Val1; }
 	bool CanInterpolate(const uint64& Tm) const;
-	void Update(const double& Val, const uint64& TmMSecs) { PreviousRec = NextRec; NextRec.Val1 = Val; NextRec.Val2 = TmMSecs; }
+	void AddPoint(const double& Val, const uint64& TmMSecs) { PreviousRec = NextRec; NextRec.Val1 = Val; NextRec.Val2 = TmMSecs; }
 
 	static TStr GetType() { return "previous"; }
 };
@@ -206,22 +208,22 @@ public:
 // Interpolate by calculating point between two given points
 class TLinear : public TInterpolator {
 private:
-	//Previous Record; (Value,Timestamp)
-	TPair<TFlt, TUInt64> PreviousRec;
-	//Next Record; (Value,Timestamp)
-	TPair<TFlt, TUInt64> NextRec;
+	// buffer holding the current and future points
+	TUInt64FltPrV Buff;	// TODO change this to circular list
 
-	TLinear(): TInterpolator(TLinear::GetType()), PreviousRec(0, TUInt64::Mx), NextRec(0, TUInt64::Mx) { }
-	TLinear(TSIn& SIn): TInterpolator(TLinear::GetType()), PreviousRec(SIn), NextRec(SIn) {}
+	TLinear();
+	TLinear(TSIn& SIn);
 public:	
-	static TStr GetType() { return "linear"; }
-	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PreviousRec.Save(SOut); NextRec.Save(SOut); };
+	void Save(TSOut& SOut) const;
 	static PInterpolator New() { return new TLinear; }
     static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 
+    void SetNextInterpTm(const uint64& Time);
 	double Interpolate(const uint64& Tm) const;
 	bool CanInterpolate(const uint64& Tm) const;
-	void Update(const double& Val, const uint64& Tm);
+	void AddPoint(const double& Val, const uint64& Tm);
+
+	static TStr GetType() { return "linear"; }
 };
 
 /////////////////////////////////////////

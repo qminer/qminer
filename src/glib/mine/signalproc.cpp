@@ -207,29 +207,51 @@ bool TPreviousPoint::CanInterpolate(const uint64& Tm) const {
 
 /////////////////////////////////////////
 // Time series linear interpolator
-double TLinear::Interpolate(const uint64& Tm) const {
-	TTm TmTTm = TTm::GetTmFromMSecs(Tm);
+TLinear::TLinear():
+		TInterpolator(TLinear::GetType()),
+		Buff() { }
 
+TLinear::TLinear(TSIn& SIn):
+		TInterpolator(TLinear::GetType()),
+		Buff(SIn) {}
+
+void TLinear::Save(TSOut& SOut) const {
+	TInterpolator::Save(SOut);
+	Buff.Save(SOut);
+}
+
+void TLinear::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff[1].Val1 <= Time) {
+		Buff.Del(0);
+	}
+}
+
+double TLinear::Interpolate(const uint64& Tm) const {
 	AssertR(CanInterpolate(Tm), "Time not in the desired interval!");
 
-	if (PreviousRec.Val2 == NextRec.Val2) {
-		return NextRec.Val1;
-	}
+	if (Tm == Buff[0].Val1) { return Buff[0].Val2; }
 
-	return PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
+	const TUInt64FltPr& PrevRec = Buff[0];
+	const TUInt64FltPr& NextRec = Buff[1];
+
+	return PrevRec.Val2+((double)(Tm-PrevRec.Val1)/(NextRec.Val1-PrevRec.Val1))*(NextRec.Val2-PrevRec.Val2);
 }
 
 bool TLinear::CanInterpolate(const uint64& Tm) const {
-	return PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2;
+	return (!Buff.Empty() && Buff[0].Val1 == Tm) ||
+			(Buff.Len() >= 2 && Buff[0].Val1 <= Tm && Buff[1].Val1 >= Tm);
 }
 
-void TLinear::Update(const double& Val, const uint64& Tm) {
-//	if (PreviousRec.Val2 != TUInt64::Mx && Tm == NextRec.Val2 && Val == NextRec.Val1)
-	AssertR(PreviousRec.Val2 == TUInt64::Mx || Tm != NextRec.Val2 || Val != NextRec.Val1, "Points have the same time stamp but different value!");
+void TLinear::AddPoint(const double& Val, const uint64& Tm) {
+	// check if the new point can be added
+	if (!Buff.Empty()) {
+		const TUInt64FltPr& LastRec = Buff.Last();
+		AssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+	}
 
-	PreviousRec = NextRec;
-	NextRec.Val1 = Val;
-	NextRec.Val2 = Tm;
+	// add the new point
+	Buff.Add(TUInt64FltPr(Tm, Val));
 }
 
 ///////////////////////////////////////////////////////////////////
