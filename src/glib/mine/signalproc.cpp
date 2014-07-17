@@ -247,7 +247,7 @@ void TLinear::AddPoint(const double& Val, const uint64& Tm) {
 	// check if the new point can be added
 	if (!Buff.Empty()) {
 		const TUInt64FltPr& LastRec = Buff.Last();
-		AssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+		AssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "TLinear::AddPoint: New point has a timestamp lower then the last point in the buffer!");
 	}
 
 	// add the new point
