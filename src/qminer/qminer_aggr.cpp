@@ -1397,10 +1397,13 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr) {
 	const int BuffIdx = StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
 
-	// get time
+	// get record time
 	TTm Tm; Rec.GetFieldTm(InTmFldIdV[BuffIdx], Tm);
 	const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
+	// get val
 	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[BuffIdx]);
+
+	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
 
 	AddToBuff(BuffIdx, RecTm, RecVal);
 
