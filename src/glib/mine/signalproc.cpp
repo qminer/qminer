@@ -224,7 +224,8 @@ bool TLinear::CanInterpolate(const uint64& Tm) const {
 }
 
 void TLinear::Update(const double& Val, const uint64& Tm) {
-	AssertR(Tm != NextRec.Val2 || Val == NextRec.Val1, "Points have the same time stamp but different value!");
+//	if (PreviousRec.Val2 != TUInt64::Mx && Tm == NextRec.Val2 && Val == NextRec.Val1)
+	AssertR(PreviousRec.Val2 == TUInt64::Mx || Tm != NextRec.Val2 || Val != NextRec.Val1, "Points have the same time stamp but different value!");
 
 	PreviousRec = NextRec;
 	NextRec.Val1 = Val;
