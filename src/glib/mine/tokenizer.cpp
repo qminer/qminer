@@ -36,8 +36,7 @@ PTokenizer TTokenizer::New(const TStr& TypeNm, const PJsonVal& JsonVal) {
 }
 
 PTokenizer TTokenizer::Load(TSIn& SIn) {
-	TStr TypeNm(SIn); 
-    printf("Loading %s\n", TypeNm.CStr());           
+	TStr TypeNm(SIn);          
     return LoadRouter.Fun(TypeNm)(SIn);
 }
 
@@ -170,6 +169,7 @@ void THtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 	TStr LineStr; TStrV WordStrV;    
 	while (SIn->GetNextLn(LineStr)) {
         TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
+        THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
 	}
 }
 
