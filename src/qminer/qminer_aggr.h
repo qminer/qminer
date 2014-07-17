@@ -695,7 +695,8 @@ private:
 	TBool SignalsPresent;
 
 	TUInt64 NextInterpTm;								// time of the next interpolation point
-	
+	TUInt64 PrevInterpTm;								// this variable is used to avoid duplicates when extrapolating into the future
+
 public:
 	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
@@ -741,6 +742,12 @@ private:
 	bool CanInterpolate();
 	// updates the next interpolation time
 	void UpdateNextInterpTm();
+	// updates the next interpolation time in the interpolators
+	void UpdateInterpolators();
+	// checks if the merger is initialized
+	bool CheckInitialized(const int& InterpIdx, const uint64& RecTm);
+	// checks edge cases and makes sure interpolation will run smoothly
+	void CheckEdgeCases(const uint64& RecTm);
 };
 
 ///////////////////////////////

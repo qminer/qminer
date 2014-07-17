@@ -1271,7 +1271,8 @@ TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
 		Buff(SIn),
 		SignalsPresentV(SIn),
 		SignalsPresent(SIn),
-		NextInterpTm(SIn) {}
+		NextInterpTm(SIn),
+		PrevInterpTm(SIn) {}
 
 PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 		const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
@@ -1299,6 +1300,7 @@ void TStMerger::Save(TSOut& SOut) const {
 	SignalsPresentV.Save(SOut);
 	SignalsPresent.Save(SOut);
 	NextInterpTm.Save(SOut);
+	PrevInterpTm.Save(SOut);
 }
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
@@ -1363,6 +1365,7 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 	}
 
 	NextInterpTm = TUInt64::Mx;
+	PrevInterpTm = TUInt64::Mx;
 	NInFlds = InStoreNmV.Len();
 	TimeFieldId = OutStore->GetFieldId(OutTmFieldNm);
 
@@ -1404,18 +1407,11 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
 
-	printf("Adding: InterpIdx: %d, time: %ld, val: %.5f\n", InterpIdx, RecTm, RecVal.Val);
-
 	AddToBuff(InterpIdx, RecTm, RecVal);
 
-	// check if intialized
-	if (!AllSignalsPresent()) {
-		SignalsPresentV[InterpIdx] = true;
-		if (AllSignalsPresent()) {
-			NextInterpTm = RecTm;
-			ShiftBuff();
-		}
-	}
+	// checks
+	if (!CheckInitialized(InterpIdx, RecTm)) { return; }
+	CheckEdgeCases(RecTm);
 
 	// interpolate points
 	while (CanInterpolate()) {
@@ -1462,10 +1458,7 @@ void TStMerger::ShiftBuff() {
 		Buff.Del(0);
 	}
 
-	// notify interpolators
-	for (int i = 0; i < NInFlds; i++) {
-		InterpV[i]->SetNextInterpTm(NextInterpTm);
-	}
+	UpdateInterpolators();
 }
 
 bool TStMerger::AllSignalsPresent() {
@@ -1483,6 +1476,7 @@ bool TStMerger::AllSignalsPresent() {
 
 bool TStMerger::CanInterpolate() {
 	if (NextInterpTm == TUInt64::Mx) { return false; }	// this happens when all time series had the same timestamp in the previous iteration
+	if (NextInterpTm == PrevInterpTm) { return false; }	// avoid duplicates when extrapolating future values
 
 	for (int i = 0; i < NInFlds; i++) {
 		if (!InterpV[i]->CanInterpolate(NextInterpTm)) {
@@ -1494,8 +1488,43 @@ bool TStMerger::CanInterpolate() {
 }
 
 void TStMerger::UpdateNextInterpTm() {
+	PrevInterpTm = NextInterpTm;
 	NextInterpTm = Buff.Len() > 1 ? Buff[1] : TUInt64::Mx;
 	ShiftBuff();
+}
+
+void TStMerger::UpdateInterpolators() {
+	if (NextInterpTm == TUInt64::Mx) { return; }	// edge case, no points in the buffer
+
+	for (int i = 0; i < NInFlds; i++) {
+		InterpV[i]->SetNextInterpTm(NextInterpTm);
+	}
+}
+
+bool TStMerger::CheckInitialized(const int& InterpIdx, const uint64& RecTm) {
+	if (!AllSignalsPresent()) {
+		SignalsPresentV[InterpIdx] = true;
+
+		if (!AllSignalsPresent()) { return false; }	// should not continue
+
+		NextInterpTm = RecTm;
+		ShiftBuff();
+	}
+
+	return true;
+}
+
+void TStMerger::CheckEdgeCases(const uint64& RecTm) {
+	// the buffer was empty before this iteration,
+	// the next interpolation time is not set
+	if (NextInterpTm == TUInt64::Mx) {
+		NextInterpTm = RecTm;
+		UpdateInterpolators();
+	}
+	// duplicate value when extrapolating future
+	if (NextInterpTm == PrevInterpTm) {
+		NextInterpTm = TUInt64::Mx;
+	}
 }
 
 ///////////////////////////////
