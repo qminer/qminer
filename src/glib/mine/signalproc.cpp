@@ -197,6 +197,40 @@ PInterpolator TInterpolator::Load(TSIn& SIn) {
 	}
 	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
+
+/////////////////////////////////////////
+// Previous point interpolator.
+// Interpolate by returning last seen value
+bool TPreviousPoint::CanInterpolate(const uint64& Tm) const {
+	return PreviousRec.Val2 <= Tm;
+}
+
+/////////////////////////////////////////
+// Time series linear interpolator
+double TLinear::Interpolate(const uint64& Tm) const {
+	TTm TmTTm = TTm::GetTmFromMSecs(Tm);
+
+	AssertR(CanInterpolate(Tm), "Time not in the desired interval!");
+
+	if (PreviousRec.Val2 == NextRec.Val2) {
+		return NextRec.Val1;
+	}
+
+	return PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
+}
+
+bool TLinear::CanInterpolate(const uint64& Tm) const {
+	return PreviousRec.Val2 <= Tm && Tm <= NextRec.Val2;
+}
+
+void TLinear::Update(const double& Val, const uint64& Tm) {
+	AssertR(Tm != NextRec.Val2 || Val == NextRec.Val1, "Points have the same time stamp but different value!");
+
+	PreviousRec = NextRec;
+	NextRec.Val1 = Val;
+	NextRec.Val2 = Tm;
+}
+
 ///////////////////////////////////////////////////////////////////
 // Neural Networks - Neuron
 TRnd TNNet::TNeuron::Rnd = 0;

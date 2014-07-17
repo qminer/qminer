@@ -3990,6 +3990,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TVar>();
     Register<TStreamAggrs::TCov>();
     Register<TStreamAggrs::TCorr>();
+    Register<TStreamAggrs::TStMerger>();
     Register<TStreamAggrs::TResampler>();
 }
 

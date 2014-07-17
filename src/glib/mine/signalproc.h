@@ -163,15 +163,17 @@ private:
     const TStr InterpolatorType;
 protected:
     TInterpolator(const TStr& _InterpolatorType): InterpolatorType(_InterpolatorType) {}
+
 public:
-    static PInterpolator New(const TStr& InterpolatorType);
-    static PInterpolator Load(TSIn& SIn);
+	static PInterpolator New(const TStr& InterpolatorType);
+	static PInterpolator Load(TSIn& SIn);
 
  	virtual ~TInterpolator() { }
 
 	virtual void Save(TSOut& SOut) const { InterpolatorType.Save(SOut); }
 
-	virtual double Interpolate(const uint64& Time) const = 0;    
+	virtual double Interpolate(const uint64& Time) const = 0;
+	virtual bool CanInterpolate(const uint64& Time) const = 0;
 	virtual void Update(const double& Val, const uint64& Tm) = 0;
 };
 
@@ -180,23 +182,25 @@ public:
 // Interpolate by returning last seen value
 class TPreviousPoint : public TInterpolator {
 private:
-    // previous value, that we return as interpolation
-    TFlt PrevVal;
-    // current value, waiting to become previous value
-    TFlt CurrVal;
-    
+    //Previous Record; (Value,Timestamp)
+	TPair<TFlt, TUInt64> PreviousRec;
+	//Next Record; (Value,Timestamp)
+	TPair<TFlt, TUInt64> NextRec;
+
 	TPreviousPoint(): TInterpolator(TPreviousPoint::GetType()) { }
-	TPreviousPoint(TSIn& SIn): TInterpolator(TPreviousPoint::GetType()), PrevVal(SIn), CurrVal(SIn) {}
+	TPreviousPoint(TSIn& SIn): TInterpolator(TPreviousPoint::GetType()), PreviousRec(SIn), NextRec(SIn) {}
 public:	
     static PInterpolator New() { return new TPreviousPoint; }
     static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
-	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PrevVal.Save(SOut); CurrVal.Save(SOut); };
+	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PreviousRec.Save(SOut); NextRec.Save(SOut); };
     
-	double Interpolate(const uint64& TmMSecs) const { return PrevVal; }
-	void Update(const double& Val, const uint64& TmMSecs) { PrevVal = CurrVal; CurrVal = Val; }
+	double Interpolate(const uint64& TmMSecs) const { return PreviousRec.Val1; }
+	bool CanInterpolate(const uint64& Tm) const;
+	void Update(const double& Val, const uint64& TmMSecs) { PreviousRec = NextRec; NextRec.Val1 = Val; NextRec.Val2 = TmMSecs; }
 
 	static TStr GetType() { return "previous"; }
 };
+
 /////////////////////////////////////////
 // Linear interpolator.
 // Interpolate by calculating point between two given points
@@ -207,23 +211,19 @@ private:
 	//Next Record; (Value,Timestamp)
 	TPair<TFlt, TUInt64> NextRec;
 
-	TLinear(): TInterpolator(TLinear::GetType()) { }
+	TLinear(): TInterpolator(TLinear::GetType()), PreviousRec(0, TUInt64::Mx), NextRec(0, TUInt64::Mx) { }
 	TLinear(TSIn& SIn): TInterpolator(TLinear::GetType()), PreviousRec(SIn), NextRec(SIn) {}
 public:	
 	static TStr GetType() { return "linear"; }
 	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PreviousRec.Save(SOut); NextRec.Save(SOut); };
 	static PInterpolator New() { return new TLinear; }
     static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
-	double Interpolate(const uint64& Tm) const {
-		TTm TmTTm = TTm::GetTmFromMSecs(Tm);
-		if(NextRec.Val2==Tm){return NextRec.Val1;}
-		if((PreviousRec.Val2<Tm)&&(Tm<NextRec.Val2)){
-			return 	PreviousRec.Val1+((double)(Tm-PreviousRec.Val2)/(NextRec.Val2-PreviousRec.Val2))*(NextRec.Val1-PreviousRec.Val1);
-		}
-		else{return 0.0;}
-	}
-	void Update(const double& Val, const uint64& Tm){PreviousRec=NextRec; NextRec.Val1=Val; NextRec.Val2=Tm;}
+
+	double Interpolate(const uint64& Tm) const;
+	bool CanInterpolate(const uint64& Tm) const;
+	void Update(const double& Val, const uint64& Tm);
 };
+
 /////////////////////////////////////////
 // Neural Networks - Neural Net
 typedef enum { tanHyper, sigmoid, fastTanh, fastSigmoid, linear } TTFunc;

@@ -633,12 +633,13 @@ public:
         const TStr& OutFieldNm, const TSignalProc::PInterpolator& Interpolator);
     TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& InFieldNm, 
         const TSignalProc::PInterpolator& Interpolator);
-       
+    //TMergerFieldMap(const TWPt<TBase>& Base, TSIn& SIn);   
     uint GetInStoreId() const { return InStoreId; }
     int GetInFieldId() const { return InFieldId; }
     TStr GetOutFieldNm() const { return OutFieldNm; }
-    
-    const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
+   // void Save(TSOut& SOut) const;
+   // static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn) { return new TMergerFieldMap(Base, SIn); }
+	const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
 };
 
 ///////////////////////////////
@@ -670,50 +671,80 @@ public:
     // stream aggregator type name 
     static TStr GetType() { return "merger"; }
 };
-
 //////////////////////////////////////////////
 // StMerger
 
 class TStMerger : public TQm::TStreamAggr {
 private:
-	/// Map from store id to time field
-    TIntV InTimeFieldIdV;
-	/// Map of old store id and field id to new field id
-	TVec<TMergerFieldMap> FieldMapV;  
-	
-	
-	TVec<TVec<uint64>> WaitingList;			                //buffer of timestamps before interpolation
-	TVec<TVec<TPair<uint64,TFlt>>> BufferMatrix;			//bufer of timestamps with interpolations before adding them as records
-	THash<TPair<TStr,TStr> , TStr> HashTable;				//Hash table;(Store,Field)-> TStr
-	  
-
-	//TWPt<TQm::TBase> Base_; //input Base
-	TStr OutStoreNm;			//name of new store
 	TWPt<TStore> OutStore;
-	TStr TimeFieldNm;		//name of time field in new store
-	TVec<TSignalProc::PInterpolator> InterpTableV;	  //table of interpolations for each field
-	
-	
+
 	TInt TimeFieldId;
-	
-protected:	
-	void OnAddRec(const TQm::TRec& Rec	);
+
+	TIntV InTmFldIdV;									// IDs of the input time fields
+	TIntV InFldIdV;										// IDs of the input value fields
+	TStrV OutFldNmV;									// names of the output fields
+	TVec<TSignalProc::PInterpolator> InterpV;	  		// interpolators
+
+	THash<TUIntIntPr, TInt> StoreIdFldIdPrBuffIdxH;		// a hash table that maps a pair <storeId,fieldId> to the index in the internal structures
+	THash<TUInt, TIntSet> StoreIdFldIdVH;				// a hash table mapping a storeId to a list of input fields
+
+	TInt NInFlds;										// number of input signals
+	TVec<TVec<TUInt64FltPr>> BuffV;						// buffer holding values which will get interpolated
+
+	TBoolV InitializedFldV;
+	TBool IsInitialized;
+
+	TUInt64 NextInterpTm;								// time of the next interpolation point
 	
 public:
-	//TStMerger1(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
-    //    const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, 
-    //    const TStr& NewTimeFieldNm, const bool& CreateStoreP = false);
-	TStMerger(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
-	 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& NewStoreNm, const TStr& NewTmFieldNm,
-						   const bool& CreateStoreP);
+	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
+			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
+
 	TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
-	//TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
+	TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
 	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
-	static PStreamAggr New(const TWPt<TQm::TBase>& Base,TVec<TPair<TStr,TStr>> StoresAndFieldsV,
-					 const TStr& AggrNm, const TStrV& InterpolationsV, const TStr& OutStoreNm, 
-					 const TStr& OutTimeFieldNm, const bool& CreateStoreP);
+
+
+	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
+			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	PJsonVal SaveJson(const int& Limit) const;
+	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn) { return new TStMerger(Base, SIn); }
+	void Save(TSOut& SOut) const;
+
+	static TStr GetType() { return "stmerger"; }
+
+private:
+	void InitFld(const TWPt<TQm::TBase> Base, const TStr& InStoreNm, const TStr& InFldNm, const TStr& OutFldNm,
+			const TStr& InterpNm);
+	// initialized internal structures
+	void InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm, const TStr& OutTmFieldNm, const bool& CreateStoreP,
+			const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV,
+			const TStrV& InterpV);
+
+protected:
+	void OnAddRec(const TQm::TRec& Rec);
+
+private:
+	void OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr);
+	// add the record to the output store
+	void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
+	// checks if all signals are present
+	bool Initialized();
+	// checks if the conditions for interpolation are true in this iteration
+	bool CanInterpolate();
+	// updates the index of the signal which will be used for interpolation next
+	void UpdateNextIdx();
+	// shifts the specified buffer by 1
+	void ShiftBuff(const int& BuffIdx);
+	// shifts all the buffers so that the second value is greater then the current interpolation time
+	void ShiftBuffs();
+	// initializes the buffers so that old points are forgotten
+	void InitBuffs();
+	// adds a new record to the specified buffer
+	void AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Val);
 };
 
 ///////////////////////////////
@@ -760,10 +791,8 @@ public:
 
     // Save basic class of stream aggregate to stream
     void Save(TSOut& SOut) const;
-    
-	PJsonVal SaveJson(const int& Limit) const;
-
-    // stream aggregator type name 
+    PJsonVal SaveJson(const int& Limit) const;
+	// stream aggregator type name 
     static TStr GetType() { return "resampler"; }
 };
 
@@ -779,7 +808,10 @@ public:
 		const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
 		TWPt<TQm::TStreamAggrBase>& SABase);
 	static TStrV ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-
+	static void TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
+			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
+	static void TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal);
 
 };
 

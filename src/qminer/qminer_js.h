@@ -24,8 +24,11 @@
 #include <qminer_srv.h>
 #include <qminer_gs.h>
 #include <v8.h>
-#include <v8-debug.h>
 #include <typeinfo>
+
+#ifndef NDEBUG
+	#include <v8-debug.h>
+#endif
 
 namespace TQm {
 
@@ -92,7 +95,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(const PExcept& Except) { \
+		} catch (const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -998,7 +1001,7 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate of type typeName to the store; stream aggregate is passed paramJSON JSon
+	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 	//# paramJSON must contain field `type` which defies the type of the aggregate
 	JsDeclareFunction(addStreamAggr);
 	//#JSIMPLEMENT:src/qminer/qminer.js    

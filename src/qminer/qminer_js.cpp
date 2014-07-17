@@ -301,6 +301,10 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 }
 
 TScript::~TScript() {
+#ifndef NDEBUG
+	v8::Locker Locker;
+#endif
+
 	v8::HandleScope HandleScope;
 	// delete fetcher
 	JsFetch.Del();
@@ -668,8 +672,8 @@ void TScript::Init() {
 	}
 
 #ifndef NDEBUG
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	v8::Locker lock(isolate);
+	// for debugging JavaScript
+	v8::Locker lock;
 #endif
 
 	// do global initialization if not yet done
@@ -1112,9 +1116,20 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	}
 
 	// create new aggregate
-	PStreamAggr StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 
-	// TODO add StreamAggr to stores???
+	// add the stream aggregate to all the stores specified in the parameters
+	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
+	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
+
+	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
+		PJsonVal Entry = MrgMapV->GetArrVal(i);
+
+		const TStr InStore = Entry->GetObjStr("inStore");
+		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
+
+		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
+	}
 
 	return HandleScope.Close(v8::Null());
 }
