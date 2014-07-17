@@ -36,7 +36,9 @@ PTokenizer TTokenizer::New(const TStr& TypeNm, const PJsonVal& JsonVal) {
 }
 
 PTokenizer TTokenizer::Load(TSIn& SIn) {
-	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(SIn);
+	TStr TypeNm(SIn); 
+    printf("Loading %s\n", TypeNm.CStr());           
+    return LoadRouter.Fun(TypeNm)(SIn);
 }
 
 void TTokenizer::GetTokens(const TStr& Text, TStrV& TokenV) const {
@@ -144,7 +146,6 @@ THtmlUnicode::THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer,
         const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
         
     EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); 
-    Unicode = TUnicodeDef::GetDef();
 }
 
 PTokenizer THtmlUnicode::New(const PJsonVal& ParamVal) {
@@ -168,19 +169,7 @@ void THtmlUnicode::Save(TSOut& SOut) const {
 void THtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 	TStr LineStr; TStrV WordStrV;    
 	while (SIn->GetNextLn(LineStr)) {
-        TIntV UStr1, UStr2, UStr3; 
-        // decode and decompose
-        Unicode->DecodeUtf8(LineStr, UStr1);
-        Unicode->Decompose(UStr1, UStr2, true);
-        // extract simple characters by removing 'decorations'
-        UStr3.Gen(UStr2.Len(), 0); 
-        Unicode->ExtractStarters(UStr2, UStr3, false);
-        // put to lower case
-        Unicode->ToSimpleLowerCase(UStr3);
-        // get back normal string
-        TStr SimpleText = Unicode->EncodeUtf8Str(UStr3);
-		THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
-        //DEBUG: printf("%s\n%s\n\n", LineStr.Left(80).CStr(), SimpleText.Left(80).CStr());
+        TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
 	}
 }
 

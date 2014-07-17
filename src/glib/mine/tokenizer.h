@@ -38,6 +38,7 @@ public:
     static bool RegP;
     /// Register new aggregate
     template <class TObj> static void Register() { 
+        printf("Registering tokenizer %s\n", TObj::GetType().CStr());
         NewRouter.Register(TObj::GetType(), TObj::New);
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
@@ -113,8 +114,6 @@ public:
 // Tokenizer-Html-Unicode
 //   Puts string to simple canonical form and calls HTML tokenizer, 
 class THtmlUnicode : public THtml {
-private:
-    TUnicode* Unicode;
 protected:
 	THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP);
 public:
