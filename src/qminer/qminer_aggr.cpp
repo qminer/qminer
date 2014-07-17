@@ -1404,6 +1404,8 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
 
+	printf("Adding: InterpIdx: %d, time: %ld, val: %.5f\n", InterpIdx, RecTm, RecVal.Val);
+
 	AddToBuff(InterpIdx, RecTm, RecVal);
 
 	// check if intialized
@@ -1539,7 +1541,6 @@ void TResampler::OnAddRec(const TRec& Rec) {
 		}
 
 		InterpPointMSecs += IntervalMSecs;
-		RefreshInterpolators(InterpPointMSecs);
 	}
 
 	RefreshInterpolators(RecTmMSecs);
@@ -1553,6 +1554,7 @@ void TResampler::RefreshInterpolators(const uint64& Tm) {
 }
 
 bool TResampler::CanInterpolate() {
+	RefreshInterpolators(InterpPointMSecs);
 	for (int i = 0; i < InterpolatorV.Len(); i++) {
 		if (!InterpolatorV[i]->CanInterpolate(InterpPointMSecs)) {
 			return false;
