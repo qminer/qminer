@@ -747,7 +747,7 @@ private:
 	// checks if the merger is initialized
 	bool CheckInitialized(const int& InterpIdx, const uint64& RecTm);
 	// checks edge cases and makes sure interpolation will run smoothly
-	void CheckEdgeCases(const uint64& RecTm);
+	void HandleEdgeCases(const uint64& RecTm);
 };
 
 ///////////////////////////////

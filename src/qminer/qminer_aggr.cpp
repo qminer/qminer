@@ -1399,10 +1399,9 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr) {
 	const int InterpIdx = StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
 
-	// get record time
+	// get record time and value
 	TTm Tm; Rec.GetFieldTm(InTmFldIdV[InterpIdx], Tm);
 	const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
-	// get val
 	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[InterpIdx]);
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
@@ -1411,7 +1410,7 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 
 	// checks
 	if (!CheckInitialized(InterpIdx, RecTm)) { return; }
-	CheckEdgeCases(RecTm);
+	HandleEdgeCases(RecTm);
 
 	// interpolate points
 	while (CanInterpolate()) {
@@ -1514,7 +1513,7 @@ bool TStMerger::CheckInitialized(const int& InterpIdx, const uint64& RecTm) {
 	return true;
 }
 
-void TStMerger::CheckEdgeCases(const uint64& RecTm) {
+void TStMerger::HandleEdgeCases(const uint64& RecTm) {
 	// the buffer was empty before this iteration,
 	// the next interpolation time is not set
 	if (NextInterpTm == TUInt64::Mx) {
