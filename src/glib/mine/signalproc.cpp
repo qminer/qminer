@@ -246,6 +246,13 @@ TPreviousPoint::TPreviousPoint():
 TPreviousPoint::TPreviousPoint(TSIn& SIn):
 		TBufferedInterpolator(SIn) {}
 
+void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff[1].Val1 < Time) {
+		Buff.Del(0);
+	}
+}
+
 double TPreviousPoint::Interpolate(const uint64& Tm) const {
 	IAssertR(CanInterpolate(Tm), "TPreviousPoint::Interpolate: Time not in the desired interval!");
 	return Buff[0].Val2;

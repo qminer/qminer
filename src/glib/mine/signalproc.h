@@ -195,7 +195,7 @@ protected:
 public:
 	virtual void Save(TSOut& SOut) const;
 
-	void SetNextInterpTm(const uint64& Time);
+	virtual void SetNextInterpTm(const uint64& Time);
 	void AddPoint(const double& Val, const uint64& Tm);
 };
 
@@ -212,6 +212,7 @@ public:
     static PInterpolator New() { return new TPreviousPoint; }
     static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
     
+    void SetNextInterpTm(const uint64& Time);
 	double Interpolate(const uint64& TmMSecs) const;
 	bool CanInterpolate(const uint64& Tm) const;
 
