@@ -1967,7 +1967,7 @@ public:
 	// characters are skipped.  'src' should already have been decomposed.
 	// Returns the number of characters extracted.  This function can be
 	// used to remove diacritical marks from a string (after it has been decomposed!).
-	int ExtractStarters(const TIntV& src, TIntV& dest) const { return (int) ucd.ExtractStarters(src, dest); }
+	int ExtractStarters(const TIntV& src, TIntV& dest, bool clrDest = true) const { return (int) ucd.ExtractStarters(src, dest, clrDest); }
 	// Extracts the starters into a temporary vector and then copies it into 'src'.
 	int ExtractStarters(TIntV& src) const { return (int) ucd.ExtractStarters(src); }
 

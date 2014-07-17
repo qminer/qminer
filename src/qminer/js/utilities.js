@@ -175,3 +175,8 @@ exports.arraysIdentical = function(a, b) {
     }
     return true;
 };
+
+//#- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
+exports.numberWithCommas = function (x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
