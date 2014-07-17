@@ -163,6 +163,7 @@ private:
     const TStr InterpolatorType;
 protected:
     TInterpolator(const TStr& _InterpolatorType): InterpolatorType(_InterpolatorType) {}
+    TInterpolator(TSIn& SIn): InterpolatorType(SIn) {}
 
 public:
 	static PInterpolator New(const TStr& InterpolatorType);
@@ -179,49 +180,75 @@ public:
 };
 
 /////////////////////////////////////////
-// Previous point interpolator.
-// Interpolate by returning last seen value
-class TPreviousPoint : public TInterpolator {
-private:
-    //Previous Record; (Value,Timestamp)
-	TPair<TFlt, TUInt64> PreviousRec;
-	//Next Record; (Value,Timestamp)
-	TPair<TFlt, TUInt64> NextRec;
+// Buffered interpolator
+// contains a buffer
+// the first timestamp in the buffer is less or equal to the current time
+// the other timestamps in the buffer are greater then the current time
+class TBufferedInterpolator: public TInterpolator {
+protected:
+	// buffer holding the current and future points
+	TUInt64FltPrV Buff;	// TODO change this to circular list
 
-	TPreviousPoint(): TInterpolator(TPreviousPoint::GetType()) { }
-	TPreviousPoint(TSIn& SIn): TInterpolator(TPreviousPoint::GetType()), PreviousRec(SIn), NextRec(SIn) {}
+	TBufferedInterpolator(const TStr& InterpolatorType);
+	TBufferedInterpolator(TSIn& SIn);
+
+public:
+	virtual void Save(TSOut& SOut) const;
+
+	void SetNextInterpTm(const uint64& Time);
+	void AddPoint(const double& Val, const uint64& Tm);
+};
+
+/////////////////////////////////////////
+// Previous point interpolator.
+// Interpolate by returning previously seen value
+// this interpolator will wait until it gets one value in the future before
+// performing interpolation
+class TPreviousPoint : public TBufferedInterpolator {
+private:
+	TPreviousPoint();
+	TPreviousPoint(TSIn& SIn);
 public:	
     static PInterpolator New() { return new TPreviousPoint; }
     static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
-	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PreviousRec.Save(SOut); NextRec.Save(SOut); };
     
-	void SetNextInterpTm(const uint64& Time) {}	// TODO
-	double Interpolate(const uint64& TmMSecs) const { return PreviousRec.Val1; }
+	double Interpolate(const uint64& TmMSecs) const;
 	bool CanInterpolate(const uint64& Tm) const;
-	void AddPoint(const double& Val, const uint64& TmMSecs) { PreviousRec = NextRec; NextRec.Val1 = Val; NextRec.Val2 = TmMSecs; }
 
 	static TStr GetType() { return "previous"; }
 };
 
 /////////////////////////////////////////
+// Current point interpolator.
+// Interpolate by returning the current point
+class TCurrentPoint: public TBufferedInterpolator {
+private:
+	TCurrentPoint();
+	TCurrentPoint(TSIn& SIn);
+
+public:
+	static PInterpolator New() { return new TCurrentPoint; }
+	static PInterpolator New(TSIn& SIn) { return new TCurrentPoint(SIn); }
+
+	double Interpolate(const uint64& Tm) const;
+	bool CanInterpolate(const uint64& Tm) const;
+
+	static TStr GetType() { return "current"; }
+};
+
+/////////////////////////////////////////
 // Linear interpolator.
 // Interpolate by calculating point between two given points
-class TLinear : public TInterpolator {
+class TLinear : public TBufferedInterpolator {
 private:
-	// buffer holding the current and future points
-	TUInt64FltPrV Buff;	// TODO change this to circular list
-
 	TLinear();
 	TLinear(TSIn& SIn);
 public:	
-	void Save(TSOut& SOut) const;
 	static PInterpolator New() { return new TLinear; }
-    static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
+	static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
 
-    void SetNextInterpTm(const uint64& Time);
 	double Interpolate(const uint64& Tm) const;
 	bool CanInterpolate(const uint64& Tm) const;
-	void AddPoint(const double& Val, const uint64& Tm);
 
 	static TStr GetType() { return "linear"; }
 };
