@@ -642,36 +642,6 @@ public:
 	const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
 };
 
-/////////////////////////////////
-//// Merger
-//class TMerger : public TStreamAggr {
-//private:
-//    /// Map from store id to time field
-//    TIntV InTimeFieldIdV;
-//	/// Map of old store id and field id to new field id
-//    TVec<TMergerFieldMap> FieldMapV;
-//    /// List of time fields for each store
-//    /// New store name
-//    TWPt<TStore> OutStore;
-//    /// New store time field
-//    TInt TimeFieldId;
-//
-//protected:
-//	void OnAddRec(const TRec& Rec);
-//
-//private:
-//    void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
-//public:
-//    TMerger(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
-//        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm,
-//        const TStr& NewTimeFieldNm, const bool& CreateStoreP = false);
-//
-//	PJsonVal SaveJson(const int& Limit) const;
-//
-//    // stream aggregator type name
-//    static TStr GetType() { return "merger"; }
-//};
-
 //////////////////////////////////////////////
 // StMerger
 class TStMerger : public TQm::TStreamAggr {
@@ -697,10 +667,18 @@ private:
 	TUInt64 NextInterpTm;								// time of the next interpolation point
 	TUInt64 PrevInterpTm;								// this variable is used to avoid duplicates when extrapolating into the future
 
+	// this variable tells wether all the merger will wait for all
+	// points with the same timestamp before merging
+	TBool OnlyPast;
+	// this variable is used together with ExactInterp and used
+	// used as an output to the store
+	TTriple<TUInt64, TFltV, TUInt64> PrevInterpPt;
+
 public:
 	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
-			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
-			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast,
+			const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV,
+			const TStrV& InterpV);
 
 	TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 	TStMerger(const TWPt<TBase>& Base, TSIn& SIn);
@@ -708,8 +686,8 @@ public:
 
 
 	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
-			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
-			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast,
+			const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	PJsonVal SaveJson(const int& Limit) const;
 	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn) { return new TStMerger(Base, SIn); }
@@ -721,9 +699,9 @@ private:
 	void InitFld(const TWPt<TQm::TBase> Base, const TStr& InStoreNm, const TStr& InFldNm, const TStr& OutFldNm,
 			const TStr& InterpNm);
 	// initialized internal structures
-	void InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm, const TStr& OutTmFieldNm, const bool& CreateStoreP,
-			const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV,
-			const TStrV& InterpV);
+	void InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm, const TStr& OutTmFieldNm,
+			const bool& CreateStoreP, const bool& ExactInterp, const TStrV& InStoreNmV,
+			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
 
 protected:
 	void OnAddRec(const TQm::TRec& Rec);
@@ -736,7 +714,9 @@ private:
 	void ShiftBuff();
 	// checks if all signals are present
 	bool AllSignalsPresent();
-	// add the record to the output store
+	// adds the record to the output store
+	void AddToStore(const TFltV& InterpValV, const uint64 InterpTm, const uint64& RecId);
+	// checks if the record can be added to the output store and adds it
 	void AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec);
 	// checks if the conditions for interpolation are true in this iteration
 	bool CanInterpolate();
@@ -816,7 +796,7 @@ public:
 		TWPt<TQm::TStreamAggrBase>& SABase);
 	static TStrV ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	static void TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
-			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& ExactInterp, const TStrV& InStoreNmV,
 			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
 	static void TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal);
 
