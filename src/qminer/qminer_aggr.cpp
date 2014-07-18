@@ -1104,87 +1104,87 @@ TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm,
 //}
 
 
-///////////////////////////////
-// Merger
-void TMerger::OnAddRec(const TRec& Rec) {
-    // make sure we support this store
-    const int InTimeFieldId = InTimeFieldIdV[(int)Rec.GetStoreId()];
-    QmAssertR(InTimeFieldId != -1, "Merger does not support store '" + Rec.GetStore()->GetStoreNm() + "'");
-    // get record time-stamp
-    uint64 TmMSecs = Rec.GetFieldTmMSecs(InTimeFieldId);
-    // create new record (TODO use TRec)
-	PJsonVal RecVal = TJsonVal::NewObj();
-    // put the time stamp to latest record's time stamp
-    TStr RecTmStr = TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T", true);
-	RecVal->AddToObj(OutStore->GetFieldNm(TimeFieldId), RecTmStr);
-    // get rest of the fields
-	for (int FieldMapN = 0; FieldMapN < FieldMapV.Len(); FieldMapN++) {
-        const TMergerFieldMap& FieldMap = FieldMapV[FieldMapN];
-        // update interpolators associated with the new record's store
-		if (FieldMap.GetInStoreId() == Rec.GetStoreId()) {
-            const double Val = Rec.GetFieldFlt(FieldMap.GetInFieldId());            
-			FieldMap.GetInterpolator()->AddPoint(Val, TmMSecs);	// TODO won't work, this was Update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		}		
-		// we interpolate value in current field and add to JSon whether we are in relevant Store or not
-		RecVal->AddToObj(FieldMap.GetOutFieldNm(), FieldMap.GetInterpolator()->Interpolate(TmMSecs));  
-	}
-    // adding JSon object as record
-	OutStore->AddRec(RecVal);
-}
-
-void TMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
-    // prepare store description
-	PJsonVal JsonStore = TJsonVal::NewObj();
-	JsonStore->AddToObj("name", NewStoreNm);
-    // prepare list of fields
-	PJsonVal FieldsVal = TJsonVal::NewArr();
-	//adding time field
-	PJsonVal TimeFieldVal = TJsonVal::NewObj();
-	TimeFieldVal->AddToObj("name", NewTimeFieldNm);
-	TimeFieldVal->AddToObj("type", "datetime");
-	FieldsVal->AddToArr(TimeFieldVal);	
-	//adding TFlt fields from StoresAndFields vector
-	for (int FieldMapN = 0; FieldMapN < FieldMapV.Len(); FieldMapN++){
-		//creating field 
-		PJsonVal FieldVal = TJsonVal::NewObj();
-		FieldVal->AddToObj("name", FieldMapV[FieldMapN].GetOutFieldNm());
-		FieldVal->AddToObj("type", "float");
-		FieldsVal->AddToArr(FieldVal);
-	}
-	// putting Store description together
-	JsonStore->AddToObj("fields", FieldsVal);
-    // create new store
-	TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
-}
-
-TMerger::TMerger(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
-        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
-        const bool& CreateStoreP): TStreamAggr(Base, AggrNm), FieldMapV(FieldMapV_) {
-	
-    // if required, create output store
-    if (CreateStoreP) {
-        InfoNotify("Creating store '" + OutStoreNm + "'");
-        CreateStore(OutStoreNm, OutTimeFieldNm);
-    }
-    // parse parameters
-	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
-    TimeFieldId = OutStore->GetFieldId(OutTimeFieldNm);
-    // initialize input store time fields map
-    InTimeFieldIdV.Gen(255); InTimeFieldIdV.PutAll(-1);
-    for (int InTimeFieldN = 0; InTimeFieldN < InStoreTimeFieldNmV.Len(); InTimeFieldN++) {
-        // get store
-        const TStr& StoreNm = InStoreTimeFieldNmV[InTimeFieldN].Val1;
-        TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
-        // get field and remember it in the map
-        const TStr& TimeFieldNm = InStoreTimeFieldNmV[InTimeFieldN].Val2;
-        InTimeFieldIdV[(int)Store->GetStoreId()] = Store->GetFieldId(TimeFieldNm);
-    }
-}
-
-PJsonVal TMerger::SaveJson(const int& Limit) const {
-	PJsonVal Val = TJsonVal::NewObj();
-	return Val;
-}
+/////////////////////////////////
+//// Merger
+//void TMerger::OnAddRec(const TRec& Rec) {
+//    // make sure we support this store
+//    const int InTimeFieldId = InTimeFieldIdV[(int)Rec.GetStoreId()];
+//    QmAssertR(InTimeFieldId != -1, "Merger does not support store '" + Rec.GetStore()->GetStoreNm() + "'");
+//    // get record time-stamp
+//    uint64 TmMSecs = Rec.GetFieldTmMSecs(InTimeFieldId);
+//    // create new record (TODO use TRec)
+//	PJsonVal RecVal = TJsonVal::NewObj();
+//    // put the time stamp to latest record's time stamp
+//    TStr RecTmStr = TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(true, "T", true);
+//	RecVal->AddToObj(OutStore->GetFieldNm(TimeFieldId), RecTmStr);
+//    // get rest of the fields
+//	for (int FieldMapN = 0; FieldMapN < FieldMapV.Len(); FieldMapN++) {
+//        const TMergerFieldMap& FieldMap = FieldMapV[FieldMapN];
+//        // update interpolators associated with the new record's store
+//		if (FieldMap.GetInStoreId() == Rec.GetStoreId()) {
+//            const double Val = Rec.GetFieldFlt(FieldMap.GetInFieldId());
+//			FieldMap.GetInterpolator()->AddPoint(Val, TmMSecs);	// TODO won't work, this was Update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//		}
+//		// we interpolate value in current field and add to JSon whether we are in relevant Store or not
+//		RecVal->AddToObj(FieldMap.GetOutFieldNm(), FieldMap.GetInterpolator()->Interpolate(TmMSecs));
+//	}
+//    // adding JSon object as record
+//	OutStore->AddRec(RecVal);
+//}
+//
+//void TMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
+//    // prepare store description
+//	PJsonVal JsonStore = TJsonVal::NewObj();
+//	JsonStore->AddToObj("name", NewStoreNm);
+//    // prepare list of fields
+//	PJsonVal FieldsVal = TJsonVal::NewArr();
+//	//adding time field
+//	PJsonVal TimeFieldVal = TJsonVal::NewObj();
+//	TimeFieldVal->AddToObj("name", NewTimeFieldNm);
+//	TimeFieldVal->AddToObj("type", "datetime");
+//	FieldsVal->AddToArr(TimeFieldVal);
+//	//adding TFlt fields from StoresAndFields vector
+//	for (int FieldMapN = 0; FieldMapN < FieldMapV.Len(); FieldMapN++){
+//		//creating field
+//		PJsonVal FieldVal = TJsonVal::NewObj();
+//		FieldVal->AddToObj("name", FieldMapV[FieldMapN].GetOutFieldNm());
+//		FieldVal->AddToObj("type", "float");
+//		FieldsVal->AddToArr(FieldVal);
+//	}
+//	// putting Store description together
+//	JsonStore->AddToObj("fields", FieldsVal);
+//    // create new store
+//	TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
+//}
+//
+//TMerger::TMerger(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
+//        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, const TStr& OutTimeFieldNm,
+//        const bool& CreateStoreP): TStreamAggr(Base, AggrNm), FieldMapV(FieldMapV_) {
+//
+//    // if required, create output store
+//    if (CreateStoreP) {
+//        InfoNotify("Creating store '" + OutStoreNm + "'");
+//        CreateStore(OutStoreNm, OutTimeFieldNm);
+//    }
+//    // parse parameters
+//	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
+//    TimeFieldId = OutStore->GetFieldId(OutTimeFieldNm);
+//    // initialize input store time fields map
+//    InTimeFieldIdV.Gen(255); InTimeFieldIdV.PutAll(-1);
+//    for (int InTimeFieldN = 0; InTimeFieldN < InStoreTimeFieldNmV.Len(); InTimeFieldN++) {
+//        // get store
+//        const TStr& StoreNm = InStoreTimeFieldNmV[InTimeFieldN].Val1;
+//        TWPt<TStore> Store = Base->GetStoreByStoreNm(StoreNm);
+//        // get field and remember it in the map
+//        const TStr& TimeFieldNm = InStoreTimeFieldNmV[InTimeFieldN].Val2;
+//        InTimeFieldIdV[(int)Store->GetStoreId()] = Store->GetFieldId(TimeFieldNm);
+//    }
+//}
+//
+//PJsonVal TMerger::SaveJson(const int& Limit) const {
+//	PJsonVal Val = TJsonVal::NewObj();
+//	return Val;
+//}
 
 //StMerger
 
@@ -1271,7 +1271,8 @@ TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
 		Buff(SIn),
 		SignalsPresentV(SIn),
 		SignalsPresent(SIn),
-		NextInterpTm(SIn) {}
+		NextInterpTm(SIn),
+		PrevInterpTm(SIn) {}
 
 PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 		const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
@@ -1299,6 +1300,7 @@ void TStMerger::Save(TSOut& SOut) const {
 	SignalsPresentV.Save(SOut);
 	SignalsPresent.Save(SOut);
 	NextInterpTm.Save(SOut);
+	PrevInterpTm.Save(SOut);
 }
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
@@ -1363,6 +1365,7 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 	}
 
 	NextInterpTm = TUInt64::Mx;
+	PrevInterpTm = TUInt64::Mx;
 	NInFlds = InStoreNmV.Len();
 	TimeFieldId = OutStore->GetFieldId(OutTmFieldNm);
 
@@ -1396,24 +1399,18 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr) {
 	const int InterpIdx = StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
 
-	// get record time
+	// get record time and value
 	TTm Tm; Rec.GetFieldTm(InTmFldIdV[InterpIdx], Tm);
 	const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
-	// get val
 	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[InterpIdx]);
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
 
 	AddToBuff(InterpIdx, RecTm, RecVal);
 
-	// check if intialized
-	if (!AllSignalsPresent()) {
-		SignalsPresentV[InterpIdx] = true;
-		if (AllSignalsPresent()) {
-			NextInterpTm = RecTm;
-			ShiftBuff();
-		}
-	}
+	// checks
+	if (!CheckInitialized(InterpIdx, RecTm)) { return; }
+	HandleEdgeCases(RecTm);
 
 	// interpolate points
 	while (CanInterpolate()) {
@@ -1460,10 +1457,7 @@ void TStMerger::ShiftBuff() {
 		Buff.Del(0);
 	}
 
-	// notify interpolators
-	for (int i = 0; i < NInFlds; i++) {
-		InterpV[i]->SetNextInterpTm(NextInterpTm);
-	}
+	UpdateInterpolators();
 }
 
 bool TStMerger::AllSignalsPresent() {
@@ -1481,6 +1475,7 @@ bool TStMerger::AllSignalsPresent() {
 
 bool TStMerger::CanInterpolate() {
 	if (NextInterpTm == TUInt64::Mx) { return false; }	// this happens when all time series had the same timestamp in the previous iteration
+	if (NextInterpTm == PrevInterpTm) { return false; }	// avoid duplicates when extrapolating future values
 
 	for (int i = 0; i < NInFlds; i++) {
 		if (!InterpV[i]->CanInterpolate(NextInterpTm)) {
@@ -1492,8 +1487,43 @@ bool TStMerger::CanInterpolate() {
 }
 
 void TStMerger::UpdateNextInterpTm() {
+	PrevInterpTm = NextInterpTm;
 	NextInterpTm = Buff.Len() > 1 ? Buff[1] : TUInt64::Mx;
 	ShiftBuff();
+}
+
+void TStMerger::UpdateInterpolators() {
+	if (NextInterpTm == TUInt64::Mx) { return; }	// edge case, no points in the buffer
+
+	for (int i = 0; i < NInFlds; i++) {
+		InterpV[i]->SetNextInterpTm(NextInterpTm);
+	}
+}
+
+bool TStMerger::CheckInitialized(const int& InterpIdx, const uint64& RecTm) {
+	if (!AllSignalsPresent()) {
+		SignalsPresentV[InterpIdx] = true;
+
+		if (!AllSignalsPresent()) { return false; }	// should not continue
+
+		NextInterpTm = RecTm;
+		ShiftBuff();
+	}
+
+	return true;
+}
+
+void TStMerger::HandleEdgeCases(const uint64& RecTm) {
+	// the buffer was empty before this iteration,
+	// the next interpolation time is not set
+	if (NextInterpTm == TUInt64::Mx) {
+		NextInterpTm = RecTm;
+		UpdateInterpolators();
+	}
+	// duplicate value when extrapolating future
+	if (NextInterpTm == PrevInterpTm) {
+		NextInterpTm = TUInt64::Mx;
+	}
 }
 
 ///////////////////////////////
@@ -1502,38 +1532,63 @@ void TResampler::OnAddRec(const TRec& Rec) {
     QmAssertR(Rec.GetStoreId() == InStore->GetStoreId(), "Wrong store calling OnAddRec in Resampler");
     // get record time
     const uint64 RecTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
-    // only do this first time when interpolation time not defined
-    if (InterpPointMSecs == 0) { InterpPointMSecs = RecTmMSecs; }
+
     // update interpolators
     for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {
         // get field value
         const double Val = Rec.GetFieldFlt(InFieldIdV[FieldN]);
         // update interpolator
-        InterpolatorV[FieldN]->AddPoint(Val, RecTmMSecs);	// TODO this was update!!!!!!!!!!!!!!!!!!!!!!!!!!
-//        InterpolatorV[FieldN]->Update(Val, RecTmMSecs);
-    }  
-    // insert new records until we reach new record's time
-    while (InterpPointMSecs < RecTmMSecs) {
-        // we start existing record
-        PJsonVal JsonVal = Rec.GetJson(GetBase(), true, false, false, false, false);
-        // update timestamp
-        TStr RecTmStr = TTm::GetTmFromMSecs(InterpPointMSecs).GetWebLogDateTimeStr(true, "T", true);
-        JsonVal->AddToObj(InStore->GetFieldNm(TimeFieldId), RecTmStr);
+        InterpolatorV[FieldN]->AddPoint(Val, RecTmMSecs);
+    }
 
-        // update fields
-        for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {            
-            const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);            
-            JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
-        }
+    // only do this first time when interpolation time not defined
+	if (InterpPointMSecs == 0) {
+		InterpPointMSecs = RecTmMSecs;
+		RefreshInterpolators(RecTmMSecs);
+	}
+
+    // insert new records while the interpolators allow us
+	while (InterpPointMSecs <= RecTmMSecs && CanInterpolate()) {
+		// we start existing record
+		PJsonVal JsonVal = Rec.GetJson(GetBase(), true, false, false, false, false);
+		// update timestamp
+		TStr RecTmStr = TTm::GetTmFromMSecs(InterpPointMSecs).GetWebLogDateTimeStr(true, "T", true);
+		JsonVal->AddToObj(InStore->GetFieldNm(TimeFieldId), RecTmStr);
+
+		// update fields
+		for (int FieldN = 0; FieldN < InFieldIdV.Len(); FieldN++) {
+			const double FieldVal = InterpolatorV[FieldN]->Interpolate(InterpPointMSecs);
+			JsonVal->AddToObj(InStore->GetFieldNm(InFieldIdV[FieldN]), FieldVal);
+		}
+
 		//TODO use TRec instead of PJsonVal
 		// add new record
 		uint64 NewRecId = OutStore->AddRec(JsonVal);
 		if (OutStore->IsJoinNm("source")) {
 			OutStore->AddJoin(OutStore->GetJoinId("source"), NewRecId, Rec.GetRecId(), 1);
 		}
-        // increase interpolation time
-        InterpPointMSecs += IntervalMSecs;
-    }
+
+		InterpPointMSecs += IntervalMSecs;
+	}
+
+	RefreshInterpolators(RecTmMSecs);
+}
+
+void TResampler::RefreshInterpolators(const uint64& Tm) {
+	// update time in the interpolators
+	for (int i = 0; i < InterpolatorV.Len(); i++) {
+		InterpolatorV[i]->SetNextInterpTm(Tm);
+	}
+}
+
+bool TResampler::CanInterpolate() {
+	RefreshInterpolators(InterpPointMSecs);
+	for (int i = 0; i < InterpolatorV.Len(); i++) {
+		if (!InterpolatorV[i]->CanInterpolate(InterpPointMSecs)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void TResampler::CreateStore(const TStr& NewStoreNm) {    

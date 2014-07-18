@@ -642,38 +642,38 @@ public:
 	const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
 };
 
-///////////////////////////////
-// Merger
-class TMerger : public TStreamAggr {
-private:
-    /// Map from store id to time field
-    TIntV InTimeFieldIdV;
-	/// Map of old store id and field id to new field id
-    TVec<TMergerFieldMap> FieldMapV;
-    /// List of time fields for each store
-    /// New store name
-    TWPt<TStore> OutStore;
-    /// New store time field
-    TInt TimeFieldId;
-    
-protected:	
-	void OnAddRec(const TRec& Rec);
+/////////////////////////////////
+//// Merger
+//class TMerger : public TStreamAggr {
+//private:
+//    /// Map from store id to time field
+//    TIntV InTimeFieldIdV;
+//	/// Map of old store id and field id to new field id
+//    TVec<TMergerFieldMap> FieldMapV;
+//    /// List of time fields for each store
+//    /// New store name
+//    TWPt<TStore> OutStore;
+//    /// New store time field
+//    TInt TimeFieldId;
+//
+//protected:
+//	void OnAddRec(const TRec& Rec);
+//
+//private:
+//    void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
+//public:
+//    TMerger(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
+//        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm,
+//        const TStr& NewTimeFieldNm, const bool& CreateStoreP = false);
+//
+//	PJsonVal SaveJson(const int& Limit) const;
+//
+//    // stream aggregator type name
+//    static TStr GetType() { return "merger"; }
+//};
 
-private:
-    void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
-public:
-    TMerger(const TWPt<TBase>& Base, const TStr& AggrNm, const TStrPrV& InStoreTimeFieldNmV,
-        const TVec<TMergerFieldMap> FieldMapV_, const TStr& OutStoreNm, 
-        const TStr& NewTimeFieldNm, const bool& CreateStoreP = false);
-
-	PJsonVal SaveJson(const int& Limit) const;
-    
-    // stream aggregator type name 
-    static TStr GetType() { return "merger"; }
-};
 //////////////////////////////////////////////
 // StMerger
-
 class TStMerger : public TQm::TStreamAggr {
 private:
 	TWPt<TStore> OutStore;
@@ -689,13 +689,14 @@ private:
 	THash<TUInt, TIntSet> StoreIdFldIdVH;				// a hash table mapping a storeId to a list of input fields
 
 	TInt NInFlds;										// number of input signals
-	TVec<TUInt64> Buff;					// buffer of next time points
+	TVec<TUInt64> Buff;									// buffer of next time points
 
 	TBoolV SignalsPresentV;
 	TBool SignalsPresent;
 
 	TUInt64 NextInterpTm;								// time of the next interpolation point
-	
+	TUInt64 PrevInterpTm;								// this variable is used to avoid duplicates when extrapolating into the future
+
 public:
 	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 			const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
@@ -741,6 +742,12 @@ private:
 	bool CanInterpolate();
 	// updates the next interpolation time
 	void UpdateNextInterpTm();
+	// updates the next interpolation time in the interpolators
+	void UpdateInterpolators();
+	// checks if the merger is initialized
+	bool CheckInitialized(const int& InterpIdx, const uint64& RecTm);
+	// checks edge cases and makes sure interpolation will run smoothly
+	void HandleEdgeCases(const uint64& RecTm);
 };
 
 ///////////////////////////////
@@ -767,6 +774,9 @@ protected:
 	void OnAddRec(const TRec& Rec);
     
 private:
+	// refreshes the interpolators to the specified time
+	void RefreshInterpolators(const uint64& Tm);
+	bool CanInterpolate();
 	void CreateStore(const TStr& NewStoreNm);    
     
     // InterpolatorV contains pair (input field, interpolator)
@@ -788,6 +798,7 @@ public:
     // Save basic class of stream aggregate to stream
     void Save(TSOut& SOut) const;
     PJsonVal SaveJson(const int& Limit) const;
+
 	// stream aggregator type name 
     static TStr GetType() { return "resampler"; }
 };
