@@ -243,7 +243,9 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) co
 	}
 };
 
-void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {FailR("Not implemented yet");} // TODO
+void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
+    FailR("Not implemented yet"); // TODO
+} 
 
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
@@ -253,6 +255,11 @@ double TLinAlg::DotProduct(const TFltV& x, const TFltV& y) {
     for (int i = 0; i < Len; i++)
         result += x[i] * y[i];
     return result;
+}
+
+double TLinAlg::DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y) {
+    Assert(0 <= ColId && ColId < X.Len());
+    return DotProduct(X[ColId], y);
 }
 
 double TLinAlg::DotProduct(const TFltVV& X, int ColIdX, const TFltVV& Y, int ColIdY) {
@@ -282,6 +289,11 @@ double TLinAlg::DotProduct(const TIntFltKdV& x, const TIntFltKdV& y) {
     return Res;
 }
 
+double TLinAlg::DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TIntFltKdV& y) {
+    Assert(0 <= ColId && ColId < X.Len());
+    return DotProduct(X[ColId], y);
+}
+
 double TLinAlg::DotProduct(const TFltV& x, const TIntFltKdV& y) {
     double Res = 0.0; const int xLen = x.Len(), yLen = y.Len();
     for (int i = 0; i < yLen; i++) {
@@ -289,6 +301,16 @@ double TLinAlg::DotProduct(const TFltV& x, const TIntFltKdV& y) {
         if (key < xLen) Res += y[i].Dat * x[key];
     }
     return Res;
+}
+
+double TLinAlg::DotProduct(const TVec<TFltV>& X, int ColId, const TIntFltKdV& y) {
+    Assert(0 <= ColId && ColId < X.Len());
+    return DotProduct(X[ColId], y);
+}
+
+double TLinAlg::DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TFltV& y) {
+    Assert(0 <= ColId && ColId < X.Len());
+    return DotProduct(y, X[ColId]);
 }
 
 double TLinAlg::DotProduct(const TFltVV& X, int ColId, const TIntFltKdV& y) {
@@ -346,6 +368,11 @@ void TLinAlg::AddVec(const double& k, const TFltV& x, const TFltV& y, TFltV& z) 
     LinComb(k, x, 1.0, y, z);
 }
 
+void TLinAlg::AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFltV& y, TFltV& z) {
+    Assert(0 <= ColId && ColId < X.Len());
+    AddVec(k, X[ColId], y, z);    
+}
+
 void TLinAlg::AddVec(const TFltV& x, const TFltV& y, TFltV& z) {
    LinComb(1.0, x, 1.0, y, z);
 }
@@ -361,6 +388,11 @@ void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, const TFltV& y, TFltV
             z[ii] = k * x[i].Dat + y[ii];
         }
     }
+}
+
+void TLinAlg::AddVec(const double& k, const TVec<TIntFltKdV>& X, int ColId, const TFltV& y, TFltV& z) {
+    Assert(0 <= ColId && ColId < X.Len());
+    AddVec(k, X[ColId], y, z);    
 }
 
 void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, TFltV& y) {

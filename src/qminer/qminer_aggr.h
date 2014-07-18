@@ -694,7 +694,7 @@ private:
 	TBoolV InitializedFldV;
 	TBool IsInitialized;
 
-	TInt NextIdx;										// internal index of the next signal used for interpolation
+	TUInt64 NextInterpTm;								// time of the next interpolation point
 	
 public:
 	TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
@@ -739,6 +739,8 @@ private:
 	void UpdateNextIdx();
 	// shifts the specified buffer by 1
 	void ShiftBuff(const int& BuffIdx);
+	// shifts all the buffers so that the second value is greater then the current interpolation time
+	void ShiftBuffs();
 	// initializes the buffers so that old points are forgotten
 	void InitBuffs();
 	// adds a new record to the specified buffer

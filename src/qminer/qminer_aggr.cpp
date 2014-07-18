@@ -1271,7 +1271,7 @@ TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
 		BuffV(SIn),
 		InitializedFldV(SIn),
 		IsInitialized(SIn),
-		NextIdx(SIn) {}
+		NextInterpTm(SIn) {}
 
 PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 		const TStr& OutTmFieldNm, const bool& CreateStoreP, const TStrV& InStoreNmV,
@@ -1298,7 +1298,7 @@ void TStMerger::Save(TSOut& SOut) const {
 	BuffV.Save(SOut);
 	InitializedFldV.Save(SOut);
 	IsInitialized.Save(SOut);
-	NextIdx.Save(SOut);
+	NextInterpTm.Save(SOut);
 }
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
@@ -1362,6 +1362,7 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 		OutStore = Base->GetStoreByStoreNm(OutStoreNm);
 	}
 
+	NextInterpTm = TUInt64::Mx;
 	NInFlds = InStoreNmV.Len();
 	TimeFieldId = OutStore->GetFieldId(OutTmFieldNm);
 
@@ -1376,7 +1377,6 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 
 	BuffV.Gen(NInFlds);
 	InitializedFldV.Gen(NInFlds);
-	NextIdx = -1;
 }
 
 void TStMerger::OnAddRec(const TQm::TRec& Rec) {
@@ -1408,38 +1408,33 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 		// check edge case, all time series may have had the same timestamp
 		// in this case delete the duplicate with the newly arrived value,
 		// as this is the value we are looking for
-		if (NextIdx < 0) {
-			NextIdx = BuffIdx;
-			ShiftBuff(NextIdx);
+		if (NextInterpTm == TUInt64::Mx) {
+			NextInterpTm = RecTm;
+			ShiftBuff(BuffIdx);
 		}
 
 		// all the values are already present
 		// and we already have the next time stamp to interpolate
 		while (CanInterpolate()) {
 			// interpolate
-			const uint64& InterpTm = BuffV[NextIdx][0].Val1;
 			TFltV ValV(NInFlds, 0);
 			for (int i = 0; i < NInFlds; i++) {
-				if (i != NextIdx) {
-					const double& InterpVal = InterpV[i]->Interpolate(InterpTm);
-					ValV.Add(InterpVal);
-				} else {
-					ValV.Add(BuffV[NextIdx][0].Val2);
-				}
+				const double& InterpVal = InterpV[i]->Interpolate(NextInterpTm);
+				ValV.Add(InterpVal);
 			}
 
 			// got the values
 			// notify
-			AddRec(ValV, InterpTm, Rec);
+			AddRec(ValV, NextInterpTm, Rec);
+			// remove unneeded values
+			ShiftBuffs();
 			// determine next interpolation point
 			UpdateNextIdx();
-			// remove unneeded values
-			ShiftBuff(NextIdx);
 		}
 	} else {
 		InitializedFldV[BuffIdx] = true;
 		if (Initialized()) {
-			NextIdx = BuffIdx;
+			NextInterpTm = RecTm;
 			InitBuffs();
 		}
 	}
@@ -1461,6 +1456,7 @@ void TStMerger::AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm
 
 bool TStMerger::Initialized() {
 	if (IsInitialized) { return true; }
+
 	for (int i = 0; i < NInFlds; i++) {
 		if (!InitializedFldV[i]) {
 			return false;
@@ -1472,17 +1468,11 @@ bool TStMerger::Initialized() {
 }
 
 bool TStMerger::CanInterpolate() {
-	if (NextIdx < 0) { return false; }	// this happens when all time series had the same timestamp in the previous iteration
-
-	const uint64& NextTm = BuffV[NextIdx][0].Val1;
+	if (NextInterpTm == TUInt64::Mx) { return false; }	// this happens when all time series had the same timestamp in the previous iteration
 
 	for (int i = 0; i < NInFlds; i++) {
-		if (i != NextIdx) {
-			TVec<TUInt64FltPr>& Buff = BuffV[i];
-			if (BuffV[i].Len() < 2) { return false; }
-
-			QmAssertR(Buff[0].Val1 <= NextTm, "WTF!? First value more then interpolation value!!");
-			QmAssertR(Buff[1].Val1 >= NextTm, "WTF!? Second value less then interpolation value!!");
+		if (!InterpV[i]->CanInterpolate(NextInterpTm)) {
+			return false;
 		}
 	}
 
@@ -1491,34 +1481,18 @@ bool TStMerger::CanInterpolate() {
 
 void TStMerger::UpdateNextIdx() {
 	uint64 MinTm = TUInt64::Mx;
-	int MinTmIdx = -1;
-
-	// need the current interpolation time because of the case where all
-	// series have the same time point
-	// in this case we need to clear the buffer at those indexes
-	const uint64& CurrInterpTm = BuffV[NextIdx][0].Val1;
 
 	// find the entry at index 1 that has the min time
 	for (int i = 0; i < NInFlds; i++) {
-		if (BuffV[i].Len() > 1 && BuffV[i][1].Val1 == CurrInterpTm) {
-			// edge case, all series had the same time stamp
-			// shift the buffer
-			ShiftBuff(i);
-		}
 		if (BuffV[i].Len() > 1 && BuffV[i][1].Val1 < MinTm) {
 			MinTm = BuffV[i][1].Val1;
-			MinTmIdx = i;
 		}
 	}
 
-	NextIdx = MinTmIdx;
+	NextInterpTm = MinTm;
 }
 
 void TStMerger::ShiftBuff(const int& BuffIdx) {
-	if (BuffIdx < 0) {	// edge case, all time series had the same timestamp
-		return;
-	}
-
 	TVec<TUInt64FltPr>& Buff = BuffV[BuffIdx];
 
 	Buff.Del(0);
@@ -1527,15 +1501,19 @@ void TStMerger::ShiftBuff(const int& BuffIdx) {
 	}
 }
 
-void TStMerger::InitBuffs() {
-	const uint64& NextTm = BuffV[NextIdx][0].Val1;
-
+void TStMerger::ShiftBuffs() {
 	for (int i = 0; i < NInFlds; i++) {
-		if (i != NextIdx) {
-			TVec<TUInt64FltPr>& Buff = BuffV[i];
-			while (Buff.Len() > 1 && Buff[1].Val1 < NextTm) {
-				ShiftBuff(i);
-			}
+		while (BuffV[i].Len() > 1 && BuffV[i][1].Val1 == NextInterpTm) {
+			ShiftBuff(i);
+		}
+	}
+}
+
+void TStMerger::InitBuffs() {
+	for (int i = 0; i < NInFlds; i++) {
+		TVec<TUInt64FltPr>& Buff = BuffV[i];
+		while (Buff.Len() > 1 && Buff[1].Val1 < NextInterpTm) {
+			ShiftBuff(i);
 		}
 	}
 }
@@ -1544,6 +1522,7 @@ void TStMerger::AddToBuff(const int& BuffIdx, const uint64 RecTm, const TFlt& Va
 	TVec<TUInt64FltPr>& Buff = BuffV[BuffIdx];
 
 	Buff.Add(TUInt64FltPr(RecTm, Val));
+
 	if (Buff.Len() <= 2) {
 		InterpV[BuffIdx]->Update(Val, RecTm);
 	}
@@ -1785,7 +1764,7 @@ void TCompositional::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm,
 	TUIntSet StoreIdSet;
 	for (int StoreN = 0; StoreN < InStoreNmV.Len(); StoreN++) {
 		const TStr& InStoreNm = InStoreNmV[StoreN];
-		const uint64 StoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+		const uint StoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
 
 		if (!StoreIdSet.IsKey(StoreId)) {
 			StoreIdV.Add(StoreId);

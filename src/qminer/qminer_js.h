@@ -994,6 +994,7 @@ public:
     //#- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
 	JsDeclareFunction(getStoreList);
     //#- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+    //#- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 	JsDeclareFunction(createStore);
     //#- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
     //#   and returns a record set `rs` with results
@@ -2151,7 +2152,7 @@ public:
     //#     by exposing them to record `rec`. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `fsp.updateRecord(rs)` -- update feature space definitions and extractors
+    //#- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
     //#     by exposing them to records from record set `rs`. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
@@ -2181,19 +2182,21 @@ public:
 //#
 //# Holds SVM classification or regression model. This object is result of
 //# `analytics.trainSvmClassify` or `analytics.trainSvmRegression`.
+// TODO rewrite to JavaScript
 class TJsSvmModel {
 public:
 	/// JS script context
 	TWPt<TScript> Js;	
     /// SVM Model
-    PSVMModel Model;
+    TSvm::TLinModel Model;
     
 private:
 	typedef TJsObjUtil<TJsSvmModel> TJsSvmModelUtil;
     
-	TJsSvmModel(TWPt<TScript> _Js, const PSVMModel& _Model): Js(_Js), Model(_Model) { }
+	TJsSvmModel(TWPt<TScript> _Js, const TSvm::TLinModel& _Model): 
+        Js(_Js), Model(_Model) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PSVMModel& Model) { 
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSvm::TLinModel& Model) { 
         return TJsSvmModelUtil::New(new TJsSvmModel(Js, Model)); }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -2338,8 +2341,8 @@ public:
 	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
 	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
 	JsDeclareFunction(process);
-	//#- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label.
-	//#- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label.
+	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
 	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
@@ -2433,6 +2436,8 @@ public:
 	JsDeclareProperty(scriptFNm);
 	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 	JsDeclareFunction(getGlobals);
+	//#- `process.exitScript()` -- Exits the current script
+	JsDeclareFunction(exitScript);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 

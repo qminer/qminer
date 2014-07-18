@@ -350,7 +350,7 @@ namespace TFtrExts {
 ///////////////////////////////////////////////
 // Constant Feature Extractor
 TConstant::TConstant(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("val", 0)) { }
+	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 1.0)) { }
 
 TConstant:: TConstant(const TWPt<TBase>& Base, TSIn& SIn): TFtrExt(Base, SIn), Constant(SIn) { }
 

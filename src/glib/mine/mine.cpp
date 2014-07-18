@@ -40,6 +40,7 @@
 #include "bowlinalg.cpp"
 
 // SVM
+#include "svm.cpp"
 #include "svmPrLoqo.cpp"
 #include "svmbasic.cpp"
 #include "strkernel.cpp"
