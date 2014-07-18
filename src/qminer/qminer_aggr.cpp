@@ -1404,8 +1404,6 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
 
-	printf("Adding: InterpIdx: %d, time: %ld, val: %.5f\n", InterpIdx, RecTm, RecVal.Val);
-
 	AddToBuff(InterpIdx, RecTm, RecVal);
 
 	// check if intialized
