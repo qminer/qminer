@@ -302,9 +302,9 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 
 TScript::~TScript() {
 #ifndef NDEBUG
-	v8::Locker Locker;
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Locker Locker(Isolate);
 #endif
-
 	v8::HandleScope HandleScope;
 	// delete fetcher
 	JsFetch.Del();
@@ -312,6 +312,8 @@ TScript::~TScript() {
 	Context.Dispose();
 	// NOTE. There is no special reason for picking 11 iterations.
 	for(int i = 0; i < 11; ++i) { v8::V8::LowMemoryNotification(); }
+
+
 }
 
 void TScript::RegSrvFun(TSAppSrvFunV& SrvFunV) { 
@@ -673,7 +675,8 @@ void TScript::Init() {
 
 #ifndef NDEBUG
 	// for debugging JavaScript
-	v8::Locker lock;
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Locker Lock(Isolate);
 #endif
 
 	// do global initialization if not yet done
@@ -4084,7 +4087,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     //const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
+    const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 1000);
     const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
@@ -4774,6 +4777,7 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterProperty(TmpTemp, scriptNm);
 		JsRegisterProperty(TmpTemp, scriptFNm);
 		JsRegisterFunction(TmpTemp, getGlobals);
+		JsRegisterFunction(TmpTemp, exitScript);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4847,7 +4851,12 @@ v8::Handle<v8::Value> TJsProcess::getGlobals(const v8::Arguments& Args) {
 	//	else { printf("\n"); }
 	//}
 	return HandleScope.Close(Properties);
-	//return v8::Undefined();
+}
+
+
+v8::Handle<v8::Value> TJsProcess::exitScript(const v8::Arguments& Args) {
+	v8::V8::TerminateExecution(v8::Isolate::GetCurrent());
+	return v8::Undefined();
 }
 
 ///////////////////////////////
