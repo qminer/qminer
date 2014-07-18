@@ -50,8 +50,8 @@ public:
 	TInterruptibleThread(const TInterruptibleThread& Other) { operator=(Other); }
 	TInterruptibleThread& operator=(const TInterruptibleThread& Other);
 	
-	void Interrupt();
 	void WaitForInterrupt(const int Msecs = INFINITE);
+	void Interrupt();
 };
 
 ////////////////////////////////////////////

@@ -1787,7 +1787,7 @@ void TCompositional::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm,
 	TUIntSet StoreIdSet;
 	for (int StoreN = 0; StoreN < InStoreNmV.Len(); StoreN++) {
 		const TStr& InStoreNm = InStoreNmV[StoreN];
-		const uint64 StoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+		const uint StoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
 
 		if (!StoreIdSet.IsKey(StoreId)) {
 			StoreIdV.Add(StoreId);

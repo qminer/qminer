@@ -4,12 +4,7 @@
 // 
 // Suggestions
 // (*) Add rigorous error checking 
-// (*) Copy constructors and copy assginment operators 
-// (*) Move construcotrs and move assignment operators [1] 
-// 
-// NOTE: GLib doesn't seem to use C++11 move semantics. (Not really: Vector implements move constructor and move assignment operator.)
-// 
-// [1] http://en.cppreference.com/w/cpp/language/move_constructor
+// (*) The constant 0.65 in THoeffdingTree::ProcessLeafCls is hard-coded: do something about this 
 //
 
 namespace THoeffding {
@@ -33,7 +28,7 @@ namespace THoeffding {
 	// another option is struct { int Idx1, Idx2; double Mx1, Mx2, Diff; };
 	typedef TTriple<TPair<TInt, TFlt>, TPair<TInt, TFlt>, TFlt> TBstAttr;
 
-	// numeric-attribute-discretization
+	// numeric attribute discretization
 	const int BinsN = 100;
 
 	// model in the leaves for regression 
@@ -251,7 +246,7 @@ namespace THoeffding {
 		double Mean; // sample mean 
 		double T; // sum of the sample elements x1+x2+...+xn
 		double Value; // initialize bin with this value 
-		int	Count;
+		int Count;
 		int Id; // ID needed for forgetting 
 		TIntV PartitionV; // for classification 
 	};
@@ -262,10 +257,10 @@ namespace THoeffding {
 	public:
 		THist(const int& BinsN_ = BinsN) { } // BinsV.Reserve(BinsN_, BinsN_); } 
 		
-		// THist(const THist& Hist); // Default behavious is OK 
-		// THist(THist&& Hist); // Default behavious is OK 
-		// THist& operator=(THist&& Hist); // Default behavious is OK 
-		// THist& operator=(const THist& Hist); // Default behavious is OK 
+		// THist(const THist& Hist); // Default behaviour is OK 
+		// THist(THist&& Hist); // Default behaviour is OK 
+		// THist& operator=(THist&& Hist); // Default behaviour is OK 
+		// THist& operator=(const THist& Hist); // Default behaviour is OK 
 
 		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen); // classification
 		void DecCls(PExample Example, const int& AttrIdx); // classification 
@@ -486,7 +481,6 @@ namespace THoeffding {
 				if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
 				Init(JsonConfig_);
 		}
-		// TODO: Check whether the consturctor is OK 
 		THoeffdingTree(PJsonVal JsonConfig_, PJsonVal JsonParams_, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
 			: ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true)	{
 			if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
@@ -512,15 +506,15 @@ namespace THoeffding {
 		// THoeffdingTree& operator=(const THoeffdingTree& HoeffdingTree) =delete;
 		// THoeffdingTree& operator=(THoeffdingTree&& HoeffdingTree) =delete;
 		
-		// double Predcit(TStrV DiscreteV, TFltV NumericV) const;
+		// double Predcit(TStrV DiscreteV, TFltV NumericV) const; // TODO 
 		double Predict(PExample Example) const;
 		inline double Predict(const TStr& Line, const TCh& Delimiter = ',') const {
 			return Predict(Preprocess(Line, Delimiter));
 		}
-		TLabel Classify(PNode Node, PExample Example) const;
-		TLabel Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
-		TLabel Classify(PExample Example) const;
-		inline TLabel Classify(const TStr& Line, const TCh& Delimiter = ',') const {
+		TStr Classify(PNode Node, PExample Example) const;
+		TStr Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
+		TStr Classify(PExample Example) const;
+		inline TStr Classify(const TStr& Line, const TCh& Delimiter = ',') const {
 			if (Line.CountCh(Delimiter) < AttrsHashV.Len()) { // missing label 
 				TStr Label = InvAttrsHashV.Last()[0];
 				return Classify(Preprocess(Line+","+Label, Delimiter));
@@ -559,7 +553,7 @@ namespace THoeffding {
 			return Node->PartitionV.GetMxValN();
 		}
 		inline TStr GetNodeNm(PNode Node) const {
-		return AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr();
+			return AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr();
 		}
 		inline TStr GetNodeValueNm(PNode Node, const int& ChildN) const {
 			Assert(ChildN >= 0);

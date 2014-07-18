@@ -259,8 +259,8 @@ void TBagOfWords::Clr() {
 }
 
 bool TBagOfWords::Update(const TStr& Val) {    
-    // tokenize given text
-    TStrV TokenStrV; GetFtr(Val, TokenStrV);
+    // tokenize given text (reserve space assuming 5 chars per word)    
+    TStrV TokenStrV(Val.Len() / 5, 0); GetFtr(Val, TokenStrV);
     // process tokens to update DF counts
     bool UpdateP = false;
     if (IsHashing()) {  
@@ -318,11 +318,18 @@ bool TBagOfWords::Update(const TStr& Val) {
 void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
     // outsource to tokenizer
     Tokenizer->GetTokens(Str, TokenStrV);
+    // counting average token length
+    /*static int Count = 0, LenStr = 0, LenVec = 0;
+    Count++; LenStr += Str.Len(); LenVec += TokenStrV.Len();
+    if (Count % 1000 == 0) { 
+        printf("Average token length[docs=%d chars=%d words=%d length=%.4f\n", 
+            Count, LenStr, LenVec, (double)LenStr / (double)LenVec);
+    }*/
 }
 
 void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
     // tokenize
-    TStrV TokenStrV; GetFtr(Val, TokenStrV);
+    TStrV TokenStrV(Val.Len() / 5, 0); GetFtr(Val, TokenStrV);
     // aggregate token counts
     TIntH TermFqH;
     for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {

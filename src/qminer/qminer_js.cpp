@@ -302,9 +302,9 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 
 TScript::~TScript() {
 #ifndef NDEBUG
-	v8::Locker Locker;
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Locker Locker(Isolate);
 #endif
-
 	v8::HandleScope HandleScope;
 	// delete fetcher
 	JsFetch.Del();
@@ -312,6 +312,8 @@ TScript::~TScript() {
 	Context.Dispose();
 	// NOTE. There is no special reason for picking 11 iterations.
 	for(int i = 0; i < 11; ++i) { v8::V8::LowMemoryNotification(); }
+
+
 }
 
 void TScript::RegSrvFun(TSAppSrvFunV& SrvFunV) { 
@@ -673,7 +675,8 @@ void TScript::Init() {
 
 #ifndef NDEBUG
 	// for debugging JavaScript
-	v8::Locker lock;
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Locker Lock(Isolate);
 #endif
 
 	// do global initialization if not yet done
@@ -1061,10 +1064,7 @@ v8::Handle<v8::Value> TJsBase::createStore(const v8::Arguments& Args) {
     // parse arguments
     PJsonVal SchemaVal = TJsBaseUtil::GetArgJson(Args, 0);
 	uint64 DefStoreSize = (uint64) TJsBaseUtil::GetArgInt32(Args, 1, 1024);
-    // Note: CreateStoresFromSchema is probably already taking KBs (luis.rei)
-    //TODO allow schema key-value store size definitions
-    DefStoreSize = DefStoreSize * TInt::Kilo; // kilo * kilo = MB
-    //DefStoreSize = DefStoreSize * TInt::Mega;
+    DefStoreSize = DefStoreSize * TInt::Mega;
     // create new stores
     TVec<TWPt<TStore> > NewStoreV = TStorage::CreateStoresFromSchema(
         JsBase->Base, SchemaVal, DefStoreSize);   
@@ -2150,7 +2150,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		printf("Line '%s'\n", Line.CStr());
+		// printf("Line '%s'\n", Line.CStr());
 		JsHoeffdingTree->HoeffdingTree->Process(Line);
 		// printf("End\n");
 	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
@@ -2173,8 +2173,8 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
-		return HandleScope.Close(v8::Number::New(Label));
+		TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
+		return HandleScope.Close(v8::String::New(Label.CStr()));
 	} else if(Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
 		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
 		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
@@ -2182,8 +2182,10 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
 			DiscreteVal->GetArrStrV(DisV);
 			NumericVal->GetArrNumV(NumV);
-			THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			return HandleScope.Close(v8::Number::New(Label));
+			// THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			// return HandleScope.Close(v8::Number::New(Label));
+			return HandleScope.Close(v8::String::New(Label.CStr()));
 		} // else { EFailR("No such function"); }
 	} // else { EFailR("Unsupported."); }
 	return HandleScope.Close(v8::Undefined());
@@ -2459,11 +2461,17 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 	TVec<TIntFltKdV> Mat;	
 	if (Args.Length() > 0) {
 		// corrdinate
-		if (Args.Length() == 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV") && TJsObjUtil<TJsSpMat>::IsArgInt32(Args, 3)) {
+		if (Args.Length() >= 3 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV")) {
 			TJsIntV* RowIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
 			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
 			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
-			int Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			int Cols = -1;
+			if (Args.Length() == 4) {
+				Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			}
+			if (Cols == -1) {
+				Cols = ColIdxV->Vec.GetMxVal() + 1;
+			}
 			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
 		}
 		else {
@@ -2784,6 +2792,30 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
 	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
 	return HandleScope.Close(JsResult);	
+}
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::toMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);
+}
+
+
+template <>
+v8::Handle<v8::Value> TJsVec<TInt, TAuxIntV>::toMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	int Len = JsVec->Vec.Len();
+	TFltV Temp(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		Temp[ElN] = JsVec->Vec[ElN];
+	}
+	TFltVV Res(Temp, Len, 1);
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);
 }
 
 ///////////////////////////////
@@ -3265,6 +3297,8 @@ v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
 	return HandleScope.Close(JsResult);
 	return HandleScope.Close(v8::Undefined());
 }
+
+
 
 ///////////////////////////////
 // QMiner-SparseVec
@@ -4051,30 +4085,34 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     PJsonVal SvmParamVal = TJsonVal::NewObj();
     if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
-    const double C = SvmParamVal->GetObjNum("c", 1.0);
-    const double j = SvmParamVal->GetObjNum("j", 1.0);
-    // check what kind of input data we got
-    PSVMTrainSet TrainSet;
-    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
-        // we have sparse matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
-        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
-    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
-        // we have dense matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmClassify: first argument expected to be object");
-        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
-    } else {
-        // TODO support JavaScript array of TJsFltV or TJsSpV
-        throw TQmExcept::New("trainSvmClassify: unsupported type of the first argument");
-    }
-    // train and return the model
+    const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
+    //const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
+    const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 10000);
+    const int MxIter = SvmParamVal->GetObjInt("maxIterations", 1000);
+    const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
+    const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
+    // check what kind of input data we got and train and return the model
     try {
-        PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, C, j);
-        return TJsSvmModel::New(JsAnalytics->Js, Model);
+        if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+            // we have sparse matrix on the input
+            QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
+            TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
+            return TJsSvmModel::New(JsAnalytics->Js, 
+                TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
+                    TLAMisc::GetMaxDimIdx(VecV), VecV.Len(), ClsV, SvmCost, 
+                    MxTime, MxIter, MnDiff, SampleSize, TEnv::Logger));
+//        } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+//            // we have dense matrix on the input
+//            QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
+//            TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+//            return TJsSvmModel::New(JsAnalytics->Js, 
+//                TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
+//                    VecV.GetCols(), ClsV, SvmCost, MxTime, MxIter, MnDiff,
+//                    SampleSize, TEnv::Logger));
+        } else {
+            // TODO support JavaScript array of TJsFltV or TJsSpV
+            throw TQmExcept::New("unsupported type of the first argument");
+        }
     } catch (const PExcept& Except) {
         InfoLog("[except] trainSvmClassify: " + Except->GetMsgStr());
     }    
@@ -4083,43 +4121,43 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
 
 v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-    // parse arguments
-	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
-    QmAssertR(Args.Length() >= 2, "trainSvmRegression: missing arguments!");
-    // get target value information
-    QmAssertR(Args[1]->IsObject(), "trainSvmRegression: second argument expected to be object");
-    TFltV& ValV = TJsFltV::GetVec(Args[1]->ToObject());
-    // parse SVM parameters
-    PJsonVal SvmParamVal = TJsonVal::NewObj();
-    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
-        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
-    const double C = SvmParamVal->GetObjNum("c", 1.0);
-    const double E = SvmParamVal->GetObjNum("eps", 1.0);
-    // check what kind of input data we got
-    PSVMTrainSet TrainSet;
-    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
-        // we have sparse matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
-        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefSparseTrainSet::New(VecV, ValV);
-    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
-        // we have dense matrix on the input
-        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
-        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-        // create training set for SVM
-        TrainSet = TRefDenseTrainSet::New(VecV, ValV);
-    } else {
-        // TODO support JavaScript array of TJsFltV or TJsSpV
-        throw TQmExcept::New("trainSvmRegression: unsupported type of the first argument");
-    }
-    // train and return the model
-    try {
-        PSVMModel Model = TSVMModel::NewRegLinear(TrainSet, E, C);
-        return TJsSvmModel::New(JsAnalytics->Js, Model);
-    } catch (const PExcept& Except) {
-        InfoLog("[except] trainSvmRegression: " + Except->GetMsgStr());
-    }    
+//    // parse arguments
+//	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+//    QmAssertR(Args.Length() >= 2, "trainSvmRegression: missing arguments!");
+//    // get target value information
+//    QmAssertR(Args[1]->IsObject(), "trainSvmRegression: second argument expected to be object");
+//    TFltV& ValV = TJsFltV::GetVec(Args[1]->ToObject());
+//    // parse SVM parameters
+//    PJsonVal SvmParamVal = TJsonVal::NewObj();
+//    if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
+//        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
+//    const double C = SvmParamVal->GetObjNum("c", 1.0);
+//    const double E = SvmParamVal->GetObjNum("eps", 1.0);
+//    // check what kind of input data we got
+//    PSVMTrainSet TrainSet;
+//    if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+//        // we have sparse matrix on the input
+//        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
+//        TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
+//        // create training set for SVM
+//        TrainSet = TRefSparseTrainSet::New(VecV, ValV);
+//    } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+//        // we have dense matrix on the input
+//        QmAssertR(Args[0]->IsObject(), "trainSvmRegression: first argument expected to be object");
+//        TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+//        // create training set for SVM
+//        TrainSet = TRefDenseTrainSet::New(VecV, ValV);
+//    } else {
+//        // TODO support JavaScript array of TJsFltV or TJsSpV
+//        throw TQmExcept::New("trainSvmRegression: unsupported type of the first argument");
+//    }
+//    // train and return the model
+//    try {
+//        PSVMModel Model = TSVMModel::NewRegLinear(TrainSet, E, C);
+//        return TJsSvmModel::New(JsAnalytics->Js, Model);
+//    } catch (const PExcept& Except) {
+//        InfoLog("[except] trainSvmRegression: " + Except->GetMsgStr());
+//    }
 	return v8::Undefined();
 }
 
@@ -4128,8 +4166,7 @@ v8::Handle<v8::Value> TJsAnalytics::loadSvmModel(const v8::Arguments& Args) {
 	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);	
 	if (Args.Length() > 0) {
         PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-		PSVMModel Model = TSVMModel::Load(*SIn);
-		return HandleScope.Close(TJsSvmModel::New(JsAnalytics->Js, Model));
+		return HandleScope.Close(TJsSvmModel::New(JsAnalytics->Js, TSvm::TLinModel(*SIn)));
 	}
 	return HandleScope.Close(v8::Undefined());
 }
@@ -4499,10 +4536,10 @@ v8::Handle<v8::Value> TJsSvmModel::predict(const v8::Arguments& Args) {
     // get vector vector
     QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
     if (TJsSvmModelUtil::IsArgClass(Args, 0, "TFltV")) {
-        const double Res = JsSvmModel->Model->GetRes(TJsFltV::GetVec(Args[0]->ToObject()));
+        const double Res = JsSvmModel->Model.Predict(TJsFltV::GetVec(Args[0]->ToObject()));
     	return HandleScope.Close(v8::Number::New(Res));
     } else if (TJsSvmModelUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
-        const double Res = JsSvmModel->Model->GetRes(TJsSpV::GetSpV(Args[0]->ToObject()));
+        const double Res = JsSvmModel->Model.Predict(TJsSpV::GetSpV(Args[0]->ToObject()));
     	return HandleScope.Close(v8::Number::New(Res));
     }
     throw TQmExcept::New("svm.predict: unsupported type of the first argument");
@@ -4513,7 +4550,7 @@ v8::Handle<v8::Value> TJsSvmModel::weights(v8::Local<v8::String> Properties, con
     // parse arguments
 	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Info);	
     // get feature vector
-	TFltV WgtV; JsSvmModel->Model->GetWgtV(WgtV);
+	TFltV WgtV; JsSvmModel->Model.GetWgtV(WgtV);
 	v8::Persistent<v8::Object> JsWgtV = TJsFltV::New(JsSvmModel->Js, WgtV);
     return HandleScope.Close(JsWgtV);
 }
@@ -4524,7 +4561,7 @@ v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
 	TJsSvmModel* JsSvmModel = TJsSvmModelUtil::GetSelf(Args);
 	if (Args.Length() > 0) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-		JsSvmModel->Model->Save(*SOut);
+		JsSvmModel->Model.Save(*SOut);
 	}
 	return HandleScope.Close(v8::Undefined());
 }
@@ -4740,6 +4777,7 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterProperty(TmpTemp, scriptNm);
 		JsRegisterProperty(TmpTemp, scriptFNm);
 		JsRegisterFunction(TmpTemp, getGlobals);
+		JsRegisterFunction(TmpTemp, exitScript);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4813,7 +4851,12 @@ v8::Handle<v8::Value> TJsProcess::getGlobals(const v8::Arguments& Args) {
 	//	else { printf("\n"); }
 	//}
 	return HandleScope.Close(Properties);
-	//return v8::Undefined();
+}
+
+
+v8::Handle<v8::Value> TJsProcess::exitScript(const v8::Arguments& Args) {
+	v8::V8::TerminateExecution(v8::Isolate::GetCurrent());
+	return v8::Undefined();
 }
 
 ///////////////////////////////
@@ -4890,7 +4933,8 @@ v8::Handle<v8::ObjectTemplate> TJsFs::GetTemplate() {
 }
 
 bool TJsFs::CanAccess(const TStr& FPath) {
-	TJsFPath JsFPath(FPath);
+    if (!TEnv::IsSandbox()) { return true; }
+    TJsFPath JsFPath(FPath);
     for (int AllowedFPathN = 0; AllowedFPathN < AllowedFPathV.Len(); AllowedFPathN++) {
         if (JsFPath.IsSubdir(AllowedFPathV[AllowedFPathN])) { return true; }
     }
@@ -4898,7 +4942,8 @@ bool TJsFs::CanAccess(const TStr& FPath) {
 }
 
 bool TJsFs::CanAccess(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
+    if (!TEnv::IsSandbox()) { return true; }
+	v8::HandleScope HandleScope;    
 	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
     TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
 	return JsFs->CanAccess(FPath);

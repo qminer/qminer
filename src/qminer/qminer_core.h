@@ -57,6 +57,10 @@ public:
     /// Maximal number of stores allowed, also sets the upper limit to valid store IDs
     static uint GetMxStores() { return 0x4000; } // == 16384
     
+    /// True when QMiner is running in sandboxed mode
+    /// TODO: make it configurable
+    static bool IsSandbox() { return false; }
+    
 	/// Path to QMiner
 	static TStr QMinerFPath;
 	/// Default QMiner notification facility
