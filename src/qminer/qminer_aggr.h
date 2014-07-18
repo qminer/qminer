@@ -689,7 +689,7 @@ private:
 	THash<TUInt, TIntSet> StoreIdFldIdVH;				// a hash table mapping a storeId to a list of input fields
 
 	TInt NInFlds;										// number of input signals
-	TVec<TUInt64> Buff;									// buffer of next time points
+	TSignalProc::TLinkedBuffer<TUInt64> Buff;			// buffer of next time points
 
 	TBoolV SignalsPresentV;
 	TBool SignalsPresent;

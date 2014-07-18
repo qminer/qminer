@@ -151,6 +151,131 @@ public:
         Assert(!Empty()); return IsInit() ?  GetVal(0) : ValV.Last(); }
 };
 
+///////////////////////////////
+// Linked buffer
+template <class TVal>
+class TLinkedBuffer {
+private:
+	class Node {
+	public:
+		Node* Next;
+		const TVal Val;
+
+		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+	};
+
+private:
+	Node* First;
+	Node* Last;
+	TInt Size;
+
+public:
+	TLinkedBuffer();
+	TLinkedBuffer(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	~TLinkedBuffer();
+
+	void Add(const TVal& Val);
+	void DelOldest();
+
+	const TVal& GetOldest(const TInt& Idx) const;
+	const TVal& GetOldest() const { return GetOldest(0); };
+	const TVal& GetNewest() const;
+
+	bool Empty() const { return Len() == 0; };
+	int Len() const { return Size; };
+};
+
+template <class TVal>
+TLinkedBuffer<TVal>::TLinkedBuffer():
+		First(NULL),
+		Last(NULL),
+		Size(0) {}
+
+template <class TVal>
+TLinkedBuffer<TVal>::TLinkedBuffer(TSIn& SIn):
+		First(NULL),
+		Last(NULL),
+		Size(SIn) {
+
+	if (Size > 0) { First = new TLinkedBuffer<TVal>::Node(NULL, TVal(SIn)); }
+
+	Node* Curr = First;
+	for (int i = 1; i < Size; i++) {
+		Curr->Next = new Node(NULL, TVal(SIn));
+		Curr = Curr->Next;
+	}
+
+	Last = Curr;
+}
+
+template <class TVal>
+void TLinkedBuffer<TVal>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	Node* Curr = First;
+	while (Curr != NULL) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal>
+TLinkedBuffer<TVal>::~TLinkedBuffer() {
+	while (!Empty()) { DelOldest(); }
+}
+
+template <class TVal>
+void TLinkedBuffer<TVal>::Add(const TVal& Val) {
+	TLinkedBuffer<TVal>::Node* Node = new TLinkedBuffer<TVal>::Node(NULL, Val);
+
+	if (Size++ == 0) {
+		First = Node;
+		Last = Node;
+	} else {
+		Last->Next = Node;
+		Last = Node;
+	}
+}
+
+template <class TVal>
+void TLinkedBuffer<TVal>::DelOldest() {
+	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
+
+	Node* Temp = First;
+
+	if (--Size == 0) {
+		First = NULL;
+		Last = NULL;
+	} else {
+		First = First->Next;
+	}
+
+	delete Temp;
+}
+
+template <class TVal>
+const TVal& TLinkedBuffer<TVal>::GetOldest(const TInt& Idx) const {
+	IAssertR(Idx < Size, "Index of element greater then size!");
+
+	Node* Curr = First;
+	for (int i = 0; i < Idx; i++) {
+		Curr = Curr->Next;
+	}
+
+	return Curr->Val;
+}
+
+template <class TVal>
+const TVal& TLinkedBuffer<TVal>::GetNewest() const {
+	IAssertR(!Empty(), "Cannot return elements from empty buffer!");
+	return Last->Val;
+}
+
+
+
 /////////////////////////////////////////
 // Time series interpolator interface
 class TInterpolator;
@@ -187,7 +312,7 @@ public:
 class TBufferedInterpolator: public TInterpolator {
 protected:
 	// buffer holding the current and future points
-	TUInt64FltPrV Buff;	// TODO change this to circular list
+	TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
 
 	TBufferedInterpolator(const TStr& InterpolatorType);
 	TBufferedInterpolator(TSIn& SIn);

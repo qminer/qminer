@@ -1428,7 +1428,7 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 }
 
 void TStMerger::AddToBuff(const int& InterpIdx, const uint64 RecTm, const TFlt& Val) {
-	TUInt64 LastTm = Buff.Empty() ? TUInt64::Mn : Buff.Last();
+	TUInt64 LastTm = Buff.Empty() ? TUInt64::Mn : Buff.GetNewest();
 	QmAssertR(RecTm >= LastTm, "TStMerger::AddToBuff: Tried to merge past value!");
 
 	InterpV[InterpIdx]->AddPoint(Val, RecTm);
@@ -1453,8 +1453,8 @@ void TStMerger::AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm
 }
 
 void TStMerger::ShiftBuff() {
-	while (!Buff.Empty() && Buff[0] < NextInterpTm) {
-		Buff.Del(0);
+	while (!Buff.Empty() && Buff.GetOldest() < NextInterpTm) {
+		Buff.DelOldest();
 	}
 
 	UpdateInterpolators();
@@ -1488,7 +1488,7 @@ bool TStMerger::CanInterpolate() {
 
 void TStMerger::UpdateNextInterpTm() {
 	PrevInterpTm = NextInterpTm;
-	NextInterpTm = Buff.Len() > 1 ? Buff[1] : TUInt64::Mx;
+	NextInterpTm = Buff.Len() > 1 ? Buff.GetOldest(1) : TUInt64::Mx;
 	ShiftBuff();
 }
 
