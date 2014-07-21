@@ -1875,6 +1875,7 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 		JsLongRegisterProperty(TmpTemp, "$id", id);
 		JsLongRegisterProperty(TmpTemp, "$name", name);
 		JsLongRegisterProperty(TmpTemp, "$fq", fq);
+		JsLongRegisterProperty(TmpTemp, "$store", store);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, addJoin);
 		JsRegisterFunction(TmpTemp, delJoin);
@@ -1933,6 +1934,12 @@ v8::Handle<v8::Value> TJsRec::fq(v8::Local<v8::String> Properties, const v8::Acc
 	v8::HandleScope HandleScope;
 	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsRec->Fq));
+}
+
+v8::Handle<v8::Value> TJsRec::store(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStore::New(JsRec->Js, JsRec->Store()));
 }
 
 v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

@@ -1280,6 +1280,8 @@ public:
     JsDeclareProperty(name);
     //#- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	JsDeclareProperty(fq);
+	//#- `recStore = rec.$store` -- returns record store
+	JsDeclareProperty(store);
     //#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
