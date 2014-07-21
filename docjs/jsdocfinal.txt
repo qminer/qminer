@@ -9,8 +9,11 @@ which lives in the same process as core QMiner objects. This allows for fast man
 of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
 Currently, version 3.18 of V8 is used.
 
+**Intellisense**: When using Visual Studio 2013 one can enable intellisense for the JavaScript API globally by navigating: 
+Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
+
 JavaScript API requires [initialized work environment](Quick-Start).
-    
+
 ## Libraries
 
 Scripts can load external libraries or modules in the same way as Node.js.
@@ -103,6 +106,7 @@ var record = store[1234];
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+- `store.addStreamAggrTrigger(satrigger)` -- add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 - `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
 - `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`

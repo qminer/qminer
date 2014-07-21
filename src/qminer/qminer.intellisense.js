@@ -93,6 +93,7 @@ _addIntellisenseVar("_vecCtrParam", "{ vals: 1, mxvals: 1 }");
 _addIntellisenseVar("_svdRes", "{ U: _mat, V: _mat, s: _vec }");
 _addIntellisenseVar("_storeDef", "{ id: '', name: '', fields: [], joins: [], keys: []}");
 _addIntellisenseVar("_trigger", "{ onAdd: function(_rec) {}, onUpdate: function(_rec) {}, onDelete: function(_rec) {}}");
+_addIntellisenseVar("_name", "{ name:_str, onAdd: function(_rec) {}, onUpdate: function(_rec) {}, onDelete: function(_rec) {}}");
 _addIntellisenseVar("_field", "{ id: 1, name: '', type: '', nullable: false, internal: false, primary: false}");
 _addIntellisenseVar("_mapCallback", "function (_rec, _idx) {}");
 _addIntellisenseVar("_filterCallback", "function (_rec) { return _bool}");
@@ -234,6 +235,15 @@ var _store = {
 
 	},
 
+	getStreamAggr: function () {
+	/// <signature>
+	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
+	/// <param name="_saName" value="_saName">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+
+	},
+
 	/// <field value = "_objArr"> array of all the [index keys](#index-key) objects</field>
 	keys: _objArr,
 	/// <field value = "_objArr"> array of all the field descriptor JSON objects</field>
@@ -249,11 +259,11 @@ var _store = {
 
 	},
 
-	getStreamAggr: function () {
+	addStreamAggrTrigger: function () {
 	/// <signature>
-	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
-	/// <param name="_saName" value="_saName">param</param>
-	/// <returns value ="_objJSON"/>
+	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
+	/// <param name="_satrigger" value="_satrigger">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
 	},
