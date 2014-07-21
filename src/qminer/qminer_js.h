@@ -46,8 +46,11 @@ namespace TQm {
 //# of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
 //# Currently, version 3.18 of V8 is used.
 //# 
+//# **Intellisense**: When using Visual Studio 2013 one can enable intellisense for the JavaScript API globally by navigating: 
+//# Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
+//# 
 //# JavaScript API requires [initialized work environment](Quick-Start).
-//#     
+//# 
 //# ## Libraries
 //# 
 //# Scripts can load external libraries or modules in the same way as Node.js.
@@ -898,6 +901,28 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr : public TStreamAggr {
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+
+public:
+	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
+	}
+	void OnAddRec(const TRec& Rec);
+	void OnUpdateRec(const TRec& Rec);
+	void OnDeleteRec(const TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+};
+
+///////////////////////////////
 // JavaScript WebPgFetch Request
 class TJsFetchRq {
 private:
@@ -1073,6 +1098,8 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
+	//#- `store.addStreamAggrTrigger(satrigger)` -- add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+	JsDeclareFunction(addStreamAggrTrigger);
     //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`

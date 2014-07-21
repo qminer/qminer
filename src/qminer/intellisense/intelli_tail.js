@@ -93,6 +93,7 @@ _addIntellisenseVar("_vecCtrParam", "{ vals: 1, mxvals: 1 }");
 _addIntellisenseVar("_svdRes", "{ U: _mat, V: _mat, s: _vec }");
 _addIntellisenseVar("_storeDef", "{ id: '', name: '', fields: [], joins: [], keys: []}");
 _addIntellisenseVar("_trigger", "{ onAdd: function(_rec) {}, onUpdate: function(_rec) {}, onDelete: function(_rec) {}}");
+_addIntellisenseVar("_name", "{ name:_str, onAdd: function(_rec) {}, onUpdate: function(_rec) {}, onDelete: function(_rec) {}}");
 _addIntellisenseVar("_field", "{ id: 1, name: '', type: '', nullable: false, internal: false, primary: false}");
 _addIntellisenseVar("_mapCallback", "function (_rec, _idx) {}");
 _addIntellisenseVar("_filterCallback", "function (_rec) { return _bool}");

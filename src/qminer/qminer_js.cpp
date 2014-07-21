@@ -928,6 +928,48 @@ void TJsStoreTrigger::OnDelete(const TRec& Rec) {
 }
 
 ///////////////////////////////
+// QMiner-JavaScript-Stream-Aggr
+TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Js->Base, _AggrNm), Js(_Js) {
+	v8::HandleScope HandleScope;
+	if (TriggerVal->Has(v8::String::New("onAdd"))) {
+		v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
+		QmAssert(_OnAddFun->IsFunction());
+		OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
+	}
+	if (TriggerVal->Has(v8::String::New("onUpdate"))) {
+		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::New("onUpdate"));
+		QmAssert(_OnUpdateFun->IsFunction());
+		OnUpdateFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnUpdateFun));
+	}
+	if (TriggerVal->Has(v8::String::New("onDelete"))) {
+		v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::New("onDelete"));
+		QmAssert(_OnDeleteFun->IsFunction());
+		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
+	}
+}
+
+void TJsStreamAggr::OnAddRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnAddFun.IsEmpty()) {
+		Js->Execute(OnAddFun, TJsRec::New(Js, Rec));
+	}
+}
+
+void TJsStreamAggr::OnUpdateRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnUpdateFun.IsEmpty()) {
+		Js->Execute(OnUpdateFun, TJsRec::New(Js, Rec));
+	}
+}
+
+void TJsStreamAggr::OnDeleteRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnDeleteFun.IsEmpty()) {
+		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
+	}
+}
+
+///////////////////////////////
 // QMiner-JavaScript-WebPgFetch
 void TJsFetch::OnFetch(const int& FId, const PWebPg& WebPg) {
 	// execute callback
@@ -1160,6 +1202,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
+		JsRegisterFunction(TmpTemp, addStreamAggrTrigger);
         JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
@@ -1374,6 +1417,22 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	JsStore->Store->AddTrigger(Trigger);
 	// add to JS context, in case we reload
 	JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsStore::addStreamAggrTrigger(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	// parse parameters
+	QmAssert(Args.Length() == 1);
+	v8::Handle<v8::Value> TriggerVal = Args[0];
+	QmAssert(TriggerVal->IsObject());
+	TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
+	// add trigger
+
+	PStreamAggr Trigger = TJsStreamAggr::New(JsStore->Js, AggrName, TriggerVal->ToObject());
+	JsStore->Js->Base->GetStreamAggrBase(JsStore->Store->GetStoreId())->AddStreamAggr(Trigger);
+	
 	return HandleScope.Close(v8::Null());
 }
 
