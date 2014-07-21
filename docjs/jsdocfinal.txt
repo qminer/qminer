@@ -55,10 +55,11 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 - `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
 - `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 - `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
   and returns a record set `rs` with results
 - `qm.gc()` -- start garbage collection to remove records outside time windows
-- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate of type typeName to the store; stream aggregate is passed paramJSON JSon
+- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 paramJSON must contain field `type` which defies the type of the aggregate
 - `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
@@ -478,19 +479,31 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 - `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     (stemmers, stop word lists) as a json object, with two arrays:
     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-- `batchModel = analytics.newBatchModel(rs, fsp, target)` -- learns a new batch model
-    using record set `rs` as training data and feature space `fsp`; `target` is
+- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
+    using record set `rs` as training data and `features`; `target` is
     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
   - `strArr = batchModel.target` -- array of categories for which we have models
   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-    through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
+    through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
+  - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
+    sends it through the model and returns the labels with positive weights as `labelArr`.
   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
     sends it through the model and returns the top ranked label `labelStr`.
   - `batchModel.save(fout)` -- saves the model to `fout` output stream
 - `batchModel = analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
+- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+    model for records from record set `rs` using `features; `target` is the
+    target field and is assumed discrete; the result is a results object
+    with the following API:
+    - `result.target` -- an object with categories as keys and the following
+      counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+      `all()`, `precision()`, `recall()`, `accuracy()`.
+    - `result.confusion` -- confusion matrix between categories
+    - `result.report()` -- prints basic report on to the console
+    - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
 - `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
@@ -569,7 +582,7 @@ declarations as parameters.
 - `fsp.updateRecord(rec)` -- update feature space definitions and extractors
     by exposing them to record `rec`. For example, this can update the vocabulary
     used by bag-of-words extractor by taking into account new text.
-- `fsp.updateRecord(rs)` -- update feature space definitions and extractors
+- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
     by exposing them to records from record set `rs`. For example, this can update 
     the vocabulary used by bag-of-words extractor by taking into account new text.
 - `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
@@ -657,8 +670,8 @@ The HoeffdingTree algorithm comes with many parameters:
 - `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
 - `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
-- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label.
-- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label.
+- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 - `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 
@@ -678,6 +691,7 @@ The HoeffdingTree algorithm comes with many parameters:
 - `str = process.scriptNm` -- Returns the name of the script.
 - `str = process.scriptFNm` -- Returns absolute script file path.
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
+- `process.exitScript()` -- Exits the current script
 - `strArr = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
@@ -709,6 +723,7 @@ The HoeffdingTree algorithm comes with many parameters:
 - `sw.tic()` -- resets and starts the stop watch
 - `sw.toc(str)` -- displays time from tic and message `str`
 - `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
+- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
 
 ### assert.js (use require)
 
