@@ -1333,7 +1333,7 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdP
 	const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
 	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[InterpIdx]);
 
-	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is higher then the current interpolation time!");
+	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is lower then the current interpolation time!");
 
 	AddToBuff(InterpIdx, RecTm, RecVal);
 
@@ -1383,10 +1383,19 @@ void TStMerger::AddToStore(const TFltV& InterpValV, const uint64 InterpTm, const
 
 void TStMerger::AddRec(const TFltV& InterpValV, const uint64 InterpTm, const TQm::TRec& Rec) {
 	if (OnlyPast) {
-		if (PrevInterpPt.Val1 != TUInt64::Mx && PrevInterpPt.Val1 != InterpTm) {
-			AddToStore(PrevInterpPt.Val2, PrevInterpPt.Val1, PrevInterpPt.Val3);
+		// we need to wait until we get at least one future point before
+		// committing the interpolation
+		if (Buff.Len() > 1) {	// we already have a future point
+			AddToStore(InterpValV, InterpTm, Rec.GetRecId());
+			PrevInterpPt = TTriple<TUInt64, TFltV, TUInt64>(TUInt64::Mx, TFltV(), TUInt64::Mx);
 		}
-		PrevInterpPt = TTriple<TUInt64, TFltV, TUInt64>(InterpTm, InterpValV, Rec.GetRecId());
+		else if (PrevInterpPt.Val1 != TUInt64::Mx && PrevInterpPt.Val1 != InterpTm) {
+			AddToStore(PrevInterpPt.Val2, PrevInterpPt.Val1, PrevInterpPt.Val3);
+			PrevInterpPt = TTriple<TUInt64, TFltV, TUInt64>(InterpTm, InterpValV, Rec.GetRecId());
+		}
+		else {
+			PrevInterpPt = TTriple<TUInt64, TFltV, TUInt64>(InterpTm, InterpValV, Rec.GetRecId());
+		}
 	} else {
 		AddToStore(InterpValV, InterpTm, Rec.GetRecId());
 	}
