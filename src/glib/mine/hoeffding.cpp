@@ -392,7 +392,6 @@ namespace THoeffding {
 		}
 		const int AllN = HiCount;
 		const double H = TMisc::Entropy(HiV, AllN);
-		// printf("H = %f\n", H);
 		// Now find the best split 
 		CurrGain = MxGain = 0.0;
 		MxIdx = 0;
@@ -452,7 +451,6 @@ namespace THoeffding {
 		}
 		const int AllN = HiCnt;
 		const double S = SArr[BinsV.Len()-1];
-		// printf("AllN = %d; S = %f\n", AllN, S);
 		HiS = CrrGain = MxGain = 0.0;
 		MxIdx = 0;
 		LoS = BinsV.Last().S;
@@ -466,12 +464,10 @@ namespace THoeffding {
 			const double SigmaS = TMath::Sqrt(S/(AllN));
 			const double SigmaS1 = TMath::Sqrt(LoS/(LoCnt));
 			const double SigmaS2 = TMath::Sqrt(HiS/(HiCnt));
-			// printf("S = %f ;; S1 = %f ;; S2 = %f\n", SigmaS, LoCnt*SigmaS1/AllN, HiCnt*SigmaS2/AllN);
 			if ((CrrGain = SigmaS - LoCnt*SigmaS1/AllN - HiCnt*SigmaS2/AllN) > MxGain) {
 				MxGain = CrrGain;
 				MxIdx = BinN;
 			}
-			// printf("CurrGain = %f\n", CrrGain); getchar();
 			// Update variance 
 			const double CrrS = BinsV.GetVal(BinN).S; // S_2
 			const double CrrT = BinsV.GetVal(BinN).T;
@@ -542,11 +538,7 @@ namespace THoeffding {
 			Counts = Node.Counts; Err = Node.Err; ExamplesN = Node.ExamplesN;
 			ExamplesV = Node.ExamplesV; HistH = Node.HistH; Id = Node.Id;
 			PartitionV = Node.PartitionV;
-//#ifdef GLIB_OK
 			SeenH = Node.SeenH;
-//#else
-//			seen_h = Node.seen_h;
-//#endif
 			TestModeN = Node.TestModeN; Type = Node.Type;
 			Val = Node.Val; VarSum = Node.VarSum;
 		}
@@ -760,9 +752,7 @@ namespace THoeffding {
 	void TNode::Clr() { // Forget training examples 
 		ExamplesV.Clr(); PartitionV.Clr(); Counts.Clr();
 		HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
-//#ifdef GLIB_OK
 		SeenH.Clr(true);
-//#endif
 	}
 	// See page 232 of Knuth's TAOCP, Vol. 2: Seminumeric Algorithms [Knuth, 1997] for details
 	void TNode::UpdateStats(PExample Example) {
@@ -947,11 +937,7 @@ namespace THoeffding {
 					}
 				}
 			} else if (Sacrificed(CrrNode, Example)) { // Unmark 
-//#ifdef GLIB_OK
 				CrrNode->SeenH.DelIfKey(*Example); 
-//#else
-//				CrrNode->seen_h.erase(*Example);
-//#endif
 			}
 		}
 	}
@@ -974,7 +960,6 @@ namespace THoeffding {
 			const double EstG = SplitAttr.Val3;
 			printf("EstG = %f\n", EstG);
 			if ((EstG < 1.0-Eps /*|| Eps < TieBreaking*/) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
-				//printf("[DEBUG] Selected split attribute: %d\n", SplitAttr.Val1.Val1.Val);
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
 		}
@@ -988,12 +973,6 @@ namespace THoeffding {
 			const double EstG = SplitAttr.Val3;
 			const double Eps = Leaf->ComputeTreshold(SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
 			if (SplitAttr.Val1.Val1 != -1 && (EstG > Eps || (EstG <= Eps && Eps < TieBreaking))) {
-				//printf("[DEBUG] best = %d :: tie = %d\n", EstG > Eps, EstG <= Eps && Eps < TieBreaking);
-				//printf("[DEBUG] t = %f :: n = %d\n", Eps, Leaf->ExamplesN);
-				//printf("[DEBUG] Splitting at %d examples on attribute `%s' with confidence %f\n", Leaf->ExamplesN, AttrManV.GetVal(SplitAttr.Val1.Val1).Nm.CStr(), 1.0-SplitConfidence);
-				//if (Leaf->UsedAttrs.Len() > 0) {
-				//	printf("[DEBUG] Previous attribute = %d; so far used %d attributes on this path.\n", Leaf->UsedAttrs.Last().Val, Leaf->UsedAttrs.LastValN()+1);
-				//}
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
 		}
@@ -1058,11 +1037,7 @@ namespace THoeffding {
 		ProcessLeafReg(CrrNode, Example);
 	}
 	void THoeffdingTree::SelfEval(PNode Node, PExample Example) const {
-//#ifdef GLIB_OK
 		Node->SeenH.AddDat(*Example, true);
-//#else
-//		Node->seen_h[*Example] = true;
-//#endif
 		// Update classification error for alternate trees 
 		for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
 			PNode CrrNode = *It;
