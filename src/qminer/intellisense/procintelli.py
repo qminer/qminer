@@ -12,6 +12,9 @@ globalVars = set(['qm', 'la', 'process', 'http', 'console', 'fs'])
 
 funDict = {};
 
+def stripNum(str):
+    return ''.join(i for i in str if not i.isdigit())
+
 for line in fr:
     line = line.strip()
     splitLine = line.split('$SEPARATOR$');
@@ -183,7 +186,7 @@ fw3 = open('intelli_body2.js', 'w')
 pprint.pprint(objDict)
 #objDict[sig["obj"]].append(sig)
 for obj in objDict:
-    fw3.write('var ' + obj + ' = {\n')
+    fw3.write('var ' + obj + ' = new function () {\n')
     for fun in objDict[obj]:
         isFun = objDict[obj][fun][0]["isFun"]
         if not isFun:
@@ -192,14 +195,17 @@ for obj in objDict:
 # 'obj': '_vec',
 # 'return': '_len',
             sig = objDict[obj][fun][0]
-            #/// <field value = '_len'>lenz</field>
-            fw3.write("\t/// <field value = \"" + sig["return"] + "\">" + sig["comment"] + "</field>\n")  
-            #length: _len,
-            fw3.write("\t" + sig["noObjPath"] + ": " + sig["return"] +  ",\n")
+            #/// <field name = 'len' value = '_len'>lenz</field>
+            fw3.write("\t/// <field name = \"" + sig["noObjPath"] + "\" value = \"" + stripNum(sig["return"]) + "\">" + sig["comment"] + "</field>\n")  
+            #this.length = _len;
+            if stripNum(sig["return"]) == stripNum(obj):
+                fw3.write("\tthis." + sig["noObjPath"] + " = this;\n")
+            else:
+                fw3.write("\tthis." + sig["noObjPath"] + " = " + stripNum(sig["return"]) +  ";\n")
         else:
 #    minus: function (_vec2) {
             sig = objDict[obj][fun][0]
-            fw3.write("\t" + sig["noObjPath"] + ": function () {\n")
+            fw3.write("\tthis." + sig["noObjPath"] + " = function () {\n")
             for sig in objDict[obj][fun]:
                 fw3.write("\t/// <signature>\n")
                 fw3.write("\t/// <summary>" + sig["comment"] + "</summary>\n")
@@ -208,9 +214,9 @@ for obj in objDict:
                 for param in params:
                     if len(param.strip()) > 0:
                         fw3.write("\t/// <param name=\"" + param.strip() + "\" value=\"" + param.strip() + "\">param</param>\n")
-                fw3.write("\t/// <returns value =\"" + sig["return"] + "\"/>\n")
+                fw3.write("\t/// <returns value =\"" + stripNum(sig["return"]) + "\"/>\n")
                 fw3.write("\t/// </signature>\n\n")
-            fw3.write('\t},\n\n')
+            fw3.write('\t};\n\n')
             
 # 'isFun': True,
 # 'funArgs': '_vec2',
