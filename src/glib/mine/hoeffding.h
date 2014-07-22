@@ -199,7 +199,6 @@ namespace THoeffding {
 	public:
 		TBin(const double& _Value = 0.0, const int& _Id = 0, const int& _Count = 0)
 			: S(0.0), Mean(0.0), T(0.0), Value(_Value), Count(_Count), Id(_Id) { }
-		// { printf("INIT = %f\n", Value); getchar(); }
 		
 		// TBin(const TBin& Bin); // Default behavious is OK 
 		// TBin(TBin&& Bin); // Default behavious is OK 
@@ -445,11 +444,7 @@ namespace THoeffding {
 		TNodeType Type;
 		TVec<PExample> ExamplesV;
 		// TIntV IdxV; // Sacrificed example indices 
-//	#if GLIB_OK
 		THash<TExample, TBool> SeenH; // examples sacrificed for self-evaluation 
-//	#else
-//		std::map<TExample, bool> seen_h;
-//	#endif
 		THash<TTriple<TInt, TInt, TInt>, TInt> Counts; // sufficient statistics; <AttributeID, AttributeValue, Class> 
 		TIntV PartitionV; // number of examples with the same label 
 		TVec<PNode> ChildrenV;
@@ -568,11 +563,7 @@ namespace THoeffding {
 		void Print(PExample Example) const; // print example in human-readable form 
 		void SetAdaptive(const bool& DriftP) { ConceptDriftP = DriftP; }
 		inline static bool Sacrificed(PNode Node, PExample Example) {
-	//#if GLIB_OK
 			return Node->SeenH.IsKey(*Example);
-	//#else
-	//		return Node->seen_h.find(*Example) == Node->seen_h.end();
-	//#endif
 		}
 		// NOTE: Not implemented yet; avoids using hash tables for self-evaluation 
 		//void UpdateIndices(PNode Node) const {
