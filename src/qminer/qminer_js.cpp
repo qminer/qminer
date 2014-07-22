@@ -2223,6 +2223,7 @@ v8::Handle<v8::ObjectTemplate> TJsHoeffdingTree::GetTemplate() {
 	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 	JsRegisterFunction(TmpTemp, process);
 	JsRegisterFunction(TmpTemp, classify);
+	// JsRegisterFunction(TmpTemp, predict); // TODO: Implement 
 	JsRegisterFunction(TmpTemp, exportModel);
 	TmpTemp->SetInternalFieldCount(1);
 	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
