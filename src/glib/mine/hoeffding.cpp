@@ -806,7 +806,7 @@ namespace THoeffding {
 	// TODO: Let the user decide what classifier to use in the leaves 
 	TStr THoeffdingTree::Classify(PNode Node, PExample Example) const {
 		PNode CrrNode = Node;
-		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
+		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
 		return GetMajorityNm(CrrNode); // NaiveBayes(CrrNode, Example);
 	}
 	TStr THoeffdingTree::Classify(const TStrV& DiscreteV, const TFltV& NumericV) const {
@@ -941,7 +941,7 @@ namespace THoeffding {
 			if (CrrNode->Id <= Example->LeafId && !Sacrificed(CrrNode, Example)) {
 				DecCounts(CrrNode, Example);
 				if (!IsLeaf(CrrNode)) {
-					NodeS.Push(GetNextNodeCls(CrrNode, Example));
+					NodeS.Push(GetNextNode(CrrNode, Example));
 					for (auto It = CrrNode->AltTreesV.BegI(); It != CrrNode->AltTreesV.EndI(); ++It) {
 						if ((*It)->Id <= Example->LeafId) { NodeS.Push(*It); }
 					}
@@ -1029,7 +1029,7 @@ namespace THoeffding {
 						SelfEval(CrrNode, Example);
 					} else { // Everything goes as usual
 						IncCounts(CrrNode, Example); // Update sufficient statistics 
-						NodeS.Push(GetNextNodeCls(CrrNode, Example));
+						NodeS.Push(GetNextNode(CrrNode, Example));
 						for (auto It = CrrNode->AltTreesV.BegI(); It != CrrNode->AltTreesV.EndI(); ++It) {
 							NodeS.Push(*It);
 						}
@@ -1045,7 +1045,7 @@ namespace THoeffding {
 		} else { // No concept drift detection 
 			// if (!TestMode(CrrNode)) { // NOTE: This shoudl be false for VFDT because
 			// AltTressV.Empty() is always true: there are no alternate trees in VFDT.
-				while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
+				while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
 				ProcessLeafCls(CrrNode, Example);
 			// } else {
 			//	SelfEval(CrrNode, Example);
@@ -1054,7 +1054,7 @@ namespace THoeffding {
 	}
 	void THoeffdingTree::ProcessReg(PExample Example) {
 		PNode CrrNode = Root;
-		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
+		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
 		ProcessLeafReg(CrrNode, Example);
 	}
 	void THoeffdingTree::SelfEval(PNode Node, PExample Example) const {
@@ -1066,13 +1066,13 @@ namespace THoeffding {
 		// Update classification error for alternate trees 
 		for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
 			PNode CrrNode = *It;
-			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
+			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
 			(*It)->Correct += Example->Label == NaiveBayes(CrrNode, Example);
 			++(*It)->All;
 		}
 		// Update classfication error for the main subtree 
 		PNode CrrNode = Node;
-		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
+		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
 		Node->Correct += Example->Label == NaiveBayes(CrrNode, Example);
 		++Node->All;
 	}
@@ -1160,19 +1160,12 @@ namespace THoeffding {
 			return TExample::New(AttributesV, LineV.Last().GetFlt());
 		}
 	}
-	PNode THoeffdingTree::GetNextNodeCls(PNode Node, PExample Example) const {
+	// NOTE: This is not limited to classification. 
+	PNode THoeffdingTree::GetNextNode(PNode Node, PExample Example) const {
 		if (!IsLeaf(Node)) {
-			//printf("CndAttrIdx = %d\n", Node->CndAttrIdx);
 			const TAttrType AttrType = AttrManV.GetVal(Node->CndAttrIdx).Type;
 			if (AttrType == atDISCRETE) {
-				//printf("# = %d\n", Node->ChildrenV.Len());
-				// XXX: THIS IS THE BUG! 
-				// TODO: Check whether all JS/C++ conversion are OK. 
-				//printf("first ATTR VAL = %d\n", Example->AttributesV.GetVal(0));
-				//printf("ATTR VAL = %d\n", Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
 				PNode RetNode = Node->ChildrenV.GetVal(Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
-				//printf("OK\n");
-				//printf("return node ID: %d\n", RetNode->Id);
 				return Node->ChildrenV.GetVal(Example->AttributesV.GetVal(Node->CndAttrIdx).Value);
 			} else { // Numeric attribute 
 				const double Num = Example->AttributesV.GetVal(Node->CndAttrIdx).Num;

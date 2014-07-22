@@ -546,8 +546,7 @@ namespace THoeffding {
 		void ProcessCls(PExample Example); // classification 
 		void ProcessReg(PExample Example); // regression 
 		PExample Preprocess(const TStr& Line, const TCh& Delimiter = ',') const;
-		PNode GetNextNodeCls(PNode Node, PExample Example) const; // classification 
-		// PNode GetNextNodeReg(PNode Node, PExample Example) const; // regression 
+		PNode GetNextNode(PNode Node, PExample Example) const; 
 		void Clr(PNode Node, PNode SubRoot = nullptr);
 		void Export(const TStr& FileNm, const TExportType& ExportType = etXML) const;
 		TLabel NaiveBayes(PNode Node, PExample Example) const; // classification 
