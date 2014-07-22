@@ -979,8 +979,8 @@ namespace THoeffding {
 			// Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have R=1; see also PhD thesis [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
 			const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
 			const double EstG = SplitAttr.Val3;
-			printf("EstG = %f\n", EstG);
-			if ((EstG < 1.0-Eps /*|| Eps < TieBreaking*/) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
+			// printf("EstG = %f\n", EstG); // TODO: This is cruical; think about it 
+			if ((EstG < 1.0-Eps || Eps < TieBreaking) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
 		}
@@ -1104,6 +1104,24 @@ namespace THoeffding {
 		++Node->TestModeN;
 		return false;
 	}
+	void THoeffdingTree::Process(const TStrV& DiscreteV, const TFltV& NumericV, const double& Val) {
+		int DisIdx = 0, FltIdx = 0;
+		TAttributeV AttributesV;
+		for (int AttrN = 0; AttrN < AttrManV.Len()-1; ++AttrN) {
+			switch (AttrManV.GetVal(AttrN).Type) {
+			case atDISCRETE:
+				// printf(DiscreteV.GetVal(DisIdx).CStr());
+				AttributesV.Add(TAttribute(AttrN, AttrsHashV.GetVal(AttrN).GetDat(DiscreteV.GetVal(DisIdx++))));
+				break;
+			case atCONTINUOUS:
+				AttributesV.Add(TAttribute(AttrN, NumericV.GetVal(FltIdx++)));
+				break;
+			default:
+				EFailR("Unknown attribute type");
+			}
+		}
+		ProcessReg(TExample::New(AttributesV, Val));
+	}
 	void THoeffdingTree::Process(const TStrV& DiscreteV, const TFltV& NumericV, const TStr& Label) {
 		int DisIdx = 0, FltIdx = 0;
 		TAttributeV AttributesV;
@@ -1120,7 +1138,7 @@ namespace THoeffding {
 				EFailR("Unknown attribute type");
 			}
 		}
-		Process(TExample::New(AttributesV, AttrsHashV.Last().GetDat(Label)));
+		ProcessCls(TExample::New(AttributesV, AttrsHashV.Last().GetDat(Label)));
 	}
 	PExample THoeffdingTree::Preprocess(const TStr& Line, const TCh& Delimiter) const {
 		TStrV LineV; TVec<TAttribute> AttributesV;
@@ -1244,9 +1262,9 @@ namespace THoeffding {
 			// printf("-- Processing attribute '%s' --\n", AttrNmV.GetVal(AttrN).CStr());
 			PJsonVal AttrVal = JsonConfig->GetObjKey(AttrNmV.GetVal(AttrN));
 			EAssertR(AttrVal->IsObjKey("type"), "Expected key 'type' for each attribute.");
-			EAssertR(AttrVal->IsObjKey("values"), "Expected key 'values' for each attribute.");
 			// Retrieve possible values 
 			if (AttrVal->GetObjStr("type") == "discrete") {
+				EAssertR(AttrVal->IsObjKey("values"), "Expected key 'values' for each attribute.");
 				PJsonVal ValuesArr = AttrVal->GetObjKey("values");
 				EAssertR(ValuesArr->IsArr(), "Expected array of values after 'values' for discrete attribute.");
 				TStrV ValuesV;
