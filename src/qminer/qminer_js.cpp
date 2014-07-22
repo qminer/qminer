@@ -2092,12 +2092,26 @@ v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-HoeffdingTree
+TJsHoeffdingTree::TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
+	: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) {
+		// set prediction type (classification or regression), so we know
+		// what functions to use 
+		PJsonVal DataFormatArr = StreamConfig->GetObjKey("dataFormat");
+		TStrV DataFmtV;
+		DataFormatArr->GetArrStrV(DataFmtV);
+		TStr TargetNm = DataFmtV.Last();
+		PJsonVal JsonTarget = StreamConfig->GetObjKey(TargetNm);
+		TStr TargetType = JsonTarget->GetObjStr("type");
+		
+		if (TargetType == "numeric") { JsTaskType = THoeffding::ttREGRESSION; }
+		else { JsTaskType = THoeffding::ttCLASSIFICATION; }
+}
 v8::Handle<v8::ObjectTemplate> TJsHoeffdingTree::GetTemplate() {
 	v8::HandleScope HandleScope;
 	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 	JsRegisterFunction(TmpTemp, process);
 	JsRegisterFunction(TmpTemp, classify);
-	// JsRegisterFunction(TmpTemp, predict); // TODO: Implement 
+	JsRegisterFunction(TmpTemp, predict);
 	JsRegisterFunction(TmpTemp, exportModel);
 	TmpTemp->SetInternalFieldCount(1);
 	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2112,15 +2126,21 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 		// printf("Line '%s'\n", Line.CStr());
 		JsHoeffdingTree->HoeffdingTree->Process(Line);
 		// printf("End\n");
-	} else if (Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
+	} else if (Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() &&
+		(Args[2]->IsString() || Args[2]->IsNumber())) {
 		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
 		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
-		TStr Label = TJsHoeffdingTreeUtil::GetArgStr(Args, 2);
 		TStrV DisV; TFltV NumV;
 		if (DiscreteVal->IsArr() && NumericVal->IsArr()) {
 			DiscreteVal->GetArrStrV(DisV);
 			NumericVal->GetArrNumV(NumV);
-			JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
+			if (JsHoeffdingTree->JsTaskType == THoeffding::ttCLASSIFICATION) {
+				TStr Label = TJsHoeffdingTreeUtil::GetArgStr(Args, 2);
+				JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
+			} else {
+				const double Val = TJsHoeffdingTreeUtil::GetArgFlt(Args, 2);
+				JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Val);
+			}
 		}
 	}
 	return HandleScope.Close(v8::Undefined());
@@ -2152,7 +2172,6 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsHoeffdingTree::predict(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	EFailR("Work in progress."); 
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if (Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);

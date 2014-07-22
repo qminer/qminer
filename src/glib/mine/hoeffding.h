@@ -527,6 +527,7 @@ namespace THoeffding {
 		void ProcessLeafCls(PNode Leaf, PExample Example); // classification 
 		void SelfEval(PNode Node, PExample Example) const;
 		bool TestMode(PNode Node);
+		void Process(const TStrV& DiscreteV, const TFltV& NumericV, const double& Val); // regression 
 		void Process(const TStrV& DiscreteV, const TFltV& NumericV, const TStr& Label); // classification 
 		void Process(const TStr& Line, const TCh& Delimiter = ',') { // both (classification and regression) 
 			Process(Preprocess(Line, Delimiter));

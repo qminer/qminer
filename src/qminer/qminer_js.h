@@ -2277,10 +2277,9 @@ private:
 	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	
-	// TTaskType TaskType; // XXX: 
+	THoeffding::TTaskType JsTaskType;
 	
-	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
-		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
+	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig) { 
 		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
