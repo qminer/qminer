@@ -2276,7 +2276,9 @@ public:
 private:
 	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
 	static v8::Persistent<v8::ObjectTemplate> Template;
-
+	
+	// TTaskType TaskType; // XXX: 
+	
 	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
 		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
 public:
@@ -2295,6 +2297,9 @@ public:
 	//#- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label.
 	//#- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label.
 	JsDeclareFunction(classify);
+	//#-  `htModel.predict(strArr, numArr` -- predicts numerical value that belongs to the example; `strArr` is an array of discrete values (strings); `numArr` is an array of numeric attribute values (numbers); returns a number.
+	//#   
+	JsDeclareFunction(predict);
 	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);

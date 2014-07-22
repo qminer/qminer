@@ -401,16 +401,17 @@ namespace THoeffding {
 				Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_), Correct(0), All(0) {
 			PartitionV.Reserve(LabelsN, LabelsN); Init(AttrManV);
 		}
-		TNode(const TNode& Node); // TODO: Default seems OK; no need to define it explicitly 
+		TNode(const TNode& Node);
 		// TNode(TNode&& Node);
 
 		~TNode() { Clr(); }
 
-		TNode& operator=(const TNode& Node); // TODO: Default seems OK; no need to define it explicitly 
-		// TNode& operator=(TNode&& Node);
-
+		TNode& operator=(const TNode& Node);
+		// TNode& operator=(const TNode&& Node);
+		
 		bool operator==(const TNode& Node) const;
 		bool operator!=(const TNode& Node) const { return !(*this == Node); }
+		
 		double ComputeEntropy() const;
 		double ComputeGini() const;
 		double InfoGain(const int& AttrIndex, const TVec<TAttrMan>& AttrManV) const; // classification 
@@ -522,8 +523,8 @@ namespace THoeffding {
 				return Classify(Preprocess(Line, Delimiter));
 			}
 		}
-		void IncCounts(PNode Node, PExample Example) const;
-		void DecCounts(PNode Node, PExample Example) const;
+		void IncCounts(PNode Node, PExample Example) const; // classification 
+		void DecCounts(PNode Node, PExample Example) const; // classification 
 		bool IsAltSplitIdx(PNode Node, const int& AttrIdx) const;
 		void CheckSplitValidityCls();
 		void ForgetCls(PExample Example) const; // classification 
@@ -531,8 +532,8 @@ namespace THoeffding {
 		void ProcessLeafCls(PNode Leaf, PExample Example); // classification 
 		void SelfEval(PNode Node, PExample Example) const;
 		bool TestMode(PNode Node);
-		void Process(const TStrV& DiscreteV, const TFltV& NumericV, const TStr& Label);
-		void Process(const TStr& Line, const TCh& Delimiter = ',') {
+		void Process(const TStrV& DiscreteV, const TFltV& NumericV, const TStr& Label); // classification 
+		void Process(const TStr& Line, const TCh& Delimiter = ',') { // both (classification and regression) 
 			Process(Preprocess(Line, Delimiter));
 		}
 		void Process(PExample Example) {
@@ -542,14 +543,15 @@ namespace THoeffding {
 				ProcessReg(Example);
 			}
 		}
-		void ProcessCls(PExample Example);
-		void ProcessReg(PExample Example);
+		void ProcessCls(PExample Example); // classification 
+		void ProcessReg(PExample Example); // regression 
 		PExample Preprocess(const TStr& Line, const TCh& Delimiter = ',') const;
-		PNode GetNextNodeCls(PNode Node, PExample Example) const;
+		PNode GetNextNodeCls(PNode Node, PExample Example) const; // classification 
+		// PNode GetNextNodeReg(PNode Node, PExample Example) const; // regression 
 		void Clr(PNode Node, PNode SubRoot = nullptr);
 		void Export(const TStr& FileNm, const TExportType& ExportType = etXML) const;
-		TLabel NaiveBayes(PNode Node, PExample Example) const;
-		inline TLabel Majority(PNode Node) const {
+		TLabel NaiveBayes(PNode Node, PExample Example) const; // classification 
+		inline TLabel Majority(PNode Node) const { // classification 
 			return Node->PartitionV.GetMxValN();
 		}
 		inline TStr GetNodeNm(PNode Node) const {
@@ -559,7 +561,7 @@ namespace THoeffding {
 			Assert(ChildN >= 0);
 			return AttrManV.GetVal(Node->CndAttrIdx).InvAttrH.GetDat(ChildN);
 		}
-		inline TStr GetMajorityNm(PNode Node) const {
+		inline TStr GetMajorityNm(PNode Node) const { // classification 
 			return AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(Node->PartitionV.GetMxValN());
 		}
 		inline bool IsLeaf(PNode Node) const { return Node->CndAttrIdx == -1; }

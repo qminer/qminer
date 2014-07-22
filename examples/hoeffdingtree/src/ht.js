@@ -1,4 +1,4 @@
-// Import analytics module
+// import analytics module
 var analytics = require('analytics.js');
 var assert = require('assert.js');
 
@@ -18,8 +18,7 @@ var titanicConfig = {
 		"values": ["child", "adult"]
 	}, 
 	"survived": {
-		"type": "discrete",
-		"values": ["yes", "no"]
+		"type": "continuous"
 	}
 };
 

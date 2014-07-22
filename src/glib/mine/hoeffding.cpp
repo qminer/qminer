@@ -534,7 +534,7 @@ namespace THoeffding {
         Correct(Node.Correct), All(Node.All) { }
 	// Assignment operator 
 	TNode& TNode::operator=(const TNode& Node) {
-		if (*this != Node) {
+		if (this != &Node) {
 			//Clr(); // Delete old elements 
 			All = Node.All; AltTreesV = Node.AltTreesV;
 			Avg = Node.Avg; ChildrenV = Node.ChildrenV;
@@ -563,13 +563,13 @@ namespace THoeffding {
 	}
 	double TNode::ComputeGini() const {
 		double g = 1.0, p = 0.0;
-		for(auto It = PartitionV.BegI(); It != PartitionV.EndI(); It++) {
+		for (auto It = PartitionV.BegI(); It != PartitionV.EndI(); It++) {
 			p = 1.0*(*It)/ExamplesN;
 			g -= p*p;
 		}
 		return g;
 	}
-	// Compute inforation gain from sufficient statistics 
+	// Compute information gain from sufficient statistics 
 	double TNode::InfoGain(const int& AttrIndex, const TAttrManV& AttrManV) const {
 		double h = 0, hj = 0, p = 0, pj = 0;
 		int SubExamplesN = 0; // Number of examples x with A(x)=a_j for j=1,2,...,ValsN
@@ -700,6 +700,7 @@ namespace THoeffding {
 				Idx2 = AttrN; Mx2 = CrrSdr;
 			}
 		}
+		// *** TODO ***: What if Mx1==0? Is this possible? 
 		const double Ratio = Mx2/Mx1;
 		return TBstAttr(TPair<TInt, TFlt>(Idx1, Mx1), TPair<TInt, TFlt>(Idx2, Mx2), Ratio);
 	}
@@ -754,14 +755,14 @@ namespace THoeffding {
 		for (int ValN = 0; ValN < ValsN; ++ValN) {
 			ChildrenV.Add(TNode::New(LabelsN, UsedAttrs, AttrManV, IdGen->GetNextLeafId())); // Leaf node 
 		}
-		if(Type != ntROOT) { Type = ntINTERNAL; }
+		if (Type != ntROOT) { Type = ntINTERNAL; }
 	}
 	void TNode::Clr() { // Forget training examples 
 		ExamplesV.Clr(); PartitionV.Clr(); Counts.Clr();
 		HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
-#ifdef GLIB_OK
+//#ifdef GLIB_OK
 		SeenH.Clr(true);
-#endif
+//#endif
 	}
 	// See page 232 of Knuth's TAOCP, Vol. 2: Seminumeric Algorithms [Knuth, 1997] for details
 	void TNode::UpdateStats(PExample Example) {
@@ -802,10 +803,11 @@ namespace THoeffding {
 		// Ikonomovska [Ikonomovska, 2012] trains perceptron in the leaves 
 		return CrrNode->Avg;
 	}
+	// TODO: Let the user decide what classifier to use in the leaves 
 	TStr THoeffdingTree::Classify(PNode Node, PExample Example) const {
 		PNode CrrNode = Node;
 		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
-		return GetMajorityNm(CrrNode);
+		return GetMajorityNm(CrrNode); // NaiveBayes(CrrNode, Example);
 	}
 	TStr THoeffdingTree::Classify(const TStrV& DiscreteV, const TFltV& NumericV) const {
 		int DisIdx = 0, FltIdx = 0;
@@ -828,10 +830,7 @@ namespace THoeffding {
 		return Classify(TExample::New(AttributesV, Label));
 	}
 	TStr THoeffdingTree::Classify(PExample Example) const { // Classification 
-		PNode CrrNode = Root;
-		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNodeCls(CrrNode, Example); }
-		return GetMajorityNm(CrrNode);
-		// return NaiveBayes(CrrNode, Example);
+		return Classify(Root, Example);
 	}
 	void THoeffdingTree::IncCounts(PNode Node, PExample Example) const {
 		Node->PartitionV.GetVal(Example->Label)++;
