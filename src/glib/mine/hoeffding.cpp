@@ -366,7 +366,7 @@ namespace THoeffding {
 						break;
 					}
 				}
-				if(BinN == BinsV.Len()) { Idx = BinN-1; }
+				if (BinN == BinsV.Len()) { Idx = BinN-1; }
 				BinsV.GetVal(Idx).Inc(RegValue);
 			}
 		}
@@ -512,7 +512,7 @@ namespace THoeffding {
 	///////////////////////////////
 	// Example
 	TExample& TExample::operator=(const TExample& Example) {
-		if(*this != Example) {
+		if (this != &Example) {
 			AttributesV = Example.AttributesV;	BinId = Example.BinId;
 			Label = Example.Label; LeafId = Example.LeafId;	Value = Example.Value;
 		}
@@ -778,6 +778,26 @@ namespace THoeffding {
 
 	/////////////////////////////////
 	// Hoeffding-Tree
+	double THoeffdingTree::Predict(const TStrV& DiscreteV, const TFltV& NumericV) const {
+		int DisIdx = 0, FltIdx = 0;
+		TAttributeV AttributesV;
+		const int AttrsN = AttrManV.Len();
+		for (int AttrN = 0; AttrN < AttrsN-1; ++AttrN) {
+			switch (AttrManV.GetVal(AttrN).Type) {
+			case atDISCRETE:
+				// printf(DiscreteV.GetVal(DisIdx).CStr());
+				AttributesV.Add(TAttribute(AttrN, AttrsHashV.GetVal(AttrN).GetDat(DiscreteV.GetVal(DisIdx++))));
+				break;
+			case atCONTINUOUS:
+				AttributesV.Add(TAttribute(AttrN, NumericV.GetVal(FltIdx++)));
+				break;
+			default:
+				EFailR("Unsupported attribute type");
+			}
+		}
+		EAssertR(AttrManV.Last().Type == atCONTINUOUS, "This function works only for regression.");
+		return Predict(TExample::New(AttributesV, 0));
+	}
 	double THoeffdingTree::Predict(PExample Example) const { // Regression
 		PNode CrrNode = Root;
 		while (CrrNode->CndAttrIdx != -1) {
@@ -816,6 +836,7 @@ namespace THoeffding {
 				EFailR("Unsupported attribute type");
 			}
 		}
+		EAssertR(AttrManV.Last().Type == atDISCRETE, "This function works only for classification.");
 		TLabel Label = AttrsHashV.GetVal(AttrsN-1)[0]; // .operator[](0);
 		return Classify(TExample::New(AttributesV, Label));
 	}
@@ -858,7 +879,7 @@ namespace THoeffding {
 				} else {
 					Print(Example);
 					printf("Example ID: %d; Node ID: %d; Node examples: %d\n", Example->LeafId.Val, Node->Id, Node->ExamplesN);
-					if(!IsLeaf(Node)) { printf("Node test attribute: %s\n", AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr()); }
+					if (!IsLeaf(Node)) { printf("Node test attribute: %s\n", AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr()); }
 					printf("Problematic attribute: %s = %s\n", AttrManV.GetVal(It->Id).Nm.CStr(), AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
 					EFailR("Corresponding id-value-label triple is missing in counts hashtable."); // NOTE: For dbugging purposes; this fail probably indicates serious problems 
 				}
@@ -1113,6 +1134,8 @@ namespace THoeffding {
 			// (3) Map raw attribute value to TInt with hash table 
 			switch (AttrManV.GetVal(CountN).Type) {
 			case atDISCRETE:
+				// TODO: User should be notified about this. The least we can do is
+				// give him a chance to specify in the config whether he wants notifications.
 				if (LineV.GetVal(CountN)  == "?") {
 					// EFailR("Missing values are not allowed.");
 					// printf("[WARNING] Missing value; assuming default.\n");
@@ -1205,7 +1228,6 @@ namespace THoeffding {
 		
 		InitAttrMan();
 	}
-	// TODO: Check whether this is valid 
 	void THoeffdingTree::Init(PJsonVal JsonConfig) {
 		EAssertR(JsonConfig->IsObjKey("dataFormat"), "Expected key 'dataFormat'.");
 		PJsonVal DataFormatArr = JsonConfig->GetObjKey("dataFormat");
@@ -1238,18 +1260,14 @@ namespace THoeffding {
 				}
 				// printf("\n");
 			} else if (AttrVal->GetObjStr("type") == "numeric") {
-				// printf("\tNumeric attribute");
+				// Numeric attribute 
 				AttrsHashV.GetVal(AttrN).AddDat("", 0);
 				InvAttrsHashV.GetVal(AttrN).AddDat(0, "");
 			} else {
 				FailR(TStr::Fmt("Attribute '%s': Each attribute 'type' is either 'discete' or 'numeric'.", AttrNmV.GetVal(AttrN).CStr()).CStr());
 			}
 		}
-
-		// printf("-----------------------------\n");
-		// printf(" -- Done processing config --\n");
-		// printf("-----------------------------\n");
-
+		// Done processing config 
 		InitAttrMan();
 	}
 	void THoeffdingTree::SetParams(PJsonVal JsonParams) {

@@ -502,7 +502,7 @@ namespace THoeffding {
 		// THoeffdingTree& operator=(const THoeffdingTree& HoeffdingTree) =delete;
 		// THoeffdingTree& operator=(THoeffdingTree&& HoeffdingTree) =delete;
 		
-		// double Predcit(TStrV DiscreteV, TFltV NumericV) const; // TODO 
+		double Predict(const TStrV& DiscreteV, const TFltV& NumericV) const;
 		double Predict(PExample Example) const;
 		inline double Predict(const TStr& Line, const TCh& Delimiter = ',') const {
 			return Predict(Preprocess(Line, Delimiter));
