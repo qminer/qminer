@@ -18,7 +18,8 @@ var titanicConfig = {
 		"values": ["child", "adult"]
 	}, 
 	"survived": {
-		"type": "continuous"
+		"type": "discrete",
+		"values": ["yes", "no"]
 	}
 };
 
@@ -52,6 +53,12 @@ while (!streamData.eof) {
 // use the model 
 var label = ht.classify(["first", "adult", "female"], []);
 console.say("Were high society women likely to survive? " + label);
+var label = ht.classify(["first", "adult", "male"], []);
+console.say("Were high society men likely to survive? " + label);
+var label = ht.classify(["third", "adult", "male"], []);
+console.say("Were 3rd class men likely to survive? " + label);
+var label = ht.classify(["second", "adult", "female"], []);
+console.say("Were 3rd class women likely to survive? " + label);
 
 // export the model 
 ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
