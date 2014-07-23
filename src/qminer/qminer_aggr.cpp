@@ -1298,9 +1298,9 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 
 	TimeFieldId = OutStore->GetFieldId(OutTmFieldNm);
 
-	QmAssertR(InFldNmV.Len() == NInFlds, "Invalid number of in fields: " + InFldNmV.Len());
-	QmAssertR(OutFldNmV.Len() == NInFlds, "Invalid number of out fields: " + OutFldNmV.Len());
-	QmAssertR(InterpV.Len() == NInFlds, "Invalid number of interpolators: " + InterpV.Len());
+	QmAssertR(InFldNmV.Len() == NInFlds, TStr::Fmt("Invalid number of in fields: %d", InFldNmV.Len()));
+	QmAssertR(OutFldNmV.Len() == NInFlds, TStr::Fmt("Invalid number of out fields: %d", OutFldNmV.Len()));
+	QmAssertR(InterpV.Len() == NInFlds, TStr::Fmt("Invalid number of interpolators: %d", InterpV.Len()));
 
 	// initialize in fields
 	for (int i = 0; i < NInFlds; i++) {
