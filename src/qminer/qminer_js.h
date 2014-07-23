@@ -1231,7 +1231,7 @@ public:
 	JsDeclareFunction(filterByField);
 	//#- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
 	JsDeclareFunction(filter);
-	//#- `rs_array = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
    	JsDeclareFunction(split);
     //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
 	JsDeclareFunction(deleteRecs);
