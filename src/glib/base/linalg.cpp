@@ -373,6 +373,15 @@ void TLinAlg::AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFl
     AddVec(k, X[ColId], y, z);    
 }
 
+void TLinAlg::AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y, TFltV& z) {
+    Assert(X.GetRows() == y.Len());
+    Assert(y.Len() == z.Len());
+    const int len = z.Len();
+    for (int i = 0; i < len; i++) {
+        z[i] = y[i] + k * X(i, ColId);
+    }
+}
+
 void TLinAlg::AddVec(const TFltV& x, const TFltV& y, TFltV& z) {
    LinComb(1.0, x, 1.0, y, z);
 }
@@ -405,7 +414,7 @@ void TLinAlg::AddVec(const double& k, const TIntFltKdV& x, TFltV& y) {
     }
 }
 
-void TLinAlg::AddVec(double k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY){
+void TLinAlg::AddVec(const double& k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY){
     Assert(X.GetRows() == Y.GetRows());
     const int len = Y.GetRows();
     for (int i = 0; i < len; i++) {
@@ -422,7 +431,7 @@ void TLinAlg::AddVec(const double& k, const TFltV& x, TFltVV& Y, const int& ColI
 	}
 }
 
-void TLinAlg::AddVec(double k, const TFltVV& X, int ColId, TFltV& Result){
+void TLinAlg::AddVec(const double& k, const TFltVV& X, int ColId, TFltV& Result){
     Assert(X.GetRows() == Result.Len());
     const int len = Result.Len();
     for (int i = 0; i < len; i++) {
