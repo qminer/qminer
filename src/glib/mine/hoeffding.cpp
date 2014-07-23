@@ -56,7 +56,7 @@ namespace THoeffding {
 		} else {
 			if (!SIn->Eof()) {
 				printf("[Line %d] Illegal character: '%c'.\n", LineN, CurrCh);
-				Fail;
+				EFailR("Illegal character.");
 			}
 			LastTok = TToken("", totEND, LineN); // end-of-file
 		}
@@ -93,19 +93,19 @@ namespace THoeffding {
 		Tok = Lexer.GetNextTok();
 		if (Tok.Type != totDFORMAT) {
 			printf("[Line %d] Expected 'dataFormat' keyword instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-			Fail;
+			EFailR("Expected 'dataFormat'.");
 		}
 		// =
 		Tok = Lexer.GetNextTok();
 		if (Tok.Type != totCOLON) {
 			printf("[Line %d] Expected ':' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-			Fail;
+			EFailR("Expected ':'.");
 		}
 		// (
 		Tok = Lexer.GetNextTok();
 		if (Tok.Type != totLPARENTHESIS) {
 			printf("[Line %d] Expected '(' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-			Fail;
+			EFailR("Expected '('.");
 		}
 		// parameter list 
 		InitParam(Lexer);
@@ -113,7 +113,7 @@ namespace THoeffding {
 		Tok = Lexer.GetNextTok();
 		if (Tok.Type != totRPARENTHESIS) {
 			printf("[Line %d] Expected ')' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-			Fail;
+			EFailR("Expected ')'.");
 		}
 	}
 
@@ -125,7 +125,7 @@ namespace THoeffding {
 			Tok = Lexer.GetNextTok();
 			if (Tok.Type != totID) {
 				printf("[Line %d] Expected identifier instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected identifier.");
 			}
 			printf("Declaring '%s'...\n", Tok.Val.CStr());
 			DataFormatH.AddDat(Tok.Val, IdxN);
@@ -135,7 +135,7 @@ namespace THoeffding {
 			if (Tok.Type == totRPARENTHESIS) { break; } // end of parameter list 
 			if (Tok.Type != totCOMMA) {
 				printf("[Line %d] Expected ',' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected ','.");
 			}
 			++IdxN;
 		}
@@ -155,19 +155,19 @@ namespace THoeffding {
 				
 			if (Tok.Type != totID) {
 				printf("[Line %d] Expected identifier instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected identifier.");
 			}
 			AttrNm = Tok.Val;
 			// make sure attribute was ``declared'' in dataFormat statement 
 			if (!DataFormatH.IsKey(AttrNm)) {
 				printf("Attribute '%s' is undeclared.\n", AttrNm.CStr());
-				Fail;
+				EFailR("Undeclared attribute (i.e., attribute not mentioned in dataFormat).");
 			}
 			// :
 			Tok = Lexer.GetNextTok();
 			if (Tok.Type != totCOLON) {
 				printf("[Line %d] Expected ':' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected ':'.");
 			}
 			// discrete/numeric
 			Tok = Lexer.GetNextTok();
@@ -177,14 +177,14 @@ namespace THoeffding {
 				Tok = Lexer.GetNextTok();
 				if (Tok.Type != totLPARENTHESIS) {
 					printf("[Line %d] Expected '(' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-					Fail;
+					EFailR("Expected '('.");
 				}
 				AttrParam(Lexer, AttrNm);
 				// )
 				Tok = Lexer.GetNextTok();
 				if (Tok.Type != totRPARENTHESIS) {
 					printf("[Line %d] Expected ')' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-					Fail;
+					EFailR("Expected ')'.");
 				}
 			} else if (Tok.Type == totNUMERIC) {
 				printf("Numeric atribute\n");
@@ -193,7 +193,7 @@ namespace THoeffding {
 				InvAttrsHV.GetVal(CountN).AddDat(0, "");
 			} else {
 				printf("[Line %d] Expected attribute (discrete or numeric) type instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected attribute type ('discrete' or 'numeric').");
 			}
 		}
 	}
@@ -208,7 +208,7 @@ namespace THoeffding {
 			Tok = Lexer.GetNextTok();
 			if (Tok.Type != totID) {
 				printf("[Line %d] Expected identifier instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected identifier");
 			}
 			ValNm = Tok.Val;
 			// set up the mappings 
@@ -219,7 +219,7 @@ namespace THoeffding {
 			if (Tok.Type == totRPARENTHESIS) { break; } // end of parameter list 
 			if (Tok.Type != totCOMMA) {
 				printf("[Line %d] Expected ',' instead of '%s'.\n", Tok.LineN, Tok.Val.CStr());
-				Fail;
+				EFailR("Expected ','.");
 			}
 			++IdxN;
 		}
@@ -319,7 +319,7 @@ namespace THoeffding {
 		if ((Idx = BinsV.SearchBin(Val)) == -1 && BinsV.Len() < BinsN) {
 			// printf("Searching for value: %f\n", Val);
 			Print();
-			FailR("By construction, the value cannot be missing."); // NOTE: For deubgging purposes 
+			EFailR("By construction, the value cannot be missing."); // NOTE: For deubgging purposes 
 		} else { // Find the closest bin 
 			if (Idx != -1 && BinsV.GetVal(Idx).Id <= Example->BinId) { // Bin initialized with this very value 
 				BinsV.GetVal(Idx).Dec(Label);
@@ -1282,7 +1282,7 @@ namespace THoeffding {
 				AttrsHashV.GetVal(AttrN).AddDat("", 0);
 				InvAttrsHashV.GetVal(AttrN).AddDat(0, "");
 			} else {
-				FailR(TStr::Fmt("Attribute '%s': Each attribute 'type' is either 'discete' or 'numeric'.", AttrNmV.GetVal(AttrN).CStr()).CStr());
+				EFailR(TStr::Fmt("Attribute '%s': Each attribute 'type' is either 'discete' or 'numeric'.", AttrNmV.GetVal(AttrN).CStr()).CStr());
 			}
 		}
 		// Done processing config 
