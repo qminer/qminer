@@ -212,6 +212,7 @@ public:
 	TJoinSeq(const TWPt<TBase>& Base, const uint& _StartStoreId, const PJsonVal& JoinSeqVal);
 	
 	TJoinSeq(TSIn& SIn): StartStoreId(SIn), JoinIdV(SIn) { }
+	void Load(TSIn& SIn) { StartStoreId.Load(SIn); JoinIdV.Load(SIn); }
 	void Save(TSOut& SOut) const { StartStoreId.Save(SOut); JoinIdV.Save(SOut); }
 
 	/// Is the join sequence valid
@@ -232,6 +233,10 @@ public:
 
 	/// Readable string representation of join sequence
 	TStr GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr = ".") const;
+
+	int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetPrimHashCd(), JoinIdV.GetPrimHashCd()); }
+	int GetSecHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetSecHashCd(), JoinIdV.GetSecHashCd()); }
+	
 };
 typedef TVec<TJoinSeq> TJoinSeqV;
 

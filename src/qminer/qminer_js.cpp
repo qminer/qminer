@@ -1159,23 +1159,26 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	if (TQm::TStreamAggrs::TCompositional::New(JsBase->Base, TypeNm, ParamVal)) {
 		return HandleScope.Close(v8::Null());
 	}
-
 	// create new aggregate
 	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 
-	// add the stream aggregate to all the stores specified in the parameters
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
+	TStrV InterpNmV;
 	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
-	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
-
-	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
-		PJsonVal Entry = MrgMapV->GetArrVal(i);
-
-		const TStr InStore = Entry->GetObjStr("inStore");
-		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
-
-		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
+	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
+		PJsonVal SourceVal = FieldVal->GetObjKey("source");
+		TStr StoreNm = "";
+		if (SourceVal->IsStr()) {
+			// we have just store name
+		    StoreNm = SourceVal->GetStr();			
+		} else if (SourceVal->IsObj()) {
+			// get store
+		    StoreNm = SourceVal->GetObjStr("store");
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+		}  
+		JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
 	}
-
 	return HandleScope.Close(v8::Null());
 }
 
