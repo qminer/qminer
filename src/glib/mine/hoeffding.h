@@ -390,11 +390,11 @@ namespace THoeffding {
 		
 		double ComputeEntropy() const;
 		double ComputeGini() const;
-		double InfoGain(const int& AttrIndex, const TVec<TAttrMan>& AttrManV) const; // classification 
-		double GiniGain(const int& AttrIndex, const TVec<TAttrMan>& AttrManV) const; // classification 
-		double StdGain(const int& AttrIndex, const TVec<TAttrMan>& AttrManV) const; // regression 
+		double InfoGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const; // classification 
+		double GiniGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const; // classification 
+		double StdGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const; // regression 
 		double ComputeTreshold(const double& Delta, const int& LabelsN) const;
-		void Split(const int& AttrIndex, const TAttrManV& AttrManV, PIdGen IdGen); // split the leaf on the AttrIndex attribute 
+		void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen); // split the leaf on the AttrIdx attribute 
 		void Clr(); // forget accumulated examples 
 		TBstAttr BestAttr(const TAttrManV& AttrManV, const TTaskType& TaskType = ttCLASSIFICATION);
 		TBstAttr BestRegAttr(const TAttrManV& AttrManV); // regression 
