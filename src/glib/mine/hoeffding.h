@@ -271,7 +271,6 @@ namespace THoeffding {
 	public:
 		TAttrMan(const THash<TStr, TInt>& AttrH_ = THash<TStr, TInt>(), const THash<TInt, TStr>& InvAttrH_ = THash<TInt, TStr>(),
 			const int& Id_ = -1, const TStr& Nm_ = "Anon", const TAttrType& Type_ = atDISCRETE);
-
 	public:
 		THash<TStr, TInt> AttrH; // maps attribute value to id 
 		THash<TInt, TStr> InvAttrH; // maps id to attribute value, inverting AttrH
@@ -351,7 +350,7 @@ namespace THoeffding {
 		TInt LeafId;
 		TInt BinId;
 		TAttributeV AttributesV;
-		TLabel Label; // Classification 
+		TLabel Label; // Classification only 
 		TFlt Value; // Regression only 
 	};
 
@@ -419,17 +418,17 @@ namespace THoeffding {
 		double VarSum;
 		double Err; // current error 
 		int TestModeN; // testing mode 
-		TNodeType Type;
+		TNodeType Type; // Root, Internal, Leaf 
 		TVec<PExample> ExamplesV;
 		// TIntV IdxV; // Sacrificed example indices 
 		THash<TExample, TBool> SeenH; // examples sacrificed for self-evaluation 
 		THash<TTriple<TInt, TInt, TInt>, TInt> Counts; // sufficient statistics; <AttributeID, AttributeValue, Class> 
 		TIntV PartitionV; // number of examples with the same label 
-		TVec<PNode> ChildrenV;
+		TVec<PNode> ChildrenV; // vector of children (root nodes of the subtrees)
 		TIntV UsedAttrs; // attributes we already used in predecessor nodes 
 		THash<TInt, THist> HistH; // for each numeric attribute; maps attribute index to histogram
 		// the following are used for time-changeable decision trees 
-		TVec<PNode> AltTreesV; // vector of alternate tree root nodes 
+		TVec<PNode> AltTreesV; // vector of alternate trees (their root nodes) 
 		int Id; // monotonically increasing ID, assigned to each node at creation 
 		int Correct;
 		int All;
@@ -511,7 +510,7 @@ namespace THoeffding {
 			Process(Preprocess(Line, Delimiter));
 		}
 		void Process(PExample Example) {
-			if(TaskType == ttCLASSIFICATION) {
+			if (TaskType == ttCLASSIFICATION) {
 				ProcessCls(Example);
 			} else {
 				ProcessReg(Example);
@@ -531,7 +530,7 @@ namespace THoeffding {
 			return AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr();
 		}
 		inline TStr GetNodeValueNm(PNode Node, const int& ChildN) const {
-			Assert(ChildN >= 0);
+			EAssertR(ChildN >= 0, "Can't have negative number of children.");
 			return AttrManV.GetVal(Node->CndAttrIdx).InvAttrH.GetDat(ChildN);
 		}
 		inline TStr GetMajorityNm(PNode Node) const { // classification 
