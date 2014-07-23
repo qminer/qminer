@@ -26,6 +26,10 @@
 #include <v8.h>
 #include <typeinfo>
 
+#ifndef NDEBUG
+	#include <v8-debug.h>
+#endif
+
 namespace TQm {
 
 // All comments starting with / / # (no spaces) are copied to JavaScript API documentation
@@ -42,8 +46,11 @@ namespace TQm {
 //# of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
 //# Currently, version 3.18 of V8 is used.
 //# 
+//# **Intellisense**: When using Visual Studio 2013 one can enable intellisense for the JavaScript API globally by navigating: 
+//# Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
+//# 
 //# JavaScript API requires [initialized work environment](Quick-Start).
-//#     
+//# 
 //# ## Libraries
 //# 
 //# Scripts can load external libraries or modules in the same way as Node.js.
@@ -91,7 +98,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(const PExcept& Except) { \
+		} catch (const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -894,6 +901,28 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr : public TStreamAggr {
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+
+public:
+	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
+	}
+	void OnAddRec(const TRec& Rec);
+	void OnUpdateRec(const TRec& Rec);
+	void OnDeleteRec(const TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+};
+
+///////////////////////////////
 // JavaScript WebPgFetch Request
 class TJsFetchRq {
 private:
@@ -997,6 +1026,9 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
+	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
+	//# paramJSON must contain field `type` which defies the type of the aggregate
+	JsDeclareFunction(addStreamAggr);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -1066,8 +1098,9 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(typeName, paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates) 
-    //#     of type `typeName` to the store; stream aggregate is passed `paramJSON` JSon
+	//#- `store.addStreamAggrTrigger(satrigger)` -- add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+	JsDeclareFunction(addStreamAggrTrigger);
+    //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
@@ -1484,6 +1517,9 @@ public:
 	//#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 	JsDeclareFunction(at);
+	//#- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	//#- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	JsDeclareFunction(subVec);
 	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
 	//#- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
@@ -1535,6 +1571,9 @@ public:
 	JsDeclareTemplatedFunction(norm);
 	//#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(sparse);
+	//#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
+	//#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
+	JsDeclareTemplatedFunction(toMat);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
 typedef TJsVec<TInt, TAuxIntV> TJsIntV;
@@ -1546,6 +1585,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, at);	
+		JsRegisterFunction(TmpTemp, subVec);
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
 		JsRegisterFunction(TmpTemp, push);
@@ -1567,6 +1607,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, spDiag);	
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, sparse);
+		JsRegisterFunction(TmpTemp, toMat);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
 	}
@@ -1581,6 +1622,38 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::at(const v8::Arguments& Args) {
 	QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector at: index out of bounds");
 	TVal result = JsVec->Vec[Index];
 	return TAux::GetObjVal(result, HandleScope);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsVecUtil::IsArgClass(Args, 0, "TIntV")) {
+			TJsIntV* IdxV = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}
+		else if (Args[0]->IsArray()) {
+			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
+			v8::Handle<v8::Object> V8IdxVObj = v8::Handle<v8::Object>::Cast(V8IdxV);
+			v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(V8IdxVObj->GetInternalField(0));
+			TJsIntV* IdxV = static_cast<TJsIntV*>(WrappedObject->Value());
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}		
+	}
+	return HandleScope.Close(v8::Undefined());
 }
 
 template <class TVal, class TAux>
@@ -2258,33 +2331,36 @@ public:
 //#
 //# ### Hoeffding Tree model
 //#
-//# First, we have to initialize the learner. 
-//# We specify the order of attributes in a stream example, and describe each attribute.
-//# For each attribute, we specifty its type and --- in case of discrete attributes --- enumerate
-//# all possible values of the attribute. See titanicConfig below. 
+//# First, we have to initialize the learner by passing description of the data stream
+//# and algorithm parameters. When describing the data stream, we have to specify the order of
+//# attributes in a stream example and describe each attribute. For each attribute, we specifty
+//# its type and --- in case of discrete attributes --- enumerate all possible values of the attribute.
+//# See `titanicConfig` below. 
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
-//#- gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
+//#- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
 //#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
-//#	    is the most expensive operation in the algorithm; we have to recompute gains at each
-//#	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
-//#- splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
-//#	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
+//#	    is the most expensive operation in the algorithm, because we have to recompute gains at each
+//#	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+//#       node of the tree.)
+//#- `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
+//#	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
 //#	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-//#	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
-//#- tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
-//#	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
-//#	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
+//#	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+//#- `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
+//#	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
+//#	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If
 //#	    the attributes are equally good, we don't care on which one we split.)
-//#- conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
+//#- `conceptDriftP` -- Denotes whether the algorithm adapts to potential changes in the data. If set to `true`,
 //#	    we use a variant of [CVFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf );
-//#     if set to false, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
-//#- driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
-//#	    examples and swaps the tree 
-//#- windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
+//#      if set to `false`, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
+//#- `driftCheck` -- If `DriftCheckP=true` (this is one of the algorithm parameters), the algorithm sets nodes into
+//#       self-evaluation mode every `driftCheck` examples. If one of the alternate trees performs better than the ``main''
+//#       tree, the algorithm swaps the best-performing alternate tree in place of the main one. 
+//#- `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 //#	    the window in order to ``forget'' the example when it becomes too old. 
 class TJsHoeffdingTree {
@@ -2309,14 +2385,14 @@ public:
 	//# **Functions and properties:**
 	//#     
 	//#- `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
-	//#   `numArr` is ab array of numeric attribute values (numbers); `labelStr` is class label of the example; returns nothing;
-	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
+	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
+	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
 	JsDeclareFunction(process);
-	//#- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label 
-	//#- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
+	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
-	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`;
-	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
+	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
+	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);
 };
 
@@ -2391,8 +2467,8 @@ public:
     //#
 	//# **Functions and properties:**
 	//#
-	//#- `process.stop()` -- Stopes the current process.
-	//#- `process.stop(returnCode)` -- Stopes the current process and returns `returnCode`
+	//#- `process.stop()` -- Stops the current process.
+	//#- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
     JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
@@ -2407,6 +2483,8 @@ public:
 	JsDeclareProperty(scriptFNm);
 	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 	JsDeclareFunction(getGlobals);
+	//#- `process.exitScript()` -- Exits the current script
+	JsDeclareFunction(exitScript);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 

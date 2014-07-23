@@ -301,6 +301,10 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 }
 
 TScript::~TScript() {
+#ifndef NDEBUG
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Locker Locker(Isolate);
+#endif
 	v8::HandleScope HandleScope;
 	// delete fetcher
 	JsFetch.Del();
@@ -308,6 +312,8 @@ TScript::~TScript() {
 	Context.Dispose();
 	// NOTE. There is no special reason for picking 11 iterations.
 	for(int i = 0; i < 11; ++i) { v8::V8::LowMemoryNotification(); }
+
+
 }
 
 void TScript::RegSrvFun(TSAppSrvFunV& SrvFunV) { 
@@ -648,7 +654,7 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         TJsUtil::HandleTryCatch(TryCatch);
         // return result
         return HandleScope.Close(RetVal);
-    } catch (PExcept Except) {
+    } catch (const PExcept& Except) {
         ErrorLog("Error loading module " + ModuleFNm + ": " + Except->GetMsgStr());
     }
     // return null
@@ -666,6 +672,13 @@ void TScript::Init() {
 	for (int AllowedDirsN = 0; AllowedDirsN < AllowedFPathV.Len(); AllowedDirsN++) {
 		InfoLog("  " + AllowedFPathV[AllowedDirsN].GetFPath());
 	}
+
+#ifndef NDEBUG
+	// for debugging JavaScript
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Locker Lock(Isolate);
+#endif
+
 	// do global initialization if not yet done
 	v8::HandleScope HandleScope;
 	// clear current context
@@ -767,6 +780,7 @@ TStr TScript::LoadSource(const TStr& FNm) {
 void TScript::Execute(const TStr& FNm) {
 	v8::HandleScope HandleScope;
 	v8::Context::Scope ContextScope(Context);
+
 	v8::TryCatch TryCatch;
     // load script source
     TStr Source = LoadSource(FNm);
@@ -914,6 +928,48 @@ void TJsStoreTrigger::OnDelete(const TRec& Rec) {
 }
 
 ///////////////////////////////
+// QMiner-JavaScript-Stream-Aggr
+TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Js->Base, _AggrNm), Js(_Js) {
+	v8::HandleScope HandleScope;
+	if (TriggerVal->Has(v8::String::New("onAdd"))) {
+		v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
+		QmAssert(_OnAddFun->IsFunction());
+		OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
+	}
+	if (TriggerVal->Has(v8::String::New("onUpdate"))) {
+		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::New("onUpdate"));
+		QmAssert(_OnUpdateFun->IsFunction());
+		OnUpdateFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnUpdateFun));
+	}
+	if (TriggerVal->Has(v8::String::New("onDelete"))) {
+		v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::New("onDelete"));
+		QmAssert(_OnDeleteFun->IsFunction());
+		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
+	}
+}
+
+void TJsStreamAggr::OnAddRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnAddFun.IsEmpty()) {
+		Js->Execute(OnAddFun, TJsRec::New(Js, Rec));
+	}
+}
+
+void TJsStreamAggr::OnUpdateRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnUpdateFun.IsEmpty()) {
+		Js->Execute(OnUpdateFun, TJsRec::New(Js, Rec));
+	}
+}
+
+void TJsStreamAggr::OnDeleteRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnDeleteFun.IsEmpty()) {
+		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
+	}
+}
+
+///////////////////////////////
 // QMiner-JavaScript-WebPgFetch
 void TJsFetch::OnFetch(const int& FId, const PWebPg& WebPg) {
 	// execute callback
@@ -981,6 +1037,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, search);
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
+		JsRegisterFunction(TmpTemp, addStreamAggr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1092,6 +1149,36 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
+v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+
+	const TStr TypeNm = ParamVal->GetObjStr("type");
+
+	if (TQm::TStreamAggrs::TCompositional::New(JsBase->Base, TypeNm, ParamVal)) {
+		return HandleScope.Close(v8::Null());
+	}
+
+	// create new aggregate
+	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+
+	// add the stream aggregate to all the stores specified in the parameters
+	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
+	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
+
+	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
+		PJsonVal Entry = MrgMapV->GetArrVal(i);
+
+		const TStr InStore = Entry->GetObjStr("inStore");
+		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
+
+		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
+	}
+
+	return HandleScope.Close(v8::Null());
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Store
 v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
@@ -1115,6 +1202,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
+		JsRegisterFunction(TmpTemp, addStreamAggrTrigger);
         JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
@@ -1329,6 +1417,22 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	JsStore->Store->AddTrigger(Trigger);
 	// add to JS context, in case we reload
 	JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsStore::addStreamAggrTrigger(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	// parse parameters
+	QmAssert(Args.Length() == 1);
+	v8::Handle<v8::Value> TriggerVal = Args[0];
+	QmAssert(TriggerVal->IsObject());
+	TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
+	// add trigger
+
+	PStreamAggr Trigger = TJsStreamAggr::New(JsStore->Js, AggrName, TriggerVal->ToObject());
+	JsStore->Js->Base->GetStreamAggrBase(JsStore->Store->GetStoreId())->AddStreamAggr(Trigger);
+	
 	return HandleScope.Close(v8::Null());
 }
 
@@ -2130,7 +2234,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		printf("Line '%s'\n", Line.CStr());
+		// printf("Line '%s'\n", Line.CStr());
 		JsHoeffdingTree->HoeffdingTree->Process(Line);
 		// printf("End\n");
 	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
@@ -2153,8 +2257,8 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
-		return HandleScope.Close(v8::Number::New(Label));
+		TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
+		return HandleScope.Close(v8::String::New(Label.CStr()));
 	} else if(Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
 		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
 		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
@@ -2162,8 +2266,10 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
 			DiscreteVal->GetArrStrV(DisV);
 			NumericVal->GetArrNumV(NumV);
-			THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			return HandleScope.Close(v8::Number::New(Label));
+			// THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			// return HandleScope.Close(v8::Number::New(Label));
+			return HandleScope.Close(v8::String::New(Label.CStr()));
 		} // else { EFailR("No such function"); }
 	} // else { EFailR("Unsupported."); }
 	return HandleScope.Close(v8::Undefined());
@@ -2439,11 +2545,17 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 	TVec<TIntFltKdV> Mat;	
 	if (Args.Length() > 0) {
 		// corrdinate
-		if (Args.Length() == 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV") && TJsObjUtil<TJsSpMat>::IsArgInt32(Args, 3)) {
+		if (Args.Length() >= 3 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV")) {
 			TJsIntV* RowIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
 			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
 			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
-			int Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			int Cols = -1;
+			if (Args.Length() == 4) {
+				Cols = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgInt32(Args, 3, -1);
+			}
+			if (Cols == -1) {
+				Cols = ColIdxV->Vec.GetMxVal() + 1;
+			}
 			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
 		}
 		else {
@@ -2764,6 +2876,30 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
 	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
 	return HandleScope.Close(JsResult);	
+}
+
+template <>
+v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::toMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);
+}
+
+
+template <>
+v8::Handle<v8::Value> TJsVec<TInt, TAuxIntV>::toMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+	int Len = JsVec->Vec.Len();
+	TFltV Temp(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		Temp[ElN] = JsVec->Vec[ElN];
+	}
+	TFltVV Res(Temp, Len, 1);
+	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
+	return HandleScope.Close(JsResult);
 }
 
 ///////////////////////////////
@@ -3245,6 +3381,8 @@ v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
 	return HandleScope.Close(JsResult);
 	return HandleScope.Close(v8::Undefined());
 }
+
+
 
 ///////////////////////////////
 // QMiner-SparseVec
@@ -4724,6 +4862,7 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterProperty(TmpTemp, scriptNm);
 		JsRegisterProperty(TmpTemp, scriptFNm);
 		JsRegisterFunction(TmpTemp, getGlobals);
+		JsRegisterFunction(TmpTemp, exitScript);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4797,7 +4936,12 @@ v8::Handle<v8::Value> TJsProcess::getGlobals(const v8::Arguments& Args) {
 	//	else { printf("\n"); }
 	//}
 	return HandleScope.Close(Properties);
-	//return v8::Undefined();
+}
+
+
+v8::Handle<v8::Value> TJsProcess::exitScript(const v8::Arguments& Args) {
+	v8::V8::TerminateExecution(v8::Isolate::GetCurrent());
+	return v8::Undefined();
 }
 
 ///////////////////////////////
