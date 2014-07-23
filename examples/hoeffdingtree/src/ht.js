@@ -69,7 +69,7 @@ function testRegression() {
 	var htParams = {
 		"gracePeriod": 300,
 		"splitConfidence": 1e-6,
-		"tieBreaking": 0.01,
+		"tieBreaking": 0.005,
 		"driftCheck": 1000,
 		"windowSize": 100000,
 		"conceptDriftP": false

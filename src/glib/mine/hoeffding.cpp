@@ -436,11 +436,11 @@ namespace THoeffding {
 		double* TArr = new double[BinsN](); // Define AvgArr[i] := x_1+x_2+...+x_i
 		// Compute initial split 
 		LoCnt = HiCnt = 0; // BinsV.GetVal(0).Count;
-		SArr[0] = TArr[0] = 0;
+		SArr[0] = TArr[0] = 0.0;
 		for (int BinN = 0; BinN < BinsV.Len(); ++BinN) {
 			const TBin CrrBin = BinsV.GetVal(BinN);
-			const double PrevS = BinN > 0 ? SArr[BinN-1] : 0;
-			const double PrevT = BinN > 0 ? TArr[BinN-1] : 0;
+			const double PrevS = BinN > 0 ? SArr[BinN-1] : 0.0;
+			const double PrevT = BinN > 0 ? TArr[BinN-1] : 0.0;
 			TArr[BinN] = PrevT + CrrBin.T;
 			CrrCnt = BinsV.GetVal(BinN).Count;
 			SArr[BinN] = PrevS+CrrBin.S;
@@ -457,7 +457,7 @@ namespace THoeffding {
 		LoT = BinsV.Last().T;
 		LoCnt = BinsV.Last().Count;
 		HiCnt -= LoCnt;
-		// Compute expected variance reduction, as defined by [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
+		// Compute expected variance reduction, as defined in [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
 		for (int BinN = BinsV.Len()-2; BinN >= 0; --BinN) {
 			HiS = SArr[BinN];
 			HiT = TArr[BinN];
@@ -563,7 +563,7 @@ namespace THoeffding {
 	}
 	// Compute information gain from sufficient statistics 
 	double TNode::InfoGain(const int& AttrIndex, const TAttrManV& AttrManV) const {
-		double h = 0, hj = 0, p = 0, pj = 0;
+		double h = 0.0, hj = 0.0, p = 0.0, pj = 0.0;
 		int SubExamplesN = 0; // Number of examples x with A(x)=a_j for j=1,2,...,ValsN
 		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
 		TAttrMan AttrMan(AttrManV.GetVal(AttrIndex));
@@ -580,18 +580,18 @@ namespace THoeffding {
 					SubExamplesN += Counts.GetDat(TmpTriple);
 				}
 			}
-			hj = 0;
+			hj = 0.0;
 			// Compute H(E_j)
 			for (int i = 0; i < LabelsN; ++i) {
 				TTriple<TInt, TInt, TInt> TmpTriple(AttrIndex, j, i);
 				if (Counts.IsKey(TmpTriple)) {
-					pj = SubExamplesN > 0 ? 1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0; // Prevent divison by zero 
+					pj = SubExamplesN > 0 ? 1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0.0; // Prevent divison by zero 
 					if (pj > 0) { // Ensure Log2(pj) exists 
 						hj -= pj*TMath::Log2(pj);
 					}
 				}
 			}
-			p = ExamplesN > 0 ? 1.0*SubExamplesN/ExamplesN : 0;
+			p = ExamplesN > 0 ? 1.0*SubExamplesN/ExamplesN : 0.0;
 			h -= p*hj;
 		}
 		// Return information gain G(A) 
@@ -621,7 +621,7 @@ namespace THoeffding {
 			for (int i = 0; i < LabelsN; ++i) {
 				TTriple<TInt, TInt, TInt> TmpTriple(AttrIndex, j, i);
 				if (Counts.IsKey(TmpTriple)) {
-					pj = SubExamplesN > 0 ? 1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0; // Prevent divison by zero 
+					pj = SubExamplesN > 0 ? 1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0.0; // Prevent divison by zero 
 					gj -= pj*pj;
 				}
 			}
@@ -634,7 +634,7 @@ namespace THoeffding {
 	double TNode::StdGain(const int& AttrIdx, const TAttrManV& AttrManV) const {
 		// NOTE: Compute variances Var(S_i) for all possible values attribute A_i can take 
 		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
-		EAssertR(AttrType == atDISCRETE, "This function works with nominal attributes.");
+		EAssertR(AttrType == atDISCRETE, "This function works with discrete attributes.");
 		const int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
 		TVec<TTriple<TFlt, TFlt, TInt> > VarV; // Vector of (mean, variance, n) pairs 
 		// TODO: Avoid iterating over the vector twice --- is there a faster way to initialize the thing?
@@ -647,7 +647,7 @@ namespace THoeffding {
 			const double CrrVal = ExamplesV.GetVal(ValN)->Value;
 			TTriple<TFlt, TFlt, TInt>& CrrTriple = VarV.GetVal(CrrIdx);
 			// See [Knuth, 1997] for details regarding incremental algorithms for variance 
-			const int N = CrrTriple.Val3++;
+			const int N = ++CrrTriple.Val3; // This way it is always the case that N>0 
 			const double Delta = CrrVal - CrrTriple.Val1;
 			CrrTriple.Val1 += Delta/N;
 			CrrTriple.Val2 += Delta*(CrrVal - CrrTriple.Val1);
@@ -655,8 +655,8 @@ namespace THoeffding {
 		double CrrStd = Std();
 		for (int ValN = 0; ValN < ValsN; ++ValN) {
 			const int CrrN = VarV.GetVal(ValN).Val3;
-			if (CrrN > 0) {
-				const double TmpStd = TMath::Sqrt(VarV.GetVal(ValN).Val2/CrrN);
+			if (CrrN > 1) {
+				const double TmpStd = TMath::Sqrt(VarV.GetVal(ValN).Val2/(CrrN-1));
 				CrrStd -= CrrN*TmpStd/ExamplesN;
 			}
 		}
@@ -681,6 +681,7 @@ namespace THoeffding {
 				if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
 					// Compute standard deviation reduction 
 					CrrSdr = StdGain(AttrN, AttrManV);
+					// printf("CrrStd(A%d) = %f\n", AttrN, CrrSdr);
 				}
 			} else { // Continuous 
 				CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
@@ -692,8 +693,9 @@ namespace THoeffding {
 				Idx2 = AttrN; Mx2 = CrrSdr;
 			}
 		}
-		// *** TODO ***: What if Mx1==0? Is this possible? 
-		const double Ratio = Mx2/Mx1;
+		// printf("Mx1 = %f ; Mx2 = %f\n", Mx1, Mx2);
+		// If Mx1==0.0, then Mx2==0.0, because we have 0.0<=Mx2<=Mx1 
+		const double Ratio = Mx1 > 0.0 ? Mx2/Mx1 : 1.0;
 		return TBstAttr(TPair<TInt, TFlt>(Idx1, Mx1), TPair<TInt, TFlt>(Idx2, Mx2), Ratio);
 	}
 	TBstAttr TNode::BestClsAttr(const TAttrManV& AttrManV, const TIntV& BannedAttrV) { // Classification
@@ -727,12 +729,18 @@ namespace THoeffding {
 	// See [Domingos and Hulten, 2000] and [Hulten et al., 2001] for explanation
 	double TNode::ComputeTreshold(const double& Delta, const int& LabelsN) const {
 		const double R = TMath::Log2(LabelsN); // Range of the random variable for information gain 
-		// EAssertR(!ExamplesN > 0, "This node has no examples.\n");
-		return TMath::Sqrt(R*R*TMath::Log(1.0/Delta)/(2.0*ExamplesN)); // t = \sqrt{ \frac{R^2 * log(1/delta)}{2n} }
+		EAssertR(ExamplesN > 0, "This node has no examples.\n");
+		//if (ExamplesN == 0) {
+		//	printf("[WARNING] This leaf has no examples.\n");
+		//}
+		// t = \sqrt{ \frac{R^2 * log(1/delta)}{2n} }
+		return TMath::Sqrt(R*R*TMath::Log(1.0/Delta)/(2.0*ExamplesN));
 	}
 	void TNode::Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen) {
 		// (i) Mark attribute, if discrete, as used
 		// New child for each value of AttrIdx attribute 
+		printf("Splitting...\n");
+		getchar();
 		CndAttrIdx = AttrIdx;
 		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
 		int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
@@ -881,7 +889,8 @@ namespace THoeffding {
 					printf("Example ID: %d; Node ID: %d; Node examples: %d\n", Example->LeafId.Val, Node->Id, Node->ExamplesN);
 					if (!IsLeaf(Node)) { printf("Node test attribute: %s\n", AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr()); }
 					printf("Problematic attribute: %s = %s\n", AttrManV.GetVal(It->Id).Nm.CStr(), AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
-					EFailR("Corresponding id-value-label triple is missing in counts hashtable."); // NOTE: For dbugging purposes; this fail probably indicates serious problems 
+					// NOTE: For debugging purposes; this fail indicates serious problems 
+					EFailR("Fatal: Corresponding id-value-label triple is missing in counts hashtable.");
 				}
 				break;										}
 			case atCONTINUOUS:
@@ -946,7 +955,8 @@ namespace THoeffding {
 		PNode CrrNode = Root;
 		TSStack<PNode> NodeS;
 		NodeS.Push(CrrNode);
-		// EAssertR(!Sacrificed(CrrNode, Example), "Izgleda v redu.");
+		// For debugging purposes 
+		EAssertR(!Sacrificed(CrrNode, Example), "Trying to forget sacrificed example --- not good.");
 		while (!NodeS.Empty()) {
 			CrrNode = NodeS.Top(); NodeS.Pop();
 			if (CrrNode->Id <= Example->LeafId && !Sacrificed(CrrNode, Example)) {
@@ -964,7 +974,8 @@ namespace THoeffding {
 	}
 	void THoeffdingTree::ProcessLeafReg(PNode Leaf, PExample Example) { // Regression
 		Leaf->UpdateStats(Example);
-		// Leaf->ExamplesV.Add(Example);
+		// TODO: Get rid of this --- save variances only 
+		Leaf->ExamplesV.Add(Example);
 		const int AttrsN = Example->AttributesV.Len();
 		for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
 			if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
@@ -979,7 +990,7 @@ namespace THoeffding {
 			// Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have R=1; see also [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
 			const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
 			const double EstG = SplitAttr.Val3;
-			// printf("EstG = %f\n", EstG); // TODO: This is cruical; think about it 
+			printf("EstG = %f ; Eps = %f\n", EstG, Eps); 
 			if ((EstG < 1.0-Eps || Eps < TieBreaking) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
