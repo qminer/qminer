@@ -2,7 +2,7 @@
 var analytics = require('analytics.js');
 var assert = require('assert.js');
 
-function testClassification() {
+function testClassificationContAttr() {
 	// algorithm parameters 
 	var htParams = {
 		"gracePeriod": 300,
@@ -11,6 +11,89 @@ function testClassification() {
 		"driftCheck": 1000,
 		"windowSize": 100000,
 		"conceptDriftP": false
+	};
+	
+	// describe the data stream 
+	var seaCfg = {
+		"dataFormat": ["A1", "A2", "A3", "C"], 
+		"A1": {
+			"type": "numeric",
+		}, 
+		"A2": {
+			"type": "numeric",
+		}, 
+		"A3": {
+			"type": "numeric"
+		}, 
+		"C": {
+			"type": "discrete",
+			"values": ["0", "1"]
+		}
+	};
+
+	// create a new learner 
+	var ht = analytics.newHoeffdingTree(seaCfg, htParams);
+
+	// train the model
+	var streamData = fs.openRead("./sandbox/ht/sea.dat");
+	var examplesN = 0;
+	while (!streamData.eof) {
+		var line = streamData.getNextLn().split(",");
+		// get discrete attributes
+		var example_discrete = [];
+		// get numeric attributes
+		var example_numeric = line.slice(0, 3);
+		example_numeric = example_numeric.map(parseFloat);
+		// get target
+		var target = line[3];
+		if (++examplesN % 10000 == 0) {
+			console.say("Processing example number " + examplesN);
+		}
+		// update the model
+		ht.process(example_discrete, example_numeric, target);
+	}
+	// Note that this is not how you'd test a streaming classifier in practice 
+	// This is just playing around 
+	streamData = fs.openRead("./sandbox/ht/sea.dat");
+	examplesN = 0;
+	var correct = 0;
+	while (!streamData.eof) {
+		var line = streamData.getNextLn().split(",");
+		// get discrete attributes
+		var example_discrete = [];
+		// get numeric attributes
+		var example_numeric = line.slice(0, 3);
+		example_numeric = example_numeric.map(parseFloat);
+		// get target
+		var target = line[3];
+		if (++examplesN % 10000 == 0) {
+			console.say("Testing on example number " + examplesN);
+		}
+		// update the model
+		if (parseFloat(ht.classify(example_discrete, example_numeric)) == target) {
+			++correct;
+		}
+	}
+	console.say("ACC = " + (correct/examplesN));
+	// use the model 
+	var label = ht.classify([], [6.677259,5.152133,2.982455]);
+	console.say("f(6.677259,5.152133,2.982455) = " + label);
+	var label = ht.classify([], [1.848014,0.041624,2.913719]);
+	console.say("f(1.848014,0.041624,2.913719) = " + label);
+
+	// export the model 
+	ht.exportModel({ "file": "./sandbox/ht/sea.gv", "type": "DOT" });
+}
+
+function testClassification() {
+	// algorithm parameters 
+	var htParams = {
+		"gracePeriod": 300,
+		"splitConfidence": 1e-6,
+		"tieBreaking": 0.01,
+		"driftCheck": 1000,
+		"windowSize": 100000,
+		"conceptDriftP": true
 	};
 	
 	// describe the data stream 
@@ -37,7 +120,8 @@ function testClassification() {
 	var ht = analytics.newHoeffdingTree(titanicCfg, htParams);
 
 	// train the model
-	var streamData = fs.openRead("./sandbox/ht/titanic-50K.txt");
+	var streamData = fs.openRead("./sandbox/ht/titanic.txt");
+	var examplesN = 0;
 	while (!streamData.eof) {
 		var line = streamData.getNextLn().split(",");
 		// get discrete attributes
@@ -46,6 +130,9 @@ function testClassification() {
 		var example_numeric = [];
 		// get target
 		var target = line[3];	
+		if (++examplesN % 10000 == 0) {
+			console.say("Processing example number " + examplesN);
+		}
 		// update the model
 		ht.process(example_discrete, example_numeric, target);
 	}
@@ -108,7 +195,6 @@ function testRegression() {
 		// entertain the user in case we have too many learning examples 
 		if (++examplesN % 10000 == 0) {
 			console.say("Number of examples processed so far: "+examplesN);
-			// "kdor z malim ni zadovoljen, tudi velikega ni vreden" :-) 
 			if (examplesN > 200000) { break; }
 		}
 		// update the model
@@ -130,9 +216,10 @@ function testRegression() {
 }
 
 console.say(" --- Example using classification HoeffdingTree --- ");
-testClassification();
-console.say(" --- Example using regression HoeffdingTree --- ");
-testRegression();
+testClassificationContAttr();
+// testClassification();
+// console.say(" --- Example using regression HoeffdingTree --- ");
+// testRegression();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();

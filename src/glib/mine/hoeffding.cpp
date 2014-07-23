@@ -562,11 +562,11 @@ namespace THoeffding {
 		return g;
 	}
 	// Compute information gain from sufficient statistics 
-	double TNode::InfoGain(const int& AttrIndex, const TAttrManV& AttrManV) const {
+	double TNode::InfoGain(const int& AttrIdx, const TAttrManV& AttrManV) const {
 		double h = 0.0, hj = 0.0, p = 0.0, pj = 0.0;
 		int SubExamplesN = 0; // Number of examples x with A(x)=a_j for j=1,2,...,ValsN
 		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
-		TAttrMan AttrMan(AttrManV.GetVal(AttrIndex));
+		TAttrMan AttrMan(AttrManV.GetVal(AttrIdx));
 		const int ValsN = AttrMan.ValueV.Len();
 		// Compute entropy H(E) 
 		h = TMisc::Entropy(PartitionV, ExamplesN);
@@ -575,7 +575,7 @@ namespace THoeffding {
 			SubExamplesN = 0;
 			// Compute |E_j|
 			for (int i = 0; i < LabelsN; ++i) {
-				TTriple<TInt, TInt, TInt> TmpTriple(AttrIndex, j, i);
+				TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
 				if(Counts.IsKey(TmpTriple)) {
 					SubExamplesN += Counts.GetDat(TmpTriple);
 				}
@@ -583,7 +583,7 @@ namespace THoeffding {
 			hj = 0.0;
 			// Compute H(E_j)
 			for (int i = 0; i < LabelsN; ++i) {
-				TTriple<TInt, TInt, TInt> TmpTriple(AttrIndex, j, i);
+				TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
 				if (Counts.IsKey(TmpTriple)) {
 					pj = SubExamplesN > 0 ? 1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0.0; // Prevent divison by zero 
 					if (pj > 0) { // Ensure Log2(pj) exists 
@@ -598,11 +598,11 @@ namespace THoeffding {
 		return h;
 	}
 	// Compute Gini index from sufficient statistics 
-	double TNode::GiniGain(const int& AttrIndex, const TVec<TAttrMan>& AttrManV) const {
+	double TNode::GiniGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const {
 		double g = 1.0, gj = 0.0, p = 0, pj = 0;
 		int SubExamplesN = 0; // Number of examples x with A(x)=a_j for j=1,2,...,ValsN
 		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
-		TAttrMan AttrMan(AttrManV.GetVal(AttrIndex));
+		TAttrMan AttrMan(AttrManV.GetVal(AttrIdx));
 		const int ValsN = AttrMan.ValueV.Len();
 		for (auto It = PartitionV.BegI(); It != PartitionV.EndI(); ++It) {
 			p = ExamplesN > 0 ? 1.0*(*It)/ExamplesN : 0; // Prevent division by zero 
@@ -612,14 +612,14 @@ namespace THoeffding {
 			SubExamplesN = 0;
 			// Compute |E_j|
 			for (int i = 0; i < LabelsN; ++i) {
-				TTriple<TInt, TInt, TInt> TmpTriple(AttrIndex, j, i);
+				TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
 				if (Counts.IsKey(TmpTriple)) {
 					SubExamplesN += Counts.GetDat(TmpTriple);
 				}
 			}
 			gj = 1.0;
 			for (int i = 0; i < LabelsN; ++i) {
-				TTriple<TInt, TInt, TInt> TmpTriple(AttrIndex, j, i);
+				TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
 				if (Counts.IsKey(TmpTriple)) {
 					pj = SubExamplesN > 0 ? 1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0.0; // Prevent divison by zero 
 					gj -= pj*pj;
@@ -739,8 +739,6 @@ namespace THoeffding {
 	void TNode::Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen) {
 		// (i) Mark attribute, if discrete, as used
 		// New child for each value of AttrIdx attribute 
-		printf("Splitting...\n");
-		getchar();
 		CndAttrIdx = AttrIdx;
 		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
 		int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
@@ -904,6 +902,8 @@ namespace THoeffding {
 	}
 	bool THoeffdingTree::IsAltSplitIdx(PNode Node, const int& AttrIdx) const {
 		for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
+			// NOTE: Add `|| IsAltSplitIdx((*It)->Root, AttrIdx))` to allow alternate
+			// trees to have alternate trees 
 			if ((*It)->CndAttrIdx == AttrIdx) { // || IsAltSplitIdx((*It)->Root, AttrIdx)) {
 				return true;
 			}
@@ -956,7 +956,7 @@ namespace THoeffding {
 		TSStack<PNode> NodeS;
 		NodeS.Push(CrrNode);
 		// For debugging purposes 
-		EAssertR(!Sacrificed(CrrNode, Example), "Trying to forget sacrificed example --- not good.");
+		EAssertR(!Sacrificed(CrrNode, Example), "Fatal: Trying to forget sacrificed example.");
 		while (!NodeS.Empty()) {
 			CrrNode = NodeS.Top(); NodeS.Pop();
 			if (CrrNode->Id <= Example->LeafId && !Sacrificed(CrrNode, Example)) {
@@ -979,7 +979,7 @@ namespace THoeffding {
 		const int AttrsN = Example->AttributesV.Len();
 		for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
 			if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
-				// TODO: Find an efficient way to compute s(A) from s(A1) and s(A2) if A1 and A2 parition A
+				// TODO: Find an efficient way to compute s(A) from s(A1) and s(A2) if A1 and A2 parition A 
 				Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
 				// EFailR("Current regression discretization is deprecated.");
 			}
@@ -990,7 +990,13 @@ namespace THoeffding {
 			// Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have R=1; see also [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
 			const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
 			const double EstG = SplitAttr.Val3;
-			printf("EstG = %f ; Eps = %f\n", EstG, Eps); 
+			// TODO: Handle the case when a branch of the tree is left with a single unused attribute 
+			// One option: only split on the last attribute if it reduces standard dev. "a lot", and
+			// if the leaf contains many examples. 
+			// const int UnusedAttrsN = AttrManV.Len()-1-Leaf->UsedAttrs.Len();
+			// printf("# of unsed attrs = %d\n", UnusedAttrsN);
+			// printf("EstG = %f ; Eps = %f\n", EstG, Eps); 
+			// if (UsedAttrsN == 1 && Leaf->Std() > 
 			if ((EstG < 1.0-Eps || Eps < TieBreaking) && Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
 				Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
 			}
