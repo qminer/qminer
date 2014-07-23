@@ -327,7 +327,7 @@ namespace THoeffding {
 				Idx = 0;
 				// NOTE: We can't take the first bin as it may have been created AFTER the example was accumulated; instead we find the first suitable bin 
 				for (BinN = 0; BinN < BinsV.Len() && BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
-				AssertR(BinN < BinsV.Len(), "No suitable bin --- impossible."); // NOTE: For debugging purposes 
+				EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible."); // NOTE: For debugging purposes 
 				PrevIdx = Idx = BinN; // First suitable bin 
 				PrevDist = CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
 				// The order is preserved even though new bins might have been created between the old ones 
@@ -976,7 +976,7 @@ namespace THoeffding {
 		if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0) { // Regression
 			// See if we can get variance reduction 
 			TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
-			// Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have R=1; see also PhD thesis [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
+			// Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have R=1; see also [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
 			const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
 			const double EstG = SplitAttr.Val3;
 			// printf("EstG = %f\n", EstG); // TODO: This is cruical; think about it 
