@@ -2161,9 +2161,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 		if (DiscreteVal->IsArr() && NumericVal->IsArr()) {
 			DiscreteVal->GetArrStrV(DisV);
 			NumericVal->GetArrNumV(NumV);
-			// THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
 			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			// return HandleScope.Close(v8::Number::New(Label));
 			return HandleScope.Close(v8::String::New(Label.CStr()));
 		} // else { EFailR("No such function"); }
 	} // else { EFailR("Unsupported."); }

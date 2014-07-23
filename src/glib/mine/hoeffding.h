@@ -45,7 +45,7 @@ namespace THoeffding {
 	typedef enum { etXML, etJSON, etDOT } TExportType;
 	// attribute heuristic measures 
 	typedef enum { ahINFO_GAIN, ahGINI_GAIN } TAttrHeuristic;
-
+	// token type (used for parsing configuration files) 
 	typedef enum { totDFORMAT, totDISCRETE, totNUMERIC, totCOLON, totCOMMA, totEQU, totEND, totID, totLPARENTHESIS, totRPARENTHESIS, totSEMIC } TTokType;
 
 	///////////////////////////////
@@ -67,7 +67,6 @@ namespace THoeffding {
 		TLexer(TLexer& Lexer)
 			: CurrCh(Lexer.CurrCh), LineN(Lexer.LineN), LastTok(Lexer.LastTok),
 				BackP(Lexer.BackP), SIn(Lexer.SIn) { }
-		// TLexer& operator=(TLexer& Lexer) { Fail; } // Default behvaiour is OK 
 		TToken GetNextTok();
 		inline void PutBack() { // need this for lookahead 
 			BackP = true;
@@ -109,7 +108,6 @@ namespace THoeffding {
 		TParser(TParser& Parser)
 			: AttrsHV(Parser.AttrsHV), DataFormatH(Parser.DataFormatH),
 				InvAttrsHV(Parser.InvAttrsHV), InvDataFormatH(Parser.InvDataFormatH) { }
-		// TParser& operator=(TParser& Parser); // Default behvaiour is OK 
 		inline TParams GetParams() const {
 			return TParams(AttrsHV, DataFormatH, InvAttrsHV, InvDataFormatH);
 		}
@@ -158,7 +156,7 @@ namespace THoeffding {
 	public:
 		// m-estimate; see PhD thesis [Cestnik, 1991] for details
 		static double MEstimate(const int& PositivesN, const int& AllN, const double& Apriori, const int& WeightN = 2) {
-			Assert(PositivesN >= 0 && PositivesN <= AllN);
+			EAssertR(PositivesN >= 0 && PositivesN <= AllN, "Positives<0 or Positives>AllN");
 			// Let r be the number of positive examples and n be the number of all examples.
 			// Furthermore let m be the expert-defined parameter (i.e. ``trust'' parameter) and let p0 be apriori probability.
 			// Then we define m-estimate as p := (r+m*p0)/(n+m)
@@ -166,8 +164,10 @@ namespace THoeffding {
 		}
 		// laplace estimate; see [Kononenko & Robnik-Sikonja, 2010] for details 
 		static double LaplaceEstiamte(const int& PositivesN, const int& NegativesN, const int& OutcomesN) {
-			Assert(PositivesN >= 0 && NegativesN >= 0 && OutcomesN >= 0);
-			// Let r be the number of positive examples, let n be the number of all examples, and let k be the number of possibles outcomes (i.e. k=2 for coin tossing example)
+			EAssertR(PositivesN >= 0 && NegativesN >= 0 && OutcomesN >= 0, "Negative count");
+			// Let r be the number of positive examples, let n be the number of
+			// all examples, and let k be the number of possibles outcomes, i.e.,
+			// k=2 for coin tossing example)
 			// Then we define Laplace probability estimate as p := (r+1)/(n+k). 
 			return 1.0*(PositivesN+1)/(NegativesN+PositivesN+OutcomesN); // p = (r+1)/(n+k)
 		}
@@ -200,11 +200,6 @@ namespace THoeffding {
 		TBin(const double& _Value = 0.0, const int& _Id = 0, const int& _Count = 0)
 			: S(0.0), Mean(0.0), T(0.0), Value(_Value), Count(_Count), Id(_Id) { }
 		
-		// TBin(const TBin& Bin); // Default behavious is OK 
-		// TBin(TBin&& Bin); // Default behavious is OK 
-		// TBin& operator=(const TBin& Bin); // Default Behavious is OK 
-		// TBin& operator=(TBin&& Bin); // Default Behavious is OK 
-
 		friend bool operator<=(const TBin& Bin1, const TBin& Bin2);
 		friend bool operator>=(const TBin& Bin1, const TBin& Bin2);
 		friend bool operator<(const TBin& Bin1, const TBin& Bin2);
@@ -221,9 +216,9 @@ namespace THoeffding {
 			++Count;
 		}
 		void Dec(const int& Label) { // NOTE: Asserts serve debugging purposes 
-			AssertR(Label < PartitionV.Len(), "Should not happen, by construction.");
-			AssertR(PartitionV.GetVal(Label)-- >= 0, "Negative partition count in bin.");
-			AssertR(--Count >= 0, "Negative count.");
+			EAssertR(Label < PartitionV.Len(), "Should not happen, by construction.");
+			EAssertR(PartitionV.GetVal(Label)-- >= 0, "Negative partition count in bin.");
+			EAssertR(--Count >= 0, "Negative count.");
 		}
 		// NOTE: Here, ValueV.Len() is the number of examples in the leaf 
 		void Inc(const double& RegValue) { // Regression 
@@ -256,11 +251,6 @@ namespace THoeffding {
 	public:
 		THist(const int& BinsN_ = BinsN) { } // BinsV.Reserve(BinsN_, BinsN_); } 
 		
-		// THist(const THist& Hist); // Default behaviour is OK 
-		// THist(THist&& Hist); // Default behaviour is OK 
-		// THist& operator=(THist&& Hist); // Default behaviour is OK 
-		// THist& operator=(const THist& Hist); // Default behaviour is OK 
-
 		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen); // classification
 		void DecCls(PExample Example, const int& AttrIdx); // classification 
 		void IncReg(PExample Example, const int& AttrIdx); // regression
@@ -282,11 +272,6 @@ namespace THoeffding {
 		TAttrMan(const THash<TStr, TInt>& AttrH_ = THash<TStr, TInt>(), const THash<TInt, TStr>& InvAttrH_ = THash<TInt, TStr>(),
 			const int& Id_ = -1, const TStr& Nm_ = "Anon", const TAttrType& Type_ = atDISCRETE);
 
-		// TAttrMan(const TAttrMan& AttrMan); // Default behaviour is OK 
-		// TAttrMan(TAttrMan&& AttrMan); // 
-		// TAttrMan& operator=(const TAttrMan& AttrMan); // Default behaviour is OK
-		// TAttrMan& operator=(TAttrMan&& AttrMan); // 
-
 	public:
 		THash<TStr, TInt> AttrH; // maps attribute value to id 
 		THash<TInt, TStr> InvAttrH; // maps id to attribute value, inverting AttrH
@@ -304,12 +289,6 @@ namespace THoeffding {
 			: Id(Id_), Value(Value_), Num(-1) { }
 		TAttribute(const int& Id_, const double& Num_)
 			: Id(Id_), Value(-1), Num(Num_) { }
-		
-		//TAttribute(const TAttribute&& Attribute) // Default behaviour is OK
-		//TAttribute(TAttribute& Attribute) // Default behaviour is OK
-		//	: Id(Attribute.Id), Value(Attribute.Value), Num(Attribute.Num) { }
-		// TAttribute& operator=(const TAttribute& Attribute); Default behaviour is OK 
-		// TAttribute& operator=(TAttribute&& Attribute); Default behaviour is OK 
 		
 		inline bool operator==(const TAttribute& Attr) const {
 			return (Value != -1 && Value == Attr.Value) || Num == Attr.Num;
@@ -348,10 +327,9 @@ namespace THoeffding {
 			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(-1), Value(Value_) { }
 		TExample(const TExample& Example_) // Is this even necessary? Default seems OK 
 			: LeafId(Example_.LeafId), BinId(Example_.BinId), AttributesV(Example_.AttributesV), Label(Example_.Label), Value(Example_.Value) { }
-		// TExample(TExample&& Example); // TODO: Think about this 
+		
 		TExample& operator=(const TExample& Example); // Is this even necessary? 
-		// TExample& operator=(TExample&& Example); // TODO: Think about this 
-
+		
 		inline bool operator<(const TExample& Example) const { return Label < Example.Label; } /* *** */
 		inline bool operator==(const TExample& Example) const {
 			return LeafId == Example.LeafId && AttributesV == Example.AttributesV && 
