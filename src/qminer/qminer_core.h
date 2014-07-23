@@ -57,6 +57,10 @@ public:
     /// Maximal number of stores allowed, also sets the upper limit to valid store IDs
     static uint GetMxStores() { return 0x4000; } // == 16384
     
+    /// True when QMiner is running in sandboxed mode
+    /// TODO: make it configurable
+    static bool IsSandbox() { return false; }
+    
 	/// Path to QMiner
 	static TStr QMinerFPath;
 	/// Default QMiner notification facility
@@ -1153,6 +1157,28 @@ public:
 };
 
 ///////////////////////////////
+/// Record Splitter by Time Field. 
+class TRecSplitterByFieldTm {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Maximal difference value
+    TUInt64 DiffMSecs;
+    
+public:
+    TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs):
+        Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) { }
+    
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+        return (RecVal2 - RecVal1) > DiffMSecs;
+    }
+};
+
+///////////////////////////////
 /// Record Set. 
 /// Holds a collection of record IDs from one store.
 /// Records are stored internally as a vector of ids.
@@ -1289,6 +1315,11 @@ public:
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
+    
+    /// Split records into several whenever value of two consecutive records above threshold
+    TVec<PRecSet> SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const;
+    /// Split records into several whenever value of two consecutive records above threshold
+    template <class TSplitter> TVec<PRecSet> SplitBy(const TSplitter& Splitter) const;
 
 	/// Remove record from the set (warning: time complexity O(GetRecs()) )
 	void RemoveRecId(const TUInt64& RecId);
@@ -1367,6 +1398,30 @@ void TRecSet::FilterBy(const TFilter& Filter) {
     }
 	// overwrite old result vector with filtered list
 	RecIdFqV = NewRecIdFqV;    
+}
+
+template <class TSplitter> 
+TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
+    TRecSetV ResV;
+    // if no records, nothing to do
+    if (Empty()) { return ResV; }
+    // initialize with the first record
+    TUInt64IntKdV NewRecIdFqV; NewRecIdFqV.Add(RecIdFqV[0]);
+    // go over the rest and see when to split
+    for (int RecN = 1; RecN < GetRecs(); RecN++) {
+        if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
+            // we need to split, first we create record set for all existing records
+            ResV.Add(TRecSet::New(Store, NewRecIdFqV, IsWgt()));
+            // and initialize a new one
+            NewRecIdFqV.Clr(false);            
+        }
+        // add new record to the next record set
+        NewRecIdFqV.Add(RecIdFqV[RecN]);
+    }
+    // add last record set to the result list
+    ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV, IsWgt()));
+    // done
+    return ResV;
 }
 
 ///////////////////////////////

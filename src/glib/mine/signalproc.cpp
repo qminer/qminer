@@ -178,19 +178,133 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
 /////////////////////////////////////////
 // Time series interpolator interface
 PInterpolator TInterpolator::New(const TStr& InterpolatorType) {
-    if(InterpolatorType == TPreviousPoint::GetType()) {
+    if (InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New();
 	}    
+    else if (InterpolatorType == TLinear::GetType()) {
+		return TLinear::New();
+	}
+    else if (InterpolatorType == TCurrentPoint::GetType()) {
+    	return TCurrentPoint::New();
+    }
     throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
 
 PInterpolator TInterpolator::Load(TSIn& SIn) {
 	TStr InterpolatorType(SIn);
-	if(InterpolatorType == TPreviousPoint::GetType()) {
+	if (InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New(SIn);
+	}
+	else if (InterpolatorType == TLinear::GetType()) {
+		return TLinear::New(SIn);
+	}
+	else if (InterpolatorType == TCurrentPoint::GetType()) {
+		return TCurrentPoint::New(SIn);
 	}
 	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
+
+/////////////////////////////////////////
+// Buffered interpolator
+TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType):
+		TInterpolator(_InterpolatorType),
+		Buff() {}
+
+TBufferedInterpolator::TBufferedInterpolator(TSIn& SIn):
+		TInterpolator(SIn),
+		Buff(SIn) {}
+
+void TBufferedInterpolator::Save(TSOut& SOut) const {
+	TInterpolator::Save(SOut);
+	Buff.Save(SOut);
+}
+
+void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
+		Buff.DelOldest();
+	}
+}
+
+void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
+	// check if the new point can be added
+	if (!Buff.Empty()) {
+		const TUInt64FltPr& LastRec = Buff.GetNewest();
+		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+	}
+
+	// add the new point
+	Buff.Add(TUInt64FltPr(Tm, Val));
+}
+
+/////////////////////////////////////////
+// Previous point interpolator.
+// Interpolate by returning last seen value
+TPreviousPoint::TPreviousPoint():
+		TBufferedInterpolator(TPreviousPoint::GetType()) {}
+
+TPreviousPoint::TPreviousPoint(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 < Time) {
+		Buff.DelOldest();
+	}
+}
+
+double TPreviousPoint::Interpolate(const uint64& Tm) const {
+	IAssertR(CanInterpolate(Tm), "TPreviousPoint::Interpolate: Time not in the desired interval!");
+	return Buff.GetOldest().Val2;
+}
+
+bool TPreviousPoint::CanInterpolate(const uint64& Tm) const {
+	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
+				(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+}
+
+/////////////////////////////////////////
+// Current point interpolator.
+TCurrentPoint::TCurrentPoint():
+		TBufferedInterpolator(TCurrentPoint::GetType()) {}
+
+TCurrentPoint::TCurrentPoint(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+double TCurrentPoint::Interpolate(const uint64& Tm) const {
+	IAssertR(CanInterpolate(Tm), "TCurrentPoint::Interpolate: Time not in the desired interval!");
+	return Buff.GetOldest().Val2;
+}
+
+bool TCurrentPoint::CanInterpolate(const uint64& Tm) const {
+	return !Buff.Empty() && Buff.GetOldest().Val1 <= Tm;
+}
+
+
+/////////////////////////////////////////
+// Time series linear interpolator
+TLinear::TLinear():
+		TBufferedInterpolator(TLinear::GetType()) {}
+
+TLinear::TLinear(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+double TLinear::Interpolate(const uint64& Tm) const {
+	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");
+
+	if (Tm == Buff.GetOldest().Val1) { return Buff.GetOldest().Val2; }
+
+	const TUInt64FltPr& PrevRec = Buff.GetOldest();
+	const TUInt64FltPr& NextRec = Buff.GetOldest(1);
+
+	return PrevRec.Val2+((double)(Tm-PrevRec.Val1)/(NextRec.Val1-PrevRec.Val1))*(NextRec.Val2-PrevRec.Val2);
+}
+
+bool TLinear::CanInterpolate(const uint64& Tm) const {
+	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
+			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+}
+
 ///////////////////////////////////////////////////////////////////
 // Neural Networks - Neuron
 TRnd TNNet::TNeuron::Rnd = 0;

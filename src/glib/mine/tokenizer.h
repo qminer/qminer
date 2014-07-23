@@ -114,9 +114,7 @@ public:
 //   Puts string to simple canonical form and calls HTML tokenizer, 
 class THtmlUnicode : public THtml {
 protected:
-	THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer,  
-        const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
-            EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); }
+	THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP);
 public:
 	static PTokenizer New(PSwSet SwSet = NULL, PStemmer Stemmer = NULL, 
         bool ToUcP = true) { return new THtmlUnicode(SwSet, Stemmer, ToUcP); }

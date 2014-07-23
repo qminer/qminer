@@ -1969,6 +1969,14 @@ void TRecSet::FilterByFieldTm(	const int& FieldId, const TTm& MinVal, const TTm&
 	// apply the filter
     FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
 }
+    
+TVec<PRecSet> TRecSet::SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const {
+    // get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsTm(), "Wrong field type, time expected");
+    // split the record set
+    return SplitBy(TRecSplitterByFieldTm(Store, FieldId, DiffMSecs));
+}
 
 void TRecSet::RemoveRecId(const TUInt64& RecId) {
 	const int Recs = GetRecs();
@@ -3990,6 +3998,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TVar>();
     Register<TStreamAggrs::TCov>();
     Register<TStreamAggrs::TCorr>();
+    Register<TStreamAggrs::TStMerger>();
     Register<TStreamAggrs::TResampler>();
 }
 

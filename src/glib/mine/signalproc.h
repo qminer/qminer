@@ -151,6 +151,131 @@ public:
         Assert(!Empty()); return IsInit() ?  GetVal(0) : ValV.Last(); }
 };
 
+///////////////////////////////
+// Linked buffer
+template <class TVal>
+class TLinkedBuffer {
+private:
+	class Node {
+	public:
+		Node* Next;
+		const TVal Val;
+
+		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+	};
+
+private:
+	Node* First;
+	Node* Last;
+	TInt Size;
+
+public:
+	TLinkedBuffer();
+	TLinkedBuffer(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	~TLinkedBuffer();
+
+	void Add(const TVal& Val);
+	void DelOldest();
+
+	const TVal& GetOldest(const TInt& Idx) const;
+	const TVal& GetOldest() const { return GetOldest(0); };
+	const TVal& GetNewest() const;
+
+	bool Empty() const { return Len() == 0; };
+	int Len() const { return Size; };
+};
+
+template <class TVal>
+TLinkedBuffer<TVal>::TLinkedBuffer():
+		First(NULL),
+		Last(NULL),
+		Size(0) {}
+
+template <class TVal>
+TLinkedBuffer<TVal>::TLinkedBuffer(TSIn& SIn):
+		First(NULL),
+		Last(NULL),
+		Size(SIn) {
+
+	if (Size > 0) { First = new TLinkedBuffer<TVal>::Node(NULL, TVal(SIn)); }
+
+	Node* Curr = First;
+	for (int i = 1; i < Size; i++) {
+		Curr->Next = new Node(NULL, TVal(SIn));
+		Curr = Curr->Next;
+	}
+
+	Last = Curr;
+}
+
+template <class TVal>
+void TLinkedBuffer<TVal>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	Node* Curr = First;
+	while (Curr != NULL) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal>
+TLinkedBuffer<TVal>::~TLinkedBuffer() {
+	while (!Empty()) { DelOldest(); }
+}
+
+template <class TVal>
+void TLinkedBuffer<TVal>::Add(const TVal& Val) {
+	TLinkedBuffer<TVal>::Node* Node = new TLinkedBuffer<TVal>::Node(NULL, Val);
+
+	if (Size++ == 0) {
+		First = Node;
+		Last = Node;
+	} else {
+		Last->Next = Node;
+		Last = Node;
+	}
+}
+
+template <class TVal>
+void TLinkedBuffer<TVal>::DelOldest() {
+	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
+
+	Node* Temp = First;
+
+	if (--Size == 0) {
+		First = NULL;
+		Last = NULL;
+	} else {
+		First = First->Next;
+	}
+
+	delete Temp;
+}
+
+template <class TVal>
+const TVal& TLinkedBuffer<TVal>::GetOldest(const TInt& Idx) const {
+	IAssertR(Idx < Size, "Index of element greater then size!");
+
+	Node* Curr = First;
+	for (int i = 0; i < Idx; i++) {
+		Curr = Curr->Next;
+	}
+
+	return Curr->Val;
+}
+
+template <class TVal>
+const TVal& TLinkedBuffer<TVal>::GetNewest() const {
+	IAssertR(!Empty(), "Cannot return elements from empty buffer!");
+	return Last->Val;
+}
+
+
+
 /////////////////////////////////////////
 // Time series interpolator interface
 class TInterpolator;
@@ -163,39 +288,95 @@ private:
     const TStr InterpolatorType;
 protected:
     TInterpolator(const TStr& _InterpolatorType): InterpolatorType(_InterpolatorType) {}
+    TInterpolator(TSIn& SIn): InterpolatorType(SIn) {}
+
 public:
-    static PInterpolator New(const TStr& InterpolatorType);
-    static PInterpolator Load(TSIn& SIn);
+	static PInterpolator New(const TStr& InterpolatorType);
+	static PInterpolator Load(TSIn& SIn);
 
  	virtual ~TInterpolator() { }
 
 	virtual void Save(TSOut& SOut) const { InterpolatorType.Save(SOut); }
 
-	virtual double Interpolate(const uint64& Time) const = 0;    
-	virtual void Update(const double& Val, const uint64& Tm) = 0;
+	virtual void SetNextInterpTm(const uint64& Time) = 0;
+	virtual double Interpolate(const uint64& Time) const = 0;
+	virtual bool CanInterpolate(const uint64& Time) const = 0;
+	virtual void AddPoint(const double& Val, const uint64& Tm) = 0;
+};
+
+/////////////////////////////////////////
+// Buffered interpolator
+// contains a buffer
+// the first timestamp in the buffer is less or equal to the current time
+// the other timestamps in the buffer are greater then the current time
+class TBufferedInterpolator: public TInterpolator {
+protected:
+	// buffer holding the current and future points
+	TLinkedBuffer<TPair<TUInt64, TFlt>> Buff;
+
+	TBufferedInterpolator(const TStr& InterpolatorType);
+	TBufferedInterpolator(TSIn& SIn);
+
+public:
+	virtual void Save(TSOut& SOut) const;
+
+	virtual void SetNextInterpTm(const uint64& Time);
+	void AddPoint(const double& Val, const uint64& Tm);
 };
 
 /////////////////////////////////////////
 // Previous point interpolator.
-// Interpolate by returning last seen value
-class TPreviousPoint : public TInterpolator {
+// Interpolate by returning previously seen value
+// this interpolator will wait until it gets one value in the future before
+// performing interpolation
+class TPreviousPoint : public TBufferedInterpolator {
 private:
-    // previous value, that we return as interpolation
-    TFlt PrevVal;
-    // current value, waiting to become previous value
-    TFlt CurrVal;
-    
-	TPreviousPoint(): TInterpolator(TPreviousPoint::GetType()) { }
-	TPreviousPoint(TSIn& SIn): TInterpolator(TPreviousPoint::GetType()), PrevVal(SIn), CurrVal(SIn) {}
+	TPreviousPoint();
+	TPreviousPoint(TSIn& SIn);
 public:	
     static PInterpolator New() { return new TPreviousPoint; }
     static PInterpolator New(TSIn& SIn) { return new TPreviousPoint(SIn); }
-	void Save(TSOut& SOut) const { TInterpolator::Save(SOut); PrevVal.Save(SOut); CurrVal.Save(SOut); };
     
-	double Interpolate(const uint64& TmMSecs) const { return PrevVal; }
-	void Update(const double& Val, const uint64& TmMSecs) { PrevVal = CurrVal; CurrVal = Val; }
+    void SetNextInterpTm(const uint64& Time);
+	double Interpolate(const uint64& TmMSecs) const;
+	bool CanInterpolate(const uint64& Tm) const;
 
 	static TStr GetType() { return "previous"; }
+};
+
+/////////////////////////////////////////
+// Current point interpolator.
+// Interpolate by returning the current point
+class TCurrentPoint: public TBufferedInterpolator {
+private:
+	TCurrentPoint();
+	TCurrentPoint(TSIn& SIn);
+
+public:
+	static PInterpolator New() { return new TCurrentPoint; }
+	static PInterpolator New(TSIn& SIn) { return new TCurrentPoint(SIn); }
+
+	double Interpolate(const uint64& Tm) const;
+	bool CanInterpolate(const uint64& Tm) const;
+
+	static TStr GetType() { return "current"; }
+};
+
+/////////////////////////////////////////
+// Linear interpolator.
+// Interpolate by calculating point between two given points
+class TLinear : public TBufferedInterpolator {
+private:
+	TLinear();
+	TLinear(TSIn& SIn);
+public:	
+	static PInterpolator New() { return new TLinear; }
+	static PInterpolator New(TSIn& SIn) { return new TLinear(SIn); }
+
+	double Interpolate(const uint64& Tm) const;
+	bool CanInterpolate(const uint64& Tm) const;
+
+	static TStr GetType() { return "linear"; }
 };
 
 /////////////////////////////////////////
