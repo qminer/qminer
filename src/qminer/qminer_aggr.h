@@ -674,17 +674,12 @@ class TStMerger : public TQm::TStreamAggr {
 private:
 	TWPt<TStore> OutStore;
 
-	TInt TimeFieldId;
-
-	//TIntV InTmFldIdV;									// IDs of the input time fields
-	//TIntV InFldIdV;									// IDs of the input value fields
-	
+	TInt TimeFieldId;	
 	TStrV OutFldNmV;									// names of the output fields
 	
 	TVec<TStMergerFieldMap> FieldMapV;
 	TVec<TSignalProc::PInterpolator> InterpV;	  		// interpolators
 
-	//THash<TPair<TJoinSeq, TInt>, TInt> StoreIdFldIdPrBuffIdxH;		// a hash table that maps a pair <joinseq,fieldId> to the index in the internal structures
 	THash<TUInt, TIntSet> StoreIdFldIdVH;				// a hash table mapping a storeId to a list of input field maps
 
 	TInt NInFlds;										// number of input signals
