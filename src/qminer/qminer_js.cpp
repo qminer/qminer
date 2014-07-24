@@ -1162,9 +1162,9 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	// create new aggregate
 	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 	TStrV InterpNmV;
-	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
+	QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
 	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
 		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
 		PJsonVal SourceVal = FieldVal->GetObjKey("source");

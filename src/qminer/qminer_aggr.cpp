@@ -1109,7 +1109,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	
 	QmAssertR(ParamVal->IsObjKey("outStore"), "Field 'outStore' missing!");
 	QmAssertR(ParamVal->IsObjKey("timestamp"), "Field 'timestamp' missing!");
-	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Field 'mergingMapV' missing!");
+	QmAssertR(ParamVal->IsObjKey("fields"), "Field 'fields' missing!");
 
 	//input parameters
     TStr OutStoreNm = ParamVal->GetObjStr("outStore");
@@ -1117,7 +1117,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
 	const bool Past = ParamVal->GetObjBool("onlyPast", false);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 	TStrV InterpNmV;
 
 	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
