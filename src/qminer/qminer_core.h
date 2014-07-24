@@ -2431,6 +2431,8 @@ namespace TStreamAggrOut {
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
 
+	class IFltVecTm : public IFltVec, public ITm { };
+
 	class INmFlt {
 	public:
 		// retrieving named values

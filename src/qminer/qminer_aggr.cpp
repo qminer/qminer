@@ -759,7 +759,7 @@ TMa::TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, P
 PStreamAggr TMa::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
         const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
     
-    const uchar InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+    const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     return new TMa(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));        
 }
 
@@ -882,7 +882,7 @@ TVar::TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
 PStreamAggr TVar::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
         const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
     
-    const uchar InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+    const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     return new TVar(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));        
 }
 
@@ -952,14 +952,12 @@ TCov::TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
 
 PStreamAggr TCov::New(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
         const TStr& InStoreNm, const TStr& InAggrNmX, const TStr& InAggrNmY) {
-    
-    const uchar InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+    const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     return new TCov(Base, AggrNm, TmWinSize, InAggrNmX, InAggrNmY, Base->GetStreamAggrBase(InStoreId));        
 }
 
 PStreamAggr TCov::New(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
         const TStr& InAggrNmX, const TStr& InAggrNmY, const TWPt<TStreamAggrBase> SABase) {
-    
     return new TCov(Base, AggrNm, TmWinSize, InAggrNmX, InAggrNmY, SABase);        
 }
 
@@ -1662,6 +1660,28 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();    
 	return Val;
 }
+
+
+///////////////////////////////
+// Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
+void TFtrExt::OnAddRec(const TRec& Rec) {
+	FtrSpace->GetFullV(Rec, Vec);
+}
+
+TFtrExt::TFtrExt(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
+	TStreamAggr(Base, AggrNm) {
+	FtrSpace = _FtrSpace;
+}
+
+PStreamAggr TFtrExt::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
+	return new TFtrExt(Base, AggrNm, _FtrSpace);
+}
+
+PJsonVal TFtrExt::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewArr(Vec);
+	return Val;
+}
+
 
 //////////////////////////////////////////////
 // Composed stream aggregators

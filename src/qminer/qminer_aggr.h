@@ -783,6 +783,32 @@ public:
     static TStr GetType() { return "resampler"; }
 };
 
+///////////////////////////////
+// Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
+class TFtrExt : public TStreamAggr, public TStreamAggrOut::IFltVec {
+private:
+	TWPt<TFtrSpace> FtrSpace;
+	TFltV Vec;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+	TFtrExt(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
+
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
+
+	// did we finish initialization
+	bool IsInit() const { return true; }
+	// retrieving vector of values from the aggregate
+	int GetFltLen() const { return Vec.Len(); }
+	void GetFltV(TFltV& ValV) const { ValV = Vec; }
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "ftrext"; }
+};
+
 //////////////////////////////////////////////
 // Composed stream aggregators
 class TCompositional {
