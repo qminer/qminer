@@ -1175,6 +1175,24 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Record Comparator
+class TJsRecSplitter {
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	TWPt<TStore> Store;
+	// callbacks
+	v8::Persistent<v8::Function> SplitterFun;
+
+public:
+	TJsRecSplitter(TWPt<TScript> _Js, TWPt<TStore> _Store, 
+        const v8::Persistent<v8::Function>& _SplitterFun): 
+            Js(_Js), Store(_Store), SplitterFun(_SplitterFun) { }
+
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+};
+
+///////////////////////////////
 // QMiner-JavaScript-Record-Set
 //#
 //# ### Record set
@@ -1246,6 +1264,8 @@ public:
 	JsDeclareFunction(filterByField);
 	//#- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
 	JsDeclareFunction(filter);
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+   	JsDeclareFunction(split);
     //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify

@@ -298,10 +298,12 @@ void TOpGroupBy::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 void TOpSplitBy::Exec(const TWPt<TBase>& Base, const TRecSetV& InRecSetV, 
 		const PJsonVal& ParamVal, TRecSetV& OutRecSetV) {
 
+    // parse out parameters
+    const int FieldId = ParamVal->GetObjInt("fieldid");
+    const int SplitWin = ParamVal->GetObjInt("spwin");
+    // apply to each input record set
 	for (int InRecN = 0; InRecN < InRecSetV.Len(); InRecN++) {
 		uint StoreId = InRecSetV[InRecN]->GetStoreId();
-		int FieldId = TFlt::Round(ParamVal->GetObjNum("fieldid"));
-		int SplitWin = TFlt::Round(ParamVal->GetObjNum("spwin"));
 		Exec(Base, InRecSetV[InRecN], StoreId, FieldId, SplitWin, OutRecSetV);
 	}
 }
@@ -311,7 +313,7 @@ void TOpSplitBy::Exec(const TWPt<TBase>& Base, const PRecSet& InRecSet,
 		TRecSetV& OutRecSetV) {
 	
 	QmAssertR(Base->GetStoreByStoreId(StoreId)->IsFieldId(FieldId), 
-			"FieldId '" + TInt::GetStr(FieldId) + "' does not exist.");
+        "FieldId '" + TInt::GetStr(FieldId) + "' does not exist.");
 	TUInt64V RecsV; TFlt CrtVal = -1.0, StartVal = -1.0;
 	TWPt<TStore> Store = Base->GetStoreByStoreId(StoreId);
 	for (int RecN = 0; RecN < InRecSet->GetRecs(); RecN++) {	

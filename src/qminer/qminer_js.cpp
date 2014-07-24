@@ -1510,6 +1510,17 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 }
 
 ///////////////////////////////
+// JavaScript Record Comparator
+bool TJsRecSplitter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+	v8::HandleScope HandleScope;
+    // prepare record objects
+    v8::Persistent<v8::Object> JsRec1 = TJsRec::New(Js, TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat);
+    v8::Persistent<v8::Object> JsRec2 = TJsRec::New(Js, TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat);
+    // call JavaScript Comparator
+    return Js->ExecuteBool(SplitterFun, JsRec1, JsRec2);
+}
+
+///////////////////////////////
 // QMiner-JavaScript-Record-Set
 TJsRecSet::TJsRecSet(TWPt<TScript> _Js, const PRecSet& _RecSet):
     Js(_Js), Store(_RecSet->GetStore()), RecSet(_RecSet) { RecSet->FilterByExists(); }
@@ -1819,6 +1830,20 @@ v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
     QmAssertR(Args.Length() == 1, "filter(..) expects one argument.");
     v8::Persistent<v8::Function> FilterFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
 	JsRecSet->RecSet->FilterBy(TJsRecFilter(JsRecSet->Js, JsRecSet->Store, FilterFun));
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsRecSet::split(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+    QmAssertR(Args.Length() == 1, "split(..) expects one argument.");
+    v8::Persistent<v8::Function> SplitterFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
+	TRecSetV RecSetV = JsRecSet->RecSet->SplitBy(TJsRecSplitter(JsRecSet->Js, JsRecSet->Store, SplitterFun));
+    // prepare result array
+    v8::Local<v8::Array> JsRecSetV = v8::Array::New(RecSetV.Len());
+    for (int RecSetN = 0; RecSetN < RecSetV.Len(); RecSetN++) {
+        JsRecSetV->Set(RecSetN, TJsRecSet::New(JsRecSet->Js, RecSetV[RecSetN]));
+    }
 	return v8::Undefined();
 }
 
@@ -4145,8 +4170,8 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
-    //const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 10000);
+    const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
+    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 1000);
     const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
@@ -4159,15 +4184,16 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
                     TLAMisc::GetMaxDimIdx(VecV), VecV.Len(), ClsV, SvmCost, 
-                    MxTime, MxIter, MnDiff, SampleSize, TEnv::Logger));
-//        } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
-//            // we have dense matrix on the input
-//            QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
-//            TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-//            return TJsSvmModel::New(JsAnalytics->Js, 
-//                TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
-//                    VecV.GetCols(), ClsV, SvmCost, MxTime, MxIter, MnDiff,
-//                    SampleSize, TEnv::Logger));
+                    SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
+                    TEnv::Logger));
+        } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
+            // we have dense matrix on the input
+            QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
+            TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
+            return TJsSvmModel::New(JsAnalytics->Js, 
+                TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
+                    VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
+                    MxIter, MnDiff, SampleSize, TEnv::Logger));
         } else {
             // TODO support JavaScript array of TJsFltV or TJsSpV
             throw TQmExcept::New("unsupported type of the first argument");
