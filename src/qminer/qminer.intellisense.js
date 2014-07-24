@@ -135,12 +135,18 @@ intellisenseIgnore["_htModel"] = "{}";
 intellisenseIgnore["_fsp"] = "{}";
 intellisenseIgnore["_twitterParser"] = "{}";
 intellisenseIgnore["_twitterDef"] = "{}";
-
-_vec[0] = 1; // vec is indexed and returns numbers
-_intVec[0] = 1; // vec is indexed and returns numbers
-_spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
-_rs[0] = _rec; // record set at index returns a record
-_store[0] = _rec; // store index operator returns a record
+intellisenseIgnore["_alModel"] = "{}";
+intellisenseIgnore["_batchModel"] = "{}";
+intellisenseIgnore["_fin"] = "{}";
+intellisenseIgnore["_fout"] = "{}";
+intellisenseIgnore["_hashTable"] = "{}";
+intellisenseIgnore["_httpResponse"] = "{}";
+intellisenseIgnore["_lloydModel"] = "{}";
+intellisenseIgnore["_model"] = "{}";
+intellisenseIgnore["_perceptronModel"] = "{}";
+intellisenseIgnore["_result"] = "{}";
+intellisenseIgnore["_ridgeRegressionModel"] = "{}";
+intellisenseIgnore["_sw"] = "{}";
 
 _addIntellisenseVar("_vec2", "_vec");
 _addIntellisenseVar("_vec3", "_vec");
@@ -237,15 +243,6 @@ var _store = new function () {
 
 	};
 
-	this.getStreamAggr = function () {
-	/// <signature>
-	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
-	/// <param name="_saName" value="_saName">param</param>
-	/// <returns value ="_objJSON"/>
-	/// </signature>
-
-	};
-
 	/// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
 	this.keys = _objArr;
 	/// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
@@ -254,6 +251,12 @@ var _store = new function () {
 	this.recs = _rs;
 	this.addStreamAggr = function () {
 	/// <signature>
+	/// <summary> add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
 	/// <summary> add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object</summary>
 	/// <param name="_paramJSON" value="_paramJSON">param</param>
 	/// <returns value =""/>
@@ -261,11 +264,11 @@ var _store = new function () {
 
 	};
 
-	this.addStreamAggrTrigger = function () {
+	this.getStreamAggr = function () {
 	/// <signature>
-	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
-	/// <param name="_satrigger" value="_satrigger">param</param>
-	/// <returns value =""/>
+	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
+	/// <param name="_saName" value="_saName">param</param>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 
 	};
@@ -1994,6 +1997,15 @@ var _rs = new function () {
 
 	};
 
+	this.split = function () {
+	/// <signature>
+	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets.</summary>
+	/// <param name="_splitterCallback" value="_splitterCallback">param</param>
+	/// <returns value ="_rsArr"/>
+	/// </signature>
+
+	};
+
 	this.sortById = function () {
 	/// <signature>
 	/// <summary> sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
@@ -2003,8 +2015,8 @@ var _rs = new function () {
 
 	};
 
-	/// <field name = "store" value = "_storeName"> store of the records</field>
-	this.store = _storeName;
+	/// <field name = "empty" value = "_bool"> `bool = true` when record set is empty</field>
+	this.empty = _bool;
 	this.sort = function () {
 	/// <signature>
 	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.</summary>
@@ -2094,8 +2106,8 @@ var _rs = new function () {
 
 	/// <field name = "length" value = "_len"> number of records in the set</field>
 	this.length = _len;
-	/// <field name = "empty" value = "_bool"> `bool = true` when record set is empty</field>
-	this.empty = _bool;
+	/// <field name = "store" value = "_storeName"> store of the records</field>
+	this.store = _storeName;
 	this.aggr = function () {
 	/// <signature>
 	/// <summary> returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set</summary>
@@ -3527,3 +3539,12 @@ var _sw = new function () {
 
 }
 
+
+// Manual override
+
+_vec[0] = 1; // vec is indexed and returns numbers
+_intVec[0] = 1; // vec is indexed and returns numbers
+_spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
+_rs[0] = _rec; // record set at index returns a record
+_store[0] = _rec; // store index operator returns a record
+_addIntellisenseVar("_rsArr", "[_rs]");

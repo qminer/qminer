@@ -296,6 +296,8 @@ public:
     static void AddVec(const double& k, const TFltV& x, const TFltV& y, TFltV& z);
     // z := k * X[ColId] + y
     static void AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFltV& y, TFltV& z);
+    // z := k * X(:,ColId) + y
+    static void AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y, TFltV& z);
     // z := x + y
 	static void AddVec(const TFltV& x, const TFltV& y, TFltV& z);
     // z := k * x + y
@@ -305,11 +307,11 @@ public:
     // y := k * x + y
     static void AddVec(const double& k, const TIntFltKdV& x, TFltV& y);
     // Y(:,Col) += k * X(:,Col)
-    static void AddVec(double k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY);
+    static void AddVec(const double& k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY);
 	// Y(:,ColIdY) += k * x
 	static void AddVec(const double& k, const TFltV& x, TFltVV& Y, const int& ColIdY);
     // Result += k * X(:,Col)
-    static void AddVec(double k, const TFltVV& X, int ColId, TFltV& Result);
+    static void AddVec(const double& k, const TFltVV& X, int ColId, TFltV& Result);
 	// z = x + y
     static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);	    
 

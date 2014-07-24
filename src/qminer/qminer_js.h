@@ -26,7 +26,15 @@
 #include <v8.h>
 #include <typeinfo>
 
+// automatically start V8 debugger when in debug mode
 #ifndef NDEBUG
+    #define V8_DEBUG
+#endif
+// uncomment when running V8 debugger in release mode
+#define V8_DEBUG
+
+#ifdef V8_DEBUG
+    // include v8 debug headers
 	#include <v8-debug.h>
 #endif
 
@@ -417,9 +425,10 @@ public:
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context
 	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
-	/// Execute JavaScript callback in this script's context
+	/// Execute JavaScript callback in this script's context given string argument
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
-
+	/// Execute JavaScript callback in this script's context given int argument
+	PJsonVal ExecuteJson(v8::Handle<v8::Function> Fun, const TInt& ArgInt);
 	/// Add new server function
 	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
 	/// Execute stored server function
@@ -910,16 +919,26 @@ private:
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
 
 public:
 	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
-	}
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal); }
+    
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);
-	PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+	PJsonVal SaveJson(const int& Limit) const {
+		if (!SaveJsonFun.IsEmpty()) {
+			PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
+			QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+			return Res;
+		}
+		else {
+			return TJsonVal::NewObj();
+		}
+	}
 };
 
 ///////////////////////////////
@@ -1098,9 +1117,8 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-	//#- `store.addStreamAggrTrigger(satrigger)` -- add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addStreamAggrTrigger);
-    //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
+	//#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
@@ -1175,6 +1193,24 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Record Comparator
+class TJsRecSplitter {
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	TWPt<TStore> Store;
+	// callbacks
+	v8::Persistent<v8::Function> SplitterFun;
+
+public:
+	TJsRecSplitter(TWPt<TScript> _Js, TWPt<TStore> _Store, 
+        const v8::Persistent<v8::Function>& _SplitterFun): 
+            Js(_Js), Store(_Store), SplitterFun(_SplitterFun) { }
+
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+};
+
+///////////////////////////////
 // QMiner-JavaScript-Record-Set
 //#
 //# ### Record set
@@ -1246,6 +1282,8 @@ public:
 	JsDeclareFunction(filterByField);
 	//#- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
 	JsDeclareFunction(filter);
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+   	JsDeclareFunction(split);
     //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify

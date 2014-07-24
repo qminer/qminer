@@ -52,9 +52,9 @@ public:
 
 template <class TVecV>
 TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
-        const TFltV& TargetV, const double& Cost, const int& MxSecs, 
-        const int& MxIter, const double& MnDiff, const int& SampleSize,
-        const PNotify& Notify = TStdNotify::New()) {
+        const TFltV& TargetV, const double& Cost, const double& UnbalanceWgt,
+        const int& MxSecs, const int& MxIter, const double& MnDiff, 
+        const int& SampleSize, const PNotify& Notify = TStdNotify::New()) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -62,7 +62,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     EAssertR(Cost > 0.0, "Cost parameter must be positive!");
     EAssertR(SampleSize > 0, "Sampling size must be positive!");
     EAssertR(MxIter > 1, "Number of iterations to small!");
-
+    
     // initialization 
     TRnd Rnd(1); 
     const double Lambda = 1.0 / (double(Vecs) * Cost);
@@ -73,9 +73,28 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     // allocate space for updates
     TFltV NewWgtV(Dims);
 
+    // split vectors into positive and negative 
+    TIntV PosVecIdV, NegVecIdV;
+    for (int VecN = 0; VecN < Vecs; VecN++) {
+        if (TargetV[VecN] > 0.0) {
+            PosVecIdV.Add(VecN);
+        } else {
+            NegVecIdV.Add(VecN);
+        }
+    }
+    const int PosVecs = PosVecIdV.Len(), NegVecs = NegVecIdV.Len();
+    // prepare sampling ratio between positive and negative
+    //  - the ration is uniform over the records when UnbalanceWgt == 1.0
+    //  - if smaller then 1.0, then there is bias towards negative
+    //  - if larger then 1.0, then there is bias towards positives
+    double SamplingRatio = (double(PosVecs) * UnbalanceWgt) /
+        (double(PosVecs) * UnbalanceWgt + double(NegVecs));
+    Notify->OnStatusFmt("Sampling ration 1 positive vs %.2f negative", 
+        (UnbalanceWgt / SamplingRatio - UnbalanceWgt));
+    
     TTmTimer Timer(MxSecs * 1000); int Iters = 0; double Diff = 1.0;
     Notify->OnStatusFmt("Limits: %d iterations, %d seconds, %.8f weight difference", MxIter, MxSecs, MnDiff);
-    
+    // initialize profiler    
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
     const int ProfilerBatch = Profiler.AddTimer("Batch");
@@ -86,7 +105,6 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g", 
             Iters, Timer.GetStopWatch().GetSec(), Diff);
     };
-    
     ProgressNotify();
        
     for (int IterN = 0; IterN < MxIter; IterN++) {
@@ -102,8 +120,10 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         
         // classify examples from the sample
         Profiler.StartTimer(ProfilerBatch);
-        for (int SampleN = 0; SampleN < SampleSize; SampleN++) {
-            const int VecN = Rnd.GetUniDevInt(Vecs);
+        for (int SampleN = 0; SampleN < SampleSize; SampleN++) {            
+            const int VecN = (Rnd.GetUniDev() > SamplingRatio) ?
+                NegVecIdV[Rnd.GetUniDevInt(NegVecs)] : // we select negative vector
+                PosVecIdV[Rnd.GetUniDevInt(PosVecs)];  // we select positive vector
             const double VecCfyVal = TargetV[VecN];
             const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
             if (CfyVal < 1.0) { 
