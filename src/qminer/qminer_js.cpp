@@ -301,7 +301,7 @@ TWPt<TScript> TScript::GetGlobal(v8::Handle<v8::Context>& Context) {
 }
 
 TScript::~TScript() {
-#ifndef NDEBUG
+#ifdef V8_DEBUG
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::Locker Locker(Isolate);
 #endif
@@ -312,8 +312,6 @@ TScript::~TScript() {
 	Context.Dispose();
 	// NOTE. There is no special reason for picking 11 iterations.
 	for(int i = 0; i < 11; ++i) { v8::V8::LowMemoryNotification(); }
-
-
 }
 
 void TScript::RegSrvFun(TSAppSrvFunV& SrvFunV) { 
@@ -673,7 +671,7 @@ void TScript::Init() {
 		InfoLog("  " + AllowedFPathV[AllowedDirsN].GetFPath());
 	}
 
-#ifndef NDEBUG
+#ifdef V8_DEBUG
 	// for debugging JavaScript
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::Locker Lock(Isolate);
@@ -4902,7 +4900,7 @@ v8::Handle<v8::Value> TJsProcess::sysStat(v8::Local<v8::String> Properties, cons
     StatVal->AddToObj("size", TUInt64::GetStr(MemStat.Size));
     StatVal->AddToObj("sizeKb", TUInt64::GetKiloStr(MemStat.Size));
     StatVal->AddToObj("sizeMb", TUInt64::GetMegaStr(MemStat.Size));
-#endif    	
+#endif
 	return HandleScope.Close(TJsUtil::ParseJson(StatVal));
 }
 	
