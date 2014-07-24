@@ -10,7 +10,7 @@ function testClassificationContAttr() {
 		"tieBreaking": 0.01,
 		"driftCheck": 1000,
 		"windowSize": 100000,
-		"conceptDriftP": false
+		"conceptDriftP": true
 	};
 	
 	// describe the data stream 

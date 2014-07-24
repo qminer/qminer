@@ -282,7 +282,7 @@ namespace THoeffding {
 		double CurrDist = 0.0, PrevDist = 0.0;
 		const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
 		const int Label = Example->Label;
-		// Add new bin, initialized with Val, if the number of bins didn't reach the treshold 
+		// Add new bin, initialized with Val, if the number of bins (BinsN) didn't reach the treshold 
 		if ((Idx = BinsV.SearchBin(Val)) == -1 && BinsV.Len() < BinsN) {
 			const int CrrBinId = IdGen->GetNextBinId();
 			const int CrrIdx = BinsV.AddSorted(TBin(Val, CrrBinId), true);
@@ -298,6 +298,7 @@ namespace THoeffding {
 				// NOTE: We could use binary search because of the ordering invariant; but the number of bins rarely exeecds 100 (hardcoded constant)
 				// While distance starts increasing, stop --- our bin is the one before the current one 
 				for (BinN = 1; BinN < BinsV.Len(); ++BinN) {
+					EAssertR(BinsV.GetVal(BinN-1).GetVal() <= BinsV.GetVal(BinN).GetVal(), "Bins not sorted.");
 					PrevDist = CurrDist;
 					if ((CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal())) > PrevDist) {
 						Idx = BinN-1; break;
@@ -326,7 +327,16 @@ namespace THoeffding {
 			} else { // Otherwise, decrement the closest bin that WAS NOT created after the example was accumulated 
 				Idx = 0;
 				// NOTE: We can't take the first bin as it may have been created AFTER the example was accumulated; instead we find the first suitable bin 
-				for (BinN = 0; BinN < BinsV.Len() && BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
+				// printf("BinsV.Len() = %d\n", BinsV.Len()); // XXX: Debug 
+				EAssertR(BinsV.Len() == BinsN, "Expected histogram to be filled with bins.");
+				// int MnBinId = BinsV.GetVal(0).Id;
+				// int MnIdx = 0;
+				for (BinN = 0; BinN < BinsV.Len() && BinsV.GetVal(BinN).Id > Example->BinId; ++BinN); // {
+					// MnBinId = TMath::Mn<int>(MnBinId, BinsV.GetVal(BinN).Id); // XXX: Debug
+					// if (BinsV.GetVal(BinN).Id <= Example->BinId) { MnIdx = BinN; } // XXX: Debug
+				// }
+				// printf("MnBinId = %d\nExample.BinId = %d\n", MnBinId, Example->BinId.Val);// XXX: Debug
+				// printf("idx = %d ; BinsN = %d\n", MnIdx, BinsN);// XXX: Debug
 				EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible."); // NOTE: For debugging purposes 
 				PrevIdx = Idx = BinN; // First suitable bin 
 				PrevDist = CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
@@ -873,6 +883,7 @@ namespace THoeffding {
 		}
 	}
 	void THoeffdingTree::DecCounts(PNode Node, PExample Example) const {
+		EAssertR(Node->Id <= Example->LeafId.Val, "The example did not affect this node.");
 		EAssertR(Node->PartitionV.GetVal(Example->Label)-- >= 0, "Negative partition count.");
 		EAssertR(--Node->ExamplesN >= 0, "Negative example count.");
 		int AttrN = 0;
@@ -892,6 +903,7 @@ namespace THoeffding {
 				}
 				break;										}
 			case atCONTINUOUS:
+				// printf("Decrementing count for attribute %s\n",  AttrManV.GetVal(It->Id).Nm.CStr()); // XXX: Debug 
 				Node->HistH.GetDat(AttrN).DecCls(Example, AttrN);
 				break;
 			default:
@@ -941,6 +953,7 @@ namespace THoeffding {
 					// Grow alternate tree 
 					Print('-');
 					printf("Starting alternate tree for node splitting on `%s' with `%s' at root ; tie = %d\n", AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr(), AttrManV.GetVal(SpltAttr.Val1.Val1).Nm.CStr(), EstG <= Eps);
+					// TODO: Give user a chance to export before the model changes 
 					// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", etDOT);
 					const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
 					PNode AltHt = TNode::New(LabelsN, CrrNode->UsedAttrs, AttrManV, IdGen->GetNextLeafId());

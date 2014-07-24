@@ -213,6 +213,7 @@ namespace THoeffding {
 		void Inc(const int& Label) {
 			while (Label >= PartitionV.Len()) { PartitionV.Add(0); }
 			PartitionV.GetVal(Label)++;
+			EAssertR(Count >= 0, "Negative count.");
 			++Count;
 		}
 		void Dec(const int& Label) { // NOTE: Asserts serve debugging purposes 
@@ -223,6 +224,7 @@ namespace THoeffding {
 		// NOTE: Here, ValueV.Len() is the number of examples in the leaf 
 		void Inc(const double& RegValue) { // Regression 
 			// ValueV.Add(RegValue);
+			EAssertR(Count >= 0, "Negative count.");
 			++Count;
 			const double Delta = RegValue - Mean;
 			T += RegValue;
@@ -325,7 +327,8 @@ namespace THoeffding {
 		TExample(const TAttributeV& AttributesV_, const double& Value_)
 			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(-1), Value(Value_) { }
 		TExample(const TExample& Example_) // Is this even necessary? Default seems OK 
-			: LeafId(Example_.LeafId), BinId(Example_.BinId), AttributesV(Example_.AttributesV), Label(Example_.Label), Value(Example_.Value) { }
+			: LeafId(Example_.LeafId), BinId(Example_.BinId), AttributesV(Example_.AttributesV),
+				Label(Example_.Label), Value(Example_.Value) { }
 		
 		TExample& operator=(const TExample& Example); // Is this even necessary? 
 		
