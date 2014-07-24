@@ -1741,4 +1741,7 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, 
         TSignalProc::etLinear, InitMinMSecs, InAggrNm, Prefix, SABase);
 };
-}
+
+} // TAggrs namespace
+
+} // TQm namespace
