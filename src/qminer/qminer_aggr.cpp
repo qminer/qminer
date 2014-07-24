@@ -1665,23 +1665,32 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 
 //////////////////////////////////////////////
 // Composed stream aggregators
-bool TCompositional::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
+bool TCompositional::IsCompositional(const TStr& TypeNm) {
+	if (TypeNm.EqI("itEma")) {
+        return true;
+    }    
+    return false;
+}
+
+void TCompositional::Register(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
 	if (TypeNm.EqI("itEma")) {
 		ItEma(Base, ParamVal);
-		return true;
-	} 
-	return false;	
+	} else {
+        throw TQmExcept::New("Unknown compositional stream aggregate " + TypeNm);
+    }
 };
 
-TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
-	const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
-	TWPt<TQm::TStreamAggrBase>& SABase){
+TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, 
+        const int& NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
+        const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
+        TWPt<TQm::TStreamAggrBase>& SABase){
+    
 	// Table of EMA names - starts with 1, because it will be pushed in RegItEmaMA
 	TStrV ItEmaNames(NumIter);
 	ItEmaNames[0] = Prefix + "_1";
 	// first iteration takes parameter InStoreNm as input name
-	SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[0], TmInterval, Type,
-		InitMinMSecs, InAggrNm, SABase));
+	SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[0], 
+        TmInterval, Type, InitMinMSecs, InAggrNm, SABase));
 	// the rest get previous iteration as input name
 	for (int Iter = 1; Iter < NumIter; Iter++){
 		ItEmaNames[Iter] = Prefix + "_" + TInt::GetStr(Iter + 1);
@@ -1698,14 +1707,16 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
 	TStr InStoreNm = ParamVal->GetObjStr("store");
 	TStr Prefix = ParamVal->GetObjStr("prefix", "itema");
-	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
-	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval,  TSignalProc::etLinear,
-		InitMinMSecs, InAggrNm, Prefix, SABase);
+	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(
+            Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
+	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, 
+        TSignalProc::etLinear, InitMinMSecs, InAggrNm, Prefix, SABase);
 };
 
-void TCompositional::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
-		const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast, const TStrV& InStoreNmV,
-		const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV) {
+void TCompositional::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, 
+        const TStr& OutStoreNm, const TStr& OutTmFieldNm, const bool& CreateStoreP, 
+        const bool& OnlyPast, const TStrV& InStoreNmV, const TStrV& InFldNmV, 
+        const TStrV& OutFldNmV, const TStrV& InterpV) {
 		//TStMerger StMerger(TStMerger::New(Base, StoresAndFieldsV, AggrNm,
 		//	InterpolationsV, NewStoreNm, NewTmFieldNm, false));
 
@@ -1722,11 +1733,11 @@ void TCompositional::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm,
 		}
 	}
 
-	Base->AddStreamAggr(StoreIdV,
-			TStMerger::New(
-					Base, AggrNm, OutStoreNm, OutTmFieldNm, CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, OutFldNmV, InterpV));
-
+	Base->AddStreamAggr(StoreIdV, TStMerger::New(Base, AggrNm, OutStoreNm, 
+        OutTmFieldNm, CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, 
+        OutFldNmV, InterpV));
 }
+
 void TCompositional::TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal) {
 	//input parameters
 	TStr OutStoreNm = ParamVal->GetObjStr("outStore");
@@ -1754,7 +1765,8 @@ void TCompositional::TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJso
 		InterpV.Add(InterpNm);
 	}
 
-	TCompositional::TStMerger(Base, AggrNm, OutStoreNm, TimeFieldNm, CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, OutFldNmV, InterpV);
+	TCompositional::TStMerger(Base, AggrNm, OutStoreNm, TimeFieldNm, 
+            CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, OutFldNmV, InterpV);
 };
 
 }

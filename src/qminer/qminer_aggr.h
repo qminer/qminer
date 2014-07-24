@@ -788,20 +788,24 @@ public:
 class TCompositional {
 private:
 public:
+    // checks the type is compositional
+    static bool IsCompositional(const TStr& TypeNm);
 	// Calls the constructor given type
-	static bool New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
+	static void Register(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
+    
 	// Creates and connects IterN Ema aggregates and returns the vector of their names. Result[0] corresponds to the aggregate that is connected to the InAggrNm
-	static TStrV ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt Order, const double& TmInterval, const TSignalProc::TEmaType& Type,
+	static TStrV ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, 
+        const int& Order, const double& TmInterval, const TSignalProc::TEmaType& Type,
 		const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
 		TWPt<TQm::TStreamAggrBase>& SABase);
 	static TStrV ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    // creates new 
 	static void TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& ExactInterp, const TStrV& InStoreNmV,
 			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV);
 	static void TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal);
-
 };
-
 
 } // TStreamAggrs namespace
 

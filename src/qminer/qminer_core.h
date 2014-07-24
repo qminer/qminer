@@ -2438,7 +2438,7 @@ public:
 	/// Serialization current status to JSon
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
-	/// Unique ID of the trigger
+	/// Unique ID of the stream aggregate
 	const TStr& GetGuid() const { return Guid; }    
 };
 

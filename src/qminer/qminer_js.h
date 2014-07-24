@@ -922,8 +922,8 @@ private:
 public:
 	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
-	}
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal); }
+    
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);

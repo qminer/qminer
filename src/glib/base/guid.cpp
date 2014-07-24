@@ -47,3 +47,10 @@ TStr TGuid::GenGuid() {
 }
 
 #endif
+
+TStr TGuid::GenSafeGuid() { 
+    TChA GuidChA = "GUID_";
+    GuidChA += GenGuid();
+    GuidChA.ChangeCh('-', '_');
+    return GuidChA;
+}
