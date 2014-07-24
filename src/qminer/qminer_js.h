@@ -1117,9 +1117,8 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-	//#- `store.addStreamAggrTrigger(satrigger)` -- add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addStreamAggrTrigger);
-    //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
+	//#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
