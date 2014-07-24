@@ -1075,8 +1075,9 @@ namespace THoeffding {
 		} else { // No concept drift detection 
 			// if (!TestMode(CrrNode)) { // NOTE: This shoudl be false for VFDT because
 			// AltTressV.Empty() is always true: there are no alternate trees in VFDT.
-				while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-				ProcessLeafCls(CrrNode, Example);
+			// EAssertR(!TestMode(CrrNode), "Can't be self-evaluating in adaptive mode.");
+			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
+			ProcessLeafCls(CrrNode, Example);
 			// } else {
 			//	SelfEval(CrrNode, Example);
 			// }
@@ -1093,13 +1094,13 @@ namespace THoeffding {
 		for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
 			PNode CrrNode = *It;
 			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-			(*It)->Correct += Example->Label == NaiveBayes(CrrNode, Example);
+			(*It)->Correct += (Example->Label == Majority(CrrNode)); // NaiveBayes(CrrNode, Example);
 			++(*It)->All;
 		}
 		// Update classfication error for the main subtree 
 		PNode CrrNode = Node;
 		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-		Node->Correct += Example->Label == NaiveBayes(CrrNode, Example);
+		Node->Correct += (Example->Label == Majority(CrrNode)); // NaiveBayes(CrrNode, Example);
 		++Node->All;
 	}
 	bool THoeffdingTree::TestMode(PNode Node) {

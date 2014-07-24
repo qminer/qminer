@@ -120,7 +120,7 @@ function testClassification() {
 	var ht = analytics.newHoeffdingTree(titanicCfg, htParams);
 
 	// train the model
-	var streamData = fs.openRead("./sandbox/ht/titanic.txt");
+	var streamData = fs.openRead("./sandbox/ht/titanic-4M.dat");
 	var examplesN = 0;
 	while (!streamData.eof) {
 		var line = streamData.getNextLn().split(",");
@@ -159,7 +159,7 @@ function testRegression() {
 		"tieBreaking": 0.005,
 		"driftCheck": 1000,
 		"windowSize": 100000,
-		"conceptDriftP": false
+		"conceptDriftP": true
 	};
 	
 	// describe the data stream 
@@ -215,11 +215,11 @@ function testRegression() {
 	ht.exportModel({ "file": "./sandbox/ht/regression-test.gv", "type": "DOT" });
 }
 
-console.say(" --- Example using classification HoeffdingTree --- ");
-testClassificationContAttr();
+// console.say(" --- Example using classification HoeffdingTree --- ");
+// testClassificationContAttr();
 // testClassification();
-// console.say(" --- Example using regression HoeffdingTree --- ");
-// testRegression();
+console.say(" --- Example using regression HoeffdingTree --- ");
+testRegression();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();
