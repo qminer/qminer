@@ -74,7 +74,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     TFltV NewWgtV(Dims);
 
     // split vectors into positive and negative 
-    TFltV PosVecIdV, NegVecIdV;
+    TIntV PosVecIdV, NegVecIdV;
     for (int VecN = 0; VecN < Vecs; VecN++) {
         if (TargetV[VecN] > 0.0) {
             PosVecIdV.Add(VecN);

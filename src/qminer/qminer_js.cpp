@@ -2771,7 +2771,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::plus(const v8::Arguments& Args) {
 				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() >= JsVec->Dim, "vector + sp_vector: dimensions mismatch");
 				if (JsVec->Dim == -1) {
-					QmAssertR(JsFltV->Vec.Len() >= TLAMisc::GetMaxDimIdx(JsVec->Vec), "vector + sp_vector: index overflow");
+					QmAssertR(JsFltV->Vec.Len() >= TLAMisc::GetMaxDimIdx(JsVec->Vec) + 1, "vector + sp_vector: index overflow");
 				}
 				// create JS result and get the internal data				
 				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
@@ -4171,7 +4171,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
+    const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 1000);
     const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
@@ -4183,7 +4183,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
             TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
-                    TLAMisc::GetMaxDimIdx(VecV), VecV.Len(), ClsV, SvmCost, 
+                    TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
                     SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
                     TEnv::Logger));
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
