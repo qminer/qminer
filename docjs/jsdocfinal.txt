@@ -171,6 +171,7 @@ the set.
 - `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
 - `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
 - `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
+- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
 - `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
 - `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 - `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:

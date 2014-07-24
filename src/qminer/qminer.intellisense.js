@@ -2000,6 +2000,15 @@ var _rs = new function () {
 
 	};
 
+	this.split = function () {
+	/// <signature>
+	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets.</summary>
+	/// <param name="_splitterCallback" value="_splitterCallback">param</param>
+	/// <returns value ="_rsArr"/>
+	/// </signature>
+
+	};
+
 	this.sortById = function () {
 	/// <signature>
 	/// <summary> sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
@@ -2009,8 +2018,8 @@ var _rs = new function () {
 
 	};
 
-	/// <field name = "store" value = "_storeName"> store of the records</field>
-	this.store = _storeName;
+	/// <field name = "empty" value = "_bool"> `bool = true` when record set is empty</field>
+	this.empty = _bool;
 	this.sort = function () {
 	/// <signature>
 	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.</summary>
@@ -2100,8 +2109,8 @@ var _rs = new function () {
 
 	/// <field name = "length" value = "_len"> number of records in the set</field>
 	this.length = _len;
-	/// <field name = "empty" value = "_bool"> `bool = true` when record set is empty</field>
-	this.empty = _bool;
+	/// <field name = "store" value = "_storeName"> store of the records</field>
+	this.store = _storeName;
 	this.aggr = function () {
 	/// <signature>
 	/// <summary> returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set</summary>
@@ -3541,3 +3550,4 @@ _intVec[0] = 1; // vec is indexed and returns numbers
 _spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
 _rs[0] = _rec; // record set at index returns a record
 _store[0] = _rec; // store index operator returns a record
+_addIntellisenseVar("_rsArr", "[_rs]");
