@@ -329,7 +329,7 @@ namespace THoeffding {
 		
 		TExample& operator=(const TExample& Example); // Is this even necessary? 
 		
-		inline bool operator<(const TExample& Example) const { return Label < Example.Label; } /* *** */
+		inline bool operator<(const TExample& Example) const { return Label < Example.Label; } /* TODO: Harmful? Solve this another way */
 		inline bool operator==(const TExample& Example) const {
 			return LeafId == Example.LeafId && AttributesV == Example.AttributesV && 
 				BinId == Example.BinId && Label == Example.Label && Value == Example.Value;
