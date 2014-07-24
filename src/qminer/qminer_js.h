@@ -417,9 +417,10 @@ public:
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context
 	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
-	/// Execute JavaScript callback in this script's context
+	/// Execute JavaScript callback in this script's context given string argument
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
-
+	/// Execute JavaScript callback in this script's context given int argument
+	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TInt& ArgInt);
 	/// Add new server function
 	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
 	/// Execute stored server function
@@ -910,6 +911,7 @@ private:
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
 
 public:
 	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
@@ -919,7 +921,16 @@ public:
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);
-	PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+	PJsonVal SaveJson(const int& Limit) const {
+		if (!SaveJsonFun.IsEmpty()) {
+			PJsonVal Res = TJsonVal::GetValFromStr(Js->ExecuteStr(SaveJsonFun, Limit));
+			QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+			return Res;			
+		}
+		else {
+			return TJsonVal::NewObj();
+		}
+	}
 };
 
 ///////////////////////////////

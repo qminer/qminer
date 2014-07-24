@@ -489,6 +489,20 @@ TStr TScript::ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str) {
 	throw TQmExcept::New("Wrong return type!");
 }
 
+TStr TScript::ExecuteStr(v8::Handle<v8::Function> Fun, const TInt& ArgInt) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { v8::Number::New((double)ArgInt) };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
+	// check we got what we expected
+	if (RetVal->IsString()) { return TStr(*v8::String::Utf8Value(RetVal)); }
+	// else complain
+	throw TQmExcept::New("Wrong return type!");
+}
+
 void TScript::AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, 
 		const TStr& Verb, const v8::Persistent<v8::Function>& JsFun) {
 		
@@ -945,6 +959,11 @@ TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<
 		v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::New("onDelete"));
 		QmAssert(_OnDeleteFun->IsFunction());
 		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
+	}
+	if (TriggerVal->Has(v8::String::New("saveJson"))) {
+		v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
+		QmAssert(_SaveJsonFun->IsFunction());
+		SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
 	}
 }
 
