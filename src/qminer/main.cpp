@@ -235,7 +235,7 @@ public:
 	}
 };
 
-#ifndef NDEBUG
+#ifdef V8_DEBUG
 // for debugging JavaScript copied from linneprocessor.cc
 v8::Persistent<v8::Context> DebugContext;
 
@@ -263,10 +263,10 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
         TQm::InfoLog("Set limit to script " + OnlyScriptNm);
     }
 
-#ifndef NDEBUG
+#ifdef V8_DEBUG
     // for debugging JavaScript
     printf("=================================================\n");
-    printf("Initializing debugger...\n");
+    printf("Initializing V8 debugger...\n");
     const int DebugPort = 9222;
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::Locker Locker(Isolate);
@@ -278,7 +278,6 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
 	v8::Handle<v8::Context> context = v8::Context::New(NULL, global);
 
 	DebugContext = v8::Persistent<v8::Context>::New(Isolate, context);
-
 	
 	v8::Debug::SetDebugMessageDispatchHandler(DispatchDebugMessages, true);
 	v8::Debug::EnableAgent("QMiner", DebugPort, false);

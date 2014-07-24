@@ -26,7 +26,15 @@
 #include <v8.h>
 #include <typeinfo>
 
+// automatically start V8 debugger when in debug mode
 #ifndef NDEBUG
+    #define V8_DEBUG
+#endif
+// uncomment when running V8 debugger in release mode
+#define V8_DEBUG
+
+#ifdef V8_DEBUG
+    // include v8 debug headers
 	#include <v8-debug.h>
 #endif
 
@@ -916,8 +924,8 @@ private:
 public:
 	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
-	}
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal); }
+    
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);
