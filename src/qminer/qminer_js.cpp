@@ -489,7 +489,7 @@ TStr TScript::ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str) {
 	throw TQmExcept::New("Wrong return type!");
 }
 
-TStr TScript::ExecuteStr(v8::Handle<v8::Function> Fun, const TInt& ArgInt) {
+PJsonVal TScript::ExecuteJson(v8::Handle<v8::Function> Fun, const TInt& ArgInt) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
 	const int Argc = 1;
@@ -498,9 +498,11 @@ TStr TScript::ExecuteStr(v8::Handle<v8::Function> Fun, const TInt& ArgInt) {
 	// handle errors
 	TJsUtil::HandleTryCatch(TryCatch);
 	// check we got what we expected
-	if (RetVal->IsString()) { return TStr(*v8::String::Utf8Value(RetVal)); }
+	if (RetVal->IsObject()) { 
+		return TJsonVal::GetValFromStr(TJsUtil::V8JsonToStr(RetVal));
+	}
 	// else complain
-	throw TQmExcept::New("Wrong return type!");
+	throw TQmExcept::New("Wrong return type, expected JSON!");
 }
 
 void TScript::AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, 
