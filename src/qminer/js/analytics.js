@@ -781,3 +781,121 @@ exports.perceptron = function (dim, use_bias) {
     };
 
 };
+
+
+///////// ONLINE KNN REGRESSION 
+//#- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
+//#  requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
+//#  when using inverse distance weighting average to compute prediction. The model exposes the following functions:
+exports.newKNearestNeighbors = function (k, buffer, power) {
+    return new analytics.kNearestNeighbors(k, buffer, power);
+}
+exports.kNearestNeighbors = function (k, buffer, power) {
+    this.X = la.newMat();
+    this.y = la.newVec();
+    this.k = k;
+
+    // Optional parameters
+    var power = typeof power !== 'undefined' ? power : 1;
+    buffer = typeof buffer !== 'undefined' ? buffer : -1;
+
+    // Internal vector logs to create X and y
+    var matrixVec = [];
+    var targetVec = [];
+
+    //#   - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
+    this.update = function (vec, num) {
+        //console.log("Updated..."); //DEBUG
+        add(vec, num);
+        this.X = getColMatrix();
+        this.y = getTargetVec();
+    }
+
+    //#   - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
+    //#   using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
+    this.predict = function (vec) {
+        if (this.X.cols < this.k) { return -1 }
+        var neighbors = this.getNearestNeighbors(vec); //vector of indexes
+        var targetVals = this.y.subVec(neighbors.perm);
+        var prediction = getAverage(targetVals); // using simple average
+        //var prediction = getIDWAverage(targetVals, neighbors.vec, power); // using inverse distance weighting average
+        return prediction;
+    }
+
+    //#   - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
+    this.getNearestNeighbors = function (vec) {
+        var distVec = la.pdist2(this.X, la.repvec(vec, 1, this.X.cols)).getCol(0);
+        var sortRes = distVec.sortPerm(); // object with two vectors: values and indexes
+
+        var result = new Object();
+        var newPerm = la.newIntVec({ "vals": this.k, "mxvals": this.k });
+        var newVec = la.newVec({ "vals": this.k, "mxvals": this.k });
+        for (var ii = 0; ii < this.k; ii++) {
+            newPerm[ii] = sortRes.perm[ii];
+            newVec[ii] = sortRes.vec[ii];
+        }
+        result.perm = newPerm;
+        result.vec = newVec;
+        return result; // object with two vectors: values and indexes
+    }
+
+    // Calculate simple average
+    getAverage = function (vec) {
+        var sum = vec.sum();
+        var avr = sum / vec.length;
+        return avr;
+    }
+
+    // Inverse distance weighting average
+    getIDWAverage = function (vec, dist, power) {
+        var numerator = la.elementByElement(vec, dist, function (a, b) { return result = b == 0 ? a : a / Math.pow(b, power) }).sum();
+        var denumerator = la.elementByElement(la.ones(dist.length), dist, function (a, b) { return result = b == 0 ? a : a / Math.pow(b, power) }).sum();
+        return numerator / denumerator;
+    }
+
+    // Used for updatig
+    add = function (x, target) {
+        matrixVec.push(x);
+        targetVec.push(target);
+        if (buffer > 0) {
+            if (matrixVec.length > buffer) {
+                this.forget(matrixVec.length - buffer);
+            }
+        }
+    }
+
+    // Create row matrix from matrixVec array log
+    getMatrix = function () {
+        if (matrixVec.length > 0) {
+            var A = la.newMat({ "cols": matrixVec[0].length, "rows": matrixVec.length });
+            for (var i = 0; i < matrixVec.length; i++) {
+                A.setRow(i, matrixVec[i]);
+            }
+            return A;
+        }
+    };
+
+    // Create column matrix from matrixVec array log
+    getColMatrix = function () {
+        if (matrixVec.length > 0) {
+            var A = la.newMat({ "cols": matrixVec.length, "rows": matrixVec[0].length });
+            for (var i = 0; i < matrixVec.length; i++) {
+                A.setCol(i, matrixVec[i]);
+            }
+            return A;
+        }
+    };
+
+    // Forget function used in buffer. Deletes first `n` (integer) examples from the training set
+    forget = function (ndeleted) {
+        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
+        ndeleted = Math.min(matrixVec.length, ndeleted);
+        matrixVec.splice(0, ndeleted);
+        targetVec.splice(0, ndeleted);
+    };
+
+    // Create vector from targetVec array
+    getTargetVec = function () {
+        return la.copyFltArrayToVec(targetVec);
+    }
+}
