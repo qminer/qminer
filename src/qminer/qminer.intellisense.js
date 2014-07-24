@@ -243,15 +243,6 @@ var _store = new function () {
 
 	};
 
-	this.getStreamAggr = function () {
-	/// <signature>
-	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
-	/// <param name="_saName" value="_saName">param</param>
-	/// <returns value ="_objJSON"/>
-	/// </signature>
-
-	};
-
 	/// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
 	this.keys = _objArr;
 	/// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
@@ -260,6 +251,12 @@ var _store = new function () {
 	this.recs = _rs;
 	this.addStreamAggr = function () {
 	/// <signature>
+	/// <summary> add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
 	/// <summary> add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object</summary>
 	/// <param name="_paramJSON" value="_paramJSON">param</param>
 	/// <returns value =""/>
@@ -267,11 +264,11 @@ var _store = new function () {
 
 	};
 
-	this.addStreamAggrTrigger = function () {
+	this.getStreamAggr = function () {
 	/// <signature>
-	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
-	/// <param name="_satrigger" value="_satrigger">param</param>
-	/// <returns value =""/>
+	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
+	/// <param name="_saName" value="_saName">param</param>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 
 	};
