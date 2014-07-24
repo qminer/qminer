@@ -1216,7 +1216,6 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
-		JsRegisterFunction(TmpTemp, addStreamAggrTrigger);
         JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
@@ -1434,23 +1433,6 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Null());
 }
 
-v8::Handle<v8::Value> TJsStore::addStreamAggrTrigger(const v8::Arguments& Args) {
-    InfoLog("Warning: addStreamAggrTrigger is replaced by addStreamAggr");
-    
-	v8::HandleScope HandleScope;
-	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-	// parse parameters
-	QmAssert(Args.Length() == 1);
-	v8::Handle<v8::Value> TriggerVal = Args[0];
-	QmAssert(TriggerVal->IsObject());
-	TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
-    
-	// add trigger
-	PStreamAggr Trigger = TJsStreamAggr::New(JsStore->Js, AggrName, TriggerVal->ToObject());
-	JsStore->Js->Base->GetStreamAggrBase(JsStore->Store->GetStoreId())->AddStreamAggr(Trigger);
-	
-	return HandleScope.Close(v8::Null());
-}
 
 v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
