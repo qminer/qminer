@@ -822,7 +822,7 @@ public:
 	// did we finish initialization
 	bool IsInit() const { return true; }
 	// retrieving vector of values from the aggregate
-	int GetFltLen() const { return Vec.Len(); }
+	int GetFltLen() const { return FtrSpace->GetDim(); }
 	void GetFltV(TFltV& ValV) const { ValV = Vec; }
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
