@@ -257,6 +257,12 @@ var _store = new function () {
 	/// </signature>
 
 	/// <signature>
+	/// <summary> add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	/// <signature>
 	/// <summary> add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object</summary>
 	/// <param name="_paramJSON" value="_paramJSON">param</param>
 	/// <returns value =""/>
@@ -655,6 +661,50 @@ var _ridgeRegressionModel = new function () {
 
 }
 
+var _assert = new function () {
+	this.run = function () {
+	/// <signature>
+	/// <summary> prints success if this code is reached</summary>
+	/// <param name="_test" value="_test">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.ok = function () {
+	/// <signature>
+	/// <summary>  `test` is boolean, prints message `msg` if test is true</summary>
+	/// <param name="_test" value="_test">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.equals = function () {
+	/// <signature>
+	/// <summary>  checks if object `obj==obj2` and prints message `msg`</summary>
+	/// <param name="_obj" value="_obj">param</param>
+	/// <param name="_obj2" value="_obj2">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.exists = function () {
+	/// <signature>
+	/// <summary>  checks if object `obj` exists (!=null) and prints message `msg`</summary>
+	/// <param name="_obj" value="_obj">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+}
+
 var _hashTable = new function () {
 	/// <field name = "keys" value = "_strArr"> array of keys (strings)</field>
 	this.keys = _strArr;
@@ -735,6 +785,8 @@ var _rec = new function () {
 
 	/// <field name = "$id" value = "_recId"> returns record ID</field>
 	this.$id = _recId;
+	/// <field name = "$store" value = "_recStore"> returns record store</field>
+	this.$store = _recStore;
 	/// <field name = "$fq" value = "_recFq"> returns record frequency (used for randomized joins)</field>
 	this.$fq = _recFq;
 	/// <field name = "$name" value = "_recName"> returns record name</field>
@@ -792,11 +844,12 @@ var _analytics = new function () {
 
 	};
 
-	this.newRecLinReg = function () {
+	this.newLloyd = function () {
 	/// <signature>
-	/// <summary> create new recursive linear regression</summary>
-	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
-	/// <returns value ="_recLinRegModel"/>
+	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_lloydModel"/>
 	/// </signature>
 
 	};
@@ -895,12 +948,24 @@ var _analytics = new function () {
 
 	};
 
-	this.newLloyd = function () {
+	this.trainSvmClassify = function () {
 	/// <signature>
-	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
-	/// <param name="_dim" value="_dim">param</param>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	};
+
+	this.newKNearestNeighbors = function () {
+	/// <signature>
+	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
 	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_lloydModel"/>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <param name="_power" value="_power">param</param>
+	/// <returns value ="_kNearestNeighbors"/>
 	/// </signature>
 
 	};
@@ -930,13 +995,11 @@ var _analytics = new function () {
 
 	};
 
-	this.trainSvmClassify = function () {
+	this.newRecLinReg = function () {
 	/// <signature>
-	/// <summary> trains binary</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmParameters" value="_svmParameters">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <summary> create new recursive linear regression</summary>
+	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	};
@@ -1367,6 +1430,17 @@ var la = new function () {
 
 	};
 
+	this.elementByElement = function () {
+	/// <signature>
+	/// <summary> performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	};
+
 	this.genRandom = function () {
 	/// <signature>
 	/// <summary> `num` is a sample from a standard normal random variable</summary>
@@ -1753,6 +1827,34 @@ var _svmModel = new function () {
 
 	/// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 	this.weights = _vec;
+}
+
+var _kNearestNeighbors = new function () {
+	this.predict = function () {
+	/// <signature>
+	/// <summary> predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_object"/>
+	/// </signature>
+
+	};
+
+	this.update = function () {
+	/// <signature>
+	/// <summary> adds a vector `vec` and target `num` (number) to the "training" set</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
 }
 
 var _utilities = new function () {
