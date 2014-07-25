@@ -212,6 +212,7 @@ public:
 	TJoinSeq(const TWPt<TBase>& Base, const uint& _StartStoreId, const PJsonVal& JoinSeqVal);
 	
 	TJoinSeq(TSIn& SIn): StartStoreId(SIn), JoinIdV(SIn) { }
+	void Load(TSIn& SIn) { StartStoreId.Load(SIn); JoinIdV.Load(SIn); }
 	void Save(TSOut& SOut) const { StartStoreId.Save(SOut); JoinIdV.Save(SOut); }
 
 	/// Is the join sequence valid
@@ -232,6 +233,10 @@ public:
 
 	/// Readable string representation of join sequence
 	TStr GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr = ".") const;
+
+	int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetPrimHashCd(), JoinIdV.GetPrimHashCd()); }
+	int GetSecHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetSecHashCd(), JoinIdV.GetSecHashCd()); }
+	
 };
 typedef TVec<TJoinSeq> TJoinSeqV;
 
@@ -2479,8 +2484,11 @@ namespace TStreamAggrOut {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetFltLen() const = 0;
+		virtual double GetFlt(const TInt& ElN) const = 0;
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
+
+	class IFltVecTm : public IFltVec, public ITm { };
 
 	class INmFlt {
 	public:

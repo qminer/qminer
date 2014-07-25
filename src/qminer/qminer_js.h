@@ -28,10 +28,10 @@
 
 // automatically start V8 debugger when in debug mode
 #ifndef NDEBUG
-    #define V8_DEBUG
+    //#define V8_DEBUG
 #endif
 // uncomment when running V8 debugger in release mode
-#define V8_DEBUG
+//#define V8_DEBUG
 
 #ifdef V8_DEBUG
     // include v8 debug headers
@@ -425,9 +425,10 @@ public:
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context
 	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
-	/// Execute JavaScript callback in this script's context
+	/// Execute JavaScript callback in this script's context given string argument
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
-
+	/// Execute JavaScript callback in this script's context given int argument
+	PJsonVal ExecuteJson(v8::Handle<v8::Function> Fun, const TInt& ArgInt);
 	/// Add new server function
 	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
 	/// Execute stored server function
@@ -918,6 +919,7 @@ private:
 	v8::Persistent<v8::Function> OnAddFun;
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
 
 public:
 	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
@@ -927,7 +929,16 @@ public:
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);
-	PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewObj(); }
+	PJsonVal SaveJson(const int& Limit) const {
+		if (!SaveJsonFun.IsEmpty()) {
+			PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
+			QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+			return Res;
+		}
+		else {
+			return TJsonVal::NewObj();
+		}
+	}
 };
 
 ///////////////////////////////
@@ -1106,9 +1117,9 @@ public:
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
-	//#- `store.addStreamAggrTrigger(satrigger)` -- add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addStreamAggrTrigger);
-    //#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
+	//#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+	//#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 	JsDeclareFunction(getStreamAggr);
@@ -1335,6 +1346,8 @@ public:
     JsDeclareProperty(name);
     //#- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	JsDeclareProperty(fq);
+	//#- `recStore = rec.$store` -- returns record store
+	JsDeclareProperty(store);
     //#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
@@ -2193,7 +2206,7 @@ public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace) { 
 		return TJsFtrSpaceUtil::New(new TJsFtrSpace(Js, FtrSpace)); }
     static PFtrSpace GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN);
-
+	static PFtrSpace GetArgFtrSpace(v8::Handle<v8::Value> Val);
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	//# 

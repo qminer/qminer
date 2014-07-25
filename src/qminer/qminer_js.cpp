@@ -487,6 +487,22 @@ TStr TScript::ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str) {
 	throw TQmExcept::New("Wrong return type!");
 }
 
+PJsonVal TScript::ExecuteJson(v8::Handle<v8::Function> Fun, const TInt& ArgInt) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { v8::Number::New((double)ArgInt) };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
+	// check we got what we expected
+	if (RetVal->IsObject()) { 
+		return TJsonVal::GetValFromStr(TJsUtil::V8JsonToStr(RetVal));
+	}
+	// else complain
+	throw TQmExcept::New("Wrong return type, expected JSON!");
+}
+
 void TScript::AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, 
 		const TStr& Verb, const v8::Persistent<v8::Function>& JsFun) {
 		
@@ -944,6 +960,11 @@ TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<
 		QmAssert(_OnDeleteFun->IsFunction());
 		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
 	}
+	if (TriggerVal->Has(v8::String::New("saveJson"))) {
+		v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
+		QmAssert(_SaveJsonFun->IsFunction());
+		SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+	}
 }
 
 void TJsStreamAggr::OnAddRec(const TRec& Rec) {
@@ -1159,15 +1180,26 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	} else {
     	// create new aggregate
         PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-    	// add the stream aggregate to all the stores specified in the parameters
-        QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
-    	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
-    	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
-        	PJsonVal Entry = MrgMapV->GetArrVal(i);
-    		const TStr InStore = Entry->GetObjStr("inStore");
-    		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
-    		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
-        }
+		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
+		TStrV InterpNmV;
+		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
+		for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+			PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
+			PJsonVal SourceVal = FieldVal->GetObjKey("source");
+			TStr StoreNm = "";
+			if (SourceVal->IsStr()) {
+				// we have just store name
+				StoreNm = SourceVal->GetStr();
+			}
+			else if (SourceVal->IsObj()) {
+				// get store
+				StoreNm = SourceVal->GetObjStr("store");
+				JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+				
+			}
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+			
+		}
     }
 	return HandleScope.Close(v8::Null());
 }
@@ -1195,7 +1227,6 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
-		JsRegisterFunction(TmpTemp, addStreamAggrTrigger);
         JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
@@ -1413,30 +1444,13 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Null());
 }
 
-v8::Handle<v8::Value> TJsStore::addStreamAggrTrigger(const v8::Arguments& Args) {
-    InfoLog("Warning: addStreamAggrTrigger is replaced by addStreamAggr");
-    
-	v8::HandleScope HandleScope;
-	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-	// parse parameters
-	QmAssert(Args.Length() == 1);
-	v8::Handle<v8::Value> TriggerVal = Args[0];
-	QmAssert(TriggerVal->IsObject());
-	TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
-    
-	// add trigger
-	PStreamAggr Trigger = TJsStreamAggr::New(JsStore->Js, AggrName, TriggerVal->ToObject());
-	JsStore->Js->Base->GetStreamAggrBase(JsStore->Store->GetStoreId())->AddStreamAggr(Trigger);
-	
-	return HandleScope.Close(v8::Null());
-}
 
 v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
     // we have only one parameter which is supposed to be object
     QmAssertR(Args.Length() == 1, "store.addStreamAggr expects one parameter");
-    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");
+    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");	
     // get aggregate type
     TStr TypeNm = TJsStoreUtil::GetArgStr(Args, 0, "type", "javaScript");
     // check if the aggregate is composed (called from composer)
@@ -1450,7 +1464,19 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
             JsStore->Js, AggrName, Args[0]->ToObject());
         // add it to the stream base for store
         JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
-    } else {
+	}
+	else if (TypeNm == "ftrext") {
+		TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
+		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		
+		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
+		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsStore->Js->Base, AggrName, FtrSpace);
+		// add it to the stream base for store
+		JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
+
+	} else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
         PJsonVal ParamVal = TJsStoreUtil::GetArgJson(Args, 0);
         // add store parameter
@@ -1973,6 +1999,7 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 		JsLongRegisterProperty(TmpTemp, "$id", id);
 		JsLongRegisterProperty(TmpTemp, "$name", name);
 		JsLongRegisterProperty(TmpTemp, "$fq", fq);
+		JsLongRegisterProperty(TmpTemp, "$store", store);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, addJoin);
 		JsRegisterFunction(TmpTemp, delJoin);
@@ -2031,6 +2058,12 @@ v8::Handle<v8::Value> TJsRec::fq(v8::Local<v8::String> Properties, const v8::Acc
 	v8::HandleScope HandleScope;
 	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsRec->Fq));
+}
+
+v8::Handle<v8::Value> TJsRec::store(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsRec* JsRec = TJsRecUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStore::New(JsRec->Js, JsRec->Store()));
 }
 
 v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -2785,7 +2818,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::plus(const v8::Arguments& Args) {
 				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() >= JsVec->Dim, "vector + sp_vector: dimensions mismatch");
 				if (JsVec->Dim == -1) {
-					QmAssertR(JsFltV->Vec.Len() >= TLAMisc::GetMaxDimIdx(JsVec->Vec), "vector + sp_vector: index overflow");
+					QmAssertR(JsFltV->Vec.Len() >= TLAMisc::GetMaxDimIdx(JsVec->Vec) + 1, "vector + sp_vector: index overflow");
 				}
 				// create JS result and get the internal data				
 				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
@@ -4197,7 +4230,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
             TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
-                    TLAMisc::GetMaxDimIdx(VecV), VecV.Len(), ClsV, SvmCost, 
+                    TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
                     SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
                     TEnv::Logger));
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
@@ -4482,6 +4515,18 @@ PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN
     // cast it to record set
     TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
     return JsFtrSpace->FtrSpace;    
+}
+
+PFtrSpace TJsFtrSpace::GetArgFtrSpace(v8::Handle<v8::Value> Val) {
+	v8::HandleScope HandleScope;	
+	// check it's of the right type
+	AssertR(Val->IsObject(), "GetArgFtrSpace: Argument expected to be Object");
+	// get the wrapped 
+	v8::Handle<v8::Object> FtrSpace = v8::Handle<v8::Object>::Cast(Val);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(FtrSpace->GetInternalField(0));
+	// cast it to record set
+	TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
+	return JsFtrSpace->FtrSpace;
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

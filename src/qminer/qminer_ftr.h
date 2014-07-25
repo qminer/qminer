@@ -60,7 +60,7 @@ private:
     TWPt<TBase> Base;
     
     /// Map from record store to join which brings it to feature extraction store
-	THash<TUCh, TJoinSeq> JoinSeqH;
+	THash<TUInt, TJoinSeq> JoinSeqH;
 	/// The end store from which features are actually extracted 
 	TWPt<TStore> FtrStore;
 
