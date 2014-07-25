@@ -824,6 +824,7 @@ public:
 	// retrieving vector of values from the aggregate
 	int GetFltLen() const { return FtrSpace->GetDim(); }
 	void GetFltV(TFltV& ValV) const { ValV = Vec; }
+	double GetFlt(const TInt& ElN) const;
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
 

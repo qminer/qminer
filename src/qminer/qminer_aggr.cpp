@@ -1686,6 +1686,11 @@ PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const 
 	return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
 }
 
+double TFtrExtAggr::GetFlt(const TInt& ElN) const {
+	QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
+	return Vec[ElN]; 
+}
+
 PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewArr(Vec);
 	return Val;

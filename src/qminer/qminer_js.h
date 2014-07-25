@@ -28,10 +28,10 @@
 
 // automatically start V8 debugger when in debug mode
 #ifndef NDEBUG
-    #define V8_DEBUG
+    //#define V8_DEBUG
 #endif
 // uncomment when running V8 debugger in release mode
-#define V8_DEBUG
+//#define V8_DEBUG
 
 #ifdef V8_DEBUG
     // include v8 debug headers
