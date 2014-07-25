@@ -1450,7 +1450,7 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
     TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
     // we have only one parameter which is supposed to be object
     QmAssertR(Args.Length() == 1, "store.addStreamAggr expects one parameter");
-    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");
+    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");	
     // get aggregate type
     TStr TypeNm = TJsStoreUtil::GetArgStr(Args, 0, "type", "javaScript");
     // check if the aggregate is composed (called from composer)
@@ -1467,14 +1467,14 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
 	}
 	else if (TypeNm == "ftrext") {
 		TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
+		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
 		// we need a name, if not give just generate one
 		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
 		
-		//PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 0);
-		
-		//PStreamAggr FtrStreamAggr = TFtrExt::New(JsStore->Js->Base, AggrName, Args[0]->ToObject());
+		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
+		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsStore->Js->Base, AggrName, FtrSpace);
 		// add it to the stream base for store
-		//JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
+		JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
 
 	} else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal

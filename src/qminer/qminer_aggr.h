@@ -807,14 +807,14 @@ public:
 
 ///////////////////////////////
 // Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
-class TFtrExt : public TStreamAggr, public TStreamAggrOut::IFltVec {
+class TFtrExtAggr : public TStreamAggr, public TStreamAggrOut::IFltVec {
 private:
 	TWPt<TFtrSpace> FtrSpace;
 	TFltV Vec;
 
 protected:
 	void OnAddRec(const TRec& Rec);
-	TFtrExt(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
+	TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
 
 public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace);
@@ -824,6 +824,7 @@ public:
 	// retrieving vector of values from the aggregate
 	int GetFltLen() const { return FtrSpace->GetDim(); }
 	void GetFltV(TFltV& ValV) const { ValV = Vec; }
+	double GetFlt(const TInt& ElN) const;
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
 
