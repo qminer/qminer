@@ -73,10 +73,14 @@ public:
     KeyDatI=HashKeyDatI.KeyDatI; EndI=HashKeyDatI.EndI; return *this;}
   bool operator==(const THashKeyDatI& HashKeyDatI) const {
     return KeyDatI==HashKeyDatI.KeyDatI;}
+  bool operator!=(const THashKeyDatI& HashKeyDatI) const {
+    return KeyDatI!=HashKeyDatI.KeyDatI;}
   bool operator<(const THashKeyDatI& HashKeyDatI) const {
     return KeyDatI<HashKeyDatI.KeyDatI;}
-  THashKeyDatI& operator++(int){ KeyDatI++; while (KeyDatI < EndI && KeyDatI->HashCd==-1) { KeyDatI++; } return *this; }
-  THashKeyDatI& operator--(int){ do { KeyDatI--; } while (KeyDatI->HashCd==-1); return *this;}
+  THashKeyDatI& operator++(){ KeyDatI++; while (KeyDatI < EndI && KeyDatI->HashCd==-1) { KeyDatI++; } return *this; }
+  THashKeyDatI& operator--(){ do { KeyDatI--; } while (KeyDatI->HashCd==-1); return *this;}
+  THashKeyDatI operator++(int){ THashKeyDatI OldVal = *this; KeyDatI++; while (KeyDatI < EndI && KeyDatI->HashCd==-1) { KeyDatI++; } return OldVal; }
+  THashKeyDatI operator--(int){ THashKeyDatI OldVal = *this; do { KeyDatI--; } while (KeyDatI->HashCd==-1); return OldVal;}
   THKeyDat& operator*() const { return *KeyDatI; }
   THKeyDat& operator()() const { return *KeyDatI; }
   THKeyDat* operator->() const { return KeyDatI; }
@@ -190,8 +194,10 @@ public:
     if (Len() == 0){return TIter(KeyDatV.EndI(), KeyDatV.EndI());}
     if (IsKeyIdEqKeyN()) { return TIter(KeyDatV.BegI(), KeyDatV.EndI());}
     int FKeyId=-1;  FNextKeyId(FKeyId);
-    return TIter(KeyDatV.BegI()+FKeyId, KeyDatV.EndI()); }
+    return TIter(KeyDatV.BegI()+FKeyId, KeyDatV.EndI()); }  
+  TIter begin() const { return BegI(); } // required by C++11 for each
   TIter EndI() const {return TIter(KeyDatV.EndI(), KeyDatV.EndI());}
+  TIter end() const { return EndI(); } // required by C++11 for each
   //TIter GetI(const int& KeyId) const {return TIter(&KeyDatV[KeyId], KeyDatV.EndI());}
   TIter GetI(const TKey& Key) const {return TIter(&KeyDatV[GetKeyId(Key)], KeyDatV.EndI());}
 
