@@ -822,7 +822,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
         return prediction;
     }
 
-    //#   - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
+    //#   - `object = kNearestNeighbors.getNearestNeighbors(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
     this.getNearestNeighbors = function (vec) {
         var distVec = la.pdist2(this.X, la.repvec(vec, 1, this.X.cols)).getCol(0);
         var sortRes = distVec.sortPerm(); // object with two vectors: values and indexes
