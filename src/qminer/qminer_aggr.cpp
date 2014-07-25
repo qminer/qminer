@@ -1673,20 +1673,20 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
-void TFtrExt::OnAddRec(const TRec& Rec) {
+void TFtrExtAggr::OnAddRec(const TRec& Rec) {
 	FtrSpace->GetFullV(Rec, Vec);
 }
 
-TFtrExt::TFtrExt(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
+TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
 	TStreamAggr(Base, AggrNm) {
 	FtrSpace = _FtrSpace;
 }
 
-PStreamAggr TFtrExt::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
-	return new TFtrExt(Base, AggrNm, _FtrSpace);
+PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
+	return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
 }
 
-PJsonVal TFtrExt::SaveJson(const int& Limit) const {
+PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewArr(Vec);
 	return Val;
 }
