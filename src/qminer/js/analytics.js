@@ -164,7 +164,7 @@ exports.newBatchModel = function (records, features, target, limitCategories) {
     console.log("newBatchModel", "  training SVM");
     var models = { };
     for (var cat in targets) {
-        if (targets[cat].count >= 500) {
+        if (targets[cat].count >= 50) {
             models[cat] = {
                 name : targets[cat].name,
                 type : targets[cat].type,
