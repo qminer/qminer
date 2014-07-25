@@ -224,10 +224,10 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
             // difference
             const double Loss = Target - Pred;
             // do the update based on the difference
-            if (Loss < -Eps) { // y - z > eps
+            if (Loss < -Eps) { // y - z < -eps
                 // update from the stochastic sub-gradient: x
                 TLinAlg::AddVec(-VecUpdate, VecV, VecN, NewWgtV, NewWgtV);                
-            } else if (Loss > Eps) { // z - y > eps
+            } else if (Loss > Eps) { // y - z > eps
                 // update from the stochastic sub-gradient: -x
                 TLinAlg::AddVec(VecUpdate, VecV, VecN, NewWgtV, NewWgtV);
             } // else nothing to do, we are within the epsilon tube
