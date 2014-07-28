@@ -1158,6 +1158,9 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal):
         if (!JsonVal->IsObjKey(FieldName)) { continue; }
         // parse the field from JSon
         PJsonVal FieldVal = JsonVal->GetObjKey(FieldName);
+        // first check if it is set to null
+        if (FieldVal->IsNull()) { SetFieldNull(FieldId); continue; }
+        // otherwise get its value
         switch (FieldDesc.GetFieldType()) {
             case oftInt:
                 QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");

@@ -1004,8 +1004,16 @@ void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWP
 		if (FieldVal.Empty()) {
 			FieldVal = RecVal->GetObjKey(FieldName);
         }
-
-		if (FieldSerialDesc.FixedPartP) {
+        // set the field as specified
+        if (FieldVal->IsNull()) {
+            // we are setting field explicitly to null
+            QmAssertR(FieldDesc.IsNullable(), "Non-nullable field " + FieldName + " set to null");
+            SetFieldNull(FixedMem, FieldSerialDesc, true);
+            // if not from fixed part, point variable-length index to the end of stream
+            if (!FieldSerialDesc.FixedPartP) {
+                SetLocationVar(FixedMem, FieldSerialDesc, VarSOut.Len());
+            }            
+        } else if (FieldSerialDesc.FixedPartP) {
 			SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, FieldVal);
 		} else {
 			SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, FieldVal);
@@ -1038,14 +1046,24 @@ void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMem& InRec
 		} else {
     		// new value, must update
 			PJsonVal JsonVal = RecVal->GetObjKey(FieldName);
-            // remove null flag
-			SetFieldNull(FixedMem, FieldSerialDesc, false);
-            // serialize the field
-			if (FieldSerialDesc.FixedPartP) {
-				SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, JsonVal);
-			} else {
-				SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, JsonVal);
-			}
+            if (JsonVal->IsNull()) {
+                // we are setting field explicitly to null
+                QmAssertR(FieldDesc.IsNullable(), "Non-nullable field " + FieldName + " set to null");
+                SetFieldNull(FixedMem, FieldSerialDesc, true);
+                // if not from fixed part, point variable-length index to the end of stream
+                if (!FieldSerialDesc.FixedPartP) {
+                    SetLocationVar(FixedMem, FieldSerialDesc, VarSOut.Len());
+                }            
+            } else {
+                // remove null flag
+                SetFieldNull(FixedMem, FieldSerialDesc, false);
+                // serialize the field
+                if (FieldSerialDesc.FixedPartP) {
+                    SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, JsonVal);
+                } else {
+                    SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, JsonVal);
+                }
+            }
             // remember for reporting back that we updated the field
 			ChangedFieldIdSet.AddKey(FieldDesc.GetFieldId());
 		}
