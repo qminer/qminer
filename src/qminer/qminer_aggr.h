@@ -491,7 +491,7 @@ class TVar : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
-	TWPt<TStreamAggrOut::IFltTm> InAggrVal;	
+	TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;	
 	// indicator
 	TSignalProc::TVar Var;
 
