@@ -242,10 +242,14 @@ namespace THoeffding {
 	}
 	double TMisc::Entropy(const TIntV& FreqV, const int& N) {
 		double h = 0.0, p = 0.0;
+		int FreqSum = 0; // XXX: make sure frequencies add up to N 
 		for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
+			EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
+			FreqSum += It->Val;
 			p = N > 0 ? 1.0*It->Val/N : 0.0;
 			if (p > 0) { h -= p*TMath::Log2(p); }
 		}
+		EAssertR(FreqSum == N, "Frequency counts don't add up.");
 		return h;
 	}
 
@@ -276,8 +280,9 @@ namespace THoeffding {
 	///////////////////////////////
 	// Histogram
 	// Per-class distribution for examples with attribute 
-	// NOTE: This function must ensure the Example->BinId is set to the maximum ID of the bins containing the example 
+	// NOTE: This function must ensure that Example->BinId is set to the maximum ID of the bins containing the example 
 	void THist::IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen) {
+		EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(), "Index out of bounds.");
 		int Idx = 0, BinN = 0;
 		double CurrDist = 0.0, PrevDist = 0.0;
 		const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
@@ -312,6 +317,7 @@ namespace THoeffding {
 	}
 	// NOTE: This function must ensure the example is removed from the bins that existed at the time of its arrival 
 	void THist::DecCls(PExample Example, const int& AttrIdx) {
+		EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(), "Index out of bounds.");
 		int Idx = 0, BinN = 0, PrevIdx = 0;
 		double CurrDist = 0.0, PrevDist = 0.0;
 		const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
@@ -320,7 +326,7 @@ namespace THoeffding {
 		if ((Idx = BinsV.SearchBin(Val)) == -1 && BinsV.Len() < BinsN) {
 			// printf("Searching for value: %f\n", Val);
 			Print();
-			EFailR("By construction, the value cannot be missing."); // NOTE: For deubgging purposes 
+			EFailR("By construction, the value cannot be missing."); // XXX: For deubgging purposes 
 		} else { // Find the closest bin 
 			if (Idx != -1 && BinsV.GetVal(Idx).Id <= Example->BinId) { // Bin initialized with this very value 
 				BinsV.GetVal(Idx).Dec(Label);
@@ -329,14 +335,8 @@ namespace THoeffding {
 				// NOTE: We can't take the first bin as it may have been created AFTER the example was accumulated; instead we find the first suitable bin 
 				// printf("BinsV.Len() = %d\n", BinsV.Len()); // XXX: Debug 
 				EAssertR(BinsV.Len() == BinsN, "Expected histogram to be filled with bins.");
-				// int MnBinId = BinsV.GetVal(0).Id;
-				// int MnIdx = 0;
-				for (BinN = 0; BinN < BinsV.Len() && BinsV.GetVal(BinN).Id > Example->BinId; ++BinN); // {
-					// MnBinId = TMath::Mn<int>(MnBinId, BinsV.GetVal(BinN).Id); // XXX: Debug
-					// if (BinsV.GetVal(BinN).Id <= Example->BinId) { MnIdx = BinN; } // XXX: Debug
-				// }
-				// printf("MnBinId = %d\nExample.BinId = %d\n", MnBinId, Example->BinId.Val);// XXX: Debug
-				// printf("idx = %d ; BinsN = %d\n", MnIdx, BinsN);// XXX: Debug
+				// Find the first suitable bin 
+				for (BinN = 0; BinN < BinsV.Len() && BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
 				EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible."); // NOTE: For debugging purposes 
 				PrevIdx = Idx = BinN; // First suitable bin 
 				PrevDist = CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
@@ -860,7 +860,11 @@ namespace THoeffding {
 		return Classify(Root, Example);
 	}
 	void THoeffdingTree::IncCounts(PNode Node, PExample Example) const {
+		EAssertR(Example->Label >= 0 && Example->Label <= Node->PartitionV.Len(), \
+			"Label out of bounds.");
+		EAssertR(Node->PartitionV.GetVal(Example->Label) >= 0, "Negative count");
 		Node->PartitionV.GetVal(Example->Label)++;
+		EAssertR(Node->ExamplesN >= 0, "Negative number of examples.");
 		Node->ExamplesN++;
 		int AttrN = 0;
 		for (auto It = Example->AttributesV.BegI(); It != Example->AttributesV.EndI(); ++It) {
@@ -868,7 +872,7 @@ namespace THoeffding {
 			case atDISCRETE: {
 				TTriple<TInt, TInt, TInt> Idx(It->Id, It->Value, Example->Label);
 				if (Node->Counts.IsKey(Idx)) {
-					Node->Counts.GetDat(Idx)++;
+					EAssertR(++Node->Counts.GetDat(Idx) >= 1, "Negative count.");
 				} else {
 					Node->Counts.AddDat(Idx, 1);
 				}
@@ -981,7 +985,9 @@ namespace THoeffding {
 					}
 				}
 			} else if (Sacrificed(CrrNode, Example)) { // Unmark 
-				CrrNode->SeenH.DelIfKey(*Example); 
+				if (!--CrrNode->SeenH.GetDat(*Example)) { // count == 0
+					CrrNode->SeenH.DelIfKey(*Example); 
+				}
 			}
 		}
 	}
@@ -1045,6 +1051,7 @@ namespace THoeffding {
 			if (ExampleQ.Len() > WindowSize) { // INVARIANT: ExampleQ.Len() <= WindowSize+1
 				PExample LastExample = ExampleQ.Top();
 				ExampleQ.Pop(); // Delete it from the window 
+				// TODO: Make sure we don't decrement counts of the sacrificed example 
 				ForgetCls(LastExample); // Update sufficient statistics 
 			}
 			TSStack<PNode> NodeS;
@@ -1055,6 +1062,7 @@ namespace THoeffding {
 					MxId = TMath::Mx<int>(MxId, CrrNode->Id);
 					ProcessLeafCls(CrrNode, Example);
 				} else {
+					// TODO: Make sure TestMode works correctly 
 					if (TestMode(CrrNode)) { // Don't update counts --- sacrifice the next 2000 or so examples for internal evaluation 
 						SelfEval(CrrNode, Example);
 					} else { // Everything goes as usual
@@ -1067,13 +1075,14 @@ namespace THoeffding {
 				}
 			}
 			Example->SetLeafId(TMath::Mx<int>(MxId, Example->LeafId));
-			if (Root->HistH.Empty()) { Example->SetBinId(IdGen->GetNextBinId()); } /* Hack */
+			/* TODO: Add explanation */
+			if (Root->HistH.Empty()) { Example->SetBinId(IdGen->GetNextBinId()); }
 			if (++DriftExamplesN >= DriftCheck && !IsLeaf(CrrNode)) { // Make sure we're checking split validity of an internal node 
 				DriftExamplesN = 0;
 				CheckSplitValidityCls();
 			}
 		} else { // No concept drift detection 
-			// if (!TestMode(CrrNode)) { // NOTE: This shoudl be false for VFDT because
+			// if (!TestMode(CrrNode)) { // NOTE: This should be false for VFDT because
 			// AltTressV.Empty() is always true: there are no alternate trees in VFDT.
 			// EAssertR(!TestMode(CrrNode), "Can't be self-evaluating in adaptive mode.");
 			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
@@ -1089,7 +1098,11 @@ namespace THoeffding {
 		ProcessLeafReg(CrrNode, Example);
 	}
 	void THoeffdingTree::SelfEval(PNode Node, PExample Example) const {
-		Node->SeenH.AddDat(*Example, true);
+		if (Node->SeenH.IsKey(*Example)) {
+			EAssertR(Node->SeenH.GetDat(*Example) >= 0, "Negative count.");
+			++Node->SeenH.GetDat(*Example);
+		} else { Node->SeenH.AddDat(*Example, 1); }
+		
 		// Update classification error for alternate trees 
 		for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
 			PNode CrrNode = *It;
@@ -1113,9 +1126,9 @@ namespace THoeffding {
 				else { (*It)->All = (*It)->Correct = 0; } // Reset 
 			}
 			if (BestAlt != Node) {
-				//printf("[DEBUG] Swapping node with an alternate tree.\n");
+				printf("[DEBUG] Swapping node with an alternate tree.\n");
 				// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", etDOT);
-				if(Node->Type == ntROOT) { BestAlt->Type = ntROOT; }
+				if (Node->Type == ntROOT) { BestAlt->Type = ntROOT; }
 				*Node = *BestAlt;
 			}
 			Node->All = Node->Correct = 0; // Reset 
@@ -1127,6 +1140,7 @@ namespace THoeffding {
 			}
 			*/
 			return false;
+		// TODO: Shouldn't we use `Node->TestModeN >= DriftCheck'? 
 		} else if (Node->All == 0 && Node->TestModeN >= 10000) {
 			// printf("Entering test mode...\n");
 			Node->TestModeN = 0;

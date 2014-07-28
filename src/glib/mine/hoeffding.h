@@ -142,8 +142,12 @@ namespace THoeffding {
 	public:
 		static PIdGen New() { return new TIdGen(); }
 
-		inline int GetNextLeafId() { return CrrLeafId++; }
-		inline int GetNextBinId() { return CrrBinId++; }
+		inline int GetNextLeafId() {
+			EAssertR(CrrLeafId > 0, "Negative ID in generator."); return CrrLeafId++;
+		}
+		inline int GetNextBinId() {
+			EAssertR(CrrBinId > 0, "Negative ID in generator."); return CrrBinId++;
+		}
 	private:
 		TIdGen() : CrrLeafId(1), CrrBinId(1) { };
 		int CrrLeafId;
@@ -164,17 +168,23 @@ namespace THoeffding {
 		}
 		// laplace estimate; see [Kononenko & Robnik-Sikonja, 2010] for details 
 		static double LaplaceEstiamte(const int& PositivesN, const int& NegativesN, const int& OutcomesN) {
-			EAssertR(PositivesN >= 0 && NegativesN >= 0 && OutcomesN >= 0, "Negative count");
+			EAssertR(PositivesN >= 0 && NegativesN >= 0 && OutcomesN >= NegativesN+PositivesN, "Negative count");
 			// Let r be the number of positive examples, let n be the number of
 			// all examples, and let k be the number of possibles outcomes, i.e.,
 			// k=2 for coin tossing example)
 			// Then we define Laplace probability estimate as p := (r+1)/(n+k). 
-			return 1.0*(PositivesN+1)/(NegativesN+PositivesN+OutcomesN); // p = (r+1)/(n+k)
+			if (OutcomesN > 0) {
+				// p = (r+1)/(n+k)
+				return 1.0*(PositivesN+1)/(NegativesN+PositivesN+OutcomesN); 
+			} else { // in this case, OutcomesN=0
+				return 0.0;
+			}
 		}
 		// relative frequency 
 		static double RelativeFreq(const int& PositivesN, const int& AllN) {
-			// Assert(PositivesN >= 0 && AllN && AllN > PositivesN);
-			return 1.0*PositivesN/AllN;
+			EAssertR(PositivesN >= 0 && AllN >= PositivesN, \
+				"PositivesN<0 or AllN<PositivesN");
+			return AllN > 0 ? 1.0*PositivesN/AllN : 0.0;
 		}
 	};
 
@@ -186,9 +196,11 @@ namespace THoeffding {
 		static double Entropy(const TIntV& FreqV, const int& N); // N = sum(FreqV)
 		// Compute variance from sufficient statistic: Sum of squared values, sum of values, and number of values
 		inline static double Variance(const double& SqSum, const double& Sum, const int& N) {
-			return SqSum/N-TMath::Sqr(Sum/N);
+			EAssertR(N > 1, "Division by zero.");
+			return SqSum/(N-1)-TMath::Sqr(Sum/(N-1));
 		}
 		inline static double StdDev(const double& SqSum, const double& Sum, const int& N) {
+			EAssertR(N > 0, "Division by zero.");
 			return TMath::Sqrt(Variance(SqSum, Sum, N));
 		}
 	};
@@ -212,9 +224,8 @@ namespace THoeffding {
 		}
 		void Inc(const int& Label) {
 			while (Label >= PartitionV.Len()) { PartitionV.Add(0); }
-			PartitionV.GetVal(Label)++;
-			EAssertR(Count >= 0, "Negative count.");
-			++Count;
+			EAssertR(PartitionV.GetVal(Label)++ >= 0, "Negative partition count.");
+			EAssertR(++Count > 0, "Negative count.");
 		}
 		void Dec(const int& Label) { // NOTE: Asserts serve debugging purposes 
 			EAssertR(Label < PartitionV.Len(), "Should not happen, by construction.");
@@ -224,8 +235,7 @@ namespace THoeffding {
 		// NOTE: Here, ValueV.Len() is the number of examples in the leaf 
 		void Inc(const double& RegValue) { // Regression 
 			// ValueV.Add(RegValue);
-			EAssertR(Count >= 0, "Negative count.");
-			++Count;
+			EAssertR(++Count > 0, "Negative count.");
 			const double Delta = RegValue - Mean;
 			T += RegValue;
 			Mean += Delta/Count;
@@ -251,8 +261,6 @@ namespace THoeffding {
 	// Histogram
 	class THist {
 	public:
-		THist(const int& BinsN_ = BinsN) { } // BinsV.Reserve(BinsN_, BinsN_); } 
-		
 		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen); // classification
 		void DecCls(PExample Example, const int& AttrIdx); // classification 
 		void IncReg(PExample Example, const int& AttrIdx); // regression
@@ -330,9 +338,10 @@ namespace THoeffding {
 			: LeafId(Example_.LeafId), BinId(Example_.BinId), AttributesV(Example_.AttributesV),
 				Label(Example_.Label), Value(Example_.Value) { }
 		
-		TExample& operator=(const TExample& Example); // Is this even necessary? 
+		TExample& operator=(const TExample& Example);
 		
-		inline bool operator<(const TExample& Example) const { return Label < Example.Label; } /* TODO: Harmful? Solve this another way */
+		/* TODO: Harmful? Solve this another way? May not be what user expects? */
+		inline bool operator<(const TExample& Example) const { return Label < Example.Label; }
 		inline bool operator==(const TExample& Example) const {
 			return LeafId == Example.LeafId && AttributesV == Example.AttributesV && 
 				BinId == Example.BinId && Label == Example.Label && Value == Example.Value;
@@ -405,7 +414,8 @@ namespace THoeffding {
 		void UpdateStats(PExample Example); // regression 
 		inline double Std() const {
 			// NOTE: Unbiased variance estimator is VarSum/(ExamplesN-1)
-			return TMath::Sqrt(VarSum/ExamplesN);
+			EAssertR(ExamplesN > 1, "Division by zero.");
+			return TMath::Sqrt(VarSum/(ExamplesN-1));
 		}
 		inline double Mean() const {
 			return Avg;
@@ -424,7 +434,7 @@ namespace THoeffding {
 		TNodeType Type; // Root, Internal, Leaf 
 		TVec<PExample> ExamplesV;
 		// TIntV IdxV; // Sacrificed example indices 
-		THash<TExample, TBool> SeenH; // examples sacrificed for self-evaluation 
+		THash<TExample, TInt> SeenH; // examples sacrificed for self-evaluation 
 		THash<TTriple<TInt, TInt, TInt>, TInt> Counts; // sufficient statistics; <AttributeID, AttributeValue, Class> 
 		TIntV PartitionV; // number of examples with the same label 
 		TVec<PNode> ChildrenV; // vector of children (root nodes of the subtrees)
@@ -539,12 +549,13 @@ namespace THoeffding {
 		inline TStr GetMajorityNm(PNode Node) const { // classification 
 			return AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(Node->PartitionV.GetMxValN());
 		}
+		// TODO: Make IsLeaf static? Or move it to TNode? 
 		inline bool IsLeaf(PNode Node) const { return Node->CndAttrIdx == -1; }
 		void PrintHist(const TStr& FNm, const TCh& Ch = '#') const;
 		void Print(PExample Example) const; // print example in human-readable form 
 		void SetAdaptive(const bool& DriftP) { ConceptDriftP = DriftP; }
 		inline static bool Sacrificed(PNode Node, PExample Example) {
-			return Node->SeenH.IsKey(*Example);
+			return Node->SeenH.IsKey(*Example) && Node->SeenH.GetDat(*Example) > 0;
 		}
 		// NOTE: Not implemented yet; avoids using hash tables for self-evaluation 
 		//void UpdateIndices(PNode Node) const {

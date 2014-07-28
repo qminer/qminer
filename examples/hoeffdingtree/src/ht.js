@@ -123,16 +123,17 @@ function testClassification() {
 	var streamData = fs.openRead("./sandbox/ht/titanic-4M.dat");
 	var examplesN = 0;
 	while (!streamData.eof) {
-		var line = streamData.getNextLn().split(",");
+		var line = streamData.getNextLn().split(","); // male,first,adult,yes
 		// get discrete attributes
 		var example_discrete = line.slice(0, 3);
 		// get numeric attributes
 		var example_numeric = [];
 		// get target
-		var target = line[3];	
+		var target = line[3];
 		if (++examplesN % 10000 == 0) {
 			console.say("Processing example number " + examplesN);
 		}
+		if (examplesN > 500000) { break; }
 		// update the model
 		ht.process(example_discrete, example_numeric, target);
 	}
@@ -215,11 +216,11 @@ function testRegression() {
 	ht.exportModel({ "file": "./sandbox/ht/regression-test.gv", "type": "DOT" });
 }
 
-// console.say(" --- Example using classification HoeffdingTree --- ");
-// testClassificationContAttr();
+console.say(" --- Example using classification HoeffdingTree --- ");
+testClassificationContAttr();
 // testClassification();
-console.say(" --- Example using regression HoeffdingTree --- ");
-testRegression();
+// console.say(" --- Example using regression HoeffdingTree --- ");
+// testRegression();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();
