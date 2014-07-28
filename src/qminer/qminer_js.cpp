@@ -643,6 +643,8 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
             return TJsAnalytics::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
+        } else if (ModuleFNm == "dmoz") { 
+            return TJsDMoz::New();
         } else if (ModuleFNm == "time") {
             return TJsTm::New();
         } else if (ModuleFNm == "analytics") { 
@@ -2161,7 +2163,14 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         v8::String::Utf8Value Utf8(Value);
         Rec.SetFieldStr(FieldId, TStr(*Utf8));
     } else if (Desc.IsStrV()) {
-        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+        QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");
+        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
+        TStrV StrV;
+        for (int StrN = 0; StrN < Array->Length(); StrN++) {
+            v8::String::Utf8Value Utf8(Array->Get(StrN));
+            StrV.Add(TStr(*Utf8));
+        }
+        Rec.SetFieldStrV(FieldId, StrV);
 	} else if (Desc.IsBool()) {
         QmAssertR(Value->IsBoolean(), "Field " + FieldNm + " not boolean");
         Rec.SetFieldBool(FieldId, Value->BooleanValue());
@@ -4910,6 +4919,53 @@ v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
 	LocVal->AddToObj("organization", GeoIpBs->GetOrgNm(OrgId));
 	// return
 	return HandleScope.Close(TJsUtil::ParseJson(LocVal));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-DMoz
+bool TJsDMoz::InitP = false;
+PDMozCfy TJsDMoz::DMozCfy = NULL;
+
+const PDMozCfy& TJsDMoz::GetDMozCfy() {
+	if (!InitP) {
+		InitP = true;
+		//TODO: check for folder
+		DMozCfy = TDMozCfy::LoadFPath("./dbs/");
+	}
+	return DMozCfy;
+}
+
+
+v8::Handle<v8::ObjectTemplate> TJsDMoz::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, classify);				
+		
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsDMoz::classify(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read IP address
+	TStr Text = TJsDMozUtil::GetArgStr(Args, 0);
+    const int MxCats = TJsDMozUtil::GetArgInt32(Args, 1, 10);
+	// classify
+	PDMozCfy DMozCfy = GetDMozCfy();
+    TStrFltKdV CatNmWgtV, KeyWdWgtV;
+    DMozCfy->Classify(Text, CatNmWgtV, KeyWdWgtV, MxCats);
+    // prepare response
+    PJsonVal KeyWdV = TJsonVal::NewArr();
+    for (int KeyWdN = 0; KeyWdN < KeyWdWgtV.Len(); KeyWdN++) {
+        KeyWdV->AddToArr(TJsonVal::NewStr(KeyWdWgtV[KeyWdN].Key));
+    }
+	// return
+	return HandleScope.Close(TJsUtil::ParseJson(KeyWdV));
 }
 
 ///////////////////////////////
