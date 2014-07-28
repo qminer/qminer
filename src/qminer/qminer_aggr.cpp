@@ -725,6 +725,53 @@ PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+// Moving Window Buffer Count.
+TWndBufCount::TWndBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
+	TStreamAggr(Base, AggrNm) {
+
+	InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWndBufCount::TWndBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TWndBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
+
+	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+	return new TWndBufCount(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+}
+
+PStreamAggr TWndBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
+
+	return new TWndBufCount(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+}
+
+PStreamAggr TWndBufCount::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWndBufCount(Base, ParamVal);
+}
+
+PJsonVal TWndBufCount::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("COUNT", InAggrVal->GetN());
+	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	return Val;
+}
+
+///////////////////////////////
 // Moving Average.
 void TMa::OnAddRec(const TRec& Rec) {
     TFltV ValV; InAggrVal->GetOutFltV(ValV);
