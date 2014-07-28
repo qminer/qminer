@@ -661,13 +661,13 @@ void TTimeSeriesWinBuf::OnAddRec(const TRec& Rec) {
 	InVal = Rec.GetFieldFlt(TickValFieldId);
 	InTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
-    //empty the former outgoing value vector
+    // empty the former outgoing value vector
     OutValV.Clr(true); OutTmMSecsV.Clr(true);
     int ValLen = AllValV.Len();
     // update the interval    
     AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
     
-    //Prepare the vector of elements that are going to be removed from the window
+    // prepare the vector of elements that are going to be removed from the window
     for (int ValN = 0; ValN < ValLen; ValN++) {
         if ((InTmMSecs - AllValV[ValN].Val2) > WinSizeMSecs) { 
             OutValV.Add(AllValV[ValN].Val1);
@@ -675,7 +675,7 @@ void TTimeSeriesWinBuf::OnAddRec(const TRec& Rec) {
         } else { break; }
     }
     
-    //remove all the elements   
+    // remove all the elements   
     if (OutValV.Len() > 0) { AllValV.Del(0, OutValV.Len() - 1); }  
 }
 
@@ -742,7 +742,7 @@ TMa::TMa(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
     InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
     InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
 TMa::TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ma(ParamVal) {
@@ -753,7 +753,7 @@ TMa::TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, P
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
 PStreamAggr TMa::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
@@ -874,9 +874,9 @@ TVar::TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
     TStr InAggrNm = ParamVal->GetObjStr("inAggr");
     PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
-    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
-	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);	
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());	
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);	
 }
 
 PStreamAggr TVar::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
