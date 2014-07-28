@@ -175,7 +175,8 @@ exports.newBatchModel = function (records, features, target, limitCategories) {
                     { maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
             } else if (targets[cat].type === "regression") {
                 console.log("newBatchModel", "    ... " + cat + " (regression)");
-                models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target);
+                models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target, 
+                    { c: 1, eps: 1e-2, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
             }
         }
     }
