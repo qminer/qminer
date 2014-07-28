@@ -400,7 +400,7 @@ public:
 
 ///////////////////////////////
 // Moving Window Buffer Count.
-class TWndBufCount : public TStreamAggr, public TStreamAggrOut::IFltTm {
+class TWinBufCount : public TStreamAggr, public TStreamAggrOut::IFltTm {
 private:
 	// input
 	TWPt<TStreamAggr> InAggr;
@@ -409,9 +409,9 @@ private:
 protected:
 	void OnAddRec(const TRec& Rec) { /* nothing */ };
 
-	TWndBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	TWinBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
 		const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
-	TWndBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TWinBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
 public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,

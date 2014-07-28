@@ -3993,7 +3993,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCount>();
     Register<TStreamAggrs::TTimeSeriesTick>();
     Register<TStreamAggrs::TTimeSeriesWinBuf>();
-	Register<TStreamAggrs::TWndBufCount>();
+	Register<TStreamAggrs::TWinBufCount>();
 	Register<TStreamAggrs::TMa>();
     Register<TStreamAggrs::TEma>();
     Register<TStreamAggrs::TVar>();

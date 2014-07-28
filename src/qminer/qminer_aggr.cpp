@@ -726,7 +726,7 @@ PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Moving Window Buffer Count.
-TWndBufCount::TWndBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+TWinBufCount::TWinBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
 	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
 	TStreamAggr(Base, AggrNm) {
 
@@ -736,7 +736,7 @@ TWndBufCount::TWndBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const ui
 	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
-TWndBufCount::TWndBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+TWinBufCount::TWinBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
 	// parse out input aggregate
 	TStr InStoreNm = ParamVal->GetObjStr("store");
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
@@ -747,24 +747,24 @@ TWndBufCount::TWndBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : 
 	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
-PStreamAggr TWndBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+PStreamAggr TWinBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
 	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
 
 	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
-	return new TWndBufCount(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+	return new TWinBufCount(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
 }
 
-PStreamAggr TWndBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+PStreamAggr TWinBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
 	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
 
-	return new TWndBufCount(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+	return new TWinBufCount(Base, AggrNm, TmWinSize, InAggrNm, SABase);
 }
 
-PStreamAggr TWndBufCount::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
-	return new TWndBufCount(Base, ParamVal);
+PStreamAggr TWinBufCount::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWinBufCount(Base, ParamVal);
 }
 
-PJsonVal TWndBufCount::SaveJson(const int& Limit) const {
+PJsonVal TWinBufCount::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 	Val->AddToObj("COUNT", InAggrVal->GetN());
 	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
