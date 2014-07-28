@@ -1107,6 +1107,7 @@ namespace THoeffding {
 		for (auto It = Node->AltTreesV.BegI(); It != Node->AltTreesV.EndI(); ++It) {
 			PNode CrrNode = *It;
 			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
+			// TODO: Give user a chance to choose the classifier in leaves 
 			(*It)->Correct += (Example->Label == Majority(CrrNode)); // NaiveBayes(CrrNode, Example);
 			++(*It)->All;
 		}
@@ -1117,7 +1118,14 @@ namespace THoeffding {
 		++Node->All;
 	}
 	bool THoeffdingTree::TestMode(PNode Node) {
-		if (Node->AltTreesV.Empty() && Node->Type != ntROOT) { return false; }
+		EAssertR(Node->TestModeN >= 0 && Node->TestModeN <= 10000, \
+			"TestModeN out of bounds.");
+		EAssertR(Node->All >= 0 && Node->All <= 2000, "All out of bounds.");
+		// If the node has no alternate trees, then there is nothing to do 
+		if (Node->AltTreesV.Empty()) { return false; }
+		// if (Node->AltTreesV.Empty() && Node->Type != ntROOT) { return false; }
+		// Otherwise, see whether one of the alternate trees performs better
+		// then the "main" subtree, spanned by Node. 
 		if (Node->All == 2000) { // Swap with the best performing subtree 
 			PNode BestAlt = Node;
 			//const double Acc = 1.0*BestAlt->Correct/BestAlt->All; // Classification accuracy 
@@ -1127,11 +1135,15 @@ namespace THoeffding {
 			}
 			if (BestAlt != Node) {
 				printf("[DEBUG] Swapping node with an alternate tree.\n");
+				// TODO: Notify the user we're about to modify the model? 
 				// Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv", etDOT);
 				if (Node->Type == ntROOT) { BestAlt->Type = ntROOT; }
 				*Node = *BestAlt;
 			}
 			Node->All = Node->Correct = 0; // Reset 
+			// The below section was used to evaluate the tree, which is equivalent
+			// to evaluating the performance of the root node.
+			// TODO: Separate evaluation from learning 
 			/*
 			if(Node->Type == ntROOT) {
 				TStr FNm = ConceptDriftP ? "err-cvfdt.dat" : "err-vfdt.dat";
@@ -1140,7 +1152,8 @@ namespace THoeffding {
 			}
 			*/
 			return false;
-		// TODO: Shouldn't we use `Node->TestModeN >= DriftCheck'? 
+		// Every 10000 examples the node enters the self-evaluation mode 
+		// TODO: Let user set the parameter in the config?
 		} else if (Node->All == 0 && Node->TestModeN >= 10000) {
 			// printf("Entering test mode...\n");
 			Node->TestModeN = 0;
