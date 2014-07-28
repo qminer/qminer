@@ -93,7 +93,7 @@ function testClassification() {
 		"tieBreaking": 0.01,
 		"driftCheck": 1000,
 		"windowSize": 100000,
-		"conceptDriftP": true
+		"conceptDriftP": false
 	};
 	
 	// describe the data stream 
@@ -217,8 +217,8 @@ function testRegression() {
 }
 
 console.say(" --- Example using classification HoeffdingTree --- ");
-testClassificationContAttr();
-// testClassification();
+// testClassificationContAttr();
+testClassification();
 // console.say(" --- Example using regression HoeffdingTree --- ");
 // testRegression();
 

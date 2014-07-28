@@ -88,8 +88,12 @@ namespace THoeffding {
 	// Learning-Algorithm-Parameters
 	class TParams {
 	public:
-		TParams(const TVec<THash<TStr, TInt> >& AttrsHV_, const THash<TStr, TInt>& DataFormatH_, const TVec<THash<TInt, TStr> >& InvAttrsHV_, const THash<TInt, TStr>& InvDataFormatH_)
-			: AttrsHV(AttrsHV_), DataFormatH(DataFormatH_), InvAttrsHV(InvAttrsHV_), InvDataFormatH(InvDataFormatH_)
+		TParams(const TVec<THash<TStr, TInt> >& AttrsHV_,
+			const THash<TStr, TInt>& DataFormatH_,
+			const TVec<THash<TInt, TStr> >& InvAttrsHV_,
+			const THash<TInt, TStr>& InvDataFormatH_)
+			: AttrsHV(AttrsHV_), DataFormatH(DataFormatH_),
+				InvAttrsHV(InvAttrsHV_), InvDataFormatH(InvDataFormatH_)
 		{ }
 		TVec<THash<TStr, TInt> > AttrsHV;
 		THash<TStr, TInt> DataFormatH;
@@ -107,7 +111,9 @@ namespace THoeffding {
 		}
 		TParser(TParser& Parser)
 			: AttrsHV(Parser.AttrsHV), DataFormatH(Parser.DataFormatH),
-				InvAttrsHV(Parser.InvAttrsHV), InvDataFormatH(Parser.InvDataFormatH) { }
+				InvAttrsHV(Parser.InvAttrsHV),
+				InvDataFormatH(Parser.InvDataFormatH)
+		{ }
 		inline TParams GetParams() const {
 			return TParams(AttrsHV, DataFormatH, InvAttrsHV, InvDataFormatH);
 		}
@@ -117,12 +123,18 @@ namespace THoeffding {
 		TVec<THash<TInt, TStr> > InvAttrsHV;
 		THash<TInt, TStr> InvDataFormatH;
 	private:
-		void CfgParse(const TStr& FileNm); // Parse config file 
-		void InitLine(TLexer& Lexer); // dataFormat = (a1, a2, ..., an)
-		void InitParam(TLexer& Lexer); // parameter list, i.e., `a1, a2, ..., an'
-		void AttrLine(TLexer& Lexer); // ai: discrete(vi1, vi2, ..., vini) or aj: numeric
-		void AttrParam(TLexer& Lexer, const TStr& AttrNm); // value list, i.e., `vi1, vi2, ..., vini'
-		void Error(const TStr& Msg); // TODO: make it StrFmt 
+		// Parse config file 
+		void CfgParse(const TStr& FileNm);
+		// dataFormat = (a1, a2, ..., an)
+		void InitLine(TLexer& Lexer);
+		// parameter list, i.e., `a1, a2, ..., an'
+		void InitParam(TLexer& Lexer);
+		// ai: discrete(vi1, vi2, ..., vini) or aj: numeric
+		void AttrLine(TLexer& Lexer);
+		// value list, i.e., `vi1, vi2, ..., vini'
+		void AttrParam(TLexer& Lexer, const TStr& AttrNm);
+		// TODO: make it StrFmt 
+		void Error(const TStr& Msg);
 	};
 
 	///////////////////////////////
@@ -133,7 +145,9 @@ namespace THoeffding {
 			return PExcept(new TDtExcept(MsgStr, LocStr));
 		}
 	private:
-		TDtExcept(const TStr& MsgStr, const TStr& LocStr) : TExcept(MsgStr, LocStr) { }
+		TDtExcept(const TStr& MsgStr, const TStr& LocStr)
+			: TExcept(MsgStr, LocStr)
+		{ }
 	};
 	
 	///////////////////////////////
@@ -143,10 +157,12 @@ namespace THoeffding {
 		static PIdGen New() { return new TIdGen(); }
 
 		inline int GetNextLeafId() {
-			EAssertR(CrrLeafId > 0, "Negative ID in generator."); return CrrLeafId++;
+			EAssertR(CrrLeafId > 0, "Negative ID in generator.");
+			return CrrLeafId++;
 		}
 		inline int GetNextBinId() {
-			EAssertR(CrrBinId > 0, "Negative ID in generator."); return CrrBinId++;
+			EAssertR(CrrBinId > 0, "Negative ID in generator.");
+			return CrrBinId++;
 		}
 	private:
 		TIdGen() : CrrLeafId(1), CrrBinId(1) { };
@@ -192,8 +208,10 @@ namespace THoeffding {
 	// Helper-functions
 	class TMisc {
 	public:
-		static void AddVec(const int& Scalar, TIntV& FstV, TIntV& SndV); // SndV = Scalar*FstV + SndV
-		static double Entropy(const TIntV& FreqV, const int& N); // N = sum(FreqV)
+		// SndV = Scalar*FstV + SndV
+		static void AddVec(const int& Scalar, TIntV& FstV, TIntV& SndV);
+		// N = sum(FreqV)
+		static double Entropy(const TIntV& FreqV, const int& N);
 		// Compute variance from sufficient statistic: Sum of squared values, sum of values, and number of values
 		inline static double Variance(const double& SqSum, const double& Sum, const int& N) {
 			EAssertR(N > 1, "Division by zero.");
@@ -224,12 +242,15 @@ namespace THoeffding {
 		}
 		void Inc(const int& Label) {
 			while (Label >= PartitionV.Len()) { PartitionV.Add(0); }
-			EAssertR(PartitionV.GetVal(Label)++ >= 0, "Negative partition count.");
+			EAssertR(PartitionV.GetVal(Label)++ >= 0, "Negative partition \
+				count.");
 			EAssertR(++Count > 0, "Negative count.");
 		}
 		void Dec(const int& Label) { // NOTE: Asserts serve debugging purposes 
-			EAssertR(Label < PartitionV.Len(), "Should not happen, by construction.");
-			EAssertR(PartitionV.GetVal(Label)-- >= 0, "Negative partition count in bin.");
+			EAssertR(Label < PartitionV.Len(), "Should not happen, by \
+				construction.");
+			EAssertR(PartitionV.GetVal(Label)-- > 0, "Negative partition \
+				count in bin.");
 			EAssertR(--Count >= 0, "Negative count.");
 		}
 		// NOTE: Here, ValueV.Len() is the number of examples in the leaf 
@@ -248,7 +269,9 @@ namespace THoeffding {
 		// int operator--(int) { Assert(Count); return Count--; }
 	public:
 		TFltV ValueV; // for regression
-		double S; // sum of the squares of element and mean differences (x1-mean)^2+(x2-mean)^2+...+(xn-mean)^2
+		// sum of the squares of element and mean differences
+		// S = (x1-mean)^2+(x2-mean)^2+...+(xn-mean)^2
+		double S;
 		double Mean; // sample mean 
 		double T; // sum of the sample elements x1+x2+...+xn
 		double Value; // initialize bin with this value 
@@ -261,11 +284,14 @@ namespace THoeffding {
 	// Histogram
 	class THist {
 	public:
-		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen); // classification
-		void DecCls(PExample Example, const int& AttrIdx); // classification 
-		void IncReg(PExample Example, const int& AttrIdx); // regression
+		// classification
+		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen);
+		// classification 
+		void DecCls(PExample Example, const int& AttrIdx);
+		// regression
+		void IncReg(PExample Example, const int& AttrIdx);
 		
-		// void DecReg(const PExample Example, const int& AttrIdx); // regression 
+		// void DecReg(const PExample Example, const int& AttrIdx); // regression
 		double InfoGain(double& SpltVal) const; // classification 
 		double GiniGain(double& SpltVal) const; // classification 
 		double StdGain(double& SpltVal) const; // regression 
@@ -279,15 +305,17 @@ namespace THoeffding {
 	// Attribute-Managment
 	class TAttrMan {
 	public:
-		TAttrMan(const THash<TStr, TInt>& AttrH_ = THash<TStr, TInt>(), const THash<TInt, TStr>& InvAttrH_ = THash<TInt, TStr>(),
-			const int& Id_ = -1, const TStr& Nm_ = "Anon", const TAttrType& Type_ = atDISCRETE);
+		TAttrMan(const THash<TStr, TInt>& AttrH_ = THash<TStr, TInt>(),
+			const THash<TInt, TStr>& InvAttrH_ = THash<TInt, TStr>(),
+			const int& Id_ = -1, const TStr& Nm_ = "Anon",
+			const TAttrType& Type_ = atDISCRETE);
 	public:
-		THash<TStr, TInt> AttrH; // maps attribute value to id 
-		THash<TInt, TStr> InvAttrH; // maps id to attribute value, inverting AttrH
-		TIntV ValueV; // possible values 
-		TAttrType Type; // attribute type 
-		TStr Nm; // attribute name 
-		TInt Id; // attribute ID used internally 
+		THash<TStr, TInt> AttrH; // Maps attribute value to id 
+		THash<TInt, TStr> InvAttrH; // Maps id to attribute value; inverts AttrH 
+		TIntV ValueV; // Possible values 
+		TAttrType Type; // Attribute type 
+		TStr Nm; // Attribute name 
+		TInt Id; // Attribute ID used internally 
 	};
 
 	///////////////////////////////
@@ -305,10 +333,12 @@ namespace THoeffding {
 		inline bool operator!=(const TAttribute& Attr) const {
 			return !(Attr == *this);
 		}
-		inline int GetPrimHashCd() const { // NOTE: BAD way of combining HASH CODES!!!
+		// NOTE: BAD way of combining HASH CODES!!!
+		inline int GetPrimHashCd() const {
 		return Id.GetPrimHashCd()+Value.GetPrimHashCd()+Num.GetPrimHashCd();
 		}
-		inline int GetSecHashCd() const { // NOTE: BAD way of combining HASH CODES!!!
+		// NOTE: BAD way of combining HASH CODES!!!
+		inline int GetSecHashCd() const {
 			return Id.GetSecHashCd()+Value.GetSecHashCd()+Num.GetSecHashCd();
 		}
 	public:
