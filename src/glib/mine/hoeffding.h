@@ -372,7 +372,7 @@ namespace THoeffding {
 			return new TExample(AttributesV, Label);
 		}
 		static PExample New(const TAttributeV& AttributesV, const double& Val) {
-			return new TExample(AttributesV, Val;
+			return new TExample(AttributesV, Val);
 		}
 
 		TExample() : LeafId(0), BinId(0), Label(-1), Value(0) { }

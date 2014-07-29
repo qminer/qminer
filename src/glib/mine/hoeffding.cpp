@@ -745,6 +745,43 @@ namespace THoeffding {
 		}
 		return CrrStd;
 	}
+	// See [Domingos and Hulten, 2000] and [Hulten et al., 2001] for explanation
+	double TNode::ComputeTreshold(const double& Delta,
+		const int& LabelsN) const {
+		// Range of the random variable for information gain 
+		const double R = TMath::Log2(LabelsN);
+		EAssertR(ExamplesN > 0, "This node has no examples.\n");
+		// t = \sqrt{ \frac{R^2 * log(1/delta)}{2n} }
+		return TMath::Sqrt(R*R*TMath::Log(1.0/Delta)/(2.0*ExamplesN));
+	}
+	void TNode::Split(const int& AttrIdx, const TAttrManV& AttrManV,
+		PIdGen IdGen) {
+		// (i) Mark attribute, if discrete, as used
+		// New child for each value of AttrIdx attribute 
+		CndAttrIdx = AttrIdx;
+		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
+		int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
+		// Categorial attributes can only be used once 
+		if (AttrType == atDISCRETE) {
+			UsedAttrs.Add(AttrIdx);
+		} else {
+			ValsN = 2;
+			// printf("[DEBUG] Splitting on continuous value %f\n", Val);
+		}
+		// UsedAttrs.Add(CondAttrIndex);
+		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
+		for (int ValN = 0; ValN < ValsN; ++ValN) {
+			 // Leaf node 
+			ChildrenV.Add(TNode::New(LabelsN, UsedAttrs, AttrManV,
+				IdGen->GetNextLeafId())); 
+		}
+		if (Type != ntROOT) { Type = ntINTERNAL; }
+	}
+	void TNode::Clr() { // Forget training examples 
+		ExamplesV.Clr(); PartitionV.Clr(); Counts.Clr();
+		HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
+		SeenH.Clr(true);
+	}
 	TBstAttr TNode::BestAttr(const TAttrManV& AttrManV,
 		const TTaskType& TaskType) {
 		if (TaskType == ttCLASSIFICATION) {
@@ -816,43 +853,6 @@ namespace THoeffding {
 		return TBstAttr(TPair<TInt, TFlt>(Idx1, Mx1),
 			TPair<TInt, TFlt>(Idx2, Mx2), Diff);
 	}
-	// See [Domingos and Hulten, 2000] and [Hulten et al., 2001] for explanation
-	double TNode::ComputeTreshold(const double& Delta,
-		const int& LabelsN) const {
-		// Range of the random variable for information gain 
-		const double R = TMath::Log2(LabelsN);
-		EAssertR(ExamplesN > 0, "This node has no examples.\n");
-		// t = \sqrt{ \frac{R^2 * log(1/delta)}{2n} }
-		return TMath::Sqrt(R*R*TMath::Log(1.0/Delta)/(2.0*ExamplesN));
-	}
-	void TNode::Split(const int& AttrIdx, const TAttrManV& AttrManV,
-		PIdGen IdGen) {
-		// (i) Mark attribute, if discrete, as used
-		// New child for each value of AttrIdx attribute 
-		CndAttrIdx = AttrIdx;
-		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
-		int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
-		// Categorial attributes can only be used once 
-		if (AttrType == atDISCRETE) {
-			UsedAttrs.Add(AttrIdx);
-		} else {
-			ValsN = 2;
-			// printf("[DEBUG] Splitting on continuous value %f\n", Val);
-		}
-		// UsedAttrs.Add(CondAttrIndex);
-		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
-		for (int ValN = 0; ValN < ValsN; ++ValN) {
-			 // Leaf node 
-			ChildrenV.Add(TNode::New(LabelsN, UsedAttrs, AttrManV,
-				IdGen->GetNextLeafId())); 
-		}
-		if (Type != ntROOT) { Type = ntINTERNAL; }
-	}
-	void TNode::Clr() { // Forget training examples 
-		ExamplesV.Clr(); PartitionV.Clr(); Counts.Clr();
-		HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
-		SeenH.Clr(true);
-	}
 	// See page 232 of Knuth's TAOCP, Vol. 2: Seminumeric Algorithms, 1997
 	// for details 
 	void TNode::UpdateStats(PExample Example) {
@@ -901,7 +901,8 @@ namespace THoeffding {
 			"This function works only for regression.");
 		return Predict(TExample::New(AttributesV, 0.0));
 	}
-	double THoeffdingTree::Predict(PExample Example) const { // Regression
+	// Regression
+	double THoeffdingTree::Predict(PExample Example) const {
 		PNode CrrNode = Root;
 		while (CrrNode->CndAttrIdx != -1) {
 			const TAttrType AttrType = AttrManV.GetVal(CrrNode->CndAttrIdx).Type;
@@ -1176,79 +1177,6 @@ namespace THoeffding {
 			}
 		}
 	}
-	void THoeffdingTree::ProcessCls(PExample Example) {
-		PNode CrrNode = Root;
-		int MxId = 0;
-		if (ConceptDriftP) {
-			// Examples from ExampleQ are OK as they don't change anymore 
-			// INVARIANT: ExampleQ.Len() <= WindowSize+1
-			if (ExampleQ.Len()+1 >= WindowSize) {
-				PExample LastExample = ExampleQ.Top();
-				ExampleQ.Pop(); // Delete it from the window 
-				ForgetCls(LastExample); // Update sufficient statistics 
-			}
-			TSStack<PNode> NodeS;
-			TQQueue<PNode> NodeQ; // Self eval queue 
-			NodeS.Push(CrrNode);
-			while (!NodeS.Empty()) {
-				CrrNode = NodeS.Top(); NodeS.Pop();
-				// If an internal node sacrifices Example, it is possible 
-				// it has higher ID than eveyrone except its siblings 
-				MxId = TMath::Mx<int>(MxId, CrrNode->Id);
-				if (IsLeaf(CrrNode)) { // Leaf node
-					// ProcessLeafCls also increments counts 
-					ProcessLeafCls(CrrNode, Example);
-				} else {
-					// Don't update counts --- sacrifice the next 2000 or so 
-					// examples for internal evaluation 
-					if (TestMode(CrrNode)) {
-						NodeQ.Push(CrrNode);
-					} else { // Everything goes as usual
-						// Update sufficient statistics 
-						IncCounts(CrrNode, Example);
-						NodeS.Push(GetNextNode(CrrNode, Example));
-						for (auto It = CrrNode->AltTreesV.BegI();
-							It != CrrNode->AltTreesV.EndI(); ++It) {
-							NodeS.Push(*It);
-						}
-					}
-				}
-			}
-			Example->SetLeafId(TMath::Mx<int>(MxId, Example->LeafId));
-			EAssertR(Example->LeafId >= 0 && Example->BinId >= 0, "Negative ID.");
-			EAssertR((Example->BinId > 0 && Example->BinId >= Example->LeafId) ||
-				Example->BinId == 0, "Problem with bin IDs.");
-			ExampleQ.Push(Example);
-			EAssertR(ExampleQ.Len() < WindowSize, "Too many examples in the \
-				sliding window.");
-			// Now, when Example stopped changing, do self-evaluation 
-			while (!NodeQ.Empty()) {
-				SelfEval(NodeQ.Top(), Example);
-				NodeQ.Pop();
-			}
-			// TODO: Explain this 
-			if (Root->HistH.Empty()) { Example->SetBinId(IdGen->GetNextBinId()); }
-			EAssertR(DriftExamplesN >= 0 && DriftExamplesN <= DriftCheck, "Need \
-				to check for concept drift.");
-			if (++DriftExamplesN >= DriftCheck) {
-				DriftExamplesN = 0;
-				// printf("[DEBUG] Performing split validity check.\n");
-				CheckSplitValidityCls();
-			}
-		} else {
-			// Note that TestMode(CrrNode) should be false for VFDT because
-			// AltTressV.Empty() is always true: there are no alternate trees
-			// in VFDT.
-			EAssertR(!TestMode(CrrNode), "Self-evaluating in adaptive mode.");
-			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-			ProcessLeafCls(CrrNode, Example);
-		}
-	}
-	void THoeffdingTree::ProcessReg(PExample Example) {
-		PNode CrrNode = Root;
-		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-		ProcessLeafReg(CrrNode, Example);
-	}
 	void THoeffdingTree::SelfEval(PNode Node, PExample Example) const {
 		// Remember we sacrificed Example in Node 
 		if (Node->SeenH.IsKey(*Example)) {
@@ -1355,6 +1283,79 @@ namespace THoeffding {
 			}
 		}
 		ProcessCls(TExample::New(AttributesV, AttrsHashV.Last().GetDat(Label)));
+	}
+	void THoeffdingTree::ProcessCls(PExample Example) {
+		PNode CrrNode = Root;
+		int MxId = 0;
+		if (ConceptDriftP) {
+			// Examples from ExampleQ are OK as they don't change anymore 
+			// INVARIANT: ExampleQ.Len() <= WindowSize+1
+			if (ExampleQ.Len()+1 >= WindowSize) {
+				PExample LastExample = ExampleQ.Top();
+				ExampleQ.Pop(); // Delete it from the window 
+				ForgetCls(LastExample); // Update sufficient statistics 
+			}
+			TSStack<PNode> NodeS;
+			TQQueue<PNode> NodeQ; // Self eval queue 
+			NodeS.Push(CrrNode);
+			while (!NodeS.Empty()) {
+				CrrNode = NodeS.Top(); NodeS.Pop();
+				// If an internal node sacrifices Example, it is possible 
+				// it has higher ID than eveyrone except its siblings 
+				MxId = TMath::Mx<int>(MxId, CrrNode->Id);
+				if (IsLeaf(CrrNode)) { // Leaf node
+					// ProcessLeafCls also increments counts 
+					ProcessLeafCls(CrrNode, Example);
+				} else {
+					// Don't update counts --- sacrifice the next 2000 or so 
+					// examples for internal evaluation 
+					if (TestMode(CrrNode)) {
+						NodeQ.Push(CrrNode);
+					} else { // Everything goes as usual
+						// Update sufficient statistics 
+						IncCounts(CrrNode, Example);
+						NodeS.Push(GetNextNode(CrrNode, Example));
+						for (auto It = CrrNode->AltTreesV.BegI();
+							It != CrrNode->AltTreesV.EndI(); ++It) {
+							NodeS.Push(*It);
+						}
+					}
+				}
+			}
+			Example->SetLeafId(TMath::Mx<int>(MxId, Example->LeafId));
+			EAssertR(Example->LeafId >= 0 && Example->BinId >= 0, "Negative ID.");
+			EAssertR((Example->BinId > 0 && Example->BinId >= Example->LeafId) ||
+				Example->BinId == 0, "Problem with bin IDs.");
+			ExampleQ.Push(Example);
+			EAssertR(ExampleQ.Len() < WindowSize, "Too many examples in the \
+				sliding window.");
+			// Now, when Example stopped changing, do self-evaluation 
+			while (!NodeQ.Empty()) {
+				SelfEval(NodeQ.Top(), Example);
+				NodeQ.Pop();
+			}
+			// TODO: Explain this 
+			if (Root->HistH.Empty()) { Example->SetBinId(IdGen->GetNextBinId()); }
+			EAssertR(DriftExamplesN >= 0 && DriftExamplesN <= DriftCheck, "Need \
+				to check for concept drift.");
+			if (++DriftExamplesN >= DriftCheck) {
+				DriftExamplesN = 0;
+				// printf("[DEBUG] Performing split validity check.\n");
+				CheckSplitValidityCls();
+			}
+		} else {
+			// Note that TestMode(CrrNode) should be false for VFDT because
+			// AltTressV.Empty() is always true: there are no alternate trees
+			// in VFDT.
+			EAssertR(!TestMode(CrrNode), "Self-evaluating in adaptive mode.");
+			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
+			ProcessLeafCls(CrrNode, Example);
+		}
+	}
+	void THoeffdingTree::ProcessReg(PExample Example) {
+		PNode CrrNode = Root;
+		while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
+		ProcessLeafReg(CrrNode, Example);
 	}
 	PExample THoeffdingTree::Preprocess(const TStr& Line,
 		const TCh& Delimiter) const {
@@ -1464,7 +1465,123 @@ namespace THoeffding {
 		}
 		FOut.Flush();
 	}
-
+	// Naive bayes classifier 
+	TLabel THoeffdingTree::NaiveBayes(PNode Node, PExample Example) const {
+		const THash<TTriple<TInt, TInt, TInt>, TInt> Counts = Node->Counts;
+		const TIntV PartitionV = Node->PartitionV;
+		const int ExamplesN = Node->ExamplesN;
+		const int AttrsN = Example->AttributesV.Len();
+		const int LabelsN = AttrManV.Last().ValueV.Len();
+		double pk = 0.0, pc = 0.0;
+		int nk = 0;// Maj = 0;
+		int MxLabel = 0;
+		double MxProb = 0;
+		TVec<TInt> SubExamplesN;
+		SubExamplesN.Reserve(AttrsN, AttrsN);
+		// Precompute n(x_k) for k=0,1,...,AttrsN-1
+		for (int AttrN = 0; AttrN < AttrsN; ++AttrN) {
+			SubExamplesN.GetVal(AttrN) = 0;
+			for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
+				TTriple<TInt, TInt, TInt> TmpTriple(AttrN,
+					Example->AttributesV.GetVal(AttrN).Value, LabelN);
+				if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
+					SubExamplesN.GetVal(AttrN) += Counts.GetDat(TmpTriple);
+				}
+			}
+		}
+		for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
+			nk = PartitionV.GetVal(LabelN); // number of positive examples 
+			//printf("[DEBUG] #Examples = %d\n", nk);
+			// TProbEstimates::LaplaceEstiamte(nk, CurrNode->ExamplesN-nk, 2); 
+			pk = (nk+1.0)/(ExamplesN+LabelsN); 
+			//printf("[DEBUG] Current: %f\n", pk);
+			for (int i = 0; i < AttrsN; ++i) {
+				TTriple<TInt, TInt, TInt> TmpTriple(i,
+					Example->AttributesV.GetVal(i).Value, LabelN);
+				if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
+					// apriori probability 
+					// p0 = 1.0*CurrNode->Counts(TmpTriple)/nk;
+					// compute conditional probability using m-estimate 
+					// pk *= TProbEstimates::MEstimate(
+					//	CurrNode->Counts(TmpTriple), nk, p0, 2);
+					// pk *= 1.0*CurrNode->Counts(TmpTriple)/nk; 
+					// (m * P(c_i) + n(x_k,c_i))/(P(c_i) * (m + n(x_k)))
+					// laplace estimate for P(c_i) 
+					pc = (nk+1.0)/(ExamplesN+LabelsN);
+					pk *= (2.0*pc+Counts.GetDat(TmpTriple)) /
+						(pc*(2+SubExamplesN.GetVal(i)));
+				}/* else {
+					printf("[DEBUG] Zero probability!\n");
+				}*/
+			}
+			if (MxProb < pk) {
+				MxProb = pk; MxLabel = LabelN;
+			}
+			// printf("[DEBUG] Class `%s' with `probability' %f\n",
+			//	InvAttrsHashV.GetVal(AttrsN).GetDat(AttrManV.Last().
+			// ValueV.GetVal(LabelN)).CStr(), pk);
+		}
+		// Print('-', 120);
+		// printf("-----------------------\n");
+		// printf("[DEBUG] Bayes classified it as %s\n",
+		// InvAttrsHashV.GetVal(AttrsN).GetDat(AttrManV.Last().ValueV.
+		// GetVal(MxLabel)).CStr());
+		/* ----------- */
+		// printf("[DEBUG] CLASSIFYING:\n");
+		// for(int i = 0; i < PartitionV.Len(); ++i) {
+		//	printf("\t[DEBUG] #%s = %d\n",
+		// InvAttrsHashV.GetVal(AttrsN).GetDat(AttrManV.Last().
+		// ValueV.GetVal(i)).CStr(), PartitionV.GetVal(i));
+		// }
+		return MxLabel;
+	}
+	void THoeffdingTree::PrintHist(const TStr& FNm, const TCh& Ch) const {
+		TFOut FOut(FNm);
+		TFOut FVec(FNm+".vec");
+		double SplitVal;
+		// Find the first numeric attribute if any 
+		// for(TAttrManV::TIter It = AttrManV.BegI();
+		//	It != AttrManV.EndI(); ++It) {
+		TAttrManV::TIter It = AttrManV.BegI(); ++It; ++It;
+			if (It->Type == atCONTINUOUS) {
+				const int AttrN = It->Id;
+				//printf("Numeric distribution for '%s' attribute.\n",
+				//	It->Nm.CStr());
+				Root->HistH.GetDat(AttrN).InfoGain(SplitVal);
+				const TBinV BinV = Root->HistH.GetDat(AttrN).BinsV;
+				for (TBinV::TIter It = BinV.BegI(); It != BinV.EndI(); ++It) {
+					for (int TmpN = 0; TmpN < It->Count/10; ++TmpN) {
+						FOut.PutCh(Ch);
+						// printf("#");
+					}
+					// FVec.PutUInt(It->Count);
+					FVec.PutFlt(It->Entropy());
+					FVec.PutCh(' ');
+					FOut.PutLn();
+					// printf("\n");
+				}
+				// printf("\n");
+				// break;
+			}
+		// }
+	}
+	void THoeffdingTree::Print(PExample Example) const {
+		for (auto It = Example->AttributesV.BegI();
+			It != Example->AttributesV.EndI(); ++It) {
+			switch (AttrManV.GetVal(It->Id).Type) {
+				case atCONTINUOUS: {
+					printf("%f\t", It->Num.Val);
+					break;
+				}
+				case atDISCRETE: {
+					printf("%s\t",
+						AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
+					break;
+				}
+			}
+		}
+		putchar('\n');
+	}
 	void THoeffdingTree::Init(const TStr& ConfigFNm) {
 		TParser Parser(ConfigFNm);
 		// NOTE: Although not critical, this can still be expensive.
@@ -1617,12 +1734,10 @@ namespace THoeffding {
 			FOut.PutStrLn("</node>");
 		}
 	}
-
 	void THoeffdingTree::PrintJSON(PNode Node, const int& Depth,
 		TFOut& FOut) const {
 		EFailR("JSON export not yet implemented.");
 	}
-
 	// Breadh-first tree traversal
 	void THoeffdingTree::PrintDOT(PNode Node, TFOut& FOut,
 		const bool& AlternateP) const {
@@ -1700,129 +1815,10 @@ namespace THoeffding {
 			}
 		}
 	}
-
-	void THoeffdingTree::PrintHist(const TStr& FNm, const TCh& Ch) const {
-		TFOut FOut(FNm);
-		TFOut FVec(FNm+".vec");
-		double SplitVal;
-		// Find the first numeric attribute if any 
-		// for(TAttrManV::TIter It = AttrManV.BegI();
-		//	It != AttrManV.EndI(); ++It) {
-		TAttrManV::TIter It = AttrManV.BegI(); ++It; ++It;
-			if (It->Type == atCONTINUOUS) {
-				const int AttrN = It->Id;
-				//printf("Numeric distribution for '%s' attribute.\n",
-				//	It->Nm.CStr());
-				Root->HistH.GetDat(AttrN).InfoGain(SplitVal);
-				const TBinV BinV = Root->HistH.GetDat(AttrN).BinsV;
-				for (TBinV::TIter It = BinV.BegI(); It != BinV.EndI(); ++It) {
-					for (int TmpN = 0; TmpN < It->Count/10; ++TmpN) {
-						FOut.PutCh(Ch);
-						// printf("#");
-					}
-					// FVec.PutUInt(It->Count);
-					FVec.PutFlt(It->Entropy());
-					FVec.PutCh(' ');
-					FOut.PutLn();
-					// printf("\n");
-				}
-				// printf("\n");
-				// break;
-			}
-		// }
-	}
-	void THoeffdingTree::Print(PExample Example) const {
-		for (auto It = Example->AttributesV.BegI();
-			It != Example->AttributesV.EndI(); ++It) {
-			switch (AttrManV.GetVal(It->Id).Type) {
-				case atCONTINUOUS: {
-					printf("%f\t", It->Num.Val);
-					break;
-				}
-				case atDISCRETE: {
-					printf("%s\t",
-						AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
-					break;
-				}
-			}
-		}
-		putchar('\n');
-	}
 	void THoeffdingTree::Print(const TCh& Ch, const TInt& Num) {
 		for (int ChN = 0; ChN < Num; ++ChN) {
 			printf("%c", Ch.Val);
 		}
 		printf("\n");
-	}
-
-	// Naive bayes classifier 
-	TLabel THoeffdingTree::NaiveBayes(PNode Node, PExample Example) const {
-		const THash<TTriple<TInt, TInt, TInt>, TInt> Counts = Node->Counts;
-		const TIntV PartitionV = Node->PartitionV;
-		const int ExamplesN = Node->ExamplesN;
-		const int AttrsN = Example->AttributesV.Len();
-		const int LabelsN = AttrManV.Last().ValueV.Len();
-		double pk = 0.0, pc = 0.0;
-		int nk = 0;// Maj = 0;
-		int MxLabel = 0;
-		double MxProb = 0;
-		TVec<TInt> SubExamplesN;
-		SubExamplesN.Reserve(AttrsN, AttrsN);
-		// Precompute n(x_k) for k=0,1,...,AttrsN-1
-		for (int AttrN = 0; AttrN < AttrsN; ++AttrN) {
-			SubExamplesN.GetVal(AttrN) = 0;
-			for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
-				TTriple<TInt, TInt, TInt> TmpTriple(AttrN,
-					Example->AttributesV.GetVal(AttrN).Value, LabelN);
-				if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
-					SubExamplesN.GetVal(AttrN) += Counts.GetDat(TmpTriple);
-				}
-			}
-		}
-		for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
-			nk = PartitionV.GetVal(LabelN); // number of positive examples 
-			//printf("[DEBUG] #Examples = %d\n", nk);
-			// TProbEstimates::LaplaceEstiamte(nk, CurrNode->ExamplesN-nk, 2); 
-			pk = (nk+1.0)/(ExamplesN+LabelsN); 
-			//printf("[DEBUG] Current: %f\n", pk);
-			for (int i = 0; i < AttrsN; ++i) {
-				TTriple<TInt, TInt, TInt> TmpTriple(i,
-					Example->AttributesV.GetVal(i).Value, LabelN);
-				if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
-					// apriori probability 
-					// p0 = 1.0*CurrNode->Counts(TmpTriple)/nk;
-					// compute conditional probability using m-estimate 
-					// pk *= TProbEstimates::MEstimate(
-					//	CurrNode->Counts(TmpTriple), nk, p0, 2);
-					// pk *= 1.0*CurrNode->Counts(TmpTriple)/nk; 
-					// (m * P(c_i) + n(x_k,c_i))/(P(c_i) * (m + n(x_k)))
-					// laplace estimate for P(c_i) 
-					pc = (nk+1.0)/(ExamplesN+LabelsN);
-					pk *= (2.0*pc+Counts.GetDat(TmpTriple)) /
-						(pc*(2+SubExamplesN.GetVal(i)));
-				}/* else {
-					printf("[DEBUG] Zero probability!\n");
-				}*/
-			}
-			if (MxProb < pk) {
-				MxProb = pk; MxLabel = LabelN;
-			}
-			// printf("[DEBUG] Class `%s' with `probability' %f\n",
-			//	InvAttrsHashV.GetVal(AttrsN).GetDat(AttrManV.Last().
-			// ValueV.GetVal(LabelN)).CStr(), pk);
-		}
-		// Print('-', 120);
-		// printf("-----------------------\n");
-		// printf("[DEBUG] Bayes classified it as %s\n",
-		// InvAttrsHashV.GetVal(AttrsN).GetDat(AttrManV.Last().ValueV.
-		// GetVal(MxLabel)).CStr());
-		/* ----------- */
-		// printf("[DEBUG] CLASSIFYING:\n");
-		// for(int i = 0; i < PartitionV.Len(); ++i) {
-		//	printf("\t[DEBUG] #%s = %d\n",
-		// InvAttrsHashV.GetVal(AttrsN).GetDat(AttrManV.Last().
-		// ValueV.GetVal(i)).CStr(), PartitionV.GetVal(i));
-		// }
-		return MxLabel;
 	}
 }
