@@ -637,6 +637,9 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
 }
 
+TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, TSIn& SIn) : TStreamAggr(Base, SIn), 
+	TimeFieldId(SIn), TickValFieldId(SIn), InitP(SIn), TickVal(SIn), TmMSecs(SIn) { }
+
 PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const TStr& StoreNm, 
         const TStr& AggrNm, const TStr& TimeFieldNm, const TStr& TickValFieldNm) {
 
@@ -645,6 +648,23 @@ PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const TStr& StoreNm,
 
 PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TTimeSeriesTick(Base, ParamVal);
+}
+
+PStreamAggr TTimeSeriesTick::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+	return new TTimeSeriesTick(Base, SIn);
+}
+
+void TTimeSeriesTick::Save(TSOut& SOut) const {
+	// save name of the class
+	TTypeNm<TCount>().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff
+	TimeFieldId.Save(SOut);
+	TickValFieldId.Save(SOut);
+	InitP.Save(SOut);
+	TickVal.Save(SOut);
+	TmMSecs.Save(SOut);
 }
 
 PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {

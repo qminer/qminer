@@ -329,11 +329,15 @@ protected:
 	TTimeSeriesTick(const TWPt<TBase>& Base,  const TStr& StoreNm, const TStr& AggrNm,
 		const TStr& TimeFieldNm, const TStr& TickValFieldNm);
     TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TTimeSeriesTick(const TWPt<TBase>& Base, TSIn& SIn);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& AggrNm,
 		const TStr& TimeFieldNm, const TStr& TickValFieldNm);
     // json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);       
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
