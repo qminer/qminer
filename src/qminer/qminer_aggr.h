@@ -499,7 +499,7 @@ protected:
 		const TSignalProc::TEmaType& Type, const uint64& InitMinMSecs, 
         const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
 	TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
-
+	TEma(const TWPt<TBase>& Base, TSIn& SIn);
 public:
     // TmInterval == how many milliseconds it tames for a value to drop below 1/e
 	// Gets stream aggr base from store name
@@ -512,7 +512,10 @@ public:
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
     // json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
-    
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
 	// did we finish initialization
 	bool IsInit() const { return Ema.IsInit(); }
 	// current values

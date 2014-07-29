@@ -655,8 +655,8 @@ PStreamAggr TTimeSeriesTick::Load(const TWPt<TBase>& Base, TSIn& SIn) {
 }
 
 void TTimeSeriesTick::Save(TSOut& SOut) const {
-	// save name of the class
-	TTypeNm<TCount>().Save(SOut);
+	// save the type of the aggregate
+	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff
@@ -905,6 +905,23 @@ PStreamAggr TEma::New(const TWPt<TBase>& Base, const TStr& AggrNm,
 
 PStreamAggr TEma::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TEma(Base, ParamVal);
+}
+
+PStreamAggr TEma::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+	// TODO: naredi konstruktor za serializacijo kot v Save funkciji
+	return new TEma(Base, SIn);
+}
+
+void TEma::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff
+	InAggr.Save(SOut);
+	InAggrVal.Save(SOut);
+	InTypeId.Save(SOut);
+	Ema.Save(SOut);
 }
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
