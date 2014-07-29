@@ -1020,7 +1020,8 @@ namespace THoeffding {
 			case atCONTINUOUS:
 				// printf("Decrementing count for attribute %s\n",
 				// 	AttrManV.GetVal(It->Id).Nm.CStr()); // XXX: Debug 
-				Node->HistH.GetDat(AttrN).DecCls(Example, AttrN);
+				// XXX XXX XXX THIS IS THE SOURCE OF THE BUG XXX XXX XXX 
+				// Node->HistH.GetDat(AttrN).DecCls(Example, AttrN);
 				break;
 			default:
 				EFailR("Attribute type not supported.");
@@ -1101,9 +1102,6 @@ namespace THoeffding {
 		PNode CrrNode = Root;
 		TSStack<PNode> NodeS;
 		NodeS.Push(CrrNode);
-		// For debugging purposes 
-		EAssertR(!Sacrificed(CrrNode, Example), "Fatal: Trying to forget \
-			sacrificed example.");
 		while (!NodeS.Empty()) {
 			CrrNode = NodeS.Top(); NodeS.Pop();
 			if (CrrNode->Id <= Example->LeafId && !Sacrificed(CrrNode, Example)) {

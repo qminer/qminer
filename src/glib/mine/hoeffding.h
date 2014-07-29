@@ -1,13 +1,6 @@
 #ifndef HOEFFDING_H
 #define HOEFFDING_H
 
-// 
-// Suggestions
-// (*) Add rigorous error checking 
-// (*) The constant 0.65 in THoeffdingTree::ProcessLeafCls is
-// 	hard-coded: do something about this 
-//
-
 namespace THoeffding {
 	///////////////////////////////
 	// Forward-Declarations
