@@ -361,17 +361,22 @@ namespace THoeffding {
 
 		TExample() : LeafId(0), BinId(0), Label(-1), Value(0) { }
 		TExample(const TAttributeV& AttributesV_, const int& Label_)
-			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(Label_), Value(0) { }
+			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(Label_),
+				Value(0){ }
 		TExample(const TAttributeV& AttributesV_, const double& Value_)
-			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(-1), Value(Value_) { }
-		TExample(const TExample& Example_) // Is this even necessary? Default seems OK 
-			: LeafId(Example_.LeafId), BinId(Example_.BinId), AttributesV(Example_.AttributesV),
-				Label(Example_.Label), Value(Example_.Value) { }
+			: LeafId(0), BinId(0), AttributesV(AttributesV_), Label(-1),
+				Value(Value_) { }
+		TExample(const TExample& Example_)
+			: LeafId(Example_.LeafId), BinId(Example_.BinId),
+				AttributesV(Example_.AttributesV), Label(Example_.Label),
+				Value(Example_.Value) { }
 		
 		TExample& operator=(const TExample& Example);
 		
 		/* TODO: Harmful? Solve this another way? May not be what user expects? */
-		inline bool operator<(const TExample& Example) const { return Label < Example.Label; }
+		inline bool operator<(const TExample& Example) const {
+			return Label < Example.Label;
+		}
 		inline bool operator==(const TExample& Example) const {
 			return LeafId == Example.LeafId && AttributesV == Example.AttributesV && 
 				BinId == Example.BinId && Label == Example.Label && Value == Example.Value;

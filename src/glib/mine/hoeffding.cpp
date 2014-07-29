@@ -242,7 +242,8 @@ namespace THoeffding {
 	}
 	double TMisc::Entropy(const TIntV& FreqV, const int& N) {
 		double h = 0.0, p = 0.0;
-		int FreqSum = 0; // XXX: make sure frequencies add up to N 
+		// XXX: make sure frequencies add up to N 
+		int FreqSum = 0;
 		for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
 			EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
 			FreqSum += It->Val;
@@ -280,33 +281,39 @@ namespace THoeffding {
 	///////////////////////////////
 	// Histogram
 	// Per-class distribution for examples with attribute 
-	// NOTE: This function must ensure that Example->BinId is set to the maximum ID of the bins containing the example 
+	// NOTE: This function must ensure that Example->BinId is set to the 
+	// maximum ID of the bins containing the example 
 	void THist::IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen) {
 		EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(), "Index out of bounds.");
 		int Idx = 0, BinN = 0;
 		double CurrDist = 0.0, PrevDist = 0.0;
 		const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
 		const int Label = Example->Label;
-		// Add new bin, initialized with Val, if the number of bins (BinsN) didn't reach the treshold 
+		// Add new bin, initialized with Val, if the number of bins (BinsN)
+		// didn't reach the treshold 
 		if ((Idx = BinsV.SearchBin(Val)) == -1 && BinsV.Len() < BinsN) {
 			const int CrrBinId = IdGen->GetNextBinId();
 			const int CrrIdx = BinsV.AddSorted(TBin(Val, CrrBinId), true);
 			BinsV.GetVal(CrrIdx).Inc(Label);
-			EAssertR(Example->BinId < CrrBinId, "Example->BinId >= CrrBinId.");
+			EAssertR(Example->BinId < CrrBinId,
+				"Example->BinId >= CrrBinId for a newly generated bin ID.");
 			Example->SetBinId(TMath::Mx<int>(Example->BinId, CrrBinId));
 		} else { // Find the closest bin 
-			if (Idx != -1) { // Bin initialized with this very value 
+			if (Idx != -1) { // Bin initialized with exactly this value 
 				BinsV.GetVal(Idx).Inc(Label);
 				Example->SetBinId(TMath::Mx<int>(Example->BinId, BinsV.GetVal(Idx).Id));
 			} else { // Otherwise, increment the closest bin 
 				Idx = 0;
 				PrevDist = CurrDist = abs(Val - BinsV.GetVal(0).GetVal());
-				// NOTE: We could use binary search because of the ordering invariant; but the number of bins rarely exeecds 100 (hardcoded constant)
-				// While distance starts increasing, stop --- our bin is the one before the current one 
+				// NOTE: We could use binary search because of the ordering
+				// invariant; but the number of bins rarely exeecds 100 
+				// While distance starts increasing, stop --- our bin is the one
+				// before the current one 
 				for (BinN = 1; BinN < BinsV.Len(); ++BinN) {
 					EAssertR(BinsV.GetVal(BinN-1).GetVal() <= BinsV.GetVal(BinN).GetVal(), "Bins not sorted.");
 					PrevDist = CurrDist;
-					if ((CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal())) > PrevDist) {
+					CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+					if (CurrDist > PrevDist) {
 						Idx = BinN-1; break;
 					}
 				}
@@ -884,7 +891,7 @@ namespace THoeffding {
 		return Classify(Root, Example);
 	}
 	void THoeffdingTree::IncCounts(PNode Node, PExample Example) const {
-		EAssertR(Example->Label >= 0 && Example->Label <= Node->PartitionV.Len(), \
+		EAssertR(Example->Label >= 0 && Example->Label <= Node->PartitionV.Len(),
 			"Label out of bounds.");
 		EAssertR(Node->PartitionV.GetVal(Example->Label) >= 0, "Negative count");
 		Node->PartitionV.GetVal(Example->Label)++;
@@ -1092,7 +1099,8 @@ namespace THoeffding {
 					MxId = TMath::Mx<int>(MxId, CrrNode->Id);
 					ProcessLeafCls(CrrNode, Example);
 				} else {
-					// Don't update counts --- sacrifice the next 2000 or so examples for internal evaluation 
+					// Don't update counts --- sacrifice the next 2000 or so 
+					// examples for internal evaluation 
 					if (TestMode(CrrNode)) {
 						NodeQ.Push(CrrNode);
 					} else { // Everything goes as usual
@@ -1112,7 +1120,7 @@ namespace THoeffding {
 				SelfEval(NodeQ.Top(), Example);
 				NodeQ.Pop();
 			}
-			// TODO: Explain this
+			// TODO: Explain this 
 			if (Root->HistH.Empty()) { Example->SetBinId(IdGen->GetNextBinId()); }
 			EAssertR(DriftExamplesN >= 0 && DriftExamplesN <= DriftCheck, "Need \
 				to check for concept drift.");
@@ -1124,7 +1132,7 @@ namespace THoeffding {
 			// Note that TestMode(CrrNode) should be false for VFDT because
 			// AltTressV.Empty() is always true: there are no alternate trees
 			// in VFDT.
-			EAssertR(!TestMode(CrrNode), "Can't be self-evaluating in adaptive mode.");
+			EAssertR(!TestMode(CrrNode), "Self-evaluating in adaptive mode.");
 			while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
 			ProcessLeafCls(CrrNode, Example);
 		}
@@ -1137,7 +1145,6 @@ namespace THoeffding {
 	void THoeffdingTree::SelfEval(PNode Node, PExample Example) const {
 		// Remember we sacrificed Example in Node 
 		if (Node->SeenH.IsKey(*Example)) {
-			EAssertR(Node->SeenH.GetDat(*Example) >= 0, "Negative count.");
 			++Node->SeenH.GetDat(*Example);
 		} else { Node->SeenH.AddDat(*Example, 1); }
 		
