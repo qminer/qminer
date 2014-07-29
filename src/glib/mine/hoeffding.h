@@ -4,7 +4,8 @@
 // 
 // Suggestions
 // (*) Add rigorous error checking 
-// (*) The constant 0.65 in THoeffdingTree::ProcessLeafCls is hard-coded: do something about this 
+// (*) The constant 0.65 in THoeffdingTree::ProcessLeafCls is
+// 	hard-coded: do something about this 
 //
 
 namespace THoeffding {
@@ -46,12 +47,15 @@ namespace THoeffding {
 	// attribute heuristic measures 
 	typedef enum { ahINFO_GAIN, ahGINI_GAIN } TAttrHeuristic;
 	// token type (used for parsing configuration files) 
-	typedef enum { totDFORMAT, totDISCRETE, totNUMERIC, totCOLON, totCOMMA, totEQU, totEND, totID, totLPARENTHESIS, totRPARENTHESIS, totSEMIC } TTokType;
+	typedef enum { totDFORMAT, totDISCRETE, totNUMERIC, totCOLON,
+		totCOMMA, totEQU, totEND, totID, totLPARENTHESIS,
+		totRPARENTHESIS, totSEMIC } TTokType;
 
 	///////////////////////////////
 	// Token
 	struct TToken {
-		TToken(const TStr& Val = "", const TTokType& Type = totEND, const int& LineN = 0)
+		TToken(const TStr& Val = "", const TTokType& Type = totEND,
+			const int& LineN = 0)
 			: Val(Val), Type(Type), LineN(LineN) { }
 		TStr Val;
 		TTokType Type;
@@ -72,7 +76,8 @@ namespace THoeffding {
 			BackP = true;
 		}
 		static bool IsValid(const char& Ch) {
-			return TCh::IsAlNum(Ch) || (Ch == '_' || Ch == '-' || Ch == '&' || Ch == '<' || Ch == '>' || Ch == '=' || Ch == '.');
+			return TCh::IsAlNum(Ch) || (Ch == '_' || Ch == '-' || Ch == '&' || 
+				Ch == '<' || Ch == '>' || Ch == '=' || Ch == '.');
 		}
 	private:
 		void EatWs(); // eats whitespace 
@@ -175,20 +180,26 @@ namespace THoeffding {
 	class TProbEstimates {
 	public:
 		// m-estimate; see PhD thesis [Cestnik, 1991] for details
-		static double MEstimate(const int& PositivesN, const int& AllN, const double& Apriori, const int& WeightN = 2) {
-			EAssertR(PositivesN >= 0 && PositivesN <= AllN, "Positives<0 or Positives>AllN");
-			// Let r be the number of positive examples and n be the number of all examples.
-			// Furthermore let m be the expert-defined parameter (i.e. ``trust'' parameter) and let p0 be apriori probability.
-			// Then we define m-estimate as p := (r+m*p0)/(n+m)
-			return (PositivesN+Apriori*WeightN)/(AllN+WeightN); // p = (r+m*p0)/(n+m);
+		static double MEstimate(const int& PositivesN, const int& AllN,
+			const double& Apriori, const int& WeightN = 2) {
+			EAssertR(PositivesN >= 0 && PositivesN <= AllN,
+				"Positives<0 or Positives>AllN");
+			// Let r be the number of positive examples and n be the number
+			// of all examples. Furthermore let m be the expert-defined
+			// parameter (i.e. ``trust'' parameter) and let p0 be apriori
+			// probability. Then we define m-estimate as p := (r+m*p0)/(n+m) 
+			// p = (r+m*p0)/(n+m);
+			return (PositivesN+Apriori*WeightN)/(AllN+WeightN);
 		}
 		// laplace estimate; see [Kononenko & Robnik-Sikonja, 2010] for details 
-		static double LaplaceEstiamte(const int& PositivesN, const int& NegativesN, const int& OutcomesN) {
-			EAssertR(PositivesN >= 0 && NegativesN >= 0 && OutcomesN >= NegativesN+PositivesN, "Negative count");
+		static double LaplaceEstiamte(const int& PositivesN,
+			const int& NegativesN, const int& OutcomesN) {
+			EAssertR(PositivesN >= 0 && NegativesN >= 0 &&
+				OutcomesN >= NegativesN+PositivesN, "Negative count");
 			// Let r be the number of positive examples, let n be the number of
 			// all examples, and let k be the number of possibles outcomes, i.e.,
 			// k=2 for coin tossing example)
-			// Then we define Laplace probability estimate as p := (r+1)/(n+k). 
+			// Then we define Laplace probability estimate as p := (r+1)/(n+k).
 			if (OutcomesN > 0) {
 				// p = (r+1)/(n+k)
 				return 1.0*(PositivesN+1)/(NegativesN+PositivesN+OutcomesN); 
@@ -198,7 +209,7 @@ namespace THoeffding {
 		}
 		// relative frequency 
 		static double RelativeFreq(const int& PositivesN, const int& AllN) {
-			EAssertR(PositivesN >= 0 && AllN >= PositivesN, \
+			EAssertR(PositivesN >= 0 && AllN >= PositivesN,
 				"PositivesN<0 or AllN<PositivesN");
 			return AllN > 0 ? 1.0*PositivesN/AllN : 0.0;
 		}
@@ -212,12 +223,15 @@ namespace THoeffding {
 		static void AddVec(const int& Scalar, TIntV& FstV, TIntV& SndV);
 		// N = sum(FreqV)
 		static double Entropy(const TIntV& FreqV, const int& N);
-		// Compute variance from sufficient statistic: Sum of squared values, sum of values, and number of values
-		inline static double Variance(const double& SqSum, const double& Sum, const int& N) {
+		// Compute variance from sufficient statistic: Sum of squared values,
+		// sum of values, and number of values
+		inline static double Variance(const double& SqSum, const double& Sum,
+			const int& N) {
 			EAssertR(N > 1, "Division by zero.");
 			return SqSum/(N-1)-TMath::Sqr(Sum/(N-1));
 		}
-		inline static double StdDev(const double& SqSum, const double& Sum, const int& N) {
+		inline static double StdDev(const double& SqSum, const double& Sum,
+			const int& N) {
 			EAssertR(N > 0, "Division by zero.");
 			return TMath::Sqrt(Variance(SqSum, Sum, N));
 		}
@@ -227,8 +241,10 @@ namespace THoeffding {
 	// Bin (for handling numeric attributes) 
 	class TBin {
 	public:
-		TBin(const double& _Value = 0.0, const int& _Id = 0, const int& _Count = 0)
-			: S(0.0), Mean(0.0), T(0.0), Value(_Value), Count(_Count), Id(_Id) { }
+		TBin(const double& _Value = 0.0, const int& _Id = 0,
+			const int& _Count = 0)
+			: S(0.0), Mean(0.0), T(0.0), Value(_Value), Count(_Count), Id(_Id)
+		{ }
 		
 		friend bool operator<=(const TBin& Bin1, const TBin& Bin2);
 		friend bool operator>=(const TBin& Bin1, const TBin& Bin2);
@@ -355,8 +371,8 @@ namespace THoeffding {
 		static PExample New(const TAttributeV& AttributesV, const int& Label) {
 			return new TExample(AttributesV, Label);
 		}
-		static PExample New(const TAttributeV& AttributesV, const double& Value) {
-			return new TExample(AttributesV, Value);
+		static PExample New(const TAttributeV& AttributesV, const double& Val) {
+			return new TExample(AttributesV, Val;
 		}
 
 		TExample() : LeafId(0), BinId(0), Label(-1), Value(0) { }
@@ -373,26 +389,33 @@ namespace THoeffding {
 		
 		TExample& operator=(const TExample& Example);
 		
-		/* TODO: Harmful? Solve this another way? May not be what user expects? */
+		// TODO: Harmful? Solve this another way? May not be what user expects?
 		inline bool operator<(const TExample& Example) const {
 			return Label < Example.Label;
 		}
 		inline bool operator==(const TExample& Example) const {
-			return LeafId == Example.LeafId && AttributesV == Example.AttributesV && 
-				BinId == Example.BinId && Label == Example.Label && Value == Example.Value;
+			return LeafId == Example.LeafId &&
+				AttributesV == Example.AttributesV && 
+				BinId == Example.BinId && Label == Example.Label &&
+				Value == Example.Value;
 		}
 		inline bool operator!=(const TExample& Example) const {
 			return !(*this == Example);
 		}
 		inline void SetLeafId(const int& LeafId_) { LeafId = LeafId_; }
 		inline void SetBinId(const int& BinId_) { BinId = BinId_; }
-		inline int GetPrimHashCd() const { // NOTE: BAD way of combining HASH CODES!!!
-			return AttributesV.GetPrimHashCd()+Label.GetPrimHashCd()+Value.GetPrimHashCd()+LeafId.GetPrimHashCd()+BinId.GetPrimHashCd();
+		// NOTE: BAD way of combining HASH CODES!!!
+		inline int GetPrimHashCd() const {
+			return AttributesV.GetPrimHashCd()+Label.GetPrimHashCd()+
+				Value.GetPrimHashCd()+LeafId.GetPrimHashCd()+BinId.GetPrimHashCd();
 		}
-		inline int GetSecHashCd() const { // NOTE: BAD way of combining HASH CODES!!!
-			return AttributesV.GetSecHashCd()+Label.GetSecHashCd()+Value.GetSecHashCd()+LeafId.GetSecHashCd()+BinId.GetSecHashCd();
+		// NOTE: BAD way of combining HASH CODES!!!
+		inline int GetSecHashCd() const {
+			return AttributesV.GetSecHashCd()+Label.GetSecHashCd()+
+				Value.GetSecHashCd()+LeafId.GetSecHashCd()+BinId.GetSecHashCd();
 		}
-		// TExample(const TStr& Line, const TCh& Separator); // split on Separator and map to integers using hashtables 
+		// split on Separator and map to integers using hashtables 
+		// TExample(const TStr& Line, const TCh& Separator); 
 	public:
 		TInt LeafId;
 		TInt BinId;
@@ -406,22 +429,30 @@ namespace THoeffding {
 	ClassTP(TNode, PNode) // { 
 		friend class THoeffdingTree;
 	public:
-		static PNode New(const int& LabelsN = 2, const TIntV& UsedAttrs = TVec<TInt>(), const int& Id = 0, const TNodeType& Type = ntLEAF) {
+		static PNode New(const int& LabelsN = 2,
+			const TIntV& UsedAttrs = TVec<TInt>(), const int& Id = 0,
+			const TNodeType& Type = ntLEAF) {
 			return new TNode(LabelsN, UsedAttrs, Id, Type);
 		}
-		static PNode New(const int& LabelsN, const TIntV& UsedAttrV, const TAttrManV& AttrManV, const int& Id, const TNodeType& Type = ntLEAF) {
+		static PNode New(const int& LabelsN, const TIntV& UsedAttrV,
+			const TAttrManV& AttrManV, const int& Id,
+			const TNodeType& Type = ntLEAF) {
 			return new TNode(LabelsN, UsedAttrV, AttrManV, Id, Type);
 		}
 
 		// TODO: Initialize PartitionV class label distribution counts 
-		TNode(const int& LabelsN = 2, const TIntV& UsedAttrs_ = TIntV(), const int& Id_ = 0, const TNodeType& Type_ = ntLEAF)
+		TNode(const int& LabelsN = 2, const TIntV& UsedAttrs_ = TIntV(),
+			const int& Id_ = 0, const TNodeType& Type_ = ntLEAF)
 			: CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
-			Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_), Correct(0), All(0) {
+			Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_),
+				Correct(0), All(0) {
 			PartitionV.Reserve(LabelsN, LabelsN);
 		}
-		TNode(const int& LabelsN, const TIntV& UsedAttrs_, const TAttrManV& AttrManV, const int& Id_, const TNodeType& Type_)
+		TNode(const int& LabelsN, const TIntV& UsedAttrs_,
+			const TAttrManV& AttrManV, const int& Id_, const TNodeType& Type_)
 			: CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
-				Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_), Correct(0), All(0) {
+				Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_),
+				Id(Id_), Correct(0), All(0) {
 			PartitionV.Reserve(LabelsN, LabelsN); Init(AttrManV);
 		}
 		TNode(const TNode& Node);
@@ -437,15 +468,24 @@ namespace THoeffding {
 		
 		double ComputeEntropy() const;
 		double ComputeGini() const;
-		double InfoGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const; // classification 
-		double GiniGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const; // classification 
-		double StdGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const; // regression 
+		// classification 
+		double InfoGain(const int& AttrIdx,
+			const TVec<TAttrMan>& AttrManV) const;
+		// classification 
+		double GiniGain(const int& AttrIdx,
+			const TVec<TAttrMan>& AttrManV) const;
+		// regression  
+		double StdGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const;
 		double ComputeTreshold(const double& Delta, const int& LabelsN) const;
-		void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen); // split the leaf on the AttrIdx attribute 
+		// split the leaf on the AttrIdx attribute 
+		void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
 		void Clr(); // forget accumulated examples 
-		TBstAttr BestAttr(const TAttrManV& AttrManV, const TTaskType& TaskType = ttCLASSIFICATION);
+		TBstAttr BestAttr(const TAttrManV& AttrManV,
+			const TTaskType& TaskType = ttCLASSIFICATION);
 		TBstAttr BestRegAttr(const TAttrManV& AttrManV); // regression 
-		TBstAttr BestClsAttr(const TAttrManV& AttrManV, const TIntV& BannedAttrV = TVec<TInt>()); // classification 
+		// classification 
+		TBstAttr BestClsAttr(const TAttrManV& AttrManV,
+			const TIntV& BannedAttrV = TVec<TInt>());
 		void UpdateStats(PExample Example); // regression 
 		inline double Std() const {
 			// NOTE: Unbiased variance estimator is VarSum/(ExamplesN-1)
@@ -459,8 +499,11 @@ namespace THoeffding {
 	// private:
 	public:
 		void Init(const TAttrManV& AttrManV);
-		int CndAttrIdx; // attribute this node tests on; this is set to -1 in leaf nodes 
-		int ExamplesN; // count the number of examples we accumulated so far (needed for GracePeriod parameter) 
+		// attribute this node tests on; this is set to -1 in leaf nodes 
+		int CndAttrIdx;
+		// count the number of examples we accumulated so
+		// far (needed for GracePeriod parameter) 
+		int ExamplesN; 
 		double Val; // test for `numerical attribute' <= Val 
 		double Avg; // current mean (regression only)
 		double VarSum;
@@ -470,14 +513,17 @@ namespace THoeffding {
 		TVec<PExample> ExamplesV;
 		// TIntV IdxV; // Sacrificed example indices 
 		THash<TExample, TInt> SeenH; // examples sacrificed for self-evaluation 
-		THash<TTriple<TInt, TInt, TInt>, TInt> Counts; // sufficient statistics; <AttributeID, AttributeValue, Class> 
+		// sufficient statistics; <AttributeID, AttributeValue, Class> 
+		THash<TTriple<TInt, TInt, TInt>, TInt> Counts;
 		TIntV PartitionV; // number of examples with the same label 
 		TVec<PNode> ChildrenV; // vector of children (root nodes of the subtrees)
 		TIntV UsedAttrs; // attributes we already used in predecessor nodes 
-		THash<TInt, THist> HistH; // for each numeric attribute; maps attribute index to histogram
+		// for each numeric attribute; maps attribute index to histogram
+		THash<TInt, THist> HistH;
 		// the following are used for time-changeable decision trees 
 		TVec<PNode> AltTreesV; // vector of alternate trees (their root nodes) 
-		int Id; // monotonically increasing ID, assigned to each node at creation 
+		// monotonically increasing ID, assigned to each node at creation 
+		int Id;
 		int Correct;
 		int All;
 	};
@@ -486,56 +532,77 @@ namespace THoeffding {
 	// Hoeffding-Tree
 	ClassTP(THoeffdingTree, PHoeffdingTree) // {
 	public:
-		THoeffdingTree(const TStr& ConfigNm_, const int& GracePeriod_, const double& SplitConfidence_, const double& TieBreaking_,
-			const int& DriftCheck_ = 100, const int& WindowSize_ = 10000, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
-			: ExportN(0), TieBreaking(TieBreaking_), SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_),
-			DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000), MxId(1), 
-            AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), ConceptDriftP(true) {
-				if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
-				Init(ConfigNm_);
-		}
-		THoeffdingTree(PJsonVal JsonConfig_, const int& GracePeriod_, const double& SplitConfidence_, const double& TieBreaking_,
-			const int& DriftCheck_ = 100, const int& WindowSize_ = 10000, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
-			: ExportN(0), TieBreaking(TieBreaking_), SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_), DriftCheck(DriftCheck_), 
-            WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
-            ConceptDriftP(true) {
-				if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
-				Init(JsonConfig_);
-		}
-		THoeffdingTree(PJsonVal JsonConfig_, PJsonVal JsonParams_, const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
-			: ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1), AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true)	{
+		THoeffdingTree(const TStr& ConfigNm_, const int& GracePeriod_,
+			const double& SplitConfidence_, const double& TieBreaking_,
+			const int& DriftCheck_ = 100, const int& WindowSize_ = 10000,
+			const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
+			: ExportN(0), TieBreaking(TieBreaking_),
+				SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_),
+				DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_),
+				BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
+				IdGen(IdGen_), ConceptDriftP(true) {
 			if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
-			// NOTE: SetParams() must execute BEFORE Init() to initialize the paramters
+			Init(ConfigNm_);
+		}
+		THoeffdingTree(PJsonVal JsonConfig_, const int& GracePeriod_,
+			const double& SplitConfidence_, const double& TieBreaking_,
+			const int& DriftCheck_ = 100, const int& WindowSize_ = 10000,
+			const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
+			: ExportN(0), TieBreaking(TieBreaking_),
+				SplitConfidence(SplitConfidence_),
+				GracePeriod(GracePeriod_), DriftCheck(DriftCheck_), 
+				WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000),
+				MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
+				ConceptDriftP(true) {
+			if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
+			Init(JsonConfig_);
+		}
+		THoeffdingTree(PJsonVal JsonConfig_, PJsonVal JsonParams_,
+			const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
+			: ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
+				AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true)	{
+			if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
+			// NOTE: SetParams() must execute BEFORE Init() to
+			// initialize the paramters
 			SetParams(JsonParams_); Init(JsonConfig_);
 		}
 
-		static PHoeffdingTree New(const TStr& ConfigNm, const int& GracePeriod, const double& SplitConfidence, const double& TieBreaking,
-			const int& DriftCheck = 100, const int& WindowSize = 10000, const bool& IsAlt = false, PIdGen IdGen = nullptr) {
-			return new THoeffdingTree(ConfigNm, GracePeriod, SplitConfidence, TieBreaking, DriftCheck, WindowSize, IsAlt, IdGen);
+		static PHoeffdingTree New(const TStr& ConfigNm, const int& GracePeriod,
+			const double& SplitConfidence, const double& TieBreaking,
+			const int& DriftCheck = 100, const int& WindowSize = 10000,
+			const bool& IsAlt = false, PIdGen IdGen = nullptr) {
+			return new THoeffdingTree(ConfigNm, GracePeriod, SplitConfidence,
+				TieBreaking, DriftCheck, WindowSize, IsAlt, IdGen);
 		}
-		static PHoeffdingTree New(PJsonVal JsonConfig, const int& GracePeriod, const double& SplitConfidence, const double& TieBreaking,
-			const int& DriftCheck = 100, const int& WindowSize = 10000, const bool& IsAlt = false, PIdGen IdGen = nullptr) {
-			return new THoeffdingTree(JsonConfig, GracePeriod, SplitConfidence, TieBreaking, DriftCheck, WindowSize, IsAlt, IdGen);
+		static PHoeffdingTree New(PJsonVal JsonConfig, const int& GracePeriod,
+			const double& SplitConfidence, const double& TieBreaking,
+			const int& DriftCheck = 100, const int& WindowSize = 10000,
+			const bool& IsAlt = false, PIdGen IdGen = nullptr) {
+			return new THoeffdingTree(JsonConfig, GracePeriod, SplitConfidence,
+				TieBreaking, DriftCheck, WindowSize, IsAlt, IdGen);
 		}
-		static PHoeffdingTree New(PJsonVal JsonConfig, PJsonVal JsonParams, const bool& IsAlt = false, PIdGen IdGen = nullptr) {
+		static PHoeffdingTree New(PJsonVal JsonConfig, PJsonVal JsonParams,
+			const bool& IsAlt = false, PIdGen IdGen = nullptr) {
 			return new THoeffdingTree(JsonConfig, JsonParams, IsAlt, IdGen);
 		}
 
-		// TODO: Define copy and move constructors and operators for THoeffdingTree? 
+		// TODO: Define copy and move constructors and
+		// operators for THoeffdingTree?
 		// THoeffdingTree(const THoeffdingTree& HoeffdingTree) =delete;
 		// THoeffdingTree(THoeffdingTree&& HoeffdingTree) =delete;
-		// THoeffdingTree& operator=(const THoeffdingTree& HoeffdingTree) =delete;
+		// THoeffdingTree& operator=(
+		//	const THoeffdingTree& HoeffdingTree) =delete;
 		// THoeffdingTree& operator=(THoeffdingTree&& HoeffdingTree) =delete;
 		
 		double Predict(const TStrV& DiscreteV, const TFltV& NumericV) const;
 		double Predict(PExample Example) const;
-		inline double Predict(const TStr& Line, const TCh& Delimiter = ',') const {
+		double Predict(const TStr& Line, const TCh& Delimiter = ',') const {
 			return Predict(Preprocess(Line, Delimiter));
 		}
 		TStr Classify(PNode Node, PExample Example) const;
 		TStr Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
 		TStr Classify(PExample Example) const;
-		inline TStr Classify(const TStr& Line, const TCh& Delimiter = ',') const {
+		TStr Classify(const TStr& Line, const TCh& Delimiter = ',') const {
 			if (Line.CountCh(Delimiter) < AttrsHashV.Len()) { // missing label 
 				TStr Label = InvAttrsHashV.Last()[0];
 				return Classify(Preprocess(Line+","+Label, Delimiter));
@@ -552,9 +619,14 @@ namespace THoeffding {
 		void ProcessLeafCls(PNode Leaf, PExample Example); // classification 
 		void SelfEval(PNode Node, PExample Example) const;
 		bool TestMode(PNode Node);
-		void Process(const TStrV& DiscreteV, const TFltV& NumericV, const double& Val); // regression 
-		void Process(const TStrV& DiscreteV, const TFltV& NumericV, const TStr& Label); // classification 
-		void Process(const TStr& Line, const TCh& Delimiter = ',') { // both (classification and regression) 
+		// regression 
+		void Process(const TStrV& DiscreteV, const TFltV& NumericV,
+			const double& Val);
+		// classification 
+		void Process(const TStrV& DiscreteV, const TFltV& NumericV,
+			const TStr& Label);
+		// both (classification and regression) 
+		void Process(const TStr& Line, const TCh& Delimiter = ',') {
 			Process(Preprocess(Line, Delimiter));
 		}
 		void Process(PExample Example) {
@@ -569,7 +641,8 @@ namespace THoeffding {
 		PExample Preprocess(const TStr& Line, const TCh& Delimiter = ',') const;
 		PNode GetNextNode(PNode Node, PExample Example) const; 
 		void Clr(PNode Node, PNode SubRoot = nullptr);
-		void Export(const TStr& FileNm, const TExportType& ExportType = etXML) const;
+		void Export(const TStr& FileNm,
+			const TExportType& ExportType = etXML) const;
 		TLabel NaiveBayes(PNode Node, PExample Example) const; // classification 
 		inline TLabel Majority(PNode Node) const { // classification 
 			return Node->PartitionV.GetMxValN();
@@ -582,17 +655,21 @@ namespace THoeffding {
 			return AttrManV.GetVal(Node->CndAttrIdx).InvAttrH.GetDat(ChildN);
 		}
 		inline TStr GetMajorityNm(PNode Node) const { // classification 
-			return AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(Node->PartitionV.GetMxValN());
+			return AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(
+				Node->PartitionV.GetMxValN());
 		}
 		// TODO: Make IsLeaf static? Or move it to TNode? 
 		inline bool IsLeaf(PNode Node) const { return Node->CndAttrIdx == -1; }
 		void PrintHist(const TStr& FNm, const TCh& Ch = '#') const;
-		void Print(PExample Example) const; // print example in human-readable form 
+		// print example in human-readable form 
+		void Print(PExample Example) const; 
 		void SetAdaptive(const bool& DriftP) { ConceptDriftP = DriftP; }
 		inline static bool Sacrificed(PNode Node, PExample Example) {
-			return Node->SeenH.IsKey(*Example) && Node->SeenH.GetDat(*Example) > 0;
+			return Node->SeenH.IsKey(*Example) &&
+				Node->SeenH.GetDat(*Example) > 0;
 		}
-		// NOTE: Not implemented yet; avoids using hash tables for self-evaluation 
+		// NOTE: Not implemented yet; avoids using hash tables
+		// for self-evaluation 
 		//void UpdateIndices(PNode Node) const {
 		//	for(int IdxN = 0; IdxN < Node->IdxV.Len(); ++IdxN) {
 		//		if(Node->IdxV[IdxN]++ >= WindowSize) { /* throw it out */
@@ -605,18 +682,26 @@ namespace THoeffding {
 		THash<TStr, TInt> LabelH; // maps label to integer 
 		THash<TInt, TStr> InvLabelH; // maps integer to label 
 		TVec<THash<TStr, TInt> > AttrsHashV; // vector of attribute hash tables 
-		TVec<THash<TInt, TStr> > InvAttrsHashV; // vector of attribute inverse hash tables 
+		// vector of attribute inverse hash tables 
+		TVec<THash<TInt, TStr> > InvAttrsHashV; 
 		TAttrManV AttrManV; // attribute managment 
 		int ExportN;
 	private:
 		double TieBreaking; // tau; when to consider two attributes equally good 
-		double SplitConfidence; // delta; NOTE: this is actually error tolerance; condifdence would be 1-`SplitConfidence'
-		int GracePeriod; // nmin; recompute heuristic estimates every nmin examples 
+		// delta; NOTE: this is actually error tolerance;
+		// condifdence would be 1-`SplitConfidence'
+		double SplitConfidence; 
+		// nmin; recompute heuristic
+		// estimates every nmin examples 
+		int GracePeriod;
 		int DriftCheck; // check for drift every `DriftCheck' examples 
 		int WindowSize; // keep `WindowSize' examples in main memory 
 		// int MemoryConstraint; // memory contraints (?) 
-		const bool IsAlt; // alternate trees are not allowed to grow altenrate trees 
-		const int BinsN; // number of bins when apprximating numberic attribu te's value distribution with histogram 
+		// alternate trees are not allowed to grow altenrate trees 
+		const bool IsAlt;
+		// number of bins when apprximating numberic attribute's value
+		// distribution with histogram 
+		const int BinsN;
 		int MxId;
 		TTaskType TaskType;
 		int AltTreesN; // number of alternate trees 
@@ -625,13 +710,18 @@ namespace THoeffding {
 		PIdGen IdGen; // ID generator 
 		bool ConceptDriftP;
 	private:
-		void Init(const TStr& ConfigFNm); // initialize attribute managment classes 
-		void Init(PJsonVal JsonConfig); // initialize attribute managment classes 
+	// initialize attribute managment classes 
+		void Init(const TStr& ConfigFNm);
+		// initialize attribute managment classes 
+		void Init(PJsonVal JsonConfig); 
 		void SetParams(PJsonVal JsonParams); // accepts JSON paramters 
 		void InitAttrMan();
-		void PrintXML(PNode Node, const int& Depth, TFOut& FOut) const; // export decision tree to XML 
+		// export decision tree to XML 
+		void PrintXML(PNode Node, const int& Depth,
+			TFOut& FOut) const; 
 		void PrintJSON(PNode Node, const int& Depth, TFOut& FOut) const;
-		void PrintDOT(PNode Node, TFOut& FOut, const bool& AlternateP = false) const;
+		void PrintDOT(PNode Node, TFOut& FOut,
+			const bool& AlternateP = false) const;
 		static void Print(const TCh& Ch = '-', const TInt& Num = 80);
 	};
 }
