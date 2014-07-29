@@ -76,6 +76,35 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
     InitMinMSecs = ParamVal->GetObjInt("initWindow");
 }
 
+TEma::TEma(TSIn& SIn): Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn), 
+	InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn); 
+	Type = static_cast<TEmaType>((int)TypeI);
+	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+}
+
+void TEma::Load(TSIn& SIn) {
+	*this = TEma(SIn);
+}
+
+void TEma::Save(TSOut& SOut) const {
+	// parameters
+	Decay.Save(SOut);
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	TFlt TmIntervalFlt = TmInterval; // double
+	TmIntervalFlt.Save(SOut);
+}
+
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	double TmInterval1;
 	if(NewTmMSecs == TmMSecs) {

@@ -502,8 +502,8 @@ TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base,
     TimeWndMSecs = TJsonVal::GetMSecsFromJsonVal(ParamVal->GetObjKey("window"));
 }
 
-TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base, TSIn& SIn): 
-	TStreamAggr(Base, SIn), TimeStore(TStore::LoadById(Base, SIn)), 
+TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) :
+	TStreamAggr(Base, SABase, SIn), TimeStore(TStore::LoadById(Base, SIn)), 
     TimeFieldId(SIn), TimeWndMSecs(SIn) { }
 
 void TTimeStreamAggr::Save(TSOut& SOut) const {
@@ -552,7 +552,7 @@ TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TStore>& 
 
 TCount::TCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TTimeStreamAggr(Base, ParamVal) { }
 
-TCount::TCount(const TWPt<TBase>& Base, TSIn& SIn): TTimeStreamAggr(Base, SIn), Count(SIn) { }
+TCount::TCount(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TTimeStreamAggr(Base, SABase, SIn), Count(SIn) { }
 
 PStreamAggr TCount::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
         const TWPt<TStore>& Store, const int& TimeFieldId, const uint64 TimeWndMSecs) {
@@ -564,8 +564,8 @@ PStreamAggr TCount::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TCount(Base, ParamVal); 
 }
 
-PStreamAggr TCount::Load(const TWPt<TBase>& Base, TSIn& SIn) { 
-    return new TCount(Base, SIn); 
+PStreamAggr TCount::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+    return new TCount(Base, SABase, SIn); 
 }
 
 void TCount::Save(TSOut& SOut) const {
@@ -637,7 +637,7 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
 }
 
-TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, TSIn& SIn) : TStreamAggr(Base, SIn), 
+TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
 	TimeFieldId(SIn), TickValFieldId(SIn), InitP(SIn), TickVal(SIn), TmMSecs(SIn) { }
 
 PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const TStr& StoreNm, 
@@ -650,8 +650,8 @@ PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamV
     return new TTimeSeriesTick(Base, ParamVal);
 }
 
-PStreamAggr TTimeSeriesTick::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	return new TTimeSeriesTick(Base, SIn);
+PStreamAggr TTimeSeriesTick::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TTimeSeriesTick(Base, SABase, SIn);
 }
 
 void TTimeSeriesTick::Save(TSOut& SOut) const {
@@ -880,7 +880,7 @@ TEma::TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& TmInterval
 TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
     // parse out input aggregate
     TStr InStoreNm = ParamVal->GetObjStr("store");
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+    TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
     PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
@@ -888,11 +888,11 @@ TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
     QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
 }
 
-TEma::TEma(const TWPt<TBase>& Base, TSIn& SIn): TStreamAggr(Base, SIn), Ema(SIn) {
-	TStr InStoreNm; InStoreNm.Load(SIn);
+TEma::TEma(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn), Ema(SIn) {
 	TStr InAggrNm; InAggrNm.Load(SIn);
-
-	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InTypeId.Load(SIn);
+	
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
 	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
 	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
@@ -918,9 +918,8 @@ PStreamAggr TEma::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TEma(Base, ParamVal);
 }
 
-PStreamAggr TEma::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	// TODO: naredi konstruktor za serializacijo kot v Save funkciji
-	return new TEma(Base, SIn);
+PStreamAggr TEma::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TEma(Base, SABase, SIn);
 }
 
 void TEma::Save(TSOut& SOut) const {
@@ -928,11 +927,10 @@ void TEma::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
+	Ema.Save(SOut);
 	// save our stuff
-	TStr InStoreNm; InStoreNm.Save(SOut); // TODO: read store store name
 	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
 	InTypeId.Save(SOut);
-	// Ema.Save(SOut);
 }
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
@@ -1123,7 +1121,7 @@ TCorr::TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Bas
     InitInAggr(SABase, InAggrNmCov, InAggrNmVarX, InAggrNmVarY);
 }
 
-TCorr::TCorr(const TWPt<TBase>& Base, TSIn& SIn): TStreamAggr(Base, SIn) {
+TCorr::TCorr(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn) {
     //TODO
     Fail;
 }
@@ -1305,8 +1303,8 @@ void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
 	TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
 }
 
-TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
-		TStreamAggr(Base, SIn),
+TStMerger::TStMerger(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) :
+		TStreamAggr(Base, SABase, SIn),
 		OutStore(TStore::LoadById(Base, SIn)),
 		TimeFieldId(SIn),
 		OutFldNmV(SIn),
@@ -1731,7 +1729,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStre
 	IntervalMSecs = TJsonVal::GetMSecsFromJsonVal(ParamVal->GetObjKey("interval"));
 }
 
-TResampler::TResampler(const TWPt<TBase>& Base, TSIn& SIn): TStreamAggr(Base, SIn),
+TResampler::TResampler(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
     InStore(TStore::LoadById(Base, SIn)), InFieldIdV(SIn), InterpolatorV(SIn),
     OutStore(TStore::LoadById(Base, SIn)), TimeFieldId(SIn), IntervalMSecs(SIn),
     InterpPointMSecs(SIn) { }

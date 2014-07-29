@@ -61,6 +61,10 @@ public:
 	TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,
         const double& _TmInterval);
     TEma(const PJsonVal& ParamVal);
+	TEma(TSIn& SIn);
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	void Update(const double& Val, const uint64& NewTmMSecs);
 	// current status

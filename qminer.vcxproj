@@ -55,7 +55,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SWTIMER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>EXTENDEDOPENFILES;SWTIMER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>INTEL;LAPACKE;EIGEN;BLAS;CBLAS;</UndefinePreprocessorDefinitions>
     </ClCompile>
