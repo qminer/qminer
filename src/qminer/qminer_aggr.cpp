@@ -888,6 +888,17 @@ TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
     QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
 }
 
+TEma::TEma(const TWPt<TBase>& Base, TSIn& SIn): TStreamAggr(Base, SIn), Ema(SIn) {
+	TStr InStoreNm; InStoreNm.Load(SIn);
+	TStr InAggrNm; InAggrNm.Load(SIn);
+
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
 PStreamAggr TEma::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
         const double& TmInterval, const TSignalProc::TEmaType& Type, 
         const uint64& InitMinMSecs, const TStr& InStoreNm, const TStr& InAggrNm) {
@@ -918,10 +929,10 @@ void TEma::Save(TSOut& SOut) const {
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff
-	InAggr.Save(SOut);
-	InAggrVal.Save(SOut);
+	TStr InStoreNm; InStoreNm.Save(SOut); // TODO: read store store name
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
 	InTypeId.Save(SOut);
-	Ema.Save(SOut);
+	// Ema.Save(SOut);
 }
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
