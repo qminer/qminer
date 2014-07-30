@@ -378,11 +378,15 @@ protected:
 	TTimeSeriesWinBuf(const TWPt<TBase>& Base,  const TStr& StoreNm, const TStr& AggrNm,
 		const TStr& TimeFieldNm, const TStr& ValFieldNm, const uint64& _WinSizeMSecs);
     TTimeSeriesWinBuf(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TTimeSeriesWinBuf(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 public:
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& AggrNm,
 		const TStr& TimeFieldNm, const TStr& ValFieldNm, const uint64& _WinSizeMSecs);
     // json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);       
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
@@ -416,6 +420,7 @@ protected:
 	TWinBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
 		const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
 	TWinBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TWinBufCount(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 
 public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
@@ -424,6 +429,9 @@ public:
 		const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
 	//json constructor
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -438,6 +446,45 @@ public:
 	static TStr GetType() { return "winBufCount"; }
 };
 
+///////////////////////////////
+// Moving Window Buffer Summa.
+class TWinBufSum : public TStreamAggr, public TStreamAggrOut::IFltTm {
+private:
+	// input
+	TWPt<TStreamAggr> InAggr;
+	TWPt<TStreamAggrOut::IFltTmIO> InAggrVal;
+	TSignalProc::TSum Sum;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+
+	TWinBufSum(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+		const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
+	TWinBufSum(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	TWinBufSum(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
+		const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm);
+	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,
+		const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
+	//json constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	// did we finish initialization
+	bool IsInit() const { return true; }
+	// current values
+	double GetFlt() const { return Sum.GetSum(); }
+	uint64 GetTmMSecs() const { return Sum.GetTmMSecs(); }
+	void GetInAggrNmV(TStrV& InAggrNmV) const { InAggrNmV.Add(InAggr->GetAggrNm()); }
+	// serialization to JSon
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "winBufSum"; }
+};
 
 ///////////////////////////////
 // Moving Average.
@@ -455,7 +502,7 @@ protected:
 	TMa(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
 			const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
 	TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
-
+	TMa(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 public:    
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,         
         const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm);
@@ -463,7 +510,10 @@ public:
         const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
     //json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
-    
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
 	// did we finish initialization
 	bool IsInit() const { return true; }
 	// current values
@@ -545,7 +595,7 @@ protected:
 	TVar(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
         const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);	
 	TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal);    
-
+	TVar(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 public:    
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm,         
         const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm);
@@ -553,7 +603,10 @@ public:
         const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
     //json constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
-    
+	// serialization
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
 	// did we finish initialization
 	bool IsInit() const { return true; }
 	// current values
