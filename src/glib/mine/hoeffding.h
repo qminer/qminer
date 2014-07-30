@@ -98,7 +98,8 @@ namespace THoeffding {
 			: CurrCh(Lexer.CurrCh), LineN(Lexer.LineN), LastTok(Lexer.LastTok),
 				BackP(Lexer.BackP), SIn(Lexer.SIn) { }
 		TToken GetNextTok();
-		inline void PutBack() { // need this for lookahead 
+		// Need this for lookahead 
+		inline void PutBack() {
 			BackP = true;
 		}
 		static bool IsValid(const char& Ch) {

@@ -4,16 +4,16 @@ namespace THoeffding {
 	// const int BinsN;
 
 	///////////////////////////////
-	// simple-lexical-analyzer
+	// Simple-lexical-analyzer
 	TToken TLexer::GetNextTok() {
 		if (BackP) {
 			BackP = false;
 			return LastTok;
 		}
 		CurrCh = SIn->GetCh();
-		// skip whitespace 
+		// Skip whitespace 
 		EatWs();
-		// ignore comments 
+		// Ignore comments 
 		while (CurrCh == '#') { SkipLn(); EatWs(); }
 
 		switch (CurrCh) {
@@ -36,7 +36,7 @@ namespace THoeffding {
 			LastTok = TToken("=", totEQU, LineN);
 			return LastTok;
 		}
-		// identifier?
+		// Identifier?
 		if (IsValid(CurrCh)) {
 			TChA ChA;
 			ChA.AddCh(CurrCh);
@@ -55,10 +55,10 @@ namespace THoeffding {
 			}
 		} else {
 			if (!SIn->Eof()) {
-				printf("[Line %d] Illegal character: '%c'.\n", LineN, CurrCh);
+				// printf("[Line %d] Illegal character: '%c'.\n", LineN, CurrCh);
 				EFailR("Illegal character.");
 			}
-			LastTok = TToken("", totEND, LineN); // end-of-file
+			LastTok = TToken("", totEND, LineN); // End-of-file
 		}
 		return LastTok;
 	}
@@ -73,21 +73,17 @@ namespace THoeffding {
 	}
 	
 	///////////////////////////////
-	// parameters
+	// Parameters
 	
 	///////////////////////////////
-	// parser
+	// Parser
 	void TParser::CfgParse(const TStr& FileNm) {
 		TLexer Lexer(FileNm);
 		TToken Tok;
-		//while ((Tok = Lexer.GetNextTok()).Type != totEND) {
-		//	printf("\tToken: %s\n", Tok.Val.CStr());
-		//}
-		// printf("--------- Parsing format specification ---------\n");
+		// Parsing format specification
 		InitLine(Lexer);
-		// printf("--------- Parsing attributes ---------\n");
+		// Parsing attributes 
 		AttrLine(Lexer);
-		// printf("Parsing succeeded!\n\n"); 
 	}
 	void TParser::InitLine(TLexer& Lexer) {
 		TToken Tok;
@@ -111,7 +107,7 @@ namespace THoeffding {
 			//	Tok.LineN, Tok.Val.CStr());
 			EFailR("Expected '('.");
 		}
-		// parameter list 
+		// Parameter list 
 		InitParam(Lexer);
 		// )
 		Tok = Lexer.GetNextTok();
@@ -125,7 +121,7 @@ namespace THoeffding {
 		TToken Tok;
 		int IdxN = 0;
 		while (true) {
-			// id
+			// Identifier 
 			Tok = Lexer.GetNextTok();
 			if (Tok.Type != totID) {
 				// printf("[Line %d] Expected identifier instead of '%s'.\n",
@@ -137,7 +133,8 @@ namespace THoeffding {
 			InvDataFormatH.AddDat(IdxN, Tok.Val);
 			// ,
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type == totRPARENTHESIS) { break; } // end of parameter list 
+			// End of parameter list 
+			if (Tok.Type == totRPARENTHESIS) { break; }
 			if (Tok.Type != totCOMMA) {
 				// printf("[Line %d] Expected ',' instead of '%s'.\n",
 				//	Tok.LineN, Tok.Val.CStr());
@@ -154,9 +151,10 @@ namespace THoeffding {
 		TToken Tok;
 		TStr AttrNm;
 		while (true) {
-			// id
+			// Identifier 
 			Tok = Lexer.GetNextTok();
-			if (Tok.Type == totEND) { break; } // end-of-file
+			// End-of-file
+			if (Tok.Type == totEND) { break; }
 				
 			if (Tok.Type != totID) {
 				// printf("[Line %d] Expected identifier instead of '%s'.\n",
@@ -164,7 +162,7 @@ namespace THoeffding {
 				EFailR("Expected identifier.");
 			}
 			AttrNm = Tok.Val;
-			// make sure attribute was ``declared'' in dataFormat statement 
+			// Make sure attribute was ``declared'' in dataFormat statement 
 			if (!DataFormatH.IsKey(AttrNm)) {
 				// printf("Attribute '%s' is undeclared.\n", AttrNm.CStr());
 				EFailR("Undeclared attribute (i.e., attribute not mentioned \
@@ -177,7 +175,7 @@ namespace THoeffding {
 				//	Tok.LineN, Tok.Val.CStr());
 				EFailR("Expected ':'.");
 			}
-			// discrete/numeric
+			// Attribute type (discrete or numeric)
 			Tok = Lexer.GetNextTok();
 			if (Tok.Type == totDISCRETE) {
 				printf("Nominal attirubte %s\n", AttrNm.CStr());
@@ -197,7 +195,7 @@ namespace THoeffding {
 					EFailR("Expected ')'.");
 				}
 			} else if (Tok.Type == totNUMERIC) {
-				// printf("Numeric atribute\n");
+				// Numeric atribute 
 				const int CountN = DataFormatH.GetDat(AttrNm);
 				AttrsHV.GetVal(CountN).AddDat("", 0);
 				InvAttrsHV.GetVal(CountN).AddDat(0, "");
@@ -213,8 +211,8 @@ namespace THoeffding {
 		const int CountN = DataFormatH.GetDat(AttrNm);
 		TToken Tok;
 		TStr ValNm;
-		while (true) { // loop through all values 
-			// id
+		while (true) { // Loop through all values 
+			// Identifier 
 			Tok = Lexer.GetNextTok();
 			if (Tok.Type != totID) {
 				// printf("[Line %d] Expected identifier instead of '%s'.\n",
@@ -222,7 +220,7 @@ namespace THoeffding {
 				EFailR("Expected identifier");
 			}
 			ValNm = Tok.Val;
-			// set up the mappings 
+			// Set up the mappings 
 			AttrsHV.GetVal(CountN).AddDat(ValNm, IdxN);
 			InvAttrsHV.GetVal(CountN).AddDat(IdxN, ValNm);
 			// ,
@@ -259,7 +257,7 @@ namespace THoeffding {
 	}
 	double TMisc::Entropy(const TIntV& FreqV, const int& N) {
 		double h = 0.0, p = 0.0;
-		// XXX: make sure frequencies add up to N 
+		// Make sure frequencies add up to N 
 		int FreqSum = 0;
 		for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
 			EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
