@@ -347,53 +347,49 @@ namespace THoeffding {
 	// NOTE: This function must ensure the example is removed from
 	// the bins that existed at the time of its arrival 
 	void THist::DecCls(PExample Example, const int& AttrIdx) {
-		EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(), "Index \
-			out of bounds.");
+		EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(),
+			"Index out of bounds.");
 		int Idx = 0, BinN = 0, PrevIdx = 0;
 		double CurrDist = 0.0, PrevDist = 0.0;
 		const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
 		const int Label = Example->Label;
 		// Idx = BinsV.SearchBin(Val); // Binary search for Val 
-		if ((Idx = BinsV.SearchBin(Val)) == -1 && BinsV.Len() < BinsN) {
-			// printf("Searching for value: %f\n", Val);
-			Print();
-			// XXX: For deubgging purposes 
-			EFailR("By construction, the value cannot be missing.");
-		} else { // Find the closest bin 
-			// Bin initialized with this very value 
-			if (Idx != -1 && BinsV.GetVal(Idx).Id <= Example->BinId) {
-				BinsV.GetVal(Idx).Dec(Label);
-			} else {
-				// Otherwise, decrement the closest bin that WAS NOT created
-				// after the example was accumulated 
-				Idx = 0;
-				// NOTE: We can't take the first bin as it may have been
-				// created AFTER the example was accumulated; instead we find
-				// the first suitable bin 
-				// printf("BinsV.Len() = %d\n", BinsV.Len()); // XXX: Debug 
-				EAssertR(BinsV.Len() == BinsN, "Expected histogram to be filled \
-					with bins.");
-				// Find the first suitable bin 
-				for (BinN = 0; BinN < BinsV.Len() &&
-					BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
-				// NOTE: For debugging purposes 
-				EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible.");
-				PrevIdx = Idx = BinN; // First suitable bin 
-				PrevDist = CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
-				// The order is preserved even though new bins might have been
-				// created between the old ones 
-				for (; BinN < BinsV.Len(); ++BinN) {
-					if (BinsV.GetVal(BinN).Id <= Example->BinId) {
-						PrevDist = CurrDist;
-						CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
-						if (CurrDist > PrevDist) {
-							Idx = PrevIdx; break;
-						} else { PrevIdx = BinN; }
-					}
+		Idx = BinsV.SearchBin(Val);
+		EAssertR(Idx != -1 || BinsN <= BinsV.Len(),
+			"By construction, the value cannot be missing.");
+		// Find the closest bin 
+		// Bin initialized with this very value 
+		if (Idx != -1 && BinsV.GetVal(Idx).Id <= Example->BinId) {
+			BinsV.GetVal(Idx).Dec(Label);
+		} else {
+			// Otherwise, decrement the closest bin that created 
+			// before or at the same time as the example was accumulated 
+			Idx = 0;
+			// NOTE: We can't take the first bin as it may have been
+			// created AFTER the example was accumulated; instead we find
+			// the first suitable bin 
+			EAssertR(BinsV.Len() == BinsN,
+				"Expected histogram to be filled with bins.");
+			// Find the first suitable bin 
+			for (BinN = 0; BinN < BinsV.Len() &&
+				BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
+			// NOTE: For debugging purposes 
+			EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible.");
+			PrevIdx = Idx = BinN; // First suitable bin 
+			PrevDist = CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+			// The order is preserved even though new bins might have been
+			// created between the old ones 
+			for (; BinN < BinsV.Len(); ++BinN) {
+				if (BinsV.GetVal(BinN).Id <= Example->BinId) {
+					PrevDist = CurrDist;
+					CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+					if (CurrDist > PrevDist) {
+						Idx = PrevIdx; break;
+					} else { PrevIdx = BinN; }
 				}
-				if (BinN == BinsV.Len() && Idx != PrevIdx) { Idx = PrevIdx; }
-				BinsV.GetVal(Idx).Dec(Label);
 			}
+			if (BinN == BinsV.Len() && Idx != PrevIdx) { Idx = PrevIdx; }
+			BinsV.GetVal(Idx).Dec(Label);
 		}
 	}
 	void THist::IncReg(const PExample Example, const int& AttrIdx) {
@@ -1020,8 +1016,7 @@ namespace THoeffding {
 			case atCONTINUOUS:
 				// printf("Decrementing count for attribute %s\n",
 				// 	AttrManV.GetVal(It->Id).Nm.CStr()); // XXX: Debug 
-				// XXX XXX XXX THIS IS THE SOURCE OF THE BUG XXX XXX XXX 
-				// Node->HistH.GetDat(AttrN).DecCls(Example, AttrN);
+				Node->HistH.GetDat(AttrN).DecCls(Example, AttrN);
 				break;
 			default:
 				EFailR("Attribute type not supported.");

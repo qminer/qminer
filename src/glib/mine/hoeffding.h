@@ -17,32 +17,65 @@ namespace THoeffding {
 	typedef TVec<TAttribute> TAttributeV;
 	typedef TVec<TBin> TBinV;
 	typedef TVec<TNode> TNodeV;
-	// typedef TVec<PExample> PExampleV;
+	// Typedef TVec<PExample> PExampleV;
 	typedef TVec<TAttrMan> TAttrManV;
-	// another option is struct { int Idx1, Idx2; double Mx1, Mx2, Diff; };
+	// Another option is struct { int Idx1, Idx2; double Mx1, Mx2, Diff; };
 	typedef TTriple<TPair<TInt, TFlt>, TPair<TInt, TFlt>, TFlt> TBstAttr;
 
-	// numeric attribute discretization
+	// Numeric attribute discretization
 	const int BinsN = 100;
 
-	// model in the leaves for regression 
-	typedef enum { rlMEAN, rlLINEAR_REGRESSION } TRegressLeaves;
-	// classifier in the leaves 
-	typedef enum { clMAJORITY, clNAIVE_BAYES } TClassifyLeaves;
-	// learning task type 
-	typedef enum { ttCLASSIFICATION, ttREGRESSION } TTaskType;
-	// attribute value type 
-	typedef enum { atDISCRETE, atCONTINUOUS } TAttrType;
-	// node type 
-	typedef enum { ntROOT, ntINTERNAL, ntLEAF } TNodeType;
-	// export type 
-	typedef enum { etXML, etJSON, etDOT } TExportType;
-	// attribute heuristic measures 
-	typedef enum { ahINFO_GAIN, ahGINI_GAIN } TAttrHeuristic;
-	// token type (used for parsing configuration files) 
-	typedef enum { totDFORMAT, totDISCRETE, totNUMERIC, totCOLON,
-		totCOMMA, totEQU, totEND, totID, totLPARENTHESIS,
-		totRPARENTHESIS, totSEMIC } TTokType;
+	// Model in the leaves for regression 
+	typedef enum {
+		rlMEAN,					// Predict the mean in the leaves 
+		rlLINEAR_REGRESSION	// Fit a linear model in the leaves 
+	} TRegressLeaves;
+	// Classifier in the leaves 
+	typedef enum {
+		clMAJORITY,		// Use majority classifier 
+		clNAIVE_BAYES	// Use NaiveBayes classifier 
+	} TClassifyLeaves;
+	// Learning task type 
+	typedef enum {
+		ttCLASSIFICATION,	// Classification task 
+		ttREGRESSION		// Regression task 
+	} TTaskType;
+	// Attribute value type 
+	typedef enum {
+		atDISCRETE,		// Discrete (i.e. nominal) attribute 
+		atCONTINUOUS	// Continuous (i.e. numeric) attribute 
+	} TAttrType;
+	// Node type 
+	typedef enum {
+		ntROOT,		// Root node 
+		ntINTERNAL,	// Internal node 
+		ntLEAF		// Leaf node 
+	} TNodeType;
+	// Export type 
+	typedef enum {
+		etXML,	// Export model as XML
+		etJSON,	// Export model as JSON 
+		etDOT		// Export model as DOT 
+	} TExportType;
+	// Attribute heuristic measures 
+	typedef enum {
+		ahINFO_GAIN,	// Use information gain as heuristic measure 
+		ahGINI_GAIN 	// Use Gini gain as heuristic measure 
+	} TAttrHeuristic;
+	// Token type (used for parsing configuration files) 
+	typedef enum {
+		totDFORMAT,			//	 'dataFormat' 
+		totDISCRETE,		// 'discrete'
+		totNUMERIC,			// 'numeric' 
+		totCOLON,				// ':'
+		totCOMMA,			// ','
+		totEQU,				// '=' 
+		totEND,				// 
+		totID,				// identifier 
+		totLPARENTHESIS,	// '('
+		totRPARENTHESIS,	// ')'
+		totSEMIC				// ';'
+	} TTokType;
 
 	///////////////////////////////
 	// Token
@@ -73,10 +106,10 @@ namespace THoeffding {
 				Ch == '<' || Ch == '>' || Ch == '=' || Ch == '.');
 		}
 	private:
-		void EatWs(); // eats whitespace 
-		void SkipLn(); // skip line 
-		int CurrCh; // current character 
-		int LineN; // current line 
+		void EatWs(); // Eats whitespace 
+		void SkipLn(); // Skip line 
+		int CurrCh; // Current character 
+		int LineN; // Current line 
 		TToken LastTok;
 		bool BackP;
 		PSIn SIn;
@@ -125,13 +158,12 @@ namespace THoeffding {
 		void CfgParse(const TStr& FileNm);
 		// dataFormat = (a1, a2, ..., an)
 		void InitLine(TLexer& Lexer);
-		// parameter list, i.e., `a1, a2, ..., an'
+		// Parameter list, i.e., `a1, a2, ..., an'
 		void InitParam(TLexer& Lexer);
 		// ai: discrete(vi1, vi2, ..., vini) or aj: numeric
 		void AttrLine(TLexer& Lexer);
-		// value list, i.e., `vi1, vi2, ..., vini'
+		// Value list, i.e., `vi1, vi2, ..., vini'
 		void AttrParam(TLexer& Lexer, const TStr& AttrNm);
-		// TODO: make it StrFmt 
 		void Error(const TStr& Msg);
 	};
 
@@ -251,21 +283,25 @@ namespace THoeffding {
 		}
 		void Inc(const int& Label) {
 			while (Label >= PartitionV.Len()) { PartitionV.Add(0); }
-			EAssertR(PartitionV.GetVal(Label)++ >= 0, "Negative partition \
-				count.");
-			EAssertR(++Count > 0, "Negative count.");
+			EAssertR(PartitionV.GetVal(Label) >= 0,
+				"Negative partition count.");
+			PartitionV.GetVal(Label)++;
+			EAssertR(Count >= 0, "Negative count.");
+			++Count;
 		}
 		void Dec(const int& Label) { // NOTE: Asserts serve debugging purposes 
-			EAssertR(Label < PartitionV.Len(), "Should not happen, by \
-				construction.");
-			EAssertR(PartitionV.GetVal(Label)-- > 0, "Negative partition \
-				count in bin.");
-			EAssertR(--Count >= 0, "Negative count.");
+			EAssertR(Label < PartitionV.Len(), "Label >= PartitionV.Len()");
+			EAssertR(PartitionV.GetVal(Label) > 0,
+				"Negative partition count in bin.");
+			PartitionV.GetVal(Label)--;
+			EAssertR(Count > 0, "Negative count.");
+			--Count;
 		}
 		// NOTE: Here, ValueV.Len() is the number of examples in the leaf 
 		void Inc(const double& RegValue) { // Regression 
 			// ValueV.Add(RegValue);
-			EAssertR(++Count > 0, "Negative count.");
+			EAssertR(Count >= 0, "Negative count.");
+			++Count;
 			const double Delta = RegValue - Mean;
 			T += RegValue;
 			Mean += Delta/Count;
@@ -651,13 +687,12 @@ namespace THoeffding {
 			return AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(
 				Node->PartitionV.GetMxValN());
 		}
-		// TODO: Make IsLeaf static? Or move it to TNode? 
-		inline bool IsLeaf(PNode Node) const { return Node->CndAttrIdx == -1; }
+		static bool IsLeaf(PNode Node) { return Node->CndAttrIdx == -1; }
 		void PrintHist(const TStr& FNm, const TCh& Ch = '#') const;
 		// print example in human-readable form 
 		void Print(PExample Example) const; 
 		void SetAdaptive(const bool& DriftP) { ConceptDriftP = DriftP; }
-		inline static bool Sacrificed(PNode Node, PExample Example) {
+		static bool Sacrificed(PNode Node, PExample Example) {
 			return Node->SeenH.IsKey(*Example) &&
 				Node->SeenH.GetDat(*Example) > 0;
 		}
