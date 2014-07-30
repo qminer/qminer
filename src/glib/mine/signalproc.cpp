@@ -202,11 +202,6 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
-TVar::TVar() {
-	printf("Inicializacija TVar!");
-	Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0;
-}
-
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N) {
 		
@@ -214,14 +209,12 @@ void TVar::Update(const double& InVal, const uint64& InTmMSecs,
     int tempN = N - 1 + OutValV.Len();
     double delta;    
     
-	// check if all the values are removed
-	/*
+	// check if all the values are removed	
 	if (OutValV.Len() >= tempN) {
 		Ma = 0;
 		M2 = 0;
 		tempN = 0;
 	} else {
-	*/
 		// remove old values from the mean
 		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
 		{
@@ -230,7 +223,7 @@ void TVar::Update(const double& InVal, const uint64& InTmMSecs,
 			Ma = Ma - delta / tempN;
 			M2 = M2 - delta * (OutValV[ValN] - Ma);
 		}
-	/*}*/
+	}
 
     //add the new value to the resulting mean    
     delta = InVal - Ma;

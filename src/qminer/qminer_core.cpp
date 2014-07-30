@@ -4076,8 +4076,7 @@ const PStreamAggr& TStreamAggrBase::GetStreamAggr(const int& StreamAggrId) const
     return StreamAggrH[StreamAggrId]; 
 }
 
-void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) { 
-	TQm::TEnv::Logger->OnStatusFmt("SABase -> Added stream aggregate: %s\n",  StreamAggr->GetAggrNm().CStr());
+void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) { 	
 	StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr); 
 }
 

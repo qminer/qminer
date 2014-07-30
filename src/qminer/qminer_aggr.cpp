@@ -1101,12 +1101,9 @@ void TVar::OnAddRec(const TRec& Rec) {
     TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);        
 	if (InAggr->IsInit()) {		
 		TInt N = InAggrVal->GetN();
-		TQm::TEnv::Logger->OnStatusFmt("Calculating variance! %d, %d", Var.GetM2(), N);
-
-		Var.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-                ValV, TmMSecsV, InAggrVal->GetN());
-		Var.Update(0.02, 0,
-			ValV, TmMSecsV, InAggrVal->GetN());
+		TFlt InFlt = InAggrVal->GetInFlt();
+		uint64 InTmMSecs = InAggrVal->GetInTmMSecs();
+		Var.Update(InFlt, InTmMSecs, ValV, TmMSecsV, N);		
 	}
 }
 
@@ -1117,7 +1114,7 @@ TVar::TVar(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
     InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
     InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
 TVar::TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Var() {
@@ -1128,7 +1125,7 @@ TVar::TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);	
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());	
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);	
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);	
 }
 
 PStreamAggr TVar::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
@@ -1157,7 +1154,7 @@ TVar::TVar(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SI
 	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
 	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
-	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
 PStreamAggr TVar::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {

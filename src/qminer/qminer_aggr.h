@@ -602,7 +602,7 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, 
         const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase);
     //json constructor
-    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
+    static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   	
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	void Save(TSOut& SOut) const;

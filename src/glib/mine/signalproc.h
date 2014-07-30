@@ -107,7 +107,7 @@ private:
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
 public:
-	TVar();
+	TVar() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0;}	
 	TVar(TSIn& SIn) : Ma(SIn), M2(SIn), TmMSecs(SIn), pNo(SIn) { }
 
 	// serialization
@@ -116,10 +116,8 @@ public:
 
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
-	// current status
-	// TODO: remove debug code ...
-	bool IsInit() const { return true; }
-	double GetM2() const { return 99; /* return M2 / pNo; */}
+	// current status	
+	double GetM2() const { return M2 / pNo; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
