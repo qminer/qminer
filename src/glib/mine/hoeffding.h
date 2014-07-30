@@ -1,8 +1,6 @@
 #ifndef HOEFFDING_H
 #define HOEFFDING_H
 
-#include <map>
-
 namespace THoeffding {
    ///////////////////////////////
    // Forward-Declarations
@@ -104,7 +102,7 @@ namespace THoeffding {
       TLexer(const TStr& FileNm)
          : LineN(1), BackP(false) { SIn = TFIn::New(FileNm); }
       TLexer(TLexer& Lexer)
-         : CurrCh(Lexer.CurrCh), LineN(Lexer.LineN), LastTok(Lexer.LastTok),
+         : CrrCh(Lexer.CrrCh), LineN(Lexer.LineN), LastTok(Lexer.LastTok),
             BackP(Lexer.BackP), SIn(Lexer.SIn) { }
       TToken GetNextTok();
       // Need this for lookahead 
@@ -118,8 +116,8 @@ namespace THoeffding {
    private:
       void EatWs(); // Eats whitespace 
       void SkipLn(); // Skip line 
-      int CurrCh; // Current character 
-      int LineN; // Current line 
+      int CrrCh; // Current character 
+      int LineN; // Current line number 
       TToken LastTok;
       bool BackP;
       PSIn SIn;
@@ -777,5 +775,6 @@ namespace THoeffding {
       static void Print(const TCh& Ch = '-', const TInt& Num = 80);
    };
 }
+
 #endif // HOEFFDING_H 
 

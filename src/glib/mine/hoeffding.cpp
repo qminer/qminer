@@ -10,13 +10,13 @@ namespace THoeffding {
          BackP = false;
          return LastTok;
       }
-      CurrCh = SIn->GetCh();
+      CrrCh = SIn->GetCh();
       // Skip whitespace 
       EatWs();
       // Ignore comments 
-      while (CurrCh == '#') { SkipLn(); EatWs(); }
+      while (CrrCh == '#') { SkipLn(); EatWs(); }
 
-      switch (CurrCh) {
+      switch (CrrCh) {
       case '(':
          LastTok = TToken("(", totLPARENTHESIS, LineN);
          return LastTok;
@@ -37,12 +37,12 @@ namespace THoeffding {
          return LastTok;
       }
       // Identifier?
-      if (IsValid(CurrCh)) {
+      if (IsValid(CrrCh)) {
          TChA ChA;
-         ChA.AddCh(CurrCh);
+         ChA.AddCh(CrrCh);
          while (!SIn->Eof() && IsValid(SIn->PeekCh())) {
-            CurrCh = SIn->GetCh();
-            ChA.AddCh(CurrCh);
+            CrrCh = SIn->GetCh();
+            ChA.AddCh(CrrCh);
          }
          if (ChA == "dataFormat") {
             LastTok = TToken(ChA, totDFORMAT, LineN);
@@ -55,7 +55,7 @@ namespace THoeffding {
          }
       } else {
          if (!SIn->Eof()) {
-            // printf("[Line %d] Illegal character: '%c'.\n", LineN, CurrCh);
+            // printf("[Line %d] Illegal character: '%c'.\n", LineN, CrrCh);
             EFailR("Illegal character.");
          }
          LastTok = TToken("", totEND, LineN); // End-of-file
@@ -63,13 +63,13 @@ namespace THoeffding {
       return LastTok;
    }
    void TLexer::EatWs() {
-      while (!SIn->Eof() && TCh::IsWs(CurrCh)) {
-         if (CurrCh == '\n') ++LineN;
-         CurrCh = SIn->GetCh();
+      while (!SIn->Eof() && TCh::IsWs(CrrCh)) {
+         if (CrrCh == '\n') ++LineN;
+         CrrCh = SIn->GetCh();
       }
    }
    void TLexer::SkipLn() {
-      while (!SIn->Eof() && CurrCh != '\n') { CurrCh = SIn->GetCh(); }
+      while (!SIn->Eof() && CrrCh != '\n') { CrrCh = SIn->GetCh(); }
    }
    
    ///////////////////////////////
@@ -302,7 +302,7 @@ namespace THoeffding {
       EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(),
          "Index out of bounds.");
       int Idx = 0, BinN = 0;
-      double CurrDist = 0.0, PrevDist = 0.0;
+      double CrrDist = 0.0, PrevDist = 0.0;
       const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
       const int Label = Example->Label;
       // Add new bin, initialized with Val, if the number of bins (BinsN)
@@ -321,7 +321,7 @@ namespace THoeffding {
                BinsV.GetVal(Idx).Id));
          } else { // Otherwise, increment the closest bin 
             Idx = 0;
-            PrevDist = CurrDist = abs(Val - BinsV.GetVal(0).GetVal());
+            PrevDist = CrrDist = abs(Val - BinsV.GetVal(0).GetVal());
             // NOTE: We could use binary search because of the ordering
             // invariant; but the number of bins rarely exeecds 100 
             // While distance starts increasing, stop --- our bin is the one
@@ -329,9 +329,9 @@ namespace THoeffding {
             for (BinN = 1; BinN < BinsV.Len(); ++BinN) {
                EAssertR(BinsV.GetVal(BinN-1).GetVal() <=
                   BinsV.GetVal(BinN).GetVal(), "Bins not sorted.");
-               PrevDist = CurrDist;
-               CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
-               if (CurrDist > PrevDist) {
+               PrevDist = CrrDist;
+               CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+               if (CrrDist > PrevDist) {
                   Idx = BinN-1; break;
                }
             }
@@ -348,7 +348,7 @@ namespace THoeffding {
       EAssertR(AttrIdx >= 0 && AttrIdx < Example->AttributesV.Len(),
          "Index out of bounds.");
       int Idx = 0, BinN = 0, PrevIdx = 0;
-      double CurrDist = 0.0, PrevDist = 0.0;
+      double CrrDist = 0.0, PrevDist = 0.0;
       const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
       const int Label = Example->Label;
       // Idx = BinsV.SearchBin(Val); // Binary search for Val 
@@ -374,14 +374,14 @@ namespace THoeffding {
          // NOTE: For debugging purposes 
          EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible.");
          PrevIdx = Idx = BinN; // First suitable bin 
-         PrevDist = CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+         PrevDist = CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
          // The order is preserved even though new bins might have been
          // created between the old ones 
          for (; BinN < BinsV.Len(); ++BinN) {
             if (BinsV.GetVal(BinN).Id <= Example->BinId) {
-               PrevDist = CurrDist;
-               CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
-               if (CurrDist > PrevDist) {
+               PrevDist = CrrDist;
+               CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+               if (CrrDist > PrevDist) {
                   Idx = PrevIdx; break;
                } else { PrevIdx = BinN; }
             }
@@ -392,7 +392,7 @@ namespace THoeffding {
    }
    void THist::IncReg(const PExample Example, const int& AttrIdx) {
       int Idx = 0, BinN = 0;
-      double CurrDist = 0.0, PrevDist = 0.0;
+      double CrrDist = 0.0, PrevDist = 0.0;
       // Numeric attribute value 
       const double Val = Example->AttributesV.GetVal(AttrIdx).Num;
       const double RegValue = Example->Value; // Value of the target variable 
@@ -405,13 +405,13 @@ namespace THoeffding {
             BinsV.GetVal(Idx).Inc(RegValue);
          } else { // Otherwise, increment the closest bin 
             Idx = 0;
-            CurrDist = PrevDist = abs(Val - BinsV.GetVal(0).GetVal());
+            CrrDist = PrevDist = abs(Val - BinsV.GetVal(0).GetVal());
             for (BinN = 1; BinN < BinsV.Len(); ++BinN) {
-               PrevDist = CurrDist;
+               PrevDist = CrrDist;
                // We are fine, because bins are ordered inside the vector
                // by the initialization values 
-               CurrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
-               if (CurrDist > PrevDist) {
+               CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
+               if (CrrDist > PrevDist) {
                   Idx = BinN - 1;
                   break;
                }
@@ -423,8 +423,8 @@ namespace THoeffding {
    }
    // Find best split 
    double THist::InfoGain(double& SplitVal) const {
-      int HiCount = 0, LoCount = 0, CurrCount = 0, MxIdx = 0;
-      double MxGain = 0.0, CurrGain = 0.0;
+      int HiCount = 0, LoCount = 0, CrrCount = 0, MxIdx = 0;
+      double MxGain = 0.0, CrrGain = 0.0;
       double LoImp = 0.0, HiImp = 0.0;
       TIntV LoV, HiV;
       double* GArr = new double[sizeof(double)*BinsV.Len()]();
@@ -444,21 +444,21 @@ namespace THoeffding {
       const int AllN = HiCount;
       const double H = TMisc::Entropy(HiV, AllN);
       // Now find the best split 
-      CurrGain = MxGain = 0.0;
+      CrrGain = MxGain = 0.0;
       MxIdx = 0;
       for (int BinN = BinsV.Len()-2; BinN >= 0; --BinN) {
-         CurrCount = BinsV.GetVal(BinN+1).Count;
+         CrrCount = BinsV.GetVal(BinN+1).Count;
          // No need for this: BinsV.GetVal(MxIdx).GetVal()
          // Val = BinsV.GetVal(BinN+1).Value; 
-         LoCount += CurrCount;
+         LoCount += CrrCount;
          HiCount = NArr[BinN];
          HiImp = GArr[BinN];
          TIntV TmpV = BinsV.GetVal(BinN+1).PartitionV;
          TMisc::AddVec(1, TmpV, LoV);
          LoImp = TMisc::Entropy(LoV, LoCount);
-         CurrGain = H - LoCount*LoImp/AllN - HiCount*HiImp/AllN;
-         if (CurrGain > MxGain) {
-            MxGain = CurrGain;
+         CrrGain = H - LoCount*LoImp/AllN - HiCount*HiImp/AllN;
+         if (CrrGain > MxGain) {
+            MxGain = CrrGain;
             MxIdx = BinN;
          }
       }
@@ -1503,7 +1503,7 @@ namespace THoeffding {
       for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
          nk = PartitionV.GetVal(LabelN); // number of positive examples 
          //printf("[DEBUG] #Examples = %d\n", nk);
-         // TProbEstimates::LaplaceEstiamte(nk, CurrNode->ExamplesN-nk, 2); 
+         // TProbEstimates::LaplaceEstiamte(nk, CrrNode->ExamplesN-nk, 2); 
          pk = (nk+1.0)/(ExamplesN+LabelsN); 
          //printf("[DEBUG] Current: %f\n", pk);
          for (int i = 0; i < AttrsN; ++i) {
@@ -1511,11 +1511,11 @@ namespace THoeffding {
                Example->AttributesV.GetVal(i).Value, LabelN);
             if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
                // apriori probability 
-               // p0 = 1.0*CurrNode->Counts(TmpTriple)/nk;
+               // p0 = 1.0*CrrNode->Counts(TmpTriple)/nk;
                // compute conditional probability using m-estimate 
                // pk *= TProbEstimates::MEstimate(
-               //   CurrNode->Counts(TmpTriple), nk, p0, 2);
-               // pk *= 1.0*CurrNode->Counts(TmpTriple)/nk; 
+               //   CrrNode->Counts(TmpTriple), nk, p0, 2);
+               // pk *= 1.0*CrrNode->Counts(TmpTriple)/nk; 
                // (m * P(c_i) + n(x_k,c_i))/(P(c_i) * (m + n(x_k)))
                // laplace estimate for P(c_i) 
                pc = (nk+1.0)/(ExamplesN+LabelsN);
@@ -1770,8 +1770,8 @@ namespace THoeffding {
          return;
       }
       while (!Queue.Empty()) {
-         TPair<PNode, TInt> CurrPair = Queue.Top();
-         PNode CrrNode = CurrPair.Val1;
+         TPair<PNode, TInt> CrrPair = Queue.Top();
+         PNode CrrNode = CrrPair.Val1;
          Queue.Pop();
          TStr ValueNm;
          for (int NodeN = 0; NodeN < CrrNode->ChildrenV.Len(); ++NodeN) {
@@ -1791,17 +1791,17 @@ namespace THoeffding {
                   "Invalid task type.");
                if (TaskType == ttCLASSIFICATION) {
                   FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\"];",
-                     GetNodeNm(CrrNode).CStr(), CurrPair.Val2,
+                     GetNodeNm(CrrNode).CStr(), CrrPair.Val2,
                      GetMajorityNm(TmpNode).CStr(), NodeId, TmpValueNm.CStr());
                } else {
                   FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\"];",
-                     GetNodeNm(CrrNode).CStr(), CurrPair.Val2,
+                     GetNodeNm(CrrNode).CStr(), CrrPair.Val2,
                      TFlt::GetStr(TmpNode->Avg).CStr(), NodeId,
                      TmpValueNm.CStr());
                }
             } else {
                FOut.PutStrFmtLn("\t%s%d -> %s%d [label=\"L%s\"];",
-                  GetNodeNm(CrrNode).CStr(), CurrPair.Val2,
+                  GetNodeNm(CrrNode).CStr(), CrrPair.Val2,
                   GetNodeNm(TmpNode).CStr(), NodeId, TmpValueNm.CStr());
                Queue.Push(TPair<PNode, TInt>(TmpNode, NodeId));
             }
@@ -1818,18 +1818,18 @@ namespace THoeffding {
                if (TaskType == ttCLASSIFICATION) {
                   FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\", \
                      style=\"dotted\"];", GetNodeNm(CrrNode).CStr(),
-                     CurrPair.Val2, GetMajorityNm(TmpNode).CStr(),
+                     CrrPair.Val2, GetMajorityNm(TmpNode).CStr(),
                      NodeId, ValueNm.CStr());
                } else {
                   FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\", \
                      style=\"dotted\"];", GetNodeNm(CrrNode).CStr(),
-                     CurrPair.Val2, TFlt::GetStr(TmpNode->Avg).CStr(),
+                     CrrPair.Val2, TFlt::GetStr(TmpNode->Avg).CStr(),
                      NodeId, ValueNm.CStr());
                }
             } else {
                FOut.PutStrFmtLn("\t%s%d -> %s%d [label=\"L%s\", \
                   style=\"dotted\"];", GetNodeNm(CrrNode).CStr(),
-                  CurrPair.Val2, GetNodeNm(TmpNode).CStr(), NodeId,
+                  CrrPair.Val2, GetNodeNm(TmpNode).CStr(), NodeId,
                   ValueNm.CStr());
                Queue.Push(TPair<PNode, TInt>(TmpNode, NodeId));
             }
@@ -1843,3 +1843,4 @@ namespace THoeffding {
       printf("\n");
    }
 }
+
