@@ -1,6 +1,8 @@
 #ifndef HOEFFDING_H
 #define HOEFFDING_H
 
+#include <map>
+
 namespace THoeffding {
 	///////////////////////////////
 	// Forward-Declarations
@@ -314,33 +316,33 @@ namespace THoeffding {
 		// int operator--() { Assert(Count); return --Count; }
 		// int operator--(int) { Assert(Count); return Count--; }
 	public:
-		TFltV ValueV; // for regression
-		// sum of the squares of element and mean differences
+		TFltV ValueV; // For regression
+		// Sum of the squares of element and mean differences
 		// S = (x1-mean)^2+(x2-mean)^2+...+(xn-mean)^2
 		double S;
-		double Mean; // sample mean 
-		double T; // sum of the sample elements x1+x2+...+xn
-		double Value; // initialize bin with this value 
+		double Mean; // Sample mean 
+		double T; // Sum of the sample elements x1+x2+...+xn
+		double Value; // Initialize bin with this value 
 		int Count;
 		int Id; // ID needed for forgetting 
-		TIntV PartitionV; // for classification 
+		TIntV PartitionV; // For classification 
 	};
 
 	///////////////////////////////
 	// Histogram
 	class THist {
 	public:
-		// classification
+		// Classification
 		void IncCls(PExample Example, const int& AttrIdx, PIdGen IdGen);
-		// classification 
+		// Classification 
 		void DecCls(PExample Example, const int& AttrIdx);
-		// regression
+		// Regression
 		void IncReg(PExample Example, const int& AttrIdx);
 		
-		// void DecReg(const PExample Example, const int& AttrIdx); // regression
-		double InfoGain(double& SpltVal) const; // classification 
-		double GiniGain(double& SpltVal) const; // classification 
-		double StdGain(double& SpltVal) const; // regression 
+		// void DecReg(const PExample Example, const int& AttrIdx); // Regression
+		double InfoGain(double& SpltVal) const; // Classification 
+		double GiniGain(double& SpltVal) const; // Classification 
+		double StdGain(double& SpltVal) const; // Regression 
 		
 		TBinV BinsV;
 		
@@ -444,7 +446,7 @@ namespace THoeffding {
 			return AttributesV.GetSecHashCd()+Label.GetSecHashCd()+
 				Value.GetSecHashCd()+LeafId.GetSecHashCd()+BinId.GetSecHashCd();
 		}
-		// split on Separator and map to integers using hashtables 
+		// Split on Separator and map to integers using hashtables 
 		// TExample(const TStr& Line, const TCh& Separator); 
 	public:
 		TInt LeafId;
@@ -498,25 +500,25 @@ namespace THoeffding {
 		
 		double ComputeEntropy() const;
 		double ComputeGini() const;
-		// classification 
+		// Classification 
 		double InfoGain(const int& AttrIdx,
 			const TVec<TAttrMan>& AttrManV) const;
-		// classification 
+		// Classification 
 		double GiniGain(const int& AttrIdx,
 			const TVec<TAttrMan>& AttrManV) const;
-		// regression  
+		// Regression  
 		double StdGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const;
 		double ComputeTreshold(const double& Delta, const int& LabelsN) const;
-		// split the leaf on the AttrIdx attribute 
+		// Split the leaf on the AttrIdx attribute 
 		void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
-		void Clr(); // forget accumulated examples 
+		void Clr();
 		TBstAttr BestAttr(const TAttrManV& AttrManV,
 			const TTaskType& TaskType = ttCLASSIFICATION);
-		TBstAttr BestRegAttr(const TAttrManV& AttrManV); // regression 
-		// classification 
+		TBstAttr BestRegAttr(const TAttrManV& AttrManV); // Regression 
+		// Classification 
 		TBstAttr BestClsAttr(const TAttrManV& AttrManV,
 			const TIntV& BannedAttrV = TVec<TInt>());
-		void UpdateStats(PExample Example); // regression 
+		void UpdateStats(PExample Example); // Regression 
 		inline double Std() const {
 			// NOTE: Unbiased variance estimator is VarSum/(ExamplesN-1)
 			EAssertR(ExamplesN > 1, "Division by zero.");
@@ -529,30 +531,30 @@ namespace THoeffding {
 	// private:
 	public:
 		void Init(const TAttrManV& AttrManV);
-		// attribute this node tests on; this is set to -1 in leaf nodes 
+		// Attribute this node tests on; this is set to -1 in leaf nodes 
 		int CndAttrIdx;
-		// count the number of examples we accumulated so
+		// Count the number of examples we accumulated so
 		// far (needed for GracePeriod parameter) 
 		int ExamplesN; 
-		double Val; // test for `numerical attribute' <= Val 
-		double Avg; // current mean (regression only)
+		double Val; // Test for `numerical attribute' <= Val 
+		double Avg; // Current mean (regression only)
 		double VarSum;
-		double Err; // current error 
-		int TestModeN; // testing mode 
+		double Err; // Current error 
+		int TestModeN; // Testing mode 
 		TNodeType Type; // Root, Internal, Leaf 
 		TVec<PExample> ExamplesV;
 		// TIntV IdxV; // Sacrificed example indices 
-		THash<TExample, TInt> SeenH; // examples sacrificed for self-evaluation 
+		THash<TExample, TInt> SeenH; // Examples sacrificed for self-evaluation 
 		// sufficient statistics; <AttributeID, AttributeValue, Class> 
 		THash<TTriple<TInt, TInt, TInt>, TInt> Counts;
-		TIntV PartitionV; // number of examples with the same label 
-		TVec<PNode> ChildrenV; // vector of children (root nodes of the subtrees)
-		TIntV UsedAttrs; // attributes we already used in predecessor nodes 
-		// for each numeric attribute; maps attribute index to histogram
+		TIntV PartitionV; // Number of examples with the same label 
+		TVec<PNode> ChildrenV; // Vector of children (root nodes of the subtrees)
+		TIntV UsedAttrs; // Attributes we already used in predecessor nodes 
+		// For each numeric attribute; maps attribute index to histogram
 		THash<TInt, THist> HistH;
-		// the following are used for time-changeable decision trees 
-		TVec<PNode> AltTreesV; // vector of alternate trees (their root nodes) 
-		// monotonically increasing ID, assigned to each node at creation 
+		// The following are used for time-changeable decision trees 
+		TVec<PNode> AltTreesV; // Vector of alternate trees (their root nodes) 
+		// Monotonically increasing ID, assigned to each node at creation 
 		int Id;
 		int Correct;
 		int All;
@@ -633,48 +635,53 @@ namespace THoeffding {
 		TStr Classify(const TStrV& DiscreteV, const TFltV& NumericV) const;
 		TStr Classify(PExample Example) const;
 		TStr Classify(const TStr& Line, const TCh& Delimiter = ',') const {
-			if (Line.CountCh(Delimiter) < AttrsHashV.Len()) { // missing label 
+			if (Line.CountCh(Delimiter) < AttrsHashV.Len()) { // Missing label 
 				TStr Label = InvAttrsHashV.Last()[0];
 				return Classify(Preprocess(Line+","+Label, Delimiter));
 			} else {
 				return Classify(Preprocess(Line, Delimiter));
 			}
 		}
-		void IncCounts(PNode Node, PExample Example) const; // classification 
-		void DecCounts(PNode Node, PExample Example) const; // classification 
+		void IncCounts(PNode Node, PExample Example) const; // Classification 
+		void DecCounts(PNode Node, PExample Example) const; // Classification 
 		bool IsAltSplitIdx(PNode Node, const int& AttrIdx) const;
 		void CheckSplitValidityCls();
-		void ForgetCls(PExample Example) const; // classification 
-		void ProcessLeafReg(PNode Leaf, PExample Example); // regression 
-		void ProcessLeafCls(PNode Leaf, PExample Example); // classification 
+		void ForgetCls(PExample Example) const; // Classification 
+		void ProcessLeafReg(PNode Leaf, PExample Example); // Regression 
+		void ProcessLeafCls(PNode Leaf, PExample Example); // Classification 
 		void SelfEval(PNode Node, PExample Example) const;
 		bool TestMode(PNode Node);
-		// regression 
+		// Regression 
 		void Process(const TStrV& DiscreteV, const TFltV& NumericV,
 			const double& Val);
-		// classification 
+		// Classification 
 		void Process(const TStrV& DiscreteV, const TFltV& NumericV,
 			const TStr& Label);
-		// both (classification and regression) 
+		// Both (classification and regression) 
 		void Process(const TStr& Line, const TCh& Delimiter = ',') {
 			Process(Preprocess(Line, Delimiter));
 		}
 		void Process(PExample Example) {
-			if (TaskType == ttCLASSIFICATION) {
+			switch(TaskType) {
+			case ttCLASSIFICATION:
 				ProcessCls(Example);
-			} else {
+				break;
+			case ttREGRESSION:
 				ProcessReg(Example);
+				break;
+			default:
+				EFailR("Invalid TaskType");
 			}
 		}
-		void ProcessCls(PExample Example); // classification 
-		void ProcessReg(PExample Example); // regression 
+		void ProcessCls(PExample Example); // Classification 
+		void ProcessReg(PExample Example); // Regression 
 		PExample Preprocess(const TStr& Line, const TCh& Delimiter = ',') const;
 		PNode GetNextNode(PNode Node, PExample Example) const; 
 		void Clr(PNode Node, PNode SubRoot = nullptr);
 		void Export(const TStr& FileNm,
 			const TExportType& ExportType = etXML) const;
-		TLabel NaiveBayes(PNode Node, PExample Example) const; // classification 
-		inline TLabel Majority(PNode Node) const { // classification 
+		TLabel NaiveBayes(PNode Node, PExample Example) const; // Classification 
+		inline TLabel Majority(PNode Node) const { // Classification 
 			return Node->PartitionV.GetMxValN();
 		}
 		inline TStr GetNodeNm(PNode Node) const {
@@ -684,13 +691,13 @@ namespace THoeffding {
 			EAssertR(ChildN >= 0, "Can't have negative number of children.");
 			return AttrManV.GetVal(Node->CndAttrIdx).InvAttrH.GetDat(ChildN);
 		}
-		inline TStr GetMajorityNm(PNode Node) const { // classification 
+		inline TStr GetMajorityNm(PNode Node) const { // Classification 
 			return AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(
 				Node->PartitionV.GetMxValN());
 		}
 		static bool IsLeaf(PNode Node) { return Node->CndAttrIdx == -1; }
 		void PrintHist(const TStr& FNm, const TCh& Ch = '#') const;
-		// print example in human-readable form 
+		// Print example in human-readable form 
 		void Print(PExample Example) const; 
 		void SetAdaptive(const bool& DriftP) { ConceptDriftP = DriftP; }
 		static bool Sacrificed(PNode Node, PExample Example) {
@@ -707,45 +714,45 @@ namespace THoeffding {
 		//	}
 		//}
 	public:
-		PNode Root; // root node 
-		THash<TStr, TInt> LabelH; // maps label to integer 
-		THash<TInt, TStr> InvLabelH; // maps integer to label 
-		TVec<THash<TStr, TInt> > AttrsHashV; // vector of attribute hash tables 
-		// vector of attribute inverse hash tables 
+		PNode Root; // Root node 
+		THash<TStr, TInt> LabelH; // Maps label to integer 
+		THash<TInt, TStr> InvLabelH; // Maps integer to label 
+		TVec<THash<TStr, TInt> > AttrsHashV; // Vector of attribute hash tables 
+		// Vector of attribute inverse hash tables 
 		TVec<THash<TInt, TStr> > InvAttrsHashV; 
-		TAttrManV AttrManV; // attribute managment 
+		TAttrManV AttrManV; // Attribute managment 
 		int ExportN;
 	private:
-		double TieBreaking; // tau; when to consider two attributes equally good 
-		// delta; NOTE: this is actually error tolerance;
-		// condifdence would be 1-`SplitConfidence'
+		double TieBreaking; // tau; When to consider two attributes equally good 
+		// delta; NOTE: This is actually error tolerance;
+		// Condifdence would be 1-`SplitConfidence'
 		double SplitConfidence; 
-		// nmin; recompute heuristic
-		// estimates every nmin examples 
+		// nmin; Recompute heuristic
+		// Estimates every nmin examples 
 		int GracePeriod;
-		int DriftCheck; // check for drift every `DriftCheck' examples 
-		int WindowSize; // keep `WindowSize' examples in main memory 
-		// int MemoryConstraint; // memory contraints (?) 
-		// alternate trees are not allowed to grow altenrate trees 
+		int DriftCheck; // Check for drift every `DriftCheck' examples 
+		int WindowSize; // Keep `WindowSize' examples in main memory 
+		// int MemoryConstraint; // Memory contraints (?) 
+		// Alternate trees are not allowed to grow altenrate trees 
 		const bool IsAlt;
-		// number of bins when apprximating numberic attribute's value
-		// distribution with histogram 
+		// Number of bins when apprximating numberic attribute's value
+		// Distribution with histogram 
 		const int BinsN;
 		int MxId;
 		TTaskType TaskType;
-		int AltTreesN; // number of alternate trees 
-		TQQueue<PExample> ExampleQ; // last W examples 
-		int DriftExamplesN; // examples since last drift check 
+		int AltTreesN; // Number of alternate trees 
+		TQQueue<PExample> ExampleQ; // Last W examples 
+		int DriftExamplesN; // Examples since last drift check 
 		PIdGen IdGen; // ID generator 
 		bool ConceptDriftP;
 	private:
-	// initialize attribute managment classes 
+		// Initialize attribute managment classes 
 		void Init(const TStr& ConfigFNm);
-		// initialize attribute managment classes 
+		// Initialize attribute managment classes 
 		void Init(PJsonVal JsonConfig); 
-		void SetParams(PJsonVal JsonParams); // accepts JSON paramters 
+		void SetParams(PJsonVal JsonParams); // Accepts JSON paramters 
 		void InitAttrMan();
-		// export decision tree to XML 
+		// Export decision tree to XML 
 		void PrintXML(PNode Node, const int& Depth,
 			TFOut& FOut) const; 
 		void PrintJSON(PNode Node, const int& Depth, TFOut& FOut) const;

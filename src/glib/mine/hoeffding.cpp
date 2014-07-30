@@ -598,7 +598,7 @@ namespace THoeffding {
 			Counts = Node.Counts; Err = Node.Err; ExamplesN = Node.ExamplesN;
 			ExamplesV = Node.ExamplesV; HistH = Node.HistH; Id = Node.Id;
 			PartitionV = Node.PartitionV;
-			SeenH = Node.SeenH;
+			SeenH = Node.SeenH; 
 			TestModeN = Node.TestModeN; Type = Node.Type;
 			Val = Node.Val; VarSum = Node.VarSum;
 		}
@@ -756,11 +756,16 @@ namespace THoeffding {
 		const TAttrType AttrType = AttrManV.GetVal(AttrIdx).Type;
 		int ValsN = AttrManV.GetVal(AttrIdx).ValueV.Len();
 		// Categorial attributes can only be used once 
-		if (AttrType == atDISCRETE) {
+		switch(AttrType) {
+		case atDISCRETE:
 			UsedAttrs.Add(AttrIdx);
-		} else {
+			break;
+		case atCONTINUOUS:
 			ValsN = 2;
+			break;
 			// printf("[DEBUG] Splitting on continuous value %f\n", Val);
+		default:
+			EFailR("Invalid attribute type AttrType");
 		}
 		// UsedAttrs.Add(CondAttrIndex);
 		const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
@@ -778,6 +783,8 @@ namespace THoeffding {
 	}
 	TBstAttr TNode::BestAttr(const TAttrManV& AttrManV,
 		const TTaskType& TaskType) {
+		EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
+			"Invalid task type TaskType.");
 		if (TaskType == ttCLASSIFICATION) {
 			return BestClsAttr(AttrManV);
 		} else {
@@ -794,6 +801,8 @@ namespace THoeffding {
 		Idx1 = Idx2 = 0;
 		for (int AttrN = 0; AttrN < AttrsN; ++AttrN) {
 			const TAttrType AttrType = AttrManV.GetVal(AttrN).Type;
+			EAssertR(AttrType == atDISCRETE || AttrType == atCONTINUOUS,
+				"Invalid attribute type AttrType.");
 			if (AttrType == atDISCRETE) { // Discrete 
 				if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
 					// Compute standard deviation reduction 
@@ -827,7 +836,10 @@ namespace THoeffding {
 		for (int AttrN = 0; AttrN < AttrsN; ++AttrN) {
 			// NOTE: BannedAttrV almost never contains more than two indices 
 			if (BannedAttrV.IsIn(AttrN)) { continue; }
-			if (AttrManV.GetVal(AttrN).Type == atDISCRETE) {
+			TAttrType AttrType = AttrManV.GetVal(AttrN).Type;
+			EAssertR(AttrType == atDISCRETE || AttrType == atCONTINUOUS,
+				"Invalid attribute type AttrType.");
+			if (AttrType == atDISCRETE) {
 				if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
 					Crr = InfoGain(AttrN, AttrManV);
 				}
@@ -900,6 +912,8 @@ namespace THoeffding {
 		PNode CrrNode = Root;
 		while (CrrNode->CndAttrIdx != -1) {
 			const TAttrType AttrType = AttrManV.GetVal(CrrNode->CndAttrIdx).Type;
+			EAssertR(AttrType == atDISCRETE || AttrType == atCONTINUOUS,
+				"Invalid attribute type AttrType.");
 			if (AttrType == atDISCRETE) {
 				CrrNode = CrrNode->ChildrenV.GetVal(Example->AttributesV.GetVal(
 					CrrNode->CndAttrIdx).Value);
@@ -1173,7 +1187,6 @@ namespace THoeffding {
 		if (Node->SeenH.IsKey(*Example)) {
 			++Node->SeenH.GetDat(*Example);
 		} else { Node->SeenH.AddDat(*Example, 1); }
-		
 		// Update classification error for alternate trees 
 		for (auto It = Node->AltTreesV.BegI();
 			It != Node->AltTreesV.EndI(); ++It) {
@@ -1393,6 +1406,8 @@ namespace THoeffding {
 	PNode THoeffdingTree::GetNextNode(PNode Node, PExample Example) const {
 		if (!IsLeaf(Node)) {
 			const TAttrType AttrType = AttrManV.GetVal(Node->CndAttrIdx).Type;
+			EAssertR(AttrType == atDISCRETE || AttrType == atCONTINUOUS,
+				"Invalid attribute type AttrType.");
 			if (AttrType == atDISCRETE) {
 				PNode RetNode = Node->ChildrenV.GetVal(Example->AttributesV.GetVal(
 					Node->CndAttrIdx).Value);
@@ -1686,7 +1701,8 @@ namespace THoeffding {
 			}
 		}
 		const TAttrType PredType = AttrManV.Last().Type;
-		// EAssert(PredType == atDISCRETE);
+		EAssertR(PredType == atDISCRETE || PredType == atCONTINUOUS,
+			"Invalid target attribute type PredType.");
 		if (PredType == atDISCRETE) {
 			TaskType = ttCLASSIFICATION;
 		} else {
@@ -1712,7 +1728,10 @@ namespace THoeffding {
 		const int ChildrenN = Node->ChildrenV.Len();
 		for (int ChildN = 0; ChildN < ChildrenN; ++ChildN) {
 			FOut.PutStr(Indent);
-			if (AttrManV.GetVal(Node->CndAttrIdx).Type == atDISCRETE) {
+			TAttrType AttrType = AttrManV.GetVal(Node->CndAttrIdx).Type;
+			EAssertR(AttrType == atDISCRETE || AttrType == atCONTINUOUS,
+				"Invalid attribute type AttrType.");
+			if (AttrType == atDISCRETE) {
 				ValNm = GetNodeValueNm(Node, ChildN);
 			} else {
 				ValNm = (ChildN ? ">" : "<=");
@@ -1736,6 +1755,8 @@ namespace THoeffding {
 		int NodeId = 0; // Used to achieve uniqueness 
 		Queue.Push(TPair<PNode, TInt>(Node, NodeId));
 		if (Node->ChildrenV.Empty()) {
+			EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
+				"Invalid task type.");
 			if (TaskType == ttCLASSIFICATION) {
 				FOut.PutStrFmtLn("\t\"%s\";", GetMajorityNm(Node).CStr());
 			} else {
@@ -1761,6 +1782,8 @@ namespace THoeffding {
 				// Make sure DOT doesn't crash later beacuse of illegal labels 
 				TmpValueNm.ChangeCh('-', 'D');
 				if (TmpNode->ChildrenV.Empty()) {
+					EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
+						"Invalid task type.");
 					if (TaskType == ttCLASSIFICATION) {
 						FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\"];",
 							GetNodeNm(CrrNode).CStr(), CurrPair.Val2,
@@ -1785,6 +1808,8 @@ namespace THoeffding {
 				PNode TmpNode = CrrNode->AltTreesV[TreeN];
 				ValueNm = "*"; // Marks alternate tree 
 				if (TmpNode->ChildrenV.Empty()) {
+					EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
+						"Invalid task type.");
 					if (TaskType == ttCLASSIFICATION) {
 						FOut.PutStrFmtLn("\t%s%d -> \"%s%d\" [label=\"L%s\", \
 							style=\"dotted\"];", GetNodeNm(CrrNode).CStr(),
