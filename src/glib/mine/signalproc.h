@@ -28,6 +28,10 @@ private:
 public:
 	TMa() { Ma = 0; };	
     TMa(const PJsonVal& ParamVal) { TMa(); };
+	TMa(TSIn& SIn);
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	void Update(const double& InVal, const uint64& InTmMSecs, 
         const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
@@ -35,6 +39,69 @@ public:
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
     
+/////////////////////////////////////////////////
+// Online Summa
+class TSum {
+private:
+	TFlt Sum; // current computed SUM value 
+	TUInt64 TmMSecs; // timestamp of current MA	    
+public:
+	TSum() { Sum = 0; };
+	TSum(const PJsonVal& ParamVal) { TSum(); };
+	TSum(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) { }
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const double& InVal, const uint64& InTmMSecs,
+		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	double GetSum() const { return Sum; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
+/////////////////////////////////////////////////
+// Sliding Window Min
+class TMin {
+private:
+	TFlt Min; // current computed SUM value 
+	TUInt64 TmMSecs; // timestamp of current MA	   
+	TFltUInt64PrV AllValV; // sorted vector of values	
+public:
+	TMin() { Min = TFlt::Mx; TmMSecs = 0; };
+	TMin(TSIn& SIn) : Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const double& InVal, const uint64& InTmMSecs,
+		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	double GetMin() const { return Min; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
+/////////////////////////////////////////////////
+// Sliding Window Max
+class TMax {
+private:
+	TFlt Max; // current computed SUM value 
+	TUInt64 TmMSecs; // timestamp of current MA	   
+	TFltUInt64PrV AllValV; // sorted vector of values	
+public:
+	TMax() { Max = TFlt::Mn; TmMSecs = 0; };
+	TMax(TSIn& SIn) : Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const double& InVal, const uint64& InTmMSecs,
+		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	double GetMax() const { return Max; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
 /////////////////////////////////////////////////
 // Exponential Moving Average
 typedef enum { etPreviousPoint, etLinear, etNextPoint } TEmaType;
@@ -61,6 +128,10 @@ public:
 	TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,
         const double& _TmInterval);
     TEma(const PJsonVal& ParamVal);
+	TEma(TSIn& SIn);
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	void Update(const double& Val, const uint64& NewTmMSecs);
 	// current status
@@ -78,12 +149,17 @@ private:
 	TUInt64 TmMSecs; // timestamp of current WMA	
     TFlt pNo;
 public:
-	TVar() { Ma = 0; M2 = 0; };	
-    TVar(const PJsonVal& ParamVal) { TVar(); };
+	TVar() { Ma = 0; M2 = 0; pNo = 1; TmMSecs = 0;}	
+	TVar(TSIn& SIn) : Ma(SIn), M2(SIn), TmMSecs(SIn), pNo(SIn) { }
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
 
 	void Update(const double& InVal, const uint64& InTmMSecs, 
-        const TFltV& OutValV, const TUInt64V& OutTmMSecs, const int& N);	
-	double GetM2() const { return M2/pNo; }
+        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N);
+	// current status	
+	double GetM2() const { return M2 / pNo; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
