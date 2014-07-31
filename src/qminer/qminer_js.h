@@ -28,10 +28,10 @@
 
 // automatically start V8 debugger when in debug mode
 #ifndef NDEBUG
-    #define V8_DEBUG
+    //#define V8_DEBUG
 #endif
 // uncomment when running V8 debugger in release mode
-// #define V8_DEBUG
+//#define V8_DEBUG
 
 #ifdef V8_DEBUG
     // include v8 debug headers
@@ -1118,6 +1118,7 @@ public:
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 	JsDeclareFunction(addTrigger);
 	//#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
 	//#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
     JsDeclareFunction(addStreamAggr);
     //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
@@ -2205,7 +2206,7 @@ public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace) { 
 		return TJsFtrSpaceUtil::New(new TJsFtrSpace(Js, FtrSpace)); }
     static PFtrSpace GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN);
-
+	static PFtrSpace GetArgFtrSpace(v8::Handle<v8::Value> Val);
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	//# 

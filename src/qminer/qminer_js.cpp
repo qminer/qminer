@@ -1180,15 +1180,26 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	} else {
     	// create new aggregate
         PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-    	// add the stream aggregate to all the stores specified in the parameters
-        QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Missing argument 'mergingMapV'!");
-    	PJsonVal MrgMapV = ParamVal->GetObjKey("mergingMapV");
-    	for (int i = 0; i < MrgMapV->GetArrVals(); i++) {
-        	PJsonVal Entry = MrgMapV->GetArrVal(i);
-    		const TStr InStore = Entry->GetObjStr("inStore");
-    		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(InStore);
-    		JsBase->Base->AddStreamAggr(Store->GetStoreId(), Aggr);
-        }
+		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
+		TStrV InterpNmV;
+		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
+		for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+			PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
+			PJsonVal SourceVal = FieldVal->GetObjKey("source");
+			TStr StoreNm = "";
+			if (SourceVal->IsStr()) {
+				// we have just store name
+				StoreNm = SourceVal->GetStr();
+			}
+			else if (SourceVal->IsObj()) {
+				// get store
+				StoreNm = SourceVal->GetObjStr("store");
+				JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+				
+			}
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+			
+		}
     }
 	return HandleScope.Close(v8::Null());
 }
@@ -1439,7 +1450,7 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
     TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
     // we have only one parameter which is supposed to be object
     QmAssertR(Args.Length() == 1, "store.addStreamAggr expects one parameter");
-    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");
+    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");	
     // get aggregate type
     TStr TypeNm = TJsStoreUtil::GetArgStr(Args, 0, "type", "javaScript");
     // check if the aggregate is composed (called from composer)
@@ -1453,7 +1464,19 @@ v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
             JsStore->Js, AggrName, Args[0]->ToObject());
         // add it to the stream base for store
         JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
-    } else {
+	}
+	else if (TypeNm == "ftrext") {
+		TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
+		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		
+		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
+		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsStore->Js->Base, AggrName, FtrSpace);
+		// add it to the stream base for store
+		JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
+
+	} else {
         // we have a GLib stream aggregate, translate parameters to PJsonVal
         PJsonVal ParamVal = TJsStoreUtil::GetArgJson(Args, 0);
         // add store parameter
@@ -4487,6 +4510,18 @@ PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN
     // cast it to record set
     TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
     return JsFtrSpace->FtrSpace;    
+}
+
+PFtrSpace TJsFtrSpace::GetArgFtrSpace(v8::Handle<v8::Value> Val) {
+	v8::HandleScope HandleScope;	
+	// check it's of the right type
+	AssertR(Val->IsObject(), "GetArgFtrSpace: Argument expected to be Object");
+	// get the wrapped 
+	v8::Handle<v8::Object> FtrSpace = v8::Handle<v8::Object>::Cast(Val);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(FtrSpace->GetInternalField(0));
+	// cast it to record set
+	TJsFtrSpace* JsFtrSpace = static_cast<TJsFtrSpace*>(WrappedObject->Value());
+	return JsFtrSpace->FtrSpace;
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

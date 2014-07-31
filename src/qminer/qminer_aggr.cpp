@@ -1382,7 +1382,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	
 	QmAssertR(ParamVal->IsObjKey("outStore"), "Field 'outStore' missing!");
 	QmAssertR(ParamVal->IsObjKey("timestamp"), "Field 'timestamp' missing!");
-	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Field 'mergingMapV' missing!");
+	QmAssertR(ParamVal->IsObjKey("fields"), "Field 'fields' missing!");
 
 	//input parameters
     TStr OutStoreNm = ParamVal->GetObjStr("outStore");
@@ -1390,7 +1390,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
 	const bool Past = ParamVal->GetObjBool("onlyPast", false);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 	TStrV InterpNmV;
 
 	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
@@ -1948,20 +1948,25 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 
 ///////////////////////////////
 // Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
-void TFtrExt::OnAddRec(const TRec& Rec) {
+void TFtrExtAggr::OnAddRec(const TRec& Rec) {
 	FtrSpace->GetFullV(Rec, Vec);
 }
 
-TFtrExt::TFtrExt(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
+TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
 	TStreamAggr(Base, AggrNm) {
 	FtrSpace = _FtrSpace;
 }
 
-PStreamAggr TFtrExt::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
-	return new TFtrExt(Base, AggrNm, _FtrSpace);
+PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
+	return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
 }
 
-PJsonVal TFtrExt::SaveJson(const int& Limit) const {
+double TFtrExtAggr::GetFlt(const TInt& ElN) const {
+	QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
+	return Vec[ElN]; 
+}
+
+PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewArr(Vec);
 	return Val;
 }

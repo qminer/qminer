@@ -2484,6 +2484,7 @@ namespace TStreamAggrOut {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetFltLen() const = 0;
+		virtual double GetFlt(const TInt& ElN) const = 0;
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
 
