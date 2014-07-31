@@ -720,7 +720,9 @@ TTimeSeriesWinBuf::TTimeSeriesWinBuf(const TWPt<TBase>& Base, const PJsonVal& Pa
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
-    WinSizeMSecs = ParamVal->GetObjInt("winsize") * 60 * 1000;	 
+    WinSizeMSecs = ParamVal->GetObjInt("winsize");
+	// temporary warning
+	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TTimeSeriesWinBuf not in msecs (< 60000)");
     OutValV = TFltV(); OutTmMSecsV = TUInt64V(); AllValV = TFltUInt64PrV();
 }
 
