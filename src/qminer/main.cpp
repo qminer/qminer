@@ -328,7 +328,11 @@ int main(int argc, char* argv[]) {
     // report we are running with all Asserts turned on
     printf("*** Running in debug mode ***\n");
 #endif    
-    
+#ifdef EXTENDEDOPENFILES
+    // enable maximum number of simultaneously opened files
+	_setmaxstdio(2048);
+#endif
+
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
