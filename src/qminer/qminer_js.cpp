@@ -2289,8 +2289,8 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 			NumericVal->GetArrNumV(NumV);
 			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
 			return HandleScope.Close(v8::String::New(Label.CStr()));
-		} // else { EFailR("No such function"); }
-	} // else { EFailR("Unsupported."); }
+		} // else { QmFailR("No such function"); }
+	} // else { QmFailR("Unsupported."); }
 	return HandleScope.Close(v8::Undefined());
 }
 

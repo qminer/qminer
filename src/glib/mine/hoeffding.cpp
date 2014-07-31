@@ -353,8 +353,8 @@ namespace THoeffding {
       const int Label = Example->Label;
       // Idx = BinsV.SearchBin(Val); // Binary search for Val 
       Idx = BinsV.SearchBin(Val);
-      EAssertR(Idx != -1 || BinsN <= BinsV.Len(),
-         "By construction, the value cannot be missing.");
+      EAssertR(Idx != -1 || BinsN == BinsV.Len(),
+         "No bin initialized with this value nor enough bins.");
       // Find the closest bin 
       // Bin initialized with this very value 
       if (Idx != -1 && BinsV.GetVal(Idx).Id <= Example->BinId) {
@@ -371,8 +371,11 @@ namespace THoeffding {
          // Find the first suitable bin 
          for (BinN = 0; BinN < BinsV.Len() &&
             BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
+         // if (BinN == BinsV.Len()) {
+         //   for (int i = 0; i < BinsV.Len(); ++i) { printf("BinId=%d\n", BinsV.GetVal(i).Id); }
+         // }
          // NOTE: For debugging purposes 
-         EAssertR(BinN < BinsV.Len(), "No suitable bin --- impossible.");
+         EAssertR(BinN < BinsV.Len(), "No suitable Bin with Bin.ID<=Ex.ID.");
          PrevIdx = Idx = BinN; // First suitable bin 
          PrevDist = CrrDist = abs(Val - BinsV.GetVal(BinN).GetVal());
          // The order is preserved even though new bins might have been
@@ -1292,6 +1295,41 @@ namespace THoeffding {
       }
       ProcessCls(TExample::New(AttributesV, AttrsHashV.Last().GetDat(Label)));
    }
+   bool THoeffdingTree::Debug_CheckInvariant(PExample Example) const {
+      // XXX Make sure that Example->BinId is as it is supposed to be XXX 
+      PNode CrrNode = Root;
+      TSStack<PNode> NodeS;
+      NodeS.Push(CrrNode);
+      while (!NodeS.Empty()) {
+         CrrNode = NodeS.Top(); NodeS.Pop();
+         // now check Example->BinId >= max(bin ids from CrrNode) 
+         const int AttrsN = Example->AttributesV.Len();
+         for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
+            if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS && CrrNode->HistH.GetDat(AttrN).BinsV.Len() > 0) {
+               // TODO: Find an efficient way to compute s(A) from s(A1) and
+               // s(A2) if A1 and A2 parition A 
+               int MnId = CrrNode->HistH.GetDat(AttrN).BinsV.Last().Id;
+               for (int BinN = 0; BinN < CrrNode->HistH.GetDat(AttrN).BinsV.Len(); ++BinN) {
+                  MnId = TMath::Mn<int>(MnId, CrrNode->HistH.GetDat(AttrN).BinsV.GetVal(BinN).Id);
+                  EAssertR(MnId <= CrrNode->HistH.GetDat(AttrN).BinsV.GetVal(BinN).Id, "wtf");
+               }
+               if (Example->BinId < MnId) { printf("Example->BInId=%d; MnId=%d\n", Example->BinId.Val, MnId); }
+               EAssertR(Example->BinId >= MnId, "I knew it!");
+               if (Example->BinId < MnId) { return false; }
+            }
+         }
+         if (!IsLeaf(CrrNode) && !Sacrificed(CrrNode, Example) && CrrNode->Id <= Example->LeafId) {
+            PNode TmpNode = GetNextNode(CrrNode, Example);
+            // EAssertR(TmpNode->Id <= Example->LeafId, "Oops: LeafId's don't work either.");
+            NodeS.Push(TmpNode);
+            for (auto It = CrrNode->AltTreesV.BegI();
+               It != CrrNode->AltTreesV.EndI(); ++It) {
+               if ((*It)->Id <= Example->LeafId) { NodeS.Push(*It); }
+            }
+         }
+      }
+      return true;
+   }
    void THoeffdingTree::ProcessCls(PExample Example) {
       Example->SetId(IdGen->GetNextExampleId());
       PNode CrrNode = Root;
@@ -1302,6 +1340,8 @@ namespace THoeffding {
          if (ExampleQ.Len()+1 >= WindowSize) {
             PExample LastExample = ExampleQ.Top();
             ExampleQ.Pop(); // Delete it from the window 
+            // printf("Check invariant before forgetting\n");
+            // Debug_CheckInvariant(LastExample);
             ForgetCls(LastExample); // Update sufficient statistics 
          }
          TSStack<PNode> NodeS;
@@ -1335,6 +1375,9 @@ namespace THoeffding {
          EAssertR(Example->LeafId >= 0 && Example->BinId >= 0, "Negative ID.");
          EAssertR((Example->BinId > 0 && Example->BinId >= Example->LeafId) ||
             Example->BinId == 0, "Problem with bin IDs.");
+         
+         // if (!Sacrificed(Root, Example)) { Debug_CheckInvariant(Example); }
+         
          ExampleQ.Push(Example);
          EAssertR(ExampleQ.Len() < WindowSize, "Too many examples in the \
             sliding window.");
@@ -1345,8 +1388,9 @@ namespace THoeffding {
          }
          // TODO: Explain this 
          if (Root->HistH.Empty()) { Example->SetBinId(IdGen->GetNextBinId()); }
-         EAssertR(DriftExamplesN >= 0 && DriftExamplesN <= DriftCheck, "Need \
-            to check for concept drift.");
+         EAssertR(DriftExamplesN >= 0, "DriftExamplesN<0");
+         EAssertR(DriftExamplesN <= DriftCheck, 
+            "Need to check for concept drift.");
          if (++DriftExamplesN >= DriftCheck) {
             DriftExamplesN = 0;
             // printf("[DEBUG] Performing split validity check.\n");

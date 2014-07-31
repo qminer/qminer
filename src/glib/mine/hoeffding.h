@@ -284,6 +284,21 @@ namespace THoeffding {
          const int& _Count = 0)
          : S(0.0), Mean(0.0), T(0.0), Value(_Value), Count(_Count), Id(_Id)
       { }
+      TBin(const TBin& oth)
+         : S(oth.S), Mean(oth.Mean), T(oth.T), Value(oth.Value),
+            Count(oth.Count), Id(oth.Id), PartitionV(oth.PartitionV)
+      { }
+      // Note that we MUST NOT assign id=rhs.id because it servers as 
+      // a time stamp --- bin must keep its original ID. 
+      TBin& operator=(const TBin& rhs) {
+         if (this != &rhs) {
+            S = rhs.S; Mean = rhs.Mean;
+            T = rhs.T; Value = rhs.Value;
+            Count = rhs.Count;
+            PartitionV = rhs.PartitionV;
+         }
+         return *this;
+      }
       
       friend bool operator<=(const TBin& Bin1, const TBin& Bin2);
       friend bool operator>=(const TBin& Bin1, const TBin& Bin2);
@@ -606,7 +621,8 @@ namespace THoeffding {
       THoeffdingTree(PJsonVal JsonConfig_, PJsonVal JsonParams_,
          const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
          : ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
-            AltTreesN(0), IdGen(IdGen_), ConceptDriftP(true)   {
+            AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
+            ConceptDriftP(true) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -662,6 +678,7 @@ namespace THoeffding {
       void CheckSplitValidityCls();
       void ForgetCls(PExample Example) const; // Classification 
       void ProcessLeafReg(PNode Leaf, PExample Example); // Regression 
+      bool Debug_CheckInvariant(PExample Example) const;
       void ProcessLeafCls(PNode Leaf, PExample Example); // Classification 
       void SelfEval(PNode Node, PExample Example) const;
       bool TestMode(PNode Node);

@@ -49,6 +49,7 @@ function testClassificationContAttr() {
 		if (++examplesN % 10000 == 0) {
 			console.say("Processing example number " + examplesN);
 		}
+		if (examplesN >= 200000) { break; } // 200k examples 
 		// update the model
 		ht.process(example_discrete, example_numeric, target);
 	}
@@ -69,6 +70,7 @@ function testClassificationContAttr() {
 		if (++examplesN % 10000 == 0) {
 			console.say("Testing on example number " + examplesN);
 		}
+		if (examplesN >= 200000) { break; } // 200k examples 
 		// update the model
 		if (parseFloat(ht.classify(example_discrete, example_numeric)) == target) {
 			++correct;
@@ -80,12 +82,15 @@ function testClassificationContAttr() {
 	console.say("f(6.677259,5.152133,2.982455) = " + label);
 	var label = ht.classify([], [1.848014,0.041624,2.913719]);
 	console.say("f(1.848014,0.041624,2.913719) = " + label);
-
+   
+   console.say("Now exporting the model as 'sea.gv'.");
+   
 	// export the model 
 	ht.exportModel({ "file": "./sandbox/ht/sea.gv", "type": "DOT" });
 }
 
 function testClassification() {
+	console.say("Testing on a titanic dataset");
 	// algorithm parameters 
 	var htParams = {
 		"gracePeriod": 300,
@@ -116,6 +121,7 @@ function testClassification() {
 			"values": ["yes", "no"]
 		}
 	};
+	
 	// create a new learner 
 	var ht = analytics.newHoeffdingTree(titanicCfg, htParams);
 
@@ -147,6 +153,8 @@ function testClassification() {
 	console.say("Were 3rd class men likely to survive? " + label);
 	var label = ht.classify(["second", "adult", "female"], []);
 	console.say("Were 3rd class women likely to survive? " + label);
+
+   console.say("Now exporting the model as 'titanic.gv'.");
 
 	// export the model 
 	ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
@@ -217,8 +225,10 @@ function testRegression() {
 }
 
 console.say(" --- Example using classification HoeffdingTree --- ");
+console.say("First classification scenario using bootstrapped SEA dataset");
 testClassificationContAttr();
-// testClassification();
+console.say("Second classification secnario using bootstrapped TITANIC dataset");
+testClassification();
 // console.say(" --- Example using regression HoeffdingTree --- ");
 // testRegression();
 
