@@ -3996,6 +3996,7 @@ void TStreamAggr::Init() {
 	Register<TStreamAggrs::TWinBufCount>();
 	Register<TStreamAggrs::TWinBufSum>();
 	Register<TStreamAggrs::TWinBufMin>();
+	Register<TStreamAggrs::TWinBufMax>();
 	Register<TStreamAggrs::TMa>();
     Register<TStreamAggrs::TEma>();
     Register<TStreamAggrs::TVar>();

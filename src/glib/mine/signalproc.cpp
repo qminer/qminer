@@ -87,10 +87,7 @@ void TSum::Save(TSOut& SOut) const {
 // Online Min 
 void TMin::Update(const double& InVal, const uint64& InTmMSecs,
 	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
-	
-	// find maximum timestamp of outgoing measurements
-	uint64 MaxOutTm = OutTmMSecsV[0];
-
+		
 	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 >= InVal) {
 		// pop back
 		AllValV.DelLast();
@@ -99,11 +96,16 @@ void TMin::Update(const double& InVal, const uint64& InTmMSecs,
 	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
 	
 
-	while (AllValV[0].Val2 < MaxOutTm) {
-		// pop front
-		AllValV.Del(0);
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
 	}
-	
+
 	TmMSecs = InTmMSecs;
 	Min = AllValV[0].Val1;
 }
@@ -115,6 +117,45 @@ void TMin::Load(TSIn& SIn) {
 void TMin::Save(TSOut& SOut) const {
 	// parameters
 	Min.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Max 
+void TMax::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 <= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Max = AllValV[0].Val1;
+}
+
+void TMax::Load(TSIn& SIn) {
+	*this = TMax(SIn);
+}
+
+void TMax::Save(TSOut& SOut) const {
+	// parameters
+	Max.Save(SOut);
 	TmMSecs.Save(SOut);
 	AllValV.Save(SOut);
 }

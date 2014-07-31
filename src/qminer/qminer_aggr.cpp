@@ -996,8 +996,88 @@ void TWinBufMin::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufMin::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("SUM", Min.GetMin());
+	Val->AddToObj("MIN", Min.GetMin());
 	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Min.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	return Val;
+}
+
+///////////////////////////////
+// Moving Window Buffer Min.
+void TWinBufMax::OnAddRec(const TRec& Rec) {
+	TFltV ValV; InAggrVal->GetOutFltV(ValV);
+	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+	if (InAggr->IsInit()) {
+		Max.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+			ValV, TmMSecsV);
+	}
+}
+
+TWinBufMax::TWinBufMax(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
+	TStreamAggr(Base, AggrNm) {
+	InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWinBufMax::TWinBufMax(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufMax::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
+
+	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+	return new TWinBufMax(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+}
+
+PStreamAggr TWinBufMax::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
+
+	return new TWinBufMax(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+}
+
+PStreamAggr TWinBufMax::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWinBufMax(Base, ParamVal);
+}
+
+TWinBufMax::TWinBufMax(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
+Max(SIn)  {
+	TStr InAggrNm; InAggrNm.Load(SIn);
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufMax::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TWinBufMax(Base, SABase, SIn);
+}
+
+void TWinBufMax::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff	
+	Max.Save(SOut);
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+PJsonVal TWinBufMax::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("MAX", Max.GetMax());
+	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Max.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 

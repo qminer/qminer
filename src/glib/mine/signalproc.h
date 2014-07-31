@@ -61,14 +61,14 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Online Min
+// Sliding Window Min
 class TMin {
 private:
 	TFlt Min; // current computed SUM value 
 	TUInt64 TmMSecs; // timestamp of current MA	   
 	TFltUInt64PrV AllValV; // sorted vector of values	
 public:
-	TMin() { Min = TFlt::Mx; };	
+	TMin() { Min = TFlt::Mx; TmMSecs = 0; };
 	TMin(TSIn& SIn) : Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
 
 	// serialization
@@ -78,6 +78,27 @@ public:
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetMin() const { return Min; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
+/////////////////////////////////////////////////
+// Sliding Window Max
+class TMax {
+private:
+	TFlt Max; // current computed SUM value 
+	TUInt64 TmMSecs; // timestamp of current MA	   
+	TFltUInt64PrV AllValV; // sorted vector of values	
+public:
+	TMax() { Max = TFlt::Mn; TmMSecs = 0; };
+	TMax(TSIn& SIn) : Max(SIn), TmMSecs(SIn), AllValV(SIn) { }
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const double& InVal, const uint64& InTmMSecs,
+		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	double GetMax() const { return Max; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 
