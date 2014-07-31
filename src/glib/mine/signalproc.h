@@ -48,7 +48,7 @@ private:
 public:
 	TSum() { Sum = 0; };
 	TSum(const PJsonVal& ParamVal) { TSum(); };
-	TSum::TSum(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) { }
+	TSum(TSIn& SIn) : Sum(SIn), TmMSecs(SIn) { }
 
 	// serialization
 	void Load(TSIn& SIn);
@@ -57,6 +57,27 @@ public:
 	void Update(const double& InVal, const uint64& InTmMSecs,
 		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
 	double GetSum() const { return Sum; }
+	uint64 GetTmMSecs() const { return TmMSecs; }
+};
+
+/////////////////////////////////////////////////
+// Online Min
+class TMin {
+private:
+	TFlt Min; // current computed SUM value 
+	TUInt64 TmMSecs; // timestamp of current MA	   
+	TFltUInt64PrV AllValV; // sorted vector of values	
+public:
+	TMin() { Min = TFlt::Mx; };	
+	TMin(TSIn& SIn) : Min(SIn), TmMSecs(SIn), AllValV(SIn) { }
+
+	// serialization
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+
+	void Update(const double& InVal, const uint64& InTmMSecs,
+		const TFltV& OutValV, const TUInt64V& OutTmMSecs);
+	double GetMin() const { return Min; }
 	uint64 GetTmMSecs() const { return TmMSecs; }
 };
 

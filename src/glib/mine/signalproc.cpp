@@ -84,6 +84,42 @@ void TSum::Save(TSOut& SOut) const {
 }
 
 /////////////////////////////////////////////////
+// Online Min 
+void TMin::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+	
+	// find maximum timestamp of outgoing measurements
+	uint64 MaxOutTm = OutTmMSecsV[0];
+
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 >= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+	
+
+	while (AllValV[0].Val2 < MaxOutTm) {
+		// pop front
+		AllValV.Del(0);
+	}
+	
+	TmMSecs = InTmMSecs;
+	Min = AllValV[0].Val1;
+}
+
+void TMin::Load(TSIn& SIn) {
+	*this = TMin(SIn);
+}
+
+void TMin::Save(TSOut& SOut) const {
+	// parameters
+	Min.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
+}
+
+/////////////////////////////////////////////////
 // Exponential Moving Average
 double TEma::GetNi(const double& Alpha, const double& Mi) {
 	switch (Type) {
