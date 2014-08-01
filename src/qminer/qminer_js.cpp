@@ -1207,40 +1207,95 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Null());
 }
 
+// TODO: two parameters: stream aggregate and stores who should listen
+// store add stream aggr hm
+// some aggregates can automatically register (store information is known, others will use the second parameter)
+
+// getStreamAggr rename to getStreamAggrVal
+// getStreamAggr returns a stream aggr by name
+// add second parameter to new Stream Aggr : which stores should call him
+// remove qm.addStreamAggr
+// store.addStreamAggr could just take an argument stream aggr and register it
+// 
 v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	// we have only one parameter which is supposed to be object
+	QmAssertR(Args.Length() == 1, "qm.newStreamAggr expects one parameter");
+	QmAssertR(Args[0]->IsObject(), "qm.newStreamAggr expects object as first parameter");
+
 	// parse out parameters
 	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
-	//const TStr TypeNm = ParamVal->GetObjStr("type");
-	//if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-	//	// we have a composition of stream aggregates, delegate it forward
-	//	TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
-	//}
-	//else {
-	//	// create new aggregate
-	//	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-	//	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
-	//	TStrV InterpNmV;
-	//	QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
-	//	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-	//		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
-	//		PJsonVal SourceVal = FieldVal->GetObjKey("source");
-	//		TStr StoreNm = "";
-	//		if (SourceVal->IsStr()) {
-	//			// we have just store name
-	//			StoreNm = SourceVal->GetStr();
-	//		}
-	//		else if (SourceVal->IsObj()) {
-	//			// get store
-	//			StoreNm = SourceVal->GetObjStr("store");
-	//			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+	// get aggregate type
+	TStr TypeNm = TJsBaseUtil::GetArgStr(Args, 0, "type", "javaScript");
+	// check if the aggregate is a pure javascript aggregate (js callbacks)
+	if (TypeNm == "javaScript") {
+		// we have a javascript stream aggregate
+		TStr AggrName = TJsBaseUtil::GetArgStr(Args, 0, "name", "");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		// create aggregate
+		PStreamAggr JsStreamAggr = TJsStreamAggr::New(
+			JsBase->Js, AggrName, Args[0]->ToObject());
+		// add it to the stream base for store
+		//TODO: register! JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
+		return HandleScope.Close(TJsSA::New(JsBase->Js, JsStreamAggr));
 
-	//		}
-	//		JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+	} else if (TypeNm == "ftrext") {
+		TStr AggrName = TJsBaseUtil::GetArgStr(Args, 0, "name", "");
+		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
 
-	//	}
-	//}
+		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
+		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
+		// add it to the stream base for store
+		// TODO: JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
+		return HandleScope.Close(TJsSA::New(JsBase->Js, FtrStreamAggr));
+	}
+	else if (TypeNm == "stmerger") {
+		// create new aggregate
+		PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
+		TStrV InterpNmV;
+		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
+		// automatically register the aggregate for addRec callbacks
+		for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+			PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
+			PJsonVal SourceVal = FieldVal->GetObjKey("source");
+			TStr StoreNm = "";
+			if (SourceVal->IsStr()) {
+				// we have just store name
+				StoreNm = SourceVal->GetStr();
+			}
+			else if (SourceVal->IsObj()) {
+				// get store
+				StoreNm = SourceVal->GetObjStr("store");
+			}
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+		}
+		return HandleScope.Close(TJsSA::New(JsBase->Js, Aggr));
+	}
+	else {
+		// we have a GLib stream aggregate, translate parameters to PJsonVal
+		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+		//// TODO: add store parameter
+		//ParamVal->AddToObj("store", JsStore->Store->GetStoreNm());
+		
+		// check if it's one stream aggregate or composition
+		if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
+			// we have a composition of aggregates, call code to assemble it
+			TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
+			return HandleScope.Close(v8::Null());
+		}
+		else {
+			// create new aggregate
+			PStreamAggr StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+			// add it to the stream base for store
+			// TODO! JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), StreamAggr);
+			return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
+		}
+	}
 	return HandleScope.Close(v8::Null());
 }
 

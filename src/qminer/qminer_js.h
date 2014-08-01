@@ -1047,6 +1047,7 @@ public:
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
+//# 
 //# ### Stream Aggregate
 //# 
 //# Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
@@ -1061,11 +1062,12 @@ private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsSA> TJsSAUtil;
 
-	TJsSA(TWPt<TScript> _Js);
+	TJsSA(TWPt<TScript> _Js, TWPt<TStreamAggr> _SA) : Js(_Js), SA(_SA) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
-		return TJsSAUtil::New(new TJsSA(Js));
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStreamAggr> SA) {
+		return TJsSAUtil::New(new TJsSA(Js, SA));
 	}
+
 	~TJsSA() { }
 
 	/// template
