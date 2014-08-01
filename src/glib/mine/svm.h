@@ -119,6 +119,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         
         // classify examples from the sample
         Profiler.StartTimer(ProfilerBatch);
+        int DiffCount = 0;
         for (int SampleN = 0; SampleN < SampleSize; SampleN++) {            
             const int VecN = (Rnd.GetUniDev() > SamplingRatio) ?
                 NegVecIdV[Rnd.GetUniDevInt(NegVecs)] : // we select negative vector
@@ -128,6 +129,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
             if (CfyVal < 1.0) { 
                 // with update from the stochastic sub-gradient
                 TLinAlg::AddVec(VecUpdate * VecCfyVal, VecV, VecN, NewWgtV, NewWgtV);
+                DiffCount++;
             }
         }
         Profiler.StopTimer(ProfilerBatch);
@@ -138,7 +140,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         if (WgtNorm < 1.0) { TLinAlg::MultiplyScalar(WgtNorm, NewWgtV, NewWgtV); }
         // compute the difference with respect to the previous iteration
         Diff = 2.0 * TLinAlg::EuclDist(WgtV, NewWgtV) / (TLinAlg::Norm(WgtV) + TLinAlg::Norm(NewWgtV));
-        // remember new solution
+        // remember new solution, but only when we actually did some changes
         WgtV = NewWgtV;
         Profiler.StopTimer(ProfilerPost);
 
@@ -150,7 +152,8 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
             break; 
         }
         // check stopping criteria with respect to result difference
-        if (Diff < MnDiff) { 
+        //if (DiffCount > 0 && (1.0 - DiffCos) < MnDiff) { 
+        if (DiffCount > 0 && Diff < MnDiff) { 
             Notify->OnStatusFmt("Finishing due to reached difference limit of %g", MnDiff);
             break; 
         }
