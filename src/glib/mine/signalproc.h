@@ -153,7 +153,7 @@ public:
 
 ///////////////////////////////
 // Linked buffer
-template <class TVal>
+template <class TVal, class TSizeTy = TUInt64>
 class TLinkedBuffer {
 private:
 	class Node {
@@ -167,7 +167,7 @@ private:
 private:
 	Node* First;
 	Node* Last;
-	TInt Size;
+	TSizeTy Size;
 
 public:
 	TLinkedBuffer();
@@ -180,30 +180,30 @@ public:
 	void Add(const TVal& Val);
 	void DelOldest();
 
-	const TVal& GetOldest(const TInt& Idx) const;
+	const TVal& GetOldest(const TSizeTy& Idx) const;
 	const TVal& GetOldest() const { return GetOldest(0); };
 	const TVal& GetNewest() const;
 
 	bool Empty() const { return Len() == 0; };
-	int Len() const { return Size; };
+	TSizeTy Len() const { return Size; };
 };
 
-template <class TVal>
-TLinkedBuffer<TVal>::TLinkedBuffer():
+template <class TVal, class TSizeTy>
+TLinkedBuffer<TVal, TSizeTy>::TLinkedBuffer():
 		First(NULL),
 		Last(NULL),
-		Size(0) {}
+		Size() {}
 
-template <class TVal>
-TLinkedBuffer<TVal>::TLinkedBuffer(TSIn& SIn):
+template <class TVal, class TSizeTy>
+TLinkedBuffer<TVal, TSizeTy>::TLinkedBuffer(TSIn& SIn):
 		First(NULL),
 		Last(NULL),
 		Size(SIn) {
 
-	if (Size > 0) { First = new TLinkedBuffer<TVal>::Node(NULL, TVal(SIn)); }
+	if (Size > 0) { First = new TLinkedBuffer<TVal, TSizeTy>::Node(NULL, TVal(SIn)); }
 
 	Node* Curr = First;
-	for (int i = 1; i < Size; i++) {
+	for (TSizeTy i = 1; i < Size; i++) {
 		Curr->Next = new Node(NULL, TVal(SIn));
 		Curr = Curr->Next;
 	}
@@ -211,8 +211,8 @@ TLinkedBuffer<TVal>::TLinkedBuffer(TSIn& SIn):
 	Last = Curr;
 }
 
-template <class TVal>
-void TLinkedBuffer<TVal>::Save(TSOut& SOut) const {
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Save(TSOut& SOut) const {
 	Size.Save(SOut);
 
 	Node* Curr = First;
@@ -222,14 +222,14 @@ void TLinkedBuffer<TVal>::Save(TSOut& SOut) const {
 	}
 }
 
-template <class TVal>
-TLinkedBuffer<TVal>::~TLinkedBuffer() {
+template <class TVal, class TSizeTy>
+TLinkedBuffer<TVal, TSizeTy>::~TLinkedBuffer() {
 	while (!Empty()) { DelOldest(); }
 }
 
-template <class TVal>
-void TLinkedBuffer<TVal>::Add(const TVal& Val) {
-	TLinkedBuffer<TVal>::Node* Node = new TLinkedBuffer<TVal>::Node(NULL, Val);
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::Add(const TVal& Val) {
+	TLinkedBuffer<TVal, TSizeTy>::Node* Node = new TLinkedBuffer<TVal, TSizeTy>::Node(NULL, Val);
 
 	if (Size++ == 0) {
 		First = Node;
@@ -240,8 +240,8 @@ void TLinkedBuffer<TVal>::Add(const TVal& Val) {
 	}
 }
 
-template <class TVal>
-void TLinkedBuffer<TVal>::DelOldest() {
+template <class TVal, class TSizeTy>
+void TLinkedBuffer<TVal, TSizeTy>::DelOldest() {
 	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
 
 	Node* Temp = First;
@@ -256,20 +256,20 @@ void TLinkedBuffer<TVal>::DelOldest() {
 	delete Temp;
 }
 
-template <class TVal>
-const TVal& TLinkedBuffer<TVal>::GetOldest(const TInt& Idx) const {
+template <class TVal, class TSizeTy>
+const TVal& TLinkedBuffer<TVal, TSizeTy>::GetOldest(const TSizeTy& Idx) const {
 	IAssertR(Idx < Size, "Index of element greater then size!");
 
 	Node* Curr = First;
-	for (int i = 0; i < Idx; i++) {
+	for (TSizeTy i = 0; i < Idx; i++) {
 		Curr = Curr->Next;
 	}
 
 	return Curr->Val;
 }
 
-template <class TVal>
-const TVal& TLinkedBuffer<TVal>::GetNewest() const {
+template <class TVal, class TSizeTy>
+const TVal& TLinkedBuffer<TVal, TSizeTy>::GetNewest() const {
 	IAssertR(!Empty(), "Cannot return elements from empty buffer!");
 	return Last->Val;
 }
