@@ -26,17 +26,138 @@ void TMa::Update(const double& InVal, const uint64& InTmMSecs,
     
     int tempN = N - 1 + OutValV.Len();
     double delta;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
-    {        
-        tempN--;       
-        delta = OutValV[ValN] - Ma;
-        Ma = Ma - delta/tempN;                 
-    }
+	// check if all the values are removed
+	if (OutValV.Len() >= tempN) {
+		Ma = 0;		
+		tempN = 0;
+	}
+	else {
+		// remove old values from the mean
+		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+		{
+			tempN--;
+			delta = OutValV[ValN] - Ma;
+			Ma = Ma - delta / tempN;
+		}
+	}
     //add the new value to the resulting mean    
     delta = InVal - Ma;
     Ma = Ma + delta/N;
     TmMSecs = InTmMSecs;
+}
+
+TMa::TMa(TSIn& SIn) : Ma(SIn), TmMSecs(SIn) { }
+
+void TMa::Load(TSIn& SIn) {
+	*this = TMa(SIn);
+}
+
+void TMa::Save(TSOut& SOut) const {
+	// parameters
+	Ma.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Summa 
+void TSum::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	// remove old values from the sum
+	for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+	{
+		Sum -= OutValV[ValN];
+	}
+	//add the new value to the resulting sum    
+	Sum += InVal;
+	TmMSecs = InTmMSecs;
+}
+
+void TSum::Load(TSIn& SIn) {
+	*this = TSum(SIn);
+}
+
+void TSum::Save(TSOut& SOut) const {
+	// parameters
+	Sum.Save(SOut); 
+	TmMSecs.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Min 
+void TMin::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+		
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 >= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+	
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Min = AllValV[0].Val1;
+}
+
+void TMin::Load(TSIn& SIn) {
+	*this = TMin(SIn);
+}
+
+void TMin::Save(TSOut& SOut) const {
+	// parameters
+	Min.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Max 
+void TMax::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 <= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Max = AllValV[0].Val1;
+}
+
+void TMax::Load(TSIn& SIn) {
+	*this = TMax(SIn);
+}
+
+void TMax::Save(TSOut& SOut) const {
+	// parameters
+	Max.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
 }
 
 /////////////////////////////////////////////////
@@ -74,6 +195,37 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
     // rest
     TmInterval = ParamVal->GetObjNum("interval");
     InitMinMSecs = ParamVal->GetObjInt("initWindow");
+}
+
+TEma::TEma(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
+InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn);
+	Type = static_cast<TEmaType>((int)TypeI);
+	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+}
+
+void TEma::Load(TSIn& SIn) {
+	*this = TEma(SIn);
+}
+
+void TEma::Save(TSOut& SOut) const {
+	// parameters
+	Decay.Save(SOut);
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+	// TODO: Use macro for saving enum (SaveEnum, LoadEnum)
+	// TODO: change TmInterval from double to TFlt
+	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	TFlt TmIntervalFlt = TmInterval; // double
+	TmIntervalFlt.Save(SOut);;
 }
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
@@ -128,24 +280,45 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
-        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N){
-    
+        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N) {
+		
     pNo = N;
     int tempN = N - 1 + OutValV.Len();
     double delta;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
-    {        
-        tempN--;       
-        delta = OutValV[ValN] - Ma;
-        Ma = Ma - delta/tempN;  
-        M2 = M2 - delta * (OutValV[ValN] - Ma);
-    }
+    
+	// check if all the values are removed	
+	if (OutValV.Len() >= tempN) {
+		Ma = 0;
+		M2 = 0;
+		tempN = 0;
+	} else {
+		// remove old values from the mean
+		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+		{
+			tempN--;			
+			delta = OutValV[ValN] - Ma;
+			Ma = Ma - delta / tempN;
+			M2 = M2 - delta * (OutValV[ValN] - Ma);
+		}
+	}
+
     //add the new value to the resulting mean    
     delta = InVal - Ma;
     Ma = Ma + delta/N;
     M2 = M2 + delta * (InVal - Ma);
     TmMSecs = InTmMSecs;
+}
+
+void TVar::Load(TSIn& SIn) {
+	*this = TVar(SIn);
+}
+
+void TVar::Save(TSOut& SOut) const {
+	// parameters
+	Ma.Save(SOut); 
+	M2.Save(SOut); 
+	TmMSecs.Save(SOut); 
+	pNo.Save(SOut);
 }
 
 /////////////////////////////////////////////////
