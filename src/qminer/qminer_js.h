@@ -1048,7 +1048,49 @@ public:
 	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 	//# paramJSON must contain field `type` which defies the type of the aggregate
 	JsDeclareFunction(addStreamAggr);
+	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.
+	//# `paramJSON` must contain field `type` which defies the type of the aggregate
+	JsDeclareFunction(newStreamAggr);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
+};
+
+//# ### Stream Aggregate
+//# 
+//# Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+class TJsSA {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	/// QMiner base
+	TWPt<TStreamAggr> SA;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSA> TJsSAUtil;
+
+	TJsSA(TWPt<TScript> _Js);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsSAUtil::New(new TJsSA(Js));
+	}
+	~TJsSA() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `str = sa.name` -- returns the name (unique) of the stream aggregate
+	JsDeclareProperty(name);
+	//#- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+	JsDeclareFunction(onAdd);
+	//#- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+	JsDeclareFunction(onUpdate);
+	//#- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+	JsDeclareFunction(onDelete);
+	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+	JsDeclareFunction(saveJson);
 };
 
 ///////////////////////////////

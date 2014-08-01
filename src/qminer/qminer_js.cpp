@@ -1057,6 +1057,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
 		JsRegisterFunction(TmpTemp, addStreamAggr);
+		JsRegisterFunction(TmpTemp, newStreamAggr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1202,6 +1203,101 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 		}
     }
 	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	// parse out parameters
+	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+	//const TStr TypeNm = ParamVal->GetObjStr("type");
+	//if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
+	//	// we have a composition of stream aggregates, delegate it forward
+	//	TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
+	//}
+	//else {
+	//	// create new aggregate
+	//	PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+	//	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
+	//	TStrV InterpNmV;
+	//	QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
+	//	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+	//		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
+	//		PJsonVal SourceVal = FieldVal->GetObjKey("source");
+	//		TStr StoreNm = "";
+	//		if (SourceVal->IsStr()) {
+	//			// we have just store name
+	//			StoreNm = SourceVal->GetStr();
+	//		}
+	//		else if (SourceVal->IsObj()) {
+	//			// get store
+	//			StoreNm = SourceVal->GetObjStr("store");
+	//			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+
+	//		}
+	//		JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+
+	//	}
+	//}
+	return HandleScope.Close(v8::Null());
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Stream-Aggregate
+v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, name);
+		JsRegisterFunction(TmpTemp, onAdd);
+		JsRegisterFunction(TmpTemp, onUpdate);
+		JsRegisterFunction(TmpTemp, onDelete);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsSA::name(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Info);
+	v8::Local<v8::String> SAName = v8::String::New(JsSA->SA->GetAggrNm().CStr());
+	return HandleScope.Close(SAName);
+}
+
+v8::Handle<v8::Value> TJsSA::onAdd(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TRec Rec = TJsRec::GetArgRec(Args, 0);
+	JsSA->SA->OnAddRec(Rec);
+	return HandleScope.Close(v8::Null());	
+}
+
+v8::Handle<v8::Value> TJsSA::onUpdate(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TRec Rec = TJsRec::GetArgRec(Args, 0);
+	JsSA->SA->OnUpdateRec(Rec);
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsSA::onDelete(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TRec Rec = TJsRec::GetArgRec(Args, 0);
+	JsSA->SA->OnDeleteRec(Rec);
+	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsSA::saveJson(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TInt Limit = TJsSAUtil::GetArgInt32(Args, 0, -1);
+	PJsonVal Json = JsSA->SA->SaveJson(Limit);
+	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
+	return HandleScope.Close(V8Json);
 }
 
 ///////////////////////////////
