@@ -212,6 +212,7 @@ public:
 	TJoinSeq(const TWPt<TBase>& Base, const uint& _StartStoreId, const PJsonVal& JoinSeqVal);
 	
 	TJoinSeq(TSIn& SIn): StartStoreId(SIn), JoinIdV(SIn) { }
+	void Load(TSIn& SIn) { StartStoreId.Load(SIn); JoinIdV.Load(SIn); }
 	void Save(TSOut& SOut) const { StartStoreId.Save(SOut); JoinIdV.Save(SOut); }
 
 	/// Is the join sequence valid
@@ -232,6 +233,10 @@ public:
 
 	/// Readable string representation of join sequence
 	TStr GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr = ".") const;
+
+	int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetPrimHashCd(), JoinIdV.GetPrimHashCd()); }
+	int GetSecHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetSecHashCd(), JoinIdV.GetSecHashCd()); }
+	
 };
 typedef TVec<TJoinSeq> TJoinSeqV;
 
@@ -1157,6 +1162,28 @@ public:
 };
 
 ///////////////////////////////
+/// Record Splitter by Time Field. 
+class TRecSplitterByFieldTm {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Maximal difference value
+    TUInt64 DiffMSecs;
+    
+public:
+    TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs):
+        Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) { }
+    
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+        return (RecVal2 - RecVal1) > DiffMSecs;
+    }
+};
+
+///////////////////////////////
 /// Record Set. 
 /// Holds a collection of record IDs from one store.
 /// Records are stored internally as a vector of ids.
@@ -1293,6 +1320,11 @@ public:
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
+    
+    /// Split records into several whenever value of two consecutive records above threshold
+    TVec<PRecSet> SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const;
+    /// Split records into several whenever value of two consecutive records above threshold
+    template <class TSplitter> TVec<PRecSet> SplitBy(const TSplitter& Splitter) const;
 
 	/// Remove record from the set (warning: time complexity O(GetRecs()) )
 	void RemoveRecId(const TUInt64& RecId);
@@ -1371,6 +1403,30 @@ void TRecSet::FilterBy(const TFilter& Filter) {
     }
 	// overwrite old result vector with filtered list
 	RecIdFqV = NewRecIdFqV;    
+}
+
+template <class TSplitter> 
+TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
+    TRecSetV ResV;
+    // if no records, nothing to do
+    if (Empty()) { return ResV; }
+    // initialize with the first record
+    TUInt64IntKdV NewRecIdFqV; NewRecIdFqV.Add(RecIdFqV[0]);
+    // go over the rest and see when to split
+    for (int RecN = 1; RecN < GetRecs(); RecN++) {
+        if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
+            // we need to split, first we create record set for all existing records
+            ResV.Add(TRecSet::New(Store, NewRecIdFqV, IsWgt()));
+            // and initialize a new one
+            NewRecIdFqV.Clr(false);            
+        }
+        // add new record to the next record set
+        NewRecIdFqV.Add(RecIdFqV[RecN]);
+    }
+    // add last record set to the result list
+    ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV, IsWgt()));
+    // done
+    return ResV;
 }
 
 ///////////////////////////////
@@ -2326,7 +2382,7 @@ private:
     /// Stream aggregate New constructor router
 	static TFunRouter<PStreamAggr, TNewF> NewRouter;   
     /// Load constructor delegate
-	typedef PStreamAggr (*TLoadF)(const TWPt<TBase>& Base, TSIn& SIn);   
+	typedef PStreamAggr(*TLoadF)(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
     /// Stream aggregate Load constructor router
 	static TFunRouter<PStreamAggr, TLoadF> LoadRouter;
 public:
@@ -2352,7 +2408,7 @@ protected:
     /// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 	/// Load basic class of stream aggregate
-	TStreamAggr(const TWPt<TBase>& _Base, TSIn& SIn);
+	TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
@@ -2363,7 +2419,7 @@ public:
 	virtual ~TStreamAggr() { }
     
 	/// Load stream aggregate from stream
-	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
 
@@ -2387,7 +2443,7 @@ public:
 	/// Serialization current status to JSon
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
-	/// Unique ID of the trigger
+	/// Unique ID of the stream aggregate
 	const TStr& GetGuid() const { return Guid; }    
 };
 
@@ -2428,8 +2484,11 @@ namespace TStreamAggrOut {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetFltLen() const = 0;
+		virtual double GetFlt(const TInt& ElN) const = 0;
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
+
+	class IFltVecTm : public IFltVec, public ITm { };
 
 	class INmFlt {
 	public:

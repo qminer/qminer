@@ -1969,6 +1969,14 @@ void TRecSet::FilterByFieldTm(	const int& FieldId, const TTm& MinVal, const TTm&
 	// apply the filter
     FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
 }
+    
+TVec<PRecSet> TRecSet::SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const {
+    // get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsTm(), "Wrong field type, time expected");
+    // split the record set
+    return SplitBy(TRecSplitterByFieldTm(Store, FieldId, DiffMSecs));
+}
 
 void TRecSet::RemoveRecId(const TUInt64& RecId) {
 	const int Recs = GetRecs();
@@ -3985,7 +3993,11 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCount>();
     Register<TStreamAggrs::TTimeSeriesTick>();
     Register<TStreamAggrs::TTimeSeriesWinBuf>();
-    Register<TStreamAggrs::TMa>();
+	Register<TStreamAggrs::TWinBufCount>();
+	Register<TStreamAggrs::TWinBufSum>();
+	Register<TStreamAggrs::TWinBufMin>();
+	Register<TStreamAggrs::TWinBufMax>();
+	Register<TStreamAggrs::TMa>();
     Register<TStreamAggrs::TEma>();
     Register<TStreamAggrs::TVar>();
     Register<TStreamAggrs::TCov>();
@@ -4001,8 +4013,9 @@ TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
     Base(_Base), AggrNm(ParamVal->GetObjStr("name")), Guid(TGuid::GenGuid()) { 
         TValidNm::AssertValidNm(AggrNm); }
-        
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, TSIn& SIn): 
+    
+// TODO: Possible bug - SABase not used here ... Check!
+TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> _SABase, TSIn& SIn) :
     Base(_Base), AggrNm(SIn), Guid(SIn) { }
 	
 PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, 
@@ -4011,8 +4024,8 @@ PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base,
     return NewRouter.Fun(TypeNm)(Base, ParamVal);
 }
 
-PStreamAggr TStreamAggr::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(Base, SIn);
+PStreamAggr TStreamAggr::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(Base, SABase, SIn);
 }
 
 void TStreamAggr::Save(TSOut& SOut) const { 
@@ -4024,7 +4037,7 @@ void TStreamAggr::Save(TSOut& SOut) const {
 TStreamAggrBase::TStreamAggrBase(const TWPt<TBase>& Base, TSIn& SIn) { 
 	const int StreamAggrs = TInt(SIn);
 	for (int StreamAggrN = 0; StreamAggrN < StreamAggrs; StreamAggrN++) {
-		PStreamAggr StreamAggr = TStreamAggr::Load(Base, SIn);
+		PStreamAggr StreamAggr = TStreamAggr::Load(Base, this, SIn);
 		AddStreamAggr(StreamAggr);
 	}
 }
@@ -4065,7 +4078,7 @@ const PStreamAggr& TStreamAggrBase::GetStreamAggr(const int& StreamAggrId) const
     return StreamAggrH[StreamAggrId]; 
 }
 
-void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) { 
+void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) { 	
 	StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr); 
 }
 
@@ -4217,7 +4230,7 @@ void TBase::LoadStreamAggrBaseV(TSIn& SIn) {
         // create trigger for the aggregate base
         GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
         // remember the aggregate base for the store
-        StreamAggrBaseV[StoreId] = StreamAggrBase;
+		StreamAggrBaseV[StoreId] = StreamAggrBase;
     }    
 }
 

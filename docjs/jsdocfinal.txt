@@ -1,4 +1,6 @@
 
+define V8_DEBUG
+define V8_DEBUG
 QMiner functionality is accessible through a JavaScript API. The JavaScript environment
 is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
 The API includes a simple HTTP server with RESTful web-service support for defining
@@ -9,8 +11,11 @@ which lives in the same process as core QMiner objects. This allows for fast man
 of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
 Currently, version 3.18 of V8 is used.
 
+**Intellisense**: When using Visual Studio 2013 one can enable intellisense for the JavaScript API globally by navigating: 
+Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
+
 JavaScript API requires [initialized work environment](Quick-Start).
-    
+
 ## Libraries
 
 Scripts can load external libraries or modules in the same way as Node.js.
@@ -55,10 +60,11 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 - `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
 - `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 - `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
   and returns a record set `rs` with results
 - `qm.gc()` -- start garbage collection to remove records outside time windows
-- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate of type typeName to the store; stream aggregate is passed paramJSON JSon
+- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 paramJSON must contain field `type` which defies the type of the aggregate
 - `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
@@ -102,6 +108,8 @@ var record = store[1234];
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
 - `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
 - `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
@@ -166,6 +174,7 @@ the set.
 - `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
 - `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
 - `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
+- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
 - `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
 - `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 - `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:
@@ -188,6 +197,7 @@ TODO
 - `recId = rec.$id` -- returns record ID
 - `recName = rec.$name` -- returns record name
 - `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+- `recStore = rec.$store` -- returns record store
 - `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 - `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 - `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
@@ -266,6 +276,7 @@ several functions from linear algebra.
 - `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
 - `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
 - `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
 
 ### Vector
 
@@ -478,19 +489,31 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 - `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     (stemmers, stop word lists) as a json object, with two arrays:
     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-- `batchModel = analytics.newBatchModel(rs, fsp, target)` -- learns a new batch model
-    using record set `rs` as training data and feature space `fsp`; `target` is
+- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
+    using record set `rs` as training data and `features`; `target` is
     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
   - `strArr = batchModel.target` -- array of categories for which we have models
   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-    through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
+    through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
+  - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
+    sends it through the model and returns the labels with positive weights as `labelArr`.
   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
     sends it through the model and returns the top ranked label `labelStr`.
   - `batchModel.save(fout)` -- saves the model to `fout` output stream
 - `batchModel = analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
+- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+    model for records from record set `rs` using `features; `target` is the
+    target field and is assumed discrete; the result is a results object
+    with the following API:
+    - `result.target` -- an object with categories as keys and the following
+      counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+      `all()`, `precision()`, `recall()`, `accuracy()`.
+    - `result.confusion` -- confusion matrix between categories
+    - `result.report()` -- prints basic report on to the console
+    - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
 - `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
@@ -554,6 +577,13 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `num = perceptronModel.predict(vec)` -- returns the prediction (0 or 1) for a vector `vec`
   - `num = perceptronModel.predict(spVec)` -- returns the prediction (0 or 1) for a sparse vector `spVec`
   - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
+- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
+ requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
+ when using inverse distance weighting average to compute prediction. The model exposes the following functions:
+  - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
+  - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
+  using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
+  - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
 
 ### Feature Space
 
@@ -569,7 +599,7 @@ declarations as parameters.
 - `fsp.updateRecord(rec)` -- update feature space definitions and extractors
     by exposing them to record `rec`. For example, this can update the vocabulary
     used by bag-of-words extractor by taking into account new text.
-- `fsp.updateRecord(rs)` -- update feature space definitions and extractors
+- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
     by exposing them to records from record set `rs`. For example, this can update 
     the vocabulary used by bag-of-words extractor by taking into account new text.
 - `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
@@ -657,8 +687,8 @@ The HoeffdingTree algorithm comes with many parameters:
 - `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
 - `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
-- `htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label.
-- `htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label.
+- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 - `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 
@@ -678,6 +708,7 @@ The HoeffdingTree algorithm comes with many parameters:
 - `str = process.scriptNm` -- Returns the name of the script.
 - `str = process.scriptFNm` -- Returns absolute script file path.
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
+- `process.exitScript()` -- Exits the current script
 - `strArr = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
@@ -709,9 +740,14 @@ The HoeffdingTree algorithm comes with many parameters:
 - `sw.tic()` -- resets and starts the stop watch
 - `sw.toc(str)` -- displays time from tic and message `str`
 - `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
+- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
 
 ### assert.js (use require)
 
+- `assert.run(test, msg)` -- prints success if this code is reached
+- `assert.ok(test, msg)` --  `test` is boolean, prints message `msg` if test is true
+- `assert.exists(obj, msg)` --  checks if object `obj` exists (!=null) and prints message `msg`
+- `assert.equals(obj, obj2,  msg)` --  checks if object `obj==obj2` and prints message `msg`
 
 ### Console
 
