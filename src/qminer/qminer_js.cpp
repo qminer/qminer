@@ -1220,6 +1220,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterProperty(TmpTemp, fields);
 		JsRegisterProperty(TmpTemp, joins);
 		JsRegisterProperty(TmpTemp, keys);
+        JsRegisterProperty(TmpTemp, iter);
 		JsRegIndexedProperty(TmpTemp, indexId);
 		JsRegisterFunction(TmpTemp, rec);
 		JsRegisterFunction(TmpTemp, add);
@@ -1325,6 +1326,13 @@ v8::Handle<v8::Value> TJsStore::keys(v8::Local<v8::String> Properties, const v8:
 		KeyN++;
 	}	
 	return HandleScope.Close(KeyNmV);
+}
+
+v8::Handle<v8::Value> TJsStore::iter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStoreIter::New(JsStore->Js,
+        JsStore->Store, JsStore->Store->GetIter()));
 }
 
 v8::Handle<v8::Value> TJsStore::indexId(uint32_t Index, const v8::AccessorInfo& Info) {
@@ -1528,6 +1536,42 @@ v8::Handle<v8::Value> TJsStore::getStreamAggrNames(const v8::Arguments& Args) {
 		Counter++;
 	}
 	return HandleScope.Close(Arr);
+}
+
+///////////////////////////////
+// JavaScript Store Iterator
+v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, store);
+        JsRegisterProperty(TmpTemp, rec);
+        JsRegisterFunction(TmpTemp, next);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsStoreIter::store(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStore::New(JsStoreIter->Js, JsStoreIter->Store));
+}
+
+v8::Handle<v8::Value> TJsStoreIter::rec(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Info);
+    const uint64 RecId = JsStoreIter->Iter->GetRecId();
+	return HandleScope.Close(TJsRec::New(JsStoreIter->Js, JsStoreIter->Store->GetRec(RecId)));
+}
+
+v8::Handle<v8::Value> TJsStoreIter::next(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Args);    
+	return HandleScope.Close(v8::Boolean::New(JsStoreIter->Iter->Next()));
 }
 
 ///////////////////////////////
