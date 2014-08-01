@@ -325,6 +325,14 @@ for (var i = 0; i < queries.length; i++) {
 	}
 }
 
+var moviesIter = Movies.iter;
+var moviesCount = 0;
+while (moviesIter.next()) {
+    assert.equals(moviesCount, moviesIter.rec.$id, "moviesCount == moviesIter.rec.$id");
+    moviesCount++;
+}
+assert.equals(moviesCount, Movies.length, "moviesCount = Movies.length");
+
 http.onGet("test1", function(req,res) { return "OK"; });
 http.onGet("test2", function(req,res) { return "OK"; });
 http.onPost("test3", function(req,res) { return "OK"; });

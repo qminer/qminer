@@ -1736,7 +1736,7 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 
 	TimeFieldId = OutStore->GetFieldId(OutTmFieldNm);
 
-	QmAssertR(InterpV.Len() == FieldMapV.Len(), "Invalid number of interpolators: " + InterpV.Len());
+	QmAssertR(InterpV.Len() == FieldMapV.Len(), "Invalid number of interpolators: " + TInt::GetStr(InterpV.Len()));
 
 	// initialize in fields
 	for (int i = 0; i < NInFlds; i++) {
