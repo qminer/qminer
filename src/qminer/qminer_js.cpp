@@ -643,6 +643,8 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
             return TJsAnalytics::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
+        } else if (ModuleFNm == "dmoz") { 
+            return TJsDMoz::New();
         } else if (ModuleFNm == "time") {
             return TJsTm::New();
         } else if (ModuleFNm == "analytics") { 
@@ -1314,6 +1316,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterProperty(TmpTemp, fields);
 		JsRegisterProperty(TmpTemp, joins);
 		JsRegisterProperty(TmpTemp, keys);
+        JsRegisterProperty(TmpTemp, iter);
 		JsRegIndexedProperty(TmpTemp, indexId);
 		JsRegisterFunction(TmpTemp, rec);
 		JsRegisterFunction(TmpTemp, add);
@@ -1419,6 +1422,13 @@ v8::Handle<v8::Value> TJsStore::keys(v8::Local<v8::String> Properties, const v8:
 		KeyN++;
 	}	
 	return HandleScope.Close(KeyNmV);
+}
+
+v8::Handle<v8::Value> TJsStore::iter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStoreIter::New(JsStore->Js,
+        JsStore->Store, JsStore->Store->GetIter()));
 }
 
 v8::Handle<v8::Value> TJsStore::indexId(uint32_t Index, const v8::AccessorInfo& Info) {
@@ -1622,6 +1632,42 @@ v8::Handle<v8::Value> TJsStore::getStreamAggrNames(const v8::Arguments& Args) {
 		Counter++;
 	}
 	return HandleScope.Close(Arr);
+}
+
+///////////////////////////////
+// JavaScript Store Iterator
+v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, store);
+        JsRegisterProperty(TmpTemp, rec);
+        JsRegisterFunction(TmpTemp, next);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsStoreIter::store(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStore::New(JsStoreIter->Js, JsStoreIter->Store));
+}
+
+v8::Handle<v8::Value> TJsStoreIter::rec(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Info);
+    const uint64 RecId = JsStoreIter->Iter->GetRecId();
+	return HandleScope.Close(TJsRec::New(JsStoreIter->Js, JsStoreIter->Store->GetRec(RecId)));
+}
+
+v8::Handle<v8::Value> TJsStoreIter::next(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Args);    
+	return HandleScope.Close(v8::Boolean::New(JsStoreIter->Iter->Next()));
 }
 
 ///////////////////////////////
@@ -2257,7 +2303,14 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         v8::String::Utf8Value Utf8(Value);
         Rec.SetFieldStr(FieldId, TStr(*Utf8));
     } else if (Desc.IsStrV()) {
-        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+        QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");
+        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
+        TStrV StrV;
+        for (int StrN = 0; StrN < Array->Length(); StrN++) {
+            v8::String::Utf8Value Utf8(Array->Get(StrN));
+            StrV.Add(TStr(*Utf8));
+        }
+        Rec.SetFieldStrV(FieldId, StrV);
 	} else if (Desc.IsBool()) {
         QmAssertR(Value->IsBoolean(), "Field " + FieldNm + " not boolean");
         Rec.SetFieldBool(FieldId, Value->BooleanValue());
@@ -5006,6 +5059,53 @@ v8::Handle<v8::Value> TJsGeoIp::location(const v8::Arguments& Args) {
 	LocVal->AddToObj("organization", GeoIpBs->GetOrgNm(OrgId));
 	// return
 	return HandleScope.Close(TJsUtil::ParseJson(LocVal));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-DMoz
+bool TJsDMoz::InitP = false;
+PDMozCfy TJsDMoz::DMozCfy = NULL;
+
+const PDMozCfy& TJsDMoz::GetDMozCfy() {
+	if (!InitP) {
+		InitP = true;
+		//TODO: check for folder
+		DMozCfy = TDMozCfy::LoadFPath("./dbs/");
+	}
+	return DMozCfy;
+}
+
+
+v8::Handle<v8::ObjectTemplate> TJsDMoz::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, classify);				
+		
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsDMoz::classify(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read IP address
+	TStr Text = TJsDMozUtil::GetArgStr(Args, 0);
+    const int MxCats = TJsDMozUtil::GetArgInt32(Args, 1, 10);
+	// classify
+	PDMozCfy DMozCfy = GetDMozCfy();
+    TStrFltKdV CatNmWgtV, KeyWdWgtV;
+    DMozCfy->Classify(Text, CatNmWgtV, KeyWdWgtV, MxCats);
+    // prepare response
+    PJsonVal KeyWdV = TJsonVal::NewArr();
+    for (int KeyWdN = 0; KeyWdN < KeyWdWgtV.Len(); KeyWdN++) {
+        KeyWdV->AddToArr(TJsonVal::NewStr(KeyWdWgtV[KeyWdN].Key));
+    }
+	// return
+	return HandleScope.Close(TJsUtil::ParseJson(KeyWdV));
 }
 
 ///////////////////////////////

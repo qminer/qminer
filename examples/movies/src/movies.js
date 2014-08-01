@@ -15,6 +15,7 @@ if (Movies.empty) {
     
     // Declare the features we will use to build genre classification models
     var genreFeatures = [
+        { type: "constant", source: "Movies" },
         { type: "text", source: "Movies", field: "Title" },
         { type: "text", source: "Movies", field: "Plot" },        
         { type: "multinomial", source: { store: "Movies", join: "Actor" }, field: "Name" },
@@ -29,6 +30,7 @@ if (Movies.empty) {
 
     // Declare the features we will use to build the rating regression model
     var ratingFeatures = [
+        { type: "constant", source: "Movies" },
         { type: "text", source: "Movies", field: "Title" },
         { type: "text", source: "Movies", field: "Plot" },        
         { type: "multinomial", source: "Movies", field: "Genres" },
@@ -116,46 +118,5 @@ var newComedyMovie = Movies.newRec({
         {"Name":"Wurtz Anneliese", "Gender":"Female"}
     ]
 });
-console.log(JSON.stringify(genreModel.predict(newComedyMovie)));
+//console.log(JSON.stringify(genreModel.predict(newComedyMovie)));
 console.log(JSON.stringify(ratingModel.predict(newComedyMovie)) + " vs. " + newHorrorMovie.Rating);        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

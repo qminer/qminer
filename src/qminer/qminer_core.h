@@ -373,7 +373,7 @@ public:
 	static PStoreIter New(const uint64& MinId, const uint64& MaxId) { return new TStoreIterVec(MinId, MaxId); }
 
 	bool Next();
-	uint64 GetRecId() const { Assert(!FirstP); return RecId; }
+	uint64 GetRecId() const { QmAssert(!FirstP); return RecId; }
 };
 
 ///////////////////////////////
