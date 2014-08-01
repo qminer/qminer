@@ -66,6 +66,8 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `qm.gc()` -- start garbage collection to remove records outside time windows
 - `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 paramJSON must contain field `type` which defies the type of the aggregate
+- `sa = qm.newStreamAggr(paramJSON)` -- create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.
+`paramJSON` must contain field `type` which defies the type of the aggregate
 - `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
@@ -77,6 +79,17 @@ paramJSON must contain field `type` which defies the type of the aggregate
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
+### Stream Aggregate
+
+Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+
+**Functions and properties:**
+
+- `str = sa.name` -- returns the name (unique) of the stream aggregate
+- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 
 ### Store
 
@@ -95,7 +108,8 @@ var record = store[1234];
 - `rs = store.recs` -- create a record set containing all the records from the store
 - `objArr = store.fields` -- array of all the field descriptor JSON objects
 - `objArr = store.joins` -- array of all the join names
-- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
+- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+- `iter = store.iter` -- returns iterator for iterating over the store
 - `rec = store[recId]` -- get record with ID `recId`; 
     returns `null` when no such record exists
 - `rec = store.rec(recName)` -- get record named `recName`; 
@@ -141,6 +155,15 @@ for (var i = 0; i < rs.length; i++) {
   console.log(rec.Name + " (" + rec.Gender + ")");
 }
 ```    
+
+### Store iterator
+
+
+**Functions and properties:**
+  
+- `store = iter.store` -- get the store
+- `rec = iter.rec` -- get current record
+- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
 
 ### Record set
 

@@ -225,10 +225,10 @@ var _store = new function () {
 
 	};
 
-	this.rec = function () {
+	this.newRec = function () {
 	/// <signature>
-	/// <summary> get record named `recName`;</summary>
-	/// <param name="_recName" value="_recName">param</param>
+	/// <summary> creates new record `rec` by (JSON) value `recordJson` (not added to the store)</summary>
+	/// <param name="_recordJson" value="_recordJson">param</param>
 	/// <returns value ="_rec"/>
 	/// </signature>
 
@@ -279,15 +279,8 @@ var _store = new function () {
 
 	};
 
-	this.newRec = function () {
-	/// <signature>
-	/// <summary> creates new record `rec` by (JSON) value `recordJson` (not added to the store)</summary>
-	/// <param name="_recordJson" value="_recordJson">param</param>
-	/// <returns value ="_rec"/>
-	/// </signature>
-
-	};
-
+	/// <field name = "iter" value = "_iter"> returns iterator for iterating over the store</field>
+	this.iter = _iter;
 	/// <field name = "name" value = "_str"> name of the store</field>
 	this.name = _str;
 	this.sample = function () {
@@ -330,6 +323,15 @@ var _store = new function () {
 
 	/// <field name = "length" value = "_len"> number of records in the store</field>
 	this.length = _len;
+	this.rec = function () {
+	/// <signature>
+	/// <summary> get record named `recName`;</summary>
+	/// <param name="_recName" value="_recName">param</param>
+	/// <returns value ="_rec"/>
+	/// </signature>
+
+	};
+
 	/// <field name = "empty" value = "_bool"> `bool = true` when store is empty</field>
 	this.empty = _bool;
 	this.getStreamAggrNames = function () {
@@ -799,6 +801,13 @@ var _rec = new function () {
 
 	};
 
+}
+
+var _iter = new function () {
+	/// <field name = "rec" value = "_rec"> get current record</field>
+	this.rec = _rec;
+	/// <field name = "store" value = "_store"> get the store</field>
+	this.store = _store;
 }
 
 var _fin = new function () {
@@ -1490,6 +1499,47 @@ var la = new function () {
 	/// <param name="_fsp" value="_fsp">param</param>
 	/// <param name="_limit" value="_limit">param</param>
 	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+}
+
+var _sa = new function () {
+	this.onUpdate = function () {
+	/// <signature>
+	/// <summary> executes onUpdate function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.saveJson = function () {
+	/// <signature>
+	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+
+	};
+
+	this.onDelete = function () {
+	/// <signature>
+	/// <summary> executes onDelete function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
+	this.name = _str;
+	this.onAdd = function () {
+	/// <signature>
+	/// <summary> executes onAdd function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
@@ -3124,10 +3174,11 @@ var qm = new function () {
 
 	};
 
-	this.gc = function () {
+	this.newStreamAggr = function () {
 	/// <signature>
-	/// <summary> start garbage collection to remove records outside time windows</summary>
-	/// <returns value =""/>
+	/// <summary> create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.</summary>
+	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
@@ -3136,6 +3187,14 @@ var qm = new function () {
 	/// <signature>
 	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
 	/// <param name="_store" value="_store">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.gc = function () {
+	/// <signature>
+	/// <summary> start garbage collection to remove records outside time windows</summary>
 	/// <returns value =""/>
 	/// </signature>
 
