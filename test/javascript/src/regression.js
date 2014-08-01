@@ -29,4 +29,4 @@ var svmr = analytics.trainSvmRegression(Xg, yg, { c: 0.1, eps: 1e-8, batchSize: 
 var wgs = svmr.weights;
 
 assert.ok(w.inner(wg) / (w.norm() * wg.norm()) > 0.999 , 'ridge regression test: cos(w, wg) > 0.999');
-assert.ok(w.inner(wgs) / (w.norm() * wgs.norm()) > 0.999 , 'svme regression test: cos(w, wgs) > 0.999');
+assert.ok(w.inner(wgs) / (w.norm() * wgs.norm()) > 0.999 , 'svm regression test: cos(w, wgs) > 0.999');

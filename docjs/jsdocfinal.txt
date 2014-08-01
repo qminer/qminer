@@ -1,6 +1,4 @@
 
-define V8_DEBUG
-define V8_DEBUG
 QMiner functionality is accessible through a JavaScript API. The JavaScript environment
 is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
 The API includes a simple HTTP server with RESTful web-service support for defining
