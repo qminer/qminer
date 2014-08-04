@@ -944,10 +944,47 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var temp1V = la.newVec();
     var temp2V = la.newVec();
 
+    this.setStatePost = function (_statePost) {
+        statePost = _statePost;
+    };
+
+    this.setTransitionMatrix = function (_transitionMatrix) {
+        transitionMatrix = _transitionMatrix;
+    };
+
+    this.setMeasurementMatrix = function (_measurementMatrix) {
+        measurementMatrix = _measurementMatrix;
+    };
+
+    this.setProcessNoiseCov = function (_processNoiseCov) {
+        processNoiseCov = _processNoiseCov;
+    }
+
+    this.setMeasurementNoiseCov = function (_measurementNoiseCov) {
+        measurementNoiseCov = _measurementNoiseCov;
+    }
+
+    this.setErrorCovPre = function (_errorCovPre) {
+        errorCovPre = _errorCovPre;
+    }
+
+    this.setErrorCovPost = function (_errorCovPost) {
+        errorCovPost = _errorCovPost;
+    }
+
+    this.setControlMatrix = function (_controlMatrix) {
+        controlMatrix = _controlMatrix;
+    }
+
     this.predict = function (control) {
         console.log("Predict");
         // update the state: x'(k) = A * x(k)
         statePre = transitionMatrix.multiply(statePost);
+        console.log("Transition Matrix");
+        la.printMat(transitionMatrix);
+        console.log("statePre");
+        la.printVec(statePre);
+        la.printVec(statePost);
 
         // x'(k) = x'(k) + B * u(k)
         if (control.length) {
@@ -967,9 +1004,12 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
 
     this.correct = function (measurement) {
         console.log("Correct");
+
+        console.say("temp2");
         // temp2 = H * P'(k)
         temp2VV = measurementMatrix.multiply(errorCovPre);
-
+        
+        console.say("temp3");
         // temp3 = temp2 * Ht + R
         temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
 
@@ -977,24 +1017,29 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
 
         // temp4 = inv(temp3) * temp2 = Kt(k)
         itemp3VV = la.inverseSVD(temp3VV);
-        temp4VV = itemp3VV.multiply(temp2V);
-
-        console.say("K(k)");
+        temp4VV = itemp3VV.multiply(temp2VV);
 
         // K(k)
-        gain = temp4.transpose();
+        gain = temp4VV.transpose();
 
         // temp2V = z(k) - H*x'(k)
-        // init temp1V?
         temp1V = measurementMatrix.multiply(statePre);
-        // init temp2V?
         temp2V = measurement.minus(temp1V);
 
+        console.say("x(k)");
         // x(k) = x'(k) + K(k) * temp2V
         // regenerate temp1V?
         temp1V = gain.multiply(temp2V);
+        la.printVec(temp1V);
+        la.printMat(gain);
+        /*
+        la.printVec(temp1V);
+        la.printVec(statePre);
+        la.printVec(temp2V);
+        */
         statePost = statePre.plus(temp1V);
 
+        console.say("P(k)");
         // P(k) = P'(k) - K(k) * temp2
         errorCovPost = errorCovPre.minus(gain.multiply(temp2VV));
 
