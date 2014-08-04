@@ -29,7 +29,7 @@ kf.setStatePost(la.newVec([value, 0, 0]));
 
 while (!fin.eof) {
     lines = lines + 1;
-    if (lines % 1 == 0) { console.log("Loaded: " + lines); }
+    if (lines % 100 == 0) { console.log("Loaded: " + lines); }
     var line = fin.readLine();
     if (line == "") { continue; }
 
@@ -50,7 +50,7 @@ while (!fin.eof) {
     var corrected = kf.correct(measurementV);
 
     // TODO: save value, prediction + correction
-    console.log("Output [M, P, C]", value * 1E6 + ", " + predicted.at(0) * 1E6 + ", " + corrected.at(0) * 1E6);
+    console.log("Output [M, P, C]", value.toFixed(6) + ", " + predicted.at(0).toFixed(6) + ", " + corrected.at(0).toFixed(6));
 
     //console.pause();
     lastTm = newTm;

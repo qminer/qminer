@@ -903,9 +903,10 @@ exports.kNearestNeighbors = function (k, buffer, power) {
 
 
 /////////// Kalman Filter
-//#- `kalmanFilter = analytics.newKalmanFilter(dim, use_bias)` -- the perceptron learning algorithm initialization requires
-//#   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
-//#   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
+//#- `kf = analytics.newKalmanFilter(dynamParams, measureParams, controlParams)` -- the Kalman filter initialization procedure
+//#   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
+//#   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
+//#   specified model) and correction. The following functions are exposed:
 exports.newKalmanFilter = function (dim, use_bias) {
     return new analytics.kalmanFilter(dim, use_bias);
 }
@@ -944,47 +945,50 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var temp1V = la.newVec();
     var temp2V = la.newVec();
 
+    //#   - `kf.setStatePost(_val)` -- sets the post state (DP) vector.
     this.setStatePost = function (_statePost) {
         statePost = _statePost;
     };
 
+    //#   - `kf.setTransitionMatrix(_val)` -- sets the transition (DP x DP) matrix.
     this.setTransitionMatrix = function (_transitionMatrix) {
         transitionMatrix = _transitionMatrix;
     };
 
+    //#   - `kf.setMeasurementMatrix(_val)` -- sets the measurement (MP x DP) matrix.
     this.setMeasurementMatrix = function (_measurementMatrix) {
         measurementMatrix = _measurementMatrix;
     };
 
+    //#   - `kf.setProcessNoiseCovPost(_val)` -- sets the process noise covariance (DP x DP) matrix.
     this.setProcessNoiseCov = function (_processNoiseCov) {
         processNoiseCov = _processNoiseCov;
     }
 
+    //#   - `kf.setMeasurementNoiseCov(_val)` -- sets the measurement noise covariance (MP x MP) matrix.
     this.setMeasurementNoiseCov = function (_measurementNoiseCov) {
         measurementNoiseCov = _measurementNoiseCov;
     }
 
+    //#   - `kf.setErrorCovPre(_val)` -- sets the pre error covariance (DP x DP) matrix.
     this.setErrorCovPre = function (_errorCovPre) {
         errorCovPre = _errorCovPre;
     }
 
+    //#   - `kf.setErrorCovPost(_val)` -- sets the post error covariance (DP x DP) matrix.
     this.setErrorCovPost = function (_errorCovPost) {
         errorCovPost = _errorCovPost;
     }
 
+    //#   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
     this.setControlMatrix = function (_controlMatrix) {
         controlMatrix = _controlMatrix;
     }
 
+    //#   - `statePre = kf.predict(control)` -- returns a predicted state vector `statePre` where `control` is the control vector (normally not set).
     this.predict = function (control) {
-        console.log("Predict");
         // update the state: x'(k) = A * x(k)
         statePre = transitionMatrix.multiply(statePost);
-        console.log("Transition Matrix");
-        la.printMat(transitionMatrix);
-        console.log("statePre");
-        la.printVec(statePre);
-        la.printVec(statePost);
 
         // x'(k) = x'(k) + B * u(k)
         if (control.length) {
@@ -1002,18 +1006,13 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
         return statePre;
     };
 
+    //#   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
     this.correct = function (measurement) {
-        console.log("Correct");
-
-        console.say("temp2");
         // temp2 = H * P'(k)
         temp2VV = measurementMatrix.multiply(errorCovPre);
         
-        console.say("temp3");
         // temp3 = temp2 * Ht + R
         temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
-
-        console.say("temp4");
 
         // temp4 = inv(temp3) * temp2 = Kt(k)
         itemp3VV = la.inverseSVD(temp3VV);
@@ -1026,31 +1025,15 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
         temp1V = measurementMatrix.multiply(statePre);
         temp2V = measurement.minus(temp1V);
 
-        console.say("x(k)");
         // x(k) = x'(k) + K(k) * temp2V
-        // regenerate temp1V?
-        temp1V = gain.multiply(temp2V);
-        la.printVec(temp1V);
-        la.printMat(gain);
-        /*
-        la.printVec(temp1V);
-        la.printVec(statePre);
-        la.printVec(temp2V);
-        */
+        temp1V = gain.multiply(temp2V);     
         statePost = statePre.plus(temp1V);
 
-        console.say("P(k)");
         // P(k) = P'(k) - K(k) * temp2
         errorCovPost = errorCovPre.minus(gain.multiply(temp2VV));
 
         // return statePost
         return statePost;
-    };
-
-    //#   - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
-    this.getModel = function () {
-        var model;
-        return model;
     };
 
 };
