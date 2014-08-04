@@ -271,6 +271,11 @@ la.saveMat = function(X, fout) {
     //outFile.flush();
 };
 
+//#- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a matrix
+la.inverseSVD = function (mat) {
+
+}
+
 //#- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
 //#- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
 la.conjgrad = function (A, b, x) {

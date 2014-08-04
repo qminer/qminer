@@ -900,3 +900,109 @@ exports.kNearestNeighbors = function (k, buffer, power) {
         return la.copyFltArrayToVec(targetVec);
     }
 }
+
+
+/////////// Kalman Filter
+//#- `kalmanFilter = analytics.newKalmanFilter(dim, use_bias)` -- the perceptron learning algorithm initialization requires
+//#   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
+//#   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
+exports.newKalmanFilter = function (dim, use_bias) {
+    return new analytics.kalmanFilter(dim, use_bias);
+}
+exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
+    var CP = controlParams;
+    var MP = measuremeParams;
+    var DP = dynamParams;
+
+    // CP should be >= 0
+    CP = max(CP, 0);
+
+    var statePre = la.newFltVec({ "vals": DP, "mxvals": DP }); // prior state vector (after prediction and before measurement update)
+    var statePost = la.newFltVec({ "vals": DP, "mxvals": DP }); // post state vector (after measurement update)
+    var transitionMatrix = la.newMat({ "cols": DP, "rows": DP }); // transition matrix (model)
+
+    var processNoiseCov = la.newMat({ "cols": DP, "rows": DP }); // process noise covariance
+    var measurementMatrix = la.newMat({ "cols": DP, "rows": MP }); // measurement matrix
+    var measurementNoiseCov = la.newMat({ "cols": MP, "rows": MP }); // measurement noise covariance
+     
+    var errorCovPre = la.newMat({ "cols": DP, "rows": DP }); // error covariance after prediction
+    var errorCovPost = la.newMat({ "cols": DP, "rows": DP }); // error covariance after update
+    var gain = la.newMat({ "cols": MP, "rows": DP }); 
+
+    var constolMatrix;
+
+    if (CP > 0)
+        controlMatrix = la.newMat({ "cols": CP, "rows": DP }); // control matrix
+
+    // temporary matrices used for calculation
+    var temp1VV = la.newMat({ "cols": DP, "rows": DP });
+    var temp2VV = la.newMat({ "cols": DP, "rows": MP });
+    var temp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var itemp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var temp4VV = la.newMat({ "cols": DP, "rows": MP });
+
+    var temp1V = la.newFltVec();
+    var temp2V = la.newFltVec();
+
+
+
+    this.predict = function(control) {
+        // update the state: x'(k) = A * x(k)
+        statePre = transitionMatrix.multiply(statePost);
+
+        // x'(k) = x'(k) + B * u(k)
+        if (!control.empty) {
+            temp1V = controlMatrix.multiply(control);
+            temp2V = statePre.plus(temp1V);
+        }
+
+        // update error covariance matrices: temp1 = A * P(k)
+        temp1VV = transitionMatrix.multiply(errorCovPost);
+
+        // P'(k) = temp1 * At + Q
+        errorCovPre = temp1VV.multiply(transitionMatrix.transpose()).plus(processNoiseCov);
+
+        // return statePre
+        return statePre;
+    }
+
+
+    this.correct() = function(measurement) {
+        // temp2 = H * P'(k)
+        temp2VV = measurementMatrix.multiply(errorCovPre);
+
+        // temp3 = temp2 * Ht + R
+        temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
+
+        // temp4 = inv(temp3) * temp2 = Kt(k)
+        itemp3VV = temp3VV.inverseSVD();
+        temp4VV = itemp3VV.multiply(temp2);
+
+        // K(k)
+        gain = temp4.transpose();
+
+        // temp2V = z(k) - H*x'(k)
+        // init temp1V?
+        temp1V = measurementMatrix.multiply(statePre);
+        // init temp2V?
+        temp2V = measurement.minus(temp1V);
+
+        // x(k) = x'(k) + K(k) * temp2V
+        // regenerate temp1V?
+        temp1V = gain.multiply(temp2V);
+        statePost = statePre.plus(temp1V);
+
+        // P(k) = P'(k) - K(k) * temp2
+        errorCovPost = errorCovPre.minus(gain.multiply(temp2VV));
+
+        // return statePost
+        return statePost;
+    }
+
+    //#   - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
+    this.getModel = function () {
+        var model;
+        return model;
+    };
+
+};
