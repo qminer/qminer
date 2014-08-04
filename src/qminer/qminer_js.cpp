@@ -723,6 +723,7 @@ void TScript::Init() {
 	Execute(TEnv::QMinerFPath + "http.js");
 	Execute(TEnv::QMinerFPath + "linalg.js");
 	Execute(TEnv::QMinerFPath + "spMat.js");
+	Execute(TEnv::QMinerFPath + "store.js");
 	Execute(ScriptFNm);
 }
 
@@ -1240,25 +1241,26 @@ v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
 			StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 		}
 	}
-	if (Args.Length() > 0) {
-		TStrV Stores(0);
-		if (Args[1]->IsString()) {
-			Stores.Add(TJsBaseUtil::GetArgStr(Args, 1));
-		}
-		if (Args[1]->IsArray()) {
-			PJsonVal StoresJson = TJsBaseUtil::GetArgJson(Args, 1);
-			QmAssertR(StoresJson->IsDef(), "qm.newStreamAggr : Args[1] should be a string (store name) or a string array (store names)");
-			StoresJson->GetArrStrV(Stores);
-		}
-		for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
-			QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "qm.newStreamAggr, Args[1] : store does not exist!");
-			JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
-		}
-	} else {
-		JsBase->Base->AddStreamAggr(StreamAggr);
-	}
-	// non-compositional aggregates are returned
 	if (!TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
+		if (Args.Length() > 1) {
+			TStrV Stores(0);
+			if (Args[1]->IsString()) {
+				Stores.Add(TJsBaseUtil::GetArgStr(Args, 1));
+			}
+			if (Args[1]->IsArray()) {
+				PJsonVal StoresJson = TJsBaseUtil::GetArgJson(Args, 1);
+				QmAssertR(StoresJson->IsDef(), "qm.newStreamAggr : Args[1] should be a string (store name) or a string array (store names)");
+				StoresJson->GetArrStrV(Stores);
+			}
+			for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
+				QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "qm.newStreamAggr, Args[1] : store does not exist!");
+				JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
+			}
+		}
+		else {
+			JsBase->Base->AddStreamAggr(StreamAggr);
+		}
+		// non-compositional aggregates are returned
 		return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
 	}
 	else {

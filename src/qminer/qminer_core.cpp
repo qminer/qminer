@@ -4162,6 +4162,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize): InitP(false) {
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
     // initialize empty stream aggregate bases for each store
     StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
+	StreamAggrDefaultBase = TStreamAggrBase::New();
 	// by default no temporary folder
 	TempFPathP = false;
 }
@@ -4189,7 +4190,8 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	// initialize with empty stores
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
     // initialize empty stream aggregate bases for each store
-    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);    
+    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
+	StreamAggrDefaultBase = TStreamAggrBase::New();
 	// by default no temporary folder
 	TempFPathP = false;
 } 
@@ -4202,7 +4204,7 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving stream aggregates ...");
 		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
         SaveStreamAggrBaseV(StreamAggrFOut);
-		StreamAggrDefaultBase->Save(StreamAggrFOut);
+		StreamAggrDefaultBase->Save(StreamAggrFOut);		
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -4426,7 +4428,7 @@ void TBase::Init() {
 		// load stream aggregates
 		TFIn StreamAggrBaseFIn(FPath + "StreamAggr.dat");
         LoadStreamAggrBaseV(StreamAggrBaseFIn);
-		StreamAggrDefaultBase->Load(this, StreamAggrBaseFIn);		
+		StreamAggrDefaultBase = TStreamAggrBase::Load(this, StreamAggrBaseFIn);
 	}
 	// done
 	InitP = true;

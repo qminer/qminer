@@ -1117,8 +1117,11 @@ private:
 
 	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
-		return TJsStoreUtil::New(new TJsStore(Js, Store)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
+		return TJsStoreUtil::New(new TJsStore(Js, Store), Js, "qm.storeProto");
+	}
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
+		return TJsStoreUtil::New(new TJsStore(Js, Store)); }*/
 	~TJsStore() { }
 
 	// template
@@ -1163,17 +1166,13 @@ public:
     //#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addTrigger);
-	// TODO -> move to JS: store.addStreamAggr(obj) -> sa = qm.newStreamAggr(obj, store.name)
-	////#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-	////#- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-	////#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
-    //JsDeclareFunction(addStreamAggr);
+	JsDeclareFunction(addTrigger);	
     //#- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
-    
+	//#JSIMPLEMENT:src/qminer/store.js
+
     //# 
     //# **Examples**:
     //# 
@@ -1235,7 +1234,7 @@ public:
 	JsDeclareProperty(store);
     //#- `rec = iter.rec` -- get current record
 	JsDeclareProperty(rec);
-    //#- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+    //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
     JsDeclareFunction(next);
 };
 
