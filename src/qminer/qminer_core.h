@@ -348,32 +348,31 @@ typedef TPt<TStoreIter> PStoreIter;
 ///////////////////////////////
 /// Store Vector Iterator.
 /// Useful for stores using TVec to store records
-/// Example: TStrV TestV; PStoreIter TestIter = TStoreIterVec::New(TestV.Len());
 class TStoreIterVec : public TStoreIter {
 private:
 	/// True before first call to Next()
 	bool FirstP;
+    /// True when we reach the end
+    bool LastP;
+    /// Direction (increment or decrement)
+    bool AscP;
 	/// Current Record ID
 	uint64 RecId;
-	/// Number of all records
-	uint64 RecIds;
+	/// End
+	uint64 EndId;
 
     /// Empty vector
 	TStoreIterVec();
-    /// Vector has _RecIds with first ID being 0
-	TStoreIterVec(const uint64& _RecIds);    
     /// Vector has elements from MinId till MaxId
-	TStoreIterVec(const uint64& MinId, const uint64& MaxId);
+	TStoreIterVec(const uint64& _StartId, const uint64& _EndId, const bool& _AscP);
 public:
 	/// Create new iterator for empty vector
 	static PStoreIter New() { return new TStoreIterVec; }
-	/// Create new iterator for vector, which starts with RecId = 0
-	static PStoreIter New(const uint64& RecIds) { return new TStoreIterVec(RecIds); }
 	/// Create new iterator for vector, which starts with RecId = MinId
-	static PStoreIter New(const uint64& MinId, const uint64& MaxId) { return new TStoreIterVec(MinId, MaxId); }
+	static PStoreIter New(const uint64& StartId, const uint64& EndId, const bool& AscP);
 
 	bool Next();
-	uint64 GetRecId() const { Assert(!FirstP); return RecId; }
+	uint64 GetRecId() const { QmAssert(!FirstP); return RecId; }
 };
 
 ///////////////////////////////
@@ -583,6 +582,15 @@ public:
 	virtual PRecSet GetRndRecs(const uint64& SampleSize);
 	/// Checks if no records in the store
 	bool Empty() const { return (GetRecs() == uint64(0)); }
+
+    /// Gets the first record in the store (order defined by store implementation)
+    virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
+    /// Gets the last record in the store (order defined by store implementation)
+    virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
+    /// Gets forward moving iterator (order defined by store implementation)
+    virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
+    /// Gets backward moving iterator (order defined by store implementation)
+    virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
     
 	/// Add new record provided as JSon
 	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;

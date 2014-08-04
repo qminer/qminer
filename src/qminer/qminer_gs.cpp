@@ -359,14 +359,15 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
                 // more than one field is marked as "primary"
                 QmAssertR(PrimaryFieldName.Empty(), "More than one field is marked as primary: " + PrimaryFieldName + " and " + FieldDesc.GetFieldNm());
                 // fields marked as "primary" must be strings
-                QmAssertR(FieldDesc.IsStr(), "Filed marked as primary must be string: " + FieldDesc.GetFieldNm());
+                QmAssertR(FieldDesc.IsStr() || FieldDesc.IsInt() || FieldDesc.IsUInt64() || FieldDesc.IsFlt() || FieldDesc.IsTm(),
+                    "Field marked as primary must be of type string, int, uint64, float or time: " + FieldDesc.GetFieldNm());
                 // fields marked as "primary" must be strings
                 QmAssertR(!FieldDesc.IsNullable(), "Filed marked as primary cannot be nullable: " + FieldDesc.GetFieldNm());
                 // all fine, mark it as primary
                 PrimaryFieldName = FieldName;
             }
 		}
-
+        
 		// check that window parameter for field is valid
 		if (Schema.WndDesc.WindowType == swtTime) {
             const TStr& WndFieldName = Schema.WndDesc.TimeFieldNm;
@@ -1004,8 +1005,16 @@ void TRecSerializator::Serialize(const PJsonVal& RecVal, TMem& RecMem, const TWP
 		if (FieldVal.Empty()) {
 			FieldVal = RecVal->GetObjKey(FieldName);
         }
-
-		if (FieldSerialDesc.FixedPartP) {
+        // set the field as specified
+        if (FieldVal->IsNull()) {
+            // we are setting field explicitly to null
+            QmAssertR(FieldDesc.IsNullable(), "Non-nullable field " + FieldName + " set to null");
+            SetFieldNull(FixedMem, FieldSerialDesc, true);
+            // if not from fixed part, point variable-length index to the end of stream
+            if (!FieldSerialDesc.FixedPartP) {
+                SetLocationVar(FixedMem, FieldSerialDesc, VarSOut.Len());
+            }            
+        } else if (FieldSerialDesc.FixedPartP) {
 			SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, FieldVal);
 		} else {
 			SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, FieldVal);
@@ -1038,14 +1047,24 @@ void TRecSerializator::SerializeUpdate(const PJsonVal& RecVal, const TMem& InRec
 		} else {
     		// new value, must update
 			PJsonVal JsonVal = RecVal->GetObjKey(FieldName);
-            // remove null flag
-			SetFieldNull(FixedMem, FieldSerialDesc, false);
-            // serialize the field
-			if (FieldSerialDesc.FixedPartP) {
-				SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, JsonVal);
-			} else {
-				SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, JsonVal);
-			}
+            if (JsonVal->IsNull()) {
+                // we are setting field explicitly to null
+                QmAssertR(FieldDesc.IsNullable(), "Non-nullable field " + FieldName + " set to null");
+                SetFieldNull(FixedMem, FieldSerialDesc, true);
+                // if not from fixed part, point variable-length index to the end of stream
+                if (!FieldSerialDesc.FixedPartP) {
+                    SetLocationVar(FixedMem, FieldSerialDesc, VarSOut.Len());
+                }            
+            } else {
+                // remove null flag
+                SetFieldNull(FixedMem, FieldSerialDesc, false);
+                // serialize the field
+                if (FieldSerialDesc.FixedPartP) {
+                    SetFixedJsonVal(FixedMem, FieldSerialDesc, FieldDesc, JsonVal);
+                } else {
+                    SetVarJsonVal(FixedMem, VarSOut, FieldSerialDesc, FieldDesc, JsonVal);
+                }
+            }
             // remember for reporting back that we updated the field
 			ChangedFieldIdSet.AddKey(FieldDesc.GetFieldId());
 		}
@@ -1697,27 +1716,50 @@ const TRecSerializator& TStoreImpl::GetFieldSerializator(const int &FieldId) con
     return GetSerializator(FieldLocV[FieldId]);
 }
 
-TStr TStoreImpl::ParseRecNm(const PJsonVal& RecVal) {
-    if (HasRecNm()) {
-        TStr RecNmField = GetFieldNm(RecNmFieldId);
-        QmAssertR(RecVal->IsObjKey(RecNmField), "Missing primary field in the record: " + RecNmField);
-        return RecVal->GetObjStr(RecNmField);
+void TStoreImpl::SetPrimaryField(const uint64& RecId) {
+    if (PrimaryFieldType == oftStr) {
+        PrimaryStrIdH.AddDat(GetFieldStr(RecId, PrimaryFieldId)) = RecId;
+    } else if (PrimaryFieldType == oftInt) {
+        PrimaryIntIdH.AddDat(GetFieldInt(RecId, PrimaryFieldId)) = RecId;
+    } else if (PrimaryFieldType == oftUInt64) {
+        PrimaryUInt64IdH.AddDat(GetFieldUInt64(RecId, PrimaryFieldId)) = RecId;
+    } else if (PrimaryFieldType == oftFlt) {
+        PrimaryFltIdH.AddDat(GetFieldFlt(RecId, PrimaryFieldId)) = RecId;
+    } else if (PrimaryFieldType == oftTm) {
+        PrimaryTmMSecsIdH.AddDat(GetFieldTmMSecs(RecId, PrimaryFieldId)) = RecId;
     }
-    // if no record names, just return empty string
-    return TStr();
+}
+
+void TStoreImpl::DelPrimaryField(const uint64& RecId) {
+    if (PrimaryFieldType == oftStr) {
+        PrimaryStrIdH.DelIfKey(GetFieldStr(RecId, PrimaryFieldId));
+    } else if (PrimaryFieldType == oftInt) {
+        PrimaryIntIdH.DelIfKey(GetFieldInt(RecId, PrimaryFieldId));
+    } else if (PrimaryFieldType == oftUInt64) {
+        PrimaryUInt64IdH.DelIfKey(GetFieldUInt64(RecId, PrimaryFieldId));
+    } else if (PrimaryFieldType == oftFlt) {
+        PrimaryFltIdH.DelIfKey(GetFieldFlt(RecId, PrimaryFieldId));
+    } else if (PrimaryFieldType == oftTm) {
+        PrimaryTmMSecsIdH.DelIfKey(GetFieldTmMSecs(RecId, PrimaryFieldId));
+    }    
 }
 
 void TStoreImpl::InitFromSchema(const TStoreSchema& StoreSchema) {
     // at start there is no primary key
 	RecNmFieldP = false;
+    PrimaryFieldId = -1;
+    PrimaryFieldType = oftUndef;
 	// create fields
 	for (int i = 0; i<StoreSchema.FieldH.Len(); i++) {
 		const TFieldDesc& FieldDesc = StoreSchema.FieldH[i];
 		AddFieldDesc(FieldDesc);
 		// check if we found a primary field
 		if (FieldDesc.IsPrimary()) {
-			RecNmFieldP = true;
-			RecNmFieldId = GetFieldId(FieldDesc.GetFieldNm());
+            QmAssertR(PrimaryFieldId == -1, "Store can have only one primary field");
+            // only string fields can serve as record name (TODO: extend)
+			RecNmFieldP = FieldDesc.IsStr();
+			PrimaryFieldId = GetFieldId(FieldDesc.GetFieldNm());
+            PrimaryFieldType = FieldDesc.GetFieldType();
 		}
 	}
 	// create index keys
@@ -1771,16 +1813,37 @@ TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const uint& StoreId,
 TStoreImpl::TStoreImpl(const TWPt<TBase>& Base, const TStr& _StoreFNm, 
     const TFAccess& _FAccess, const int64& _MxCacheSize): 
         TStore(Base, _StoreFNm + ".BaseStore"), 
-        StoreFNm(_StoreFNm), FAccess(_FAccess), 
+        StoreFNm(_StoreFNm), FAccess(_FAccess), PrimaryFieldType(oftUndef),
         DataCache(_StoreFNm + ".Cache", _FAccess, _MxCacheSize), 
         DataMem(_StoreFNm + ".MemCache", _FAccess)  {
 
     // load members
 	TFIn FIn(StoreFNm + ".GenericStore");
 	RecNmFieldP.Load(FIn);
-	RecNmFieldId.Load(FIn);
-	RecNmIdH.Load(FIn);
+	PrimaryFieldId.Load(FIn);
+    // deduce primary field type
+    if (PrimaryFieldId != -1) {
+        PrimaryFieldType = GetFieldDesc(PrimaryFieldId).GetFieldType();
+        if (PrimaryFieldType == oftStr) {
+            PrimaryStrIdH.Load(FIn);
+        } else if (PrimaryFieldType == oftInt) {
+            PrimaryIntIdH.Load(FIn);
+        } else if (PrimaryFieldType == oftUInt64) {
+            PrimaryUInt64IdH.Load(FIn);
+        } else if (PrimaryFieldType == oftFlt) {
+            PrimaryFltIdH.Load(FIn);
+        } else if (PrimaryFieldType == oftTm) {
+            PrimaryTmMSecsIdH.Load(FIn);
+        } else {
+            throw TQmExcept::New("Unsupported primary field type!");
+        }
+    } else {
+        // backwards compatibility
+    	PrimaryStrIdH.Load(FIn);
+    }
+    // load time window    
     WndDesc.Load(FIn);
+    // load data
 	SerializatorCache.Load(FIn);
 	SerializatorMem.Load(FIn);
     
@@ -1802,10 +1865,23 @@ TStoreImpl::~TStoreImpl() {
         SaveStore(BaseFOut);
 		// save store parameters
 		TFOut FOut(StoreFNm + ".GenericStore");
+        // save parameters about primary field
 		RecNmFieldP.Save(FOut);
-		RecNmFieldId.Save(FOut);
-		RecNmIdH.Save(FOut);
+		PrimaryFieldId.Save(FOut);
+        if (PrimaryFieldType == oftInt) {
+            PrimaryIntIdH.Save(FOut);
+        } else if (PrimaryFieldType == oftUInt64) {
+            PrimaryUInt64IdH.Save(FOut);
+        } else if (PrimaryFieldType == oftFlt) {
+            PrimaryFltIdH.Save(FOut);
+        } else if (PrimaryFieldType == oftTm) {
+            PrimaryTmMSecsIdH.Save(FOut);
+        } else {
+            PrimaryStrIdH.Save(FOut);
+        }
+        // save time window
 		WndDesc.Save(FOut);
+        // save data
 		SerializatorCache.Save(FOut);
 		SerializatorMem.Save(FOut);
 	} else {
@@ -1821,48 +1897,100 @@ uint64 TStoreImpl::GetRecs() const {
     return DataMemP ? DataMem.Len() : DataCache.Len(); 
 }
 
+bool TStoreImpl::IsRecNm(const TStr& RecNm) const { 
+    return RecNmFieldP && PrimaryStrIdH.IsKey(RecNm); 
+}
+
 TStr TStoreImpl::GetRecNm(const uint64& RecId) const {
 	// return empty string when no primary key
 	if (!HasRecNm()) { return TStr(); }
 	// get the name of primary key
-	return GetFieldStr(RecId, RecNmFieldId);
+	return GetFieldStr(RecId, PrimaryFieldId);
 }
 
 uint64 TStoreImpl::GetRecId(const TStr& RecNm) const {
-	return (RecNmIdH.IsKey(RecNm) ? RecNmIdH.GetDat(RecNm) : TUInt64::Mx);
+	return (PrimaryStrIdH.IsKey(RecNm) ? PrimaryStrIdH.GetDat(RecNm) : TUInt64::Mx);
 }
 
 PStoreIter TStoreImpl::GetIter() const {
     if (Empty()) { return TStoreIterVec::New(); }
 	return DataMemP ? 
-        TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId()) :
-        TStoreIterVec::New(DataCache.GetFirstValId(), DataCache.GetLastValId());
+        TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId(), true) :
+        TStoreIterVec::New(DataCache.GetFirstValId(), DataCache.GetLastValId(), true);
+}
+
+uint64 TStoreImpl::FirstRecId() const {
+    return Empty() ? TUInt64::Mx.Val : 
+        (DataMemP ? DataMem.GetFirstValId() : DataCache.GetFirstValId());
+}
+
+uint64 TStoreImpl::LastRecId() const {
+    return Empty() ? TUInt64::Mx.Val : 
+        (DataMemP ? DataMem.GetLastValId() : DataCache.GetLastValId());
+}
+
+PStoreIter TStoreImpl::BackwardIter() const {
+    if (Empty()) { return TStoreIterVec::New(); }
+	return DataMemP ? 
+        TStoreIterVec::New(DataMem.GetLastValId(), DataMem.GetFirstValId(), false) :
+        TStoreIterVec::New(DataCache.GetLastValId(), DataCache.GetFirstValId(), false);
 }
 
 uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
-    // placeholder for record name
-    TStr RecNm;
-
 	// check if we are given reference to existing record
     try {        
-        // parse out record id
-        const uint64 RecId = TStore::GetRecId(RecVal);
-        if (RecId != TUInt64::Mx) {
-            // check if we have anything more than record identifier, which would require calling UpdateRec
-            if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
-            // return named record
-            return RecId;
+        // parse out record id, if referred directly
+        {
+            const uint64 RecId = TStore::GetRecId(RecVal);
+            if (RecId != TUInt64::Mx) {
+                // check if we have anything more than record identifier, which would require calling UpdateRec
+                if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
+                // return named record
+                return RecId;
+            }
         }
-        // Extract record name from JSon
-        RecNm = ParseRecNm(RecVal);
-        // check if we are inserting record with name which already exists
-        if (HasRecNm() && IsRecNm(RecNm)) {
-            // we already have this record
-            const uint64 RecId = GetRecId(RecNm);
-            // check if we have anything more than primary field, which would require redirect to UpdateRec
-            if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
-            // return id of named record
-            return RecId;
+        // check if we have a primary field
+        if (IsPrimaryField()) {
+            uint64 PrimaryRecId = TUInt64::Mx;        
+            // primary field cannot be nullable, so we must have it
+            const TStr& PrimaryField = GetFieldNm(PrimaryFieldId);
+            QmAssertR(RecVal->IsObjKey(PrimaryField), "Missing primary field in the record: " + PrimaryField);
+            // parse based on the field type
+            if (PrimaryFieldType == oftStr) {
+                TStr FieldVal = RecVal->GetObjStr(PrimaryField);
+                if (PrimaryStrIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryStrIdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftInt) {
+                const int FieldVal = RecVal->GetObjInt(PrimaryField);
+                if (PrimaryIntIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryIntIdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftUInt64) {
+                const uint64 FieldVal = RecVal->GetObjInt(PrimaryField);
+                if (PrimaryUInt64IdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryUInt64IdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftFlt) {
+                const double FieldVal = RecVal->GetObjNum(PrimaryField);
+                if (PrimaryFltIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryFltIdH.GetDat(FieldVal);
+                }
+            } else if (PrimaryFieldType == oftTm) {
+                TStr TmStr = RecVal->GetObjStr(PrimaryField);
+                TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
+                const uint64 FieldVal = TTm::GetMSecsFromTm(Tm);
+                if (PrimaryTmMSecsIdH.IsKey(FieldVal)) {
+                    PrimaryRecId = PrimaryTmMSecsIdH.GetDat(FieldVal);
+                }
+            }
+            // check if we found primary field with existing value
+            if (PrimaryRecId != TUInt64::Mx) {
+                // check if we have anything more than primary field, which would require redirect to UpdateRec
+                if (RecVal->GetObjKeys() > 1) { UpdateRec(PrimaryRecId, RecVal); }
+                // return id of named record
+                return PrimaryRecId;
+            }
         }
     } catch (const PExcept& Except) {
         // error parsing, report error and return nothing
@@ -1899,9 +2027,9 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
         EAssert(CacheRecId == MemRecId);
     }
     
-	// remember name-recordId map when primary field available
-	if (!RecNm.Empty()) { RecNmIdH.AddDat(RecNm, RecId); }
-   
+	// remember value-recordId map when primary field available
+    if (IsPrimaryField()) { SetPrimaryField(RecId); }
+    
 	// insert nested join records
 	AddJoinRec(RecId, RecVal);
 	// call add triggers
@@ -1912,18 +2040,19 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
 }
 
 void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {    
-    // get old record name
-    TStr OldRecNm = GetRecNm(RecId);
     // figure out which storage fields are affected
-    bool CacheP = false, MemP = false;
+    bool CacheP = false, MemP = false, PrimaryP = false;
     for (int FieldId = 0; FieldId < GetFields(); FieldId++) {
         // check if field appears in the record JSon
         TStr FieldNm = GetFieldNm(FieldId);
         if (RecVal->IsObjKey(FieldNm)) {
             CacheP = CacheP || (FieldLocV[FieldId] == slDisk);
             MemP = MemP || (FieldLocV[FieldId] == slMemory);
+            PrimaryP = PrimaryP || (FieldId == PrimaryFieldId);
         }
     }
+    // remove old primary field
+    if (PrimaryP) { DelPrimaryField(RecId); }
     // update disk serialization when necessary
 	if (CacheP) {
         // update serialization
@@ -1949,11 +2078,7 @@ void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
         RecIndexer.UpdateRec(MemOldRecMem, MemNewRecMem, RecId, MemChangedFieldIdSet, SerializatorMem);
     }
     // check if primary key changed and update the mapping
-    TStr NewRecNm = GetRecNm(RecId);
-    if (HasRecNm() && (OldRecNm != NewRecNm)) {
-        RecNmIdH.DelIfKey(OldRecNm);
-        RecNmIdH.AddDat(NewRecNm) = RecId;
-    }
+    if (PrimaryP) { SetPrimaryField(RecId); }
     // call update triggers
 	OnUpdate(RecId);
 }
@@ -2022,7 +2147,7 @@ void TStoreImpl::GarbageCollect() {
 		// executed triggers before deletion
 		OnDelete(DelRecId);
         // delete record from name-id map
-        if (HasRecNm()) { RecNmIdH.DelIfKey(GetRecNm(DelRecId)); }
+        if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
 		// delete record from indexes
     	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
         RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);

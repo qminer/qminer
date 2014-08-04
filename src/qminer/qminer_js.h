@@ -1094,8 +1094,16 @@ public:
 	JsDeclareProperty(fields);
     //#- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
-    //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
-	JsDeclareProperty(keys);	
+    //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+	JsDeclareProperty(keys);
+    //#- `rec = store.first` -- first record from the store
+    JsDeclareProperty(first);
+    //#- `rec = store.last` -- last record from the store
+    JsDeclareProperty(last);
+    //#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+    JsDeclareProperty(forwardIter);
+    //#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+    JsDeclareProperty(backwardIter);
     //#- `rec = store[recId]` -- get record with ID `recId`; 
     //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
@@ -1156,6 +1164,40 @@ public:
     //# ```    
 };
     
+///////////////////////////////
+// JavaScript Store Iterator
+//# 
+//# ### Store iterator
+//# 
+class TJsStoreIter {
+private:
+	/// JS script context
+	TWPt<TScript> Js;	
+	TWPt<TStore> Store;
+    PStoreIter Iter;
+
+	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
+
+	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, 
+        const PStoreIter& _Iter): Js(_Js), Store(_Store), Iter(_Iter) { }	
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, 
+        const TWPt<TStore>& Store, const PStoreIter& Iter) { 
+		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter)); }
+	~TJsStoreIter() { }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#   
+    //#- `store = iter.store` -- get the store
+	JsDeclareProperty(store);
+    //#- `rec = iter.rec` -- get current record
+	JsDeclareProperty(rec);
+    //#- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+    JsDeclareFunction(next);
+};
 
 ///////////////////////////////
 // JavaScript Record Comparator

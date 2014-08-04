@@ -1,4 +1,6 @@
 
+define V8_DEBUG
+define V8_DEBUG
 QMiner functionality is accessible through a JavaScript API. The JavaScript environment
 is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
 The API includes a simple HTTP server with RESTful web-service support for defining
@@ -107,6 +109,7 @@ var record = store[1234];
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 - `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
 - `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
 - `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
@@ -194,6 +197,7 @@ TODO
 - `recId = rec.$id` -- returns record ID
 - `recName = rec.$name` -- returns record name
 - `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+- `recStore = rec.$store` -- returns record store
 - `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 - `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 - `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
@@ -272,6 +276,7 @@ several functions from linear algebra.
 - `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
 - `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
 - `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
 
 ### Vector
 
@@ -572,6 +577,13 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `num = perceptronModel.predict(vec)` -- returns the prediction (0 or 1) for a vector `vec`
   - `num = perceptronModel.predict(spVec)` -- returns the prediction (0 or 1) for a sparse vector `spVec`
   - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
+- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
+ requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
+ when using inverse distance weighting average to compute prediction. The model exposes the following functions:
+  - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
+  - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
+  using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
+  - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
 
 ### Feature Space
 
@@ -732,6 +744,10 @@ The HoeffdingTree algorithm comes with many parameters:
 
 ### assert.js (use require)
 
+- `assert.run(test, msg)` -- prints success if this code is reached
+- `assert.ok(test, msg)` --  `test` is boolean, prints message `msg` if test is true
+- `assert.exists(obj, msg)` --  checks if object `obj` exists (!=null) and prints message `msg`
+- `assert.equals(obj, obj2,  msg)` --  checks if object `obj==obj2` and prints message `msg`
 
 ### Console
 
