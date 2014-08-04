@@ -26,13 +26,6 @@
 #include <v8.h>
 #include <typeinfo>
 
-// automatically start V8 debugger when in debug mode
-#ifndef NDEBUG
-    //#define V8_DEBUG
-#endif
-// uncomment when running V8 debugger in release mode
-//#define V8_DEBUG
-
 #ifdef V8_DEBUG
     // include v8 debug headers
 	#include <v8-debug.h>
@@ -1048,7 +1041,51 @@ public:
 	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 	//# paramJSON must contain field `type` which defies the type of the aggregate
 	JsDeclareFunction(addStreamAggr);
+	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.
+	//# `paramJSON` must contain field `type` which defies the type of the aggregate
+	JsDeclareFunction(newStreamAggr);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
+};
+
+//# 
+//# ### Stream Aggregate
+//# 
+//# Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+class TJsSA {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	/// QMiner base
+	TWPt<TStreamAggr> SA;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSA> TJsSAUtil;
+
+	TJsSA(TWPt<TScript> _Js, TWPt<TStreamAggr> _SA) : Js(_Js), SA(_SA) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStreamAggr> SA) {
+		return TJsSAUtil::New(new TJsSA(Js, SA));
+	}
+
+	~TJsSA() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `str = sa.name` -- returns the name (unique) of the stream aggregate
+	JsDeclareProperty(name);
+	//#- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+	JsDeclareFunction(onAdd);
+	//#- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+	JsDeclareFunction(onUpdate);
+	//#- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+	JsDeclareFunction(onDelete);
+	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+	JsDeclareFunction(saveJson);
 };
 
 ///////////////////////////////
@@ -1094,8 +1131,10 @@ public:
 	JsDeclareProperty(fields);
     //#- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
-    //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
+    //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
 	JsDeclareProperty(keys);	
+    //#- `iter = store.iter` -- returns iterator for iterating over the store
+    JsDeclareProperty(iter);
     //#- `rec = store[recId]` -- get record with ID `recId`; 
     //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
@@ -1156,6 +1195,40 @@ public:
     //# ```    
 };
     
+///////////////////////////////
+// JavaScript Store Iterator
+//# 
+//# ### Store iterator
+//# 
+class TJsStoreIter {
+private:
+	/// JS script context
+	TWPt<TScript> Js;	
+	TWPt<TStore> Store;
+    PStoreIter Iter;
+
+	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
+
+	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, 
+        const PStoreIter& _Iter): Js(_Js), Store(_Store), Iter(_Iter) { }	
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, 
+        const TWPt<TStore>& Store, const PStoreIter& Iter) { 
+		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter)); }
+	~TJsStoreIter() { }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#   
+    //#- `store = iter.store` -- get the store
+	JsDeclareProperty(store);
+    //#- `rec = iter.rec` -- get current record
+	JsDeclareProperty(rec);
+    //#- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+    JsDeclareFunction(next);
+};
 
 ///////////////////////////////
 // JavaScript Record Comparator

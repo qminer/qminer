@@ -64,6 +64,8 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `qm.gc()` -- start garbage collection to remove records outside time windows
 - `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
 paramJSON must contain field `type` which defies the type of the aggregate
+- `sa = qm.newStreamAggr(paramJSON)` -- create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.
+`paramJSON` must contain field `type` which defies the type of the aggregate
 - `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
@@ -75,6 +77,18 @@ paramJSON must contain field `type` which defies the type of the aggregate
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
+
+### Stream Aggregate
+
+Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+
+**Functions and properties:**
+
+- `str = sa.name` -- returns the name (unique) of the stream aggregate
+- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 
 ### Store
 
@@ -93,7 +107,8 @@ var record = store[1234];
 - `rs = store.recs` -- create a record set containing all the records from the store
 - `objArr = store.fields` -- array of all the field descriptor JSON objects
 - `objArr = store.joins` -- array of all the join names
-- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
+- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+- `iter = store.iter` -- returns iterator for iterating over the store
 - `rec = store[recId]` -- get record with ID `recId`; 
     returns `null` when no such record exists
 - `rec = store.rec(recName)` -- get record named `recName`; 
@@ -107,6 +122,7 @@ var record = store[1234];
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 - `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
 - `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
 - `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
@@ -138,6 +154,15 @@ for (var i = 0; i < rs.length; i++) {
   console.log(rec.Name + " (" + rec.Gender + ")");
 }
 ```    
+
+### Store iterator
+
+
+**Functions and properties:**
+  
+- `store = iter.store` -- get the store
+- `rec = iter.rec` -- get current record
+- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
 
 ### Record set
 
@@ -194,6 +219,7 @@ TODO
 - `recId = rec.$id` -- returns record ID
 - `recName = rec.$name` -- returns record name
 - `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+- `recStore = rec.$store` -- returns record store
 - `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 - `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 - `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
@@ -272,6 +298,7 @@ several functions from linear algebra.
 - `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
 - `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
 - `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
 
 ### Vector
 
@@ -572,6 +599,13 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `num = perceptronModel.predict(vec)` -- returns the prediction (0 or 1) for a vector `vec`
   - `num = perceptronModel.predict(spVec)` -- returns the prediction (0 or 1) for a sparse vector `spVec`
   - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
+- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
+ requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
+ when using inverse distance weighting average to compute prediction. The model exposes the following functions:
+  - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
+  - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
+  using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
+  - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
 
 ### Feature Space
 
@@ -732,6 +766,10 @@ The HoeffdingTree algorithm comes with many parameters:
 
 ### assert.js (use require)
 
+- `assert.run(test, msg)` -- prints success if this code is reached
+- `assert.ok(test, msg)` --  `test` is boolean, prints message `msg` if test is true
+- `assert.exists(obj, msg)` --  checks if object `obj` exists (!=null) and prints message `msg`
+- `assert.equals(obj, obj2,  msg)` --  checks if object `obj==obj2` and prints message `msg`
 
 ### Console
 

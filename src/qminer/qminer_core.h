@@ -373,7 +373,7 @@ public:
 	static PStoreIter New(const uint64& MinId, const uint64& MaxId) { return new TStoreIterVec(MinId, MaxId); }
 
 	bool Next();
-	uint64 GetRecId() const { Assert(!FirstP); return RecId; }
+	uint64 GetRecId() const { QmAssert(!FirstP); return RecId; }
 };
 
 ///////////////////////////////
@@ -2382,7 +2382,7 @@ private:
     /// Stream aggregate New constructor router
 	static TFunRouter<PStreamAggr, TNewF> NewRouter;   
     /// Load constructor delegate
-	typedef PStreamAggr (*TLoadF)(const TWPt<TBase>& Base, TSIn& SIn);   
+	typedef PStreamAggr(*TLoadF)(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
     /// Stream aggregate Load constructor router
 	static TFunRouter<PStreamAggr, TLoadF> LoadRouter;
 public:
@@ -2408,7 +2408,7 @@ protected:
     /// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 	/// Load basic class of stream aggregate
-	TStreamAggr(const TWPt<TBase>& _Base, TSIn& SIn);
+	TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
@@ -2419,7 +2419,7 @@ public:
 	virtual ~TStreamAggr() { }
     
 	/// Load stream aggregate from stream
-	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
 
