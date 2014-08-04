@@ -4476,6 +4476,10 @@ const PStreamAggrBase& TBase::GetStreamAggrBase(const uint& StoreId) const {
 	return StreamAggrBaseV[(int)StoreId]; 
 }
 
+const PStreamAggrBase& TBase::GetStreamAggrBase() const {
+	return StreamAggrDefaultBase;
+}
+
 bool TBase::IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
 	return GetStreamAggrBase(StoreId)->IsStreamAggr(StreamAggrNm);
 }

@@ -125,6 +125,13 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
 }
 
 ///////////////////////////////////////// DEPRECATED
+qm.addStreamAggr = function (param) {
+    console.log("Warning: qm.addStreamAggr is deprecated 4.8.2014. Use qm.newStreamAggr");
+    return qm.newStreamAggr(param);
+}
+
+
+///////////////////////////////////////// DEPRECATED
 function jsonp(req, res, data) {
     console.log("Warning: jsonp is deprecated 1.7.2014, please use http.jsonp instead");
     http.jsonp(req, res, data);
