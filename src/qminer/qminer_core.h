@@ -2647,6 +2647,7 @@ public:
 
 	// stream aggregates
 	const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
+	const PStreamAggrBase& GetStreamAggrBase() const;
 	bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
 	bool IsStreamAggr(const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;

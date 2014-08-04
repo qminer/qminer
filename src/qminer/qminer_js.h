@@ -1050,6 +1050,8 @@ public:
 	JsDeclareFunction(newStreamAggr);
 	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
+	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
+	JsDeclareFunction(getStreamAggrNames);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
