@@ -1377,3 +1377,25 @@ void TTmProfiler::PrintReport(const TStr& ProfileNm) const {
     }
 	printf("--\n");
 }
+
+void TTmProfiler::PrintReport(const PNotify& Notify, const TStr& ProfileNm) const {
+	const double TimerSumSec = GetTimerSumSec();
+	Notify->OnStatusFmt("-- %s --", ProfileNm.CStr());
+	Notify->OnStatusFmt("Sum: (%.2f sec):", TimerSumSec);
+	int TimerId = GetTimerIdFFirst();
+	while (GetTimerIdFNext(TimerId)) {
+		// get timer name
+		TStr TimerNm = GetTimerNm(TimerId);
+		TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+		// get timer time and precentage
+		if (TimerSumSec > 0.0) {
+			const double TimerSec = GetTimerSec(TimerId);
+			const double TimerPerc = TimerSec / TimerSumSec * 100.0;
+			Notify->OnStatusFmt(" %s: %.2fs [%.2f%%]", TimerNm.CStr(), TimerSec, TimerPerc);
+		}
+		else {
+			Notify->OnStatusFmt(" %s: -", TimerNm.CStr());
+		}
+	}
+	Notify->OnStatusFmt("--");
+}

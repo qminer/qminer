@@ -4202,6 +4202,7 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving stream aggregates ...");
 		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
         SaveStreamAggrBaseV(StreamAggrFOut);
+		StreamAggrDefaultBase->Save(StreamAggrFOut);
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -4425,6 +4426,7 @@ void TBase::Init() {
 		// load stream aggregates
 		TFIn StreamAggrBaseFIn(FPath + "StreamAggr.dat");
         LoadStreamAggrBaseV(StreamAggrBaseFIn);
+		StreamAggrDefaultBase->Load(this, StreamAggrBaseFIn);		
 	}
 	// done
 	InitP = true;
@@ -4476,12 +4478,20 @@ bool TBase::IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
 	return GetStreamAggrBase(StoreId)->IsStreamAggr(StreamAggrNm);
 }
 
+bool TBase::IsStreamAggr(const TStr& StreamAggrNm) const {
+	return StreamAggrDefaultBase->IsStreamAggr(StreamAggrNm);
+}
+
 const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
 	return GetStreamAggrBase(StoreId)->GetStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
 	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+}
+
+const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
+	return StreamAggrDefaultBase->GetStreamAggr(StreamAggrNm);
 }
 
 void TBase::AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr) {
@@ -4503,6 +4513,10 @@ void TBase::AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr) 
 	for (int StoreN = 0; StoreN < StoreNmV.Len(); StoreN++) {
 		AddStreamAggr(GetStoreByStoreNm(StoreNmV[StoreN])->GetStoreId(), StreamAggr);
 	}
+}
+
+void TBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
+	StreamAggrDefaultBase->AddStreamAggr(StreamAggr);
 }
 
 void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {
