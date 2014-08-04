@@ -1,16 +1,16 @@
 // Import analytics module
-var la = require('linalg.js');
 var analytics = require('analytics.js');
 var tm = require('time.js');
 
 // initialize KF with a dynamic model (2nd degree)
 var _DP = 3, _MP = 1, _CP = 0;
-var kf = new la.kalmanFilter(_DP, _MP, _CP);
+var kf = new analytics.kalmanFilter(_DP, _MP, _CP);
 kf.transitionMatrix = la.eye(3);
 kf.measurementMatrix = la.eye(1);
 kf.processNoiseCov = la.newMat([[1E-7, 0, 0], [0, 1E-7, 0], [0, 0, 1E-7]]);
 kf.measurementNoiseCov = la.newMat([[0.3]]);
 kf.errorCovPost = la.newMat([[0.1, 0, 0], [0, 0.1, 0], [0, 0, 0.1]]);
+kf.controlMatrix = la.newMat();
    
 // Load training data from CSV file.
 var fin = fs.openRead("./sandbox/kalman/series.csv");
@@ -21,7 +21,7 @@ lines = lines + 1;
 var line = fin.readLine();
 var vals = line.split(',');
 var lastTm = tm.parse(vals[1]);
-var controlV = la.newFltVec(_CP);  // we don't need this
+var controlV = la.newVec();  // we don't need this
 // set initial state to initial measurement (!) 
 kf.statePost = [parseFloat(vals[0]), 0, 0];
 
@@ -30,7 +30,7 @@ while (!fin.eof) {
     if (lines % 1000 == 0) { console.log("Loaded: " + lines); }
     var line = fin.readLine();
     if (line == "") { continue; }
-    try {
+    /* try { */
         var vals = line.split(',');
         
         // handle time
@@ -40,7 +40,8 @@ while (!fin.eof) {
         kf.transitionMatrix = la.newMat([[1, deltaT, deltaT2], [0, 1, deltaT], [0, 0, 1]]);
 
         // handle value
-        var value = la.newFltVec([parseFloat(vals[0]), 0, 0]);
+        var value = la.newVec([parseFloat(vals[0]), 0, 0]);
+        var measurementV = la.newVec([value]);
 
         var predicted = kf.predict(controlV);
         var corrected = kf.correct(measurementV)
@@ -49,10 +50,11 @@ while (!fin.eof) {
 
         //console.pause();
         lastTm = newTm;
-
+    /*
     } catch (err) {
         console.say("Kalman", err);
     }
+    */
 }
 
 // Start console

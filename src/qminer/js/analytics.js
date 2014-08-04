@@ -911,14 +911,14 @@ exports.newKalmanFilter = function (dim, use_bias) {
 }
 exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var CP = controlParams;
-    var MP = measuremeParams;
+    var MP = measureParams;
     var DP = dynamParams;
 
     // CP should be >= 0
-    CP = max(CP, 0);
+    CP = Math.max(CP, 0);
 
-    var statePre = la.newFltVec({ "vals": DP, "mxvals": DP }); // prior state vector (after prediction and before measurement update)
-    var statePost = la.newFltVec({ "vals": DP, "mxvals": DP }); // post state vector (after measurement update)
+    var statePre = la.newVec({ "vals": DP, "mxvals": DP }); // prior state vector (after prediction and before measurement update)
+    var statePost = la.newVec({ "vals": DP, "mxvals": DP }); // post state vector (after measurement update)
     var transitionMatrix = la.newMat({ "cols": DP, "rows": DP }); // transition matrix (model)
 
     var processNoiseCov = la.newMat({ "cols": DP, "rows": DP }); // process noise covariance
@@ -929,7 +929,7 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var errorCovPost = la.newMat({ "cols": DP, "rows": DP }); // error covariance after update
     var gain = la.newMat({ "cols": MP, "rows": DP }); 
 
-    var constolMatrix;
+    var controlMatrix;
 
     if (CP > 0)
         controlMatrix = la.newMat({ "cols": CP, "rows": DP }); // control matrix
@@ -941,15 +941,16 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var itemp3VV = la.newMat({ "cols": MP, "rows": MP });
     var temp4VV = la.newMat({ "cols": DP, "rows": MP });
 
-    var temp1V = la.newFltVec();
-    var temp2V = la.newFltVec();
+    var temp1V = la.newVec();
+    var temp2V = la.newVec();
 
-    this.predict = function(control) {
+    this.predict = function (control) {
+        console.log("Predict");
         // update the state: x'(k) = A * x(k)
         statePre = transitionMatrix.multiply(statePost);
 
         // x'(k) = x'(k) + B * u(k)
-        if (!control.empty) {
+        if (control.length) {
             temp1V = controlMatrix.multiply(control);
             temp2V = statePre.plus(temp1V);
         }
@@ -962,18 +963,23 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
 
         // return statePre
         return statePre;
-    }
+    };
 
-    this.correct() = function(measurement) {
+    this.correct = function (measurement) {
+        console.log("Correct");
         // temp2 = H * P'(k)
         temp2VV = measurementMatrix.multiply(errorCovPre);
 
         // temp3 = temp2 * Ht + R
         temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
 
+        console.say("temp4");
+
         // temp4 = inv(temp3) * temp2 = Kt(k)
-        itemp3VV = temp3VV.inverseSVD();
-        temp4VV = itemp3VV.multiply(temp2);
+        itemp3VV = la.inverseSVD(temp3VV);
+        temp4VV = itemp3VV.multiply(temp2V);
+
+        console.say("K(k)");
 
         // K(k)
         gain = temp4.transpose();
@@ -994,7 +1000,7 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
 
         // return statePost
         return statePost;
-    }
+    };
 
     //#   - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
     this.getModel = function () {

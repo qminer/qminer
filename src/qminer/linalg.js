@@ -283,7 +283,7 @@ la.inverseSVD = function (mat) {
     // calculate reciprocal values for diagonal matrix = inverse diagonal
     for (i = 0; i < svdRes.s.length; i++) {
         if (svdRes.s.at(i) > tol) svdRes.s.put(i, 1 / svdRes.s.at(i));
-        else svdRes.s.at(i) = 0;
+        else svdRes.s.put(0);
     }
         
     var sum;
