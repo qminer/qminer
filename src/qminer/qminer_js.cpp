@@ -1377,7 +1377,10 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterProperty(TmpTemp, fields);
 		JsRegisterProperty(TmpTemp, joins);
 		JsRegisterProperty(TmpTemp, keys);
-        JsRegisterProperty(TmpTemp, iter);
+        JsRegisterProperty(TmpTemp, first);
+        JsRegisterProperty(TmpTemp, last);
+        JsRegisterProperty(TmpTemp, forwardIter);
+        JsRegisterProperty(TmpTemp, backwardIter);
 		JsRegIndexedProperty(TmpTemp, indexId);
 		JsRegisterFunction(TmpTemp, rec);
 		JsRegisterFunction(TmpTemp, add);
@@ -1485,11 +1488,34 @@ v8::Handle<v8::Value> TJsStore::keys(v8::Local<v8::String> Properties, const v8:
 	return HandleScope.Close(KeyNmV);
 }
 
-v8::Handle<v8::Value> TJsStore::iter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+v8::Handle<v8::Value> TJsStore::first(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+    const uint64 FirstRecId = JsStore->Store->FirstRecId();
+    if (FirstRecId == TUInt64::Mx) { return v8::Null(); }
+    return HandleScope.Close(TJsRec::New(JsStore->Js, JsStore->Store->GetRec(FirstRecId)));
+}
+
+v8::Handle<v8::Value> TJsStore::last(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+    const uint64 LastRecId = JsStore->Store->LastRecId();
+    if (LastRecId == TUInt64::Mx) { return v8::Null(); }
+    return HandleScope.Close(TJsRec::New(JsStore->Js, JsStore->Store->GetRec(LastRecId)));
+}
+
+v8::Handle<v8::Value> TJsStore::forwardIter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
     v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
 	return HandleScope.Close(TJsStoreIter::New(JsStore->Js,
-        JsStore->Store, JsStore->Store->GetIter()));
+        JsStore->Store, JsStore->Store->ForwardIter()));
+}
+
+v8::Handle<v8::Value> TJsStore::backwardIter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStoreIter::New(JsStore->Js,
+        JsStore->Store, JsStore->Store->BackwardIter()));
 }
 
 v8::Handle<v8::Value> TJsStore::indexId(uint32_t Index, const v8::AccessorInfo& Info) {

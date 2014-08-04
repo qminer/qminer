@@ -1145,9 +1145,15 @@ public:
     //#- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
     //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
-	JsDeclareProperty(keys);	
-    //#- `iter = store.iter` -- returns iterator for iterating over the store
-    JsDeclareProperty(iter);
+	JsDeclareProperty(keys);
+    //#- `rec = store.first` -- first record from the store
+    JsDeclareProperty(first);
+    //#- `rec = store.last` -- last record from the store
+    JsDeclareProperty(last);
+    //#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+    JsDeclareProperty(forwardIter);
+    //#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+    JsDeclareProperty(backwardIter);
     //#- `rec = store[recId]` -- get record with ID `recId`; 
     //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
