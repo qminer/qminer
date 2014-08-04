@@ -251,30 +251,18 @@ var _store = new function () {
 	this.recs = _rs;
 	this.addStreamAggr = function () {
 	/// <signature>
-	/// <summary> add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.</summary>
-	/// <param name="_funObj" value="_funObj">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.</summary>
-	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	/// <signature>
-	/// <summary> add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object</summary>
-	/// <param name="_paramJSON" value="_paramJSON">param</param>
-	/// <returns value =""/>
+	/// <summary> creates a new stream aggregate `sa` and registers it to the store</summary>
+	/// <param name="_param" value="_param">param</param>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
 
 	this.getStreamAggr = function () {
 	/// <signature>
-	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
+	/// <summary> returns a stream aggregate `sa` whose name is `saName`</summary>
 	/// <param name="_saName" value="_saName">param</param>
-	/// <returns value ="_objJSON"/>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
@@ -336,7 +324,7 @@ var _store = new function () {
 	this.empty = _bool;
 	this.getStreamAggrNames = function () {
 	/// <signature>
-	/// <summary> returns the names of all stream aggregators as an array of strings `strArr`</summary>
+	/// <summary> returns the names of all stream aggregators listening on the store as an array of strings `strArr`</summary>
 	/// <returns value ="_strArr"/>
 	/// </signature>
 
@@ -808,6 +796,14 @@ var _iter = new function () {
 	this.rec = _rec;
 	/// <field name = "store" value = "_store"> get the store</field>
 	this.store = _store;
+	this.next = function () {
+	/// <signature>
+	/// <summary> moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available</summary>
+	/// <returns value ="_bool"/>
+	/// </signature>
+
+	};
+
 }
 
 var _fin = new function () {
@@ -1507,15 +1503,6 @@ var la = new function () {
 }
 
 var _sa = new function () {
-	this.onUpdate = function () {
-	/// <signature>
-	/// <summary> executes onUpdate function given an input record `rec`</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	};
-
 	this.saveJson = function () {
 	/// <signature>
 	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
@@ -1536,6 +1523,17 @@ var _sa = new function () {
 
 	/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
 	this.name = _str;
+	/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
+	this.val = _objJSON;
+	this.onUpdate = function () {
+	/// <signature>
+	/// <summary> executes onUpdate function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
 	this.onAdd = function () {
 	/// <signature>
 	/// <summary> executes onAdd function given an input record `rec`</summary>
@@ -3165,19 +3163,73 @@ var qm = new function () {
 
 	};
 
-	this.addStreamAggr = function () {
+	this.getStreamAggr = function () {
 	/// <signature>
-	/// <summary> add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon</summary>
-	/// <param name="_paramJSON" value="_paramJSON">param</param>
-	/// <returns value =""/>
+	/// <summary> gets the stream aggregate `sa` given name (string).</summary>
+	/// <param name="_saName" value="_saName">param</param>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
 
 	this.newStreamAggr = function () {
 	/// <signature>
-	/// <summary> create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.</summary>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.</summary>
 	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.</summary>
+	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.</summary>
+	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <param name="_storeNameArr" value="_storeNameArr">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <param name="_storeNameArr" value="_storeNameArr">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <param name="_storeNameArr" value="_storeNameArr">param</param>
 	/// <returns value ="_sa"/>
 	/// </signature>
 

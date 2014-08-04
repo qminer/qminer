@@ -1038,12 +1038,18 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
-	//# paramJSON must contain field `type` which defies the type of the aggregate
-	JsDeclareFunction(addStreamAggr);
-	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new Stream Aggregate object `sa`. The constructor parameters are stored in `paramJSON` object.
-	//# `paramJSON` must contain field `type` which defies the type of the aggregate
+	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+	//#- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = qm.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `sa = qm.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = qm.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+	//#- `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
 	JsDeclareFunction(newStreamAggr);
+	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+	JsDeclareFunction(getStreamAggr);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -1086,6 +1092,8 @@ public:
 	JsDeclareFunction(onDelete);
 	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	JsDeclareFunction(saveJson);
+	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
+	JsDeclareProperty(val);
 };
 
 ///////////////////////////////
@@ -1109,8 +1117,11 @@ private:
 
 	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
-		return TJsStoreUtil::New(new TJsStore(Js, Store)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
+		return TJsStoreUtil::New(new TJsStore(Js, Store), Js, "qm.storeProto");
+	}
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
+		return TJsStoreUtil::New(new TJsStore(Js, Store)); }*/
 	~TJsStore() { }
 
 	// template
@@ -1155,16 +1166,13 @@ public:
     //#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addTrigger);
-	//#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-	//#- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-	//#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
-    JsDeclareFunction(addStreamAggr);
-    //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
+	JsDeclareFunction(addTrigger);	
+    //#- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	JsDeclareFunction(getStreamAggr);
-	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
+	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
-    
+	//#JSIMPLEMENT:src/qminer/store.js
+
     //# 
     //# **Examples**:
     //# 
@@ -1226,7 +1234,7 @@ public:
 	JsDeclareProperty(store);
     //#- `rec = iter.rec` -- get current record
 	JsDeclareProperty(rec);
-    //#- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+    //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
     JsDeclareFunction(next);
 };
 

@@ -131,6 +131,7 @@
     <None Include="src\qminer\process.js" />
     <None Include="src\qminer\qminer.js" />
     <None Include="src\qminer\spMat.js" />
+    <None Include="src\qminer\store.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -153,6 +154,7 @@
     <Copy SourceFiles="src\qminer\qminer.js" DestinationFiles="build\qminer.js" />
     <Copy SourceFiles="src\qminer\linalg.js" DestinationFiles="build\linalg.js" />
     <Copy SourceFiles="src\qminer\spMat.js" DestinationFiles="build\spMat.js" />
+    <Copy SourceFiles="src\qminer\store.js" DestinationFiles="build\store.js" />
     <Copy SourceFiles="src\qminer\console.js" DestinationFiles="build\console.js" />
     <Copy SourceFiles="src\qminer\fs.js" DestinationFiles="build\fs.js" />
     <Copy SourceFiles="src\qminer\http.js" DestinationFiles="build\http.js" />

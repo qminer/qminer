@@ -68,7 +68,7 @@ qm.printStreamAggr = function(store) {
 	var names = store.getStreamAggrNames();
 	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
 	for (var saggrN = 0; saggrN < names.length; saggrN++) {
-		var saggr = store.getStreamAggr(names[saggrN]);
+		var saggr = store.getStreamAggr(names[saggrN]).val;
 		var keys = Object.keys(saggr);
 		for (var keyN = 0; keyN < keys.length; keyN++) {
 			console.print(store.name + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");

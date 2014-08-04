@@ -723,6 +723,7 @@ void TScript::Init() {
 	Execute(TEnv::QMinerFPath + "http.js");
 	Execute(TEnv::QMinerFPath + "linalg.js");
 	Execute(TEnv::QMinerFPath + "spMat.js");
+	Execute(TEnv::QMinerFPath + "store.js");
 	Execute(ScriptFNm);
 }
 
@@ -1058,8 +1059,8 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, search);
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
-		JsRegisterFunction(TmpTemp, addStreamAggr);
 		JsRegisterFunction(TmpTemp, newStreamAggr);
+		JsRegisterFunction(TmpTemp, getStreamAggr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1171,58 +1172,14 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
-v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
-    // parse out parameters
-	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
-	const TStr TypeNm = ParamVal->GetObjStr("type");
-    if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-        // we have a composition of stream aggregates, delegate it forward
-        TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);		
-	} else {
-    	// create new aggregate
-        PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
-		TStrV InterpNmV;
-		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
-		for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-			PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
-			PJsonVal SourceVal = FieldVal->GetObjKey("source");
-			TStr StoreNm = "";
-			if (SourceVal->IsStr()) {
-				// we have just store name
-				StoreNm = SourceVal->GetStr();
-			}
-			else if (SourceVal->IsObj()) {
-				// get store
-				StoreNm = SourceVal->GetObjStr("store");
-				JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
-				
-			}
-			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
-			
-		}
-    }
-	return HandleScope.Close(v8::Null());
-}
-
-// TODO: two parameters: stream aggregate and stores who should listen
-// store add stream aggr hm
-// some aggregates can automatically register (store information is known, others will use the second parameter)
-
-// getStreamAggr rename to getStreamAggrVal
-// getStreamAggr returns a stream aggr by name
-// add second parameter to new Stream Aggr : which stores should call him
-// remove qm.addStreamAggr
-// store.addStreamAggr could just take an argument stream aggr and register it
-// 
 v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
 	// we have only one parameter which is supposed to be object
-	QmAssertR(Args.Length() == 1, "qm.newStreamAggr expects one parameter");
+	QmAssertR(Args.Length() <= 2 && Args.Length() > 0, "qm.newStreamAggr expects at least one parameter");
 	QmAssertR(Args[0]->IsObject(), "qm.newStreamAggr expects object as first parameter");
+
+	PStreamAggr StreamAggr;
 
 	// parse out parameters
 	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
@@ -1235,27 +1192,19 @@ v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
 		// we need a name, if not give just generate one
 		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
 		// create aggregate
-		PStreamAggr JsStreamAggr = TJsStreamAggr::New(
+		StreamAggr = TJsStreamAggr::New(
 			JsBase->Js, AggrName, Args[0]->ToObject());
-		// add it to the stream base for store
-		//TODO: register! JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
-		return HandleScope.Close(TJsSA::New(JsBase->Js, JsStreamAggr));
-
 	} else if (TypeNm == "ftrext") {
 		TStr AggrName = TJsBaseUtil::GetArgStr(Args, 0, "name", "");
 		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
 		// we need a name, if not give just generate one
 		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-
 		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
-		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
-		// add it to the stream base for store
-		// TODO: JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
-		return HandleScope.Close(TJsSA::New(JsBase->Js, FtrStreamAggr));
+		StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
 	}
 	else if (TypeNm == "stmerger") {
 		// create new aggregate
-		PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+		StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 		TStrV InterpNmV;
 		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
@@ -1272,29 +1221,60 @@ v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
 				// get store
 				StoreNm = SourceVal->GetObjStr("store");
 			}
-			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
 		}
-		return HandleScope.Close(TJsSA::New(JsBase->Js, Aggr));
 	}
 	else {
 		// we have a GLib stream aggregate, translate parameters to PJsonVal
 		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
-		//// TODO: add store parameter
-		//ParamVal->AddToObj("store", JsStore->Store->GetStoreNm());
+		if (Args.Length() > 1 && Args[1]->IsString()) {
+			ParamVal->AddToObj("store", TJsBaseUtil::GetArgStr(Args, 1));
+		}
 		
 		// check if it's one stream aggregate or composition
 		if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
 			// we have a composition of aggregates, call code to assemble it
 			TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
-			return HandleScope.Close(v8::Null());
 		}
 		else {
 			// create new aggregate
-			PStreamAggr StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
-			// add it to the stream base for store
-			// TODO! JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), StreamAggr);
-			return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
+			StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 		}
+	}
+	if (!TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
+		if (Args.Length() > 1) {
+			TStrV Stores(0);
+			if (Args[1]->IsString()) {
+				Stores.Add(TJsBaseUtil::GetArgStr(Args, 1));
+			}
+			if (Args[1]->IsArray()) {
+				PJsonVal StoresJson = TJsBaseUtil::GetArgJson(Args, 1);
+				QmAssertR(StoresJson->IsDef(), "qm.newStreamAggr : Args[1] should be a string (store name) or a string array (store names)");
+				StoresJson->GetArrStrV(Stores);
+			}
+			for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
+				QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "qm.newStreamAggr, Args[1] : store does not exist!");
+				JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
+			}
+		}
+		else {
+			JsBase->Base->AddStreamAggr(StreamAggr);
+		}
+		// non-compositional aggregates are returned
+		return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
+	}
+	else {
+		return HandleScope.Close(v8::Null());
+	}
+}
+
+v8::Handle<v8::Value> TJsBase::getStreamAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	const TStr AggrNm = TJsBaseUtil::GetArgStr(Args, 0);
+	if (JsBase->Base->IsStreamAggr(AggrNm)) {
+		PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
+		return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
 	}
 	return HandleScope.Close(v8::Null());
 }
@@ -1310,6 +1290,8 @@ v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
 		JsRegisterFunction(TmpTemp, onAdd);
 		JsRegisterFunction(TmpTemp, onUpdate);
 		JsRegisterFunction(TmpTemp, onDelete);
+		JsRegisterFunction(TmpTemp, saveJson);
+		JsRegisterProperty(TmpTemp, val);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1357,6 +1339,14 @@ v8::Handle<v8::Value> TJsSA::saveJson(const v8::Arguments& Args) {
 	return HandleScope.Close(V8Json);
 }
 
+v8::Handle<v8::Value> TJsSA::val(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Info);
+	PJsonVal Json = JsSA->SA->SaveJson(-1);
+	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
+	return HandleScope.Close(V8Json);
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Store
 v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
@@ -1381,7 +1371,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
-        JsRegisterFunction(TmpTemp, addStreamAggr);
+        //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -1605,69 +1595,24 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Null());
 }
 
-
-v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-    // we have only one parameter which is supposed to be object
-    QmAssertR(Args.Length() == 1, "store.addStreamAggr expects one parameter");
-    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");	
-    // get aggregate type
-    TStr TypeNm = TJsStoreUtil::GetArgStr(Args, 0, "type", "javaScript");
-    // check if the aggregate is composed (called from composer)
-    if (TypeNm == "javaScript") {
-        // we have a javascript stream aggregate
-        TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
-        // we need a name, if not give just generate one
-        if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-        // create aggregate
-    	PStreamAggr JsStreamAggr = TJsStreamAggr::New(
-            JsStore->Js, AggrName, Args[0]->ToObject());
-        // add it to the stream base for store
-        JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
-	}
-	else if (TypeNm == "ftrext") {
-		TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
-		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
-		// we need a name, if not give just generate one
-		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-		
-		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
-		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsStore->Js->Base, AggrName, FtrSpace);
-		// add it to the stream base for store
-		JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
-
-	} else {
-        // we have a GLib stream aggregate, translate parameters to PJsonVal
-        PJsonVal ParamVal = TJsStoreUtil::GetArgJson(Args, 0);
-        // add store parameter
-        ParamVal->AddToObj("store", JsStore->Store->GetStoreNm());
-        // check if it's one stream aggregate or composition
-        if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-            // we have a composition of aggregates, call code to assemble it
-            TStreamAggrs::TCompositional::Register(JsStore->Js->Base, TypeNm, ParamVal);
-        } else {
-            // create new aggregate
-            PStreamAggr StreamAggr = TStreamAggr::New(JsStore->Js->Base, TypeNm, ParamVal);
-            // add it to the stream base for store
-            JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), StreamAggr);
-        }
-    }
-	return HandleScope.Close(v8::Null());
-}
+//v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
+//	v8::HandleScope HandleScope;
+//    TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+//	Args.Length
+//	v8::Handle<v8::Value> Result = TJsBase::newStreamAggr(Args);
+//	return HandleScope.Close(Result);
+//	
+//}
 
 v8::Handle<v8::Value> TJsStore::getStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-	const TStr AggrNm = TJsStoreUtil::GetArgStr(Args, 0);
-	const int Limit = TJsStoreUtil::GetArgInt32(Args, 1, 100);
-	// TODO
+	const TStr AggrNm = TJsStoreUtil::GetArgStr(Args, 0);	
     TWPt<TBase> Base = JsStore->Js->Base;
     const uint StoreId = JsStore->Store->GetStoreId();
 	if (Base->IsStreamAggr(StoreId, AggrNm)) {
         PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-		PJsonVal StreamAggrVal = StreamAggr->SaveJson(Limit);
-		return HandleScope.Close(TJsUtil::ParseJson(StreamAggrVal));
+		return HandleScope.Close(TJsSA::New(JsStore->Js, StreamAggr));
 	}
 	return HandleScope.Close(v8::Null());
 }
@@ -2361,7 +2306,7 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");
         v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
         TStrV StrV;
-        for (int StrN = 0; StrN < Array->Length(); StrN++) {
+        for (uint32_t StrN = 0; StrN < Array->Length(); StrN++) {
             v8::String::Utf8Value Utf8(Array->Get(StrN));
             StrV.Add(TStr(*Utf8));
         }
@@ -4426,6 +4371,11 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
     const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
+	PNotify Notify = TEnv::Logger;
+	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
+	if (!Verbose) {
+		Notify = TNotify::NullNotify;
+	}
     // check what kind of input data we got and train and return the model
     try {
         if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -4436,7 +4386,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
                 TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
                     TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
                     SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
-                    TEnv::Logger));
+                    Notify));
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
             // we have dense matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
@@ -4444,7 +4394,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
                     VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
-                    MxIter, MnDiff, SampleSize, TEnv::Logger));
+					MxIter, MnDiff, SampleSize, Notify));
         } else {
             // TODO support JavaScript array of TJsFltV or TJsSpV
             throw TQmExcept::New("unsupported type of the first argument");
@@ -4473,6 +4423,11 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
     const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
+	PNotify Notify = TEnv::Logger;
+	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
+	if (!Verbose) {
+		Notify = TNotify::NullNotify;
+	}
     // check what kind of input data we got
     try {
         if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -4483,7 +4438,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
                 TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, 
                     TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ValV, SvmCost, 
                     SvmEps, MxTime, MxIter, MnDiff, SampleSize, 
-                    TEnv::Logger));
+					Notify));
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
             // we have dense matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
@@ -4491,7 +4446,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveRegression<TFltVV>(VecV, VecV.GetRows(),
                     VecV.GetCols(), ValV, SvmCost, SvmEps, MxTime, 
-                    MxIter, MnDiff, SampleSize, TEnv::Logger));
+					MxIter, MnDiff, SampleSize, Notify));
         } else {
             // TODO support JavaScript array of TJsFltV or TJsSpV
             throw TQmExcept::New("unsupported type of the first argument");
