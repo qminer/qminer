@@ -944,8 +944,6 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var temp1V = la.newFltVec();
     var temp2V = la.newFltVec();
 
-
-
     this.predict = function(control) {
         // update the state: x'(k) = A * x(k)
         statePre = transitionMatrix.multiply(statePost);
@@ -965,7 +963,6 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
         // return statePre
         return statePre;
     }
-
 
     this.correct() = function(measurement) {
         // temp2 = H * P'(k)

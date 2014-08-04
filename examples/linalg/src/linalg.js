@@ -1,3 +1,4 @@
+/*
 // Generate a normal vector (3 iid standard normal samples, implemented in linalg.js)
 var v = la.genRandomVector(3);
 // Print vecotr (implemented in qminer_js.h)
@@ -46,5 +47,18 @@ console.say("||x - x2|| = " + x.minus(x2).norm());
 var x0 = la.genRandomVector(3);
 var x3 = la.conjgrad(A.sparse(), b, x0); // convert A to a sparse matrix and test the CG method
 console.say("||x3 - x2|| = " + x3.minus(x2).norm());
+*/
+
+var C = la.newMat([[1, 2, 5], [2, 4, 4], [3, 5, 7]]);
+console.say("C"); la.printMat(C);
+
+var I = la.newMat({ "cols": C.cols, "rows": C.rows });
+I = la.inverseSVD(C);
+la.printMat(C);
+la.printMat(I);
+var Identity = la.newMat(I);
+Identity = C.multiply(I);
+console.log("Do we get identity?");
+la.printMat(Identity);
 
 console.start();
