@@ -2635,6 +2635,8 @@ public:
 	JsDeclareFunction(getGlobals);
 	//#- `process.exitScript()` -- Exits the current script
 	JsDeclareFunction(exitScript);
+    //#- `process.returnCode` -- current code to be returned by QMiner process
+  	JsDeclareSetProperty(getReturnCode, setReturnCode);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 

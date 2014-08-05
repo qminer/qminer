@@ -3,7 +3,7 @@ var assert = require('assert.js');
 console.say("Record", "Testing record serialization/deserilization/by value");
 
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
 // name of the debug process
 assert.consoleTitle = "Record";
 

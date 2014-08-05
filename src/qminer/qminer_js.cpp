@@ -5239,6 +5239,7 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterProperty(TmpTemp, scriptFNm);
 		JsRegisterFunction(TmpTemp, getGlobals);
 		JsRegisterFunction(TmpTemp, exitScript);
+        JsRegisterSetProperty(TmpTemp, "returnCode", getReturnCode, setReturnCode);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -5318,6 +5319,19 @@ v8::Handle<v8::Value> TJsProcess::getGlobals(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsProcess::exitScript(const v8::Arguments& Args) {
 	v8::V8::TerminateExecution(v8::Isolate::GetCurrent());
 	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsProcess::getReturnCode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+    return HandleScope.Close(v8::Int32::New(TEnv::ReturnCode.Val));
+}
+
+void TJsProcess::setReturnCode(v8::Local<v8::String> Properties,
+        v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) {
+    
+	v8::HandleScope HandleScope;
+    QmAssert(Value->IsInt32());
+    TEnv::SetReturnCode(Value->Int32Value());
 }
 
 ///////////////////////////////
