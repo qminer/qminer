@@ -669,8 +669,8 @@ void TTimeSeriesTick::Save(TSOut& SOut) const {
 
 PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("GenericTick", TickVal);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", TickVal);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
