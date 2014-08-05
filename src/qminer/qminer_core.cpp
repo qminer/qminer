@@ -298,21 +298,36 @@ TStr TFieldDesc::GetFieldTypeStr() const {
 
 ///////////////////////////////
 // QMiner-Store-Iterators
-TStoreIterVec::TStoreIterVec(): FirstP(false), RecId(0), RecIds(0) { } 
+TStoreIterVec::TStoreIterVec(): 
+    FirstP(true), LastP(true), AscP(true), RecId(TUInt64::Mx), EndId(0) { } 
 
-TStoreIterVec::TStoreIterVec(const uint64& _RecIds): 
-	FirstP(true), RecId(0), RecIds(_RecIds) { }
+TStoreIterVec::TStoreIterVec(const uint64& StartId, const uint64& _EndId, const bool& _AscP): 
+        FirstP(true), LastP(false), AscP(_AscP), RecId(StartId), EndId(_EndId) {
 
-TStoreIterVec::TStoreIterVec(const uint64& MinId, const uint64& MaxId): 
-	FirstP(true), RecId(MinId), RecIds(MaxId + 1) { }
+    QmAssert(AscP ? (RecId <= EndId) : (RecId >= EndId));
+}
 
+PStoreIter TStoreIterVec::New(const uint64& StartId, const uint64& EndId, const bool& AscP) { 
+    return new TStoreIterVec(StartId, EndId, AscP); }
+    
 bool TStoreIterVec::Next() {
-	if (FirstP) { 
-		FirstP = false; 
-	} else { 
-		RecId++; 
-	}
-	return (RecId < RecIds); 
+    // we reached the end
+    if (LastP) { return false; }
+	if (FirstP) {
+        // mark we did first next()
+		FirstP = false;        
+	} else {        
+        // otherwise move to next record
+        if (AscP) {        
+            RecId++;
+        } else {
+            RecId--;
+        }
+    }
+    // check if this is the last record
+    LastP = (RecId == EndId);
+    // we reached the end!
+	return true;
 }
 
 ///////////////////////////////

@@ -1915,8 +1915,25 @@ uint64 TStoreImpl::GetRecId(const TStr& RecNm) const {
 PStoreIter TStoreImpl::GetIter() const {
     if (Empty()) { return TStoreIterVec::New(); }
 	return DataMemP ? 
-        TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId()) :
-        TStoreIterVec::New(DataCache.GetFirstValId(), DataCache.GetLastValId());
+        TStoreIterVec::New(DataMem.GetFirstValId(), DataMem.GetLastValId(), true) :
+        TStoreIterVec::New(DataCache.GetFirstValId(), DataCache.GetLastValId(), true);
+}
+
+uint64 TStoreImpl::FirstRecId() const {
+    return Empty() ? TUInt64::Mx.Val : 
+        (DataMemP ? DataMem.GetFirstValId() : DataCache.GetFirstValId());
+}
+
+uint64 TStoreImpl::LastRecId() const {
+    return Empty() ? TUInt64::Mx.Val : 
+        (DataMemP ? DataMem.GetLastValId() : DataCache.GetLastValId());
+}
+
+PStoreIter TStoreImpl::BackwardIter() const {
+    if (Empty()) { return TStoreIterVec::New(); }
+	return DataMemP ? 
+        TStoreIterVec::New(DataMem.GetLastValId(), DataMem.GetFirstValId(), false) :
+        TStoreIterVec::New(DataCache.GetLastValId(), DataCache.GetFirstValId(), false);
 }
 
 uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {

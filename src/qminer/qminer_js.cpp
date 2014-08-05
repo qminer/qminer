@@ -948,11 +948,14 @@ void TJsStoreTrigger::OnDelete(const TRec& Rec) {
 // QMiner-JavaScript-Stream-Aggr
 TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Js->Base, _AggrNm), Js(_Js) {
 	v8::HandleScope HandleScope;
-	if (TriggerVal->Has(v8::String::New("onAdd"))) {
-		v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
-		QmAssert(_OnAddFun->IsFunction());
-		OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
-	}
+	// Every stream aggregate should implement these two
+	QmAssertR(TriggerVal->Has(v8::String::New("onAdd")), "TJsStreamAggr constructor, name: " + _AggrNm  + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+	QmAssertR(TriggerVal->Has(v8::String::New("saveJson")), "TJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+		
+	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
+	QmAssert(_OnAddFun->IsFunction());
+	OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
+	
 	if (TriggerVal->Has(v8::String::New("onUpdate"))) {
 		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::New("onUpdate"));
 		QmAssert(_OnUpdateFun->IsFunction());
@@ -963,11 +966,10 @@ TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<
 		QmAssert(_OnDeleteFun->IsFunction());
 		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
 	}
-	if (TriggerVal->Has(v8::String::New("saveJson"))) {
-		v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
-		QmAssert(_SaveJsonFun->IsFunction());
-		SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
-	}
+	
+	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
+	QmAssert(_SaveJsonFun->IsFunction());
+	SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
 }
 
 void TJsStreamAggr::OnAddRec(const TRec& Rec) {
@@ -1327,7 +1329,7 @@ v8::Handle<v8::Value> TJsSA::onAdd(const v8::Arguments& Args) {
 	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
 	const TRec Rec = TJsRec::GetArgRec(Args, 0);
 	JsSA->SA->OnAddRec(Rec);
-	return HandleScope.Close(v8::Null());	
+	return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsSA::onUpdate(const v8::Arguments& Args) {
@@ -1335,7 +1337,7 @@ v8::Handle<v8::Value> TJsSA::onUpdate(const v8::Arguments& Args) {
 	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
 	const TRec Rec = TJsRec::GetArgRec(Args, 0);
 	JsSA->SA->OnUpdateRec(Rec);
-	return HandleScope.Close(v8::Null());
+	return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsSA::onDelete(const v8::Arguments& Args) {
@@ -1343,7 +1345,7 @@ v8::Handle<v8::Value> TJsSA::onDelete(const v8::Arguments& Args) {
 	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
 	const TRec Rec = TJsRec::GetArgRec(Args, 0);
 	JsSA->SA->OnDeleteRec(Rec);
-	return HandleScope.Close(v8::Null());
+	return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsSA::saveJson(const v8::Arguments& Args) {
@@ -1377,7 +1379,10 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterProperty(TmpTemp, fields);
 		JsRegisterProperty(TmpTemp, joins);
 		JsRegisterProperty(TmpTemp, keys);
-        JsRegisterProperty(TmpTemp, iter);
+        JsRegisterProperty(TmpTemp, first);
+        JsRegisterProperty(TmpTemp, last);
+        JsRegisterProperty(TmpTemp, forwardIter);
+        JsRegisterProperty(TmpTemp, backwardIter);
 		JsRegIndexedProperty(TmpTemp, indexId);
 		JsRegisterFunction(TmpTemp, rec);
 		JsRegisterFunction(TmpTemp, add);
@@ -1485,11 +1490,34 @@ v8::Handle<v8::Value> TJsStore::keys(v8::Local<v8::String> Properties, const v8:
 	return HandleScope.Close(KeyNmV);
 }
 
-v8::Handle<v8::Value> TJsStore::iter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+v8::Handle<v8::Value> TJsStore::first(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+    const uint64 FirstRecId = JsStore->Store->FirstRecId();
+    if (FirstRecId == TUInt64::Mx) { return v8::Null(); }
+    return HandleScope.Close(TJsRec::New(JsStore->Js, JsStore->Store->GetRec(FirstRecId)));
+}
+
+v8::Handle<v8::Value> TJsStore::last(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+    const uint64 LastRecId = JsStore->Store->LastRecId();
+    if (LastRecId == TUInt64::Mx) { return v8::Null(); }
+    return HandleScope.Close(TJsRec::New(JsStore->Js, JsStore->Store->GetRec(LastRecId)));
+}
+
+v8::Handle<v8::Value> TJsStore::forwardIter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
     v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
 	return HandleScope.Close(TJsStoreIter::New(JsStore->Js,
-        JsStore->Store, JsStore->Store->GetIter()));
+        JsStore->Store, JsStore->Store->ForwardIter()));
+}
+
+v8::Handle<v8::Value> TJsStore::backwardIter(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+    v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Info);
+	return HandleScope.Close(TJsStoreIter::New(JsStore->Js,
+        JsStore->Store, JsStore->Store->BackwardIter()));
 }
 
 v8::Handle<v8::Value> TJsStore::indexId(uint32_t Index, const v8::AccessorInfo& Info) {
@@ -1889,7 +1917,7 @@ v8::Handle<v8::Value> TJsRecSet::trunc(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
 	JsRecSet->RecSet->Trunc(Recs);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sample(const v8::Arguments& Args) {
@@ -1906,14 +1934,14 @@ v8::Handle<v8::Value> TJsRecSet::shuffle(const v8::Arguments& Args) {
 	const int RndSeed = TJsRecSetUtil::GetArgInt32(Args, 0, 0);
 	TRnd Rnd(RndSeed);
 	JsRecSet->RecSet->Shuffle(Rnd);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::reverse(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	JsRecSet->RecSet->Reverse();
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sortById(const v8::Arguments& Args) {
@@ -1921,7 +1949,7 @@ v8::Handle<v8::Value> TJsRecSet::sortById(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 0, 0) > 0);
 	JsRecSet->RecSet->SortById(Asc);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sortByFq(const v8::Arguments& Args) {
@@ -1929,7 +1957,7 @@ v8::Handle<v8::Value> TJsRecSet::sortByFq(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 0, 0) > 0);
 	JsRecSet->RecSet->SortByFq(Asc);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sortByField(const v8::Arguments& Args) {
@@ -1939,7 +1967,7 @@ v8::Handle<v8::Value> TJsRecSet::sortByField(const v8::Arguments& Args) {
 	const int SortFieldId = JsRecSet->Store->GetFieldId(SortFieldNm);
 	const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 1, 0) > 0);
 	JsRecSet->RecSet->SortByField(Asc, SortFieldId);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
@@ -1948,7 +1976,7 @@ v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
     QmAssertR(Args.Length() == 1, "sort(..) expects one argument.");
     v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
 	JsRecSet->RecSet->SortCmp(TJsRecCmp(JsRecSet->Js, JsRecSet->Store, CmpFun));
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filterById(const v8::Arguments& Args) {
@@ -1973,7 +2001,7 @@ v8::Handle<v8::Value> TJsRecSet::filterById(const v8::Arguments& Args) {
         const int MxRecId = TJsRecSetUtil::GetArgInt32(Args, 1);
         JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
     }
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filterByFq(const v8::Arguments& Args) {
@@ -1982,7 +2010,7 @@ v8::Handle<v8::Value> TJsRecSet::filterByFq(const v8::Arguments& Args) {
 	const int MnFq = TJsRecSetUtil::GetArgInt32(Args, 0);
 	const int MxFq = TJsRecSetUtil::GetArgInt32(Args, 1);
 	JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filterByField(const v8::Arguments& Args) {
@@ -2019,7 +2047,7 @@ v8::Handle<v8::Value> TJsRecSet::filterByField(const v8::Arguments& Args) {
     } else {
         throw TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
     }
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
@@ -2028,7 +2056,7 @@ v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
     QmAssertR(Args.Length() == 1, "filter(..) expects one argument.");
     v8::Persistent<v8::Function> FilterFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
 	JsRecSet->RecSet->FilterBy(TJsRecFilter(JsRecSet->Js, JsRecSet->Store, FilterFun));
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::split(const v8::Arguments& Args) {
@@ -2042,7 +2070,7 @@ v8::Handle<v8::Value> TJsRecSet::split(const v8::Arguments& Args) {
     for (int RecSetN = 0; RecSetN < RecSetV.Len(); RecSetN++) {
         JsRecSetV->Set(RecSetN, TJsRecSet::New(JsRecSet->Js, RecSetV[RecSetN]));
     }
-	return v8::Undefined();
+	return HandleScope.Close(JsRecSetV);
 }
 
 v8::Handle<v8::Value> TJsRecSet::deleteRecs(const v8::Arguments& Args) {
@@ -2051,7 +2079,7 @@ v8::Handle<v8::Value> TJsRecSet::deleteRecs(const v8::Arguments& Args) {
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     TUInt64Set RecIdSet; RecSet->GetRecIdSet(RecIdSet);
     JsRecSet->RecSet->RemoveRecIdSet(RecIdSet);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
@@ -4385,7 +4413,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
     const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
-    const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
+    const int MxTime = 1000 * SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
 	PNotify Notify = TEnv::Logger;
 	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
@@ -4437,7 +4465,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
     const double SvmEps = SvmParamVal->GetObjNum("eps", 1.0);
     const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
-    const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
+    const int MxTime = 1000 * SvmParamVal->GetObjInt("maxTime", 600);
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
 	PNotify Notify = TEnv::Logger;
 	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
@@ -5789,6 +5817,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 		JsRegisterFunction(TmpTemp, sub);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, parse);
+		JsRegisterFunction(TmpTemp, clone);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -5930,6 +5959,13 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
     TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
     // return constructed json
     return HandleScope.Close(TJsTm::New(Tm));
+}
+
+v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);
+	// return constructed json
+	return HandleScope.Close(TJsTm::New(JsTm->Tm));
 }
 
 ///////////////////////////////////////////////

@@ -216,44 +216,13 @@ var _result = new function () {
 }
 
 var _store = new function () {
-	this.key = function () {
+	/// <field name = "joins" value = "_objArr"> array of all the join names</field>
+	this.joins = _objArr;
+	this.sample = function () {
 	/// <signature>
-	/// <summary> get [index key](#index-key) named `keyName`</summary>
-	/// <param name="_keyName" value="_keyName">param</param>
-	/// <returns value ="_key"/>
-	/// </signature>
-
-	};
-
-	this.newRec = function () {
-	/// <signature>
-	/// <summary> creates new record `rec` by (JSON) value `recordJson` (not added to the store)</summary>
-	/// <param name="_recordJson" value="_recordJson">param</param>
-	/// <returns value ="_rec"/>
-	/// </signature>
-
-	};
-
-	this.addTrigger = function () {
-	/// <signature>
-	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
-	/// <param name="_trigger" value="_trigger">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	};
-
-	/// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
-	this.keys = _objArr;
-	/// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
-	this.fields = _objArr;
-	/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
-	this.recs = _rs;
-	this.addStreamAggr = function () {
-	/// <signature>
-	/// <summary> creates a new stream aggregate `sa` and registers it to the store</summary>
-	/// <param name="_param" value="_param">param</param>
-	/// <returns value ="_sa"/>
+	/// <summary> create a record set containing a random</summary>
+	/// <param name="_sampleSize" value="_sampleSize">param</param>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -267,19 +236,28 @@ var _store = new function () {
 
 	};
 
-	/// <field name = "iter" value = "_iter"> returns iterator for iterating over the store</field>
-	this.iter = _iter;
-	/// <field name = "name" value = "_str"> name of the store</field>
-	this.name = _str;
-	this.sample = function () {
+	this.newRec = function () {
 	/// <signature>
-	/// <summary> create a record set containing a random</summary>
-	/// <param name="_sampleSize" value="_sampleSize">param</param>
+	/// <summary> creates new record `rec` by (JSON) value `recordJson` (not added to the store)</summary>
+	/// <param name="_recordJson" value="_recordJson">param</param>
+	/// <returns value ="_rec"/>
+	/// </signature>
+
+	};
+
+	this.newRecSet = function () {
+	/// <signature>
+	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
+	/// <param name="_idVec" value="_idVec">param</param>
 	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
+	/// <field name = "backwardIter" value = "_iter"> returns iterator for iterating over the store from end to start</field>
+	this.backwardIter = _iter;
+	/// <field name = "forwardIter" value = "_iter"> returns iterator for iterating over the store from start to end</field>
+	this.forwardIter = _iter;
 	this.field = function () {
 	/// <signature>
 	/// <summary> get details of field named `fieldName`</summary>
@@ -298,19 +276,6 @@ var _store = new function () {
 
 	};
 
-	/// <field name = "joins" value = "_objArr"> array of all the join names</field>
-	this.joins = _objArr;
-	this.newRecSet = function () {
-	/// <signature>
-	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
-	/// <param name="_idVec" value="_idVec">param</param>
-	/// <returns value ="_rs"/>
-	/// </signature>
-
-	};
-
-	/// <field name = "length" value = "_len"> number of records in the store</field>
-	this.length = _len;
 	this.rec = function () {
 	/// <signature>
 	/// <summary> get record named `recName`;</summary>
@@ -322,6 +287,47 @@ var _store = new function () {
 
 	/// <field name = "empty" value = "_bool"> `bool = true` when store is empty</field>
 	this.empty = _bool;
+	/// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
+	this.keys = _objArr;
+	this.addStreamAggr = function () {
+	/// <signature>
+	/// <summary> creates a new stream aggregate `sa` and registers it to the store</summary>
+	/// <param name="_param" value="_param">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	};
+
+	this.key = function () {
+	/// <signature>
+	/// <summary> get [index key](#index-key) named `keyName`</summary>
+	/// <param name="_keyName" value="_keyName">param</param>
+	/// <returns value ="_key"/>
+	/// </signature>
+
+	};
+
+	/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
+	this.recs = _rs;
+	/// <field name = "name" value = "_str"> name of the store</field>
+	this.name = _str;
+	/// <field name = "last" value = "_rec"> last record from the store</field>
+	this.last = _rec;
+	this.addTrigger = function () {
+	/// <signature>
+	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
+	/// <param name="_trigger" value="_trigger">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	/// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
+	this.fields = _objArr;
+	/// <field name = "length" value = "_len"> number of records in the store</field>
+	this.length = _len;
+	/// <field name = "first" value = "_rec"> first record from the store</field>
+	this.first = _rec;
 	this.getStreamAggrNames = function () {
 	/// <signature>
 	/// <summary> returns the names of all stream aggregators listening on the store as an array of strings `strArr`</summary>
@@ -3252,6 +3258,14 @@ var qm = new function () {
 
 	};
 
+	this.getStoreList = function () {
+	/// <signature>
+	/// <summary> an array of strings listing all existing stores</summary>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+
+	};
+
 	this.createStore = function () {
 	/// <signature>
 	/// <summary> create new store(s) based on given `storeDef` (Json) [definition](Store Definition)</summary>
@@ -3277,9 +3291,9 @@ var qm = new function () {
 
 	};
 
-	this.getStoreList = function () {
+	this.getStreamAggrNames = function () {
 	/// <signature>
-	/// <summary> an array of strings listing all existing stores</summary>
+	/// <summary> gets the stream aggregate names of stream aggregates in the default stream aggregate base.</summary>
 	/// <returns value ="_strArr"/>
 	/// </signature>
 

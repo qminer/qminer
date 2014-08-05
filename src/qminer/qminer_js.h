@@ -1086,11 +1086,11 @@ public:
 	//# 
 	//#- `str = sa.name` -- returns the name (unique) of the stream aggregate
 	JsDeclareProperty(name);
-	//#- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+	//#- `sa = sa.onAdd(rec)` -- executes onAdd function given an input record `rec` and returns self
 	JsDeclareFunction(onAdd);
-	//#- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+	//#- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 	JsDeclareFunction(onUpdate);
-	//#- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+	//#- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 	JsDeclareFunction(onDelete);
 	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	JsDeclareFunction(saveJson);
@@ -1145,9 +1145,15 @@ public:
     //#- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
     //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
-	JsDeclareProperty(keys);	
-    //#- `iter = store.iter` -- returns iterator for iterating over the store
-    JsDeclareProperty(iter);
+	JsDeclareProperty(keys);
+    //#- `rec = store.first` -- first record from the store
+    JsDeclareProperty(first);
+    //#- `rec = store.last` -- last record from the store
+    JsDeclareProperty(last);
+    //#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+    JsDeclareProperty(forwardIter);
+    //#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+    JsDeclareProperty(backwardIter);
     //#- `rec = store[recId]` -- get record with ID `recId`; 
     //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
@@ -1340,35 +1346,35 @@ public:
 	//#- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
 	//#- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
-	//#- `rs.trunc(num)` -- truncate to first `num` record. Inplace operation.
+	//#- `rs = rs.trunc(num)` -- truncate to first `num` record and return self.
 	JsDeclareFunction(trunc);
 	//#- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	JsDeclareFunction(sample);
-	//#- `rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Inplace operation.
+	//#- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
 	JsDeclareFunction(shuffle);
-	//#- `rs.reverse()` -- reverse record order. Inplace operation.
+	//#- `rs = rs.reverse()` -- reverse record order. Returns self.
 	JsDeclareFunction(reverse);
-	//#- `rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.
+	//#- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortById);
-	//#- `rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.
+	//#- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByFq);
-	//#- `rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.
+	//#- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByField);
-	//#- `rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.
+	//#- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
    	JsDeclareFunction(sort);
-	//#- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Inplace operation.
+	//#- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
 	JsDeclareFunction(filterById);
-	//#- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Inplace operation.
+	//#- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
 	JsDeclareFunction(filterByFq);
-	//#- `rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.
-	//#- `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
-	//#- `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
+	//#- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
 	JsDeclareFunction(filterByField);
-	//#- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
+	//#- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
 	JsDeclareFunction(filter);
 	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
    	JsDeclareFunction(split);
-    //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
+    //#- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
@@ -2914,16 +2920,18 @@ public:
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
     JsDeclareProperty(nowUTC);    
-    //#- `tm2 = tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
     //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(add);
-    //#- `tm2 = tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(sub); 
     //#- `tmJSON = tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
+	JsDeclareFunction(clone);
 };
 //#
 //# ## Other libraries

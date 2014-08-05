@@ -124,6 +124,15 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
     }
 }
 
+//#- `printj(obj)` -- prints json (converts obj to json using toJSON if necessary)
+function printj(obj) {
+    try {
+        console.println(JSON.stringify(obj));
+    } catch (exception) {
+        console.println(JSON.stringify(obj.toJSON()))
+    }
+}
+
 ///////////////////////////////////////// DEPRECATED
 qm.addStreamAggr = function (param) {
     console.log("Warning: qm.addStreamAggr is deprecated 4.8.2014. Use qm.newStreamAggr");

@@ -648,6 +648,15 @@ public:
 	uint64 GetRecs() const;
 	PStoreIter GetIter() const;
     
+    /// Gets the first record in the store (order defined by store implementation)
+    uint64 FirstRecId() const;
+    /// Gets the last record in the store (order defined by store implementation)
+    uint64 LastRecId() const;
+    /// Gets forward moving iterator (order defined by store implementation)
+    PStoreIter ForwardIter() const { return GetIter(); }
+    /// Gets backward moving iterator (order defined by store implementation)
+    PStoreIter BackwardIter() const;
+    
 	/// Add new record
 	uint64 AddRec(const PJsonVal& RecVal);
 	/// Update existing record
