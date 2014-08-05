@@ -50,8 +50,9 @@ while (!fin.eof) {
     var corrected = kf.correct(measurementV);
 
     // TODO: save value, prediction + correction
-    console.log("Output [M, P, C]", value.toFixed(6) + ", " + predicted.at(0).toFixed(6) + ", " + corrected.at(0).toFixed(6));
-
+    var diff = value - predicted.at(0);
+    console.log("Diff: " + diff + ", Value: " +  value.toFixed(6) + ", Prediction: " + predicted.at(0).toFixed(6) + ", Corr: " + corrected.at(0).toFixed(6));
+    
     //console.pause();
     lastTm = newTm;
 }
