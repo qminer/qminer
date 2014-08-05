@@ -197,7 +197,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
             QmAssertR(TokenizerVal->IsObjKey("type"), 
                 "Missing tokenizer type " + TokenizerVal->SaveStr());
             const TStr& TypeNm = TokenizerVal->GetObjStr("type");
-            IndexKeyEx.Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);            
+            IndexKeyEx.Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);
         } else {
             IndexKeyEx.Tokenizer = TTokenizers::THtmlUnicode::New();
         }
