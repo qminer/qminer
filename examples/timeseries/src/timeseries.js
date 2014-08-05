@@ -46,8 +46,8 @@ Resampled.addTrigger({
     onAdd: function (val) {
         // Get the latest value for EMAs and store them along the 
         // record in the Resampled store.
-        val.Ema1 = Resampled.getStreamAggr("ema1m").val.EMA;
-        val.Ema2 = Resampled.getStreamAggr("ema10m").val.EMA;
+        val.Ema1 = Resampled.getStreamAggr("ema1m").val.Val;
+        val.Ema2 = Resampled.getStreamAggr("ema10m").val.Val;
         // See what the current model would predict given
         // the new record, and store this for evaluation later on.
         val.Prediction = linreg.predict(ftrSpace.ftrVec(val))

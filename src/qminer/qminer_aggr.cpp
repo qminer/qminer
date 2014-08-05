@@ -765,8 +765,8 @@ void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
 
 PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("LastVal", InVal);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", InVal);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(false, "T"));
     /*Val->AddToObj("FirstVal", LastTickVal);
 	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(LastTmMSecs).GetWebLogDateTimeStr(false, "T"));*/
 	return Val;
@@ -840,8 +840,8 @@ void TWinBufCount::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufCount::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("COUNT", InAggrVal->GetN());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", InAggrVal->GetN());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -920,8 +920,8 @@ void TWinBufSum::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufSum::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("SUM", Sum.GetSum());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Sum.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Sum.GetSum());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Sum.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1000,8 +1000,8 @@ void TWinBufMin::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufMin::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MIN", Min.GetMin());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Min.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Min.GetMin());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Min.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1080,8 +1080,8 @@ void TWinBufMax::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufMax::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MAX", Max.GetMax());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Max.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Max.GetMax());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Max.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1160,8 +1160,8 @@ void TMa::Save(TSOut& SOut) const {
 
 PJsonVal TMa::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MA", Ma.GetMa());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Ma.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Ma.GetMa());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ma.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1253,8 +1253,8 @@ void TEma::Save(TSOut& SOut) const {
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("EMA", Ema.GetEma());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Ema.GetEma());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1338,8 +1338,8 @@ void TVar::Save(TSOut& SOut) const {
 PJsonVal TVar::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 
-	Val->AddToObj("VAR", Var.GetM2());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Var.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Var.GetM2());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Var.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1406,8 +1406,8 @@ PStreamAggr TCov::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 
 PJsonVal TCov::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("COV", Cov.GetCov());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Cov.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Cov.GetCov());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Cov.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1504,8 +1504,8 @@ void TCorr::Save(TSOut& SOut) const {
 
 PJsonVal TCorr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("CORR", Corr);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Corr);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1697,8 +1697,8 @@ void TStMerger::Save(TSOut& SOut) const {
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Merger", 0);
-	Val->AddToObj("UTCTime", 0);
+	Val->AddToObj("Val", 0);
+	Val->AddToObj("Time", 0);
 	return Val;
 }
 
