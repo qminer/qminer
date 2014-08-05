@@ -2114,7 +2114,7 @@ v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
 		// execute callback
 		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
 	}
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::setintersect(const v8::Arguments& Args) {
@@ -2412,7 +2412,7 @@ v8::Handle<v8::Value> TJsRec::addJoin(const v8::Arguments& Args) {
     // add join
     Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
 	// return
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRec::delJoin(const v8::Arguments& Args) {
@@ -2431,7 +2431,7 @@ v8::Handle<v8::Value> TJsRec::delJoin(const v8::Arguments& Args) {
     // delete join
     Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
 	// return
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
@@ -2480,7 +2480,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 			JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
 		}
 	}
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 // NOTE: It is your responsibility to make sure the input line is a valid stream example 
@@ -2525,7 +2525,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::exportModel(const v8::Arguments& Args) {
 			return HandleScope.Close(v8::Boolean::New(true));
 		}
 	}
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -3066,7 +3066,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::normalize(const v8::Arguments& Arg
 	if (JsFltV->Vec.Len() > 0) {
 		TLinAlg::Normalize(JsFltV->Vec);
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 template <>
@@ -3199,7 +3199,7 @@ v8::Handle<v8::Value> TJsFltVV::put(const v8::Arguments& Args) {
 		TFlt Val = TJsFltVVUtil::GetArgFlt(Args, 2);
 		JsFltVV->Mat.At(Row, Col) = Val;	
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
@@ -3458,7 +3458,7 @@ v8::Handle<v8::Value> TJsFltVV::normalizeCols(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
 	TLinAlg::NormalizeColumns(JsFltVV->Mat);
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::sparse(const v8::Arguments& Args) {
@@ -3506,7 +3506,7 @@ v8::Handle<v8::Value> TJsFltVV::print(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
 	TLAMisc::PrintTFltVV(JsFltVV->Mat, "");	
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::rowMaxIdx(const v8::Arguments& Args) {
@@ -3565,7 +3565,7 @@ v8::Handle<v8::Value> TJsFltVV::setCol(const v8::Arguments& Args) {
 			JsMat->Mat.At(RowN, ColN) = JsVec->Vec[RowN];
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::getRow(const v8::Arguments& Args) {
@@ -3685,7 +3685,7 @@ v8::Handle<v8::Value> TJsSpV::put(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::sum(const v8::Arguments& Args) {
@@ -3740,7 +3740,7 @@ v8::Handle<v8::Value> TJsSpV::normalize(const v8::Arguments& Args) {
 	if (JsSpV->Vec.Len() > 0) {
 		TLinAlg::Normalize(JsSpV->Vec);
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::nnz(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -3762,7 +3762,7 @@ v8::Handle<v8::Value> TJsSpV::print(const v8::Arguments& Args) {
 	for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
 		printf("%d %f\n", JsSpV->Vec[ElN].Key.Val, JsSpV->Vec[ElN].Dat.Val);
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::norm(const v8::Arguments& Args) {
@@ -3906,7 +3906,7 @@ v8::Handle<v8::Value> TJsSpMat::put(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::indexGet(uint32_t Index, const v8::AccessorInfo& Info) {
@@ -3940,7 +3940,7 @@ v8::Handle<v8::Value> TJsSpMat::push(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
@@ -4214,7 +4214,7 @@ v8::Handle<v8::Value> TJsSpMat::normalizeCols(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
 	TLinAlg::NormalizeColumns(JsSpMat->Mat);
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::full(const v8::Arguments& Args) {
@@ -4257,7 +4257,7 @@ v8::Handle<v8::Value> TJsSpMat::print(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
 	TLAMisc::PrintSpMat(JsSpMat->Mat, "");
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
@@ -4267,7 +4267,7 @@ v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
 	// save to stream
 	JsSpMat->Rows.Save(*SOut);
 	JsSpMat->Mat.Save(*SOut);
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
@@ -4277,7 +4277,7 @@ v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
 	// load from stream
 	JsSpMat->Rows.Load(*SIn);
 	JsSpMat->Mat.Load(*SIn);
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -4738,7 +4738,7 @@ v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
     // save to stream
     JsFtrSpace->FtrSpace->Save(*SOut);
 	// return
-	return HandleScope.Close(v8::Null());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
@@ -4749,7 +4749,7 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
     // update with new records
     JsFtrSpace->FtrSpace->Update(JsRec->Rec);
 	// return
-	return HandleScope.Close(v8::Null());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
@@ -4760,7 +4760,7 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
     // update with new records
     JsFtrSpace->FtrSpace->Update(RecSet);
 	// return
-	return HandleScope.Close(v8::Null());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::finishUpdate(const v8::Arguments& Args) {
@@ -4907,7 +4907,7 @@ v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsSvmModel->Model.Save(*SOut);
 	}
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -4943,7 +4943,7 @@ v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
     // then check how we performed and learn
     JsNN->NN->BackProp(JsVecTarget->Vec);
     
-    return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
@@ -4996,7 +4996,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
     const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
     // learn
     JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::predict(const v8::Arguments& Args) {
@@ -5033,7 +5033,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::save(const v8::Arguments& Args) {
 	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 	JsModel->Model->Save(*SOut);
 
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

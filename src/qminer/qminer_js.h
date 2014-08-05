@@ -1378,7 +1378,7 @@ public:
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:
+	//#- `rs = rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:
 	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(map);
 	//#- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
@@ -1444,11 +1444,11 @@ public:
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
-    //#- `rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string)
-    //#- `rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+    //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
+    //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
-    //#- `rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string)
-    //#- `rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`
+    //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
+    //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
     //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
     JsDeclareFunction(toJSON);
@@ -1632,8 +1632,8 @@ public:
 	JsDeclareFunction(subVec);
 	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
-	//#- `intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)
+	//#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
+	//#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
 	JsDeclareFunction(put);	
 	//#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
 	//#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
@@ -1641,8 +1641,8 @@ public:
 	//#- `len = vec.unshift(num)` -- insert value `num` to the begining of vector `vec`. Returns the length of the modified array.
 	//#- `len = intVec.unshift(num)` -- insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.
 	JsDeclareFunction(unshift);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
-	//#- `intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
+	//#- `len = vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
+	//#- `len = intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
 	JsDeclareTemplatedFunction(pushV);
 	//#- `num = vec.sum()` -- return `num`: the sum of elements of vector `vec`
 	//#- `num = intVec.sum()` -- return `num`: the sum of elements of integer vector `intVec`
@@ -1665,13 +1665,13 @@ public:
 	JsDeclareTemplatedFunction(minus);
 	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(multiply);
-	//#- `vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.
+	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
 	//#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
 	JsDeclareProperty(length);
-	//#- `vec.print()` -- print vector in console
-	//#- `intVec.print()` -- print integer vector in console
+	//#- `vec = vec.print()` -- print vector in console. Returns self.
+	//#- `intVec = intVec.print()` -- print integer vector in console. Returns self.
 	JsDeclareFunction(print);
 	//#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(diag);
@@ -1787,7 +1787,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::put(const v8::Arguments& Args) {
 		QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector put: index out of bounds");		
 		JsVec->Vec[Index] = Val;
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 template <class TVal, class TAux>
@@ -1884,7 +1884,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
 		printf("%s ", JsVec->Vec[ElN].GetStr().CStr());		
 	}
 	printf("\n");	
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -1935,7 +1935,7 @@ public:
 	//# 
 	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
-	//#- `mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
 	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
 	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
@@ -1961,7 +1961,7 @@ public:
 	JsDeclareFunction(rowNorms);
 	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
-	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
+	//#- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
 	JsDeclareFunction(normalizeCols);
 	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
@@ -1973,7 +1973,7 @@ public:
 	JsDeclareProperty(cols);
 	//#- `str = mat.printStr()` -- print matrix `mat` to a string `str`
 	JsDeclareFunction(printStr);
-	//#- `mat.print()` -- print matrix `mat` to console
+	//#- `mat = mat.print()` -- print matrix `mat` to console. Returns self.
 	JsDeclareFunction(print);
 	//#- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
 	JsDeclareFunction(rowMaxIdx);
@@ -1981,7 +1981,7 @@ public:
 	JsDeclareFunction(colMaxIdx);
 	//#- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
 	JsDeclareFunction(getCol);
-	//#- `mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.
+	//#- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
 	JsDeclareFunction(setCol);
 	//#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 	JsDeclareFunction(getRow);
@@ -2049,7 +2049,7 @@ public:
 	//# 
 	//#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	JsDeclareFunction(at);	
-	//#- `spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing
+	//#- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
 	JsDeclareFunction(put);		
 	//#- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
 	JsDeclareFunction(sum);	
@@ -2058,13 +2058,13 @@ public:
 	JsDeclareFunction(inner);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- `spVec.normalize()` -- normalizes the vector spVec (inplace operation)
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
 	JsDeclareFunction(normalize);
 	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 	JsDeclareProperty(nnz);	
 	//#- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
 	JsDeclareProperty(dim);	
-	//#- `spVec.print()` -- prints the vector to console
+	//#- `spVec = spVec.print()` -- prints the vector to console. Return self.
 	JsDeclareFunction(print);
 	//#- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
 	JsDeclareFunction(norm);
@@ -2143,11 +2143,11 @@ public:
 	//# 
 	//#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
-	//#- `spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+	//#- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
 	//#- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)
+	//#- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
 	JsDeclareFunction(push);
 	//#- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
 	//#- `vec2 = spMat.multiply(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
@@ -2169,7 +2169,7 @@ public:
 	JsDeclareFunction(transpose);	
 	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
-	//#- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
+	//#- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
 	JsDeclareFunction(normalizeCols);
 	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
 	JsDeclareFunction(full);
@@ -2179,11 +2179,11 @@ public:
 	JsDeclareProperty(rows);
 	//#- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 	JsDeclareProperty(cols);
-	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
+	//#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
 	JsDeclareFunction(print);
-	//#- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
+	//#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
-	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.
+	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
@@ -2303,14 +2303,14 @@ public:
 	//#     
     //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `fsp.save(fout)` -- serialize feature space to `fout` output stream
+    //#- `fsp = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns self.
     JsDeclareFunction(save);
-    //#- `fsp.updateRecord(rec)` -- update feature space definitions and extractors
-    //#     by exposing them to record `rec`. For example, this can update the vocabulary
+    //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
-    //#     by exposing them to records from record set `rs`. For example, this can update 
+    //#- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
+    //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate); // deprecated
@@ -2366,7 +2366,7 @@ public:
 	JsDeclareFunction(predict);
     //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);   
-    //#- `svmModel.save(fout)` -- saves model to output stream `fout`
+    //#- `svmModel = svmModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
 };
 
@@ -2394,7 +2394,7 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-	//#- `nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.
+	//#- `nnModel = nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation. Returns self.
 	JsDeclareFunction(learn);
     //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 	JsDeclareFunction(predict);
@@ -2423,7 +2423,7 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data
+    //#- `recLinRegModel = recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
 	JsDeclareFunction(learn);
     //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the 
     //#     model and returns the prediction as a real number `num`
@@ -2432,7 +2432,7 @@ public:
 	JsDeclareProperty(weights);
     //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
-	//#- `recLinRegModel.save(fout)` -- saves model to output stream `fout`
+	//#- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
 };
 
@@ -2494,14 +2494,14 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-	//#- `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
-	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
+	//#- `htModel = htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns self.
 	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
 	JsDeclareFunction(process);
 	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
 	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
-	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
+	//#- `htModel = htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);
 };
