@@ -592,22 +592,34 @@ namespace THoeffding {
       : CndAttrIdx(Node.CndAttrIdx), ExamplesN(Node.ExamplesN), Val(Node.Val),
          Avg(Node.Avg), VarSum(Node.VarSum), Err(Node.Err),
          TestModeN(Node.TestModeN), Type(Node.Type), ExamplesV(Node.ExamplesV),
-         PartitionV(Node.PartitionV), UsedAttrs(Node.UsedAttrs),
-         HistH(Node.HistH), Id(Node.Id), Correct(Node.Correct), All(Node.All)
-   { }
+         SeenH(Node.SeenH), Counts(Node.Counts), PartitionV(Node.PartitionV),
+         UsedAttrs(Node.UsedAttrs), HistH(Node.HistH),
+         AltTreesV(Node.AltTreesV), Id(Node.Id), Correct(Node.Correct),
+         All(Node.All)
+   { EFailR("TNode (const TNode&)"); }
    // Assignment operator 
    TNode& TNode::operator=(const TNode& Node) {
       if (this != &Node) {
          //Clr(); // Delete old elements 
-         All = Node.All; AltTreesV = Node.AltTreesV;
-         Avg = Node.Avg; ChildrenV = Node.ChildrenV;
-         CndAttrIdx = Node.CndAttrIdx; Correct = Node.Correct;
-         Counts = Node.Counts; Err = Node.Err; ExamplesN = Node.ExamplesN;
-         ExamplesV = Node.ExamplesV; HistH = Node.HistH; Id = Node.Id;
+         CndAttrIdx = Node.CndAttrIdx;
+         ExamplesN = Node.ExamplesN;
+         Val = Node.Val;
+         Avg = Node.Avg;
+         VarSum = Node.VarSum;
+         Err = Node.Err;
+         TestModeN = Node.TestModeN;
+         Type = Node.Type;
+         ExamplesV = Node.ExamplesV;
+         SeenH = Node.SeenH;
+         Counts = Node.Counts;
          PartitionV = Node.PartitionV;
-         SeenH = Node.SeenH; 
-         TestModeN = Node.TestModeN; Type = Node.Type;
-         Val = Node.Val; VarSum = Node.VarSum;
+         ChildrenV = Node.ChildrenV;
+         UsedAttrs = Node.UsedAttrs;
+         HistH = Node.HistH;
+         AltTreesV = Node.AltTreesV;
+         Id = Node.Id; EFailR("TNode& operator=(const TNode&)");
+         Correct = Node.Correct;
+         All = Node.All;
       }
       return *this;
    }
@@ -615,7 +627,8 @@ namespace THoeffding {
       return CndAttrIdx == Node.CndAttrIdx && Type == Node.Type &&
          ExamplesV == Node.ExamplesV && Counts == Node.Counts &&
          PartitionV == Node.PartitionV && Id == Node.Id &&
-         ChildrenV == Node.ChildrenV && UsedAttrs == Node.UsedAttrs;
+         ChildrenV == Node.ChildrenV && UsedAttrs == Node.UsedAttrs &&
+         SeenH == Node.SeenH; /* this line added 4th aug 2014 */ 
    }
    // Training set entropy 
    double TNode::ComputeEntropy() const {
@@ -968,7 +981,7 @@ namespace THoeffding {
       return Classify(Root, Example);
    }
    void THoeffdingTree::IncCounts(PNode Node, PExample Example) const {
-      EAssertR(Example->Label >= 0 && Example->Label <= Node->PartitionV.Len(),
+      EAssertR(Example->Label >= 0 && Example->Label < Node->PartitionV.Len(),
          "Label out of bounds.");
       EAssertR(Node->PartitionV.GetVal(Example->Label) >= 0, "Negative count");
       Node->PartitionV.GetVal(Example->Label)++;
@@ -997,7 +1010,7 @@ namespace THoeffding {
       }
    }
    void THoeffdingTree::DecCounts(PNode Node, PExample Example) const {
-      EAssertR(Node->Id <= Example->LeafId.Val,
+      EAssertR(Node->Id <= Example->LeafId,
          "The example did not affect this node.");
       EAssertR(Node->PartitionV.GetVal(Example->Label) > 0,
          "Negative partition count.");
@@ -1012,10 +1025,11 @@ namespace THoeffding {
          case atDISCRETE: {
             TTriple<TInt, TInt, TInt> Idx(It->Id, It->Value, Example->Label);
             if (Node->Counts.IsKey(Idx)) {
+               if (Node->Counts.GetDat(Idx) <= 0) { printf("Example ID=%d\n", Example->Id.Val); }
                EAssertR(Node->Counts.GetDat(Idx) > 0,
                   "Negative id-value-label triple count.");
                --Node->Counts.GetDat(Idx);
-            } else {
+            } else { // TODO: Replace this execution branch with an assert 
                Print(Example);
                printf("Example ID: %d; Node ID: %d; Node examples: %d\n",
                   Example->LeafId.Val, Node->Id, Node->ExamplesN);
@@ -1118,6 +1132,8 @@ namespace THoeffding {
       NodeS.Push(CrrNode);
       while (!NodeS.Empty()) {
          CrrNode = NodeS.Top(); NodeS.Pop();
+         // If CrrNode->Id <= Example->LeafId, then CrrNode existed before 
+         // Example arrived 
          if (CrrNode->Id <= Example->LeafId && !Sacrificed(CrrNode, Example)) {
             DecCounts(CrrNode, Example);
             if (!IsLeaf(CrrNode)) {
@@ -1128,8 +1144,8 @@ namespace THoeffding {
                }
             }
          } else if (Sacrificed(CrrNode, Example)) { // Unmark 
-            EAssertR(CrrNode->SeenH.GetDat(*Example) >= 1, "Decrementing \
-               count lesser than or equal to zero.");
+            EAssertR(CrrNode->SeenH.GetDat(*Example) >= 1,
+               "Decrementing counter lesser than or equal to zero.");
             if (!--CrrNode->SeenH.GetDat(*Example)) { // count == 0 
                CrrNode->SeenH.DelIfKey(*Example); 
             }
@@ -1218,7 +1234,7 @@ namespace THoeffding {
       ++Node->All;
    }
    bool THoeffdingTree::TestMode(PNode Node) {
-      EAssertR(Node->TestModeN >= 0 && Node->TestModeN <= 10000, \
+      EAssertR(Node->TestModeN >= 0 && Node->TestModeN <= 10000,
          "TestModeN out of bounds.");
       EAssertR(Node->All >= 0 && Node->All <= 2000, "All out of bounds.");
       // If the node has no alternate trees, then there is nothing to do 
@@ -1295,32 +1311,63 @@ namespace THoeffding {
       }
       ProcessCls(TExample::New(AttributesV, AttrsHashV.Last().GetDat(Label)));
    }
-   bool THoeffdingTree::Debug_CheckInvariant(PExample Example) const {
-      // XXX Make sure that Example->BinId is as it is supposed to be XXX 
+   void THoeffdingTree::Debug_Finalize() {
+      // Empty the sliding window and make sure all counts are reset to 0
+      while (!ExampleQ.Empty()) {
+         ForgetCls(ExampleQ.Top());
+         ExampleQ.Pop();
+      }
+      // Now go through all nodes of the tree and make sure counts == 0 
+      TSStack<PNode> NodeS;
+      PNode CrrNode = Root;
+      NodeS.Push(CrrNode);
+      while (!NodeS.Empty()) {
+         CrrNode = NodeS.Top();
+         // Check counts 
+         EAssertR(CrrNode->ExamplesN == 0, "ExamplesN != 0");
+         // TODO: Make sure that for each triple (i, j, k) we
+         // have Counts[(i, j, k)] == 0. 
+         if (!IsLeaf(CrrNode)) {
+            for (auto It = CrrNode->ChildrenV.BegI();
+               It != CrrNode->ChildrenV.EndI(); ++It) {
+               NodeS.Push(*It);
+            }
+         }
+      }
+   }
+   void THoeffdingTree::Debug_CheckInvariant(PExample Example) const {
+      // XXX: Make sure that Example->BinId is as it is supposed to be 
       PNode CrrNode = Root;
       TSStack<PNode> NodeS;
       NodeS.Push(CrrNode);
       while (!NodeS.Empty()) {
          CrrNode = NodeS.Top(); NodeS.Pop();
-         // now check Example->BinId >= max(bin ids from CrrNode) 
+         // Now check Example->BinId >= max(bin ids from CrrNode) 
          const int AttrsN = Example->AttributesV.Len();
          for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
-            if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS && CrrNode->HistH.GetDat(AttrN).BinsV.Len() > 0) {
+            if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS &&
+               CrrNode->HistH.GetDat(AttrN).BinsV.Len() > 0) {
                // TODO: Find an efficient way to compute s(A) from s(A1) and
                // s(A2) if A1 and A2 parition A 
                int MnId = CrrNode->HistH.GetDat(AttrN).BinsV.Last().Id;
-               for (int BinN = 0; BinN < CrrNode->HistH.GetDat(AttrN).BinsV.Len(); ++BinN) {
-                  MnId = TMath::Mn<int>(MnId, CrrNode->HistH.GetDat(AttrN).BinsV.GetVal(BinN).Id);
-                  EAssertR(MnId <= CrrNode->HistH.GetDat(AttrN).BinsV.GetVal(BinN).Id, "wtf");
+               for (int BinN = 0;
+                  BinN < CrrNode->HistH.GetDat(AttrN).BinsV.Len(); ++BinN) {
+                  MnId = TMath::Mn<int>(MnId,
+                     CrrNode->HistH.GetDat(AttrN).BinsV.GetVal(BinN).Id);
+                  EAssertR(
+                     MnId<=CrrNode->HistH.GetDat(AttrN).BinsV.GetVal(BinN).Id,
+                     "BinId should be minimal, but is not.");
                }
-               if (Example->BinId < MnId) { printf("Example->BInId=%d; MnId=%d\n", Example->BinId.Val, MnId); }
-               EAssertR(Example->BinId >= MnId, "I knew it!");
-               if (Example->BinId < MnId) { return false; }
+               if (Example->BinId < MnId) {
+                  printf("Ex->BinId=%d; MnId=%d\n", Example->BinId.Val, MnId);
+               }
+               EAssertR(Example->BinId >= MnId, "Ex->BinId < MnId");
             }
          }
-         if (!IsLeaf(CrrNode) && !Sacrificed(CrrNode, Example) && CrrNode->Id <= Example->LeafId) {
+         if (!IsLeaf(CrrNode) && !Sacrificed(CrrNode, Example) &&
+            CrrNode->Id <= Example->LeafId) {
             PNode TmpNode = GetNextNode(CrrNode, Example);
-            // EAssertR(TmpNode->Id <= Example->LeafId, "Oops: LeafId's don't work either.");
+            // EAssertR(TmpNode->Id <= Example->LeafId, "Node-Id>Ex->LeafId.");
             NodeS.Push(TmpNode);
             for (auto It = CrrNode->AltTreesV.BegI();
                It != CrrNode->AltTreesV.EndI(); ++It) {
@@ -1328,7 +1375,6 @@ namespace THoeffding {
             }
          }
       }
-      return true;
    }
    void THoeffdingTree::ProcessCls(PExample Example) {
       Example->SetId(IdGen->GetNextExampleId());
@@ -1350,7 +1396,7 @@ namespace THoeffding {
          while (!NodeS.Empty()) {
             CrrNode = NodeS.Top(); NodeS.Pop();
             // If an internal node sacrifices Example, it is possible 
-            // it has higher ID than eveyrone except its siblings 
+            // it has higher ID than everyone except its siblings 
             MxId = TMath::Mx<int>(MxId, CrrNode->Id);
             if (IsLeaf(CrrNode)) { // Leaf node
                // ProcessLeafCls also increments counts 

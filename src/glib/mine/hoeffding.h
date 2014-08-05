@@ -678,7 +678,8 @@ namespace THoeffding {
       void CheckSplitValidityCls();
       void ForgetCls(PExample Example) const; // Classification 
       void ProcessLeafReg(PNode Leaf, PExample Example); // Regression 
-      bool Debug_CheckInvariant(PExample Example) const;
+      void Debug_Finalize();
+      void Debug_CheckInvariant(PExample Example) const; 
       void ProcessLeafCls(PNode Leaf, PExample Example); // Classification 
       void SelfEval(PNode Node, PExample Example) const;
       bool TestMode(PNode Node);

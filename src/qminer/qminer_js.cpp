@@ -2276,6 +2276,10 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	
+	// TODO: Remove this when you're done debugging 
+	JsHoeffdingTree->HoeffdingTree->Debug_Finalize();
+	
 	if (Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
 		TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
