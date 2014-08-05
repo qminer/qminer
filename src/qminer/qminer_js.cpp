@@ -4405,7 +4405,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
     const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
-    const int MxTime = 1000 * SvmParamVal->GetObjInt("maxTime", 600);
+	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
 	PNotify Notify = TEnv::Logger;
 	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
@@ -4457,7 +4457,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
     const double SvmEps = SvmParamVal->GetObjNum("eps", 1.0);
     const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
-    const int MxTime = 1000 * SvmParamVal->GetObjInt("maxTime", 600);
+	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
 	PNotify Notify = TEnv::Logger;
 	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
