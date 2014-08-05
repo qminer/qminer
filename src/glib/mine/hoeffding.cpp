@@ -940,7 +940,7 @@ namespace THoeffding {
          } else { // Numeric attribute 
             const double Val = Example->AttributesV.GetVal(
                CrrNode->CndAttrIdx).Num;
-            const int Idx = Val <= CrrNode->Val;
+            const int Idx = Val <= CrrNode->Val ? 0 : 1;
             CrrNode = CrrNode->ChildrenV.GetVal(Idx);
          }
       }
@@ -1192,16 +1192,21 @@ namespace THoeffding {
    void THoeffdingTree::ProcessLeafCls(PNode Leaf, PExample Example) {
       const int AttrsN = Example->AttributesV.Len();
       IncCounts(Leaf, Example);
+      const double H = Leaf->ComputeEntropy();
       // TODO: The constant 0.65 is hard-coded. 
-      if (Leaf->ExamplesN % GracePeriod == 0 &&
-         Leaf->ComputeEntropy() > 0.65) {
+      if (Leaf->ExamplesN % GracePeriod == 0 && H > 0.65) {
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          const double EstG = SplitAttr.Val3;
          const double Eps = Leaf->ComputeTreshold(
             SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
-         if (SplitAttr.Val1.Val1 != -1 &&
-            (EstG > Eps || (EstG <= Eps && Eps < TieBreaking))) {
-            Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
+         if (SplitAttr.Val1.Val1 != -1) {
+            // preprunning [Hulten et al., 2001] 
+            if (EstG - 2*H > Eps || (EstG < Eps && Eps < TieBreaking)) {
+               return;
+            }
+            if ((EstG > Eps || (EstG <= Eps && Eps < TieBreaking))) {
+               Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
+            }
          }
       }
    }
@@ -1322,11 +1327,31 @@ namespace THoeffding {
       PNode CrrNode = Root;
       NodeS.Push(CrrNode);
       while (!NodeS.Empty()) {
-         CrrNode = NodeS.Top();
+         CrrNode = NodeS.Top(); NodeS.Pop();
          // Check counts 
          EAssertR(CrrNode->ExamplesN == 0, "ExamplesN != 0");
-         // TODO: Make sure that for each triple (i, j, k) we
-         // have Counts[(i, j, k)] == 0. 
+         for (int AttrN = 0; AttrN < AttrManV.Len()-1; ++AttrN) {
+            switch (AttrManV.GetVal(AttrN).Type) {
+            case atDISCRETE:
+               for (int ValN = 0;
+                  ValN < AttrManV.GetVal(AttrN).ValueV.Len(); ++ValN) {
+                  for (int LabelN = 0;
+                     LabelN < AttrManV.Last().ValueV.Len(); ++LabelN) {
+                     TTriple<TInt, TInt, TInt> Idx(AttrN, ValN, LabelN);
+                     EAssertR(CrrNode->Counts.IsKey(Idx) &&
+                        CrrNode->Counts.GetDat(Idx) == 0, "no way");
+                  }
+               }
+               break;
+            case atCONTINUOUS:
+               for (int i = 0; i < CrrNode->HistH.Len(); ++i) {
+                  CrrNode->HistH.GetDat(AttrN).Debug_Check();
+               }
+               break;
+            default:
+               EFailR("Unknown attribute type");
+            }
+         }
          if (!IsLeaf(CrrNode)) {
             for (auto It = CrrNode->ChildrenV.BegI();
                It != CrrNode->ChildrenV.EndI(); ++It) {

@@ -370,6 +370,16 @@ namespace THoeffding {
       double GiniGain(double& SpltVal) const; // Classification 
       double StdGain(double& SpltVal) const; // Regression 
       
+      // Make sure counters were reset 
+      void Debug_Check() const {
+         for (auto It = BinsV.BegI(); It != BinsV.EndI(); ++It) {
+            EAssertR(It->Count == 0, "Count>0");
+            for (int i = 0; i < It->PartitionV.Len(); ++i) {
+               EAssertR(It->PartitionV.GetVal(i) == 0, "Label not OK.");
+            }
+         }
+      }
+      
       TBinV BinsV;
       
       void Print() const;
@@ -720,6 +730,9 @@ namespace THoeffding {
          return AttrManV.GetVal(Node->CndAttrIdx).Nm.CStr();
       }
       inline TStr GetNodeValueNm(PNode Node, const int& ChildN) const {
+         EAssertR(Node->CndAttrIdx >= 0 &&
+            Node->CndAttrIdx < AttrManV.Len()-1,
+            "Attribute index out of bouds.");
          EAssertR(ChildN >= 0, "Can't have negative number of children.");
          return AttrManV.GetVal(Node->CndAttrIdx).InvAttrH.GetDat(ChildN);
       }
@@ -732,6 +745,7 @@ namespace THoeffding {
       // Print example in human-readable form 
       void Print(PExample Example) const; 
       void SetAdaptive(const bool& DriftP) { ConceptDriftP = DriftP; }
+      bool IsAdaptive() const { return ConceptDriftP; }
       static bool Sacrificed(PNode Node, PExample Example) {
          return Node->SeenH.IsKey(*Example) &&
             Node->SeenH.GetDat(*Example) > 0;

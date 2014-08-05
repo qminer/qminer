@@ -2278,7 +2278,9 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	
 	// TODO: Remove this when you're done debugging 
-	JsHoeffdingTree->HoeffdingTree->Debug_Finalize();
+	// if (JsHoeffdingTree->HoeffdingTree->IsAdaptive()) {
+	//   JsHoeffdingTree->HoeffdingTree->Debug_Finalize();
+	// }
 	
 	if (Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
