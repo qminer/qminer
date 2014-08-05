@@ -93,7 +93,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         (UnbalanceWgt / SamplingRatio - UnbalanceWgt));
     
     TTmTimer Timer(MxMSecs); int Iters = 0; double Diff = 1.0;
-    Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, MxMSecs /1000.0, MnDiff);
+    Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, (double)MxMSecs /1000.0, MnDiff);
     // initialize profiler    
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
@@ -103,7 +103,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     // function for writing progress reports
     auto ProgressNotify = [&]() {
         Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g", 
-            Iters, Timer.GetStopWatch().GetSec(), Diff);
+            Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff);
     };
        
     for (int IterN = 0; IterN < MxIter; IterN++) {
@@ -148,7 +148,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         Iters++;
         // check stopping criteria with respect to time
         if (Timer.IsTimeUp()) {
-            Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", MxMSecs / 1000.0);
+            Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)MxMSecs / 1000.0);
             break; 
         }
         // check stopping criteria with respect to result difference
@@ -192,7 +192,7 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
     TFltV NewWgtV(Dims);
 
     TTmTimer Timer(MxMSecs); int Iters = 0; double Diff = 1.0;
-    Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, MxMSecs / 1000.0, MnDiff);
+    Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, (double)MxMSecs / 1000.0, MnDiff);
     // initialize profiler    
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
@@ -202,7 +202,7 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
     // function for writing progress reports
     auto ProgressNotify = [&]() {
         Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g", 
-            Iters, Timer.GetStopWatch().GetSec(), Diff);
+            Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff);
     };
        
     for (int IterN = 0; IterN < MxIter; IterN++) {
@@ -251,7 +251,7 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
         Iters++;
         // check stopping criteria with respect to time
         if (Timer.IsTimeUp()) {
-            Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", MxMSecs / 1000.0);
+            Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)MxMSecs / 1000.0);
             break; 
         }
         // check stopping criteria with respect to result difference
