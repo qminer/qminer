@@ -52,8 +52,8 @@ TimeSeries.addTrigger({
 		assert.exists(val, "onAdd: val");
 		assert.exists(val.Time, "onAdd: val.Time");
 		assert.exists(val.Value, "onAdd: val.Value");
-		assert.exists(TimeSeries.getStreamAggr("tick"), 'TimeSeries.getStreamAggr("tick")');
-		assert.exists(TimeSeries.getStreamAggr("emaTick"), 'TimeSeries.getStreamAggr("emaTick")');
+		assert.exists(TimeSeries.getStreamAggr("tick").val, 'TimeSeries.getStreamAggr("tick").val');
+		assert.exists(TimeSeries.getStreamAggr("emaTick").val, 'TimeSeries.getStreamAggr("emaTick").val');
 		TimeSeriesAdd = TimeSeriesAdd + 1; 
 	}
 });
@@ -63,11 +63,11 @@ Resampled.addTrigger({
 		assert.exists(val, "onAdd: val");
 		assert.exists(val.Time, "onAdd: val.Time");
 		assert.exists(val.Value, "onAdd: val.Value");
-		assert.exists(Resampled.getStreamAggr("tick"), 'Resampled.getStreamAggr("tick")');
-		assert.exists(Resampled.getStreamAggr("emaTick"), 'Resampled.getStreamAggr("emaTick")');
-		Resampled.add({ $id: val.$id, Ema: Resampled.getStreamAggr("emaTick").EMA });
-		//1: val.Ema = Resampled.getStreamAggr("emaTick").EMA;
-		//2: val.Ema = Resampled.streamAggr.emaTick.EMA;
+		assert.exists(Resampled.getStreamAggr("tick").val, 'Resampled.getStreamAggr("tick").val');
+		assert.exists(Resampled.getStreamAggr("emaTick").val, 'Resampled.getStreamAggr("emaTick").val');
+		Resampled.add({ $id: val.$id, Ema: Resampled.getStreamAggr("emaTick").val.EMA });
+		//1: val.Ema = Resampled.getStreamAggr("emaTick").val.EMA;
+		//2: val.Ema = Resampled.streamAggr.emaTick.val.EMA;
 		ResampledAdd = ResampledAdd + 1; 
 	}
 });
