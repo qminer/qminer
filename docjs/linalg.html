@@ -297,7 +297,28 @@ Create a random initial vector</p>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> x0 = la.genRandomVector(<span class="hljs-number">3</span>);
 <span class="hljs-keyword">var</span> x3 = la.conjgrad(A.sparse(), b, x0); <span class="hljs-comment">// convert A to a sparse matrix and test the CG method</span>
-console.say(<span class="hljs-string">"||x3 - x2|| = "</span> + x3.minus(x2).norm());
+console.say(<span class="hljs-string">"||x3 - x2|| = "</span> + x3.minus(x2).norm());</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Inverse matrix with SVD</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> C = la.newMat({ <span class="hljs-string">"rows"</span>: <span class="hljs-number">3</span>, <span class="hljs-string">"cols"</span>: <span class="hljs-number">3</span>, <span class="hljs-string">"random"</span>: <span class="hljs-literal">true</span> });
+<span class="hljs-keyword">var</span> I = la.newMat({ <span class="hljs-string">"cols"</span>: C.cols, <span class="hljs-string">"rows"</span>: C.rows });
+I = la.inverseSVD(C);
+<span class="hljs-keyword">var</span> Identity = la.newMat(I);
+Identity = C.multiply(I);
+console.log(<span class="hljs-string">"Calculating M^{-1}. I = M * M^{-1}. Do we get an identity?"</span>);
+la.printMat(Identity);
 
 console.start();</pre></div></div>
             
