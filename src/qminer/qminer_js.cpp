@@ -2101,27 +2101,19 @@ v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet = JsRecSet->RecSet;
-
 	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
-
 	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
-
 	// iterate through the recset
 	const uint64 Recs = RecSet->GetRecs();
-
 	for (uint64 RecIdx = 0; RecIdx < Recs; RecIdx++) {
 		TRec Rec = RecSet->GetRec((int)RecIdx);
-
 		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq((int)RecIdx));
 		v8::Handle<v8::Value> IdxArg = v8::Integer::New((int)RecIdx);
-
 		// execute callback
 		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
 	}
-
 	return v8::Undefined();
 }
 
