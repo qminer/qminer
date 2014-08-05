@@ -96,6 +96,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> genreFeatures = [
+        { type: <span class="hljs-string">"constant"</span>, source: <span class="hljs-string">"Movies"</span> },
         { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Title"</span> },
         { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Plot"</span> },        
         { type: <span class="hljs-string">"multinomial"</span>, source: { store: <span class="hljs-string">"Movies"</span>, join: <span class="hljs-string">"Actor"</span> }, field: <span class="hljs-string">"Name"</span> },
@@ -148,6 +149,7 @@ Since the target field is discrete the underlaying model will be based on classi
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> ratingFeatures = [
+        { type: <span class="hljs-string">"constant"</span>, source: <span class="hljs-string">"Movies"</span> },
         { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Title"</span> },
         { type: <span class="hljs-string">"text"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Plot"</span> },        
         { type: <span class="hljs-string">"multinomial"</span>, source: <span class="hljs-string">"Movies"</span>, field: <span class="hljs-string">"Genres"</span> },
@@ -284,9 +286,22 @@ console.log(<span class="hljs-built_in">JSON</span>.stringify(ratingModel.predic
         {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Wangel Hedwig"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}, 
         {<span class="hljs-string">"Name"</span>:<span class="hljs-string">"Wurtz Anneliese"</span>, <span class="hljs-string">"Gender"</span>:<span class="hljs-string">"Female"</span>}
     ]
-});
-console.log(<span class="hljs-built_in">JSON</span>.stringify(genreModel.predict(newComedyMovie)));
-console.log(<span class="hljs-built_in">JSON</span>.stringify(ratingModel.predict(newComedyMovie)) + <span class="hljs-string">" vs. "</span> + newHorrorMovie.Rating);</pre></div></div>
+});</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>console.log(JSON.stringify(genreModel.predict(newComedyMovie)));</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>console.log(<span class="hljs-built_in">JSON</span>.stringify(ratingModel.predict(newComedyMovie)) + <span class="hljs-string">" vs. "</span> + newHorrorMovie.Rating);</pre></div></div>
             
         </li>
         

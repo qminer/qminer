@@ -731,6 +731,7 @@ void TScript::Init() {
 	Execute(TEnv::QMinerFPath + "http.js");
 	Execute(TEnv::QMinerFPath + "linalg.js");
 	Execute(TEnv::QMinerFPath + "spMat.js");
+	Execute(TEnv::QMinerFPath + "store.js");
 	Execute(ScriptFNm);
 }
 
@@ -955,11 +956,14 @@ void TJsStoreTrigger::OnDelete(const TRec& Rec) {
 // QMiner-JavaScript-Stream-Aggr
 TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Js->Base, _AggrNm), Js(_Js) {
 	v8::HandleScope HandleScope;
-	if (TriggerVal->Has(v8::String::New("onAdd"))) {
-		v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
-		QmAssert(_OnAddFun->IsFunction());
-		OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
-	}
+	// Every stream aggregate should implement these two
+	QmAssertR(TriggerVal->Has(v8::String::New("onAdd")), "TJsStreamAggr constructor, name: " + _AggrNm  + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+	QmAssertR(TriggerVal->Has(v8::String::New("saveJson")), "TJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+		
+	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
+	QmAssert(_OnAddFun->IsFunction());
+	OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
+	
 	if (TriggerVal->Has(v8::String::New("onUpdate"))) {
 		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::New("onUpdate"));
 		QmAssert(_OnUpdateFun->IsFunction());
@@ -970,11 +974,10 @@ TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<
 		QmAssert(_OnDeleteFun->IsFunction());
 		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
 	}
-	if (TriggerVal->Has(v8::String::New("saveJson"))) {
-		v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
-		QmAssert(_SaveJsonFun->IsFunction());
-		SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
-	}
+	
+	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
+	QmAssert(_SaveJsonFun->IsFunction());
+	SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
 }
 
 void TJsStreamAggr::OnAddRec(const TRec& Rec) {
@@ -1066,7 +1069,9 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, search);
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
-		JsRegisterFunction(TmpTemp, addStreamAggr);
+		JsRegisterFunction(TmpTemp, newStreamAggr);
+		JsRegisterFunction(TmpTemp, getStreamAggr);
+		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1178,21 +1183,43 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 	return v8::Undefined();
 }
 
-v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
-    // parse out parameters
+	// we have only one parameter which is supposed to be object
+	QmAssertR(Args.Length() <= 2 && Args.Length() > 0, "qm.newStreamAggr expects at least one parameter");
+	QmAssertR(Args[0]->IsObject(), "qm.newStreamAggr expects object as first parameter");
+
+	PStreamAggr StreamAggr;
+
+	// parse out parameters
 	PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
-	const TStr TypeNm = ParamVal->GetObjStr("type");
-    if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-        // we have a composition of stream aggregates, delegate it forward
-        TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);		
-	} else {
-    	// create new aggregate
-        PStreamAggr Aggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+	// get aggregate type
+	TStr TypeNm = TJsBaseUtil::GetArgStr(Args, 0, "type", "javaScript");
+	// check if the aggregate is a pure javascript aggregate (js callbacks)
+	if (TypeNm == "javaScript") {
+		// we have a javascript stream aggregate
+		TStr AggrName = TJsBaseUtil::GetArgStr(Args, 0, "name", "");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		// create aggregate
+		StreamAggr = TJsStreamAggr::New(
+			JsBase->Js, AggrName, Args[0]->ToObject());
+	} else if (TypeNm == "ftrext") {
+		TStr AggrName = TJsBaseUtil::GetArgStr(Args, 0, "name", "");
+		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
+		// we need a name, if not give just generate one
+		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
+		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
+		StreamAggr = TStreamAggrs::TFtrExtAggr::New(JsBase->Base, AggrName, FtrSpace);
+	}
+	else if (TypeNm == "stmerger") {
+		// create new aggregate
+		StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 		PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 		TStrV InterpNmV;
 		QmAssertR(ParamVal->IsObjKey("fields"), "Missing argument 'fields'!");
+		// automatically register the aggregate for addRec callbacks
 		for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
 			PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
 			PJsonVal SourceVal = FieldVal->GetObjKey("source");
@@ -1204,14 +1231,146 @@ v8::Handle<v8::Value> TJsBase::addStreamAggr(const v8::Arguments& Args) {
 			else if (SourceVal->IsObj()) {
 				// get store
 				StoreNm = SourceVal->GetObjStr("store");
-				JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
-				
 			}
-			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), Aggr);
-			
+			JsBase->Base->AddStreamAggr(JsBase->Base->GetStoreByStoreNm(StoreNm)->GetStoreId(), StreamAggr);
 		}
-    }
+	}
+	else {
+		// we have a GLib stream aggregate, translate parameters to PJsonVal
+		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+		if (Args.Length() > 1 && Args[1]->IsString()) {
+			ParamVal->AddToObj("store", TJsBaseUtil::GetArgStr(Args, 1));
+		}
+		
+		// check if it's one stream aggregate or composition
+		if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
+			// we have a composition of aggregates, call code to assemble it
+			TStreamAggrs::TCompositional::Register(JsBase->Base, TypeNm, ParamVal);
+		}
+		else {
+			// create new aggregate
+			StreamAggr = TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
+		}
+	}
+	if (!TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
+		if (Args.Length() > 1) {
+			TStrV Stores(0);
+			if (Args[1]->IsString()) {
+				Stores.Add(TJsBaseUtil::GetArgStr(Args, 1));
+			}
+			if (Args[1]->IsArray()) {
+				PJsonVal StoresJson = TJsBaseUtil::GetArgJson(Args, 1);
+				QmAssertR(StoresJson->IsDef(), "qm.newStreamAggr : Args[1] should be a string (store name) or a string array (store names)");
+				StoresJson->GetArrStrV(Stores);
+			}
+			for (int StoreN = 0; StoreN < Stores.Len(); StoreN++) {
+				QmAssertR(JsBase->Base->IsStoreNm(Stores[StoreN]), "qm.newStreamAggr, Args[1] : store does not exist!");
+				JsBase->Base->AddStreamAggr(Stores[StoreN], StreamAggr);
+			}
+		}
+		else {
+			JsBase->Base->AddStreamAggr(StreamAggr);
+		}
+		// non-compositional aggregates are returned
+		return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
+	}
+	else {
+		return HandleScope.Close(v8::Null());
+	}
+}
+
+v8::Handle<v8::Value> TJsBase::getStreamAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	const TStr AggrNm = TJsBaseUtil::GetArgStr(Args, 0);
+	if (JsBase->Base->IsStreamAggr(AggrNm)) {
+		PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
+		return HandleScope.Close(TJsSA::New(JsBase->Js, StreamAggr));
+	}
 	return HandleScope.Close(v8::Null());
+}
+
+v8::Handle<v8::Value> TJsBase::getStreamAggrNames(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+	PStreamAggrBase SABase = JsBase->Base->GetStreamAggrBase();
+	int AggrId = SABase->GetFirstStreamAggrId();
+	v8::Local<v8::Array> Arr = v8::Array::New();
+	uint32 Counter = 0;
+	while (SABase->GetNextStreamAggrId(AggrId)) {
+		v8::Local<v8::String> AggrNm = v8::String::New(SABase->GetStreamAggr(AggrId)->GetAggrNm().CStr());
+		Arr->Set(Counter, AggrNm);
+		Counter++;
+	}
+	return HandleScope.Close(Arr);	
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Stream-Aggregate
+v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, name);
+		JsRegisterFunction(TmpTemp, onAdd);
+		JsRegisterFunction(TmpTemp, onUpdate);
+		JsRegisterFunction(TmpTemp, onDelete);
+		JsRegisterFunction(TmpTemp, saveJson);
+		JsRegisterProperty(TmpTemp, val);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsSA::name(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Info);
+	v8::Local<v8::String> SAName = v8::String::New(JsSA->SA->GetAggrNm().CStr());
+	return HandleScope.Close(SAName);
+}
+
+v8::Handle<v8::Value> TJsSA::onAdd(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TRec Rec = TJsRec::GetArgRec(Args, 0);
+	JsSA->SA->OnAddRec(Rec);
+	return HandleScope.Close(Args.Holder());
+}
+
+v8::Handle<v8::Value> TJsSA::onUpdate(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TRec Rec = TJsRec::GetArgRec(Args, 0);
+	JsSA->SA->OnUpdateRec(Rec);
+	return HandleScope.Close(Args.Holder());
+}
+
+v8::Handle<v8::Value> TJsSA::onDelete(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TRec Rec = TJsRec::GetArgRec(Args, 0);
+	JsSA->SA->OnDeleteRec(Rec);
+	return HandleScope.Close(Args.Holder());
+}
+
+v8::Handle<v8::Value> TJsSA::saveJson(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	const TInt Limit = TJsSAUtil::GetArgInt32(Args, 0, -1);
+	PJsonVal Json = JsSA->SA->SaveJson(Limit);
+	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
+	return HandleScope.Close(V8Json);
+}
+
+v8::Handle<v8::Value> TJsSA::val(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Info);
+	PJsonVal Json = JsSA->SA->SaveJson(-1);
+	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
+	return HandleScope.Close(V8Json);
 }
 
 ///////////////////////////////
@@ -1241,7 +1400,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
-        JsRegisterFunction(TmpTemp, addStreamAggr);
+        //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -1488,69 +1647,24 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Null());
 }
 
-
-v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-    // we have only one parameter which is supposed to be object
-    QmAssertR(Args.Length() == 1, "store.addStreamAggr expects one parameter");
-    QmAssertR(Args[0]->IsObject(), "store.addStreamAggr expects object as first parameter");	
-    // get aggregate type
-    TStr TypeNm = TJsStoreUtil::GetArgStr(Args, 0, "type", "javaScript");
-    // check if the aggregate is composed (called from composer)
-    if (TypeNm == "javaScript") {
-        // we have a javascript stream aggregate
-        TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
-        // we need a name, if not give just generate one
-        if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-        // create aggregate
-    	PStreamAggr JsStreamAggr = TJsStreamAggr::New(
-            JsStore->Js, AggrName, Args[0]->ToObject());
-        // add it to the stream base for store
-        JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), JsStreamAggr);
-	}
-	else if (TypeNm == "ftrext") {
-		TStr AggrName = TJsStoreUtil::GetArgStr(Args, 0, "name", "");
-		QmAssertR(Args[0]->ToObject()->Has(v8::String::New("featureSpace")), "addStreamAggr: featureSpace property missing!");
-		// we need a name, if not give just generate one
-		if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
-		
-		PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args[0]->ToObject()->Get(v8::String::New("featureSpace")));
-		PStreamAggr FtrStreamAggr = TStreamAggrs::TFtrExtAggr::New(JsStore->Js->Base, AggrName, FtrSpace);
-		// add it to the stream base for store
-		JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), FtrStreamAggr);
-
-	} else {
-        // we have a GLib stream aggregate, translate parameters to PJsonVal
-        PJsonVal ParamVal = TJsStoreUtil::GetArgJson(Args, 0);
-        // add store parameter
-        ParamVal->AddToObj("store", JsStore->Store->GetStoreNm());
-        // check if it's one stream aggregate or composition
-        if (TStreamAggrs::TCompositional::IsCompositional(TypeNm)) {
-            // we have a composition of aggregates, call code to assemble it
-            TStreamAggrs::TCompositional::Register(JsStore->Js->Base, TypeNm, ParamVal);
-        } else {
-            // create new aggregate
-            PStreamAggr StreamAggr = TStreamAggr::New(JsStore->Js->Base, TypeNm, ParamVal);
-            // add it to the stream base for store
-            JsStore->Js->Base->AddStreamAggr(JsStore->Store->GetStoreId(), StreamAggr);
-        }
-    }
-	return HandleScope.Close(v8::Null());
-}
+//v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
+//	v8::HandleScope HandleScope;
+//    TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+//	Args.Length
+//	v8::Handle<v8::Value> Result = TJsBase::newStreamAggr(Args);
+//	return HandleScope.Close(Result);
+//	
+//}
 
 v8::Handle<v8::Value> TJsStore::getStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-	const TStr AggrNm = TJsStoreUtil::GetArgStr(Args, 0);
-	const int Limit = TJsStoreUtil::GetArgInt32(Args, 1, 100);
-	// TODO
+	const TStr AggrNm = TJsStoreUtil::GetArgStr(Args, 0);	
     TWPt<TBase> Base = JsStore->Js->Base;
     const uint StoreId = JsStore->Store->GetStoreId();
 	if (Base->IsStreamAggr(StoreId, AggrNm)) {
         PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-		PJsonVal StreamAggrVal = StreamAggr->SaveJson(Limit);
-		return HandleScope.Close(TJsUtil::ParseJson(StreamAggrVal));
+		return HandleScope.Close(TJsSA::New(JsStore->Js, StreamAggr));
 	}
 	return HandleScope.Close(v8::Null());
 }
@@ -1811,7 +1925,7 @@ v8::Handle<v8::Value> TJsRecSet::trunc(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
 	JsRecSet->RecSet->Trunc(Recs);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sample(const v8::Arguments& Args) {
@@ -1828,14 +1942,14 @@ v8::Handle<v8::Value> TJsRecSet::shuffle(const v8::Arguments& Args) {
 	const int RndSeed = TJsRecSetUtil::GetArgInt32(Args, 0, 0);
 	TRnd Rnd(RndSeed);
 	JsRecSet->RecSet->Shuffle(Rnd);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::reverse(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	JsRecSet->RecSet->Reverse();
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sortById(const v8::Arguments& Args) {
@@ -1843,7 +1957,7 @@ v8::Handle<v8::Value> TJsRecSet::sortById(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 0, 0) > 0);
 	JsRecSet->RecSet->SortById(Asc);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sortByFq(const v8::Arguments& Args) {
@@ -1851,7 +1965,7 @@ v8::Handle<v8::Value> TJsRecSet::sortByFq(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 0, 0) > 0);
 	JsRecSet->RecSet->SortByFq(Asc);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sortByField(const v8::Arguments& Args) {
@@ -1861,7 +1975,7 @@ v8::Handle<v8::Value> TJsRecSet::sortByField(const v8::Arguments& Args) {
 	const int SortFieldId = JsRecSet->Store->GetFieldId(SortFieldNm);
 	const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 1, 0) > 0);
 	JsRecSet->RecSet->SortByField(Asc, SortFieldId);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
@@ -1870,7 +1984,7 @@ v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
     QmAssertR(Args.Length() == 1, "sort(..) expects one argument.");
     v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
 	JsRecSet->RecSet->SortCmp(TJsRecCmp(JsRecSet->Js, JsRecSet->Store, CmpFun));
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filterById(const v8::Arguments& Args) {
@@ -1895,7 +2009,7 @@ v8::Handle<v8::Value> TJsRecSet::filterById(const v8::Arguments& Args) {
         const int MxRecId = TJsRecSetUtil::GetArgInt32(Args, 1);
         JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
     }
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filterByFq(const v8::Arguments& Args) {
@@ -1904,7 +2018,7 @@ v8::Handle<v8::Value> TJsRecSet::filterByFq(const v8::Arguments& Args) {
 	const int MnFq = TJsRecSetUtil::GetArgInt32(Args, 0);
 	const int MxFq = TJsRecSetUtil::GetArgInt32(Args, 1);
 	JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filterByField(const v8::Arguments& Args) {
@@ -1941,7 +2055,7 @@ v8::Handle<v8::Value> TJsRecSet::filterByField(const v8::Arguments& Args) {
     } else {
         throw TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
     }
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
@@ -1950,7 +2064,7 @@ v8::Handle<v8::Value> TJsRecSet::filter(const v8::Arguments& Args) {
     QmAssertR(Args.Length() == 1, "filter(..) expects one argument.");
     v8::Persistent<v8::Function> FilterFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
 	JsRecSet->RecSet->FilterBy(TJsRecFilter(JsRecSet->Js, JsRecSet->Store, FilterFun));
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::split(const v8::Arguments& Args) {
@@ -1964,7 +2078,7 @@ v8::Handle<v8::Value> TJsRecSet::split(const v8::Arguments& Args) {
     for (int RecSetN = 0; RecSetN < RecSetV.Len(); RecSetN++) {
         JsRecSetV->Set(RecSetN, TJsRecSet::New(JsRecSet->Js, RecSetV[RecSetN]));
     }
-	return v8::Undefined();
+	return HandleScope.Close(JsRecSetV);
 }
 
 v8::Handle<v8::Value> TJsRecSet::deleteRecs(const v8::Arguments& Args) {
@@ -1973,7 +2087,7 @@ v8::Handle<v8::Value> TJsRecSet::deleteRecs(const v8::Arguments& Args) {
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     TUInt64Set RecIdSet; RecSet->GetRecIdSet(RecIdSet);
     JsRecSet->RecSet->RemoveRecIdSet(RecIdSet);
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
@@ -1995,28 +2109,20 @@ v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet = JsRecSet->RecSet;
-
 	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
-
 	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
-
 	// iterate through the recset
 	const uint64 Recs = RecSet->GetRecs();
-
 	for (uint64 RecIdx = 0; RecIdx < Recs; RecIdx++) {
 		TRec Rec = RecSet->GetRec((int)RecIdx);
-
 		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq((int)RecIdx));
 		v8::Handle<v8::Value> IdxArg = v8::Integer::New((int)RecIdx);
-
 		// execute callback
 		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
 	}
-
-	return v8::Undefined();
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecSet::setintersect(const v8::Arguments& Args) {
@@ -2244,7 +2350,7 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");
         v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
         TStrV StrV;
-        for (int StrN = 0; StrN < Array->Length(); StrN++) {
+        for (uint32_t StrN = 0; StrN < Array->Length(); StrN++) {
             v8::String::Utf8Value Utf8(Array->Get(StrN));
             StrV.Add(TStr(*Utf8));
         }
@@ -2314,7 +2420,7 @@ v8::Handle<v8::Value> TJsRec::addJoin(const v8::Arguments& Args) {
     // add join
     Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
 	// return
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRec::delJoin(const v8::Arguments& Args) {
@@ -2333,7 +2439,7 @@ v8::Handle<v8::Value> TJsRec::delJoin(const v8::Arguments& Args) {
     // delete join
     Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), JoinRec.GetRecId(), JoinFq);
 	// return
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
@@ -2888,7 +2994,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::normalize(const v8::Arguments& Arg
 	if (JsFltV->Vec.Len() > 0) {
 		TLinAlg::Normalize(JsFltV->Vec);
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 template <>
@@ -3021,7 +3127,7 @@ v8::Handle<v8::Value> TJsFltVV::put(const v8::Arguments& Args) {
 		TFlt Val = TJsFltVVUtil::GetArgFlt(Args, 2);
 		JsFltVV->Mat.At(Row, Col) = Val;	
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
@@ -3280,7 +3386,7 @@ v8::Handle<v8::Value> TJsFltVV::normalizeCols(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
 	TLinAlg::NormalizeColumns(JsFltVV->Mat);
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::sparse(const v8::Arguments& Args) {
@@ -3328,7 +3434,7 @@ v8::Handle<v8::Value> TJsFltVV::print(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
 	TLAMisc::PrintTFltVV(JsFltVV->Mat, "");	
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::rowMaxIdx(const v8::Arguments& Args) {
@@ -3387,7 +3493,7 @@ v8::Handle<v8::Value> TJsFltVV::setCol(const v8::Arguments& Args) {
 			JsMat->Mat.At(RowN, ColN) = JsVec->Vec[RowN];
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFltVV::getRow(const v8::Arguments& Args) {
@@ -3507,7 +3613,7 @@ v8::Handle<v8::Value> TJsSpV::put(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::sum(const v8::Arguments& Args) {
@@ -3562,7 +3668,7 @@ v8::Handle<v8::Value> TJsSpV::normalize(const v8::Arguments& Args) {
 	if (JsSpV->Vec.Len() > 0) {
 		TLinAlg::Normalize(JsSpV->Vec);
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::nnz(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -3584,7 +3690,7 @@ v8::Handle<v8::Value> TJsSpV::print(const v8::Arguments& Args) {
 	for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
 		printf("%d %f\n", JsSpV->Vec[ElN].Key.Val, JsSpV->Vec[ElN].Dat.Val);
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::norm(const v8::Arguments& Args) {
@@ -3728,7 +3834,7 @@ v8::Handle<v8::Value> TJsSpMat::put(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::indexGet(uint32_t Index, const v8::AccessorInfo& Info) {
@@ -3762,7 +3868,7 @@ v8::Handle<v8::Value> TJsSpMat::push(const v8::Arguments& Args) {
 			}
 		}
 	}
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
@@ -4036,7 +4142,7 @@ v8::Handle<v8::Value> TJsSpMat::normalizeCols(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
 	TLinAlg::NormalizeColumns(JsSpMat->Mat);
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::full(const v8::Arguments& Args) {
@@ -4079,7 +4185,7 @@ v8::Handle<v8::Value> TJsSpMat::print(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
 	TLAMisc::PrintSpMat(JsSpMat->Mat, "");
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
@@ -4089,7 +4195,7 @@ v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
 	// save to stream
 	JsSpMat->Rows.Save(*SOut);
 	JsSpMat->Mat.Save(*SOut);
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
@@ -4099,7 +4205,7 @@ v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
 	// load from stream
 	JsSpMat->Rows.Load(*SIn);
 	JsSpMat->Mat.Load(*SIn);
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -4228,8 +4334,13 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
     const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
-    const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
+	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
+	PNotify Notify = TEnv::Logger;
+	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
+	if (!Verbose) {
+		Notify = TNotify::NullNotify;
+	}
     // check what kind of input data we got and train and return the model
     try {
         if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -4240,7 +4351,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
                 TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
                     TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
                     SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
-                    TEnv::Logger));
+                    Notify));
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
             // we have dense matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
@@ -4248,7 +4359,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
                     VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
-                    MxIter, MnDiff, SampleSize, TEnv::Logger));
+					MxIter, MnDiff, SampleSize, Notify));
         } else {
             // TODO support JavaScript array of TJsFltV or TJsSpV
             throw TQmExcept::New("unsupported type of the first argument");
@@ -4275,8 +4386,13 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
     const double SvmEps = SvmParamVal->GetObjNum("eps", 1.0);
     const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
-    const int MxTime = SvmParamVal->GetObjInt("maxTime", 600);
+	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
+	PNotify Notify = TEnv::Logger;
+	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
+	if (!Verbose) {
+		Notify = TNotify::NullNotify;
+	}
     // check what kind of input data we got
     try {
         if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -4287,7 +4403,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
                 TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, 
                     TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ValV, SvmCost, 
                     SvmEps, MxTime, MxIter, MnDiff, SampleSize, 
-                    TEnv::Logger));
+					Notify));
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
             // we have dense matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
@@ -4295,7 +4411,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
             return TJsSvmModel::New(JsAnalytics->Js, 
                 TSvm::SolveRegression<TFltVV>(VecV, VecV.GetRows(),
                     VecV.GetCols(), ValV, SvmCost, SvmEps, MxTime, 
-                    MxIter, MnDiff, SampleSize, TEnv::Logger));
+					MxIter, MnDiff, SampleSize, Notify));
         } else {
             // TODO support JavaScript array of TJsFltV or TJsSpV
             throw TQmExcept::New("unsupported type of the first argument");
@@ -4564,7 +4680,7 @@ v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
     // save to stream
     JsFtrSpace->FtrSpace->Save(*SOut);
 	// return
-	return HandleScope.Close(v8::Null());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
@@ -4575,7 +4691,7 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
     // update with new records
     JsFtrSpace->FtrSpace->Update(JsRec->Rec);
 	// return
-	return HandleScope.Close(v8::Null());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
@@ -4586,7 +4702,7 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
     // update with new records
     JsFtrSpace->FtrSpace->Update(RecSet);
 	// return
-	return HandleScope.Close(v8::Null());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::finishUpdate(const v8::Arguments& Args) {
@@ -4733,7 +4849,7 @@ v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsSvmModel->Model.Save(*SOut);
 	}
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -4769,7 +4885,7 @@ v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
     // then check how we performed and learn
     JsNN->NN->BackProp(JsVecTarget->Vec);
     
-    return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
@@ -4822,7 +4938,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
     const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
     // learn
     JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::predict(const v8::Arguments& Args) {
@@ -4859,7 +4975,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::save(const v8::Arguments& Args) {
 	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 	JsModel->Model->Save(*SOut);
 
-	return HandleScope.Close(v8::Undefined());
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -5763,6 +5879,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 		JsRegisterFunction(TmpTemp, sub);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, parse);
+		JsRegisterFunction(TmpTemp, clone);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -5904,6 +6021,13 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
     TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
     // return constructed json
     return HandleScope.Close(TJsTm::New(Tm));
+}
+
+v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);
+	// return constructed json
+	return HandleScope.Close(TJsTm::New(JsTm->Tm));
 }
 
 ///////////////////////////////////////////////

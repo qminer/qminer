@@ -68,7 +68,7 @@ qm.printStreamAggr = function(store) {
 	var names = store.getStreamAggrNames();
 	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
 	for (var saggrN = 0; saggrN < names.length; saggrN++) {
-		var saggr = store.getStreamAggr(names[saggrN]);
+		var saggr = store.getStreamAggr(names[saggrN]).val;
 		var keys = Object.keys(saggr);
 		for (var keyN = 0; keyN < keys.length; keyN++) {
 			console.print(store.name + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
@@ -123,6 +123,22 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
         }
     }
 }
+
+//#- `printj(obj)` -- prints json (converts obj to json using toJSON if necessary)
+function printj(obj) {
+    try {
+        console.println(JSON.stringify(obj));
+    } catch (exception) {
+        console.println(JSON.stringify(obj.toJSON()))
+    }
+}
+
+///////////////////////////////////////// DEPRECATED
+qm.addStreamAggr = function (param) {
+    console.log("Warning: qm.addStreamAggr is deprecated 4.8.2014. Use qm.newStreamAggr");
+    return qm.newStreamAggr(param);
+}
+
 
 ///////////////////////////////////////// DEPRECATED
 function jsonp(req, res, data) {

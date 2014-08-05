@@ -26,13 +26,6 @@
 #include <v8.h>
 #include <typeinfo>
 
-// automatically start V8 debugger when in debug mode
-#ifndef NDEBUG
-    //#define V8_DEBUG
-#endif
-// uncomment when running V8 debugger in release mode
-//#define V8_DEBUG
-
 #ifdef V8_DEBUG
     // include v8 debug headers
 	#include <v8-debug.h>
@@ -1048,10 +1041,64 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
-	//# paramJSON must contain field `type` which defies the type of the aggregate
-	JsDeclareFunction(addStreamAggr);
+	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+	//#- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = qm.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `sa = qm.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = qm.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+	//#- `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	JsDeclareFunction(newStreamAggr);
+	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+	JsDeclareFunction(getStreamAggr);
+	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
+	JsDeclareFunction(getStreamAggrNames);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
+};
+
+//# 
+//# ### Stream Aggregate
+//# 
+//# Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+class TJsSA {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	/// QMiner base
+	TWPt<TStreamAggr> SA;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSA> TJsSAUtil;
+
+	TJsSA(TWPt<TScript> _Js, TWPt<TStreamAggr> _SA) : Js(_Js), SA(_SA) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStreamAggr> SA) {
+		return TJsSAUtil::New(new TJsSA(Js, SA));
+	}
+
+	~TJsSA() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `str = sa.name` -- returns the name (unique) of the stream aggregate
+	JsDeclareProperty(name);
+	//#- `sa = sa.onAdd(rec)` -- executes onAdd function given an input record `rec` and returns self
+	JsDeclareFunction(onAdd);
+	//#- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
+	JsDeclareFunction(onUpdate);
+	//#- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
+	JsDeclareFunction(onDelete);
+	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+	JsDeclareFunction(saveJson);
+	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
+	JsDeclareProperty(val);
 };
 
 ///////////////////////////////
@@ -1075,8 +1122,11 @@ private:
 
 	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
-		return TJsStoreUtil::New(new TJsStore(Js, Store)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
+		return TJsStoreUtil::New(new TJsStore(Js, Store), Js, "qm.storeProto");
+	}
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
+		return TJsStoreUtil::New(new TJsStore(Js, Store)); }*/
 	~TJsStore() { }
 
 	// template
@@ -1127,16 +1177,13 @@ public:
     //#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
     //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addTrigger);
-	//#- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-	//#- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-	//#- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
-    JsDeclareFunction(addStreamAggr);
-    //#- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
+	JsDeclareFunction(addTrigger);	
+    //#- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	JsDeclareFunction(getStreamAggr);
-	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
+	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
-    
+	//#JSIMPLEMENT:src/qminer/store.js
+
     //# 
     //# **Examples**:
     //# 
@@ -1198,7 +1245,7 @@ public:
 	JsDeclareProperty(store);
     //#- `rec = iter.rec` -- get current record
 	JsDeclareProperty(rec);
-    //#- 'is_more = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+    //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
     JsDeclareFunction(next);
 };
 
@@ -1302,39 +1349,39 @@ public:
 	//#- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
 	//#- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
-	//#- `rs.trunc(num)` -- truncate to first `num` record. Inplace operation.
+	//#- `rs = rs.trunc(num)` -- truncate to first `num` record and return self.
 	JsDeclareFunction(trunc);
 	//#- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	JsDeclareFunction(sample);
-	//#- `rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Inplace operation.
+	//#- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
 	JsDeclareFunction(shuffle);
-	//#- `rs.reverse()` -- reverse record order. Inplace operation.
+	//#- `rs = rs.reverse()` -- reverse record order. Returns self.
 	JsDeclareFunction(reverse);
-	//#- `rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.
+	//#- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortById);
-	//#- `rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.
+	//#- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByFq);
-	//#- `rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.
+	//#- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByField);
-	//#- `rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.
+	//#- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
    	JsDeclareFunction(sort);
-	//#- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Inplace operation.
+	//#- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
 	JsDeclareFunction(filterById);
-	//#- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Inplace operation.
+	//#- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
 	JsDeclareFunction(filterByFq);
-	//#- `rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.
-	//#- `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
-	//#- `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
+	//#- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
 	JsDeclareFunction(filterByField);
-	//#- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
+	//#- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
 	JsDeclareFunction(filter);
 	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
    	JsDeclareFunction(split);
-    //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
+    //#- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:
+	//#- `rs = rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:
 	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(map);
 	//#- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
@@ -1400,11 +1447,11 @@ public:
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
-    //#- `rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string)
-    //#- `rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+    //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
+    //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
-    //#- `rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string)
-    //#- `rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`
+    //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
+    //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
     //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
     JsDeclareFunction(toJSON);
@@ -1588,8 +1635,8 @@ public:
 	JsDeclareFunction(subVec);
 	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
-	//#- `intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)
+	//#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
+	//#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
 	JsDeclareFunction(put);	
 	//#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
 	//#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
@@ -1597,8 +1644,8 @@ public:
 	//#- `len = vec.unshift(num)` -- insert value `num` to the begining of vector `vec`. Returns the length of the modified array.
 	//#- `len = intVec.unshift(num)` -- insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.
 	JsDeclareFunction(unshift);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
-	//#- `intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
+	//#- `len = vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
+	//#- `len = intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
 	JsDeclareTemplatedFunction(pushV);
 	//#- `num = vec.sum()` -- return `num`: the sum of elements of vector `vec`
 	//#- `num = intVec.sum()` -- return `num`: the sum of elements of integer vector `intVec`
@@ -1621,13 +1668,13 @@ public:
 	JsDeclareTemplatedFunction(minus);
 	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(multiply);
-	//#- `vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.
+	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
 	//#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
 	JsDeclareProperty(length);
-	//#- `vec.print()` -- print vector in console
-	//#- `intVec.print()` -- print integer vector in console
+	//#- `vec = vec.print()` -- print vector in console. Returns self.
+	//#- `intVec = intVec.print()` -- print integer vector in console. Returns self.
 	JsDeclareFunction(print);
 	//#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(diag);
@@ -1743,7 +1790,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::put(const v8::Arguments& Args) {
 		QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector put: index out of bounds");		
 		JsVec->Vec[Index] = Val;
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 template <class TVal, class TAux>
@@ -1840,7 +1887,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
 		printf("%s ", JsVec->Vec[ElN].GetStr().CStr());		
 	}
 	printf("\n");	
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -1891,7 +1938,7 @@ public:
 	//# 
 	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
-	//#- `mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
 	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
 	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
@@ -1917,7 +1964,7 @@ public:
 	JsDeclareFunction(rowNorms);
 	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
-	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
+	//#- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
 	JsDeclareFunction(normalizeCols);
 	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
@@ -1929,7 +1976,7 @@ public:
 	JsDeclareProperty(cols);
 	//#- `str = mat.printStr()` -- print matrix `mat` to a string `str`
 	JsDeclareFunction(printStr);
-	//#- `mat.print()` -- print matrix `mat` to console
+	//#- `mat = mat.print()` -- print matrix `mat` to console. Returns self.
 	JsDeclareFunction(print);
 	//#- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
 	JsDeclareFunction(rowMaxIdx);
@@ -1937,7 +1984,7 @@ public:
 	JsDeclareFunction(colMaxIdx);
 	//#- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
 	JsDeclareFunction(getCol);
-	//#- `mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.
+	//#- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
 	JsDeclareFunction(setCol);
 	//#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 	JsDeclareFunction(getRow);
@@ -2005,7 +2052,7 @@ public:
 	//# 
 	//#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	JsDeclareFunction(at);	
-	//#- `spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing
+	//#- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
 	JsDeclareFunction(put);		
 	//#- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
 	JsDeclareFunction(sum);	
@@ -2014,13 +2061,13 @@ public:
 	JsDeclareFunction(inner);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- `spVec.normalize()` -- normalizes the vector spVec (inplace operation)
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
 	JsDeclareFunction(normalize);
 	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 	JsDeclareProperty(nnz);	
 	//#- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
 	JsDeclareProperty(dim);	
-	//#- `spVec.print()` -- prints the vector to console
+	//#- `spVec = spVec.print()` -- prints the vector to console. Return self.
 	JsDeclareFunction(print);
 	//#- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
 	JsDeclareFunction(norm);
@@ -2099,11 +2146,11 @@ public:
 	//# 
 	//#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
-	//#- `spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+	//#- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
 	//#- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)
+	//#- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
 	JsDeclareFunction(push);
 	//#- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
 	//#- `vec2 = spMat.multiply(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
@@ -2125,7 +2172,7 @@ public:
 	JsDeclareFunction(transpose);	
 	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
-	//#- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
+	//#- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
 	JsDeclareFunction(normalizeCols);
 	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
 	JsDeclareFunction(full);
@@ -2135,11 +2182,11 @@ public:
 	JsDeclareProperty(rows);
 	//#- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 	JsDeclareProperty(cols);
-	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
+	//#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
 	JsDeclareFunction(print);
-	//#- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
+	//#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
-	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.
+	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
@@ -2263,14 +2310,14 @@ public:
 	//#     
     //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `fsp.save(fout)` -- serialize feature space to `fout` output stream
+    //#- `fsp = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns self.
     JsDeclareFunction(save);
-    //#- `fsp.updateRecord(rec)` -- update feature space definitions and extractors
-    //#     by exposing them to record `rec`. For example, this can update the vocabulary
+    //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
-    //#     by exposing them to records from record set `rs`. For example, this can update 
+    //#- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
+    //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate); // deprecated
@@ -2326,7 +2373,7 @@ public:
 	JsDeclareFunction(predict);
     //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);   
-    //#- `svmModel.save(fout)` -- saves model to output stream `fout`
+    //#- `svmModel = svmModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
 };
 
@@ -2354,7 +2401,7 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-	//#- `nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.
+	//#- `nnModel = nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation. Returns self.
 	JsDeclareFunction(learn);
     //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 	JsDeclareFunction(predict);
@@ -2383,7 +2430,7 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data
+    //#- `recLinRegModel = recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
 	JsDeclareFunction(learn);
     //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the 
     //#     model and returns the prediction as a real number `num`
@@ -2392,7 +2439,7 @@ public:
 	JsDeclareProperty(weights);
     //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
-	//#- `recLinRegModel.save(fout)` -- saves model to output stream `fout`
+	//#- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
 };
 
@@ -2454,14 +2501,14 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-	//#- `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
-	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
+	//#- `htModel = htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns self.
 	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
 	JsDeclareFunction(process);
 	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
 	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
-	//#- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
+	//#- `htModel = htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);
 };
@@ -2913,16 +2960,18 @@ public:
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
     JsDeclareProperty(nowUTC);    
-    //#- `tm2 = tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
     //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(add);
-    //#- `tm2 = tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(sub); 
     //#- `tmJSON = tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
+	JsDeclareFunction(clone);
 };
 //#
 //# ## Other libraries

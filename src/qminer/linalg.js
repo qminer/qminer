@@ -271,6 +271,37 @@ la.saveMat = function(X, fout) {
     //outFile.flush();
 };
 
+//#- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
+la.inverseSVD = function (mat) {
+    var k = Math.min(mat.rows, mat.cols);
+    var svdRes = la.svd(mat, k, { "iter": 10, "tol": 1E-15 });  // returns U, s and V
+    var B = la.newMat({ "cols": mat.cols, "rows": mat.rows });
+
+    // http://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Singular_value_decomposition_.28SVD.29
+    var tol = 1E-16 * Math.max(mat.cols, mat.rows) * svdRes.s.at(svdRes.s.getMaxIdx());
+    
+    // calculate reciprocal values for diagonal matrix = inverse diagonal
+    for (i = 0; i < svdRes.s.length; i++) {
+        if (svdRes.s.at(i) > tol) svdRes.s.put(i, 1 / svdRes.s.at(i));
+        else svdRes.s.put(0);
+    }
+        
+    var sum;
+
+    for (i = 0; i < svdRes.U.cols; i++) {
+        for (j = 0; j < svdRes.V.rows; j++) {
+            sum = 0;
+            for (k = 0; k < svdRes.U.cols; k++) {
+                if (svdRes.s.at(k) != 0) {
+                    sum += svdRes.s.at(k) * svdRes.V.at(i, k) * svdRes.U.at(j, k);
+                }
+            }
+            B.put(i, j, sum);           
+        }
+    }
+    return B;
+}
+
 //#- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
 //#- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
 la.conjgrad = function (A, b, x) {

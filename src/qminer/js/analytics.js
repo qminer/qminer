@@ -900,3 +900,140 @@ exports.kNearestNeighbors = function (k, buffer, power) {
         return la.copyFltArrayToVec(targetVec);
     }
 }
+
+
+/////////// Kalman Filter
+//#- `kf = analytics.newKalmanFilter(dynamParams, measureParams, controlParams)` -- the Kalman filter initialization procedure
+//#   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
+//#   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
+//#   specified model) and correction. The following functions are exposed:
+exports.newKalmanFilter = function (dim, use_bias) {
+    return new analytics.kalmanFilter(dim, use_bias);
+}
+exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
+    var CP = controlParams;
+    var MP = measureParams;
+    var DP = dynamParams;
+
+    // CP should be >= 0
+    CP = Math.max(CP, 0);
+
+    var statePre = la.newVec({ "vals": DP, "mxvals": DP }); // prior state vector (after prediction and before measurement update)
+    var statePost = la.newVec({ "vals": DP, "mxvals": DP }); // post state vector (after measurement update)
+    var transitionMatrix = la.newMat({ "cols": DP, "rows": DP }); // transition matrix (model)
+
+    var processNoiseCov = la.newMat({ "cols": DP, "rows": DP }); // process noise covariance
+    var measurementMatrix = la.newMat({ "cols": DP, "rows": MP }); // measurement matrix
+    var measurementNoiseCov = la.newMat({ "cols": MP, "rows": MP }); // measurement noise covariance
+     
+    var errorCovPre = la.newMat({ "cols": DP, "rows": DP }); // error covariance after prediction
+    var errorCovPost = la.newMat({ "cols": DP, "rows": DP }); // error covariance after update
+    var gain = la.newMat({ "cols": MP, "rows": DP }); 
+
+    var controlMatrix;
+
+    if (CP > 0)
+        controlMatrix = la.newMat({ "cols": CP, "rows": DP }); // control matrix
+
+    // temporary matrices used for calculation
+    var temp1VV = la.newMat({ "cols": DP, "rows": DP });
+    var temp2VV = la.newMat({ "cols": DP, "rows": MP });
+    var temp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var itemp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var temp4VV = la.newMat({ "cols": DP, "rows": MP });
+
+    var temp1V = la.newVec();
+    var temp2V = la.newVec();
+
+    //#   - `kf.setStatePost(_val)` -- sets the post state (DP) vector.
+    this.setStatePost = function (_statePost) {
+        statePost = _statePost;
+    };
+
+    //#   - `kf.setTransitionMatrix(_val)` -- sets the transition (DP x DP) matrix.
+    this.setTransitionMatrix = function (_transitionMatrix) {
+        transitionMatrix = _transitionMatrix;
+    };
+
+    //#   - `kf.setMeasurementMatrix(_val)` -- sets the measurement (MP x DP) matrix.
+    this.setMeasurementMatrix = function (_measurementMatrix) {
+        measurementMatrix = _measurementMatrix;
+    };
+
+    //#   - `kf.setProcessNoiseCovPost(_val)` -- sets the process noise covariance (DP x DP) matrix.
+    this.setProcessNoiseCov = function (_processNoiseCov) {
+        processNoiseCov = _processNoiseCov;
+    }
+
+    //#   - `kf.setMeasurementNoiseCov(_val)` -- sets the measurement noise covariance (MP x MP) matrix.
+    this.setMeasurementNoiseCov = function (_measurementNoiseCov) {
+        measurementNoiseCov = _measurementNoiseCov;
+    }
+
+    //#   - `kf.setErrorCovPre(_val)` -- sets the pre error covariance (DP x DP) matrix.
+    this.setErrorCovPre = function (_errorCovPre) {
+        errorCovPre = _errorCovPre;
+    }
+
+    //#   - `kf.setErrorCovPost(_val)` -- sets the post error covariance (DP x DP) matrix.
+    this.setErrorCovPost = function (_errorCovPost) {
+        errorCovPost = _errorCovPost;
+    }
+
+    //#   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+    this.setControlMatrix = function (_controlMatrix) {
+        controlMatrix = _controlMatrix;
+    }
+
+    //#   - `statePre = kf.predict(control)` -- returns a predicted state vector `statePre` where `control` is the control vector (normally not set).
+    this.predict = function (control) {
+        // update the state: x'(k) = A * x(k)
+        statePre = transitionMatrix.multiply(statePost);
+
+        // x'(k) = x'(k) + B * u(k)
+        if (control.length) {
+            temp1V = controlMatrix.multiply(control);
+            temp2V = statePre.plus(temp1V);
+        }
+
+        // update error covariance matrices: temp1 = A * P(k)
+        temp1VV = transitionMatrix.multiply(errorCovPost);
+
+        // P'(k) = temp1 * At + Q
+        errorCovPre = temp1VV.multiply(transitionMatrix.transpose()).plus(processNoiseCov);
+
+        // return statePre
+        return statePre;
+    };
+
+    //#   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+    this.correct = function (measurement) {
+        // temp2 = H * P'(k)
+        temp2VV = measurementMatrix.multiply(errorCovPre);
+        
+        // temp3 = temp2 * Ht + R
+        temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
+
+        // temp4 = inv(temp3) * temp2 = Kt(k)
+        itemp3VV = la.inverseSVD(temp3VV);
+        temp4VV = itemp3VV.multiply(temp2VV);
+
+        // K(k)
+        gain = temp4VV.transpose();
+
+        // temp2V = z(k) - H*x'(k)
+        temp1V = measurementMatrix.multiply(statePre);
+        temp2V = measurement.minus(temp1V);
+
+        // x(k) = x'(k) + K(k) * temp2V
+        temp1V = gain.multiply(temp2V);     
+        statePost = statePre.plus(temp1V);
+
+        // P(k) = P'(k) - K(k) * temp2
+        errorCovPost = errorCovPre.minus(gain.multiply(temp2VV));
+
+        // return statePost
+        return statePost;
+    };
+
+};

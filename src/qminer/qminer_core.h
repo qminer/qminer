@@ -2597,6 +2597,8 @@ private:
     THash<TStr, PStore> StoreH;
 	// stream aggregate base for each store
     TVec<PStreamAggrBase> StreamAggrBaseV;
+	// default stream aggregate base (store independent)
+	PStreamAggrBase StreamAggrDefaultBase;
 	// operators
 	THash<TStr, POp> OpH;
 
@@ -2653,13 +2655,17 @@ public:
 
 	// stream aggregates
 	const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
+	const PStreamAggrBase& GetStreamAggrBase() const;
 	bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
+	bool IsStreamAggr(const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
+	const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
 	void AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const PStreamAggr& StreamAggr);
     // aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 
