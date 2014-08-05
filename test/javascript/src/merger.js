@@ -66,7 +66,7 @@ function testMerger() {
        }
     ]);
 
-    qm.addStreamAggr({
+    qm.newStreamAggr({
         type: 'stmerger',
         name: 'blabla',
         outStore: 'joined',
@@ -201,7 +201,7 @@ function testMerger() {
         }
     ]);
 
-    qm.addStreamAggr({
+    qm.newStreamAggr({
         type: 'stmerger',
         name: 'blabla1',
         outStore: 'joined1',
@@ -305,7 +305,7 @@ function testMerger() {
         }
     ]);
 
-    qm.addStreamAggr({
+    qm.newStreamAggr({
         type: 'stmerger',
         name: 'blabla2',
         outStore: 'joined11',

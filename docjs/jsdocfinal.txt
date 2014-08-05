@@ -1,6 +1,4 @@
 
-define V8_DEBUG
-define V8_DEBUG
 QMiner functionality is accessible through a JavaScript API. The JavaScript environment
 is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
 The API includes a simple HTTP server with RESTful web-service support for defining
@@ -64,8 +62,16 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
   and returns a record set `rs` with results
 - `qm.gc()` -- start garbage collection to remove records outside time windows
-- `qm.addStreamAggr(paramJSON)` -- add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon
-paramJSON must contain field `type` which defies the type of the aggregate
+- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+- `sa = qm.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+- `sa = qm.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+- `sa = qm.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+- `sa = qm.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+- `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+- `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 - `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
@@ -77,6 +83,19 @@ paramJSON must contain field `type` which defies the type of the aggregate
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
+
+### Stream Aggregate
+
+Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+
+**Functions and properties:**
+
+- `str = sa.name` -- returns the name (unique) of the stream aggregate
+- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+- `objJSON = sa.val` -- same as sa.saveJson(-1)
 
 ### Store
 
@@ -95,7 +114,8 @@ var record = store[1234];
 - `rs = store.recs` -- create a record set containing all the records from the store
 - `objArr = store.fields` -- array of all the field descriptor JSON objects
 - `objArr = store.joins` -- array of all the join names
-- `objArr = store.keys` -- array of all the [index keys](#index-key) objects
+- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+- `iter = store.iter` -- returns iterator for iterating over the store
 - `rec = store[recId]` -- get record with ID `recId`; 
     returns `null` when no such record exists
 - `rec = store.rec(recName)` -- get record named `recName`; 
@@ -108,11 +128,10 @@ var record = store[1234];
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-- `store.addStreamAggr(funObj)` -- add new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-- `store.addStreamAggr(ftrExtObj)` -- add new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-- `store.addStreamAggr(paramJSON)` -- add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object
-- `objJSON = store.getStreamAggr(saName)` -- returns current JSON value of stream aggregate `saName`
-- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `strArr`
+- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
+- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
+- `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
+- `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 
 **Examples**:
 
@@ -141,6 +160,15 @@ for (var i = 0; i < rs.length; i++) {
   console.log(rec.Name + " (" + rec.Gender + ")");
 }
 ```    
+
+### Store iterator
+
+
+**Functions and properties:**
+  
+- `store = iter.store` -- get the store
+- `rec = iter.rec` -- get current record
+- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
 
 ### Record set
 

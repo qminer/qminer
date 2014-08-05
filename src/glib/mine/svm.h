@@ -163,7 +163,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     }
     
     ProgressNotify();
-    Profiler.PrintReport();
+    Profiler.PrintReport(Notify);
             
     return TLinModel(WgtV);
 }
@@ -265,7 +265,8 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
     }
     
     ProgressNotify();
-    Profiler.PrintReport();
+	
+    Profiler.PrintReport(Notify);
             
     return TLinModel(WgtV);
 }

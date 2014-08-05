@@ -66,5 +66,8 @@
     <None Include="src\qminer\spMat.js">
       <Filter>javascript</Filter>
     </None>
+    <None Include="src\qminer\store.js">
+      <Filter>javascript</Filter>
+    </None>
   </ItemGroup>
 </Project>
