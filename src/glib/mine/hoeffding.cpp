@@ -1200,8 +1200,11 @@ namespace THoeffding {
          const double Eps = Leaf->ComputeTreshold(
             SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
          if (SplitAttr.Val1.Val1 != -1) {
+            // information gain of the best attribute 
+            const double IG1 = SplitAttr.Val1.Val2;
             // preprunning [Hulten et al., 2001] 
-            if (EstG - 2*H > Eps || (EstG < Eps && Eps < TieBreaking)) {
+            // Note that (H-IG1)-H == -IG1 
+            if (-IG1 > Eps || (IG1 < Eps && Eps < TieBreaking)) {
                return;
             }
             if ((EstG > Eps || (EstG <= Eps && Eps < TieBreaking))) {

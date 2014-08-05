@@ -309,9 +309,9 @@ function testRegressionContAttr() {
 
 // console.say(" --- Example using classification HoeffdingTree --- ");
 console.say("First classification scenario using bootstrapped SEA dataset");
-//testClassificationContAttr();
+testClassificationContAttr();
 console.say("Second classification secnario using bootstrapped TITANIC dataset");
-testClassification();
+//testClassification();
 // console.say(" --- Example using regression HoeffdingTree --- ");
 // testRegression();
 // console.say(" --- Testing numeric attributes with regression --- ");
