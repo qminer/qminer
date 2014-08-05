@@ -63,6 +63,14 @@ public:
   void PutArr(){JsonValType=jvtArr;}
   void AddToArr(const PJsonVal& Val){
     EAssert(JsonValType==jvtArr); ValV.Add(Val);}
+  void AddToArr(const int& Val){ AddToArr(NewNum((double)Val)); }
+  void AddToArr(const uint& Val){ AddToArr(NewNum((double)Val)); }
+  void AddToArr(const double& Val){ AddToArr(NewNum(Val)); }
+  void AddToArr(const double& Val1, const double& Val2){ AddToArr(NewArr(Val1, Val2)); }
+  void AddToArr(const TStr& Val){ AddToArr(NewStr(Val)); }
+  void AddToArr(const char* Val){ AddToArr(NewStr(Val)); }
+  void AddToArr(const bool& Val){ AddToArr(NewBool(Val)); }
+  void AddToArr(const TJsonValV& ValV){ AddToArr(NewArr(ValV)); }
   void PutObj(){JsonValType=jvtObj;}
   void AddToObj(const TStr& KeyNm, const PJsonVal& Val){
     EAssert(JsonValType==jvtObj); KeyValH.AddDat(KeyNm, Val);}
