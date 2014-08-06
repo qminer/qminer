@@ -4508,7 +4508,7 @@ const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamA
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
-	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+	return StoreNm.Empty() ? GetStreamAggr(StreamAggrNm) :  GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
