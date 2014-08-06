@@ -3019,7 +3019,7 @@ public:
 //# ## Other libraries
 //#
 //#JSIMPLEMENT:src/qminer/js/twitter.js 
-
+//#JSIMPLEMENT:src/qminer/js/xml.js 
 
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
