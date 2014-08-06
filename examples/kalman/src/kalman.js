@@ -112,8 +112,12 @@ while (N < 10000) {
     var predicted = ekf.predict(controlV);
     var corrected = ekf.correct(measurementV);
 
-    // TODO: save value, prediction + correction    
-    console.log("A (2): " + predicted.at(0).toFixed(6) + ", k (3): " + predicted.at(1).toFixed(6));
+    // calculate acctual prediction and correction values
+    var predictionValue = predicted.at(0) * Math.sin(predicted.at(1) * x);
+    var correctionValue = corrected.at(0) * Math.sin(corrected.at(1) * x);
+
+    // display model parameters and values of prediction/correction
+    console.log("A (2): " + predicted.at(0).toFixed(3) + ", k (3): " + predicted.at(1).toFixed(3) + ", Pred: " + predictionValue.toFixed(3) + ", Corr: " + correctionValue.toFixed(3));
 
 }
 
