@@ -1,9 +1,9 @@
 var assert = require('assert.js');
 
-console.say("Movies", "Starting test based on IMDB sample");
+console.log("Movies", "Starting test based on IMDB sample");
 
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
 // name of the debug process
 assert.consoleTitle = "Movies";
 
@@ -162,13 +162,13 @@ assert.equals(Movies[1].Director.Name, "Reyes Tony Y.", "Movies[1].Director.Name
 // stringify of test for record and record set
 function testStringify(obj, name) {
 	assert.exists(obj.toJSON(), name + ".toJSON()");
-	//console.say(JSON.stringify(obj.toJSON()));
+	//console.log(JSON.stringify(obj.toJSON()));
 	assert.exists(obj.toJSON(true), name + ".toJSON(true)");
-	//console.say(JSON.stringify(obj.toJSON(true)));
+	//console.log(JSON.stringify(obj.toJSON(true)));
 	assert.exists(obj.toJSON(true, true), name + ".toJSON(true, true)");
-	//console.say(JSON.stringify(obj.toJSON(true, true)));
+	//console.log(JSON.stringify(obj.toJSON(true, true)));
 	assert.exists(JSON.stringify(obj), "JSON.stringify(" + name + ")");
-	//console.say(JSON.stringify(obj));
+	//console.log(JSON.stringify(obj));
 }
 
 testStringify(People[0], "People[0]");
@@ -243,18 +243,18 @@ for (var i = 0; i < queries.length; i++) {
 	assert.run(res.reverse(), "res.reverse()");
 	// aggr
 	if (res.store.name == "People") {
-        console.say("People store");
+        console.log("People store");
 		for (var j = 0; j < people_aggr.length; j++) {           
-            console.say("TEST: res.aggr(" + JSON.stringify(people_aggr[j]) + ")");
+            console.log("TEST: res.aggr(" + JSON.stringify(people_aggr[j]) + ")");
 			assert.exists(res.aggr(people_aggr[j]), "res.aggr(" + JSON.stringify(people_aggr[j]) + ")");
-            console.say(JSON.stringify(res.aggr(people_aggr[j])));
+            console.log(JSON.stringify(res.aggr(people_aggr[j])));
 		}
 	} else if (res.store.name == "Movies") {
-        console.say("Movies store");
+        console.log("Movies store");
 		for (var j = 0; j < movies_aggr.length; j++) {
-            console.say("TEST: res.aggr(" + JSON.stringify(movies_aggr[j]) + ")");
+            console.log("TEST: res.aggr(" + JSON.stringify(movies_aggr[j]) + ")");
 			assert.exists(res.aggr(movies_aggr[j]), "res.aggr(" + JSON.stringify(movies_aggr[j]) + ")");
-			console.say(JSON.stringify(res.aggr(movies_aggr[j])));
+			console.log(JSON.stringify(res.aggr(movies_aggr[j])));
 		}
 	}
 	// sort by fq

@@ -270,9 +270,11 @@ void TBow::ParseJson(const TWPt<TBase>& Base, const PRecSet& RecSet,
         PSwSet SwSet = JsonVal->IsObjKey("stopwords") ? 
             TSwSet::ParseJson(JsonVal->GetObjKey("stopwords")) :
             TSwSet::New(swstEn523); 
+        // tokenizor
+        PTokenizer Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     	// prepare feature extractor
         FtrExt = TFtrExts::TBagOfWords::New(Base, JoinSeq, 
-            FieldId, TFtrExts::bowmConcat, SwSet, Stemmer);
+            FieldId, TFtrExts::bowmConcat, Tokenizer);
     } else {
 		FtrExt = TFtrExts::TMultinomial::New(Base, JoinSeq, FieldId);
     }

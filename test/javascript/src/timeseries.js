@@ -3,7 +3,7 @@ var assert = require('assert.js');
 console.say("TimeSeries", "Starting test based on time series sample");
 
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
 // name of the debug process
 assert.consoleTitle = "TimeSeries";
 
@@ -122,7 +122,7 @@ while (!fin.eof) {
 }
 
 // test feature construction
-var analytics = require('analytics');
+var analytics = require('analytics.js');
 // new feature space
 var ftrSpace = analytics.newFeatureSpace([
 	{ type: "numeric", source: "Resampled", field: "Value" },

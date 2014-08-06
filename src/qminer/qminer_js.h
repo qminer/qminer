@@ -306,6 +306,9 @@ public:
 
     /// Converts HttpRq from glib to JSON
     static v8::Handle<v8::Object> HttpRqToJson(PHttpRq HttpRq);
+    
+    /// TStrV -> v8 string array
+    static v8::Handle<v8::Value> GetStrArr(const TStrV& StrV);
 };
 
 ///////////////////////////////
@@ -2264,6 +2267,10 @@ public:
     // trainKMeans(featureSpace, positives, negatives, parameters)
 	JsDeclareFunction(trainKMeans);
     
+    //#- `tokenizer = analytics.newTokenizer({ type: <type>, ...})` -- create new tokenizer
+    //#     of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
+    //#     extractors.
+    JsDeclareFunction(newTokenizer);
     //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
@@ -2507,6 +2514,39 @@ public:
 };
 
 ///////////////////////////////
+// QMiner-JavaScript-Tokenizer
+//#
+//# ### Tokenizer
+//#
+//# Breaks text into tokens (i.e. words).
+class TJsTokenizer {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// Tokenizer Model
+    PTokenizer Tokenizer;
+
+private:
+    typedef TJsObjUtil<TJsTokenizer> TJsTokenizerUtil;
+	TJsTokenizer(TWPt<TScript> _Js, const PTokenizer& _Tokenizer): 
+        Js(_Js), Tokenizer(_Tokenizer) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PTokenizer& Tokenizer) {
+		return TJsTokenizerUtil::New(new TJsTokenizer(Js, Tokenizer)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
+	JsDeclareFunction(getTokens);
+	//#- `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
+    JsDeclareFunction(getSentences);
+	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
+	JsDeclareFunction(getParagraphs);
+};
+
+///////////////////////////////
 // QMiner-JavaScript-GeoIP
 class TJsGeoIp {
 private:
@@ -2595,6 +2635,8 @@ public:
 	JsDeclareFunction(getGlobals);
 	//#- `process.exitScript()` -- Exits the current script
 	JsDeclareFunction(exitScript);
+    //#- `process.returnCode` -- current code to be returned by QMiner process
+  	JsDeclareSetProperty(getReturnCode, setReturnCode);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 

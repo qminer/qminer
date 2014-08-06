@@ -1,7 +1,11 @@
 var assert = require('assert.js');
 
+console.say("Merger", "Testing merger");
+
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
+// name of the debug process
+assert.consoleTitle = "Merger";
 
 function findMinVal(idxs, vals) {
     var minTm = Number.MAX_VALUE;
