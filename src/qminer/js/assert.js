@@ -29,6 +29,7 @@ exports.ok = function(test, msg) {
         if (!this.silent) { console.say(this.consoleTitle, "PASS(ok): " + msg); }
     } else {
         console.say(this.consoleTitle, "FAIL(ok): " + msg);
+        process.returnCode = 11;
     }
 }
 
@@ -39,6 +40,7 @@ exports.exists = function(obj, msg) {
         if (!this.silent) { console.say(this.consoleTitle, "PASS(exists): " + msg); }
     } else {
         console.say(this.consoleTitle, "FAIL(exists): " + msg);
+        process.returnCode = 11;
     }
 }
 
@@ -49,5 +51,6 @@ exports.equals = function(test, ok, msg) {
         if (!this.silent) { console.say(this.consoleTitle, "PASS(equals:" + test + "=" + ok + "): " + msg); }
     } else {
         console.say(this.consoleTitle, "FAIL(equals:" + test + "=" + ok + "): " + msg);
+        process.returnCode = 11;
     }
 }
