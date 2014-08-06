@@ -1044,13 +1044,14 @@ exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
 //#   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
 //#   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
 //#   specified model) and correction. The following functions are exposed:
-exports.newExtendedKalmanFilter = function (dynamParams, measureParams, controlParams) {
-    return new analytics.extendedKalmanFilter(dynamParams, measureParams, controlParams);
+exports.newExtendedKalmanFilter = function (dynamParams, measureParams, controlParams, parameterN) {
+    return new analytics.extendedKalmanFilter(dynamParams, measureParams, controlParams, parameterN);
 }
-exports.extendedKalmanFilter = function (dynamParams, measureParams, controlParams) {
+exports.extendedKalmanFilter = function (dynamParams, measureParams, controlParams, parameterN) {
     var CP = controlParams;
     var MP = measureParams;
     var DP = dynamParams;
+    var P = parameterN;
 
     // CP should be >= 0
     CP = Math.max(CP, 0);
@@ -1066,6 +1067,7 @@ exports.extendedKalmanFilter = function (dynamParams, measureParams, controlPara
     var errorCovPre = la.newMat({ "cols": DP, "rows": DP }); // error covariance after prediction
     var errorCovPost = la.newMat({ "cols": DP, "rows": DP }); // error covariance after update
     var gain = la.newMat({ "cols": MP, "rows": DP });
+    var parameterV = la.newVec({ "vals": P, "mxvals": P }); // parameters vector
 
     var controlMatrix;
 
@@ -1082,27 +1084,41 @@ exports.extendedKalmanFilter = function (dynamParams, measureParams, controlPara
     var temp1V = la.newVec();
     var temp2V = la.newVec();
 
+    // virtual functions
+    // this.observationEq = function () { };
+    // this.transitionEq = function () { };
     var observationEq;
     var transitionEq;
 
     //#   - `ekf.setTransitionEq(_val)` -- sets transition equation for EKF (`_val` is a function).
     this.setTransitionEq = function (_transitionEq) {
-        transitionEq = _transitionEq;
+        this.transitionEq = _transitionEq;
     };
 
     //#   - `ekf.setObservationEq(_val)` -- sets observation equation for EKF (`_val` is a function).
     this.setObservationEq = function (_observationEq) {
-        observationEq = _observationEq;
+        this.observationEq = _observationEq;
     };
+
+    //#   - `ekf.setParameterV(_val)` -- sets parameter vector of size `parameterN`.
+    this.setParameterV = function (_parameterV) {
+        parameterV = _parameterV;
+    };
+
+    //#   - `ekf.getParameterV()` -- gets parameter vector.
+    this.getParameterV = function () {
+        return parameterV;
+    };
+
 
     //#   - `ekf.setStatePost(_val)` -- sets the post state (DP) vector.
     this.setStatePost = function (_statePost) {
         statePost = _statePost;
     };
 
-    //#   - `ekf.setStatePost(_val)` -- sets the post state (DP) vector.
-    this.setStatePost = function (_statePost) {
-        statePost = _statePost;
+    //#   - `ekf.getStatePost()` -- returns the statePost vector.
+    this.getStatePost = function () {
+        return statePost;
     };
 
     //#   - `ekf.setTransitionMatrix(_val)` -- sets the transition (DP x DP) matrix.
