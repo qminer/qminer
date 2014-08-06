@@ -1193,18 +1193,21 @@ namespace THoeffding {
       const int AttrsN = Example->AttributesV.Len();
       IncCounts(Leaf, Example);
       const double H = Leaf->ComputeEntropy();
-      // TODO: The constant 0.65 is hard-coded. 
-      if (Leaf->ExamplesN % GracePeriod == 0 && H > 0.65) {
+      // TODO: Use stricter condition to prevent overfitting 
+      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->GetExamplesN() > 5 &&
+         H > 0) {
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          const double EstG = SplitAttr.Val3;
          const double Eps = Leaf->ComputeTreshold(
             SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
          if (SplitAttr.Val1.Val1 != -1) {
-            // information gain of the best attribute 
+            // Information gain of the best attribute 
             const double IG1 = SplitAttr.Val1.Val2;
-            // preprunning [Hulten et al., 2001] 
+            // Preprunning [Hulten et al., 2001] 
             // Note that (H-IG1)-H == -IG1 
+            EAssertR(abs((H-IG1)-H - (-IG1)) < 0.000001, "(H-IG1)-H != -IG1");
             if (-IG1 > Eps || (IG1 < Eps && Eps < TieBreaking)) {
+               printf("[DEBUG] Preprunned.\n");
                return;
             }
             if ((EstG > Eps || (EstG <= Eps && Eps < TieBreaking))) {

@@ -7,7 +7,7 @@ function testClassificationContAttr() {
    var htParams = {
       "gracePeriod": 300,
       "splitConfidence": 1e-6,
-      "tieBreaking": 0.01,
+      "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 120000,
       "conceptDriftP": false
@@ -96,7 +96,7 @@ function testClassification() {
    var htParams = {
       "gracePeriod": 300,
       "splitConfidence": 1e-6,
-      "tieBreaking": 0.01,
+      "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 15000,
       "conceptDriftP": false
@@ -311,7 +311,7 @@ function testRegressionContAttr() {
 console.say("First classification scenario using bootstrapped SEA dataset");
 testClassificationContAttr();
 console.say("Second classification secnario using bootstrapped TITANIC dataset");
-//testClassification();
+testClassification();
 // console.say(" --- Example using regression HoeffdingTree --- ");
 // testRegression();
 // console.say(" --- Testing numeric attributes with regression --- ");

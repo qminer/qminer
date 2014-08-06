@@ -537,6 +537,7 @@ namespace THoeffding {
       bool operator==(const TNode& Node) const;
       bool operator!=(const TNode& Node) const { return !(*this == Node); }
       
+      int GetExamplesN() const { return ExamplesN; }
       double ComputeEntropy() const;
       double ComputeGini() const;
       // Classification 
