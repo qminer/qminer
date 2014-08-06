@@ -418,8 +418,8 @@ var _vec = new function () {
 
 	this.normalize = function () {
 	/// <signature>
-	/// <summary> normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.</summary>
-	/// <returns value =""/>
+	/// <summary> normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 
 	};
@@ -445,7 +445,7 @@ var _vec = new function () {
 	/// <signature>
 	/// <summary> append vector `vec2` to vector `vec`.</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_len"/>
 	/// </signature>
 
 	};
@@ -494,8 +494,8 @@ var _vec = new function () {
 
 	this.print = function () {
 	/// <signature>
-	/// <summary> print vector in console</summary>
-	/// <returns value =""/>
+	/// <summary> print vector in console. Returns self.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 
 	};
@@ -529,10 +529,10 @@ var _vec = new function () {
 
 	this.put = function () {
 	/// <signature>
-	/// <summary> set value of vector `vec` at index `idx` to `num` (0-based indexing)</summary>
+	/// <summary> set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_vec"/>
 	/// </signature>
 
 	};
@@ -586,6 +586,18 @@ var _vec = new function () {
 	/// <summary>`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_vec"/>
+	/// </signature>
+
+	};
+
+}
+
+var _twitterParser = new function () {
+	this.rawJsonToStoreJson = function () {
+	/// <signature>
+	/// <summary> transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`</summary>
+	/// <param name="_rawTweetJSON" value="_rawTweetJSON">param</param>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 
 	};
@@ -745,36 +757,36 @@ var _hashTable = new function () {
 var _rec = new function () {
 	this.delJoin = function () {
 	/// <signature>
-	/// <summary> deletes join record `joinRecord` from join `joinName` (string)</summary>
+	/// <summary> deletes join record `joinRecord` from join `joinName` (string). Returns self.</summary>
 	/// <param name="_joinName" value="_joinName">param</param>
 	/// <param name="_joinRecord" value="_joinRecord">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rec"/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`</summary>
+	/// <summary> deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.</summary>
 	/// <param name="_joinName" value="_joinName">param</param>
 	/// <param name="_joinRecord" value="_joinRecord">param</param>
 	/// <param name="_joinFrequency" value="_joinFrequency">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rec"/>
 	/// </signature>
 
 	};
 
 	this.addJoin = function () {
 	/// <signature>
-	/// <summary> adds a join record `joinRecord` to join `jonName` (string)</summary>
+	/// <summary> adds a join record `joinRecord` to join `jonName` (string). Returns self.</summary>
 	/// <param name="_joinName" value="_joinName">param</param>
 	/// <param name="_joinRecord" value="_joinRecord">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rec"/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`</summary>
+	/// <summary> adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.</summary>
 	/// <param name="_joinName" value="_joinName">param</param>
 	/// <param name="_joinRecord" value="_joinRecord">param</param>
 	/// <param name="_joinFrequency" value="_joinFrequency">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rec"/>
 	/// </signature>
 
 	};
@@ -865,6 +877,15 @@ var _analytics = new function () {
 
 	};
 
+	this.newNN = function () {
+	/// <signature>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
+	/// </signature>
+
+	};
+
 	this.loadRecLinRegModel = function () {
 	/// <signature>
 	/// <summary> load serialized linear model</summary>
@@ -921,11 +942,13 @@ var _analytics = new function () {
 
 	};
 
-	this.newNN = function () {
+	this.newKalmanFilter = function () {
 	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
+	/// <summary> the Kalman filter initialization procedure</summary>
+	/// <param name="_dynamParams" value="_dynamParams">param</param>
+	/// <param name="_measureParams" value="_measureParams">param</param>
+	/// <param name="_controlParams" value="_controlParams">param</param>
+	/// <returns value ="_kf"/>
 	/// </signature>
 
 	};
@@ -1192,6 +1215,15 @@ var la = new function () {
 	/// <param name="_rows" value="_rows">param</param>
 	/// <param name="_cols" value="_cols">param</param>
 	/// <returns value ="_mat"/>
+	/// </signature>
+
+	};
+
+	this.inverseSVD = function () {
+	/// <signature>
+	/// <summary> calculates inverse matrix with SVD, where `mat` is a dense matrix</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value =""/>
 	/// </signature>
 
 	};
@@ -1520,9 +1552,9 @@ var _sa = new function () {
 
 	this.onDelete = function () {
 	/// <signature>
-	/// <summary> executes onDelete function given an input record `rec`</summary>
+	/// <summary> executes onDelete function given an input record `rec` and returns self</summary>
 	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
@@ -1533,18 +1565,18 @@ var _sa = new function () {
 	this.val = _objJSON;
 	this.onUpdate = function () {
 	/// <signature>
-	/// <summary> executes onUpdate function given an input record `rec`</summary>
+	/// <summary> executes onUpdate function given an input record `rec` and returns self</summary>
 	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
 
 	this.onAdd = function () {
 	/// <signature>
-	/// <summary> executes onAdd function given an input record `rec`</summary>
+	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
 	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
@@ -1554,9 +1586,9 @@ var _sa = new function () {
 var _spMat = new function () {
 	this.load = function () {
 	/// <signature>
-	/// <summary> load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.</summary>
+	/// <summary> replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.</summary>
 	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	};
@@ -1571,17 +1603,17 @@ var _spMat = new function () {
 
 	this.normalizeCols = function () {
 	/// <signature>
-	/// <summary> normalizes each column of a sparse matrix `spMat` (inplace operation)</summary>
-	/// <returns value =""/>
+	/// <summary> normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.</summary>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	};
 
 	this.push = function () {
 	/// <signature>
-	/// <summary> attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)</summary>
+	/// <summary> attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.</summary>
 	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	};
@@ -1604,11 +1636,11 @@ var _spMat = new function () {
 
 	this.put = function () {
 	/// <signature>
-	/// <summary> Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.</summary>
+	/// <summary> Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.</summary>
 	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	};
@@ -1650,8 +1682,8 @@ var _spMat = new function () {
 
 	this.print = function () {
 	/// <signature>
-	/// <summary> print `spMat` (sparse matrix) to console</summary>
-	/// <returns value =""/>
+	/// <summary> print `spMat` (sparse matrix) to console. Returns self.</summary>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	};
@@ -1728,9 +1760,9 @@ var _spMat = new function () {
 
 	this.save = function () {
 	/// <signature>
-	/// <summary> print `spMat` (sparse matrix) to output stream `fout`</summary>
+	/// <summary> print `spMat` (sparse matrix) to output stream `fout`. Returns self.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 
 	};
@@ -1872,9 +1904,9 @@ var _svmModel = new function () {
 
 	this.save = function () {
 	/// <signature>
-	/// <summary> saves model to output stream `fout`</summary>
+	/// <summary> saves model to output stream `fout`. Returns self.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 
 	};
@@ -2047,9 +2079,9 @@ var _rs = new function () {
 	this.weighted = _bool;
 	this.shuffle = function () {
 	/// <signature>
-	/// <summary> shuffle order using random integer seed `seed`. Inplace operation.</summary>
+	/// <summary> shuffle order using random integer seed `seed`. Returns self.</summary>
 	/// <param name="_seed" value="_seed">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2065,10 +2097,10 @@ var _rs = new function () {
 
 	this.sortByField = function () {
 	/// <signature>
-	/// <summary> sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
+	/// <summary> sort records according to value of field `fieldName`; if `asc &gt; 0` sorted in ascending order. Returns self.</summary>
 	/// <param name="_fieldName" value="_fieldName">param</param>
 	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2092,9 +2124,9 @@ var _rs = new function () {
 
 	this.deleteRecs = function () {
 	/// <signature>
-	/// <summary> delete from `rs` records that are also in `rs2`. Inplace operation.</summary>
+	/// <summary> delete from `rs` records that are also in `rs2`. Returns self.</summary>
 	/// <param name="_rs2" value="_rs2">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2110,36 +2142,36 @@ var _rs = new function () {
 
 	this.filterById = function () {
 	/// <signature>
-	/// <summary> keeps only records with ids between `minId` and `maxId`. Inplace operation.</summary>
+	/// <summary> keeps only records with ids between `minId` and `maxId`. Returns self.</summary>
 	/// <param name="_minId" value="_minId">param</param>
 	/// <param name="_maxId" value="_maxId">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
 	this.filterByField = function () {
 	/// <signature>
-	/// <summary> keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.</summary>
+	/// <summary> keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.</summary>
 	/// <param name="_fieldName" value="_fieldName">param</param>
 	/// <param name="_minVal" value="_minVal">param</param>
 	/// <param name="_maxVal" value="_maxVal">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.</summary>
+	/// <summary> keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.</summary>
 	/// <param name="_fieldName" value="_fieldName">param</param>
 	/// <param name="_minTm" value="_minTm">param</param>
 	/// <param name="_maxTm" value="_maxTm">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	/// <signature>
-	/// <summary> keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.</summary>
+	/// <summary> keeps only records with string value of field `fieldName` equal to `str`. Returns self.</summary>
 	/// <param name="_fieldName" value="_fieldName">param</param>
 	/// <param name="_str" value="_str">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2155,7 +2187,7 @@ var _rs = new function () {
 
 	this.split = function () {
 	/// <signature>
-	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets.</summary>
+	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) &gt; 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets.</summary>
 	/// <param name="_splitterCallback" value="_splitterCallback">param</param>
 	/// <returns value ="_rsArr"/>
 	/// </signature>
@@ -2164,9 +2196,9 @@ var _rs = new function () {
 
 	this.sortById = function () {
 	/// <signature>
-	/// <summary> sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
+	/// <summary> sort records according to record id; if `asc &gt; 0` sorted in ascending order. Returns self.</summary>
 	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2175,27 +2207,27 @@ var _rs = new function () {
 	this.empty = _bool;
 	this.sort = function () {
 	/// <signature>
-	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.</summary>
+	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val &lt; rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.</summary>
 	/// <param name="_comparatorCallback" value="_comparatorCallback">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
 	this.map = function () {
 	/// <signature>
-	/// <summary> iterates through the record set and executes the callback function `mapCallback` on each element:</summary>
+	/// <summary> iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:</summary>
 	/// <param name="_mapCallback" value="_mapCallback">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
 	this.sortByFq = function () {
 	/// <signature>
-	/// <summary> sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
+	/// <summary> sort records according to weight; if `asc &gt; 0` sorted in ascending order. Returns self.</summary>
 	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2210,19 +2242,19 @@ var _rs = new function () {
 
 	this.filterByFq = function () {
 	/// <signature>
-	/// <summary> keeps only records with weight between `minFq` and `maxFq`. Inplace operation.</summary>
+	/// <summary> keeps only records with weight between `minFq` and `maxFq`. Returns self.</summary>
 	/// <param name="_minFq" value="_minFq">param</param>
 	/// <param name="_maxFq" value="_maxFq">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
 	this.trunc = function () {
 	/// <signature>
-	/// <summary> truncate to first `num` record. Inplace operation.</summary>
+	/// <summary> truncate to first `num` record and return self.</summary>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2245,17 +2277,17 @@ var _rs = new function () {
 
 	this.reverse = function () {
 	/// <signature>
-	/// <summary> reverse record order. Inplace operation.</summary>
-	/// <returns value =""/>
+	/// <summary> reverse record order. Returns self.</summary>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
 	this.filter = function () {
 	/// <signature>
-	/// <summary> keeps only records that pass `filterCallback` function</summary>
+	/// <summary> keeps only records that pass `filterCallback` function. Returns self.</summary>
 	/// <param name="_filterCallback" value="_filterCallback">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
@@ -2283,8 +2315,8 @@ var _rs = new function () {
 var _spVec = new function () {
 	this.normalize = function () {
 	/// <signature>
-	/// <summary> normalizes the vector spVec (inplace operation)</summary>
-	/// <returns value =""/>
+	/// <summary> normalizes the vector spVec (inplace operation). Returns self.</summary>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 
 	};
@@ -2309,10 +2341,10 @@ var _spVec = new function () {
 
 	this.put = function () {
 	/// <signature>
-	/// <summary> Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing</summary>
+	/// <summary> Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 
 	};
@@ -2327,8 +2359,8 @@ var _spVec = new function () {
 
 	this.print = function () {
 	/// <signature>
-	/// <summary> prints the vector to console</summary>
-	/// <returns value =""/>
+	/// <summary> prints the vector to console. Return self.</summary>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 
 	};
@@ -2654,9 +2686,9 @@ var _recLinRegModel = new function () {
 	this.dim = _num;
 	this.save = function () {
 	/// <signature>
-	/// <summary> saves model to output stream `fout`</summary>
+	/// <summary> saves model to output stream `fout`. Returns self.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	};
@@ -2665,22 +2697,100 @@ var _recLinRegModel = new function () {
 	this.weights = _vec;
 	this.learn = function () {
 	/// <signature>
-	/// <summary> updates the model using full vector `vec` and target number `num`as training data</summary>
+	/// <summary> updates the model using full vector `vec` and target number `num`as training data. Returns self.</summary>
 	/// <param name="_vec" value="_vec">param</param>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	};
 
 }
 
-var _twitterParser = new function () {
-	this.rawJsonToStoreJson = function () {
+var _kf = new function () {
+	this.setMeasurementNoiseCov = function () {
 	/// <signature>
-	/// <summary> transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`</summary>
-	/// <param name="_rawTweetJSON" value="_rawTweetJSON">param</param>
-	/// <returns value ="_objJSON"/>
+	/// <summary> sets the measurement noise covariance (MP x MP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.setTransitionMatrix = function () {
+	/// <signature>
+	/// <summary> sets the transition (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.setErrorCovPost = function () {
+	/// <signature>
+	/// <summary> sets the post error covariance (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.predict = function () {
+	/// <signature>
+	/// <summary> returns a predicted state vector `statePre` where `control` is the control vector (normally not set).</summary>
+	/// <param name="_control" value="_control">param</param>
+	/// <returns value ="_statePre"/>
+	/// </signature>
+
+	};
+
+	this.setMeasurementMatrix = function () {
+	/// <signature>
+	/// <summary> sets the measurement (MP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.setProcessNoiseCovPost = function () {
+	/// <signature>
+	/// <summary> sets the process noise covariance (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.setStatePost = function () {
+	/// <signature>
+	/// <summary> sets the post state (DP) vector.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.setErrorCovPre = function () {
+	/// <signature>
+	/// <summary> sets the pre error covariance (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.correct = function () {
+	/// <signature>
+	/// <summary> returns a corrected state vector `statePost` where `measurement` is the measurement vector.</summary>
+	/// <param name="_measurement" value="_measurement">param</param>
+	/// <returns value ="_statePost"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> returns a corrected state vector `statePost` where `measurement` is the measurement vector.</summary>
+	/// <param name="_measurement" value="_measurement">param</param>
+	/// <returns value ="_statePost"/>
 	/// </signature>
 
 	};
@@ -2692,7 +2802,7 @@ var _tm = new function () {
 	this.dayOfWeek = _str;
 	this.sub = function () {
 	/// <signature>
-	/// <summary> subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
 	/// <param name="_val" value="_val">param</param>
 	/// <param name="_unit" value="_unit">param</param>
 	/// <returns value ="_tm"/>
@@ -2714,6 +2824,14 @@ var _tm = new function () {
 	this.hour = _num;
 	/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
 	this.timestamp = _num;
+	this.clone = function () {
+	/// <signature>
+	/// <summary> clones `tm` to `tm2`</summary>
+	/// <returns value ="_tm"/>
+	/// </signature>
+
+	};
+
 	/// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 	this.nowUTC = this;
 	/// <field name = "dateString" value = "_str"> string representation of date (e.g. 2014-05-29)</field>
@@ -2731,7 +2849,7 @@ var _tm = new function () {
 
 	this.add = function () {
 	/// <signature>
-	/// <summary> adds `val` to the time; `unit` defines the unit</summary>
+	/// <summary> adds `val` to the time and returns self; `unit` defines the unit</summary>
 	/// <param name="_val" value="_val">param</param>
 	/// <param name="_unit" value="_unit">param</param>
 	/// <returns value ="_tm"/>
@@ -2760,7 +2878,7 @@ var _htModel = new function () {
 	/// <param name="_strArr" value="_strArr">param</param>
 	/// <param name="_numArr" value="_numArr">param</param>
 	/// <param name="_labelStr" value="_labelStr">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_htModel"/>
 	/// </signature>
 
 	/// <signature>
@@ -2773,9 +2891,9 @@ var _htModel = new function () {
 
 	this.exportModel = function () {
 	/// <signature>
-	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`.</summary>
+	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.</summary>
 	/// <param name="_htOutParams" value="_htOutParams">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_htModel"/>
 	/// </signature>
 
 	};
@@ -2904,19 +3022,19 @@ var _mat = new function () {
 	this.cols = _num;
 	this.put = function () {
 	/// <signature>
-	/// <summary> Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.</summary>
+	/// <summary> Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.</summary>
 	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	};
 
 	this.normalizeCols = function () {
 	/// <signature>
-	/// <summary> normalizes each column of matrix `mat` (inplace operation)</summary>
-	/// <returns value =""/>
+	/// <summary> normalizes each column of matrix `mat` (inplace operation). Returns self.</summary>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	};
@@ -3024,8 +3142,8 @@ var _mat = new function () {
 
 	this.print = function () {
 	/// <signature>
-	/// <summary> print matrix `mat` to console</summary>
-	/// <returns value =""/>
+	/// <summary> print matrix `mat` to console. Returns self.</summary>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	};
@@ -3057,10 +3175,10 @@ var _mat = new function () {
 
 	this.setCol = function () {
 	/// <signature>
-	/// <summary> Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.</summary>
+	/// <summary> Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.</summary>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_mat"/>
 	/// </signature>
 
 	};
@@ -3501,7 +3619,7 @@ var _fsp = new function () {
 	/// <signature>
 	/// <summary> update feature space definitions and extractors</summary>
 	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 
 	};
@@ -3535,9 +3653,9 @@ var _fsp = new function () {
 
 	this.save = function () {
 	/// <signature>
-	/// <summary> serialize feature space to `fout` output stream</summary>
+	/// <summary> serialize feature space to `fout` output stream. Returns self.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 
 	};
@@ -3546,7 +3664,7 @@ var _fsp = new function () {
 	/// <signature>
 	/// <summary> update feature space definitions and extractors</summary>
 	/// <param name="_rs" value="_rs">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 
 	};
@@ -3565,10 +3683,10 @@ var _nnModel = new function () {
 
 	this.learn = function () {
 	/// <signature>
-	/// <summary> uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.</summary>
+	/// <summary> uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation. Returns self.</summary>
 	/// <param name="_inVec" value="_inVec">param</param>
 	/// <param name="_outVec" value="_outVec">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_nnModel"/>
 	/// </signature>
 
 	};
@@ -3605,7 +3723,7 @@ var _intVec = new function () {
 	/// <signature>
 	/// <summary> append integer vector `intVec2` to integer vector `intVec`.</summary>
 	/// <param name="_intVec2" value="_intVec2">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_len"/>
 	/// </signature>
 
 	};
@@ -3629,10 +3747,10 @@ var _intVec = new function () {
 
 	this.put = function () {
 	/// <signature>
-	/// <summary> set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)</summary>
+	/// <summary> set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_intVec"/>
 	/// </signature>
 
 	};
@@ -3659,8 +3777,8 @@ var _intVec = new function () {
 
 	this.print = function () {
 	/// <signature>
-	/// <summary> print integer vector in console</summary>
-	/// <returns value =""/>
+	/// <summary> print integer vector in console. Returns self.</summary>
+	/// <returns value ="_intVec"/>
 	/// </signature>
 
 	};

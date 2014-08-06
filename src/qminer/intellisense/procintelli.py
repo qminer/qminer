@@ -3,6 +3,7 @@ import shutil
 import sys
 import copy
 import pprint
+from xml.sax.saxutils import escape
 
 fr = open('intellisense.js', 'r')
 fw = open('intelli_body.js', 'w')
@@ -19,7 +20,7 @@ for line in fr:
     line = line.strip()
     splitLine = line.split('$SEPARATOR$');
     line = splitLine[0];
-    commentLine = splitLine[1].strip().strip('-');
+    commentLine = escape(splitLine[1].strip().strip('-'));
     if len(line) == 0: continue
     # currently ignore indexed property []
     if "[" in line:
