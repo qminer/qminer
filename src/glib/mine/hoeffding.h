@@ -267,11 +267,12 @@ namespace THoeffding {
       static double Variance(const double& SqSum, const double& Sum,
          const int& N) {
          EAssertR(N > 1, "Division by zero.");
+         // Ubiased variance estimator 
          return SqSum/(N-1)-TMath::Sqr(Sum/(N-1));
       }
       static double StdDev(const double& SqSum, const double& Sum,
          const int& N) {
-         EAssertR(N > 0, "Division by zero.");
+         EAssertR(N > 1, "Division by zero.");
          return TMath::Sqrt(Variance(SqSum, Sum, N));
       }
    };

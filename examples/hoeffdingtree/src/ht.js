@@ -2,6 +2,67 @@
 var analytics = require('analytics.js');
 var assert = require('assert.js');
 
+// This function converts .names string to JSON
+// ASSUMES: The first line denotes the name of the target variable
+// ASSUMES: The target variable is described last
+// ASSUMES: The attribute order in the config is the same as the attribute
+// order in the data stream 
+function names2json(namesFilePath) {
+   var fin = fs.openRead(namesFilePath);
+   
+   var targetNm = fin.getNextLn().trim();
+   targetNm = targetNm.substr(0, targetNm.length-1); // Remove the dot 
+   
+   var jsonCfg = { "dataFormat": [] };
+   
+   while (!fin.eof) {
+      var line = fin.getNextLn().trim().split(":");
+      var attributeName = line[0].trim();
+      
+      jsonCfg.dataFormat.push(attributeName);
+      if (line[1].trim() == "continuous.") {
+         jsonCfg[attributeName] = { "type": "numeric" };
+      } else {
+         var valueArr = line[1].trim().split(",");
+         var lastVal = valueArr[valueArr.length-1];
+         valueArr[valueArr.length-1] = lastVal.substring(0, lastVal.length-1);
+         jsonCfg[attributeName] = {
+            "type": "discrete",
+            "values": valueArr
+         };
+      }
+   }
+   
+   return jsonCfg;
+}
+
+// This functions computes discrete and numeric arrays of attribute values 
+// from line given data stream specification in JSON 
+// ASSUMES: Line is comma-separated 
+function line2array(line, jsonCfg) {
+   line = line.trim().split(",");
+   var example_discrete = [];
+   var example_numeric = [];
+   var i = 0;
+   for (i = 0; i < jsonCfg["dataFormat"].length-1; ++i) {
+      var attributeName = jsonCfg.dataFormat[i];
+      if (jsonCfg[attributeName].type == "discrete") {
+         example_discrete.push(line[i]);
+      } else {
+         example_numeric.push(parseFloat(line[i]));
+      }
+   }
+   
+   var target = line[i];
+   if (jsonCfg[jsonCfg.dataFormat[i]].type == "numeric") {
+      target = parseFloat(target);
+   }
+   
+   return {"discrete": example_discrete,
+           "numeric": example_numeric,
+           "target": target };
+}
+
 function testClassificationContAttr() {
    // algorithm parameters 
    var htParams = {
@@ -317,7 +378,7 @@ function testRegression() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false
+      "conceptDriftP": true
    };
    
    // describe the data stream 
@@ -379,6 +440,40 @@ function testRegression() {
    ht.exportModel({ "file": "./sandbox/ht/wind.gv", "type": "DOT" });
 }
 
+function airlineRegressionTest() {
+   var configFilePath = "./sandbox/ht/airline_14col.names";
+   
+   var jsonCfg = names2json(configFilePath);
+   
+   // console.say(jsonCfg.dataFormat);
+   
+   var htParams = {
+      "gracePeriod": 300,
+      "splitConfidence": 1e-6,
+      "tieBreaking": 0.005,
+      "driftCheck": 1000,
+      "windowSize": 100000,
+      "conceptDriftP": true
+   };
+   
+   // console.say(JSON.stringify(jsonCfg));
+   
+   var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
+   var fin = fs.openRead('./sandbox/ht/airline_14col.dat');
+   var examplesN = 0;
+   while (!fin.eof) {
+      // TODO: Function that computes numeric and discrete arrays from line given config 
+      var line = fin.getNextLn();
+      var exampleJson = line2array(line, jsonCfg);
+      if (++examplesN % 1000 == 0) { console.say("Processing exampel "+examplesN); }
+      ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target);
+   }
+   
+   console.say("Exporting the model.");
+   // export the model 
+   ht.exportModel({ "file": "./sandbox/ht/airline_14col.gv", "type": "DOT" });
+}
+
 // console.say(" --- Example using classification HoeffdingTree --- ");
 // console.say("First classification scenario using bootstrapped SEA dataset");
 // testClassificationContAttr();
@@ -389,8 +484,10 @@ function testRegression() {
 // testRegressionDisAttr();
 // console.say("Regression scenario with numeric attributes");
 // testRegressionContAttr();
-console.say("Regression scenario using WIND dataset.");
-testRegression();
+// console.say("Regression scenario using WIND dataset.");
+// testRegression();
+console.say("Regression scenario using Airline dataset.");
+airlineRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();
