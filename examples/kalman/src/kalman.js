@@ -104,6 +104,8 @@ while (N < 10000) {
     // setting the parameter vector
     ekf.setParameterV(la.newVec([x]));
     myStatePost = ekf.getStatePost();
+
+    // measurement matrix is defined with the Jacobian of the observation function
     ekf.setMeasurementMatrix(la.newMat([[Math.sin(myStatePost.at(0) * x), myStatePost.at(0) * x * Math.cos(myStatePost.at(1) * x)]]));
 
     // simulation
