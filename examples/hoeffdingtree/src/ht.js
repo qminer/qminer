@@ -9,7 +9,7 @@ function testClassificationContAttr() {
       "splitConfidence": 1e-6,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
-      "windowSize": 120000,
+      "windowSize": 100000,
       "conceptDriftP": false
    };
    
@@ -156,6 +156,8 @@ function testClassification() {
    console.say("Were 3rd class women likely to survive? " + label);0
    console.say("Now exporting the model as 'titanic.gv'.");
    
+   // This is not what you'd do in practice. We do it here just to see
+   // whether we can learn simple stuff. 
    streamData = fs.openRead("./sandbox/ht/titanic-4M.dat");
    examplesN = 0;
    var correct = 0;
@@ -181,7 +183,7 @@ function testClassification() {
    ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
 }
 
-function testRegression() {
+function testRegressionDisAttr() {
    // algorithm parameters 
    var htParams = {
       "gracePeriod": 300,
@@ -213,7 +215,7 @@ function testRegression() {
 
    // train the model
    var examplesN = 0;
-   var streamData = fs.openRead("./sandbox/ht/regression-test.txt");
+   var streamData = fs.openRead("./sandbox/ht/regression-test.dat");
    while (!streamData.eof) {
       var line = streamData.getNextLn().split(",");
       // get discrete attributes
@@ -295,27 +297,100 @@ function testRegressionContAttr() {
    
    // use the model 
    var val = ht.predict(["0"], [3.3]);
-   console.say("f(0, 4.3) = " + val);
+   console.say("f(0, 3.3) = " + val);
    val = ht.predict(["1"], [3.3]);
-   console.say("f(1, 4.3) = " + val);
+   console.say("f(1, 3.3) = " + val);
    val = ht.predict(["0"], [2.3]);
-   console.say("f(0, 1.3) = " + val);
+   console.say("f(0, 2.3) = " + val);
    val = ht.predict(["1"], [2.3]);
-   console.say("f(1, 1.3) = " + val);
+   console.say("f(1, 2.3) = " + val);
    
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/reg-cont.gv", "type": "DOT" });
 }
 
+function testRegression() {
+   // algorithm parameters 
+   var htParams = {
+      "gracePeriod": 300,
+      "splitConfidence": 1e-6,
+      "tieBreaking": 0.005,
+      "driftCheck": 1000,
+      "windowSize": 100000,
+      "conceptDriftP": false
+   };
+   
+   // describe the data stream 
+   var regTestCfg = {
+      "dataFormat": [
+         "year", "month", "day", "RTP", "VAL", "ROS", "KIL",
+         "SHA", "BIR", "DUB", "CLA", "MUL", "CLO", "BEL", "MAL"
+      ],
+      "year": { "type": "numeric" },
+      "month": {
+         "type": "discrete",
+         "values": [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
+         ]
+      },
+      "day": {
+         "type": "discrete",
+         "values": [
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+            "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23",
+            "24", "25", "26", "27", "28", "29", "30", "31"
+         ]
+      },
+      "RTP": { "type": "numeric" },
+      "VAL": { "type": "numeric" },
+      "ROS": { "type": "numeric" },
+      "KIL": { "type": "numeric" },
+      "SHA": { "type": "numeric" },
+      "BIR": { "type": "numeric" },
+      "DUB": { "type": "numeric" },
+      "CLA": { "type": "numeric" },
+      "MUL": { "type": "numeric" },
+      "CLO": { "type": "numeric" },
+      "BEL": { "type": "numeric" },
+      "MAL": { "type": "numeric" }
+   };
+   
+   var ht = analytics.newHoeffdingTree(regTestCfg, htParams);
+   var examplesN = 0, N = 0;
+   var streamData = fs.openRead("./sandbox/ht/wind.dat");
+   var err = 0.0;
+   while (!streamData.eof) {
+      var line = streamData.getNextLn().split(",");
+      // get discrete attributes
+      var example_discrete = line.slice(1, 3);
+      // get numeric attributes
+      var example_numeric = line.slice(0, 1);
+      
+      example_numeric = example_numeric.concat(line.slice(3));
+      for (var i = 0; i < example_numeric.length; ++i) {
+         example_numeric[i] = parseFloat(example_numeric[i]);
+      }
+      
+      var target = parseFloat(line[line.length-1]);
+      ht.process(example_discrete, example_numeric, target);
+   }
+   
+   // export the model 
+   ht.exportModel({ "file": "./sandbox/ht/wind.gv", "type": "DOT" });
+}
+
 // console.say(" --- Example using classification HoeffdingTree --- ");
-console.say("First classification scenario using bootstrapped SEA dataset");
-testClassificationContAttr();
-console.say("Second classification secnario using bootstrapped TITANIC dataset");
-testClassification();
+// console.say("First classification scenario using bootstrapped SEA dataset");
+// testClassificationContAttr();
+// console.say("Second classification secnario using bootstrapped TITANIC dataset");
+// testClassification();
 // console.say(" --- Example using regression HoeffdingTree --- ");
-// testRegression();
-// console.say(" --- Testing numeric attributes with regression --- ");
+// console.say("Regression scenario with discrete attributes");
+// testRegressionDisAttr();
+// console.say("Regression scenario with numeric attributes");
 // testRegressionContAttr();
+console.say("Regression scenario using WIND dataset.");
+testRegression();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();

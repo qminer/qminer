@@ -294,7 +294,7 @@ namespace THoeffding {
          if (this != &rhs) {
             S = rhs.S; Mean = rhs.Mean;
             T = rhs.T; Value = rhs.Value;
-            Count = rhs.Count;
+            Count = rhs.Count; Id = rhs.Id;
             PartitionV = rhs.PartitionV;
          }
          return *this;

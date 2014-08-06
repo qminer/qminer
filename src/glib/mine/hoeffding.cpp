@@ -482,32 +482,41 @@ namespace THoeffding {
    // updating formulas for variance 
    // (http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance,
    // accessed on 7 Jun 2013)
-   double THist::StdGain(double& SpltVal) const { // for regression 
+   // Formulas from [Chan et al., 1979] allow us to compute the totial
+   // sample variance by combining variances of bins. See page 2 and equations
+   // (1.5a) and (1.5b). 
+   double THist::StdGain(double& SpltVal) const { // For regression 
       int HiCnt, LoCnt, CrrCnt;
       int MxIdx;
       double MxGain, CrrGain;
-      double LoS, HiS, LoT, HiT;
-      // Define VarArr[i] := n*Var(B_1\cup B_2\cup ...\cup B_i) 
+      double LoS, HiS, LoT;
+      // Define VarArr: SArr[i] := n*Var(B_1\cup B_2\cup ...\cup B_i) 
       double* SArr = new double[BinsN]();
-      // Define AvgArr[i] := x_1+x_2+...+x_i 
+      // Define AvgArr: TArr[i] := x_1+x_2+...+x_i 
       double* TArr = new double[BinsN]();
       // Compute initial split 
       LoCnt = HiCnt = 0; // BinsV.GetVal(0).Count;
       SArr[0] = TArr[0] = 0.0;
+      // Compute S and T of the first i bins together, 1 <= i <= BinsV.len() 
       for (int BinN = 0; BinN < BinsV.Len(); ++BinN) {
          const TBin CrrBin = BinsV.GetVal(BinN);
          const double PrevS = BinN > 0 ? SArr[BinN-1] : 0.0;
          const double PrevT = BinN > 0 ? TArr[BinN-1] : 0.0;
-         TArr[BinN] = PrevT + CrrBin.T;
+         TArr[BinN] = PrevT+CrrBin.T;
          CrrCnt = BinsV.GetVal(BinN).Count;
+         // Accounts for the S_{1,m}+S_{m+1,m+n} part of the formula 
          SArr[BinN] = PrevS+CrrBin.S;
          if (CrrCnt > 0 && HiCnt > 0) {
-            SArr[BinN] += TMath::Sqr(
+            // See [Chan et al., Algorithms for Computing the Sample Variance,
+            // 1979] 
+            // Accoutns for m/(n(m+n)) * (n/m * T_{1,m}-T_{m+1,m+n})^2
+            SArr[BinN] += TMath::Sqr( // this is squaring (^2) 
                CrrCnt*PrevT/HiCnt-CrrBin.T)*1.0*HiCnt/(CrrCnt*(CrrCnt+HiCnt));
          }
          HiCnt += CrrCnt;
       }
       const int AllN = HiCnt;
+      // S is the "whole" sum (x1-mean)^2+...+(xn-mean)^2 
       const double S = SArr[BinsV.Len()-1];
       HiS = CrrGain = MxGain = 0.0;
       MxIdx = 0;
@@ -519,7 +528,7 @@ namespace THoeffding {
       // in [Ikonomovska, 2012] and [Ikonomovska et al., 2011] 
       for (int BinN = BinsV.Len()-2; BinN >= 0; --BinN) {
          HiS = SArr[BinN];
-         HiT = TArr[BinN];
+         // HiT = TArr[BinN];
          const double SigmaS = TMath::Sqrt(S/(AllN));
          const double SigmaS1 = TMath::Sqrt(LoS/(LoCnt));
          const double SigmaS2 = TMath::Sqrt(HiS/(HiCnt));
@@ -537,13 +546,15 @@ namespace THoeffding {
             LoS += TMath::Sqr(
                CrrCnt*LoT/LoCnt-CrrT)*LoCnt/(CrrCnt*(CrrCnt+LoCnt));
          }
-         LoT += BinsV.GetVal(BinN).T;
+         EAssertR(CrrT == BinsV.GetVal(BinN).T, "CrrT not as expected");
+         LoT += CrrT; // CrrT == BinsV.GetVal(BinN).T;
          LoCnt += CrrCnt;
          HiCnt -= CrrCnt;
       }
       delete [] TArr;
       delete [] SArr;
       if (MxIdx > 0) {
+         // Set the split val 
          SpltVal = BinsV.GetVal(MxIdx).GetVal();
          // printf("MxGain = %f\n", MxGain);
          return MxGain;
@@ -1042,8 +1053,8 @@ namespace THoeffding {
                   AttrManV.GetVal(It->Id).InvAttrH.GetDat(It->Value).CStr());
                // NOTE: For debugging purposes; this fail
                // indicates serious problems 
-               EFailR("Fatal: Corresponding id-value-label triple \
-                  is missing in counts hashtable.");
+               EFailR("Corresponding id-value-label triple \
+                  is missing in the counts hashtable.");
             }
             break;                              }
          case atCONTINUOUS:
@@ -1167,7 +1178,7 @@ namespace THoeffding {
          }
       }
       // Regression
-      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0) {
+      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 5.0) {
          // See if we can get variance reduction 
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
