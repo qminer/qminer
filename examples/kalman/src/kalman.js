@@ -2,6 +2,8 @@
 var analytics = require('analytics.js');
 var tm = require('time.js');
 
+// Kalman filter - linear model
+console.say("*** KALMAN FILTER ***");
 // initialize KF with a dynamic model (2nd degree)
 var _DP = 3, _MP = 1, _CP = 0;
 var kf = new analytics.kalmanFilter(_DP, _MP, _CP);
@@ -52,9 +54,73 @@ while (!fin.eof) {
     // TODO: save value, prediction + correction
     var diff = value - predicted.at(0);
     console.log("Diff: " + diff + ", Value: " +  value.toFixed(6) + ", Prediction: " + predicted.at(0).toFixed(6) + ", Corr: " + corrected.at(0).toFixed(6));
-    
-    //console.pause();
+        
     lastTm = newTm;
+}
+
+
+// Extended Kalman filter - non-linear model
+console.say("*** EXTENDED KALMAN FILTER ***");
+// we will simulate 2 * sin(3x) + N(x), where N(x) represents the noise
+// initialize EKF with model A * sin(kf), which has 2 dynamic parameters
+_DP = 2; _MP = 1; _CP = 0;
+var _P = 1;
+console.say("new");
+var ekf = new analytics.extendedKalmanFilter(_DP, _MP, _CP, _P);
+
+console.say("function defs");
+var transitionEq = function () {   
+    return this.getStatePost();
+}
+
+var observationEq = function () {
+    myStatePost = this.getStatePost();
+    myParameterV = this.getParameterV();
+    o = myStatePost.at(0) * Math.sin(myStatePost.at(1) * myParameterV.at(0));
+    return la.newVec([o]);
+}
+
+ekf.setTransitionEq(transitionEq);
+ekf.setObservationEq(observationEq);
+
+ekf.setTransitionMatrix(la.eye(_DP));  // not needed
+ekf.setMeasurementMatrix(la.newMat([[1, 0]]));
+ekf.setProcessNoiseCov(la.newMat([[1E-6, 0], [0, 1E-6]]));
+ekf.setMeasurementNoiseCov(la.newMat([[0.1]]));
+ekf.setErrorCovPre(la.newMat({ "cols": _DP, "rows": _DP, "random": false }));
+ekf.setErrorCovPost(la.newMat([[1E-11, 0], [0, 1E-11]]));
+ekf.setControlMatrix(la.newMat());
+
+// initialization
+var timestampN = 0;
+ekf.setStatePost(la.newVec([1, 3.5]));
+var controlV = la.newVec();  // we don't need this
+
+var N = 0;
+var DeltaT = 0.02;
+while (N < 10000) {
+    N++;
+    x = N * DeltaT;
+    // setting the parameter vector
+    ekf.setParameterV(la.newVec([x]));
+    myStatePost = ekf.getStatePost();
+
+    // measurement matrix is defined with the Jacobian of the observation function
+    ekf.setMeasurementMatrix(la.newMat([[Math.sin(myStatePost.at(0) * x), myStatePost.at(0) * x * Math.cos(myStatePost.at(1) * x)]]));
+
+    // simulation
+    var measurementV = la.newVec([2 * Math.sin(3 * x) + (Math.random() - 0.5) / 2]);
+
+    var predicted = ekf.predict(controlV);
+    var corrected = ekf.correct(measurementV);
+
+    // calculate acctual prediction and correction values
+    var predictionValue = predicted.at(0) * Math.sin(predicted.at(1) * x);
+    var correctionValue = corrected.at(0) * Math.sin(corrected.at(1) * x);
+
+    // display model parameters and values of prediction/correction
+    console.log("A (2): " + predicted.at(0).toFixed(3) + ", k (3): " + predicted.at(1).toFixed(3) + ", Pred: " + predictionValue.toFixed(3) + ", Corr: " + correctionValue.toFixed(3));
+
 }
 
 // Start console
