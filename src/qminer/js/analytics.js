@@ -907,8 +907,8 @@ exports.kNearestNeighbors = function (k, buffer, power) {
 //#   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
 //#   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
 //#   specified model) and correction. The following functions are exposed:
-exports.newKalmanFilter = function (dim, use_bias) {
-    return new analytics.kalmanFilter(dim, use_bias);
+exports.newKalmanFilter = function (dynamParams, measureParams, controlParams) {
+    return new analytics.kalmanFilter(dynamParams, measureParams, controlParams);
 }
 exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
     var CP = controlParams;
