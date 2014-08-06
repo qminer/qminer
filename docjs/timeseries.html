@@ -58,8 +58,8 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
-              <p>Initialize resamper from Raw to Resampled store. This results in
-in an equaly spaced time series with 10 second interval.</p>
+              <p>Initialize resampler from Raw to Resampled store. This results
+in an equally spaced time series with 10 second interval.</p>
 
             </div>
             
@@ -190,8 +190,8 @@ record in the Resampled store.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        val.Ema1 = Resampled.getStreamAggr(<span class="hljs-string">"ema1m"</span>).EMA;
-        val.Ema2 = Resampled.getStreamAggr(<span class="hljs-string">"ema10m"</span>).EMA;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        val.Ema1 = Resampled.getStreamAggr(<span class="hljs-string">"ema1m"</span>).val.Val;
+        val.Ema2 = Resampled.getStreamAggr(<span class="hljs-string">"ema10m"</span>).val.Val;</pre></div></div>
             
         </li>
         
@@ -202,7 +202,7 @@ record in the Resampled store.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
-              <p>See what would the current model would predict given
+              <p>See what the current model would predict given
 the new record, and store this for evaluation later on.</p>
 
             </div>
@@ -222,7 +222,7 @@ the new record, and store this for evaluation later on.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> trainRecId = Resampled.getStreamAggr(<span class="hljs-string">"delay"</span>).last;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">var</span> trainRecId = Resampled.getStreamAggr(<span class="hljs-string">"delay"</span>).val.last;</pre></div></div>
             
         </li>
         

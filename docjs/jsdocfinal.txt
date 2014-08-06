@@ -72,6 +72,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
 - `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
 - `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
 - `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
   When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
@@ -115,7 +116,10 @@ var record = store[1234];
 - `objArr = store.fields` -- array of all the field descriptor JSON objects
 - `objArr = store.joins` -- array of all the join names
 - `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
-- `iter = store.iter` -- returns iterator for iterating over the store
+- `rec = store.first` -- first record from the store
+- `rec = store.last` -- last record from the store
+- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
 - `rec = store[recId]` -- get record with ID `recId`; 
     returns `null` when no such record exists
 - `rec = store.rec(recName)` -- get record named `recName`; 
