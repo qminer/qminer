@@ -440,6 +440,8 @@ public:
     void Restart() { StopWatch.Reset(true); }
     // returns true if the time has ran out
     bool IsTimeUp() const { return (StopWatch.GetMSecInt() > MxMSecs); }
+    // get access to stopwatch
+    const TTmStopWatch& GetStopWatch() const { return StopWatch; }
 };
 
 /////////////////////////////////////////////////
@@ -514,4 +516,5 @@ public:
 	double GetTimerSumSec() const;
 	double GetTimerSec(const int& TimerId) const;
 	void PrintReport(const TStr& ProfileNm = "") const;
+	void PrintReport(const PNotify& Notify, const TStr& ProfileNm = "") const;
 };

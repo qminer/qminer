@@ -35,7 +35,7 @@ private:
 
 public:
     TNumeric(const bool& NormalizeP = true):
-        Type(NormalizeP ? ntNone : ntNormalize), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
+		Type(NormalizeP ? ntNormalize : ntNone), MnVal(TFlt::Mx), MxVal(TFlt::Mn) { }
     TNumeric(const double& _MnVal, const double& _MxVal):
         Type(ntMnMxVal), MnVal(_MnVal), MxVal(_MxVal) { }
     TNumeric(TSIn& SIn): Type(LoadEnum<TNumericType>(SIn)), MnVal(SIn), MxVal(SIn) {  }
@@ -158,7 +158,7 @@ private:
 public:
     TBagOfWords() { }
     TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PSwSet _SwSet, PStemmer _Stemmer, const int& _HashDim = -1);
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -169,10 +169,14 @@ public:
     bool IsHashing() const { return ((Type & btHashing) != 0); }    
     
     void Clr();
-    bool Update(const TStr& Val);
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
+    bool Update(const TStrV& TokenStrV);
+    bool Update(const TStr& Val);
+    void AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const;
     void AddFtr(const TStr& Val, TIntFltKdV& SpV) const;
+    void AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TStrV& TokenStrV, TFltV& FullV, int& Offset) const;
     void AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const;
     
     /// Forgetting, assumes calling on equally spaced time interval.

@@ -22,7 +22,7 @@ MAINOBJS = qminer_core.o qminer_ftr.o qminer_aggr.o qminer_op.o \
 all: $(MAINOBJS)
 
 %.o: %.cpp
-	$(CC) -c $(CXXFLAGS) $< $(INCLUDE) $(LDFLAGS) $(LIBS)
+	$(CC) -c $(CXXFLAGS) $< $(INCLUDE) $(LIBS)
 	
 clean:
 	rm -f *.o *.gch *.a

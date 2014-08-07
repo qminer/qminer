@@ -19,6 +19,27 @@
 
 ///////////////////////////////
 // Tokenizer
+TFunRouter<PTokenizer, TTokenizer::TNewF> TTokenizer::NewRouter;
+TFunRouter<PTokenizer, TTokenizer::TLoadF> TTokenizer::LoadRouter;
+
+bool TTokenizer::Init() {
+    Register<TTokenizers::TSimple>();
+    Register<TTokenizers::THtml>();
+    Register<TTokenizers::THtmlUnicode>();
+    return true;
+}
+
+bool TTokenizer::RegP = Init();
+
+PTokenizer TTokenizer::New(const TStr& TypeNm, const PJsonVal& JsonVal) {
+    return NewRouter.Fun(TypeNm)(JsonVal);
+}
+
+PTokenizer TTokenizer::Load(TSIn& SIn) {
+	TStr TypeNm(SIn);          
+    return LoadRouter.Fun(TypeNm)(SIn);
+}
+
 void TTokenizer::GetTokens(const TStr& Text, TStrV& TokenV) const {
 	PSIn SIn = TStrIn::New(Text);
 	GetTokens(SIn, TokenV);
@@ -33,9 +54,31 @@ void TTokenizer::GetTokens(const TStrV& TextV, TVec<TStrV>& TokenVV) const {
 	}
 }
 
+namespace TTokenizers { 
+    
 ///////////////////////////////
 // Tokenizer-Simple
-void TTokenizerSimple::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
+PTokenizer TSimple::New(const PJsonVal& ParamVal) {
+    // get stopwords
+    PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
+        TSwSet::ParseJson(ParamVal->GetObjKey("stopwords")) :
+        TSwSet::New(swstNone);   
+    // get stemmer
+    PStemmer Stemmer = ParamVal->IsObjKey("stemmer") ? 
+        TStemmer::ParseJson(ParamVal->GetObjKey("stemmer"), false) :
+        TStemmer::New(stmtNone, false);
+    const bool ToUcP = ParamVal->GetObjBool("uppercase", true);
+    return new TSimple(SwSet, Stemmer, ToUcP);
+}
+
+TSimple::TSimple(TSIn& SIn): SwSet(SIn), Stemmer(SIn), ToUcP(SIn) { }
+
+void TSimple::Save(TSOut& SOut) const { 
+    GetType().Save(SOut);
+    SwSet.Save(SOut); Stemmer.Save(SOut); ToUcP.Save(SOut); 
+}
+
+void TSimple::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 	TStr LineStr; TStrV WordStrV;
 	while (SIn->GetNextLn(LineStr)) {
 		WordStrV.Clr(false);
@@ -55,22 +98,30 @@ void TTokenizerSimple::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 
 ///////////////////////////////
 // Tokenizer-Html
-TTokenizerHtml::TTokenizerHtml(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP,
-		const int& MxNGramLen, const int& _MnNGramFq, const int& MxNGramCache): SwSet(_SwSet), 
-			Stemmer(_Stemmer), ToUcP(_ToUcP), NGramBs(NULL), MnNGramFq(_MnNGramFq) {  
-	
-	if (MxNGramLen > 1) { NGramBs = TStreamNGramBs::New(MxNGramLen, MxNGramCache); }
+THtml::THtml(const PSwSet& _SwSet, const PStemmer& _Stemmer, const bool& _ToUcP): 
+        SwSet(_SwSet), Stemmer(_Stemmer), ToUcP(_ToUcP) { }
+
+PTokenizer THtml::New(const PJsonVal& ParamVal) {
+    // get stopwords
+    PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
+        TSwSet::ParseJson(ParamVal->GetObjKey("stopwords")) :
+        TSwSet::New(swstNone);   
+    // get stemmer
+    PStemmer Stemmer = ParamVal->IsObjKey("stemmer") ? 
+        TStemmer::ParseJson(ParamVal->GetObjKey("stemmer"), false) :
+        TStemmer::New(stmtNone, false);
+    const bool ToUcP = ParamVal->GetObjBool("uppercase", true);
+    return new THtml(SwSet, Stemmer, ToUcP);
 }
 
-TTokenizerHtml::TTokenizerHtml(TSIn& SIn): SwSet(SIn), Stemmer(SIn),
-	ToUcP(SIn), NGramBs(SIn), MnNGramFq(SIn) { }
+THtml::THtml(TSIn& SIn): SwSet(SIn), Stemmer(SIn), ToUcP(SIn) { }
 
-void TTokenizerHtml::Save(TSOut& SOut) const { 
+void THtml::Save(TSOut& SOut, const bool& SaveTypeP) const {
+    if (SaveTypeP) { GetType().Save(SOut); }
 	SwSet.Save(SOut); Stemmer.Save(SOut); ToUcP.Save(SOut);  
-	NGramBs.Save(SOut); MnNGramFq.Save(SOut);
 }
 
-void TTokenizerHtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
+void THtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 	THtmlLx HtmlLx(SIn, false);
     // traverse html string symbols
 	while (HtmlLx.Sym!=hsyEof){
@@ -87,53 +138,42 @@ void TTokenizerHtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 		// get next symbol
 		HtmlLx.GetSym();
 	}
-
- //   // tokenize
- //   TStrV TokenStrV; Tokenizer->GetTokens(TextStr, TokenStrV);
- //   // transform words to IDs
- //   const int Tokens = TokenStrV.Len();
- //   TIntV TokenIdV(Tokens, 0);
- //   for (int TokenN = 0; TokenN < Tokens; TokenN++) {
- //       // add token to the hashtable of all tokens
- //       const int TokenId = WordH.AddKey(TokenStrV[TokenN].GetUc());
- //       // keep track of it's count
- //       WordH[TokenId]++;
- //       // and prepare a token vector for ngram base
- //       TokenIdV.Add(TokenId);
- //   }
-	//// extract the n-grams
- //   TNGramDescV NGramDescV;
-	//NGramBs->AddDocTokIdV(TokenIdV, StoreThreshold, NGramDescV);
- //   // get string representations of n-grams above threshold
- //   TStrH NGramH;
- //   for (int NGramDescN = 0; NGramDescN < NGramDescV.Len(); NGramDescN++) {
- //       const TNGramDesc& NGramDesc = NGramDescV[NGramDescN];
- //       // make it into a string
- //       const TIntV& NGramTokenIdV = NGramDesc.TokIdV;
- //       TChA NGramChA = WordH.GetKey(NGramTokenIdV[0]);
- //       for (int NGramTokenIdN = 1; NGramTokenIdN < NGramTokenIdV.Len(); NGramTokenIdN++) {
- //           NGramChA += ' '; NGramChA += WordH.GetKey(NGramTokenIdV[NGramTokenIdN]);
- //       }
- //       // remember the ngram, if not stopword
- //       if (!SwSet->IsIn(NGramChA)) { NGramH.AddDat(NGramChA); }
- //   }
- //   // remember n-grams above threshold
- //   int NGramKeyId = NGramH.FFirstKeyId();
- //   while (NGramH.FNextKeyId(NGramKeyId)) {
- //       const TStr& NGramStr = NGramH.GetKey(NGramKeyId);
- //       // add to the result list
- //       ConceptV.Add(TOgNewsConcept(NGramStr, EmtpyStr));
- //   }
 }
 
 ///////////////////////////////
 // Tokenizer-Html-Unicode
-void TTokenizerHtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
-	TStr LineStr; TStrV WordStrV;
+THtmlUnicode::THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, 
+        const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
+        
+    EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); 
+}
+
+PTokenizer THtmlUnicode::New(const PJsonVal& ParamVal) {
+    // get stopwords
+    PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
+        TSwSet::ParseJson(ParamVal->GetObjKey("stopwords")) :
+        TSwSet::New(swstNone);   
+    // get stemmer
+    PStemmer Stemmer = ParamVal->IsObjKey("stemmer") ? 
+        TStemmer::ParseJson(ParamVal->GetObjKey("stemmer"), false) :
+        TStemmer::New(stmtNone, false);
+    const bool ToUcP = ParamVal->GetObjBool("uppercase", true);
+    return new THtmlUnicode(SwSet, Stemmer, ToUcP);
+}
+
+void THtmlUnicode::Save(TSOut& SOut) const { 
+    GetType().Save(SOut);
+    THtml::Save(SOut,false);
+}
+
+void THtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
+	TStr LineStr; TStrV WordStrV;    
 	while (SIn->GetNextLn(LineStr)) {
-		TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
-		TTokenizerHtml::GetTokens(TStrIn::New(SimpleText), TokenV);
+        TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
+        THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
 	}
+}
+
 }
 
 ///////////////////////////////

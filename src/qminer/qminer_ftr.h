@@ -60,7 +60,7 @@ private:
     TWPt<TBase> Base;
     
     /// Map from record store to join which brings it to feature extraction store
-	THash<TUCh, TJoinSeq> JoinSeqH;
+	THash<TUInt, TJoinSeq> JoinSeqH;
 	/// The end store from which features are actually extracted 
 	TWPt<TStore> FtrStore;
 
@@ -421,7 +421,7 @@ public:
 
 ///////////////////////////////////////////////
 // Bag-of-words Feature Extractor.
-typedef enum { bowmConcat, bowmCentroid } TBagOfWordsMode;
+typedef enum { bowmConcat, bowmCentroid, bowmTokenized } TBagOfWordsMode;
 
 class TBagOfWords : public TFtrExt, protected TTmWnd::TCallback {
 private:
@@ -452,22 +452,22 @@ protected:
     void NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSecs);
 
 private:
-    TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId,
-	  const TBagOfWordsMode& _Mode, const PSwSet& SwSet, const PStemmer& Stemmer, 
-      const int& HashDim = -1);
+    TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& _FieldId, const TBagOfWordsMode& _Mode, 
+        const PTokenizer& Tokenizer, const int& HashDim = -1);
     TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn);
     
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PSwSet& SwSet = TSwSet::New(swstEn523), 
-        const PStemmer& Stemmer = TStemmer::New(stmtPorter, false));
+        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
+            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PSwSet& SwSet = TSwSet::New(swstEn523), 
-        const PStemmer& Stemmer = TStemmer::New(stmtPorter, false));
+        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
+            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PSwSet& SwSet = TSwSet::New(swstEn523), 
-        const PStemmer& Stemmer = TStemmer::New(stmtPorter, false));
+        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
+            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
@@ -489,14 +489,6 @@ public:
     // feature extractor type name 
     static TStr GetType() { return "text"; }   
     
-private:
-	static PSwSet GetSwSet(const TStr& SwStr);
-	static void AddWords(const PSwSet& SwSet, const PJsonVal& WordsVal);    
-public:
-    /// Extract stop-words from JSon parameters
-    static PSwSet ParseSwSet(const PJsonVal& ParamVal);
-    /// Extract stemmer from JSon parameters.
-    /// In case real word parameter is not give, value of RealWordP is used
     static PStemmer ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP = false);
 };
 

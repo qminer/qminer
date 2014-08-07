@@ -21,8 +21,9 @@
 #define mine_h
 
 #include <base.h>
+#include <funrouter.h>
 
-// utilities
+// utilitiesTFun
 #include "cfyres.h"
 
 // text processing
@@ -43,6 +44,7 @@
 #include "bowlinalg.h"
 
 // SVM
+#include "svm.h"
 #include "svmPrLoqo.h"
 #include "svmbasic.h"
 #include "strkernel.h"

@@ -772,9 +772,6 @@ TRStr* TStr::GetRStr(const char* CStr){
   int CStrLen;
   if (CStr==NULL){CStrLen=0;} else {CStrLen=int(strlen(CStr));}
   if (CStrLen==0){return TRStr::GetNullRStr();}
-  // next lines are not multi-threading safe
-  //else if (CStrLen==1){return GetChStr(CStr[0]).RStr;}
-  //else if (CStrLen==2){return GetDChStr(CStr[0], CStr[1]).RStr;}
   else {return new TRStr(CStr);}
 }
 
@@ -782,9 +779,6 @@ void TStr::Optimize(){
   char* CStr=RStr->CStr(); int CStrLen=int(strlen(CStr));
   TRStr* NewRStr;
   if (CStrLen==0){NewRStr=TRStr::GetNullRStr();}
-  // next lines are not multi-threading safe
-  //else if (CStrLen==1){NewRStr=GetChStr(CStr[0]).RStr;}
-  //else if (CStrLen==2){NewRStr=GetDChStr(CStr[0], CStr[1]).RStr;}
   else {NewRStr=RStr;}
   NewRStr->MkRef(); RStr->UnRef(); RStr=NewRStr;
 }

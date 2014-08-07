@@ -17,8 +17,6 @@
  * 
  */
 
-#include "stdafx.h"
-
 #include "base.h"
 
 void BaseTralala(){

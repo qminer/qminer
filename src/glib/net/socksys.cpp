@@ -547,7 +547,8 @@ uv_buf_t TSockSys::OnAlloc(uv_handle_t* SockHnd, size_t SuggestedSize) {
 	// allocate buffer of max size 1MB
 	uv_buf_t Buffer;
 	Buffer.len = (ULONG)(SuggestedSize > (size_t)TInt::Mega ? (size_t)TInt::Mega : SuggestedSize);
-	Buffer.base = (char*) malloc(Buffer.len);
+    // this one is created using `new` as it is forwarded to TMIn after read completed
+	Buffer.base = new char[Buffer.len];
 	return Buffer;
 }
 
@@ -565,8 +566,8 @@ void TSockSys::OnRead(uv_stream_t* SockHnd, ssize_t BufferLen, uv_buf_t Buffer) 
 	if (SockSys.IsSockEvent(SockEventId)) {
 		SockEvent = SockSys.GetSockEvent(SockEventId);
 	} else {
-		// cleanup
-		free(Buffer.base);
+		// cleanup (using delete as it was created in OnAlloc with new)
+		delete[] Buffer.base;
 		SaveToErrLog("SockSys.OnRead: Socket without SockEvent");
 		return;
 	}
@@ -590,8 +591,8 @@ void TSockSys::OnRead(uv_stream_t* SockHnd, ssize_t BufferLen, uv_buf_t Buffer) 
 			TStr ErrMsg = "SockSys.OnRead: " + SockSys.GetLastErr();
 			SockEvent->OnError(SockId, Status, ErrMsg);
 		}
-		// cleanup buffer
-		free(Buffer.base);
+		// cleanup (using delete as it was created in OnAlloc with new)
+		delete[] Buffer.base;
 	}
 }
 

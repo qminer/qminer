@@ -26,17 +26,138 @@ void TMa::Update(const double& InVal, const uint64& InTmMSecs,
     
     int tempN = N - 1 + OutValV.Len();
     double delta;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
-    {        
-        tempN--;       
-        delta = OutValV[ValN] - Ma;
-        Ma = Ma - delta/tempN;                 
-    }
+	// check if all the values are removed
+	if (OutValV.Len() >= tempN) {
+		Ma = 0;		
+		tempN = 0;
+	}
+	else {
+		// remove old values from the mean
+		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+		{
+			tempN--;
+			delta = OutValV[ValN] - Ma;
+			Ma = Ma - delta / tempN;
+		}
+	}
     //add the new value to the resulting mean    
     delta = InVal - Ma;
     Ma = Ma + delta/N;
     TmMSecs = InTmMSecs;
+}
+
+TMa::TMa(TSIn& SIn) : Ma(SIn), TmMSecs(SIn) { }
+
+void TMa::Load(TSIn& SIn) {
+	*this = TMa(SIn);
+}
+
+void TMa::Save(TSOut& SOut) const {
+	// parameters
+	Ma.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Summa 
+void TSum::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	// remove old values from the sum
+	for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+	{
+		Sum -= OutValV[ValN];
+	}
+	//add the new value to the resulting sum    
+	Sum += InVal;
+	TmMSecs = InTmMSecs;
+}
+
+void TSum::Load(TSIn& SIn) {
+	*this = TSum(SIn);
+}
+
+void TSum::Save(TSOut& SOut) const {
+	// parameters
+	Sum.Save(SOut); 
+	TmMSecs.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Min 
+void TMin::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+		
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 >= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+	
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Min = AllValV[0].Val1;
+}
+
+void TMin::Load(TSIn& SIn) {
+	*this = TMin(SIn);
+}
+
+void TMin::Save(TSOut& SOut) const {
+	// parameters
+	Min.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Max 
+void TMax::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 <= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Max = AllValV[0].Val1;
+}
+
+void TMax::Load(TSIn& SIn) {
+	*this = TMax(SIn);
+}
+
+void TMax::Save(TSOut& SOut) const {
+	// parameters
+	Max.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
 }
 
 /////////////////////////////////////////////////
@@ -74,6 +195,37 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
     // rest
     TmInterval = ParamVal->GetObjNum("interval");
     InitMinMSecs = ParamVal->GetObjInt("initWindow");
+}
+
+TEma::TEma(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
+InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn);
+	Type = static_cast<TEmaType>((int)TypeI);
+	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+}
+
+void TEma::Load(TSIn& SIn) {
+	*this = TEma(SIn);
+}
+
+void TEma::Save(TSOut& SOut) const {
+	// parameters
+	Decay.Save(SOut);
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+	// TODO: Use macro for saving enum (SaveEnum, LoadEnum)
+	// TODO: change TmInterval from double to TFlt
+	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	TFlt TmIntervalFlt = TmInterval; // double
+	TmIntervalFlt.Save(SOut);;
 }
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
@@ -128,24 +280,45 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
-        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N){
-    
+        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N) {
+		
     pNo = N;
     int tempN = N - 1 + OutValV.Len();
     double delta;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
-    {        
-        tempN--;       
-        delta = OutValV[ValN] - Ma;
-        Ma = Ma - delta/tempN;  
-        M2 = M2 - delta * (OutValV[ValN] - Ma);
-    }
+    
+	// check if all the values are removed	
+	if (OutValV.Len() >= tempN) {
+		Ma = 0;
+		M2 = 0;
+		tempN = 0;
+	} else {
+		// remove old values from the mean
+		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+		{
+			tempN--;			
+			delta = OutValV[ValN] - Ma;
+			Ma = Ma - delta / tempN;
+			M2 = M2 - delta * (OutValV[ValN] - Ma);
+		}
+	}
+
     //add the new value to the resulting mean    
     delta = InVal - Ma;
     Ma = Ma + delta/N;
     M2 = M2 + delta * (InVal - Ma);
     TmMSecs = InTmMSecs;
+}
+
+void TVar::Load(TSIn& SIn) {
+	*this = TVar(SIn);
+}
+
+void TVar::Save(TSOut& SOut) const {
+	// parameters
+	Ma.Save(SOut); 
+	M2.Save(SOut); 
+	TmMSecs.Save(SOut); 
+	pNo.Save(SOut);
 }
 
 /////////////////////////////////////////////////
@@ -178,18 +351,357 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
 /////////////////////////////////////////
 // Time series interpolator interface
 PInterpolator TInterpolator::New(const TStr& InterpolatorType) {
-    if(InterpolatorType == TPreviousPoint::GetType()) {
+    if (InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New();
 	}    
+    else if (InterpolatorType == TLinear::GetType()) {
+		return TLinear::New();
+	}
+    else if (InterpolatorType == TCurrentPoint::GetType()) {
+    	return TCurrentPoint::New();
+    }
     throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
 
 PInterpolator TInterpolator::Load(TSIn& SIn) {
 	TStr InterpolatorType(SIn);
-	if(InterpolatorType == TPreviousPoint::GetType()) {
+	if (InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New(SIn);
 	}
+	else if (InterpolatorType == TLinear::GetType()) {
+		return TLinear::New(SIn);
+	}
+	else if (InterpolatorType == TCurrentPoint::GetType()) {
+		return TCurrentPoint::New(SIn);
+	}
 	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
+}
+
+/////////////////////////////////////////
+// Buffered interpolator
+TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType):
+		TInterpolator(_InterpolatorType),
+		Buff() {}
+
+TBufferedInterpolator::TBufferedInterpolator(TSIn& SIn):
+		TInterpolator(SIn),
+		Buff(SIn) {}
+
+void TBufferedInterpolator::Save(TSOut& SOut) const {
+	TInterpolator::Save(SOut);
+	Buff.Save(SOut);
+}
+
+void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
+		Buff.DelOldest();
+	}
+}
+
+void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
+	// check if the new point can be added
+	if (!Buff.Empty()) {
+		const TUInt64FltPr& LastRec = Buff.GetNewest();
+		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+	}
+
+	// add the new point
+	Buff.Add(TUInt64FltPr(Tm, Val));
+}
+
+/////////////////////////////////////////
+// Previous point interpolator.
+// Interpolate by returning last seen value
+TPreviousPoint::TPreviousPoint():
+		TBufferedInterpolator(TPreviousPoint::GetType()) {}
+
+TPreviousPoint::TPreviousPoint(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 < Time) {
+		Buff.DelOldest();
+	}
+}
+
+double TPreviousPoint::Interpolate(const uint64& Tm) const {
+	IAssertR(CanInterpolate(Tm), "TPreviousPoint::Interpolate: Time not in the desired interval!");
+	return Buff.GetOldest().Val2;
+}
+
+bool TPreviousPoint::CanInterpolate(const uint64& Tm) const {
+	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
+				(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+}
+
+/////////////////////////////////////////
+// Current point interpolator.
+TCurrentPoint::TCurrentPoint():
+		TBufferedInterpolator(TCurrentPoint::GetType()) {}
+
+TCurrentPoint::TCurrentPoint(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+double TCurrentPoint::Interpolate(const uint64& Tm) const {
+	IAssertR(CanInterpolate(Tm), "TCurrentPoint::Interpolate: Time not in the desired interval!");
+	return Buff.GetOldest().Val2;
+}
+
+bool TCurrentPoint::CanInterpolate(const uint64& Tm) const {
+	return !Buff.Empty() && Buff.GetOldest().Val1 <= Tm;
+}
+
+
+/////////////////////////////////////////
+// Time series linear interpolator
+TLinear::TLinear():
+		TBufferedInterpolator(TLinear::GetType()) {}
+
+TLinear::TLinear(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+double TLinear::Interpolate(const uint64& Tm) const {
+	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");
+
+	if (Tm == Buff.GetOldest().Val1) { return Buff.GetOldest().Val2; }
+
+	const TUInt64FltPr& PrevRec = Buff.GetOldest();
+	const TUInt64FltPr& NextRec = Buff.GetOldest(1);
+
+	return PrevRec.Val2+((double)(Tm-PrevRec.Val1)/(NextRec.Val1-PrevRec.Val1))*(NextRec.Val2-PrevRec.Val2);
+}
+
+bool TLinear::CanInterpolate(const uint64& Tm) const {
+	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
+			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+}
+
+///////////////////////////////////////////////////////////////////
+// Neural Networks - Neuron
+TRnd TNNet::TNeuron::Rnd = 0;
+
+TNNet::TNeuron::TNeuron(){
+}
+
+TNNet::TNeuron::TNeuron(TInt OutputsN, TInt MyId, TTFunc TransFunc){
+
+    TFuncNm = TransFunc;
+    for(int c = 0; c < OutputsN; ++c){
+        // define the edges, 0 element is weight, 1 element is weight delta
+        OutEdgeV.Add(TIntFltFltTr(c, RandomWeight(), 0.0));
+    }
+
+    Id = MyId;
+}
+
+void TNNet::TNeuron::FeedFwd(const TLayer& PrevLayer){
+    TFlt SumIn = 0.0;
+    // get the previous layer's outputs and sum them up
+    for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
+        SumIn += PrevLayer.GetOutVal(NeuronN) * 
+                PrevLayer.GetWeight(NeuronN, Id);
+    }
+    // not sure if static. maybe different fcn for output nodes
+    OutputVal = TNeuron::TransferFcn(SumIn);
+}
+
+TFlt TNNet::TNeuron::TransferFcn(TFlt Sum){
+    switch (TFuncNm){
+        case tanHyper:
+            // tanh output range [-1.0..1.0]
+            // training data should be scaled to what the transfer function can handle
+           return tanh(Sum);
+        case sigmoid:
+           // sigmoid output range [0.0..1.0]
+           // training data should be scaled to what the transfer function can handle
+           return 1.0 / (1.0 + exp(-Sum));
+        case fastTanh:
+           // sigmoid output range [-1.0..1.0]
+           // training data should be scaled to what the transfer function can handle
+           return Sum / (1.0 + abs(Sum));
+        case fastSigmoid:
+           // sigmoid output range [0.0..1.0]
+           // training data should be scaled to what the transfer function can handle
+           return (Sum / 2.0) / (1.0 + abs(Sum)) + 0.5;
+        case linear:
+            return Sum;         
+    };
+    throw TExcept::New("Unknown transfer function type");
+}
+
+TFlt TNNet::TNeuron::TransferFcnDeriv(TFlt Sum){
+    switch (TFuncNm){
+        case tanHyper:
+            // tanh derivative approximation
+            return 1.0 - Sum * Sum;
+        case sigmoid:{
+           double Fun = 1.0 / (1.0 + exp(-Sum));
+           return Fun * (1.0 - Fun);
+        }
+        case fastTanh:
+           return 1.0 / ((1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+        case fastSigmoid:
+           return 1.0 / (2.0 * (1.0 + abs(Sum)) * (1.0 + abs(Sum)));
+        case linear:
+            return 1;         
+    };
+    throw TExcept::New("Unknown transfer function type");
+}
+
+void TNNet::TNeuron::CalcOutGradient(TFlt TargVal){
+    TFlt Delta = TargVal - OutputVal;
+    // TODO: different ways of calculating gradients
+    Gradient = Delta * TNeuron::TransferFcnDeriv(OutputVal);
+}
+
+void TNNet::TNeuron::CalcHiddenGradient(const TLayer& NextLayer){
+    // calculate error by summing the derivatives of the weights next layer
+    TFlt DerivsOfWeights = SumDOW(NextLayer);
+    Gradient = DerivsOfWeights * TNeuron::TransferFcnDeriv(OutputVal);
+}
+
+TFlt TNNet::TNeuron::SumDOW(const TLayer& NextLayer) const{
+    TFlt sum = 0.0;
+    // sum our contributions of the errors at the nodes we feed
+    for(int NeuronN = 0; NeuronN < NextLayer.GetNeuronN() - 1; ++NeuronN){
+        // weight from us to next layer neuron times its gradient
+        sum += GetWeight(NeuronN) * NextLayer.GetGradient(NeuronN);
+    }
+
+    return sum;
+}
+
+void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate, const TFlt& Momentum){
+    // the weights to be updated are in the OutEdgeV
+    // in the neurons in the preceding layer
+    for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
+        TNeuron& Neuron = PrevLayer.GetNeuron(NeuronN);
+        TFlt OldDeltaWeight = Neuron.GetDeltaWeight(Id);
+        //printf(" LearnRate N: %f \n", LearnRate);
+
+        TFlt NewDeltaWeight = 
+                // individual input magnified by the gradient and train rate
+                LearnRate
+                * Neuron.GetOutVal()
+                * Gradient
+                // add momentum = fraction of previous delta weight
+                + Momentum
+                * OldDeltaWeight;
+
+        Neuron.SetDeltaWeight(Id, NewDeltaWeight);
+        Neuron.UpdateWeight(Id, NewDeltaWeight);
+    }
+}
+    
+/////////////////////////////////////////////////////////////////////////
+//// Neural Networks - Layer of Neurons
+// TODO: why do we need this empty constructor?
+TNNet::TLayer::TLayer(){
+}
+
+TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& TransFunc){
+    // Add neurons to the layer, plus bias neuron
+    for(int NeuronN = 0; NeuronN <= NeuronsN; ++NeuronN){
+        NeuronV.Add(TNeuron(OutputsN, NeuronN, TransFunc));
+        printf("Made a neuron!");
+        printf(" Neuron N: %d", NeuronN);
+        printf(" Neuron H: %d", NeuronV.Len());
+        printf("\n");
+    } 
+    // Force the bias node's output value to 1.0
+    NeuronV.Last().SetOutVal(1.0);
+    printf("\n");
+}
+
+/////////////////////////////////////////////////////////////////////////
+//// Neural Networks - Neural Net
+TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate, 
+            const TFlt& _Momentum, const TTFunc& TFuncHiddenL,
+            const TTFunc& TFuncOutL){
+    // get number of layers
+    int LayersN = LayoutV.Len();
+    LearnRate = _LearnRate;
+    Momentum = _Momentum;
+    // create each layer
+    for(int LayerN = 0; LayerN < LayersN; ++LayerN){
+        // Get number of neurons in the next layer
+        // set number of output connections, if output layer then no output connections
+        TInt OutputsN = LayerN == LayersN - 1 ? TInt(0) : LayoutV[LayerN + 1];
+        // set transfer functions for hidden and output layers
+        TTFunc TransFunc = LayerN == LayersN - 1 ? TFuncOutL : TFuncHiddenL;
+        TInt NeuronsN = LayoutV[LayerN];
+        // Add a layer to the net
+        LayerV.Add(TLayer(NeuronsN, OutputsN, TransFunc));
+        printf("LayerV.Len(): %d \n", LayerV.Len() );
+    }
+}
+
+void TNNet::FeedFwd(const TFltV& InValV){
+    // check if number of input values same as number of input neurons
+    Assert(InValV.Len() == LayerV[0].GetNeuronN() - 1);
+    // assign input values to input neurons
+    for(int InputN = 0; InputN < InValV.Len(); ++InputN){
+        LayerV[0].SetOutVal(InputN, InValV[InputN]);
+    }
+
+    // forward propagation
+    for(int LayerN = 1; LayerN < LayerV.Len(); ++LayerN){
+        TLayer& PrevLayer = LayerV[LayerN - 1];
+        for(int NeuronN = 0; NeuronN < LayerV[LayerN].GetNeuronN() - 1; ++NeuronN){
+            LayerV[LayerN].FeedFwd(NeuronN, PrevLayer);
+        }
+    }
+}
+
+void TNNet::BackProp(const TFltV& TargValV){
+    // calculate overall net error (RMS of output neuron errors)
+    TLayer& OutputLayer = LayerV.Last();
+    Error = 0.0;
+
+    for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
+        TFlt Delta = TargValV[NeuronN] - OutputLayer.GetOutVal(NeuronN);
+        Error += Delta * Delta;
+    }
+    Error /= OutputLayer.GetNeuronN() - 1;
+    Error = sqrt(Error); // RMS
+
+    // recent avg error measurement
+    RecentAvgError = (RecentAvgError * RecentAvgSmoothingFactor + Error)
+            / (RecentAvgSmoothingFactor + 1.0);
+    // Calculate output layer gradients
+    for(int NeuronN = 0; NeuronN < OutputLayer.GetNeuronN() - 1; ++NeuronN){
+        OutputLayer.CalcOutGradient(NeuronN, TargValV[NeuronN]);
+    }        
+    // Calculate gradients on hidden layers
+    for(int LayerN = LayerV.Len() - 2; LayerN > 0; --LayerN){
+        TLayer& HiddenLayer = LayerV[LayerN];
+        TLayer& NextLayer = LayerV[LayerN + 1];
+
+        for(int NeuronN = 0; NeuronN < HiddenLayer.GetNeuronN() - 1; ++NeuronN){
+            HiddenLayer.CalcHiddenGradient(NeuronN, NextLayer);
+        }
+
+    }
+    // For all layers from output to first hidden layer
+    // update connection weights
+    for(int LayerN = LayerV.Len() - 1; LayerN > 0; --LayerN){
+        TLayer& Layer = LayerV[LayerN];
+        TLayer& PrevLayer = LayerV[LayerN - 1];
+
+        for(int NeuronN = 0; NeuronN < Layer.GetNeuronN() - 1; ++NeuronN){
+            Layer.UpdateInputWeights(NeuronN, PrevLayer, LearnRate, Momentum);
+        }
+    }
+}
+
+void TNNet::GetResults(TFltV& ResultV) const{
+    ResultV.Clr(true, -1);
+
+    for(int NeuronN = 0; NeuronN < LayerV.Last().GetNeuronN() - 1; ++NeuronN){
+        ResultV.Add(LayerV.Last().GetOutVal(NeuronN));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////

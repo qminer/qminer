@@ -25,6 +25,7 @@
 
 #include <base.h>
 #include <mine.h>
+#include <funrouter.h>
 
 namespace TQm {
 
@@ -55,6 +56,10 @@ public:
 	
     /// Maximal number of stores allowed, also sets the upper limit to valid store IDs
     static uint GetMxStores() { return 0x4000; } // == 16384
+    
+    /// True when QMiner is running in sandboxed mode
+    /// TODO: make it configurable
+    static bool IsSandbox() { return false; }
     
 	/// Path to QMiner
 	static TStr QMinerFPath;
@@ -128,29 +133,6 @@ public:
 
 #define QmAssertR(Cond, MsgStr) \
   ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
-
-///////////////////////////////
-/// Router to constructors based on object types.
-/// Useful for creating and de-serializing derived objects, such as TAggr and TStreamAggr.
-template <class PObj, typename TFun>
-class TFunRouter {
-private:
-    /// Object descriptions
-	THash<TStr, TFun> TypeNmToFunH;
-    
-public:
-    /// Register default stream aggregates
-    TFunRouter() { }
-    
-    /// Register new object
-    void Register(const TStr& TypeNm, TFun Fun) { TypeNmToFunH.AddDat(TypeNm, Fun); }
-    
-    /// Get the function for given type
-    TFun Fun(const TStr& TypeNm) {
-        if (TypeNmToFunH.IsKey(TypeNm)) { return TypeNmToFunH.GetDat(TypeNm); }
-        throw TQmExcept::New("[TFunRouter::Fun] Unknown object type " + TypeNm);
-    }
-};
 
 ///////////////////////////////
 /// Join Types
@@ -236,6 +218,7 @@ public:
 	TJoinSeq(const TWPt<TBase>& Base, const uint& _StartStoreId, const PJsonVal& JoinSeqVal);
 	
 	TJoinSeq(TSIn& SIn): StartStoreId(SIn), JoinIdV(SIn) { }
+	void Load(TSIn& SIn) { StartStoreId.Load(SIn); JoinIdV.Load(SIn); }
 	void Save(TSOut& SOut) const { StartStoreId.Save(SOut); JoinIdV.Save(SOut); }
 
 	/// Is the join sequence valid
@@ -256,6 +239,10 @@ public:
 
 	/// Readable string representation of join sequence
 	TStr GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr = ".") const;
+
+	int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetPrimHashCd(), JoinIdV.GetPrimHashCd()); }
+	int GetSecHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetSecHashCd(), JoinIdV.GetSecHashCd()); }
+	
 };
 typedef TVec<TJoinSeq> TJoinSeqV;
 
@@ -367,33 +354,32 @@ typedef TPt<TStoreIter> PStoreIter;
 ///////////////////////////////
 /// Store Vector Iterator.
 /// Useful for stores using TVec to store records
-/// Example: TStrV TestV; PStoreIter TestIter = TStoreIterVec::New(TestV.Len());
 class TStoreIterVec : public TStoreIter {
 private:
 	/// True before first call to Next()
 	bool FirstP;
+    /// True when we reach the end
+    bool LastP;
+    /// Direction (increment or decrement)
+    bool AscP;
 	/// Current Record ID
 	uint64 RecId;
-	/// Number of all records
-	uint64 RecIds;
+	/// End
+	uint64 EndId;
 
 public:
     /// Empty vector
 	TStoreIterVec();
-    /// Vector has _RecIds with first ID being 0
-	TStoreIterVec(const uint64& _RecIds);    
     /// Vector has elements from MinId till MaxId
-	TStoreIterVec(const uint64& MinId, const uint64& MaxId);
+	TStoreIterVec(const uint64& _StartId, const uint64& _EndId, const bool& _AscP);
 
 	/// Create new iterator for empty vector
 	static PStoreIter New() { return new TStoreIterVec; }
-	/// Create new iterator for vector, which starts with RecId = 0
-	static PStoreIter New(const uint64& RecIds) { return new TStoreIterVec(RecIds); }
 	/// Create new iterator for vector, which starts with RecId = MinId
-	static PStoreIter New(const uint64& MinId, const uint64& MaxId) { return new TStoreIterVec(MinId, MaxId); }
+	static PStoreIter New(const uint64& StartId, const uint64& EndId, const bool& AscP);
 
 	bool Next();
-	uint64 GetRecId() const { Assert(!FirstP); return RecId; }
+	uint64 GetRecId() const { QmAssert(!FirstP); return RecId; }
 };
 
 ///////////////////////////////
@@ -605,6 +591,15 @@ public:
 	virtual PRecSet GetRndRecs(const uint64& SampleSize);
 	/// Checks if no records in the store
 	bool Empty() const { return (GetRecs() == uint64(0)); }
+
+    /// Gets the first record in the store (order defined by store implementation)
+    virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
+    /// Gets the last record in the store (order defined by store implementation)
+    virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
+    /// Gets forward moving iterator (order defined by store implementation)
+    virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
+    /// Gets backward moving iterator (order defined by store implementation)
+    virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
     
 	/// Add new record provided as JSon
 	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;
@@ -1189,6 +1184,28 @@ public:
 };
 
 ///////////////////////////////
+/// Record Splitter by Time Field. 
+class TRecSplitterByFieldTm {
+private:
+    /// Store from which we are sorting the records 
+    TWPt<TStore> Store;
+    /// Field according to which we are sorting
+    TInt FieldId;
+    /// Maximal difference value
+    TUInt64 DiffMSecs;
+    
+public:
+    TRecSplitterByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId, const uint64& _DiffMSecs):
+        Store(_Store), FieldId(_FieldId), DiffMSecs(_DiffMSecs) { }
+    
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+        const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
+        const uint64 RecVal2 = Store->GetFieldTmMSecs(RecIdWgt2.Key, FieldId);
+        return (RecVal2 - RecVal1) > DiffMSecs;
+    }
+};
+
+///////////////////////////////
 /// Record Set. 
 /// Holds a collection of record IDs from one store.
 /// Records are stored internally as a vector of ids.
@@ -1325,6 +1342,11 @@ public:
 	void FilterByFieldTm(const int& FieldId, const TTm& MinVal, const TTm& MaxVal);
 	/// Filter records to keep only the ones with values of a given field within given range
 	template <class TFilter> void FilterBy(const TFilter& Filter);
+    
+    /// Split records into several whenever value of two consecutive records above threshold
+    TVec<PRecSet> SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const;
+    /// Split records into several whenever value of two consecutive records above threshold
+    template <class TSplitter> TVec<PRecSet> SplitBy(const TSplitter& Splitter) const;
 
 	/// Remove record from the set (warning: time complexity O(GetRecs()) )
 	void RemoveRecId(const TUInt64& RecId);
@@ -1407,6 +1429,30 @@ void TRecSet::FilterBy(const TFilter& Filter) {
 	RecIdFqV = NewRecIdFqV;    
 }
 
+template <class TSplitter> 
+TVec<PRecSet> TRecSet::SplitBy(const TSplitter& Splitter) const {
+    TRecSetV ResV;
+    // if no records, nothing to do
+    if (Empty()) { return ResV; }
+    // initialize with the first record
+    TUInt64IntKdV NewRecIdFqV; NewRecIdFqV.Add(RecIdFqV[0]);
+    // go over the rest and see when to split
+    for (int RecN = 1; RecN < GetRecs(); RecN++) {
+        if (Splitter(RecIdFqV[RecN-1], RecIdFqV[RecN])) {
+            // we need to split, first we create record set for all existing records
+            ResV.Add(TRecSet::New(Store, NewRecIdFqV, IsWgt()));
+            // and initialize a new one
+            NewRecIdFqV.Clr(false);            
+        }
+        // add new record to the next record set
+        NewRecIdFqV.Add(RecIdFqV[RecN]);
+    }
+    // add last record set to the result list
+    ResV.Add(TRecSet::New(GetStore(), NewRecIdFqV, IsWgt()));
+    // done
+    return ResV;
+}
+
 ///////////////////////////////
 // QMiner-Index-Typedefs
 typedef TIntUInt64Pr TKeyWord;
@@ -1452,6 +1498,8 @@ private:
 	TIntV FieldIdV;
 	/// Linked join (only for internal field)
 	TStr JoinNm;
+    /// Tokenizer, when key requires one (e.g. text)
+    PTokenizer Tokenizer;
 
 public:
 	/// Empty constructor creates undefined key
@@ -1481,10 +1529,7 @@ public:
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
 
-	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
-	bool IsWordVoc() const { return WordVocId != -1; }
-	/// Get id of word vocabulary used by the key
-	int GetWordVocId() const { return WordVocId; }
+
     /// Get key type
     TIndexKeyType GetTypeFlags() const { return TypeFlags; }
 	/// Checks key type is value
@@ -1506,6 +1551,11 @@ public:
 	bool IsSortByFlt() const { return SortType == oikstByFlt; }
 	/// Checks if key is sortable by word id in the vocabulary
 	bool IsSortById() const { return SortType == oikstById; }
+    
+	/// Checks if the key has assigned word vocabulary (e.g. locations and joins do not)
+	bool IsWordVoc() const { return WordVocId != -1; }
+	/// Get id of word vocabulary used by the key
+	int GetWordVocId() const { return WordVocId; }    
 
 	/// Link key to store fields
 	void AddField(const int& FieldId) { FieldIdV.Add(FieldId); }
@@ -1518,6 +1568,13 @@ public:
 
 	/// Get name of associated join
 	const TStr& GetJoinNm() const { return JoinNm; }
+    
+    /// Do we have a tokenizer
+    bool IsTokenizer() const { return !Tokenizer.Empty(); }
+    /// Get the tokenizer
+    const PTokenizer& GetTokenizer() const { return Tokenizer; }
+    /// Set the tokenizer
+    void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
 };
 
 ///////////////////////////////
@@ -1599,8 +1656,6 @@ private:
 	// smart-pointer
 	TCRef CRef;
 	friend class TPt<TIndexVoc>;
-	/// Default Tokenizer
-	PTokenizer Tokenizer;
     /// List of all the keys
     THash<TUIntStrPr, TIndexKey> KeyH;
     /// Keys split by stores
@@ -1615,7 +1670,7 @@ private:
 	/// Get constant word vocabulary for a given key
 	const PIndexWordVoc& GetWordVoc(const int& KeyId) const;
 
-	TIndexVoc(): Tokenizer(TTokenizerHtml::New()) { }
+	TIndexVoc() { }
     TIndexVoc(TSIn& SIn);
 public:
 	/// Create new index vocabulary
@@ -1689,16 +1744,16 @@ public:
 	void AddWordIdV(const int& KeyId, const TStrV& TextStr, TUInt64V& WordIdV);
 	/// Get vector of all words from a key that match given wildchar query
 	void GetWcWordIdV(const int& KeyId, const TStr& WcStr, TUInt64V& WcWordIdV);
-    // Get all words from a key that are greater than `startWordId
+    /// Get all words from a key that are greater than `startWordId
     void GetAllGreaterV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllGreaterV);
-    // Get all words from a key that are smaller than `startWordId
+    /// Get all words from a key that are smaller than `startWordId
     void GetAllLessV(const int& KeyId, const uint64& StartWordId, TKeyWordV& AllLessV);
+    
+    /// Get tokenizer from a key
+    const PTokenizer& GetTokenizer(const int& KeyId) const;
+    /// Set tokenizer for a key
+    void PutTokenizer(const int& KeyId, const PTokenizer& Tokenizer);
 
-	/// Access to default tokenizer
-	PTokenizer GetTokenizer() const { return Tokenizer; }
-	/// Set default tokenizer
-	void PutTokenizer(const PTokenizer& _Tokenizer) { Tokenizer = _Tokenizer; }
-	
 	/// Save human-readable statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const;
 };
@@ -2351,7 +2406,7 @@ private:
     /// Stream aggregate New constructor router
 	static TFunRouter<PStreamAggr, TNewF> NewRouter;   
     /// Load constructor delegate
-	typedef PStreamAggr (*TLoadF)(const TWPt<TBase>& Base, TSIn& SIn);   
+	typedef PStreamAggr(*TLoadF)(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
     /// Stream aggregate Load constructor router
 	static TFunRouter<PStreamAggr, TLoadF> LoadRouter;
 public:
@@ -2377,7 +2432,7 @@ protected:
     /// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 	/// Load basic class of stream aggregate
-	TStreamAggr(const TWPt<TBase>& _Base, TSIn& SIn);
+	TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
@@ -2388,7 +2443,7 @@ public:
 	virtual ~TStreamAggr() { }
     
 	/// Load stream aggregate from stream
-	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
 
@@ -2412,7 +2467,7 @@ public:
 	/// Serialization current status to JSon
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
-	/// Unique ID of the trigger
+	/// Unique ID of the stream aggregate
 	const TStr& GetGuid() const { return Guid; }    
 };
 
@@ -2453,8 +2508,11 @@ namespace TStreamAggrOut {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetFltLen() const = 0;
+		virtual double GetFlt(const TInt& ElN) const = 0;
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
+
+	class IFltVecTm : public IFltVec, public ITm { };
 
 	class INmFlt {
 	public:
@@ -2555,6 +2613,8 @@ private:
     THash<TStr, PStore> StoreH;
 	// stream aggregate base for each store
     TVec<PStreamAggrBase> StreamAggrBaseV;
+	// default stream aggregate base (store independent)
+	PStreamAggrBase StreamAggrDefaultBase;
 	// operators
 	THash<TStr, POp> OpH;
 
@@ -2611,13 +2671,17 @@ public:
 
 	// stream aggregates
 	const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
+	const PStreamAggrBase& GetStreamAggrBase() const;
 	bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
+	bool IsStreamAggr(const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
+	const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
 	void AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const PStreamAggr& StreamAggr);
     // aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 
@@ -2685,6 +2749,10 @@ public:
 	void NewTempIndex() const { TempIndex->NewIndex(IndexVoc); }
 	void CheckTempIndexSize() { if (IsTempIndexFull()) { NewTempIndex(); } }
 
+    // JSON dump and load
+	bool SaveJSonDump(const TStr& DumpDir);
+	bool RestoreJSonDump(const TStr& DumpDir);
+    
     // statistics
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);

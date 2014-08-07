@@ -1047,7 +1047,13 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 
 }
 
+#elif defined(GLib_MACOSX)
 
+void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
+                 const bool& ThrowExceptP, const bool& FailIfExistsP) {
+    
+    FailR("Feature not implemented");
+}
 
 #endif
 
@@ -1194,7 +1200,7 @@ uint64 TFile::GetLastWriteTm(const TStr& FNm) {
     return UInt64.Val / uint64(10000);
 }
 
-#elif defined(GLib_LINUX)
+#elif defined(GLib_UNIX)
 
 uint64 TFile::GetSize(const TStr& FNm) {
     struct stat st;

@@ -259,6 +259,8 @@ class TLinAlg {
 public:
     // <x,y>
     static double DotProduct(const TFltV& x, const TFltV& y);
+    // <X[i],y>
+    static double DotProduct(const TVec<TFltV>& X, int ColId, const TFltV& y);
     // <X(:,ColIdX), Y(:,ColIdY)>
     static double DotProduct(const TFltVV& X, int ColIdX, const TFltVV& Y, int ColIdY);
     // <X(:,ColId), Vec>
@@ -266,8 +268,14 @@ public:
     // sparse dot products:
     // <x,y> where x AND y are sparse
     static double DotProduct(const TIntFltKdV& x, const TIntFltKdV& y);
+    // <X[i],y> where x AND y are sparse
+    static double DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TIntFltKdV& y);
     // <x,y> where only y is sparse
     static double DotProduct(const TFltV& x, const TIntFltKdV& y);
+    // <X[i],y> where only y is sparse
+    static double DotProduct(const TVec<TFltV>& X, int ColId, const TIntFltKdV& y);
+    // <X[i],y> where only X is sparse
+    static double DotProduct(const TVec<TIntFltKdV>& X, int ColId, const TFltV& y);
     // <X(:,ColId),y> where only y is sparse
     static double DotProduct(const TFltVV& X, int ColId, const TIntFltKdV& y);
 	// z = x * y'    
@@ -286,18 +294,24 @@ public:
 
     // z := k * x + y
     static void AddVec(const double& k, const TFltV& x, const TFltV& y, TFltV& z);
-	 // z := x + y
+    // z := k * X[ColId] + y
+    static void AddVec(const double& k, const TVec<TFltV>& X, int ColId, const TFltV& y, TFltV& z);
+    // z := k * X(:,ColId) + y
+    static void AddVec(const double& k, const TFltVV& X, int ColId, const TFltV& y, TFltV& z);
+    // z := x + y
 	static void AddVec(const TFltV& x, const TFltV& y, TFltV& z);
     // z := k * x + y
     static void AddVec(const double& k, const TIntFltKdV& x, const TFltV& y, TFltV& z);
+    // z := k * X[ColId] + y
+    static void AddVec(const double& k, const TVec<TIntFltKdV>& X, int ColId, const TFltV& y, TFltV& z);
     // y := k * x + y
     static void AddVec(const double& k, const TIntFltKdV& x, TFltV& y);
     // Y(:,Col) += k * X(:,Col)
-    static void AddVec(double k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY);
+    static void AddVec(const double& k, const TFltVV& X, int ColIdX, TFltVV& Y, int ColIdY);
 	// Y(:,ColIdY) += k * x
 	static void AddVec(const double& k, const TFltV& x, TFltVV& Y, const int& ColIdY);
     // Result += k * X(:,Col)
-    static void AddVec(double k, const TFltVV& X, int ColId, TFltV& Result);
+    static void AddVec(const double& k, const TFltVV& X, int ColId, TFltV& Result);
 	// z = x + y
     static void AddVec(const TIntFltKdV& x, const TIntFltKdV& y, TIntFltKdV& z);	    
 
@@ -337,9 +351,9 @@ public:
 	static void Convert(const TVec<TPair<TIntV, TFltV> >& A, TTriple<TIntV, TIntV, TFltV>& B);
 	// Vector of sparse vectors to sparse matrix (coordinate representation)
 	static void Convert(const TVec<TIntFltKdV>& A, TTriple<TIntV, TIntV, TFltV>& B);
-	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
+	// sum columns (Dimension = 2) or rows (Dimension = 1) and store them in vector y
 	static void Sum(const TFltVV& X, TFltV& y, const int Dimension = 1);
-	// sum columns (Dimesnion = 2) or rows (Dimension = 1) and store them in vector y
+	// sum columns (Dimension = 2) or rows (Dimension = 1) and store them in vector y
 	static void Sum(const TTriple<TIntV, TIntV, TFltV>& X, TFltV& y, const int Dimension = 1);
 
     // ||x||^2 (Euclidian)

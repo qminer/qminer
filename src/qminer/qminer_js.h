@@ -26,6 +26,11 @@
 #include <v8.h>
 #include <typeinfo>
 
+#ifdef V8_DEBUG
+    // include v8 debug headers
+	#include <v8-debug.h>
+#endif
+
 namespace TQm {
 
 // All comments starting with / / # (no spaces) are copied to JavaScript API documentation
@@ -42,8 +47,11 @@ namespace TQm {
 //# of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
 //# Currently, version 3.18 of V8 is used.
 //# 
+//# **Intellisense**: When using Visual Studio 2013 one can enable intellisense for the JavaScript API globally by navigating: 
+//# Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
+//# 
 //# JavaScript API requires [initialized work environment](Quick-Start).
-//#     
+//# 
 //# ## Libraries
 //# 
 //# Scripts can load external libraries or modules in the same way as Node.js.
@@ -71,11 +79,13 @@ namespace TQm {
 //# are implemented in C++, for example `analytics` and `time`.
 //# 
 //# The QMiner system comes with the following libraries:
-//# - `analytics.js` -- main API for analytics techniques
-//# - `utilities.js` -- useful JavaScript utilities, e.g., checking variable type
-//# - `time` -- wrapper around user-friendly date-time object
-//# - `assert.js` -- support for writing unit tests
-    
+//#- **analytics.js** -- main API for analytics techniques
+//#- **utilities.js** -- useful JavaScript utilities, e.g., checking variable type
+//#- **time** -- wrapper around user-friendly date-time object
+//#- **assert.js** -- support for writing unit tests
+//#- **twitter.js** -- support for processing tweets
+
+
 ///////////////////////////////
 // JavaScript-Exceptions-related macros 
 
@@ -89,7 +99,7 @@ namespace TQm {
 		v8::HandleScope HandleScope; \
 		try { \
 			return HandleScope.Close(Function(Args)); \
-		} catch(const PExcept& Except) { \
+		} catch (const PExcept& Except) { \
 			if(typeid(Except) == typeid(TQmExcept::New(""))) { \
 				v8::Handle<v8::Value> Why = v8::String::New(Except->GetMsgStr().CStr()); \
 				v8::ThrowException(Why); \
@@ -296,6 +306,9 @@ public:
 
     /// Converts HttpRq from glib to JSON
     static v8::Handle<v8::Object> HttpRqToJson(PHttpRq HttpRq);
+    
+    /// TStrV -> v8 string array
+    static v8::Handle<v8::Value> GetStrArr(const TStrV& StrV);
 };
 
 ///////////////////////////////
@@ -397,6 +410,8 @@ public:
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context, return double
 	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context, write result to vector
+	void ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec);
 	/// Execute JavaScript callback in this script's context
     bool ExecuteBool(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Object>& Arg); 
 	/// Execute JavaScript callback in this script's context
@@ -406,9 +421,10 @@ public:
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context
 	void Execute(v8::Handle<v8::Function> Fun, const TStr& Str);
-	/// Execute JavaScript callback in this script's context
+	/// Execute JavaScript callback in this script's context given string argument
 	TStr ExecuteStr(v8::Handle<v8::Function> Fun, const TStr& Str);
-
+	/// Execute JavaScript callback in this script's context given int argument
+	PJsonVal ExecuteJson(v8::Handle<v8::Function> Fun, const TInt& ArgInt);
 	/// Add new server function
 	void AddSrvFun(const TStr& ScriptNm, const TStr& FunNm, const TStr& Verb, const v8::Persistent<v8::Function>& JsFun);
 	/// Execute stored server function
@@ -890,6 +906,38 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr : public TStreamAggr {
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
+
+public:
+	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal); }
+    
+	void OnAddRec(const TRec& Rec);
+	void OnUpdateRec(const TRec& Rec);
+	void OnDeleteRec(const TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const {
+		if (!SaveJsonFun.IsEmpty()) {
+			PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
+			QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+			return Res;
+		}
+		else {
+			return TJsonVal::NewObj();
+		}
+	}
+};
+
+///////////////////////////////
 // JavaScript WebPgFetch Request
 class TJsFetchRq {
 private:
@@ -976,25 +1024,81 @@ public:
 
     // temporary stuff
 	JsDeclareProperty(analytics); // deprecated    
-	JsDeclareProperty(args); // to be moved to TJsProcess once created
-    JsDeclareProperty(sysStat);  // to be moved to TJsProcess once created
 	JsDeclareFunction(op); // soon to be deprecated, functionality moved to TJsRecSet
 
 	//# 
 	//# **Functions and properties:**
 	//# 
-    //#- `s = qm.store(storeName)` -- store with name `storeName`; `null` when no such store
+    //#- `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `a = qm.getStoreList()` -- an array listing all existing stores
+    //#- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
 	JsDeclareFunction(getStoreList);
-    //#- `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
+    //#- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+    //#- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 	JsDeclareFunction(createStore);
-    //#- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
+    //#- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
     //#   and returns a record set `rs` with results
 	JsDeclareFunction(search);   
-    //#-- `qm.gc()` -- start garbage collection to remove records outside time windows
+    //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
+	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+	//#- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = qm.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `sa = qm.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = qm.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+	//#- `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	JsDeclareFunction(newStreamAggr);
+	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+	JsDeclareFunction(getStreamAggr);
+	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
+	JsDeclareFunction(getStreamAggrNames);
 	//#JSIMPLEMENT:src/qminer/qminer.js    
+};
+
+//# 
+//# ### Stream Aggregate
+//# 
+//# Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+class TJsSA {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	/// QMiner base
+	TWPt<TStreamAggr> SA;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSA> TJsSAUtil;
+
+	TJsSA(TWPt<TScript> _Js, TWPt<TStreamAggr> _SA) : Js(_Js), SA(_SA) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStreamAggr> SA) {
+		return TJsSAUtil::New(new TJsSA(Js, SA));
+	}
+
+	~TJsSA() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `str = sa.name` -- returns the name (unique) of the stream aggregate
+	JsDeclareProperty(name);
+	//#- `sa = sa.onAdd(rec)` -- executes onAdd function given an input record `rec` and returns self
+	JsDeclareFunction(onAdd);
+	//#- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
+	JsDeclareFunction(onUpdate);
+	//#- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
+	JsDeclareFunction(onDelete);
+	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+	JsDeclareFunction(saveJson);
+	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
+	JsDeclareProperty(val);
 };
 
 ///////////////////////////////
@@ -1018,8 +1122,11 @@ private:
 
 	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
-		return TJsStoreUtil::New(new TJsStore(Js, Store)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
+		return TJsStoreUtil::New(new TJsStore(Js, Store), Js, "qm.storeProto");
+	}
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
+		return TJsStoreUtil::New(new TJsStore(Js, Store)); }*/
 	~TJsStore() { }
 
 	// template
@@ -1028,32 +1135,39 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `store.name` -- name of the store
+    //#- `str = store.name` -- name of the store
 	JsDeclareProperty(name);
-    //#- `store.empty` -- `true` when store is empty
+    //#- `bool = store.empty` -- `bool = true` when store is empty
 	JsDeclareProperty(empty);
-    //#- `store.length` -- number of records in the store
+    //#- `len = store.length` -- number of records in the store
 	JsDeclareProperty(length);
     //#- `rs = store.recs` -- create a record set containing all the records from the store
 	JsDeclareProperty(recs);
-    //#- `store.fields` -- array of all the field names
+    //#- `objArr = store.fields` -- array of all the field descriptor JSON objects
 	JsDeclareProperty(fields);
-    //#- `store.joins` -- array of all the join names
+    //#- `objArr = store.joins` -- array of all the join names
 	JsDeclareProperty(joins);	
-    //#- `store.keys` -- array of all the [index keys](#index-key)
-	JsDeclareProperty(keys);	
-    //#- `r = store[recordId]` -- get record with ID `recordId`; 
+    //#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+	JsDeclareProperty(keys);
+    //#- `rec = store.first` -- first record from the store
+    JsDeclareProperty(first);
+    //#- `rec = store.last` -- last record from the store
+    JsDeclareProperty(last);
+    //#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+    JsDeclareProperty(forwardIter);
+    //#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+    JsDeclareProperty(backwardIter);
+    //#- `rec = store[recId]` -- get record with ID `recId`; 
     //#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);
-    //#- `r = store.rec(recordName)` -- get record named `recordName`; 
+    //#- `rec = store.rec(recName)` -- get record named `recName`; 
     //#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
-    //#- `store.add(record)` -- add `record` to the store 
+    //#- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
 	JsDeclareFunction(add);
-    //#- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
+    //#- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
     JsDeclareFunction(newRec);
-    //#- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    //#     array is expected to be of type `la.newIntVec`
+    //#- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 	JsDeclareFunction(newRecSet);
     //#- `rs = store.sample(sampleSize)` -- create a record set containing a random 
     //#     sample of `sampleSize` records
@@ -1062,16 +1176,14 @@ public:
 	JsDeclareFunction(field);
     //#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
-    //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
-	JsDeclareFunction(addTrigger);
-    //#- `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
-    //#     of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
-    JsDeclareFunction(addStreamAggr);
-    //#- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
+    //#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+	JsDeclareFunction(addTrigger);	
+    //#- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	JsDeclareFunction(getStreamAggr);
-	//#- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
+	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
-    
+	//#JSIMPLEMENT:src/qminer/store.js
+
     //# 
     //# **Examples**:
     //# 
@@ -1102,6 +1214,40 @@ public:
     //# ```    
 };
     
+///////////////////////////////
+// JavaScript Store Iterator
+//# 
+//# ### Store iterator
+//# 
+class TJsStoreIter {
+private:
+	/// JS script context
+	TWPt<TScript> Js;	
+	TWPt<TStore> Store;
+    PStoreIter Iter;
+
+	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
+
+	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, 
+        const PStoreIter& _Iter): Js(_Js), Store(_Store), Iter(_Iter) { }	
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, 
+        const TWPt<TStore>& Store, const PStoreIter& Iter) { 
+		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter)); }
+	~TJsStoreIter() { }
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#   
+    //#- `store = iter.store` -- get the store
+	JsDeclareProperty(store);
+    //#- `rec = iter.rec` -- get current record
+	JsDeclareProperty(rec);
+    //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+    JsDeclareFunction(next);
+};
 
 ///////////////////////////////
 // JavaScript Record Comparator
@@ -1140,6 +1286,24 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Record Comparator
+class TJsRecSplitter {
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	TWPt<TStore> Store;
+	// callbacks
+	v8::Persistent<v8::Function> SplitterFun;
+
+public:
+	TJsRecSplitter(TWPt<TScript> _Js, TWPt<TStore> _Store, 
+        const v8::Persistent<v8::Function>& _SplitterFun): 
+            Js(_Js), Store(_Store), SplitterFun(_SplitterFun) { }
+
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+};
+
+///////////////////////////////
 // QMiner-JavaScript-Record-Set
 //#
 //# ### Record set
@@ -1167,61 +1331,64 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#   
-	//#- `rs.store` -- store of the records
+	//#- `storeName = rs.store` -- store of the records
 	JsDeclareProperty(store);
-	//#- `rs.length` -- number of records in the set
+	//#- `len = rs.length` -- number of records in the set
 	JsDeclareProperty(length);
-	//#- `rs.empty` -- `true` when record set is empty
+	//#- `bool = rs.empty` -- `bool = true` when record set is empty
 	JsDeclareProperty(empty);
-	//#- `rs.weighted` -- true when records in the set are assigned weights
+	//#- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	JsDeclareProperty(weighted);
     //#- `rec = rs[n]` -- return n-th record from the record set
 	JsDeclIndexedProperty(indexId);
-	//#- `crs = rs.clone()` -- creates new instance of record set
+	//#- `rs2 = rs.clone()` -- creates new instance of record set
 	JsDeclareFunction(clone);
-	//#- `jrs = rs.join(JoinName)` -- executes a join `JoinName` on the records in the set, result is another record set
-	//#- `jrs = rs.join(JoinName, SampleSize)` -- executes a join `JoinName` on a sample of `SampleSize` records in the set, result is another record set
+	//#- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
+	//#- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
 	JsDeclareFunction(join);
-	//#- `aggr = rs.aggr()` -- returns an array of all the aggregates contained in the records set
-	//#- `aggr = rs.aggr(Query)` -- creates a new aggregates based on the `Query` parameters
+	//#- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
+	//#- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
-	//#- `rs.trunc(Recs)` -- truncate to first `Recs` record
+	//#- `rs = rs.trunc(num)` -- truncate to first `num` record and return self.
 	JsDeclareFunction(trunc);
-	//#- `srs = rs.sample(Recs)` -- create new record set by randomly sampling `Recs` records
+	//#- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	JsDeclareFunction(sample);
-	//#- `rs.shuffle(Seed)` -- shuffle order using random seed `Seed`
+	//#- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
 	JsDeclareFunction(shuffle);
-	//#- `rs.reverse()` -- reverse record order
+	//#- `rs = rs.reverse()` -- reverse record order. Returns self.
 	JsDeclareFunction(reverse);
-	//#- `rs.sortById(Asc)` -- sort records according to record id; if `Asc > 0` sorted in ascending order
+	//#- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortById);
-	//#- `rs.sortByFq(Asc)` -- sort records according to weight; if `Asc > 0` sorted in ascending order
+	//#- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByFq);
-	//#- `rs.sortByField(FieldName, Asc)` -- sort records according to value of field `FieldName`; if `Asc > 0` sorted in ascending order
+	//#- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Returns self.
 	JsDeclareFunction(sortByField);
-	//#- `rs.sort(comparator)` -- sort records according to `comparator` callback
+	//#- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
    	JsDeclareFunction(sort);
-	//#- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`
+	//#- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
 	JsDeclareFunction(filterById);
-	//#- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`
+	//#- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
 	JsDeclareFunction(filterByFq);
-	//#- `rs.filterByField(FieldName, minVal, maxVal)` -- keeps only records with numeric value of field `FieldName` between `minVal` and `maxVal`
-	//#- `rs.filterByField(FieldName, Val)` -- keeps only records with string value of field `FieldName` equal to `Val`
+	//#- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
 	JsDeclareFunction(filterByField);
-	//#- `rs.filter(filter)` -- keeps only records that pass `filter` callback
+	//#- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
 	JsDeclareFunction(filter);
-    //#- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+   	JsDeclareFunction(split);
+    //#- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	JsDeclareFunction(deleteRecs);
-    //#- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+    //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+	//#- `rs = rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:
 	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(map);
-	//#- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	//#- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setintersect);
-	//#- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
+	//#- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setunion);
-	//#- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs`\`rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
+	//#- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	JsDeclareFunction(setdiff);
 
 
@@ -1265,24 +1432,28 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#   
-    //#- `rec.$id`
+    //#- `recId = rec.$id` -- returns record ID
     JsDeclareProperty(id);
-    //#- `rec.$name`
+    //#- `recName = rec.$name` -- returns record name
     JsDeclareProperty(name);
-    //#- `rec.$fq`
+    //#- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
 	JsDeclareProperty(fq);
-    //#- `rec.fieldName`
+	//#- `recStore = rec.$store` -- returns record store
+	JsDeclareProperty(store);
+    //#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
+	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
 	JsDeclareSetProperty(getField, setField);
-    //#- `rec.joinName`
+    //#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
+	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
-    //#- `rec.addJoin(joinName, joinRecord)`
-    //#- `rec.addJoin(joinName, joinRecord, joinFrequency)`
+    //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
+    //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
-    //#- `rec.delJoin(joinName, joinRecord)`
-    //#- `rec.delJoin(joinName, joinRecord, joinFrequency)`
+    //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
+    //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
     JsDeclareFunction(delJoin);
-    //#- `rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+    //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
     JsDeclareFunction(toJSON);
 };
 
@@ -1311,13 +1482,13 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#   
-    //#- `key.store`    
+    //#- `storeName = key.store` -- gets the store name `storeName`
 	JsDeclareProperty(store);				
-    //#- `key.name`    
+    //#- `keyName = key.name` -- gets the key name
 	JsDeclareProperty(name);
-    //#- `key.voc`    
+    //#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
 	JsDeclareProperty(voc);
-    //#- `key.fq`    
+    //#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
 	JsDeclareProperty(fq);
 };
 
@@ -1348,29 +1519,30 @@ public:
 	//# **Functions and properties:**
 	//# 
 	//#- `vec = la.newVec()` -- generate an empty float vector
-	//#- `vec = la.newVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-	//#- `vec = la.newVec(a)` -- copy a javascript number array `a` 
+	//#- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
-	//#- `vec = la.newIntVec()` -- generate an empty float vector
-	//#- `vec = la.newIntVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-	//#- `vec = la.newIntVec(a)` -- copy a javascript int array `a` 
-	//#- `vec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+	//#- `intVec = la.newIntVec()` -- generate an empty float vector
+	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
+	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
 	JsDeclareFunction(newIntVec);
 	//#- `mat = la.newMat()` -- generates a 0x0 matrix
-	//#- `mat = la.newMat(a)` -- generates a matrix from a javascript array `a`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-	//#- `mat = la.newMat({"rows":r, "cols":c, "random":b})` -- creates a matrix with `r` rows and `c` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 	//#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
 	JsDeclareFunction(newMat);
-	//#- `vec = la.newSpVec(dim)` -- creates an empty sparse vector `vec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
-	//#- `vec = la.newSpVec(a, dim)` -- creats a sparse vector `vec` from a javascript array `a`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
+	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
 	JsDeclareFunction(newSpVec);
-	//#- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
-	//#- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
-	//#- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-	//#- `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
+	//#- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
+	//#- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+	//#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
-	//#- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
+	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
@@ -1384,8 +1556,8 @@ public:
 //# Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
 //# 
 //# ```JavaScript
-//# var fltv = la.newVec(); //empty vector
-//# var intv = la.newIntVec(); //empty vector
+//# var vec = la.newVec(); //empty vector
+//# var intVec = la.newIntVec(); //empty vector
 //# // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
 //# ```
 //# 
@@ -1455,50 +1627,66 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `x = vec.at(elN)` -- gets the value `x` at index `elN` of vector `vec` (0-based indexing)
+	//#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
+	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 	JsDeclareFunction(at);
-	//#- `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
+	//#- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	//#- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+	JsDeclareFunction(subVec);
+	//#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
+	//#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
+	//#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
 	JsDeclareFunction(put);	
-	//#- `vec.push(y)` -- append value `y` to vector `vec`
+	//#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
+	//#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
 	JsDeclareFunction(push);
-	//#- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
+	//#- `len = vec.unshift(num)` -- insert value `num` to the begining of vector `vec`. Returns the length of the modified array.
+	//#- `len = intVec.unshift(num)` -- insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.
 	JsDeclareFunction(unshift);
-	//#- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
+	//#- `len = vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
+	//#- `len = intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
 	JsDeclareTemplatedFunction(pushV);
-	//#- `x = vec.sum()` -- sums the elements of `vec`
+	//#- `num = vec.sum()` -- return `num`: the sum of elements of vector `vec`
+	//#- `num = intVec.sum()` -- return `num`: the sum of elements of integer vector `intVec`
 	JsDeclareFunction(sum);
-	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
+	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
+	//#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
 	JsDeclareFunction(getMaxIdx);
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
+	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
-	//#- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order. Implemented for dense float vectors.
+	//#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
 	JsDeclareTemplatedFunction(sortPerm);	
-	//#- `mat = vec1.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec1 * vec2^T`. Implemented for dense float vectors. 
+	//#- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
 	JsDeclareTemplatedFunction(outer);
-	//#- `x = vec1.inner(vec2)` -- `x` is the standard dot product between vectors `vec1` and `vec2`. Implemented for dense float vectors.
+	//#- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(inner);
-	//#- `vec3 = vec1.plus(vec2)` --`vec3` is the sum of vectors `vec1` and `vec2`. Implemented for dense float vectors.
+	//#- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(plus);
-	//#- `vec3 = vec1.minus(vec2)` --`vec3` is the difference of vectors `vec1` and `vec2`. Implemented for dense float vectors.
+	//#- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(minus);
-	//#- `vec2 = vec1.multiply(a)` --`vec2` is a vector obtained by multiplying vector `vec1` with a scalar (number) `a`. Implemented for dense float vectors.
+	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(multiply);
-	//#- `vec.normalize();` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
+	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
+	//#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
 	JsDeclareProperty(length);
-	//#- `vec.print()` -- print vector in console
+	//#- `vec = vec.print()` -- print vector in console. Returns self.
+	//#- `intVec = intVec.print()` -- print integer vector in console. Returns self.
 	JsDeclareFunction(print);
-	//#- `D = vec.diag()` -- `D` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors.
+	//#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(diag);
-	//#- `D = vec.spDiag()` -- `D` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors.
+	//#- `spMat = vec.spDiag()` -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(spDiag);
-	//#- `x = vec.norm()` -- `x` is the Euclidean norm of `vec`. Implemented for dense float vectors.
+	//#- `num = vec.norm()` -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(norm);
-	//#- `vec2 = vec.sparse()` -- `vec2` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors.
+	//#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(sparse);
+	//#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
+	//#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
+	JsDeclareTemplatedFunction(toMat);
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
 typedef TJsVec<TInt, TAuxIntV> TJsIntV;
@@ -1510,6 +1698,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, at);	
+		JsRegisterFunction(TmpTemp, subVec);
 		JsRegGetSetIndexedProperty(TmpTemp, indexGet, indexSet);
 		JsRegisterFunction(TmpTemp, put);
 		JsRegisterFunction(TmpTemp, push);
@@ -1531,6 +1720,7 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, spDiag);	
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, sparse);
+		JsRegisterFunction(TmpTemp, toMat);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
 	}
@@ -1545,6 +1735,38 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::at(const v8::Arguments& Args) {
 	QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector at: index out of bounds");
 	TVal result = JsVec->Vec[Index];
 	return TAux::GetObjVal(result, HandleScope);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		if (TJsVecUtil::IsArgClass(Args, 0, "TIntV")) {
+			TJsIntV* IdxV = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}
+		else if (Args[0]->IsArray()) {
+			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
+			v8::Handle<v8::Object> V8IdxVObj = v8::Handle<v8::Object>::Cast(V8IdxV);
+			v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(V8IdxVObj->GetInternalField(0));
+			TJsIntV* IdxV = static_cast<TJsIntV*>(WrappedObject->Value());
+			int Len = IdxV->Vec.Len();
+			TVec<TVal> Res(Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
+			}
+			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
+			return HandleScope.Close(JsRes);
+		}		
+	}
+	return HandleScope.Close(v8::Undefined());
 }
 
 template <class TVal, class TAux>
@@ -1568,7 +1790,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::put(const v8::Arguments& Args) {
 		QmAssertR(Index >= 0 && Index < JsVec->Vec.Len(), "vector put: index out of bounds");		
 		JsVec->Vec[Index] = Val;
 	}
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 template <class TVal, class TAux>
@@ -1665,7 +1887,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
 		printf("%s ", JsVec->Vec[ElN].GetStr().CStr());		
 	}
 	printf("\n");	
-	return HandleScope.Close(v8::Undefined());	
+	return Args.Holder();
 }
 
 ///////////////////////////////
@@ -1714,52 +1936,62 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `val = mat.at(i,j)` -- Gets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
+	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
-	//#- `mat.put(i, j, val)` -- Sets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
+	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
-	//#- `y = mat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
+	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
+	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
+	//#- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
+	//#- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
+	//#- `mat2 = mat.multiply(spMat)` -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
 	JsDeclareFunction(multiply);
-	//#- `y = mat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
+	//#- `mat2 = mat.multiplyT(num)` -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `vec2 = mat.multiplyT(vec)` -- Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `vec = mat.multiplyT(spVec)` -- Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `mat3 = mat.multiplyT(mat2)` -- Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `mat2 = mat.multiplyT(spMat)` -- Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
 	JsDeclareFunction(multiplyT);
-	//#- `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
+	//#- `mat3 = mat.plus(mat2)` -- `mat3` is the sum of matrices `mat` and `mat2`
 	JsDeclareFunction(plus);
-	//#- `mat3 = mat1.minus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
+	//#- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
 	JsDeclareFunction(minus);
-	//#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat1` transposed
+	//#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
 	JsDeclareFunction(transpose);
-	//#- `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
+	//#- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
 	JsDeclareFunction(solve);
 	//#- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	JsDeclareFunction(rowNorms);
 	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
-	//#- `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
+	//#- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
 	JsDeclareFunction(normalizeCols);
 	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
 	JsDeclareFunction(sparse);
-	//#- `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
+	//#- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
 	JsDeclareFunction(frob);
-	//#- `r = mat.rows` -- integer `r` corresponds to the number of rows of `mat`
+	//#- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
 	JsDeclareProperty(rows);
-	//#- `c = mat.cols` -- integer `c` corresponds to the number of columns of `mat`
+	//#- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
 	JsDeclareProperty(cols);
 	//#- `str = mat.printStr()` -- print matrix `mat` to a string `str`
 	JsDeclareFunction(printStr);
-	//#- `mat.print()` -- print matrix `mat` to console
+	//#- `mat = mat.print()` -- print matrix `mat` to console. Returns self.
 	JsDeclareFunction(print);
-	//#- `i = mat.rowMaxIdx(j)`: get the index `i` of the maximum element in row `j` of dense matrix `mat`
+	//#- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
 	JsDeclareFunction(rowMaxIdx);
-	//#- `i = mat.colMaxIdx(j)`: get the index `i` of the maximum element in column `j` of dense matrix `mat`
+	//#- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
 	JsDeclareFunction(colMaxIdx);
-	//#- `vec = mat.getCol(i)` -- `vec` corresponds to the `i`-th column of dense matrix `mat`. `i` must be an integer.
+	//#- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
 	JsDeclareFunction(getCol);
-	//#- `mat.setCol(i, vec)` -- Sets the column of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
+	//#- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
 	JsDeclareFunction(setCol);
-	//#- `vec = mat.getRow(i)` -- `vec` corresponds to the `i`-th row of dense matrix `mat`. `i` must be an integer.
+	//#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 	JsDeclareFunction(getRow);
-	//#- `mat.setRow(i, vec)` -- Sets the row of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
+	//#- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
 	JsDeclareFunction(setRow);
+	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+	JsDeclareFunction(diag);
 };
 
 ///////////////////////////////
@@ -1818,27 +2050,28 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `val = spVec.at(i)` -- Gets the element of a sparse vector `spVec`. Input: index `i` (integer). Output: value `val` (number). Uses 0-based indexing
+	//#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	JsDeclareFunction(at);	
-	//#- `spVec.put(i, val)` -- Set the element of a sparse vector `spVec`. Inputs: index `i` (integer), value `val` (number). Uses 0-based indexing
+	//#- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
 	JsDeclareFunction(put);		
-	//#- `x = spVec.sum()` -- `x` is the sum of elements of `spVec`
+	//#- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
 	JsDeclareFunction(sum);	
-	//#- `x = spVec.inner(y)` -- `x` is the inner product between `spVec` and vector (sparse or dense) `y`.
+	//#- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
+	//#- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
 	JsDeclareFunction(inner);	
-	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `a` (number) and vector `spVec`
+	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- `spVec.normalize()` -- normalizes the vector spVec (inplace operation)
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
 	JsDeclareFunction(normalize);
-	//#- `n = spVec.nnz` -- gets the number of nonzero elements `n` of vector `spVec`
+	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 	JsDeclareProperty(nnz);	
-	//#- `d = spVec.dim` -- gets the dimension `d` (-1 means that it is unknown)
+	//#- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
 	JsDeclareProperty(dim);	
-	//#- `spVec.print()` -- prints the vector to console
+	//#- `spVec = spVec.print()` -- prints the vector to console. Return self.
 	JsDeclareFunction(print);
-	//#- `x = spVec.norm()` -- returns `x` - the norm of `spVec`
+	//#- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
 	JsDeclareFunction(norm);
-	//#- `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
+	//#- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
 	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
 	JsDeclareFunction(valVec);
@@ -1885,6 +2118,12 @@ public:
 		TJsSpMat::SetSpMat(obj, _Mat);		
 		return  obj;
 	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TVec<TIntFltKdV>& _Mat, const TInt& _Rows) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsSpMat::SetSpMat(obj, _Mat);
+		TJsSpMat::SetRows(obj, _Rows);
+		return  obj;
+	}
 	static TVec<TIntFltKdV>& GetSpMat(const v8::Handle<v8::Object> Obj) {
 		return TJsSpMatUtil::GetSelf(Obj)->Mat;
 	}
@@ -1905,41 +2144,49 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `val = spMat.at(i,j)` -- Gets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
+	//#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
-	//#- `spMat.put(i, j, val)` -- Sets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
+	//#- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
-	//#- `x = spMat[i]; spMat[i] = x` -- setting and getting sparse vectors `x` from sparse column matrix, given column index `i` (integer)
+	//#- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
 	JsDeclGetSetIndexedProperty(indexGet, indexSet);
-	//#- `spMat.push(x)` -- attaches a column `x` (sparse vector) to `spMat` (sparse matrix)
+	//#- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
 	JsDeclareFunction(push);
-	//#- `y = spMat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
+	//#- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
+	//#- `vec2 = spMat.multiply(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
+	//#- `vec = spMat.multiply(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector
+	//#- `mat2 = spMat.multiply(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix
+	//#- `mat = spMat.multiply(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix
 	JsDeclareFunction(multiply);
-	//#- `y = spMat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
+	//#- `spMat2 = spMat.multiplyT(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `vec2 = spMat.multiplyT(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `vec = spMat.multiplyT(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `mat2 = spMat.multiplyT(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `mat = spMat.multiplyT(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.
 	JsDeclareFunction(multiplyT);
-	//#- `spMat3 = spMat1.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
+	//#- `spMat3 = spMat.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(plus);
-	//#- `spMat3 = spMat1.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
+	//#- `spMat3 = spMat.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(minus);
-	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `mat1` (sparse matrix) transposed 
+	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
 	JsDeclareFunction(transpose);	
 	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
-	//#- `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
+	//#- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
 	JsDeclareFunction(normalizeCols);
 	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
 	JsDeclareFunction(full);
-	//#- `x = spMat.frob()` -- number `x` is the Frobenious norm of `spMat` (sparse matrix)
+	//#- `num = spMat.frob()` -- number `num` is the Frobenious norm of `spMat` (sparse matrix)
 	JsDeclareFunction(frob);
-	//#- `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
+	//#- `num = spMat.rows` -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
 	JsDeclareProperty(rows);
-	//#- `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
+	//#- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 	JsDeclareProperty(cols);
-	//#- `spMat.print()` -- print `spMat` (sparse matrix) to console
+	//#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
 	JsDeclareFunction(print);
-	//#- `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
+	//#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
-	//#- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
+	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
@@ -1948,7 +2195,7 @@ public:
 ///////////////////////////////
 // QMiner-JavaScript-Machine-Learning
 //#
-//# ## Analytics.js (use require)
+//# ## analytics.js (use require)
 //#
 //# Analytics algorithms for working with records stored in
 //# QMiner and with linear algebra objects created by `la`.
@@ -1972,51 +2219,61 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
+    //#- `fsp = analytics.newFeatureSpace(featureExtractors)` -- create new
     //#     feature space consisting of [Feature Extractor](Feature-Extractors),
     //#     declared in JSon `featureExtractors`
     JsDeclareFunction(newFeatureSpace);
-    //#- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+    //#- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
     JsDeclareFunction(loadFeatureSpace);
     
-    //#- `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
-    //#     classification model using columns from `matrix` as training data and
-    //#     `vector` as target variable (must be of values either 1 or -1); optional
-    //#     training `parameters` are a JSon with parameter `c` (SVM cost parameter,
+    //#- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
+    //#     classification model using columns from `mat` as training data and vector
+    //#     `vec` as target variable (must be of values either 1 or -1); optional
+    //#     training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
     //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
     //#     examples with (default is 1.0)); result is a linear model
 	JsDeclareFunction(trainSvmClassify);
-    //#- `model = analytics.trainSvmRegression(matrix, vector, parameters)` -- trains 
-    //#     regression model using columns from `matrix` as training data and `vector` as 
-    //#     target variable; optional training `parameters` are a JSon with parameter `c` 
+    //#- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
+    //#     regression model using columns from `mat` as training data and vector `vec` as 
+    //#     target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
     //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
     //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
     JsDeclareFunction(trainSvmRegression);
-    //#- `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
+    //#- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     //#     from `fin` stream
 	JsDeclareFunction(loadSvmModel);
     
-    //#- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
-    //#     model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    //#     `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+    //#- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
+    //#     model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    //#     ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
+    //#     `nnParameters.tFuncHidden` (a string representing transfer function in hidden layers) and `nnParameters.tFuncOut` (a string representing transfer function in the output layer). 
+	//#     The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
+    JsDeclareFunction(newNN);
+    //#- `recLinRegModel = analytics.newRecLinReg(recLinRegParameters)` -- create new recursive linear regression
+    //#     model; training `recLinRegParameters` are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
+    //#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
     //#     (regularization parameter to avoid over-fitting, default is 1.0).)
     JsDeclareFunction(newRecLinReg);
-    //#- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+    //#- `recLinRegModel = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
 	//#     from `fin` stream
 	JsDeclareFunction(loadRecLinRegModel);
 
-    //#- `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
-    //#     incremental decision tree learner; parameters are passed as JSON
+    //#- `htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)` -- create new
+    //#     incremental decision tree learner; parameters `htJsonParams` are passed as JSON
     JsDeclareFunction(newHoeffdingTree);    
     
     // clustering (TODO: still depends directly on feature space)
     // trainKMeans(featureSpace, positives, negatives, parameters)
 	JsDeclareFunction(trainKMeans);
     
-    //#- `options = analytics.getLanguageOptions()` -- get options for text parsing 
+    //#- `tokenizer = analytics.newTokenizer({ type: <type>, ...})` -- create new tokenizer
+    //#     of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
+    //#     extractors.
+    JsDeclareFunction(newTokenizer);
+    //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
-    //#     `options.stemmer` and `options.stopwords`
+    //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
@@ -2045,40 +2302,40 @@ public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace) { 
 		return TJsFtrSpaceUtil::New(new TJsFtrSpace(Js, FtrSpace)); }
     static PFtrSpace GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN);
-
+	static PFtrSpace GetArgFtrSpace(v8::Handle<v8::Value> Val);
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `ftrSpace.dim` -- dimensionality of feature space
+    //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
+    //#- `fsp = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns self.
     JsDeclareFunction(save);
-    //#- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
-    //#     by exposing them to `record`. For example, this can update the vocabulary
+    //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecord);
-    //#- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
-    //#     by exposing them to records from `recordSet`. For example, this can update 
+    //#- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
+    //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
     JsDeclareFunction(finishUpdate); // deprecated
-    //#- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
-    //#     features from `record` (e.g. words from string fields); results are returned
+    //#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    //#     features from record `rec` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
-	//#- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
 	JsDeclareFunction(getFtr);
-	//#- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
+	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
-    //#- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
+    //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
     JsDeclareFunction(ftrVec);
-    //#- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
-    //#     records in `recordSet` and returns them as columns in a sparse matrix.
+    //#- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from 
+    //#     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 	JsDeclareFunction(ftrSpColMat);
-    //#- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
-    //#     records in `recordSet` and returns them as columns in a matrix.
+    //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
+    //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
 };
 
@@ -2089,19 +2346,21 @@ public:
 //#
 //# Holds SVM classification or regression model. This object is result of
 //# `analytics.trainSvmClassify` or `analytics.trainSvmRegression`.
+// TODO rewrite to JavaScript
 class TJsSvmModel {
 public:
 	/// JS script context
 	TWPt<TScript> Js;	
     /// SVM Model
-    PSVMModel Model;
+    TSvm::TLinModel Model;
     
 private:
 	typedef TJsObjUtil<TJsSvmModel> TJsSvmModelUtil;
     
-	TJsSvmModel(TWPt<TScript> _Js, const PSVMModel& _Model): Js(_Js), Model(_Model) { }
+	TJsSvmModel(TWPt<TScript> _Js, const TSvm::TLinModel& _Model): 
+        Js(_Js), Model(_Model) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PSVMModel& Model) { 
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSvm::TLinModel& Model) { 
         return TJsSvmModelUtil::New(new TJsSvmModel(Js, Model)); }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -2109,13 +2368,43 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    //#     model and returns the prediction as a real number
+    //#- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	//#- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 	JsDeclareFunction(predict);
-    //#- `vec = model.weights` -- weights of the SVM linear model as a full vector
+    //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);   
-    //#- `model.save(fout)` -- saves model to output stream `fout`
+    //#- `svmModel = svmModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Neural-Networks
+//#
+//# ### Neural network model
+//#
+//# Holds the neural network model. This object is result of `analytics.newNN`.
+class TJsNN {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// NN Model
+    TSignalProc::PNNet NN;
+
+private:
+    typedef TJsObjUtil<TJsNN> TJsNNUtil;
+	TJsNN(TWPt<TScript> _Js, const TSignalProc::PNNet& _NN): Js(_Js), NN(_NN) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TSignalProc::PNNet& NN) {
+		return TJsNNUtil::New(new TJsNN(Js, NN)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `nnModel = nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation. Returns self.
+	JsDeclareFunction(learn);
+    //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
+	JsDeclareFunction(predict);
 };
 
 ///////////////////////////////
@@ -2141,17 +2430,16 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-    //#- `model.learn(vector, target)` -- updates the model using full `vector` as
-    //#     `target` number as training data
+    //#- `recLinRegModel = recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
 	JsDeclareFunction(learn);
-    //#- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    //#     model and returns the prediction as a real number
+    //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the 
+    //#     model and returns the prediction as a real number `num`
 	JsDeclareFunction(predict);
-    //#- `vec = model.weights` -- weights of the linear model as a full vector    
+    //#- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`   
 	JsDeclareProperty(weights);
-    //#- `model.dim` -- dimensionality of the feature space on which this model works
+    //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
-	//#- `model.save(fout)` -- saves model to output stream `fout`
+	//#- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
 };
 
@@ -2160,33 +2448,36 @@ public:
 //#
 //# ### Hoeffding Tree model
 //#
-//# First, we have to initialize the learner. 
-//# We specify the order of attributes in a stream example, and describe each attribute.
-//# For each attribute, we specifty its type and --- in case of discrete attributes --- enumerate
-//# all possible values of the attribute. See titanicConfig below. 
+//# First, we have to initialize the learner by passing description of the data stream
+//# and algorithm parameters. When describing the data stream, we have to specify the order of
+//# attributes in a stream example and describe each attribute. For each attribute, we specifty
+//# its type and --- in case of discrete attributes --- enumerate all possible values of the attribute.
+//# See `titanicConfig` below. 
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
-//# - gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
+//#- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
 //#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
-//#	    is the most expensive operation in the algorithm; we have to recompute gains at each
-//#	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
-//# - splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
-//#	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
+//#	    is the most expensive operation in the algorithm, because we have to recompute gains at each
+//#	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+//#       node of the tree.)
+//#- `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
+//#	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
 //#	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-//#	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
-//# - tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
-//#	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
-//#	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
+//#	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+//#- `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
+//#	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
+//#	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If
 //#	    the attributes are equally good, we don't care on which one we split.)
-//# - conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
+//#- `conceptDriftP` -- Denotes whether the algorithm adapts to potential changes in the data. If set to `true`,
 //#	    we use a variant of [CVFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf );
-//#     if set to false, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
-//# - driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
-//#	    examples and swaps the tree 
-//# - windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
+//#      if set to `false`, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
+//#- `driftCheck` -- If `DriftCheckP=true` (this is one of the algorithm parameters), the algorithm sets nodes into
+//#       self-evaluation mode every `driftCheck` examples. If one of the alternate trees performs better than the ``main''
+//#       tree, the algorithm swaps the best-performing alternate tree in place of the main one. 
+//#- `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 //#	    the window in order to ``forget'' the example when it becomes too old. 
 class TJsHoeffdingTree {
@@ -2210,16 +2501,49 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#     
-	//#- `ht.process(discreteV, numericV, label)` -- processes the stream example; `discreteV` is vector of discrete attribute values;
-	//#   `numericV` is vector of numeric attribute values; `label` is class label of the example; returns nothing;
-	//#- `ht.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
+	//#- `htModel = htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+	//#   `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns self.
+	//#- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
 	JsDeclareFunction(process);
-	//#- `ht.classify(discreteV, numericV)` -- classifies the stream example; `discreteV` is vector of discrete attribute values; `numericV` is vector of numeric attribute values; returns the class label 
-	//#- `ht.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
+	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
-	//#- `ht.exportModel(outParams)` -- writes the current model into file `outParams.file` in format `outParams.type`;
-	//#   here, `outParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
+	//#- `htModel = htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.
+	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Tokenizer
+//#
+//# ### Tokenizer
+//#
+//# Breaks text into tokens (i.e. words).
+class TJsTokenizer {
+public:
+	/// JS script context
+	TWPt<TScript> Js;	
+    /// Tokenizer Model
+    PTokenizer Tokenizer;
+
+private:
+    typedef TJsObjUtil<TJsTokenizer> TJsTokenizerUtil;
+	TJsTokenizer(TWPt<TScript> _Js, const PTokenizer& _Tokenizer): 
+        Js(_Js), Tokenizer(_Tokenizer) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PTokenizer& Tokenizer) {
+		return TJsTokenizerUtil::New(new TJsTokenizer(Js, Tokenizer)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+    
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
+	JsDeclareFunction(getTokens);
+	//#- `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
+    JsDeclareFunction(getSentences);
+	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
+	JsDeclareFunction(getParagraphs);
 };
 
 ///////////////////////////////
@@ -2293,25 +2617,37 @@ public:
     //#
 	//# **Functions and properties:**
 	//#
+	//#- `process.stop()` -- Stops the current process.
+	//#- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
+    JsDeclareFunction(stop);
 	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
     JsDeclareFunction(sleep);
-	//#- `process.scriptNm` -- Returns the name of the script.
+    //#- `a = process.args` -- array of command-line arguments 
+    //#     used to start current QMiner instance
+    JsDeclareProperty(args);
+    //#- `objJSON = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+    JsDeclareProperty(sysStat);
+	//#- `str = process.scriptNm` -- Returns the name of the script.
 	JsDeclareProperty(scriptNm);
-	//#- `process.scriptFNm` -- Returns absolute script file path.
+	//#- `str = process.scriptFNm` -- Returns absolute script file path.
 	JsDeclareProperty(scriptFNm);
 	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 	JsDeclareFunction(getGlobals);
+	//#- `process.exitScript()` -- Exits the current script
+	JsDeclareFunction(exitScript);
+    //#- `process.returnCode` -- current code to be returned by QMiner process
+  	JsDeclareSetProperty(getReturnCode, setReturnCode);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 
 
 //#
-//# ### Utilities.js (use require)
+//# ### utilities.js (use require)
 //# 
 //#JSIMPLEMENT:src/qminer/js/utilities.js    
 
 //#
-//# ### Assert.js (use require)
+//# ### assert.js (use require)
 //# 
 //#JSIMPLEMENT:src/qminer/js/assert.js    
 
@@ -2346,8 +2682,8 @@ public:
     //#- `console.log(message)` -- writes `message` to standard output, using
     //#     prefix `[console]` to indicate the text came from console object;
     //#     `message` must be of type string
-    //#- `console.log(prefix, message)` -- writes `message` to standard output, 
-    //#     using provided prefix `[prefix]`; both `message` and `prefix` must
+    //#- `console.log(prefixStr, message)` -- writes `message` to standard output, 
+    //#     using provided prefix `[prefixStr]`; both `message` and `prefixStr` must
     //#     be of type string
 	JsDeclareFunction(log);
     //#- `line = console.getln()` -- reads a line from command line and returns
@@ -2388,30 +2724,30 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fin = fs.openRead(fileName)`
+    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
 	JsDeclareFunction(openRead);
-    //#- `fout = fs.openWrite(fileName)`
+    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
 	JsDeclareFunction(openWrite);
-    //#- `fout = fs.openAppend(fileName)`
+    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
 	JsDeclareFunction(openAppend);
-    //#- `fs.exists(fileName)`
+    //#- `bool = fs.exists(fileName)` -- does file exist?
 	JsDeclareFunction(exists);
-    //#- `fs.copy(fromFileName, toFileName)`
+    //#- `fs.copy(fromFileName, toFileName)` -- copy file
 	JsDeclareFunction(copy);
-    //#- `fs.move(fromFileName, toFileName)`
+    //#- `fs.move(fromFileName, toFileName)` -- move file
 	JsDeclareFunction(move);
-    //#- `fs.del(fileName)`
+    //#- `fs.del(fileName)` -- delete file
 	JsDeclareFunction(del);
-    //#- `fs.rename(fromFileName, toFileName)`
+    //#- `fs.rename(fromFileName, toFileName)` -- rename file
 	JsDeclareFunction(rename);
-    //#- `info = fs.fileInfo(fileName,)`
+    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
 	JsDeclareFunction(fileInfo);
-    //#- `fs.mkdir(dirName)`
+    //#- `fs.mkdir(dirName)` -- make folder
 	JsDeclareFunction(mkdir);
-    //#- `fs.rmdir(dirName)`
+    //#- `fs.rmdir(dirName)` -- delete folder
 	JsDeclareFunction(rmdir);
-    //#- `list = fs.listFile(dirName, fileExtension)`
-    //#- `list = fs.listFile(dirName, fileExtension, recursive)`
+    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 	JsDeclareFunction(listFile);
 };
 
@@ -2436,15 +2772,15 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `char = fin.peekCh()`
+    //#- `char = fin.peekCh()` -- peeks a character
 	JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()`
+    //#- `char = fin.getCh()` -- reads a character
 	JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()`
+    //#- `line = fin.readLine()` -- reads a line
 	JsDeclareFunction(readLine);
-    //#- `fin.eof`
+    //#- `bool = fin.eof` -- end of stream?
 	JsDeclareProperty(eof);
-    //#- `fin.length`
+    //#- `len = fin.length` -- returns the length of input stream
 	JsDeclareProperty(length);
 };
 
@@ -2471,13 +2807,13 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fout.write(data)`
+    //#- `fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
 	JsDeclareFunction(write);
-    //#- `fout.writeLine(data)`
+    //#- `fout.writeLine(data)` -- writes data to output stream and adds newline
 	JsDeclareFunction(writeLine);
-    //#- `fout.flush()`
+    //#- `fout.flush()` -- flushes output stream
 	JsDeclareFunction(flush);
-    //#- `fout.close()`
+    //#- `fout.close()` -- closes output stream
   	JsDeclareFunction(close);
 };
 
@@ -2506,21 +2842,21 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `http.get(url)`
-    //#- `http.get(url, success_callback)`
-    //#- `http.get(url, success_callback, error_callback)`
-    //#- `http.getStr(url)`
-    //#- `http.getStr(url, success_callback)`
-    //#- `http.getStr(url, success_callback, error_callback)`
+	//#- `http.get(url)` -- gets url, but does nothing with response
+    //#- `http.get(url, httpJsonSuccessCallback)` -- gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+    //#- `http.get(url, httpJsonSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+	//#- `http.getStr(url)` -- gets url, but does nothing with response
+	//#- `http.getStr(url, httpStrSuccessCallback)` -- gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success. 
+    //#- `http.getStr(url, httpStrSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(get);
-    //#- `http.post(url, mimeType, data)`
-    //#- `http.post(url, mimeType, data, success_callback)`
-    //#- `http.post(url, mimeType, data, success_callback, error_callback)`
-    //#- `http.postStr(url)`
-    //#- `http.postStr(url, mimeType, data, success_callback)`
-    //#- `http.postStr(url, mimeType, data, success_callback, error_callback)`
+    //#- `http.post(url, mimeType, data)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+    //#- `http.post(url, mimeType, data, httpJsonSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+    //#- `http.post(url, mimeType, data, httpJsonSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+    //#- `http.postStr(url)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+    //#- `http.postStr(url, mimeType, data, httpStrSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.
+    //#- `http.postStr(url, mimeType, data, httpStrSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.
 	JsDeclareFunction(post);
-    //#- `http.onRequest(path, verb, function (request, response) { ... })`
+    //#- `http.onRequest(path, verb, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
 	JsDeclareFunction(onRequest);
     //#JSIMPLEMENT:src/qminer/http.js    
 };
@@ -2560,15 +2896,17 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `resp.setStatusCode(statusCode)`
+    //#- `httpResponse.setStatusCode(statusCode)` -- sets status code (integer)
 	JsDeclareFunction(setStatusCode);
-    //#- `resp.setStatusCode(mimeType)`
+    //#- `httpResponse.setContentType(mimeType)` -- sets content type (string)
     JsDeclareFunction(setContentType);
-    //#- `resp.add(data)`
+    //#- `httpResponse.add(dataStr)` -- adds `dataStr` (string) to request body
+	//#- `httpResponse.add(dataJSON)` -- adds `dataJSON` (JSON object) to request body
 	JsDeclareFunction(add);	
-    //#- `resp.close()`
+    //#- `httpResponse.close()` -- closes and executes the response
 	JsDeclareFunction(close);
-    //#- `resp.send(data)`
+    //#- `httpResponse.send(dataStr)` -- adds `dataStr` (string) and closes the response
+	//#- `httpResponse.send(dataJSON)` -- adds `dataJSON` (JSON object) and closes the response
     JsDeclareFunction(send);
 };
 
@@ -2578,7 +2916,7 @@ public:
 //# ### Date-Time
 //#
 //# Wrapper around GLib's TTm. Used as return for `DateTime` field type. 
-//# New one can be created using `tm = require('time')`.
+//# New one can be created using `tm = require('time.js')`.
 class TJsTm {
 public:
     /// Date-time
@@ -2598,43 +2936,44 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//#
-    //#- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
+    //#- `str = tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
     JsDeclareProperty(string);
-    //#- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
+    //#- `str = tm.dateString` -- string representation of date (e.g. 2014-05-29)
     JsDeclareProperty(dateString);
-    //#- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
+    //#- `num = tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
     JsDeclareProperty(timestamp);
-    //#- `tm.year`
+    //#- `num = tm.year` -- year (number)
     JsDeclareProperty(year);
-    //#- `tm.month`
+    //#- `num = tm.month` -- month (number)
     JsDeclareProperty(month);
-    //#- `tm.day`
+    //#- `num = tm.day` -- day (number)
     JsDeclareProperty(day);
-    //#- `tm.dayOfWeek`
+    //#- `str = tm.dayOfWeek` -- day of week (string)
     JsDeclareProperty(dayOfWeek);
-    //#- `tm.hour`
+    //#- `num = tm.hour` -- hour (number)
     JsDeclareProperty(hour);
-    //#- `tm.minute`
+    //#- `num = tm.minute` -- minute (number)
     JsDeclareProperty(minute);
-    //#- `tm.second`
+    //#- `num = tm.second` -- second (number)
     JsDeclareProperty(second);
-    //#- `tm.milisecond`
+    //#- `num = tm.milisecond` -- millisecond (number)
     JsDeclareProperty(milisecond);
-    //#- `tm.now` -- returns new time object representing current local time
+    //#- `tm2 = tm.now` -- returns new time object representing current local time
     JsDeclareProperty(now);
-    //#- `tm.nowUTC` -- returns new time object represented current UTC time
+    //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
     JsDeclareProperty(nowUTC);    
-    //#- `tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
     //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(add);
-    //#- `tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defines the 
-    //#     unit, same as in `add`
+    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
     JsDeclareFunction(sub); 
-    //#- `tm.toJSON()` -- returns json representation of time    
+    //#- `tmJSON = tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
-    //#- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
+    //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
+	JsDeclareFunction(clone);
 };
 //#
 //# ## Other libraries
@@ -2645,7 +2984,7 @@ public:
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
 //-
-//- ## Numeric Feature Extractor
+//- ## Javascript Feature Extractor
 //-
 class TJsFuncFtrExt : public TFtrExt {
 // Js wrapper API
@@ -2655,21 +2994,32 @@ public:
 private:
 	typedef TJsObjUtil<TJsFuncFtrExt> TJsFuncFtrExtUtil;
 	// private constructor
-	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) : Js(_Js), Fun(_Fun), TFtrExt(_Js->Base, ParamVal) { Name = ParamVal->GetObjStr("name", "jsfunc");}
+	TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun): 
+        TFtrExt(_Js->Base, ParamVal), Js(_Js), Fun(_Fun) { 
+            Name = ParamVal->GetObjStr("name", "jsfunc"); 
+            Dim = ParamVal->GetObjInt("dim", 1); }
 public:
 	// public smart pointer
-	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, const v8::Persistent<v8::Function>& _Fun) {
-		return new TJsFuncFtrExt(Js, ParamVal, _Fun);
-	}
+	static PFtrExt NewFtrExt(TWPt<TScript> Js, const PJsonVal& ParamVal, 
+        const v8::Persistent<v8::Function>& _Fun) {
+            return new TJsFuncFtrExt(Js, ParamVal, _Fun); }
 // Core functionality
 private:
 	// Core part
+	TInt Dim;
 	TStr Name;
 	v8::Persistent<v8::Function> Fun;
+    
 	double ExecuteFunc(const TRec& FtrRec) const {
 		v8::HandleScope HandleScope;
-		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
 		return Js->ExecuteFlt(Fun, RecArg);
+	}
+	
+	void ExecuteFuncVec(const TRec& FtrRec, TFltV& Vec) const {
+		v8::HandleScope HandleScope;
+		v8::Handle<v8::Value> RecArg = TJsRec::New(Js, FtrRec);		
+		Js->ExecuteFltVec(Fun, RecArg, Vec);
 	}
 public:
 	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
@@ -2703,15 +3053,15 @@ public:
 	}
 // Feature extractor API
 private:
-	//TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
-	//TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will fail
+	TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
+	TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
 public:
-	//static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will fail
-	//static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will fail
-	//void Save(TSOut& SOut) const;
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
+	static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
+	void Save(TSOut& SOut) const;
 
 	TStr GetNm() const { return Name; }
-	int GetDim() const { return 1; }
+	int GetDim() const { return Dim; }
 	TStr GetFtr(const int& FtrN) const { return GetNm(); }
 
 	void Clr() { };

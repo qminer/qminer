@@ -3,12 +3,12 @@ var assert = require('assert.js');
 console.say("FtrSpace", "Testing feature space serialization/deserilization/by value");
 
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
 // name of the debug process
 assert.consoleTitle = "FtrSpace";
 
 // create store
-console.log("Size: " + qm.sysStat.size);
+console.log("Size: " + process.sysStat.size);
 for (var i = 1000; i < 100; i++) {
     var diff = qm.sysStat.size;
     qm.createStore({
@@ -22,8 +22,8 @@ for (var i = 1000; i < 100; i++) {
         "joins": [ ],
         "keys": [ ]
       });
-    var diff = qm.sysStat.size - diff;
-    console.log("Size: " + qm.sysStat.size + ", Diff: " + diff);
+    var diff = process.sysStat.size - diff;
+    console.log("Size: " + process.sysStat.size + ", Diff: " + diff);
 }
 
 // prepare test set
@@ -70,7 +70,7 @@ function compareFtrSpace(ftrSpace1, ftrSpace2) {
 }
 
 console.log("Prepare feature space");
-var analytics = require("analytics");
+var analytics = require("analytics.js");
 var ftrSpace1 = analytics.newFeatureSpace([
     //{ type: "random", source: "FtrSpaceTest", seed: 1 },
     { type: "numeric", source: "FtrSpaceTest", field: "Value" },

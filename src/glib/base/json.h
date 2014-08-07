@@ -63,6 +63,14 @@ public:
   void PutArr(){JsonValType=jvtArr;}
   void AddToArr(const PJsonVal& Val){
     EAssert(JsonValType==jvtArr); ValV.Add(Val);}
+  void AddToArr(const int& Val){ AddToArr(NewNum((double)Val)); }
+  void AddToArr(const uint& Val){ AddToArr(NewNum((double)Val)); }
+  void AddToArr(const double& Val){ AddToArr(NewNum(Val)); }
+  void AddToArr(const double& Val1, const double& Val2){ AddToArr(NewArr(Val1, Val2)); }
+  void AddToArr(const TStr& Val){ AddToArr(NewStr(Val)); }
+  void AddToArr(const char* Val){ AddToArr(NewStr(Val)); }
+  void AddToArr(const bool& Val){ AddToArr(NewBool(Val)); }
+  void AddToArr(const TJsonValV& ValV){ AddToArr(NewArr(ValV)); }
   void PutObj(){JsonValType=jvtObj;}
   void AddToObj(const TStr& KeyNm, const PJsonVal& Val){
     EAssert(JsonValType==jvtObj); 
@@ -77,7 +85,7 @@ public:
   void AddToObj(const TStr& KeyNm, const bool& Val){ AddToObj(KeyNm, NewBool(Val)); }
   void AddToObj(const TStr& KeyNm, const TJsonValV& ValV){ AddToObj(KeyNm, NewArr(ValV)); }
   void AddToObj(const PJsonVal& Val);
-
+  
   // simplified creation of basic elements
   static PJsonVal NewNull() { PJsonVal Val = TJsonVal::New(); Val->PutNull(); return Val; }
   static PJsonVal NewBool(const bool& Bool) { PJsonVal Val = TJsonVal::New(); Val->PutBool(Bool); return Val; }
@@ -143,6 +151,7 @@ public:
   double GetObjNum(const char *Key, const double& DefNum) const;
   int GetObjInt(const TStr& Key, const int& DefNum) const;
   int GetObjInt(const char *Key, const int& DefNum) const;
+  void GetObjIntV(const TStr& Key, TIntV& IntV) const;
   TStr GetObjStr(const TStr& Key, const TStr& DefStr) const;
   TStr GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;

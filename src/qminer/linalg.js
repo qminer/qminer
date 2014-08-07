@@ -13,9 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
+/// <reference path="qminer.js">
 
 /////// PRINTING
-//#- `la.printVec(vec)` -- print the vector in the console, `vec` can be int or float vector
+//#- `la.printVec(vecec)` -- print the vector `vec` in the console
+//#- `la.printVec(intVec)` -- print the int vector `intVec` in the console
 la.printVec = function(vec) {
 	var str = "\n[\n";
 	for (var rowN = 0; rowN < vec.length; rowN++) {
@@ -25,7 +27,7 @@ la.printVec = function(vec) {
 	console.say(str);
 };
 
-//#- `la.printSpFeatVec(spVec, fsp, sortedAsc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
+//#- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
     // get index and value vectors
@@ -46,7 +48,7 @@ la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     }
 }
 
-//#- `la.printFeatVec(Vec, fsp, limit, sortedAsc)` -- Print a feature vector `Vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
+//#- `la.printFeatVec(vec, fsp, limit, asc)` -- Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printFeatVec = function (Vec, fsp, limit, sortedAsc) {
     limit = limit || Vec.length;
     sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
@@ -73,7 +75,7 @@ la.printArray = function (arr) {
     }
 };
 
-//#- `la.printMat(matrix)` -- print the `matrix` (dense or sparse) in the console as a dense matrix
+//#- `la.printMat(mat)` -- print the matrix `mat` in the console
 la.printMat = function(matrix) {
     var str = "\n[\n";
     for (var rowN = 0; rowN < matrix.rows; rowN++) {
@@ -89,7 +91,7 @@ la.printMat = function(matrix) {
 
 
 ///////// RANDOM GENERATORS
-//#- `x = la.genRandom()` -- `x` is a sample from a standard normal random variable
+//#- `num = la.genRandom()` -- `num` is a sample from a standard normal random variable
 la.genRandom = function () {
     var x1, x2, rad, y1;
     do {
@@ -111,7 +113,7 @@ la.genRandomVector = function (dim) {
     return vec;
 };
 
-//#- `p = la.genRandomPerm(k)` -- returns a permutation of `k` elements. `p` is a javascript array of integers
+//#- `arr = la.genRandomPerm(k)` -- returns a permutation of `k` elements. `arr` is a javascript array of integers
 la.genRandomPerm = function (k) {
     // gaussian random vector
     var arr = new Array();
@@ -126,12 +128,12 @@ la.genRandomPerm = function (k) {
     return idx;
 };
 
-//#- `i = la.randInt(n)` -- returns an integer `i` which is randomly selected from the set of integers `[0, ..., n-1]`
+//#- `num2 = la.randInt(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num]`
 la.randInt = function(n) {
     return Math.floor((Math.random() * n));
 };
 
-//#- `vec = la.randIntVec(n, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
+//#- `vec = la.randIntVec(num, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`
 la.randIntVec = function (n, k) {
     var perm = la.genRandomPerm(n);
     var idx = perm.slice(0, k);
@@ -152,7 +154,7 @@ la.genRandomMatrix = function(rows, cols) {
 
 /////// VECTOR, MATRIX GENERATION
 // generate identity matrix
-//#- `I = la.eye(dim)` -- `I` is a `dim`-by-`dim` identity matrix
+//#- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
 la.eye = function(dim) {
     var identity = la.newMat({ "rows": dim, "cols": dim });
     for (var rowN = 0; rowN < identity.rows; rowN++) {
@@ -160,6 +162,29 @@ la.eye = function(dim) {
     }
     return identity;
 };
+
+//#- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
+la.speye = function (dim) {
+    var vec = la.ones(dim);
+    return vec.spDiag();
+};
+
+//#- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
+la.sparse = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var spmat = la.newSpMat({ "rows": rows, "cols": cols });
+    return spmat;
+};
+
+//#- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
+la.zeros = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var mat = la.newMat({ "rows": rows, "cols": cols });
+    return mat;
+};
+
+
+
 
 // generate a C++ vector of ones
 //#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
@@ -172,7 +197,7 @@ la.ones = function(k) {
 };
 
 // generate a TIntV [min,..., max]
-//#- `vec = la.rangeVec(min, max)` -- `vec` is an integer(!) vector: `[min, min+1,..., max]`.
+//#- `intVec = la.rangeVec(num, num2)` -- `intVec` is an integer vector: `[num, num + 1, ..., num2].
 la.rangeVec = function(min, max) {
     var len = max - min + 1;
     var rangeV = la.newIntVec({ "vals": len });
@@ -184,8 +209,8 @@ la.rangeVec = function(min, max) {
 
 ///////// MISC FUNCTIONS
 // squares an element TODO: fix inplace -> use vector cloning
-//#- `la.square(vec)` -- when `vec` is a vector, squares all elements of a vector (inplace)
-//#- `sq = la.square(num)` -- when `num` is a number, `sq = num * num`.
+//#- `la.square(vec)` -- squares all elements of a vector `vec` (inplace).
+//#- `num = la.square(num)` -- returns `sq` which is the quare of number `num`.
 la.square = function(x) {
     if (typeof x.length == "undefined") {
         return x * x;
@@ -197,8 +222,9 @@ la.square = function(x) {
     return x;
 };
 
-//#- `idxArray = la.findMaxIdx(X)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `X`. If `X` is a dense vector, the result has one element.
-la.findMaxIdx = function(X) {
+//#- `arr = la.findMaxIdx(mat)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `mat`.
+//#- `arr = la.findMaxIdx(vec)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.
+la.findMaxIdx = function (X) {
     var idxv = new Array();
     // X is a dense matrix
     if (typeof X.cols !== "undefined") {
@@ -214,7 +240,7 @@ la.findMaxIdx = function(X) {
     return idxv;
 };
 
-//#- `vec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `vec`
+//#- `intVec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `intVec`
 la.copyIntArrayToVec = function(arr) {
     var len = arr.length;
     var vec = la.newIntVec({ "vals": arr.length });
@@ -235,7 +261,7 @@ la.copyFltArrayToVec = function(arr) {
 };
 
 ////// SERIALIZATION: use fs instead of fname
-//#- `la.saveMat(X, fout)` -- writes a matrix `X` to output file stream `fout`
+//#- `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
 la.saveMat = function(X, fout) {
     var Xstr = X.printStr();
     fout.writeLine(Xstr);
@@ -245,7 +271,39 @@ la.saveMat = function(X, fout) {
     //outFile.flush();
 };
 
-//#- `la.conjgrad(A,b,x)` -- solves the system A*x = b, where `A` is a matrix (sparse or dense) and `b` and `x` are dense vectors
+//#- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
+la.inverseSVD = function (mat) {
+    var k = Math.min(mat.rows, mat.cols);
+    var svdRes = la.svd(mat, k, { "iter": 10, "tol": 1E-15 });  // returns U, s and V
+    var B = la.newMat({ "cols": mat.cols, "rows": mat.rows });
+
+    // http://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Singular_value_decomposition_.28SVD.29
+    var tol = 1E-16 * Math.max(mat.cols, mat.rows) * svdRes.s.at(svdRes.s.getMaxIdx());
+    
+    // calculate reciprocal values for diagonal matrix = inverse diagonal
+    for (i = 0; i < svdRes.s.length; i++) {
+        if (svdRes.s.at(i) > tol) svdRes.s.put(i, 1 / svdRes.s.at(i));
+        else svdRes.s.put(0);
+    }
+        
+    var sum;
+
+    for (i = 0; i < svdRes.U.cols; i++) {
+        for (j = 0; j < svdRes.V.rows; j++) {
+            sum = 0;
+            for (k = 0; k < svdRes.U.cols; k++) {
+                if (svdRes.s.at(k) != 0) {
+                    sum += svdRes.s.at(k) * svdRes.V.at(i, k) * svdRes.U.at(j, k);
+                }
+            }
+            B.put(i, j, sum);           
+        }
+    }
+    return B;
+}
+
+//#- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
+//#- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
 la.conjgrad = function (A, b, x) {
     var r = b.minus(A.multiply(x));
     var p = la.newVec(r); //clone
@@ -266,5 +324,81 @@ la.conjgrad = function (A, b, x) {
     return x;
 }
 
+
+//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+la.pdist2 = function (mat, mat2) {
+    var snorm1 = la.square(mat.colNorms());
+    var snorm2 = la.square(mat2.colNorms());
+    var ones_1 = la.ones(mat.cols);
+    var ones_2 = la.ones(mat2.cols);
+    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+    return D;
+}
+
+//#- `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
+la.repmat = function (mat, m, n) {
+    var rows = mat.rows;
+    var cols = mat.cols;
+    // a block column matrix where blocks are rows-by-rows identity matrices
+    var rowIdxVec1 = la.newIntVec({ "vals": m * rows });
+    var colIdxVec1 = la.newIntVec({ "vals": m * rows });
+    var valVec1 = la.ones(m * rows);
+    for (var rowCellN = 0; rowCellN < m; rowCellN++) {
+        for (var colN = 0; colN < rows; colN++) {
+            var idx = rowCellN * rows + colN;
+            colIdxVec1[idx] = colN;
+            rowIdxVec1[idx] = idx;
+        }
+    }
+    var spMat1 = la.newSpMat(rowIdxVec1, colIdxVec1, valVec1);
+    // a block row matrix where blocks are cols-by-cols identity matrices
+    var rowIdxVec2 = la.newIntVec({ "vals": n * cols });
+    var colIdxVec2 = la.newIntVec({ "vals": n * cols });
+    var valVec2 = la.ones(n * cols);
+    for (var colCellN = 0; colCellN < n; colCellN++) {
+        for (var rowN = 0; rowN < cols; rowN++) {
+            var idx = colCellN * cols + rowN;
+            rowIdxVec2[idx] = rowN;
+            colIdxVec2[idx] = idx;
+        }
+    }
+    var spMat2 = la.newSpMat(rowIdxVec2, colIdxVec2, valVec2);
+    var result = spMat1.multiply(mat).multiply(spMat2);
+    return result;
+}
+
+//#- `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+la.repvec = function (vec, m, n) {
+    var temp = vec.toMat();
+    var result = la.repmat(temp, m, n);
+    return result;
+}
+
+//#- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
+la.elementByElement = function (a, b, callback) {
+    // If input is vector, convert it to matrix
+    var isVec = false;
+    var mat = typeof a.length != 'undefined' && (isVec = true) ? a.toMat() : a;
+    var mat2 = typeof b.length != 'undefined' && (isVec = true) ? b.toMat() : b;
+    // Throw error if dimensions dont agree
+    function exception() {
+        this.message = "Dimensions must agree."
+        this.name = "MatDimNotAgree"
+    }
+    if (mat.cols !== mat2.cols || mat.rows !== mat2.rows) {
+        throw new exception()
+    }
+    // Go element by element and use callback function
+    var rows = mat.rows
+    var cols = mat.cols;
+    var mat3 = la.newMat({ "cols": cols, "rows": rows });
+    for (var colN = 0; colN < cols; colN++) {
+        for (var rowN = 0; rowN < rows; rowN++) {
+            var val = callback(mat.at(rowN, colN), mat2.at(rowN, colN));
+            mat3.put(rowN, colN, val);
+        }
+    }
+    return result = isVec ? mat3.getCol(0) : mat3;
+}
 
 var linalg = la;

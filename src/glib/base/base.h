@@ -96,9 +96,9 @@
 #endif
 
 // word size
-#if __WORDSIZE == 32 || defined(_M_IX86) || defined(__CYGWIN32__)
+#if __WORDSIZE == 32 || defined(_M_IX86) || defined(__CYGWIN32__) || defined(__i386__)
   #define GLib_32Bit
-#elif __WORDSIZE == 64 || defined(_M_X64) || defined(__CYGWIN64__)
+#elif __WORDSIZE == 64 || defined(_M_X64) || defined(__CYGWIN64__) || defined (__x86_64__)
   #define GLib_64Bit
 #else
   #error "Undefined word size"
@@ -135,6 +135,12 @@
 
 #if defined (__USE_XOPEN2K)
   #define GLib_POSIX_1j "1003.1j"
+#endif
+
+#if defined(GLib_MACOSX)
+  // On OS X Maverics there is not default support for OpenMP
+#else
+  #define GLib_OPENMP
 #endif
 
 #include <ctype.h>

@@ -73,6 +73,17 @@ TStemmerType TStemmer::GetStemmerType(const TStr& StemmerTypeNm){
   else {return stmtNone;}
 }
 
+PStemmer TStemmer::ParseJson(const PJsonVal& StemmerVal, const bool& RealWordP) {
+    if (StemmerVal->IsBool()) {
+        return TStemmer::New(StemmerVal->GetBool() ? stmtPorter : stmtNone, RealWordP);
+    } else if (StemmerVal->IsObj()) {
+        TStr StemmerType = StemmerVal->GetObjStr("type", "none");
+        const bool RealWordP = StemmerVal->GetObjBool("realWord", RealWordP);
+        return TStemmer::New((StemmerType == "porter") ? stmtPorter : stmtNone, RealWordP);            
+    }    
+    throw TExcept::New("Unknown stemmer definiton " + StemmerVal->SaveStr());
+}
+
 /////////////////////////////////////////////////
 // Porter-Stemmer
 char *TPorterStemmer::StemInPlace(char *pWord){

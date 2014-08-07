@@ -21,5 +21,8 @@
 // GUID
 class TGuid {
 public:
+  // create GUID string, something like "1b4e28ba-2fa1-11d2-883f-0016d3cca427"
   static TStr GenGuid();
+  // create GUID string which is a valid variable name
+  static TStr GenSafeGuid();
 };

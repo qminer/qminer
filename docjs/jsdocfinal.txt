@@ -9,8 +9,11 @@ which lives in the same process as core QMiner objects. This allows for fast man
 of QMiner objects, since data is moved from C++ to JavaScript and back only when needed.
 Currently, version 3.18 of V8 is used.
 
+**Intellisense**: When using Visual Studio 2013 one can enable intellisense for the JavaScript API globally by navigating: 
+Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
+
 JavaScript API requires [initialized work environment](Quick-Start).
-    
+
 ## Libraries
 
 Scripts can load external libraries or modules in the same way as Node.js.
@@ -38,10 +41,11 @@ has priority in case the library with the same name exists in both places. Some 
 are implemented in C++, for example `analytics` and `time`.
 
 The QMiner system comes with the following libraries:
-- `analytics.js` -- main API for analytics techniques
-- `utilities.js` -- useful JavaScript utilities, e.g., checking variable type
-- `time` -- wrapper around user-friendly date-time object
-- `assert.js` -- support for writing unit tests
+- **analytics.js** -- main API for analytics techniques
+- **utilities.js** -- useful JavaScript utilities, e.g., checking variable type
+- **time** -- wrapper around user-friendly date-time object
+- **assert.js** -- support for writing unit tests
+- **twitter.js** -- support for processing tweets
 
 ## Core QMiner objects
 
@@ -51,21 +55,48 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 
 **Functions and properties:**
 
-- `s = qm.store(storeName)` -- store with name `storeName`; `null` when no such store
-- `a = qm.getStoreList()` -- an array listing all existing stores
-- `qm.createStore(storeDef)` -- create new store(s) based on given [definition](Store Definition)
-- `rs = qm.search(query)` -- execute `query` specified in [QMiner Query Language](Query Language) 
+- `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
+- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
+- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
   and returns a record set `rs` with results
--- `qm.gc()` -- start garbage collection to remove records outside time windows
-- `qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
+- `qm.gc()` -- start garbage collection to remove records outside time windows
+- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+- `sa = qm.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+- `sa = qm.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+- `sa = qm.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+- `sa = qm.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+- `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+- `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
+- `num = qm.load.jsonFileLimit(store, fileName, limit)` -- load file `fileName` 
   line by line, parsing each line as JSON and adding it as record to `store`.
-  When `limit != -1` only first first `limit` lines are loaded
-- `qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
-  parsing each line as JSON and adding it as record to `store`
+  When `limit != -1` only first first `limit` lines are loaded. Returns `num`:
+  the number of lines loaded.
+- `num = qm.load.jsonFile(store, fileName)` -- load file `fileName` line by line, 
+  parsing each line as JSON and adding it as record to `store`. Returns `num`:
+  the number of lines loaded.
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
+
+### Stream Aggregate
+
+Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+
+**Functions and properties:**
+
+- `str = sa.name` -- returns the name (unique) of the stream aggregate
+- `sa.onAdd(rec)` -- executes onAdd function given an input record `rec`
+- `sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` 
+- `sa.onDelete(rec)` -- executes onDelete function given an input record `rec` 
+- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+- `objJSON = sa.val` -- same as sa.saveJson(-1)
 
 ### Store
 
@@ -78,30 +109,33 @@ var record = store[1234];
 
 **Functions and properties:**
     
-- `store.name` -- name of the store
-- `store.empty` -- `true` when store is empty
-- `store.length` -- number of records in the store
+- `str = store.name` -- name of the store
+- `bool = store.empty` -- `bool = true` when store is empty
+- `len = store.length` -- number of records in the store
 - `rs = store.recs` -- create a record set containing all the records from the store
-- `store.fields` -- array of all the field names
-- `store.joins` -- array of all the join names
-- `store.keys` -- array of all the [index keys](#index-key)
-- `r = store[recordId]` -- get record with ID `recordId`; 
+- `objArr = store.fields` -- array of all the field descriptor JSON objects
+- `objArr = store.joins` -- array of all the join names
+- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+- `rec = store.first` -- first record from the store
+- `rec = store.last` -- last record from the store
+- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+- `rec = store[recId]` -- get record with ID `recId`; 
     returns `null` when no such record exists
-- `r = store.rec(recordName)` -- get record named `recordName`; 
+- `rec = store.rec(recName)` -- get record named `recName`; 
     returns `null` when no such record exists
-- `store.add(record)` -- add `record` to the store 
-- `r = store.newRec(recordJson)` -- creates new record by value (not added to the store)
-- `r = store.newRec(recordIds)` -- creates new record set from array of record IDs;
-    array is expected to be of type `la.newIntVec`
+- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
+- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
 - `rs = store.sample(sampleSize)` -- create a record set containing a random 
     sample of `sampleSize` records
 - `field = store.field(fieldName)` -- get details of field named `fieldName`
 - `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
-- `store.addTrigger(trigger)` -- add `trigger` to the store triggers
-- `store.addStreamAggr(TypeName, Parameters);` -- add new [Stream Aggregate](Stream-Aggregates) 
-    of type `TypeName` to the store; stream aggregate is passed `Parameters` JSon
-- `sa = store.getStreamAggr(Name)` -- returns current value of stream aggregate `Name`
-- `arr = store.getStreamAggrNames()` -- returns the names of all stream aggregators as an array of strings `arr`
+- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
+- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
+- `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
+- `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 
 **Examples**:
 
@@ -131,6 +165,15 @@ for (var i = 0; i < rs.length; i++) {
 }
 ```    
 
+### Store iterator
+
+
+**Functions and properties:**
+  
+- `store = iter.store` -- get the store
+- `rec = iter.rec` -- get current record
+- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+
 ### Record set
 
 Record set holds a subset of records from a store. Records are stored in a vector. 
@@ -139,36 +182,38 @@ the set.
 
 **Functions and properties:**
   
-- `rs.store` -- store of the records
-- `rs.length` -- number of records in the set
-- `rs.empty` -- `true` when record set is empty
-- `rs.weighted` -- true when records in the set are assigned weights
+- `storeName = rs.store` -- store of the records
+- `len = rs.length` -- number of records in the set
+- `bool = rs.empty` -- `bool = true` when record set is empty
+- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 - `rec = rs[n]` -- return n-th record from the record set
-- `crs = rs.clone()` -- creates new instance of record set
-- `jrs = rs.join(JoinName)` -- executes a join `JoinName` on the records in the set, result is another record set
-- `jrs = rs.join(JoinName, SampleSize)` -- executes a join `JoinName` on a sample of `SampleSize` records in the set, result is another record set
-- `aggr = rs.aggr()` -- returns an array of all the aggregates contained in the records set
-- `aggr = rs.aggr(Query)` -- creates a new aggregates based on the `Query` parameters
-- `rs.trunc(Recs)` -- truncate to first `Recs` record
-- `srs = rs.sample(Recs)` -- create new record set by randomly sampling `Recs` records
-- `rs.shuffle(Seed)` -- shuffle order using random seed `Seed`
-- `rs.reverse()` -- reverse record order
-- `rs.sortById(Asc)` -- sort records according to record id; if `Asc > 0` sorted in ascending order
-- `rs.sortByFq(Asc)` -- sort records according to weight; if `Asc > 0` sorted in ascending order
-- `rs.sortByField(FieldName, Asc)` -- sort records according to value of field `FieldName`; if `Asc > 0` sorted in ascending order
-- `rs.sort(comparator)` -- sort records according to `comparator` callback
-- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`
-- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`
-- `rs.filterByField(FieldName, minVal, maxVal)` -- keeps only records with numeric value of field `FieldName` between `minVal` and `maxVal`
-- `rs.filterByField(FieldName, Val)` -- keeps only records with string value of field `FieldName` equal to `Val`
-- `rs.filter(filter)` -- keeps only records that pass `filter` callback
-- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`
-- `rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
-- `rs.map(callback)` -- iterates through the record set and executes the callback function `callback` on each element:
+- `rs2 = rs.clone()` -- creates new instance of record set
+- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
+- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
+- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
+- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
+- `rs.trunc(num)` -- truncate to first `num` record. Inplace operation.
+- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
+- `rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Inplace operation.
+- `rs.reverse()` -- reverse record order. Inplace operation.
+- `rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.
+- `rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Inplace operation.
+- `rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Inplace operation.
+- `rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.
+- `rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Inplace operation.
+- `rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Inplace operation.
+- `rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+- `rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Inplace operation.
+- `rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Inplace operation.
+- `rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function
+- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+- `rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Inplace operation.
+- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+- `rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element:
   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
-- `rs2 = rs.setintersect(rs1)` -- returns the intersection (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
-- `rs2 = rs.setunion(rs1)` -- returns the union (record set) `rs2` between two record sets `rs` and `rs1`, which should point to the same store.
-- `rs2 = rs.setdiff(rs1)` -- returns the set difference (record set) `rs2`=`rs``rs1`  between two record sets `rs` and `rs1`, which should point to the same store.
+- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 
 **Examples**:
 
@@ -181,26 +226,29 @@ TODO
 
 **Functions and properties:**
   
-- `rec.$id`
-- `rec.$name`
-- `rec.$fq`
-- `rec.fieldName`
-- `rec.joinName`
-- `rec.addJoin(joinName, joinRecord)`
-- `rec.addJoin(joinName, joinRecord, joinFrequency)`
-- `rec.delJoin(joinName, joinRecord)`
-- `rec.delJoin(joinName, joinRecord, joinFrequency)`
-- `rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+- `recId = rec.$id` -- returns record ID
+- `recName = rec.$name` -- returns record name
+- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+- `recStore = rec.$store` -- returns record store
+- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
+- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
+- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
+- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
+- `rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string)
+- `rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`
+- `rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string)
+- `rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`
+- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
 
 ### Index key
 
 
 **Functions and properties:**
   
-- `key.store`    
-- `key.name`    
-- `key.voc`    
-- `key.fq`    
+- `storeName = key.store` -- gets the store name `storeName`
+- `keyName = key.name` -- gets the key name
+- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
+- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
 
 ## Linear Algebra
 
@@ -211,45 +259,56 @@ several functions from linear algebra.
 **Functions and properties:**
 
 - `vec = la.newVec()` -- generate an empty float vector
-- `vec = la.newVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-- `vec = la.newVec(a)` -- copy a javascript number array `a` 
+- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 - `vec = la.newVec(vec2)` -- clone a float vector `vec2`
-- `vec = la.newIntVec()` -- generate an empty float vector
-- `vec = la.newIntVec({"vals":k, "mxvals":l})` -- generate a vector with `k` zeros and reserve additional `l-k` elements 
-- `vec = la.newIntVec(a)` -- copy a javascript int array `a` 
-- `vec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+- `intVec = la.newIntVec()` -- generate an empty float vector
+- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
+- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
 - `mat = la.newMat()` -- generates a 0x0 matrix
-- `mat = la.newMat(a)` -- generates a matrix from a javascript array `a`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-- `mat = la.newMat({"rows":r, "cols":c, "random":b})` -- creates a matrix with `r` rows and `c` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 - `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-- `vec = la.newSpVec(dim)` -- creates an empty sparse vector `vec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
-- `vec = la.newSpVec(a, dim)` -- creats a sparse vector `vec` from a javascript array `a`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
-- `mat = la.newSpMat()` -- creates an empty sparse matrix `mat`
-- `mat = la.newSpMat(rowIdxV, colIdxV, valV)` -- creates an sparse matrix based on two int vectors `rowIdxV` (row indices) and `colIdxV` (column indices) and float vector of values `valV`
-- `mat = la.newSpMat(a, r)` -- creates an sparse matrix with `r` rows (optional parameter), where `a` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `mat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-- `mat = la.newSpMat({"rows":r, "cols":c}) --- creates a sparse matrix with `c` columns and `r` rows, which should be integers
-- `res = la.svd(mat, k, {"iter":iter, "tol":tol})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter object contains integer number of iterations `iter` (default 2) and the tolerance number `tol` (default 1e-6). The outpus are stored as two dense matrices: `res.U`, `res.V` and a dense float vector `res.s`.
-- `la.printVec(vec)` -- print the vector in the console, `vec` can be int or float vector
-- `la.printSpFeatVec(spVec, fsp, sortedAsc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
-- `la.printFeatVec(Vec, fsp, limit, sortedAsc)` -- Print a feature vector `Vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `sorted` is used, then the rows are sorted by (non-zero) vector values. Use `sortedAsc=true` for sorting in ascending order and `sortedAsc=false` for sorting in descending order.
+- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
+- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
+- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
+- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `la.printVec(vecec)` -- print the vector `vec` in the console
+- `la.printVec(intVec)` -- print the int vector `intVec` in the console
+- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
+- `la.printFeatVec(vec, fsp, limit, asc)` -- Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 - `la.printArray(arr)` -- print the javascript array `arr` in the console
-- `la.printMat(matrix)` -- print the `matrix` (dense or sparse) in the console as a dense matrix
-- `x = la.genRandom()` -- `x` is a sample from a standard normal random variable
+- `la.printMat(mat)` -- print the matrix `mat` in the console
+- `num = la.genRandom()` -- `num` is a sample from a standard normal random variable
 - `vec = la.genRandomVector(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
-- `p = la.genRandomPerm(k)` -- returns a permutation of `k` elements. `p` is a javascript array of integers
-- `i = la.randInt(n)` -- returns an integer `i` which is randomly selected from the set of integers `[0, ..., n-1]`
-- `vec = la.randIntVec(n, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
+- `arr = la.genRandomPerm(k)` -- returns a permutation of `k` elements. `arr` is a javascript array of integers
+- `num2 = la.randInt(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num]`
+- `vec = la.randIntVec(num, k)` -- returns a JS array `vec`, which is a sample of `k` numbers from `[0,...,num]`, sampled without replacement. `k` must be smaller or equal to `num`
 - `mat = la.genRandomMatrix(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
-- `I = la.eye(dim)` -- `I` is a `dim`-by-`dim` identity matrix
+- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
+- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
+- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
+- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
 - `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
-- `vec = la.rangeVec(min, max)` -- `vec` is an integer(!) vector: `[min, min+1,..., max]`.
-- `la.square(vec)` -- when `vec` is a vector, squares all elements of a vector (inplace)
-- `sq = la.square(num)` -- when `num` is a number, `sq = num * num`.
-- `idxArray = la.findMaxIdx(X)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `X`. If `X` is a dense vector, the result has one element.
-- `vec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `vec`
+- `intVec = la.rangeVec(num, num2)` -- `intVec` is an integer vector: `[num, num + 1, ..., num2].
+- `la.square(vec)` -- squares all elements of a vector `vec` (inplace).
+- `num = la.square(num)` -- returns `sq` which is the quare of number `num`.
+- `arr = la.findMaxIdx(mat)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `mat`.
+- `arr = la.findMaxIdx(vec)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.
+- `intVec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `intVec`
 - `vec = la.copyFltArrayToVec(arr)` -- copies a JS array of numbers `arr` into a float vector `vec`
-- `la.saveMat(X, fout)` -- writes a matrix `X` to output file stream `fout`
-- `la.conjgrad(A,b,x)` -- solves the system A*x = b, where `A` is a matrix (sparse or dense) and `b` and `x` are dense vectors
+- `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
+- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
+- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
+- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+- `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
+- `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
 
 ### Vector
 
@@ -257,36 +316,50 @@ Vector is an array of objects implemented in glib/base/ds.h.
 Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
 
 ```JavaScript
-var fltv = la.newVec(); //empty vector
-var intv = la.newIntVec(); //empty vector
+var vec = la.newVec(); //empty vector
+var intVec = la.newIntVec(); //empty vector
 // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
 ```
 
 
 **Functions and properties:**
 
-- `x = vec.at(elN)` -- gets the value `x` at index `elN` of vector `vec` (0-based indexing)
-- `x = vec[elN]; vec[elN] = y` -- get value `x` at index `elN`, set value at index `elN` to `y` of vector `vec`(0-based indexing)
-- `vec.put(elN, y)` -- set value at index `elN` to `y` of vector `vec`(0-based indexing)
-- `vec.push(y)` -- append value `y` to vector `vec`
-- `vec.unshift(y)` -- insert value `y` to the begining of vector `vec`. Returns the length of the modified array.
-- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`. Implemented for dense integer and dense float vectors.
-- `x = vec.sum()` -- sums the elements of `vec`
-- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in `vec`
+- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
+- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
+- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
+- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
+- `vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing)
+- `intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing)
+- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
+- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
+- `len = vec.unshift(num)` -- insert value `num` to the begining of vector `vec`. Returns the length of the modified array.
+- `len = intVec.unshift(num)` -- insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.
+- `vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
+- `intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
+- `num = vec.sum()` -- return `num`: the sum of elements of vector `vec`
+- `num = intVec.sum()` -- return `num`: the sum of elements of integer vector `intVec`
+- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
+- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
 - `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
-- `res = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `res.vec` and the permutation `res.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order. Implemented for dense float vectors.
-- `mat = vec1.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec1 * vec2^T`. Implemented for dense float vectors. 
-- `x = vec1.inner(vec2)` -- `x` is the standard dot product between vectors `vec1` and `vec2`. Implemented for dense float vectors.
-- `vec3 = vec1.plus(vec2)` --`vec3` is the sum of vectors `vec1` and `vec2`. Implemented for dense float vectors.
-- `vec3 = vec1.minus(vec2)` --`vec3` is the difference of vectors `vec1` and `vec2`. Implemented for dense float vectors.
-- `vec2 = vec1.multiply(a)` --`vec2` is a vector obtained by multiplying vector `vec1` with a scalar (number) `a`. Implemented for dense float vectors.
-- `vec.normalize();` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors.
+- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
+- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
+- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
+- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
+- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
+- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
+- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
+- `vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only.
 - `len = vec.length` -- integer `len` is the length of vector `vec`
+- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
 - `vec.print()` -- print vector in console
-- `D = vec.diag()` -- `D` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors.
-- `D = vec.spDiag()` -- `D` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors.
-- `x = vec.norm()` -- `x` is the Euclidean norm of `vec`. Implemented for dense float vectors.
-- `vec2 = vec.sparse()` -- `vec2` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors.
+- `intVec.print()` -- print integer vector in console
+- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
+- `spMat = vec.spDiag()` -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
+- `num = vec.norm()` -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.
+- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
+- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
+- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
 
 ### Matrix (dense matrix)
 
@@ -301,29 +374,38 @@ var fltv = la.newVec(); //empty matrix
 
 **Functions and properties:**
 
-- `val = mat.at(i,j)` -- Gets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
-- `mat.put(i, j, val)` -- Sets the element of `mat` (matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
-- `y = mat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
-- `y = mat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
-- `mat3 = mat1.plus(mat2)` -- `mat3` is the sum of matrices `mat1` and `mat2`
-- `mat3 = mat1.minus(mat2)` -- `mat3` is the difference of matrices `mat1` and `mat2`
-- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat1` transposed
-- `x = mat.solve(y)` -- vector `x` is the solution to the linear system `mat * x = y`
+- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
+- `mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
+- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
+- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
+- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
+- `mat2 = mat.multiply(spMat)` -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
+- `mat2 = mat.multiplyT(num)` -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+- `vec2 = mat.multiplyT(vec)` -- Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+- `vec = mat.multiplyT(spVec)` -- Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+- `mat3 = mat.multiplyT(mat2)` -- Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+- `mat2 = mat.multiplyT(spMat)` -- Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+- `mat3 = mat.plus(mat2)` -- `mat3` is the sum of matrices `mat` and `mat2`
+- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
+- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
+- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
 - `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 - `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 - `mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation)
 - `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
-- `x = mat.frob()` -- number `x` is the Frobenious norm of matrix `mat`
-- `r = mat.rows` -- integer `r` corresponds to the number of rows of `mat`
-- `c = mat.cols` -- integer `c` corresponds to the number of columns of `mat`
+- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
+- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
+- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
 - `str = mat.printStr()` -- print matrix `mat` to a string `str`
 - `mat.print()` -- print matrix `mat` to console
-- `i = mat.rowMaxIdx(j)`: get the index `i` of the maximum element in row `j` of dense matrix `mat`
-- `i = mat.colMaxIdx(j)`: get the index `i` of the maximum element in column `j` of dense matrix `mat`
-- `vec = mat.getCol(i)` -- `vec` corresponds to the `i`-th column of dense matrix `mat`. `i` must be an integer.
-- `mat.setCol(i, vec)` -- Sets the column of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
-- `vec = mat.getRow(i)` -- `vec` corresponds to the `i`-th row of dense matrix `mat`. `i` must be an integer.
-- `mat.setRow(i, vec)` -- Sets the row of a dense matrix `mat`. `i` must be an integer, `vec` must be a dense vector.
+- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
+- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
+- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
+- `mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector.
+- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
+- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
+- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
 
 ### SpVector (sparse vector)
 
@@ -338,17 +420,18 @@ var spVec = la.newSpVec(); //empty vector
 
 **Functions and properties:**
 
-- `val = spVec.at(i)` -- Gets the element of a sparse vector `spVec`. Input: index `i` (integer). Output: value `val` (number). Uses 0-based indexing
-- `spVec.put(i, val)` -- Set the element of a sparse vector `spVec`. Inputs: index `i` (integer), value `val` (number). Uses 0-based indexing
-- `x = spVec.sum()` -- `x` is the sum of elements of `spVec`
-- `x = spVec.inner(y)` -- `x` is the inner product between `spVec` and vector (sparse or dense) `y`.
-- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `a` (number) and vector `spVec`
+- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
+- `spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing
+- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
+- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
+- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
+- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 - `spVec.normalize()` -- normalizes the vector spVec (inplace operation)
-- `n = spVec.nnz` -- gets the number of nonzero elements `n` of vector `spVec`
-- `d = spVec.dim` -- gets the dimension `d` (-1 means that it is unknown)
+- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
+- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
 - `spVec.print()` -- prints the vector to console
-- `x = spVec.norm()` -- returns `x` - the norm of `spVec`
-- `vec = spVec.full()` --  returns `y` - a dense vector representation of sparse vector `spVec`.
+- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
+- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
 - `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
 - `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
 
@@ -365,29 +448,37 @@ var spMat = la.newSpMat(); //empty matrix
 
 **Functions and properties:**
 
-- `val = spMat.at(i,j)` -- Gets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer). Output: `val` (number). Uses zero-based indexing.
-- `spMat.put(i, j, val)` -- Sets the element of `spMat` (sparse matrix). Input: row index `i` (integer), column index `j` (integer), value `val` (number). Uses zero-based indexing.
-- `x = spMat[i]; spMat[i] = x` -- setting and getting sparse vectors `x` from sparse column matrix, given column index `i` (integer)
-- `spMat.push(x)` -- attaches a column `x` (sparse vector) to `spMat` (sparse matrix)
-- `y = spMat.multiply(x)` -- Matrix multiplication: if `x` is a number, then `y` is a matrix. If `x` is a vector (dense or sparse), then `y` is a dense vector. If `x` is a matrix (sparse or dense), then `y` is a dense matrix.
-- `y = spMat.multiplyT(x)` -- the result is equivalent to mat.transpose().multiply(), supported inputs include a number (scalar), dense or sparse vector and dense or sparse matrix. The result is always dense.
-- `spMat3 = spMat1.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
-- `spMat3 = spMat1.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat1` and `spMat2` (all matrices are sparse column matrices)
-- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `mat1` (sparse matrix) transposed 
+- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
+- `spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing.
+- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
+- `spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix)
+- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
+- `vec2 = spMat.multiply(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
+- `vec = spMat.multiply(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector
+- `mat2 = spMat.multiply(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix
+- `mat = spMat.multiply(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix
+- `spMat2 = spMat.multiplyT(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+- `vec2 = spMat.multiplyT(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+- `vec = spMat.multiplyT(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+- `mat2 = spMat.multiplyT(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+- `mat = spMat.multiplyT(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.
+- `spMat3 = spMat.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
+- `spMat3 = spMat.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
+- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
 - `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 - `spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation)
 - `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
-- `x = spMat.frob()` -- number `x` is the Frobenious norm of `spMat` (sparse matrix)
-- `r = spMat.rows` -- integer `r` corresponds to the number of rows of `spMat` (sparse matrix)
-- `c = spMat.cols` -- integer `c` corresponds to the number of columns of `spMat` (sparse matrix)
+- `num = spMat.frob()` -- number `num` is the Frobenious norm of `spMat` (sparse matrix)
+- `num = spMat.rows` -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
+- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 - `spMat.print()` -- print `spMat` (sparse matrix) to console
 - `spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`
-- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`
+- `spMat.load(fin)` -- load `spMat` (sparse matrix) from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`.
 - `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
-- `spMat.toString()` -- displays rows, columns and number of non-zero elements of a sparse column matrix `spMat`
-- `var n = spMat.nnz();` -- `n` is the number of non-zero elements of sparse column matrix `spMat`
+- `str = spMat.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
+- `num = spMat.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
 
-## Analytics.js (use require)
+## analytics.js (use require)
 
 Analytics algorithms for working with records stored in
 QMiner and with linear algebra objects created by `la`.
@@ -396,49 +487,66 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 
 **Functions and properties:**
     
-- `ftrSpace = analytics.newFeatureSpace(featureExtractors)` -- create new
+- `fsp = analytics.newFeatureSpace(featureExtractors)` -- create new
     feature space consisting of [Feature Extractor](Feature-Extractors),
     declared in JSon `featureExtractors`
-- `ftrSpace = analytics.loadFeatureSpace(fin)` -- load serialized feature 
+- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     space from `fin` stream
-- `model = analytics.trainSvmClassify(matrix, vector, parameters)` -- trains binary
-    classification model using columns from `matrix` as training data and
-    `vector` as target variable (must be of values either 1 or -1); optional
-    training `parameters` are a JSon with parameter `c` (SVM cost parameter,
+- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
+    classification model using columns from `mat` as training data and vector
+    `vec` as target variable (must be of values either 1 or -1); optional
+    training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
     examples with (default is 1.0)); result is a linear model
-- `model = analytics.trainSvmRegression(matrix, vector, parameters)` -- trains 
-    regression model using columns from `matrix` as training data and `vector` as 
-    target variable; optional training `parameters` are a JSon with parameter `c` 
+- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
+    regression model using columns from `mat` as training data and vector `vec` as 
+    target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
     epsilon size tunnel around the model, default is 1.0)); result is a linear model
-- `model = analytics.loadSvmModel(fin)` -- load serialized linear model 
+- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     from `fin` stream
-- `model = analytics.newRecLinReg(parameters)` -- create new recursive linear regression
-    model; training `parameters` are `dim` (dimensionality of feature space, e.g.
-    `ftrSpace.dim`), `forgetFact` (forgetting factor, default is 1.0) and `regFact` 
+- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
+    model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
+    ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
+    `nnParameters.tFuncHidden` (a string representing transfer function in hidden layers) and `nnParameters.tFuncOut` (a string representing transfer function in the output layer). 
+    The following strings correspond to transfer functions: `"tanHyper"`,`"sigmoid"`,`"fastTanh"`,`"fastSigmoid"`,`"linear"`.
+- `recLinRegModel = analytics.newRecLinReg(recLinRegParameters)` -- create new recursive linear regression
+    model; training `recLinRegParameters` are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
+    `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
     (regularization parameter to avoid over-fitting, default is 1.0).)
-- `model = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
+- `recLinRegModel = analytics.loadRecLinRegModel(fin)` -- load serialized linear model
     from `fin` stream
-- `model = analytics.newHoeffdingTree(jsonStream, jsonParams)` -- create new
-    incremental decision tree learner; parameters are passed as JSON
-- `options = analytics.getLanguageOptions()` -- get options for text parsing 
+- `htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)` -- create new
+    incremental decision tree learner; parameters `htJsonParams` are passed as JSON
+- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     (stemmers, stop word lists) as a json object, with two arrays:
-    `options.stemmer` and `options.stopwords`
-- `model = analytics.newBatchModel(records, features, target)` -- learns a new batch model
-    using `records` as training data and `features` as feature space; `target` is
-    a field for the records which we are trying to predict (e.g. store.field("Rating");
+    `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
+- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
+    using record set `rs` as training data and `features`; `target` is
+    a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
     if target field string or string vector, the result is a SVM classification model,
     and if target field is a float, the result is a SVM regression model; resulting 
     model has the following functions:
-  - `model.target` -- array of categories for which we have models
-  - `result = model.predict(record)` -- creates feature vector from `record`, sends it
-    through the model and returns the result as an array of scores.
-  - `result = model.predictTop(record)` -- creates feature vector from `record`, 
-    sends it through the model and returns the top ranked label.
-  - `model.save(fout)` -- saves the model to `fout` output stream
-- `analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
-- `model = new analytics.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query)` -- initializes the
+  - `strArr = batchModel.target` -- array of categories for which we have models
+  - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
+    through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
+  - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
+    sends it through the model and returns the labels with positive weights as `labelArr`.
+  - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
+    sends it through the model and returns the top ranked label `labelStr`.
+  - `batchModel.save(fout)` -- saves the model to `fout` output stream
+- `batchModel = analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
+- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+    model for records from record set `rs` using `features; `target` is the
+    target field and is assumed discrete; the result is a results object
+    with the following API:
+    - `result.target` -- an object with categories as keys and the following
+      counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+      `all()`, `precision()`, `recall()`, `accuracy()`.
+    - `result.confusion` -- confusion matrix between categories
+    - `result.report()` -- prints basic report on to the console
+    - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+- `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
@@ -449,48 +557,65 @@ To start using it must be loaded using `var analytics = require('analytics.js');
    examples that have to be identified in the query mode before the program enters SVM mode.
   The next parameter is the `query` (string) which should be related to positive examples. 
   Final Parameters `c` and `j` are SVM parameters.
-  - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
-  - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+  - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+  - `alModel.getAnswer(alAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
-  - `model.startLoop()` -- starts the active learning loop in console
-  - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
-  - `model.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it. Must be in SVM mode..
-  - `model.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
-  - `model.getnpos()` -- return the  number of examples marked as positive. 
-  - `model.getnneg()` -- return the  number of examples marked as negative.
-  - `model.setj(nj)` - sets the SVM j parameter to the provided value.
-  - `model.setc(nc)` - sets the SVM c parameter to the provided value.
-- `model = new analytics.ridgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
- regression problem: min|X'w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+  - `alModel.startLoop()` -- starts the active learning loop in console
+  - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+  - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+  - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+  - `num = alModel.getnpos()` -- return the  number of examples marked as positive. 
+  - `num = alModel.getnneg()` -- return the  number of examples marked as negative.
+  - `alModel.setj(num)` - sets the SVM j parameter to the provided value.
+  - `alModel.setc(num)` - sets the SVM c parameter to the provided value.
+- `ridgeRegressionModel = analytics.newRidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+ regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
-  - `model.add(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set
-  - `model.addupdate(x, y)` -- adds a vector `x` (sparse or dense) and target `y` (number) to the training set and retrains the model
-  - `model.forget(n)` -- deletes first `n` (integer) examples from the training set
-  - `model.update()` -- recomputes the model
-  - `w = model.getModel()` -- returns the parameter vector `w` (dense vector)
-  - `w = model.compute(A, b)` -- computes the model parameters `w`, given 
-   a column training example matrix `A` (dense or sparse matrix) and target 
-   vector `b` (dense vector). The vector `w` solves min_w |A'w - b|^2 + kappa |w|^2.
-  - `p = model.predict(x)` -- predicts the target `p` (number), given feature vector `x` based on the internal model parameters.
-- `C = new analytics.kmeans(X, k, iter)`-- solves the k-means algorithm based on a training
-  set `X` (sparse or dense matrix) where colums represent examples, `k` (integer) the number of centroids and
-  `iter` (integer), the number of iterations. The solution `C` is a dense matrix, where each column
+  - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
+  - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
+  - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
+  - `ridgeRegressionModel.update()` -- recomputes the model
+  - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
+  - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given 
+   a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
+  - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
+   a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
+  - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
+- `mat2 = analytics.computeKmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+  matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
+  `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
    is a cluster centroid.
-- `model = new analytics.lloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
+- `mat2 = analytics.computeKmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+  matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
+  `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
+   is a cluster centroid.
+- `lloydModel = analytics.newLloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
  requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
-  - `model.init()` -- initializes the model with random centroids
-  - `C = model.getC()` -- returns the centroid matrix `C` (dense matrix)
-  - `model.setC(C)` -- sets the centroid matrix to `C` (dense matrix)
-  - `model.update(x)` -- updates the model with a vector `x` dense or sparse
-  - `c = model.getCentroid(x)` -- returns the centroid `c` (dense vector) that is the closest to vector `x` (sparse or dense)
-  - `i = model.getCentroidIdx(x)` -- returns the centroid index `i` (integer) that corresponds to the centroid that is the closest to vector `x` (sparse or dense)
-- `model = new analytics.perceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
+  - `lloydModel.init()` -- initializes the model with random centroids
+  - `mat = lloydModel.getC()` -- returns the centroid matrix `mat`
+  - `lloydModel.setC(mat)` -- sets the centroid matrix to matrix `mat`
+  - `lloydModel.update(vec)` -- updates the model with a vector `vec`
+  - `lloydModel.update(spVec)` -- updates the model with a sparse vector `spVec`
+  - `vec2 = lloydModel.getCentroid(vec)` -- returns the centroid `vec2` (dense vector) that is the closest to vector `vec`
+  - `vec2 = lloydModel.getCentroid(spVec)` -- returns the centroid `vec2` (dense vector) that is the closest to sparse vector `spVec`
+  - `idx = lloydModel.getCentroidIdx(vec)` -- returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to vector `vec`
+  - `idx = lloydModel.getCentroidIdx(spVec)` -- returns the centroid index `idx` (integer) that corresponds to the centroid that is the closest to sparse vector `spVec`
+- `perceptronModel = analytics.newPerceptron(dim, use_bias)` -- the perceptron learning algorithm initialization requires
   specifying the problem dimensions `dim` (integer) and optionally `use_bias` (boolean, default=false). The
   model is used to solve classification tasks, where classifications are made by a function class(x) = sign(w'x + b). The following functions are exposed:
-  - `model.update(x,y)` -- updates the internal parameters `w` and `b` based on the training feature vector `x` (dense or sparse vector) and target class `y` (0 or 1)! 
-  - `class = model.predict(x)` -- returns the prediction (0 or 1)
-  - `param = model.getModel()` -- returns an object `param` where `param.w` (vector) and `param.b` (bias) are the separating hyperplane normal and bias. 
+  - `perceptronModel.update(vec,num)` -- updates the internal parameters `w` and `b` based on the training feature vector `vec` and target class `num` (0 or 1)! 
+  - `perceptronModel.update(spVec,num)` -- updates the internal parameters `w` and `b` based on the training sparse feature vector `spVec` and target class `num` (0 or 1)! 
+  - `num = perceptronModel.predict(vec)` -- returns the prediction (0 or 1) for a vector `vec`
+  - `num = perceptronModel.predict(spVec)` -- returns the prediction (0 or 1) for a sparse vector `spVec`
+  - `perceptronParam = perceptronModel.getModel()` -- returns an object `perceptronParam` where `perceptronParam.w` (vector) and `perceptronParam.b` (bias) are the separating hyperplane normal and bias. 
+- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
+ requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
+ when using inverse distance weighting average to compute prediction. The model exposes the following functions:
+  - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
+  - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
+  using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
+  - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
 
 ### Feature Space
 
@@ -501,24 +626,24 @@ declarations as parameters.
 
 **Functions and properties:**
     
-- `ftrSpace.dim` -- dimensionality of feature space
-- `ftrSpace.save(fout)` -- serialize feature space to `fout` output stream
-- `ftrSpace.updateRecord(record)` -- update feature space definitions and extractors
-    by exposing them to `record`. For example, this can update the vocabulary
+- `num = fsp.dim` -- dimensionality of feature space
+- `fsp.save(fout)` -- serialize feature space to `fout` output stream
+- `fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    by exposing them to record `rec`. For example, this can update the vocabulary
     used by bag-of-words extractor by taking into account new text.
-- `ftrSpace.updateRecord(recordSet)` -- update feature space definitions and extractors
-    by exposing them to records from `recordSet`. For example, this can update 
+- `fsp.updateRecords(rs)` -- update feature space definitions and extractors
+    by exposing them to records from record set `rs`. For example, this can update 
     the vocabulary used by bag-of-words extractor by taking into account new text.
-- `strVec = ftrSpace.extractStrings(record)` -- use feature extractors to extract string 
-    features from `record` (e.g. words from string fields); results are returned
+- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    features from record `rec` (e.g. words from string fields); results are returned
     as a string array
-- `ftrName = ftrSpace.getFtr(ftrN)` -- returns the name `ftrName` (string) of `ftrN`-th feature in feature space `ftrSpace`
-- `spVec = ftrSpace.ftrSpVec(record)` -- extracts sparse feature vector from `record`
-- `vec = ftrSpace.ftrVec(record)` -- extracts feature vector from `record`
-- `spMatrix = ftrSpace.ftrSpColMat(recordSet)` -- extracts sparse feature vectors from 
-    records in `recordSet` and returns them as columns in a sparse matrix.
-- `matrix = ftrSpace.ftrColMat(recordSet)` -- extracts feature vectors from 
-    records in `recordSet` and returns them as columns in a matrix.
+- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from 
+    record set `rs` and returns them as columns in a sparse matrix `spMat`.
+- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
+    record set `rs` and returns them as columns in a matrix `mat`.
 
 ### Support Vector Machine model
 
@@ -527,10 +652,19 @@ Holds SVM classification or regression model. This object is result of
 
 **Functions and properties:**
     
-- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    model and returns the prediction as a real number
-- `vec = model.weights` -- weights of the SVM linear model as a full vector
-- `model.save(fout)` -- saves model to output stream `fout`
+- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
+- `svmModel.save(fout)` -- saves model to output stream `fout`
+
+### Neural network model
+
+Holds the neural network model. This object is result of `analytics.newNN`.
+
+**Functions and properties:**
+    
+- `nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation.
+- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 
 ### Recursive Linear Regression model
 
@@ -538,55 +672,57 @@ Holds online regression model. This object is result of `analytics.newRecLinReg`
 
 **Functions and properties:**
     
-- `model.learn(vector, target)` -- updates the model using full `vector` as
-    `target` number as training data
-- `res = model.predict(vector)` -- sends `vector` (full or sparse) through the 
-    model and returns the prediction as a real number
-- `vec = model.weights` -- weights of the linear model as a full vector    
-- `model.dim` -- dimensionality of the feature space on which this model works
-- `model.save(fout)` -- saves model to output stream `fout`
+- `recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data
+- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the 
+    model and returns the prediction as a real number `num`
+- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`   
+- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
+- `recLinRegModel.save(fout)` -- saves model to output stream `fout`
 
 ### Hoeffding Tree model
 
-First, we have to initialize the learner. 
-We specify the order of attributes in a stream example, and describe each attribute.
-For each attribute, we specifty its type and --- in case of discrete attributes --- enumerate
-all possible values of the attribute. See titanicConfig below. 
+First, we have to initialize the learner by passing description of the data stream
+and algorithm parameters. When describing the data stream, we have to specify the order of
+attributes in a stream example and describe each attribute. For each attribute, we specifty
+its type and --- in case of discrete attributes --- enumerate all possible values of the attribute.
+See `titanicConfig` below. 
 
 The HoeffdingTree algorithm comes with many parameters:
 
-- gracePeriod. Denotes ``recomputation period''; if gracePeriod=200, the algorithm
+- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
 	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
-	    is the most expensive operation in the algorithm; we have to recompute gains at each
-	    leaf of the tree. (If ConceptDriftP=true, in each node of the tree.)
-- splitConfidence. The probability of making a mistake when splitting a leaf. Let A1 and A2
-	    be attributes with the highest information gains G(A1) and G(A2). The algorithm
+	    is the most expensive operation in the algorithm, because we have to recompute gains at each
+	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+      node of the tree.)
+- `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
+	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
 	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-	    generating the data is stationary). So A1 is truly best with probability at least 1-splitConfidence.
-- tieBreaking. If two attributes are equally good --- or almost equally good --- the algorithm will
-	    will never split the leaf. We address this with tieBreaking parameter and consider two attributes
-	    equally good whenever G(A1)-G(A2) <= tieBreaking, i.e., when they have similar gains. (Intuition: If
+	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+- `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
+	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
+	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If
 	    the attributes are equally good, we don't care on which one we split.)
-- conceptDriftP. Denotes whether the algorithm adapts to potential changes in the data. If set to true,
+- `conceptDriftP` -- Denotes whether the algorithm adapts to potential changes in the data. If set to `true`,
 	    we use a variant of [CVFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf );
-    if set to false, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
-- driftCheck. If DriftCheckP=true, the algorithm sets nodes into self-evaluation mode every driftCheck
-	    examples and swaps the tree 
-- windowSize. The algorithm keeps a sliding window of the last windowSize stream examples. It makes sure
+     if set to `false`, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
+- `driftCheck` -- If `DriftCheckP=true` (this is one of the algorithm parameters), the algorithm sets nodes into
+      self-evaluation mode every `driftCheck` examples. If one of the alternate trees performs better than the ``main''
+      tree, the algorithm swaps the best-performing alternate tree in place of the main one. 
+- `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 	    the window in order to ``forget'' the example when it becomes too old. 
 
 **Functions and properties:**
     
-- `ht.process(discreteV, numericV, label)` -- processes the stream example; `discreteV` is vector of discrete attribute values;
-  `numericV` is vector of numeric attribute values; `label` is class label of the example; returns nothing;
-- `ht.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example "a1,a2,c", where c is the class label); returns nothing;
-- `ht.classify(discreteV, numericV)` -- classifies the stream example; `discreteV` is vector of discrete attribute values; `numericV` is vector of numeric attribute values; returns the class label 
-- `ht.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label 
-- `ht.exportModel(outParams)` -- writes the current model into file `outParams.file` in format `outParams.type`;
-  here, `outParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` or `XML` supported) 
+- `htModel.process(strArr, numArr, labelStr)` -- processes the stream example; `strArr` is an array of discrete attribute values (strings);
+  `numArr` is an array of numeric attribute values (numbers); `labelStr` is the class label of the example; the function returns nothing.
+- `htModel.process(line)` -- processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.
+- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
+- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
+- `htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`.
+  here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 
 ## System and I/O
 
@@ -595,44 +731,55 @@ The HoeffdingTree algorithm comes with many parameters:
 
 **Functions and properties:**
 
+- `process.stop()` -- Stops the current process.
+- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
 - `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
-- `process.scriptNm` -- Returns the name of the script.
-- `process.scriptFNm` -- Returns absolute script file path.
-- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 - `a = process.args` -- array of command-line arguments 
     used to start current QMiner instance
-- `process.isArg(arg)` -- returns true when `arg` among the 
+- `objJSON = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+- `str = process.scriptNm` -- Returns the name of the script.
+- `str = process.scriptFNm` -- Returns absolute script file path.
+- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
+- `process.exitScript()` -- Exits the current script
+- `strArr = process.args` -- array of command-line arguments 
+    used to start current QMiner instance
+- `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
     command-line arguments used to start current QMiner instance
-- `process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+- `sysStatJson = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
 
-### Utilities.js (use require)
+### utilities.js (use require)
 
-- `utilities.isObject(arg)` -- is parameter an object?
-- `utilities.isArray(arg)` -- is parameter an array?
-- `utilities.isInArray(array, value)` -- is element in an array?
-- `utilities.isNumber(n)` -- is `n` a number?
-- `utilities.isString(s)` -- is `s` a string?
-- `utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
-- `h = new utilities.hashTable()` -- creates a hash table
- - `utilities.hashTable._vals` -- 
- - `utilities.hashTable.keys` -- 
- - `utilities.hashTable.vals` -- 
- - `utilities.hashTable.put(key)` -- 
- - `utilities.hashTable.put(key, dat)` -- 
- - `utilities.hashTable.contains(key)` -- 
- - `utilities.hashTable.get(key)` -- 
-- `sw = new utilities.clsStopwatch()` -- creates a stop watch object `sw`
-- `sw.start()` --
-- `sw.stop()` --
-- `sw.reset()` --
-- `sw.time()` --
-- `sw.saytime(msg)` --
-- `sw.tic()` --
-- `sw.toc(msg)` --
-- `q = utilities.arraysIdentical(arr1, arr2)` -- `q` is true if array `arr1` is identical to array `arr2`
+- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
+- `bool = utilities.isObject(arg)` -- is parameter an object?
+- `bool = utilities.isArray(arg)` -- is parameter an array?
+- `bool = utilities.isInArray(array, value)` -- is element in an array?
+- `bool = utilities.isNumber(n)` -- is `n` a number?
+- `bool = utilities.isString(s)` -- is `s` a string?
+- `returnVal = utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
+- `hashTable = utilities.newHashTable()` -- creates a hash table
+ - `strArr = hashTable.keys` -- array of keys (strings)
+ - `array = hashTable.vals` -- array of values
+ - `hashTable.put(key)` -- add a key
+ - `hashTable.put(key, dat)` -- add key-dat
+ - `bool = hashTable.contains(key)` -- does the table contain the key?
+ - `dat = hashTable.get(key)` -- get data
+- `sw = utilities.newStopWatch()` -- creates a stop watch object `sw`
+- `sw.start()` -- starts the stopwatch
+- `sw.stop()` -- stops the stopwatch
+- `sw.reset()` -- resets 
+- `num = sw.time()` -- returns unix epoch time in milliseconds
+- `sw.saytime(message)` -- displays elpased time from tic
+- `sw.tic()` -- resets and starts the stop watch
+- `sw.toc(str)` -- displays time from tic and message `str`
+- `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
+- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
 
-### Assert.js (use require)
+### assert.js (use require)
 
+- `assert.run(test, msg)` -- prints success if this code is reached
+- `assert.ok(test, msg)` --  `test` is boolean, prints message `msg` if test is true
+- `assert.exists(obj, msg)` --  checks if object `obj` exists (!=null) and prints message `msg`
+- `assert.equals(obj, obj2,  msg)` --  checks if object `obj==obj2` and prints message `msg`
 
 ### Console
 
@@ -645,8 +792,8 @@ are automatically prefixed by current date and time.
 - `console.log(message)` -- writes `message` to standard output, using
     prefix `[console]` to indicate the text came from console object;
     `message` must be of type string
-- `console.log(prefix, message)` -- writes `message` to standard output, 
-    using provided prefix `[prefix]`; both `message` and `prefix` must
+- `console.log(prefixStr, message)` -- writes `message` to standard output, 
+    using provided prefix `[prefixStr]`; both `message` and `prefixStr` must
     be of type string
 - `line = console.getln()` -- reads a line from command line and returns
     it as string
@@ -658,110 +805,111 @@ are automatically prefixed by current date and time.
     in order for console to see and interact with local variables.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.pause()` -- waits until enter is pressed
-- `console.println(a)` -- `print(a); print("\n")`
+- `console.println(str)` -- `print(str); print("\n")`
 
 ### File system
 
 
 **Functions and properties:**
     
-- `fin = fs.openRead(fileName)`
-- `fout = fs.openWrite(fileName)`
-- `fout = fs.openAppend(fileName)`
-- `fs.exists(fileName)`
-- `fs.copy(fromFileName, toFileName)`
-- `fs.move(fromFileName, toFileName)`
-- `fs.del(fileName)`
-- `fs.rename(fromFileName, toFileName)`
-- `info = fs.fileInfo(fileName,)`
-- `fs.mkdir(dirName)`
-- `fs.rmdir(dirName)`
-- `list = fs.listFile(dirName, fileExtension)`
-- `list = fs.listFile(dirName, fileExtension, recursive)`
+- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+- `bool = fs.exists(fileName)` -- does file exist?
+- `fs.copy(fromFileName, toFileName)` -- copy file
+- `fs.move(fromFileName, toFileName)` -- move file
+- `fs.del(fileName)` -- delete file
+- `fs.rename(fromFileName, toFileName)` -- rename file
+- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+- `fs.mkdir(dirName)` -- make folder
+- `fs.rmdir(dirName)` -- delete folder
+- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 
 ### Input File Stream
 
 
 **Functions and properties:**
     
-- `char = fin.peekCh()`
-- `char = fin.getCh()`
-- `line = fin.readLine()`
-- `fin.eof`
-- `fin.length`
+- `char = fin.peekCh()` -- peeks a character
+- `char = fin.getCh()` -- reads a character
+- `line = fin.readLine()` -- reads a line
+- `bool = fin.eof` -- end of stream?
+- `len = fin.length` -- returns the length of input stream
 
 ### Output File Stream
 
 
 **Functions and properties:**
     
-- `fout.write(data)`
-- `fout.writeLine(data)`
-- `fout.flush()`
-- `fout.close()`
+- `fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+- `fout.writeLine(data)` -- writes data to output stream and adds newline
+- `fout.flush()` -- flushes output stream
+- `fout.close()` -- closes output stream
 
 ### HTTP
 
 
 **Functions and properties:**
     
-- `http.get(url)`
-- `http.get(url, success_callback)`
-- `http.get(url, success_callback, error_callback)`
-- `http.getStr(url)`
-- `http.getStr(url, success_callback)`
-- `http.getStr(url, success_callback, error_callback)`
-- `http.post(url, mimeType, data)`
-- `http.post(url, mimeType, data, success_callback)`
-- `http.post(url, mimeType, data, success_callback, error_callback)`
-- `http.postStr(url)`
-- `http.postStr(url, mimeType, data, success_callback)`
-- `http.postStr(url, mimeType, data, success_callback, error_callback)`
-- `http.onRequest(path, verb, function (request, response) { ... })`
-- `onGet(path, function (request, response) { ... })`
-- `onPost(path, function (request, response) { ... })`
-- `onPut(path, function (request, response) { ... })`
-- `onDelete(path, function (request, response) { ... })`
-- `onPatch(path, function (request, response) { ... })`
-- `jsonp(request, response, data)` -- packaging reply as jsonp when callback parameter is provided in URL
+- `http.get(url)` -- gets url, but does nothing with response
+- `http.get(url, httpJsonSuccessCallback)` -- gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+- `http.get(url, httpJsonSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+- `http.getStr(url)` -- gets url, but does nothing with response
+- `http.getStr(url, httpStrSuccessCallback)` -- gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success. 
+- `http.getStr(url, httpStrSuccessCallback, httpErrorCallback)` -- gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.
+- `http.post(url, mimeType, data)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+- `http.post(url, mimeType, data, httpJsonSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.
+- `http.post(url, mimeType, data, httpJsonSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.
+- `http.postStr(url)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string)
+- `http.postStr(url, mimeType, data, httpStrSuccessCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.
+- `http.postStr(url, mimeType, data, httpStrSuccessCallback, httpErrorCallback)` -- post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.
+- `http.onRequest(path, verb, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onGet(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onGet("test", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onPost(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPost("test", function (req, resp) { })` executed from `script.js` on localhost will execute a post request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onPut(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPut("test", function (req, resp) { })` executed from `script.js` on localhost will execute a put request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onDelete(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onDelete("test", function (req, resp) { })` executed from `script.js` on localhost will execute a delete request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.onPatch(path, httpRequestCallback)` -- path: function path without server name and script name. Example: `http.onPatch("test", function (req, resp) { })` executed from `script.js` on localhost will execute a patch request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }
+- `http.jsonp(httpRequest, httpResponse, dataJSON)` -- packaging reply as jsonp when callback parameter is provided in URL
 
 ### HTTP Response
 
 
 **Functions and properties:**
     
-- `resp.setStatusCode(statusCode)`
-- `resp.setStatusCode(mimeType)`
-- `resp.add(data)`
-- `resp.close()`
-- `resp.send(data)`
+- `httpResponse.setStatusCode(statusCode)` -- sets status code (integer)
+- `httpResponse.setContentType(mimeType)` -- sets content type (string)
+- `httpResponse.add(dataStr)` -- adds `dataStr` (string) to request body
+- `httpResponse.add(dataJSON)` -- adds `dataJSON` (JSON object) to request body
+- `httpResponse.close()` -- closes and executes the response
+- `httpResponse.send(dataStr)` -- adds `dataStr` (string) and closes the response
+- `httpResponse.send(dataJSON)` -- adds `dataJSON` (JSON object) and closes the response
 
 ### Date-Time
 
 Wrapper around GLib's TTm. Used as return for `DateTime` field type. 
-New one can be created using `tm = require('time')`.
+New one can be created using `tm = require('time.js')`.
 
 **Functions and properties:**
 
-- `tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
-- `tm.dateString` -- string representation of date (e.g. 2014-05-29)
-- `tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
-- `tm.year`
-- `tm.month`
-- `tm.day`
-- `tm.dayOfWeek`
-- `tm.hour`
-- `tm.minute`
-- `tm.second`
-- `tm.milisecond`
-- `tm.now` -- returns new time object representing current local time
-- `tm.nowUTC` -- returns new time object represented current UTC time
-- `tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
+- `str = tm.string` -- string representation of time (e.g. 2014-05-29T10:09:12)
+- `str = tm.dateString` -- string representation of date (e.g. 2014-05-29)
+- `num = tm.timestamp` -- unix timestamp representation of time (seconds since 1970)
+- `num = tm.year` -- year (number)
+- `num = tm.month` -- month (number)
+- `num = tm.day` -- day (number)
+- `str = tm.dayOfWeek` -- day of week (string)
+- `num = tm.hour` -- hour (number)
+- `num = tm.minute` -- minute (number)
+- `num = tm.second` -- second (number)
+- `num = tm.milisecond` -- millisecond (number)
+- `tm2 = tm.now` -- returns new time object representing current local time
+- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
+- `tm2 = tm.add(val, unit)` -- adds `val` to the time; `unit` defines the unit 
     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
-- `tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defines the 
-    unit, same as in `add`
-- `tm.toJSON()` -- returns json representation of time    
-- `date = tm.parse(`2014-05-29T10:09:12`) -- parses string and returns it
+- `tm2 = tm.sub(val, unit)` -- subtracts `val` from the time; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+- `tmJSON = tm.toJSON()` -- returns json representation of time    
+- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     as Date-Time object
 
 ## Other libraries
@@ -774,7 +922,7 @@ The library must be loaded using `var twitter = require('twitter.js');`.
 
 **Functions and properties:**
 
-- `var twitterDef = new twitter.TwitterStore()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
-- `var Parser = new twitter.Parser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
-  - `obj = twitter.Parser.rawJsonToStoreJson(raw)` -- transforms a raw JSON object (result of twitter crawler) `raw` to `twitter.TwitterStore()` compatible json object `obj`
-- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.TwitterStore()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
+- `twitterDef = twitter.getTwitterStoreJson()` -- returns a Twitter store definition JSON object `twitterDef`. The JSON array contains four store definitions: Tweets, Users, HashTags and Pages
+- `twitterParser = twitter.newParser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
+  - `objJSON = twitterParser.rawJsonToStoreJson(rawTweetJSON)` -- transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`
+- `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.getTwitterStoreJson()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)

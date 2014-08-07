@@ -350,7 +350,7 @@ namespace TFtrExts {
 ///////////////////////////////////////////////
 // Constant Feature Extractor
 TConstant::TConstant(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
-	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 0)) { }
+	TFtrExt(Base, ParamVal), Constant(ParamVal->GetObjNum("const", 1.0)) { }
 
 TConstant:: TConstant(const TWPt<TBase>& Base, TSIn& SIn): TFtrExt(Base, SIn), Constant(SIn) { }
 
@@ -951,9 +951,9 @@ void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSec
 }
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
-    const int& _FieldId, const TBagOfWordsMode& _Mode, const PSwSet& SwSet, 
-    const PStemmer& Stemmer, const int& HashDim): 
-        TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, SwSet, Stemmer, HashDim), 
+    const int& _FieldId, const TBagOfWordsMode& _Mode, const PTokenizer& Tokenizer, 
+    const int& HashDim): 
+        TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, Tokenizer, HashDim), 
         FieldId(_FieldId), FieldDesc(GetFtrStore()->GetFieldDesc(FieldId)), Mode(_Mode) { }
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {
@@ -969,14 +969,34 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
     } else if (WeightStr == "idf") {
         TfP = false; IdfP = true;
     }
-    // get stopwords
-    PSwSet SwSet = ParseSwSet(ParamVal);
-    // get stemmer
-    PStemmer Stemmer = ParseStemmer(ParamVal, false);
+    // get parse out tokenizer
+    PTokenizer Tokenizer;
+    if (ParamVal->IsObjKey("tokenizer")) {
+        PJsonVal TokenizerVal = ParamVal->GetObjKey("tokenizer");
+        QmAssertR(TokenizerVal->IsObjKey("type"), 
+            "Missing tokenizer type " + TokenizerVal->SaveStr());
+        const TStr& TypeNm = TokenizerVal->GetObjStr("type");
+        Tokenizer = TTokenizer::New(TypeNm, TokenizerVal);
+    } else if (ParamVal->IsObjKey("stopwords") || ParamVal->IsObjKey("stemmer")) {
+        // this will be deprecated at some point, print warning
+        InfoLog("Warning: stopwords and stemmer no longer direct parameters for text feature extractor, please use tokenizer instead");
+        // parse stow words
+        PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
+            TSwSet::ParseJson(ParamVal->GetObjKey("stopwords")) :
+            TSwSet::New(swstEn523);   
+        // get stemmer
+        PStemmer Stemmer = ParamVal->IsObjKey("stemmer") ? 
+            TStemmer::ParseJson(ParamVal->GetObjKey("stemmer"), false) :
+            TStemmer::New(stmtNone, false);
+        // default is unicode html
+        Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
+    } else {
+        Tokenizer = TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtNone, false));
+    }
     // hashing dimension
     const int HashDim = ParamVal->GetObjInt("hashDimension", -1);
     // initialize
-    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, SwSet, Stemmer, HashDim);
+    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim);
     
     // parse input field
     TStr FieldNm = ParamVal->GetObjStr("field");
@@ -989,6 +1009,8 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
         Mode = bowmConcat;
     } else if (ModeStr == "centroid") {
         Mode = bowmCentroid;
+    } else if (ModeStr == "tokenized") {
+        Mode = bowmTokenized;
     } else {
         throw TQmExcept::New("Unknown bag-of-words multi-record merging mode: " + ModeStr);
     }
@@ -1022,22 +1044,22 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn):
     TmWnd(SIn), ForgetFactor(SIn) { }
 
 
-PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
-        const TBagOfWordsMode& Mode, const PSwSet& SwSet, const PStemmer& Stemmer) { 
+PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const TBagOfWordsMode& Mode, const PTokenizer& Tokenizer) { 
     
-    return new TBagOfWords(Base, TJoinSeqV::GetV(TJoinSeq(Store)), FieldId, Mode, SwSet, Stemmer); 
+    return new TBagOfWords(Base, TJoinSeqV::GetV(TJoinSeq(Store)), FieldId, Mode, Tokenizer); 
 }
 
-PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId, 
-        const TBagOfWordsMode& Mode, const PSwSet& SwSet, const PStemmer& Stemmer) { 
+PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const TBagOfWordsMode& Mode, const PTokenizer& Tokenizer) { 
 		
-	return new TBagOfWords(Base, TJoinSeqV::GetV(JoinSeq), FieldId, Mode, SwSet, Stemmer); 
+	return new TBagOfWords(Base, TJoinSeqV::GetV(JoinSeq), FieldId, Mode, Tokenizer); 
 }
 
-PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId, 
-        const TBagOfWordsMode& Mode, const PSwSet& SwSet, const PStemmer& Stemmer) {
+PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV,
+        const int& FieldId, const TBagOfWordsMode& Mode, const PTokenizer& Tokenizer) {
     
-    return new TBagOfWords(Base, JoinSeqV, FieldId, Mode, SwSet, Stemmer); 
+    return new TBagOfWords(Base, JoinSeqV, FieldId, Mode, Tokenizer); 
 }
 
 PFtrExt TBagOfWords::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { 
@@ -1087,6 +1109,8 @@ bool TBagOfWords::Update(const TRec& Rec) {
 			UpdateP = UpdateP || RecUpdateP;
         }
         return UpdateP;
+    } else if (Mode == bowmTokenized) {
+		return FtrGen.Update(RecStrV);
 	} else {
 		throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
 	}
@@ -1119,6 +1143,9 @@ void TBagOfWords::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
 		}
 		// move offset for the number of tokens in feature generator
 		Offset += FtrGen.GetDim();
+    } else if (Mode == bowmTokenized) {
+        // already tokenized
+        FtrGen.AddFtr(RecStrV, SpV, Offset);
 	} else {
 		throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
 	}
@@ -1148,6 +1175,9 @@ void TBagOfWords::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
 		}
 		// move offset for the number of tokens in feature generator
 		Offset += FtrGen.GetDim();
+    } else if (Mode == bowmTokenized) {
+        // already tokenized
+        FtrGen.AddFtr(RecStrV, FullV, Offset);
 	} else {
 		throw TQmExcept::New("Unknown tokenizer mode for handling multiple instances");
 	}
@@ -1158,79 +1188,6 @@ void TBagOfWords::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
 	for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
 		FtrGen.GetFtr(RecStrV[RecStrN], StrV);
 	}
-}
-
-PSwSet TBagOfWords::GetSwSet(const TStr& SwStr) {
-    TStrV SwSetTypeNmV, SwSetTypeDNmV;
-    TSwSet::GetSwSetTypeNmV(SwSetTypeNmV, SwSetTypeDNmV);
-	if (SwStr == "en") {
-		return TSwSet::New(swstEn523);
-	} else if (SwStr == "si") { 
-		return TSwSet::New(swstSiIsoCe);
-	} else if (SwStr == "es") { 
-		return TSwSet::New(swstEs);
-	} else if (SwStr == "de") { 
-		return TSwSet::New(swstGe);
-	} else if(SwSetTypeNmV.IsIn(SwStr)) {
-        TSwSetType SwSet = TSwSet::GetSwSetType(SwStr);
-        return TSwSet::New(SwSet);
-    }
-	throw TQmExcept::New("Unknown stop-word set '" + SwStr + "'");
-}
-
-void TBagOfWords::AddWords(const PSwSet& SwSet, const PJsonVal& WordsVal) {
-	for (int WordN = 0; WordN < WordsVal->GetArrVals(); WordN++) {
-		PJsonVal WordVal = WordsVal->GetArrVal(WordN);
-		QmAssert(WordVal->IsStr());
-		SwSet->AddWord(WordVal->GetStr().GetUc());
-	}
-}
-
-PSwSet TBagOfWords::ParseSwSet(const PJsonVal& ParamVal) {
-	// read stop words (default is no stop words)
-	PSwSet SwSet = TSwSet::New(swstNone);
-	if (ParamVal->IsObjKey("stopwords")) { 
-		PJsonVal SwVal = ParamVal->GetObjKey("stopwords");
-		if (SwVal->IsStr()) {
-			SwSet = GetSwSet(SwVal->GetStr());
-		} else if (SwVal->IsArr()) {
-			AddWords(SwSet, SwVal);
-		} else if (SwVal->IsObj()) {
-			// load predefined set
-			if (SwVal->IsObjKey("language")) {
-				PJsonVal SwTypeVal = SwVal->GetObjKey("language");
-				QmAssert(SwTypeVal->IsStr());
-				SwSet = GetSwSet(SwTypeVal->GetStr());
-			}
-			// add any additional words
-			if (SwVal->IsObjKey("words")) {
-				PJsonVal SwWordsVal = SwVal->GetObjKey("words");
-				QmAssert(SwWordsVal->IsArr());
-				AddWords(SwSet, SwWordsVal);
-			}
-		} else {
-			throw TQmExcept::New("Unknown stop-word definition '" + SwVal->SaveStr() + "'");
-		}
-	} else {
-		// default is English
-		SwSet = TSwSet::New(swstEn523);
-	}   
-    return SwSet;
-}
-
-PStemmer TBagOfWords::ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP) {
-    if (ParamVal->IsObjKey("stemmer")) {
-        PJsonVal StemmerVal = ParamVal->GetObjKey("stemmer");
-        if (StemmerVal->IsBool()) {
-            return TStemmer::New(StemmerVal->GetBool() ? stmtPorter : stmtNone, RealWordP);
-        } else if (StemmerVal->IsObj()) {
-            TStr StemmerType = StemmerVal->GetObjStr("type", "none");
-            const bool RealWordP = StemmerVal->GetObjBool("realWord", RealWordP);
-            return TStemmer::New((StemmerType == "porter") ? stmtPorter : stmtNone, RealWordP);            
-        }
-    }
-    // default no stemmer
-    return TStemmer::New(stmtNone, false);
 }
 
 ///////////////////////////////////////////////
