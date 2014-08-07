@@ -461,22 +461,10 @@ function airlineRegressionTest() {
    
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
    var fin = fs.openRead('./sandbox/ht/airline_14col.dat');
-   var examplesN = 0;
-   var err = 0.0; 
    while (!fin.eof) {
       var line = fin.getNextLn();
       var exampleJson = line2array(line, jsonCfg);
-      if (++examplesN % 10000 >= 8000) {
-         var val = ht.predict(exampleJson.discrete, exampleJson.numeric);
-         err += Math.pow(val-exampleJson.target, 2);
-      } else {
-         if (err > 0.0) {
-            console.say("MSE="+Math.sqrt(err/2000));
-            err = 0.0;
-         }
-         if (examplesN < 601) { ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target); }
-      }
-      if (examplesN > 100000) { break; }
+      ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target);
    }
    // The model is huge, because one of the discrete attributes has more than 3000 values 
    // ht.exportModel({ "file": "./sandbox/ht/airline.gv", "type": "DOT" });
@@ -492,10 +480,10 @@ function airlineRegressionTest() {
 // testRegressionDisAttr();
 // console.say("Regression scenario with numeric attributes");
 // testRegressionContAttr();
-// console.say("Regression scenario using WIND dataset.");
-// testRegression();
-console.say("Regression scenario using Airline dataset.");
-airlineRegressionTest();
+console.say("Regression scenario using WIND dataset.");
+testRegression();
+// console.say("Regression scenario using Airline dataset.");
+// airlineRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();

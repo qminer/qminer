@@ -1794,15 +1794,22 @@ namespace THoeffding {
       PNode CrrNode = Root;
       TSStack<PNode> NodeS;
       
-      NodeS.Push(CrrNode);
+      NodeS.Push(CrrNode); ++NodesN;
       while (!NodeS.Empty()) {
          CrrNode = NodeS.Top(); NodeS.Pop();
-         ++NodesN;
          for (auto It = CrrNode->ChildrenV.BegI();
             It != CrrNode->ChildrenV.EndI(); ++It) {
-            NodeS.Push(*It);
+            ++NodesN;
+            if (IsLeaf(*It)) { NodeS.Push(*It); }
          }
-         // if (AltP) { /* TODO */ }
+         // Also count alternate trees 
+         if (AltP) {
+            for (auto It = CrrNode->AltTreesV.BegI();
+               It != CrrNode->AltTreesV.EndI(); ++It) {
+               ++NodesN;
+               if (IsLeaf(*It)) { NodeS.Push(*It); }
+            }
+         }
       }
       return NodesN;
    }
