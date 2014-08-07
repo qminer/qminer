@@ -17,14 +17,13 @@
 //# **Functions and properties:**
 //#
 
-function escapeXml(str) {
+exports.escapeXml = function(str) {
     return str.replace(/&/g, '&amp;')
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;')
               .replace(/"/g, '&quot;')
               .replace(/'/g, '&apos;');
 }
-
 
 //# - str = json2xml(json, nl) -- takes input object 'json' and transforms it to XML; `nl` controls new lines after tags
 exports.json2xml = function (o, nl) {
@@ -36,14 +35,14 @@ exports.json2xml = function (o, nl) {
       }
       else if (typeof(v) == "object") {
          var hasChild = false;
-         xml += "\n<" + name;
+         xml += "<" + name;
          for (var m in v) {
             if (m.charAt(0) == "@")
                xml += " " + m.substr(1) + "=\"" + v[m].toString() + "\"";
             else
                hasChild = true;
          }
-         xml += hasChild ? ">" : "/>";
+         xml += hasChild ? ">\n" : "/>\n";
          if (hasChild) {
             for (var m in v) {
                if (m == "#text")
@@ -53,11 +52,11 @@ exports.json2xml = function (o, nl) {
                else if (m.charAt(0) != "@")
                   xml += toXml(v[m], m);
             }
-            xml += "\n</" + name + ">";
+            xml += "</" + name + ">\n";
          }
       }
       else {
-         xml += "\n<" + name + ">\n" + escapeXml(v.toString()) +  "\n</" + name + ">";
+         xml += "<" + name + ">\n" + exports.escapeXml(v.toString()) +  "\n</" + name + ">\n";
       }
       return xml;
    }, xml="";
