@@ -572,10 +572,10 @@ public:
     void GetAlphaV(TFltV& _AlphaV) const { _AlphaV = AlphaV; }
     double GetThresh() const { return Thresh; }
     bool IsLinear() const { return Linear; }
-    void GetWgtV(TFltV& _WgtV) const { IAssert(IsLinear()); _WgtV = WgtV; }
-    PSVMTrainSet GetSupVecs() const { IAssert(!IsLinear()); return SupVecs; }
-    PKernel GetKernel() const { IAssert(!IsLinear()); return Kernel; }
-    TSigmoid GetSigmoid() const { IAssert(IsProb()); return Sigmoid; }
+    void GetWgtV(TFltV& _WgtV) const { EAssert(IsLinear()); _WgtV = WgtV; }
+    PSVMTrainSet GetSupVecs() const { EAssert(!IsLinear()); return SupVecs; }
+    PKernel GetKernel() const { EAssert(!IsLinear()); return Kernel; }
+    TSigmoid GetSigmoid() const { EAssert(IsProb()); return Sigmoid; }
 
     //////////////////////////////////////////////////////////
     // Learning Binary SVM (linear/kernelized)
@@ -684,7 +684,7 @@ public:
 
   // model information
     bool IsCat() const {return !CatNm.Empty();}
-    TStr GetCatNm() const {IAssert(IsCat()); return CatNm;}
+    TStr GetCatNm() const {EAssert(IsCat()); return CatNm;}
     bool IsLinComb() const {return Model->IsLinear();}
     void GetLinComb(
      const PBowDocBs& BowDocBs, TFltStrPrV& WgtStrPrV, double& Tsh) const;
