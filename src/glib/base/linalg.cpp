@@ -2765,6 +2765,15 @@ void TLAMisc::FillRnd(const int& Len, TFltV& Vec, TRnd& Rnd) {
     }    
 }
 
+void TLAMisc::Fill(TFltVV& M, const double& Val)
+{
+	IAssert(M.GetRows() == M.GetCols());
+	int Len = M.GetRows();
+	for (int i = 0; i < Len; i++) {
+		for (int j = 0; j < Len; j++) M(i, j) = Val;
+	}
+}
+
 void TLAMisc::FillIdentity(TFltVV& M) {
     IAssert(M.GetRows() == M.GetCols());
     int Len = M.GetRows();
