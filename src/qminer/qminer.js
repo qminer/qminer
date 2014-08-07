@@ -64,14 +64,19 @@ qm.load = function() {
 }();
 
 //#- `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
-qm.printStreamAggr = function(store) {
-	var names = store.getStreamAggrNames();
+qm.printStreamAggr = function (store) {
+    var onStore = arguments.length > 0
+    if (!onStore) {
+        var names = qm.getStreamAggrNames();
+    } else {
+        var names = store.getStreamAggrNames();
+    }    
 	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
 	for (var saggrN = 0; saggrN < names.length; saggrN++) {
-		var saggr = store.getStreamAggr(names[saggrN]).val;
+		var saggr = onStore ? store.getStreamAggr(names[saggrN]).val : qm.getStreamAggr(names[saggrN]).val
 		var keys = Object.keys(saggr);
 		for (var keyN = 0; keyN < keys.length; keyN++) {
-			console.print(store.name + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
+			console.print(onStore ? store.name : "default_SA_Base" + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
 		}
 	}
 }
