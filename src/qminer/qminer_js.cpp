@@ -5610,7 +5610,7 @@ v8::Handle<v8::Value> TJsFIn::peekCh(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsFIn::readLine(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	TChA LnChA; JsFIn->SIn->GetNextLn(LnChA);
+	TChA LnChA; JsFIn->SIn->GetNextLnBf(LnChA);
 	return v8::String::New(LnChA.CStr());
 }
 
@@ -5674,8 +5674,7 @@ v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
 	} else {
         throw TQmExcept::New("Invalid parameter type to fout.write()");
 	}
-	//JsFOut->SOut->Flush();
-	return v8::Integer::New(OutN);
+	return HandleScope.Close(Args.Holder());;
 }
 
 v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
@@ -5690,7 +5689,7 @@ v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);  
     QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     OutN += JsFOut->SOut->PutLn();
-	return v8::Integer::New(OutN);
+	return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
@@ -5698,14 +5697,14 @@ v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
     QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
 	JsFOut->SOut->Flush();
-	return v8::Undefined();
+	return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
 	JsFOut->SOut.Clr();
-	return v8::Undefined();
+	return HandleScope.Close(Args.Holder());
 }
 
 ///////////////////////////////

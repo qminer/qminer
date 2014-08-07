@@ -37,6 +37,10 @@ namespace TQm {
 // available on QMiner wiki page https://github.com/qminer/qminer/wiki/JavaScript
 // every so often.
     
+// code to generate table of contents:
+//    cat jsdocfinal.txt | grep '##' | sed 's/###/\/\/#  -/' | sed 's/##/\/\/# -/' | sed 's/- \(.*\)/- [\1](\1)/'    
+// required post-edit example: (#System and I/O) =>(system-and-io)
+    
 //# QMiner functionality is accessible through a JavaScript API. The JavaScript environment
 //# is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
 //# The API includes a simple HTTP server with RESTful web-service support for defining
@@ -51,7 +55,43 @@ namespace TQm {
 //# Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
 //# 
 //# JavaScript API requires [initialized work environment](Quick-Start).
-//# 
+//#
+//# ## Table of contents
+//#
+//# - [Libraries](#libraries)
+//# - [Core QMiner objects](#core-qminer-objects)
+//#  - [QMiner](#qminer)
+//#  - [Stream Aggregate](#stream-aggregate)
+//#  - [Store](#store)
+//#  - [Store iterator](#store-iterator)
+//#  - [Record set](#record-set)
+//#  - [Record](#record)
+//#  - [Index key](#index-key)
+//# - [Linear Algebra](#linear-algebra)
+//#  - [Vector](#lector)
+//#  - [Matrix (dense matrix)](#matrix-dense-matrix)
+//#  - [SpVector (sparse vector)](#spvector-sparse-vector-)
+//#  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
+//# - [analytics.js (use require)](#analyticsjs-use-require)
+//#  - [Feature Space](#feature-space)
+//#  - [Support Vector Machine model](#support-vector-machine-model)
+//#  - [Neural network model](#neural-network-model)
+//#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
+//#  - [Hoeffding Tree model](#hoeffding-tree-model)
+//# - [System and I/O](#system-and-io)
+//#  - [Process](#process)
+//#  - [utilities.js (use require)](#utilitiesjs-use-require)
+//#  - [assert.js (use require)](#assertjs-use-require)
+//#  - [Console](#console)
+//#  - [File system](#file-system)
+//#  - [Input File Stream](#input-file-stream)
+//#  - [Output File Stream](#output-file-stream)
+//#  - [HTTP](#http)
+//#  - [HTTP Response](#http-response)
+//#  - [Date-Time](#date-time)
+//# - [Other libraries](#other-libraries)
+//#  - [twitter.js (use require)](#twitterjs-use-require)
+//#   
 //# ## Libraries
 //# 
 //# Scripts can load external libraries or modules in the same way as Node.js.
@@ -2979,7 +3019,7 @@ public:
 //# ## Other libraries
 //#
 //#JSIMPLEMENT:src/qminer/js/twitter.js 
-
+//#JSIMPLEMENT:src/qminer/js/xml.js 
 
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
