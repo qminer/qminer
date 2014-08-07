@@ -280,7 +280,7 @@ namespace THoeffding {
    ///////////////////////////////
    // Extended binary search tree [Ikonomovska et al., 2011] 
    // Used for finding the best split points of continuous attributes
-   // in regression. Memory intensive. 
+   // in regression. Memory intensive. (TODO: Consider disabling bad splits.)
    // Left corresponds to <= key; Right corresponds to > key; 
    ClassTP(TExBSTNode, PExBSTNode) // {
    public:
@@ -306,23 +306,51 @@ namespace THoeffding {
       TExBST() : Root(nullptr), TotalSumLeft(0.0), TotalSumSqLeft(0.0),
          TotalSumRight(0.0), TotalSumSqRight(0.0), TotalCountLeft(0),
          TotalCountRight(0), SplitVal(0.0), MxSDR(0.0) { }
-      double GeBestSplit() {
-         MxSDR = 0.0; // Reset MxSDR so we can use it again 
+      double GetBestSplit(double& OutSDR) {
+         Reset();
          FindBestSplit(Root);
+         OutSDR = MxSDR;
          return SplitVal;
       }
-      // TODO: Rewrite long equations (max 80 characters per line) 
       double ComputeSDR() const {
          const double TotalSumSq = TotalSumSqLeft+TotalSumSqRight;
+         EAssertR(TMath::Sqr(TotalSumSq - Root->SumSqLeft - Root->SumSqRight) < 1e-6,
+            "Sums of squares dont match");
          const double TotalSum = TotalSumLeft+TotalSumRight;
+         EAssertR(TMath::Sqr(TotalSum - Root->SumLeft - Root->SumRight) < 1e-6,
+            "Sums dont match");
          const int TotalCount = TotalCountLeft+TotalCountRight;
-         const double SD = TMath::Sqrt((TotalSumSq-TMath::Sqr(TotalSum)/TotalCount)/TotalCount);
-         const double LeftSD = TMath::Sqrt((TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft);
-         const double RightSD = TMath::Sqrt((TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight);
-         return SD-TotalCountLeft*LeftSD/TotalCount-TotalCountRight*RightSD/TotalCount;
+         EAssertR(TMath::Sqr(TotalCount - Root->CountLeft - Root->CountRight) < 1e-6,
+            "Counts dont match");
+         
+         // This is not unbiased estimator 
+         if (TotalCount == 0) {
+            return 0.0;
+         }
+         const double V = (TotalSumSq-TMath::Sqr(TotalSum)/TotalCount)/TotalCount;
+         EAssertR(V >= -1e-5, "V < -1e-5");
+         const double SD = V > 0 ? TMath::Sqrt(V) : 0.0;
+         
+         double LeftV = 0.0;
+         if (TotalCountLeft > 0) LeftV = (TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft;
+         EAssertR(LeftV >= -1e-5, "LeftV < -1e-5");
+         const double LeftSD = LeftV > 0.0 ? TMath::Sqrt(LeftV) : 0.0;
+         
+         double RightV = 0.0;
+         if (TotalCountRight > 0) RightV = (TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight;
+         EAssertR(RightV >= -1e-5, "RightV < -1e-5");
+         const double RightSD = RightV > 0.0 ? TMath::Sqrt(RightV) : 0.0;
+         
+         double SDR = SD;
+         if (TotalCount > 0) {
+            SDR = SD - TotalCountLeft*LeftSD/TotalCount - TotalCountRight*RightSD/TotalCount;
+         }
+         EAssertR(SDR >= -1e-6, "SDR < 0");
+         return SDR;
       }
       void Insert(const double& Key, const double& Val);
    private:
+      void Reset();
       void FindBestSplit(PExBSTNode Node);
       PExBSTNode Root;
       double TotalSumLeft;
@@ -652,6 +680,8 @@ namespace THoeffding {
       TIntV UsedAttrs; // Attributes we already used in predecessor nodes 
       // For each numeric attribute; maps attribute index to histogram
       THash<TInt, THist> HistH;
+      // Maps numeric attributes to binary search trees 
+      THash<TInt, TExBST> BstH;
       // The following are used for time-changeable decision trees 
       TVec<PNode> AltTreesV; // Vector of alternate trees (their root nodes) 
       // Monotonically increasing ID, assigned to each node at creation 

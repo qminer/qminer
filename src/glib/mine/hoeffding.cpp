@@ -271,38 +271,12 @@ namespace THoeffding {
 
    ///////////////////////////////
    // Extended-Binary-Search-Tree 
-   void TExBST::FindBestSplit(PExBSTNode Node) {
-      if (Node->LeftChild() != nullptr) {
-         FindBestSplit(Node->LeftChild);
-      }
-      // Update the sums and counts for computing the SDR 
-      TotalSumLeft += Node->SumLeft;
-      TotalSumRight -= Node->SumLeft;
-      TotalSumSqLeft += Node->SumSqLeft;
-      TotalSumSqRight -= Node->SumSqLeft;
-      TotalCountRight -= Node->CountLeft;
-      // Remember the best split point 
-      const double CrrSDR = ComputeSDR();
-      if (MxSDR < CrrSDR) {
-         SplitVal = Node->Key;
-         MxSDR = CrrSDR;
-      }
-      if (Node->RightChild() != nullptr) {
-         FindBestSplit(Node->RightChild);
-      }
-      // Update the sums and counts for returing to parent 
-      TotalSumLeft -= Node->SumLeft;
-      TotalSumRight += Node->SumLeft;
-      TotalSumSqLeft -= Node->SumSqLeft;
-      TotalSumSqRight += Node->SumSqLeft;
-      TotalCountRight += Node->CountLeft;
-   }
    void TExBST::Insert(const double& Key, const double& Val) {
-      PExBSTNode CrrNode = Root;
-      if (CrrNode() == nullptr) {
-         CrrNode = Root = TExBSTNode::New(Key);
+      if (Root() == nullptr) {
+         Root = TExBSTNode::New(Key);
       }
-      // CrrNode==nullptr when inserting key that is already in the tree 
+      PExBSTNode CrrNode = Root;
+      // CrrNode()==nullptr when inserting key that is already in the tree 
       while (CrrNode() != nullptr) {
          if (Key <= CrrNode->Key) {
             CrrNode->SumLeft += Val;
@@ -329,6 +303,44 @@ namespace THoeffding {
             }
          }
       }
+   }
+   void TExBST::Reset() {
+      MxSDR = 0.0; // Reset MxSDR so we can use it again 
+      SplitVal = 0.0; // Reset the split value 
+      TotalSumLeft = 0.0;
+      TotalSumRight = Root->SumLeft+Root->SumRight;
+      TotalSumSqLeft = 0.0;
+      TotalSumSqRight = Root->SumSqLeft+Root->SumSqRight;
+      TotalCountLeft = 0;
+      TotalCountRight = Root->CountRight+Root->CountLeft;
+   }
+   void TExBST::FindBestSplit(PExBSTNode Node) {
+      if (Node->LeftChild() != nullptr) {
+         FindBestSplit(Node->LeftChild);
+      }
+      // Update the sums and counts for computing the SDR 
+      TotalSumLeft += Node->SumLeft;
+      TotalSumRight -= Node->SumLeft;
+      TotalSumSqLeft += Node->SumSqLeft;
+      TotalSumSqRight -= Node->SumSqLeft;
+      TotalCountLeft += Node->CountLeft;
+      TotalCountRight -= Node->CountLeft;
+      // Remember the best split point 
+      const double CrrSDR = ComputeSDR();
+      if (MxSDR < CrrSDR) {
+         SplitVal = Node->Key;
+         MxSDR = CrrSDR;
+      }
+      if (Node->RightChild() != nullptr) {
+         FindBestSplit(Node->RightChild);
+      }
+      // Update the sums and counts for returing to parent 
+      TotalSumLeft -= Node->SumLeft;
+      TotalSumRight += Node->SumLeft;
+      TotalSumSqLeft -= Node->SumSqLeft;
+      TotalSumSqRight += Node->SumSqLeft;
+      TotalCountLeft -= Node->CountLeft;
+      TotalCountRight += Node->CountLeft;
    }
    
    ///////////////////////////////
@@ -610,7 +622,6 @@ namespace THoeffding {
             LoS += TMath::Sqr(
                CrrCnt*LoT/LoCnt-CrrT)*LoCnt/(CrrCnt*(CrrCnt+LoCnt));
          }
-         EAssertR(CrrT == BinsV.GetVal(BinN).T, "CrrT not as expected");
          LoT += CrrT; // CrrT == BinsV.GetVal(BinN).T;
          LoCnt += CrrCnt;
          HiCnt -= CrrCnt;
@@ -692,9 +703,10 @@ namespace THoeffding {
          UsedAttrs = Node.UsedAttrs;
          HistH = Node.HistH;
          AltTreesV = Node.AltTreesV;
-         Id = Node.Id; EFailR("TNode& operator=(const TNode&)");
+         Id = Node.Id;
          Correct = Node.Correct;
          All = Node.All;
+         EFailR("TNode& operator=(const TNode&)");
       }
       return *this;
    }
@@ -865,7 +877,7 @@ namespace THoeffding {
       // UsedAttrs.Add(CondAttrIndex);
       const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
       for (int ValN = 0; ValN < ValsN; ++ValN) {
-          // Leaf node 
+         // Leaf node 
          ChildrenV.Add(TNode::New(LabelsN, UsedAttrs, AttrManV,
             IdGen->GetNextLeafId())); 
       }
@@ -887,7 +899,7 @@ namespace THoeffding {
       }
    }
    // Regression 
-   TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV) { 
+   TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV) {
       // AttrsManV includes attribute manager for the label 
       const int AttrsN = AttrManV.Len()-1; 
       double CrrSdr, Mx1, Mx2;
@@ -905,6 +917,11 @@ namespace THoeffding {
                // printf("CrrStd(A%d) = %f\n", AttrN, CrrSdr);
             }
          } else { // Continuous 
+            // printf("#\nCrrSdr=%f\n", CrrSdr);
+            // XXX: Use E-BST 
+            // BstH.GetDat(AttrN).GetBestSplit(CrrSdr);
+            // printf("CrrSdr=%f\n", CrrSdr);
+            // This is the "old" way, using histogram 
             CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
             // printf("SplitVal = %f\n", CrrSdr);
          }
@@ -915,6 +932,7 @@ namespace THoeffding {
          }
       }
       // printf("Mx1 = %f ; Mx2 = %f\n", Mx1, Mx2);
+      // printf("A1 = %d ; A2 = %d\n", Idx1, Idx2);
       // If Mx1==0.0, then Mx2==0.0, because we have 0.0<=Mx2<=Mx1 
       const double Ratio = Mx1 > 0.0 ? Mx2/Mx1 : 1.0;
       return TBstAttr(TPair<TInt, TFlt>(Idx1, Mx1),
@@ -973,6 +991,7 @@ namespace THoeffding {
          if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
             // const int LabelsN = AttrManV.GetVal(AttrN).ValueV.Last();
             HistH.AddDat(AttrN, THist());
+            BstH.AddDat(AttrN, TExBST());
          }
       }
    }
@@ -1015,6 +1034,7 @@ namespace THoeffding {
          } else { // Numeric attribute 
             const double Val = Example->AttributesV.GetVal(
                CrrNode->CndAttrIdx).Num;
+            // If Val <= Node->SplitVal, go left; else go right 
             const int Idx = Val <= CrrNode->Val ? 0 : 1;
             CrrNode = CrrNode->ChildrenV.GetVal(Idx);
          }
@@ -1237,12 +1257,21 @@ namespace THoeffding {
          if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
             // TODO: Find an efficient way to compute s(A) from s(A1) and
             // s(A2) if A1 and A2 parition A 
+            
+            // XXX: This is the "old", histogram-based, way 
             Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
+            
+            // XXX: Use E-BST 
             // EFailR("Current regression discretization is deprecated.");
+            // Key is the attribute value 
+            // const double Key = Example->AttributesV.GetVal(AttrN).Num;
+            // Val is the value of the target variable 
+            // const double Val = Example->Value;
+            // Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
          }
       }
       // Regression
-      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 5.0) {
+      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0) {
          // See if we can get variance reduction 
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
@@ -1617,6 +1646,7 @@ namespace THoeffding {
          } else { // Numeric attribute 
             const double Num =
                Example->AttributesV.GetVal(Node->CndAttrIdx).Num;
+            // If attribute value <= split value, go left; else go right
             const int Idx = Num <= Node->Val ? 0 : 1;
             return Node->ChildrenV.GetVal(Idx);
          }

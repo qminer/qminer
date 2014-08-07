@@ -441,8 +441,9 @@ function testRegression() {
    ht.exportModel({ "file": "./sandbox/ht/wind.gv", "type": "DOT" });
 }
 
-function airlineRegressionTest() {
-   var configFilePath = "./sandbox/ht/airline_14col.names";
+function realRegressionTest() {
+   // var configFilePath = "./sandbox/ht/airline_14col.names";
+   var configFilePath = "./sandbox/ht/winequality.names";
    
    var jsonCfg = names2json(configFilePath);
    
@@ -457,17 +458,17 @@ function airlineRegressionTest() {
       "conceptDriftP": false
    };
    
-   // console.say(JSON.stringify(jsonCfg));
-   
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
-   var fin = fs.openRead('./sandbox/ht/airline_14col.dat');
+   // var fin = fs.openRead('./sandbox/ht/airline_14col.dat');
+   var fin = fs.openRead('./sandbox/ht/winequality.data');
    while (!fin.eof) {
       var line = fin.getNextLn();
       var exampleJson = line2array(line, jsonCfg);
+      // console.say(exampleJson.numeric.join());
       ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target);
    }
    // The model is huge, because one of the discrete attributes has more than 3000 values 
-   // ht.exportModel({ "file": "./sandbox/ht/airline.gv", "type": "DOT" });
+   ht.exportModel({ "file": "./sandbox/ht/winequality.gv", "type": "DOT" });
 }
 
 // console.say(" --- Example using classification HoeffdingTree --- ");
@@ -479,11 +480,11 @@ function airlineRegressionTest() {
 // console.say("Regression scenario with discrete attributes");
 // testRegressionDisAttr();
 // console.say("Regression scenario with numeric attributes");
-// testRegressionContAttr();
-console.say("Regression scenario using WIND dataset.");
-testRegression();
+testRegressionContAttr();
+// console.say("Regression scenario using WIND dataset.");
+// testRegression();
 // console.say("Regression scenario using Airline dataset.");
-// airlineRegressionTest();
+// realRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();
