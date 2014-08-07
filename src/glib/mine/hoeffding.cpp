@@ -270,6 +270,68 @@ namespace THoeffding {
    }
 
    ///////////////////////////////
+   // Extended-Binary-Search-Tree 
+   void TExBST::FindBestSplit(PExBSTNode Node) {
+      if (Node->LeftChild() != nullptr) {
+         FindBestSplit(Node->LeftChild);
+      }
+      // Update the sums and counts for computing the SDR 
+      TotalSumLeft += Node->SumLeft;
+      TotalSumRight -= Node->SumLeft;
+      TotalSumSqLeft += Node->SumSqLeft;
+      TotalSumSqRight -= Node->SumSqLeft;
+      TotalCountRight -= Node->CountLeft;
+      // Remember the best split point 
+      const double CrrSDR = ComputeSDR();
+      if (MxSDR < CrrSDR) {
+         SplitVal = Node->Key;
+         MxSDR = CrrSDR;
+      }
+      if (Node->RightChild() != nullptr) {
+         FindBestSplit(Node->RightChild);
+      }
+      // Update the sums and counts for returing to parent 
+      TotalSumLeft -= Node->SumLeft;
+      TotalSumRight += Node->SumLeft;
+      TotalSumSqLeft -= Node->SumSqLeft;
+      TotalSumSqRight += Node->SumSqLeft;
+      TotalCountRight += Node->CountLeft;
+   }
+   void TExBST::Insert(const double& Key, const double& Val) {
+      PExBSTNode CrrNode = Root;
+      if (CrrNode() == nullptr) {
+         CrrNode = Root = TExBSTNode::New(Key);
+      }
+      // CrrNode==nullptr when inserting key that is already in the tree 
+      while (CrrNode() != nullptr) {
+         if (Key <= CrrNode->Key) {
+            CrrNode->SumLeft += Val;
+            CrrNode->SumSqLeft += Val*Val;
+            ++CrrNode->CountLeft;
+            // Add a new node to the tree 
+            if (CrrNode->LeftChild() == nullptr && Key != CrrNode->Key) {
+               PExBSTNode NewNode = TExBSTNode::New(Key);
+               CrrNode->LeftChild = NewNode;
+               break; 
+            } else {
+               CrrNode = CrrNode->LeftChild;
+            }
+         } else { // Key > CrrNode->Key
+            CrrNode->SumRight += Val;
+            CrrNode->SumSqRight += Val*Val;
+            ++CrrNode->CountRight;
+            if (CrrNode->RightChild() == nullptr) {
+               PExBSTNode NewNode = TExBSTNode::New(Key);
+               CrrNode->RightChild = NewNode;
+               break; 
+            } else {
+               CrrNode = CrrNode->RightChild; 
+            }
+         }
+      }
+   }
+   
+   ///////////////////////////////
    // Bin
    bool operator<=(const TBin& Bin1, const TBin& Bin2) {
       return Bin1.Value <= Bin2.Value;
@@ -372,7 +434,9 @@ namespace THoeffding {
          for (BinN = 0; BinN < BinsV.Len() &&
             BinsV.GetVal(BinN).Id > Example->BinId; ++BinN);
          // if (BinN == BinsV.Len()) {
-         //   for (int i = 0; i < BinsV.Len(); ++i) { printf("BinId=%d\n", BinsV.GetVal(i).Id); }
+         //   for (int i = 0; i < BinsV.Len(); ++i) {
+         //     printf("BinId=%d\n", BinsV.GetVal(i).Id);
+         //   }
          // }
          // NOTE: For debugging purposes 
          EAssertR(BinN < BinsV.Len(), "No suitable Bin with Bin.ID<=Ex.ID.");
@@ -1724,6 +1788,23 @@ namespace THoeffding {
          }
       }
       putchar('\n');
+   }
+   int THoeffdingTree::GetNodesN(const bool& AltP) const {
+      int NodesN = 0;
+      PNode CrrNode = Root;
+      TSStack<PNode> NodeS;
+      
+      NodeS.Push(CrrNode);
+      while (!NodeS.Empty()) {
+         CrrNode = NodeS.Top(); NodeS.Pop();
+         ++NodesN;
+         for (auto It = CrrNode->ChildrenV.BegI();
+            It != CrrNode->ChildrenV.EndI(); ++It) {
+            NodeS.Push(*It);
+         }
+         // if (AltP) { /* TODO */ }
+      }
+      return NodesN;
    }
    void THoeffdingTree::Init(const TStr& ConfigFNm) {
       TParser Parser(ConfigFNm);

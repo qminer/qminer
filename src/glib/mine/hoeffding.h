@@ -276,7 +276,65 @@ namespace THoeffding {
          return TMath::Sqrt(Variance(SqSum, Sum, N));
       }
    };
-
+   
+   ///////////////////////////////
+   // Extended binary search tree [Ikonomovska et al., 2011] 
+   // Used for finding the best split points of continuous attributes
+   // in regression. Memory intensive. 
+   // Left corresponds to <= key; Right corresponds to > key; 
+   ClassTP(TExBSTNode, PExBSTNode) // {
+   public:
+      TExBSTNode(const double& _Key) : Key(_Key), SumLeft(0.0), SumRight(0.0),
+         SumSqLeft(0.0), SumSqRight(0.0), CountLeft(0), CountRight(0),
+         LeftChild(nullptr), RightChild(nullptr) { } 
+      static PExBSTNode New(const double& Key) { return new TExBSTNode(Key); } 
+      // Key is the value of the continuous attribute 
+      double Key;
+      // SumLeft is the sum of target variables of examples with 
+      // attribute value <= key; right is similar, but for > key 
+      double SumLeft, SumRight;
+      // SumSqLeft is the sum of squares of target variables of examples 
+      // with attribute value <= key; right is similar, but for > key 
+      double SumSqLeft, SumSqRight;
+      // CountLeft is the number of example with attribute value <= key; 
+      // CountRight is the number of examples with attribute value > key 
+      int CountLeft, CountRight;
+      PExBSTNode LeftChild, RightChild;
+   };
+   class TExBST {
+   public:
+      TExBST() : Root(nullptr), TotalSumLeft(0.0), TotalSumSqLeft(0.0),
+         TotalSumRight(0.0), TotalSumSqRight(0.0), TotalCountLeft(0),
+         TotalCountRight(0), SplitVal(0.0), MxSDR(0.0) { }
+      double GeBestSplit() {
+         MxSDR = 0.0; // Reset MxSDR so we can use it again 
+         FindBestSplit(Root);
+         return SplitVal;
+      }
+      // TODO: Rewrite long equations (max 80 characters per line) 
+      double ComputeSDR() const {
+         const double TotalSumSq = TotalSumSqLeft+TotalSumSqRight;
+         const double TotalSum = TotalSumLeft+TotalSumRight;
+         const int TotalCount = TotalCountLeft+TotalCountRight;
+         const double SD = TMath::Sqrt((TotalSumSq-TMath::Sqr(TotalSum)/TotalCount)/TotalCount);
+         const double LeftSD = TMath::Sqrt((TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft);
+         const double RightSD = TMath::Sqrt((TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight);
+         return SD-TotalCountLeft*LeftSD/TotalCount-TotalCountRight*RightSD/TotalCount;
+      }
+      void Insert(const double& Key, const double& Val);
+   private:
+      void FindBestSplit(PExBSTNode Node);
+      PExBSTNode Root;
+      double TotalSumLeft;
+      double TotalSumSqLeft;
+      double TotalSumRight;
+      double TotalSumSqRight;
+      int TotalCountLeft;
+      int TotalCountRight;
+      double SplitVal;
+      double MxSDR;
+   };
+   
    ///////////////////////////////
    // Bin (for handling numeric attributes) 
    class TBin {
@@ -550,7 +608,8 @@ namespace THoeffding {
       // Regression  
       double StdGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const;
       double ComputeTreshold(const double& Delta, const int& LabelsN) const;
-      // Split the leaf on the AttrIdx attribute 
+      // Split the leaf on the AttrIdx attribute; return the number of
+      // newly created leaves 
       void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
       void Clr();
       TBstAttr BestAttr(const TAttrManV& AttrManV,
@@ -752,6 +811,9 @@ namespace THoeffding {
          return Node->SeenH.IsKey(*Example) &&
             Node->SeenH.GetDat(*Example) > 0;
       }
+      // Get the number of nodes in the tree 
+      // If AltP=false, do not count alterante trees 
+      int GetNodesN(const bool& AltP = false) const;
       // NOTE: Not implemented yet; avoids using hash tables
       // for self-evaluation 
       //void UpdateIndices(PNode Node) const {

@@ -7,6 +7,7 @@ var assert = require('assert.js');
 // ASSUMES: The target variable is described last
 // ASSUMES: The attribute order in the config is the same as the attribute
 // order in the data stream 
+// ASSUMES: Each lines "finishes" with a comma (".") 
 function names2json(namesFilePath) {
    var fin = fs.openRead(namesFilePath);
    
@@ -453,7 +454,7 @@ function airlineRegressionTest() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": true
+      "conceptDriftP": false
    };
    
    // console.say(JSON.stringify(jsonCfg));
@@ -461,17 +462,24 @@ function airlineRegressionTest() {
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
    var fin = fs.openRead('./sandbox/ht/airline_14col.dat');
    var examplesN = 0;
+   var err = 0.0; 
    while (!fin.eof) {
-      // TODO: Function that computes numeric and discrete arrays from line given config 
       var line = fin.getNextLn();
       var exampleJson = line2array(line, jsonCfg);
-      if (++examplesN % 1000 == 0) { console.say("Processing exampel "+examplesN); }
-      ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target);
+      if (++examplesN % 10000 >= 8000) {
+         var val = ht.predict(exampleJson.discrete, exampleJson.numeric);
+         err += Math.pow(val-exampleJson.target, 2);
+      } else {
+         if (err > 0.0) {
+            console.say("MSE="+Math.sqrt(err/2000));
+            err = 0.0;
+         }
+         if (examplesN < 601) { ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target); }
+      }
+      if (examplesN > 100000) { break; }
    }
-   
-   console.say("Exporting the model.");
-   // export the model 
-   ht.exportModel({ "file": "./sandbox/ht/airline_14col.gv", "type": "DOT" });
+   // The model is huge, because one of the discrete attributes has more than 3000 values 
+   // ht.exportModel({ "file": "./sandbox/ht/airline.gv", "type": "DOT" });
 }
 
 // console.say(" --- Example using classification HoeffdingTree --- ");
