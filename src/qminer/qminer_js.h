@@ -2829,6 +2829,8 @@ public:
 	JsDeclareProperty(eof);
     //#- `len = fin.length` -- returns the length of input stream
 	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
 };
 
 ///////////////////////////////
@@ -3027,6 +3029,7 @@ public:
 //#
 //#JSIMPLEMENT:src/qminer/js/twitter.js 
 //#JSIMPLEMENT:src/qminer/js/xml.js 
+//#JSIMPLEMENT:src/qminer/js/visualization.js 
 
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.

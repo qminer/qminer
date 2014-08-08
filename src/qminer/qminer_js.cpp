@@ -5647,6 +5647,7 @@ v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
 		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
 		JsRegisterProperty(TmpTemp, eof);
 		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, readAll);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -5684,6 +5685,13 @@ v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8:
 	v8::HandleScope HandleScope;
 	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
 	return v8::Uint32::New(JsFIn->SIn->Len());
+}
+
+v8::Handle<v8::Value> TJsFIn::readAll(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	TStr Res = TStr::LoadTxt(JsFIn->SIn);
+	return v8::String::New(Res.CStr());
 }
 
 ///////////////////////////////

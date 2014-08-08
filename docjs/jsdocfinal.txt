@@ -829,6 +829,8 @@ Breaks text into tokens (i.e. words).
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 - `process.exitScript()` -- Exits the current script
 - `process.returnCode` -- current code to be returned by QMiner process
+- `str = process.qminer_home` -- returns the path to QMINER_HOME
+- `str = process.project_home` -- returns the path to project folder
 - `strArr = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
@@ -924,6 +926,7 @@ are automatically prefixed by current date and time.
 - `line = fin.readLine()` -- reads a line
 - `bool = fin.eof` -- end of stream?
 - `len = fin.length` -- returns the length of input stream
+- `str = fin.readAll()` -- reads the whole file
 
 ### Output File Stream
 
@@ -1025,3 +1028,13 @@ Code is taken from [http://goessner.net/download/prj/jsonxml/]
 
 - str = json2xml(json, nl) -- takes input object 'json' and transforms it to XML; `nl` controls new lines after tags
 - json_str = xml2json(xml_str) -- takes input string 'xml_str' and transforms it to JSON
+
+### visualization.js (use require)
+
+Functions for visualizing data
+The library must be loaded using `var vis = require('visualization.js');`.
+
+**Functions and properties:**
+
+- `objJson = vis.highchartsConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
+- `vis.drawHighChartsTimeSeries(data)` -- copies the highCharts_ts.html template, injects JSON data and injects libraries

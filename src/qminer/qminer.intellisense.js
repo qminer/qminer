@@ -176,6 +176,7 @@ require = function (libName) {
     if (libName === 'assert.js') return _assert;
     if (libName === 'twitter.js') return _twitter;
     if (libName === 'time.js') return _tm;
+    if (libName === 'visualization.js') return _vis;
 };
 
 intellisenseIgnore["_analytics"] = "{}";
@@ -200,6 +201,7 @@ var _store = new function () { }
 var process = new function () { }
 var _vec = new function () { }
 var _twitterParser = new function () { }
+var _vis = new function () { }
 var _ridgeRegressionModel = new function () { }
 var _assert = new function () { }
 var http = new function () { }
@@ -378,8 +380,11 @@ _store.getStreamAggrNames = function () {
 /// <field name = "scriptNm" value = "_str"> Returns the name of the script.</field>
 process.scriptNm = _str;
 
-/// <field name = "scriptFNm" value = "_str"> Returns absolute script file path.</field>
-process.scriptFNm = _str;
+/// <field name = "qminer_home" value = "_str"> returns the path to QMINER_HOME</field>
+process.qminer_home = _str;
+
+/// <field name = "project_home" value = "_str"> returns the path to project folder</field>
+process.project_home = _str;
 
 process.isArg = function () {
 	/// <signature>
@@ -388,6 +393,9 @@ process.isArg = function () {
 	/// <returns value ="_bool"/>
 	/// </signature>
 };
+
+/// <field name = "scriptFNm" value = "_str"> Returns absolute script file path.</field>
+process.scriptFNm = _str;
 
 /// <field name = "args" value = "_a"> array of command-line arguments</field>
 process.args = _a;
@@ -605,6 +613,22 @@ _twitterParser.rawJsonToStoreJson = function () {
 	/// <summary> transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`</summary>
 	/// <param name="_rawTweetJSON" value="_rawTweetJSON">param</param>
 	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_vis.drawHighChartsTimeSeries = function () {
+	/// <signature>
+	/// <summary> copies the highCharts_ts.html template, injects JSON data and injects libraries</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_vis.highchartsConverter = function () {
+	/// <signature>
+	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <param name="_objJson" value="_objJson">param</param>
+	/// <returns value ="_objJson"/>
 	/// </signature>
 };
 
@@ -955,6 +979,16 @@ _fin.getCh = function () {
 	/// </signature>
 };
 
+_fin.readAll = function () {
+	/// <signature>
+	/// <summary> reads the whole file</summary>
+	/// <returns value ="_str"/>
+	/// </signature>
+};
+
+/// <field name = "eof" value = "_bool"> end of stream?</field>
+_fin.eof = _bool;
+
 _fin.peekCh = function () {
 	/// <signature>
 	/// <summary> peeks a character</summary>
@@ -964,9 +998,6 @@ _fin.peekCh = function () {
 
 /// <field name = "length" value = "_len"> returns the length of input stream</field>
 _fin.length = _len;
-
-/// <field name = "eof" value = "_bool"> end of stream?</field>
-_fin.eof = _bool;
 
 _fin.readLine = function () {
 	/// <signature>
