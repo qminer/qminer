@@ -14,6 +14,42 @@ Tools / Options / Text Editor / JavaScript / IntelliSense / References, and sele
 
 JavaScript API requires [initialized work environment](Quick-Start).
 
+## Table of contents
+
+- [Libraries](#libraries)
+- [Core QMiner objects](#core-qminer-objects)
+ - [QMiner](#qminer)
+ - [Stream Aggregate](#stream-aggregate)
+ - [Store](#store)
+ - [Store iterator](#store-iterator)
+ - [Record set](#record-set)
+ - [Record](#record)
+ - [Index key](#index-key)
+- [Linear Algebra](#linear-algebra)
+ - [Vector](#lector)
+ - [Matrix (dense matrix)](#matrix-dense-matrix)
+ - [SpVector (sparse vector)](#spvector-sparse-vector-)
+ - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
+- [analytics.js (use require)](#analyticsjs-use-require)
+ - [Feature Space](#feature-space)
+ - [Support Vector Machine model](#support-vector-machine-model)
+ - [Neural network model](#neural-network-model)
+ - [Recursive Linear Regression model](#recursive-linear-regression-model)
+ - [Hoeffding Tree model](#hoeffding-tree-model)
+- [System and I/O](#system-and-io)
+ - [Process](#process)
+ - [utilities.js (use require)](#utilitiesjs-use-require)
+ - [assert.js (use require)](#assertjs-use-require)
+ - [Console](#console)
+ - [File system](#file-system)
+ - [Input File Stream](#input-file-stream)
+ - [Output File Stream](#output-file-stream)
+ - [HTTP](#http)
+ - [HTTP Response](#http-response)
+ - [Date-Time](#date-time)
+- [Other libraries](#other-libraries)
+ - [twitter.js (use require)](#twitterjs-use-require)
+  
 ## Libraries
 
 Scripts can load external libraries or modules in the same way as Node.js.
@@ -81,6 +117,7 @@ QMiner (`qm`) is the core object in the API and is available in any script.
   parsing each line as JSON and adding it as record to `store`. Returns `num`:
   the number of lines loaded.
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
+- `qm.getAllStreamAggrVals(store)` -- returns a JSON where keys are stream aggregate names and values are their corresponding JSON values
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
@@ -520,6 +557,9 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     from `fin` stream
 - `htModel = analytics.newHoeffdingTree(jsonStream, htJsonParams)` -- create new
     incremental decision tree learner; parameters `htJsonParams` are passed as JSON
+- `tokenizer = analytics.newTokenizer({ type: <type>, ...})` -- create new tokenizer
+    of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
+    extractors.
 - `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     (stemmers, stop word lists) as a json object, with two arrays:
     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
@@ -617,7 +657,7 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
   - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
   using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
-  - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
+  - `object = kNearestNeighbors.getNearestNeighbors(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
 - `kf = analytics.newKalmanFilter(dynamParams, measureParams, controlParams)` -- the Kalman filter initialization procedure
   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
@@ -632,6 +672,26 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
   - `statePre = kf.predict(control)` -- returns a predicted state vector `statePre` where `control` is the control vector (normally not set).
   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+- `ekf = analytics.newExtendedKalmanFilter(dynamParams, measureParams, controlParams)` -- the Extended Kalman filter 
+  is used with non-linear models, which are specified through transition and measurement equation. The initialization procedure
+  requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
+  the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
+  specified model) and correction. The following functions are exposed:
+  - `ekf.setTransitionEq(_val)` -- sets transition equation for EKF (`_val` is a function).
+  - `ekf.setObservationEq(_val)` -- sets observation equation for EKF (`_val` is a function).
+  - `ekf.setParameterV(_val)` -- sets parameter vector of size `parameterN`.
+  - `ekf.getParameterV()` -- gets parameter vector.
+  - `ekf.setStatePost(_val)` -- sets the post state (DP) vector.
+  - `ekf.getStatePost()` -- returns the statePost vector.
+  - `ekf.setTransitionMatrix(_val)` -- sets the transition (DP x DP) matrix.
+  - `ekf.setMeasurementMatrix(_val)` -- sets the measurement (MP x DP) matrix.
+  - `ekf.setProcessNoiseCovPost(_val)` -- sets the process noise covariance (DP x DP) matrix.
+  - `ekf.setMeasurementNoiseCov(_val)` -- sets the measurement noise covariance (MP x MP) matrix.
+  - `ekf.setErrorCovPre(_val)` -- sets the pre error covariance (DP x DP) matrix.
+  - `ekf.setErrorCovPost(_val)` -- sets the post error covariance (DP x DP) matrix.
+  - `statePost = ekf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+  - `statePre = ekf.predict(control)` -- returns a predicted state vector `statePre` where `control` is the control vector (normally not set).
+  - `statePost = ekf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
 
 ### Feature Space
 
@@ -740,6 +800,16 @@ The HoeffdingTree algorithm comes with many parameters:
 - `htModel = htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.
   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 
+### Tokenizer
+
+Breaks text into tokens (i.e. words).
+
+**Functions and properties:**
+    
+- `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
+- `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
+- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
+
 ## System and I/O
 
 ### Process
@@ -757,6 +827,7 @@ The HoeffdingTree algorithm comes with many parameters:
 - `str = process.scriptFNm` -- Returns absolute script file path.
 - `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
 - `process.exitScript()` -- Exits the current script
+- `process.returnCode` -- current code to be returned by QMiner process
 - `strArr = process.args` -- array of command-line arguments 
     used to start current QMiner instance
 - `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
@@ -943,3 +1014,13 @@ The library must be loaded using `var twitter = require('twitter.js');`.
 - `twitterParser = twitter.newParser()` -- creates an object that converts between raw Twitter JSON objects and qminer store compatible JSON objects. Exposes:
   - `objJSON = twitterParser.rawJsonToStoreJson(rawTweetJSON)` -- transforms a raw JSON object (result of twitter crawler) `rawTweetJSON` to `twitter.getTwitterStore()` compatible json object `objJSON`
 - `twitter.RawToStore(fin, fout)` -- converts twitter JSON lines to `twitter.getTwitterStoreJson()` compatible JSON lines, given input stream `fin` (raw JSON lines) and output stream `fout` (store JSON lines file)
+
+### xml.js (use require)
+
+Utilities for transforming XML to JSON and JSON to XML.
+Code is taken from [http://goessner.net/download/prj/jsonxml/]
+
+**Functions and properties:**
+
+- str = json2xml(json, nl) -- takes input object 'json' and transforms it to XML; `nl` controls new lines after tags
+- json_str = xml2json(xml_str) -- takes input string 'xml_str' and transforms it to JSON

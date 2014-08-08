@@ -202,11 +202,12 @@ var _vec = new function () { }
 var _twitterParser = new function () { }
 var _ridgeRegressionModel = new function () { }
 var _assert = new function () { }
-var _hashTable = new function () { }
+var http = new function () { }
+var _kNearestNeighbors = new function () { }
 var _rec = new function () { }
 var _iter = new function () { }
 var _fin = new function () { }
-var _analytics = new function () { }
+var _hashTable = new function () { }
 var console = new function () { }
 var la = new function () { }
 var _sa = new function () { }
@@ -214,15 +215,15 @@ var _spMat = new function () { }
 var _batchModel = new function () { }
 var _httpResponse = new function () { }
 var _svmModel = new function () { }
-var _kNearestNeighbors = new function () { }
 var _utilities = new function () { }
 var _fout = new function () { }
 var _rs = new function () { }
 var _spVec = new function () { }
 var _lloydModel = new function () { }
-var http = new function () { }
+var _analytics = new function () { }
 var _recLinRegModel = new function () { }
 var _kf = new function () { }
+var _tokenizer = new function () { }
 var _tm = new function () { }
 var _htModel = new function () { }
 var _alModel = new function () { }
@@ -230,6 +231,7 @@ var _model = new function () { }
 var _mat = new function () { }
 var _key = new function () { }
 var qm = new function () { }
+var _ekf = new function () { }
 var fs = new function () { }
 var _perceptronModel = new function () { }
 var _fsp = new function () { }
@@ -698,39 +700,187 @@ _assert.exists = function () {
 	/// </signature>
 };
 
-/// <field name = "keys" value = "_strArr"> array of keys (strings)</field>
-_hashTable.keys = _strArr;
-
-_hashTable.put = function () {
+http.onDelete = function () {
 	/// <signature>
-	/// <summary> add a key</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> add key-dat</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <param name="_dat" value="_dat">param</param>
+	/// <summary> path: function path without server name and script name. Example: `http.onDelete("test", function (req, resp) { })` executed from `script.js` on localhost will execute a delete request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
 
-_hashTable.contains = function () {
+http.onRequest = function () {
 	/// <signature>
-	/// <summary> does the table contain the key?</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_verb" value="_verb">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
-/// <field name = "vals" value = "_array"> array of values</field>
-_hashTable.vals = _array;
-
-_hashTable.get = function () {
+http.get = function () {
 	/// <signature>
-	/// <summary> get data</summary>
-	/// <param name="_key" value="_key">param</param>
-	/// <returns value ="_dat"/>
+	/// <summary> gets url, but does nothing with response</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.onPut = function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onPut("test", function (req, resp) { })` executed from `script.js` on localhost will execute a put request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.getStr = function () {
+	/// <signature>
+	/// <summary> gets url, but does nothing with response</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.postStr = function () {
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string)</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.jsonp = function () {
+	/// <signature>
+	/// <summary> packaging reply as jsonp when callback parameter is provided in URL</summary>
+	/// <param name="_httpRequest" value="_httpRequest">param</param>
+	/// <param name="_httpResponse" value="_httpResponse">param</param>
+	/// <param name="_dataJSON" value="_dataJSON">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.onPatch = function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onPatch("test", function (req, resp) { })` executed from `script.js` on localhost will execute a patch request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.post = function () {
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string)</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.</summary>
+	/// <param name="_url" value="_url">param</param>
+	/// <param name="_mimeType" value="_mimeType">param</param>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
+	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.onPost = function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onPost("test", function (req, resp) { })` executed from `script.js` on localhost will execute a post request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+http.onGet = function () {
+	/// <signature>
+	/// <summary> path: function path without server name and script name. Example: `http.onGet("test", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_kNearestNeighbors.predict = function () {
+	/// <signature>
+	/// <summary> predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_kNearestNeighbors.getNearestNeighbors = function () {
+	/// <signature>
+	/// <summary> findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_object"/>
+	/// </signature>
+};
+
+_kNearestNeighbors.update = function () {
+	/// <signature>
+	/// <summary> adds a vector `vec` and target `num` (number) to the "training" set</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -825,195 +975,39 @@ _fin.readLine = function () {
 	/// </signature>
 };
 
-_analytics.newBatchModel = function () {
+/// <field name = "keys" value = "_strArr"> array of keys (strings)</field>
+_hashTable.keys = _strArr;
+
+_hashTable.put = function () {
 	/// <signature>
-	/// <summary> learns a new batch model</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <param name="_features" value="_features">param</param>
-	/// <param name="_target" value="_target">param</param>
-	/// <returns value ="_batchModel"/>
+	/// <summary> add a key</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add key-dat</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <param name="_dat" value="_dat">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
-_analytics.newLloyd = function () {
+_hashTable.contains = function () {
 	/// <signature>
-	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_lloydModel"/>
+	/// <summary> does the table contain the key?</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_bool"/>
 	/// </signature>
 };
 
-_analytics.newNN = function () {
-	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
-	/// </signature>
-};
+/// <field name = "vals" value = "_array"> array of values</field>
+_hashTable.vals = _array;
 
-_analytics.loadRecLinRegModel = function () {
+_hashTable.get = function () {
 	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-};
-
-_analytics.computeKmeans = function () {
-	/// <signature>
-	/// <summary> solves the k-means algorithm based on a training</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <param name="_iter" value="_iter">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> solves the k-means algorithm based on a training</summary>
-	/// <param name="_spMat" value="_spMat">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <param name="_iter" value="_iter">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-};
-
-_analytics.crossValidation = function () {
-	/// <signature>
-	/// <summary> creates a batch</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <param name="_features" value="_features">param</param>
-	/// <param name="_target" value="_target">param</param>
-	/// <returns value ="_result"/>
-	/// </signature>
-};
-
-_analytics.loadSvmModel = function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-};
-
-_analytics.getLanguageOptions = function () {
-	/// <signature>
-	/// <summary> get options for text parsing</summary>
-	/// <returns value ="_langOptionsJson"/>
-	/// </signature>
-};
-
-_analytics.newKalmanFilter = function () {
-	/// <signature>
-	/// <summary> the Kalman filter initialization procedure</summary>
-	/// <param name="_dynamParams" value="_dynamParams">param</param>
-	/// <param name="_measureParams" value="_measureParams">param</param>
-	/// <param name="_controlParams" value="_controlParams">param</param>
-	/// <returns value ="_kf"/>
-	/// </signature>
-};
-
-_analytics.loadFeatureSpace = function () {
-	/// <signature>
-	/// <summary> load serialized feature</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-};
-
-_analytics.newFeatureSpace = function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-};
-
-_analytics.trainSvmRegression = function () {
-	/// <signature>
-	/// <summary> trains</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-};
-
-_analytics.trainSvmClassify = function () {
-	/// <signature>
-	/// <summary> trains binary</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmParameters" value="_svmParameters">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-};
-
-_analytics.newKNearestNeighbors = function () {
-	/// <signature>
-	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
-	/// <param name="_k" value="_k">param</param>
-	/// <param name="_buffer" value="_buffer">param</param>
-	/// <param name="_power" value="_power">param</param>
-	/// <returns value ="_kNearestNeighbors"/>
-	/// </signature>
-};
-
-_analytics.newActiveLearner = function () {
-	/// <signature>
-	/// <summary> initializes the</summary>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_textField" value="_textField">param</param>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <param name="_nPos" value="_nPos">param</param>
-	/// <param name="_nNeg" value="_nNeg">param</param>
-	/// <param name="_query" value="_query">param</param>
-	/// <param name="_c" value="_c">param</param>
-	/// <param name="_j" value="_j">param</param>
-	/// <returns value ="_alModel"/>
-	/// </signature>
-};
-
-_analytics.loadBatchModel = function () {
-	/// <signature>
-	/// <summary> loads batch model frm input stream `fin`</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_batchModel"/>
-	/// </signature>
-};
-
-_analytics.newRecLinReg = function () {
-	/// <signature>
-	/// <summary> create new recursive linear regression</summary>
-	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-};
-
-_analytics.newPerceptron = function () {
-	/// <signature>
-	/// <summary> the perceptron learning algorithm initialization requires</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_use_bias" value="_use_bias">param</param>
-	/// <returns value ="_perceptronModel"/>
-	/// </signature>
-};
-
-_analytics.newRidgeRegression = function () {
-	/// <signature>
-	/// <summary> solves a regularized ridge</summary>
-	/// <param name="_kappa" value="_kappa">param</param>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_buffer" value="_buffer">param</param>
-	/// <returns value ="_ridgeRegressionModel"/>
-	/// </signature>
-};
-
-_analytics.newHoeffdingTree = function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_jsonStream" value="_jsonStream">param</param>
-	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
-	/// <returns value ="_htModel"/>
+	/// <summary> get data</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_dat"/>
 	/// </signature>
 };
 
@@ -1749,28 +1743,6 @@ _svmModel.save = function () {
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
 
-_kNearestNeighbors.predict = function () {
-	/// <signature>
-	/// <summary> predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_object"/>
-	/// </signature>
-};
-
-_kNearestNeighbors.update = function () {
-	/// <signature>
-	/// <summary> adds a vector `vec` and target `num` (number) to the "training" set</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
 _utilities.isArray = function () {
 	/// <signature>
 	/// <summary> is parameter an array?</summary>
@@ -2249,162 +2221,205 @@ _lloydModel.getCentroid = function () {
 	/// </signature>
 };
 
-http.onDelete = function () {
+_analytics.newBatchModel = function () {
 	/// <signature>
-	/// <summary> path: function path without server name and script name. Example: `http.onDelete("test", function (req, resp) { })` executed from `script.js` on localhost will execute a delete request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> learns a new batch model</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <param name="_features" value="_features">param</param>
+	/// <param name="_target" value="_target">param</param>
+	/// <returns value ="_batchModel"/>
 	/// </signature>
 };
 
-http.onRequest = function () {
+_analytics.newLloyd = function () {
 	/// <signature>
-	/// <summary> path: function path without server name and script name. Example: `http.onRequest("test", "GET", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `verb` can be one of the following {"GET","POST","PUT","DELETE","PATCH"}. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <param name="_verb" value="_verb">param</param>
-	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_lloydModel"/>
 	/// </signature>
 };
 
-http.get = function () {
+_analytics.newNN = function () {
 	/// <signature>
-	/// <summary> gets url, but does nothing with response</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets url and executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets url and executes httpJsonSuccessCallback (signature: function (objJson) {}) on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
-	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
 	/// </signature>
 };
 
-http.onPut = function () {
+_analytics.loadRecLinRegModel = function () {
 	/// <signature>
-	/// <summary> path: function path without server name and script name. Example: `http.onPut("test", function (req, resp) { })` executed from `script.js` on localhost will execute a put request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 };
 
-http.getStr = function () {
+_analytics.computeKmeans = function () {
 	/// <signature>
-	/// <summary> gets url, but does nothing with response</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <returns value =""/>
+	/// <summary> solves the k-means algorithm based on a training</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_iter" value="_iter">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 	/// <signature>
-	/// <summary> gets url and executes httpStrSuccessCallback, a function with signature: function (str) {} on success.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets url and executes httpJsonSuccessCallback (signature: function (str) {}) on success or httpErrorCallback (signature: function (message) {}) on error.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
-	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> solves the k-means algorithm based on a training</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_iter" value="_iter">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
-http.postStr = function () {
+_analytics.crossValidation = function () {
 	/// <signature>
-	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string)</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_mimeType" value="_mimeType">param</param>
-	/// <param name="_data" value="_data">param</param>
-	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpStrSuccessCallback, a function with signature: function (str) {} on success or httpErrorCallback (signature: function (message) {}) on error.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_mimeType" value="_mimeType">param</param>
-	/// <param name="_data" value="_data">param</param>
-	/// <param name="_httpStrSuccessCallback" value="_httpStrSuccessCallback">param</param>
-	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> creates a batch</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <param name="_features" value="_features">param</param>
+	/// <param name="_target" value="_target">param</param>
+	/// <returns value ="_result"/>
 	/// </signature>
 };
 
-http.jsonp = function () {
+_analytics.loadSvmModel = function () {
 	/// <signature>
-	/// <summary> packaging reply as jsonp when callback parameter is provided in URL</summary>
-	/// <param name="_httpRequest" value="_httpRequest">param</param>
-	/// <param name="_httpResponse" value="_httpResponse">param</param>
-	/// <param name="_dataJSON" value="_dataJSON">param</param>
-	/// <returns value =""/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 };
 
-http.onPatch = function () {
+_analytics.getLanguageOptions = function () {
 	/// <signature>
-	/// <summary> path: function path without server name and script name. Example: `http.onPatch("test", function (req, resp) { })` executed from `script.js` on localhost will execute a patch request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> get options for text parsing</summary>
+	/// <returns value ="_langOptionsJson"/>
 	/// </signature>
 };
 
-http.post = function () {
+_analytics.newKalmanFilter = function () {
 	/// <signature>
-	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string)</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_mimeType" value="_mimeType">param</param>
-	/// <param name="_data" value="_data">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success. Error will occour if objJson is not a JSON object.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_mimeType" value="_mimeType">param</param>
-	/// <param name="_data" value="_data">param</param>
-	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
-	/// <returns value =""/>
-	/// </signature>
-	/// <signature>
-	/// <summary> post to `url` (string) using `mimeType` (string), where the request body is `data` (string). executes httpJsonSuccessCallback, a function with signature: function (objJson) {} on success or httpErrorCallback (signature: function (message) {}) on error. Error will occour if objJson is not a JSON object.</summary>
-	/// <param name="_url" value="_url">param</param>
-	/// <param name="_mimeType" value="_mimeType">param</param>
-	/// <param name="_data" value="_data">param</param>
-	/// <param name="_httpJsonSuccessCallback" value="_httpJsonSuccessCallback">param</param>
-	/// <param name="_httpErrorCallback" value="_httpErrorCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> the Kalman filter initialization procedure</summary>
+	/// <param name="_dynamParams" value="_dynamParams">param</param>
+	/// <param name="_measureParams" value="_measureParams">param</param>
+	/// <param name="_controlParams" value="_controlParams">param</param>
+	/// <returns value ="_kf"/>
 	/// </signature>
 };
 
-http.onPost = function () {
+_analytics.loadFeatureSpace = function () {
 	/// <signature>
-	/// <summary> path: function path without server name and script name. Example: `http.onPost("test", function (req, resp) { })` executed from `script.js` on localhost will execute a post request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> load serialized feature</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 };
 
-http.onGet = function () {
+_analytics.newFeatureSpace = function () {
 	/// <signature>
-	/// <summary> path: function path without server name and script name. Example: `http.onGet("test", function (req, resp) { })` executed from `script.js` on localhost will execute a get request from `http://localhost/script/test`. `httpRequestCallback` is a function with signature: function (request, response) { /*...*/ }</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <param name="_httpRequestCallback" value="_httpRequestCallback">param</param>
-	/// <returns value =""/>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+};
+
+_analytics.trainSvmRegression = function () {
+	/// <signature>
+	/// <summary> trains</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+};
+
+_analytics.trainSvmClassify = function () {
+	/// <signature>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+};
+
+_analytics.newKNearestNeighbors = function () {
+	/// <signature>
+	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <param name="_power" value="_power">param</param>
+	/// <returns value ="_kNearestNeighbors"/>
+	/// </signature>
+};
+
+_analytics.newActiveLearner = function () {
+	/// <signature>
+	/// <summary> initializes the</summary>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_textField" value="_textField">param</param>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <param name="_nPos" value="_nPos">param</param>
+	/// <param name="_nNeg" value="_nNeg">param</param>
+	/// <param name="_query" value="_query">param</param>
+	/// <param name="_c" value="_c">param</param>
+	/// <param name="_j" value="_j">param</param>
+	/// <returns value ="_alModel"/>
+	/// </signature>
+};
+
+_analytics.loadBatchModel = function () {
+	/// <signature>
+	/// <summary> loads batch model frm input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_batchModel"/>
+	/// </signature>
+};
+
+_analytics.newPerceptron = function () {
+	/// <signature>
+	/// <summary> the perceptron learning algorithm initialization requires</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_use_bias" value="_use_bias">param</param>
+	/// <returns value ="_perceptronModel"/>
+	/// </signature>
+};
+
+_analytics.newRecLinReg = function () {
+	/// <signature>
+	/// <summary> create new recursive linear regression</summary>
+	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
+	/// <returns value ="_recLinRegModel"/>
+	/// </signature>
+};
+
+_analytics.newExtendedKalmanFilter = function () {
+	/// <signature>
+	/// <summary> the Extended Kalman filter</summary>
+	/// <param name="_dynamParams" value="_dynamParams">param</param>
+	/// <param name="_measureParams" value="_measureParams">param</param>
+	/// <param name="_controlParams" value="_controlParams">param</param>
+	/// <returns value ="_ekf"/>
+	/// </signature>
+};
+
+_analytics.newRidgeRegression = function () {
+	/// <signature>
+	/// <summary> solves a regularized ridge</summary>
+	/// <param name="_kappa" value="_kappa">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <returns value ="_ridgeRegressionModel"/>
+	/// </signature>
+};
+
+_analytics.newHoeffdingTree = function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_jsonStream" value="_jsonStream">param</param>
+	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
+	/// <returns value ="_htModel"/>
 	/// </signature>
 };
 
@@ -2513,6 +2528,30 @@ _kf.correct = function () {
 	/// <summary> returns a corrected state vector `statePost` where `measurement` is the measurement vector.</summary>
 	/// <param name="_measurement" value="_measurement">param</param>
 	/// <returns value ="_statePost"/>
+	/// </signature>
+};
+
+_tokenizer.getTokens = function () {
+	/// <signature>
+	/// <summary> tokenizes given strings and returns it as an array of strings.</summary>
+	/// <param name="_string" value="_string">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+_tokenizer.getParagraphs = function () {
+	/// <signature>
+	/// <summary> breaks text into paragraphs and returns them as an array of strings.</summary>
+	/// <param name="_string" value="_string">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+_tokenizer.getSentences = function () {
+	/// <signature>
+	/// <summary> breaks text into sentence and returns them as an array of strings.</summary>
+	/// <param name="_string" value="_string">param</param>
+	/// <returns value ="_arr"/>
 	/// </signature>
 };
 
@@ -2962,6 +3001,29 @@ qm.getStreamAggr = function () {
 	/// </signature>
 };
 
+qm.getAllStreamAggrVals = function () {
+	/// <signature>
+	/// <summary> returns a JSON where keys are stream aggregate names and values are their corresponding JSON values</summary>
+	/// <param name="_store" value="_store">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+qm.gc = function () {
+	/// <signature>
+	/// <summary> start garbage collection to remove records outside time windows</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+qm.printStreamAggr = function () {
+	/// <signature>
+	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
+	/// <param name="_store" value="_store">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 qm.newStreamAggr = function () {
 	/// <signature>
 	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.</summary>
@@ -3016,21 +3078,6 @@ qm.newStreamAggr = function () {
 	/// </signature>
 };
 
-qm.printStreamAggr = function () {
-	/// <signature>
-	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
-	/// <param name="_store" value="_store">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-qm.gc = function () {
-	/// <signature>
-	/// <summary> start garbage collection to remove records outside time windows</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
 qm.getStoreList = function () {
 	/// <signature>
 	/// <summary> an array of strings listing all existing stores</summary>
@@ -3064,6 +3111,121 @@ qm.getStreamAggrNames = function () {
 	/// <signature>
 	/// <summary> gets the stream aggregate names of stream aggregates in the default stream aggregate base.</summary>
 	/// <returns value ="_strArr"/>
+	/// </signature>
+};
+
+_ekf.setMeasurementNoiseCov = function () {
+	/// <signature>
+	/// <summary> sets the measurement noise covariance (MP x MP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setTransitionMatrix = function () {
+	/// <signature>
+	/// <summary> sets the transition (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setErrorCovPost = function () {
+	/// <signature>
+	/// <summary> sets the post error covariance (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setParameterV = function () {
+	/// <signature>
+	/// <summary> sets parameter vector of size `parameterN`.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.predict = function () {
+	/// <signature>
+	/// <summary> returns a predicted state vector `statePre` where `control` is the control vector (normally not set).</summary>
+	/// <param name="_control" value="_control">param</param>
+	/// <returns value ="_statePre"/>
+	/// </signature>
+};
+
+_ekf.setTransitionEq = function () {
+	/// <signature>
+	/// <summary> sets transition equation for EKF (`_val` is a function).</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setMeasurementMatrix = function () {
+	/// <signature>
+	/// <summary> sets the measurement (MP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setObservationEq = function () {
+	/// <signature>
+	/// <summary> sets observation equation for EKF (`_val` is a function).</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.getStatePost = function () {
+	/// <signature>
+	/// <summary> returns the statePost vector.</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setProcessNoiseCovPost = function () {
+	/// <signature>
+	/// <summary> sets the process noise covariance (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setStatePost = function () {
+	/// <signature>
+	/// <summary> sets the post state (DP) vector.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.setErrorCovPre = function () {
+	/// <signature>
+	/// <summary> sets the pre error covariance (DP x DP) matrix.</summary>
+	/// <param name="__val" value="__val">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.getParameterV = function () {
+	/// <signature>
+	/// <summary> gets parameter vector.</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_ekf.correct = function () {
+	/// <signature>
+	/// <summary> returns a corrected state vector `statePost` where `measurement` is the measurement vector.</summary>
+	/// <param name="_measurement" value="_measurement">param</param>
+	/// <returns value ="_statePost"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns a corrected state vector `statePost` where `measurement` is the measurement vector.</summary>
+	/// <param name="_measurement" value="_measurement">param</param>
+	/// <returns value ="_statePost"/>
 	/// </signature>
 };
 
