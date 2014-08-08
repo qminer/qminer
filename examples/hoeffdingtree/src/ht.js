@@ -109,7 +109,7 @@ function testClassificationContAttr() {
       // get target
       var target = line[3];
       if (++examplesN % 10000 == 0) {
-         console.say("Processing example number " + examplesN);
+         console.say("Number of examples processed so far: " + examplesN);
       }
       // if (examplesN >= 200000) { break; } // 200k examples 
       // update the model
@@ -123,7 +123,6 @@ function testClassificationContAttr() {
    console.say("f(1.848014,0.041624,2.913719) = " + label);
    
    console.say("Now exporting the model as 'sea.gv'.");
-   
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/sea.gv", "type": "DOT" });
 }
@@ -176,7 +175,7 @@ function testClassification() {
       // get target
       var target = line[3];
       if (++examplesN % 10000 == 0) {
-         console.say("Processing example number " + examplesN);
+         console.say("Number of examples processed so far: " + examplesN);
       }
       if (examplesN > 500000) { break; }
       // update the model
@@ -192,8 +191,8 @@ function testClassification() {
    console.say("Were 3rd class men likely to survive? " + label);
    label = ht.classify(["second", "adult", "female"], []);
    console.say("Were 3rd class women likely to survive? " + label);0
-   console.say("Now exporting the model as 'titanic.gv'.");
    
+   console.say("Now exporting the model as 'titanic.gv'.");
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
 }
@@ -258,6 +257,7 @@ function testRegressionDisAttr() {
    var val = ht.predict(["f", "f"], []);
    console.say("f(f,f) = " + val);
    
+   console.say("Now exporting the model as regression-test.gv");
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/regression-test.gv", "type": "DOT" });
 }
@@ -319,6 +319,7 @@ function testRegressionContAttr() {
    val = ht.predict(["1"], [2.3]);
    console.say("f(1, 2.3) = " + val);
    
+   console.say("Exporting the model as reg-cont.gv");
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/reg-cont.gv", "type": "DOT" });
 }
@@ -373,6 +374,7 @@ function testRegression() {
    var examplesN = 0, N = 0;
    var streamData = fs.openRead("./sandbox/ht/wind.dat");
    var err = 0.0;
+   console.say("Building a model");
    while (!streamData.eof) {
       var line = streamData.getNextLn().split(",");
       // get discrete attributes
@@ -388,7 +390,7 @@ function testRegression() {
       var target = parseFloat(line[line.length-1]);
       ht.process(example_discrete, example_numeric, target);
    }
-   
+   console.say("Exporting the model as ./sandbox/ht/wind.gv");
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/wind.gv", "type": "DOT" });
 }
@@ -412,30 +414,39 @@ function realRegressionTest() {
    
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
    // var fin = fs.openRead('./sandbox/ht/airline_14col.dat');
-   var fin = fs.openRead('./sandbox/ht/winequality.data');
+   var fin = fs.openRead('./sandbox/ht/winequality.dat');
    while (!fin.eof) {
       var line = fin.getNextLn();
       var exampleJson = line2array(line, jsonCfg);
       // console.say(exampleJson.numeric.join());
       ht.process(exampleJson.discrete, exampleJson.numeric, exampleJson.target);
    }
+   
+   console.say("Exporting the model as winequality.gv");
    // The model is huge, because one of the discrete attributes has more than 3000 values 
    ht.exportModel({ "file": "./sandbox/ht/winequality.gv", "type": "DOT" });
 }
 
-// console.say(" --- Example using classification HoeffdingTree --- ");
-// console.say("First classification scenario using bootstrapped SEA dataset");
-// testClassificationContAttr();
-// console.say("Second classification secnario using bootstrapped TITANIC dataset");
-// testClassification();
-// console.say(" --- Example using regression HoeffdingTree --- ");
-// console.say("Regression scenario with discrete attributes");
+// Warn the user 
+console.say("In case you get an error of the form \"File 'file_path' does not exist\", it means a dataset is missing.");
+console.say("Press ENTER to continue");
+console.start();
+
+console.say(" --- Example using classification HoeffdingTree --- ");
+
+console.say("- First classification scenario using bootstrapped SEA dataset -");
+testClassificationContAttr();
+console.say("- Second classification secnario using bootstrapped TITANIC dataset -");
+testClassification();
+
+console.say(" --- Example using regression HoeffdingTree --- ");
+console.say("- Regression scenario with discrete attributes -");
 testRegressionDisAttr();
-// console.say("Regression scenario with numeric attributes");
+console.say("- Regression scenario with numeric attributes -");
 testRegressionContAttr();
-// console.say("Regression scenario using WIND dataset.");
+console.say("- Regression scenario using WIND dataset -");
 testRegression();
-// console.say("Regression scenario using Airline dataset.");
+console.say("- Regression scenario using Airline dataset -");
 realRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
