@@ -2489,9 +2489,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if (Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		// printf("Line '%s'\n", Line.CStr());
 		JsHoeffdingTree->HoeffdingTree->Process(Line);
-		// printf("End\n");
 	} else if (Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() &&
 		(Args[2]->IsString() || Args[2]->IsNumber())) {
 		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
@@ -2535,8 +2533,8 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 			NumericVal->GetArrNumV(NumV);
 			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
 			return HandleScope.Close(v8::String::New(Label.CStr()));
-		} // else { QmFailR("No such function"); }
-	} // else { QmFailR("Unsupported."); }
+		} // else { EFailR("No such function"); }
+	} // else { EFailR("Unsupported."); }
 	return HandleScope.Close(v8::Undefined());
 }
 
@@ -5129,9 +5127,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
 	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
 	if(Args.Length() == 1 && Args[0]->IsString()) {
 		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		// printf("Line '%s'\n", Line.CStr());
 		JsHoeffdingTree->HoeffdingTree->Process(Line);
-		// printf("End\n");
 	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
 		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
 		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
@@ -5161,9 +5157,7 @@ v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
 		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
 			DiscreteVal->GetArrStrV(DisV);
 			NumericVal->GetArrNumV(NumV);
-			// THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
 			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			// return HandleScope.Close(v8::Number::New(Label));
 			return HandleScope.Close(v8::String::New(Label.CStr()));
 		} // else { EFailR("No such function"); }
 	} // else { EFailR("Unsupported."); }
