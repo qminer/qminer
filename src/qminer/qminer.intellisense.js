@@ -1828,14 +1828,14 @@ _fout.write = function () {
 	/// <signature>
 	/// <summary> writes to output stream. `data` can be a number, a json object or a string.</summary>
 	/// <param name="_data" value="_data">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
 _fout.close = function () {
 	/// <signature>
 	/// <summary> closes output stream</summary>
-	/// <returns value =""/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -1843,14 +1843,14 @@ _fout.writeLine = function () {
 	/// <signature>
 	/// <summary> writes data to output stream and adds newline</summary>
 	/// <param name="_data" value="_data">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
 _fout.flush = function () {
 	/// <signature>
 	/// <summary> flushes output stream</summary>
-	/// <returns value =""/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 

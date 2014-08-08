@@ -63,6 +63,8 @@ public:
     
 	/// Path to QMiner
 	static TStr QMinerFPath;
+	/// Path to 
+	static TStr RootFPath;
 	/// Default QMiner notification facility
 	static PNotify Error;
 	static PNotify Logger;	

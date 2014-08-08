@@ -5284,6 +5284,8 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getGlobals);
 		JsRegisterFunction(TmpTemp, exitScript);
         JsRegisterSetProperty(TmpTemp, "returnCode", getReturnCode, setReturnCode);
+		JsRegisterProperty(TmpTemp, qminer_home);
+		JsRegisterProperty(TmpTemp, project_home);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -5376,6 +5378,20 @@ void TJsProcess::setReturnCode(v8::Local<v8::String> Properties,
 	v8::HandleScope HandleScope;
     QmAssert(Value->IsInt32());
     TEnv::SetReturnCode(Value->Int32Value());
+}
+
+v8::Handle<v8::Value> TJsProcess::qminer_home(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptFNm = v8::String::New(TEnv::QMinerFPath.CStr());
+	return HandleScope.Close(ScriptFNm);
+}
+
+v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptFNm = v8::String::New(TEnv::RootFPath.CStr());
+	return HandleScope.Close(ScriptFNm);
 }
 
 ///////////////////////////////

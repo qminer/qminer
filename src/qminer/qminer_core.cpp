@@ -36,6 +36,7 @@ TIntTr TEnv::Version = TIntTr(0, 5, 1);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
+TStr TEnv::RootFPath;
 PNotify TEnv::Error;
 PNotify TEnv::Logger;
 PNotify TEnv::Debug;
@@ -51,6 +52,7 @@ void TEnv::Init() {
     Debug = TNullNotify::New();
 	// read environment variable indicating QMiner folder, uses current dir if not available
 	QMinerFPath = TStr::GetNrAbsFPath(::TEnv::GetVarVal("QMINER_HOME"));
+	RootFPath = TStr::GetNrFPath(TDir::GetCurDir());
     // initialize aggregators constructor router
     TAggr::Init();
     // initialize stream aggregators constructor router

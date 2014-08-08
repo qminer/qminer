@@ -2680,6 +2680,10 @@ public:
 	JsDeclareFunction(exitScript);
     //#- `process.returnCode` -- current code to be returned by QMiner process
   	JsDeclareSetProperty(getReturnCode, setReturnCode);
+	//#- `str = process.qminer_home` -- returns the path to QMINER_HOME
+	JsDeclareProperty(qminer_home);
+	//#- `str = process.project_home` -- returns the path to project folder
+	JsDeclareProperty(project_home);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 
@@ -2850,13 +2854,13 @@ public:
     //# 
 	//# **Functions and properties:**
 	//#     
-    //#- `fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+    //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
 	JsDeclareFunction(write);
-    //#- `fout.writeLine(data)` -- writes data to output stream and adds newline
+    //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
 	JsDeclareFunction(writeLine);
-    //#- `fout.flush()` -- flushes output stream
+    //#- `fout = fout.flush()` -- flushes output stream
 	JsDeclareFunction(flush);
-    //#- `fout.close()` -- closes output stream
+    //#- `fout = fout.close()` -- closes output stream
   	JsDeclareFunction(close);
 };
 
