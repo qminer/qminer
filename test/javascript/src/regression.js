@@ -4,7 +4,7 @@ var analytics = require('analytics.js');
 console.say("Regression", "Starting test based on a random sample");
 
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
 // name of the debug process
 assert.consoleTitle = "Regression";
 

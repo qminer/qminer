@@ -27,11 +27,11 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              
+              <p>Import analytics module</p>
+
             </div>
             
-            <div class="content"><div class='highlight'><pre>console.say(<span class="hljs-string">"HoeffdingTree test"</span>);
-<span class="hljs-keyword">var</span> analytics = <span class="hljs-built_in">require</span>(<span class="hljs-string">'analytics.js'</span>);
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> analytics = <span class="hljs-built_in">require</span>(<span class="hljs-string">'analytics.js'</span>);
 <span class="hljs-keyword">var</span> assert = <span class="hljs-built_in">require</span>(<span class="hljs-string">'assert.js'</span>);</pre></div></div>
             
         </li>
@@ -118,7 +118,7 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> streamData = fs.openRead(<span class="hljs-string">"./sandbox/ht/titanic-50K.txt"</span>);
-<span class="hljs-keyword">while</span>(!streamData.eof) {
+<span class="hljs-keyword">while</span> (!streamData.eof) {
 	<span class="hljs-keyword">var</span> line = streamData.getNextLn().split(<span class="hljs-string">","</span>);</pre></div></div>
             
         </li>
@@ -211,7 +211,10 @@ console.say(<span class="hljs-string">"Were high society women likely to survive
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>ht.exportModel({ <span class="hljs-string">"file"</span>: <span class="hljs-string">"./sandbox/ht/titanic.gv"</span>, <span class="hljs-string">"type"</span>: <span class="hljs-string">"DOT"</span> });</pre></div></div>
+            <div class="content"><div class='highlight'><pre>ht.exportModel({ <span class="hljs-string">"file"</span>: <span class="hljs-string">"./sandbox/ht/titanic.gv"</span>, <span class="hljs-string">"type"</span>: <span class="hljs-string">"DOT"</span> });
+
+console.say(<span class="hljs-string">"Interactive mode: empty line to release (press ENTER)."</span>);
+console.start();</pre></div></div>
             
         </li>
         
