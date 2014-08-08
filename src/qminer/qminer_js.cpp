@@ -5799,6 +5799,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
         JsRegisterProperty(TmpTemp, month);
         JsRegisterProperty(TmpTemp, day);
         JsRegisterProperty(TmpTemp, dayOfWeek);
+		JsRegisterProperty(TmpTemp, dayOfWeekNum);
         JsRegisterProperty(TmpTemp, hour);
         JsRegisterProperty(TmpTemp, minute);
         JsRegisterProperty(TmpTemp, second);
@@ -5857,6 +5858,12 @@ v8::Handle<v8::Value> TJsTm::dayOfWeek(v8::Local<v8::String> Properties, const v
 	v8::HandleScope HandleScope;
     TSecTm SecTm(TJsTmUtil::GetSelf(Info)->Tm);
 	return HandleScope.Close(v8::String::New(SecTm.GetDayOfWeekNm().CStr()));
+}
+
+v8::Handle<v8::Value> TJsTm::dayOfWeekNum(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    TSecTm SecTm(TJsTmUtil::GetSelf(Info)->Tm);
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetDayOfWeek()));
 }
 
 v8::Handle<v8::Value> TJsTm::hour(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

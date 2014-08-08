@@ -2906,8 +2906,10 @@ public:
     JsDeclareProperty(month);
     //#- `num = tm.day` -- day (number)
     JsDeclareProperty(day);
-    //#- `str = tm.dayOfWeek` -- day of week (string)
+	//#- `str = tm.dayOfWeek` -- day of week (string)	
     JsDeclareProperty(dayOfWeek);
+    //#- `num = tm.dayOfWeekNum` -- day of week (number)
+    JsDeclareProperty(dayOfWeekNum);
     //#- `num = tm.hour` -- hour (number)
     JsDeclareProperty(hour);
     //#- `num = tm.minute` -- minute (number)
