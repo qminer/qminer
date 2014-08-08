@@ -318,7 +318,6 @@ function testRegressionContAttr() {
       "windowSize": 100000,
       "conceptDriftP": false
    };
-   
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
       "A": {
@@ -478,13 +477,13 @@ function realRegressionTest() {
 // testClassification();
 // console.say(" --- Example using regression HoeffdingTree --- ");
 // console.say("Regression scenario with discrete attributes");
-// testRegressionDisAttr();
+testRegressionDisAttr();
 // console.say("Regression scenario with numeric attributes");
 testRegressionContAttr();
 // console.say("Regression scenario using WIND dataset.");
-// testRegression();
+testRegression();
 // console.say("Regression scenario using Airline dataset.");
-// realRegressionTest();
+realRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
 console.start();

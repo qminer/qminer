@@ -1208,7 +1208,7 @@ namespace THoeffding {
                   AttrManV.GetVal(SpltAttr.Val1.Val1).Nm.CStr(),
                   EstG <= Eps);
                // TODO: Give user a chance to export before the model changes 
-               // Export("exports/titanic-"+TInt(ExportN++).GetStr()+".gv",
+               // Export("exports/dataset-"+TInt(ExportN++).GetStr()+".gv",
                //   etDOT);
                const int LabelsN =
                   AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
@@ -1271,7 +1271,8 @@ namespace THoeffding {
          }
       }
       // Regression
-      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0) {
+      if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0 &&
+         GetNodesN() < 20) {
          // See if we can get variance reduction 
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
@@ -1830,14 +1831,14 @@ namespace THoeffding {
          for (auto It = CrrNode->ChildrenV.BegI();
             It != CrrNode->ChildrenV.EndI(); ++It) {
             ++NodesN;
-            if (IsLeaf(*It)) { NodeS.Push(*It); }
+            if (!IsLeaf(*It)) { NodeS.Push(*It); }
          }
          // Also count alternate trees 
          if (AltP) {
             for (auto It = CrrNode->AltTreesV.BegI();
                It != CrrNode->AltTreesV.EndI(); ++It) {
                ++NodesN;
-               if (IsLeaf(*It)) { NodeS.Push(*It); }
+               if (!IsLeaf(*It)) { NodeS.Push(*It); }
             }
          }
       }
@@ -2015,7 +2016,7 @@ namespace THoeffding {
          if (TaskType == ttCLASSIFICATION) {
             FOut.PutStrFmtLn("\t\"%s\";", GetMajorityNm(Node).CStr());
          } else {
-            FOut.PutStrFmtLn("\t\"%f\";", Node->Avg);
+            FOut.PutStrFmtLn("v=\t\"%f\";", Node->Avg);
          }
          return;
       }
