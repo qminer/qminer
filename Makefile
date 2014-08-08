@@ -64,6 +64,9 @@ qm:
 	# copy in admin GUI
 	mkdir -p ./$(BUILD)/gui
 	cp -r ./$(QMINER)/gui/* ./$(BUILD)/gui
+	# copy resources
+	mkdir -p ./$(BUILD)/resources
+	cp -r ./$(QMINER)/resources/* ./$(BUILD)/resources
 	
 cleanall: clean cleandoc
 	make -C $(THIRD_PARTY) clean
