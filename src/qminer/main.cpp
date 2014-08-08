@@ -168,6 +168,10 @@ public:
 		TStr UnicodeFNm = ConfigVal->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 		if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 
+        // Load Stopword Files
+		TStr StopWordsPath = ConfigVal->GetObjStr("stopwords", TQm::TEnv::QMinerFPath + "resources/stopwords/");
+        TSwSet::LoadSwDir(StopWordsPath);
+
 		// parse cache
 		if (ConfigVal->IsObjKey("cache")) { 
 			PJsonVal CacheVal = ConfigVal->GetObjKey("cache");

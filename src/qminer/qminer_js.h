@@ -2492,7 +2492,6 @@ public:
 //# and algorithm parameters. When describing the data stream, we have to specify the order of
 //# attributes in a stream example and describe each attribute. For each attribute, we specifty
 //# its type and --- in case of discrete attributes --- enumerate all possible values of the attribute.
-//# See `titanicConfig` below. 
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
@@ -2514,8 +2513,8 @@ public:
 //#- `conceptDriftP` -- Denotes whether the algorithm adapts to potential changes in the data. If set to `true`,
 //#	    we use a variant of [CVFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf );
 //#      if set to `false`, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
-//#- `driftCheck` -- If `DriftCheckP=true` (this is one of the algorithm parameters), the algorithm sets nodes into
-//#       self-evaluation mode every `driftCheck` examples. If one of the alternate trees performs better than the ``main''
+//#- `driftCheck` -- If `DriftCheckP=N` (this is one of the algorithm parameters), the algorithm sets nodes into
+//#       self-evaluation mode every `N` examples. If one of the alternate trees performs better than the ``main''
 //#       tree, the algorithm swaps the best-performing alternate tree in place of the main one. 
 //#- `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
@@ -2529,9 +2528,10 @@ public:
 private:
 	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
 	static v8::Persistent<v8::ObjectTemplate> Template;
-
-	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
-		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
+	
+	THoeffding::TTaskType JsTaskType;
+	
+	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig) { 
 		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
@@ -2548,6 +2548,9 @@ public:
 	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
 	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
+	//#-  `htModel.predict(strArr, numArr` -- predicts numerical value that belongs to the example; `strArr` is an array of discrete values (strings); `numArr` is an array of numeric attribute values (numbers); returns a number.
+	//#   
+	JsDeclareFunction(predict);
 	//#- `htModel = htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);
