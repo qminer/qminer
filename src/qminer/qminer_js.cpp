@@ -2457,6 +2457,130 @@ v8::Handle<v8::Value> TJsRec::toJSON(const v8::Arguments& Args) {
 }
 
 ///////////////////////////////
+// QMiner-JavaScript-HoeffdingTree
+TJsHoeffdingTree::TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
+	: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) {
+		// set prediction type (classification or regression), so we know
+		// what functions to use 
+		PJsonVal DataFormatArr = StreamConfig->GetObjKey("dataFormat");
+		TStrV DataFmtV;
+		DataFormatArr->GetArrStrV(DataFmtV);
+		TStr TargetNm = DataFmtV.Last();
+		PJsonVal JsonTarget = StreamConfig->GetObjKey(TargetNm);
+		TStr TargetType = JsonTarget->GetObjStr("type");
+		
+		if (TargetType == "numeric") { JsTaskType = THoeffding::ttREGRESSION; }
+		else { JsTaskType = THoeffding::ttCLASSIFICATION; }
+}
+v8::Handle<v8::ObjectTemplate> TJsHoeffdingTree::GetTemplate() {
+	v8::HandleScope HandleScope;
+	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+	JsRegisterFunction(TmpTemp, process);
+	JsRegisterFunction(TmpTemp, classify);
+	JsRegisterFunction(TmpTemp, predict);
+	JsRegisterFunction(TmpTemp, exportModel);
+	TmpTemp->SetInternalFieldCount(1);
+	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+}
+
+// NOTE: It is your responsibility to make sure the input line is a valid stream example 
+v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	if (Args.Length() == 1 && Args[0]->IsString()) {
+		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
+		JsHoeffdingTree->HoeffdingTree->Process(Line);
+	} else if (Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() &&
+		(Args[2]->IsString() || Args[2]->IsNumber())) {
+		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
+		TStrV DisV; TFltV NumV;
+		if (DiscreteVal->IsArr() && NumericVal->IsArr()) {
+			DiscreteVal->GetArrStrV(DisV);
+			NumericVal->GetArrNumV(NumV);
+			if (JsHoeffdingTree->JsTaskType == THoeffding::ttCLASSIFICATION) {
+				TStr Label = TJsHoeffdingTreeUtil::GetArgStr(Args, 2);
+				JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
+			} else {
+				const double Val = TJsHoeffdingTreeUtil::GetArgFlt(Args, 2);
+				JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Val);
+			}
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+// NOTE: It is your responsibility to make sure the input line is a valid stream example 
+v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	
+	// XXX: Use this to check CVFDT invariants 
+	// if (JsHoeffdingTree->HoeffdingTree->IsAdaptive()) {
+	//   JsHoeffdingTree->HoeffdingTree->Debug_Finalize();
+	// }
+	
+	if (Args.Length() == 1 && Args[0]->IsString()) {
+		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
+		TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
+		return HandleScope.Close(v8::String::New(Label.CStr()));
+	} else if (Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
+		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
+		TStrV DisV; TFltV NumV;
+		if (DiscreteVal->IsArr() && NumericVal->IsArr()) {
+			DiscreteVal->GetArrStrV(DisV);
+			NumericVal->GetArrNumV(NumV);
+			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
+			return HandleScope.Close(v8::String::New(Label.CStr()));
+		} // else { EFailR("No such function"); }
+	} // else { EFailR("Unsupported."); }
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHoeffdingTree::predict(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	if (Args.Length() == 1 && Args[0]->IsString()) {
+		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
+		const double Val = JsHoeffdingTree->HoeffdingTree->Predict(Line);
+		return HandleScope.Close(v8::Number::New(Val));
+	} else if (Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
+		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
+		TStrV DisV; TFltV NumV;
+		if (DiscreteVal->IsArr() && NumericVal->IsArr()) {
+			DiscreteVal->GetArrStrV(DisV);
+			NumericVal->GetArrNumV(NumV);
+			const double Val = JsHoeffdingTree->HoeffdingTree->Predict(DisV, NumV);
+			return HandleScope.Close(v8::Number::New(Val));
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHoeffdingTree::exportModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// Save model to fileName in the choosen format 
+	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
+	if (Args.Length() == 1 && Args[0]->IsObject()) {
+		PJsonVal Val = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
+		if (Val->IsObjKey("file") && Val->IsObjKey("type")) {
+			TStr FNm = Val->GetObjStr("file");
+			TStr Type = Val->GetObjStr("type");
+			THoeffding::TExportType ExportType;
+			// When supported, accept JSON 
+			if (Type == "DOT") { ExportType = THoeffding::etDOT; }
+			else if (Type == "JSON") { ExportType = THoeffding::etJSON; }
+			else { ExportType = THoeffding::etXML; }
+			JsHoeffdingTree->HoeffdingTree->Export(FNm, ExportType);
+			return HandleScope.Close(v8::Boolean::New(true));
+		}
+	}
+	return HandleScope.Close(v8::Undefined());
+}
+
+///////////////////////////////
 // QMiner-JavaScript-IndexKey
 v8::Handle<v8::ObjectTemplate> TJsIndexKey::GetTemplate() {
 	v8::HandleScope HandleScope;
@@ -4983,86 +5107,6 @@ v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, c
 	// parse arguments
     TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsRecLinRegModel->Model->GetDim()));
-}
-
-///////////////////////////////
-// QMiner-JavaScript-HoeffdingTree
-v8::Handle<v8::ObjectTemplate> TJsHoeffdingTree::GetTemplate() {
-	v8::HandleScope HandleScope;
-	v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-	JsRegisterFunction(TmpTemp, process);
-	JsRegisterFunction(TmpTemp, classify);
-	JsRegisterFunction(TmpTemp, exportModel);
-	TmpTemp->SetInternalFieldCount(1);
-	return v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-}
-
-// NOTE: It is your responsibility to make sure the input line is a valid stream example 
-v8::Handle<v8::Value> TJsHoeffdingTree::process(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
-	if(Args.Length() == 1 && Args[0]->IsString()) {
-		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		// printf("Line '%s'\n", Line.CStr());
-		JsHoeffdingTree->HoeffdingTree->Process(Line);
-		// printf("End\n");
-	} else if(Args.Length() >= 3 && Args[0]->IsObject() && Args[1]->IsObject() && Args[2]->IsString()) {
-		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
-		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
-		TStr Label = TJsHoeffdingTreeUtil::GetArgStr(Args, 2);
-		TStrV DisV; TFltV NumV;
-		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
-			DiscreteVal->GetArrStrV(DisV);
-			NumericVal->GetArrNumV(NumV);
-			JsHoeffdingTree->HoeffdingTree->Process(DisV, NumV, Label);
-		}
-	}
-	return HandleScope.Close(v8::Undefined());
-}
-
-// NOTE: It is your responsibility to make sure the input line is a valid stream example 
-v8::Handle<v8::Value> TJsHoeffdingTree::classify(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
-	if(Args.Length() == 1 && Args[0]->IsString()) {
-		TStr Line = TJsHoeffdingTreeUtil::GetArgStr(Args, 0);
-		TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(Line);
-		return HandleScope.Close(v8::String::New(Label.CStr()));
-	} else if(Args.Length() >= 2 && Args[0]->IsObject() && Args[1]->IsObject()) {
-		PJsonVal DiscreteVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
-		PJsonVal NumericVal = TJsHoeffdingTreeUtil::GetArgJson(Args, 1);
-		TStrV DisV; TFltV NumV;
-		if(DiscreteVal->IsArr() && NumericVal->IsArr()) {
-			DiscreteVal->GetArrStrV(DisV);
-			NumericVal->GetArrNumV(NumV);
-			// THoeffding::TLabel Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			TStr Label = JsHoeffdingTree->HoeffdingTree->Classify(DisV, NumV);
-			// return HandleScope.Close(v8::Number::New(Label));
-			return HandleScope.Close(v8::String::New(Label.CStr()));
-		} // else { EFailR("No such function"); }
-	} // else { EFailR("Unsupported."); }
-	return HandleScope.Close(v8::Undefined());
-}
-
-v8::Handle<v8::Value> TJsHoeffdingTree::exportModel(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	// Save model to fileName in the choosen format 
-	TJsHoeffdingTree* JsHoeffdingTree = TJsHoeffdingTreeUtil::GetSelf(Args);
-	if(Args.Length() == 1 && Args[0]->IsObject()) {
-		PJsonVal Val = TJsHoeffdingTreeUtil::GetArgJson(Args, 0);
-		if(Val->IsObjKey("file") && Val->IsObjKey("type")) {
-			TStr FNm = Val->GetObjStr("file");
-			TStr Type = Val->GetObjStr("type");
-			THoeffding::TExportType ExportType;
-			// When supported, accept JSON 
-			if(Type == "DOT") { ExportType = THoeffding::etDOT; }
-			else if(Type == "JSON") { ExportType = THoeffding::etJSON; }
-			else { ExportType = THoeffding::etXML; }
-			JsHoeffdingTree->HoeffdingTree->Export(FNm, ExportType);
-			return HandleScope.Close(v8::Boolean::New(true));
-		}
-	}
-	return HandleScope.Close(v8::Undefined());
 }
 
 ///////////////////////////////
