@@ -2333,11 +2333,20 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         QmAssertR(Desc.IsNullable(), "Field " + FieldNm + " not nullable");
         Rec.SetFieldNull(FieldId);
     } else if (Desc.IsInt()) {
-        QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not int");
+        QmAssertR(Value->IsInt32(), "Field " + FieldNm + " not integer");
         const int Int = Value->Int32Value();
         Rec.SetFieldInt(FieldId, Int);
     } else if (Desc.IsIntV()) {
-        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+        // check if we have JavaScript array
+        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
+        TIntV IntV;
+        for (uint32_t FltN = 0; FltN < Array->Length(); FltN++) {
+            v8::Local<v8::Value> ArrayVal = Array->Get(FltN);
+            QmAssertR(ArrayVal->IsInt32(), "Field " + FieldNm + " expects array of integers");
+            const int Val = ArrayVal->Int32Value();
+            IntV.Add(Val);
+        }
+        Rec.SetFieldIntV(FieldId, IntV);
     } else if (Desc.IsUInt64()) {
         QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not uint64");
         const uint64 UInt64 = (uint64)Value->IntegerValue();
@@ -2351,7 +2360,9 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
         TStrV StrV;
         for (uint32_t StrN = 0; StrN < Array->Length(); StrN++) {
-            v8::String::Utf8Value Utf8(Array->Get(StrN));
+            v8::Local<v8::Value> ArrayVal = Array->Get(StrN);
+            QmAssertR(ArrayVal->IsString(), "Field " + FieldNm + " expects array of strings");
+            v8::String::Utf8Value Utf8(ArrayVal);
             StrV.Add(TStr(*Utf8));
         }
         Rec.SetFieldStrV(FieldId, StrV);
@@ -2362,9 +2373,29 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
         Rec.SetFieldFlt(FieldId, Value->NumberValue());
 	} else if (Desc.IsFltPr()) {
-        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+        QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");   
+        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
+        QmAssert(Array->Length() >= 2);
+        QmAssert(Array->Get(0)->IsNumber());
+        QmAssert(Array->Get(1)->IsNumber());
+        TFltPr FltPr(Array->Get(0)->NumberValue(), Array->Get(1)->NumberValue());
 	} else if (Desc.IsFltV()) {
-        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+        if (Value->IsArray()) {
+            // check if we have JavaScript array
+            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
+            TFltV FltV;
+            for (uint32_t FltN = 0; FltN < Array->Length(); FltN++) {
+                v8::Local<v8::Value> ArrayVal = Array->Get(FltN);
+                QmAssertR(ArrayVal->IsNumber(), "Field " + FieldNm + " expects array of numbers");
+                const double Val = ArrayVal->NumberValue();
+                FltV.Add(Val);
+            }
+            Rec.SetFieldFltV(FieldId, FltV);
+        } else {
+            // otherwise it must be GLib array (or exception)
+            TFltV& FltV = TJsFltV::GetVec(Value->ToObject());
+            Rec.SetFieldFltV(FieldId, FltV);
+        }
 	} else if (Desc.IsTm()) {
         QmAssertR(Value->IsObject() || Value->IsString(), "Field " + FieldNm + " not object or string");            
         if (Value->IsObject()){
@@ -2375,7 +2406,9 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
             Rec.SetFieldTm(FieldId, TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T'));            
         }        
 	} else if (Desc.IsNumSpV()) {
-        throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
+        // it can only be GLib sparse vector
+        TIntFltKdV& SpV = TJsSpV::GetSpV(Value->ToObject());
+        Rec.SetFieldNumSpV(FieldId, SpV);
 	} else if (Desc.IsBowSpV()) {
         throw TQmExcept::New("Unsupported type for record setter: " + Desc.GetFieldTypeStr());
     } else {
