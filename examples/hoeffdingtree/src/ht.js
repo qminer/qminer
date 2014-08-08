@@ -115,31 +115,7 @@ function testClassificationContAttr() {
       // update the model
       ht.process(example_discrete, example_numeric, target);
    }
-   // Note that this is not how you'd test a streaming classifier in practice 
-   // This is just playing around 
-   console.say("Now testing the model");
-   streamData = fs.openRead("./sandbox/ht/sea.dat");
-   examplesN = 0;
-   var correct = 0;
-   while (!streamData.eof) {
-      var line = streamData.getNextLn().split(",");
-      // get discrete attributes
-      var example_discrete = [];
-      // get numeric attributes
-      var example_numeric = line.slice(0, 3);
-      example_numeric = example_numeric.map(parseFloat);
-      // get target
-      var target = line[3];
-      if (++examplesN % 10000 == 0) {
-         console.say("Testing on example number " + examplesN);
-      }
-      // if (examplesN >= 200000) { break; } // 200k examples 
-      // update the model
-      if (parseFloat(ht.classify(example_discrete, example_numeric)) == target) {
-         ++correct;
-      }
-   }
-   console.say("ACC = " + (correct/examplesN));
+   
    // use the model 
    var label = ht.classify([], [6.677259,5.152133,2.982455]);
    console.say("f(6.677259,5.152133,2.982455) = " + label);
@@ -217,29 +193,6 @@ function testClassification() {
    label = ht.classify(["second", "adult", "female"], []);
    console.say("Were 3rd class women likely to survive? " + label);0
    console.say("Now exporting the model as 'titanic.gv'.");
-   
-   // This is not what you'd do in practice. We do it here just to see
-   // whether we can learn simple stuff. 
-   streamData = fs.openRead("./sandbox/ht/titanic-4M.dat");
-   examplesN = 0;
-   var correct = 0;
-   while (!streamData.eof) {
-      var line = streamData.getNextLn().split(","); // male,first,adult,yes
-      // get discrete attributes
-      var example_discrete = line.slice(0, 3);
-      // get numeric attributes
-      var example_numeric = [];
-      // get target
-      var target = line[3];
-      if (++examplesN % 10000 == 0) {
-         console.say("Processing example number " + examplesN);
-      }
-      if (examplesN > 500000) { break; }
-      // update the model
-      label = ht.classify(example_discrete, example_numeric, target);
-      if (label == line[line.length-1]) { ++correct; }
-   }
-   console.say("ACC="+(correct/examplesN));
    
    // export the model 
    ht.exportModel({ "file": "./sandbox/ht/titanic.gv", "type": "DOT" });
