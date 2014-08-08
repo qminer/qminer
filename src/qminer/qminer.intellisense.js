@@ -148,12 +148,6 @@ intellisenseIgnore["_result"] = "{}";
 intellisenseIgnore["_ridgeRegressionModel"] = "{}";
 intellisenseIgnore["_sw"] = "{}";
 
-_vec[0] = 1; // vec is indexed and returns numbers
-_intVec[0] = 1; // vec is indexed and returns numbers
-_spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
-_rs[0] = _rec; // record set at index returns a record
-_store[0] = _rec; // store index operator returns a record
-
 _addIntellisenseVar("_vec2", "_vec");
 _addIntellisenseVar("_vec3", "_vec");
 _addIntellisenseVar("_inVec", "_vec");
@@ -222,62 +216,22 @@ var _result = new function () {
 }
 
 var _store = new function () {
-	this.key = function () {
+	/// <field name = "joins" value = "_objArr"> array of all the join names</field>
+	this.joins = _objArr;
+	this.sample = function () {
 	/// <signature>
-	/// <summary> get [index key](#index-key) named `keyName`</summary>
-	/// <param name="_keyName" value="_keyName">param</param>
-	/// <returns value ="_key"/>
-	/// </signature>
-
-	};
-
-	this.rec = function () {
-	/// <signature>
-	/// <summary> get record named `recName`;</summary>
-	/// <param name="_recName" value="_recName">param</param>
-	/// <returns value ="_rec"/>
-	/// </signature>
-
-	};
-
-	this.addTrigger = function () {
-	/// <signature>
-	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
-	/// <param name="_trigger" value="_trigger">param</param>
-	/// <returns value =""/>
+	/// <summary> create a record set containing a random</summary>
+	/// <param name="_sampleSize" value="_sampleSize">param</param>
+	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
 	this.getStreamAggr = function () {
 	/// <signature>
-	/// <summary> returns current JSON value of stream aggregate `saName`</summary>
+	/// <summary> returns a stream aggregate `sa` whose name is `saName`</summary>
 	/// <param name="_saName" value="_saName">param</param>
-	/// <returns value ="_objJSON"/>
-	/// </signature>
-
-	};
-
-	/// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
-	this.keys = _objArr;
-	/// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
-	this.fields = _objArr;
-	/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
-	this.recs = _rs;
-	this.addStreamAggr = function () {
-	/// <signature>
-	/// <summary> add new [Stream Aggregate](Stream-Aggregates). Stream aggregate is defined by `paramJSON` object</summary>
-	/// <param name="_paramJSON" value="_paramJSON">param</param>
-	/// <returns value =""/>
-	/// </signature>
-
-	};
-
-	this.addStreamAggrTrigger = function () {
-	/// <signature>
-	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with four properties `name` (string), `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
-	/// <param name="_satrigger" value="_satrigger">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_sa"/>
 	/// </signature>
 
 	};
@@ -291,17 +245,19 @@ var _store = new function () {
 
 	};
 
-	/// <field name = "name" value = "_str"> name of the store</field>
-	this.name = _str;
-	this.sample = function () {
+	this.newRecSet = function () {
 	/// <signature>
-	/// <summary> create a record set containing a random</summary>
-	/// <param name="_sampleSize" value="_sampleSize">param</param>
+	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
+	/// <param name="_idVec" value="_idVec">param</param>
 	/// <returns value ="_rs"/>
 	/// </signature>
 
 	};
 
+	/// <field name = "backwardIter" value = "_iter"> returns iterator for iterating over the store from end to start</field>
+	this.backwardIter = _iter;
+	/// <field name = "forwardIter" value = "_iter"> returns iterator for iterating over the store from start to end</field>
+	this.forwardIter = _iter;
 	this.field = function () {
 	/// <signature>
 	/// <summary> get details of field named `fieldName`</summary>
@@ -320,24 +276,61 @@ var _store = new function () {
 
 	};
 
-	/// <field name = "joins" value = "_objArr"> array of all the join names</field>
-	this.joins = _objArr;
-	this.newRecSet = function () {
+	this.rec = function () {
 	/// <signature>
-	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
-	/// <param name="_idVec" value="_idVec">param</param>
-	/// <returns value ="_rs"/>
+	/// <summary> get record named `recName`;</summary>
+	/// <param name="_recName" value="_recName">param</param>
+	/// <returns value ="_rec"/>
 	/// </signature>
 
 	};
 
-	/// <field name = "length" value = "_len"> number of records in the store</field>
-	this.length = _len;
 	/// <field name = "empty" value = "_bool"> `bool = true` when store is empty</field>
 	this.empty = _bool;
+	/// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
+	this.keys = _objArr;
+	this.addStreamAggr = function () {
+	/// <signature>
+	/// <summary> creates a new stream aggregate `sa` and registers it to the store</summary>
+	/// <param name="_param" value="_param">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	};
+
+	this.key = function () {
+	/// <signature>
+	/// <summary> get [index key](#index-key) named `keyName`</summary>
+	/// <param name="_keyName" value="_keyName">param</param>
+	/// <returns value ="_key"/>
+	/// </signature>
+
+	};
+
+	/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
+	this.recs = _rs;
+	/// <field name = "name" value = "_str"> name of the store</field>
+	this.name = _str;
+	/// <field name = "last" value = "_rec"> last record from the store</field>
+	this.last = _rec;
+	this.addTrigger = function () {
+	/// <signature>
+	/// <summary> add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks</summary>
+	/// <param name="_trigger" value="_trigger">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	/// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
+	this.fields = _objArr;
+	/// <field name = "length" value = "_len"> number of records in the store</field>
+	this.length = _len;
+	/// <field name = "first" value = "_rec"> first record from the store</field>
+	this.first = _rec;
 	this.getStreamAggrNames = function () {
 	/// <signature>
-	/// <summary> returns the names of all stream aggregators as an array of strings `strArr`</summary>
+	/// <summary> returns the names of all stream aggregators listening on the store as an array of strings `strArr`</summary>
 	/// <returns value ="_strArr"/>
 	/// </signature>
 
@@ -664,6 +657,50 @@ var _ridgeRegressionModel = new function () {
 
 }
 
+var _assert = new function () {
+	this.run = function () {
+	/// <signature>
+	/// <summary> prints success if this code is reached</summary>
+	/// <param name="_test" value="_test">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.ok = function () {
+	/// <signature>
+	/// <summary>  `test` is boolean, prints message `msg` if test is true</summary>
+	/// <param name="_test" value="_test">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.equals = function () {
+	/// <signature>
+	/// <summary>  checks if object `obj==obj2` and prints message `msg`</summary>
+	/// <param name="_obj" value="_obj">param</param>
+	/// <param name="_obj2" value="_obj2">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.exists = function () {
+	/// <signature>
+	/// <summary>  checks if object `obj` exists (!=null) and prints message `msg`</summary>
+	/// <param name="_obj" value="_obj">param</param>
+	/// <param name="_msg" value="_msg">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+}
+
 var _hashTable = new function () {
 	/// <field name = "keys" value = "_strArr"> array of keys (strings)</field>
 	this.keys = _strArr;
@@ -744,6 +781,8 @@ var _rec = new function () {
 
 	/// <field name = "$id" value = "_recId"> returns record ID</field>
 	this.$id = _recId;
+	/// <field name = "$store" value = "_recStore"> returns record store</field>
+	this.$store = _recStore;
 	/// <field name = "$fq" value = "_recFq"> returns record frequency (used for randomized joins)</field>
 	this.$fq = _recFq;
 	/// <field name = "$name" value = "_recName"> returns record name</field>
@@ -752,6 +791,21 @@ var _rec = new function () {
 	/// <signature>
 	/// <summary> provide json version of record, useful when calling JSON.stringify</summary>
 	/// <returns value ="_objJSON"/>
+	/// </signature>
+
+	};
+
+}
+
+var _iter = new function () {
+	/// <field name = "rec" value = "_rec"> get current record</field>
+	this.rec = _rec;
+	/// <field name = "store" value = "_store"> get the store</field>
+	this.store = _store;
+	this.next = function () {
+	/// <signature>
+	/// <summary> moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available</summary>
+	/// <returns value ="_bool"/>
 	/// </signature>
 
 	};
@@ -801,11 +855,12 @@ var _analytics = new function () {
 
 	};
 
-	this.newRecLinReg = function () {
+	this.newLloyd = function () {
 	/// <signature>
-	/// <summary> create new recursive linear regression</summary>
-	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
-	/// <returns value ="_recLinRegModel"/>
+	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_lloydModel"/>
 	/// </signature>
 
 	};
@@ -904,12 +959,24 @@ var _analytics = new function () {
 
 	};
 
-	this.newLloyd = function () {
+	this.trainSvmClassify = function () {
 	/// <signature>
-	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
-	/// <param name="_dim" value="_dim">param</param>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+
+	};
+
+	this.newKNearestNeighbors = function () {
+	/// <signature>
+	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
 	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_lloydModel"/>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <param name="_power" value="_power">param</param>
+	/// <returns value ="_kNearestNeighbors"/>
 	/// </signature>
 
 	};
@@ -939,13 +1006,11 @@ var _analytics = new function () {
 
 	};
 
-	this.trainSvmClassify = function () {
+	this.newRecLinReg = function () {
 	/// <signature>
-	/// <summary> trains binary</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmParameters" value="_svmParameters">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <summary> create new recursive linear regression</summary>
+	/// <param name="_recLinRegParameters" value="_recLinRegParameters">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 
 	};
@@ -1376,6 +1441,17 @@ var la = new function () {
 
 	};
 
+	this.elementByElement = function () {
+	/// <signature>
+	/// <summary> performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+
+	};
+
 	this.genRandom = function () {
 	/// <signature>
 	/// <summary> `num` is a sample from a standard normal random variable</summary>
@@ -1425,6 +1501,49 @@ var la = new function () {
 	/// <param name="_fsp" value="_fsp">param</param>
 	/// <param name="_limit" value="_limit">param</param>
 	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+}
+
+var _sa = new function () {
+	this.saveJson = function () {
+	/// <signature>
+	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+
+	};
+
+	this.onDelete = function () {
+	/// <signature>
+	/// <summary> executes onDelete function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
+	this.name = _str;
+	/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
+	this.val = _objJSON;
+	this.onUpdate = function () {
+	/// <signature>
+	/// <summary> executes onUpdate function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+	this.onAdd = function () {
+	/// <signature>
+	/// <summary> executes onAdd function given an input record `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
@@ -1764,6 +1883,34 @@ var _svmModel = new function () {
 	this.weights = _vec;
 }
 
+var _kNearestNeighbors = new function () {
+	this.predict = function () {
+	/// <signature>
+	/// <summary> predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_object"/>
+	/// </signature>
+
+	};
+
+	this.update = function () {
+	/// <signature>
+	/// <summary> adds a vector `vec` and target `num` (number) to the "training" set</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value =""/>
+	/// </signature>
+
+	};
+
+}
+
 var _utilities = new function () {
 	this.isArray = function () {
 	/// <signature>
@@ -2006,6 +2153,15 @@ var _rs = new function () {
 
 	};
 
+	this.split = function () {
+	/// <signature>
+	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets.</summary>
+	/// <param name="_splitterCallback" value="_splitterCallback">param</param>
+	/// <returns value ="_rsArr"/>
+	/// </signature>
+
+	};
+
 	this.sortById = function () {
 	/// <signature>
 	/// <summary> sort records according to record id; if `asc > 0` sorted in ascending order. Inplace operation.</summary>
@@ -2015,8 +2171,8 @@ var _rs = new function () {
 
 	};
 
-	/// <field name = "store" value = "_storeName"> store of the records</field>
-	this.store = _storeName;
+	/// <field name = "empty" value = "_bool"> `bool = true` when record set is empty</field>
+	this.empty = _bool;
 	this.sort = function () {
 	/// <signature>
 	/// <summary> sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Inplace operation.</summary>
@@ -2106,8 +2262,8 @@ var _rs = new function () {
 
 	/// <field name = "length" value = "_len"> number of records in the set</field>
 	this.length = _len;
-	/// <field name = "empty" value = "_bool"> `bool = true` when record set is empty</field>
-	this.empty = _bool;
+	/// <field name = "store" value = "_storeName"> store of the records</field>
+	this.store = _storeName;
 	this.aggr = function () {
 	/// <signature>
 	/// <summary> returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set</summary>
@@ -3013,10 +3169,82 @@ var qm = new function () {
 
 	};
 
-	this.addStreamAggr = function () {
+	this.getStreamAggr = function () {
 	/// <signature>
-	/// <summary> add new Stream Aggregate to one or more stores; stream aggregate is passed paramJSON JSon</summary>
+	/// <summary> gets the stream aggregate `sa` given name (string).</summary>
+	/// <param name="_saName" value="_saName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	};
+
+	this.newStreamAggr = function () {
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.</summary>
 	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.</summary>
+	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.</summary>
+	/// <param name="_paramJSON" value="_paramJSON">param</param>
+	/// <param name="_storeNameArr" value="_storeNameArr">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.</summary>
+	/// <param name="_funObj" value="_funObj">param</param>
+	/// <param name="_storeNameArr" value="_storeNameArr">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <param name="_storeName" value="_storeName">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	/// <signature>
+	/// <summary> create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.</summary>
+	/// <param name="_ftrExtObj" value="_ftrExtObj">param</param>
+	/// <param name="_storeNameArr" value="_storeNameArr">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+
+	};
+
+	this.printStreamAggr = function () {
+	/// <signature>
+	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
+	/// <param name="_store" value="_store">param</param>
 	/// <returns value =""/>
 	/// </signature>
 
@@ -3030,11 +3258,10 @@ var qm = new function () {
 
 	};
 
-	this.printStreamAggr = function () {
+	this.getStoreList = function () {
 	/// <signature>
-	/// <summary> prints all current field values of every stream aggregate attached to the store `store`</summary>
-	/// <param name="_store" value="_store">param</param>
-	/// <returns value =""/>
+	/// <summary> an array of strings listing all existing stores</summary>
+	/// <returns value ="_strArr"/>
 	/// </signature>
 
 	};
@@ -3064,9 +3291,9 @@ var qm = new function () {
 
 	};
 
-	this.getStoreList = function () {
+	this.getStreamAggrNames = function () {
 	/// <signature>
-	/// <summary> an array of strings listing all existing stores</summary>
+	/// <summary> gets the stream aggregate names of stream aggregates in the default stream aggregate base.</summary>
 	/// <returns value ="_strArr"/>
 	/// </signature>
 
@@ -3539,3 +3766,12 @@ var _sw = new function () {
 
 }
 
+
+// Manual override
+
+_vec[0] = 1; // vec is indexed and returns numbers
+_intVec[0] = 1; // vec is indexed and returns numbers
+_spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
+_rs[0] = _rec; // record set at index returns a record
+_store[0] = _rec; // store index operator returns a record
+_addIntellisenseVar("_rsArr", "[_rs]");

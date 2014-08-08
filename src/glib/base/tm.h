@@ -516,4 +516,5 @@ public:
 	double GetTimerSumSec() const;
 	double GetTimerSec(const int& TimerId) const;
 	void PrintReport(const TStr& ProfileNm = "") const;
+	void PrintReport(const PNotify& Notify, const TStr& ProfileNm = "") const;
 };

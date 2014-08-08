@@ -46,13 +46,13 @@ Resampled.addTrigger({
     onAdd: function (val) {
         // Get the latest value for EMAs and store them along the 
         // record in the Resampled store.
-        val.Ema1 = Resampled.getStreamAggr("ema1m").EMA;
-        val.Ema2 = Resampled.getStreamAggr("ema10m").EMA;
+        val.Ema1 = Resampled.getStreamAggr("ema1m").val.Val;
+        val.Ema2 = Resampled.getStreamAggr("ema10m").val.Val;
         // See what the current model would predict given
         // the new record, and store this for evaluation later on.
         val.Prediction = linreg.predict(ftrSpace.ftrVec(val))
         // Get the id of the record from a minute ago.
-        var trainRecId = Resampled.getStreamAggr("delay").last;
+        var trainRecId = Resampled.getStreamAggr("delay").val.last;
         // Update the model, once we have at leats 1 minute worth of data
         if (trainRecId > 0) { linreg.learn(ftrSpace.ftrVec(Resampled[trainRecId]), val.Value); }
         // Get the current value and compare against prediction for a minute ago

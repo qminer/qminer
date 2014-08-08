@@ -212,6 +212,7 @@ public:
 	TJoinSeq(const TWPt<TBase>& Base, const uint& _StartStoreId, const PJsonVal& JoinSeqVal);
 	
 	TJoinSeq(TSIn& SIn): StartStoreId(SIn), JoinIdV(SIn) { }
+	void Load(TSIn& SIn) { StartStoreId.Load(SIn); JoinIdV.Load(SIn); }
 	void Save(TSOut& SOut) const { StartStoreId.Save(SOut); JoinIdV.Save(SOut); }
 
 	/// Is the join sequence valid
@@ -232,6 +233,10 @@ public:
 
 	/// Readable string representation of join sequence
 	TStr GetJoinPathStr(const TWPt<TBase>& Base, const TStr& SepStr = ".") const;
+
+	int GetPrimHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetPrimHashCd(), JoinIdV.GetPrimHashCd()); }
+	int GetSecHashCd() const {return TPairHashImpl::GetHashCd(StartStoreId.GetSecHashCd(), JoinIdV.GetSecHashCd()); }
+	
 };
 typedef TVec<TJoinSeq> TJoinSeqV;
 
@@ -343,32 +348,31 @@ typedef TPt<TStoreIter> PStoreIter;
 ///////////////////////////////
 /// Store Vector Iterator.
 /// Useful for stores using TVec to store records
-/// Example: TStrV TestV; PStoreIter TestIter = TStoreIterVec::New(TestV.Len());
 class TStoreIterVec : public TStoreIter {
 private:
 	/// True before first call to Next()
 	bool FirstP;
+    /// True when we reach the end
+    bool LastP;
+    /// Direction (increment or decrement)
+    bool AscP;
 	/// Current Record ID
 	uint64 RecId;
-	/// Number of all records
-	uint64 RecIds;
+	/// End
+	uint64 EndId;
 
     /// Empty vector
 	TStoreIterVec();
-    /// Vector has _RecIds with first ID being 0
-	TStoreIterVec(const uint64& _RecIds);    
     /// Vector has elements from MinId till MaxId
-	TStoreIterVec(const uint64& MinId, const uint64& MaxId);
+	TStoreIterVec(const uint64& _StartId, const uint64& _EndId, const bool& _AscP);
 public:
 	/// Create new iterator for empty vector
 	static PStoreIter New() { return new TStoreIterVec; }
-	/// Create new iterator for vector, which starts with RecId = 0
-	static PStoreIter New(const uint64& RecIds) { return new TStoreIterVec(RecIds); }
 	/// Create new iterator for vector, which starts with RecId = MinId
-	static PStoreIter New(const uint64& MinId, const uint64& MaxId) { return new TStoreIterVec(MinId, MaxId); }
+	static PStoreIter New(const uint64& StartId, const uint64& EndId, const bool& AscP);
 
 	bool Next();
-	uint64 GetRecId() const { Assert(!FirstP); return RecId; }
+	uint64 GetRecId() const { QmAssert(!FirstP); return RecId; }
 };
 
 ///////////////////////////////
@@ -578,6 +582,15 @@ public:
 	virtual PRecSet GetRndRecs(const uint64& SampleSize);
 	/// Checks if no records in the store
 	bool Empty() const { return (GetRecs() == uint64(0)); }
+
+    /// Gets the first record in the store (order defined by store implementation)
+    virtual uint64 FirstRecId() const { throw TQmExcept::New("Not implemented"); }
+    /// Gets the last record in the store (order defined by store implementation)
+    virtual uint64 LastRecId() const { throw TQmExcept::New("Not implemented"); };
+    /// Gets forward moving iterator (order defined by store implementation)
+    virtual PStoreIter ForwardIter() const { throw TQmExcept::New("Not implemented"); };
+    /// Gets backward moving iterator (order defined by store implementation)
+    virtual PStoreIter BackwardIter() const { throw TQmExcept::New("Not implemented"); };
     
 	/// Add new record provided as JSon
 	virtual uint64 AddRec(const PJsonVal& RecVal) = 0;
@@ -2377,7 +2390,7 @@ private:
     /// Stream aggregate New constructor router
 	static TFunRouter<PStreamAggr, TNewF> NewRouter;   
     /// Load constructor delegate
-	typedef PStreamAggr (*TLoadF)(const TWPt<TBase>& Base, TSIn& SIn);   
+	typedef PStreamAggr(*TLoadF)(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
     /// Stream aggregate Load constructor router
 	static TFunRouter<PStreamAggr, TLoadF> LoadRouter;
 public:
@@ -2403,7 +2416,7 @@ protected:
     /// Create new stream aggregate from JSon parameters
 	TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal);       
 	/// Load basic class of stream aggregate
-	TStreamAggr(const TWPt<TBase>& _Base, TSIn& SIn);
+	TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	
     /// Get pointer to QMiner base
     const TWPt<TBase>& GetBase() const { return Base; }
@@ -2414,7 +2427,7 @@ public:
 	virtual ~TStreamAggr() { }
     
 	/// Load stream aggregate from stream
-	static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn);
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
 
@@ -2438,7 +2451,7 @@ public:
 	/// Serialization current status to JSon
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
-	/// Unique ID of the trigger
+	/// Unique ID of the stream aggregate
 	const TStr& GetGuid() const { return Guid; }    
 };
 
@@ -2479,8 +2492,11 @@ namespace TStreamAggrOut {
 	public:
 		// retrieving vector of values from the aggregate
 		virtual int GetFltLen() const = 0;
+		virtual double GetFlt(const TInt& ElN) const = 0;
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
+
+	class IFltVecTm : public IFltVec, public ITm { };
 
 	class INmFlt {
 	public:
@@ -2581,6 +2597,8 @@ private:
     THash<TStr, PStore> StoreH;
 	// stream aggregate base for each store
     TVec<PStreamAggrBase> StreamAggrBaseV;
+	// default stream aggregate base (store independent)
+	PStreamAggrBase StreamAggrDefaultBase;
 	// operators
 	THash<TStr, POp> OpH;
 
@@ -2637,13 +2655,17 @@ public:
 
 	// stream aggregates
 	const PStreamAggrBase& GetStreamAggrBase(const uint& StoreId) const;
+	const PStreamAggrBase& GetStreamAggrBase() const;
 	bool IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
+	bool IsStreamAggr(const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const;
 	const PStreamAggr& GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const;
+	const PStreamAggr& GetStreamAggr(const TStr& StreamAggrNm) const;
 	void AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TUIntV& StoreIdV, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStr& StoreNm, const PStreamAggr& StreamAggr);
 	void AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr);
+	void AddStreamAggr(const PStreamAggr& StreamAggr);
     // aggregate records
 	void Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV);
 

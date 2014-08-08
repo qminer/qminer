@@ -55,7 +55,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>SWTIMER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>EXTENDEDOPENFILES;SWTIMER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>INTEL;LAPACKE;EIGEN;BLAS;CBLAS;</UndefinePreprocessorDefinitions>
     </ClCompile>
@@ -76,7 +76,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>SWTIMER;SW_STEMMER;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>EXTENDEDOPENFILES;SWTIMER;SW_STEMMER;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>INTEL;LAPACKE;EIGEN;BLAS;CBLAS;</UndefinePreprocessorDefinitions>
     </ClCompile>
@@ -131,6 +131,7 @@
     <None Include="src\qminer\process.js" />
     <None Include="src\qminer\qminer.js" />
     <None Include="src\qminer\spMat.js" />
+    <None Include="src\qminer\store.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -153,6 +154,7 @@
     <Copy SourceFiles="src\qminer\qminer.js" DestinationFiles="build\qminer.js" />
     <Copy SourceFiles="src\qminer\linalg.js" DestinationFiles="build\linalg.js" />
     <Copy SourceFiles="src\qminer\spMat.js" DestinationFiles="build\spMat.js" />
+    <Copy SourceFiles="src\qminer\store.js" DestinationFiles="build\store.js" />
     <Copy SourceFiles="src\qminer\console.js" DestinationFiles="build\console.js" />
     <Copy SourceFiles="src\qminer\fs.js" DestinationFiles="build\fs.js" />
     <Copy SourceFiles="src\qminer\http.js" DestinationFiles="build\http.js" />

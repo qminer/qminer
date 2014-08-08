@@ -270,9 +270,11 @@ void TBow::ParseJson(const TWPt<TBase>& Base, const PRecSet& RecSet,
         PSwSet SwSet = JsonVal->IsObjKey("stopwords") ? 
             TSwSet::ParseJson(JsonVal->GetObjKey("stopwords")) :
             TSwSet::New(swstEn523); 
+        // tokenizor
+        PTokenizer Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     	// prepare feature extractor
         FtrExt = TFtrExts::TBagOfWords::New(Base, JoinSeq, 
-            FieldId, TFtrExts::bowmConcat, SwSet, Stemmer);
+            FieldId, TFtrExts::bowmConcat, Tokenizer);
     } else {
 		FtrExt = TFtrExts::TMultinomial::New(Base, JoinSeq, FieldId);
     }
@@ -502,8 +504,8 @@ TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base,
     TimeWndMSecs = TJsonVal::GetMSecsFromJsonVal(ParamVal->GetObjKey("window"));
 }
 
-TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base, TSIn& SIn): 
-	TStreamAggr(Base, SIn), TimeStore(TStore::LoadById(Base, SIn)), 
+TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) :
+	TStreamAggr(Base, SABase, SIn), TimeStore(TStore::LoadById(Base, SIn)), 
     TimeFieldId(SIn), TimeWndMSecs(SIn) { }
 
 void TTimeStreamAggr::Save(TSOut& SOut) const {
@@ -552,7 +554,7 @@ TCount::TCount(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TStore>& 
 
 TCount::TCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TTimeStreamAggr(Base, ParamVal) { }
 
-TCount::TCount(const TWPt<TBase>& Base, TSIn& SIn): TTimeStreamAggr(Base, SIn), Count(SIn) { }
+TCount::TCount(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TTimeStreamAggr(Base, SABase, SIn), Count(SIn) { }
 
 PStreamAggr TCount::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
         const TWPt<TStore>& Store, const int& TimeFieldId, const uint64 TimeWndMSecs) {
@@ -564,8 +566,8 @@ PStreamAggr TCount::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TCount(Base, ParamVal); 
 }
 
-PStreamAggr TCount::Load(const TWPt<TBase>& Base, TSIn& SIn) { 
-    return new TCount(Base, SIn); 
+PStreamAggr TCount::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+    return new TCount(Base, SABase, SIn); 
 }
 
 void TCount::Save(TSOut& SOut) const {
@@ -637,6 +639,9 @@ TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const PJsonVal& ParamV
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
 }
 
+TTimeSeriesTick::TTimeSeriesTick(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
+	TimeFieldId(SIn), TickValFieldId(SIn), InitP(SIn), TickVal(SIn), TmMSecs(SIn) { }
+
 PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const TStr& StoreNm, 
         const TStr& AggrNm, const TStr& TimeFieldNm, const TStr& TickValFieldNm) {
 
@@ -647,10 +652,27 @@ PStreamAggr TTimeSeriesTick::New(const TWPt<TBase>& Base, const PJsonVal& ParamV
     return new TTimeSeriesTick(Base, ParamVal);
 }
 
+PStreamAggr TTimeSeriesTick::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TTimeSeriesTick(Base, SABase, SIn);
+}
+
+void TTimeSeriesTick::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff
+	TimeFieldId.Save(SOut);
+	TickValFieldId.Save(SOut);
+	InitP.Save(SOut);
+	TickVal.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
 PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("GenericTick", TickVal);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", TickVal);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -661,13 +683,13 @@ void TTimeSeriesWinBuf::OnAddRec(const TRec& Rec) {
 	InVal = Rec.GetFieldFlt(TickValFieldId);
 	InTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
     InitP = true;
-    //empty the former outgoing value vector
+    // empty the former outgoing value vector
     OutValV.Clr(true); OutTmMSecsV.Clr(true);
     int ValLen = AllValV.Len();
     // update the interval    
     AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
     
-    //Prepare the vector of elements that are going to be removed from the window
+    // prepare the vector of elements that are going to be removed from the window
     for (int ValN = 0; ValN < ValLen; ValN++) {
         if ((InTmMSecs - AllValV[ValN].Val2) > WinSizeMSecs) { 
             OutValV.Add(AllValV[ValN].Val1);
@@ -675,7 +697,7 @@ void TTimeSeriesWinBuf::OnAddRec(const TRec& Rec) {
         } else { break; }
     }
     
-    //remove all the elements   
+    // remove all the elements   
     if (OutValV.Len() > 0) { AllValV.Del(0, OutValV.Len() - 1); }  
 }
 
@@ -700,9 +722,16 @@ TTimeSeriesWinBuf::TTimeSeriesWinBuf(const TWPt<TBase>& Base, const PJsonVal& Pa
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
-    WinSizeMSecs = ParamVal->GetObjInt("winsize") * 60 * 1000;	 
+	// replacing GetObjInt("winsize"); which supports only int (which is not enough)
+	double TmD = ParamVal->GetObjNum("winsize");
+	WinSizeMSecs = (uint64)TmD;
+	// temporary warning
+	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TTimeSeriesWinBuf not in msecs (< 60000)");
     OutValV = TFltV(); OutTmMSecsV = TUInt64V(); AllValV = TFltUInt64PrV();
 }
+
+TTimeSeriesWinBuf::TTimeSeriesWinBuf(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
+	TimeFieldId(SIn), TickValFieldId(SIn), WinSizeMSecs(SIn), InitP(SIn), InVal(SIn), InTmMSecs(SIn), OutValV(SIn), OutTmMSecsV(SIn), AllValV(SIn)  { }
 
 PStreamAggr TTimeSeriesWinBuf::New(const TWPt<TBase>& Base, const TStr& StoreNm, 
         const TStr& AggrNm, const TStr& TimeFieldNm, const TStr& ValFieldNm, 
@@ -715,12 +744,346 @@ PStreamAggr TTimeSeriesWinBuf::New(const TWPt<TBase>& Base, const PJsonVal& Para
     return new TTimeSeriesWinBuf(Base, ParamVal);
 }
 
+PStreamAggr TTimeSeriesWinBuf::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TTimeSeriesWinBuf(Base, SABase, SIn);
+}
+
+void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff
+	TimeFieldId.Save(SOut);
+	TickValFieldId.Save(SOut);
+	WinSizeMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InVal.Save(SOut);
+	InTmMSecs.Save(SOut);
+	OutValV.Save(SOut);
+	OutTmMSecsV.Save(SOut);
+	AllValV.Save(SOut);
+}
+
 PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("LastVal", InVal);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", InVal);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(false, "T"));
     /*Val->AddToObj("FirstVal", LastTickVal);
 	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(LastTmMSecs).GetWebLogDateTimeStr(false, "T"));*/
+	return Val;
+}
+
+///////////////////////////////
+// Moving Window Buffer Count.
+TWinBufCount::TWinBufCount(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
+	TStreamAggr(Base, AggrNm) {
+
+	InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWinBufCount::TWinBufCount(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWinBufCount::TWinBufCount(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : 
+	TStreamAggr(Base, SABase, SIn) {
+
+	TStr InAggrNm; InAggrNm.Load(SIn);
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
+
+	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+	return new TWinBufCount(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+}
+
+PStreamAggr TWinBufCount::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
+
+	return new TWinBufCount(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+}
+
+PStreamAggr TWinBufCount::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWinBufCount(Base, ParamVal);
+}
+
+
+PStreamAggr TWinBufCount::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TWinBufCount(Base, SABase, SIn);
+}
+
+void TWinBufCount::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+PJsonVal TWinBufCount::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("Val", InAggrVal->GetN());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	return Val;
+}
+
+///////////////////////////////
+// Moving Window Buffer Summa.
+void TWinBufSum::OnAddRec(const TRec& Rec) {
+	TFltV ValV; InAggrVal->GetOutFltV(ValV);
+	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+	if (InAggr->IsInit()) {
+		Sum.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+			ValV, TmMSecsV);
+	}
+}
+
+TWinBufSum::TWinBufSum(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
+	TStreamAggr(Base, AggrNm) {		
+	InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWinBufSum::TWinBufSum(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufSum::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
+
+	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+	return new TWinBufSum(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+}
+
+PStreamAggr TWinBufSum::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
+
+	return new TWinBufSum(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+}
+
+PStreamAggr TWinBufSum::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWinBufSum(Base, ParamVal);
+}
+
+TWinBufSum::TWinBufSum(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
+	Sum(SIn)  { 
+	TStr InAggrNm; InAggrNm.Load(SIn);	
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufSum::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TWinBufSum(Base, SABase, SIn);
+}
+
+void TWinBufSum::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff	
+	Sum.Save(SOut);
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);	
+}
+
+PJsonVal TWinBufSum::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("Val", Sum.GetSum());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Sum.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	return Val;
+}
+
+///////////////////////////////
+// Moving Window Buffer Min.
+void TWinBufMin::OnAddRec(const TRec& Rec) {
+	TFltV ValV; InAggrVal->GetOutFltV(ValV);
+	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);	
+	if (InAggr->IsInit()) {		
+		Min.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+			ValV, TmMSecsV);
+	}
+}
+
+TWinBufMin::TWinBufMin(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
+	TStreamAggr(Base, AggrNm) {
+	InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWinBufMin::TWinBufMin(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufMin::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
+
+	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+	return new TWinBufMin(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+}
+
+PStreamAggr TWinBufMin::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
+
+	return new TWinBufMin(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+}
+
+PStreamAggr TWinBufMin::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWinBufMin(Base, ParamVal);
+}
+
+TWinBufMin::TWinBufMin(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
+Min(SIn)  {
+	TStr InAggrNm; InAggrNm.Load(SIn);
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufMin::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TWinBufMin(Base, SABase, SIn);
+}
+
+void TWinBufMin::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff	
+	Min.Save(SOut);
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+PJsonVal TWinBufMin::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("Val", Min.GetMin());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Min.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	return Val;
+}
+
+///////////////////////////////
+// Moving Window Buffer Min.
+void TWinBufMax::OnAddRec(const TRec& Rec) {
+	TFltV ValV; InAggrVal->GetOutFltV(ValV);
+	TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);
+	if (InAggr->IsInit()) {
+		Max.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
+			ValV, TmMSecsV);
+	}
+}
+
+TWinBufMax::TWinBufMax(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
+	const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) :
+	TStreamAggr(Base, AggrNm) {
+	InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TWinBufMax::TWinBufMax(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
+	// parse out input aggregate
+	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufMax::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
+
+	const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+	return new TWinBufMax(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));
+}
+
+PStreamAggr TWinBufMax::New(const TWPt<TBase>& Base, const TStr& AggrNm,
+	const uint64& TmWinSize, const TStr& InAggrNm, const TWPt<TStreamAggrBase> SABase) {
+
+	return new TWinBufMax(Base, AggrNm, TmWinSize, InAggrNm, SABase);
+}
+
+PStreamAggr TWinBufMax::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+	return new TWinBufMax(Base, ParamVal);
+}
+
+TWinBufMax::TWinBufMax(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
+Max(SIn)  {
+	TStr InAggrNm; InAggrNm.Load(SIn);
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
+PStreamAggr TWinBufMax::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TWinBufMax(Base, SABase, SIn);
+}
+
+void TWinBufMax::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff	
+	Max.Save(SOut);
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+PJsonVal TWinBufMax::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewObj();
+	Val->AddToObj("Val", Max.GetMax());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Max.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -742,7 +1105,7 @@ TMa::TMa(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
     InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
     InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
 TMa::TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ma(ParamVal) {
@@ -753,13 +1116,23 @@ TMa::TMa(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, P
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+TMa::TMa(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn), Ma(SIn) {
+	TStr InAggrNm; InAggrNm.Load(SIn);	
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
 }
 
 PStreamAggr TMa::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
         const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
     
-    const uchar InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+    const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     return new TMa(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));        
 }
 
@@ -773,10 +1146,24 @@ PStreamAggr TMa::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TMa(Base, ParamVal);
 }
 
+PStreamAggr TMa::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TMa(Base, SABase, SIn);
+}
+
+void TMa::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	Ma.Save(SOut);
+	// save our stuff
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);	
+}
+
 PJsonVal TMa::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MA", Ma.GetMa());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Ma.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Ma.GetMa());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ma.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -813,12 +1200,23 @@ TEma::TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& TmInterval
 TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
     // parse out input aggregate
     TStr InStoreNm = ParamVal->GetObjStr("store");
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");
+    TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
     PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
     QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+}
+
+TEma::TEma(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn), Ema(SIn) {
+	TStr InAggrNm; InAggrNm.Load(SIn);
+	InTypeId.Load(SIn);
+	
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
 }
 
 PStreamAggr TEma::New(const TWPt<TBase>& Base, const TStr& AggrNm, 
@@ -840,10 +1238,25 @@ PStreamAggr TEma::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TEma(Base, ParamVal);
 }
 
+PStreamAggr TEma::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TEma(Base, SABase, SIn);
+}
+
+void TEma::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	Ema.Save(SOut);
+	// save our stuff
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+	InTypeId.Save(SOut);
+}
+
 PJsonVal TEma::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("EMA", Ema.GetEma());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Ema.GetEma());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -852,9 +1265,11 @@ PJsonVal TEma::SaveJson(const int& Limit) const {
 void TVar::OnAddRec(const TRec& Rec) {
     TFltV ValV; InAggrVal->GetOutFltV(ValV);
     TUInt64V TmMSecsV; InAggrVal->GetOutTmMSecsV(TmMSecsV);        
-	if (InAggr->IsInit()) {
-		Var.Update(InAggrVal->GetInFlt(), InAggrVal->GetInTmMSecs(),
-                ValV, TmMSecsV, InAggrVal->GetN());
+	if (InAggr->IsInit()) {		
+		TInt N = InAggrVal->GetN();
+		TFlt InFlt = InAggrVal->GetInFlt();
+		uint64 InTmMSecs = InAggrVal->GetInTmMSecs();
+		Var.Update(InFlt, InTmMSecs, ValV, TmMSecsV, N);		
 	}
 }
 
@@ -865,24 +1280,24 @@ TVar::TVar(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize,
     InAggr = dynamic_cast<TStreamAggr*>(SABase->GetStreamAggr(InAggrNm)());
     QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
     InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(SABase->GetStreamAggr(InAggrNm)());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
 }
 
-TVar::TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Var(ParamVal) {
+TVar::TVar(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Var() {
     // parse out input aggregate
     TStr InStoreNm = ParamVal->GetObjStr("store");
     TStr InAggrNm = ParamVal->GetObjStr("inAggr");
     PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
-    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
-	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);	
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());	
+    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);	
 }
 
 PStreamAggr TVar::New(const TWPt<TBase>& Base, const TStr& AggrNm,         
         const uint64& TmWinSize, const TStr& InStoreNm, const TStr& InAggrNm) {
     
-    const uchar InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+    const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     return new TVar(Base, AggrNm, TmWinSize, InAggrNm, Base->GetStreamAggrBase(InStoreId));        
 }
 
@@ -896,11 +1311,37 @@ PStreamAggr TVar::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TVar(Base, ParamVal);
 }
 
+TVar::TVar(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : 
+	TStreamAggr(Base, SABase, SIn), Var(SIn)  { 
+
+	TStr InAggrNm; InAggrNm.Load(SIn);
+
+	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
+	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
+	QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTmIO*>(_InAggr());
+	QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTmIO interface: " + InAggrNm);
+}
+
+PStreamAggr TVar::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	return new TVar(Base, SABase, SIn);
+}
+
+void TVar::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	// save our stuff
+	Var.Save(SOut);
+	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
 PJsonVal TVar::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 
-	Val->AddToObj("VAR", Var.GetM2());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Var.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Var.GetM2());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Var.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -952,14 +1393,12 @@ TCov::TCov(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
 
 PStreamAggr TCov::New(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
         const TStr& InStoreNm, const TStr& InAggrNmX, const TStr& InAggrNmY) {
-    
-    const uchar InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
+    const uint InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     return new TCov(Base, AggrNm, TmWinSize, InAggrNmX, InAggrNmY, Base->GetStreamAggrBase(InStoreId));        
 }
 
 PStreamAggr TCov::New(const TWPt<TBase>& Base, const TStr& AggrNm, const uint64& TmWinSize, 
         const TStr& InAggrNmX, const TStr& InAggrNmY, const TWPt<TStreamAggrBase> SABase) {
-    
     return new TCov(Base, AggrNm, TmWinSize, InAggrNmX, InAggrNmY, SABase);        
 }
 
@@ -969,8 +1408,8 @@ PStreamAggr TCov::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 
 PJsonVal TCov::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("COV", Cov.GetCov());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Cov.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Cov.GetCov());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Cov.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1030,7 +1469,7 @@ TCorr::TCorr(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Bas
     InitInAggr(SABase, InAggrNmCov, InAggrNmVarX, InAggrNmVarY);
 }
 
-TCorr::TCorr(const TWPt<TBase>& Base, TSIn& SIn): TStreamAggr(Base, SIn) {
+TCorr::TCorr(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn) {
     //TODO
     Fail;
 }
@@ -1067,8 +1506,8 @@ void TCorr::Save(TSOut& SOut) const {
 
 PJsonVal TCorr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("CORR", Corr);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Corr);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1093,24 +1532,15 @@ TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm,
 	OutFieldNm = "Mer" + TGuid::GenGuid(); OutFieldNm.ChangeChAll('-','_');
     Interpolator = Interpolator_;    
 }
-//TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, TSIn& SIn): 
-//    InStoreId(SIn), InFieldId(SIn), OutFieldNm(SIn), Interpolator(SIn) { }
-//void TMergerFieldMap::Save(TSOut& SOut) const {
-//	InStoreId.Save(SOut);
-//	InFieldId.Save(SOut);
-//	OutFieldNm.Save(SOut);
-//	Interpolator.Save(SOut);
-//	GetInterpolator().Save(SOut);
-//}
 
 //////////////////////////////////////////////
 // StMerger
 TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
-			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& Past, const TStrV& InStoreNmV,
-			const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV):
-				TQm::TStreamAggr(Base, AggrNm) {
+			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& Past, const TVec<TStMergerFieldMap>& _FieldMapV, 
+			const TStrV& InterpV):
+				TQm::TStreamAggr(Base, AggrNm), FieldMapV(_FieldMapV) {
 
-	InitMerger(Base, OutStoreNm, OutTmFieldNm, CreateStoreP, Past, InStoreNmV, InFldNmV, OutFldNmV, InterpV);
+	InitMerger(Base, OutStoreNm, OutTmFieldNm, CreateStoreP, Past, InterpV);
 }
 
 TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
@@ -1118,35 +1548,82 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	
 	QmAssertR(ParamVal->IsObjKey("outStore"), "Field 'outStore' missing!");
 	QmAssertR(ParamVal->IsObjKey("timestamp"), "Field 'timestamp' missing!");
-	QmAssertR(ParamVal->IsObjKey("mergingMapV"), "Field 'mergingMapV' missing!");
+	QmAssertR(ParamVal->IsObjKey("fields"), "Field 'fields' missing!");
 
 	//input parameters
     TStr OutStoreNm = ParamVal->GetObjStr("outStore");
+	TWPt<TStore> OutStore = Base->GetStoreByStoreNm(OutStoreNm);
 	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
 	const bool Past = ParamVal->GetObjBool("onlyPast", false);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
-
-	TStrV InStoreNmV;
-	TStrV InFldNmV;
-	TStrV OutFldNmV;
-	TStrV InterpV;
+	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
+	TStrV InterpNmV;
 
 	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
 		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
 
-		TStr InStoreNm = FieldVal->GetObjStr("inStore");
+		PJsonVal SourceVal = FieldVal->GetObjKey("source");
+		TJoinSeq JoinSeq;
 		TStr InFieldNm = FieldVal->GetObjStr("inField");
 		TStr OutFieldNm = FieldVal->GetObjStr("outField");
+		TStr TimeFieldNm = FieldVal->GetObjStr("timestamp");
 		TStr InterpNm = FieldVal->GetObjStr("interpolation");
+		InterpNmV.Add(InterpNm);
 
-		InStoreNmV.Add(InStoreNm);
-		InFldNmV.Add(InFieldNm);
-		OutFldNmV.Add(OutFieldNm);
-		InterpV.Add(InterpNm);
+		TWPt<TStore> StartStore;
+
+		if (SourceVal->IsStr()) {
+			// we have just store name
+			TStr inStoreNm = SourceVal->GetStr();
+			StartStore = Base->GetStoreByStoreNm(inStoreNm);
+			TInt TimeField = StartStore->GetFieldId(TimeFieldNm);
+			TInt OutFieldId = OutStore->GetFieldId(OutFieldNm);
+
+			JoinSeq = TJoinSeq(Base->GetStoreByStoreNm(inStoreNm)->GetStoreId());			
+			TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
+			TInt InFieldId = EndStore->GetFieldId(InFieldNm);
+
+			TStMergerFieldMap MergerFieldMap(InFieldId, JoinSeq, TimeField, OutFieldId);
+			FieldMapV.Add(MergerFieldMap);
+			
+		} else if (SourceVal->IsObj()) {
+			// get store
+			TStr inStoreNm = SourceVal->GetObjStr("store");   
+			StartStore = Base->GetStoreByStoreNm(inStoreNm);
+			TInt TimeField = StartStore->GetFieldId(TimeFieldNm);
+			TInt OutFieldId = OutStore->GetFieldId(OutFieldNm);
+			// get joins if any given
+			if (SourceVal->IsObjKey("join")) {
+				JoinSeq = TJoinSeq(Base, Base->GetStoreByStoreNm(inStoreNm)->GetStoreId(), SourceVal->GetObjKey("join"));				
+				TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
+				TInt InFieldId = EndStore->GetFieldId(InFieldNm);
+
+				TStMergerFieldMap MergerFieldMap(InFieldId, JoinSeq, TimeField, OutFieldId);
+				FieldMapV.Add(MergerFieldMap);
+			} else {
+				JoinSeq = TJoinSeq(Base->GetStoreByStoreNm(inStoreNm)->GetStoreId());
+				TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
+				TInt InFieldId = EndStore->GetFieldId(InFieldNm);
+
+				TStMergerFieldMap MergerFieldMap(InFieldId, JoinSeq, TimeField, OutFieldId);
+				FieldMapV.Add(MergerFieldMap);
+			}
+		}  
+	
+		TWPt<TStore> EndStore = JoinSeq.GetEndStore(Base);
+
+		// check if timestamp field exsists in in store
+		QmAssertR(StartStore->IsFieldNm(TimeFieldNm), "Field " + InFieldNm + " does not exist in store: " + StartStore->GetStoreNm() + "!");
+		// check if the input field exists
+		QmAssertR(EndStore->IsFieldNm(InFieldNm), "Field " + InFieldNm + " does not exist in store: " + EndStore->GetStoreNm() + "!");
+		// check if the output field exists in the out store
+		QmAssertR(OutStore->IsFieldNm(OutFieldNm), "Field " + OutFieldNm + " does not exist in the output store!");
+		// check if the output field is of correct type
+		QmAssertR(OutStore->GetFieldDesc(OutStore->GetFieldId(OutFieldNm)).GetFieldType() == TFieldType::oftFlt, "Field " + OutFieldNm + " is of incorrect type!");
+
 	}
 
-	InitMerger(Base, OutStoreNm, TimeFieldNm, CreateStoreP, Past, InStoreNmV, InFldNmV, OutFldNmV, InterpV);
+	InitMerger(Base, OutStoreNm, TimeFieldNm, CreateStoreP, Past, InterpNmV);
 }
 
 void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
@@ -1174,16 +1651,13 @@ void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
 	TStorage::CreateStoresFromSchema(TStreamAggr::GetBase(), JsonStore, 1024);
 }
 
-TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
-		TStreamAggr(Base, SIn),
-
+TStMerger::TStMerger(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) :
+		TStreamAggr(Base, SABase, SIn),
 		OutStore(TStore::LoadById(Base, SIn)),
 		TimeFieldId(SIn),
-		InTmFldIdV(SIn),
-		InFldIdV(SIn),
 		OutFldNmV(SIn),
+		FieldMapV(SIn),
 		InterpV(SIn),
-		StoreIdFldIdPrBuffIdxH(SIn),
 		StoreIdFldIdVH(SIn),
 		NInFlds(SIn),
 		Buff(SIn),
@@ -1196,9 +1670,9 @@ TStMerger::TStMerger(const TWPt<TBase>& Base, TSIn& SIn):
 
 PStreamAggr TStMerger::New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 		const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast,
-		const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV,
+		const TVec<TStMergerFieldMap>& FieldMapV,
 		const TStrV& InterpV) {
-	return new TStMerger(Base, AggrNm, OutStoreNm, OutTmFieldNm, CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, OutFldNmV, InterpV);
+	return new TStMerger(Base, AggrNm, OutStoreNm, OutTmFieldNm, CreateStoreP, OnlyPast, FieldMapV, InterpV);
 }
 
 PStreamAggr TStMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
@@ -1207,14 +1681,11 @@ PStreamAggr TStMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 
 void TStMerger::Save(TSOut& SOut) const {
 	TStreamAggr::Save(SOut);
-	
 	OutStore->SaveId(SOut);
 	TimeFieldId.Save(SOut);
-	InTmFldIdV.Save(SOut);
-	InFldIdV.Save(SOut);
 	OutFldNmV.Save(SOut);
+	FieldMapV.Save(SOut);
 	InterpV.Save(SOut);
-	StoreIdFldIdPrBuffIdxH.Save(SOut),
 	StoreIdFldIdVH.Save(SOut),
 	NInFlds.Save(SOut);
 	Buff.Save(SOut);
@@ -1228,55 +1699,26 @@ void TStMerger::Save(TSOut& SOut) const {
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Merger", 0);
-	Val->AddToObj("UTCTime", 0);
+	Val->AddToObj("Val", 0);
+	Val->AddToObj("Time", 0);
 	return Val;
 }
 
-void TStMerger::InitFld(const TWPt<TQm::TBase> Base, const TStr& InStoreNm, const TStr& InFldNm, const TStr& OutFldNm,
+void TStMerger::InitFld(const TWPt<TQm::TBase> Base, const TStMergerFieldMap& FieldMap, 
 		const TStr& InterpNm) {
-
-	QmAssertR(Base->IsStoreNm(InStoreNm), "Input store " + InStoreNm + " does not exist!");
-
-	// configure in time field
-	const TWPt<TQm::TStore>& InStore = Base->GetStoreByStoreNm(InStoreNm);
-	const uint InStoreId = InStore->GetStoreId();
-	const int InFldId = InStore->GetFieldId(InFldNm);
-
-	TIntV InTmFldV = InStore->GetFieldIdV(TFieldType::oftTm);
-
-	TUIntIntPr StoreIdFldIdPr(InStoreId, InFldId);
-
+    uint InStoreId = FieldMap.InFldJoinSeq.GetStartStoreId();
 	if (!StoreIdFldIdVH.IsKey(InStoreId)) {
 		StoreIdFldIdVH.AddDat(InStoreId, TIntSet());
 	}
 
-	// check if there is only 1 time field in the input store
-	QmAssertR(InTmFldV.Len() == 1, "Input store has multiple or zero time fields: " + TInt(InTmFldV.Len()).GetStr() + "!");
-	// check if the input field exists
-	QmAssertR(InStore->IsFieldNm(InFldNm), "Field " + InFldNm + " does not exist in store: " + InStoreNm + "!");
-	// check if the output field exists in the out store
-	QmAssertR(OutStore->IsFieldNm(OutFldNm), "Field " + OutFldNm + " does not exist in the output store!");
-	// check if the output field is of correct type
-	QmAssertR(OutStore->GetFieldDesc(OutStore->GetFieldId(OutFldNm)).GetFieldType() == TFieldType::oftFlt, "Field " + OutFldNm + " is of incorrect type!");
-	// check if this pair <StoreId,InFldId> is already present
-	QmAssertR(!StoreIdFldIdVH.GetDat(InStoreId).IsKey(InFldId), "This <StoreName,FieldName> pair has already been defined: <" + InStoreNm + "," + InFldNm + ">");
-	// check if this pair <StoreId,InFldId> is already present
-	QmAssertR(!StoreIdFldIdPrBuffIdxH.IsKey(StoreIdFldIdPr), "This <StoreName,FieldName> pair has already been defined: <" + InStoreNm + "," + InFldNm + ">");
-
 	// add field to internal structures
 	InterpV.Add(TSignalProc::TInterpolator::New(InterpNm));
-	InTmFldIdV.Add(InTmFldV[0]);
-	InFldIdV.Add(InStore->GetFieldId(InFldNm));
-	OutFldNmV.Add(OutFldNm);
-
-	StoreIdFldIdVH.GetDat(InStoreId).AddKey(InFldId);
-	StoreIdFldIdPrBuffIdxH.AddDat(StoreIdFldIdPr, InterpV.Len()-1);
+	OutFldNmV.Add(OutStore->GetFieldNm(FieldMap.OutFldId));
+	StoreIdFldIdVH.GetDat(InStoreId).AddKey(InterpV.Len()-1);
 }
 
 void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 		const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& Past,
-		const TStrV& InStoreNmV, const TStrV& InFldNmV, const TStrV& OutFldNmV,
 		const TStrV& InterpV) {
 
 	// initialize output store
@@ -1290,7 +1732,7 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 
 	NextInterpTm = TUInt64::Mx;
 	PrevInterpTm = TUInt64::Mx;
-	NInFlds = InStoreNmV.Len();
+	NInFlds = InterpV.Len();
 
 	// exact interpolation
 	OnlyPast = Past;
@@ -1298,13 +1740,11 @@ void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
 
 	TimeFieldId = OutStore->GetFieldId(OutTmFieldNm);
 
-	QmAssertR(InFldNmV.Len() == NInFlds, TStr::Fmt("Invalid number of in fields: %d", InFldNmV.Len()));
-	QmAssertR(OutFldNmV.Len() == NInFlds, TStr::Fmt("Invalid number of out fields: %d", OutFldNmV.Len()));
-	QmAssertR(InterpV.Len() == NInFlds, TStr::Fmt("Invalid number of interpolators: %d", InterpV.Len()));
+	QmAssertR(InterpV.Len() == FieldMapV.Len(), "Invalid number of interpolators: " + TInt::GetStr(InterpV.Len()));
 
 	// initialize in fields
 	for (int i = 0; i < NInFlds; i++) {
-		InitFld(Base, InStoreNmV[i], InFldNmV[i], OutFldNmV[i], InterpV[i]);
+		InitFld(Base, FieldMapV[i], InterpV[i]);
 	}
 
 	SignalsPresentV.Gen(NInFlds);
@@ -1315,23 +1755,31 @@ void TStMerger::OnAddRec(const TQm::TRec& Rec) {
 	const TWPt<TStore> Store = Rec.GetStore();
 	const uint& StoreId = Store->GetStoreId();
 
-	const TIntSet& InFldIdSet = StoreIdFldIdVH.GetDat(StoreId);
+	const TIntSet& FieldMapIdxSet = StoreIdFldIdVH.GetDat(StoreId);
 
 	// iterate through the input fields and call the other OnAddRecMethod
-	int KeyId = InFldIdSet.FFirstKeyId();
-	while (InFldIdSet.FNextKeyId(KeyId)) {
-		const TInt& InFldId = InFldIdSet.GetKey(KeyId);
-		OnAddRec(Rec, TUIntIntPr(StoreId, InFldId));
+	int KeyId = FieldMapIdxSet.FFirstKeyId();
+	while (FieldMapIdxSet.FNextKeyId(KeyId)) {
+		const TInt& FieldMapIdx = FieldMapIdxSet.GetKey(KeyId);
+		OnAddRec(Rec, FieldMapIdx);
 	}
 }
 
-void TStMerger::OnAddRec(const TQm::TRec& Rec, const TUIntIntPr& StoreIdInFldIdPr) {
-	const int InterpIdx = StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
-
+void TStMerger::OnAddRec(const TQm::TRec& Rec, const TInt& FieldMapIdx) {
+	const int InterpIdx = FieldMapIdx; //StoreIdFldIdPrBuffIdxH.GetDat(StoreIdInFldIdPr);
+	
 	// get record time and value
-	TTm Tm; Rec.GetFieldTm(InTmFldIdV[InterpIdx], Tm);
+	TTm Tm; Rec.GetFieldTm(FieldMapV[InterpIdx].TmFldId, Tm);
 	const uint64 RecTm = TTm::GetMSecsFromTm(Tm);
-	const TFlt RecVal = Rec.GetFieldFlt(InFldIdV[InterpIdx]);
+	TRec JoinRec;
+	// do single join and get the record
+	if (FieldMapV[FieldMapIdx].InFldJoinSeq.GetJoinIdV().Len() > 0) {
+		JoinRec = Rec.DoSingleJoin(GetBase(), FieldMapV[FieldMapIdx].InFldJoinSeq.GetJoinIdV());
+	} else {
+		JoinRec = Rec;
+	}
+	// extract the value
+	const TFlt RecVal = JoinRec.GetFieldFlt(FieldMapV[FieldMapIdx].InFldId);
 
 	QmAssertR(NextInterpTm == TUInt64::Mx || RecTm >= NextInterpTm, "Timestamp of the next record is lower then the current interpolation time!");
 
@@ -1629,7 +2077,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStre
 	IntervalMSecs = TJsonVal::GetMSecsFromJsonVal(ParamVal->GetObjKey("interval"));
 }
 
-TResampler::TResampler(const TWPt<TBase>& Base, TSIn& SIn): TStreamAggr(Base, SIn),
+TResampler::TResampler(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
     InStore(TStore::LoadById(Base, SIn)), InFieldIdV(SIn), InterpolatorV(SIn),
     OutStore(TStore::LoadById(Base, SIn)), TimeFieldId(SIn), IntervalMSecs(SIn),
     InterpPointMSecs(SIn) { }
@@ -1663,25 +2111,61 @@ PJsonVal TResampler::SaveJson(const int& Limit) const {
 	return Val;
 }
 
+
+///////////////////////////////
+// Dense Feature Extractor Stream Aggregate (extracts TFltV from records)
+void TFtrExtAggr::OnAddRec(const TRec& Rec) {
+	FtrSpace->GetFullV(Rec, Vec);
+}
+
+TFtrExtAggr::TFtrExtAggr(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) :
+	TStreamAggr(Base, AggrNm) {
+	FtrSpace = _FtrSpace;
+}
+
+PStreamAggr TFtrExtAggr::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TWPt<TFtrSpace>& _FtrSpace) {
+	return new TFtrExtAggr(Base, AggrNm, _FtrSpace);
+}
+
+double TFtrExtAggr::GetFlt(const TInt& ElN) const {
+	QmAssertR(Vec.Len() > ElN, "TFtrExtAggr : GetFlt : index out of bounds");
+	return Vec[ElN]; 
+}
+
+PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
+	PJsonVal Val = TJsonVal::NewArr(Vec);
+	return Val;
+}
+
+
 //////////////////////////////////////////////
 // Composed stream aggregators
-bool TCompositional::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
+bool TCompositional::IsCompositional(const TStr& TypeNm) {
+	if (TypeNm.EqI("itEma")) {
+        return true;
+    }    
+    return false;
+}
+
+void TCompositional::Register(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal) {
 	if (TypeNm.EqI("itEma")) {
 		ItEma(Base, ParamVal);
-		return true;
-	} 
-	return false;	
+	} else {
+        throw TQmExcept::New("Unknown compositional stream aggregate " + TypeNm);
+    }
 };
 
-TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, TInt NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
-	const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
-	TWPt<TQm::TStreamAggrBase>& SABase){
+TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, 
+        const int& NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
+        const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
+        TWPt<TQm::TStreamAggrBase>& SABase){
+    
 	// Table of EMA names - starts with 1, because it will be pushed in RegItEmaMA
 	TStrV ItEmaNames(NumIter);
 	ItEmaNames[0] = Prefix + "_1";
 	// first iteration takes parameter InStoreNm as input name
-	SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[0], TmInterval, Type,
-		InitMinMSecs, InAggrNm, SABase));
+	SABase->AddStreamAggr(TEma::New(Base, ItEmaNames[0], 
+        TmInterval, Type, InitMinMSecs, InAggrNm, SABase));
 	// the rest get previous iteration as input name
 	for (int Iter = 1; Iter < NumIter; Iter++){
 		ItEmaNames[Iter] = Prefix + "_" + TInt::GetStr(Iter + 1);
@@ -1698,65 +2182,12 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
 	TStr InStoreNm = ParamVal->GetObjStr("store");
 	TStr Prefix = ParamVal->GetObjStr("prefix", "itema");
-	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
-	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval,  TSignalProc::etLinear,
-		InitMinMSecs, InAggrNm, Prefix, SABase);
+	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(
+            Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
+	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, 
+        TSignalProc::etLinear, InitMinMSecs, InAggrNm, Prefix, SABase);
 };
 
-void TCompositional::TStMerger(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
-		const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast, const TStrV& InStoreNmV,
-		const TStrV& InFldNmV, const TStrV& OutFldNmV, const TStrV& InterpV) {
-		//TStMerger StMerger(TStMerger::New(Base, StoresAndFieldsV, AggrNm,
-		//	InterpolationsV, NewStoreNm, NewTmFieldNm, false));
+} // TAggrs namespace
 
-	// create a store ID vector and remove duplicates
-	TUIntV StoreIdV;
-	TUIntSet StoreIdSet;
-	for (int StoreN = 0; StoreN < InStoreNmV.Len(); StoreN++) {
-		const TStr& InStoreNm = InStoreNmV[StoreN];
-		const uint StoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
-
-		if (!StoreIdSet.IsKey(StoreId)) {
-			StoreIdV.Add(StoreId);
-			StoreIdSet.AddKey(StoreId);
-		}
-	}
-
-	Base->AddStreamAggr(StoreIdV,
-			TStMerger::New(
-					Base, AggrNm, OutStoreNm, OutTmFieldNm, CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, OutFldNmV, InterpV));
-
-}
-void TCompositional::TStMerger(const TWPt<TBase>& Base, TStr& AggrNm, const PJsonVal& ParamVal) {
-	//input parameters
-	TStr OutStoreNm = ParamVal->GetObjStr("outStore");
-	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
-	const bool OnlyPast = ParamVal->GetObjBool("onlyPast", false);
-	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
-	PJsonVal FieldArrVal = ParamVal->GetObjKey("mergingMapV");
-
-	TStrV InStoreNmV;
-	TStrV InFldNmV;
-	TStrV OutFldNmV;
-	TStrV InterpV;
-
-	for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
-		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
-
-		TStr InStoreNm = FieldVal->GetObjStr("inStore");
-		TStr InFieldNm = FieldVal->GetObjStr("inField");
-		TStr OutFieldNm = FieldVal->GetObjStr("outField");
-		TStr InterpNm = FieldVal->GetObjStr("interpolation");
-
-		InStoreNmV.Add(InStoreNm);
-		InFldNmV.Add(InFieldNm);
-		OutFldNmV.Add(OutFieldNm);
-		InterpV.Add(InterpNm);
-	}
-
-	TCompositional::TStMerger(Base, AggrNm, OutStoreNm, TimeFieldNm, CreateStoreP, OnlyPast, InStoreNmV, InFldNmV, OutFldNmV, InterpV);
-};
-
-}
-
-}
+} // TQm namespace

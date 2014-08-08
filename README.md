@@ -23,8 +23,9 @@ make
 ```
 
 For more detailed installation check the following instructions:
-- [Linux installation](https://github.com/qminer/qminer/wiki/Installation-in-Linux)
-- [Windows installation](https://github.com/qminer/qminer/wiki/Installation-in-Windows)
+- [Linux installation](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
+- [Windows installation](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
+- [Mac OS X installation](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
 
 ## Documentation
 

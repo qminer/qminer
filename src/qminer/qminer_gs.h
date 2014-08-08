@@ -555,12 +555,22 @@ private:
     /// Open mode
 	TFAccess FAccess;
     
-    /// Do we have a primary field which acts as record name
+    /// Do we have a primary field which can act as record name
 	TBool RecNmFieldP;
-    /// Id of primary field
-	TInt RecNmFieldId;
-	/// Hash map from record name to record Id. Used when we have primary field.
-	THash<TStr, TUInt64> RecNmIdH; 
+    /// Id of primary field (-1 if not defined)
+	TInt PrimaryFieldId;
+    /// Type of primary field
+    TFieldType PrimaryFieldType;
+	/// Hash map from TStr primary field to record ID
+	THash<TStr, TUInt64> PrimaryStrIdH;
+	/// Hash map from TInt primary field to record ID
+	THash<TInt, TUInt64> PrimaryIntIdH;
+	/// Hash map from TUInt64 primary field to record ID
+	THash<TUInt64, TUInt64> PrimaryUInt64IdH;
+	/// Hash map from TFlt primary field to record ID
+	THash<TFlt, TUInt64> PrimaryFltIdH;
+	/// Hash map from TTm primary field to record ID
+	THash<TUInt64, TUInt64> PrimaryTmMSecsIdH;
 	
     /// Flag if we are using cache store
     TBool DataCacheP;
@@ -607,8 +617,12 @@ private:
 	const TRecSerializator& GetFieldSerializator(const int &FieldId) const;
     /// Remove record from name-id map
 	inline void DelRecNm(const uint64& RecId);    
-    /// Extract record name from JSon record
-	TStr ParseRecNm(const PJsonVal& RecVal);    
+    /// Do we have a primary field
+    bool IsPrimaryField() const { return PrimaryFieldId != -1; }
+    /// Set primary field map
+    void SetPrimaryField(const uint64& RecId);
+    /// Delete primary field map
+    void DelPrimaryField(const uint64& RecId);
     /// Transform Join name to it's corresponding field name
     TStr GetJoinFieldNm(const TStr& JoinNm) const { return JoinNm + "Id"; }
     
@@ -628,11 +642,20 @@ public:
 
 	bool IsRecId(const uint64& RecId) const;
 	bool HasRecNm() const { return RecNmFieldP; }
-	bool IsRecNm(const TStr& RecNm) const { return RecNmIdH.IsKey(RecNm); }
+	bool IsRecNm(const TStr& RecNm) const;
 	TStr GetRecNm(const uint64& RecId) const;
 	uint64 GetRecId(const TStr& RecNm) const;
 	uint64 GetRecs() const;
 	PStoreIter GetIter() const;
+    
+    /// Gets the first record in the store (order defined by store implementation)
+    uint64 FirstRecId() const;
+    /// Gets the last record in the store (order defined by store implementation)
+    uint64 LastRecId() const;
+    /// Gets forward moving iterator (order defined by store implementation)
+    PStoreIter ForwardIter() const { return GetIter(); }
+    /// Gets backward moving iterator (order defined by store implementation)
+    PStoreIter BackwardIter() const;
     
 	/// Add new record
 	uint64 AddRec(const PJsonVal& RecVal);
