@@ -947,6 +947,7 @@ void TBagOfWords::GetVal(const TRec& Rec, TStrV& StrV) const {
 
 void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSecs) {
     // forget forget forget
+    InfoLog("Calling 'Forget' in " + GetNm());
     FtrGen.Forget(ForgetFactor);
 }
 
