@@ -27,7 +27,6 @@
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]
 // Output: [{name : "ema", data : [[t1, v1], [t3, v3]]} , {name : "tick", data : [[t2, v2], [t4, v4]] }]
 //#- `objJson = vis.highchartsConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
-
 override = require('json-override.js')
 
 exports.highchartsConverter = function (dataJson) {
@@ -88,7 +87,7 @@ exports.highchartsParams = function () {
 }
 
 
-//#- `vis.drawHighChartsTimeSeries(data)` -- copies the highCharts_ts.html template, injects JSON data and injects libraries
+//#- `vis.drawHighChartsTimeSeries(data, fileName, paramsJson)` -- copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided
 exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
     var params = exports.highchartsParams();    
 
