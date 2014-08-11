@@ -1273,7 +1273,7 @@ namespace THoeffding {
       }
       // Regression
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0 &&
-         GetNodesN() < 20) {
+         (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
          // See if we can get variance reduction 
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
@@ -1301,7 +1301,7 @@ namespace THoeffding {
       const double H = Leaf->ComputeEntropy();
       // TODO: Use stricter condition to prevent overfitting 
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->GetExamplesN() > 5 &&
-         H > 0) {
+         H > 0 && (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
          TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
          const double EstG = SplitAttr.Val3;
          const double Eps = Leaf->ComputeTreshold(
@@ -1933,6 +1933,11 @@ namespace THoeffding {
          JsonParams->GetObjKey("splitConfidence")->IsNum()) {
          SplitConfidence = JsonParams->GetObjNum("splitConfidence");
          // printf("SplitConfidence = %f\n", SplitConfidence);
+      }
+      if (JsonParams->IsObjKey("maxNodes") &&
+         JsonParams->GetObjKey("maxNodes")->IsNum()) {
+         MxNodes = JsonParams->GetObjNum("maxNodes");
+         // printf("MxNodes = %d\n", MxNodes);
       }
       if (JsonParams->IsObjKey("conceptDriftP") &&
          JsonParams->GetObjKey("conceptDriftP")->IsBool()) {

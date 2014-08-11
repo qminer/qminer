@@ -272,7 +272,7 @@ namespace THoeffding {
       }
       static double StdDev(const double& SqSum, const double& Sum,
          const int& N) {
-         EAssertR(N > 1, "Division by zero.");
+         EAssertR(N > 0, "Division by zero.");
          return TMath::Sqrt(Variance(SqSum, Sum, N));
       }
    };
@@ -706,7 +706,7 @@ namespace THoeffding {
             SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_),
             DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_),
             BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
-            IdGen(IdGen_), ConceptDriftP(true) {
+            IdGen(IdGen_), ConceptDriftP(true), MxNodes(0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -719,7 +719,7 @@ namespace THoeffding {
             GracePeriod(GracePeriod_), DriftCheck(DriftCheck_), 
             WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000),
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
-            ConceptDriftP(true) {
+            ConceptDriftP(true), MxNodes(0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -727,7 +727,7 @@ namespace THoeffding {
          const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
          : ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
-            ConceptDriftP(true) {
+            ConceptDriftP(true), MxNodes(0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -871,8 +871,7 @@ namespace THoeffding {
       // delta; NOTE: This is actually error tolerance;
       // Condifdence would be 1-`SplitConfidence'
       double SplitConfidence; 
-      // nmin; Recompute heuristic
-      // Estimates every nmin examples 
+      // Recompute attribute heuristic estimates every GracePeriod examples 
       int GracePeriod;
       int DriftCheck; // Check for drift every `DriftCheck' examples 
       int WindowSize; // Keep `WindowSize' examples in main memory 
@@ -889,6 +888,7 @@ namespace THoeffding {
       int DriftExamplesN; // Examples since last drift check 
       PIdGen IdGen; // ID generator 
       bool ConceptDriftP;
+      int MxNodes; // The max allowed size of the tree 
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);
