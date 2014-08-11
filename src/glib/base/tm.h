@@ -458,6 +458,7 @@ private:
 	TUInt64 TimeWndMSecs;
 	// last time window start (used to give 
 	TUInt64 StartMSecs;
+    //TODO: circular buffer of last values used to compute median of current time (robustnes))
 	// callback
 	TCallback* Callback;
 public:
