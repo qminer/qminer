@@ -194,7 +194,7 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
     }
     // rest
     TmInterval = ParamVal->GetObjNum("interval");
-    InitMinMSecs = ParamVal->GetObjInt("initWindow");
+    InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
 }
 
 TEma::TEma(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
