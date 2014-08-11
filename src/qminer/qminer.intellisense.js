@@ -618,8 +618,10 @@ _twitterParser.rawJsonToStoreJson = function () {
 
 _vis.drawHighChartsTimeSeries = function () {
 	/// <signature>
-	/// <summary> copies the highCharts_ts.html template, injects JSON data and injects libraries</summary>
+	/// <summary> copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided</summary>
 	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <param name="_paramsJson" value="_paramsJson">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
@@ -1101,6 +1103,16 @@ console.print = function () {
 	/// </signature>
 };
 
+la.printSpFeatVec = function () {
+	/// <signature>
+	/// <summary> Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 la.newVec = function () {
 	/// <signature>
 	/// <summary> generate an empty float vector</summary>
@@ -1220,6 +1232,14 @@ la.rangeVec = function () {
 	/// </signature>
 };
 
+la.copyVecToArr = function () {
+	/// <signature>
+	/// <summary> copies vector `vec` into a JS array of numbers `arr`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
 la.repvec = function () {
 	/// <signature>
 	/// <summary> creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`</summary>
@@ -1230,13 +1250,11 @@ la.repvec = function () {
 	/// </signature>
 };
 
-la.printSpFeatVec = function () {
+la.eye = function () {
 	/// <signature>
-	/// <summary> Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <summary> `mat` is a `dim`-by-`dim` identity matrix</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -1259,15 +1277,6 @@ la.newSpVec = function () {
 	/// <param name="_nestedArr" value="_nestedArr">param</param>
 	/// <param name="_len" value="_len">param</param>
 	/// <returns value ="_spVec"/>
-	/// </signature>
-};
-
-la.pdist2 = function () {
-	/// <signature>
-	/// <summary> computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -1334,10 +1343,11 @@ la.ones = function () {
 	/// </signature>
 };
 
-la.eye = function () {
+la.pdist2 = function () {
 	/// <signature>
-	/// <summary> `mat` is a `dim`-by-`dim` identity matrix</summary>
-	/// <param name="_dim" value="_dim">param</param>
+	/// <summary> computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mat2" value="_mat2">param</param>
 	/// <returns value ="_mat"/>
 	/// </signature>
 };
@@ -2621,6 +2631,9 @@ _tm.clone = function () {
 	/// </signature>
 };
 
+/// <field name = "year" value = "_num"> year (number)</field>
+_tm.year = _num;
+
 /// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 _tm.nowUTC = _tm;
 
@@ -2647,8 +2660,8 @@ _tm.add = function () {
 	/// </signature>
 };
 
-/// <field name = "year" value = "_num"> year (number)</field>
-_tm.year = _num;
+/// <field name = "second" value = "_num"> second (number)</field>
+_tm.second = _num;
 
 /// <field name = "milisecond" value = "_num"> millisecond (number)</field>
 _tm.milisecond = _num;
@@ -2662,8 +2675,8 @@ _tm.day = _num;
 /// <field name = "minute" value = "_num"> minute (number)</field>
 _tm.minute = _num;
 
-/// <field name = "second" value = "_num"> second (number)</field>
-_tm.second = _num;
+/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
+_tm.dayOfWeekNum = _num;
 
 _htModel.process = function () {
 	/// <signature>
