@@ -282,7 +282,7 @@ namespace THoeffding {
             CrrNode->SumLeft += Val;
             CrrNode->SumSqLeft += Val*Val;
             ++CrrNode->CountLeft;
-            // Add a new node to the tree 
+            // Add a new node to the tree (if key not in the tree already) 
             if (CrrNode->LeftChild() == nullptr && Key != CrrNode->Key) {
                PExBSTNode NewNode = TExBSTNode::New(Key);
                CrrNode->LeftChild = NewNode;
@@ -314,6 +314,7 @@ namespace THoeffding {
       TotalCountLeft = 0;
       TotalCountRight = Root->CountRight+Root->CountLeft;
    }
+   // Finds the best split by in-order traversal of the tree 
    void TExBST::FindBestSplit(PExBSTNode Node) {
       if (Node->LeftChild() != nullptr) {
          FindBestSplit(Node->LeftChild);
@@ -919,10 +920,11 @@ namespace THoeffding {
          } else { // Continuous 
             // printf("#\nCrrSdr=%f\n", CrrSdr);
             // XXX: Use E-BST 
-            // BstH.GetDat(AttrN).GetBestSplit(CrrSdr);
+            BstH.GetDat(AttrN).GetBestSplit(CrrSdr);
             // printf("CrrSdr=%f\n", CrrSdr);
+            
             // This is the "old" way, using histogram 
-            CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
+            // CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
             // printf("SplitVal = %f\n", CrrSdr);
          }
          if (CrrSdr > Mx1) {
@@ -1259,15 +1261,15 @@ namespace THoeffding {
             // s(A2) if A1 and A2 parition A 
             
             // XXX: This is the "old", histogram-based, way 
-            Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
+            // Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
             
             // XXX: Use E-BST 
             // EFailR("Current regression discretization is deprecated.");
             // Key is the attribute value 
-            // const double Key = Example->AttributesV.GetVal(AttrN).Num;
+            const double Key = Example->AttributesV.GetVal(AttrN).Num;
             // Val is the value of the target variable 
-            // const double Val = Example->Value;
-            // Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
+            const double Val = Example->Value;
+            Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
          }
       }
       // Regression

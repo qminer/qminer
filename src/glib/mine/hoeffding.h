@@ -332,12 +332,16 @@ namespace THoeffding {
          const double SD = V > 0 ? TMath::Sqrt(V) : 0.0;
          
          double LeftV = 0.0;
-         if (TotalCountLeft > 0) LeftV = (TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft;
+         if (TotalCountLeft > 0) {
+            LeftV = (TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft;
+         }
          EAssertR(LeftV >= -1e-5, "LeftV < -1e-5");
          const double LeftSD = LeftV > 0.0 ? TMath::Sqrt(LeftV) : 0.0;
          
          double RightV = 0.0;
-         if (TotalCountRight > 0) RightV = (TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight;
+         if (TotalCountRight > 0) {
+            RightV = (TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight;
+         }
          EAssertR(RightV >= -1e-5, "RightV < -1e-5");
          const double RightSD = RightV > 0.0 ? TMath::Sqrt(RightV) : 0.0;
          
