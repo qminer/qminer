@@ -32,7 +32,7 @@ namespace TQm {
 
 ///////////////////////////////
 // QMiner Environment
-TIntTr TEnv::Version = TIntTr(0, 5, 1);
+TIntTr TEnv::Version = TIntTr(0, 7, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
