@@ -948,6 +948,8 @@ void TBagOfWords::GetVal(const TRec& Rec, TStrV& StrV) const {
 void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSecs) {
     // forget forget forget
     InfoLog("Calling 'Forget' in " + GetNm());
+    InfoLog(" - at " + TTm::GetTmFromMSecs(StartMSecs).GetWebLogDateTimeStr());
+    InfoLog(" - time window size: " + TUInt64::GetStr(StartMSecs / 1000) + " seconds");
     FtrGen.Forget(ForgetFactor);
 }
 
@@ -1022,11 +1024,12 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
         // get forgetting factor
         ForgetFactor = StreamVal->GetObjNum("factor");
         // check if we have time-field
-        if (ParamVal->IsObjKey("field")) {
+        if (StreamVal->IsObjKey("field")) {
             // we have time stamp providing the tack
-            TStr TimeFieldNm = ParamVal->GetObjStr("field");
+            TStr TimeFieldNm = StreamVal->GetObjStr("field");
             TimeFieldId = GetFtrStore()->GetFieldId(TimeFieldNm);
-            QmAssert(GetFtrStore()->GetFieldDesc(TimeFieldId).IsTm());
+            QmAssertR(GetFtrStore()->GetFieldDesc(TimeFieldId).IsTm(), 
+                TimeFieldNm + ":" + GetFtrStore()->GetFieldDesc(TimeFieldId).GetFieldTypeStr());
         } else {
             // we use system time
             TimeFieldId = -1;
