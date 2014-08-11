@@ -825,6 +825,7 @@ TStr TScript::LoadModuleSrc(const TStr& ModuleFNm) {
     TChA ModulChA;
     ModulChA += "function module(){var exports={};";
     ModulChA += TStr::LoadTxt(GetLibFNm(ModuleFNm));
+    ModulChA += "/* */\n"; // in case of comments
     ModulChA += ";return exports;}";
 	return ModulChA;
 }
