@@ -306,11 +306,11 @@ namespace THoeffding {
       TExBST() : Root(nullptr), TotalSumLeft(0.0), TotalSumSqLeft(0.0),
          TotalSumRight(0.0), TotalSumSqRight(0.0), TotalCountLeft(0),
          TotalCountRight(0), SplitVal(0.0), MxSDR(0.0) { }
-      double GetBestSplit(double& OutSDR) {
+      double GetBestSplit(double& OutVal) {
          Reset();
          FindBestSplit(Root);
-         OutSDR = MxSDR;
-         return SplitVal;
+         OutVal = SplitVal;
+         return MxSDR;
       }
       double ComputeSDR() const {
          const double TotalSumSq = TotalSumSqLeft+TotalSumSqRight;

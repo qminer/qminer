@@ -920,8 +920,7 @@ namespace THoeffding {
          } else { // Continuous 
             // printf("#\nCrrSdr=%f\n", CrrSdr);
             // XXX: Use E-BST 
-            BstH.GetDat(AttrN).GetBestSplit(CrrSdr);
-            // printf("CrrSdr=%f\n", CrrSdr);
+            CrrSdr = BstH.GetDat(AttrN).GetBestSplit(Val);
             
             // This is the "old" way, using histogram 
             // CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
