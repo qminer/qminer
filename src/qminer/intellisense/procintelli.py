@@ -3,6 +3,7 @@ import shutil
 import sys
 import copy
 import pprint
+from xml.sax.saxutils import escape
 
 fr = open('intellisense.js', 'r')
 fw = open('intelli_body.js', 'w')
@@ -19,7 +20,7 @@ for line in fr:
     line = line.strip()
     splitLine = line.split('$SEPARATOR$');
     line = splitLine[0];
-    commentLine = splitLine[1].strip().strip('-');
+    commentLine = escape(splitLine[1].strip().strip('-'));
     if len(line) == 0: continue
     # currently ignore indexed property []
     if "[" in line:
@@ -184,9 +185,12 @@ for key in sorted(funDict.keys()):
 
 fw3 = open('intelli_body2.js', 'w')
 pprint.pprint(objDict)
-#objDict[sig["obj"]].append(sig)
+# First write down all objects
 for obj in objDict:
-    fw3.write('var ' + obj + ' = new function () {\n')
+    fw3.write('var ' + obj + ' = new function () { }\n')
+fw3.write('\n')
+# Append all properties and functions
+for obj in objDict:    
     for fun in objDict[obj]:
         isFun = objDict[obj][fun][0]["isFun"]
         if not isFun:
@@ -196,16 +200,13 @@ for obj in objDict:
 # 'return': '_len',
             sig = objDict[obj][fun][0]
             #/// <field name = 'len' value = '_len'>lenz</field>
-            fw3.write("\t/// <field name = \"" + sig["noObjPath"] + "\" value = \"" + stripNum(sig["return"]) + "\">" + sig["comment"] + "</field>\n")  
+            fw3.write("/// <field name = \"" + sig["noObjPath"] + "\" value = \"" + stripNum(sig["return"]) + "\">" + sig["comment"] + "</field>\n")  
             #this.length = _len;
-            if stripNum(sig["return"]) == stripNum(obj):
-                fw3.write("\tthis." + sig["noObjPath"] + " = this;\n")
-            else:
-                fw3.write("\tthis." + sig["noObjPath"] + " = " + stripNum(sig["return"]) +  ";\n")
+            fw3.write(sig["obj"] + "." + sig["noObjPath"] + " = " + stripNum(sig["return"]) + ";\n\n")            
         else:
 #    minus: function (_vec2) {
             sig = objDict[obj][fun][0]
-            fw3.write("\tthis." + sig["noObjPath"] + " = function () {\n")
+            fw3.write(sig["obj"] + "." + sig["noObjPath"] + " = function () {\n")
             for sig in objDict[obj][fun]:
                 fw3.write("\t/// <signature>\n")
                 fw3.write("\t/// <summary>" + sig["comment"] + "</summary>\n")
@@ -215,15 +216,15 @@ for obj in objDict:
                     if len(param.strip()) > 0:
                         fw3.write("\t/// <param name=\"" + param.strip() + "\" value=\"" + param.strip() + "\">param</param>\n")
                 fw3.write("\t/// <returns value =\"" + stripNum(sig["return"]) + "\"/>\n")
-                fw3.write("\t/// </signature>\n\n")
-            fw3.write('\t};\n\n')
+                fw3.write("\t/// </signature>\n")
+            fw3.write('};\n\n')
             
 # 'isFun': True,
 # 'funArgs': '_vec2',
 # 'noObjPath': 'minus',
 # 'obj': '_vec',
 # 'return': '_vec3',
-    fw3.write('}\n\n')
+
 fw3.close()
 
 
