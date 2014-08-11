@@ -1199,13 +1199,13 @@ TEma::TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& TmInterval
 
 TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
     // parse out input aggregate
-    TStr InStoreNm = ParamVal->GetObjStr("store");
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
-    PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+    TStr InStoreNm = ParamVal->GetObjStr("store", "");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
-    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+    QmAssertR(!InAggr.Empty(), "TEma::TEma : Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "TEma::TEma Stream aggregate does not implement IFltTm interface: " + InAggrNm);
 }
 
 TEma::TEma(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn), Ema(SIn) {
@@ -2155,7 +2155,7 @@ void TCompositional::Register(const TWPt<TBase>& Base, const TStr& TypeNm, const
     }
 };
 
-TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, 
+TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, 
         const int& NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
         TWPt<TQm::TStreamAggrBase>& SABase){
@@ -2180,11 +2180,11 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	double TmInterval = ParamVal->GetObjNum("tmInterval", 1000.0);
 	uint64 InitMinMSecs = (uint64)ParamVal->GetObjInt("initMinMSecs", 0);
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InStoreNm = ParamVal->GetObjStr("store", "");
 	TStr Prefix = ParamVal->GetObjStr("prefix", "itema");
-	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(
+	TWPt<TQm::TStreamAggrBase> SABase = InStoreNm.Empty() ? Base->GetStreamAggrBase() : Base->GetStreamAggrBase(
             Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
-	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, 
+	return TCompositional::ItEma(Base, NumIter, TmInterval, 
         TSignalProc::etLinear, InitMinMSecs, InAggrNm, Prefix, SABase);
 };
 
