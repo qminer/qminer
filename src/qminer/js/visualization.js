@@ -127,11 +127,13 @@ exports.highchartsParams = function () {
 }
 
 
-//#- `vis.drawHighChartsTimeSeries(data)` -- copies the highCharts_ts.html template, injects JSON data and injects libraries
+//#- `vis.drawHighChartsTimeSeries(data, fileName, paramsJson)` -- copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided
 exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
     var params = exports.highchartsParams();    
 
-    params = override(params, overrideParams, false);
+    if (typeof overrideParams != 'undefined') {
+        params = override(params, overrideParams, false);
+    }
     params.series = data;
     
     var lib1 = fs.openRead(process.qminer_home + "gui/js/Highcharts/js/highcharts.js").readAll();

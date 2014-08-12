@@ -39,4 +39,4 @@ function overwriteKeys(baseObject, overrideObject, createNew) {
     return baseObject;
 }
 
-exports = overwriteKeys;
+module.exports = overwriteKeys;
