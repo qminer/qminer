@@ -91,9 +91,8 @@ exports.highchartsParams = function () {
 exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
     var params = exports.highchartsParams();    
 
-    if (typeof overrideParams != 'undefined') {
-        params = override(params, overrideParams, false);
-    }
+    params = override(params, overrideParams, false);
+    printj(params)
     params.series = data;
     
     var lib1 = fs.openRead(process.qminer_home + "gui/js/Highcharts/js/highcharts.js").readAll();
@@ -105,7 +104,6 @@ exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
     // replace data
     while (!reader.eof) {
         var line = reader.readLine();
-        //line = line.replace("$DATA$", JSON.stringify(data));
         line = line.replace("$PARAMS$", JSON.stringify(params));
         line = line.replace("$LIBS$", libs);
         writer.writeLine(line);
