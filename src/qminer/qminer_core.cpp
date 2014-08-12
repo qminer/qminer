@@ -2025,7 +2025,7 @@ PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& SortedP) con
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 	if (Offset >= GetRecs()) {
-		// offset past number of recordes, return empty
+		// offset past number of records, return empty
 		return TRecSet::New(Store);
 	} else {
 		TUInt64IntKdV LimitRecIdFqV;
