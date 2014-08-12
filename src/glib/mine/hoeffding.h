@@ -262,6 +262,7 @@ namespace THoeffding {
       static void AddVec(const int& Scalar, TIntV& FstV, TIntV& SndV);
       // N = sum(FreqV)
       static double Entropy(const TIntV& FreqV, const int& N);
+      static double GiniIndex(const TIntV& FreqV, const int& N);
       // Compute variance from sufficient statistic: Sum of squared values,
       // sum of values, and number of values
       static double Variance(const double& SqSum, const double& Sum,

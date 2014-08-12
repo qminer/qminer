@@ -74,7 +74,7 @@ function testClassificationContAttr() {
       "windowSize": 3000,
       "conceptDriftP": false,
       "classificationLeafModel": "majority",
-      "classificationAttrHeuristic": "infoGain"
+      "classificationAttrHeuristic": "giniGain"
    };
    
    // describe the data stream 
@@ -134,7 +134,7 @@ function testClassification() {
    // algorithm parameters 
    var htParams = {
       "gracePeriod": 300,
-      "splitConfidence": 1e-6,
+      "splitConfidence": 1e-5,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 15000,

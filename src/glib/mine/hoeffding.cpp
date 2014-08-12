@@ -257,18 +257,33 @@ namespace THoeffding {
    }
    double TMisc::Entropy(const TIntV& FreqV, const int& N) {
       double h = 0.0, p = 0.0;
+      EAssertR(N >= 0, "N < 0 in Entropy");
+      if (N == 0) { return 0.0; }
       // Make sure frequencies add up to N 
       int FreqSum = 0;
       for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
          EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
          FreqSum += It->Val;
-         p = N > 0 ? 1.0*It->Val/N : 0.0;
+         p = 1.0*It->Val/N;
          if (p > 0) { h -= p*TMath::Log2(p); }
       }
       EAssertR(FreqSum == N, "Frequency counts don't add up.");
       return h;
    }
-
+   double TMisc::GiniIndex(const TIntV& FreqV, const int& N) {
+      double g = 1.0, p = 0.0;
+      EAssertR(N >= 0, "N < 0 in GiniIndex");
+      if (N == 0) { return 0.0; }
+      int FreqSum = 0;
+      for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
+         EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
+         FreqSum += It->Val;
+         p = 1.0*It->Val/N;
+         g -= p*p;
+      }
+      EAssertR(FreqSum == N, "Frequency counts don't add up.");
+      return g;
+   }
    ///////////////////////////////
    // Extended-Binary-Search-Tree 
    void TExBST::Insert(const double& Key, const double& Val) {
@@ -542,18 +557,65 @@ namespace THoeffding {
             MxIdx = BinN;
          }
       }
-      delete GArr;
-      delete NArr;
+      delete [] GArr;
+      delete [] NArr;
       if (MxIdx > 0) {
          SplitVal = BinsV.GetVal(MxIdx).GetVal();
          return MxGain;
       } else {
-         return 0;
+         printf("[DEBUG] InfoGain chose 0th split bin.\n");
+         return 0.0;
       }
    }
-   double THist::GiniGain(double& SpltVal) const {
-      EFailR("Implementation in progress.");
-      return 0.0;
+   double THist::GiniGain(double& SplitVal) const {
+      int HiCount = 0, LoCount = 0, CrrCount = 0, MxIdx = 0;
+      double MxGain = 0.0, CrrGain = 0.0;
+      double LoImp = 0.0, HiImp = 0.0;
+      TIntV LoV, HiV;
+      double* GArr = new double[sizeof(double)*BinsV.Len()]();
+      int* NArr = new int[sizeof(int)*BinsV.Len()]();
+      // Compute initial split 
+      LoCount = 0; // BinsV.GetVal(0).Count;
+      // LoV = BinsV.GetVal(0).PartitionV;
+      HiCount = 0;
+      for (int BinN = 0; BinN < BinsV.Len(); ++BinN) {
+         TIntV TmpV = BinsV.GetVal(BinN).PartitionV;
+         TMisc::AddVec(1, TmpV, HiV); // HiV = HiV+TmpV
+         HiCount += BinsV.GetVal(BinN).Count;
+         // h_i := Gini(B_1\cup B_2\cup \ldots\cup B_i)
+         GArr[BinN] = TMisc::GiniIndex(HiV, HiCount);
+         NArr[BinN] = HiCount; // n_i := |B_1|+\ldots+|B_i|
+      }
+      const int AllN = HiCount;
+      const double H = TMisc::GiniIndex(HiV, AllN);
+      // Now find the best split 
+      CrrGain = MxGain = 0.0;
+      MxIdx = 0;
+      for (int BinN = BinsV.Len()-2; BinN >= 0; --BinN) {
+         CrrCount = BinsV.GetVal(BinN+1).Count;
+         // No need for this: BinsV.GetVal(MxIdx).GetVal()
+         // Val = BinsV.GetVal(BinN+1).Value; 
+         LoCount += CrrCount;
+         HiCount = NArr[BinN];
+         HiImp = GArr[BinN];
+         TIntV TmpV = BinsV.GetVal(BinN+1).PartitionV;
+         TMisc::AddVec(1, TmpV, LoV);
+         LoImp = TMisc::GiniIndex(LoV, LoCount);
+         CrrGain = H - LoCount*LoImp/AllN - HiCount*HiImp/AllN;
+         if (CrrGain > MxGain) {
+            MxGain = CrrGain;
+            MxIdx = BinN;
+         }
+      }
+      delete [] GArr;
+      delete [] NArr;
+      if (MxIdx > 0) {
+         SplitVal = BinsV.GetVal(MxIdx).GetVal();
+         return MxGain;
+      } else {
+         printf("[DEBUG] GiniGain chose 0th split bin.\n");
+         return 0.0;
+      }
    }
    // See [Knuth, 1997] and [Chan et al., 1979] for details regarding 
    // updating formulas for variance 
