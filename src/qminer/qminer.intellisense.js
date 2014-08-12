@@ -2023,9 +2023,9 @@ _rs.sort = function () {
 
 _rs.map = function () {
 	/// <signature>
-	/// <summary> iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:</summary>
-	/// <param name="_mapCallback" value="_mapCallback">param</param>
-	/// <returns value ="_rs"/>
+	/// <summary> iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_arr"/>
 	/// </signature>
 };
 
@@ -2044,6 +2044,14 @@ _rs.clone = function () {
 	/// </signature>
 };
 
+_rs.each = function () {
+	/// <signature>
+	/// <summary> iterates through the record set and executes the callback function `callback` on each element. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
 _rs.filterByFq = function () {
 	/// <signature>
 	/// <summary> keeps only records with weight between `minFq` and `maxFq`. Returns self.</summary>
@@ -2055,8 +2063,14 @@ _rs.filterByFq = function () {
 
 _rs.trunc = function () {
 	/// <signature>
-	/// <summary> truncate to first `num` record and return self.</summary>
-	/// <param name="_num" value="_num">param</param>
+	/// <summary> truncate to first `limit_num` record and return self.</summary>
+	/// <param name="_limit_num" value="_limit_num">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> truncate to `limit_num` record starting with `offset_num` and return self.</summary>
+	/// <param name="_limit_num" value="_limit_num">param</param>
+	/// <param name="_offset_num" value="_offset_num">param</param>
 	/// <returns value ="_rs"/>
 	/// </signature>
 };

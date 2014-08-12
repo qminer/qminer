@@ -54,7 +54,7 @@ for (var step = 0; step < 180; step++) {
     // get current stream aggregate state and and add it in the buffer (as a json)
     buffer.push(qm.getAllStreamAggrVals(ts));
 }
-console.start();
+
 //// Convert to highcharts compatible data format. Example highcharts data:
 //series: [{
 //    name: 'Winter 2007-2008',
