@@ -392,6 +392,16 @@ void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1,
 	TJsUtil::HandleTryCatch(TryCatch);
 }
 
+v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 2;
+	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	TJsUtil::HandleTryCatch(TryCatch);
+    return HandleScope.Close(RetVal);
+}
+
 v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
@@ -1808,6 +1818,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filter);
 		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, each);
 		JsRegisterFunction(TmpTemp, map);
 		JsRegisterFunction(TmpTemp, setunion);
 		JsRegisterFunction(TmpTemp, setintersect);
@@ -1926,8 +1937,16 @@ v8::Handle<v8::Value> TJsRecSet::aggr(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsRecSet::trunc(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
-	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
-	JsRecSet->RecSet->Trunc(Recs);
+    if (Args.Length() == 1) {
+    	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
+        JsRecSet->RecSet->Trunc(Recs);
+    } else if (Args.Length() == 2) {
+        const int Limit = TJsRecSetUtil::GetArgInt32(Args, 0);
+        const int Offset = TJsRecSetUtil::GetArgInt32(Args, 1);
+        JsRecSet->RecSet = JsRecSet->RecSet->GetLimit(Limit, Offset);
+    } else {
+        throw TQmExcept::New("Unsupported number of arguments to RecSet.trunc()");
+    }
 	return Args.Holder();
 }
 
@@ -2110,22 +2129,44 @@ v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsUtil::ParseJson(JsObj));
 }
 
-v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsRecSet::each(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet = JsRecSet->RecSet;
 	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
 	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
 	// iterate through the recset
-	const uint64 Recs = RecSet->GetRecs();
-	for (uint64 RecIdx = 0; RecIdx < Recs; RecIdx++) {
-		TRec Rec = RecSet->GetRec((int)RecIdx);
-		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq((int)RecIdx));
-		v8::Handle<v8::Value> IdxArg = v8::Integer::New((int)RecIdx);
+	const int Recs = RecSet->GetRecs();
+	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+		TRec Rec = RecSet->GetRec(RecIdN);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdN));
+		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
 		// execute callback
 		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
 	}
 	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet = JsRecSet->RecSet;
+	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
+    // create a new array for storing the results
+	const int Recs = RecSet->GetRecs();
+    v8::Handle<v8::Array> ResultV = v8::Array::New(Recs);
+	// iterate through the recset
+	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+		TRec Rec = RecSet->GetRec(RecIdN);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdN));
+		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
+		// execute callback
+		v8::Handle<v8::Value> Result = JsRecSet->Js->ExecuteV8(CallbackFun, RecArg, IdxArg);
+        // store in the new array
+        ResultV->Set(RecIdN, Result);
+	}
+	return ResultV;
 }
 
 v8::Handle<v8::Value> TJsRecSet::setintersect(const v8::Arguments& Args) {
