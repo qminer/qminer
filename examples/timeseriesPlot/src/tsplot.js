@@ -18,24 +18,29 @@ qm.createStore(StoresDef);
 var ts = qm.store('ts');
 
 // create three stream aggregates
-// s1 : tick aggregator. starting point (copies most recent values)
-s1 = qm.newStreamAggr({ name: "tick", type: "timeSeriesTick",  store: "ts", timestamp: "Time", value: "Val" }, "ts");
-// s2  : add random noise
-s2 = qm.newStreamAggr(new function () {
+// s1  : rec.Val + noise
+s1 = qm.newStreamAggr(new function () {
     this.name = 'js';
     var data = 0;
     var time;
+    var longtime;
     this.onAdd = function (rec) {
+        longtime = rec.Time.windowstimestamp;
         time = rec.Time.string;
-        data = rec.Val + 0.1*Math.random();
+        data = rec.Val + 0.5*Math.random();
     };
     this.saveJson = function (limit) {
-        return {Val: data, Time: time};
+        return { Val: data, Time: time };
+    };
+    this.getFlt = function () {
+        return data;
+    }
+    this.getTm = function () {
+        return longtime;
     }
 }, "ts");
-// s3 : exponential moving average, takes tick as input
-s3 = qm.newStreamAggr({ name: "ema", type: "ema", inAggr: "tick", emaType: "linear", interval: 60 * 1000 }, "ts");
-
+// s2 : exponential moving average, takes tick as input
+s2 = qm.newStreamAggr({ name: "ema", type: "ema", inAggr: "js", emaType: "linear", interval: 5 * 1000 }, "ts");
 
 // stores stream aggregate values
 var buffer = [];
@@ -55,7 +60,7 @@ for (var step = 0; step < 180; step++) {
     buffer.push(qm.getAllStreamAggrVals(ts));
 }
 
-//// Convert to highcharts compatible data format. Example highcharts data:
+//// Convert to highcharts compatible data format
 //series: [{
 //    name: 'Winter 2007-2008',
 //    // Define the data points. All series have a dummy year
@@ -74,4 +79,4 @@ for (var step = 0; step < 180; step++) {
 
 //    ]
 //}]
-viz.drawHighChartsTimeSeries(viz.highchartsConverter(buffer), "plot.html", { title: { text: "sin(x), sin(x) + noise, EMA(sin(x))" } });
+viz.drawHighChartsTimeSeries(viz.highchartsConverter(buffer), "plot.html", { title: { text: "js(t) = sin(t) + noise, ema(t) = EMA(js(t))" } });
