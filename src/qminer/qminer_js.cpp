@@ -833,10 +833,12 @@ void TScript::Execute(const TStr& FNm) {
 
 TStr TScript::LoadModuleSrc(const TStr& ModuleFNm) {
     TChA ModulChA;
-    ModulChA += "function module(){var exports={};";
+	ModulChA += "function module () {\n";
+	ModulChA += "var module = {exports: {}}\n";
+	ModulChA += "var exports = module.exports\n";
     ModulChA += TStr::LoadTxt(GetLibFNm(ModuleFNm));
-    ModulChA += "/* */\n"; // in case of comments
-    ModulChA += ";return exports;}";
+	ModulChA += ";\n/* */\n";
+	ModulChA += "return module.exports;}\n";
 	return ModulChA;
 }
 
@@ -5359,6 +5361,8 @@ v8::Handle<v8::ObjectTemplate> TJsProcess::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getGlobals);
 		JsRegisterFunction(TmpTemp, exitScript);
         JsRegisterSetProperty(TmpTemp, "returnCode", getReturnCode, setReturnCode);
+		JsRegisterProperty(TmpTemp, qminer_home);
+		JsRegisterProperty(TmpTemp, project_home);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -5451,6 +5455,20 @@ void TJsProcess::setReturnCode(v8::Local<v8::String> Properties,
 	v8::HandleScope HandleScope;
     QmAssert(Value->IsInt32());
     TEnv::SetReturnCode(Value->Int32Value());
+}
+
+v8::Handle<v8::Value> TJsProcess::qminer_home(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptFNm = v8::String::New(TEnv::QMinerFPath.CStr());
+	return HandleScope.Close(ScriptFNm);
+}
+
+v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
+	v8::Local<v8::String> ScriptFNm = v8::String::New(TEnv::RootFPath.CStr());
+	return HandleScope.Close(ScriptFNm);
 }
 
 ///////////////////////////////
@@ -5706,6 +5724,7 @@ v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
 		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
 		JsRegisterProperty(TmpTemp, eof);
 		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, readAll);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -5743,6 +5762,13 @@ v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8:
 	v8::HandleScope HandleScope;
 	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
 	return v8::Uint32::New(JsFIn->SIn->Len());
+}
+
+v8::Handle<v8::Value> TJsFIn::readAll(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	TStr Res = TStr::LoadTxt(JsFIn->SIn);
+	return v8::String::New(Res.CStr());
 }
 
 ///////////////////////////////
@@ -6001,6 +6027,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
         JsRegisterProperty(TmpTemp, month);
         JsRegisterProperty(TmpTemp, day);
         JsRegisterProperty(TmpTemp, dayOfWeek);
+		JsRegisterProperty(TmpTemp, dayOfWeekNum);
         JsRegisterProperty(TmpTemp, hour);
         JsRegisterProperty(TmpTemp, minute);
         JsRegisterProperty(TmpTemp, second);
@@ -6059,6 +6086,12 @@ v8::Handle<v8::Value> TJsTm::dayOfWeek(v8::Local<v8::String> Properties, const v
 	v8::HandleScope HandleScope;
     TSecTm SecTm(TJsTmUtil::GetSelf(Info)->Tm);
 	return HandleScope.Close(v8::String::New(SecTm.GetDayOfWeekNm().CStr()));
+}
+
+v8::Handle<v8::Value> TJsTm::dayOfWeekNum(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+    TSecTm SecTm(TJsTmUtil::GetSelf(Info)->Tm);
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetDayOfWeek()));
 }
 
 v8::Handle<v8::Value> TJsTm::hour(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {

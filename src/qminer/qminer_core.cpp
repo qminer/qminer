@@ -36,6 +36,7 @@ TIntTr TEnv::Version = TIntTr(0, 7, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
+TStr TEnv::RootFPath;
 PNotify TEnv::Error;
 PNotify TEnv::Logger;
 PNotify TEnv::Debug;
@@ -51,6 +52,7 @@ void TEnv::Init() {
     Debug = TNullNotify::New();
 	// read environment variable indicating QMiner folder, uses current dir if not available
 	QMinerFPath = TStr::GetNrAbsFPath(::TEnv::GetVarVal("QMINER_HOME"));
+	RootFPath = TStr::GetNrFPath(TDir::GetCurDir());
     // initialize aggregators constructor router
     TAggr::Init();
     // initialize stream aggregators constructor router
@@ -4508,7 +4510,7 @@ const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamA
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
-	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+	return StoreNm.Empty() ? GetStreamAggr(StreamAggrNm) :  GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {

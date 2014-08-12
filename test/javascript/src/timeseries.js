@@ -65,9 +65,9 @@ Resampled.addTrigger({
 		assert.exists(val.Value, "onAdd: val.Value");
 		assert.exists(Resampled.getStreamAggr("tick").val, 'Resampled.getStreamAggr("tick").val');
 		assert.exists(Resampled.getStreamAggr("emaTick").val, 'Resampled.getStreamAggr("emaTick").val');
-		Resampled.add({ $id: val.$id, Ema: Resampled.getStreamAggr("emaTick").val.EMA });
-		//1: val.Ema = Resampled.getStreamAggr("emaTick").val.EMA;
-		//2: val.Ema = Resampled.streamAggr.emaTick.val.EMA;
+		Resampled.add({ $id: val.$id, Ema: Resampled.getStreamAggr("emaTick").val.Val });
+		//1: val.Ema = Resampled.getStreamAggr("emaTick").val.Val;
+		//2: val.Ema = Resampled.streamAggr.emaTick.val.Val;
 		ResampledAdd = ResampledAdd + 1; 
 	}
 });

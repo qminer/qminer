@@ -16,7 +16,8 @@
 
 var util = require("utilities.js");
 
-exports = require("__analytics__");
+module.exports = require("__analytics__");
+exports = module.exports; // re-establish link
 
 function createBatchModel(featureSpace, models) {
     this.featureSpace = featureSpace;
@@ -798,7 +799,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
 
     // Optional parameters
     var power = typeof power !== 'undefined' ? power : 1;
-    buffer = typeof buffer !== 'undefined' ? buffer : -1;
+    var buffer = typeof buffer !== 'undefined' ? buffer : -1;
 
     // Internal vector logs to create X and y
     var matrixVec = [];
@@ -823,7 +824,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
         return prediction;
     }
 
-    //#   - `object = kNearestNeighbors.predict(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
+    //#   - `object = kNearestNeighbors.getNearestNeighbors(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
     this.getNearestNeighbors = function (vec) {
         var distVec = la.pdist2(this.X, la.repvec(vec, 1, this.X.cols)).getCol(0);
         var sortRes = distVec.sortPerm(); // object with two vectors: values and indexes
@@ -841,32 +842,32 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     }
 
     // Calculate simple average
-    getAverage = function (vec) {
+    var getAverage = function (vec) {
         var sum = vec.sum();
         var avr = sum / vec.length;
         return avr;
     }
 
     // Inverse distance weighting average
-    getIDWAverage = function (vec, dist, power) {
+    var getIDWAverage = function (vec, dist, power) {
         var numerator = la.elementByElement(vec, dist, function (a, b) { return result = b == 0 ? a : a / Math.pow(b, power) }).sum();
         var denumerator = la.elementByElement(la.ones(dist.length), dist, function (a, b) { return result = b == 0 ? a : a / Math.pow(b, power) }).sum();
         return numerator / denumerator;
     }
 
     // Used for updatig
-    add = function (x, target) {
+    var add = function (x, target) {
         matrixVec.push(x);
         targetVec.push(target);
         if (buffer > 0) {
             if (matrixVec.length > buffer) {
-                this.forget(matrixVec.length - buffer);
+                forget(matrixVec.length - buffer);
             }
         }
     }
 
     // Create row matrix from matrixVec array log
-    getMatrix = function () {
+    var getMatrix = function () {
         if (matrixVec.length > 0) {
             var A = la.newMat({ "cols": matrixVec[0].length, "rows": matrixVec.length });
             for (var i = 0; i < matrixVec.length; i++) {
@@ -877,7 +878,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     };
 
     // Create column matrix from matrixVec array log
-    getColMatrix = function () {
+    var getColMatrix = function () {
         if (matrixVec.length > 0) {
             var A = la.newMat({ "cols": matrixVec.length, "rows": matrixVec[0].length });
             for (var i = 0; i < matrixVec.length; i++) {
@@ -888,7 +889,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     };
 
     // Forget function used in buffer. Deletes first `n` (integer) examples from the training set
-    forget = function (ndeleted) {
+    var forget = function (ndeleted) {
         ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
         ndeleted = Math.min(matrixVec.length, ndeleted);
         matrixVec.splice(0, ndeleted);
@@ -896,7 +897,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     };
 
     // Create vector from targetVec array
-    getTargetVec = function () {
+    var getTargetVec = function () {
         return la.copyFltArrayToVec(targetVec);
     }
 }

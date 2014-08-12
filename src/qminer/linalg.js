@@ -260,6 +260,16 @@ la.copyFltArrayToVec = function(arr) {
     return vec;
 };
 
+//#- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+la.copyVecToArray = function (vec) {
+    var len = vec.length;
+    var arr = [];
+    for (var elN = 0; elN < len; elN++) {
+        arr[elN] = vec[elN];
+    }
+    return arr;
+};
+
 ////// SERIALIZATION: use fs instead of fname
 //#- `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
 la.saveMat = function(X, fout) {
