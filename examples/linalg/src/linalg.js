@@ -46,5 +46,13 @@ console.say("||x - x2|| = " + x.minus(x2).norm());
 var x0 = la.genRandomVector(3);
 var x3 = la.conjgrad(A.sparse(), b, x0); // convert A to a sparse matrix and test the CG method
 console.say("||x3 - x2|| = " + x3.minus(x2).norm());
+// Inverse matrix with SVD
+var C = la.newMat({ "rows": 3, "cols": 3, "random": true });
+var I = la.newMat({ "cols": C.cols, "rows": C.rows });
+I = la.inverseSVD(C);
+var Identity = la.newMat(I);
+Identity = C.multiply(I);
+console.log("Calculating M^{-1}. I = M * M^{-1}. Do we get an identity?");
+la.printMat(Identity);
 
 console.start();

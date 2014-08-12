@@ -270,9 +270,11 @@ void TBow::ParseJson(const TWPt<TBase>& Base, const PRecSet& RecSet,
         PSwSet SwSet = JsonVal->IsObjKey("stopwords") ? 
             TSwSet::ParseJson(JsonVal->GetObjKey("stopwords")) :
             TSwSet::New(swstEn523); 
+        // tokenizor
+        PTokenizer Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     	// prepare feature extractor
         FtrExt = TFtrExts::TBagOfWords::New(Base, JoinSeq, 
-            FieldId, TFtrExts::bowmConcat, SwSet, Stemmer);
+            FieldId, TFtrExts::bowmConcat, Tokenizer);
     } else {
 		FtrExt = TFtrExts::TMultinomial::New(Base, JoinSeq, FieldId);
     }
@@ -669,8 +671,8 @@ void TTimeSeriesTick::Save(TSOut& SOut) const {
 
 PJsonVal TTimeSeriesTick::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("GenericTick", TickVal);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", TickVal);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -720,7 +722,11 @@ TTimeSeriesWinBuf::TTimeSeriesWinBuf(const TWPt<TBase>& Base, const PJsonVal& Pa
 	TimeFieldId = Store->GetFieldId(TimeFieldNm);
     TStr TickValFieldNm = ParamVal->GetObjStr("value");
 	TickValFieldId = Store->GetFieldId(TickValFieldNm);
-    WinSizeMSecs = ParamVal->GetObjInt("winsize") * 60 * 1000;	 
+	// replacing GetObjInt("winsize"); which supports only int (which is not enough)
+	double TmD = ParamVal->GetObjNum("winsize");
+	WinSizeMSecs = (uint64)TmD;
+	// temporary warning
+	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TTimeSeriesWinBuf not in msecs (< 60000)");
     OutValV = TFltV(); OutTmMSecsV = TUInt64V(); AllValV = TFltUInt64PrV();
 }
 
@@ -761,8 +767,8 @@ void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
 
 PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("LastVal", InVal);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", InVal);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(InTmMSecs).GetWebLogDateTimeStr(false, "T"));
     /*Val->AddToObj("FirstVal", LastTickVal);
 	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(LastTmMSecs).GetWebLogDateTimeStr(false, "T"));*/
 	return Val;
@@ -836,8 +842,8 @@ void TWinBufCount::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufCount::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("COUNT", InAggrVal->GetN());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", InAggrVal->GetN());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(InAggrVal->GetInTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -916,8 +922,8 @@ void TWinBufSum::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufSum::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("SUM", Sum.GetSum());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Sum.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Sum.GetSum());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Sum.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -996,8 +1002,8 @@ void TWinBufMin::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufMin::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MIN", Min.GetMin());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Min.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Min.GetMin());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Min.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1076,8 +1082,8 @@ void TWinBufMax::Save(TSOut& SOut) const {
 
 PJsonVal TWinBufMax::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MAX", Max.GetMax());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Max.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Max.GetMax());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Max.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1156,8 +1162,8 @@ void TMa::Save(TSOut& SOut) const {
 
 PJsonVal TMa::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("MA", Ma.GetMa());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Ma.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Ma.GetMa());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ma.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1193,13 +1199,13 @@ TEma::TEma(const TWPt<TBase>& Base, const TStr& AggrNm, const double& TmInterval
 
 TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal), Ema(ParamVal) {
     // parse out input aggregate
-    TStr InStoreNm = ParamVal->GetObjStr("store");
-    TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
-    PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
+    TStr InStoreNm = ParamVal->GetObjStr("store", "");
+	TStr InAggrNm = ParamVal->GetObjStr("inAggr");	
+	PStreamAggr _InAggr = Base->GetStreamAggr(InStoreNm, InAggrNm);
     InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
-    QmAssertR(!InAggr.Empty(), "Stream aggregate does not exist: " + InAggrNm);
+    QmAssertR(!InAggr.Empty(), "TEma::TEma : Stream aggregate does not exist: " + InAggrNm);
 	InAggrVal = dynamic_cast<TStreamAggrOut::IFltTm*>(_InAggr());
-    QmAssertR(!InAggrVal.Empty(), "Stream aggregate does not implement IFltTm interface: " + InAggrNm);
+    QmAssertR(!InAggrVal.Empty(), "TEma::TEma Stream aggregate does not implement IFltTm interface: " + InAggrNm);
 }
 
 TEma::TEma(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn), Ema(SIn) {
@@ -1249,8 +1255,8 @@ void TEma::Save(TSOut& SOut) const {
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("EMA", Ema.GetEma());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Ema.GetEma());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Ema.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1334,8 +1340,8 @@ void TVar::Save(TSOut& SOut) const {
 PJsonVal TVar::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 
-	Val->AddToObj("VAR", Var.GetM2());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Var.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Var.GetM2());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Var.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1402,8 +1408,8 @@ PStreamAggr TCov::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 
 PJsonVal TCov::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("COV", Cov.GetCov());
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(Cov.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Cov.GetCov());
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(Cov.GetTmMSecs()).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1500,8 +1506,8 @@ void TCorr::Save(TSOut& SOut) const {
 
 PJsonVal TCorr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("CORR", Corr);
-	Val->AddToObj("UTCTime", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
+	Val->AddToObj("Val", Corr);
+	Val->AddToObj("Time", TTm::GetTmFromMSecs(TmMSecs).GetWebLogDateTimeStr(false, "T"));
 	return Val;
 }
 
@@ -1693,8 +1699,8 @@ void TStMerger::Save(TSOut& SOut) const {
 
 PJsonVal TStMerger::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
-	Val->AddToObj("Merger", 0);
-	Val->AddToObj("UTCTime", 0);
+	Val->AddToObj("Val", 0);
+	Val->AddToObj("Time", 0);
 	return Val;
 }
 
@@ -2149,7 +2155,7 @@ void TCompositional::Register(const TWPt<TBase>& Base, const TStr& TypeNm, const
     }
 };
 
-TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, 
+TStrV TCompositional::ItEma(const TWPt<TQm::TBase>& Base, 
         const int& NumIter, const double& TmInterval, const TSignalProc::TEmaType& Type,
         const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
         TWPt<TQm::TStreamAggrBase>& SABase){
@@ -2174,11 +2180,11 @@ TStrV TCompositional::ItEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 	double TmInterval = ParamVal->GetObjNum("tmInterval", 1000.0);
 	uint64 InitMinMSecs = (uint64)ParamVal->GetObjInt("initMinMSecs", 0);
 	TStr InAggrNm = ParamVal->GetObjStr("inAggr");
-	TStr InStoreNm = ParamVal->GetObjStr("store");
+	TStr InStoreNm = ParamVal->GetObjStr("store", "");
 	TStr Prefix = ParamVal->GetObjStr("prefix", "itema");
-	TWPt<TQm::TStreamAggrBase> SABase = Base->GetStreamAggrBase(
+	TWPt<TQm::TStreamAggrBase> SABase = InStoreNm.Empty() ? Base->GetStreamAggrBase() : Base->GetStreamAggrBase(
             Base->GetStoreByStoreNm(InStoreNm)->GetStoreId());
-	return TCompositional::ItEma(Base, InStoreNm, NumIter, TmInterval, 
+	return TCompositional::ItEma(Base, NumIter, TmInterval, 
         TSignalProc::etLinear, InitMinMSecs, InAggrNm, Prefix, SABase);
 };
 

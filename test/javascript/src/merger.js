@@ -1,7 +1,11 @@
 var assert = require('assert.js');
 
+console.say("Merger", "Testing merger");
+
 // only report failours
-assert.silent = process.isArg("-nopass");
+assert.silent = !process.isArg("-verbose");
+// name of the debug process
+assert.consoleTitle = "Merger";
 
 function findMinVal(idxs, vals) {
     var minTm = Number.MAX_VALUE;
@@ -66,7 +70,7 @@ function testMerger() {
        }
     ]);
 
-    qm.addStreamAggr({
+    qm.newStreamAggr({
         type: 'stmerger',
         name: 'blabla',
         outStore: 'joined',
@@ -201,7 +205,7 @@ function testMerger() {
         }
     ]);
 
-    qm.addStreamAggr({
+    qm.newStreamAggr({
         type: 'stmerger',
         name: 'blabla1',
         outStore: 'joined1',
@@ -305,7 +309,7 @@ function testMerger() {
         }
     ]);
 
-    qm.addStreamAggr({
+    qm.newStreamAggr({
         type: 'stmerger',
         name: 'blabla2',
         outStore: 'joined11',
