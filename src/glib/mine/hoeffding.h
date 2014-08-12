@@ -28,7 +28,7 @@ namespace THoeffding {
    // Model in the leaves for regression 
    typedef enum {
       rlMEAN,              // Predict the mean in the leaves 
-      rlLINEAR_REGRESSION  // Fit a linear model in the leaves 
+      rlLINEAR             // Fit a linear model in the leaves 
    } TRegressLeaves;
    
    // Classifier in the leaves 
@@ -706,7 +706,8 @@ namespace THoeffding {
             SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_),
             DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_),
             BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
-            IdGen(IdGen_), ConceptDriftP(true), MxNodes(0) {
+            IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
+            RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -719,7 +720,8 @@ namespace THoeffding {
             GracePeriod(GracePeriod_), DriftCheck(DriftCheck_), 
             WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000),
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
-            ConceptDriftP(true), MxNodes(0) {
+            ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
+            ClassifyLeaves(clMAJORITY) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -727,7 +729,8 @@ namespace THoeffding {
          const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
          : ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
-            ConceptDriftP(true), MxNodes(0) {
+            ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
+            ClassifyLeaves(clMAJORITY) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -889,6 +892,11 @@ namespace THoeffding {
       PIdGen IdGen; // ID generator 
       bool ConceptDriftP;
       int MxNodes; // The max allowed size of the tree 
+      // TAttrHeuristic AttrHeuristic; // Heuristic measure 
+      // Leaf model in regression trees
+      TRegressLeaves RegressLeaves;
+      // Leaf model in classification trees
+      TClassifyLeaves ClassifyLeaves;
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);

@@ -1040,14 +1040,37 @@ namespace THoeffding {
             CrrNode = CrrNode->ChildrenV.GetVal(Idx);
          }
       }
+      double Pred = 0.0; // Prediction 
       // Ikonomovska [Ikonomovska, 2012] trains perceptron in the leaves 
-      return CrrNode->Avg;
+      switch (RegressLeaves) {
+      case rlMEAN:
+         Pred = CrrNode->Avg;
+         break;
+      case rlLINEAR:
+         EFailR("Linear models for regression not yet implemented.");
+         break;
+      default:
+         EFailR("Unkown model. Choose rlMEAN or rlLINEAR.");
+      }
+      return Pred;
    }
    // TODO: Let the user decide what classifier to use in the leaves 
    TStr THoeffdingTree::Classify(PNode Node, PExample Example) const {
       PNode CrrNode = Node;
       while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-      return GetMajorityNm(CrrNode); // NaiveBayes(CrrNode, Example);
+      TStr Label = "";
+      switch (ClassifyLeaves) {
+      case clMAJORITY:
+         Label = GetMajorityNm(CrrNode);
+         break;
+      case clNAIVE_BAYES: {
+         int Idx = NaiveBayes(CrrNode, Example);
+         Label = AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(Idx); }
+         break;
+      default:
+         EFailR("Unknown model. Choose clMAJORITY or clNAIVE_BAYES.");
+      }
+      return Label;
    }
    TStr THoeffdingTree::Classify(const TStrV& DiscreteV,
       const TFltV& NumericV) const {
@@ -1705,6 +1728,8 @@ namespace THoeffding {
       FOut.Flush();
    }
    // Naive bayes classifier 
+   // TODO: Return P(X=c) for all class labels c; it's more informative
+   // than argmax_c P(X=c) 
    TLabel THoeffdingTree::NaiveBayes(PNode Node, PExample Example) const {
       const THash<TTriple<TInt, TInt, TInt>, TInt> Counts = Node->Counts;
       const TIntV PartitionV = Node->PartitionV;
@@ -1943,6 +1968,30 @@ namespace THoeffding {
          JsonParams->GetObjKey("conceptDriftP")->IsBool()) {
          ConceptDriftP = JsonParams->GetObjBool("conceptDriftP");
          // printf("ConceptDriftP = %d\n", ConceptDriftP);
+      }
+      // Functional leaves 
+      if (JsonParams->IsObjKey("regressionLeafModel") &&
+         JsonParams->GetObjKey("regressionLeafModel")->IsStr()) {
+         TStr ModelStr = JsonParams->GetObjStr("regressionLeafModel");
+         // printf("ModelStr = %s\n", ModelStr.CStr());
+         if (ModelStr == "mean") {
+            RegressLeaves = rlMEAN;
+         } else if (ModelStr == "linear") {
+            RegressLeaves = rlLINEAR;
+         } else {
+            EFailR("Unknown option: '"+ModelStr+"'");
+         }
+      }
+      if (JsonParams->IsObjKey("classificationLeafModel") &&
+         JsonParams->GetObjKey("classificationLeafModel")->IsStr()) {
+         TStr ModelStr = JsonParams->GetObjStr("classificationLeafModel");
+         if (ModelStr == "majority") {
+            ClassifyLeaves = clMAJORITY;
+         } else if (ModelStr == "naiveBayes") {
+            ClassifyLeaves = clNAIVE_BAYES;
+         } else {
+            EFailR("Unknown option: '"+ModelStr+"'");
+         }
       }
    }
    // Create attribute manager object for each attribute 

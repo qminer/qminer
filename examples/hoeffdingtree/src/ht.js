@@ -71,8 +71,8 @@ function testClassificationContAttr() {
       "splitConfidence": 1e-6,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
-      "windowSize": 100000,
-      "conceptDriftP": false
+      "windowSize": 3000,
+      "conceptDriftP": true
    };
    
    // describe the data stream 
@@ -136,7 +136,8 @@ function testClassification() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 15000,
-      "conceptDriftP": false
+      "conceptDriftP": false,
+      "classificationLeafModel": "naiveBayes"
    };
    
    // describe the data stream 
@@ -271,7 +272,8 @@ function testRegressionContAttr() {
       "driftCheck": 1000,
       "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 5
+      "maxNodes": 5,
+      "regressionLeafModel": "mean"
    };
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
