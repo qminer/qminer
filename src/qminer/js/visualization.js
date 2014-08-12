@@ -23,12 +23,13 @@
 //# **Functions and properties:**
 //#
 
+override = require('json-override.js')
+time = require("time");
+
 // array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]
 // Output: [{name : "ema", data : [[t1, v1], [t3, v3]]} , {name : "tick", data : [[t2, v2], [t4, v4]] }]
 //#- `objJson = vis.highchartsConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
-
-override = require('json-override.js')
 
 exports.highchartsConverter = function (dataJson) {
 
@@ -47,6 +48,44 @@ exports.highchartsConverter = function (dataJson) {
     }
     for (key in temp) {
         result.push({ name: key, data: temp[key] });
+    }
+    return result;
+}
+
+// record set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
+// Input: {"$hits":432,"records":[{"$id":0,"datetime":"t1","mcutmp_avg":v11,"mcutmp_min":v12,"mcutmp_max":v13},{"$id":1,"datetime":"t2","mcutmp_avg":v21,"mcutmp_min":v22,"mcutmp_max":v23}]}
+// Output: [{name : "mcutmp_avg", data : [[t1, v11], [t2, v21]]} , {name : "mcutmp_min", data : [[t1, v12], [t2, v22]] }, {name : "mcutmp_max", data : [[t1, v13], [t2, v23]] }]
+//#- `objJson = vis.highchartsConverter(fieldsJson, objJson)` -- arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
+
+exports.highchartsConverter = function (fieldsJson, dataJson) {
+
+    var keys = {};
+    for (key in fieldsJson) {        
+        if (fieldsJson[key].name != "datetime"){
+           keys[fieldsJson[key].name] = [];
+           //console.log("" + fieldsJson[key].name);  
+        }
+    }
+    
+    var result = [];    
+    for (objN = 0; objN < dataJson.records.length; objN++) {
+        var obj = dataJson.records[objN];
+        for (key in obj) {
+            var longtime;
+            if (key == "datetime"){
+                var tm = time.parse(obj[key]);            
+                longtime = 1000 * tm.timestamp + tm.milisecond;  
+            } else {                
+                if (keys[key]) {                    
+                    keys[key].push([longtime, obj[key]]);
+                    console.log(longtime + " " + JSON.stringify(obj[key]));
+                }
+            }                       
+        }
+    }
+    for (key in keys) {
+        //console.log(JSON.stringify(keys[key]));
+        result.push({ name: key, data: keys[key] });
     }
     return result;
 }
