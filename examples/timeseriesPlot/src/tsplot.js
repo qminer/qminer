@@ -79,4 +79,4 @@ for (var step = 0; step < 180; step++) {
 
 //    ]
 //}]
-viz.drawHighChartsTimeSeries(viz.highchartsConverter(buffer), "plot.html", { title: { text: "js(t) = sin(t) + noise, ema(t) = EMA(js(t))" } });
+viz.drawHighChartsTimeSeries(viz.highchartsTSConverter(buffer), "plot.html", { title: { text: "js(t) = sin(t) + noise, ema(t) = EMA(js(t))" } });

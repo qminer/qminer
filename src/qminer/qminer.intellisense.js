@@ -616,6 +616,14 @@ _twitterParser.rawJsonToStoreJson = function () {
 	/// </signature>
 };
 
+_vis.highchartsTSConverter = function () {
+	/// <signature>
+	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <param name="_objJson" value="_objJson">param</param>
+	/// <returns value ="_objJson"/>
+	/// </signature>
+};
+
 _vis.drawHighChartsTimeSeries = function () {
 	/// <signature>
 	/// <summary> copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided</summary>
@@ -628,7 +636,8 @@ _vis.drawHighChartsTimeSeries = function () {
 
 _vis.highchartsConverter = function () {
 	/// <signature>
-	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <summary> arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <param name="_fieldsJson" value="_fieldsJson">param</param>
 	/// <param name="_objJson" value="_objJson">param</param>
 	/// <returns value ="_objJson"/>
 	/// </signature>
