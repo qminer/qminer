@@ -2680,6 +2680,9 @@ _tm.second = _num;
 /// <field name = "milisecond" value = "_num"> millisecond (number)</field>
 _tm.milisecond = _num;
 
+/// <field name = "windowstimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
+_tm.windowstimestamp = _num;
+
 /// <field name = "now" value = "_tm"> returns new time object representing current local time</field>
 _tm.now = _tm;
 

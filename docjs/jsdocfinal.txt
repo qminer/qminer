@@ -1010,6 +1010,7 @@ New one can be created using `tm = require('time.js')`.
 - `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     as Date-Time object
 - `tm2 = tm.clone()` -- clones `tm` to `tm2`
+- `num = tm.windowstimestamp` -- returns windows system time in milliseconds from 1/1/1601
 
 ## Other libraries
 
