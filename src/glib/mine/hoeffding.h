@@ -644,12 +644,13 @@ namespace THoeffding {
       // newly created leaves 
       void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
       void Clr();
-      TBstAttr BestAttr(const TAttrManV& AttrManV,
-         const TTaskType& TaskType = ttCLASSIFICATION);
       TBstAttr BestRegAttr(const TAttrManV& AttrManV); // Regression 
       // Classification 
       TBstAttr BestClsAttr(const TAttrManV& AttrManV,
-         const TIntV& BannedAttrV = TVec<TInt>());
+         const TIntV& BannedAttrV = TVec<TInt>(),
+         const TAttrHeuristic& AttrHeuristic = ahINFO_GAIN);
+      TBstAttr BestClsAttr(const TAttrManV& AttrManV,
+         const TAttrHeuristic& AttrHeuristic = ahINFO_GAIN);
       void UpdateStats(PExample Example); // Regression 
       inline double Std() const {
          // NOTE: Unbiased variance estimator is VarSum/(ExamplesN-1)
@@ -707,7 +708,8 @@ namespace THoeffding {
             DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_),
             BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
             IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
-            RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY) {
+            RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
+            AttrHeuristic(ahINFO_GAIN) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -721,7 +723,7 @@ namespace THoeffding {
             WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000),
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
-            ClassifyLeaves(clMAJORITY) {
+            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -730,7 +732,7 @@ namespace THoeffding {
          : ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
-            ClassifyLeaves(clMAJORITY) {
+            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -892,11 +894,11 @@ namespace THoeffding {
       PIdGen IdGen; // ID generator 
       bool ConceptDriftP;
       int MxNodes; // The max allowed size of the tree 
-      // TAttrHeuristic AttrHeuristic; // Heuristic measure 
       // Leaf model in regression trees
       TRegressLeaves RegressLeaves;
       // Leaf model in classification trees
       TClassifyLeaves ClassifyLeaves;
+      TAttrHeuristic AttrHeuristic; // Heuristic measure 
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);

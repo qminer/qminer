@@ -72,7 +72,9 @@ function testClassificationContAttr() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 3000,
-      "conceptDriftP": true
+      "conceptDriftP": false,
+      "classificationLeafModel": "majority",
+      "classificationAttrHeuristic": "infoGain"
    };
    
    // describe the data stream 
@@ -137,7 +139,8 @@ function testClassification() {
       "driftCheck": 1000,
       "windowSize": 15000,
       "conceptDriftP": false,
-      "classificationLeafModel": "naiveBayes"
+      "classificationLeafModel": "naiveBayes",
+      "classificationAttrHeuristic": "giniGain"
    };
    
    // describe the data stream 

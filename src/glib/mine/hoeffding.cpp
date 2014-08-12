@@ -889,16 +889,6 @@ namespace THoeffding {
       HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
       SeenH.Clr(true);
    }
-   TBstAttr TNode::BestAttr(const TAttrManV& AttrManV,
-      const TTaskType& TaskType) {
-      EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
-         "Invalid task type TaskType.");
-      if (TaskType == ttCLASSIFICATION) {
-         return BestClsAttr(AttrManV);
-      } else {
-         return BestRegAttr(AttrManV);
-      }
-   }
    // Regression 
    TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV) {
       // AttrsManV includes attribute manager for the label 
@@ -941,7 +931,7 @@ namespace THoeffding {
    }
    // Classification 
    TBstAttr TNode::BestClsAttr(const TAttrManV& AttrManV,
-      const TIntV& BannedAttrV) {
+      const TIntV& BannedAttrV, const TAttrHeuristic& AttrHeuristic) {
       int Idx1, Idx2;
       double Mx1, Mx2, Crr, SplitVal;
       const int AttrsN = AttrManV.Len()-1;
@@ -955,10 +945,28 @@ namespace THoeffding {
             "Invalid attribute type AttrType.");
          if (AttrType == atDISCRETE) {
             if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
-               Crr = InfoGain(AttrN, AttrManV);
+               switch (AttrHeuristic) {
+               case ahINFO_GAIN:
+                  Crr = InfoGain(AttrN, AttrManV);
+                  break;
+               case ahGINI_GAIN:
+                  Crr = GiniGain(AttrN, AttrManV);
+                  break;
+               default:
+                  EFailR("Unknown attribute heuristic for classification.");
+               }
             }
          } else { // Numeric attribute 
-            Crr = HistH.GetDat(AttrN).InfoGain(SplitVal);
+            switch (AttrHeuristic) {
+            case ahINFO_GAIN:
+               Crr = HistH.GetDat(AttrN).InfoGain(SplitVal);
+               break;
+            case ahGINI_GAIN:
+               Crr = HistH.GetDat(AttrN).GiniGain(SplitVal);
+               break;
+            default:
+               EFailR("Unknown attribute heuristic for classification.");
+            }
             // HistH.GetDat(AttrN).Print();
             // getchar();
             Val = SplitVal;
@@ -972,6 +980,11 @@ namespace THoeffding {
       const double Diff = Mx1 - Mx2;
       return TBstAttr(TPair<TInt, TFlt>(Idx1, Mx1),
          TPair<TInt, TFlt>(Idx2, Mx2), Diff);
+   }
+   TBstAttr TNode::BestClsAttr(const TAttrManV& AttrManV,
+         const TAttrHeuristic& AttrHeuristic) {
+      TIntV DummyBannedV; // Empty vector 
+      return BestClsAttr(AttrManV, DummyBannedV, AttrHeuristic);
    }
    // See page 232 of Knuth's TAOCP, Vol. 2: Seminumeric Algorithms, 1997
    // for details 
@@ -1080,7 +1093,7 @@ namespace THoeffding {
       for (int AttrN = 0; AttrN < AttrsN-1; ++AttrN) {
          switch (AttrManV.GetVal(AttrN).Type) {
          case atDISCRETE:
-            // printf(DiscreteV.GetVal(DisIdx).CStr());
+            // printf("%s\n", DiscreteV.GetVal(DisIdx).CStr());
             AttributesV.Add(TAttribute(AttrN, AttrsHashV.GetVal(AttrN).GetDat(
                DiscreteV.GetVal(DisIdx++))));
             break;
@@ -1211,9 +1224,11 @@ namespace THoeffding {
          // attributes --- must not use CrrSplitAttrIdx 
          const int CrrSpltAttrIdx = CrrNode->CndAttrIdx;
          TVec<TInt> CrrBannedAttrV; CrrBannedAttrV.Add(CrrSpltAttrIdx);
-         TBstAttr SpltAttr = CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV);
+         TBstAttr SpltAttr =
+            CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV, AttrHeuristic);
          CrrBannedAttrV.Clr(); CrrBannedAttrV.Add(SpltAttr.Val1.Val1);
-         TBstAttr AltAttr = CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV);
+         TBstAttr AltAttr =
+            CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV, AttrHeuristic);
          const double EstG = SpltAttr.Val1.Val2 - AltAttr.Val1.Val2;
          // Does it make sense to split on this one?
          if (EstG >= 0 && SpltAttr.Val1.Val1 != -1 &&
@@ -1298,7 +1313,7 @@ namespace THoeffding {
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0 &&
          (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
          // See if we can get variance reduction 
-         TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
+         TBstAttr SplitAttr = Leaf->BestRegAttr(AttrManV);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
          // R=1; see also [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
          const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
@@ -1325,7 +1340,7 @@ namespace THoeffding {
       // TODO: Use stricter condition to prevent overfitting 
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->GetExamplesN() > 5 &&
          H > 0 && (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
-         TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
+         TBstAttr SplitAttr = Leaf->BestClsAttr(AttrManV, AttrHeuristic);
          const double EstG = SplitAttr.Val3;
          const double Eps = Leaf->ComputeTreshold(
             SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
@@ -1991,6 +2006,18 @@ namespace THoeffding {
             ClassifyLeaves = clNAIVE_BAYES;
          } else {
             EFailR("Unknown option: '"+ModelStr+"'");
+         }
+      }
+      // Attribute heuristic measure 
+      if (JsonParams->IsObjKey("classificationAttrHeuristic") &&
+         JsonParams->GetObjKey("classificationAttrHeuristic")->IsStr()) {
+         TStr HeuristicStr = JsonParams->GetObjStr("classificationAttrHeuristic");
+         if (HeuristicStr == "infoGain") {
+            AttrHeuristic = ahINFO_GAIN;
+         } else if ( HeuristicStr == "giniGain") {
+            AttrHeuristic = ahGINI_GAIN;
+         } else {
+            EFailR("Unknown option: '"+HeuristicStr+"'");
          }
       }
    }
