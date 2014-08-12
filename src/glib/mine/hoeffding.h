@@ -69,6 +69,12 @@ namespace THoeffding {
       ahGINI_GAIN   // Use Gini gain as heuristic measure 
    } TAttrHeuristic;
    
+   // Attribute discretization technique 
+   typedef enum {
+      adHISTOGRAM,   // Use histogram-based approach 
+      adBST          // Use extended binary search tree approach 
+   } TAttrDiscretization;
+   
    // Token type (used for parsing configuration files) 
    typedef enum {
       totDFORMAT,       // 'dataFormat' 
@@ -645,7 +651,9 @@ namespace THoeffding {
       // newly created leaves 
       void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
       void Clr();
-      TBstAttr BestRegAttr(const TAttrManV& AttrManV); // Regression 
+      // Regression 
+      TBstAttr BestRegAttr(const TAttrManV& AttrManV,
+         const TAttrDiscretization& AttrDiscretization = adHISTOGRAM); 
       // Classification 
       TBstAttr BestClsAttr(const TAttrManV& AttrManV,
          const TIntV& BannedAttrV = TVec<TInt>(),
@@ -710,7 +718,7 @@ namespace THoeffding {
             BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
             IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
             RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
-            AttrHeuristic(ahINFO_GAIN) {
+            AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -724,7 +732,8 @@ namespace THoeffding {
             WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000),
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
-            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN) {
+            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
+            AttrDiscretization(adHISTOGRAM) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -733,7 +742,8 @@ namespace THoeffding {
          : ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
-            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN) {
+            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
+            AttrDiscretization(adHISTOGRAM) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -900,6 +910,8 @@ namespace THoeffding {
       // Leaf model in classification trees
       TClassifyLeaves ClassifyLeaves;
       TAttrHeuristic AttrHeuristic; // Heuristic measure 
+      // Numeric attribute discretization technique 
+      TAttrDiscretization AttrDiscretization;
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);

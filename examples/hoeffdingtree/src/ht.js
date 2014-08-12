@@ -73,8 +73,10 @@ function testClassificationContAttr() {
       "driftCheck": 1000,
       "windowSize": 3000,
       "conceptDriftP": false,
-      "classificationLeafModel": "majority",
-      "classificationAttrHeuristic": "giniGain"
+      "clsLeafModel": "majority",
+      "clsAttrHeuristic": "giniGain",
+      "maxNodes": 10,
+      "attrDiscretization": "histogram"
    };
    
    // describe the data stream 
@@ -139,8 +141,10 @@ function testClassification() {
       "driftCheck": 1000,
       "windowSize": 15000,
       "conceptDriftP": false,
-      "classificationLeafModel": "naiveBayes",
-      "classificationAttrHeuristic": "giniGain"
+      "maxNodes": 20,
+      "clsLeafModel": "naiveBayes",
+      "clsAttrHeuristic": "giniGain",
+      "attrDiscretization": "histogram"
    };
    
    // describe the data stream 
@@ -210,7 +214,9 @@ function testRegressionDisAttr() {
       "driftCheck": 1000,
       "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 5
+      "maxNodes": 5,
+      "regLeafModel": "mean",
+      "attrDiscretization": "bst"
    };
    
    // describe the data stream 
@@ -276,7 +282,8 @@ function testRegressionContAttr() {
       "windowSize": 100000,
       "conceptDriftP": false,
       "maxNodes": 5,
-      "regressionLeafModel": "mean"
+      "regLeafModel": "mean",
+      "attrDiscretization": "histogram"
    };
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
@@ -473,11 +480,13 @@ console.say("In case you get an error of the form \"File 'file_path' does not ex
 console.say("Press ENTER to continue");
 console.start();
 
+/*
 console.say(" --- Example using classification HoeffdingTree --- ");
 console.say("- First classification scenario using bootstrapped SEA dataset -");
 testClassificationContAttr();
 console.say("- Second classification secnario using bootstrapped TITANIC dataset -");
 testClassification();
+*/
 
 console.say(" --- Example using regression HoeffdingTree --- ");
 console.say("- Regression scenario with discrete attributes -");

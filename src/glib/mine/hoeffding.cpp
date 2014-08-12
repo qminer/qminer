@@ -952,7 +952,8 @@ namespace THoeffding {
       SeenH.Clr(true);
    }
    // Regression 
-   TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV) {
+   TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV,
+      const TAttrDiscretization& AttrDiscretization) {
       // AttrsManV includes attribute manager for the label 
       const int AttrsN = AttrManV.Len()-1; 
       double CrrSdr, Mx1, Mx2;
@@ -971,12 +972,18 @@ namespace THoeffding {
             }
          } else { // Continuous 
             // printf("#\nCrrSdr=%f\n", CrrSdr);
-            // XXX: Use E-BST 
-            CrrSdr = BstH.GetDat(AttrN).GetBestSplit(Val);
-            
-            // This is the "old" way, using histogram 
-            // CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
-            // printf("SplitVal = %f\n", CrrSdr);
+            switch (AttrDiscretization) {
+            case adBST:
+               CrrSdr = BstH.GetDat(AttrN).GetBestSplit(Val);
+               break;
+            case adHISTOGRAM:
+               // This is the "old" way, using histogram 
+               CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
+               // printf("SplitVal = %f\n", CrrSdr);
+               break;
+            default:
+               EFailR("Undefined attribute discretization option.");
+            }
          }
          if (CrrSdr > Mx1) {
             Idx2 = Idx1; Idx1 = AttrN; Mx2 = Mx1; Mx1 = CrrSdr;
@@ -1356,26 +1363,32 @@ namespace THoeffding {
       const int AttrsN = Example->AttributesV.Len();
       for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
          if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
-            // TODO: Find an efficient way to compute s(A) from s(A1) and
-            // s(A2) if A1 and A2 parition A 
-            
-            // XXX: This is the "old", histogram-based, way 
-            // Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
-            
-            // XXX: Use E-BST 
-            // EFailR("Current regression discretization is deprecated.");
-            // Key is the attribute value 
-            const double Key = Example->AttributesV.GetVal(AttrN).Num;
-            // Val is the value of the target variable 
-            const double Val = Example->Value;
-            Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
+            switch (AttrDiscretization) {
+            case adBST: {
+               // Key is the attribute value 
+               const double Key = Example->AttributesV.GetVal(AttrN).Num;
+               // Val is the value of the target variable 
+               const double Val = Example->Value;
+               Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
+               break; }
+            case adHISTOGRAM:
+               // TODO: Find an efficient way to compute s(A) from s(A1) and
+               // s(A2) if A1 and A2 parition A 
+               Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
+               break;
+            default:
+               EFailR(
+                  "Regression: Undefined attribute discretization option.");
+            }
          }
       }
       // Regression
+      // The second condition --- the one with MxNodes --- makes sure that
+      // the implication `if MxNodes != 0, then NodesN() < MxNodes` holds 
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0 &&
          (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
          // See if we can get variance reduction 
-         TBstAttr SplitAttr = Leaf->BestRegAttr(AttrManV);
+         TBstAttr SplitAttr = Leaf->BestRegAttr(AttrManV, AttrDiscretization);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
          // R=1; see also [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
          const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
@@ -2009,6 +2022,14 @@ namespace THoeffding {
       }
       // Done processing config 
       InitAttrMan();
+      // XXX: Binary-search tree technique not implemented for classification 
+      if (TaskType == ttCLASSIFICATION) {
+         EAssertR(AttrDiscretization == adHISTOGRAM,
+            "BST discretization not implemented for classification");
+      }
+      EAssertR(AttrDiscretization == adHISTOGRAM ||
+         AttrDiscretization == adBST,
+         "AttrDiscretization has invalid value");
    }
    void THoeffdingTree::SetParams(PJsonVal JsonParams) {
       if (JsonParams->IsObjKey("gracePeriod") &&
@@ -2047,9 +2068,9 @@ namespace THoeffding {
          // printf("ConceptDriftP = %d\n", ConceptDriftP);
       }
       // Functional leaves 
-      if (JsonParams->IsObjKey("regressionLeafModel") &&
-         JsonParams->GetObjKey("regressionLeafModel")->IsStr()) {
-         TStr ModelStr = JsonParams->GetObjStr("regressionLeafModel");
+      if (JsonParams->IsObjKey("regLeafModel") &&
+         JsonParams->GetObjKey("regLeafModel")->IsStr()) {
+         TStr ModelStr = JsonParams->GetObjStr("regLeafModel");
          // printf("ModelStr = %s\n", ModelStr.CStr());
          if (ModelStr == "mean") {
             RegressLeaves = rlMEAN;
@@ -2059,9 +2080,9 @@ namespace THoeffding {
             EFailR("Unknown option: '"+ModelStr+"'");
          }
       }
-      if (JsonParams->IsObjKey("classificationLeafModel") &&
-         JsonParams->GetObjKey("classificationLeafModel")->IsStr()) {
-         TStr ModelStr = JsonParams->GetObjStr("classificationLeafModel");
+      if (JsonParams->IsObjKey("clsLeafModel") &&
+         JsonParams->GetObjKey("clsLeafModel")->IsStr()) {
+         TStr ModelStr = JsonParams->GetObjStr("clsLeafModel");
          if (ModelStr == "majority") {
             ClassifyLeaves = clMAJORITY;
          } else if (ModelStr == "naiveBayes") {
@@ -2071,15 +2092,27 @@ namespace THoeffding {
          }
       }
       // Attribute heuristic measure 
-      if (JsonParams->IsObjKey("classificationAttrHeuristic") &&
-         JsonParams->GetObjKey("classificationAttrHeuristic")->IsStr()) {
-         TStr HeuristicStr = JsonParams->GetObjStr("classificationAttrHeuristic");
+      if (JsonParams->IsObjKey("clsAttrHeuristic") &&
+         JsonParams->GetObjKey("clsAttrHeuristic")->IsStr()) {
+         TStr HeuristicStr = JsonParams->GetObjStr("clsAttrHeuristic");
          if (HeuristicStr == "infoGain") {
             AttrHeuristic = ahINFO_GAIN;
          } else if ( HeuristicStr == "giniGain") {
             AttrHeuristic = ahGINI_GAIN;
          } else {
             EFailR("Unknown option: '"+HeuristicStr+"'");
+         }
+      }
+      // Numeric attribute discretization 
+      if (JsonParams->IsObjKey("attrDiscretization") &&
+         JsonParams->GetObjKey("attrDiscretization")->IsStr()) {
+         TStr DiscretizationStr = JsonParams->GetObjStr("attrDiscretization");
+         if (DiscretizationStr == "histogram") {
+            AttrDiscretization = adHISTOGRAM;
+         } else if (DiscretizationStr == "bst") {
+            AttrDiscretization = adBST;
+         } else {
+            EFailR("Unknown option: '"+DiscretizationStr+"'");
          }
       }
    }
