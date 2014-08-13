@@ -68,7 +68,7 @@ namespace TQm {
 //#  - [Record](#record)
 //#  - [Index key](#index-key)
 //# - [Linear Algebra](#linear-algebra)
-//#  - [Vector](#lector)
+//#  - [Vector](#vector)
 //#  - [Matrix (dense matrix)](#matrix-dense-matrix)
 //#  - [SpVector (sparse vector)](#spvector-sparse-vector-)
 //#  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
@@ -1713,6 +1713,10 @@ public:
 	JsDeclareFunction(sort);
 	//#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
 	JsDeclareTemplatedFunction(sortPerm);	
+	//#- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
+	JsDeclareFunction(shuffle);
+	//#- `vec = vec.trunc(num)` -- truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.
+	JsDeclareFunction(trunc);
 	//#- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
 	JsDeclareTemplatedFunction(outer);
 	//#- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
@@ -1763,6 +1767,8 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getMaxIdx);
 		JsRegisterFunction(TmpTemp, sort);
 		JsRegisterFunction(TmpTemp, sortPerm);
+		JsRegisterFunction(TmpTemp, shuffle);
+		JsRegisterFunction(TmpTemp, trunc);
 		JsRegisterFunction(TmpTemp, outer);
 		JsRegisterFunction(TmpTemp, inner);
 		JsRegisterFunction(TmpTemp, plus);
@@ -1915,16 +1921,28 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::sort(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	bool Asc = true;
-	if (Args.Length() > 0) {
-		if (Args[0]->IsBoolean()) {
-			Asc = Args[0]->BooleanValue();
-		}
-	}
+	bool Asc = TJsObjUtil<TJsVec>::GetArgBool(Args, 0 , true);
 	v8::Persistent<v8::Object> JsResult = TJsVec<TVal,TAux>::New(JsVec->Js);
 	TVec<TVal>& Result = JsVec->Vec;
 	Result.Sort(Asc);
 	return HandleScope.Close(JsResult);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::shuffle(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+    static TRnd Rnd; JsVec->Vec.Shuffle(Rnd);
+	return Args.Holder();
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::trunc(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+    const int NewLen = TJsObjUtil<TJsVec>::GetArgInt32(Args, 0);
+    JsVec->Vec.Trunc(NewLen);
+	return Args.Holder();
 }
 
 template <class TVal, class TAux>
