@@ -257,18 +257,33 @@ namespace THoeffding {
    }
    double TMisc::Entropy(const TIntV& FreqV, const int& N) {
       double h = 0.0, p = 0.0;
+      EAssertR(N >= 0, "N < 0 in Entropy");
+      if (N == 0) { return 0.0; }
       // Make sure frequencies add up to N 
       int FreqSum = 0;
       for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
          EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
          FreqSum += It->Val;
-         p = N > 0 ? 1.0*It->Val/N : 0.0;
+         p = 1.0*It->Val/N;
          if (p > 0) { h -= p*TMath::Log2(p); }
       }
       EAssertR(FreqSum == N, "Frequency counts don't add up.");
       return h;
    }
-
+   double TMisc::GiniIndex(const TIntV& FreqV, const int& N) {
+      double g = 1.0, p = 0.0;
+      EAssertR(N >= 0, "N < 0 in GiniIndex");
+      if (N == 0) { return 0.0; }
+      int FreqSum = 0;
+      for (auto It = FreqV.BegI(); It != FreqV.EndI(); ++It) {
+         EAssertR(It->Val <= N, "Frequencey counts don't add up (Val>N).");
+         FreqSum += It->Val;
+         p = 1.0*It->Val/N;
+         g -= p*p;
+      }
+      EAssertR(FreqSum == N, "Frequency counts don't add up.");
+      return g;
+   }
    ///////////////////////////////
    // Extended-Binary-Search-Tree 
    void TExBST::Insert(const double& Key, const double& Val) {
@@ -282,7 +297,7 @@ namespace THoeffding {
             CrrNode->SumLeft += Val;
             CrrNode->SumSqLeft += Val*Val;
             ++CrrNode->CountLeft;
-            // Add a new node to the tree 
+            // Add a new node to the tree (if key not in the tree already) 
             if (CrrNode->LeftChild() == nullptr && Key != CrrNode->Key) {
                PExBSTNode NewNode = TExBSTNode::New(Key);
                CrrNode->LeftChild = NewNode;
@@ -314,6 +329,7 @@ namespace THoeffding {
       TotalCountLeft = 0;
       TotalCountRight = Root->CountRight+Root->CountLeft;
    }
+   // Finds the best split by in-order traversal of the tree 
    void TExBST::FindBestSplit(PExBSTNode Node) {
       if (Node->LeftChild() != nullptr) {
          FindBestSplit(Node->LeftChild);
@@ -541,18 +557,65 @@ namespace THoeffding {
             MxIdx = BinN;
          }
       }
-      delete GArr;
-      delete NArr;
+      delete [] GArr;
+      delete [] NArr;
       if (MxIdx > 0) {
          SplitVal = BinsV.GetVal(MxIdx).GetVal();
          return MxGain;
       } else {
-         return 0;
+         printf("[DEBUG] InfoGain chose 0th split bin.\n");
+         return 0.0;
       }
    }
-   double THist::GiniGain(double& SpltVal) const {
-      EFailR("Implementation in progress.");
-      return 0.0;
+   double THist::GiniGain(double& SplitVal) const {
+      int HiCount = 0, LoCount = 0, CrrCount = 0, MxIdx = 0;
+      double MxGain = 0.0, CrrGain = 0.0;
+      double LoImp = 0.0, HiImp = 0.0;
+      TIntV LoV, HiV;
+      double* GArr = new double[sizeof(double)*BinsV.Len()]();
+      int* NArr = new int[sizeof(int)*BinsV.Len()]();
+      // Compute initial split 
+      LoCount = 0; // BinsV.GetVal(0).Count;
+      // LoV = BinsV.GetVal(0).PartitionV;
+      HiCount = 0;
+      for (int BinN = 0; BinN < BinsV.Len(); ++BinN) {
+         TIntV TmpV = BinsV.GetVal(BinN).PartitionV;
+         TMisc::AddVec(1, TmpV, HiV); // HiV = HiV+TmpV
+         HiCount += BinsV.GetVal(BinN).Count;
+         // h_i := Gini(B_1\cup B_2\cup \ldots\cup B_i)
+         GArr[BinN] = TMisc::GiniIndex(HiV, HiCount);
+         NArr[BinN] = HiCount; // n_i := |B_1|+\ldots+|B_i|
+      }
+      const int AllN = HiCount;
+      const double H = TMisc::GiniIndex(HiV, AllN);
+      // Now find the best split 
+      CrrGain = MxGain = 0.0;
+      MxIdx = 0;
+      for (int BinN = BinsV.Len()-2; BinN >= 0; --BinN) {
+         CrrCount = BinsV.GetVal(BinN+1).Count;
+         // No need for this: BinsV.GetVal(MxIdx).GetVal()
+         // Val = BinsV.GetVal(BinN+1).Value; 
+         LoCount += CrrCount;
+         HiCount = NArr[BinN];
+         HiImp = GArr[BinN];
+         TIntV TmpV = BinsV.GetVal(BinN+1).PartitionV;
+         TMisc::AddVec(1, TmpV, LoV);
+         LoImp = TMisc::GiniIndex(LoV, LoCount);
+         CrrGain = H - LoCount*LoImp/AllN - HiCount*HiImp/AllN;
+         if (CrrGain > MxGain) {
+            MxGain = CrrGain;
+            MxIdx = BinN;
+         }
+      }
+      delete [] GArr;
+      delete [] NArr;
+      if (MxIdx > 0) {
+         SplitVal = BinsV.GetVal(MxIdx).GetVal();
+         return MxGain;
+      } else {
+         printf("[DEBUG] GiniGain chose 0th split bin.\n");
+         return 0.0;
+      }
    }
    // See [Knuth, 1997] and [Chan et al., 1979] for details regarding 
    // updating formulas for variance 
@@ -888,18 +951,9 @@ namespace THoeffding {
       HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
       SeenH.Clr(true);
    }
-   TBstAttr TNode::BestAttr(const TAttrManV& AttrManV,
-      const TTaskType& TaskType) {
-      EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
-         "Invalid task type TaskType.");
-      if (TaskType == ttCLASSIFICATION) {
-         return BestClsAttr(AttrManV);
-      } else {
-         return BestRegAttr(AttrManV);
-      }
-   }
    // Regression 
-   TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV) {
+   TBstAttr TNode::BestRegAttr(const TAttrManV& AttrManV,
+      const TAttrDiscretization& AttrDiscretization) {
       // AttrsManV includes attribute manager for the label 
       const int AttrsN = AttrManV.Len()-1; 
       double CrrSdr, Mx1, Mx2;
@@ -918,12 +972,18 @@ namespace THoeffding {
             }
          } else { // Continuous 
             // printf("#\nCrrSdr=%f\n", CrrSdr);
-            // XXX: Use E-BST 
-            // BstH.GetDat(AttrN).GetBestSplit(CrrSdr);
-            // printf("CrrSdr=%f\n", CrrSdr);
-            // This is the "old" way, using histogram 
-            CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
-            // printf("SplitVal = %f\n", CrrSdr);
+            switch (AttrDiscretization) {
+            case adBST:
+               CrrSdr = BstH.GetDat(AttrN).GetBestSplit(Val);
+               break;
+            case adHISTOGRAM:
+               // This is the "old" way, using histogram 
+               CrrSdr = HistH.GetDat(AttrN).StdGain(Val);
+               // printf("SplitVal = %f\n", CrrSdr);
+               break;
+            default:
+               EFailR("Undefined attribute discretization option.");
+            }
          }
          if (CrrSdr > Mx1) {
             Idx2 = Idx1; Idx1 = AttrN; Mx2 = Mx1; Mx1 = CrrSdr;
@@ -940,7 +1000,7 @@ namespace THoeffding {
    }
    // Classification 
    TBstAttr TNode::BestClsAttr(const TAttrManV& AttrManV,
-      const TIntV& BannedAttrV) {
+      const TIntV& BannedAttrV, const TAttrHeuristic& AttrHeuristic) {
       int Idx1, Idx2;
       double Mx1, Mx2, Crr, SplitVal;
       const int AttrsN = AttrManV.Len()-1;
@@ -954,10 +1014,28 @@ namespace THoeffding {
             "Invalid attribute type AttrType.");
          if (AttrType == atDISCRETE) {
             if (UsedAttrs.SearchForw(AttrN, 0) < 0) {
-               Crr = InfoGain(AttrN, AttrManV);
+               switch (AttrHeuristic) {
+               case ahINFO_GAIN:
+                  Crr = InfoGain(AttrN, AttrManV);
+                  break;
+               case ahGINI_GAIN:
+                  Crr = GiniGain(AttrN, AttrManV);
+                  break;
+               default:
+                  EFailR("Unknown attribute heuristic for classification.");
+               }
             }
          } else { // Numeric attribute 
-            Crr = HistH.GetDat(AttrN).InfoGain(SplitVal);
+            switch (AttrHeuristic) {
+            case ahINFO_GAIN:
+               Crr = HistH.GetDat(AttrN).InfoGain(SplitVal);
+               break;
+            case ahGINI_GAIN:
+               Crr = HistH.GetDat(AttrN).GiniGain(SplitVal);
+               break;
+            default:
+               EFailR("Unknown attribute heuristic for classification.");
+            }
             // HistH.GetDat(AttrN).Print();
             // getchar();
             Val = SplitVal;
@@ -971,6 +1049,11 @@ namespace THoeffding {
       const double Diff = Mx1 - Mx2;
       return TBstAttr(TPair<TInt, TFlt>(Idx1, Mx1),
          TPair<TInt, TFlt>(Idx2, Mx2), Diff);
+   }
+   TBstAttr TNode::BestClsAttr(const TAttrManV& AttrManV,
+         const TAttrHeuristic& AttrHeuristic) {
+      TIntV DummyBannedV; // Empty vector 
+      return BestClsAttr(AttrManV, DummyBannedV, AttrHeuristic);
    }
    // See page 232 of Knuth's TAOCP, Vol. 2: Seminumeric Algorithms, 1997
    // for details 
@@ -1039,14 +1122,37 @@ namespace THoeffding {
             CrrNode = CrrNode->ChildrenV.GetVal(Idx);
          }
       }
+      double Pred = 0.0; // Prediction 
       // Ikonomovska [Ikonomovska, 2012] trains perceptron in the leaves 
-      return CrrNode->Avg;
+      switch (RegressLeaves) {
+      case rlMEAN:
+         Pred = CrrNode->Avg;
+         break;
+      case rlLINEAR:
+         EFailR("Linear models for regression not yet implemented.");
+         break;
+      default:
+         EFailR("Unkown model. Choose rlMEAN or rlLINEAR.");
+      }
+      return Pred;
    }
    // TODO: Let the user decide what classifier to use in the leaves 
    TStr THoeffdingTree::Classify(PNode Node, PExample Example) const {
       PNode CrrNode = Node;
       while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-      return GetMajorityNm(CrrNode); // NaiveBayes(CrrNode, Example);
+      TStr Label = "";
+      switch (ClassifyLeaves) {
+      case clMAJORITY:
+         Label = GetMajorityNm(CrrNode);
+         break;
+      case clNAIVE_BAYES: {
+         int Idx = NaiveBayes(CrrNode, Example);
+         Label = AttrManV.GetVal(AttrManV.Len()-1).InvAttrH.GetDat(Idx); }
+         break;
+      default:
+         EFailR("Unknown model. Choose clMAJORITY or clNAIVE_BAYES.");
+      }
+      return Label;
    }
    TStr THoeffdingTree::Classify(const TStrV& DiscreteV,
       const TFltV& NumericV) const {
@@ -1056,7 +1162,7 @@ namespace THoeffding {
       for (int AttrN = 0; AttrN < AttrsN-1; ++AttrN) {
          switch (AttrManV.GetVal(AttrN).Type) {
          case atDISCRETE:
-            // printf(DiscreteV.GetVal(DisIdx).CStr());
+            // printf("%s\n", DiscreteV.GetVal(DisIdx).CStr());
             AttributesV.Add(TAttribute(AttrN, AttrsHashV.GetVal(AttrN).GetDat(
                DiscreteV.GetVal(DisIdx++))));
             break;
@@ -1187,9 +1293,11 @@ namespace THoeffding {
          // attributes --- must not use CrrSplitAttrIdx 
          const int CrrSpltAttrIdx = CrrNode->CndAttrIdx;
          TVec<TInt> CrrBannedAttrV; CrrBannedAttrV.Add(CrrSpltAttrIdx);
-         TBstAttr SpltAttr = CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV);
+         TBstAttr SpltAttr =
+            CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV, AttrHeuristic);
          CrrBannedAttrV.Clr(); CrrBannedAttrV.Add(SpltAttr.Val1.Val1);
-         TBstAttr AltAttr = CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV);
+         TBstAttr AltAttr =
+            CrrNode->BestClsAttr(AttrManV, CrrBannedAttrV, AttrHeuristic);
          const double EstG = SpltAttr.Val1.Val2 - AltAttr.Val1.Val2;
          // Does it make sense to split on this one?
          if (EstG >= 0 && SpltAttr.Val1.Val1 != -1 &&
@@ -1255,26 +1363,32 @@ namespace THoeffding {
       const int AttrsN = Example->AttributesV.Len();
       for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
          if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
-            // TODO: Find an efficient way to compute s(A) from s(A1) and
-            // s(A2) if A1 and A2 parition A 
-            
-            // XXX: This is the "old", histogram-based, way 
-            Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
-            
-            // XXX: Use E-BST 
-            // EFailR("Current regression discretization is deprecated.");
-            // Key is the attribute value 
-            // const double Key = Example->AttributesV.GetVal(AttrN).Num;
-            // Val is the value of the target variable 
-            // const double Val = Example->Value;
-            // Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
+            switch (AttrDiscretization) {
+            case adBST: {
+               // Key is the attribute value 
+               const double Key = Example->AttributesV.GetVal(AttrN).Num;
+               // Val is the value of the target variable 
+               const double Val = Example->Value;
+               Leaf->BstH.GetDat(AttrN).Insert(Key, Val);
+               break; }
+            case adHISTOGRAM:
+               // TODO: Find an efficient way to compute s(A) from s(A1) and
+               // s(A2) if A1 and A2 parition A 
+               Leaf->HistH.GetDat(AttrN).IncReg(Example, AttrN);
+               break;
+            default:
+               EFailR(
+                  "Regression: Undefined attribute discretization option.");
+            }
          }
       }
       // Regression
+      // The second condition --- the one with MxNodes --- makes sure that
+      // the implication `if MxNodes != 0, then NodesN() < MxNodes` holds 
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->Std() > 0.0 &&
-         GetNodesN() < 20) {
+         (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
          // See if we can get variance reduction 
-         TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
+         TBstAttr SplitAttr = Leaf->BestRegAttr(AttrManV, AttrDiscretization);
          // Pass 2, because TMath::Log2(2) = 1; since r lies in [0,1], we have
          // R=1; see also [Ikonomovska, 2012] and [Ikonomovska et al., 2011]
          const double Eps = Leaf->ComputeTreshold(SplitConfidence, 2);
@@ -1300,8 +1414,8 @@ namespace THoeffding {
       const double H = Leaf->ComputeEntropy();
       // TODO: Use stricter condition to prevent overfitting 
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->GetExamplesN() > 5 &&
-         H > 0) {
-         TBstAttr SplitAttr = Leaf->BestAttr(AttrManV, TaskType);
+         H > 0 && (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
+         TBstAttr SplitAttr = Leaf->BestClsAttr(AttrManV, AttrHeuristic);
          const double EstG = SplitAttr.Val3;
          const double Eps = Leaf->ComputeTreshold(
             SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
@@ -1704,6 +1818,8 @@ namespace THoeffding {
       FOut.Flush();
    }
    // Naive bayes classifier 
+   // TODO: Return P(X=c) for all class labels c; it's more informative
+   // than argmax_c P(X=c) 
    TLabel THoeffdingTree::NaiveBayes(PNode Node, PExample Example) const {
       const THash<TTriple<TInt, TInt, TInt>, TInt> Counts = Node->Counts;
       const TIntV PartitionV = Node->PartitionV;
@@ -1906,6 +2022,14 @@ namespace THoeffding {
       }
       // Done processing config 
       InitAttrMan();
+      // XXX: Binary-search tree technique not implemented for classification 
+      if (TaskType == ttCLASSIFICATION) {
+         EAssertR(AttrDiscretization == adHISTOGRAM,
+            "BST discretization not implemented for classification");
+      }
+      EAssertR(AttrDiscretization == adHISTOGRAM ||
+         AttrDiscretization == adBST,
+         "AttrDiscretization has invalid value");
    }
    void THoeffdingTree::SetParams(PJsonVal JsonParams) {
       if (JsonParams->IsObjKey("gracePeriod") &&
@@ -1933,10 +2057,63 @@ namespace THoeffding {
          SplitConfidence = JsonParams->GetObjNum("splitConfidence");
          // printf("SplitConfidence = %f\n", SplitConfidence);
       }
+      if (JsonParams->IsObjKey("maxNodes") &&
+         JsonParams->GetObjKey("maxNodes")->IsNum()) {
+         MxNodes = JsonParams->GetObjNum("maxNodes");
+         // printf("MxNodes = %d\n", MxNodes);
+      }
       if (JsonParams->IsObjKey("conceptDriftP") &&
          JsonParams->GetObjKey("conceptDriftP")->IsBool()) {
          ConceptDriftP = JsonParams->GetObjBool("conceptDriftP");
          // printf("ConceptDriftP = %d\n", ConceptDriftP);
+      }
+      // Functional leaves 
+      if (JsonParams->IsObjKey("regLeafModel") &&
+         JsonParams->GetObjKey("regLeafModel")->IsStr()) {
+         TStr ModelStr = JsonParams->GetObjStr("regLeafModel");
+         // printf("ModelStr = %s\n", ModelStr.CStr());
+         if (ModelStr == "mean") {
+            RegressLeaves = rlMEAN;
+         } else if (ModelStr == "linear") {
+            RegressLeaves = rlLINEAR;
+         } else {
+            EFailR("Unknown option: '"+ModelStr+"'");
+         }
+      }
+      if (JsonParams->IsObjKey("clsLeafModel") &&
+         JsonParams->GetObjKey("clsLeafModel")->IsStr()) {
+         TStr ModelStr = JsonParams->GetObjStr("clsLeafModel");
+         if (ModelStr == "majority") {
+            ClassifyLeaves = clMAJORITY;
+         } else if (ModelStr == "naiveBayes") {
+            ClassifyLeaves = clNAIVE_BAYES;
+         } else {
+            EFailR("Unknown option: '"+ModelStr+"'");
+         }
+      }
+      // Attribute heuristic measure 
+      if (JsonParams->IsObjKey("clsAttrHeuristic") &&
+         JsonParams->GetObjKey("clsAttrHeuristic")->IsStr()) {
+         TStr HeuristicStr = JsonParams->GetObjStr("clsAttrHeuristic");
+         if (HeuristicStr == "infoGain") {
+            AttrHeuristic = ahINFO_GAIN;
+         } else if ( HeuristicStr == "giniGain") {
+            AttrHeuristic = ahGINI_GAIN;
+         } else {
+            EFailR("Unknown option: '"+HeuristicStr+"'");
+         }
+      }
+      // Numeric attribute discretization 
+      if (JsonParams->IsObjKey("attrDiscretization") &&
+         JsonParams->GetObjKey("attrDiscretization")->IsStr()) {
+         TStr DiscretizationStr = JsonParams->GetObjStr("attrDiscretization");
+         if (DiscretizationStr == "histogram") {
+            AttrDiscretization = adHISTOGRAM;
+         } else if (DiscretizationStr == "bst") {
+            AttrDiscretization = adBST;
+         } else {
+            EFailR("Unknown option: '"+DiscretizationStr+"'");
+         }
       }
    }
    // Create attribute manager object for each attribute 
