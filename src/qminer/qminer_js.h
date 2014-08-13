@@ -2538,7 +2538,7 @@ public:
 //#	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-//#	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+//#	    generating the data is stationary). So `A1` is truly best with probability at least `1-splitConfidence`.
 //#- `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
 //#	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
 //#	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If
@@ -2552,6 +2552,27 @@ public:
 //#- `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 //#	    the window in order to ``forget'' the example when it becomes too old. 
+//#- `maxNodes` -- The algorithm stops growing the tree if the tree contains more than (or equal to) `maxNodes` nodes.
+//#       Alternate tree contributions are also counted. This parameter must be nonnegative integer. NOTE: If `maxNodes=0`,
+//#       then the algorithm let's the tree grow arbitrarily.
+//#- `attrDiscretization` -- Attribute discretization technique. Possible values are `histogram` and `bst`. See
+//#       [this paper](http://dl.acm.org/citation.cfm?id=1786604) and [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
+//#       for description. Note that `histogram` is cheap and uses up constant amount of memory, independent of the stream, but
+//#       its inicialization depends on the order of stream elements. The `bst` is essentially batch technique and uses up
+//#       lots of memory. 
+//#- `clsAttrHeuristic` -- This tells the algorithm what attribute heurstic measure to use. Possible values are `infoGain`, for
+//#       [information gain](http://en.wikipedia.org/wiki/Information_gain_in_decision_trees), and `giniGain`, for
+//#       [gini index](http://en.wikipedia.org/wiki/Decision_tree_learning#Gini_impurity). For classification only; regression
+//#       trees only support [standard deviation reduction](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf).
+//#- `clsLeafModel` -- This tells the algorithm what model to fit in the leaves of the classification tree. Options are `majority`,
+//#       which means majority classifier (predict the most frequent label in the leaf) and `naiveBayes`, which means
+//#       [Naive Bayes classifier](http://en.wikipedia.org/wiki/Naive_Bayes_classifier).
+//#- `regLeafModel` -- This tells the algorithm what model to fit in the leaves of the regression tree. Options are `mean`, which
+//#       means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
+//#       [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
+//#       for details.)
+//#
+
 class TJsHoeffdingTree {
 public:
 	/// JS script context

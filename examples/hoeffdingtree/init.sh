@@ -4,4 +4,5 @@ export PATH=$CURRENT_PATH/../../build/:$PATH
 
 /bin/rm -f lock
 qm config -overwrite
-qm create
+qm create -def=hoeffdingtree.def
+

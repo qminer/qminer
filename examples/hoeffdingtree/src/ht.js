@@ -71,8 +71,12 @@ function testClassificationContAttr() {
       "splitConfidence": 1e-6,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
-      "windowSize": 100000,
-      "conceptDriftP": false
+      "windowSize": 3000,
+      "conceptDriftP": false,
+      "clsLeafModel": "majority",
+      "clsAttrHeuristic": "giniGain",
+      "maxNodes": 10,
+      "attrDiscretization": "histogram"
    };
    
    // describe the data stream 
@@ -117,10 +121,10 @@ function testClassificationContAttr() {
    }
    
    // use the model 
-   var label = ht.classify([], [6.677259,5.152133,2.982455]);
-   console.say("f(6.677259,5.152133,2.982455) = " + label);
-   var label = ht.classify([], [1.848014,0.041624,2.913719]);
-   console.say("f(1.848014,0.041624,2.913719) = " + label);
+   var label = ht.classify([], [6.677259, 5.152133, 2.982455]);
+   console.say("f(6.677259, 5.152133, 2.982455) = " + label);
+   var label = ht.classify([], [1.848014, 0.041624, 2.913719]);
+   console.say("f(1.848014, 0.041624, 2.913719) = " + label);
    
    console.say("Now exporting the model as 'sea.gv'.");
    // export the model 
@@ -132,11 +136,15 @@ function testClassification() {
    // algorithm parameters 
    var htParams = {
       "gracePeriod": 300,
-      "splitConfidence": 1e-6,
+      "splitConfidence": 1e-5,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 15000,
-      "conceptDriftP": false
+      "conceptDriftP": false,
+      "maxNodes": 20,
+      "clsLeafModel": "naiveBayes",
+      "clsAttrHeuristic": "giniGain",
+      "attrDiscretization": "histogram"
    };
    
    // describe the data stream 
@@ -205,7 +213,10 @@ function testRegressionDisAttr() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false
+      "conceptDriftP": false,
+      "maxNodes": 5,
+      "regLeafModel": "mean",
+      "attrDiscretization": "bst"
    };
    
    // describe the data stream 
@@ -265,11 +276,14 @@ function testRegressionDisAttr() {
 function testRegressionContAttr() {
    var htParams = {
       "gracePeriod": 200,
-      "splitConfidence": 0.01,
+      "splitConfidence": 1e-6,
       "tieBreaking": 0.05,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false
+      "conceptDriftP": false,
+      "maxNodes": 5,
+      "regLeafModel": "mean",
+      "attrDiscretization": "histogram"
    };
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
@@ -332,9 +346,13 @@ function testRegression() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": true
+      "conceptDriftP": true,
+      "maxNodes": 10
    };
    
+   // TODO: Extract this info from feature space. Potential problem with
+   // discrete attributes --- we don't know the range of the attributes 
+   // in case the type is not numeric (i.e. text or date) 
    // describe the data stream 
    var regTestCfg = {
       "dataFormat": [
@@ -409,7 +427,8 @@ function realRegressionTest() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false
+      "conceptDriftP": false,
+      "maxNodes": 10
    };
    
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
@@ -427,13 +446,44 @@ function realRegressionTest() {
    ht.exportModel({ "file": "./sandbox/ht/winequality.gv", "type": "DOT" });
 }
 
+// Need this to see how to get hoeffding trees accept feature spaces 
+function ftrTest() {
+   var Test = qm.store("Test");
+   
+   var ftrSpace = analytics.newFeatureSpace([
+      { type: "numeric", source: "Test", field: "f1" },
+      { type: "numeric", source: "Test", field: "f2" },
+      { type: "numeric", source: "Test", field: "f3" }
+   ]);
+   
+   // var ht = analytics.newHoeffdingTree(ftrSpace, htParams);
+   
+   console.say("Feature space dimension: "+ftrSpace.dim);
+   console.start();
+   
+   Test.addTrigger({
+      onAdd: function (val) {
+         console.say(JSON.stringify(ftrSpace.ftrVec(val)));
+         return console.say(JSON.stringify(val)); 
+      }
+   });
+   
+   for (var i = 1; i <= 100; ++i) {
+      Test.add({ f1: i, f2: 2*i, f3: 3*i });
+   }
+   
+   console.say("Size = "+Test.length);
+}
+
+// ftrTest();
+
 // Warn the user 
 console.say("In case you get an error of the form \"File 'file_path' does not exist\", it means a dataset is missing.");
+console.say("Run `sh fetch-datasets.sh` to download missing files.");
 console.say("Press ENTER to continue");
 console.start();
 
 console.say(" --- Example using classification HoeffdingTree --- ");
-
 console.say("- First classification scenario using bootstrapped SEA dataset -");
 testClassificationContAttr();
 console.say("- Second classification secnario using bootstrapped TITANIC dataset -");
@@ -446,7 +496,7 @@ console.say("- Regression scenario with numeric attributes -");
 testRegressionContAttr();
 console.say("- Regression scenario using WIND dataset -");
 testRegression();
-console.say("- Regression scenario using Airline dataset -");
+console.say("- Regression scenario using winequality dataset -");
 realRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");
