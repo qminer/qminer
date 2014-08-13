@@ -544,14 +544,19 @@ public:
 	}
 	
 	/// Creates new JavaScript object around TJsObj, using supplied template
-	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const v8::Handle<v8::ObjectTemplate>& Template) {
+	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const v8::Handle<v8::ObjectTemplate>& Template, const bool& MakeWeakP = true) {
 		v8::HandleScope HandleScope;
 		v8::Persistent<v8::Object> Object = v8::Persistent<v8::Object>::New(Template->NewInstance());
 		Object->SetInternalField(0, v8::External::New(JsObj));
-		Object.MakeWeak(NULL, &Clean);
+		if (MakeWeakP) { Object.MakeWeak(NULL, &Clean); }
 		TJsUtil::AddObj(GetTypeNm<TJsObj>(*JsObj));
 		return Object;
 	}
+    
+    /// Mark object destructible by GC
+    static void MakeWeak(v8::Persistent<v8::Object>& Obj) {
+        Obj.MakeWeak(NULL, &Clean);
+    }
 
 	/// Destructor of JavaScript object, calls TJsObj destructor
 	static void Clean(v8::Persistent<v8::Value> Handle, void* Id) {
@@ -1469,8 +1474,10 @@ private:
 	TJsRec(TWPt<TScript> _Js, const TRec& _Rec, const int& _Fq): 
 		Js(_Js), Store(_Rec.GetStore()), Rec(_Rec), Fq(_Fq) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TRec& Rec, const int& Fq = 0) { 
-		return TJsRecUtil::New(new TJsRec(Js, Rec, Fq), GetTemplate(Js->Base, Rec.GetStore())); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TRec& Rec, 
+        const int& Fq = 0, const bool& MakeWeakP = true) { 
+    		return TJsRecUtil::New(new TJsRec(Js, Rec, Fq), 
+                GetTemplate(Js->Base, Rec.GetStore()), MakeWeakP); }
     static TRec GetArgRec(const v8::Arguments& Args, const int& ArgN);
 
 	~TJsRec() { }
