@@ -1975,9 +1975,9 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::sort(const v8::Arguments& Args) {
 			Asc = Args[0]->BooleanValue();
 		}
 	}
-	v8::Persistent<v8::Object> JsResult = TJsVec<TVal,TAux>::New(JsVec->Js);
-	TVec<TVal>& Result = JsVec->Vec;
+	TVec<TVal> Result = JsVec->Vec;
 	Result.Sort(Asc);
+	v8::Persistent<v8::Object> JsResult = TJsVec<TVal, TAux>::New(JsVec->Js, Result);
 	return HandleScope.Close(JsResult);
 }
 
