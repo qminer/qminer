@@ -483,13 +483,11 @@ console.say("Run `sh fetch-datasets.sh` to download missing files.");
 console.say("Press ENTER to continue");
 console.start();
 
-/*
 console.say(" --- Example using classification HoeffdingTree --- ");
 console.say("- First classification scenario using bootstrapped SEA dataset -");
 testClassificationContAttr();
 console.say("- Second classification secnario using bootstrapped TITANIC dataset -");
 testClassification();
-*/
 
 console.say(" --- Example using regression HoeffdingTree --- ");
 console.say("- Regression scenario with discrete attributes -");
@@ -498,7 +496,7 @@ console.say("- Regression scenario with numeric attributes -");
 testRegressionContAttr();
 console.say("- Regression scenario using WIND dataset -");
 testRegression();
-console.say("- Regression scenario using Airline dataset -");
+console.say("- Regression scenario using winequality dataset -");
 realRegressionTest();
 
 console.say("Interactive mode: empty line to release (press ENTER).");

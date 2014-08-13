@@ -20,6 +20,10 @@ wget http://agava.ijs.si/~blazs/qminer-datasets/reg-cont.dat -O ./sandbox/ht/reg
 echo "Fetching regression-test toy dataset..."
 wget http://agava.ijs.si/~blazs/qminer-datasets/regression-test.dat -O ./sandbox/ht/regression-test.dat
 
+echo "Fetching wind dataset..."
+wget http://agava.ijs.si/~blazs/qminer-datasets/wind.dat -O ./sandbox/ht/wind.dat
+
+
 echo "Fetching winequality dataset..."
 wget http://agava.ijs.si/~blazs/qminer-datasets/winequality.dat -O ./sandbox/ht/winequality.dat
 
