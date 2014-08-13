@@ -456,6 +456,8 @@ function ftrTest() {
       { type: "numeric", source: "Test", field: "f3" }
    ]);
    
+   // var ht = analytics.newHoeffdingTree(ftrSpace, htParams);
+   
    console.say("Feature space dimension: "+ftrSpace.dim);
    console.start();
    
@@ -477,6 +479,7 @@ function ftrTest() {
 
 // Warn the user 
 console.say("In case you get an error of the form \"File 'file_path' does not exist\", it means a dataset is missing.");
+console.say("Run `sh fetch-datasets.sh` to download missing files.");
 console.say("Press ENTER to continue");
 console.start();
 

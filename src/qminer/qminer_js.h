@@ -2513,7 +2513,7 @@ public:
 //#	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-//#	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+//#	    generating the data is stationary). So `A1` is truly best with probability at least `1-splitConfidence`.
 //#- `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
 //#	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
 //#	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If

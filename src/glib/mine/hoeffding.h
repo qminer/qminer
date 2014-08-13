@@ -27,26 +27,26 @@ namespace THoeffding {
 
    // Model in the leaves for regression 
    typedef enum {
-      rlMEAN,              // Predict the mean in the leaves 
-      rlLINEAR             // Fit a linear model in the leaves 
+      rlMEAN,  // Predict the mean in the leaves 
+      rlLINEAR // Fit a linear model in the leaves 
    } TRegressLeaves;
    
    // Classifier in the leaves 
    typedef enum {
-      clMAJORITY,      // Use majority classifier 
+      clMAJORITY,    // Use majority classifier 
       clNAIVE_BAYES  // Use NaiveBayes classifier 
    } TClassifyLeaves;
    
    // Learning task type 
    typedef enum {
-      ttCLASSIFICATION,  // Classification task 
-      ttREGRESSION       // Regression task 
+      ttCLASSIFICATION, // Classification task 
+      ttREGRESSION      // Regression task 
    } TTaskType;
    
    // Attribute value type 
    typedef enum {
-      atDISCRETE,   // Discrete (i.e. nominal) attribute 
-      atCONTINUOUS  // Continuous (i.e. numeric) attribute 
+      atDISCRETE,    // Discrete (i.e. categorial) attribute 
+      atCONTINUOUS   // Continuous (i.e. numeric) attribute 
    } TAttrType;
    
    // Node type 
@@ -60,13 +60,13 @@ namespace THoeffding {
    typedef enum {
       etXML,   // Export model as XML
       etJSON,  // Export model as JSON 
-      etDOT      // Export model as DOT 
+      etDOT    // Export model as DOT 
    } TExportType;
    
    // Attribute heuristic measures 
    typedef enum {
-      ahINFO_GAIN,  // Use information gain as heuristic measure 
-      ahGINI_GAIN   // Use Gini gain as heuristic measure 
+      ahINFO_GAIN,   // Use information gain as heuristic measure 
+      ahGINI_GAIN    // Use Gini gain as heuristic measure 
    } TAttrHeuristic;
    
    // Attribute discretization technique 
