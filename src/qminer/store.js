@@ -19,3 +19,35 @@
 qm.storeProto = function() {};
 //#- `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 qm.storeProto.addStreamAggr = function (param) { return qm.newStreamAggr(param, this.name);}
+//#- `store.each(callback)` -- call `callback` on each element of the store
+qm.storeProto.each = function (callback) {
+    var iter = this.forwardIter, i = 0;
+    while (iter.next()) {
+        callback(iter.rec, i++);
+    }
+}
+//#- `arr = store.map(callback)` -- call `callback` on each element of the store and store result to `arr`
+qm.storeProto.map = function (callback) {
+    var iter = this.forwardIter, i = 0, result = [];
+    while (iter.next()) {
+        result.push(callback(iter.rec, i++));
+    }
+}
+//#- `rs = store.head(num)` -- return record set with first `num` records
+qm.storeProto.head = function (recs) {
+    var iter = this.forwardIter;
+    var recIdV = la.newIntVec();
+    while (recIdV.length < recs && iter.next()) {
+        recIdV.push(iter.rec.$id);
+    }
+    return this.newRecSet(recIdV);
+}
+//#- `rs = store.tail(num)` -- return record set with last `num` records
+qm.storeProto.tail = function (recs) {
+    var iter = this.backwardIter;
+    var recIdV = la.newIntVec();
+    while (recIdV.length < recs && iter.next()) {
+        recIdV.push(iter.rec.$id);
+    }
+    return this.newRecSet(recIdV);
+}
