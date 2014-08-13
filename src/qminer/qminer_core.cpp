@@ -1900,8 +1900,7 @@ void TRecSet::SortById(const bool& Asc) {
 }
 
 void TRecSet::SortByFq(const bool& Asc) {
-	TInt::SetRndSeed(1); // HACK to be consistent
-	RecIdFqV.SortCmp(TCmpKeyDatByDat<TUInt64, TInt>(Asc));
+	RecIdFqV.SortCmp(TRecCmpByFq(Asc));
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
