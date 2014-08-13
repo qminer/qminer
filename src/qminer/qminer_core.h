@@ -920,7 +920,6 @@ public:
     TRecCmpByFq(const bool& _Asc) : Asc(_Asc) { }
 
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
-        printf("Compare %d %d\n", (int) RecIdWgt1.Key.Val, (int) RecIdWgt2.Key.Val);
         if (Asc) {
             return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
                 (RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
