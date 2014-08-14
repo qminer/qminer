@@ -70,7 +70,7 @@ namespace TQm {
 //# - [Linear Algebra](#linear-algebra)
 //#  - [Vector](#vector)
 //#  - [Matrix (dense matrix)](#matrix-dense-matrix)
-//#  - [SpVector (sparse vector)](#spvector-sparse-vector-)
+//#  - [SpVector (sparse vector)](#spvector-sparse-vector)
 //#  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
 //# - [analytics.js (use require)](#analyticsjs-use-require)
 //#  - [Feature Space](#feature-space)
