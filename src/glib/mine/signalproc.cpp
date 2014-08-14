@@ -26,17 +26,138 @@ void TMa::Update(const double& InVal, const uint64& InTmMSecs,
     
     int tempN = N - 1 + OutValV.Len();
     double delta;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
-    {        
-        tempN--;       
-        delta = OutValV[ValN] - Ma;
-        Ma = Ma - delta/tempN;                 
-    }
+	// check if all the values are removed
+	if (OutValV.Len() >= tempN) {
+		Ma = 0;		
+		tempN = 0;
+	}
+	else {
+		// remove old values from the mean
+		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+		{
+			tempN--;
+			delta = OutValV[ValN] - Ma;
+			Ma = Ma - delta / tempN;
+		}
+	}
     //add the new value to the resulting mean    
     delta = InVal - Ma;
     Ma = Ma + delta/N;
     TmMSecs = InTmMSecs;
+}
+
+TMa::TMa(TSIn& SIn) : Ma(SIn), TmMSecs(SIn) { }
+
+void TMa::Load(TSIn& SIn) {
+	*this = TMa(SIn);
+}
+
+void TMa::Save(TSOut& SOut) const {
+	// parameters
+	Ma.Save(SOut);
+	TmMSecs.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Summa 
+void TSum::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	// remove old values from the sum
+	for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+	{
+		Sum -= OutValV[ValN];
+	}
+	//add the new value to the resulting sum    
+	Sum += InVal;
+	TmMSecs = InTmMSecs;
+}
+
+void TSum::Load(TSIn& SIn) {
+	*this = TSum(SIn);
+}
+
+void TSum::Save(TSOut& SOut) const {
+	// parameters
+	Sum.Save(SOut); 
+	TmMSecs.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Min 
+void TMin::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+		
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 >= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+	
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Min = AllValV[0].Val1;
+}
+
+void TMin::Load(TSIn& SIn) {
+	*this = TMin(SIn);
+}
+
+void TMin::Save(TSOut& SOut) const {
+	// parameters
+	Min.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
+}
+
+/////////////////////////////////////////////////
+// Online Max 
+void TMax::Update(const double& InVal, const uint64& InTmMSecs,
+	const TFltV& OutValV, const TUInt64V& OutTmMSecsV){
+
+	
+	while (!AllValV.Empty() && AllValV[AllValV.Len() - 1].Val1 <= InVal) {
+		// pop back
+		AllValV.DelLast();
+	}
+	// push back
+	AllValV.Add(TFltUInt64Pr(InVal, InTmMSecs));
+
+
+	if (!OutTmMSecsV.Empty()) {
+		// find maximum timestamp of outgoing measurements
+		uint64 MaxOutTm = OutTmMSecsV[0];
+
+		while (AllValV[0].Val2 < MaxOutTm) {
+			// pop front
+			AllValV.Del(0);
+		}
+	}
+
+	TmMSecs = InTmMSecs;
+	Max = AllValV[0].Val1;
+}
+
+void TMax::Load(TSIn& SIn) {
+	*this = TMax(SIn);
+}
+
+void TMax::Save(TSOut& SOut) const {
+	// parameters
+	Max.Save(SOut);
+	TmMSecs.Save(SOut);
+	AllValV.Save(SOut);
 }
 
 /////////////////////////////////////////////////
@@ -73,7 +194,38 @@ TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
     }
     // rest
     TmInterval = ParamVal->GetObjNum("interval");
-    InitMinMSecs = ParamVal->GetObjInt("initWindow");
+    InitMinMSecs = ParamVal->GetObjInt("initWindow", 0);
+}
+
+TEma::TEma(TSIn& SIn) : Decay(SIn), LastVal(SIn), Ema(SIn), TmMSecs(SIn), InitP(SIn),
+InitMinMSecs(SIn), InitValV(SIn), InitMSecsV(SIn) {
+
+	TInt TypeI; TypeI.Load(SIn);
+	Type = static_cast<TEmaType>((int)TypeI);
+	TFlt TmIntervalFlt; TmIntervalFlt.Load(SIn); TmInterval = TmIntervalFlt;
+}
+
+void TEma::Load(TSIn& SIn) {
+	*this = TEma(SIn);
+}
+
+void TEma::Save(TSOut& SOut) const {
+	// parameters
+	Decay.Save(SOut);
+	LastVal.Save(SOut);
+	Ema.Save(SOut);
+	TmMSecs.Save(SOut);
+	InitP.Save(SOut);
+	InitMinMSecs.Save(SOut);
+	InitValV.Save(SOut);
+	InitMSecsV.Save(SOut);
+	// TODO: Use macro for saving enum (SaveEnum, LoadEnum)
+	// TODO: change TmInterval from double to TFlt
+	// PROBLEM: After changing TmInterval from double to TFlt Qminer crashes hard!
+	TInt TypeI = Type; // TEmaType 
+	TypeI.Save(SOut);
+	TFlt TmIntervalFlt = TmInterval; // double
+	TmIntervalFlt.Save(SOut);;
 }
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
@@ -128,24 +280,45 @@ void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 /////////////////////////////////////////////////
 // Online Moving Standard M2 
 void TVar::Update(const double& InVal, const uint64& InTmMSecs, 
-        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N){
-    
+        const TFltV& OutValV, const TUInt64V& OutTmMSecsV, const int& N) {
+		
     pNo = N;
     int tempN = N - 1 + OutValV.Len();
     double delta;    
-    // remove old values from the mean
-    for (int ValN = 0; ValN < OutValV.Len(); ValN++)
-    {        
-        tempN--;       
-        delta = OutValV[ValN] - Ma;
-        Ma = Ma - delta/tempN;  
-        M2 = M2 - delta * (OutValV[ValN] - Ma);
-    }
+    
+	// check if all the values are removed	
+	if (OutValV.Len() >= tempN) {
+		Ma = 0;
+		M2 = 0;
+		tempN = 0;
+	} else {
+		// remove old values from the mean
+		for (int ValN = 0; ValN < OutValV.Len(); ValN++)
+		{
+			tempN--;			
+			delta = OutValV[ValN] - Ma;
+			Ma = Ma - delta / tempN;
+			M2 = M2 - delta * (OutValV[ValN] - Ma);
+		}
+	}
+
     //add the new value to the resulting mean    
     delta = InVal - Ma;
     Ma = Ma + delta/N;
     M2 = M2 + delta * (InVal - Ma);
     TmMSecs = InTmMSecs;
+}
+
+void TVar::Load(TSIn& SIn) {
+	*this = TVar(SIn);
+}
+
+void TVar::Save(TSOut& SOut) const {
+	// parameters
+	Ma.Save(SOut); 
+	M2.Save(SOut); 
+	TmMSecs.Save(SOut); 
+	pNo.Save(SOut);
 }
 
 /////////////////////////////////////////////////
@@ -178,19 +351,133 @@ void TCov::Update(const double& InValX, const double& InValY, const uint64& InTm
 /////////////////////////////////////////
 // Time series interpolator interface
 PInterpolator TInterpolator::New(const TStr& InterpolatorType) {
-    if(InterpolatorType == TPreviousPoint::GetType()) {
+    if (InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New();
 	}    
+    else if (InterpolatorType == TLinear::GetType()) {
+		return TLinear::New();
+	}
+    else if (InterpolatorType == TCurrentPoint::GetType()) {
+    	return TCurrentPoint::New();
+    }
     throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
 
 PInterpolator TInterpolator::Load(TSIn& SIn) {
 	TStr InterpolatorType(SIn);
-	if(InterpolatorType == TPreviousPoint::GetType()) {
+	if (InterpolatorType == TPreviousPoint::GetType()) {
 		return TPreviousPoint::New(SIn);
+	}
+	else if (InterpolatorType == TLinear::GetType()) {
+		return TLinear::New(SIn);
+	}
+	else if (InterpolatorType == TCurrentPoint::GetType()) {
+		return TCurrentPoint::New(SIn);
 	}
 	throw TExcept::New("Unknown interpolator type " + InterpolatorType);
 }
+
+/////////////////////////////////////////
+// Buffered interpolator
+TBufferedInterpolator::TBufferedInterpolator(const TStr& _InterpolatorType):
+		TInterpolator(_InterpolatorType),
+		Buff() {}
+
+TBufferedInterpolator::TBufferedInterpolator(TSIn& SIn):
+		TInterpolator(SIn),
+		Buff(SIn) {}
+
+void TBufferedInterpolator::Save(TSOut& SOut) const {
+	TInterpolator::Save(SOut);
+	Buff.Save(SOut);
+}
+
+void TBufferedInterpolator::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 <= Time) {
+		Buff.DelOldest();
+	}
+}
+
+void TBufferedInterpolator::AddPoint(const double& Val, const uint64& Tm) {
+	// check if the new point can be added
+	if (!Buff.Empty()) {
+		const TUInt64FltPr& LastRec = Buff.GetNewest();
+		IAssertR(LastRec.Val1 < Tm || (LastRec.Val1 == Tm && LastRec.Val2 == Val), "New point has a timestamp lower then the last point in the buffer!");
+	}
+
+	// add the new point
+	Buff.Add(TUInt64FltPr(Tm, Val));
+}
+
+/////////////////////////////////////////
+// Previous point interpolator.
+// Interpolate by returning last seen value
+TPreviousPoint::TPreviousPoint():
+		TBufferedInterpolator(TPreviousPoint::GetType()) {}
+
+TPreviousPoint::TPreviousPoint(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+void TPreviousPoint::SetNextInterpTm(const uint64& Time) {
+	// TODO optimize
+	while (Buff.Len() > 1 && Buff.GetOldest(1).Val1 < Time) {
+		Buff.DelOldest();
+	}
+}
+
+double TPreviousPoint::Interpolate(const uint64& Tm) const {
+	IAssertR(CanInterpolate(Tm), "TPreviousPoint::Interpolate: Time not in the desired interval!");
+	return Buff.GetOldest().Val2;
+}
+
+bool TPreviousPoint::CanInterpolate(const uint64& Tm) const {
+	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
+				(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+}
+
+/////////////////////////////////////////
+// Current point interpolator.
+TCurrentPoint::TCurrentPoint():
+		TBufferedInterpolator(TCurrentPoint::GetType()) {}
+
+TCurrentPoint::TCurrentPoint(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+double TCurrentPoint::Interpolate(const uint64& Tm) const {
+	IAssertR(CanInterpolate(Tm), "TCurrentPoint::Interpolate: Time not in the desired interval!");
+	return Buff.GetOldest().Val2;
+}
+
+bool TCurrentPoint::CanInterpolate(const uint64& Tm) const {
+	return !Buff.Empty() && Buff.GetOldest().Val1 <= Tm;
+}
+
+
+/////////////////////////////////////////
+// Time series linear interpolator
+TLinear::TLinear():
+		TBufferedInterpolator(TLinear::GetType()) {}
+
+TLinear::TLinear(TSIn& SIn):
+		TBufferedInterpolator(SIn) {}
+
+double TLinear::Interpolate(const uint64& Tm) const {
+	AssertR(CanInterpolate(Tm), "TLinear::Interpolate: Time not in the desired interval!");
+
+	if (Tm == Buff.GetOldest().Val1) { return Buff.GetOldest().Val2; }
+
+	const TUInt64FltPr& PrevRec = Buff.GetOldest();
+	const TUInt64FltPr& NextRec = Buff.GetOldest(1);
+
+	return PrevRec.Val2+((double)(Tm-PrevRec.Val1)/(NextRec.Val1-PrevRec.Val1))*(NextRec.Val2-PrevRec.Val2);
+}
+
+bool TLinear::CanInterpolate(const uint64& Tm) const {
+	return (!Buff.Empty() && Buff.GetOldest().Val1 == Tm) ||
+			(Buff.Len() >= 2 && Buff.GetOldest().Val1 <= Tm && Buff.GetOldest(1).Val1 >= Tm);
+}
+
 ///////////////////////////////////////////////////////////////////
 // Neural Networks - Neuron
 TRnd TNNet::TNeuron::Rnd = 0;

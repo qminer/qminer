@@ -16,7 +16,8 @@
 
 var util = require("utilities.js");
 
-exports = require("__analytics__");
+module.exports = require("__analytics__");
+exports = module.exports; // re-establish link
 
 function createBatchModel(featureSpace, models) {
     this.featureSpace = featureSpace;
@@ -35,7 +36,7 @@ function createBatchModel(featureSpace, models) {
             this.models[cat].model.save(sout);
         }
     }
-    // prediction
+
     this.predict = function (record) {
         var vec = this.featureSpace.ftrSpVec(record);
         var result = { };
@@ -44,7 +45,18 @@ function createBatchModel(featureSpace, models) {
         }
         return result;
     }
-    // test
+
+    this.predictLabels = function (record) {
+        var result = this.predict(record);
+        var labels = [];
+        for (var cat in result) { 
+            if (result[cat] > 0.0) { 
+                labels.push(cat); 
+            }
+        }
+        return labels;
+    }
+    
     this.predictTop = function (record) {
         var result = this.predict(record);
         var top = null;
@@ -63,19 +75,21 @@ function createBatchModel(featureSpace, models) {
     return this;
 }
 
-//#- `batchModel = analytics.newBatchModel(rs, fsp, target)` -- learns a new batch model
-//#     using record set `rs` as training data and feature space `fsp`; `target` is
+//#- `batchModel = analytics.newBatchModel(rs, features, target)` -- learns a new batch model
+//#     using record set `rs` as training data and `features`; `target` is
 //#     a field descriptor JSON object for the records which we are trying to predict (obtained by calling store.field("Rating");
 //#     if target field string or string vector, the result is a SVM classification model,
 //#     and if target field is a float, the result is a SVM regression model; resulting 
 //#     model has the following functions:
 //#   - `strArr = batchModel.target` -- array of categories for which we have models
 //#   - `scoreArr = batchModel.predict(rec)` -- creates feature vector from record `rec`, sends it
-//#     through the model and returns the result as a dictionary where labels are keys and socres (numbers) are values.
+//#     through the model and returns the result as a dictionary where labels are keys and scores (numbers) are values.
+//#   - `labelArr = batchModel.predictLabels(rec)` -- creates feature vector from record `rec`, 
+//#     sends it through the model and returns the labels with positive weights as `labelArr`.
 //#   - `labelStr = batchModel.predictTop(rec)` -- creates feature vector from record `rec`, 
 //#     sends it through the model and returns the top ranked label `labelStr`.
 //#   - `batchModel.save(fout)` -- saves the model to `fout` output stream
-exports.newBatchModel = function (records, features, target) {
+exports.newBatchModel = function (records, features, target, limitCategories) {
     console.log("newBatchModel", "Start");
     // prepare feature space
     console.log("newBatchModel", "  creating feature space");
@@ -93,6 +107,9 @@ exports.newBatchModel = function (records, features, target) {
         if (categories[catName]) {
             categories[catName].count++; 
         } else {
+            // check if we should ignore this category
+            if (limitCategories && !util.isInArray(limitCategories, catName)) { return; }
+            // check if we should ignore this category
             categories[catName] = { 
                 name: catName, 
                 type: "classification",
@@ -148,17 +165,19 @@ exports.newBatchModel = function (records, features, target) {
     console.log("newBatchModel", "  training SVM");
     var models = { };
     for (var cat in targets) {
-        if (targets[cat].count >= 20) {
+        if (targets[cat].count >= 50) {
             models[cat] = {
                 name : targets[cat].name,
                 type : targets[cat].type,
             };
             if (targets[cat].type === "classification") {
                 console.log("newBatchModel", "    ... " + cat + " (classification)");
-                models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target);
+                models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target, 
+                    { c: 1, j: 1, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
             } else if (targets[cat].type === "regression") {
                 console.log("newBatchModel", "    ... " + cat + " (regression)");
-                models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target);
+                models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target, 
+                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
             }
         }
     }
@@ -177,6 +196,168 @@ exports.loadBatchModel = function (sin) {
     }
     // we finished the constructor
     return new createBatchModel(featureSpace, models);    
+}
+
+function round100(num) { return Math.round(num * 100) / 100; }
+
+function classifcationScore(cats) {
+	this.target = { };
+    
+	this.targetList = [ ];
+	for (var i = 0; i < cats.length; i++) {
+		this.target[cats[i]] = { 
+			id: i, count: 0, predictionCount: 0,
+			TP: 0, TN: 0, FP: 0, FN: 0,
+			all : function () { return this.TP + this.FP + this.TN + this.FN; },
+			precision : function () { return this.TP / (this.TP + this.FP); },
+			recall : function () { return this.TP / (this.TP + this.FN); },				
+			accuracy : function () { return (this.TP + this.TN) / this.all(); }
+		};
+		this.targetList.push(cats[i]);		
+	}
+	
+	this.confusion = la.newMat({ rows: this.targetList.length, cols: this.targetList.length }); 
+	   
+	this.count = function (correct, predicted) {
+        // wrapt classes in arrays if not already
+        if (util.isString(correct)) { this.count([correct], predicted); return; }
+        if (util.isString(predicted)) { this.count(correct, [predicted]); return; }
+        // go over all possible categories and counts
+        for (cat in this.target) {
+            var catCorrect = util.isInArray(correct, cat);
+            var catPredicted = util.isInArray(predicted, cat);            
+            // update counts for correct categories
+            if (catCorrect) { this.target[cat].count++; }
+            // update counts for how many times category was predicted
+            if (catPredicted) { this.target[cat].predictionCount; }
+            // update true/false positive/negative count
+            if (catCorrect && catPredicted) {
+                // both predicted and correct say true
+                this.target[cat].TP++;
+            } else if (catCorrect) {
+                // this was only correct but not predicted
+                this.target[cat].FN++;
+            } else if (catPredicted) {
+                // this was only predicted but not correct
+                this.target[cat].FP++;
+            } else {
+                // both predicted and correct say false
+                this.target[cat].TN++;
+            }
+            // update confusion matrix
+        }
+        // update confusion matrix for case when are predicting only one label
+//        if (correct.length == 1 && predicted.length == 1) {
+//            var correct_i = this.target[correct[0]].id;
+//            var predicted_i = this.target[predicted[0]].id;	
+//            var old_count = this.confusion.at(correct_i, predicted_i);
+//            this.confusion.put(correct_i, predicted_i, old_count + 1);
+//        }
+	}
+
+	this.report = function () { 
+		for (cat in this.target) {
+			console.log(cat + 
+				": Count " + this.target[cat].count + 
+				", All " + this.target[cat].all() + 
+				", Precission " + round100(this.target[cat].precision()) + 
+				", Recall " +   round100(this.target[cat].recall()) +
+				", Accuracy " +   round100(this.target[cat].accuracy()));
+		}
+	}
+
+	this.reportCSV = function (fout) { 
+		// precison recall
+		fout.writeLine("category,count,precision,recall,accuracy");
+		for (cat in this.target) {
+			fout.writeLine(cat + 
+				"," + this.target[cat].count + 
+				"," + round100(this.target[cat].precision()) + 
+				"," + round100(this.target[cat].recall()) +
+				"," + round100(this.target[cat].accuracy()));
+		}
+		// confusion header
+//		fout.writeLine();		
+//		for (var i = 0; i < this.targetList.length; i++) {
+//			fout.write(",");
+//			fout.write(this.targetList[i]);
+//		}
+//		fout.writeLine();
+//		for (var i = 0; i < this.targetList.length; i++) {
+//			fout.write(this.targetList[i]);
+//			for (var j = 0; j < this.targetList.length; j++) {
+//				fout.write(",");
+//				fout.write(this.confusion.at(i,j));
+//			}
+//			fout.writeLine();
+//		}
+	}
+	
+	this.results = function () {
+		var res = { };
+		for (cat in this.target) {
+			res[cat] = {
+				precision : this.target[cat].precision(),
+				recall    : this.target[cat].recall(),
+				accuracy  : this.target[cat].accuracy(),
+			}
+		}
+	}
+}
+
+//#- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+//#     model for records from record set `rs` using `features; `target` is the
+//#     target field and is assumed discrete; the result is a results object
+//#     with the following API:
+//#     - `result.target` -- an object with categories as keys and the following
+//#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+//#       `all()`, `precision()`, `recall()`, `accuracy()`.
+//#     - `result.confusion` -- confusion matrix between categories
+//#     - `result.report()` -- prints basic report on to the console
+//#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+exports.crossValidation = function (records, features, target, folds, limitCategories) {
+	// create empty folds
+	var fold = [];
+	for (var i = 0; i < folds; i++) {
+		fold.push(la.newIntVec());
+	}
+	// split records into folds
+	records.shuffle(1);
+	var fold_i = 0;
+	for (var i = 0; i < records.length; i++) {
+		fold[fold_i].push(records[i].$id);
+		fold_i++; if (fold_i >= folds) { fold_i = 0; }
+	} 
+	// do cross validation
+	var cfyRes = null;
+	for (var fold_i = 0; fold_i < folds; fold_i++) {		
+		// prepare train and test record sets
+		var train = la.newIntVec();
+		var test = la.newIntVec();
+		for (var i = 0; i < folds; i++) {
+			if (i == fold_i) {
+				test.pushV(fold[i]);
+			} else {
+				train.pushV(fold[i]);
+			}
+		}
+		var trainRecs = records.store.newRecSet(train);
+		var testRecs = records.store.newRecSet(test);
+		console.log("Fold " + fold_i + ": " + trainRecs.length + " training and " + testRecs.length + " testing");
+		// create model for the fold
+		var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
+		// prepare test counts for each target
+		if (!cfyRes) { cfyRes = new classifcationScore(model.target); }
+		// evaluate predictions
+		for (var i = 0; i < testRecs.length; i++) {
+			var correct = testRecs[i][target.name];
+			var predicted = model.predictLabels(testRecs[i]);
+			cfyRes.count(correct, predicted);
+		}
+		// report
+		cfyRes.report();
+	}
+	return cfyRes;
 }
 
 // active learning (analytics:function activeLearner, parameters
@@ -599,6 +780,434 @@ exports.perceptron = function (dim, use_bias) {
         model.w = w;
         model.b = b;
         return model;
+    };
+
+};
+
+
+///////// ONLINE KNN REGRESSION 
+//#- `kNearestNeighbors = analytics.newKNearestNeighbors(k, buffer, power)`-- online regression based on knn alogrithm. The model intialization
+//#  requires `k` (integer), number of nearest neighbors, optional parameter `buffer` (default is -1) and optional parameter `power` (default is 1), 
+//#  when using inverse distance weighting average to compute prediction. The model exposes the following functions:
+exports.newKNearestNeighbors = function (k, buffer, power) {
+    return new analytics.kNearestNeighbors(k, buffer, power);
+}
+exports.kNearestNeighbors = function (k, buffer, power) {
+    this.X = la.newMat();
+    this.y = la.newVec();
+    this.k = k;
+
+    // Optional parameters
+    var power = typeof power !== 'undefined' ? power : 1;
+    var buffer = typeof buffer !== 'undefined' ? buffer : -1;
+
+    // Internal vector logs to create X and y
+    var matrixVec = [];
+    var targetVec = [];
+
+    //#   - `kNearestNeighbors.update(vec, num)` -- adds a vector `vec` and target `num` (number) to the "training" set
+    this.update = function (vec, num) {
+        //console.log("Updated..."); //DEBUG
+        add(vec, num);
+        this.X = getColMatrix();
+        this.y = getTargetVec();
+    }
+
+    //#   - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
+    //#   using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
+    this.predict = function (vec) {
+        if (this.X.cols < this.k) { return -1 }
+        var neighbors = this.getNearestNeighbors(vec); //vector of indexes
+        var targetVals = this.y.subVec(neighbors.perm);
+        var prediction = getAverage(targetVals); // using simple average
+        //var prediction = getIDWAverage(targetVals, neighbors.vec, power); // using inverse distance weighting average
+        return prediction;
+    }
+
+    //#   - `object = kNearestNeighbors.getNearestNeighbors(vec)` -- findes k nearest neighbors. Returns object with two vectors: indexes `perm` (intVec) and values `vec` (vector)
+    this.getNearestNeighbors = function (vec) {
+        var distVec = la.pdist2(this.X, la.repvec(vec, 1, this.X.cols)).getCol(0);
+        var sortRes = distVec.sortPerm(); // object with two vectors: values and indexes
+
+        var result = new Object();
+        var newPerm = la.newIntVec({ "vals": this.k, "mxvals": this.k });
+        var newVec = la.newVec({ "vals": this.k, "mxvals": this.k });
+        for (var ii = 0; ii < this.k; ii++) {
+            newPerm[ii] = sortRes.perm[ii];
+            newVec[ii] = sortRes.vec[ii];
+        }
+        result.perm = newPerm;
+        result.vec = newVec;
+        return result; // object with two vectors: values and indexes
+    }
+
+    // Calculate simple average
+    var getAverage = function (vec) {
+        var sum = vec.sum();
+        var avr = sum / vec.length;
+        return avr;
+    }
+
+    // Inverse distance weighting average
+    var getIDWAverage = function (vec, dist, power) {
+        var numerator = la.elementByElement(vec, dist, function (a, b) { return result = b == 0 ? a : a / Math.pow(b, power) }).sum();
+        var denumerator = la.elementByElement(la.ones(dist.length), dist, function (a, b) { return result = b == 0 ? a : a / Math.pow(b, power) }).sum();
+        return numerator / denumerator;
+    }
+
+    // Used for updatig
+    var add = function (x, target) {
+        matrixVec.push(x);
+        targetVec.push(target);
+        if (buffer > 0) {
+            if (matrixVec.length > buffer) {
+                forget(matrixVec.length - buffer);
+            }
+        }
+    }
+
+    // Create row matrix from matrixVec array log
+    var getMatrix = function () {
+        if (matrixVec.length > 0) {
+            var A = la.newMat({ "cols": matrixVec[0].length, "rows": matrixVec.length });
+            for (var i = 0; i < matrixVec.length; i++) {
+                A.setRow(i, matrixVec[i]);
+            }
+            return A;
+        }
+    };
+
+    // Create column matrix from matrixVec array log
+    var getColMatrix = function () {
+        if (matrixVec.length > 0) {
+            var A = la.newMat({ "cols": matrixVec.length, "rows": matrixVec[0].length });
+            for (var i = 0; i < matrixVec.length; i++) {
+                A.setCol(i, matrixVec[i]);
+            }
+            return A;
+        }
+    };
+
+    // Forget function used in buffer. Deletes first `n` (integer) examples from the training set
+    var forget = function (ndeleted) {
+        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
+        ndeleted = Math.min(matrixVec.length, ndeleted);
+        matrixVec.splice(0, ndeleted);
+        targetVec.splice(0, ndeleted);
+    };
+
+    // Create vector from targetVec array
+    var getTargetVec = function () {
+        return la.copyFltArrayToVec(targetVec);
+    }
+}
+
+
+/////////// Kalman Filter
+//#- `kf = analytics.newKalmanFilter(dynamParams, measureParams, controlParams)` -- the Kalman filter initialization procedure
+//#   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
+//#   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
+//#   specified model) and correction. The following functions are exposed:
+exports.newKalmanFilter = function (dynamParams, measureParams, controlParams) {
+    return new analytics.kalmanFilter(dynamParams, measureParams, controlParams);
+}
+exports.kalmanFilter = function (dynamParams, measureParams, controlParams) {
+    var CP = controlParams;
+    var MP = measureParams;
+    var DP = dynamParams;
+
+    // CP should be >= 0
+    CP = Math.max(CP, 0);
+
+    var statePre = la.newVec({ "vals": DP, "mxvals": DP }); // prior state vector (after prediction and before measurement update)
+    var statePost = la.newVec({ "vals": DP, "mxvals": DP }); // post state vector (after measurement update)
+    var transitionMatrix = la.newMat({ "cols": DP, "rows": DP }); // transition matrix (model)
+
+    var processNoiseCov = la.newMat({ "cols": DP, "rows": DP }); // process noise covariance
+    var measurementMatrix = la.newMat({ "cols": DP, "rows": MP }); // measurement matrix
+    var measurementNoiseCov = la.newMat({ "cols": MP, "rows": MP }); // measurement noise covariance
+     
+    var errorCovPre = la.newMat({ "cols": DP, "rows": DP }); // error covariance after prediction
+    var errorCovPost = la.newMat({ "cols": DP, "rows": DP }); // error covariance after update
+    var gain = la.newMat({ "cols": MP, "rows": DP }); 
+
+    var controlMatrix;
+
+    if (CP > 0)
+        controlMatrix = la.newMat({ "cols": CP, "rows": DP }); // control matrix
+
+    // temporary matrices used for calculation
+    var temp1VV = la.newMat({ "cols": DP, "rows": DP });
+    var temp2VV = la.newMat({ "cols": DP, "rows": MP });
+    var temp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var itemp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var temp4VV = la.newMat({ "cols": DP, "rows": MP });
+
+    var temp1V = la.newVec();
+    var temp2V = la.newVec();
+
+    //#   - `kf.setStatePost(_val)` -- sets the post state (DP) vector.
+    this.setStatePost = function (_statePost) {
+        statePost = _statePost;
+    };
+
+    //#   - `kf.setTransitionMatrix(_val)` -- sets the transition (DP x DP) matrix.
+    this.setTransitionMatrix = function (_transitionMatrix) {
+        transitionMatrix = _transitionMatrix;
+    };
+
+    //#   - `kf.setMeasurementMatrix(_val)` -- sets the measurement (MP x DP) matrix.
+    this.setMeasurementMatrix = function (_measurementMatrix) {
+        measurementMatrix = _measurementMatrix;
+    };
+
+    //#   - `kf.setProcessNoiseCovPost(_val)` -- sets the process noise covariance (DP x DP) matrix.
+    this.setProcessNoiseCov = function (_processNoiseCov) {
+        processNoiseCov = _processNoiseCov;
+    }
+
+    //#   - `kf.setMeasurementNoiseCov(_val)` -- sets the measurement noise covariance (MP x MP) matrix.
+    this.setMeasurementNoiseCov = function (_measurementNoiseCov) {
+        measurementNoiseCov = _measurementNoiseCov;
+    }
+
+    //#   - `kf.setErrorCovPre(_val)` -- sets the pre error covariance (DP x DP) matrix.
+    this.setErrorCovPre = function (_errorCovPre) {
+        errorCovPre = _errorCovPre;
+    }
+
+    //#   - `kf.setErrorCovPost(_val)` -- sets the post error covariance (DP x DP) matrix.
+    this.setErrorCovPost = function (_errorCovPost) {
+        errorCovPost = _errorCovPost;
+    }
+
+    //#   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+    this.setControlMatrix = function (_controlMatrix) {
+        controlMatrix = _controlMatrix;
+    }
+
+    //#   - `statePre = kf.predict(control)` -- returns a predicted state vector `statePre` where `control` is the control vector (normally not set).
+    this.predict = function (control) {
+        // update the state: x'(k) = A * x(k)
+        statePre = transitionMatrix.multiply(statePost);
+
+        // x'(k) = x'(k) + B * u(k)
+        if (control.length) {
+            temp1V = controlMatrix.multiply(control);
+            temp2V = statePre.plus(temp1V);
+        }
+
+        // update error covariance matrices: temp1 = A * P(k)
+        temp1VV = transitionMatrix.multiply(errorCovPost);
+
+        // P'(k) = temp1 * At + Q
+        errorCovPre = temp1VV.multiply(transitionMatrix.transpose()).plus(processNoiseCov);
+
+        // return statePre
+        return statePre;
+    };
+
+    //#   - `statePost = kf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+    this.correct = function (measurement) {
+        // temp2 = H * P'(k)
+        temp2VV = measurementMatrix.multiply(errorCovPre);
+        
+        // temp3 = temp2 * Ht + R
+        temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
+
+        // temp4 = inv(temp3) * temp2 = Kt(k)
+        itemp3VV = la.inverseSVD(temp3VV);
+        temp4VV = itemp3VV.multiply(temp2VV);
+
+        // K(k)
+        gain = temp4VV.transpose();
+
+        // temp2V = z(k) - H*x'(k)
+        temp1V = measurementMatrix.multiply(statePre);
+        temp2V = measurement.minus(temp1V);
+
+        // x(k) = x'(k) + K(k) * temp2V
+        temp1V = gain.multiply(temp2V);     
+        statePost = statePre.plus(temp1V);
+
+        // P(k) = P'(k) - K(k) * temp2
+        errorCovPost = errorCovPre.minus(gain.multiply(temp2VV));
+
+        // return statePost
+        return statePost;
+    };
+
+};
+
+/////////// Extended Kalman Filter
+//#- `ekf = analytics.newExtendedKalmanFilter(dynamParams, measureParams, controlParams)` -- the Extended Kalman filter 
+//#   is used with non-linear models, which are specified through transition and measurement equation. The initialization procedure
+//#   requires specifying the model dimensions `dynamParams` (integer), measurement dimension `measureParams` (integer) and
+//#   the `controlParams` control dimension. Algorithm works in two steps - prediction (short time prediction according to the
+//#   specified model) and correction. The following functions are exposed:
+exports.newExtendedKalmanFilter = function (dynamParams, measureParams, controlParams, parameterN) {
+    return new analytics.extendedKalmanFilter(dynamParams, measureParams, controlParams, parameterN);
+}
+exports.extendedKalmanFilter = function (dynamParams, measureParams, controlParams, parameterN) {
+    var CP = controlParams;
+    var MP = measureParams;
+    var DP = dynamParams;
+    var P = parameterN;
+
+    // CP should be >= 0
+    CP = Math.max(CP, 0);
+
+    var statePre = la.newVec({ "vals": DP, "mxvals": DP }); // prior state vector (after prediction and before measurement update)
+    var statePost = la.newVec({ "vals": DP, "mxvals": DP }); // post state vector (after measurement update)
+    var transitionMatrix = la.newMat({ "cols": DP, "rows": DP }); // transition matrix (model)
+
+    var processNoiseCov = la.newMat({ "cols": DP, "rows": DP }); // process noise covariance
+    var measurementMatrix = la.newMat({ "cols": DP, "rows": MP }); // measurement matrix
+    var measurementNoiseCov = la.newMat({ "cols": MP, "rows": MP }); // measurement noise covariance
+
+    var errorCovPre = la.newMat({ "cols": DP, "rows": DP }); // error covariance after prediction
+    var errorCovPost = la.newMat({ "cols": DP, "rows": DP }); // error covariance after update
+    var gain = la.newMat({ "cols": MP, "rows": DP });
+    var parameterV = la.newVec({ "vals": P, "mxvals": P }); // parameters vector
+
+    var controlMatrix;
+
+    if (CP > 0)
+        controlMatrix = la.newMat({ "cols": CP, "rows": DP }); // control matrix
+
+    // temporary matrices used for calculation
+    var temp1VV = la.newMat({ "cols": DP, "rows": DP });
+    var temp2VV = la.newMat({ "cols": DP, "rows": MP });
+    var temp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var itemp3VV = la.newMat({ "cols": MP, "rows": MP });
+    var temp4VV = la.newMat({ "cols": DP, "rows": MP });
+
+    var temp1V = la.newVec();
+    var temp2V = la.newVec();
+
+    // virtual functions
+    // this.observationEq = function () { };
+    // this.transitionEq = function () { };
+    var observationEq;
+    var transitionEq;
+
+    //#   - `ekf.setTransitionEq(_val)` -- sets transition equation for EKF (`_val` is a function).
+    this.setTransitionEq = function (_transitionEq) {
+        this.transitionEq = _transitionEq;
+    };
+
+    //#   - `ekf.setObservationEq(_val)` -- sets observation equation for EKF (`_val` is a function).
+    this.setObservationEq = function (_observationEq) {
+        this.observationEq = _observationEq;
+    };
+
+    //#   - `ekf.setParameterV(_val)` -- sets parameter vector of size `parameterN`.
+    this.setParameterV = function (_parameterV) {
+        parameterV = _parameterV;
+    };
+
+    //#   - `ekf.getParameterV()` -- gets parameter vector.
+    this.getParameterV = function () {
+        return parameterV;
+    };
+
+
+    //#   - `ekf.setStatePost(_val)` -- sets the post state (DP) vector.
+    this.setStatePost = function (_statePost) {
+        statePost = _statePost;
+    };
+
+    //#   - `ekf.getStatePost()` -- returns the statePost vector.
+    this.getStatePost = function () {
+        return statePost;
+    };
+
+    //#   - `ekf.setTransitionMatrix(_val)` -- sets the transition (DP x DP) matrix.
+    this.setTransitionMatrix = function (_transitionMatrix) {
+        transitionMatrix = _transitionMatrix;
+    };
+
+    //#   - `ekf.setMeasurementMatrix(_val)` -- sets the measurement (MP x DP) matrix.
+    this.setMeasurementMatrix = function (_measurementMatrix) {
+        measurementMatrix = _measurementMatrix;
+    };
+
+    //#   - `ekf.setProcessNoiseCovPost(_val)` -- sets the process noise covariance (DP x DP) matrix.
+    this.setProcessNoiseCov = function (_processNoiseCov) {
+        processNoiseCov = _processNoiseCov;
+    }
+
+    //#   - `ekf.setMeasurementNoiseCov(_val)` -- sets the measurement noise covariance (MP x MP) matrix.
+    this.setMeasurementNoiseCov = function (_measurementNoiseCov) {
+        measurementNoiseCov = _measurementNoiseCov;
+    }
+
+    //#   - `ekf.setErrorCovPre(_val)` -- sets the pre error covariance (DP x DP) matrix.
+    this.setErrorCovPre = function (_errorCovPre) {
+        errorCovPre = _errorCovPre;
+    }
+    
+    //#   - `ekf.setErrorCovPost(_val)` -- sets the post error covariance (DP x DP) matrix.
+    this.setErrorCovPost = function (_errorCovPost) {
+        errorCovPost = _errorCovPost;
+    }
+
+    //#   - `statePost = ekf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+    this.setControlMatrix = function (_controlMatrix) {
+        controlMatrix = _controlMatrix;
+    }
+
+    //#   - `statePre = ekf.predict(control)` -- returns a predicted state vector `statePre` where `control` is the control vector (normally not set).
+    this.predict = function (control) {
+        // update the state: x'(k) = A * x(k)
+        // Standard KF: statePre = transitionMatrix.multiply(statePost);
+        statePre = this.transitionEq();
+
+        // x'(k) = x'(k) + B * u(k)
+        if (control.length) {
+            temp1V = controlMatrix.multiply(control);
+            temp2V = statePre.plus(temp1V);
+        }
+
+        // update error covariance matrices: temp1 = A * P(k)
+        temp1VV = transitionMatrix.multiply(errorCovPost);
+
+        // P'(k) = temp1 * At + Q
+        errorCovPre = temp1VV.multiply(transitionMatrix.transpose()).plus(processNoiseCov);
+
+        // return statePre
+        return statePre;
+    };
+
+    //#   - `statePost = ekf.correct(measurement)` -- returns a corrected state vector `statePost` where `measurement` is the measurement vector.
+    this.correct = function (measurement) {
+        // temp2 = H * P'(k)
+        temp2VV = measurementMatrix.multiply(errorCovPre);
+
+        // temp3 = temp2 * Ht + R
+        temp3VV = temp2VV.multiply(measurementMatrix.transpose()).plus(measurementNoiseCov);
+
+        // temp4 = inv(temp3) * temp2 = Kt(k)
+        itemp3VV = la.inverseSVD(temp3VV);
+        temp4VV = itemp3VV.multiply(temp2VV);
+
+        // K(k)
+        gain = temp4VV.transpose();
+
+        // temp2V = z(k) - H*x'(k)
+        // standard KF: temp1V = measurementMatrix.multiply(statePre);
+        temp1V = this.observationEq();
+        temp2V = measurement.minus(temp1V);
+
+        // x(k) = x'(k) + K(k) * temp2V
+        temp1V = gain.multiply(temp2V);
+        statePost = statePre.plus(temp1V);
+
+        // P(k) = P'(k) - K(k) * temp2
+        errorCovPost = errorCovPre.minus(gain.multiply(temp2VV));
+
+        // return statePost
+        return statePost;
     };
 
 };

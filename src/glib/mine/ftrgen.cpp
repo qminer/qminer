@@ -205,10 +205,8 @@ void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
 TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PSwSet _SwSet, PStemmer _Stemmer, const int& _HashDim): SwSet(_SwSet), Stemmer(_Stemmer) { 
+        PTokenizer _Tokenizer, const int& _HashDim): Tokenizer(_Tokenizer) { 
 
-    // initialize tokenizer
-    Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     // get settings flags
     Type = 0;
     if (TfP) { Type.Val |= btTf; }
@@ -224,19 +222,15 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
     }
-    
 }
 
 TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
-    Tokenizer(TTokenizer::Load(SIn)), SwSet(SIn), Stemmer(SIn), 
-    TokenSet(SIn), HashDim(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn),
-    OldDocs(SIn), OldDocFqV(SIn) { }
+    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), Docs(SIn), 
+        DocFqV(SIn), ForgetP(SIn), OldDocs(SIn), OldDocFqV(SIn) { }
 
 void TBagOfWords::Save(TSOut& SOut) const {
     Type.Save(SOut);
     Tokenizer->Save(SOut);
-    SwSet.Save(SOut);
-    Stemmer.Save(SOut);
     TokenSet.Save(SOut);
     HashDim.Save(SOut);
     Docs.Save(SOut);
@@ -258,9 +252,20 @@ void TBagOfWords::Clr() {
     }
 }
 
-bool TBagOfWords::Update(const TStr& Val) {    
-    // tokenize given text
-    TStrV TokenStrV; GetFtr(Val, TokenStrV);
+void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
+    // outsource to tokenizer
+    EAssertR(!Tokenizer.Empty(), "Missing tokenizer in TFtrGen::TBagOfWords");
+    Tokenizer->GetTokens(Str, TokenStrV);
+    // counting average token length
+    /*static int Count = 0, LenStr = 0, LenVec = 0;
+    Count++; LenStr += Str.Len(); LenVec += TokenStrV.Len();
+    if (Count % 1000 == 0) { 
+        printf("Average token length[docs=%d chars=%d words=%d length=%.4f\n", 
+            Count, LenStr, LenVec, (double)LenStr / (double)LenVec);
+    }*/
+}
+
+bool TBagOfWords::Update(const TStrV& TokenStrV) {    
     // process tokens to update DF counts
     bool UpdateP = false;
     if (IsHashing()) {  
@@ -315,14 +320,14 @@ bool TBagOfWords::Update(const TStr& Val) {
     return UpdateP;
 }
 
-void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
-    // outsource to tokenizer
-    Tokenizer->GetTokens(Str, TokenStrV);
+bool TBagOfWords::Update(const TStr& Val) {    
+    // tokenize given text (reserve space assuming 5 chars per word)    
+    TStrV TokenStrV(Val.Len() / 5, 0); GetFtr(Val, TokenStrV);
+    // process
+    return Update(TokenStrV);
 }
 
-void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
-    // tokenize
-    TStrV TokenStrV; GetFtr(Val, TokenStrV);
+void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const {
     // aggregate token counts
     TIntH TermFqH;
     for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
@@ -358,8 +363,16 @@ void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
     if (IsNormalize()) { TLinAlg::Normalize(SpV); }
 }
 
-void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
-    TIntFltKdV ValSpV; AddFtr(Val, ValSpV);
+void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
+    // tokenize
+    TStrV TokenStrV(Val.Len() / 5, 0); GetFtr(Val, TokenStrV);
+    // create sparse vector
+    AddFtr(TokenStrV, SpV);
+}
+
+void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV, int& Offset) const {
+    // create sparse vector
+    TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
         const TIntFltKd& ValSp = ValSpV[ValSpN];
@@ -369,8 +382,37 @@ void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
     Offset += GetDim();
 }
 
+void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV, int& Offset) const {
+    // tokenize
+    TStrV TokenStrV(Val.Len() / 5, 0); GetFtr(Val, TokenStrV);
+    // create sparse vector
+    TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
+    // add to the full feature vector and increase offset count
+    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
+        const TIntFltKd& ValSp = ValSpV[ValSpN];
+        SpV.Add(TIntFltKd(Offset + ValSp.Key, ValSp.Dat));
+    }    
+    // increase the offset by the dimension
+    Offset += GetDim();
+}
+
+void TBagOfWords::AddFtr(const TStrV& TokenStrV, TFltV& FullV, int& Offset) const {
+    // create sparse vector
+    TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
+    // add to the full feature vector and increase offset count
+    for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
+        const TIntFltKd& ValSp = ValSpV[ValSpN];
+        FullV[Offset + ValSp.Key] = ValSp.Dat;
+    }
+    // increase the offset by the dimension
+    Offset += GetDim();    
+}
+
 void TBagOfWords::AddFtr(const TStr& Val, TFltV& FullV, int& Offset) const {
-    TIntFltKdV ValSpV; AddFtr(Val, ValSpV);
+    // tokenize
+    TStrV TokenStrV(Val.Len() / 5, 0); GetFtr(Val, TokenStrV);
+    // create sparse vector
+    TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
         const TIntFltKd& ValSp = ValSpV[ValSpN];

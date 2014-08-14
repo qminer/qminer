@@ -36,7 +36,8 @@ PTokenizer TTokenizer::New(const TStr& TypeNm, const PJsonVal& JsonVal) {
 }
 
 PTokenizer TTokenizer::Load(TSIn& SIn) {
-	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(SIn);
+	TStr TypeNm(SIn);          
+    return LoadRouter.Fun(TypeNm)(SIn);
 }
 
 void TTokenizer::GetTokens(const TStr& Text, TStrV& TokenV) const {
@@ -54,6 +55,7 @@ void TTokenizer::GetTokens(const TStrV& TextV, TVec<TStrV>& TokenVV) const {
 }
 
 namespace TTokenizers { 
+    
 ///////////////////////////////
 // Tokenizer-Simple
 PTokenizer TSimple::New(const PJsonVal& ParamVal) {
@@ -140,6 +142,12 @@ void THtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 
 ///////////////////////////////
 // Tokenizer-Html-Unicode
+THtmlUnicode::THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, 
+        const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
+        
+    EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); 
+}
+
 PTokenizer THtmlUnicode::New(const PJsonVal& ParamVal) {
     // get stopwords
     PSwSet SwSet = ParamVal->IsObjKey("stopwords") ? 
@@ -159,10 +167,10 @@ void THtmlUnicode::Save(TSOut& SOut) const {
 }
 
 void THtmlUnicode::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
-	TStr LineStr; TStrV WordStrV;
+	TStr LineStr; TStrV WordStrV;    
 	while (SIn->GetNextLn(LineStr)) {
-		TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
-		THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
+        TStr SimpleText = TUStr(LineStr).GetStarterLowerCaseStr();
+        THtml::GetTokens(TStrIn::New(SimpleText), TokenV);
 	}
 }
 

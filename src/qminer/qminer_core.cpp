@@ -32,10 +32,11 @@ namespace TQm {
 
 ///////////////////////////////
 // QMiner Environment
-TIntTr TEnv::Version = TIntTr(0, 5, 1);
+TIntTr TEnv::Version = TIntTr(0, 7, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
+TStr TEnv::RootFPath;
 PNotify TEnv::Error;
 PNotify TEnv::Logger;
 PNotify TEnv::Debug;
@@ -51,6 +52,7 @@ void TEnv::Init() {
     Debug = TNullNotify::New();
 	// read environment variable indicating QMiner folder, uses current dir if not available
 	QMinerFPath = TStr::GetNrAbsFPath(::TEnv::GetVarVal("QMINER_HOME"));
+	RootFPath = TStr::GetNrFPath(TDir::GetCurDir());
     // initialize aggregators constructor router
     TAggr::Init();
     // initialize stream aggregators constructor router
@@ -298,21 +300,36 @@ TStr TFieldDesc::GetFieldTypeStr() const {
 
 ///////////////////////////////
 // QMiner-Store-Iterators
-TStoreIterVec::TStoreIterVec(): FirstP(false), RecId(0), RecIds(0) { } 
+TStoreIterVec::TStoreIterVec(): 
+    FirstP(true), LastP(true), AscP(true), RecId(TUInt64::Mx), EndId(0) { } 
 
-TStoreIterVec::TStoreIterVec(const uint64& _RecIds): 
-	FirstP(true), RecId(0), RecIds(_RecIds) { }
+TStoreIterVec::TStoreIterVec(const uint64& StartId, const uint64& _EndId, const bool& _AscP): 
+        FirstP(true), LastP(false), AscP(_AscP), RecId(StartId), EndId(_EndId) {
 
-TStoreIterVec::TStoreIterVec(const uint64& MinId, const uint64& MaxId): 
-	FirstP(true), RecId(MinId), RecIds(MaxId + 1) { }
+    QmAssert(AscP ? (RecId <= EndId) : (RecId >= EndId));
+}
 
+PStoreIter TStoreIterVec::New(const uint64& StartId, const uint64& EndId, const bool& AscP) { 
+    return new TStoreIterVec(StartId, EndId, AscP); }
+    
 bool TStoreIterVec::Next() {
-	if (FirstP) { 
-		FirstP = false; 
-	} else { 
-		RecId++; 
-	}
-	return (RecId < RecIds); 
+    // we reached the end
+    if (LastP) { return false; }
+	if (FirstP) {
+        // mark we did first next()
+		FirstP = false;        
+	} else {        
+        // otherwise move to next record
+        if (AscP) {        
+            RecId++;
+        } else {
+            RecId--;
+        }
+    }
+    // check if this is the last record
+    LastP = (RecId == EndId);
+    // we reached the end!
+	return true;
 }
 
 ///////////////////////////////
@@ -1158,6 +1175,9 @@ TRec::TRec(const TWPt<TStore>& _Store, const PJsonVal& JsonVal):
         if (!JsonVal->IsObjKey(FieldName)) { continue; }
         // parse the field from JSon
         PJsonVal FieldVal = JsonVal->GetObjKey(FieldName);
+        // first check if it is set to null
+        if (FieldVal->IsNull()) { SetFieldNull(FieldId); continue; }
+        // otherwise get its value
         switch (FieldDesc.GetFieldType()) {
             case oftInt:
                 QmAssertR(FieldVal->IsNum(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not numeric.");
@@ -1880,8 +1900,7 @@ void TRecSet::SortById(const bool& Asc) {
 }
 
 void TRecSet::SortByFq(const bool& Asc) {
-	TInt::SetRndSeed(1); // HACK to be consistent
-	RecIdFqV.SortCmp(TCmpKeyDatByDat<TUInt64, TInt>(Asc));
+	RecIdFqV.SortCmp(TRecCmpByFq(Asc));
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
@@ -1969,6 +1988,14 @@ void TRecSet::FilterByFieldTm(	const int& FieldId, const TTm& MinVal, const TTm&
 	// apply the filter
     FilterBy(TRecFilterByFieldTm(Store, FieldId, MinVal, MaxVal));
 }
+    
+TVec<PRecSet> TRecSet::SplitByFieldTm(const int& FieldId, const uint64& DiffMSecs) const {
+    // get store and field type
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+    QmAssertR(Desc.IsTm(), "Wrong field type, time expected");
+    // split the record set
+    return SplitBy(TRecSplitterByFieldTm(Store, FieldId, DiffMSecs));
+}
 
 void TRecSet::RemoveRecId(const TUInt64& RecId) {
 	const int Recs = GetRecs();
@@ -1997,7 +2024,7 @@ PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& SortedP) con
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 	if (Offset >= GetRecs()) {
-		// offset past number of recordes, return empty
+		// offset past number of records, return empty
 		return TRecSet::New(Store);
 	} else {
 		TUInt64IntKdV LimitRecIdFqV;
@@ -3985,11 +4012,16 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCount>();
     Register<TStreamAggrs::TTimeSeriesTick>();
     Register<TStreamAggrs::TTimeSeriesWinBuf>();
-    Register<TStreamAggrs::TMa>();
+	Register<TStreamAggrs::TWinBufCount>();
+	Register<TStreamAggrs::TWinBufSum>();
+	Register<TStreamAggrs::TWinBufMin>();
+	Register<TStreamAggrs::TWinBufMax>();
+	Register<TStreamAggrs::TMa>();
     Register<TStreamAggrs::TEma>();
     Register<TStreamAggrs::TVar>();
     Register<TStreamAggrs::TCov>();
     Register<TStreamAggrs::TCorr>();
+    Register<TStreamAggrs::TStMerger>();
     Register<TStreamAggrs::TResampler>();
 }
 
@@ -4000,8 +4032,9 @@ TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm):
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const PJsonVal& ParamVal):
     Base(_Base), AggrNm(ParamVal->GetObjStr("name")), Guid(TGuid::GenGuid()) { 
         TValidNm::AssertValidNm(AggrNm); }
-        
-TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, TSIn& SIn): 
+    
+// TODO: Possible bug - SABase not used here ... Check!
+TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TWPt<TStreamAggrBase> _SABase, TSIn& SIn) :
     Base(_Base), AggrNm(SIn), Guid(SIn) { }
 	
 PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base, 
@@ -4010,8 +4043,8 @@ PStreamAggr TStreamAggr::New(const TWPt<TBase>& Base,
     return NewRouter.Fun(TypeNm)(Base, ParamVal);
 }
 
-PStreamAggr TStreamAggr::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(Base, SIn);
+PStreamAggr TStreamAggr::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) {
+	TStr TypeNm(SIn); return LoadRouter.Fun(TypeNm)(Base, SABase, SIn);
 }
 
 void TStreamAggr::Save(TSOut& SOut) const { 
@@ -4023,7 +4056,7 @@ void TStreamAggr::Save(TSOut& SOut) const {
 TStreamAggrBase::TStreamAggrBase(const TWPt<TBase>& Base, TSIn& SIn) { 
 	const int StreamAggrs = TInt(SIn);
 	for (int StreamAggrN = 0; StreamAggrN < StreamAggrs; StreamAggrN++) {
-		PStreamAggr StreamAggr = TStreamAggr::Load(Base, SIn);
+		PStreamAggr StreamAggr = TStreamAggr::Load(Base, this, SIn);
 		AddStreamAggr(StreamAggr);
 	}
 }
@@ -4064,7 +4097,7 @@ const PStreamAggr& TStreamAggrBase::GetStreamAggr(const int& StreamAggrId) const
     return StreamAggrH[StreamAggrId]; 
 }
 
-void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) { 
+void TStreamAggrBase::AddStreamAggr(const PStreamAggr& StreamAggr) { 	
 	StreamAggrH.AddDat(StreamAggr->GetAggrNm(), StreamAggr); 
 }
 
@@ -4145,6 +4178,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize): InitP(false) {
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
     // initialize empty stream aggregate bases for each store
     StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
+	StreamAggrDefaultBase = TStreamAggrBase::New();
 	// by default no temporary folder
 	TempFPathP = false;
 }
@@ -4172,7 +4206,8 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 	// initialize with empty stores
 	StoreV.Gen(TEnv::GetMxStores()); StoreV.PutAll(NULL);
     // initialize empty stream aggregate bases for each store
-    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);    
+    StreamAggrBaseV.Gen(TEnv::GetMxStores()); StreamAggrBaseV.PutAll(NULL);
+	StreamAggrDefaultBase = TStreamAggrBase::New();
 	// by default no temporary folder
 	TempFPathP = false;
 } 
@@ -4185,6 +4220,7 @@ TBase::~TBase() {
 		TEnv::Logger->OnStatus("Saving stream aggregates ...");
 		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
         SaveStreamAggrBaseV(StreamAggrFOut);
+		StreamAggrDefaultBase->Save(StreamAggrFOut);		
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -4216,7 +4252,7 @@ void TBase::LoadStreamAggrBaseV(TSIn& SIn) {
         // create trigger for the aggregate base
         GetStoreByStoreId(StoreId)->AddTrigger(TStreamAggrTrigger::New(StreamAggrBase));
         // remember the aggregate base for the store
-        StreamAggrBaseV[StoreId] = StreamAggrBase;
+		StreamAggrBaseV[StoreId] = StreamAggrBase;
     }    
 }
 
@@ -4408,6 +4444,7 @@ void TBase::Init() {
 		// load stream aggregates
 		TFIn StreamAggrBaseFIn(FPath + "StreamAggr.dat");
         LoadStreamAggrBaseV(StreamAggrBaseFIn);
+		StreamAggrDefaultBase = TStreamAggrBase::Load(this, StreamAggrBaseFIn);
 	}
 	// done
 	InitP = true;
@@ -4455,8 +4492,16 @@ const PStreamAggrBase& TBase::GetStreamAggrBase(const uint& StoreId) const {
 	return StreamAggrBaseV[(int)StoreId]; 
 }
 
+const PStreamAggrBase& TBase::GetStreamAggrBase() const {
+	return StreamAggrDefaultBase;
+}
+
 bool TBase::IsStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
 	return GetStreamAggrBase(StoreId)->IsStreamAggr(StreamAggrNm);
+}
+
+bool TBase::IsStreamAggr(const TStr& StreamAggrNm) const {
+	return StreamAggrDefaultBase->IsStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamAggrNm) const {
@@ -4464,7 +4509,11 @@ const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamA
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
-	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+	return StoreNm.Empty() ? GetStreamAggr(StreamAggrNm) :  GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+}
+
+const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {
+	return StreamAggrDefaultBase->GetStreamAggr(StreamAggrNm);
 }
 
 void TBase::AddStreamAggr(const uint& StoreId, const PStreamAggr& StreamAggr) {
@@ -4486,6 +4535,10 @@ void TBase::AddStreamAggr(const TStrV& StoreNmV, const PStreamAggr& StreamAggr) 
 	for (int StoreN = 0; StoreN < StoreNmV.Len(); StoreN++) {
 		AddStreamAggr(GetStoreByStoreNm(StoreNmV[StoreN])->GetStoreId(), StreamAggr);
 	}
+}
+
+void TBase::AddStreamAggr(const PStreamAggr& StreamAggr) {
+	StreamAggrDefaultBase->AddStreamAggr(StreamAggr);
 }
 
 void TBase::Aggr(PRecSet& RecSet, const TQueryAggrV& QueryAggrV) {

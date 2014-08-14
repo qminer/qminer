@@ -64,6 +64,9 @@ qm:
 	# copy in admin GUI
 	mkdir -p ./$(BUILD)/gui
 	cp -r ./$(QMINER)/gui/* ./$(BUILD)/gui
+	# copy resources
+	mkdir -p ./$(BUILD)/resources
+	cp -r ./$(QMINER)/resources/* ./$(BUILD)/resources
 	
 cleanall: clean cleandoc
 	make -C $(THIRD_PARTY) clean
@@ -105,6 +108,7 @@ doc: cleandoc
 	docco -o ./docjs/ examples/twitter/src/twitter.js
 	docco -o ./docjs/ examples/hoeffdingtree/src/ht.js
 	docco -o ./docjs/ examples/nnet/src/nnet.js
+	docco -o ./docjs/ examples/kalman/src/kalman.js
 	sed "s/00000000/$(DOXYGEN_STIME)/" Doxyfile | sed "s/11111111/$(DOXYGEN_SLVER)/" > Doxyfile-tmp
 	$(DOXYGEN) Doxyfile-tmp
 	

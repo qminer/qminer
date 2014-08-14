@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
+/// <reference path="qminer.js">
 
 /////// PRINTING
 //#- `la.printVec(vecec)` -- print the vector `vec` in the console
@@ -162,6 +163,29 @@ la.eye = function(dim) {
     return identity;
 };
 
+//#- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
+la.speye = function (dim) {
+    var vec = la.ones(dim);
+    return vec.spDiag();
+};
+
+//#- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
+la.sparse = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var spmat = la.newSpMat({ "rows": rows, "cols": cols });
+    return spmat;
+};
+
+//#- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
+la.zeros = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var mat = la.newMat({ "rows": rows, "cols": cols });
+    return mat;
+};
+
+
+
+
 // generate a C++ vector of ones
 //#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 la.ones = function(k) {
@@ -236,6 +260,16 @@ la.copyFltArrayToVec = function(arr) {
     return vec;
 };
 
+//#- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+la.copyVecToArray = function (vec) {
+    var len = vec.length;
+    var arr = [];
+    for (var elN = 0; elN < len; elN++) {
+        arr[elN] = vec[elN];
+    }
+    return arr;
+};
+
 ////// SERIALIZATION: use fs instead of fname
 //#- `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
 la.saveMat = function(X, fout) {
@@ -246,6 +280,37 @@ la.saveMat = function(X, fout) {
     //outFile.writeLine(Xstr);
     //outFile.flush();
 };
+
+//#- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
+la.inverseSVD = function (mat) {
+    var k = Math.min(mat.rows, mat.cols);
+    var svdRes = la.svd(mat, k, { "iter": 10, "tol": 1E-15 });  // returns U, s and V
+    var B = la.newMat({ "cols": mat.cols, "rows": mat.rows });
+
+    // http://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_pseudoinverse#Singular_value_decomposition_.28SVD.29
+    var tol = 1E-16 * Math.max(mat.cols, mat.rows) * svdRes.s.at(svdRes.s.getMaxIdx());
+    
+    // calculate reciprocal values for diagonal matrix = inverse diagonal
+    for (i = 0; i < svdRes.s.length; i++) {
+        if (svdRes.s.at(i) > tol) svdRes.s.put(i, 1 / svdRes.s.at(i));
+        else svdRes.s.put(0);
+    }
+        
+    var sum;
+
+    for (i = 0; i < svdRes.U.cols; i++) {
+        for (j = 0; j < svdRes.V.rows; j++) {
+            sum = 0;
+            for (k = 0; k < svdRes.U.cols; k++) {
+                if (svdRes.s.at(k) != 0) {
+                    sum += svdRes.s.at(k) * svdRes.V.at(i, k) * svdRes.U.at(j, k);
+                }
+            }
+            B.put(i, j, sum);           
+        }
+    }
+    return B;
+}
 
 //#- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
 //#- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
@@ -269,5 +334,81 @@ la.conjgrad = function (A, b, x) {
     return x;
 }
 
+
+//#- `mat3 = la.pdist2(mat, mat2)` -- computes the pairwise squared euclidean distances between columns of `mat` and `mat2`. mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2
+la.pdist2 = function (mat, mat2) {
+    var snorm1 = la.square(mat.colNorms());
+    var snorm2 = la.square(mat2.colNorms());
+    var ones_1 = la.ones(mat.cols);
+    var ones_2 = la.ones(mat2.cols);
+    var D = (mat.multiplyT(mat2).multiply(-2)).plus(snorm1.outer(ones_2)).plus(ones_1.outer(snorm2));
+    return D;
+}
+
+//#- `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
+la.repmat = function (mat, m, n) {
+    var rows = mat.rows;
+    var cols = mat.cols;
+    // a block column matrix where blocks are rows-by-rows identity matrices
+    var rowIdxVec1 = la.newIntVec({ "vals": m * rows });
+    var colIdxVec1 = la.newIntVec({ "vals": m * rows });
+    var valVec1 = la.ones(m * rows);
+    for (var rowCellN = 0; rowCellN < m; rowCellN++) {
+        for (var colN = 0; colN < rows; colN++) {
+            var idx = rowCellN * rows + colN;
+            colIdxVec1[idx] = colN;
+            rowIdxVec1[idx] = idx;
+        }
+    }
+    var spMat1 = la.newSpMat(rowIdxVec1, colIdxVec1, valVec1);
+    // a block row matrix where blocks are cols-by-cols identity matrices
+    var rowIdxVec2 = la.newIntVec({ "vals": n * cols });
+    var colIdxVec2 = la.newIntVec({ "vals": n * cols });
+    var valVec2 = la.ones(n * cols);
+    for (var colCellN = 0; colCellN < n; colCellN++) {
+        for (var rowN = 0; rowN < cols; rowN++) {
+            var idx = colCellN * cols + rowN;
+            rowIdxVec2[idx] = rowN;
+            colIdxVec2[idx] = idx;
+        }
+    }
+    var spMat2 = la.newSpMat(rowIdxVec2, colIdxVec2, valVec2);
+    var result = spMat1.multiply(mat).multiply(spMat2);
+    return result;
+}
+
+//#- `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
+la.repvec = function (vec, m, n) {
+    var temp = vec.toMat();
+    var result = la.repmat(temp, m, n);
+    return result;
+}
+
+//#- `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
+la.elementByElement = function (a, b, callback) {
+    // If input is vector, convert it to matrix
+    var isVec = false;
+    var mat = typeof a.length != 'undefined' && (isVec = true) ? a.toMat() : a;
+    var mat2 = typeof b.length != 'undefined' && (isVec = true) ? b.toMat() : b;
+    // Throw error if dimensions dont agree
+    function exception() {
+        this.message = "Dimensions must agree."
+        this.name = "MatDimNotAgree"
+    }
+    if (mat.cols !== mat2.cols || mat.rows !== mat2.rows) {
+        throw new exception()
+    }
+    // Go element by element and use callback function
+    var rows = mat.rows
+    var cols = mat.cols;
+    var mat3 = la.newMat({ "cols": cols, "rows": rows });
+    for (var colN = 0; colN < cols; colN++) {
+        for (var rowN = 0; rowN < rows; rowN++) {
+            var val = callback(mat.at(rowN, colN), mat2.at(rowN, colN));
+            mat3.put(rowN, colN, val);
+        }
+    }
+    return result = isVec ? mat3.getCol(0) : mat3;
+}
 
 var linalg = la;
