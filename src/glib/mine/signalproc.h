@@ -200,7 +200,7 @@ public:
 
 /////////////////////////////////////////
 // Neural Networks - Neural Net
-typedef enum { tanHyper, sigmoid, fastTanh, fastSigmoid, linear } TTFunc;
+typedef enum { tanHyper, sigmoid, fastTanh, fastSigmoid, linear, softPlus } TTFunc;
 //class TNNet {
 ClassTP(TNNet, PNNet) //{
 private:
@@ -211,9 +211,7 @@ private:
     private:
         static TRnd Rnd; //TODO: initialize it in the constructor with the 0
 
-        //TODO: check if really random between 0 and 1 or need to be static
         TFlt RandomWeight(void) { return TFlt(Rnd.GetUniDev()); }
-        // TODO: enable different transfer functions for each layer etc..
         TFlt TransferFcn(TFlt Sum);
         TFlt TransferFcnDeriv(TFlt Sum); // for back propagation learning
         // sum derivatives of weights in the next layer
@@ -221,7 +219,7 @@ private:
         TFlt OutputVal;
         TFlt Gradient;
         TTFunc TFuncNm; // transfer function name
-
+        TFltV SumDeltaWeight;
         // hash containing weight[0] and delta weight[1] for each outgoing edge
         TVec<TIntFltFltTr> OutEdgeV; 
         // Id of this neuron
@@ -233,13 +231,16 @@ private:
 
         void SetOutVal(const TFlt& Val) { OutputVal = Val; }
         void SetDeltaWeight(const TInt& InNodeId, const TFlt& Val) { OutEdgeV[InNodeId].Val3 = Val; }
+        void SetSumDeltaWeight(const TInt& InNodeId, const TFlt& Val) { SumDeltaWeight[InNodeId] = Val; }
+        void SumDeltaWeights(const TInt& InNodeId, const TFlt& Val) { SumDeltaWeight[InNodeId] += Val; }
         void UpdateWeight(const TInt& InNodeId, const TFlt& Val) { OutEdgeV[InNodeId].Val2 += Val; }
-        void UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate, const TFlt& Momentum);
+        void UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate, const TFlt& Momentum, const TBool& UpdateWeights);
 
         TFlt GetOutVal(void) const { return OutputVal; }
         TFlt GetGradient(void) const { return Gradient; }
         TFlt GetDeltaWeight(const TInt& InNodeId) { return OutEdgeV[InNodeId].Val3; };
         TFlt GetWeight(const TInt& InNodeId) const { return OutEdgeV[InNodeId].Val2; };
+        TFlt GetSumDeltaWeight(const TInt& InNodeId) const { return SumDeltaWeight[InNodeId]; };
 
         void FeedFwd(const TLayer& PrevLayer);
         void CalcOutGradient(TFlt TargVal);
@@ -264,7 +265,8 @@ private:
 
         void SetOutVal(const TInt& NeuronN, const TFlt& Val) { NeuronV[NeuronN].SetOutVal(Val); };
         void UpdateInputWeights(const TInt& NeuronN, TLayer& PrevLayer,
-        const TFlt& LearnRate, const TFlt& Momentum) { NeuronV[NeuronN].UpdateInputWeights(PrevLayer, LearnRate, Momentum); };
+        const TFlt& LearnRate, const TFlt& Momentum,
+        const TBool& UpdateWeights) { NeuronV[NeuronN].UpdateInputWeights(PrevLayer, LearnRate, Momentum, UpdateWeights); };
 
         void CalcOutGradient(int& NeuronN, const TFlt& TargVal) { NeuronV[NeuronN].CalcOutGradient(TargVal); };
         void CalcHiddenGradient(int& NeuronN, const TLayer& NextLayer) { NeuronV[NeuronN].CalcHiddenGradient(NextLayer); };
@@ -291,9 +293,11 @@ public:
     // Feed forward step
     void FeedFwd(const TFltV& InValV);
     // Back propagation step
-    void BackProp(const TFltV& TargValV);
+    void BackProp(const TFltV& TargValV, const TBool& UpdateWeights = true);
     // TODO: try to make backprop in less for loops
     void GetResults(TFltV& ResultV) const;
+    // Set learn rate
+    void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
 };
 
 /////////////////////////////////////////

@@ -4114,6 +4114,8 @@ v8::Handle<v8::Value> TJsAnalytics::newNN(const v8::Arguments& Args) {
         TFuncHiddenL = TSignalProc::TTFunc::sigmoid;
     } else if (TFuncHiddenLStr == "fastTanh") {
         TFuncHiddenL = TSignalProc::TTFunc::fastTanh;
+    } else if (TFuncHiddenLStr == "softPlus") {
+        TFuncHiddenL = TSignalProc::TTFunc::softPlus;
     } else if (TFuncHiddenLStr == "fastSigmoid") {
         TFuncHiddenL = TSignalProc::TTFunc::fastSigmoid;
     } else if (TFuncHiddenLStr == "linear") {
@@ -4128,6 +4130,8 @@ v8::Handle<v8::Value> TJsAnalytics::newNN(const v8::Arguments& Args) {
         TFuncOutL = TSignalProc::TTFunc::sigmoid;
     } else if (TFuncOutLStr == "fastTanh") {
         TFuncOutL = TSignalProc::TTFunc::fastTanh;
+    } else if (TFuncOutLStr == "softPlus") {
+        TFuncOutL = TSignalProc::TTFunc::softPlus;
     } else if (TFuncOutLStr == "fastSigmoid") {
         TFuncOutL = TSignalProc::TTFunc::fastSigmoid;
     } else if (TFuncOutLStr == "linear") {
@@ -4498,6 +4502,7 @@ v8::Handle<v8::ObjectTemplate> TJsNN::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, learn);
 		JsRegisterFunction(TmpTemp, predict);
+		JsRegisterFunction(TmpTemp, setLearnRate);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -4510,17 +4515,51 @@ v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
     // parse arguments
     TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
     // get feature vector
-    QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
+    /*TODO: Do checking for TFltV OR TFltVV
+     * QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
         "NeuralNetwork.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
     QmAssertR(TJsNNUtil::IsArgClass(Args, 1, "TFltV"), 
         "NeuralNetwork.learn: The second argument must be a JsTFltV (js linalg full vector)"); 
-    TJsFltV* JsVecIn = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-    TJsFltV* JsVecTarget = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
-    // TODO: do some checking of dimensions etc..
-    // first get output values
-    JsNN->NN->FeedFwd(JsVecIn->Vec);
-    // then check how we performed and learn
-    JsNN->NN->BackProp(JsVecTarget->Vec);
+     */
+    if(TJsNNUtil::IsArgClass(Args, 0, "TFltV")){
+        TJsFltV* JsVecIn = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+        TJsFltV* JsVecTarget = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
+        // TODO: do some checking of dimensions etc..
+        // first get output values
+        JsNN->NN->FeedFwd(JsVecIn->Vec);
+
+        v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
+        TFltV& FltV = TJsFltV::GetVec(JsFltV);
+
+        JsNN->NN->GetResults(FltV);
+
+        printf("&&Predicted when learning %f \n", (double)FltV[0]);
+
+        // then check how we performed and learn
+        JsNN->NN->BackProp(JsVecTarget->Vec);
+    }
+    else if(TJsNNUtil::IsArgClass(Args, 0, "TFltVV")){
+        TJsFltVV* JsVVecIn = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+        TJsFltVV* JsVVecTarget = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 1);
+        //TODO: check that dimensions match
+        for(int Row = 0; Row < JsVVecIn->Mat.GetRows(); Row++){
+            TFltV InFltV;
+            JsVVecIn->Mat.GetRow(Row, InFltV);
+            JsNN->NN->FeedFwd(InFltV);
+            // then check how we performed and learn
+            TFltV TargFltV;
+            JsVVecTarget->Mat.GetRow(Row, TargFltV);
+            if(Row == JsVVecIn->Mat.GetRows() - 1){
+                JsNN->NN->BackProp(TargFltV); 
+            }
+            else {
+                JsNN->NN->BackProp(TargFltV, false); 
+            }
+        }
+    }
+    else {
+        printf("NeuralNetwork.learn: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
+    }
     
     return HandleScope.Close(v8::Undefined());	
 }
@@ -4531,9 +4570,10 @@ v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
     TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
     // get feature vector
     QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
-        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+        "NN.predict: The first argument must be a JsTFltV (js linalg full vector)"); 
     TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
     JsNN->NN->FeedFwd(JsVec->Vec);
+
     v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
     TFltV& FltV = TJsFltV::GetVec(JsFltV);
     
@@ -4542,6 +4582,19 @@ v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
     printf("&&Predicted %f \n", (double)FltV[0]);
 
     return HandleScope.Close(JsFltV);
+}
+
+v8::Handle<v8::Value> TJsNN::setLearnRate(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
+    TFlt NewLearnRate = TJsNNUtil::GetArgFlt(Args, 0);
+            
+    JsNN->NN->SetLearnRate(NewLearnRate);
+
+    printf("&& Set learn rate to %f \n", (double)NewLearnRate);
+
+    return HandleScope.Close(v8::Undefined());
 }
 
 ///////////////////////////////

@@ -2192,6 +2192,8 @@ public:
 	JsDeclareFunction(learn);
     //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 	JsDeclareFunction(predict);
+    //#- `nnModel.setLearnRate(float)` -- sets learning rate of the network
+	JsDeclareFunction(setLearnRate);
 };
 
 ///////////////////////////////
