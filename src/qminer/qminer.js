@@ -97,6 +97,42 @@ qm.getAllStreamAggrVals = function (store) {
     return result;
 }
 
+//#- `global` -- holds the global scope (global `this`)
+var global = this;
+
+//#- `out_fun = curryScope(in_fun, scope, a1, ..., an)` -- returns function fn(a1, ..., an, ...), which evaluates in the provided scope
+function curryScope(fn, scope) {
+    scope = scope || global;
+    var args = [];
+    for (var i = 2, len = arguments.length; i < len; ++i) {
+        args.push(arguments[i]);
+    }
+    return function() {
+        var args2 = [];
+        for (var i = 0; i < arguments.length; i++) {
+            args2.push(arguments[i]);
+        }
+        var argstotal = args.concat(args2);
+        return fn.apply(scope, argstotal);
+    };
+}
+
+//#- `out_fun = curry(in_fun, a1, ..., an)` -- returns function fn(a1, ..., an, ...), which evaluates in the global scope
+function curry(fn) {
+    var args = [];
+    for (var i = 1, len = arguments.length; i < len; ++i) {
+        args.push(arguments[i]);
+    }
+    return function() {
+        var args2 = [];
+        for (var i = 0; i < arguments.length; i++) {
+            args2.push(arguments[i]);
+        }
+        var argstotal = args.concat(args2);
+        return fn.apply(global, argstotal);
+    };
+}
+
 //#- `dir()` -- prints all global variables
 //#- `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
 //#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
