@@ -2503,10 +2503,10 @@ public:
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
-//#- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
-//#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+//#- `gracePeriod` -- Denotes ``recomputation period''; if `gracePeriod=200`, the algorithm
+//#	    will recompute information gains (or Gini indices) every `200` examples. Recomputation
 //#	    is the most expensive operation in the algorithm, because we have to recompute gains at each
-//#	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+//#	    leaf of the tree for each attribute. (If `ConceptDriftP=true`, we have to recompute gains in each
 //#       node of the tree.)
 //#- `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
 //#	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
