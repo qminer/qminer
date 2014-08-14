@@ -2149,10 +2149,14 @@ void TStoreImpl::GarbageCollect() {
         // delete record from name-id map
         if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
 		// delete record from indexes
-    	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
-        RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
-    	TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
-        RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+        if (DataCacheP) {
+        	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
+        	RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+        }
+        if (DataMemP) {
+        	TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
+        	RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+        }
 		// delete record from joins
         TRec Rec(this, DelRecId);
 		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
