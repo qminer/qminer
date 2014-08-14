@@ -174,13 +174,13 @@ double TEma::GetNi(const double& Alpha, const double& Mi) {
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs, 
     const double& _TmInterval): Decay(_Decay), Type(_Type), TmInterval(_TmInterval), 
-    InitP(false), InitMinMSecs(_InitMinMSecs) { }
+    InitP(false), InitMinMSecs(_InitMinMSecs), LastVal(TFlt::Mn) { }
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,const double& _TmInterval):
-	Type(_Type), TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) { }
+Type(_Type), TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs), LastVal(TFlt::Mn) { }
 
-TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
+TEma::TEma(const PJsonVal& ParamVal) : InitP(false), LastVal(TFlt::Mn) {
     // type
     TStr TypeStr = ParamVal->GetObjStr("emaType");
     if (TypeStr == "previous") { 
@@ -230,6 +230,10 @@ void TEma::Save(TSOut& SOut) const {
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	double TmInterval1;
+	// EMA(first_point) = first_point (no smoothing is possible)
+	if (InitMinMSecs == 0) {
+		if (LastVal == TFlt::Mn) { LastVal = Val; Ema = Val; TmMSecs = NewTmMSecs; InitP = true;  return; }
+	}
 	if(NewTmMSecs == TmMSecs) {
 		TmInterval1 = 1.0;
     } else{

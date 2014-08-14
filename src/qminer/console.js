@@ -51,4 +51,6 @@ console.startx = function (x) {
 console.pause = function() {console.getln()};
 
 //#- `console.println(str)` -- `print(str); print("\n")`
-console.println = function(a) {console.print(a); console.print("\n");}
+console.println = function (a) { console.print(a); console.print("\n"); }
+
+breakpoint = '(' + console.start.toString() + ')()';

@@ -27,14 +27,16 @@ function overwriteKeys(baseObject, overrideObject, createNew) {
     if (createNew) {
         baseObject = JSON.parse(JSON.stringify(baseObject));
     }
-    Object.keys(overrideObject).forEach(function (key) {
-        if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
-            overwriteKeys(baseObject[key], overrideObject[key]);
-        }
-        else {
-            baseObject[key] = overrideObject[key];
-        }
-    });
+    //if (typeof overrideParams != 'undefined') {
+        Object.keys(overrideObject).forEach(function (key) {
+            if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
+                overwriteKeys(baseObject[key], overrideObject[key]);
+            }
+            else {
+                baseObject[key] = overrideObject[key];
+            }
+        });
+    //}
 
     return baseObject;
 }
