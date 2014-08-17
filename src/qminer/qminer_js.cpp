@@ -5708,6 +5708,7 @@ v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
     // get file list
 	TStrV FNmV;
 	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
+    FNmV.Sort();
 	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
 	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
 		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
