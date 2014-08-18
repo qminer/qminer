@@ -26,7 +26,7 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Record](#record)
  - [Index key](#index-key)
 - [Linear Algebra](#linear-algebra)
- - [Vector](#lector)
+ - [Vector](#vector)
  - [Matrix (dense matrix)](#matrix-dense-matrix)
  - [SpVector (sparse vector)](#spvector-sparse-vector-)
  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
@@ -118,6 +118,9 @@ QMiner (`qm`) is the core object in the API and is available in any script.
   the number of lines loaded.
 - `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
 - `qm.getAllStreamAggrVals(store)` -- returns a JSON where keys are stream aggregate names and values are their corresponding JSON values
+- `global` -- holds the global scope (global `this`)
+- `out_fun = curryScope(in_fun, scope, a1, ..., an)` -- returns function fn(a1, ..., an, ...), which evaluates in the provided scope
+- `out_fun = curry(in_fun, a1, ..., an)` -- returns function fn(a1, ..., an, ...), which evaluates in the global scope
 - `dir()` -- prints all global variables
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
@@ -172,8 +175,13 @@ var record = store[1234];
 - `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
 - `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
+- `objJSON = store.toJSON()` -- returns the store as a JSON
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
+- `store.each(callback)` -- call `callback` on each element of the store
+- `arr = store.map(callback)` -- call `callback` on each element of the store and store result to `arr`
+- `rs = store.head(num)` -- return record set with first `num` records
+- `rs = store.tail(num)` -- return record set with last `num` records
 
 **Examples**:
 
@@ -389,6 +397,8 @@ var intVec = la.newIntVec(); //empty vector
 - `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 - `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 - `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
+- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
+- `vec = vec.trunc(num)` -- truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.
 - `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
 - `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
 - `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
@@ -747,6 +757,7 @@ Holds the neural network model. This object is result of `analytics.newNN`.
     
 - `nnModel = nnModel.learn(inVec, outVec)` -- uses a pair of input `inVec` and output `outVec` to perform one step of learning with backpropagation. Returns self.
 - `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
+- `nnModel.setLearnRate(float)` -- sets learning rate of the network
 
 ### Recursive Linear Regression model
 
@@ -780,7 +791,7 @@ The HoeffdingTree algorithm comes with many parameters:
 	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+	    generating the data is stationary). So `A1` is truly best with probability at least `1-splitConfidence`.
 - `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
 	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
 	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If
@@ -794,6 +805,26 @@ The HoeffdingTree algorithm comes with many parameters:
 - `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 	    the window in order to ``forget'' the example when it becomes too old. 
+- `maxNodes` -- The algorithm stops growing the tree if the tree contains more than (or equal to) `maxNodes` nodes.
+      Alternate tree contributions are also counted. This parameter must be nonnegative integer. NOTE: If `maxNodes=0`,
+      then the algorithm let's the tree grow arbitrarily.
+- `attrDiscretization` -- Attribute discretization technique. Possible values are `histogram` and `bst`. See
+      [this paper](http://dl.acm.org/citation.cfm?id=1786604) and [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
+      for description. Note that `histogram` is cheap and uses up constant amount of memory, independent of the stream, but
+      its inicialization depends on the order of stream elements. The `bst` is essentially batch technique and uses up
+      lots of memory. 
+- `clsAttrHeuristic` -- This tells the algorithm what attribute heurstic measure to use. Possible values are `infoGain`, for
+      [information gain](http://en.wikipedia.org/wiki/Information_gain_in_decision_trees), and `giniGain`, for
+      [gini index](http://en.wikipedia.org/wiki/Decision_tree_learning#Gini_impurity). For classification only; regression
+      trees only support [standard deviation reduction](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf).
+- `clsLeafModel` -- This tells the algorithm what model to fit in the leaves of the classification tree. Options are `majority`,
+      which means majority classifier (predict the most frequent label in the leaf) and `naiveBayes`, which means
+      [Naive Bayes classifier](http://en.wikipedia.org/wiki/Naive_Bayes_classifier).
+- `regLeafModel` -- This tells the algorithm what model to fit in the leaves of the regression tree. Options are `mean`, which
+      means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
+      [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
+      for details.)
+
 
 **Functions and properties:**
     
@@ -1000,7 +1031,7 @@ New one can be created using `tm = require('time.js')`.
 - `num = tm.hour` -- hour (number)
 - `num = tm.minute` -- minute (number)
 - `num = tm.second` -- second (number)
-- `num = tm.milisecond` -- millisecond (number)
+- `num = tm.millisecond` -- millisecond (number)
 - `tm2 = tm.now` -- returns new time object representing current local time
 - `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
 - `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 

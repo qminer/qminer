@@ -606,6 +606,12 @@ public:
 		return TStr(*Utf8);		
 	}
 
+	// checks if the class name of the underlying glib object matches the given string. the name is stored in an hidden variable "class"
+	static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) {
+		TStr ObjClassStr = GetClass(Obj);		
+		return ObjClassStr == ClassNm;
+	}
+
 	/// Transform V8 string to TStr
 	static TStr GetStr(const v8::Local<v8::String>& V8Str) {
 		v8::HandleScope HandleScope;
@@ -1283,6 +1289,8 @@ public:
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
+	//#- `objJSON = store.toJSON()` -- returns the store as a JSON
+	JsDeclareFunction(toJSON);
 	//#JSIMPLEMENT:src/qminer/store.js
 
     //# 
@@ -1387,7 +1395,7 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Record Comparator
+// JavaScript Record Splitter
 class TJsRecSplitter {
 private:
 	/// JS script context
@@ -3117,8 +3125,9 @@ public:
     JsDeclareProperty(minute);
     //#- `num = tm.second` -- second (number)
     JsDeclareProperty(second);
-    //#- `num = tm.milisecond` -- millisecond (number)
-    JsDeclareProperty(milisecond);
+    //#- `num = tm.millisecond` -- millisecond (number)
+    JsDeclareProperty(millisecond);
+	JsDeclareProperty(milisecond); // deprecated
     //#- `tm2 = tm.now` -- returns new time object representing current local time
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
