@@ -2046,8 +2046,8 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 }
 
 void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
-        const int k, TFltV& S, TFltVV& U, TFltVV& V, const int Iters, const double Tol) {
-
+        const int k, TFltV& S, TFltVV& U, TFltVV& V, const int Iters_, const double Tol) {
+	const int Iters = Iters_ != -1 ? Iters_ : 100;
 	int Rows = Matrix.GetRows();
 	int Cols = Matrix.GetCols();
 	Assert(k <= Rows && k <= Cols);
@@ -3086,8 +3086,9 @@ TFullMatrix TFullMatrix::operator *(const double& Lambda) const {
 //no need to reserve memory for the matrices, all will be done internaly
 //Set k to 500
 //Tolerance ignored!
-int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int its, const double Tol){
+int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
 	//TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
+	 const int its = Iters != -1 ? Iters : 2;
 	 const int m = XYt.GetRows();
 	 const int n = XYt.GetCols();
 	 int l = (int)((11 / 10.0) * k);

@@ -447,6 +447,7 @@ void TScript::ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::V
 	TJsUtil::HandleTryCatch(TryCatch);
 	// Cast as FltV and copy result
 	v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
+	QmAssertR(TJsObjUtil<TJsFltV>::IsClass(RetValObj, "TFltV"), "TScript::ExecuteFltVec callback should return a dense vector (same type as la.newVec()).");
 	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
 	// cast it to js vector and copy internal vector
 	TJsFltV* JsVec = static_cast<TJsFltV*>(WrappedObject->Value());
@@ -846,8 +847,8 @@ void TScript::Execute(const TStr& FNm) {
 TStr TScript::LoadModuleSrc(const TStr& ModuleFNm) {
     TChA ModulChA;
 	ModulChA += "function module () {\n";
-	ModulChA += "var module = {exports: {}}\n";
-	ModulChA += "var exports = module.exports\n";
+	ModulChA += "var module = {exports: {}};\n";
+	ModulChA += "var exports = module.exports;\n";
     ModulChA += TStr::LoadTxt(GetLibFNm(ModuleFNm));
 	ModulChA += ";\n/* */\n";
 	ModulChA += "return module.exports;}\n";
@@ -1625,6 +1626,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
         //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
+		JsRegisterFunction(TmpTemp, toJSON);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1908,6 +1910,13 @@ v8::Handle<v8::Value> TJsStore::getStreamAggrNames(const v8::Arguments& Args) {
 	return HandleScope.Close(Arr);
 }
 
+v8::Handle<v8::Value> TJsStore::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	PJsonVal StoreJson = JsStore->Store->GetStoreJson(JsStore->Js->Base);
+	return HandleScope.Close(TJsUtil::ParseJson(StoreJson));
+}
+
 ///////////////////////////////
 // JavaScript Store Iterator
 v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
@@ -1978,7 +1987,7 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 }
 
 ///////////////////////////////
-// JavaScript Record Comparator
+// JavaScript Record Splitter
 bool TJsRecSplitter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
 	v8::HandleScope HandleScope;
     // prepare record objects
@@ -3209,7 +3218,7 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 		double Tol = 1e-6;
 		if (Args.Length() > 2) {			
 			PJsonVal ParamVal = TJsLinAlgUtil::GetArgJson(Args, 2);   
-			Iters = ParamVal->GetObjInt("iter", 2);
+			Iters = ParamVal->GetObjInt("iter", -1);
 			Tol = ParamVal->GetObjNum("tol", 1e-6);
 		}
 		if (Args[0]->IsObject() && Args[1]->IsInt32()) {
@@ -6316,6 +6325,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
         JsRegisterProperty(TmpTemp, hour);
         JsRegisterProperty(TmpTemp, minute);
         JsRegisterProperty(TmpTemp, second);
+		JsRegisterProperty(TmpTemp, millisecond);
         JsRegisterProperty(TmpTemp, milisecond);                
         JsRegisterProperty(TmpTemp, now);
         JsRegisterProperty(TmpTemp, nowUTC);
@@ -6395,8 +6405,14 @@ v8::Handle<v8::Value> TJsTm::second(v8::Local<v8::String> Properties, const v8::
 	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetSec()));
 }
 
+v8::Handle<v8::Value> TJsTm::millisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
+}
+
 v8::Handle<v8::Value> TJsTm::milisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
+	InfoLog("Warning: milisecond (bad spelling) is deprecated, use millisecond instead. 18-8-2014");
 	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
 }
 
@@ -6459,7 +6475,8 @@ v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {
     TmJson->Set(v8::String::New("hour"), v8::Int32::New(JsTm->Tm.GetHour()));
     TmJson->Set(v8::String::New("minute"), v8::Int32::New(JsTm->Tm.GetMin()));
     TmJson->Set(v8::String::New("second"), v8::Int32::New(JsTm->Tm.GetSec()));
-    TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
+	TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec())); // deprecated 18-8-2014, will be removed
+    TmJson->Set(v8::String::New("millisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
     // return constructed json
     return HandleScope.Close(TmJson);
 }

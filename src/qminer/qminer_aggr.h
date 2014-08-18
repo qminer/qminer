@@ -948,6 +948,9 @@ private:
     TUInt64 IntervalMSecs;
     // Timestamp of last inserted record
 	TUInt64 InterpPointMSecs;
+
+	// berfore first update
+	TBool UpdatedP;
 	
 protected:	
 	void OnAddRec(const TRec& Rec);

@@ -284,16 +284,26 @@ _store.newRec = function () {
 	/// </signature>
 };
 
-_store.newRecSet = function () {
+/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
+_store.recs = _rs;
+
+_store.toJSON = function () {
 	/// <signature>
-	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
-	/// <param name="_idVec" value="_idVec">param</param>
-	/// <returns value ="_rs"/>
+	/// <summary> returns the store as a JSON</summary>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 };
 
 /// <field name = "backwardIter" value = "_iter"> returns iterator for iterating over the store from end to start</field>
 _store.backwardIter = _iter;
+
+_store.tail = function () {
+	/// <signature>
+	/// <summary> return record set with last `num` records</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
 
 /// <field name = "forwardIter" value = "_iter"> returns iterator for iterating over the store from start to end</field>
 _store.forwardIter = _iter;
@@ -325,6 +335,22 @@ _store.rec = function () {
 /// <field name = "empty" value = "_bool"> `bool = true` when store is empty</field>
 _store.empty = _bool;
 
+_store.map = function () {
+	/// <signature>
+	/// <summary> call `callback` on each element of the store and store result to `arr`</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+_store.head = function () {
+	/// <signature>
+	/// <summary> return record set with first `num` records</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
 /// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
 _store.keys = _objArr;
 
@@ -344,8 +370,13 @@ _store.key = function () {
 	/// </signature>
 };
 
-/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
-_store.recs = _rs;
+_store.newRecSet = function () {
+	/// <signature>
+	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
+	/// <param name="_idVec" value="_idVec">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
 
 /// <field name = "name" value = "_str"> name of the store</field>
 _store.name = _str;
@@ -366,6 +397,14 @@ _store.fields = _objArr;
 
 /// <field name = "length" value = "_len"> number of records in the store</field>
 _store.length = _len;
+
+_store.each = function () {
+	/// <signature>
+	/// <summary> call `callback` on each element of the store</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
 
 /// <field name = "first" value = "_rec"> first record from the store</field>
 _store.first = _rec;
@@ -434,6 +473,13 @@ process.exitScript = function () {
 	/// <signature>
 	/// <summary> Exits the current script</summary>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+_vec.shuffle = function () {
+	/// <signature>
+	/// <summary> shuffels the vector `vec` (inplace operation). Returns self.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -555,6 +601,14 @@ _vec.put = function () {
 	/// <signature>
 	/// <summary> set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.</summary>
 	/// <param name="_idx" value="_idx">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_vec.trunc = function () {
+	/// <signature>
+	/// <summary> truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.</summary>
 	/// <param name="_num" value="_num">param</param>
 	/// <returns value ="_vec"/>
 	/// </signature>
@@ -2622,6 +2676,9 @@ _tokenizer.getSentences = function () {
 /// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
 _tm.dayOfWeek = _str;
 
+/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
+_tm.millisecond = _num;
+
 _tm.sub = function () {
 	/// <signature>
 	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
@@ -2685,9 +2742,6 @@ _tm.add = function () {
 
 /// <field name = "second" value = "_num"> second (number)</field>
 _tm.second = _num;
-
-/// <field name = "milisecond" value = "_num"> millisecond (number)</field>
-_tm.milisecond = _num;
 
 /// <field name = "windowstimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
 _tm.windowstimestamp = _num;
@@ -3521,6 +3575,14 @@ _nnModel.predict = function () {
 	/// <summary> sends vector `vec` through the model and returns the prediction as a vector `vec2`</summary>
 	/// <param name="_vec" value="_vec">param</param>
 	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_nnModel.setLearnRate = function () {
+	/// <signature>
+	/// <summary> sets learning rate of the network</summary>
+	/// <param name="_float" value="_float">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
