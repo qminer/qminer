@@ -2149,10 +2149,14 @@ void TStoreImpl::GarbageCollect() {
         // delete record from name-id map
         if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
 		// delete record from indexes
-    	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
-        RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
-    	TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
-        RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+        if (DataCacheP) {
+        	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
+            RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+        }
+        if (DataMemP) {
+        	TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
+            RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+        }
 		// delete record from joins
         TRec Rec(this, DelRecId);
 		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
@@ -2169,9 +2173,9 @@ void TStoreImpl::GarbageCollect() {
 
 	}
     // delete records from disk
-	DataCache.DelVals(DelRecIdV.Len());
+	if (DataCacheP) { DataCache.DelVals(DelRecIdV.Len()); }
     // delete records from in-memory store
-	DataMem.DelVals(DelRecIdV.Len());
+	if (DataMemP) { DataMem.DelVals(DelRecIdV.Len()); }
     
     // report success :-)
 	TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());

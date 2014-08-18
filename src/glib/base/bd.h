@@ -265,6 +265,13 @@ void ExeStop(
 #define EFailR(Reason) TExcept::ThrowFull(Reason, TStr("[")+TStr(__FILE__)+" line "+TInt::GetStr(__LINE__)+"]")
 
 #ifdef NDEBUG
+#define DebugCode(Code)
+#else
+#define DebugCode(Code) \
+  Code
+#endif
+
+#ifdef NDEBUG
 #define Assert(Cond)
 #else
 #define Assert(Cond) \
