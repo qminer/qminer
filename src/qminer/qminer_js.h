@@ -1578,7 +1578,7 @@ public:
 	//#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
-	//#- `intVec = la.newIntVec()` -- generate an empty float vector
+	//#- `intVec = la.newIntVec()` -- generate an empty integer vector
 	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
 	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
@@ -1599,6 +1599,8 @@ public:
 	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
+    //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
+    //JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 
