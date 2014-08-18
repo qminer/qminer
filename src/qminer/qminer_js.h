@@ -2571,6 +2571,8 @@ public:
 //#       means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
 //#       [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
 //#       for details.)
+//#- `sdrTreshold` -- Stopping criterion for regression tree learner. The algorithm will not split the leaf unless the standard
+//#       deviation reduction `sdr(A)` for the best attribute `A` is at least `sdtrTreshold`. Make sure that `sdrTreshold >= 0`.
 //#
 
 class TJsHoeffdingTree {
