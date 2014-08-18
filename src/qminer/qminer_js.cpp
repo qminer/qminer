@@ -847,8 +847,8 @@ void TScript::Execute(const TStr& FNm) {
 TStr TScript::LoadModuleSrc(const TStr& ModuleFNm) {
     TChA ModulChA;
 	ModulChA += "function module () {\n";
-	ModulChA += "var module = {exports: {}}\n";
-	ModulChA += "var exports = module.exports\n";
+	ModulChA += "var module = {exports: {}};\n";
+	ModulChA += "var exports = module.exports;\n";
     ModulChA += TStr::LoadTxt(GetLibFNm(ModuleFNm));
 	ModulChA += ";\n/* */\n";
 	ModulChA += "return module.exports;}\n";
