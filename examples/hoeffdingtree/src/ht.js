@@ -64,16 +64,41 @@ function line2array(line, jsonCfg) {
            "target": target };
 }
 
+// This function computes data stream specification from JSON description
+// of the feature space  
+// ASSUMES: Only numeric and categorial attributes
+// ASSUMES: Ranges of categorial attributes are known 
+function ftrSpace2streamConfig(jsFtrSpace) {
+   var jsCfg = { "dataFormat": [] };
+   for (var i = 0; i < jsFtrSpace.length; ++i) {
+      var attr = jsFtrSpace[i];
+      jsCfg["dataFormat"].push(attr.field);
+      if (attr.type == "numeric") {
+         jsCfg[attr.field] = { type: "numeric" };
+      } else if (attr.type == "categorial") {
+         // TODO: Retrieve range of possible values for the categorial attribute 
+         throw "categorial not yet handled";
+      } else {
+         throw "Unsupported field type: '"+attr.type+"'";
+      }
+   }
+   return jsCfg;
+}
+
+// 
+// Examples using the algorithm on various datasets 
+// 
+
 function testClassificationContAttr() {
    // algorithm parameters 
    var htParams = {
       "gracePeriod": 300,
-      "splitConfidence": 1e-6,
-      "tieBreaking": 0.005,
+      "splitConfidence": 1e-5,
+      "tieBreaking": 0.01,
       "driftCheck": 1000,
-      "windowSize": 3000,
-      "conceptDriftP": false,
-      "clsLeafModel": "majority",
+      "windowSize": 100000,
+      "conceptDriftP": true,
+      "clsLeafModel": "naiveBayes",
       "clsAttrHeuristic": "giniGain",
       "maxNodes": 10,
       "attrDiscretization": "histogram"
@@ -139,9 +164,9 @@ function testClassification() {
       "splitConfidence": 1e-5,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
-      "windowSize": 15000,
-      "conceptDriftP": false,
-      "maxNodes": 20,
+      "windowSize": 100000,
+      "conceptDriftP": true,
+      "maxNodes": 0,
       "clsLeafModel": "naiveBayes",
       "clsAttrHeuristic": "giniGain",
       "attrDiscretization": "histogram"
@@ -198,7 +223,7 @@ function testClassification() {
    label = ht.classify(["third", "adult", "male"], []);
    console.say("Were 3rd class men likely to survive? " + label);
    label = ht.classify(["second", "adult", "female"], []);
-   console.say("Were 3rd class women likely to survive? " + label);0
+   console.say("Were 3rd class women likely to survive? " + label);
    
    console.say("Now exporting the model as 'titanic.gv'.");
    // export the model 
@@ -214,9 +239,10 @@ function testRegressionDisAttr() {
       "driftCheck": 1000,
       "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 5,
+      "maxNodes": 50,
       "regLeafModel": "mean",
-      "attrDiscretization": "bst"
+      "attrDiscretization": "bst",
+      "sdrTreshold": 0.1
    };
    
    // describe the data stream 
@@ -276,14 +302,15 @@ function testRegressionDisAttr() {
 function testRegressionContAttr() {
    var htParams = {
       "gracePeriod": 200,
-      "splitConfidence": 1e-6,
-      "tieBreaking": 0.05,
+      "splitConfidence": 1e-4,
+      "tieBreaking": 0.1,
       "driftCheck": 1000,
       "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 5,
+      "maxNodes": 50,
       "regLeafModel": "mean",
-      "attrDiscretization": "histogram"
+      "attrDiscretization": "bst",
+      "sdrTreshold": 0.5
    };
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
@@ -346,7 +373,7 @@ function testRegression() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": true,
+      "conceptDriftP": false,
       "maxNodes": 10
    };
    
@@ -450,14 +477,17 @@ function realRegressionTest() {
 function ftrTest() {
    var Test = qm.store("Test");
    
-   var ftrSpace = analytics.newFeatureSpace([
+   var jsFtrSpace = [
       { type: "numeric", source: "Test", field: "f1" },
       { type: "numeric", source: "Test", field: "f2" },
       { type: "numeric", source: "Test", field: "f3" }
-   ]);
+   ];
    
+   var ftrSpace = analytics.newFeatureSpace(jsFtrSpace);
+   var jsCfg = ftrSpace2streamConfig(jsFtrSpace);
+   console.say(JSON.stringify(jsCfg));
    // var ht = analytics.newHoeffdingTree(ftrSpace, htParams);
-   
+   return;
    console.say("Feature space dimension: "+ftrSpace.dim);
    console.start();
    
@@ -477,17 +507,18 @@ function ftrTest() {
 
 // ftrTest();
 
-// Warn the user 
 console.say("In case you get an error of the form \"File 'file_path' does not exist\", it means a dataset is missing.");
-console.say("Run `sh fetch-datasets.sh` to download missing files.");
+console.say("If this the case, run `sh fetch-datasets.sh` to download missing files.");
 console.say("Press ENTER to continue");
 console.start();
 
+/*
 console.say(" --- Example using classification HoeffdingTree --- ");
 console.say("- First classification scenario using bootstrapped SEA dataset -");
 testClassificationContAttr();
 console.say("- Second classification secnario using bootstrapped TITANIC dataset -");
 testClassification();
+*/
 
 console.say(" --- Example using regression HoeffdingTree --- ");
 console.say("- Regression scenario with discrete attributes -");

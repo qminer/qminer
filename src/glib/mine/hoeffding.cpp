@@ -379,9 +379,6 @@ namespace THoeffding {
    bool operator!=(const TBin& Bin1, const TBin& Bin2) {
       return !(Bin1 == Bin2);
    }
-   double TBin::Entropy() const {
-      return TMisc::Entropy(PartitionV, Count);
-   }
 
    ///////////////////////////////
    // Histogram
@@ -741,7 +738,8 @@ namespace THoeffding {
       : CndAttrIdx(Node.CndAttrIdx), ExamplesN(Node.ExamplesN), Val(Node.Val),
          Avg(Node.Avg), VarSum(Node.VarSum), Err(Node.Err),
          TestModeN(Node.TestModeN), Type(Node.Type), ExamplesV(Node.ExamplesV),
-         SeenH(Node.SeenH), Counts(Node.Counts), PartitionV(Node.PartitionV),
+         /* LstExamplesQ(Node.LstExamplesQ), */ SeenH(Node.SeenH),
+         CountsH(Node.CountsH), PartitionV(Node.PartitionV),
          UsedAttrs(Node.UsedAttrs), HistH(Node.HistH),
          AltTreesV(Node.AltTreesV), Id(Node.Id), Correct(Node.Correct),
          All(Node.All)
@@ -759,8 +757,9 @@ namespace THoeffding {
          TestModeN = Node.TestModeN;
          Type = Node.Type;
          ExamplesV = Node.ExamplesV;
+         // LstExamplesQ = Node.LstExamplesQ;
          SeenH = Node.SeenH;
-         Counts = Node.Counts;
+         CountsH = Node.CountsH;
          PartitionV = Node.PartitionV;
          ChildrenV = Node.ChildrenV;
          UsedAttrs = Node.UsedAttrs;
@@ -775,10 +774,11 @@ namespace THoeffding {
    }
    bool TNode::operator==(const TNode& Node) const {
       return CndAttrIdx == Node.CndAttrIdx && Type == Node.Type &&
-         ExamplesV == Node.ExamplesV && Counts == Node.Counts &&
+         ExamplesV == Node.ExamplesV && CountsH == Node.CountsH &&
          PartitionV == Node.PartitionV && Id == Node.Id &&
          ChildrenV == Node.ChildrenV && UsedAttrs == Node.UsedAttrs &&
          SeenH == Node.SeenH; /* this line added 4th aug 2014 */ 
+     EFailR("bool TNode::operator==(const TNode&) const;");
    }
    // Training set entropy 
    double TNode::ComputeEntropy() const {
@@ -809,18 +809,18 @@ namespace THoeffding {
          // Compute |E_j|
          for (int i = 0; i < LabelsN; ++i) {
             TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
-            if(Counts.IsKey(TmpTriple)) {
-               SubExamplesN += Counts.GetDat(TmpTriple);
+            if(CountsH.IsKey(TmpTriple)) {
+               SubExamplesN += CountsH.GetDat(TmpTriple);
             }
          }
          hj = 0.0;
          // Compute H(E_j)
          for (int i = 0; i < LabelsN; ++i) {
             TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
-            if (Counts.IsKey(TmpTriple)) {
+            if (CountsH.IsKey(TmpTriple)) {
                // Prevent divison by zero 
                pj = SubExamplesN > 0 ?
-                  1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0.0;
+                  1.0*CountsH.GetDat(TmpTriple)/SubExamplesN : 0.0;
                if (pj > 0) { // Ensure Log2(pj) exists 
                   hj -= pj*TMath::Log2(pj);
                }
@@ -851,17 +851,17 @@ namespace THoeffding {
          // Compute |E_j|
          for (int i = 0; i < LabelsN; ++i) {
             TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
-            if (Counts.IsKey(TmpTriple)) {
-               SubExamplesN += Counts.GetDat(TmpTriple);
+            if (CountsH.IsKey(TmpTriple)) {
+               SubExamplesN += CountsH.GetDat(TmpTriple);
             }
          }
          gj = 1.0;
          for (int i = 0; i < LabelsN; ++i) {
             TTriple<TInt, TInt, TInt> TmpTriple(AttrIdx, j, i);
-            if (Counts.IsKey(TmpTriple)) {
+            if (CountsH.IsKey(TmpTriple)) {
                // Prevent divison by zero 
                pj = SubExamplesN > 0 ?
-                  1.0*Counts.GetDat(TmpTriple)/SubExamplesN : 0.0;
+                  1.0*CountsH.GetDat(TmpTriple)/SubExamplesN : 0.0;
                gj -= pj*pj;
             }
          }
@@ -914,8 +914,9 @@ namespace THoeffding {
       const int& LabelsN) const {
       // Range of the random variable for information gain 
       const double R = TMath::Log2(LabelsN);
-      EAssertR(ExamplesN > 0, "This node has no examples.\n");
-      // t = \sqrt{ \frac{R^2 * log(1/delta)}{2n} }
+      EAssertR(ExamplesN > 0, "This node has no examples.");
+      EAssertR(Delta > 0.0, "Delta <= 0.0");
+      // \epsilon = \sqrt{ \frac{R^2 * log(1/delta)}{2n} }
       return TMath::Sqrt(R*R*TMath::Log(1.0/Delta)/(2.0*ExamplesN));
    }
    void TNode::Split(const int& AttrIdx, const TAttrManV& AttrManV,
@@ -941,13 +942,15 @@ namespace THoeffding {
       const int LabelsN = AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
       for (int ValN = 0; ValN < ValsN; ++ValN) {
          // Leaf node 
-         ChildrenV.Add(TNode::New(LabelsN, UsedAttrs, AttrManV,
-            IdGen->GetNextLeafId())); 
+         PNode NewNode = TNode::New(LabelsN, UsedAttrs, AttrManV,
+            IdGen->GetNextLeafId());
+         // NewNode->LstExamplesQ = LstExamplesQ;
+         ChildrenV.Add(NewNode);
       }
       if (Type != ntROOT) { Type = ntINTERNAL; }
    }
    void TNode::Clr() { // Forget training examples 
-      ExamplesV.Clr(); PartitionV.Clr(); Counts.Clr();
+      ExamplesV.Clr(); PartitionV.Clr(); CountsH.Clr();
       HistH.Clr(true); AltTreesV.Clr(); UsedAttrs.Clr();
       SeenH.Clr(true);
    }
@@ -1194,11 +1197,11 @@ namespace THoeffding {
          switch (AttrManV.GetVal(It->Id).Type) {
          case atDISCRETE: {
             TTriple<TInt, TInt, TInt> Idx(It->Id, It->Value, Example->Label);
-            if (Node->Counts.IsKey(Idx)) {
-               EAssertR(Node->Counts.GetDat(Idx) >= 0, "Negative count.");
-               ++Node->Counts.GetDat(Idx);
+            if (Node->CountsH.IsKey(Idx)) {
+               EAssertR(Node->CountsH.GetDat(Idx) >= 0, "Negative count.");
+               ++Node->CountsH.GetDat(Idx);
             } else {
-               Node->Counts.AddDat(Idx, 1);
+               Node->CountsH.AddDat(Idx, 1);
             }
             break;                              }
          case atCONTINUOUS:
@@ -1225,11 +1228,11 @@ namespace THoeffding {
          switch (AttrManV.GetVal(It->Id).Type) {
          case atDISCRETE: {
             TTriple<TInt, TInt, TInt> Idx(It->Id, It->Value, Example->Label);
-            if (Node->Counts.IsKey(Idx)) {
-               if (Node->Counts.GetDat(Idx) <= 0) { printf("Example ID=%d\n", Example->Id.Val); }
-               EAssertR(Node->Counts.GetDat(Idx) > 0,
+            if (Node->CountsH.IsKey(Idx)) {
+               if (Node->CountsH.GetDat(Idx) <= 0) { printf("Example ID=%d\n", Example->Id.Val); }
+               EAssertR(Node->CountsH.GetDat(Idx) > 0,
                   "Negative id-value-label triple count.");
-               --Node->Counts.GetDat(Idx);
+               --Node->CountsH.GetDat(Idx);
             } else { // TODO: Replace this execution branch with an assert 
                Print(Example);
                printf("Example ID: %d; Node ID: %d; Node examples: %d\n",
@@ -1275,7 +1278,7 @@ namespace THoeffding {
       TSStack<PNode> NodeS;
       // Need -1 because AttrManV also manages class labels 
       const int AttrsN = AttrManV.Len()-1;
-      NodeS.Push(CrrNode);
+      if (!IsLeaf(CrrNode)) { NodeS.Push(CrrNode); }
       // Depth-first tree traversal 
       while (!NodeS.Empty()) {
          CrrNode = NodeS.Top(); NodeS.Pop();
@@ -1303,13 +1306,14 @@ namespace THoeffding {
          if (EstG >= 0 && SpltAttr.Val1.Val1 != -1 &&
             SpltAttr.Val2.Val1 != -1 &&
             !IsAltSplitIdx(CrrNode, SpltAttr.Val1.Val1)) {
-            // Hoeffding test
+            // Hoeffding test 
             const double Eps = CrrNode->ComputeTreshold(
                SplitConfidence, AttrManV.GetVal(AttrsN).ValueV.Len());
             // EstG >= TieBreaking/2 ?
             if (EstG > Eps || (Eps < TieBreaking && EstG >= TieBreaking/2)) {
                // Grow alternate tree 
                Print('-');
+               printf("CndAttrIdx=%d\n", CrrNode->CndAttrIdx);
                printf("Starting alternate tree for node splitting on `%s' \
                   with `%s' at root ; tie = %d\n",
                   AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr(),
@@ -1360,6 +1364,10 @@ namespace THoeffding {
       Leaf->UpdateStats(Example);
       // TODO: Get rid of this --- save variances only 
       Leaf->ExamplesV.Add(Example);
+      // Leaf->LstExamplesQ.Push(Example);
+      // if (Leaf->LstExamplesQ.Len() > 100) {
+      //   Leaf->LstExamplesQ.Pop();
+      // }
       const int AttrsN = Example->AttributesV.Len();
       for (int AttrN = 0; AttrN < AttrsN; AttrN++) {
          if (AttrManV.GetVal(AttrN).Type == atCONTINUOUS) {
@@ -1402,7 +1410,8 @@ namespace THoeffding {
          // printf("EstG = %f ; Eps = %f\n", EstG, Eps); 
          // if (UsedAttrsN == 1 && Leaf->Std() > 
          if ((EstG < 1.0-Eps || Eps < TieBreaking) &&
-            Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0) {
+            Leaf->UsedAttrs.SearchForw(SplitAttr.Val1.Val1, 0) < 0 &&
+            SplitAttr.Val1.Val2 > SdrTresh) {
             Leaf->Split(SplitAttr.Val1.Val1, AttrManV, IdGen);
          }
       }
@@ -1563,8 +1572,8 @@ namespace THoeffding {
                   for (int LabelN = 0;
                      LabelN < AttrManV.Last().ValueV.Len(); ++LabelN) {
                      TTriple<TInt, TInt, TInt> Idx(AttrN, ValN, LabelN);
-                     EAssertR(CrrNode->Counts.IsKey(Idx) &&
-                        CrrNode->Counts.GetDat(Idx) == 0, "no way");
+                     EAssertR(CrrNode->CountsH.IsKey(Idx) &&
+                        CrrNode->CountsH.GetDat(Idx) == 0, "No way");
                   }
                }
                break;
@@ -1821,7 +1830,7 @@ namespace THoeffding {
    // TODO: Return P(X=c) for all class labels c; it's more informative
    // than argmax_c P(X=c) 
    TLabel THoeffdingTree::NaiveBayes(PNode Node, PExample Example) const {
-      const THash<TTriple<TInt, TInt, TInt>, TInt> Counts = Node->Counts;
+      const THash<TTriple<TInt, TInt, TInt>, TInt> CountsH = Node->CountsH;
       const TIntV PartitionV = Node->PartitionV;
       const int ExamplesN = Node->ExamplesN;
       const int AttrsN = Example->AttributesV.Len();
@@ -1838,8 +1847,8 @@ namespace THoeffding {
          for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
             TTriple<TInt, TInt, TInt> TmpTriple(AttrN,
                Example->AttributesV.GetVal(AttrN).Value, LabelN);
-            if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
-               SubExamplesN.GetVal(AttrN) += Counts.GetDat(TmpTriple);
+            if (CountsH.IsKey(TmpTriple) && CountsH.GetDat(TmpTriple) > 0) {
+               SubExamplesN.GetVal(AttrN) += CountsH.GetDat(TmpTriple);
             }
          }
       }
@@ -1852,7 +1861,7 @@ namespace THoeffding {
          for (int i = 0; i < AttrsN; ++i) {
             TTriple<TInt, TInt, TInt> TmpTriple(i,
                Example->AttributesV.GetVal(i).Value, LabelN);
-            if (Counts.IsKey(TmpTriple) && Counts.GetDat(TmpTriple) > 0) {
+            if (CountsH.IsKey(TmpTriple) && CountsH.GetDat(TmpTriple) > 0) {
                // apriori probability 
                // p0 = 1.0*CrrNode->Counts(TmpTriple)/nk;
                // compute conditional probability using m-estimate 
@@ -1862,7 +1871,7 @@ namespace THoeffding {
                // (m * P(c_i) + n(x_k,c_i))/(P(c_i) * (m + n(x_k)))
                // laplace estimate for P(c_i) 
                pc = (nk+1.0)/(ExamplesN+LabelsN);
-               pk *= (2.0*pc+Counts.GetDat(TmpTriple)) /
+               pk *= (2.0*pc+CountsH.GetDat(TmpTriple)) /
                   (pc*(2+SubExamplesN.GetVal(i)));
             }/* else {
                printf("[DEBUG] Zero probability!\n");
@@ -2026,6 +2035,9 @@ namespace THoeffding {
       if (TaskType == ttCLASSIFICATION) {
          EAssertR(AttrDiscretization == adHISTOGRAM,
             "BST discretization not implemented for classification");
+      } else { // ttREGRESSION
+         EAssertR(ConceptDriftP == false,
+            "Concept adaption not implemented for regression");
       }
       EAssertR(AttrDiscretization == adHISTOGRAM ||
          AttrDiscretization == adBST,
@@ -2114,6 +2126,14 @@ namespace THoeffding {
          } else {
             EFailR("Unknown option: '"+DiscretizationStr+"'");
          }
+      }
+      // SDR treshold 
+      if (JsonParams->IsObjKey("sdrTreshold") &&
+         JsonParams->GetObjKey("sdrTreshold")->IsNum()) {
+         const double Tresh = JsonParams->GetObjNum("sdrTreshold");
+         EAssertR(Tresh >= 0,
+            "JSON config error: sdrTreshold should be nonnegative");
+         SdrTresh = Tresh;
       }
    }
    // Create attribute manager object for each attribute 

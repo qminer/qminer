@@ -434,9 +434,9 @@ namespace THoeffding {
          Mean += Delta/Count;
          S += Delta*(RegValue - Mean);
       }
-      TBin& operator++() { ++Count; return *this; }
-      TBin& operator++(int) { Count++; return *this; }
-      double Entropy() const;
+      // TBin& operator++() { ++Count; return *this; }
+      // TBin& operator++(int) { Count++; return *this; }
+      double Entropy() const { return TMisc::Entropy(PartitionV, Count); }
       // int operator--() { Assert(Count); return --Count; }
       // int operator--(int) { Assert(Count); return Count--; }
    public:
@@ -685,10 +685,11 @@ namespace THoeffding {
       int TestModeN; // Testing mode 
       TNodeType Type; // Root, Internal, Leaf 
       TVec<PExample> ExamplesV;
+      // TQQueue<PExample> LstExamplesQ; // Last examples 
       // TIntV IdxV; // Sacrificed example indices 
       THash<TExample, TInt> SeenH; // Examples sacrificed for self-evaluation 
       // sufficient statistics; <AttributeID, AttributeValue, Class> 
-      THash<TTriple<TInt, TInt, TInt>, TInt> Counts;
+      THash<TTriple<TInt, TInt, TInt>, TInt> CountsH;
       TIntV PartitionV; // Number of examples with the same label 
       TVec<PNode> ChildrenV; // Vector of children (root nodes of the subtrees)
       TIntV UsedAttrs; // Attributes we already used in predecessor nodes 
@@ -718,7 +719,8 @@ namespace THoeffding {
             BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
             IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
             RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
-            AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM) {
+            AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM),
+            SdrTresh(0.0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -733,7 +735,7 @@ namespace THoeffding {
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
-            AttrDiscretization(adHISTOGRAM) {
+            AttrDiscretization(adHISTOGRAM), SdrTresh(0.0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -743,7 +745,7 @@ namespace THoeffding {
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
-            AttrDiscretization(adHISTOGRAM) {
+            AttrDiscretization(adHISTOGRAM), SdrTresh(0.0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -912,6 +914,8 @@ namespace THoeffding {
       TAttrHeuristic AttrHeuristic; // Heuristic measure 
       // Numeric attribute discretization technique 
       TAttrDiscretization AttrDiscretization;
+      // SDR treshold for splitting the attribute 
+      double SdrTresh;
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);
