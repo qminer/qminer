@@ -238,11 +238,14 @@ function testRegressionDisAttr() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false,
+      "conceptDriftP": true,
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
       "maxNodes": 50,
       "regLeafModel": "mean",
       "attrDiscretization": "bst",
-      "sdrTreshold": 0.1
+      "sdrThreshold": 0.1,
+      "sdThreshold": 0.01
    };
    
    // describe the data stream 
@@ -306,11 +309,13 @@ function testRegressionContAttr() {
       "tieBreaking": 0.1,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false,
+      "conceptDriftP": true,
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
       "maxNodes": 50,
       "regLeafModel": "mean",
-      "attrDiscretization": "bst",
-      "sdrTreshold": 0.5
+      "attrDiscretization": "histogram",
+      "sdrThreshold": 0.1
    };
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
@@ -373,8 +378,11 @@ function testRegression() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false,
-      "maxNodes": 10
+      "conceptDriftP": true,
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
+      "maxNodes": 50,
+      "sdrThreshold": 0.1
    };
    
    // TODO: Extract this info from feature space. Potential problem with
@@ -454,8 +462,9 @@ function realRegressionTest() {
       "tieBreaking": 0.005,
       "driftCheck": 1000,
       "windowSize": 100000,
-      "conceptDriftP": false,
-      "maxNodes": 10
+      "conceptDriftP": true,
+      "maxNodes": 50,
+      "sdrThreshold": 0.06
    };
    
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);

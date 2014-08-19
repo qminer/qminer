@@ -614,14 +614,16 @@ namespace THoeffding {
          const int& Id_ = 0, const TNodeType& Type_ = ntLEAF)
          : CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
          Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_), Id(Id_),
-            Correct(0), All(0) {
+            Correct(0), All(0), PhAvgErr(0.0), PhMnErr(-1.0), PhCumSum(0.0),
+            PhAlpha(0.0), PhLambda(0.0) {
          PartitionV.Reserve(LabelsN, LabelsN);
       }
       TNode(const int& LabelsN, const TIntV& UsedAttrs_,
          const TAttrManV& AttrManV, const int& Id_, const TNodeType& Type_)
          : CndAttrIdx(-1), ExamplesN(0), Avg(0), VarSum(0), 
             Err(0), TestModeN(0), Type(Type_), UsedAttrs(UsedAttrs_),
-            Id(Id_), Correct(0), All(0) {
+            Id(Id_), Correct(0), All(0), PhAvgErr(0.0), PhMnErr(-1.0),
+            PhCumSum(0.0), PhAlpha(0.0), PhLambda(0.0) {
          PartitionV.Reserve(LabelsN, LabelsN); Init(AttrManV);
       }
       TNode(const TNode& Node);
@@ -635,6 +637,10 @@ namespace THoeffding {
       bool operator==(const TNode& Node) const;
       bool operator!=(const TNode& Node) const { return !(*this == Node); }
       
+      // Set parameters for the Page-Hinkley test 
+      void SetPhAlpha(const double& Alpha) { PhAlpha = Alpha; }
+      void SetPhLambda(const double& Lambda) { PhLambda = Lambda; }
+      
       int GetExamplesN() const { return ExamplesN; }
       double ComputeEntropy() const;
       double ComputeGini() const;
@@ -646,7 +652,7 @@ namespace THoeffding {
          const TVec<TAttrMan>& AttrManV) const;
       // Regression  
       double StdGain(const int& AttrIdx, const TVec<TAttrMan>& AttrManV) const;
-      double ComputeTreshold(const double& Delta, const int& LabelsN) const;
+      double ComputeThreshold(const double& Delta, const int& LabelsN) const;
       // Split the leaf on the AttrIdx attribute; return the number of
       // newly created leaves 
       void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
@@ -703,6 +709,12 @@ namespace THoeffding {
       int Id;
       int Correct;
       int All;
+      // Page-Hinkley test: Alarm if PhCumSum-PhMnErr>PhLambda 
+      double PhAvgErr; // Page-Hinkley test (TODO: Implement) 
+      double PhMnErr; // Min error, Page-Hinkley (TODO: Implement) 
+      double PhCumSum; // Cumulative sum
+      double PhAlpha; // Expected standard deviation of the signal (PH) 
+      double PhLambda; // Threshold parameter (PH) 
    };
 
    ///////////////////////////////
@@ -720,7 +732,7 @@ namespace THoeffding {
             IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
             RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
             AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM),
-            SdrTresh(0.0) {
+            SdrThresh(0.0), SdThresh(0.0), PhAlpha(0.0), PhLambda(0.0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -735,7 +747,8 @@ namespace THoeffding {
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
-            AttrDiscretization(adHISTOGRAM), SdrTresh(0.0) {
+            AttrDiscretization(adHISTOGRAM), SdrThresh(0.0), SdThresh(0.0),
+            PhAlpha(0.0), PhLambda(0.0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -745,7 +758,8 @@ namespace THoeffding {
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
-            AttrDiscretization(adHISTOGRAM), SdrTresh(0.0) {
+            AttrDiscretization(adHISTOGRAM), SdrThresh(0.0), SdThresh(0.0),
+            PhAlpha(0.0), PhLambda(0.0) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -800,7 +814,7 @@ namespace THoeffding {
       bool IsAltSplitIdx(PNode Node, const int& AttrIdx) const;
       void CheckSplitValidityCls();
       void ForgetCls(PExample Example) const; // Classification 
-      void ProcessLeafReg(PNode Leaf, PExample Example); // Regression 
+      double ProcessLeafReg(PNode Leaf, PExample Example); // Regression 
       void Debug_Finalize();
       void Debug_CheckInvariant(PExample Example) const; 
       void ProcessLeafCls(PNode Leaf, PExample Example); // Classification 
@@ -829,7 +843,7 @@ namespace THoeffding {
          }
       }
       void ProcessCls(PExample Example); // Classification 
-      void ProcessReg(PExample Example); // Regression 
+      double ProcessReg(PExample Example); // Regression 
       PExample Preprocess(const TStr& Line, const TCh& Delimiter = ',') const;
       PNode GetNextNode(PNode Node, PExample Example) const; 
       void Clr(PNode Node, PNode SubRoot = nullptr);
@@ -914,8 +928,12 @@ namespace THoeffding {
       TAttrHeuristic AttrHeuristic; // Heuristic measure 
       // Numeric attribute discretization technique 
       TAttrDiscretization AttrDiscretization;
-      // SDR treshold for splitting the attribute 
-      double SdrTresh;
+      // SDR threshold for splitting the attribute 
+      double SdrThresh;
+      double SdThresh;
+      // Page-Hinkley parameters 
+      double PhAlpha;
+      double PhLambda;
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);
