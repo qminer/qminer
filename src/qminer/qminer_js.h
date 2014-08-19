@@ -70,7 +70,7 @@ namespace TQm {
 //# - [Linear Algebra](#linear-algebra)
 //#  - [Vector](#vector)
 //#  - [Matrix (dense matrix)](#matrix-dense-matrix)
-//#  - [SpVector (sparse vector)](#spvector-sparse-vector-)
+//#  - [SpVector (sparse vector)](#spvector-sparse-vector)
 //#  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
 //# - [analytics.js (use require)](#analyticsjs-use-require)
 //#  - [Feature Space](#feature-space)
@@ -452,6 +452,8 @@ public:
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context, return double
 	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context, return double
+	int ExecuteInt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
 	/// Execute JavaScript callback in this script's context, write result to vector
 	void ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec);
 	/// Execute JavaScript callback in this script's context
@@ -602,6 +604,12 @@ public:
 		if (EmptyP) { return ""; }
 		v8::String::Utf8Value Utf8(ClassNm);
 		return TStr(*Utf8);		
+	}
+
+	// checks if the class name of the underlying glib object matches the given string. the name is stored in an hidden variable "class"
+	static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) {
+		TStr ObjClassStr = GetClass(Obj);		
+		return ObjClassStr == ClassNm;
 	}
 
 	/// Transform V8 string to TStr
@@ -954,7 +962,19 @@ public:
 
 ///////////////////////////////
 // JavaScript Stream Aggregator
-class TJsStreamAggr : public TStreamAggr {
+class TJsStreamAggr : 
+	public TStreamAggr, 
+	public TStreamAggrOut::IInt,
+	//public TStreamAggrOut::IFlt,	
+	//public TStreamAggrOut::ITm,
+	public TStreamAggrOut::IFltTmIO,
+	public TStreamAggrOut::IFltVec,
+	public TStreamAggrOut::INmFlt,
+	public TStreamAggrOut::INmInt,
+	// combinations
+	public TStreamAggrOut::IFltTm
+	//public TStreamAggrOut::IFltVecTm
+{
 private:
 	/// JS script context
 	TWPt<TScript> Js;
@@ -964,6 +984,30 @@ private:
 	v8::Persistent<v8::Function> OnDeleteFun;
 	v8::Persistent<v8::Function> SaveJsonFun;
 
+	v8::Persistent<v8::Function> GetIntFun;
+	// IFlt 
+	v8::Persistent<v8::Function> GetFltFun;
+	// ITm 
+	v8::Persistent<v8::Function> GetTmMSecsFun;
+	// IFltTmIO 
+	v8::Persistent<v8::Function> GetInFltFun;
+	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetOutFltVFun;
+	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
+	v8::Persistent<v8::Function> GetNFun;
+	// IFltVec
+	v8::Persistent<v8::Function> GetFltLenFun;
+	v8::Persistent<v8::Function> GetFltAtFun;
+	v8::Persistent<v8::Function> GetFltVFun;
+	// INmFlt 
+	v8::Persistent<v8::Function> IsNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltVFun;
+	// INmInt
+	v8::Persistent<v8::Function> IsNmFun;
+	v8::Persistent<v8::Function> GetNmIntFun;
+	v8::Persistent<v8::Function> GetNmIntVFun;
+
 public:
 	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
@@ -972,16 +1016,32 @@ public:
 	void OnAddRec(const TRec& Rec);
 	void OnUpdateRec(const TRec& Rec);
 	void OnDeleteRec(const TRec& Rec);
-	PJsonVal SaveJson(const int& Limit) const {
-		if (!SaveJsonFun.IsEmpty()) {
-			PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
-			QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
-			return Res;
-		}
-		else {
-			return TJsonVal::NewObj();
-		}
-	}
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// IInt
+	int GetInt() const;
+	// IFlt 
+	double GetFlt() const;
+	// ITm 
+	uint64 GetTmMSecs() const;
+	// IFltTmIO 
+	double GetInFlt() const;
+	uint64 GetInTmMSecs() const;
+	void GetOutFltV(TFltV& ValV) const;
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	int GetN() const;
+	// IFltVec
+	int GetFltLen() const;
+	double GetFlt(const TInt& ElN) const; // GetFltAtFun
+	void GetFltV(TFltV& ValV) const;
+	// INmFlt 
+	bool IsNmFlt(const TStr& Nm) const;
+	double GetNmFlt(const TStr& Nm) const;
+	void GetNmFltV(TStrFltPrV& NmFltV) const;
+	// INmInt
+	bool IsNm(const TStr& Nm) const;
+	double GetNmInt(const TStr& Nm) const;
+	void GetNmIntV(TStrIntPrV& NmIntV) const;
 };
 
 ///////////////////////////////
@@ -1229,6 +1289,8 @@ public:
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
+	//#- `objJSON = store.toJSON()` -- returns the store as a JSON
+	JsDeclareFunction(toJSON);
 	//#JSIMPLEMENT:src/qminer/store.js
 
     //# 
@@ -1333,7 +1395,7 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Record Comparator
+// JavaScript Record Splitter
 class TJsRecSplitter {
 private:
 	/// JS script context
@@ -1578,7 +1640,7 @@ public:
 	//#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
-	//#- `intVec = la.newIntVec()` -- generate an empty float vector
+	//#- `intVec = la.newIntVec()` -- generate an empty integer vector
 	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
 	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
@@ -1599,6 +1661,8 @@ public:
 	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
+    //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
+    //JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 
@@ -1922,9 +1986,9 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::sort(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
 	bool Asc = TJsObjUtil<TJsVec>::GetArgBool(Args, 0 , true);
-	v8::Persistent<v8::Object> JsResult = TJsVec<TVal,TAux>::New(JsVec->Js);
-	TVec<TVal>& Result = JsVec->Vec;
+	TVec<TVal> Result = JsVec->Vec;
 	Result.Sort(Asc);
+	v8::Persistent<v8::Object> JsResult = TJsVec<TVal, TAux>::New(JsVec->Js, Result);
 	return HandleScope.Close(JsResult);
 }
 
@@ -2478,6 +2542,8 @@ public:
 	JsDeclareFunction(learn);
     //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 	JsDeclareFunction(predict);
+    //#- `nnModel.setLearnRate(float)` -- sets learning rate of the network
+	JsDeclareFunction(setLearnRate);
 };
 
 ///////////////////////////////
@@ -3063,8 +3129,9 @@ public:
     JsDeclareProperty(minute);
     //#- `num = tm.second` -- second (number)
     JsDeclareProperty(second);
-    //#- `num = tm.milisecond` -- millisecond (number)
-    JsDeclareProperty(milisecond);
+    //#- `num = tm.millisecond` -- millisecond (number)
+    JsDeclareProperty(millisecond);
+	JsDeclareProperty(milisecond); // deprecated
     //#- `tm2 = tm.now` -- returns new time object representing current local time
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
@@ -3081,6 +3148,8 @@ public:
 	JsDeclareFunction(parse);
 	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
 	JsDeclareFunction(clone);
+	//#- `num = tm.windowstimestamp` -- returns windows system time in milliseconds from 1/1/1601
+	JsDeclareProperty(windowstimestamp);
 };
 //#
 //# ## Other libraries

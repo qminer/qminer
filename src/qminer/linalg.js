@@ -411,4 +411,18 @@ la.elementByElement = function (a, b, callback) {
     return result = isVec ? mat3.getCol(0) : mat3;
 }
 
+//# - `fout = la.saveIntVec(vec, fout)` - saves `vec` to output stream `fout` as a JSON string, and returns `fout`.
+la.saveIntVec = function(vec, fout) {
+    var arr = la.copyVecToArray(vec);
+    fout.writeLine(JSON.stringify(arr));
+    return fout;
+}
+
+//# - `intVec = la.loadIntVec(fin)` -- loads JSON string from `fin` and casts to JavaScript array and then to integer vector.
+la.loadIntVec = function(fin) {
+    var line = fin.readLine();
+    var arr = JSON.parse(line);
+    return la.copyIntArrayToVec(arr);
+} 
+
 var linalg = la;

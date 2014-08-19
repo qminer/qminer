@@ -29,9 +29,8 @@ time = require("time");
 // array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]
 // Output: [{name : "ema", data : [[t1, v1], [t3, v3]]} , {name : "tick", data : [[t2, v2], [t4, v4]] }]
-//#- `objJson = vis.highchartsConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
-
-exports.highchartsConverter = function (dataJson) {
+//#- `objJson = vis.highchartsTSConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
+exports.highchartsTSConverter = function (dataJson) {
 
     var result = [];
     var temp = {};
@@ -56,7 +55,6 @@ exports.highchartsConverter = function (dataJson) {
 // Input: {"$hits":432,"records":[{"$id":0,"datetime":"t1","mcutmp_avg":v11,"mcutmp_min":v12,"mcutmp_max":v13},{"$id":1,"datetime":"t2","mcutmp_avg":v21,"mcutmp_min":v22,"mcutmp_max":v23}]}
 // Output: [{name : "mcutmp_avg", data : [[t1, v11], [t2, v21]]} , {name : "mcutmp_min", data : [[t1, v12], [t2, v22]] }, {name : "mcutmp_max", data : [[t1, v13], [t2, v23]] }]
 //#- `objJson = vis.highchartsConverter(fieldsJson, objJson)` -- arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
-
 exports.highchartsConverter = function (fieldsJson, dataJson) {
 
     var keys = {};
@@ -130,10 +128,10 @@ exports.highchartsParams = function () {
 //#- `vis.drawHighChartsTimeSeries(data, fileName, paramsJson)` -- copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided
 exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
     var params = exports.highchartsParams();    
-
     if (typeof overrideParams != 'undefined') {
         params = override(params, overrideParams, false);
     }
+    printj(params)
     params.series = data;
     
     var lib1 = fs.openRead(process.qminer_home + "gui/js/Highcharts/js/highcharts.js").readAll();
@@ -145,7 +143,6 @@ exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
     // replace data
     while (!reader.eof) {
         var line = reader.readLine();
-        //line = line.replace("$DATA$", JSON.stringify(data));
         line = line.replace("$PARAMS$", JSON.stringify(params));
         line = line.replace("$LIBS$", libs);
         writer.writeLine(line);

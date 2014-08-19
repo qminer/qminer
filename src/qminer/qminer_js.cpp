@@ -425,6 +425,18 @@ double TScript::ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Va
 	return RetVal->NumberValue();
 }
 
+int TScript::ExecuteInt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { Arg };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	// handle errors
+	TJsUtil::HandleTryCatch(TryCatch);
+	QmAssertR(RetVal->IsInt32(), "Return type expected to be int32");
+	return RetVal->Int32Value();
+}
+
 void TScript::ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
@@ -435,6 +447,7 @@ void TScript::ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::V
 	TJsUtil::HandleTryCatch(TryCatch);
 	// Cast as FltV and copy result
 	v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
+	QmAssertR(TJsObjUtil<TJsFltV>::IsClass(RetValObj, "TFltV"), "TScript::ExecuteFltVec callback should return a dense vector (same type as la.newVec()).");
 	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
 	// cast it to js vector and copy internal vector
 	TJsFltV* JsVec = static_cast<TJsFltV*>(WrappedObject->Value());
@@ -834,8 +847,8 @@ void TScript::Execute(const TStr& FNm) {
 TStr TScript::LoadModuleSrc(const TStr& ModuleFNm) {
     TChA ModulChA;
 	ModulChA += "function module () {\n";
-	ModulChA += "var module = {exports: {}}\n";
-	ModulChA += "var exports = module.exports\n";
+	ModulChA += "var module = {exports: {}};\n";
+	ModulChA += "var exports = module.exports;\n";
     ModulChA += TStr::LoadTxt(GetLibFNm(ModuleFNm));
 	ModulChA += ";\n/* */\n";
 	ModulChA += "return module.exports;}\n";
@@ -991,6 +1004,99 @@ TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<
 	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
 	QmAssert(_SaveJsonFun->IsFunction());
 	SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+
+	// IInt
+	if (TriggerVal->Has(v8::String::New("getInt"))) {
+		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::New("getInt"));
+		QmAssert(_GetInt->IsFunction());
+		GetIntFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInt));
+	}
+	// IFlt 
+	if (TriggerVal->Has(v8::String::New("getFlt"))) {
+		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::New("getFlt"));
+		QmAssert(_GetFlt->IsFunction());
+		GetFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFlt));
+	}
+	// ITm 
+	if (TriggerVal->Has(v8::String::New("getTm"))) {
+		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::New("getTm"));
+		QmAssert(_GetTm->IsFunction());
+		GetTmMSecsFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetTm));
+	}
+	// IFltTmIO 
+	if (TriggerVal->Has(v8::String::New("getInFlt"))) {
+		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::New("getInFlt"));
+		QmAssert(_GetInFlt->IsFunction());
+		GetInFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInFlt));
+	}
+	if (TriggerVal->Has(v8::String::New("getInTm"))) {
+		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::New("getInTm"));
+		QmAssert(_GetInTm->IsFunction());
+		GetInTmMSecsFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInTm));
+	}
+	if (TriggerVal->Has(v8::String::New("getOutFltV"))) {
+		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::New("getOutFltV"));
+		QmAssert(_GetOutFltV->IsFunction());
+		GetOutFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetOutFltV));
+	}
+	if (TriggerVal->Has(v8::String::New("getOutTmV"))) {
+		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::New("getOutTmV"));
+		QmAssert(_GetOutTmV->IsFunction());
+		GetOutTmMSecsVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetOutTmV));
+	}
+	if (TriggerVal->Has(v8::String::New("getN"))) {
+		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::New("getN"));
+		QmAssert(_GetN->IsFunction());
+		GetNFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetN));
+	}
+	// IFltVec
+	if (TriggerVal->Has(v8::String::New("getFltLen"))) {
+		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::New("getFltLen"));
+		QmAssert(_GetFltLen->IsFunction());
+		GetFltLenFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltLen));
+	}	
+	if (TriggerVal->Has(v8::String::New("getFltAt"))) {
+		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::New("getFltAt"));
+		QmAssert(_GetFltAt->IsFunction());
+		GetFltAtFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltAt));
+	}
+	if (TriggerVal->Has(v8::String::New("getFltV"))) {
+		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::New("getFltV"));
+		QmAssert(_GetFltV->IsFunction());
+		GetFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltV));
+	}
+	// INmFlt 
+	if (TriggerVal->Has(v8::String::New("isNmFlt"))) {
+		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::New("isNmFlt"));
+		QmAssert(_IsNmFlt->IsFunction());
+		IsNmFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_IsNmFlt));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmFlt"))) {
+		v8::Handle<v8::Value> _GetNmFlt = TriggerVal->Get(v8::String::New("getNmFlt"));
+		QmAssert(_GetNmFlt->IsFunction());
+		GetNmFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmFlt));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmFltV"))) {
+		v8::Handle<v8::Value> _GetNmFltV = TriggerVal->Get(v8::String::New("getNmFltV"));
+		QmAssert(_GetNmFltV->IsFunction());
+		GetNmFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmFltV));
+	}
+	// INmInt
+	if (TriggerVal->Has(v8::String::New("isNm"))) {
+		v8::Handle<v8::Value> _IsNm = TriggerVal->Get(v8::String::New("isNm"));
+		QmAssert(_IsNm->IsFunction());
+		IsNmFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_IsNm));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmInt"))) {
+		v8::Handle<v8::Value> _GetNmInt = TriggerVal->Get(v8::String::New("getNmInt"));
+		QmAssert(_GetNmInt->IsFunction());
+		GetNmIntFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmInt));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmIntV"))) {
+		v8::Handle<v8::Value> _GetNmIntV = TriggerVal->Get(v8::String::New("getNmIntV"));
+		QmAssert(_GetNmIntV->IsFunction());
+		GetNmIntVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmIntV));
+	}
 }
 
 void TJsStreamAggr::OnAddRec(const TRec& Rec) {
@@ -1013,6 +1119,110 @@ void TJsStreamAggr::OnDeleteRec(const TRec& Rec) {
 		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
 	}
 }
+
+PJsonVal TJsStreamAggr::SaveJson(const int& Limit) const {
+	if (!SaveJsonFun.IsEmpty()) {
+		PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
+		QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+		return Res;
+	}
+	else {
+		return TJsonVal::NewObj();
+	}
+}
+
+
+// IInt
+int TJsStreamAggr::GetInt() const {
+	if (!GetIntFun.IsEmpty()) {
+		v8::HandleScope HandleScope;
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = GetIntFun->Call(Js->Context->Global(), 0, NULL);
+		TJsUtil::HandleTryCatch(TryCatch);
+		QmAssertR(RetVal->IsInt32(), "TJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
+		return RetVal->Int32Value();
+	}
+	else {
+		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");		
+	}
+}
+// IFlt 
+double TJsStreamAggr::GetFlt() const {
+	if (!GetFltFun.IsEmpty()) {
+		v8::HandleScope HandleScope;
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = GetFltFun->Call(Js->Context->Global(), 0, NULL);
+		TJsUtil::HandleTryCatch(TryCatch);
+		QmAssertR(RetVal->IsNumber(), "TJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
+		return RetVal->NumberValue();
+	}
+	else {
+		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
+	}
+}
+// ITm 
+uint64 TJsStreamAggr::GetTmMSecs() const {
+	if (!GetTmMSecsFun.IsEmpty()) {
+		v8::HandleScope HandleScope;
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = GetTmMSecsFun->Call(Js->Context->Global(), 0, NULL);
+		TJsUtil::HandleTryCatch(TryCatch);
+		QmAssertR(RetVal->IsNumber(), "TJsStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
+		return (uint64)RetVal->NumberValue();
+	}
+	else {
+		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
+	}
+}
+// IFltTmIO 
+double TJsStreamAggr::GetInFlt() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
+}
+uint64 TJsStreamAggr::GetInTmMSecs() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
+}
+void TJsStreamAggr::GetOutFltV(TFltV& ValV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
+}
+void TJsStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetOutTmMSecsV not implemented");
+}
+int TJsStreamAggr::GetN() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
+}
+// IFltVec
+int TJsStreamAggr::GetFltLen() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
+}
+double TJsStreamAggr::GetFlt(const TInt& ElN) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
+} // GetFltAtFun
+void TJsStreamAggr::GetFltV(TFltV& ValV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
+}
+// INmFlt 
+bool TJsStreamAggr::IsNmFlt(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
+}
+double TJsStreamAggr::GetNmFlt(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmFlt not implemented");
+}
+void TJsStreamAggr::GetNmFltV(TStrFltPrV& NmFltV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmFltV not implemented");
+}
+// INmInt
+bool TJsStreamAggr::IsNm(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNm not implemented");
+}
+double TJsStreamAggr::GetNmInt(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmInt not implemented");
+}
+void TJsStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
+}
+
+
+
 
 ///////////////////////////////
 // QMiner-JavaScript-WebPgFetch
@@ -1416,6 +1626,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
         //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
+		JsRegisterFunction(TmpTemp, toJSON);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1699,6 +1910,13 @@ v8::Handle<v8::Value> TJsStore::getStreamAggrNames(const v8::Arguments& Args) {
 	return HandleScope.Close(Arr);
 }
 
+v8::Handle<v8::Value> TJsStore::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	PJsonVal StoreJson = JsStore->Store->GetStoreJson(JsStore->Js->Base);
+	return HandleScope.Close(TJsUtil::ParseJson(StoreJson));
+}
+
 ///////////////////////////////
 // JavaScript Store Iterator
 v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
@@ -1769,7 +1987,7 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 }
 
 ///////////////////////////////
-// JavaScript Record Comparator
+// JavaScript Record Splitter
 bool TJsRecSplitter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
 	v8::HandleScope HandleScope;
     // prepare record objects
@@ -3000,7 +3218,7 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 		double Tol = 1e-6;
 		if (Args.Length() > 2) {			
 			PJsonVal ParamVal = TJsLinAlgUtil::GetArgJson(Args, 2);   
-			Iters = ParamVal->GetObjInt("iter", 2);
+			Iters = ParamVal->GetObjInt("iter", -1);
 			Tol = ParamVal->GetObjNum("tol", 1e-6);
 		}
 		if (Args[0]->IsObject() && Args[1]->IsInt32()) {
@@ -4674,6 +4892,8 @@ v8::Handle<v8::Value> TJsAnalytics::newNN(const v8::Arguments& Args) {
         TFuncHiddenL = TSignalProc::TTFunc::sigmoid;
     } else if (TFuncHiddenLStr == "fastTanh") {
         TFuncHiddenL = TSignalProc::TTFunc::fastTanh;
+    } else if (TFuncHiddenLStr == "softPlus") {
+        TFuncHiddenL = TSignalProc::TTFunc::softPlus;
     } else if (TFuncHiddenLStr == "fastSigmoid") {
         TFuncHiddenL = TSignalProc::TTFunc::fastSigmoid;
     } else if (TFuncHiddenLStr == "linear") {
@@ -4688,6 +4908,8 @@ v8::Handle<v8::Value> TJsAnalytics::newNN(const v8::Arguments& Args) {
         TFuncOutL = TSignalProc::TTFunc::sigmoid;
     } else if (TFuncOutLStr == "fastTanh") {
         TFuncOutL = TSignalProc::TTFunc::fastTanh;
+    } else if (TFuncOutLStr == "softPlus") {
+        TFuncOutL = TSignalProc::TTFunc::softPlus;
     } else if (TFuncOutLStr == "fastSigmoid") {
         TFuncOutL = TSignalProc::TTFunc::fastSigmoid;
     } else if (TFuncOutLStr == "linear") {
@@ -5083,6 +5305,7 @@ v8::Handle<v8::ObjectTemplate> TJsNN::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, learn);
 		JsRegisterFunction(TmpTemp, predict);
+		JsRegisterFunction(TmpTemp, setLearnRate);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -5095,17 +5318,51 @@ v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
     // parse arguments
     TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
     // get feature vector
-    QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
+    /*TODO: Do checking for TFltV OR TFltVV
+     * QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
         "NeuralNetwork.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
     QmAssertR(TJsNNUtil::IsArgClass(Args, 1, "TFltV"), 
         "NeuralNetwork.learn: The second argument must be a JsTFltV (js linalg full vector)"); 
-    TJsFltV* JsVecIn = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-    TJsFltV* JsVecTarget = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
-    // TODO: do some checking of dimensions etc..
-    // first get output values
-    JsNN->NN->FeedFwd(JsVecIn->Vec);
-    // then check how we performed and learn
-    JsNN->NN->BackProp(JsVecTarget->Vec);
+     */
+    if(TJsNNUtil::IsArgClass(Args, 0, "TFltV")){
+        TJsFltV* JsVecIn = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+        TJsFltV* JsVecTarget = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
+        // TODO: do some checking of dimensions etc..
+        // first get output values
+        JsNN->NN->FeedFwd(JsVecIn->Vec);
+
+        v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
+        TFltV& FltV = TJsFltV::GetVec(JsFltV);
+
+        JsNN->NN->GetResults(FltV);
+
+        printf("&&Predicted when learning %f \n", (double)FltV[0]);
+
+        // then check how we performed and learn
+        JsNN->NN->BackProp(JsVecTarget->Vec);
+    }
+    else if(TJsNNUtil::IsArgClass(Args, 0, "TFltVV")){
+        TJsFltVV* JsVVecIn = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+        TJsFltVV* JsVVecTarget = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 1);
+        //TODO: check that dimensions match
+        for(int Row = 0; Row < JsVVecIn->Mat.GetRows(); Row++){
+            TFltV InFltV;
+            JsVVecIn->Mat.GetRow(Row, InFltV);
+            JsNN->NN->FeedFwd(InFltV);
+            // then check how we performed and learn
+            TFltV TargFltV;
+            JsVVecTarget->Mat.GetRow(Row, TargFltV);
+            if(Row == JsVVecIn->Mat.GetRows() - 1){
+                JsNN->NN->BackProp(TargFltV); 
+            }
+            else {
+                JsNN->NN->BackProp(TargFltV, false); 
+            }
+        }
+    }
+    else {
+        printf("NeuralNetwork.learn: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
+    }
     
 	return Args.Holder();
 }
@@ -5116,14 +5373,31 @@ v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
     TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
     // get feature vector
     QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"), 
-        "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)"); 
+        "NN.predict: The first argument must be a JsTFltV (js linalg full vector)"); 
     TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
     JsNN->NN->FeedFwd(JsVec->Vec);
+
     v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
     TFltV& FltV = TJsFltV::GetVec(JsFltV);
+    
     JsNN->NN->GetResults(FltV);
 
+    printf("&&Predicted %f \n", (double)FltV[0]);
+
     return HandleScope.Close(JsFltV);
+}
+
+v8::Handle<v8::Value> TJsNN::setLearnRate(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+    TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
+    TFlt NewLearnRate = TJsNNUtil::GetArgFlt(Args, 0);
+            
+    JsNN->NN->SetLearnRate(NewLearnRate);
+
+    printf("&& Set learn rate to %f \n", (double)NewLearnRate);
+
+    return HandleScope.Close(v8::Undefined());
 }
 
 ///////////////////////////////
@@ -5708,6 +5982,7 @@ v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
     // get file list
 	TStrV FNmV;
 	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
+    FNmV.Sort();
 	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
 	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
 		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
@@ -6050,6 +6325,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
         JsRegisterProperty(TmpTemp, hour);
         JsRegisterProperty(TmpTemp, minute);
         JsRegisterProperty(TmpTemp, second);
+		JsRegisterProperty(TmpTemp, millisecond);
         JsRegisterProperty(TmpTemp, milisecond);                
         JsRegisterProperty(TmpTemp, now);
         JsRegisterProperty(TmpTemp, nowUTC);
@@ -6058,6 +6334,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, parse);
 		JsRegisterFunction(TmpTemp, clone);
+		JsRegisterProperty(TmpTemp, windowstimestamp);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6128,8 +6405,14 @@ v8::Handle<v8::Value> TJsTm::second(v8::Local<v8::String> Properties, const v8::
 	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetSec()));
 }
 
+v8::Handle<v8::Value> TJsTm::millisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
+}
+
 v8::Handle<v8::Value> TJsTm::milisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
+	InfoLog("Warning: milisecond (bad spelling) is deprecated, use millisecond instead. 18-8-2014");
 	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
 }
 
@@ -6192,7 +6475,8 @@ v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {
     TmJson->Set(v8::String::New("hour"), v8::Int32::New(JsTm->Tm.GetHour()));
     TmJson->Set(v8::String::New("minute"), v8::Int32::New(JsTm->Tm.GetMin()));
     TmJson->Set(v8::String::New("second"), v8::Int32::New(JsTm->Tm.GetSec()));
-    TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
+	TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec())); // deprecated 18-8-2014, will be removed
+    TmJson->Set(v8::String::New("millisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
     // return constructed json
     return HandleScope.Close(TmJson);
 }
@@ -6212,6 +6496,12 @@ v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
 	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);
 	// return constructed json
 	return HandleScope.Close(TJsTm::New(JsTm->Tm));
+}
+
+v8::Handle<v8::Value> TJsTm::windowstimestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope; 
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Number::New((double)TTm::GetMSecsFromTm(JsTm->Tm)));
 }
 
 ///////////////////////////////////////////////
