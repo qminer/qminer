@@ -3145,7 +3145,7 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 	TVec<TIntFltKdV> Mat;	
 	if (Args.Length() > 0) {
 		// corrdinate
-		if (Args.Length() >= 3 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV")) {
+		if (Args.Length() >= 3 && Args.Length() <= 4 && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 0, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 1, "TIntV") && TJsObjUtil<TJsSpMat>::IsArgClass(Args, 2, "TFltV")) {
 			TJsIntV* RowIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
 			TJsIntV* ColIdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 1);
 			TJsFltV* ValV = TJsObjUtil<TQm::TJsVec<TFlt, TAuxFltV> >::GetArgObj(Args, 2);
@@ -3158,40 +3158,39 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 			}
 			TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
 		}
-		else {
-			if (Args[0]->IsArray()) {
-				// javascript arrays
-				v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-				int Cols = Array->Length();
-				Mat.Gen(Cols);
-				for (int ColN = 0; ColN < Cols; ColN++) {
-					if (Array->Get(ColN)->IsArray()) {
-						v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
-						int Els = SpVecArray->Length();
-						for (int ElN = 0; ElN < Els; ElN++) {
-							if (SpVecArray->Get(ElN)->IsArray()) {
-								v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
-								if (KdPair->Length() >= 2) {
-									if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
-										Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
-									}
+		else if (Args.Length() >= 1 && Args.Length() <= 2 && Args[0]->IsArray()) {
+			// javascript arrays
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+			int Cols = Array->Length();
+			Mat.Gen(Cols);
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				if (Array->Get(ColN)->IsArray()) {
+					v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
+					int Els = SpVecArray->Length();
+					for (int ElN = 0; ElN < Els; ElN++) {
+						if (SpVecArray->Get(ElN)->IsArray()) {
+							v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
+							if (KdPair->Length() >= 2) {
+								if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber()) {
+									Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
 								}
 							}
 						}
 					}
-					Mat[ColN].Sort();
 				}
-				if (Args.Length() > 1 && Args[1]->IsObject()) {
-					Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
-				}
+				Mat[ColN].Sort();
 			}
-			else {
-				if (Args[0]->IsObject()) {
-					Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
-					int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
-					Mat.Gen(Cols);
-				}
+			if (Args.Length() > 1 && Args[1]->IsObject()) {
+				Rows = TJsLinAlgUtil::GetArgInt32(Args, 1, "rows", -1);
 			}
+		}
+		else if (Args.Length() == 1 && Args[0]->IsObject()) {
+			Rows = TJsLinAlgUtil::GetArgInt32(Args, 0, "rows", -1);
+			int Cols = TJsLinAlgUtil::GetArgInt32(Args, 0, "cols", 0);
+			Mat.Gen(Cols);
+		}
+		else {
+			throw TQmExcept::New("JsSpMat: constructor for these arguments is not implemented");
 		}
 	}
 

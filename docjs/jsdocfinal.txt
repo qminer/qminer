@@ -28,7 +28,7 @@ JavaScript API requires [initialized work environment](Quick-Start).
 - [Linear Algebra](#linear-algebra)
  - [Vector](#vector)
  - [Matrix (dense matrix)](#matrix-dense-matrix)
- - [SpVector (sparse vector)](#spvector-sparse-vector-)
+ - [SpVector (sparse vector)](#spvector-sparse-vector)
  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
 - [analytics.js (use require)](#analyticsjs-use-require)
  - [Feature Space](#feature-space)
@@ -313,7 +313,7 @@ several functions from linear algebra.
 - `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 - `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 - `vec = la.newVec(vec2)` -- clone a float vector `vec2`
-- `intVec = la.newIntVec()` -- generate an empty float vector
+- `intVec = la.newIntVec()` -- generate an empty integer vector
 - `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 - `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
 - `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
@@ -362,6 +362,8 @@ several functions from linear algebra.
 - `mat2 = la.repmat(mat, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `mat`
 - `mat = la.repvec(vec, m, n)` -- creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`
 - `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
+- `fout = la.saveIntVec(vec, fout)` - saves `vec` to output stream `fout` as a JSON string, and returns `fout`.
+- `intVec = la.loadIntVec(fin)` -- loads JSON string from `fin` and casts to JavaScript array and then to integer vector.
 
 ### Vector
 
