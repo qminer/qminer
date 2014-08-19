@@ -715,6 +715,7 @@ namespace THoeffding {
       double PhCumSum; // Cumulative sum
       double PhAlpha; // Expected standard deviation of the signal (PH) 
       double PhLambda; // Threshold parameter (PH) 
+      int PhInitN; // Number of examples to stabilize 
    };
 
    ///////////////////////////////
@@ -732,7 +733,8 @@ namespace THoeffding {
             IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
             RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
             AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM),
-            SdrThresh(0.0), SdThresh(0.0), PhAlpha(0.0), PhLambda(0.0) {
+            SdrThresh(0.0), SdThresh(0.0), PhAlpha(0.0), PhLambda(0.0),
+            PhInitN(500) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -748,7 +750,7 @@ namespace THoeffding {
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
             AttrDiscretization(adHISTOGRAM), SdrThresh(0.0), SdThresh(0.0),
-            PhAlpha(0.0), PhLambda(0.0) {
+            PhAlpha(0.0), PhLambda(0.0), PhInitN(500) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -759,7 +761,7 @@ namespace THoeffding {
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
             AttrDiscretization(adHISTOGRAM), SdrThresh(0.0), SdThresh(0.0),
-            PhAlpha(0.0), PhLambda(0.0) {
+            PhAlpha(0.0), PhLambda(0.0), PhInitN(500) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -934,6 +936,7 @@ namespace THoeffding {
       // Page-Hinkley parameters 
       double PhAlpha;
       double PhLambda;
+      int PhInitN;
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);

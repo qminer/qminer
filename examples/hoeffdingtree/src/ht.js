@@ -240,7 +240,7 @@ function testRegressionDisAttr() {
       "windowSize": 100000,
       "conceptDriftP": true,
       "phAlpha": 0.005,
-      "phLambda": 50.0,
+      "phLambda": 100.0,
       "maxNodes": 50,
       "regLeafModel": "mean",
       "attrDiscretization": "bst",
@@ -311,7 +311,7 @@ function testRegressionContAttr() {
       "windowSize": 100000,
       "conceptDriftP": true,
       "phAlpha": 0.005,
-      "phLambda": 50.0,
+      "phLambda": 100.0,
       "maxNodes": 50,
       "regLeafModel": "mean",
       "attrDiscretization": "histogram",
@@ -380,7 +380,8 @@ function testRegression() {
       "windowSize": 100000,
       "conceptDriftP": true,
       "phAlpha": 0.005,
-      "phLambda": 50.0,
+      "phLambda": 100.0,
+      "phInit": 1000,
       "maxNodes": 50,
       "sdrThreshold": 0.1
    };
@@ -463,6 +464,8 @@ function realRegressionTest() {
       "driftCheck": 1000,
       "windowSize": 100000,
       "conceptDriftP": true,
+      "phAlpha": 0.005,
+      "phLambda": 100.0,
       "maxNodes": 50,
       "sdrThreshold": 0.06
    };

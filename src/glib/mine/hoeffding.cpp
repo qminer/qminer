@@ -1741,22 +1741,31 @@ namespace THoeffding {
             CrrNode = GetNextNode(CrrNode, Example);
          }
          Pred = ProcessLeafReg(CrrNode, Example);
-         const double TmpErr = abs(Pred-Example->Value);
+         const double TmpErr = abs(Pred - Example->Value);
          NodeS.Push(CrrNode);
          while (!NodeS.Empty()) {
             CrrNode = NodeS.Top(); NodeS.Pop();
             ++CrrNode->All; // Number of examples that passed through the node 
-            // PhMnErr = -1.0 means the error is not yet set 
-            if (CrrNode->PhMnErr < 0.0) { CrrNode->PhMnErr = TmpErr; }
-            CrrNode->PhMnErr = TMath::Mn(CrrNode->PhMnErr, TmpErr);
             // Update the mean error [Knuth, TAOCP, Vol. 2, p. 232] 
             const double CrrErr = CrrNode->PhAvgErr;
             CrrNode->PhAvgErr = CrrErr + (TmpErr-CrrErr)/CrrNode->All;
             // Update cumulative sum 
-            CrrNode->PhCumSum += (TmpErr-CrrNode->PhAvgErr-CrrNode->PhAlpha);
+            CrrNode->PhCumSum +=
+               (TmpErr - CrrNode->PhAvgErr - CrrNode->PhAlpha);
+            // PhMnErr = -1.0 means the error is not yet set 
+            if (CrrNode->PhMnErr < 0.0 || CrrNode->All < PhInitN) {
+               CrrNode->PhMnErr = CrrNode->PhCumSum;
+            }
+            CrrNode->PhMnErr = TMath::Mn(CrrNode->PhMnErr, CrrNode->PhCumSum);
             // Check whether m(T)-M(T)>Lambda
-            if (CrrNode->PhCumSum - CrrNode->PhMnErr > CrrNode->PhLambda) {
-               printf("Page-Hinkley test: Alarm.\n");
+            if (CrrNode->PhCumSum - CrrNode->PhMnErr > CrrNode->PhLambda &&
+               CrrNode->All >= PhInitN) {
+               // TODO: Start growing an alternate tree 
+               printf("[DEBUG] Page-Hinkley test: Alarm.\n");
+               // printf("PhCumSum=%f\n", CrrNode->PhCumSum);
+               // printf("PhMnErr=%f\n", CrrNode->PhMnErr);
+               // printf("PhLambda=%f\n", CrrNode->PhLambda);
+               // getchar();
             }
          }
       } else {
@@ -2208,6 +2217,13 @@ namespace THoeffding {
          PhLambda = JsonParams->GetObjNum("phLambda");
          EAssertR(PhLambda >= 0.0,
             "JSON config error: phLambda must be nonnegative");
+      }
+      // InitN, the number of examples for mean value to "stabilize" 
+      if (JsonParams->IsObjKey("phInit") &&
+         JsonParams->GetObjKey("phInit")->IsNum()) {
+         PhInitN = JsonParams->GetObjNum("phInit");
+         EAssertR(PhInitN >= 0,
+            "JSON config error: phInit must be nonnegative");
       }
    }
    // Create attribute manager object for each attribute 
