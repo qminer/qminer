@@ -2332,9 +2332,8 @@ v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v
 		const int Val = Rec.GetFieldInt(FieldId);
 		return HandleScope.Close(v8::Integer::New(Val));
     } else if (Desc.IsIntV()) {
-        v8::Persistent<v8::Object> JsIntV = TJsIntV::New(JsRec->Js);
-        Rec.GetFieldIntV(FieldId, TJsIntV::GetVec(JsIntV));
-        return JsIntV;
+        TIntV IntVl Rec.GetFieldIntV(FieldId, IntV);
+        return TJsIntV::New(JsRec->Js, IntV);;
     } else if (Desc.IsUInt64()) {
 		const uint64 Val = Rec.GetFieldUInt64(FieldId);
 		return HandleScope.Close(v8::Integer::New((int)Val));
@@ -2361,9 +2360,8 @@ v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v
 		JsFltPr->Set(1, v8::Number::New(FltPr.Val2));
 		return HandleScope.Close(JsFltPr);    
 	} else if (Desc.IsFltV()) {
-        v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsRec->Js);
-        Rec.GetFieldFltV(FieldId, TJsFltV::GetVec(JsFltV)); 
-        return JsFltV;        
+        TFltV FltV; Rec.GetFieldFltV(FieldId, FltV); 
+        return TJsFltV::New(JsRec->Js, FltV);
 	} else if (Desc.IsTm()) {
         TTm FieldTm; Rec.GetFieldTm(FieldId, FieldTm); 
 		if (FieldTm.IsDef()) { 
@@ -2372,9 +2370,8 @@ v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v
 			return HandleScope.Close(v8::Null());
 		}
 	} else if (Desc.IsNumSpV()) {
-        v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsRec->Js);
-        Rec.GetFieldNumSpV(FieldId, TJsSpV::GetSpV(JsSpV)); 
-        return JsSpV;
+        TIntFltKdV SpV; Rec.GetFieldNumSpV(FieldId, SpV);
+        return TJsSpV::New(JsRec->Js, SpV);
 	} else if (Desc.IsBowSpV()) {
 		return HandleScope.Close(v8::Null()); //TODO
     }
