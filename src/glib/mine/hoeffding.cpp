@@ -744,7 +744,7 @@ namespace THoeffding {
          AltTreesV(Node.AltTreesV), Id(Node.Id), Correct(Node.Correct),
          All(Node.All), PhAvgErr(Node.PhAvgErr), PhMnErr(Node.PhMnErr),
          PhCumSum(Node.PhCumSum), PhAlpha(Node.PhAlpha),
-         PhLambda(Node.PhLambda)
+         PhLambda(Node.PhLambda), PhInitN(Node.PhInitN)
    { EFailR("TNode (const TNode&)"); }
    // Assignment operator 
    TNode& TNode::operator=(const TNode& Node) {
@@ -775,6 +775,7 @@ namespace THoeffding {
          PhCumSum = Node.PhCumSum;
          PhAlpha = Node.PhAlpha;
          PhLambda = Node.PhLambda;
+         PhInitN = Node.PhInitN;
          EFailR("TNode& operator=(const TNode&)");
       }
       return *this;
@@ -1440,7 +1441,7 @@ namespace THoeffding {
       const int AttrsN = Example->AttributesV.Len();
       IncCounts(Leaf, Example);
       const double H = Leaf->ComputeEntropy();
-      // TODO: Use stricter condition to prevent overfitting 
+      // TODO: Use stricter condition to prevent growth 
       if (Leaf->ExamplesN % GracePeriod == 0 && Leaf->GetExamplesN() > 5 &&
          H > 0 && (MxNodes == 0 || (MxNodes != 0 && GetNodesN() < MxNodes))) {
          TBstAttr SplitAttr = Leaf->BestClsAttr(AttrManV, AttrHeuristic);
@@ -1473,11 +1474,18 @@ namespace THoeffding {
          It != Node->AltTreesV.EndI(); ++It) {
          PNode CrrNode = *It;
          while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
-         // TODO: Give user a chance to choose the classifier in leaves 
          EAssertR((*It)->Correct >= 0, "Negative number of correctly \
             classified examples < 0.");
-         // NaiveBayes(CrrNode, Example);
-         (*It)->Correct += (Example->Label == Majority(CrrNode));
+         int Loss = 0;
+         switch (ClassifyLeaves) {
+         case clMAJORITY:
+            Loss = (Example->Label == Majority(CrrNode));
+            break;
+         case clNAIVE_BAYES:
+            Loss = (Example->Label == NaiveBayes(CrrNode, Example));
+            break;
+         }
+         (*It)->Correct += Loss;
          EAssertR((*It)->All >= 0, "Negative number of sacrificed examples");
          ++(*It)->All;
       }
@@ -1729,16 +1737,25 @@ namespace THoeffding {
          ProcessLeafCls(CrrNode, Example);
       }
    }
+   // TODO: Evaluate Q-statistic (between the main tree and the
+   // best-performing original one) periodically, every PhPeriod
+   // examples. Swap the trees if the statistics Q(original, alernate)>0,
+   // meaning the original tree has higher error than the alternate one.
    double THoeffdingTree::ProcessReg(PExample Example) {
       PNode CrrNode = Root;
       double Pred = 0.0; 
       // Use Page-Hinkley test to detect concept drift 
       if (ConceptDriftP) {
          // TODO: Separate function for handling concept-drift? 
+         // TODO: Currently, alternate trees cannot grow alternate trees 
          TSStack<PNode> NodeS; // Branch that the example traversed 
-         while (!IsLeaf(CrrNode)) { 
+         while (!IsLeaf(CrrNode)) {
             NodeS.Push(CrrNode);
             CrrNode = GetNextNode(CrrNode, Example);
+            //for (auto It = CrrNode->AltTreesV.BegI();
+            //   It != CrrNode->AltTreesV.EndI(); ++It) {
+            //   TraverseS.Push(*It);
+            //}
          }
          Pred = ProcessLeafReg(CrrNode, Example);
          const double TmpErr = abs(Pred - Example->Value);
@@ -1758,17 +1775,49 @@ namespace THoeffding {
             }
             CrrNode->PhMnErr = TMath::Mn(CrrNode->PhMnErr, CrrNode->PhCumSum);
             // Check whether m(T)-M(T)>Lambda
-            if (CrrNode->PhCumSum - CrrNode->PhMnErr > CrrNode->PhLambda &&
+            if (!IsLeaf(CrrNode) &&
+               CrrNode->PhCumSum - CrrNode->PhMnErr > CrrNode->PhLambda &&
                CrrNode->All >= PhInitN) {
-               // TODO: Start growing an alternate tree 
-               printf("[DEBUG] Page-Hinkley test: Alarm.\n");
+               // XXX: Start growing an alternate tree 
+               // This means we have to create a root for the alternate tree,
+               // split the new root on the currently best attribute, and
+               // monitor the error. 
+               // EFailR("Implementation in progress.");
+               {
+                  TBstAttr BstAttr =
+                     CrrNode->BestRegAttr(AttrManV, AttrDiscretization);
+                  if (BstAttr.Val1.Val1 != CrrNode->CndAttrIdx &&
+                     !IsAltSplitIdx(CrrNode, BstAttr.Val1.Val1)) {
+                     const int LabelsN =
+                        AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
+                     
+                     printf("Starting an alternate tree on %s instead of %s\n",
+                        AttrManV.GetVal(BstAttr.Val1.Val1).Nm.CStr(),
+                        AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr());
+                     
+                     PNode AltHt = TNode::New(LabelsN, CrrNode->UsedAttrs, AttrManV,
+                        IdGen->GetNextLeafId());
+                     
+                     // Set parameters for the Page-Hinkley test 
+                     AltHt->SetPhAlpha(PhAlpha);
+                     AltHt->SetPhLambda(PhLambda);
+                     
+                     AltHt->Split(BstAttr.Val1.Val1, AttrManV, IdGen);
+                     
+                     CrrNode->AltTreesV.Add(AltHt);
+                     
+                     ++AltTreesN;
+                  }
+               }
+               
+               // printf("[DEBUG] Page-Hinkley test: Alarm.\n");
                // printf("PhCumSum=%f\n", CrrNode->PhCumSum);
                // printf("PhMnErr=%f\n", CrrNode->PhMnErr);
                // printf("PhLambda=%f\n", CrrNode->PhLambda);
                // getchar();
             }
          }
-      } else {
+      } else { // No concept drift detection -- life is much simpler here 
          while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
          Pred = ProcessLeafReg(CrrNode, Example);
       }
@@ -2224,6 +2273,13 @@ namespace THoeffding {
          PhInitN = JsonParams->GetObjNum("phInit");
          EAssertR(PhInitN >= 0,
             "JSON config error: phInit must be nonnegative");
+      }
+      // Lambda parameter (the threshold) 
+      if (JsonParams->IsObjKey("fadingFactor") &&
+         JsonParams->GetObjKey("fadingFactor")->IsNum()) {
+         FadingFactor = JsonParams->GetObjNum("fadingFactor");
+         EAssertR(FadingFactor > 0.0,
+            "JSON config error: fadingFactor must be positive");
       }
    }
    // Create attribute manager object for each attribute 

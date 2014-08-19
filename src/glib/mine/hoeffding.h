@@ -734,7 +734,7 @@ namespace THoeffding {
             RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
             AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM),
             SdrThresh(0.0), SdThresh(0.0), PhAlpha(0.0), PhLambda(0.0),
-            PhInitN(500) {
+            PhInitN(500), FadingFactor(0.975) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -750,7 +750,7 @@ namespace THoeffding {
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
             AttrDiscretization(adHISTOGRAM), SdrThresh(0.0), SdThresh(0.0),
-            PhAlpha(0.0), PhLambda(0.0), PhInitN(500) {
+            PhAlpha(0.0), PhLambda(0.0), PhInitN(500), FadingFactor(0.975) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -761,7 +761,7 @@ namespace THoeffding {
             ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
             ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
             AttrDiscretization(adHISTOGRAM), SdrThresh(0.0), SdThresh(0.0),
-            PhAlpha(0.0), PhLambda(0.0), PhInitN(500) {
+            PhAlpha(0.0), PhLambda(0.0), PhInitN(500), FadingFactor(0.975) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -937,6 +937,7 @@ namespace THoeffding {
       double PhAlpha;
       double PhLambda;
       int PhInitN;
+      double FadingFactor; // For error evaluation 
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);
