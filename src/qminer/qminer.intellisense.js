@@ -1367,7 +1367,7 @@ la.printVec = function () {
 
 la.newIntVec = function () {
 	/// <signature>
-	/// <summary> generate an empty float vector</summary>
+	/// <summary> generate an empty integer vector</summary>
 	/// <returns value ="_intVec"/>
 	/// </signature>
 	/// <signature>
@@ -1379,6 +1379,15 @@ la.newIntVec = function () {
 	/// <summary> clone an int vector `vec2`</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+};
+
+la.sparse = function () {
+	/// <signature>
+	/// <summary> `spMat` is a `rows`-by-`cols` sparse zero matrix</summary>
+	/// <param name="_rows" value="_rows">param</param>
+	/// <param name="_cols" value="_cols">param</param>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 };
 
@@ -1483,6 +1492,17 @@ la.genRandom = function () {
 	/// </signature>
 };
 
+la.printFeatVec = function () {
+	/// <signature>
+	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 la.copyIntArrayToVec = function () {
 	/// <signature>
 	/// <summary> copies a JS array of integers `arr` into an integer vector `intVec`</summary>
@@ -1491,12 +1511,12 @@ la.copyIntArrayToVec = function () {
 	/// </signature>
 };
 
-la.sparse = function () {
+la.saveIntVec = function () {
 	/// <signature>
-	/// <summary> `spMat` is a `rows`-by-`cols` sparse zero matrix</summary>
-	/// <param name="_rows" value="_rows">param</param>
-	/// <param name="_cols" value="_cols">param</param>
-	/// <returns value ="_spMat"/>
+	/// <summary> saves `vec` to output stream `fout` as a JSON string, and returns `fout`.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -1513,14 +1533,11 @@ la.findMaxIdx = function () {
 	/// </signature>
 };
 
-la.printFeatVec = function () {
+la.loadIntVec = function () {
 	/// <signature>
-	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_limit" value="_limit">param</param>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <summary> loads JSON string from `fin` and casts to JavaScript array and then to integer vector.</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_intVec"/>
 	/// </signature>
 };
 

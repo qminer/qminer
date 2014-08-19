@@ -173,14 +173,15 @@ double TEma::GetNi(const double& Alpha, const double& Mi) {
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs, 
-    const double& _TmInterval): Decay(_Decay), Type(_Type), TmInterval(_TmInterval), 
-    InitP(false), InitMinMSecs(_InitMinMSecs), LastVal(TFlt::Mn) { }
+    const double& _TmInterval): Decay(_Decay), Type(_Type), LastVal(TFlt::Mn),
+    TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) { }
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,const double& _TmInterval):
-Type(_Type), TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs), LastVal(TFlt::Mn) { }
+    Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false), 
+    InitMinMSecs(_InitMinMSecs) { }
 
-TEma::TEma(const PJsonVal& ParamVal) : InitP(false), LastVal(TFlt::Mn) {
+TEma::TEma(const PJsonVal& ParamVal) : LastVal(TFlt::Mn), InitP(false) {
     // type
     TStr TypeStr = ParamVal->GetObjStr("emaType");
     if (TypeStr == "previous") { 

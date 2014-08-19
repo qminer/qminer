@@ -638,7 +638,7 @@ public:
   /// Sorts the elements of the vector. ##TVec::Sort
   void Sort(const bool& Asc=true);
   /// Sorts the elements of the vector in a new copy and returns the permutation. ##TVec::SortGetPerm
-  static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc = true);
+  static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TInt, TSizeTy>& PermV, bool Asc = true);
   /// Checks whether the vector is sorted in ascending (if \c Asc=true) or descending (if \c Asc=false) order.
   bool IsSorted(const bool& Asc=true) const;
   /// Randomly shuffles the elements of the vector.
@@ -1218,11 +1218,11 @@ void TVec<TVal, TSizeTy>::Sort(const bool& Asc){
 }
 
 template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc) {
+void TVec<TVal, TSizeTy>::SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TInt, TSizeTy>& PermV, bool Asc) {
 	TSizeTy Len = Vec.Len();
-	TVec<TPair<TVal, TSizeTy> > PairV; PairV.Gen(Len, 0);
+	TVec<TPair<TVal, TInt> > PairV; PairV.Gen(Len, 0);
 	for (TSizeTy ElN = 0; ElN < Len; ElN++) {
-		PairV.Add(TPair<TVal, TSizeTy>(Vec[ElN], ElN));
+		PairV.Add(TPair<TVal, TInt>(Vec[ElN], ElN));
 	}
 	PairV.Sort(Asc);
 	SortedVec.Gen(Len, 0);
