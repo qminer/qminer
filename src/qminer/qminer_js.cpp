@@ -5829,13 +5829,12 @@ v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
     QmAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
 	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
     QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-    int OutN = 0;
 	if(TJsFOutUtil::IsArgFlt(Args, 0)) {
-        OutN = JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
+        JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
 	} else if(TJsFOutUtil::IsArgJson(Args, 0)) {
-        OutN = JsFOut->SOut->PutStr(TJsFOutUtil::GetArgJsonStr(Args, 0));
+        JsFOut->SOut->PutStr(TJsFOutUtil::GetArgJsonStr(Args, 0));
 	} else if (TJsFOutUtil::IsArgStr(Args, 0)) {
-        OutN = JsFOut->SOut->PutStr(TJsFOutUtil::GetArgStr(Args, 0));
+        JsFOut->SOut->PutStr(TJsFOutUtil::GetArgStr(Args, 0));
 	} else {
         throw TQmExcept::New("Invalid parameter type to fout.write()");
 	}

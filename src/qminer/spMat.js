@@ -23,9 +23,14 @@ la.spMat.toString = function () { return "rows: " + this.rows + ", cols:" + this
 la.spMat.nnz = function() {
 	var nnz = 0;
 	//iterate over matrix and sum nnz of each column
+    console.log("Computing NNZ");
 	for (var colN = 0; colN < this.cols; colN++) {
+        if (colN % 10000 == 0) { 
+            console.log(colN + " / " + this.cols + " = " + nnz);
+        }
 		nnz += this[colN].nnz;
 	}
+    console.log("Done");
 	return nnz;
 }; 
 
