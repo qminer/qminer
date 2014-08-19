@@ -1544,6 +1544,9 @@ v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getInt);
 		JsRegisterFunction(TmpTemp, getFlt);
 		JsRegisterFunction(TmpTemp, getTm);
+		JsRegisterFunction(TmpTemp, getFltLen);
+		JsRegisterFunction(TmpTemp, getFltAt);
+		JsRegisterFunction(TmpTemp, getFltV);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1630,6 +1633,42 @@ v8::Handle<v8::Value> TJsSA::getTm(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsSA::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
 	}
 	return HandleScope.Close(v8::Number::New(Aggr->GetTmMSecs()));
+}
+
+v8::Handle<v8::Value> TJsSA::getFltLen(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltVec
+	TWPt<TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TStreamAggrOut::IFltVec*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getFltLen : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetFltLen()));
+}
+
+v8::Handle<v8::Value> TJsSA::getFltAt(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltVec
+	int ElN = TJsSAUtil::GetArgInt32(Args, 0);
+	TWPt<TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TStreamAggrOut::IFltVec*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getFltAt : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetFlt(ElN)));
+}
+
+v8::Handle<v8::Value> TJsSA::getFltV(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltVec
+	TWPt<TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TStreamAggrOut::IFltVec*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getFltV : stream aggregate does not implement IFltVec: " + JsSA->SA->GetAggrNm());
+	}
+	TFltV Res;
+	Aggr->GetFltV(Res);
+	return TJsFltV::New(JsSA->Js, Res);
 }
 
 ///////////////////////////////
@@ -3364,12 +3403,11 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::plus(const v8::Arguments& Args) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() == JsVec->Vec.Len(), "vector + vector: dimensions mismatch");
 				// create JS result and get the internal data				
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
-				TFltV& Result = TJsVec::GetVec(JsResult);
+				TFltV Result;
 				// computation
 				Result.Gen(JsFltV->Vec.Len());
 				TLinAlg::LinComb(1.0, JsFltV->Vec, 1.0, JsVec->Vec, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsFltV->Js, Result);
 			}
 			if ( TJsObjUtil<TJsVec>::IsArgClass(Args, 0, "TIntFltKdV")) {
 				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
@@ -3378,12 +3416,11 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::plus(const v8::Arguments& Args) {
 					QmAssertR(JsFltV->Vec.Len() >= TLAMisc::GetMaxDimIdx(JsVec->Vec) + 1, "vector + sp_vector: index overflow");
 				}
 				// create JS result and get the internal data				
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
-				TFltV& Result = TJsVec::GetVec(JsResult);
+				TFltV Result;
 				// computation
 				Result.Gen(JsFltV->Vec.Len());
 				TLinAlg::AddVec(1.0, JsVec->Vec, JsFltV->Vec, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsFltV->Js, Result);
 			}
 		}
 	}
@@ -3400,12 +3437,11 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::minus(const v8::Arguments& Args) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() == JsVec->Vec.Len(), "vector - vector: dimensions mismatch");
 				// create JS result and get the internal data				
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
-				TFltV& Result = TJsVec::GetVec(JsResult);
+				TFltV Result;
 				// computation
 				Result.Gen(JsFltV->Vec.Len());
 				TLinAlg::LinComb(1.0, JsFltV->Vec, -1.0, JsVec->Vec, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsFltV->Js, Result);
 			}
 		}
 	}
@@ -3418,15 +3454,12 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::multiply(const v8::Arguments& Args
 	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);
 	if (TJsObjUtil<TJsVec>::IsArgFlt(Args, 0)) {		
 		double Scalar = TJsObjUtil<TJsVec>::GetArgFlt(Args, 0);
-		// create output object
-		v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltV->Js);
 		// get the internal glib vector
-		TFltV& Result = TJsVec::GetVec(JsResult);
+		TFltV Result;
 		// computation
 		Result.Gen(JsFltV->Vec.Len());
 		TLinAlg::MultiplyScalar(Scalar, JsFltV->Vec, Result);
-		
-		return HandleScope.Close(JsResult);
+		return TJsFltV::New(JsFltV->Js, Result);
 	}
 	return HandleScope.Close(v8::Undefined());
 }
@@ -3445,30 +3478,28 @@ template <>
 v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::diag(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsFltV->Js);
-	TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+	TFltVV Result;
 	// computation
 	TLAMisc::Diag(JsFltV->Vec, Result);
-	return HandleScope.Close(JsResult);	
+	return TJsFltVV::New(JsFltV->Js, Result);
 }
 
 template <>
 v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::spDiag(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltV* JsFltV = TJsObjUtil<TJsVec>::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsFltV->Js);
-	TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+	TVec<TIntFltKdV> Result;
 	// computation
 	TLAMisc::Diag(JsFltV->Vec, Result);
-	return HandleScope.Close(JsResult);	
+	return TJsSpMat::New(JsFltV->Js, Result);
 }
 
 template <>
 v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::norm(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	double result = TLinAlg::Norm(JsVec->Vec);
-	return HandleScope.Close(v8::Number::New(result));
+	double Result = TLinAlg::Norm(JsVec->Vec);
+	return HandleScope.Close(v8::Number::New(Result));
 }
 
 template <>
@@ -3477,9 +3508,7 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sparse(const v8::Arguments& Args) 
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);		
-	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsVec->Js, Res);
-	TJsSpV::SetDim(JsResult, JsVec->Vec.Len());
-	return HandleScope.Close(JsResult);	
+	return TJsSpV::New(JsVec->Js, Res, JsVec->Vec.Len()); 
 }
 
 template <>
@@ -3487,10 +3516,8 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::toMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
 	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
-	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
-	return HandleScope.Close(JsResult);
+	return TJsFltVV::New(JsVec->Js, Res);
 }
-
 
 template <>
 v8::Handle<v8::Value> TJsVec<TInt, TAuxIntV>::toMat(const v8::Arguments& Args) {
@@ -3502,8 +3529,7 @@ v8::Handle<v8::Value> TJsVec<TInt, TAuxIntV>::toMat(const v8::Arguments& Args) {
 		Temp[ElN] = JsVec->Vec[ElN];
 	}
 	TFltVV Res(Temp, Len, 1);
-	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsVec->Js, Res);
-	return HandleScope.Close(JsResult);
+	return TJsFltVV::New(JsVec->Js, Res);
 }
 
 ///////////////////////////////
@@ -3552,8 +3578,8 @@ v8::Handle<v8::Value> TJsFltVV::at(const v8::Arguments& Args) {
 	TInt Rows = JsFltVV->Mat.GetRows();
 	TInt Cols = JsFltVV->Mat.GetCols();
 	QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols, "matrix at: index out of bounds");
-	double result = JsFltVV->Mat.At(Row,Col);	
-	return HandleScope.Close(v8::Number::New(result));
+	double Result = JsFltVV->Mat.At(Row,Col);	
+	return HandleScope.Close(v8::Number::New(Result));
 }
 
 v8::Handle<v8::Value> TJsFltVV::put(const v8::Arguments& Args) {
@@ -3580,13 +3606,11 @@ v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
 	if (Args.Length() > 0) {
 		if (TJsFltVVUtil::IsArgFlt(Args, 0)) {
 			double Scalar = TJsFltVVUtil::GetArgFlt(Args, 0);
-			// create JS result and get the internal data				
-			v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-			TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+			TFltVV Result;
 			// computation
 			Result.Gen(JsMat->Mat.GetRows(), JsMat->Mat.GetCols());
 			TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, Result);
-			return HandleScope.Close(JsResult);			
+			return TJsFltVV::New(JsMat->Js, Result);
 		}
 		if (Args[0]->IsObject()) {
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltV")) {
@@ -3596,20 +3620,16 @@ v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
 				TFltV Result(JsMat->Mat.GetRows());				
 				TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result);
 			}
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetRows(), "matrix * matrix: dimensions mismatch");
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				TFltVV Result;
 				// computation
 				Result.Gen(JsMat->Mat.GetRows(), JsMat2->Mat.GetCols());
 				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
-
-				return HandleScope.Close(JsResult);
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
@@ -3622,8 +3642,7 @@ v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
 				TempSpMat[0] = JsVec->Vec;				
 				TLinAlg::Multiply(JsMat->Mat, TempSpMat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result.Get1DVec());
 			}
 
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -3638,8 +3657,7 @@ v8::Handle<v8::Value> TJsFltVV::multiply(const v8::Arguments& Args) {
 				TFltVV Result(Rows, JsMat2->Mat.Len());					
 				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 		}
 	}	
@@ -3652,14 +3670,12 @@ v8::Handle<v8::Value> TJsFltVV::multiplyT(const v8::Arguments& Args) {
 	if (Args.Length() > 0) {
 		if (TJsFltVVUtil::IsArgFlt(Args, 0)) {
 			double Scalar = TJsFltVVUtil::GetArgFlt(Args, 0);
-			// create JS result and get the internal data				
-			v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-			TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+			TFltVV Result;
 			// computation
 			Result = JsMat->Mat;
 			Result.Transpose();
 			TLinAlg::MultiplyScalar(Scalar, Result, Result);
-			return HandleScope.Close(JsResult);	
+			return TJsFltVV::New(JsMat->Js, Result);
 		}
 		if (Args[0]->IsObject()) {
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltV")) {
@@ -3669,19 +3685,16 @@ v8::Handle<v8::Value> TJsFltVV::multiplyT(const v8::Arguments& Args) {
 				TFltV Result(JsMat->Mat.GetCols());				
 				TLinAlg::MultiplyT(JsMat->Mat, JsVec->Vec, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result);
 			}
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix' * matrix: dimensions mismatch");
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				TFltVV Result;
 				// computation
 				Result.Gen(JsMat->Mat.GetCols(), JsMat2->Mat.GetCols());
 				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
-				return HandleScope.Close(JsResult);
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
@@ -3693,8 +3706,7 @@ v8::Handle<v8::Value> TJsFltVV::multiplyT(const v8::Arguments& Args) {
 				TempSpMat[0] = JsVec->Vec;				
 				TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result.Get1DVec());
 			}
 
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -3709,8 +3721,7 @@ v8::Handle<v8::Value> TJsFltVV::multiplyT(const v8::Arguments& Args) {
 				TFltVV Result(Cols, JsMat2->Mat.Len());				
 				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 		}
 	}	
@@ -3725,13 +3736,11 @@ v8::Handle<v8::Value> TJsFltVV::plus(const v8::Arguments& Args) {
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix - matrix: dimensions mismatch");
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				TFltVV Result;
 				// computation
 				Result.Gen(JsMat->Mat.GetRows(), JsMat2->Mat.GetCols());
 				TLinAlg::LinComb(1.0, JsMat->Mat, 1.0, JsMat2->Mat, Result);
-				return HandleScope.Close(JsResult);
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 		}
 	}	
@@ -3746,13 +3755,11 @@ v8::Handle<v8::Value> TJsFltVV::minus(const v8::Arguments& Args) {
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix - matrix: dimensions mismatch");
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				TFltVV Result;
 				// computation
 				Result.Gen(JsMat->Mat.GetRows(), JsMat2->Mat.GetCols());
 				TLinAlg::LinComb(1.0, JsMat->Mat, -1.0, JsMat2->Mat, Result);
-				return HandleScope.Close(JsResult);
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 		}
 	}	
@@ -3762,13 +3769,10 @@ v8::Handle<v8::Value> TJsFltVV::minus(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsFltVV::transpose(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
-	
-	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsFltVV->Js);
-	TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+	TFltVV Result;
 	Result.Gen(JsFltVV->Mat.GetCols(), JsFltVV->Mat.GetRows());
 	TLinAlg::Transpose(JsFltVV->Mat, Result);
-
-	return HandleScope.Close(JsResult);	
+	return TJsFltVV::New(JsFltVV->Js, Result);
 }
 
 v8::Handle<v8::Value> TJsFltVV::solve(const v8::Arguments& Args) {
@@ -3779,16 +3783,14 @@ v8::HandleScope HandleScope;
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltV")) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "matrix \\ vector: dimensions mismatch");
-				// create JS result and get the internal data				
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js);
-				TFltV& Result = TJsFltV::GetVec(JsResult);
+				TFltV Result;
 				// computation
 				Result.Gen(JsMat->Mat.GetCols());
 				TFltVV Mat2 = JsMat->Mat;
 				TFltV Vec2 = JsVec->Vec;
 				TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
-				return HandleScope.Close(JsResult);			
-			}			
+				return TJsFltV::New(JsMat->Js, Result);
+			}
 		}
 	}	
 	return HandleScope.Close(v8::Undefined());		
@@ -3797,8 +3799,7 @@ v8::HandleScope HandleScope;
 v8::Handle<v8::Value> TJsFltVV::rowNorms(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltVV->Js);
-	TFltV& Result = TJsFltV::GetVec(JsResult);	
+	TFltV Result;	
 	int Rows = JsFltVV->Mat.GetRows();
 	int Cols = JsFltVV->Mat.GetCols();
 	Result.Gen(Rows);	
@@ -3809,21 +3810,20 @@ v8::Handle<v8::Value> TJsFltVV::rowNorms(const v8::Arguments& Args) {
 		}
 		Result[RowN] = TMath::Sqrt(Result[RowN]);
 	}
-	return HandleScope.Close(JsResult);		
+	return TJsFltV::New(JsFltVV->Js, Result);
 }
 
 v8::Handle<v8::Value> TJsFltVV::colNorms(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsFltVV->Js);
-	TFltV& Result = TJsFltV::GetVec(JsResult);	
+	TFltV Result;	
 	int Cols = JsFltVV->Mat.GetCols();
 	Result.Gen(Cols);	
 	Result.PutAll(0.0);
 	for (int ColN = 0; ColN < Cols; ColN++) {
 		Result[ColN] = TLinAlg::Norm(JsFltVV->Mat, ColN);
 	}
-	return HandleScope.Close(JsResult);
+	return TJsFltV::New(JsFltVV->Js, Result);
 }
 
 v8::Handle<v8::Value> TJsFltVV::normalizeCols(const v8::Arguments& Args) {
@@ -3838,9 +3838,7 @@ v8::Handle<v8::Value> TJsFltVV::sparse(const v8::Arguments& Args) {
 	TJsFltVV* JsFltVV = TJsFltVVUtil::GetSelf(Args);
 	TVec<TIntFltKdV> SpMat = TVec<TIntFltKdV>();
 	TLinAlg::Sparse(JsFltVV->Mat, SpMat);	
-	v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsFltVV->Js, SpMat);
-	TJsSpMat::SetRows(JsResult, JsFltVV->Mat.GetRows());
-	return HandleScope.Close(JsResult);
+	return  TJsSpMat::New(JsFltVV->Js, SpMat, JsFltVV->Mat.GetRows());
 }
 
 v8::Handle<v8::Value> TJsFltVV::frob(const v8::Arguments& Args) {
@@ -3916,8 +3914,7 @@ v8::Handle<v8::Value> TJsFltVV::getCol(const v8::Arguments& Args) {
 			QmAssertR(ColN < JsMat->Mat.GetCols() , "matrix: get col vector: index out of bounds");
 			TFltV Result;
 			JsMat->Mat.GetCol(ColN, Result);
-			v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
-			return HandleScope.Close(JsResult);	
+			return TJsFltV::New(JsMat->Js, Result);
 		}
 	}	
 	return HandleScope.Close(v8::Undefined());	
@@ -3949,8 +3946,7 @@ v8::Handle<v8::Value> TJsFltVV::getRow(const v8::Arguments& Args) {
 			QmAssertR(RowN < JsMat->Mat.GetRows() , "matrix: get row vector: index out of bounds");
 			TFltV Result;
 			JsMat->Mat.GetRow(RowN, Result);
-			v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
-			return HandleScope.Close(JsResult);	
+			return TJsFltV::New(JsMat->Js, Result);
 		}
 	}	
 	return HandleScope.Close(v8::Undefined());	
@@ -3981,12 +3977,8 @@ v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
 	for (int ElN = 0; ElN < JsMat->Mat.GetRows(); ElN++) {
 		Result[ElN] = JsMat->Mat.At(ElN, ElN);
 	}
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result);
-	return HandleScope.Close(JsResult);
-	return HandleScope.Close(v8::Undefined());
+	return TJsFltV::New(JsMat->Js, Result);
 }
-
-
 
 ///////////////////////////////
 // QMiner-SparseVec
@@ -4063,30 +4055,30 @@ v8::Handle<v8::Value> TJsSpV::put(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSpV::sum(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
-	double result = 0.0;
+	double Result = 0.0;
 	if (JsSpV->Vec.Len() > 0) {
-		result = TLinAlg::SumVec(JsSpV->Vec);
+		Result = TLinAlg::SumVec(JsSpV->Vec);
 	}
-	return HandleScope.Close(v8::Number::New(result));
+	return HandleScope.Close(v8::Number::New(Result));
 }
 
 v8::Handle<v8::Value> TJsSpV::inner(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
-	double result = 0.0;
+	double Result = 0.0;
 	if (Args[0]->IsObject()) {
 		if (TJsSpVUtil::IsArgClass(Args, 0, "TFltV")) {
 			TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 			QmAssertR(JsSpV->Dim == -1 || JsSpV->Dim == JsVec->Vec.Len(), "sparse_vector' * vector: dimensions mismatch");
-			result = TLinAlg::DotProduct(JsVec->Vec, JsSpV->Vec);
+			Result = TLinAlg::DotProduct(JsVec->Vec, JsSpV->Vec);
 		}
 		if (TJsSpVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
 			TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
 			QmAssertR(JsSpV->Dim == -1 || JsVec->Dim == -1 || JsSpV->Dim == JsVec->Dim, "sparse_vector' * sparse_vector: dimensions mismatch");
-			result = TLinAlg::DotProduct(JsVec->Vec, JsSpV->Vec);
+			Result = TLinAlg::DotProduct(JsVec->Vec, JsSpV->Vec);
 		}
 	}
-	return HandleScope.Close(v8::Number::New(result));
+	return HandleScope.Close(v8::Number::New(Result));
 }
 
 v8::Handle<v8::Value> TJsSpV::multiply(const v8::Arguments& Args) {
@@ -4094,14 +4086,12 @@ v8::Handle<v8::Value> TJsSpV::multiply(const v8::Arguments& Args) {
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
 	if (TJsSpVUtil::IsArgFlt(Args, 0)) {		
 		double Scalar = TJsSpVUtil::GetArgFlt(Args, 0);
-		// create output object
-		v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpV->Js);
 		// get the internal glib vector
-		TIntFltKdV& Result = TJsSpV::GetSpV(JsResult);
+		TIntFltKdV Result;
 		// computation
 		Result.Gen(JsSpV->Vec.Len());
 		TLinAlg::MultiplyScalar(Scalar, JsSpV->Vec, Result);		
-		return HandleScope.Close(JsResult);
+		return TJsSpV::New(JsSpV->Js, Result);
 	}
 	return HandleScope.Close(v8::Undefined());
 }
@@ -4140,14 +4130,13 @@ v8::Handle<v8::Value> TJsSpV::print(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSpV::norm(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
-	double result = TLinAlg::Norm(JsSpV->Vec);
-	return HandleScope.Close(v8::Number::New(result));
+	double Result = TLinAlg::Norm(JsSpV->Vec);
+	return HandleScope.Close(v8::Number::New(Result));
 }
 
 v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
-	
 	int Len = JsSpV->Dim;
 	if (Args.Length() > 0) {
 		if (TJsSpVUtil::IsArgInt32(Args, 0)) {		
@@ -4159,10 +4148,8 @@ v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
 	}
 	TFltV Res;
 	TLAMisc::ToVec(JsSpV->Vec, Res, Len);		
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsSpV->Js, Res);
-	return HandleScope.Close(JsResult);	
+	return TJsFltV::New(JsSpV->Js, Res);
 }
-
 
 v8::Handle<v8::Value> TJsSpV::valVec(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -4174,8 +4161,7 @@ v8::Handle<v8::Value> TJsSpV::valVec(const v8::Arguments& Args) {
 		Res.Add(JsSpV->Vec[ElN].Dat);
 	}
 	// wrap result in JS
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsSpV->Js, Res);
-	return HandleScope.Close(JsResult);
+	return TJsFltV::New(JsSpV->Js, Res);
 }
 
 v8::Handle<v8::Value> TJsSpV::idxVec(const v8::Arguments& Args) {
@@ -4188,8 +4174,7 @@ v8::Handle<v8::Value> TJsSpV::idxVec(const v8::Arguments& Args) {
 		Res.Add(JsSpV->Vec[ElN].Key);
 	}
 	// wrap result in JS
-	v8::Persistent<v8::Object> JsResult = TJsIntV::New(JsSpV->Js, Res);
-	return HandleScope.Close(JsResult);
+	return TJsIntV::New(JsSpV->Js, Res);
 }
 
 
@@ -4233,15 +4218,15 @@ v8::Handle<v8::Value> TJsSpMat::at(const v8::Arguments& Args) {
 	TInt Rows = JsSpMat->Rows;
 	TInt Cols = JsSpMat->Mat.Len();
 	QmAssertR(Row >= 0 &&  (Row < Rows || Rows == -1) && Col >= 0 && Col < Cols, "sparse col matrix at: index out of bounds");		
-	double result = 0.0;
+	double Result = 0.0;
 	int Els = JsSpMat->Mat[Col].Len();
 	for (int ElN = 0; ElN < Els; ElN++) {
 		if (JsSpMat->Mat[Col][ElN].Key == Row) {
-			result = JsSpMat->Mat[Col][ElN].Dat;
+			Result = JsSpMat->Mat[Col][ElN].Dat;
 			break;
 		}
 	}
-	return HandleScope.Close(v8::Number::New(result));
+	return HandleScope.Close(v8::Number::New(Result));
 
 }
 
@@ -4285,8 +4270,7 @@ v8::Handle<v8::Value> TJsSpMat::indexGet(uint32_t Index, const v8::AccessorInfo&
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Info);	
 	QmAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "sp matrix index at: index out of bounds");
-	v8::Persistent<v8::Object> JsResult = TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index], JsSpMat->Rows);	
-	return HandleScope.Close(JsResult);
+	return TJsSpV::New(JsSpMat->Js, JsSpMat->Mat[Index], JsSpMat->Rows);	
 }
 
 v8::Handle<v8::Value> TJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::AccessorInfo& Info) {
@@ -4321,12 +4305,10 @@ v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
 	if (Args.Length() > 0) {
 		if (TJsSpMatUtil::IsArgFlt(Args, 0)) {
 			double Scalar = TJsSpMatUtil::GetArgFlt(Args, 0);
-			// create JS result and get the internal data				
-			v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);
-			TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+			TVec<TIntFltKdV> Result;
 			// computation			
 			TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, Result);
-			return HandleScope.Close(JsResult);			
+			return TJsSpMat::New(JsMat->Js, Result);
 		}
 		if (Args[0]->IsObject()) {
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltV")) {
@@ -4341,15 +4323,12 @@ v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
 				// Copy could be omitted if we implemented SparseColMat * TFltV
 				TLinAlg::Multiply(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result, Rows);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result.Get1DVec());
 			}
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);				
 				QmAssertR(JsMat->Mat.Len() == JsMat2->Mat.GetRows(), "sparse_col_matrix * matrix: dimensions mismatch");
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				TFltVV Result;
 				// computation
 				int Rows = JsMat->Rows;
 				if (Rows == -1) {
@@ -4357,7 +4336,7 @@ v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
 				}
 				Result.Gen(Rows, JsMat2->Mat.GetCols());
 				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result, Rows);
-				return HandleScope.Close(JsResult);
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 			
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
@@ -4374,8 +4353,7 @@ v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
 				TempSpMat[0] = JsVec->Vec;				
 				TLinAlg::Multiply(JsMat->Mat, TempSpMat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result.Get1DVec());
 			}
 
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -4392,8 +4370,7 @@ v8::Handle<v8::Value> TJsSpMat::multiply(const v8::Arguments& Args) {
 				TFltVV Result(Rows, JsMat2->Mat.Len());					
 				TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 		}
 	}	
@@ -4406,9 +4383,7 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 	if (Args.Length() > 0) {
 		if (TJsSpMatUtil::IsArgFlt(Args, 0)) {
 			double Scalar = TJsSpMatUtil::GetArgFlt(Args, 0);
-			// create JS result and get the internal data				
-			v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);
-			TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+			TVec<TIntFltKdV> Result;
 			// computation
 			int Rows = JsMat->Rows;
 			if (Rows == -1) {
@@ -4416,7 +4391,7 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 			}
 			TLinAlg::Transpose(JsMat->Mat, Result, Rows);
 			TLinAlg::MultiplyScalar(Scalar, Result, Result);
-			return HandleScope.Close(JsResult);			
+			return TJsSpMat::New(JsMat->Js, Result);
 		}
 		if (Args[0]->IsObject()) {
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltV")) {
@@ -4431,8 +4406,7 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 				// Copy could be omitted if we implemented SparseColMat * TFltV
 				TLinAlg::MultiplyT(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
-				return HandleScope.Close(JsResult);			
+				return TJsFltV::New(JsMat->Js, Result.Get1DVec());
 			}
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);				
@@ -4440,14 +4414,12 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 				if (JsMat->Rows == -1) {
 					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
 				}
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
+				TFltVV Result;
 				// computation
 				int Cols = JsMat->Mat.Len();
 				Result.Gen(Cols, JsMat2->Mat.GetCols());
 				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
-				return HandleScope.Close(JsResult);
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 			
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
@@ -4461,8 +4433,7 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 				TempSpMat[0] = JsVec->Vec;				
 				TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsMat->Js, Result.Get1DVec());
-				return HandleScope.Close(JsResult);
+				return TJsFltV::New(JsMat->Js, Result.Get1DVec());
 			}
 
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -4473,8 +4444,7 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 				TFltVV Result(Cols, JsMat2->Mat.Len());					
 				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
 				// create JS result with the Result vector	
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsMat->Js, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltVV::New(JsMat->Js, Result);
 			}
 		}
 	}	
@@ -4490,8 +4460,7 @@ v8::Handle<v8::Value> TJsSpMat::plus(const v8::Arguments& Args) {
 				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "matrix - matrix: dimensions mismatch");
 				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);				
-				TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+				TVec<TIntFltKdV> Result;
 				// computation				
 				Result.Gen(MAX(JsMat->Mat.Len(), JsMat2->Mat.Len()));
 				int Len1 = JsMat->Mat.Len();
@@ -4508,12 +4477,13 @@ v8::Handle<v8::Value> TJsSpMat::plus(const v8::Arguments& Args) {
 						Result[ColN] = JsMat->Mat[ColN];
 					}
 				}
+				int Rows = -1;
 				if (JsMat->Rows == -1 && JsMat2->Rows == -1) {
-					TJsSpMat::SetRows(JsResult, TLAMisc::GetMaxDimIdx(Result) + 1);
+					Rows = TLAMisc::GetMaxDimIdx(Result) + 1;
 				} else {
-					TJsSpMat::SetRows(JsResult, MAX(JsMat->Rows, JsMat2->Rows));
+					Rows = MAX(JsMat->Rows, JsMat2->Rows);
 				}
-				return HandleScope.Close(JsResult);
+				return TJsSpMat::New(JsMat->Js, Result, Rows);
 			}
 		}
 	}	
@@ -4528,9 +4498,7 @@ v8::Handle<v8::Value> TJsSpMat::minus(const v8::Arguments& Args) {
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {			
 				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
 				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "matrix - matrix: dimensions mismatch");
-				// create JS result and get the internal data
-				v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsMat->Js);
-				TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);
+				TVec<TIntFltKdV> Result;
 				// computation				
 				Result.Gen(MAX(JsMat->Mat.Len(), JsMat2->Mat.Len()));
 				int Len1 = JsMat->Mat.Len();
@@ -4548,12 +4516,13 @@ v8::Handle<v8::Value> TJsSpMat::minus(const v8::Arguments& Args) {
 						Result[ColN] = JsMat->Mat[ColN];
 					}
 				}
+				int Rows = -1;
 				if (JsMat->Rows == -1 && JsMat2->Rows == -1) {
-					TJsSpMat::SetRows(JsResult, TLAMisc::GetMaxDimIdx(Result) + 1);
+					Rows = TLAMisc::GetMaxDimIdx(Result) + 1;
 				} else {
-					TJsSpMat::SetRows(JsResult, MAX(JsMat->Rows, JsMat2->Rows));
+					Rows = MAX(JsMat->Rows, JsMat2->Rows);
 				}
-				return HandleScope.Close(JsResult);
+				return TJsSpMat::New(JsMat->Js, Result, Rows);
 			}
 		}
 	}	
@@ -4563,23 +4532,21 @@ v8::Handle<v8::Value> TJsSpMat::minus(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSpMat::transpose(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsResult = TJsSpMat::New(JsSpMat->Js);
-	TVec<TIntFltKdV>& Result = TJsSpMat::GetSpMat(JsResult);	
+	TVec<TIntFltKdV> Result;
 	TLinAlg::Transpose(JsSpMat->Mat, Result);
-	return HandleScope.Close(JsResult);	
+	return TJsSpMat::New(JsSpMat->Js, Result);
 }
 
 v8::Handle<v8::Value> TJsSpMat::colNorms(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);	
-	v8::Persistent<v8::Object> JsResult = TJsFltV::New(JsSpMat->Js);
-	TFltV& Result = TJsFltV::GetVec(JsResult);	
+	TFltV Result;
 	int Cols = JsSpMat->Mat.Len();
 	Result.Gen(Cols);
 	for (int ColN = 0; ColN < Cols; ColN++) {
 		Result[ColN] = TLinAlg::Norm(JsSpMat->Mat[ColN]);
 	}
-	return HandleScope.Close(JsResult);	
+	return TJsFltV::New(JsSpMat->Js, Result);
 }
 
 v8::Handle<v8::Value> TJsSpMat::normalizeCols(const v8::Arguments& Args) {
@@ -4598,8 +4565,7 @@ v8::Handle<v8::Value> TJsSpMat::full(const v8::Arguments& Args) {
 		Rows = TLAMisc::GetMaxDimIdx(JsSpMat->Mat) + 1;
 	}
 	TLinAlg::Full(JsSpMat->Mat, FullMat, Rows);	
-	v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsSpMat->Js, FullMat);
-	return HandleScope.Close(JsResult);
+	return TJsFltVV::New(JsSpMat->Js, FullMat);
 }
 
 v8::Handle<v8::Value> TJsSpMat::frob(const v8::Arguments& Args) {

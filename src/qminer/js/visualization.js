@@ -31,7 +31,6 @@ time = require("time");
 // Output: [{name : "ema", data : [[t1, v1], [t3, v3]]} , {name : "tick", data : [[t2, v2], [t4, v4]] }]
 //#- `objJson = vis.highchartsTSConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 exports.highchartsTSConverter = function (dataJson) {
-
     var result = [];
     var temp = {};
     for (key in dataJson[0]) {
@@ -41,7 +40,7 @@ exports.highchartsTSConverter = function (dataJson) {
         var obj = dataJson[objN];
         for (key in obj) {
             var tm = time.parse(obj[key].Time);
-            var longtime = 1000 * tm.timestamp + tm.milisecond;
+            var longtime = 1000 * tm.timestamp + tm.millisecond;
             temp[key].push([longtime, obj[key].Val]);
         }
     }
@@ -72,7 +71,7 @@ exports.highchartsConverter = function (fieldsJson, dataJson) {
             var longtime;
             if (key == "datetime"){
                 var tm = time.parse(obj[key]);            
-                longtime = 1000 * tm.timestamp + tm.milisecond;  
+                longtime = 1000 * tm.timestamp + tm.millisecond;  
             } else {                
                 if (keys[key]) {                    
                     keys[key].push([longtime, obj[key]]);
