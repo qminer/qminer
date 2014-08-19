@@ -2332,7 +2332,7 @@ v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v
 		const int Val = Rec.GetFieldInt(FieldId);
 		return HandleScope.Close(v8::Integer::New(Val));
     } else if (Desc.IsIntV()) {
-        TIntV IntVl Rec.GetFieldIntV(FieldId, IntV);
+        TIntV IntV; Rec.GetFieldIntV(FieldId, IntV);
         return TJsIntV::New(JsRec->Js, IntV);;
     } else if (Desc.IsUInt64()) {
 		const uint64 Val = Rec.GetFieldUInt64(FieldId);
