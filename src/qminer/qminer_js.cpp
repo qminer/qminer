@@ -3287,25 +3287,16 @@ template <>
 v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::sortPerm(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	bool Asc = true;
-	if (Args.Length() > 0) {
-		if (Args[0]->IsBoolean()) {
-			Asc = Args[0]->BooleanValue();
-		}
-	}
-
-	v8::Persistent<v8::Object> JsSortedV = TJsFltV::New(JsVec->Js);
-	TFltV& SortedV = TJsFltV::GetVec(JsSortedV);
-	v8::Persistent<v8::Object> JsPermV = TJsIntV::New(JsVec->Js);
-	TVec<int>& PermV = TJsVec<int, TAuxIntV>::GetVec(JsPermV);
-
+	bool Asc = TJsObjUtil<TJsVec>::GetArgBool(Args, 0, true);
+	// computation
+	TFltV SortedV;
+	TIntV PermV;
 	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
-
+	// set result
 	v8::Handle<v8::Object> JsObj = v8::Object::New();
-	v8::Persistent<v8::Object> JsResult = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), JsObj);
-	JsResult->Set(v8::Handle<v8::String>(v8::String::New("vec")), JsSortedV);
-	JsResult->Set(v8::Handle<v8::String>(v8::String::New("perm")), JsPermV);
-	return HandleScope.Close(JsResult);
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("vec")), TJsFltV::New(JsVec->Js, SortedV));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("perm")), TJsIntV::New(JsVec->Js, PermV));
+	return HandleScope.Close(JsObj);
 }
 
 template <>
