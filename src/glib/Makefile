@@ -15,6 +15,15 @@ MAINOBJS = base.o net.o mine.o thread.o
 #entry point
 all: libuv glib
 
+# release target turns on compiler optimizations and disables debugging asserts
+release: CXXFLAGS += -O3 -DNDEBUG
+release: libuv glib
+
+# debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
+debug: CXXFLAGS += -g
+debug: LDFLAGS += -rdynamic
+debug: libuv glib
+
 # create libuv
 libuv:
 	make -C ../third_party/libuv

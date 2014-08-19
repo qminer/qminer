@@ -19,7 +19,18 @@ INCLUDE = -I. -I$(SNAP) -I$(GLIB_BASE) -I$(GLIB_NET) -I$(GLIB_MINE) -I$(GLIB_MIS
 MAINOBJS = qminer_core.o qminer_ftr.o qminer_aggr.o qminer_op.o \
 	qminer_gs.o qminer_js.o qminer_srv.o qminer_snap.o main.o
 
-all: $(MAINOBJS)
+all: release
+
+# release target turns on compiler optimizations and disables debugging asserts
+release: CXXFLAGS += -O3 -DNDEBUG
+release: $(MAINOBJS)
+
+
+# debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
+debug: CXXFLAGS += -g
+debug: LDFLAGS += -rdynamic
+debug: $(MAINOBJS)
+
 
 %.o: %.cpp
 	$(CC) -c $(CXXFLAGS) $< $(INCLUDE) $(LIBS)
