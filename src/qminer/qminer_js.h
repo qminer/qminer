@@ -1206,6 +1206,12 @@ public:
 	JsDeclareFunction(saveJson);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
+	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+	JsDeclareFunction(getInt);
+	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+	JsDeclareFunction(getFlt);
+	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+	JsDeclareFunction(getTm);
 };
 
 ///////////////////////////////

@@ -1541,6 +1541,9 @@ v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
 		JsRegisterFunction(TmpTemp, onDelete);
 		JsRegisterFunction(TmpTemp, saveJson);
 		JsRegisterProperty(TmpTemp, val);
+		JsRegisterFunction(TmpTemp, getInt);
+		JsRegisterFunction(TmpTemp, getFlt);
+		JsRegisterFunction(TmpTemp, getTm);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1594,6 +1597,39 @@ v8::Handle<v8::Value> TJsSA::val(v8::Local<v8::String> Properties, const v8::Acc
 	PJsonVal Json = JsSA->SA->SaveJson(-1);
 	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
 	return HandleScope.Close(V8Json);
+}
+
+v8::Handle<v8::Value> TJsSA::getInt(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);	
+	// try to cast as IInt
+	TWPt<TStreamAggrOut::IInt> Aggr = dynamic_cast<TStreamAggrOut::IInt*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getInt : stream aggregate does not implement IInt: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetInt()));
+}
+
+v8::Handle<v8::Value> TJsSA::getFlt(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFlt
+	TWPt<TStreamAggrOut::IFlt> Aggr = dynamic_cast<TStreamAggrOut::IFlt*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getFlt : stream aggregate does not implement IFlt: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetFlt()));
+}
+
+v8::Handle<v8::Value> TJsSA::getTm(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as ITm
+	TWPt<TStreamAggrOut::ITm> Aggr = dynamic_cast<TStreamAggrOut::ITm*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetTmMSecs()));
 }
 
 ///////////////////////////////
