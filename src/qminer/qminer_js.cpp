@@ -3006,8 +3006,7 @@ v8::Handle<v8::Value> TJsLinAlg::newVec(const v8::Arguments& Args) {
 			}
 		}
 	}
-	v8::Persistent<v8::Object> JsVec = TJsFltV::New(JsLinAlg->Js, Vec);
-	return HandleScope.Close(JsVec);	
+	return TJsFltV::New(JsLinAlg->Js, Vec);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
@@ -3043,15 +3042,13 @@ v8::Handle<v8::Value> TJsLinAlg::newIntVec(const v8::Arguments& Args) {
 			}
 		}
 	}
-	v8::Persistent<v8::Object> JsVec = TJsIntV::New(JsLinAlg->Js, Vec);
-	return HandleScope.Close(JsVec);
+	return TJsIntV::New(JsLinAlg->Js, Vec);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);	
 	TFltVV Mat;
-
 	if (Args[0]->IsArray()) {
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		int Rows = Array->Length();		
@@ -3098,9 +3095,7 @@ v8::Handle<v8::Value> TJsLinAlg::newMat(const v8::Arguments& Args) {
 			}
 		}
 	}
-
-	v8::Persistent<v8::Object> JsMat = TJsFltVV::New(JsLinAlg->Js, Mat);
-	return HandleScope.Close(JsMat);
+	return TJsFltVV::New(JsLinAlg->Js, Mat);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
@@ -3131,8 +3126,7 @@ v8::Handle<v8::Value> TJsLinAlg::newSpVec(const v8::Arguments& Args) {
 			Dim = TJsLinAlgUtil::GetArgInt32(Args, 0, "dim", -1);
 		}
 	}
-	v8::Persistent<v8::Object> JsSpVec = TJsSpV::New(JsLinAlg->Js, Vec, Dim);
-	return HandleScope.Close(JsSpVec);
+	return TJsSpV::New(JsLinAlg->Js, Vec, Dim);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
@@ -3190,24 +3184,17 @@ v8::Handle<v8::Value> TJsLinAlg::newSpMat(const v8::Arguments& Args) {
 			throw TQmExcept::New("JsSpMat: constructor for these arguments is not implemented");
 		}
 	}
-
-	v8::Persistent<v8::Object> JsSpMat = TJsSpMat::New(JsLinAlg->Js, Mat, Rows);
-	return HandleScope.Close(JsSpMat);	
+	return TJsSpMat::New(JsLinAlg->Js, Mat, Rows);
 }
 
 v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
 	
-	v8::Persistent<v8::Object> JsU = TJsFltVV::New(JsLinAlg->Js);
-	TFltVV& U = TJsFltVV::GetFltVV(JsU);
-	v8::Persistent<v8::Object> JsV = TJsFltVV::New(JsLinAlg->Js);
-	TFltVV& V = TJsFltVV::GetFltVV(JsV);
-	v8::Persistent<v8::Object> Jss = TJsFltV::New(JsLinAlg->Js);
-	TFltV& s = TJsFltV::GetVec(Jss);
-
+	TFltVV U;
+	TFltVV V;
+	TFltV s;
 	v8::Handle<v8::Object> JsObj = v8::Object::New();
-	v8::Persistent<v8::Object> JsResult = v8::Persistent<v8::Object>::New(v8::Isolate::GetCurrent(), JsObj);
 	
 	if (Args.Length() > 1) {
 		int Iters = 2;
@@ -3223,11 +3210,7 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 				// get argument matrix
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
 				TFullMatrix Mat2(JsMat2->Mat);
-				TLinAlg::ComputeThinSVD(Mat2, k, U, s, V, Iters, Tol);		
-				JsResult->Set(v8::Handle<v8::String>(v8::String::New("U")), JsU);
-				JsResult->Set(v8::Handle<v8::String>(v8::String::New("V")), JsV);
-				JsResult->Set(v8::Handle<v8::String>(v8::String::New("s")), Jss);
-				return HandleScope.Close(JsResult);
+				TLinAlg::ComputeThinSVD(Mat2, k, U, s, V, Iters, Tol);
 			}
 			if (TJsLinAlgUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
 				// get argument matrix
@@ -3238,12 +3221,12 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 				} else {
 					TSparseColMatrix Mat2(JsMat2->Mat);
 					TLinAlg::ComputeThinSVD(Mat2, k, U, s, V, Iters, Tol);					
-				}
-				JsResult->Set(v8::Handle<v8::String>(v8::String::New("U")), JsU);
-				JsResult->Set(v8::Handle<v8::String>(v8::String::New("V")), JsV);
-				JsResult->Set(v8::Handle<v8::String>(v8::String::New("s")), Jss);
-				return HandleScope.Close(JsResult);
+				}				
 			}
+			JsObj->Set(v8::Handle<v8::String>(v8::String::New("U")), TJsFltVV::New(JsLinAlg->Js, U));
+			JsObj->Set(v8::Handle<v8::String>(v8::String::New("V")), TJsFltVV::New(JsLinAlg->Js, V));
+			JsObj->Set(v8::Handle<v8::String>(v8::String::New("s")), TJsFltV::New(JsLinAlg->Js, s));
+			return HandleScope.Close(JsObj);
 		}
 	}
 	return HandleScope.Close(v8::Undefined());
@@ -3309,13 +3292,11 @@ v8::Handle<v8::Value> TJsVec<TFlt, TAuxFltV>::outer(const v8::Arguments& Args) {
 				// get argument vector
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
 				QmAssertR(JsFltV->Vec.Len() > 0 && JsVec->Vec.Len(), "vectors must have nonzero length");
-				// create JS result and get the internal data				
-				v8::Persistent<v8::Object> JsResult = TJsFltVV::New(JsFltV->Js);
-				TFltVV& Result = TJsFltVV::GetFltVV(JsResult);
 				// computation
+				TFltVV Result;
 				Result.Gen(JsFltV->Vec.Len(), JsVec->Vec.Len());
 				TLinAlg::OuterProduct(JsFltV->Vec, JsVec->Vec, Result);
-				return HandleScope.Close(JsResult);			
+				return TJsFltVV::New(JsFltV->Js, Result);
 			}
 		}
 	}
