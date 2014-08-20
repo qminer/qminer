@@ -2790,47 +2790,6 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
-/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
-_tm.dayOfWeek = _str;
-
-/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
-_tm.millisecond = _num;
-
-_tm.sub = function () {
-	/// <signature>
-	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_unit" value="_unit">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-_tm.toJSON = function () {
-	/// <signature>
-	/// <summary> returns json representation of time</summary>
-	/// <returns value ="_tmJSON"/>
-	/// </signature>
-};
-
-/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
-_tm.string = _str;
-
-/// <field name = "hour" value = "_num"> hour (number)</field>
-_tm.hour = _num;
-
-/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
-_tm.timestamp = _num;
-
-_tm.clone = function () {
-	/// <signature>
-	/// <summary> clones `tm` to `tm2`</summary>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "year" value = "_num"> year (number)</field>
-_tm.year = _num;
-
 /// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 _tm.nowUTC = _tm;
 
@@ -2848,6 +2807,34 @@ _tm.parse = function () {
 	/// </signature>
 };
 
+/// <field name = "second" value = "_num"> second (number)</field>
+_tm.second = _num;
+
+/// <field name = "year" value = "_num"> year (number)</field>
+_tm.year = _num;
+
+_tm.toJSON = function () {
+	/// <signature>
+	/// <summary> returns json representation of time</summary>
+	/// <returns value ="_tmJSON"/>
+	/// </signature>
+};
+
+/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
+_tm.millisecond = _num;
+
+_tm.sub = function () {
+	/// <signature>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "windowsTimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
+_tm.windowsTimestamp = _num;
+
 _tm.add = function () {
 	/// <signature>
 	/// <summary> adds `val` to the time and returns self; `unit` defines the unit</summary>
@@ -2857,11 +2844,24 @@ _tm.add = function () {
 	/// </signature>
 };
 
-/// <field name = "second" value = "_num"> second (number)</field>
-_tm.second = _num;
+/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
+_tm.dayOfWeekNum = _num;
 
-/// <field name = "windowstimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
-_tm.windowstimestamp = _num;
+/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
+_tm.dayOfWeek = _str;
+
+/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
+_tm.string = _str;
+
+/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
+_tm.timestamp = _num;
+
+_tm.clone = function () {
+	/// <signature>
+	/// <summary> clones `tm` to `tm2`</summary>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
 
 /// <field name = "now" value = "_tm"> returns new time object representing current local time</field>
 _tm.now = _tm;
@@ -2872,8 +2872,24 @@ _tm.day = _num;
 /// <field name = "minute" value = "_num"> minute (number)</field>
 _tm.minute = _num;
 
-/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
-_tm.dayOfWeekNum = _num;
+_tm.fromUnixTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a UNIX timestamp (seconds since 1970).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "hour" value = "_num"> hour (number)</field>
+_tm.hour = _num;
+
+_tm.fromWindowsTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a windows timestamp (milliseconds since 1601).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
 
 _htModel.process = function () {
 	/// <signature>

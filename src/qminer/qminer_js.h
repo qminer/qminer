@@ -2402,25 +2402,21 @@ public:
     JsDeclareFunction(newFeatureSpace);
     //#- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
-    JsDeclareFunction(loadFeatureSpace);
-    
+    JsDeclareFunction(loadFeatureSpace);    
     //#- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
-    //#     classification model using columns from `mat` as training data and vector
-    //#     `vec` as target variable (must be of values either 1 or -1); optional
-    //#     training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
-    //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
-    //#     examples with (default is 1.0)); result is a linear model
+    //#     classification model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector
+    //#     `vec` represents the training targets (must be of values either 1 or -1); optional
+    //#     training parameters with their default values are a JSON object: `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+    //#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 	JsDeclareFunction(trainSvmClassify);
     //#- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
-    //#     regression model using columns from `mat` as training data and vector `vec` as 
-    //#     target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
-    //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
-    //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
+    //#     regression model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector `vec` represents the training targets;
+    //#     optional training parameters with their default values are a JSON object: `svmRegParameters = {c : 1.0, eps : 1.0, batchSize : 10000, maxIterations : 10000, maxTime : 600, minDiff : 1e-6, varbose : false}`.
+	//#     The parameter `c` is the SVM cost parameter, `eps` controls the epsilon-insensitive L1 loss, `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model.
     JsDeclareFunction(trainSvmRegression);
     //#- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     //#     from `fin` stream
-	JsDeclareFunction(loadSvmModel);
-    
+	JsDeclareFunction(loadSvmModel);    
     //#- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
     //#     model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
     //#     ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
@@ -3184,10 +3180,14 @@ public:
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.fromWindowsTimestamp(num)` -- constructs date time from a windows timestamp (milliseconds since 1601).
+	JsDeclareFunction(fromWindowsTimestamp);
+	//#- `tm2 = tm.fromUnixTimestamp(num)` -- constructs date time from a UNIX timestamp (seconds since 1970).
+	JsDeclareFunction(fromUnixTimestamp);
 	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
 	JsDeclareFunction(clone);
-	//#- `num = tm.windowstimestamp` -- returns windows system time in milliseconds from 1/1/1601
-	JsDeclareProperty(windowstimestamp);
+	//#- `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
+	JsDeclareProperty(windowsTimestamp);
 };
 //#
 //# ## Other libraries

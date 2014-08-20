@@ -6425,8 +6425,10 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 		JsRegisterFunction(TmpTemp, sub);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, parse);
+		JsRegisterFunction(TmpTemp, fromWindowsTimestamp);
+		JsRegisterFunction(TmpTemp, fromUnixTimestamp);
 		JsRegisterFunction(TmpTemp, clone);
-		JsRegisterProperty(TmpTemp, windowstimestamp);
+		JsRegisterProperty(TmpTemp, windowsTimestamp);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6580,7 +6582,25 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
     // prepare response object
     TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
     // return constructed json
-    return HandleScope.Close(TJsTm::New(Tm));
+	return TJsTm::New(Tm);
+}
+
+v8::Handle<v8::Value> TJsTm::fromWindowsTimestamp(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read timestamp
+	uint64 Timestamp = (uint64)TJsTmUtil::GetArgFlt(Args, 0);
+	// prepare response object
+	TTm Tm = TTm::GetTmFromMSecs(Timestamp);
+	return TJsTm::New(Tm);
+}
+
+v8::Handle<v8::Value> TJsTm::fromUnixTimestamp(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read timestamp
+	uint Timestamp = (uint)TJsTmUtil::GetArgInt32(Args, 0);
+	// prepare response object
+	TTm Tm = TTm::GetTmFromDateTimeInt(Timestamp);
+	return TJsTm::New(Tm);
 }
 
 v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
@@ -6590,7 +6610,7 @@ v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsTm::New(JsTm->Tm));
 }
 
-v8::Handle<v8::Value> TJsTm::windowstimestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+v8::Handle<v8::Value> TJsTm::windowsTimestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope; 
 	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Number::New((double)TTm::GetMSecsFromTm(JsTm->Tm)));
