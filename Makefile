@@ -42,20 +42,22 @@ all: release
 
 # release target turns on compiler optimizations and disables debugging asserts
 release: CXXFLAGS += -O3 -DNDEBUG
+release: TARGET=release
 release: qm
 
 # debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
 debug: CXXFLAGS += -g
 debug: LDFLAGS += -rdynamic
+debug: TARGET=debug
 debug: qm
 
 qm:
 	# compile glib
-	make -C $(GLIB)
+	make -C $(GLIB) $(TARGET)
 	# compile SNAP
 	make -C $(SNAP)	
 	# compile qminer
-	make -C $(QMINER)
+	make -C $(QMINER) $(TARGET)
 	# create qm commandline tool
 	$(CC) -o qm $(QMOBJS) $(MAINOBJ) $(STATIC_LIBS) $(CXXFLAGS) $(LDFLAGS) $(LIBS) 
 	# create qminer static library
