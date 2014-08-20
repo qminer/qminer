@@ -969,6 +969,7 @@ class TJsStreamAggr :
 	//public TStreamAggrOut::ITm,
 	public TStreamAggrOut::IFltTmIO,
 	public TStreamAggrOut::IFltVec,
+	public TStreamAggrOut::ITmVec,
 	public TStreamAggrOut::INmFlt,
 	public TStreamAggrOut::INmInt,
 	// combinations
@@ -999,6 +1000,10 @@ private:
 	v8::Persistent<v8::Function> GetFltLenFun;
 	v8::Persistent<v8::Function> GetFltAtFun;
 	v8::Persistent<v8::Function> GetFltVFun;
+	// ITmVec
+	v8::Persistent<v8::Function> GetTmLenFun;
+	v8::Persistent<v8::Function> GetTmAtFun;
+	v8::Persistent<v8::Function> GetTmVFun;
 	// INmFlt 
 	v8::Persistent<v8::Function> IsNmFltFun;
 	v8::Persistent<v8::Function> GetNmFltFun;
@@ -1034,6 +1039,10 @@ public:
 	int GetFltLen() const;
 	double GetFlt(const TInt& ElN) const; // GetFltAtFun
 	void GetFltV(TFltV& ValV) const;
+	// ITmVec
+	int GetTmLen() const;
+	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+	void GetTmV(TUInt64V& TmMSecsV) const;
 	// INmFlt 
 	bool IsNmFlt(const TStr& Nm) const;
 	double GetNmFlt(const TStr& Nm) const;
@@ -1206,18 +1215,40 @@ public:
 	JsDeclareFunction(saveJson);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
+	// IInt
 	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 	JsDeclareFunction(getInt);
+	// IFlt
 	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
 	JsDeclareFunction(getFlt);
+	// ITm
 	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	JsDeclareFunction(getTm);
+	// IFltVec
 	//#- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltLen);
 	//#- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltAt);
 	//#- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltV);
+	// ITmVec
+	//#- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmLen);
+	//#- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmAt);
+	//#- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmV);
+	// IFltTmIO
+	//#- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInFlt);
+	//#- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInTm);
+	//#- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutFltV);
+	//#- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutTmV);
+	//#- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getN);
 
 };
 

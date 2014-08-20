@@ -765,6 +765,22 @@ void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
 	AllValV.Save(SOut);
 }
 
+void TTimeSeriesWinBuf::GetFltV(TFltV& ValV) const {
+	int Len = GetN();
+	ValV.Gen(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		ValV[ElN] = AllValV[ElN].Val1;
+	}
+}
+
+void TTimeSeriesWinBuf::GetTmV(TUInt64V& MSecsV) const {
+	int Len = GetN();
+	MSecsV.Gen(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		MSecsV[ElN] = AllValV[ElN].Val2;
+	}
+}
+
 PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
 	Val->AddToObj("Val", InVal);

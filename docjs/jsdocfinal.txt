@@ -138,6 +138,20 @@ Stream aggregates are objects used for processing data streams - their main func
 - `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 - `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 - `objJSON = sa.val` -- same as sa.saveJson(-1)
+- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
+- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
+- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
+- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
 
 ### Store
 
