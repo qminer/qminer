@@ -26,7 +26,7 @@ console.start = function () {
         try {
             console.log("" + eval(ead1042dc6554fcc8d47d1070268184f));
         } catch (err) {
-            console.log("Error: " + err.message);
+            console.log("Error: " + err);
         }
     }
 }

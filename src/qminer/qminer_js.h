@@ -1206,6 +1206,19 @@ public:
 	JsDeclareFunction(saveJson);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
+	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+	JsDeclareFunction(getInt);
+	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+	JsDeclareFunction(getFlt);
+	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+	JsDeclareFunction(getTm);
+	//#- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltLen);
+	//#- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltAt);
+	//#- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltV);
+
 };
 
 ///////////////////////////////
@@ -1874,8 +1887,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
 			for (int ElN = 0; ElN < Len; ElN++) {
 				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
 			}
-			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
-			return HandleScope.Close(JsRes);
+			return TJsVec<TVal, TAux>::New(JsVec->Js, Res);
 		}
 		else if (Args[0]->IsArray()) {
 			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
@@ -1887,8 +1899,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
 			for (int ElN = 0; ElN < Len; ElN++) {
 				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
 			}
-			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
-			return HandleScope.Close(JsRes);
+			return TJsVec<TVal, TAux>::New(JsVec->Js, Res);
 		}		
 	}
 	return HandleScope.Close(v8::Undefined());
@@ -1944,7 +1955,6 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);
-
 	JsVec->Vec.Ins(0, Val);
 	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
@@ -1988,8 +1998,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::sort(const v8::Arguments& Args) {
 	bool Asc = TJsObjUtil<TJsVec>::GetArgBool(Args, 0 , true);
 	TVec<TVal> Result = JsVec->Vec;
 	Result.Sort(Asc);
-	v8::Persistent<v8::Object> JsResult = TJsVec<TVal, TAux>::New(JsVec->Js, Result);
-	return HandleScope.Close(JsResult);
+	return TJsVec<TVal, TAux>::New(JsVec->Js, Result);
 }
 
 template <class TVal, class TAux>
@@ -3239,7 +3248,7 @@ public:
 
 	TStr GetNm() const { return Name; }
 	int GetDim() const { return Dim; }
-	TStr GetFtr(const int& FtrN) const { return GetNm(); }
+	TStr GetFtr(const int& FtrN) const { return TStr::Fmt("%s[%d]", GetNm().CStr(), FtrN) ; }
 
 	void Clr() { };
 	bool Update(const TRec& Rec) { return false; }
