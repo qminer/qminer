@@ -319,46 +319,7 @@ namespace THoeffding {
          OutVal = SplitVal;
          return MxSDR;
       }
-      double ComputeSDR() const {
-         const double TotalSumSq = TotalSumSqLeft+TotalSumSqRight;
-         EAssertR(TMath::Sqr(TotalSumSq - Root->SumSqLeft - Root->SumSqRight) < 1e-6,
-            "Sums of squares dont match");
-         const double TotalSum = TotalSumLeft+TotalSumRight;
-         EAssertR(TMath::Sqr(TotalSum - Root->SumLeft - Root->SumRight) < 1e-6,
-            "Sums dont match");
-         const int TotalCount = TotalCountLeft+TotalCountRight;
-         EAssertR(TMath::Sqr(TotalCount - Root->CountLeft - Root->CountRight) < 1e-6,
-            "Counts dont match");
-         
-         // This is not unbiased estimator 
-         if (TotalCount == 0) {
-            return 0.0;
-         }
-         const double V = (TotalSumSq-TMath::Sqr(TotalSum)/TotalCount)/TotalCount;
-         EAssertR(V >= -1e-5, "V < -1e-5");
-         const double SD = V > 0 ? TMath::Sqrt(V) : 0.0;
-         
-         double LeftV = 0.0;
-         if (TotalCountLeft > 0) {
-            LeftV = (TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft;
-         }
-         EAssertR(LeftV >= -1e-5, "LeftV < -1e-5");
-         const double LeftSD = LeftV > 0.0 ? TMath::Sqrt(LeftV) : 0.0;
-         
-         double RightV = 0.0;
-         if (TotalCountRight > 0) {
-            RightV = (TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight;
-         }
-         EAssertR(RightV >= -1e-5, "RightV < -1e-5");
-         const double RightSD = RightV > 0.0 ? TMath::Sqrt(RightV) : 0.0;
-         
-         double SDR = SD;
-         if (TotalCount > 0) {
-            SDR = SD - TotalCountLeft*LeftSD/TotalCount - TotalCountRight*RightSD/TotalCount;
-         }
-         EAssertR(SDR >= -1e-6, "SDR < 0");
-         return SDR;
-      }
+      double ComputeSDR() const; 
       void Insert(const double& Key, const double& Val);
    private:
       void Reset();
