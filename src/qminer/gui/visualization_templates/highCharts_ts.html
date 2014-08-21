@@ -3,7 +3,6 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Highcharts Example</title>
-
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <style type="text/css">
         $ {
@@ -12,18 +11,14 @@
     </style>
     <script type="text/javascript">        
             $(function () {
-                $('#container').highcharts($PARAMS$);
+                $('#container').highcharts({{{params}}});
             });
-
     </script>
 </head>
 <body>
     <script type="text/javascript">
-        $LIBS$
-    </script>   
-
-    
+        {{{libs}}}
+    </script>    
     <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
-
 </body>
 </html>

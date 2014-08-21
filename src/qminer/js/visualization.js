@@ -23,8 +23,9 @@
 //# **Functions and properties:**
 //#
 
-override = require('json-override.js')
+override = require('json-override.js');
 time = require("time");
+mustache = require('mustache.js');
 
 // array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]
@@ -123,28 +124,38 @@ exports.highchartsParams = function () {
     }
 }
 
+// given an array of strings representing absolute file paths, the function reads all files, concatenates them and returns the string
+function glueFileContents(strArr) {
+    var res = "";
+    for (var elN = 0; elN < strArr.length; elN++) {
+        res += fs.openRead(strArr[elN]).readAll();        
+    }
+    return res;
+}
 
 //#- `vis.drawHighChartsTimeSeries(data, fileName, paramsJson)` -- copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided
 exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
-    var params = exports.highchartsParams();    
+    // setup highcharts plot parameters
+    var params = exports.highchartsParams();
     if (typeof overrideParams != 'undefined') {
         params = override(params, overrideParams, false);
     }
     printj(params)
     params.series = data;
+    // read template html. The tempalte contains {{libs}} and {{params}} placeholders
+    var template = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts.html").readAll();
+    // data, plot parameters and libraries to be filled in the template
     
-    var lib1 = fs.openRead(process.qminer_home + "gui/js/Highcharts/js/highcharts.js").readAll();
-    var libs = lib1 + '\n' +  fs.openRead(process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js").readAll();
-
-    // read the correct template file
-    var reader = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts.html");
-    var writer = fs.openWrite(fnm);
-    // replace data
-    while (!reader.eof) {
-        var line = reader.readLine();
-        line = line.replace("$PARAMS$", JSON.stringify(params));
-        line = line.replace("$LIBS$", libs);
-        writer.writeLine(line);
+    var libPathArray = [
+        process.qminer_home + "gui/js/Highcharts/js/highcharts.js", 
+        process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js"
+    ];
+    var view = {
+        libs: glueFileContents(libPathArray),
+        params: JSON.stringify(params)
     }
-    writer.close();
+    // fill template
+    var output = mustache.render(template, view);
+    // write to file
+    fs.openWrite(fnm).write(output).close();
 }
