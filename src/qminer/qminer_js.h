@@ -1315,11 +1315,9 @@ public:
     //# });
     //# 
     //# // iterating over records
-    //# var rs = qm.store("People");
-    //# for (var i = 0; i < rs.length; i++) {
-    //#   var rec = rs[i];
+    //# qm.store("People").each(function (rec) {
     //#   console.log(rec.Name + " (" + rec.Gender + ")");
-    //# }
+    //# });
     //# ```    
 };
     
