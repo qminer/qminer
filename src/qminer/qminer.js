@@ -73,10 +73,10 @@ qm.printStreamAggr = function (store) {
     }    
 	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
 	for (var saggrN = 0; saggrN < names.length; saggrN++) {
-		var saggr = onStore ? store.getStreamAggr(names[saggrN]).val : qm.getStreamAggr(names[saggrN]).val
+	    var saggr = onStore ? store.getStreamAggr(names[saggrN]).val : qm.getStreamAggr(names[saggrN]).val
 		var keys = Object.keys(saggr);
 		for (var keyN = 0; keyN < keys.length; keyN++) {
-			console.print(onStore ? store.name : "default_SA_Base" + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
+			console.print((onStore ? store.name : "default_SA_Base") + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
 		}
 	}
 }
