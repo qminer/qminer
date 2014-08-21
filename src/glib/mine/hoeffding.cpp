@@ -1161,8 +1161,8 @@ namespace THoeffding {
       return Predict(TExample::New(AttributesV, 0.0));
    }
    // Regression
-   double THoeffdingTree::Predict(PExample Example) const {
-      PNode CrrNode = Root;
+   double THoeffdingTree::Predict(PNode Node, PExample Example) const {
+      PNode CrrNode = Node;
       while (CrrNode->CndAttrIdx != -1) {
          const TAttrType AttrType = AttrManV.GetVal(CrrNode->CndAttrIdx).Type;
          EAssertR(AttrType == atDISCRETE || AttrType == atCONTINUOUS,
@@ -1191,6 +1191,9 @@ namespace THoeffding {
          EFailR("Unkown model. Choose rlMEAN or rlLINEAR.");
       }
       return Pred;
+   }
+   double THoeffdingTree::Predict(PExample Example) const {
+      return Predict(Root, Example);
    }
    TStr THoeffdingTree::Classify(PNode Node, PExample Example) const {
       PNode CrrNode = Node;
@@ -1781,51 +1784,76 @@ namespace THoeffding {
    // best-performing original one) periodically, every PhPeriod
    // examples. Swap the trees if the statistics Q(original, alernate)>0,
    // meaning the original tree has higher error than the alternate one.
+   // Notes:
+   // (*) Backpropagate error over the branches of the main tree 
+   // (*) Update error at roots of the alternate trees -- not other nodes 
    double THoeffdingTree::ProcessReg(PExample Example) {
       PNode CrrNode = Root;
       double Pred = 0.0; 
       // Use Page-Hinkley test to detect concept drift 
       if (ConceptDriftP) {
-         // TODO: Separate function for handling concept-drift? 
-         // TODO: Currently, alternate trees cannot grow alternate trees 
-         TSStack<PNode> NodeS; // Branch that the example traversed 
+         // Backpropagate the error 
+         // TODO: Update errors for roots of alternate trees 
+         
+         TSStack<PNode> TraverseS;
+         TraverseS.Push(CrrNode);
          while (!IsLeaf(CrrNode)) {
-            NodeS.Push(CrrNode);
-            CrrNode = GetNextNode(CrrNode, Example);
-            //for (auto It = CrrNode->AltTreesV.BegI();
-            //   It != CrrNode->AltTreesV.EndI(); ++It) {
-            //   TraverseS.Push(*It);
-            //}
-         }
-         Pred = ProcessLeafReg(CrrNode, Example);
-         const double TmpErr = abs(Pred - Example->Value);
-         NodeS.Push(CrrNode);
-         while (!NodeS.Empty()) {
-            CrrNode = NodeS.Top(); NodeS.Pop();
-            ++CrrNode->All; // Number of examples that passed through the node 
-            // Update the mean error [Knuth, TAOCP, Vol. 2, p. 232] 
-            const double CrrErr = CrrNode->PhAvgErr;
-            CrrNode->PhAvgErr = CrrErr + (TmpErr-CrrErr)/CrrNode->All;
-            // Update cumulative sum 
-            CrrNode->PhCumSum +=
-               (TmpErr - CrrNode->PhAvgErr - CrrNode->PhAlpha);
-            // PhMnErr = -1.0 means the error is not yet set 
-            if (CrrNode->PhMnErr < 0.0 || CrrNode->All < PhInitN) {
-               CrrNode->PhMnErr = CrrNode->PhCumSum;
+            for (auto It = CrrNode->AltTreesV.BegI();
+               It != CrrNode->AltTreesV.EndI(); ++It) {
+               Pred = LeafUpdatePh(*It, Example);
+               if (!IsLeaf(*It)) {
+                  UpdatePhStats(*It, Example->Value, Pred);
+               }
             }
-            CrrNode->PhMnErr = TMath::Mn(CrrNode->PhMnErr, CrrNode->PhCumSum);
+            CrrNode = GetNextNode(CrrNode, Example);
+            TraverseS.Push(CrrNode);
+         }
+         
+         EAssertR(CrrNode() == TraverseS.Top()(), "Oops: Top not leaf");
+         TraverseS.Pop(); // So we don't increment leaf counts twice 
+         Pred = ProcessLeafReg(CrrNode, Example);
+         while (!TraverseS.Empty()) {
+            CrrNode = TraverseS.Top(); TraverseS.Pop();
+            
+            UpdatePhStats(CrrNode, Example->Value, Pred);
+            
+            
+            // Print('-');
+            EAssertR(!IsLeaf(CrrNode), "Leaf node not on top of the stack");
+            // printf("PH(%s) = %d\n",
+            //   AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr(),
+            //   PhTriggered(CrrNode));
+            
+            
             // Check whether m(T)-M(T)>Lambda
-            if (!IsLeaf(CrrNode) &&
-               CrrNode->PhCumSum - CrrNode->PhMnErr > CrrNode->PhLambda &&
-               CrrNode->All >= PhInitN) {
-               // XXX: Start growing an alternate tree 
-               // This means we have to create a root for the alternate tree,
-               // split the new root on the currently best attribute, and
-               // monitor the error. 
-               // EFailR("Implementation in progress.");
-               {
+            if (PhTriggered(CrrNode)) {
+               if (CrrNode->All % 100 == 0 &&
+                  !CrrNode->AltTreesV.Empty()) {
+                  // Evaluate Q-statistic and see whether it makes
+                  // sense to swap 
+                  // (1) Find the best-pefroming alternate tree
+                  PNode BestNode = CrrNode->AltTreesV.Last();
+                  for (auto It = CrrNode->AltTreesV.BegI();
+                     It != CrrNode->AltTreesV.EndI(); ++It) {
+                     if ((*It)->PhAvgErr < BestNode->PhAvgErr &&
+                        (*It)->All >= PhInitN) {
+                        BestNode = *It;
+                     }
+                  }
+                  // (2) Compute log(S_orig/S_alt) and swap if necessary 
+                  if (BestNode->PhAvgErr > 0.0 &&
+                     TMath::Log(CrrNode->PhAvgErr/BestNode->PhAvgErr) > 0.0) {
+                     // printf("Swapped!\n");
+                     CrrNode = BestNode;
+                     BestNode->AltTreesV.Clr();
+                  }
+               } else {
                   TBstAttr BstAttr =
                      CrrNode->BestRegAttr(AttrManV, AttrDiscretization);
+                  // printf("Best attribute=%s\n",
+                  //   AttrManV.GetVal(BstAttr.Val1.Val1).Nm.CStr());
+                  // TAttrType BestType =
+                  //   AttrManV.GetVal(BstAttr.Val1.Val1).Type;
                   if (BstAttr.Val1.Val1 != CrrNode->CndAttrIdx &&
                      !IsAltSplitIdx(CrrNode, BstAttr.Val1.Val1)) {
                      const int LabelsN =
@@ -1835,8 +1863,8 @@ namespace THoeffding {
                         AttrManV.GetVal(BstAttr.Val1.Val1).Nm.CStr(),
                         AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr());
                      
-                     PNode AltHt = TNode::New(LabelsN, CrrNode->UsedAttrs, AttrManV,
-                        IdGen->GetNextLeafId());
+                     PNode AltHt = TNode::New(LabelsN,
+                        CrrNode->UsedAttrs, AttrManV, IdGen->GetNextLeafId());
                      
                      // Set parameters for the Page-Hinkley test 
                      AltHt->SetPhAlpha(PhAlpha);
@@ -1845,16 +1873,9 @@ namespace THoeffding {
                      AltHt->Split(BstAttr.Val1.Val1, AttrManV, IdGen);
                      
                      CrrNode->AltTreesV.Add(AltHt);
-                     
                      ++AltTreesN;
                   }
                }
-               
-               // printf("[DEBUG] Page-Hinkley test: Alarm.\n");
-               // printf("PhCumSum=%f\n", CrrNode->PhCumSum);
-               // printf("PhMnErr=%f\n", CrrNode->PhMnErr);
-               // printf("PhLambda=%f\n", CrrNode->PhLambda);
-               // getchar();
             }
          }
       } else { // No concept drift detection -- life is much simpler here 
@@ -2116,6 +2137,37 @@ namespace THoeffding {
          }
       }
       return NodesN;
+   }
+   void THoeffdingTree::UpdatePhStats(PNode Node, PExample Example) const {
+      const double& Val = Example->Value;
+      const double& Pred = Predict(Node, Example);
+      UpdatePhStats(Node, Val, Pred);
+   }
+   void THoeffdingTree::UpdatePhStats(PNode Node, const double& Val,
+      const double& Pred) const {
+      ++Node->All; // Number of examples that passed through the node 
+      // Update the mean error [Knuth, TAOCP, Vol. 2, p. 232] 
+      const double TmpErr = abs(Val-Pred);
+      const double CrrErr = Node->PhAvgErr;
+      Node->PhAvgErr = CrrErr + (TmpErr-CrrErr)/Node->All;
+      // Update cumulative sum 
+      Node->PhCumSum +=
+         (TmpErr - Node->PhAvgErr - Node->PhAlpha);
+      // PhMnErr = -1.0 means the error is not yet set 
+      // Wait for PhInitN examples, so statistics "stabilizes" 
+      if (Node->PhMnErr < 0.0 || Node->All < PhInitN) {
+         Node->PhMnErr = Node->PhCumSum;
+      }
+      Node->PhMnErr = TMath::Mn(Node->PhMnErr, Node->PhCumSum);
+   }
+   bool THoeffdingTree::PhTriggered(PNode Node) const {
+      return Node->PhCumSum-Node->PhMnErr > Node->PhLambda &&
+         Node->All >= PhInitN;
+   }
+   double THoeffdingTree::LeafUpdatePh(PNode Node, PExample Example) {
+      PNode CrrNode = Node;
+      while (!IsLeaf(CrrNode)) { CrrNode = GetNextNode(CrrNode, Example); }
+      return ProcessLeafReg(Node, Example);
    }
    void THoeffdingTree::Init(const TStr& ConfigFNm) {
       TParser Parser(ConfigFNm);

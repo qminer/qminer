@@ -757,6 +757,7 @@ namespace THoeffding {
       // THoeffdingTree& operator=(THoeffdingTree&& HoeffdingTree) =delete;
       
       double Predict(const TStrV& DiscreteV, const TFltV& NumericV) const;
+      double Predict(PNode Node, PExample Example) const;
       double Predict(PExample Example) const;
       double Predict(const TStr& Line, const TCh& Delimiter = ',') const {
          return Predict(Preprocess(Line, Delimiter));
@@ -843,6 +844,11 @@ namespace THoeffding {
       // Get the number of nodes in the tree 
       // If AltP=false, do not count alterante trees 
       int GetNodesN(const bool& AltP = false) const;
+      void UpdatePhStats(PNode Node, PExample Example) const;
+      void UpdatePhStats(PNode Node, const double& Val,
+         const double& Pred) const;
+      bool PhTriggered(PNode Node) const;
+      double LeafUpdatePh(PNode Node, PExample Example);
       // NOTE: Not implemented yet; avoids using hash tables
       // for self-evaluation 
       //void UpdateIndices(PNode Node) const {
