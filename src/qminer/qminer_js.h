@@ -2648,6 +2648,13 @@ public:
 //#       for details.)
 //#- `sdrTreshold` -- Stopping criterion for regression tree learner. The algorithm will not split the leaf unless the standard
 //#       deviation reduction `sdr(A)` for the best attribute `A` is at least `sdtrTreshold`. Make sure that `sdrTreshold >= 0`.
+//#- `phAlpha` -- Correction parameter for the [Page-Hinkley test](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf):
+//#       It is the minimal absolute amplitude of change that we wish to detect. Should be adjusted according to the expected
+//#       standard deviation of the signal. (See Elena Ikonomovska's [thesis](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf)
+//#       for details.) Default is `phAlpha=0.005`.
+//#- `phLambda` -- This is the threshold that corresponds to the admissible false alarm rate. Default is `phLambda=50.0`.
+//#- `phInit` -- This threshold tells the algorithm when to start using Page-Hinkley test. The idea is to wait for `phInit` examples
+//#       to accumulate in the nodes, so we have "more stable" estimates of mean. Default is `phInit=100`.
 //#
 
 class TJsHoeffdingTree {
