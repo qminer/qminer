@@ -36,6 +36,7 @@ TIntTr TEnv::Version = TIntTr(0, 7, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
+TStr TEnv::RootFPath;
 PNotify TEnv::Error;
 PNotify TEnv::Logger;
 PNotify TEnv::Debug;
@@ -51,6 +52,7 @@ void TEnv::Init() {
     Debug = TNullNotify::New();
 	// read environment variable indicating QMiner folder, uses current dir if not available
 	QMinerFPath = TStr::GetNrAbsFPath(::TEnv::GetVarVal("QMINER_HOME"));
+	RootFPath = TStr::GetNrFPath(TDir::GetCurDir());
     // initialize aggregators constructor router
     TAggr::Init();
     // initialize stream aggregators constructor router
@@ -1898,8 +1900,7 @@ void TRecSet::SortById(const bool& Asc) {
 }
 
 void TRecSet::SortByFq(const bool& Asc) {
-	TInt::SetRndSeed(1); // HACK to be consistent
-	RecIdFqV.SortCmp(TCmpKeyDatByDat<TUInt64, TInt>(Asc));
+	RecIdFqV.SortCmp(TRecCmpByFq(Asc));
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
@@ -2023,7 +2024,7 @@ PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& SortedP) con
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 	if (Offset >= GetRecs()) {
-		// offset past number of recordes, return empty
+		// offset past number of records, return empty
 		return TRecSet::New(Store);
 	} else {
 		TUInt64IntKdV LimitRecIdFqV;
@@ -4508,7 +4509,7 @@ const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamA
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
-	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+	return StoreNm.Empty() ? GetStreamAggr(StreamAggrNm) :  GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {

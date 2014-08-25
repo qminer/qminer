@@ -27,26 +27,26 @@ namespace THoeffding {
 
    // Model in the leaves for regression 
    typedef enum {
-      rlMEAN,              // Predict the mean in the leaves 
-      rlLINEAR_REGRESSION  // Fit a linear model in the leaves 
+      rlMEAN,  // Predict the mean in the leaves 
+      rlLINEAR // Fit a linear model in the leaves 
    } TRegressLeaves;
    
    // Classifier in the leaves 
    typedef enum {
-      clMAJORITY,      // Use majority classifier 
+      clMAJORITY,    // Use majority classifier 
       clNAIVE_BAYES  // Use NaiveBayes classifier 
    } TClassifyLeaves;
    
    // Learning task type 
    typedef enum {
-      ttCLASSIFICATION,  // Classification task 
-      ttREGRESSION       // Regression task 
+      ttCLASSIFICATION, // Classification task 
+      ttREGRESSION      // Regression task 
    } TTaskType;
    
    // Attribute value type 
    typedef enum {
-      atDISCRETE,   // Discrete (i.e. nominal) attribute 
-      atCONTINUOUS  // Continuous (i.e. numeric) attribute 
+      atDISCRETE,    // Discrete (i.e. categorial) attribute 
+      atCONTINUOUS   // Continuous (i.e. numeric) attribute 
    } TAttrType;
    
    // Node type 
@@ -60,14 +60,20 @@ namespace THoeffding {
    typedef enum {
       etXML,   // Export model as XML
       etJSON,  // Export model as JSON 
-      etDOT      // Export model as DOT 
+      etDOT    // Export model as DOT 
    } TExportType;
    
    // Attribute heuristic measures 
    typedef enum {
-      ahINFO_GAIN,  // Use information gain as heuristic measure 
-      ahGINI_GAIN   // Use Gini gain as heuristic measure 
+      ahINFO_GAIN,   // Use information gain as heuristic measure 
+      ahGINI_GAIN    // Use Gini gain as heuristic measure 
    } TAttrHeuristic;
+   
+   // Attribute discretization technique 
+   typedef enum {
+      adHISTOGRAM,   // Use histogram-based approach 
+      adBST          // Use extended binary search tree approach 
+   } TAttrDiscretization;
    
    // Token type (used for parsing configuration files) 
    typedef enum {
@@ -262,6 +268,7 @@ namespace THoeffding {
       static void AddVec(const int& Scalar, TIntV& FstV, TIntV& SndV);
       // N = sum(FreqV)
       static double Entropy(const TIntV& FreqV, const int& N);
+      static double GiniIndex(const TIntV& FreqV, const int& N);
       // Compute variance from sufficient statistic: Sum of squared values,
       // sum of values, and number of values
       static double Variance(const double& SqSum, const double& Sum,
@@ -272,7 +279,7 @@ namespace THoeffding {
       }
       static double StdDev(const double& SqSum, const double& Sum,
          const int& N) {
-         EAssertR(N > 1, "Division by zero.");
+         EAssertR(N > 0, "Division by zero.");
          return TMath::Sqrt(Variance(SqSum, Sum, N));
       }
    };
@@ -306,11 +313,11 @@ namespace THoeffding {
       TExBST() : Root(nullptr), TotalSumLeft(0.0), TotalSumSqLeft(0.0),
          TotalSumRight(0.0), TotalSumSqRight(0.0), TotalCountLeft(0),
          TotalCountRight(0), SplitVal(0.0), MxSDR(0.0) { }
-      double GetBestSplit(double& OutSDR) {
+      double GetBestSplit(double& OutVal) {
          Reset();
          FindBestSplit(Root);
-         OutSDR = MxSDR;
-         return SplitVal;
+         OutVal = SplitVal;
+         return MxSDR;
       }
       double ComputeSDR() const {
          const double TotalSumSq = TotalSumSqLeft+TotalSumSqRight;
@@ -332,12 +339,16 @@ namespace THoeffding {
          const double SD = V > 0 ? TMath::Sqrt(V) : 0.0;
          
          double LeftV = 0.0;
-         if (TotalCountLeft > 0) LeftV = (TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft;
+         if (TotalCountLeft > 0) {
+            LeftV = (TotalSumSqLeft-TMath::Sqr(TotalSumLeft)/TotalCountLeft)/TotalCountLeft;
+         }
          EAssertR(LeftV >= -1e-5, "LeftV < -1e-5");
          const double LeftSD = LeftV > 0.0 ? TMath::Sqrt(LeftV) : 0.0;
          
          double RightV = 0.0;
-         if (TotalCountRight > 0) RightV = (TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight;
+         if (TotalCountRight > 0) {
+            RightV = (TotalSumSqRight-TMath::Sqr(TotalSumRight)/TotalCountRight)/TotalCountRight;
+         }
          EAssertR(RightV >= -1e-5, "RightV < -1e-5");
          const double RightSD = RightV > 0.0 ? TMath::Sqrt(RightV) : 0.0;
          
@@ -640,12 +651,15 @@ namespace THoeffding {
       // newly created leaves 
       void Split(const int& AttrIdx, const TAttrManV& AttrManV, PIdGen IdGen);
       void Clr();
-      TBstAttr BestAttr(const TAttrManV& AttrManV,
-         const TTaskType& TaskType = ttCLASSIFICATION);
-      TBstAttr BestRegAttr(const TAttrManV& AttrManV); // Regression 
+      // Regression 
+      TBstAttr BestRegAttr(const TAttrManV& AttrManV,
+         const TAttrDiscretization& AttrDiscretization = adHISTOGRAM); 
       // Classification 
       TBstAttr BestClsAttr(const TAttrManV& AttrManV,
-         const TIntV& BannedAttrV = TVec<TInt>());
+         const TIntV& BannedAttrV = TVec<TInt>(),
+         const TAttrHeuristic& AttrHeuristic = ahINFO_GAIN);
+      TBstAttr BestClsAttr(const TAttrManV& AttrManV,
+         const TAttrHeuristic& AttrHeuristic = ahINFO_GAIN);
       void UpdateStats(PExample Example); // Regression 
       inline double Std() const {
          // NOTE: Unbiased variance estimator is VarSum/(ExamplesN-1)
@@ -702,7 +716,9 @@ namespace THoeffding {
             SplitConfidence(SplitConfidence_), GracePeriod(GracePeriod_),
             DriftCheck(DriftCheck_), WindowSize(WindowSize_), IsAlt(IsAlt_),
             BinsN(1000), MxId(1), AltTreesN(0), DriftExamplesN(0),
-            IdGen(IdGen_), ConceptDriftP(true) {
+            IdGen(IdGen_), ConceptDriftP(true), MxNodes(0),
+            RegressLeaves(rlMEAN), ClassifyLeaves(clMAJORITY),
+            AttrHeuristic(ahINFO_GAIN), AttrDiscretization(adHISTOGRAM) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(ConfigNm_);
       }
@@ -715,7 +731,9 @@ namespace THoeffding {
             GracePeriod(GracePeriod_), DriftCheck(DriftCheck_), 
             WindowSize(WindowSize_), IsAlt(IsAlt_), BinsN(1000),
             MxId(1), AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_), 
-            ConceptDriftP(true) {
+            ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
+            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
+            AttrDiscretization(adHISTOGRAM) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          Init(JsonConfig_);
       }
@@ -723,7 +741,9 @@ namespace THoeffding {
          const bool& IsAlt_ = false, PIdGen IdGen_ = nullptr)
          : ExportN(0), IsAlt(IsAlt_), BinsN(1000), MxId(1),
             AltTreesN(0), DriftExamplesN(0), IdGen(IdGen_),
-            ConceptDriftP(true) {
+            ConceptDriftP(true), MxNodes(0), RegressLeaves(rlMEAN),
+            ClassifyLeaves(clMAJORITY), AttrHeuristic(ahINFO_GAIN),
+            AttrDiscretization(adHISTOGRAM) {
          if (IdGen() == nullptr) { IdGen = TIdGen::New(); }
          // NOTE: SetParams() must execute BEFORE Init() to
          // initialize the paramters
@@ -867,8 +887,7 @@ namespace THoeffding {
       // delta; NOTE: This is actually error tolerance;
       // Condifdence would be 1-`SplitConfidence'
       double SplitConfidence; 
-      // nmin; Recompute heuristic
-      // Estimates every nmin examples 
+      // Recompute attribute heuristic estimates every GracePeriod examples 
       int GracePeriod;
       int DriftCheck; // Check for drift every `DriftCheck' examples 
       int WindowSize; // Keep `WindowSize' examples in main memory 
@@ -885,6 +904,14 @@ namespace THoeffding {
       int DriftExamplesN; // Examples since last drift check 
       PIdGen IdGen; // ID generator 
       bool ConceptDriftP;
+      int MxNodes; // The max allowed size of the tree 
+      // Leaf model in regression trees
+      TRegressLeaves RegressLeaves;
+      // Leaf model in classification trees
+      TClassifyLeaves ClassifyLeaves;
+      TAttrHeuristic AttrHeuristic; // Heuristic measure 
+      // Numeric attribute discretization technique 
+      TAttrDiscretization AttrDiscretization;
    private:
       // Initialize attribute managment classes 
       void Init(const TStr& ConfigFNm);

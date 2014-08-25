@@ -64,17 +64,75 @@ qm.load = function() {
 }();
 
 //#- `qm.printStreamAggr(store)` -- prints all current field values of every stream aggregate attached to the store `store`
-qm.printStreamAggr = function(store) {
-	var names = store.getStreamAggrNames();
+qm.printStreamAggr = function (store) {
+    var onStore = arguments.length > 0
+    if (!onStore) {
+        var names = qm.getStreamAggrNames();
+    } else {
+        var names = store.getStreamAggrNames();
+    }    
 	console.print("[store name] : [streamAggr name] : [field name] : [typeof value] : [value]\n");
 	for (var saggrN = 0; saggrN < names.length; saggrN++) {
-		var saggr = store.getStreamAggr(names[saggrN]).val;
+	    var saggr = onStore ? store.getStreamAggr(names[saggrN]).val : qm.getStreamAggr(names[saggrN]).val
 		var keys = Object.keys(saggr);
 		for (var keyN = 0; keyN < keys.length; keyN++) {
-			console.print(store.name + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
+			console.print((onStore ? store.name : "default_SA_Base") + " : " + names[saggrN] + " : " + keys[keyN] + " : " +  typeof(saggr[keys[keyN]]) +  " : " + saggr[keys[keyN]] + "\n");
 		}
 	}
 }
+
+//#- `qm.getAllStreamAggrVals(store)` -- returns a JSON where keys are stream aggregate names and values are their corresponding JSON values
+qm.getAllStreamAggrVals = function (store) {
+    var onStore = arguments.length > 0
+    if (!onStore) {
+        var names = qm.getStreamAggrNames();
+    } else {
+        var names = store.getStreamAggrNames();
+    }
+    var result = {};
+    for (var saggrN = 0; saggrN < names.length; saggrN++) {
+        result[names[saggrN]] = onStore ? store.getStreamAggr(names[saggrN]).val : qm.getStreamAggr(names[saggrN]).val;
+        
+    }
+    return result;
+}
+
+//#- `global` -- holds the global scope (global `this`)
+var global = this;
+
+//#- `out_fun = curryScope(in_fun, scope, a1, ..., an)` -- returns function fn(a1, ..., an, ...), which evaluates in the provided scope
+function curryScope(fn, scope) {
+    scope = scope || global;
+    var args = [];
+    for (var i = 2, len = arguments.length; i < len; ++i) {
+        args.push(arguments[i]);
+    }
+    return function() {
+        var args2 = [];
+        for (var i = 0; i < arguments.length; i++) {
+            args2.push(arguments[i]);
+        }
+        var argstotal = args.concat(args2);
+        return fn.apply(scope, argstotal);
+    };
+}
+
+//#- `out_fun = curry(in_fun, a1, ..., an)` -- returns function fn(a1, ..., an, ...), which evaluates in the global scope
+function curry(fn) {
+    var args = [];
+    for (var i = 1, len = arguments.length; i < len; ++i) {
+        args.push(arguments[i]);
+    }
+    return function() {
+        var args2 = [];
+        for (var i = 0; i < arguments.length; i++) {
+            args2.push(arguments[i]);
+        }
+        var argstotal = args.concat(args2);
+        return fn.apply(global, argstotal);
+    };
+}
+
 //#- `dir()` -- prints all global variables
 //#- `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
 //#   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.

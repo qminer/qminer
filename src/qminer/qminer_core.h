@@ -63,6 +63,8 @@ public:
     
 	/// Path to QMiner
 	static TStr QMinerFPath;
+	/// Path to 
+	static TStr RootFPath;
 	/// Default QMiner notification facility
 	static PNotify Error;
 	static PNotify Logger;	
@@ -910,6 +912,25 @@ public:
 };
 
 ///////////////////////////////
+/// Record Comparator by Frequency. If same, sort by ID
+class TRecCmpByFq {
+private:
+    TBool Asc;
+public:
+    TRecCmpByFq(const bool& _Asc) : Asc(_Asc) { }
+
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+        if (Asc) {
+            return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
+                (RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
+        } else {
+            return (RecIdWgt2.Dat == RecIdWgt1.Dat) ?
+                (RecIdWgt2.Key < RecIdWgt1.Key) : (RecIdWgt2.Dat < RecIdWgt1.Dat);
+        }
+    }
+};
+
+///////////////////////////////
 /// Record Comparator by Integer Field. 
 class TRecCmpByFieldInt {
 private:
@@ -921,7 +942,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const int RecVal1 = Store->GetFieldInt(RecIdWgt1.Key, FieldId);
@@ -942,7 +963,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const double RecVal1 = Store->GetFieldFlt(RecIdWgt1.Key, FieldId);
@@ -963,7 +984,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const TStr RecVal1 = Store->GetFieldStr(RecIdWgt1.Key, FieldId);
@@ -984,7 +1005,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
@@ -1274,6 +1295,8 @@ public:
 	uint64 GetLastRecId() const { return RecIdFqV.Last().Key; }
 	/// Get reference to complete vector of pairs (record id, weight)
     const TUInt64IntKdV& GetRecIdFqV() const { return RecIdFqV; }
+    /// Get direct reference to elements of vecotr
+    const TUInt64IntKd& GetRecIdFq(const int& RecN) const { return RecIdFqV[RecN]; }
 
 	/// Load record ids into the provided vector
     void GetRecIdV(TUInt64V& RecIdV) const;
@@ -1304,7 +1327,7 @@ public:
 	/// @param Asc True for sorting in increasing order
 	void SortByField(const bool& Asc, const int& SortFieldId);
 	/// Sort records according to given comparator
-	template <class TCmp> void SortCmp(const TCmp& Cmp) { TInt::SetRndSeed(1); RecIdFqV.SortCmp(Cmp); }
+	template <class TCmp> void SortCmp(const TCmp& Cmp) { RecIdFqV.SortCmp(Cmp); }
 
 	/// Filter records to keep only the ones which actually exist
 	void FilterByExists();

@@ -1209,7 +1209,7 @@ void TLinAlg::Multiply(const TFltVV& A, const TTriple<TIntV, TIntV, TFltV>& B, T
 	int Nonzeros = B.Val1.Len();
 	int MaxRowN = B.Val1[B.Val1.GetMxValN()];
 	int MaxColN = B.Val2[B.Val2.GetMxValN()];
-	Assert(A.GetRows() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetCols());
+	EAssert(A.GetRows() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetCols());
 	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
 		for (int ElN = 0; ElN < Nonzeros; ElN++) {
 			C.At(RowN, B.Val2[ElN]) += A.At(RowN, B.Val1[ElN]) * B.Val3[ElN];                        
@@ -1228,7 +1228,7 @@ void TLinAlg::MultiplyT(const TFltVV& A, const TTriple<TIntV, TIntV, TFltV>& B, 
 	int Nonzeros = B.Val1.Len();
 	int MaxRowN = B.Val1[B.Val1.GetMxValN()];
 	int MaxColN = B.Val2[B.Val2.GetMxValN()];
-	Assert(A.GetCols() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetRows());
+	EAssert(A.GetCols() == C.GetRows() && (MaxColN + 1) <= C.GetCols() && (MaxRowN + 1) <= A.GetRows());
 	for (int RowN = 0; RowN < A.GetCols(); RowN++) {
 		for (int ElN = 0; ElN < Nonzeros; ElN++) {
 			C.At(RowN, B.Val2[ElN]) += A.At(B.Val1[ElN], RowN) * B.Val3[ElN];                        
@@ -1247,7 +1247,7 @@ void TLinAlg::Multiply(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, T
 	int Nonzeros = A.Val1.Len();
 	int MaxRowN = A.Val1[A.Val1.GetMxValN()];
 	int MaxColN = A.Val2[A.Val2.GetMxValN()];
-	Assert(B.GetCols() == C.GetCols() && (MaxRowN + 1) <= C.GetRows() && (MaxColN + 1) <= B.GetRows());
+	EAssert(B.GetCols() == C.GetCols() && (MaxRowN + 1) <= C.GetRows() && (MaxColN + 1) <= B.GetRows());
 	for (int ColN = 0; ColN < B.GetCols(); ColN++) {
 		for (int ElN = 0; ElN < Nonzeros; ElN++) {
 			C.At(A.Val1[ElN], ColN) += A.Val3[ElN] * B.At(A.Val2[ElN], ColN);
@@ -1266,7 +1266,7 @@ void TLinAlg::MultiplyT(const TTriple<TIntV, TIntV, TFltV>& A, const TFltVV& B, 
 	int Nonzeros = A.Val1.Len();
 	int MaxRowN = A.Val1[A.Val1.GetMxValN()];
 	int MaxColN = A.Val2[A.Val2.GetMxValN()];
-	Assert(B.GetCols() == C.GetCols() && (MaxColN + 1) <= C.GetRows() && (MaxRowN + 1) <= B.GetRows());
+	EAssert(B.GetCols() == C.GetCols() && (MaxColN + 1) <= C.GetRows() && (MaxRowN + 1) <= B.GetRows());
 	for (int ColN = 0; ColN < B.GetCols(); ColN++) {
 		for (int ElN = 0; ElN < Nonzeros; ElN++) {
 			C.At(A.Val2[ElN], ColN) += A.Val3[ElN] * B.At(A.Val1[ElN], ColN);
@@ -1467,7 +1467,7 @@ void TLinAlg::Gemm(const double& Alpha, const TFltVV& A, const TFltVV& B, const 
 	int d_j = D.GetRows();
 	
 	// assertions for dimensions
-	Assert(a_j == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j);
+	EAssert(a_j == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j);
 
 	double Aij, Bij, Cij;
 
@@ -2046,8 +2046,8 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 }
 
 void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
-        const int k, TFltV& S, TFltVV& U, TFltVV& V, const int Iters, const double Tol) {
-
+        const int k, TFltV& S, TFltVV& U, TFltVV& V, const int Iters_, const double Tol) {
+	const int Iters = Iters_ != -1 ? Iters_ : 100;
 	int Rows = Matrix.GetRows();
 	int Cols = Matrix.GetCols();
 	Assert(k <= Rows && k <= Cols);
@@ -3086,8 +3086,9 @@ TFullMatrix TFullMatrix::operator *(const double& Lambda) const {
 //no need to reserve memory for the matrices, all will be done internaly
 //Set k to 500
 //Tolerance ignored!
-int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int its, const double Tol){
+int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& s, TFltVV& V, const int Iters, const double Tol){
 	//TStructuredCovarianceMatrix XYt(rows, cols, SampleN, MeanX, MeanY, X, Y);
+	 const int its = Iters != -1 ? Iters : 2;
 	 const int m = XYt.GetRows();
 	 const int n = XYt.GetCols();
 	 int l = (int)((11 / 10.0) * k);

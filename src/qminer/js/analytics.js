@@ -16,7 +16,8 @@
 
 var util = require("utilities.js");
 
-exports = require("__analytics__");
+module.exports = require("__analytics__");
+exports = module.exports; // re-establish link
 
 function createBatchModel(featureSpace, models) {
     this.featureSpace = featureSpace;
