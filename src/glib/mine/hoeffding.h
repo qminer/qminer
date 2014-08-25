@@ -1,6 +1,16 @@
 #ifndef HOEFFDING_H
 #define HOEFFDING_H
 
+//
+// == Notes == 
+// - Replace concept drift adaption in classification with Page-Hinkley test 
+// - Implement model trees: fit unthresholded perceptron in the leaves 
+// - Accept feature space instead of JSON stream description 
+// - Clean up regression code 
+// 
+// -- Blaz Sovdat (blaz.sovdat@gmail.com), August 25, 2014 
+// 
+
 namespace THoeffding {
    ///////////////////////////////
    // Forward-Declarations

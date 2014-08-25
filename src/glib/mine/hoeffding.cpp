@@ -1780,10 +1780,6 @@ namespace THoeffding {
          ProcessLeafCls(CrrNode, Example);
       }
    }
-   // TODO: Evaluate Q-statistic (between the main tree and the
-   // best-performing original one) periodically, every PhPeriod
-   // examples. Swap the trees if the statistics Q(original, alernate)>0,
-   // meaning the original tree has higher error than the alternate one.
    // Notes:
    // (*) Backpropagate error over the branches of the main tree 
    // (*) Update error at roots of the alternate trees -- not other nodes 
@@ -1792,9 +1788,6 @@ namespace THoeffding {
       double Pred = 0.0; 
       // Use Page-Hinkley test to detect concept drift 
       if (ConceptDriftP) {
-         // Backpropagate the error 
-         // TODO: Update errors for roots of alternate trees 
-         
          TSStack<PNode> TraverseS;
          TraverseS.Push(CrrNode);
          while (!IsLeaf(CrrNode)) {
@@ -1808,23 +1801,13 @@ namespace THoeffding {
             CrrNode = GetNextNode(CrrNode, Example);
             TraverseS.Push(CrrNode);
          }
-         
-         EAssertR(CrrNode() == TraverseS.Top()(), "Oops: Top not leaf");
+         EAssertR(CrrNode() == TraverseS.Top()(), "Top not leaf");
          TraverseS.Pop(); // So we don't increment leaf counts twice 
          Pred = ProcessLeafReg(CrrNode, Example);
          while (!TraverseS.Empty()) {
             CrrNode = TraverseS.Top(); TraverseS.Pop();
-            
             UpdatePhStats(CrrNode, Example->Value, Pred);
-            
-            
-            // Print('-');
             EAssertR(!IsLeaf(CrrNode), "Leaf node not on top of the stack");
-            // printf("PH(%s) = %d\n",
-            //   AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr(),
-            //   PhTriggered(CrrNode));
-            
-            
             // Check whether m(T)-M(T)>Lambda
             if (PhTriggered(CrrNode)) {
                if (CrrNode->All % 100 == 0 &&
@@ -1842,36 +1825,27 @@ namespace THoeffding {
                   }
                   // (2) Compute log(S_orig/S_alt) and swap if necessary 
                   if (BestNode->PhAvgErr > 0.0 &&
-                     TMath::Log(CrrNode->PhAvgErr/BestNode->PhAvgErr) > 0.0) {
-                     // printf("Swapped!\n");
+                     CrrNode->PhAvgErr > BestNode->PhAvgErr) {
+                     printf("Swapped!\n");
                      CrrNode = BestNode;
                      BestNode->AltTreesV.Clr();
                   }
                } else {
                   TBstAttr BstAttr =
                      CrrNode->BestRegAttr(AttrManV, AttrDiscretization);
-                  // printf("Best attribute=%s\n",
-                  //   AttrManV.GetVal(BstAttr.Val1.Val1).Nm.CStr());
-                  // TAttrType BestType =
-                  //   AttrManV.GetVal(BstAttr.Val1.Val1).Type;
                   if (BstAttr.Val1.Val1 != CrrNode->CndAttrIdx &&
                      !IsAltSplitIdx(CrrNode, BstAttr.Val1.Val1)) {
                      const int LabelsN =
                         AttrManV.GetVal(AttrManV.Len()-1).ValueV.Len();
-                     
                      printf("Starting an alternate tree on %s instead of %s\n",
                         AttrManV.GetVal(BstAttr.Val1.Val1).Nm.CStr(),
                         AttrManV.GetVal(CrrNode->CndAttrIdx).Nm.CStr());
-                     
                      PNode AltHt = TNode::New(LabelsN,
                         CrrNode->UsedAttrs, AttrManV, IdGen->GetNextLeafId());
-                     
                      // Set parameters for the Page-Hinkley test 
                      AltHt->SetPhAlpha(PhAlpha);
                      AltHt->SetPhLambda(PhLambda);
-                     
                      AltHt->Split(BstAttr.Val1.Val1, AttrManV, IdGen);
-                     
                      CrrNode->AltTreesV.Add(AltHt);
                      ++AltTreesN;
                   }
@@ -2022,7 +1996,7 @@ namespace THoeffding {
          }
       }
       for (int LabelN = 0; LabelN < LabelsN; ++LabelN) {
-         nk = PartitionV.GetVal(LabelN); // number of positive examples 
+         nk = PartitionV.GetVal(LabelN); // Number of positive examples 
          //printf("[DEBUG] #Examples = %d\n", nk);
          // TProbEstimates::LaplaceEstiamte(nk, CrrNode->ExamplesN-nk, 2); 
          pk = (nk+1.0)/(ExamplesN+LabelsN); 
@@ -2031,14 +2005,14 @@ namespace THoeffding {
             TTriple<TInt, TInt, TInt> TmpTriple(i,
                Example->AttributesV.GetVal(i).Value, LabelN);
             if (CountsH.IsKey(TmpTriple) && CountsH.GetDat(TmpTriple) > 0) {
-               // apriori probability 
+               // Apriori probability 
                // p0 = 1.0*CrrNode->Counts(TmpTriple)/nk;
-               // compute conditional probability using m-estimate 
+               // Compute conditional probability using m-estimate 
                // pk *= TProbEstimates::MEstimate(
                //   CrrNode->Counts(TmpTriple), nk, p0, 2);
                // pk *= 1.0*CrrNode->Counts(TmpTriple)/nk; 
                // (m * P(c_i) + n(x_k,c_i))/(P(c_i) * (m + n(x_k)))
-               // laplace estimate for P(c_i) 
+               // Laplace estimate for P(c_i) 
                pc = (nk+1.0)/(ExamplesN+LabelsN);
                pk *= (2.0*pc+CountsH.GetDat(TmpTriple)) /
                   (pc*(2+SubExamplesN.GetVal(i)));
