@@ -24,15 +24,6 @@
 //#
 
 
-//TODO
-//glue:
-//    src / qminer / js / visualization.js
-//src / qminer / gui / js / Highcharts / js / highcharts.js
-//src / qminer / gui / js / Highcharts / js / modules / exporting.js
-//to:
-//    src / qminer / gui / js / visualization.js
-
-
 if (typeof exports == 'undefined') {
     exports = {};
 };
@@ -165,6 +156,7 @@ function overwriteKeys(baseObject, overrideObject, createNew) {
     return baseObject;
 };
 
+//#- `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
 exports.drawHighChartsTimeSeries = function (data, fnm, overrideParams) {
     // read template html. Fill in data, overrideParams, containerName, code and libraries
 

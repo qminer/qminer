@@ -680,10 +680,10 @@ _vis.highchartsTSConverter = function () {
 
 _vis.drawHighChartsTimeSeries = function () {
 	/// <signature>
-	/// <summary> copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided</summary>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON)</summary>
 	/// <param name="_data" value="_data">param</param>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <param name="_paramsJson" value="_paramsJson">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
