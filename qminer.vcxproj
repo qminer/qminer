@@ -67,6 +67,9 @@
     <PostBuildEvent>
       <Command>del /F /Q "$(IntDir)\$(MSBuildProjectName).lastbuildstate"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>guilibs.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

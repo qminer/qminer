@@ -23,9 +23,19 @@
 //# **Functions and properties:**
 //#
 
-override = require('json-override.js');
-time = require("time");
-mustache = require('mustache.js');
+
+//TODO
+//glue:
+//    src / qminer / js / visualization.js
+//src / qminer / gui / js / Highcharts / js / highcharts.js
+//src / qminer / gui / js / Highcharts / js / modules / exporting.js
+//to:
+//    src / qminer / gui / js / visualization.js
+
+
+if (typeof exports == 'undefined') {
+    exports = {};
+};
 
 // array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]
@@ -49,7 +59,7 @@ exports.highchartsTSConverter = function (dataJson) {
         result.push({ name: key, data: temp[key] });
     }
     return result;
-}
+};
 
 // record set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: {"$hits":432,"records":[{"$id":0,"datetime":"t1","mcutmp_avg":v11,"mcutmp_min":v12,"mcutmp_max":v13},{"$id":1,"datetime":"t2","mcutmp_avg":v21,"mcutmp_min":v22,"mcutmp_max":v23}]}
@@ -58,27 +68,27 @@ exports.highchartsTSConverter = function (dataJson) {
 exports.highchartsConverter = function (fieldsJson, dataJson) {
 
     var keys = {};
-    for (key in fieldsJson) {        
-        if (fieldsJson[key].name != "datetime"){
-           keys[fieldsJson[key].name] = [];
-           //console.log("" + fieldsJson[key].name);  
+    for (key in fieldsJson) {
+        if (fieldsJson[key].name != "datetime") {
+            keys[fieldsJson[key].name] = [];
+            //console.log("" + fieldsJson[key].name);  
         }
     }
-    
-    var result = [];    
+
+    var result = [];
     for (objN = 0; objN < dataJson.records.length; objN++) {
         var obj = dataJson.records[objN];
         for (key in obj) {
             var longtime;
-            if (key == "datetime"){
-                var tm = time.parse(obj[key]);            
-                longtime = 1000 * tm.timestamp + tm.millisecond;  
-            } else {                
-                if (keys[key]) {                    
+            if (key == "datetime") {
+                var tm = time.parse(obj[key]);
+                longtime = 1000 * tm.timestamp + tm.millisecond;
+            } else {
+                if (keys[key]) {
                     keys[key].push([longtime, obj[key]]);
                     console.log(longtime + " " + JSON.stringify(obj[key]));
                 }
-            }                       
+            }
         }
     }
     for (key in keys) {
@@ -86,76 +96,100 @@ exports.highchartsConverter = function (fieldsJson, dataJson) {
         result.push({ name: key, data: keys[key] });
     }
     return result;
-}
+};
 
-exports.highchartsParams = function () { 
+exports.highchartsParams = function () {
     return {
         chart: {
-                type: 'spline'
+            type: 'spline'
         },
         title: {
-                text: 'spline chart'
+            text: 'spline chart'
         },
         subtitle: {
             text: 'multiple timeseries, unequally sampled'
         },
         xAxis: {
-                type: 'datetime',
-                dateTimeLabelFormats: { // don't display the dummy year
+            type: 'datetime',
+            dateTimeLabelFormats: { // don't display the dummy year
                 month: '%e. %b',
                 year: '%b'
-                },
+            },
             title: {
-                    text: 'Time'
+                text: 'Time'
             }
         },
         yAxis: {
-                title: {
-                    text: 'Val'
-                },
+            title: {
+                text: 'Val'
+            },
             //min: 0
         },
         tooltip: {
-                headerFormat: '<b>{series.name}</b><br>',
-                pointFormat: '{point.x:%e. %b}: {point.y:.2f} '
+            headerFormat: '<b>{series.name}</b><br>',
+            pointFormat: '{point.x:%e. %b}: {point.y:.2f} '
         },
         //[{ "name": "tick", "data": [[1407427442309, 0.207912], [1407427443309, 0.309017], [1407427444309, 0.406737], [1407427445309, 0.5], [1407427446309, 0.587785], [1407427447309, 0.669131], [1407427448309, 0.743145], [1407427449309, 0.809017], [1407427450309, 0.866025], [1407427451309, 0.913545]] }, { "name": "js", "data": [[1407427442309, 5.207912], [1407427443309, 5.309017], [1407427444309, 5.406737], [1407427445309, 5.5], [1407427446309, 5.587785], [1407427447309, 5.669131], [1407427448309, 5.743145], [1407427449309, 5.809017], [1407427450309, 5.866025], [1407427451309, 5.913545]] }, { "name": "ema", "data": [[1407427442309, 0], [1407427443309, 0], [1407427444309, 0.005917], [1407427445309, 0.013315], [1407427446309, 0.022087], [1407427447309, 0.032111], [1407427448309, 0.043254], [1407427449309, 0.055368], [1407427450309, 0.068297], [1407427451309, 0.081876]] }]
         series: []
     }
-}
+};
 
 // given an array of strings representing absolute file paths, the function reads all files, concatenates them and returns the string
 function glueFileContents(strArr) {
     var res = "";
     for (var elN = 0; elN < strArr.length; elN++) {
-        res += fs.openRead(strArr[elN]).readAll();        
+        res += fs.openRead(strArr[elN]).readAll();
     }
     return res;
-}
+};
 
-//#- `vis.drawHighChartsTimeSeries(data, fileName, paramsJson)` -- copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided
-exports.drawHighChartsTimeSeries = function(data, fnm, overrideParams) {
-    // setup highcharts plot parameters
-    var params = exports.highchartsParams();
-    if (typeof overrideParams != 'undefined') {
-        params = override(params, overrideParams, false);
+function isObjectAndNotArray(object) {
+    return (typeof object === 'object' && !Array.isArray(object));
+};
+
+// 'createNew' defaults to false
+function overwriteKeys(baseObject, overrideObject, createNew) {
+    if (createNew) {
+        baseObject = JSON.parse(JSON.stringify(baseObject));
     }
-    printj(params)
-    params.series = data;
-    // read template html. The tempalte contains {{libs}} and {{params}} placeholders
+    if (typeof overrideObject != 'undefined') {
+        Object.keys(overrideObject).forEach(function (key) {
+            if (isObjectAndNotArray(baseObject[key]) && isObjectAndNotArray(overrideObject[key])) {
+                overwriteKeys(baseObject[key], overrideObject[key]);
+            }
+            else {
+                baseObject[key] = overrideObject[key];
+            }
+        });
+    }
+    return baseObject;
+};
+
+exports.drawHighChartsTimeSeries = function (data, fnm, overrideParams) {
+    // read template html. Fill in data, overrideParams, containerName, code and libraries
+
     var template = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts.html").readAll();
     // data, plot parameters and libraries to be filled in the template
-    
+
     var libPathArray = [
-        process.qminer_home + "gui/js/Highcharts/js/highcharts.js", 
-        process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js"
+        process.qminer_home + "gui/js/Highcharts/js/highcharts.js",
+        process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js",
+        process.qminer_home + "gui/js/visualization.js"
     ];
-    var view = {
-        libs: glueFileContents(libPathArray),
-        params: JSON.stringify(params)
-    }
-    // fill template
-    var output = mustache.render(template, view);
-    // write to file
+    // TODO mustache :)
+    var output = template.replace("{{{data}}}", JSON.stringify(data)).replace("{{{overrideParams}}}", JSON.stringify(overrideParams)).replace("{{{libs}}}", glueFileContents(libPathArray));
     fs.openWrite(fnm).write(output).close();
-}
+};
+
+exports.highChartsPlot = function (data, overrideParams, containerName) {
+    var params = exports.highchartsParams();
+    if (typeof overrideParams != 'undefined') {
+        params = overwriteKeys(params, overrideParams, false);
+    }
+    params.series = data;
+    $(function () {
+        $('#' + containerName).highcharts(params);
+    });
+};
+
+var visualize = exports;
