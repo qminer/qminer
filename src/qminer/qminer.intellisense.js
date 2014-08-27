@@ -680,10 +680,10 @@ _vis.highchartsTSConverter = function () {
 
 _vis.drawHighChartsTimeSeries = function () {
 	/// <signature>
-	/// <summary> copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided</summary>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON)</summary>
 	/// <param name="_data" value="_data">param</param>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <param name="_paramsJson" value="_paramsJson">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
@@ -1541,11 +1541,61 @@ la.loadIntVec = function () {
 	/// </signature>
 };
 
+_sa.getTm = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
 _sa.saveJson = function () {
 	/// <signature>
 	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
 	/// <param name="_limit" value="_limit">param</param>
 	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_sa.getTmLen = function () {
+	/// <signature>
+	/// <summary> returns a number (timestamp vector length) if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFlt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IFlt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getOutFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getN = function () {
+	/// <signature>
+	/// <summary> returns a number of records in the input buffer if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltAt = function () {
+	/// <signature>
+	/// <summary> returns a number (element at index) if sa implements the interface IFltVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getOutTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -1557,11 +1607,12 @@ _sa.onDelete = function () {
 	/// </signature>
 };
 
-/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
-_sa.name = _str;
-
-/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
-_sa.val = _objJSON;
+_sa.getInTm = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
 
 _sa.onUpdate = function () {
 	/// <signature>
@@ -1571,11 +1622,60 @@ _sa.onUpdate = function () {
 	/// </signature>
 };
 
+_sa.getInt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IInt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
+_sa.val = _objJSON;
+
+_sa.getInFlt = function () {
+	/// <signature>
+	/// <summary> returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltLen = function () {
+	/// <signature>
+	/// <summary> returns a number (internal vector length) if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getTmAt = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
+_sa.name = _str;
+
 _sa.onAdd = function () {
 	/// <signature>
 	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
 	/// <param name="_rec" value="_rec">param</param>
 	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector of windows timestamps if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -2690,47 +2790,6 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
-/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
-_tm.dayOfWeek = _str;
-
-/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
-_tm.millisecond = _num;
-
-_tm.sub = function () {
-	/// <signature>
-	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_unit" value="_unit">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-_tm.toJSON = function () {
-	/// <signature>
-	/// <summary> returns json representation of time</summary>
-	/// <returns value ="_tmJSON"/>
-	/// </signature>
-};
-
-/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
-_tm.string = _str;
-
-/// <field name = "hour" value = "_num"> hour (number)</field>
-_tm.hour = _num;
-
-/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
-_tm.timestamp = _num;
-
-_tm.clone = function () {
-	/// <signature>
-	/// <summary> clones `tm` to `tm2`</summary>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "year" value = "_num"> year (number)</field>
-_tm.year = _num;
-
 /// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 _tm.nowUTC = _tm;
 
@@ -2748,6 +2807,34 @@ _tm.parse = function () {
 	/// </signature>
 };
 
+/// <field name = "second" value = "_num"> second (number)</field>
+_tm.second = _num;
+
+/// <field name = "year" value = "_num"> year (number)</field>
+_tm.year = _num;
+
+_tm.toJSON = function () {
+	/// <signature>
+	/// <summary> returns json representation of time</summary>
+	/// <returns value ="_tmJSON"/>
+	/// </signature>
+};
+
+/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
+_tm.millisecond = _num;
+
+_tm.sub = function () {
+	/// <signature>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "windowsTimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
+_tm.windowsTimestamp = _num;
+
 _tm.add = function () {
 	/// <signature>
 	/// <summary> adds `val` to the time and returns self; `unit` defines the unit</summary>
@@ -2757,11 +2844,24 @@ _tm.add = function () {
 	/// </signature>
 };
 
-/// <field name = "second" value = "_num"> second (number)</field>
-_tm.second = _num;
+/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
+_tm.dayOfWeekNum = _num;
 
-/// <field name = "windowstimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
-_tm.windowstimestamp = _num;
+/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
+_tm.dayOfWeek = _str;
+
+/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
+_tm.string = _str;
+
+/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
+_tm.timestamp = _num;
+
+_tm.clone = function () {
+	/// <signature>
+	/// <summary> clones `tm` to `tm2`</summary>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
 
 /// <field name = "now" value = "_tm"> returns new time object representing current local time</field>
 _tm.now = _tm;
@@ -2772,8 +2872,24 @@ _tm.day = _num;
 /// <field name = "minute" value = "_num"> minute (number)</field>
 _tm.minute = _num;
 
-/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
-_tm.dayOfWeekNum = _num;
+_tm.fromUnixTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a UNIX timestamp (seconds since 1970).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "hour" value = "_num"> hour (number)</field>
+_tm.hour = _num;
+
+_tm.fromWindowsTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a windows timestamp (milliseconds since 1601).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
 
 _htModel.process = function () {
 	/// <signature>

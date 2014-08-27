@@ -2519,6 +2519,14 @@ namespace TStreamAggrOut {
 		virtual void GetFltV(TFltV& ValV) const = 0;
 	};
 
+	class ITmVec {
+	public:
+		// retrieving vector of timestamps from the aggregate
+		virtual int GetTmLen() const = 0;
+		virtual uint64 GetTm(const TInt& ElN) const = 0;
+		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
+	};
+
 	class IFltVecTm : public IFltVec, public ITm { };
 
 	class INmFlt {
