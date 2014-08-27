@@ -795,10 +795,10 @@ its type and --- in case of discrete attributes --- enumerate all possible value
 
 The HoeffdingTree algorithm comes with many parameters:
 
-- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
-	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+- `gracePeriod` -- Denotes ``recomputation period''; if `gracePeriod=200`, the algorithm
+	    will recompute information gains (or Gini indices) every `200` examples. Recomputation
 	    is the most expensive operation in the algorithm, because we have to recompute gains at each
-	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+	    leaf of the tree for each attribute. (If `ConceptDriftP=true`, we have to recompute gains in each
       node of the tree.)
 - `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
 	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
@@ -838,6 +838,15 @@ The HoeffdingTree algorithm comes with many parameters:
       means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
       [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
       for details.)
+- `sdrTreshold` -- Stopping criterion for regression tree learner. The algorithm will not split the leaf unless the standard
+      deviation reduction `sdr(A)` for the best attribute `A` is at least `sdtrTreshold`. Make sure that `sdrTreshold >= 0`.
+- `phAlpha` -- Correction parameter for the [Page-Hinkley test](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf):
+      It is the minimal absolute amplitude of change that we wish to detect. Should be adjusted according to the expected
+      standard deviation of the signal. (See Elena Ikonomovska's [thesis](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf)
+      for details.) Default is `phAlpha=0.005`.
+- `phLambda` -- This is the threshold that corresponds to the admissible false alarm rate. Default is `phLambda=50.0`.
+- `phInit` -- This threshold tells the algorithm when to start using Page-Hinkley test. The idea is to wait for `phInit` examples
+      to accumulate in the nodes, so we have "more stable" estimates of mean. Default is `phInit=100`.
 
 
 **Functions and properties:**
