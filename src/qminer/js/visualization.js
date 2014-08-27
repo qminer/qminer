@@ -166,7 +166,7 @@ exports.drawHighChartsTimeSeries = function (data, fnm, overrideParams) {
     var libPathArray = [
         process.qminer_home + "gui/js/Highcharts/js/highcharts.js",
         process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js",
-        process.qminer_home + "gui/js/visualization.js"
+        process.qminer_home + "lib/visualization.js"
     ];
     // TODO mustache :)
     var output = template.replace("{{{data}}}", JSON.stringify(data)).replace("{{{overrideParams}}}", JSON.stringify(overrideParams)).replace("{{{libs}}}", glueFileContents(libPathArray));
