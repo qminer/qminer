@@ -79,4 +79,14 @@ for (var step = 0; step < 180; step++) {
 
 //    ]
 //}]
+
+// Offline (no server is needed)
 viz.drawHighChartsTimeSeries(viz.highchartsTSConverter(buffer), "plot.html", { title: { text: "js(t) = sin(t) + noise, ema(t) = EMA(js(t))" } });
+
+// Online (server must be running)
+////client page with the visualization: http://localhost:8080/www/client.html
+////serve data at: http://localhost:8080/tsplot/data
+http.onGet("data", function (req, resp) {
+    printj(req)
+    return http.jsonp(req, resp, viz.highchartsTSConverter(buffer));
+})
