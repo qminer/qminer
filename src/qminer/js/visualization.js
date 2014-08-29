@@ -57,25 +57,27 @@ exports.highchartsTSConverter = function (dataJson) {
 exports.highchartsConverter = function (fieldsJson, dataJson) {
 
     var keys = {};
+    var datetime;
     for (key in fieldsJson) {        
-        if (fieldsJson[key].name != "datetime"){
-           keys[fieldsJson[key].name] = [];
-           //console.log("" + fieldsJson[key].name);  
-        }
+        if (fieldsJson[key].type != "datetime") {
+            keys[fieldsJson[key].name] = [];
+            //console.log("" + fieldsJson[key].name);  
+        } else datetime = fieldsJson[key].name;
     }
+    //printj(keys)
     
     var result = [];    
     for (objN = 0; objN < dataJson.records.length; objN++) {
         var obj = dataJson.records[objN];
         for (key in obj) {
             var longtime;
-            if (key == "datetime"){
+            if (key == datetime){
                 var tm = time.parse(obj[key]);            
                 longtime = 1000 * tm.timestamp + tm.millisecond;  
             } else {                
                 if (keys[key]) {                    
                     keys[key].push([longtime, obj[key]]);
-                    console.log(longtime + " " + JSON.stringify(obj[key]));
+                    //console.log(longtime + " " + JSON.stringify(obj[key]));
                 }
             }                       
         }
@@ -90,7 +92,7 @@ exports.highchartsConverter = function (fieldsJson, dataJson) {
 exports.highchartsParams = function () { 
     return {
         chart: {
-                type: 'spline'
+                type: 'spline',
         },
         title: {
                 text: 'spline chart'
