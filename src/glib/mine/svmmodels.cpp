@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  * 
  */
+#pragma optimize( "", off )
 
 //////////////////////////////////////////////////////////////////////////
 // Cross-Validation-Tools
@@ -1565,3 +1566,4 @@ PBowSpV TBowSVMMd::GetKeywords(const PBowDocBs& BowDocBs, PBowDocWgtBs BowDocWgt
     PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, C, j, TIntV(), TSVMLearnParam::Lin(Time));
     return GetKeywords(TrainSet, Model, WdN, VecSign, WgtSign, AvgOverSet);
 }
+#pragma optimize( "", on ) 

@@ -17,6 +17,8 @@
  * 
  */
 
+#pragma optimize( "", off )
+
 //////////////////////////////////////////////////////////////////////////
 // SVM-Cache
 void TSVMCache::Reset(const int& memory_size, const int& d) {
@@ -1669,3 +1671,5 @@ void TSVMFactory::train(TFltV& alphas, double& threshold,
         trainOneClass(alphas, threshold, is_linear, ker, docs, ModelParam.nu, LearnParam);
     }
 }
+
+#pragma optimize( "", on ) 

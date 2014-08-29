@@ -24,6 +24,8 @@
 
 namespace TSvm {
 
+#pragma optimize( "", off )
+
 /// Linear model
 class TLinModel {
 private:
@@ -272,5 +274,6 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
 }
 
 };
+#pragma optimize( "", on ) 
 
 #endif
