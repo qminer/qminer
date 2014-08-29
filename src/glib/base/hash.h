@@ -252,6 +252,10 @@ public:
   bool IsKeyGetDat(const TKey& Key, TDat& Dat) const {int KeyId;
     if (IsKey(Key, KeyId)){Dat=GetHashKeyDat(KeyId).Dat; return true;}
     else {return false;}}
+  TDat GetDatOrDef(const TKey& Key, const TDat& DefVal) const {
+	  if (IsKey(Key)) { return GetDat(Key); }
+	  return DefVal;
+  }
 
   int FFirstKeyId() const {return 0-1;}
   bool FNextKeyId(int& KeyId) const;
