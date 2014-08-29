@@ -357,7 +357,7 @@ public:
 // Time series window buffer.
 // Wrapper for exposing a window in a time series to signal processing aggregates 
 // TODO; use circular buffer
-class TTimeSeriesWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO {
+class TTimeSeriesWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO, public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec {
 private:
     TInt TimeFieldId;
     TInt TickValFieldId;
@@ -394,10 +394,19 @@ public:
 	// most recent values
 	double GetInFlt() const { return InVal; }
 	uint64 GetInTmMSecs() const { return InTmMSecs; }
-        // oldest values
+    // oldest values
 	void GetOutFltV(TFltV& ValV) const { ValV = OutValV; }
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }  
     int GetN() const { return AllValV.Len(); }
+
+	// IFltVec
+	int GetFltLen() const {	return AllValV.Len(); }
+	double GetFlt(const TInt& ElN) const { return AllValV[ElN].Val1; }
+	void GetFltV(TFltV& ValV) const;
+	// ITmVec 
+	int GetTmLen() const { return AllValV.Len(); }
+	uint64 GetTm(const TInt& ElN) const { return AllValV[ElN].Val2; }
+	void GetTmV(TUInt64V& MSecsV) const;
 
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;

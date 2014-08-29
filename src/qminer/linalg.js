@@ -18,15 +18,15 @@
 /////// PRINTING
 //#- `la.printVec(vecec)` -- print the vector `vec` in the console
 //#- `la.printVec(intVec)` -- print the int vector `intVec` in the console
-la.printVec = function(vec) {
+la.printVec = function (vec, prec) {
+    if (typeof prec == 'undefined') prec = 2;
 	var str = "\n[\n";
 	for (var rowN = 0; rowN < vec.length; rowN++) {
-		str += vec.at(rowN).toFixed(2) + "\n";
+	    str += vec.at(rowN).toFixed(prec) + "\n";
 	}
 	str += "]\n";
 	console.say(str);
 };
-
 //#- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;

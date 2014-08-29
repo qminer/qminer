@@ -1200,6 +1200,16 @@ double TJsStreamAggr::GetFlt(const TInt& ElN) const {
 void TJsStreamAggr::GetFltV(TFltV& ValV) const {
 	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
 }
+// ITmVec
+int TJsStreamAggr::GetTmLen() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
+}
+uint64 TJsStreamAggr::GetTm(const TInt& ElN) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
+} // GetTmAtFun
+void TJsStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
+}
 // INmFlt 
 bool TJsStreamAggr::IsNmFlt(const TStr& Nm) const {
 	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
@@ -1547,6 +1557,14 @@ v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getFltLen);
 		JsRegisterFunction(TmpTemp, getFltAt);
 		JsRegisterFunction(TmpTemp, getFltV);
+		JsRegisterFunction(TmpTemp, getTmLen);
+		JsRegisterFunction(TmpTemp, getTmAt);
+		JsRegisterFunction(TmpTemp, getTmV);
+		JsRegisterFunction(TmpTemp, getInFlt);
+		JsRegisterFunction(TmpTemp, getInTm);
+		JsRegisterFunction(TmpTemp, getOutFltV);
+		JsRegisterFunction(TmpTemp, getOutTmV);
+		JsRegisterFunction(TmpTemp, getN);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1669,6 +1687,111 @@ v8::Handle<v8::Value> TJsSA::getFltV(const v8::Arguments& Args) {
 	TFltV Res;
 	Aggr->GetFltV(Res);
 	return TJsFltV::New(JsSA->Js, Res);
+}
+
+v8::Handle<v8::Value> TJsSA::getTmLen(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as ITmVec
+	TWPt<TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TStreamAggrOut::ITmVec*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getTmLen : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetTmLen()));
+}
+
+v8::Handle<v8::Value> TJsSA::getTmAt(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as ITmVec
+	int ElN = TJsSAUtil::GetArgInt32(Args, 0);
+	TWPt<TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TStreamAggrOut::ITmVec*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetTm(ElN)));
+}
+
+v8::Handle<v8::Value> TJsSA::getTmV(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as ITmVec
+	TWPt<TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TStreamAggrOut::ITmVec*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getTmV : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
+	}
+	TUInt64V Res;
+	Aggr->GetTmV(Res);
+	int Len = Res.Len();
+	TFltV FltRes(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		FltRes[ElN] = (double)Res[ElN];
+	}
+	return TJsFltV::New(JsSA->Js, FltRes);
+}
+
+v8::Handle<v8::Value> TJsSA::getInFlt(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltTmIO
+	TWPt<TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getInFlt : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetInFlt()));
+}
+
+v8::Handle<v8::Value> TJsSA::getInTm(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltTmIO
+	TWPt<TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getInTm : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetInTmMSecs()));
+}
+
+v8::Handle<v8::Value> TJsSA::getOutFltV(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltTmIO
+	TWPt<TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getOutFltV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	TFltV Res;
+	Aggr->GetOutFltV(Res);
+	return TJsFltV::New(JsSA->Js, Res);
+}
+
+v8::Handle<v8::Value> TJsSA::getOutTmV(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltTmIO
+	TWPt<TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getOutTmV : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	TUInt64V Res;
+	Aggr->GetOutTmMSecsV(Res);
+	int Len = Res.Len();
+	TFltV FltRes(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		FltRes[ElN] = (double)Res[ElN];
+	}
+	return TJsFltV::New(JsSA->Js, FltRes);
+}
+
+v8::Handle<v8::Value> TJsSA::getN(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	// try to cast as IFltTmIO
+	TWPt<TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TStreamAggrOut::IFltTmIO*>(JsSA->SA());
+	if (Aggr.Empty()) {
+		throw TQmExcept::New("TJsSA::getN : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+	}
+	return HandleScope.Close(v8::Number::New(Aggr->GetN()));
 }
 
 ///////////////////////////////
@@ -6302,8 +6425,10 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 		JsRegisterFunction(TmpTemp, sub);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, parse);
+		JsRegisterFunction(TmpTemp, fromWindowsTimestamp);
+		JsRegisterFunction(TmpTemp, fromUnixTimestamp);
 		JsRegisterFunction(TmpTemp, clone);
-		JsRegisterProperty(TmpTemp, windowstimestamp);
+		JsRegisterProperty(TmpTemp, windowsTimestamp);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6457,7 +6582,25 @@ v8::Handle<v8::Value> TJsTm::parse(const v8::Arguments& Args) {
     // prepare response object
     TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TmStr, '-', ':', '.', 'T');
     // return constructed json
-    return HandleScope.Close(TJsTm::New(Tm));
+	return TJsTm::New(Tm);
+}
+
+v8::Handle<v8::Value> TJsTm::fromWindowsTimestamp(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read timestamp
+	uint64 Timestamp = (uint64)TJsTmUtil::GetArgFlt(Args, 0);
+	// prepare response object
+	TTm Tm = TTm::GetTmFromMSecs(Timestamp);
+	return TJsTm::New(Tm);
+}
+
+v8::Handle<v8::Value> TJsTm::fromUnixTimestamp(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// read timestamp
+	uint Timestamp = (uint)TJsTmUtil::GetArgInt32(Args, 0);
+	// prepare response object
+	TTm Tm = TTm::GetTmFromDateTimeInt(Timestamp);
+	return TJsTm::New(Tm);
 }
 
 v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
@@ -6467,7 +6610,7 @@ v8::Handle<v8::Value> TJsTm::clone(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsTm::New(JsTm->Tm));
 }
 
-v8::Handle<v8::Value> TJsTm::windowstimestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+v8::Handle<v8::Value> TJsTm::windowsTimestamp(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope; 
 	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Number::New((double)TTm::GetMSecsFromTm(JsTm->Tm)));
