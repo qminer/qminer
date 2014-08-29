@@ -177,6 +177,7 @@ require = function (libName) {
     if (libName === 'twitter.js') return _twitter;
     if (libName === 'time.js') return _tm;
     if (libName === 'visualization.js') return _vis;
+    if (libName === 'snap.js') return _snap;
 };
 
 intellisenseIgnore["_analytics"] = "{}";
