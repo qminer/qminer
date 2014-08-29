@@ -590,6 +590,8 @@ public:
   static void Copy(const TStr& SrcFNm, const TStr& DstFNm, 
     const bool& ThrowExceptP=true, const bool& FailIfExistsP=false);
   static bool Del(const TStr& FNm, const bool& ThrowExceptP=true);
+  static bool Move(const TStr& SrcFNm, const TStr& DstFNm,
+	const bool& ThrowExceptP = true, const bool& FailIfExistsP = false);
   static void DelWc(const TStr& WcStr, const bool& RecurseDirP=false);
   static void Rename(const TStr& SrcFNm, const TStr& DstFNm);
   static TStr GetUniqueFNm(const TStr& FNm);
