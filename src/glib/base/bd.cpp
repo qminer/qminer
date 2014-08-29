@@ -115,7 +115,7 @@ void ExeStop(
 #if defined(SW_TRACE) && defined(GLib_UNIX)
   PrintBacktrace();
 #endif
-#if Glib_WIN
+#ifdef GLib_WIN
   TFileStackWalker::WriteStackTrace();
 #endif
 
