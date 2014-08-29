@@ -25,8 +25,12 @@
 
 
 if (typeof exports == 'undefined') {
+    // client side functions must not use require!
     exports = {};
-};
+} else {
+    // server side functions such as highchartsTSConverter require time
+    time = require('time.js');
+}
 
 // array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]

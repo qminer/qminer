@@ -183,9 +183,6 @@ la.zeros = function (rows, cols) {
     return mat;
 };
 
-
-
-
 // generate a C++ vector of ones
 //#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 la.ones = function(k) {
