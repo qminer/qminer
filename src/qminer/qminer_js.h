@@ -2169,6 +2169,10 @@ public:
 	JsDeclareFunction(setRow);
 	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
 	JsDeclareFunction(diag);
+	//#- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+	JsDeclareFunction(save);
+	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(load);
 };
 
 ///////////////////////////////

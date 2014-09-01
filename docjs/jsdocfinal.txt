@@ -477,6 +477,8 @@ var fltv = la.newVec(); //empty matrix
 - `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 - `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
 - `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 
 ### SpVector (sparse vector)
 

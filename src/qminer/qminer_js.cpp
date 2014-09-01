@@ -3690,6 +3690,8 @@ v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getRow);
 		JsRegisterFunction(TmpTemp, setRow);
 		JsRegisterFunction(TmpTemp, diag);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4104,6 +4106,24 @@ v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
 		Result[ElN] = JsMat->Mat.At(ElN, ElN);
 	}
 	return TJsFltV::New(JsMat->Js, Result);
+}
+
+v8::Handle<v8::Value> TJsFltVV::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	JsMat->Mat.Save(*SOut);
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsFltVV::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	JsMat->Mat.Load(*SIn);
+	return Args.Holder();
 }
 
 ///////////////////////////////
