@@ -177,6 +177,7 @@ require = function (libName) {
     if (libName === 'twitter.js') return _twitter;
     if (libName === 'time.js') return _tm;
     if (libName === 'visualization.js') return _vis;
+    if (libName === 'snap.js') return _snap;
 };
 
 intellisenseIgnore["_analytics"] = "{}";
@@ -226,6 +227,8 @@ var _analytics = new function () { }
 var _recLinRegModel = new function () { }
 var _kf = new function () { }
 var _tokenizer = new function () { }
+var _snap = new function () { }
+var _graph = new function () { }
 var _tm = new function () { }
 var _htModel = new function () { }
 var _alModel = new function () { }
@@ -2787,6 +2790,42 @@ _tokenizer.getSentences = function () {
 	/// <summary> breaks text into sentence and returns them as an array of strings.</summary>
 	/// <param name="_string" value="_string">param</param>
 	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+_snap.newUGraph = function () {
+	/// <signature>
+	/// <summary> generate an empty undirected graph</summary>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.dump = function () {
+	/// <signature>
+	/// <summary> dumps a graph to file named `fNm`</summary>
+	/// <param name="_fNm" value="_fNm">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.addEdge = function () {
+	/// <signature>
+	/// <summary> add an edge</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <returns value ="_edgeIdx"/>
+	/// </signature>
+};
+
+_graph.addNode = function () {
+	/// <signature>
+	/// <summary> add a node to graph and return its ID `idx`</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add a node with ID `idx`, returns node ID</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
 	/// </signature>
 };
 

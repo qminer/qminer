@@ -670,8 +670,11 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         // get module filename
         ModuleFNm = TJsObjUtil<TScript>::GetArgStr(Args, 0);
         // check if one of built-in modules
-        if (ModuleFNm == "__analytics__") { 
-            return TJsAnalytics::New(Script);
+		if (ModuleFNm == "__analytics__") {
+			return TJsAnalytics::New(Script);
+		}
+		else if (ModuleFNm == "__snap__") {
+			return TJsSnap::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
         } else if (ModuleFNm == "dmoz") { 
@@ -5621,6 +5624,101 @@ v8::Handle<v8::Value> TJsTokenizer::getParagraphs(const v8::Arguments& Args) {
 	// return
 	return HandleScope.Close(TJsUtil::GetStrArr(ParagraphV));
 }
+
+///////////////////////////////
+// QMiner-Snap
+v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newUGraph);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsSnap::newUGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	return TJsUGraph::New(JsSnap->Js);
+}
+
+///////////////////////////////
+// QMiner-Undirected-Graph
+v8::Handle<v8::ObjectTemplate> TJsUGraph::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, addNode);
+		JsRegisterFunction(TmpTemp, addEdge);
+		JsRegisterFunction(TmpTemp, dump);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsUGraph::addNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	int ReturnId = -1;
+	if (ArgsLen == 0) {
+		ReturnId = JsUGraph->Graph->AddNode();
+	}
+	else if (ArgsLen == 1) {
+		QmAssertR(TJsUGraphUtil::IsArgInt32(Args, 0) , "TJsUGraph::addNode: Args[0] expected to be an integer!");
+		int NodeId = TJsUGraphUtil::GetArgInt32(Args, 0);
+		ReturnId = JsUGraph->Graph->AddNode(NodeId);
+	} 
+	else {
+		throw TQmExcept::New("TJsUGraph::addNode: one or zero input arguments!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+v8::Handle<v8::Value> TJsUGraph::addEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);	
+	int ReturnId = -1;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2) {
+		QmAssertR(TJsUGraphUtil::IsArgInt32(Args, 0) && TJsUGraphUtil::IsArgInt32(Args, 1), "TJsUGraph::addEdge: Args[0] and Args[1] expected to be integers!");
+		int SourceId = TJsUGraphUtil::GetArgInt32(Args, 0);
+		int TargetId = TJsUGraphUtil::GetArgInt32(Args, 1);
+		ReturnId = JsUGraph->Graph->AddEdge(SourceId, TargetId);
+	}
+	else {
+		throw TQmExcept::New("TJsUGraph::addEdge: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+v8::Handle<v8::Value> TJsUGraph::dump(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	
+	QmAssertR(ArgsLen <= 1, "TJsUGraph::dump: one or zero input arguments expected!");
+	TStr FNm = TJsUGraphUtil::GetArgStr(Args, 0, "");
+	if (FNm != "") {
+		FILE* pFile = fopen(FNm.CStr(), "w");
+		JsUGraph->Graph->Dump(pFile);
+		fclose(pFile);
+	}
+	else {
+		JsUGraph->Graph->Dump();
+	}
+	return HandleScope.Close(Args.Holder());
+}
+
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP

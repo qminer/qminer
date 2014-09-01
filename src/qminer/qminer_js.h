@@ -2754,6 +2754,80 @@ public:
 	JsDeclareFunction(getParagraphs);
 };
 
+
+
+///////////////////////////////
+// QMiner-Snap
+//# 
+//# ## Snap graph library
+//# 
+//# A global object `snap` is used to construct graphs
+//# it is available in any script. The object includes
+//# several functions from snap library.
+class TJsSnap {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSnap> TJsSnapUtil;
+
+	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsSnapUtil::New(new TJsSnap(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
+	JsDeclareFunction(newUGraph);
+
+};
+
+
+///////////////////////////////
+// QMiner-Undirected-Graph
+//# 
+//# ### Undirected Graph
+//# 
+//# Undirected graph...
+class TJsUGraph {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	
+	PUNGraph Graph;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsUGraph> TJsUGraphUtil;
+
+	explicit TJsUGraph(TWPt<TScript> _Js) : Js(_Js) { Graph = TUNGraph::New(); }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsUGraphUtil::New(new TJsUGraph(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+	JsDeclareFunction(addNode);
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+	JsDeclareFunction(addEdge);
+	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+	JsDeclareFunction(dump);
+
+};
+
+
+
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
 class TJsGeoIp {

@@ -25,7 +25,7 @@ s1 = qm.newStreamAggr(new function () {
     var time;
     var longtime;
     this.onAdd = function (rec) {
-        longtime = rec.Time.windowstimestamp;
+        longtime = rec.Time.windowsTimestamp;
         time = rec.Time.string;
         data = rec.Val + 0.5*Math.random();
     };

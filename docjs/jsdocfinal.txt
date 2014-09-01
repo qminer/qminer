@@ -871,6 +871,27 @@ Breaks text into tokens (i.e. words).
 - `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
 - `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 
+## Snap graph library
+
+A global object `snap` is used to construct graphs
+it is available in any script. The object includes
+several functions from snap library.
+
+**Functions and properties:**
+
+- `graph = snap.newUGraph()` -- generate an empty undirected graph
+
+### Undirected Graph
+
+Undirected graph...
+
+**Functions and properties:**
+
+- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+
 ## System and I/O
 
 ### Process
