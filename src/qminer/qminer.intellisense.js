@@ -3051,6 +3051,14 @@ _model.predict = function () {
 	/// </signature>
 };
 
+_mat.load = function () {
+	/// <signature>
+	/// <summary> replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
 /// <field name = "cols" value = "_num"> integer `num` corresponds to the number of columns of `mat`</field>
 _mat.cols = _num;
 
@@ -3166,10 +3174,18 @@ _mat.print = function () {
 	/// </signature>
 };
 
-_mat.plus = function () {
+_mat.solve = function () {
 	/// <signature>
-	/// <summary> `mat3` is the sum of matrices `mat` and `mat2`</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
+	/// <summary> vector `vec2` is the solution to the linear system `mat * vec2 = vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_mat.save = function () {
+	/// <signature>
+	/// <summary> print `mat` (full matrix) to output stream `fout`. Returns self.</summary>
+	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value ="_mat"/>
 	/// </signature>
 };
@@ -3228,11 +3244,11 @@ _mat.rowMaxIdx = function () {
 	/// </signature>
 };
 
-_mat.solve = function () {
+_mat.plus = function () {
 	/// <signature>
-	/// <summary> vector `vec2` is the solution to the linear system `mat * vec2 = vec`</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec"/>
+	/// <summary> `mat3` is the sum of matrices `mat` and `mat2`</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
