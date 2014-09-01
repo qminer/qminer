@@ -1134,6 +1134,10 @@ PJsonVal TJsStreamAggr::SaveJson(const int& Limit) const {
 	}
 }
 
+void TJsStreamAggr::Save(TSOut& SOut) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", Saving and loading JS stream aggregates is not supported\n");
+	Fail;
+}
 
 // IInt
 int TJsStreamAggr::GetInt() const {

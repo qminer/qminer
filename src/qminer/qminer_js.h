@@ -1023,6 +1023,10 @@ public:
 	void OnDeleteRec(const TRec& Rec);
 	PJsonVal SaveJson(const int& Limit) const;
 
+	// stream aggregator type name 
+	static TStr GetType() { return "javaScript"; }	
+	void Save(TSOut& SOut) const;
+
 	// IInt
 	int GetInt() const;
 	// IFlt 
