@@ -26,12 +26,12 @@ for (var i = gTest.getFirstNode() ; br < gTest.nodeCount() ; i.getNext()) {
 // dump graph
 gTest.dump();
 
-// dump graph to file
+// dump graph to a file
 gTest.dump("gtest.txt");
 
 console.log("end basic operations part");
 
-// Reading graphs from file, detecting communities, computing evolution and plotting
+// Reading graphs from files, detecting communities, computing community evolution and plotting
 
 // loading graphs
 var g1999 = snap.newUGraph("data\\1999.edg");
@@ -47,12 +47,12 @@ var g2006 = snap.newUGraph("data\\2006.edg");
 var graphs = new Array();
 graphs.push(g1999); graphs.push(g2000); graphs.push(g2001); graphs.push(g2002); graphs.push(g2003); graphs.push(g2004); graphs.push(g2005); graphs.push(g2006);
 
-// determining communities for the arrey of graphs storing the results (array of sparse vectors)
+// determining communities for the array of graphs and storing the results in array of sparse vectors
 var communities = new Array();
 for (var i = 0; i < graphs.length; i++)
     communities.push(snap.CommunityDetection(graphs[i], "gn"));
 
-// return json string of evolution graph
+// return json string of graph evolution
 var json = snap.evolutionJs(communities, 0.5, 0.75);
 
 // plot the evolution graph
