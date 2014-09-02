@@ -111,7 +111,6 @@ _addIntellisenseVar("_httpRequest", "{host:_str, connection:_str, cache-control:
 
 
 
-
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case
 _addIntellisenseVar("_addIntellisenseVar", "_addIntellisenseVar"); // eval doesn't change _addIntellisenseVar, we just add the variable "_addIntellisenseVar" to ignore list
@@ -1306,6 +1305,27 @@ la.copyVecToArr = function () {
 	/// </signature>
 };
 
+la.zscore = function () {
+	/// <signature>
+	/// <summary> returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_zscoreResult"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <returns value ="_zscoreResult"/>
+	/// </signature>
+	/// <signature>
+	/// <summary>  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_zscoreResult"/>
+	/// </signature>
+};
+
 la.repvec = function () {
 	/// <signature>
 	/// <summary> creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`</summary>
@@ -1382,6 +1402,27 @@ la.newIntVec = function () {
 	/// <summary> clone an int vector `vec2`</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+};
+
+la.std = function () {
+	/// <signature>
+	/// <summary> returns `vec` containing the standard deviation of each column from matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> computes the standard deviations along the dimension of X specified by parameter `dim`</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -1544,6 +1585,20 @@ la.loadIntVec = function () {
 	/// </signature>
 };
 
+la.mean = function () {
+	/// <signature>
+	/// <summary> returns `vec` containing the mean of each column from matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _sa.getTm = function () {
 	/// <signature>
 	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
@@ -1661,6 +1716,14 @@ _sa.getTmAt = function () {
 	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.save = function () {
+	/// <signature>
+	/// <summary> executes save function given output stream `fout` as input. returns self.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_sa"/>
 	/// </signature>
 };
 
@@ -3954,3 +4017,4 @@ _spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
 _rs[0] = _rec; // record set at index returns a record
 _store[0] = _rec; // store index operator returns a record
 _addIntellisenseVar("_rsArr", "[_rs]");
+_addIntellisenseVar("_zscoreResult", "{Z: _mat, mu: _vec, sigma: _vec}");
