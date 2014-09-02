@@ -4396,9 +4396,11 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 		if (Args[0]->IsObject()) {
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltV")) {
 				TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-				QmAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(), "sparse_col_matrix' * vector: dimensions mismatch");
+				QmAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(),
+                    TStr::Fmt("sparse_col_matrix' * vector: dimensions mismatch %d - %d", JsMat->Rows, JsVec->Vec.Len()));
 				if (JsMat->Rows == -1) {
-					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsVec->Vec.Len(), "sparse_col_matrix' * vector: dimensions mismatch");
+					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsVec->Vec.Len(), 
+                        TStr::Fmt("sparse_col_matrix' * vector: dimensions mismatch %d - %d", TLAMisc::GetMaxDimIdx(JsMat->Mat), JsVec->Vec.Len()));
 				}
 				// computation				
 				int Cols = JsMat->Mat.Len();				
@@ -4410,9 +4412,11 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 			}
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);				
-				QmAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
+				QmAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), 
+                    TStr::Fmt("sparse_col_matrix' * matrix: dimensions mismatch %d - %d", JsMat->Rows, JsMat2->Mat.GetRows()));
 				if (JsMat->Rows == -1) {
-					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
+					QmAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(),
+                        TStr::Fmt("sparse_col_matrix' * matrix: dimensions mismatch %d - %d", TLAMisc::GetMaxDimIdx(JsMat->Mat), JsMat2->Mat.GetRows()));
 				}
 				TFltVV Result;
 				// computation
@@ -4424,7 +4428,8 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 			
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
 				TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
-				QmAssertR(JsMat->Rows == -1 || JsVec->Dim == -1 || JsMat->Rows == JsVec->Dim, "sparse_col_matrix' * sparse_vector: dimensions mismatch");
+				QmAssertR(JsMat->Rows == -1 || JsVec->Dim == -1 || JsMat->Rows == JsVec->Dim, 
+                    TStr::Fmt("sparse_col_matrix' * sparse_vector: dimensions mismatch %d - %d", JsMat->Rows, JsVec->Dim));
 				// computation				
 				int Cols = JsMat->Mat.Len();
 				TFltVV Result(Cols, 1);
@@ -4438,7 +4443,8 @@ v8::Handle<v8::Value> TJsSpMat::multiplyT(const v8::Arguments& Args) {
 
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
 				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
-				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
+				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, 
+                    TStr::Fmt("sparse_col_matrix' * sparse_matrix: dimensions mismatch %d - %d", JsMat->Rows, JsMat2->Rows));
 				// computation				
 				int Cols = JsMat->Mat.Len();
 				TFltVV Result(Cols, JsMat2->Mat.Len());					
