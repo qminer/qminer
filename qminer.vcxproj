@@ -129,6 +129,7 @@
     <None Include="src\qminer\js\analytics.js" />
     <None Include="src\qminer\js\assert.js" />
     <None Include="src\qminer\js\evaluation.js" />
+    <None Include="src\qminer\js\snap.js" />
     <None Include="src\qminer\js\twitter.js" />
     <None Include="src\qminer\js\utilities.js" />
     <None Include="src\qminer\js\visualization.js" />

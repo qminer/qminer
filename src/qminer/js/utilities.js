@@ -1,4 +1,4 @@
-// QMiner - Open Source Analytics Platform
+s// QMiner - Open Source Analytics Platform
 // 
 // Copyright (C) 2014 Jozef Stefan Institute
 //

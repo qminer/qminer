@@ -2768,6 +2768,7 @@ class TJsSnap {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
+
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsSnap> TJsSnapUtil;
@@ -2785,7 +2786,12 @@ public:
 	//# 
 	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
 	JsDeclareFunction(newUGraph);
-
+	//#- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
+	JsDeclareFunction(DegreeCentrality);
+	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
+	JsDeclareFunction(CommunityDetection);
+	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+	JsDeclareFunction(CommunityEvolution);
 };
 
 
@@ -2799,16 +2805,26 @@ class TJsUGraph {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
-	
 	PUNGraph Graph;
+	TStr InFNm;
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsUGraph> TJsUGraphUtil;
 
-	explicit TJsUGraph(TWPt<TScript> _Js) : Js(_Js) { Graph = TUNGraph::New(); }
+	TJsUGraph(TWPt<TScript> _Js) : Js(_Js) { 
+		Graph = TUNGraph::New(); 
+	};
+
+	TJsUGraph(TWPt<TScript> _Js, TStr path) : Js(_Js), InFNm(path) { 
+		Graph = TSnap::LoadEdgeList<PUNGraph>(InFNm); 
+	};
+
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
 		return TJsUGraphUtil::New(new TJsUGraph(Js));
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path) {
+		return TJsUGraphUtil::New(new TJsUGraph(Js, path));
 	}
 
 	/// template
@@ -2821,12 +2837,76 @@ public:
 	JsDeclareFunction(addNode);
 	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
 	JsDeclareFunction(addEdge);
+	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+	JsDeclareFunction(delNode);
+	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+	JsDeclareFunction(delEdge);
+	//#- `isNode = graph.IsNode(idx)` -- check if a node with ID 'idx' exists in the graph
+	JsDeclareFunction(isNode);
+	//#- `isEdge = graph.IsEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs 'idx1' and 'idx2' exists in the graph
+	JsDeclareFunction(isEdge);
+	//#- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
+	JsDeclareFunction(nodeCount);
+	//#- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
+	JsDeclareFunction(edgeCount);
+	//#- `node = graph.getNode(idx)` -- gets node with ID 'idx'
+	JsDeclareFunction(getNode);
+	//#- `node = graph.getFirstNode()` -- gets first node
+	JsDeclareFunction(getFirstNode);
+	//#- `node = graph.getLastNode()` -- gets last node
+	JsDeclareFunction(getLastNode);
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
-
 };
 
+///////////////////////////////
+// QMiner-Node
+//# 
+//# ### Undirected Graph
+//# 
+//# Undirected graph...
+class TJsNode {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	TUNGraph::TNodeI Node;
+	TIntV NIdV;
 
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsNode> TJsNodeUtil;
+	TInt Id;
+	explicit TJsNode(TWPt<TScript> Js_, TUNGraph::TNodeI a);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TNodeI a) {
+		return TJsNodeUtil::New(new TJsNode(Js, a));
+	}
+
+	// Operators
+	int operator== (const TJsNode& NodeI) const;
+	TJsNode& operator++ (int) { this->getNext; return *this; }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = node.getId()` -- return id of the node
+	JsDeclareFunction(getId);
+	//#- `deg = node.getDeg()` -- return degree of the node
+	JsDeclareFunction(getDeg);
+	//#- `indeg = node.getDeg()` -- return in-degree of the node
+	JsDeclareFunction(getInDeg);
+	//#- `outdeg = node.getDeg()` -- return out-degree of the node
+	JsDeclareFunction(getOutDeg);
+	//#- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
+	JsDeclareFunction(getNbrNId);
+	//#- `node = node.getNext()` -- return next node
+	JsDeclareFunction(getNext);
+	//#- `node = graph.getPrev()` -- return previous node
+	JsDeclareFunction(getPrev);
+};
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
