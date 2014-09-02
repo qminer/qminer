@@ -1008,6 +1008,13 @@ TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<
 	QmAssert(_SaveJsonFun->IsFunction());
 	SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
 
+	// StreamAggr::Save
+	if (TriggerVal->Has(v8::String::New("save"))) {
+		v8::Handle<v8::Value> _Save = TriggerVal->Get(v8::String::New("save"));
+		QmAssert(_Save->IsFunction());
+		SaveFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_Save));
+	}
+
 	// IInt
 	if (TriggerVal->Has(v8::String::New("getInt"))) {
 		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::New("getInt"));
@@ -1135,8 +1142,13 @@ PJsonVal TJsStreamAggr::SaveJson(const int& Limit) const {
 }
 
 void TJsStreamAggr::Save(TSOut& SOut) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", Saving and loading JS stream aggregates is not supported\n");
-	Fail;
+	// save the type of the aggregate
+	GetType().Save(SOut);
+	// super save
+	TStreamAggr::Save(SOut);
+	if (SaveFun.IsEmpty()) {
+		throw TQmExcept::New("TJsStreamAggr::Save (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+	}
 }
 
 // IInt
@@ -1557,6 +1569,7 @@ v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
 		JsRegisterFunction(TmpTemp, onUpdate);
 		JsRegisterFunction(TmpTemp, onDelete);
 		JsRegisterFunction(TmpTemp, saveJson);
+		JsRegisterFunction(TmpTemp, save);
 		JsRegisterProperty(TmpTemp, val);
 		JsRegisterFunction(TmpTemp, getInt);
 		JsRegisterFunction(TmpTemp, getFlt);
@@ -1617,6 +1630,19 @@ v8::Handle<v8::Value> TJsSA::saveJson(const v8::Arguments& Args) {
 	PJsonVal Json = JsSA->SA->SaveJson(Limit);
 	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
 	return HandleScope.Close(V8Json);
+}
+
+v8::Handle<v8::Value> TJsSA::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	JsSA->SA->Save(*SOut);
+	if (JsSA->SA->Type() == "javaScript") {
+		auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
+		JsSA->Js->Execute(SA->SaveFun, Args[0]);
+		
+	}
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSA::val(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -3402,7 +3428,7 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 	v8::Handle<v8::Object> JsObj = v8::Object::New();
 	
 	if (Args.Length() > 1) {
-		int Iters = 2;
+		int Iters = -1;
 		double Tol = 1e-6;
 		if (Args.Length() > 2) {			
 			PJsonVal ParamVal = TJsLinAlgUtil::GetArgJson(Args, 2);   

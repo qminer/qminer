@@ -2475,7 +2475,9 @@ public:
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
 	/// Unique ID of the stream aggregate
-	const TStr& GetGuid() const { return Guid; }    
+	const TStr& GetGuid() const { return Guid; }  
+
+	virtual TStr Type() const = 0;
 };
 
 ///////////////////////////////
