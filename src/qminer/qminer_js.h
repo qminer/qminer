@@ -984,7 +984,7 @@ private:
 	v8::Persistent<v8::Function> OnUpdateFun;
 	v8::Persistent<v8::Function> OnDeleteFun;
 	v8::Persistent<v8::Function> SaveJsonFun;
-
+	
 	v8::Persistent<v8::Function> GetIntFun;
 	// IFlt 
 	v8::Persistent<v8::Function> GetFltFun;
@@ -1025,7 +1025,9 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "javaScript"; }	
+	TStr Type() const {	return GetType();}
 	void Save(TSOut& SOut) const;
+	v8::Persistent<v8::Function> SaveFun;
 
 	// IInt
 	int GetInt() const;
@@ -1217,6 +1219,8 @@ public:
 	JsDeclareFunction(onDelete);
 	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	JsDeclareFunction(saveJson);
+	//#- `sa = sa.save(fout)` -- executes save function given output stream `fout` as input. returns self.
+	JsDeclareFunction(save);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
 	// IInt
@@ -1706,8 +1710,8 @@ public:
 	//#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
-	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
     //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
     //JsDeclareFunction(loadIntVec);
@@ -3092,10 +3096,13 @@ private:
 	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
 	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
 	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-
+	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
 public:
 	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
 		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
+	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
+		return TJsFOutUtil::New(new TJsFOut(SOut_)); }
+
     static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
     
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();

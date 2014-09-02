@@ -219,6 +219,7 @@ public:
     
     // stream aggregator type name 
     static TStr GetType() { return "recordBuffer"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -308,6 +309,7 @@ public:
     
     // stream aggregator type name 
     static TStr GetType() { return "count"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -350,7 +352,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "timeSeriesTick"; }        
+    static TStr GetType() { return "timeSeriesTick"; }   
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -412,7 +415,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "timeSeriesWinBuf"; }        
+    static TStr GetType() { return "timeSeriesWinBuf"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -453,6 +457,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufCount"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -493,6 +498,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufSum"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -533,6 +539,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufMin"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -573,6 +580,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufMax"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -613,7 +621,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "ma"; }    
+    static TStr GetType() { return "ma"; }  
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -665,7 +674,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "ema"; }    
+    static TStr GetType() { return "ema"; }  
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -706,7 +716,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "variance"; }    
+    static TStr GetType() { return "variance"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -745,7 +756,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "covariance"; }    
+    static TStr GetType() { return "covariance"; } 
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -797,7 +809,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "correlation"; }    
+    static TStr GetType() { return "correlation"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -903,6 +916,7 @@ public:
 	void Save(TSOut& SOut) const;
 
 	static TStr GetType() { return "stmerger"; }
+	TStr Type() const { return GetType(); }
 
 private:
 	void InitFld(const TWPt<TQm::TBase> Base, const TStMergerFieldMap& FieldMap,
@@ -992,6 +1006,7 @@ public:
 
 	// stream aggregator type name 
     static TStr GetType() { return "resampler"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -1019,6 +1034,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "ftrext"; }
+	TStr Type() const { return GetType(); }
 };
 
 //////////////////////////////////////////////
