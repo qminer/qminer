@@ -5482,7 +5482,7 @@ v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
 
         JsNN->NN->GetResults(FltV);
 
-        printf("&&Predicted when learning %f \n", (double)FltV[0]);
+        //printf("&&Predicted when learning %f \n", (double)FltV[0]);
 
         // then check how we performed and learn
         JsNN->NN->BackProp(JsVecTarget->Vec);
@@ -5528,7 +5528,7 @@ v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
     
     JsNN->NN->GetResults(FltV);
 
-    printf("&&Predicted %f \n", (double)FltV[0]);
+    //printf("&&Predicted %f \n", (double)FltV[0]);
 
     return HandleScope.Close(JsFltV);
 }

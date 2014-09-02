@@ -420,6 +420,48 @@ la.loadIntVec = function(fin) {
     var line = fin.readLine();
     var arr = JSON.parse(line);
     return la.copyIntArrayToVec(arr);
-} 
+}
+
+//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
+//# - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
+la.mean = function (mat, dim) {
+    // if dim is not defined, set it to 1
+    var dim = dim == null ? 1 : dim;
+    switch (dim) {
+        case 1:
+            return mat.multiplyT(la.ones(mat.rows)).multiply(1 / mat.rows);
+            break;
+        case 2:
+            return mat.multiply(la.ones(mat.cols)).multiply(1 / mat.cols);
+            break;
+        default:
+            console.log('Warning', 'Invalid value of parameter dim')
+    }
+}
+
+//# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+//# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of X specified by parameter `dim`
+la.std = function (mat, flag, dim) {
+    // if flag is not defined, set it to 0
+    var flag = flag == null ? 0 : flag;
+    var dim = dim == null ? 1 : dim;
+
+    if (dim == 1) {
+        var std = mat.minus(la.repvec(la.mean(mat), 1, mat.rows).transpose()).colNorms();
+        if (flag == 0) {
+            return std.multiply(Math.sqrt(1 / (mat.rows - 1)));
+        } else if (flag == 1) {
+            return std.multiply(Math.sqrt(1 / (mat.rows)));
+        } else console.log('Warning', 'Invalid value of parameter flag')
+    } else if (dim == 2) {
+        var std = mat.minus(la.repvec(la.mean(mat, 2), 1, mat.cols)).rowNorms();
+        if (flag == 0) {
+            return std.multiply(Math.sqrt(1 / (mat.cols - 1)));
+        } else if (flag == 1) {
+            return std.multiply(Math.sqrt(1 / (mat.cols)));
+        } else console.log('Warning', 'Invalid value of parameter flag')
+    } else console.log('Warning', 'Invalid value of parameter dim');
+}
 
 var linalg = la;
