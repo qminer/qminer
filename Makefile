@@ -80,6 +80,7 @@ qm:
 	# copy resources
 	mkdir -p ./$(BUILD)/resources
 	cp -r ./$(QMINER)/resources/* ./$(BUILD)/resources
+	(cat ./$(QMINER)/gui/js/Highcharts/js/highcharts.js; echo; cat ./$(QMINER)/gui/js/Highcharts/js/modules/exporting.js; echo; cat ./$(QMINER)/js/visualization.js) > ./$(BUILD)/gui/js/visualization.js
 	
 cleanall: clean cleandoc
 	make -C $(THIRD_PARTY) clean

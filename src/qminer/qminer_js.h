@@ -969,6 +969,7 @@ class TJsStreamAggr :
 	//public TStreamAggrOut::ITm,
 	public TStreamAggrOut::IFltTmIO,
 	public TStreamAggrOut::IFltVec,
+	public TStreamAggrOut::ITmVec,
 	public TStreamAggrOut::INmFlt,
 	public TStreamAggrOut::INmInt,
 	// combinations
@@ -999,6 +1000,10 @@ private:
 	v8::Persistent<v8::Function> GetFltLenFun;
 	v8::Persistent<v8::Function> GetFltAtFun;
 	v8::Persistent<v8::Function> GetFltVFun;
+	// ITmVec
+	v8::Persistent<v8::Function> GetTmLenFun;
+	v8::Persistent<v8::Function> GetTmAtFun;
+	v8::Persistent<v8::Function> GetTmVFun;
 	// INmFlt 
 	v8::Persistent<v8::Function> IsNmFltFun;
 	v8::Persistent<v8::Function> GetNmFltFun;
@@ -1034,6 +1039,10 @@ public:
 	int GetFltLen() const;
 	double GetFlt(const TInt& ElN) const; // GetFltAtFun
 	void GetFltV(TFltV& ValV) const;
+	// ITmVec
+	int GetTmLen() const;
+	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+	void GetTmV(TUInt64V& TmMSecsV) const;
 	// INmFlt 
 	bool IsNmFlt(const TStr& Nm) const;
 	double GetNmFlt(const TStr& Nm) const;
@@ -1206,18 +1215,40 @@ public:
 	JsDeclareFunction(saveJson);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
+	// IInt
 	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 	JsDeclareFunction(getInt);
+	// IFlt
 	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
 	JsDeclareFunction(getFlt);
+	// ITm
 	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	JsDeclareFunction(getTm);
+	// IFltVec
 	//#- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltLen);
 	//#- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltAt);
 	//#- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltV);
+	// ITmVec
+	//#- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmLen);
+	//#- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmAt);
+	//#- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmV);
+	// IFltTmIO
+	//#- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInFlt);
+	//#- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInTm);
+	//#- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutFltV);
+	//#- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutTmV);
+	//#- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getN);
 
 };
 
@@ -2369,25 +2400,21 @@ public:
     JsDeclareFunction(newFeatureSpace);
     //#- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
-    JsDeclareFunction(loadFeatureSpace);
-    
+    JsDeclareFunction(loadFeatureSpace);    
     //#- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
-    //#     classification model using columns from `mat` as training data and vector
-    //#     `vec` as target variable (must be of values either 1 or -1); optional
-    //#     training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
-    //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
-    //#     examples with (default is 1.0)); result is a linear model
+    //#     classification model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector
+    //#     `vec` represents the training targets (must be of values either 1 or -1); optional
+    //#     training parameters with their default values are a JSON object: `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+    //#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 	JsDeclareFunction(trainSvmClassify);
     //#- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
-    //#     regression model using columns from `mat` as training data and vector `vec` as 
-    //#     target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
-    //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
-    //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
+    //#     regression model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector `vec` represents the training targets;
+    //#     optional training parameters with their default values are a JSON object: `svmRegParameters = {c : 1.0, eps : 1.0, batchSize : 10000, maxIterations : 10000, maxTime : 600, minDiff : 1e-6, varbose : false}`.
+	//#     The parameter `c` is the SVM cost parameter, `eps` controls the epsilon-insensitive L1 loss, `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model.
     JsDeclareFunction(trainSvmRegression);
     //#- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     //#     from `fin` stream
-	JsDeclareFunction(loadSvmModel);
-    
+	JsDeclareFunction(loadSvmModel);    
     //#- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
     //#     model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
     //#     ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
@@ -2601,10 +2628,10 @@ public:
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
-//#- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
-//#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+//#- `gracePeriod` -- Denotes ``recomputation period''; if `gracePeriod=200`, the algorithm
+//#	    will recompute information gains (or Gini indices) every `200` examples. Recomputation
 //#	    is the most expensive operation in the algorithm, because we have to recompute gains at each
-//#	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+//#	    leaf of the tree for each attribute. (If `ConceptDriftP=true`, we have to recompute gains in each
 //#       node of the tree.)
 //#- `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
 //#	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
@@ -2644,6 +2671,15 @@ public:
 //#       means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
 //#       [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
 //#       for details.)
+//#- `sdrTreshold` -- Stopping criterion for regression tree learner. The algorithm will not split the leaf unless the standard
+//#       deviation reduction `sdr(A)` for the best attribute `A` is at least `sdtrTreshold`. Make sure that `sdrTreshold >= 0`.
+//#- `phAlpha` -- Correction parameter for the [Page-Hinkley test](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf):
+//#       It is the minimal absolute amplitude of change that we wish to detect. Should be adjusted according to the expected
+//#       standard deviation of the signal. (See Elena Ikonomovska's [thesis](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf)
+//#       for details.) Default is `phAlpha=0.005`.
+//#- `phLambda` -- This is the threshold that corresponds to the admissible false alarm rate. Default is `phLambda=50.0`.
+//#- `phInit` -- This threshold tells the algorithm when to start using Page-Hinkley test. The idea is to wait for `phInit` examples
+//#       to accumulate in the nodes, so we have "more stable" estimates of mean. Default is `phInit=100`.
 //#
 
 class TJsHoeffdingTree {
@@ -3151,10 +3187,14 @@ public:
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.fromWindowsTimestamp(num)` -- constructs date time from a windows timestamp (milliseconds since 1601).
+	JsDeclareFunction(fromWindowsTimestamp);
+	//#- `tm2 = tm.fromUnixTimestamp(num)` -- constructs date time from a UNIX timestamp (seconds since 1970).
+	JsDeclareFunction(fromUnixTimestamp);
 	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
 	JsDeclareFunction(clone);
-	//#- `num = tm.windowstimestamp` -- returns windows system time in milliseconds from 1/1/1601
-	JsDeclareProperty(windowstimestamp);
+	//#- `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
+	JsDeclareProperty(windowsTimestamp);
 };
 //#
 //# ## Other libraries
