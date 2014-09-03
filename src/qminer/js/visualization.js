@@ -173,6 +173,17 @@ exports.drawHighChartsTimeSeries = function (data, fnm, overrideParams) {
     fs.openWrite(fnm).write(output).close();
 };
 
+exports.highChartsPlot = function (data, overrideParams, containerName) {
+    var params = exports.highchartsParams();
+    if (typeof overrideParams != 'undefined') {
+        params = overwriteKeys(params, overrideParams, false);
+    }
+    params.series = data;
+    $(function () {
+        $('#' + containerName).highcharts(params);
+    });
+};
+
 //#- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 exports.drawCommunityEvolution = function (data, fnm, overrideParams) {
     // read template html. Fill in data, overrideParams, containerName, code and libraries
@@ -184,15 +195,26 @@ exports.drawCommunityEvolution = function (data, fnm, overrideParams) {
     fs.openWrite(fnm).write(output).close();
 };
 
-exports.highChartsPlot = function (data, overrideParams, containerName) {
-    var params = exports.highchartsParams();
-    if (typeof overrideParams != 'undefined') {
-        params = overwriteKeys(params, overrideParams, false);
-    }
-    params.series = data;
-    $(function () {
-        $('#' + containerName).highcharts(params);
-    });
+//#- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
+exports.drawGraph = function (data, fnm, overrideParams) {
+    // read template html. Fill in data, overrideParams, containerName, code and libraries
+    var json_out = snap.toJsonGraph(data);
+    var template = fs.openRead(process.qminer_home + "gui/visualization_templates/graphDraw.html").readAll();
+    // data, plot parameters and libraries to be filled in the template
+    // TODO mustache :)
+    var output = template.replace("{{{data}}}", JSON.stringify(json_out));
+    fs.openWrite(fnm).write(output).close();
+};
+
+//#- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
+exports.drawGraphArray = function (data, fnm, overrideParams) {
+    // read template html. Fill in data, overrideParams, containerName, code and libraries
+    var json_out = snap.toJsonGraphArray(data);
+    var template = fs.openRead(process.qminer_home + "gui/visualization_templates/graphArrayDraw.html").readAll();
+    // data, plot parameters and libraries to be filled in the template
+    // TODO mustache :)
+    var output = template.replace("{{{data}}}", JSON.stringify(json_out));
+    fs.openWrite(fnm).write(output).close();
 };
 
 var visualize = exports;

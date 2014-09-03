@@ -26,37 +26,39 @@ for (var i = gTest.getFirstNode() ; br < gTest.nodeCount() ; i.getNext()) {
 // dump graph
 gTest.dump();
 
-// dump graph to a file
-gTest.dump("gtest.txt");
-
 console.log("end basic operations part");
 
 // Reading graphs from files, detecting communities, computing community evolution and plotting
 
 // loading graphs
-var g1999 = snap.newUGraph("data\\1999.edg");
-var g2000 = snap.newUGraph("data\\2000.edg");
-var g2001 = snap.newUGraph("data\\2001.edg");
-var g2002 = snap.newUGraph("data\\2002.edg");
-var g2003 = snap.newUGraph("data\\2003.edg");
-var g2004 = snap.newUGraph("data\\2004.edg");
-var g2005 = snap.newUGraph("data\\2005.edg");
-var g2006 = snap.newUGraph("data\\2006.edg");
+var g1999 = snap.newUGraph("data\\evo\\1999.edg");
+var g2000 = snap.newUGraph("data\\evo\\2000.edg");
+var g2001 = snap.newUGraph("data\\evo\\2001.edg");
+var g2002 = snap.newUGraph("data\\evo\\2002.edg");
+var g2003 = snap.newUGraph("data\\evo\\2003.edg");
+var g2004 = snap.newUGraph("data\\evo\\2004.edg");
+var g2005 = snap.newUGraph("data\\evo\\2005.edg");
+var g2006 = snap.newUGraph("data\\evo\\2006.edg");
 
 // storing graphs int an array
 var graphs = new Array();
 graphs.push(g1999); graphs.push(g2000); graphs.push(g2001); graphs.push(g2002); graphs.push(g2003); graphs.push(g2004); graphs.push(g2005); graphs.push(g2006);
 
+viz.drawGraphArray(graphs, "out\\graphs.html", { title: { text: "none" } });
+
+
 // determining communities for the array of graphs and storing the results in array of sparse vectors
 var communities = new Array();
-for (var i = 0; i < graphs.length; i++)
+for (var i = 0; i < graphs.length; i++) {
+    viz.drawGraph(graphs[i], "out\\g" + (1999 + i) + ".html", { title: { text: "none" } });
     communities.push(snap.CommunityDetection(graphs[i], "gn"));
+}
 
 // return json string of graph evolution
 var json = snap.evolutionJs(communities, 0.5, 0.75);
 
 // plot the evolution graph
-viz.drawCommunityEvolution(json, "plot.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+viz.drawCommunityEvolution(json, "out\\plot.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 
 console.log("end loading graphs from files and community evolution plotting");
@@ -111,17 +113,26 @@ for (var i = 0; i < gs.length; i++)
 var json_gs = snap.evolutionJs(cms, 0.5, 0.75);
 
 // plot the evolution graph
-viz.drawCommunityEvolution(json_gs, "plot_gs.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+viz.drawCommunityEvolution(json_gs, "out/plot_gs.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 console.log("end graph construction and community evolution plotting");
 
 // Returning Json string from c++ implementation for community evolution
 
-var json_ce = snap.CommunityEvolution("ego_evo.edg");
+//var json_ce = snap.CommunityEvolution("data\\ego_evo.edg");
 // plot the evolution graph
-viz.drawCommunityEvolution(json_ce, "plot_ce.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+//viz.drawCommunityEvolution(json_ce, "plot_ce.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 console.log("end the complete c++ implementation for community evolution");
+
+var json_ce = snap.CommunityEvolution("data\\ego_evo1.edg");
+// plot the evolution graph
+viz.drawCommunityEvolution(json_ce, "out/plot_ce1.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+
+console.log("end the complete c++ implementation for community evolution");
+
+var g = snap.newUGraph("data\\evo\\2001.edg");
+viz.drawGraph(g, "out\\g.html", { title: { text: "none" } });
 
 eval(breakpoint);
 

@@ -215,3 +215,44 @@ exports.evolutionJs = function (data, alpha, beta) {
 
     return out;
 };
+
+//#- `JSON = snap.toJson(graph)` -- returns JSON object of graph with `source` and `target` attributes
+exports.toJsonGraph = function (data) {
+    var br = 0;
+    var json_out = "";
+    for (var i = data.getFirstEdge() ; br < data.edgeCount() ; i.getNext()) {
+        var n1 = i.getSrcNodeId();
+        var n2 = i.getDstNodeId();
+        json_out += ",{\"source\":" + n1 + ",\"target\":" + n2 + "}\n";
+        br++;
+    }
+    json_out = "\n[" + json_out.substr(1, json_out.length - 1) + "]";
+    var obj_out = eval("(" + json_out + ')');
+    return obj_out;
+};
+
+//#- `JSON = snap.toJson(graph)` -- returns JSON object of array of graphs with `source` and `target` attributes
+exports.toJsonGraphArray = function (data) {
+    var json = "";
+    var json_out = "";
+
+    for (var j=0; j<data.length; j++) {
+        json_out = "";
+        var br = 0;
+        for (var i = data[j].getFirstEdge() ; br < data[j].edgeCount() ; i.getNext()) {
+            var n1 = i.getSrcNodeId();
+            var n2 = i.getDstNodeId();
+            json_out += ",{\"source\":" + n1 + ",\"target\":" + n2 + "}\n";
+            br++;
+        }
+        json_out = "\n[" + json_out.substr(1, json_out.length - 1) + "]";
+
+        if (j < data.length - 1)
+            json_out += ",\n";
+
+        json += json_out;
+    }
+    json = "\n[" + json + "]";
+    var obj_out = eval("(" + json + ')');
+    return obj_out;
+};

@@ -9,34 +9,37 @@
     <script type="text/javascript">
         $(function () {
 			
-            var jqdat = { "edges": [
-{ "n1":0, "n2":0, "w": 6, "t0":0, "t1":1}
-,{ "n1":1, "n2":3, "w": 4, "t0":0, "t1":1}
-,{ "n1":2, "n2":3, "w": 2, "t0":0, "t1":1}
-,{ "n1":0, "n2":0, "w": 6, "t0":1, "t1":2}
-,{ "n1":3, "n2":3, "w": 6, "t0":1, "t1":2}
-,{ "n1":0, "n2":4, "w": 6, "t0":2, "t1":3}
-,{ "n1":3, "n2":3, "w": 6, "t0":2, "t1":3}
-,{ "n1":4, "n2":5, "w": 6, "t0":3, "t1":4}
-,{ "n1":4, "n2":6, "w": 4, "t0":3, "t1":4}
-,{ "n1":4, "n2":7, "w": 2, "t0":3, "t1":4}
-,{ "n1":3, "n2":7, "w": 2, "t0":3, "t1":4}
-,{ "n1":3, "n2":3, "w": 4, "t0":3, "t1":4}
+            var jqdat = {
+"edges":[
+{"n1":0, "n2":0, "w":3, "t0":0, "t1":1 }
+,{"n1":1, "n2":1, "w":2, "t0":0, "t1":1 }
+,{"n1":3, "n2":3, "w":4, "t0":1, "t1":2 }
+,{"n1":0, "n2":0, "w":3, "t0":1, "t1":2 }
+,{"n1":1, "n2":1, "w":2, "t0":1, "t1":2 }
+,{"n1":3, "n2":3, "w":4, "t0":2, "t1":3 }
+,{"n1":0, "n2":0, "w":3, "t0":2, "t1":3 }
+,{"n1":1, "n2":1, "w":2, "t0":2, "t1":3 }
+,{"n1":4, "n2":5, "w":5, "t0":3, "t1":4 }
+,{"n1":3, "n2":5, "w":4, "t0":3, "t1":4 }
+,{"n1":0, "n2":0, "w":3, "t0":3, "t1":4 }
+,{"n1":1, "n2":1, "w":2, "t0":3, "t1":4 }
 ],
-"communities": [
-{"id":0, "size":3, "t":0}
-,{"id":1, "size":2, "t":0}
-,{"id":2, "size":1, "t":0}
-,{"id":0, "size":6, "t":1}
-,{"id":3, "size":6, "t":1}
-,{"id":0, "size":6, "t":2}
-,{"id":3, "size":6, "t":2}
-,{"id":3, "size":6, "t":3}
-,{"id":4, "size":12, "t":3}
-,{"id":3, "size":4, "t":4}
-,{"id":5, "size":6, "t":4}
-,{"id":6, "size":4, "t":4}
-,{"id":7, "size":4, "t":4}
+"communities":[
+{"id":0, "size":3, "t":0 }
+,{"id":1, "size":2, "t":0 }
+,{"id":0, "size":3, "t":1 }
+,{"id":1, "size":2, "t":1 }
+,{"id":3, "size":4, "t":1 }
+,{"id":0, "size":3, "t":2 }
+,{"id":1, "size":2, "t":2 }
+,{"id":3, "size":4, "t":2 }
+,{"id":0, "size":3, "t":3 }
+,{"id":1, "size":2, "t":3 }
+,{"id":3, "size":4, "t":3 }
+,{"id":4, "size":5, "t":3 }
+,{"id":0, "size":3, "t":4 }
+,{"id":1, "size":2, "t":4 }
+,{"id":5, "size":10, "t":4 }
 ]
 };    //inject data
 			
@@ -99,7 +102,7 @@
 				
 				var verticalSpace = 100;
 				var horizontalSpace = 300;
-				var sizeScale = 10/Math.log((jqdat.communities.length));
+				var sizeScale = 15/Math.log((jqdat.communities.length));
 				
 				var svg = d3.select("body").append("svg").attr("width", (horizontalSpace)*(uniqueTimePoints.length)).attr("height", horizontalSpace*((jqdat.communities.length)/(uniqueTimePoints.length)));
 				var pathsLayer = svg.append('g');

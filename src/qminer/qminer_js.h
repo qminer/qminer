@@ -2855,6 +2855,10 @@ public:
 	JsDeclareFunction(getFirstNode);
 	//#- `node = graph.getLastNode()` -- gets last node
 	JsDeclareFunction(getLastNode);
+	//#- `edge = graph.getFirstEdge()` -- gets first edge
+	JsDeclareFunction(getFirstEdge);
+	//#- `edge = graph.getLastEdge()` -- gets last edge
+	JsDeclareFunction(getLastEdge)
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
 };
@@ -2862,9 +2866,9 @@ public:
 ///////////////////////////////
 // QMiner-Node
 //# 
-//# ### Undirected Graph
+//# ### Node
 //# 
-//# Undirected graph...
+//# Node
 class TJsNode {
 public:
 	/// JS script context
@@ -2883,7 +2887,7 @@ public:
 	}
 
 	// Operators
-	int operator== (const TJsNode& NodeI) const;
+	bool operator== (const TJsNode& NodeI) const;
 	TJsNode& operator++ (int) { this->getNext; return *this; }
 
 	/// template
@@ -2906,6 +2910,46 @@ public:
 	JsDeclareFunction(getNext);
 	//#- `node = graph.getPrev()` -- return previous node
 	JsDeclareFunction(getPrev);
+};
+
+///////////////////////////////
+// QMiner-Edge
+//# 
+//# ### Edge
+//# 
+//# Edge
+class TJsEdge {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	TUNGraph::TEdgeI Edge;
+	TIntV NIdV;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
+	TInt Id;
+	explicit TJsEdge(TWPt<TScript> Js_, TUNGraph::TEdgeI edge);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TEdgeI edge) {
+		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = edge.getId()` -- return id of the edge
+	JsDeclareFunction(getId);
+	//#- `id = edge.getSrcNodeId()` -- return id of source node
+	JsDeclareFunction(getSrcNodeId);
+	//#- `id = edge.getDstNodeId()` -- return id of destination node
+	JsDeclareFunction(getDstNodeId);
+	//#- `edge = edge.getNext()` -- return next edge
+	JsDeclareFunction(getNext);
+
 };
 
 ///////////////////////////////

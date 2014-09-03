@@ -139,7 +139,7 @@
 				
 				var verticalSpace = 100;
 				var horizontalSpace = 300;
-				var sizeScale = 10/Math.log((jqdat.communities.length));
+				var sizeScale = 15/Math.log((jqdat.communities.length));
 				
 				var svg = d3.select("body").append("svg").attr("width", (horizontalSpace)*(uniqueTimePoints.length)).attr("height", horizontalSpace*((jqdat.communities.length)/(uniqueTimePoints.length)));
 				var pathsLayer = svg.append('g');
