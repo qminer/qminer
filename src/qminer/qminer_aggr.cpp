@@ -1567,13 +1567,16 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	QmAssertR(ParamVal->IsObjKey("fields"), "Field 'fields' missing!");
 
 	//input parameters
-    TStr OutStoreNm = ParamVal->GetObjStr("outStore");
-	TWPt<TStore> OutStore = Base->GetStoreByStoreNm(OutStoreNm);
+    TStr OutStoreNm = ParamVal->GetObjStr("outStore");	
 	const bool CreateStoreP = ParamVal->GetObjBool("createStore", false);
 	const bool Past = ParamVal->GetObjBool("onlyPast", false);
 	TStr TimeFieldNm = ParamVal->GetObjStr("timestamp");
 	PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 	TStrV InterpNmV;
+
+	InitOutStore(Base, OutStoreNm, TimeFieldNm, FieldArrVal, CreateStoreP);
+	// TWPt<TStore> 
+	OutStore = Base->GetStoreByStoreNm(OutStoreNm);
 
 	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
 		PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);
@@ -1642,7 +1645,7 @@ TStMerger::TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal):
 	InitMerger(Base, OutStoreNm, TimeFieldNm, CreateStoreP, Past, InterpNmV);
 }
 
-void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
+void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm, const PJsonVal& FieldArrVal) {
     // prepare store description
 	PJsonVal JsonStore = TJsonVal::NewObj();
 	JsonStore->AddToObj("name", NewStoreNm);
@@ -1653,14 +1656,20 @@ void TStMerger::CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm){
 	TimeFieldVal->AddToObj("name", NewTimeFieldNm);
 	TimeFieldVal->AddToObj("type", "datetime");
 	FieldsVal->AddToArr(TimeFieldVal);	
-	//adding TFlt fields from StoresAndFields vector
-	for (int FieldMapN = 0; FieldMapN < NInFlds; FieldMapN++){
+	
+	//adding TFlt fields from merger defintion JSON
+	for (int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
+		// parsing outField name
+		PJsonVal FieldValS = FieldArrVal->GetArrVal(FieldN);
+		TStr OutFieldNm = FieldValS->GetObjStr("outField");
+		
 		//creating field 
 		PJsonVal FieldVal = TJsonVal::NewObj();
-		FieldVal->AddToObj("name", OutFldNmV[FieldMapN]);
+		FieldVal->AddToObj("name", OutFieldNm);
 		FieldVal->AddToObj("type", "float");
 		FieldsVal->AddToArr(FieldVal);
 	}
+
 	// putting Store description together
 	JsonStore->AddToObj("fields", FieldsVal);
     // create new store
@@ -1733,18 +1742,23 @@ void TStMerger::InitFld(const TWPt<TQm::TBase> Base, const TStMergerFieldMap& Fi
 	StoreIdFldIdVH.GetDat(InStoreId).AddKey(InterpV.Len()-1);
 }
 
-void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
-		const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& Past,
-		const TStrV& InterpV) {
+void TStMerger::InitOutStore(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
+	const TStr& OutTmFieldNm, const PJsonVal& FieldArrVal, const bool& CreateStoreP) {
 
 	// initialize output store
 	// if required, create output store
 	if (CreateStoreP) {
 		InfoNotify("Creating store '" + OutStoreNm + "'");
-		CreateStore(OutStoreNm, OutTmFieldNm);
-	} else {
+		CreateStore(OutStoreNm, OutTmFieldNm, FieldArrVal);
+	}
+	else {
 		OutStore = Base->GetStoreByStoreNm(OutStoreNm);
 	}
+}
+
+void TStMerger::InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
+		const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& Past,
+		const TStrV& InterpV) {
 
 	NextInterpTm = TUInt64::Mx;
 	PrevInterpTm = TUInt64::Mx;

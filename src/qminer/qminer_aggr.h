@@ -892,7 +892,7 @@ public:
 
 	TStMerger(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 	TStMerger(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
-	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm);
+	void CreateStore(const TStr& NewStoreNm, const TStr& NewTimeFieldNm, const PJsonVal& FieldArrVal);
 
 	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast,
@@ -908,6 +908,8 @@ private:
 	void InitFld(const TWPt<TQm::TBase> Base, const TStMergerFieldMap& FieldMap,
 			const TStr& InterpNm);
 	// initialized internal structures
+	void InitOutStore(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm,
+		const TStr& OutTmFieldNm, const PJsonVal& FieldArrVal, const bool& CreateStoreP);
 	void InitMerger(const TWPt<TQm::TBase> Base, const TStr& OutStoreNm, const TStr& OutTmFieldNm,
 			const bool& CreateStoreP, const bool& ExactInterp, const TStrV& InterpV);
 
