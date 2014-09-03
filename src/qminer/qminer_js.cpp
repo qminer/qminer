@@ -5174,6 +5174,7 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 		JsRegisterFunction(TmpTemp, ftrVec);	
 		JsRegisterFunction(TmpTemp, ftrSpColMat);						
 		JsRegisterFunction(TmpTemp, ftrColMat);	
+        JsRegisterFunction(TmpTemp, filter);
 		//JsRegisterFunction(TmpTemp, extractNumbers);						
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -5339,9 +5340,31 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrColMat(const v8::Arguments& Args) {
 	return HandleScope.Close(JsMat);
 }
 
+v8::Handle<v8::Value> TJsFtrSpace::filter(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    // parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+    QmAssertR(Args.Length() > 0, "fsp.filter: Expecting vector as parameter");
+    QmAssertR(Args[0]->IsObject(), "fsp.filter: Expecting vector as parameter");
+    const TIntFltKdV& SpV = TJsSpV::GetSpV(Args[0]->ToObject());
+    const int FtrExtN = TJsFtrSpaceUtil::GetArgInt32(Args, 1);
+    // get dimension border
+    const int MnFtrN = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
+    const int MxFtrN = JsFtrSpace->FtrSpace->GetMxFtrN(FtrExtN);
+    // filter
+    TIntFltKdV NewSpV;
+    for (int FtrN = 0; FtrN < SpV.Len(); FtrN++) {
+        const TIntFltKd& Ftr = SpV[FtrN];
+        if (MnFtrN <= Ftr.Key && Ftr.Key < MxFtrN) {
+            NewSpV.Add(Ftr);
+        }
+    }
+	// return
+	return HandleScope.Close(TJsSpV::New(JsFtrSpace->Js, NewSpV));
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
-
 v8::Handle<v8::ObjectTemplate> TJsSvmModel::GetTemplate() {
 	v8::HandleScope HandleScope;
 	static v8::Persistent<v8::ObjectTemplate> Template;
@@ -6406,6 +6429,20 @@ v8::Handle<v8::Value> TJsHttpResp::send(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Time
+TTm& TJsTm::GetArgTm(const v8::Arguments& Args, const int& ArgN) {
+    v8::HandleScope HandleScope;
+    // check we have the argument at all
+    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    v8::Handle<v8::Value> Val = Args[ArgN];
+    // check it's of the right type
+    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    // get the wrapped 
+    v8::Handle<v8::Object> _JsTm = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsTm->GetInternalField(0));
+    // cast it to record set
+    TJsTm* JsTm = static_cast<TJsTm*>(WrappedObject->Value());
+    return JsTm->Tm;    
+}
 
 v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
 	v8::HandleScope HandleScope;
@@ -6429,6 +6466,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
         JsRegisterProperty(TmpTemp, nowUTC);
         JsRegisterFunction(TmpTemp, add);
 		JsRegisterFunction(TmpTemp, sub);
+		JsRegisterFunction(TmpTemp, diff);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, parse);
 		JsRegisterFunction(TmpTemp, fromWindowsTimestamp);
@@ -6533,7 +6571,9 @@ v8::Handle<v8::Value> TJsTm::add(const v8::Arguments& Args) {
     const int Val = TJsTmUtil::GetArgInt32(Args, 0);
     const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "second");
     // add according to the unit
-    if (Unit == "second") {
+    if (Unit == "millisecond") {
+        JsTm->Tm.AddTime(0, 0, 0, Val);
+    } else if (Unit == "second") {
         JsTm->Tm.AddTime(0, 0, Val);
     } else if (Unit == "minute") {
         JsTm->Tm.AddTime(0, Val);        
@@ -6552,7 +6592,9 @@ v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
     const int Val = TJsTmUtil::GetArgInt32(Args, 0);
     const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "second");
     // add according to the unit
-    if (Unit == "second") {
+    if (Unit == "millisecond") {
+        JsTm->Tm.SubTime(0, 0, 0, Val);
+    } else if (Unit == "second") {
         JsTm->Tm.SubTime(0, 0, Val);
     } else if (Unit == "minute") {
         JsTm->Tm.SubTime(0, Val);        
@@ -6562,6 +6604,38 @@ v8::Handle<v8::Value> TJsTm::sub(const v8::Arguments& Args) {
         JsTm->Tm.SubDays(Val);        
     }
     return HandleScope.Close(Args.Holder());
+}
+
+
+v8::Handle<v8::Value> TJsTm::diff(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsTm* JsTm = TJsTmUtil::GetSelf(Args);   
+    // parse arguments
+    const TTm& Tm2 = TJsTm::GetArgTm(Args, 0);
+    const TStr Unit = TJsTmUtil::GetArgStr(Args, 1, "object");
+    // get difference according to the unit
+    if (Unit == "object") {
+        int Days = 0, Hours = 0, Mins = 0, Secs = 0, MSecs = 0;
+        TTm::GetDiff(JsTm->Tm, Tm2, Days, Hours, Mins, Secs, MSecs);
+        v8::Local<v8::Object> DiffJson = v8::Object::New();
+        DiffJson->Set(v8::String::New("days"), v8::Int32::New(Days));
+        DiffJson->Set(v8::String::New("hours"), v8::Int32::New(Hours));
+        DiffJson->Set(v8::String::New("minutes"), v8::Int32::New(Mins));
+        DiffJson->Set(v8::String::New("seconds"), v8::Int32::New(Secs));
+        DiffJson->Set(v8::String::New("milliseconds"), v8::Int32::New(MSecs));
+        return HandleScope.Close(DiffJson);
+    } else if (Unit == "millisecond") {
+        return HandleScope.Close(v8::Int32::New((int)TTm::GetDiffMSecs(JsTm->Tm, Tm2)));
+    } else if (Unit == "second") {
+        return HandleScope.Close(v8::Int32::New((int)TTm::GetDiffSecs(JsTm->Tm, Tm2)));
+    } else if (Unit == "minute") {
+        return HandleScope.Close(v8::Int32::New((int)TTm::GetDiffMins(JsTm->Tm, Tm2)));
+    } else if (Unit == "hour") {
+        return HandleScope.Close(v8::Int32::New((int)TTm::GetDiffHrs(JsTm->Tm, Tm2)));
+    } else if (Unit == "day") {
+        return HandleScope.Close(v8::Int32::New((int)TTm::GetDiffDays(JsTm->Tm, Tm2)));
+    }
+    return HandleScope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {

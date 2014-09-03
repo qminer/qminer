@@ -324,6 +324,16 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	return TStr();
 }
 
+int TFtrSpace::GetMnFtrN(const int& FtrExtN) const {
+    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
+    return (FtrExtN == 0) ? 0 : DimV[FtrExtN - 1].Val;
+}
+
+int TFtrSpace::GetMxFtrN(const int& FtrExtN) const {
+    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
+    return DimV[FtrExtN];
+}
+
 void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
     QmAssertR(DimN < DimV.Len(), "Dimension out of bounds!");
     PStore Store = FtrExtV[DimN]->GetFtrStore();

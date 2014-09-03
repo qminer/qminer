@@ -2508,6 +2508,8 @@ public:
     //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    JsDeclareFunction(filter);
 };
 
 ///////////////////////////////
@@ -3142,6 +3144,7 @@ public:
 		return TJsTmUtil::New(new TJsTm(TTm::GetCurUniTm())); }
 	static v8::Persistent<v8::Object> New(const TTm& Tm) { 
 		return TJsTmUtil::New(new TJsTm(Tm)); }
+    static TTm& GetArgTm(const v8::Arguments& Args, const int& ArgN);
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
@@ -3177,11 +3180,15 @@ public:
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
     JsDeclareProperty(nowUTC);    
-    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
-    //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
+    //#- `tm = tm.add(val)` -- adds `val` seconds to the time and returns self
+    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.
     JsDeclareFunction(add);
-    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+    //#- `tm = tm.sub(val)` -- subtracts `val` secodns from the time and returns self
+    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
     JsDeclareFunction(sub); 
+    //#- `diff_json = tm.diff(tm2)` -- computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)
+    //#- `diff_num = tm.diff(tm2, unit)` -- computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
+    JsDeclareFunction(diff); 
     //#- `tmJSON = tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
