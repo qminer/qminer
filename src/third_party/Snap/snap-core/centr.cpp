@@ -430,20 +430,16 @@ TIntH MaxCPGreedyBetter2(const PUNGraph& Graph, const int k) {
 	  br++;
 	  gc0=0;
 	  
-	  int digi = addId;
-	  std::string buf = "";
-	  char str[10];
-	  buf += itoa(digi, str, 10);
+	  TInt digi = addId;
+	  TStr buf = digi.GetStr();
 
-	  NNodes += " "+(TStr)buf.c_str();
+	  NNodes += " "+buf;
 
 	  for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
 	  {
-	    int digi = Graph->GetNI(addId).GetNbrNId(i);
-	    std::string buf = "";
-	    char str[10];
-	    buf += itoa(digi, str, 10);
-		NNodes += " "+(TStr)buf.c_str();
+	    TInt digi = Graph->GetNI(addId).GetNbrNId(i);
+	    TStr buf = digi.GetStr();
+		NNodes += " "+buf;
 	  }
 	  addIdPrev = addId;
 	  Nodes.DelKey(addId);
@@ -609,23 +605,23 @@ int Intersect(TUNGraph::TNodeI Node, TIntH NNodes){
 int Intersect(TUNGraph::TNodeI Node, TStr NNodes){
   int br=0;
 
-  int digi = -1;
-  std::string buf = "";
+  TInt digi = -1;
+  TStr buf = "";
   char str[10];
 
   for (int i=0; i<Node.GetDeg(); i++)
   {
 	  digi = Node.GetNbrNId(i);
-	  buf = itoa(digi, str, 10);
+	  TStr buf = digi.GetStr();
 
-	  if (NNodes.IsStrIn((TStr)buf.c_str()))
+	  if (NNodes.IsStrIn(buf.CStr()))
 		br++;
   }
 
   digi = Node.GetId();
-  buf = itoa(digi, str, 10);
+  buf = digi.GetStr();
 
-  if (NNodes.IsStrIn((TStr)buf.c_str()))
+  if (NNodes.IsStrIn(buf.CStr()))
     br++;
 
   return br;
@@ -664,21 +660,18 @@ int Intersect1(TUNGraph::TNodeI Node, TStr NNodes){
   int br=0;
   for (int i=0; i<Node.GetDeg(); i++)
   {
-	  int digi = Node.GetNbrNId(i);
-	  std::string buf = "";
-	  char str[10];
-	  buf += itoa(digi, str, 10);
+	  TInt digi = Node.GetNbrNId(i);
+	  TStr buf = "";
+	  buf = digi.GetStr();
 
-	  if (NNodes.SearchStr((TStr)buf.c_str())!=-1)
+	  if (NNodes.SearchStr(buf.CStr())!=-1)
 		br++;
   }
   
-  int digi = Node.GetId();
-  std::string buf = "";
-  char str[10];
-  buf += itoa(digi, str, 10);
+  TInt digi = Node.GetId();
+  TStr buf = digi.GetStr();
 
-  if (NNodes.SearchStr((TStr)buf.c_str())!=-1)
+  if (NNodes.SearchStr(buf.CStr())!=-1)
     br++;
 
   return br;
