@@ -117,7 +117,7 @@ console.log("end graph construction and community evolution plotting");
 
 // Returning Json string from c++ implementation for community evolution
 
-var json_ce = snap.CommunityEvolution("data\\");
+var json_ce = snap.CommunityEvolution("ego_evo.edg");
 // plot the evolution graph
 viz.drawCommunityEvolution(json_ce, "plot_ce.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
