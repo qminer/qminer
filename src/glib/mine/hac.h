@@ -21,8 +21,16 @@ namespace THrchAggClustSim {
 	template<class TVector, class TLinAlgProvider>
 	class TEucl {
 	public:
-		static double GetSim(const TVector& Item1, const TVector& Item2) {
-			return TLinAlgProvider::EuclDist(Item1, Item2);
+		static double GetSim(const TVector& Item1, const TVector& Item2, const double DocN) {
+			return TLinAlgProvider::EuclDist(Item1, Item2) / DocN;	// TODO is DocN used correctly???
+		}
+	};
+
+	template<class TVector, class TLinAlgProvider>
+	class TNegEucl {
+	public:
+		static double GetSim(const TVector& Item1, const TVector& Item2, const double DocN) {
+			return -TLinAlgProvider::EuclDist(Item1, Item2) / DocN;	// TODO is DocN used correctly???
 		}
 	};
 
@@ -56,7 +64,7 @@ public:
 	}
 	static const TFltV& GetRow(const TFullColMatrix *DocVV, int ItId)  {
 		return DocVV->ColV[ItId];
-	}	
+	}
 };
 
 ////////////////////////////////////////////////

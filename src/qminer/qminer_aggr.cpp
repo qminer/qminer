@@ -2137,6 +2137,79 @@ PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 	return Val;
 }
 
+///////////////////////////////
+// Multi-level analysis stream aggregate
+TMlClustAggr::TMlClustAggr(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& AggrNm, const TInt& _MinRecs):
+		TQm::TStreamAggr(Base, AggrNm),
+		InStore(Base->GetStoreByStoreNm(InStoreNm)),
+		CurrRecs(),
+		MinRecs(_MinRecs),
+		Normalize(true) {}
+
+PStreamAggr TMlClustAggr::New(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& AggrNm, const TInt& MinRecs) {
+	return new TMlClustAggr(Base, InStoreNm, AggrNm, MinRecs);
+}
+
+PStreamAggr TMlClustAggr::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
+	const TStr InStoreNm = ParamVal->GetObjStr("inStore");
+	const TStr AggrNm = ParamVal->GetObjStr("name");
+	const TInt MinRecs = ParamVal->GetObjNum("minRecs");
+
+	return new TMlClustAggr(Base, InStoreNm, AggrNm, MinRecs);
+}
+
+PJsonVal TMlClustAggr::SaveJson(const int& Limit) const {
+	return TJsonVal::New();	// TODO
+}
+
+void TMlClustAggr::OnAddRec(const TRec& Rec) {
+	CurrRecs++;
+	if (CurrRecs == MinRecs) {
+		// cluster
+		InitClusts();
+	} else if (CurrRecs > MinRecs) {
+		UpdateProbs(Rec);
+	}
+}
+
+void TMlClustAggr::InitClusts() {
+	TWPt<TBase> Base = GetBase();
+	const PRecSet AllRecSet = InStore->GetAllRecs();
+
+	// construct feature space
+	TIntV FieldIdV;	InStore->GetFieldIdV(TFieldType::oftFlt);
+
+	TFtrExtV FtrExtV;
+	for (int i = 0; i < FieldIdV.Len(); i++) {
+		PFtrExt FtrExt = TFtrExts::TNumeric::New(Base, InStore, FieldIdV[i], Normalize);
+		FtrExtV.Add(FtrExt);
+	}
+
+	PFtrSpace FtrSpace = TFtrSpace::New(Base, FtrExtV);
+	FtrSpace->Update(AllRecSet);
+
+	// construct the input matrix
+	TVec<TFltV> InstanceVV;	FtrSpace->GetFullVV(AllRecSet, InstanceVV);
+	TFullColMatrix X(InstanceVV);
+
+	// cluster
+	THrchAggClust<TFltV, TFullColMatrix, TLinAlg, THrchAggClustSim::TNegEucl<TVec<TFlt>, TLinAlg>> HrchClust;
+	HrchClust.AggClusterAssgn(&X);
+
+	TVec<TIntV> ClustV;	HrchClust.GetClusters(TFlt::NInf, ClustV);
+
+	for (int i = 0; i < ClustV.Len(); i++) {
+		const TIntV& Clust = ClustV[i];
+		const TStr ClustStr = TStrUtil::GetStr(Clust);
+
+		printf("Found cluster: %s\n", ClustStr.CStr());
+	}
+}
+
+void TMlClustAggr::UpdateProbs(const TRec& Rec) {
+	// TODO
+}
+
 
 //////////////////////////////////////////////
 // Composed stream aggregators

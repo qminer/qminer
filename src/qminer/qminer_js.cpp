@@ -392,6 +392,16 @@ void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1,
 	TJsUtil::HandleTryCatch(TryCatch);
 }
 
+v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 2;
+	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	TJsUtil::HandleTryCatch(TryCatch);
+    return HandleScope.Close(RetVal);
+}
+
 v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal) {
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
@@ -1730,10 +1740,17 @@ v8::Handle<v8::Value> TJsStoreIter::next(const v8::Arguments& Args) {
 bool TJsRecCmp::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
 	v8::HandleScope HandleScope;
     // prepare record objects
-    v8::Persistent<v8::Object> JsRec1 = TJsRec::New(Js, TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat);
-    v8::Persistent<v8::Object> JsRec2 = TJsRec::New(Js, TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat);
+    v8::Persistent<v8::Object> JsRec1 = TJsRec::New(Js, 
+        TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat, false);
+    v8::Persistent<v8::Object> JsRec2 = TJsRec::New(Js, 
+        TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat, false);
     // call JavaScript Comparator
-    return Js->ExecuteBool(CmpFun, JsRec1, JsRec2);
+    const bool Res = Js->ExecuteBool(CmpFun, JsRec1, JsRec2);
+    // make weak for destructor to deal with them
+    TJsObjUtil<TJsRec>::MakeWeak(JsRec1);
+    TJsObjUtil<TJsRec>::MakeWeak(JsRec2);
+    // done
+    return Res;
 }
 
 ///////////////////////////////
@@ -1741,9 +1758,14 @@ bool TJsRecCmp::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& Re
 bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 	v8::HandleScope HandleScope;
     // prepare record objects
-    v8::Persistent<v8::Object> JsRec = TJsRec::New(Js, TRec(Store, RecIdWgt.Key), RecIdWgt.Dat);
+    v8::Persistent<v8::Object> JsRec = TJsRec::New(Js, 
+            TRec(Store, RecIdWgt.Key), RecIdWgt.Dat, false);
     // call JavaScript Comparator
-    return Js->ExecuteBool(FilterFun, JsRec);
+    const bool Res = Js->ExecuteBool(FilterFun, JsRec);
+    // make weak for destructor to deal with them
+    TJsObjUtil<TJsRec>::MakeWeak(JsRec);
+    // done
+    return Res;
 }
 
 ///////////////////////////////
@@ -1751,10 +1773,16 @@ bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
 bool TJsRecSplitter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
 	v8::HandleScope HandleScope;
     // prepare record objects
-    v8::Persistent<v8::Object> JsRec1 = TJsRec::New(Js, TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat);
-    v8::Persistent<v8::Object> JsRec2 = TJsRec::New(Js, TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat);
+    v8::Persistent<v8::Object> JsRec1 = TJsRec::New(Js, 
+            TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat, false);
+    v8::Persistent<v8::Object> JsRec2 = TJsRec::New(Js, 
+            TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat, false);
     // call JavaScript Comparator
-    return Js->ExecuteBool(SplitterFun, JsRec1, JsRec2);
+    const bool Res = Js->ExecuteBool(SplitterFun, JsRec1, JsRec2);
+    // make weak for destructor to deal with them
+    TJsObjUtil<TJsRec>::MakeWeak(JsRec1);
+    TJsObjUtil<TJsRec>::MakeWeak(JsRec2);
+    return Res;
 }
 
 ///////////////////////////////
@@ -1808,6 +1836,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filter);
 		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, each);
 		JsRegisterFunction(TmpTemp, map);
 		JsRegisterFunction(TmpTemp, setunion);
 		JsRegisterFunction(TmpTemp, setintersect);
@@ -1926,8 +1955,16 @@ v8::Handle<v8::Value> TJsRecSet::aggr(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsRecSet::trunc(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
-	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
-	JsRecSet->RecSet->Trunc(Recs);
+    if (Args.Length() == 1) {
+    	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
+        JsRecSet->RecSet->Trunc(Recs);
+    } else if (Args.Length() == 2) {
+        const int Limit = TJsRecSetUtil::GetArgInt32(Args, 0);
+        const int Offset = TJsRecSetUtil::GetArgInt32(Args, 1);
+        JsRecSet->RecSet = JsRecSet->RecSet->GetLimit(Limit, Offset);
+    } else {
+        throw TQmExcept::New("Unsupported number of arguments to RecSet.trunc()");
+    }
 	return Args.Holder();
 }
 
@@ -1985,7 +2022,10 @@ v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
     QmAssertR(Args.Length() == 1, "sort(..) expects one argument.");
-    v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);   
+    v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);
+    for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
+        JsRecSet->RecSet->PutRecFq(i, i);
+    }
 	JsRecSet->RecSet->SortCmp(TJsRecCmp(JsRecSet->Js, JsRecSet->Store, CmpFun));
 	return Args.Holder();
 }
@@ -2110,22 +2150,44 @@ v8::Handle<v8::Value> TJsRecSet::toJSON(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsUtil::ParseJson(JsObj));
 }
 
-v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsRecSet::each(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet = JsRecSet->RecSet;
 	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
 	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
 	// iterate through the recset
-	const uint64 Recs = RecSet->GetRecs();
-	for (uint64 RecIdx = 0; RecIdx < Recs; RecIdx++) {
-		TRec Rec = RecSet->GetRec((int)RecIdx);
-		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq((int)RecIdx));
-		v8::Handle<v8::Value> IdxArg = v8::Integer::New((int)RecIdx);
+	const int Recs = RecSet->GetRecs();
+	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+		TRec Rec = RecSet->GetRec(RecIdN);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdN));
+		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
 		// execute callback
 		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
 	}
 	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet = JsRecSet->RecSet;
+	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
+    // create a new array for storing the results
+	const int Recs = RecSet->GetRecs();
+    v8::Handle<v8::Array> ResultV = v8::Array::New(Recs);
+	// iterate through the recset
+	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+		TRec Rec = RecSet->GetRec(RecIdN);
+		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdN));
+		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
+		// execute callback
+		v8::Handle<v8::Value> Result = JsRecSet->Js->ExecuteV8(CallbackFun, RecArg, IdxArg);
+        // store in the new array
+        ResultV->Set(RecIdN, Result);
+	}
+	return ResultV;
 }
 
 v8::Handle<v8::Value> TJsRecSet::setintersect(const v8::Arguments& Args) {
@@ -5418,16 +5480,14 @@ void TJsProcess::setReturnCode(v8::Local<v8::String> Properties,
 
 v8::Handle<v8::Value> TJsProcess::qminer_home(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
-	v8::Local<v8::String> ScriptFNm = v8::String::New(TEnv::QMinerFPath.CStr());
-	return HandleScope.Close(ScriptFNm);
+	v8::Local<v8::String> QMinerFPath = v8::String::New(TEnv::QMinerFPath.CStr());
+	return HandleScope.Close(QMinerFPath);
 }
 
 v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsProcess* JsProc = TJsProcessUtil::GetSelf(Info);
-	v8::Local<v8::String> ScriptFNm = v8::String::New(TEnv::RootFPath.CStr());
-	return HandleScope.Close(ScriptFNm);
+	v8::Local<v8::String> RootFPath = v8::String::New(TEnv::RootFPath.CStr());
+	return HandleScope.Close(RootFPath);
 }
 
 ///////////////////////////////

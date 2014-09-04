@@ -1009,6 +1009,37 @@ public:
 	static TStr GetType() { return "ftrext"; }
 };
 
+///////////////////////////////
+// Multi-level analysis clustering
+class TMlClustAggr: public TStreamAggr {
+private:
+	TWPt<TStore> InStore;
+
+	TUInt64 CurrRecs;
+	TUInt64 MinRecs;
+
+	TBool Normalize;
+
+protected:
+	TMlClustAggr(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& AggrNm, const TInt& MinRecs);
+
+public:
+	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& InStoreNm, const TStr& AggrNm, const TInt& MinRecs);
+	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
+
+	PJsonVal SaveJson(const int& Limit) const;
+
+protected:
+	void OnAddRec(const TRec& Rec);
+
+private:
+	void InitClusts();
+	void UpdateProbs(const TRec& Rec);
+
+public:
+	static TStr GetType() { return "stream_clust"; }
+};
+
 //////////////////////////////////////////////
 // Composed stream aggregators
 class TCompositional {

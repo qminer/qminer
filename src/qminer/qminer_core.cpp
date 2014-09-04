@@ -1900,8 +1900,7 @@ void TRecSet::SortById(const bool& Asc) {
 }
 
 void TRecSet::SortByFq(const bool& Asc) {
-	TInt::SetRndSeed(1); // HACK to be consistent
-	RecIdFqV.SortCmp(TCmpKeyDatByDat<TUInt64, TInt>(Asc));
+	RecIdFqV.SortCmp(TRecCmpByFq(Asc));
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
@@ -2025,7 +2024,7 @@ PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& SortedP) con
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 	if (Offset >= GetRecs()) {
-		// offset past number of recordes, return empty
+		// offset past number of records, return empty
 		return TRecSet::New(Store);
 	} else {
 		TUInt64IntKdV LimitRecIdFqV;
@@ -4024,6 +4023,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCorr>();
     Register<TStreamAggrs::TStMerger>();
     Register<TStreamAggrs::TResampler>();
+    Register<TStreamAggrs::TMlClustAggr>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): 
