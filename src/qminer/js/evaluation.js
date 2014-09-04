@@ -118,6 +118,39 @@ exports.newRootMeanSquareError = function () {
     return new createOnlineMetric(calcError);
 }
 
+
+exports.newRSquare = function () {
+    function rSquare() {
+        this.sst = 0;
+        this.sse = 0;
+        this.mean = 0;
+        this.count = 0;
+        this.sumReal = 0;
+        this.sumReal2 = 0;
+        this.r2 = -1;
+        // update function
+        this.update = function (real, est) {
+            this.count++;
+            this.sumReal += real;
+            this.sumReal2 += real * real;
+            this.mean = this.sumReal / this.count;
+            //calculate error
+            this.sse += (real - est) * (real - est);
+            this.sst = this.sumReal2 - this.count * this.mean * this.mean;           
+            if (this.sst == 0.0) {
+                this.r2 = (this.sse == 0.0) ? this.r2 = 1.0 : this.r2 = 0.0;
+            } else {
+                this.r2 = (1 - this.sse / this.sst);
+            }
+        }
+        // getter
+        this.getError = function () {
+            return this.r2;
+        }
+    }
+    return new rSquare();
+}
+
 // About this module
 exports.about = function () {
     var description = "Module with evalutaion metrics.";
