@@ -726,7 +726,7 @@ TTimeSeriesWinBuf::TTimeSeriesWinBuf(const TWPt<TBase>& Base, const PJsonVal& Pa
 	double TmD = ParamVal->GetObjNum("winsize");
 	WinSizeMSecs = (uint64)TmD;
 	// temporary warning
-	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TTimeSeriesWinBuf not in msecs (< 60000)");
+	if (WinSizeMSecs < 60000) InfoLog("Warning: winsize of TTimeSeriesWinBuf possibly not in msecs (< 60000)");
     OutValV = TFltV(); OutTmMSecsV = TUInt64V(); AllValV = TFltUInt64PrV();
 }
 
@@ -763,6 +763,22 @@ void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
 	OutValV.Save(SOut);
 	OutTmMSecsV.Save(SOut);
 	AllValV.Save(SOut);
+}
+
+void TTimeSeriesWinBuf::GetFltV(TFltV& ValV) const {
+	int Len = GetN();
+	ValV.Gen(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		ValV[ElN] = AllValV[ElN].Val1;
+	}
+}
+
+void TTimeSeriesWinBuf::GetTmV(TUInt64V& MSecsV) const {
+	int Len = GetN();
+	MSecsV.Gen(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		MSecsV[ElN] = AllValV[ElN].Val2;
+	}
 }
 
 PJsonVal TTimeSeriesWinBuf::SaveJson(const int& Limit) const {
@@ -1928,7 +1944,7 @@ void TStMerger::HandleEdgeCases(const uint64& RecTm) {
 ///////////////////////////////
 // Resampler
 void TResampler::OnAddRec(const TRec& Rec) {
-    QmAssertR(Rec.GetStoreId() == InStore->GetStoreId(), "Wrong store calling OnAddRec in Resampler");
+	QmAssertR(Rec.GetStoreId() == InStore->GetStoreId(), "Wrong store calling OnAddRec in Resampler");
     // get record time
     const uint64 RecTmMSecs = Rec.GetFieldTmMSecs(TimeFieldId);
 
@@ -1945,6 +1961,14 @@ void TResampler::OnAddRec(const TRec& Rec) {
 		InterpPointMSecs = RecTmMSecs;
 		RefreshInterpolators(RecTmMSecs);
 	}
+
+	// warning if Rec time > InterpPointMSecs, this is the first update and we cannot interpolate
+	if (!UpdatedP && !CanInterpolate()) {
+		if (InterpPointMSecs < RecTmMSecs) {
+			InfoLog("Warning: resampler: start interpolation time is lower than the first record time, cannot interpolate. If future timestamps will keep increasing it might be possible that the resampler will be stuck and unable to interpolate.");
+		}
+	}
+	UpdatedP = true;
 
     // insert new records while the interpolators allow us
 	while (InterpPointMSecs <= RecTmMSecs && CanInterpolate()) {
@@ -2024,7 +2048,7 @@ void TResampler::CreateStore(const TStr& NewStoreNm) {
 TResampler::TResampler(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,  
 		const TStr& TimeFieldNm, const TStrPrV& FieldInterpolatorPrV, const TStr& OutStoreNm,
 		const uint64& _IntervalMSecs, const uint64& StartMSecs, const bool& CreateStoreP): 
-            TStreamAggr(Base, AggrNm) {
+            TStreamAggr(Base, AggrNm), UpdatedP(false) {
     
     QmAssertR(InStoreNm != OutStoreNm, "Input and output store in resampler should not be the same!");
     // get pointers to stores
@@ -2046,7 +2070,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& 
 	IntervalMSecs = _IntervalMSecs;
 }
 
-TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base, ParamVal) {
+TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal), UpdatedP(false) {
     TStr InStoreNm = ParamVal->GetObjStr("store");
     TStr OutStoreNm = ParamVal->GetObjStr("outStore");
     QmAssertR(InStoreNm != OutStoreNm, "Input and output store in resampler should not be the same!");
@@ -2080,7 +2104,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStre
 TResampler::TResampler(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn),
     InStore(TStore::LoadById(Base, SIn)), InFieldIdV(SIn), InterpolatorV(SIn),
     OutStore(TStore::LoadById(Base, SIn)), TimeFieldId(SIn), IntervalMSecs(SIn),
-    InterpPointMSecs(SIn) { }
+	InterpPointMSecs(SIn), UpdatedP(SIn) { }
 
 PStreamAggr TResampler::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,  
 		const TStr& TimeFieldNm, const TStrPrV& FieldInterpolatorPrV, const TStr& OutStoreNm,
@@ -2104,6 +2128,7 @@ void TResampler::Save(TSOut& SOut) const {
 	TimeFieldId.Save(SOut);
 	IntervalMSecs.Save(SOut);
 	InterpPointMSecs.Save(SOut);
+	UpdatedP.Save(SOut);
 }
 
 PJsonVal TResampler::SaveJson(const int& Limit) const {

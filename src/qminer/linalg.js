@@ -18,15 +18,15 @@
 /////// PRINTING
 //#- `la.printVec(vecec)` -- print the vector `vec` in the console
 //#- `la.printVec(intVec)` -- print the int vector `intVec` in the console
-la.printVec = function(vec) {
+la.printVec = function (vec, prec) {
+    if (typeof prec == 'undefined') prec = 2;
 	var str = "\n[\n";
 	for (var rowN = 0; rowN < vec.length; rowN++) {
-		str += vec.at(rowN).toFixed(2) + "\n";
+	    str += vec.at(rowN).toFixed(prec) + "\n";
 	}
 	str += "]\n";
 	console.say(str);
 };
-
 //#- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
@@ -410,5 +410,19 @@ la.elementByElement = function (a, b, callback) {
     }
     return result = isVec ? mat3.getCol(0) : mat3;
 }
+
+//# - `fout = la.saveIntVec(vec, fout)` - saves `vec` to output stream `fout` as a JSON string, and returns `fout`.
+la.saveIntVec = function(vec, fout) {
+    var arr = la.copyVecToArray(vec);
+    fout.writeLine(JSON.stringify(arr));
+    return fout;
+}
+
+//# - `intVec = la.loadIntVec(fin)` -- loads JSON string from `fin` and casts to JavaScript array and then to integer vector.
+la.loadIntVec = function(fin) {
+    var line = fin.readLine();
+    var arr = JSON.parse(line);
+    return la.copyIntArrayToVec(arr);
+} 
 
 var linalg = la;

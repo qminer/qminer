@@ -284,16 +284,26 @@ _store.newRec = function () {
 	/// </signature>
 };
 
-_store.newRecSet = function () {
+/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
+_store.recs = _rs;
+
+_store.toJSON = function () {
 	/// <signature>
-	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
-	/// <param name="_idVec" value="_idVec">param</param>
-	/// <returns value ="_rs"/>
+	/// <summary> returns the store as a JSON</summary>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 };
 
 /// <field name = "backwardIter" value = "_iter"> returns iterator for iterating over the store from end to start</field>
 _store.backwardIter = _iter;
+
+_store.tail = function () {
+	/// <signature>
+	/// <summary> return record set with last `num` records</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
 
 /// <field name = "forwardIter" value = "_iter"> returns iterator for iterating over the store from start to end</field>
 _store.forwardIter = _iter;
@@ -325,6 +335,22 @@ _store.rec = function () {
 /// <field name = "empty" value = "_bool"> `bool = true` when store is empty</field>
 _store.empty = _bool;
 
+_store.map = function () {
+	/// <signature>
+	/// <summary> call `callback` on each element of the store and store result to `arr`</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+_store.head = function () {
+	/// <signature>
+	/// <summary> return record set with first `num` records</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
 /// <field name = "keys" value = "_objArr"> array of all the [index keys](#index-key) objects</field>
 _store.keys = _objArr;
 
@@ -344,8 +370,13 @@ _store.key = function () {
 	/// </signature>
 };
 
-/// <field name = "recs" value = "_rs"> create a record set containing all the records from the store</field>
-_store.recs = _rs;
+_store.newRecSet = function () {
+	/// <signature>
+	/// <summary> creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);</summary>
+	/// <param name="_idVec" value="_idVec">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
 
 /// <field name = "name" value = "_str"> name of the store</field>
 _store.name = _str;
@@ -366,6 +397,14 @@ _store.fields = _objArr;
 
 /// <field name = "length" value = "_len"> number of records in the store</field>
 _store.length = _len;
+
+_store.each = function () {
+	/// <signature>
+	/// <summary> call `callback` on each element of the store</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
 
 /// <field name = "first" value = "_rec"> first record from the store</field>
 _store.first = _rec;
@@ -434,6 +473,13 @@ process.exitScript = function () {
 	/// <signature>
 	/// <summary> Exits the current script</summary>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+_vec.shuffle = function () {
+	/// <signature>
+	/// <summary> shuffels the vector `vec` (inplace operation). Returns self.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -560,6 +606,14 @@ _vec.put = function () {
 	/// </signature>
 };
 
+_vec.trunc = function () {
+	/// <signature>
+	/// <summary> truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _vec.getMaxIdx = function () {
 	/// <signature>
 	/// <summary> returns the integer index `idx` of the maximal element in vector `vec`</summary>
@@ -616,19 +670,28 @@ _twitterParser.rawJsonToStoreJson = function () {
 	/// </signature>
 };
 
+_vis.highchartsTSConverter = function () {
+	/// <signature>
+	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <param name="_objJson" value="_objJson">param</param>
+	/// <returns value ="_objJson"/>
+	/// </signature>
+};
+
 _vis.drawHighChartsTimeSeries = function () {
 	/// <signature>
-	/// <summary> copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided</summary>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON)</summary>
 	/// <param name="_data" value="_data">param</param>
-	/// <param name="_fileName" value="_fileName">param</param>
-	/// <param name="_paramsJson" value="_paramsJson">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
 
 _vis.highchartsConverter = function () {
 	/// <signature>
-	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <summary> arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
+	/// <param name="_fieldsJson" value="_fieldsJson">param</param>
 	/// <param name="_objJson" value="_objJson">param</param>
 	/// <returns value ="_objJson"/>
 	/// </signature>
@@ -1304,7 +1367,7 @@ la.printVec = function () {
 
 la.newIntVec = function () {
 	/// <signature>
-	/// <summary> generate an empty float vector</summary>
+	/// <summary> generate an empty integer vector</summary>
 	/// <returns value ="_intVec"/>
 	/// </signature>
 	/// <signature>
@@ -1316,6 +1379,15 @@ la.newIntVec = function () {
 	/// <summary> clone an int vector `vec2`</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+};
+
+la.sparse = function () {
+	/// <signature>
+	/// <summary> `spMat` is a `rows`-by-`cols` sparse zero matrix</summary>
+	/// <param name="_rows" value="_rows">param</param>
+	/// <param name="_cols" value="_cols">param</param>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 };
 
@@ -1420,6 +1492,17 @@ la.genRandom = function () {
 	/// </signature>
 };
 
+la.printFeatVec = function () {
+	/// <signature>
+	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 la.copyIntArrayToVec = function () {
 	/// <signature>
 	/// <summary> copies a JS array of integers `arr` into an integer vector `intVec`</summary>
@@ -1428,12 +1511,12 @@ la.copyIntArrayToVec = function () {
 	/// </signature>
 };
 
-la.sparse = function () {
+la.saveIntVec = function () {
 	/// <signature>
-	/// <summary> `spMat` is a `rows`-by-`cols` sparse zero matrix</summary>
-	/// <param name="_rows" value="_rows">param</param>
-	/// <param name="_cols" value="_cols">param</param>
-	/// <returns value ="_spMat"/>
+	/// <summary> saves `vec` to output stream `fout` as a JSON string, and returns `fout`.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -1450,14 +1533,18 @@ la.findMaxIdx = function () {
 	/// </signature>
 };
 
-la.printFeatVec = function () {
+la.loadIntVec = function () {
 	/// <signature>
-	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_limit" value="_limit">param</param>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <summary> loads JSON string from `fin` and casts to JavaScript array and then to integer vector.</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_intVec"/>
+	/// </signature>
+};
+
+_sa.getTm = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
+	/// <returns value ="_num"/>
 	/// </signature>
 };
 
@@ -1469,6 +1556,49 @@ _sa.saveJson = function () {
 	/// </signature>
 };
 
+_sa.getTmLen = function () {
+	/// <signature>
+	/// <summary> returns a number (timestamp vector length) if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFlt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IFlt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getOutFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getN = function () {
+	/// <signature>
+	/// <summary> returns a number of records in the input buffer if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltAt = function () {
+	/// <signature>
+	/// <summary> returns a number (element at index) if sa implements the interface IFltVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getOutTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _sa.onDelete = function () {
 	/// <signature>
 	/// <summary> executes onDelete function given an input record `rec` and returns self</summary>
@@ -1477,11 +1607,12 @@ _sa.onDelete = function () {
 	/// </signature>
 };
 
-/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
-_sa.name = _str;
-
-/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
-_sa.val = _objJSON;
+_sa.getInTm = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
 
 _sa.onUpdate = function () {
 	/// <signature>
@@ -1491,11 +1622,60 @@ _sa.onUpdate = function () {
 	/// </signature>
 };
 
+_sa.getInt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IInt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
+_sa.val = _objJSON;
+
+_sa.getInFlt = function () {
+	/// <signature>
+	/// <summary> returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltLen = function () {
+	/// <signature>
+	/// <summary> returns a number (internal vector length) if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getTmAt = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
+_sa.name = _str;
+
 _sa.onAdd = function () {
 	/// <signature>
 	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
 	/// <param name="_rec" value="_rec">param</param>
 	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector of windows timestamps if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -2023,9 +2203,9 @@ _rs.sort = function () {
 
 _rs.map = function () {
 	/// <signature>
-	/// <summary> iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:</summary>
-	/// <param name="_mapCallback" value="_mapCallback">param</param>
-	/// <returns value ="_rs"/>
+	/// <summary> iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_arr"/>
 	/// </signature>
 };
 
@@ -2044,6 +2224,14 @@ _rs.clone = function () {
 	/// </signature>
 };
 
+_rs.each = function () {
+	/// <signature>
+	/// <summary> iterates through the record set and executes the callback function `callback` on each element. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
 _rs.filterByFq = function () {
 	/// <signature>
 	/// <summary> keeps only records with weight between `minFq` and `maxFq`. Returns self.</summary>
@@ -2055,8 +2243,14 @@ _rs.filterByFq = function () {
 
 _rs.trunc = function () {
 	/// <signature>
-	/// <summary> truncate to first `num` record and return self.</summary>
-	/// <param name="_num" value="_num">param</param>
+	/// <summary> truncate to first `limit_num` record and return self.</summary>
+	/// <param name="_limit_num" value="_limit_num">param</param>
+	/// <returns value ="_rs"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> truncate to `limit_num` record starting with `offset_num` and return self.</summary>
+	/// <param name="_limit_num" value="_limit_num">param</param>
+	/// <param name="_offset_num" value="_offset_num">param</param>
 	/// <returns value ="_rs"/>
 	/// </signature>
 };
@@ -2596,44 +2790,6 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
-/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
-_tm.dayOfWeek = _str;
-
-_tm.sub = function () {
-	/// <signature>
-	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_unit" value="_unit">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-_tm.toJSON = function () {
-	/// <signature>
-	/// <summary> returns json representation of time</summary>
-	/// <returns value ="_tmJSON"/>
-	/// </signature>
-};
-
-/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
-_tm.string = _str;
-
-/// <field name = "hour" value = "_num"> hour (number)</field>
-_tm.hour = _num;
-
-/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
-_tm.timestamp = _num;
-
-_tm.clone = function () {
-	/// <signature>
-	/// <summary> clones `tm` to `tm2`</summary>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "year" value = "_num"> year (number)</field>
-_tm.year = _num;
-
 /// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 _tm.nowUTC = _tm;
 
@@ -2651,6 +2807,34 @@ _tm.parse = function () {
 	/// </signature>
 };
 
+/// <field name = "second" value = "_num"> second (number)</field>
+_tm.second = _num;
+
+/// <field name = "year" value = "_num"> year (number)</field>
+_tm.year = _num;
+
+_tm.toJSON = function () {
+	/// <signature>
+	/// <summary> returns json representation of time</summary>
+	/// <returns value ="_tmJSON"/>
+	/// </signature>
+};
+
+/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
+_tm.millisecond = _num;
+
+_tm.sub = function () {
+	/// <signature>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "windowsTimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
+_tm.windowsTimestamp = _num;
+
 _tm.add = function () {
 	/// <signature>
 	/// <summary> adds `val` to the time and returns self; `unit` defines the unit</summary>
@@ -2660,11 +2844,24 @@ _tm.add = function () {
 	/// </signature>
 };
 
-/// <field name = "second" value = "_num"> second (number)</field>
-_tm.second = _num;
+/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
+_tm.dayOfWeekNum = _num;
 
-/// <field name = "milisecond" value = "_num"> millisecond (number)</field>
-_tm.milisecond = _num;
+/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
+_tm.dayOfWeek = _str;
+
+/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
+_tm.string = _str;
+
+/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
+_tm.timestamp = _num;
+
+_tm.clone = function () {
+	/// <signature>
+	/// <summary> clones `tm` to `tm2`</summary>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
 
 /// <field name = "now" value = "_tm"> returns new time object representing current local time</field>
 _tm.now = _tm;
@@ -2675,8 +2872,24 @@ _tm.day = _num;
 /// <field name = "minute" value = "_num"> minute (number)</field>
 _tm.minute = _num;
 
-/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
-_tm.dayOfWeekNum = _num;
+_tm.fromUnixTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a UNIX timestamp (seconds since 1970).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "hour" value = "_num"> hour (number)</field>
+_tm.hour = _num;
+
+_tm.fromWindowsTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a windows timestamp (milliseconds since 1601).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
 
 _htModel.process = function () {
 	/// <signature>
@@ -3495,6 +3708,14 @@ _nnModel.predict = function () {
 	/// <summary> sends vector `vec` through the model and returns the prediction as a vector `vec2`</summary>
 	/// <param name="_vec" value="_vec">param</param>
 	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_nnModel.setLearnRate = function () {
+	/// <signature>
+	/// <summary> sets learning rate of the network</summary>
+	/// <param name="_float" value="_float">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 

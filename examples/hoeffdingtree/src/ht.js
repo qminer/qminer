@@ -64,18 +64,22 @@ function line2array(line, jsonCfg) {
            "target": target };
 }
 
+// 
+// Examples using the algorithm on various datasets 
+// 
+
 function testClassificationContAttr() {
    // algorithm parameters 
    var htParams = {
       "gracePeriod": 300,
-      "splitConfidence": 1e-6,
-      "tieBreaking": 0.005,
+      "splitConfidence": 1e-5,
+      "tieBreaking": 0.01,
       "driftCheck": 1000,
-      "windowSize": 3000,
+      "windowSize": 100000,
       "conceptDriftP": false,
-      "clsLeafModel": "majority",
+      "clsLeafModel": "naiveBayes",
       "clsAttrHeuristic": "giniGain",
-      "maxNodes": 10,
+      "maxNodes": 7,
       "attrDiscretization": "histogram"
    };
    
@@ -139,9 +143,9 @@ function testClassification() {
       "splitConfidence": 1e-5,
       "tieBreaking": 0.005,
       "driftCheck": 1000,
-      "windowSize": 15000,
+      "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 20,
+      "maxNodes": 0,
       "clsLeafModel": "naiveBayes",
       "clsAttrHeuristic": "giniGain",
       "attrDiscretization": "histogram"
@@ -198,7 +202,7 @@ function testClassification() {
    label = ht.classify(["third", "adult", "male"], []);
    console.say("Were 3rd class men likely to survive? " + label);
    label = ht.classify(["second", "adult", "female"], []);
-   console.say("Were 3rd class women likely to survive? " + label);0
+   console.say("Were 3rd class women likely to survive? " + label);
    
    console.say("Now exporting the model as 'titanic.gv'.");
    // export the model 
@@ -211,12 +215,15 @@ function testRegressionDisAttr() {
       "gracePeriod": 300,
       "splitConfidence": 1e-6,
       "tieBreaking": 0.005,
-      "driftCheck": 1000,
-      "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 5,
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
+      "phInit": 100,
+      "maxNodes": 50,
       "regLeafModel": "mean",
-      "attrDiscretization": "bst"
+      "attrDiscretization": "bst",
+      "sdrThreshold": 0.1,
+      "sdThreshold": 0.01
    };
    
    // describe the data stream 
@@ -277,13 +284,16 @@ function testRegressionContAttr() {
    var htParams = {
       "gracePeriod": 200,
       "splitConfidence": 1e-6,
-      "tieBreaking": 0.05,
-      "driftCheck": 1000,
-      "windowSize": 100000,
+      "tieBreaking": 0.1,
       "conceptDriftP": false,
-      "maxNodes": 5,
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
+      "phInit": 100,
+      "maxNodes": 50,
       "regLeafModel": "mean",
-      "attrDiscretization": "histogram"
+      "attrDiscretization": "histogram",
+      "sdrThreshold": 0.1,
+      "sdThreshold": 0.001
    };
    var regTestCfg = {
       "dataFormat": ["A", "B", "Y"],
@@ -291,12 +301,8 @@ function testRegressionContAttr() {
          "type": "discrete",
          "values": ["0", "1"]
       },
-      "B": {
-         "type": "numeric",
-      },
-      "Y": {
-         "type": "numeric"
-      }
+      "B": { "type": "numeric" },
+      "Y": { "type": "numeric" }
    };
    
    // create a new learner 
@@ -338,16 +344,69 @@ function testRegressionContAttr() {
    ht.exportModel({ "file": "./sandbox/ht/reg-cont.gv", "type": "DOT" });
 }
 
+function testRegressionDrift() {
+   var htParams = {
+      "gracePeriod": 200,
+      "splitConfidence": 1e-5,
+      "tieBreaking": 0.05,
+      "conceptDriftP": false,
+      "phAlpha": 0.0001,
+      "phLambda": 1.0,
+      "phInit": 100,
+      "maxNodes": 10,
+      "regLeafModel": "mean",
+      "attrDiscretization": "bst"
+   };
+   /*var streamCfg = {
+      "dataFormat": ["A", "B", "Y"],
+      "A": {"type": "numeric"},
+      "B": {"type": "numeric"},
+      "Y": {"type": "numeric"}
+   };*/
+   var streamCfg = {
+      "dataFormat": ["A", "B", "Y"],
+      "A": {
+         "type": "discrete",
+         "values": ["0", "1"]
+      },
+      "B": {
+         "type": "discrete",
+         "values": ["0", "1"]
+      },
+      "Y": {"type": "numeric"}
+   }
+   var ht = analytics.newHoeffdingTree(streamCfg, htParams);
+   var examplesN = 0;
+   // var streamData = fs.openRead("./sandbox/ht/drift.dat");
+   var streamData = fs.openRead("./sandbox/ht/dis_drift.dat");
+   while (!streamData.eof) {
+      var line = streamData.getNextLn().split(",");
+      var dis = line.slice(0, 2);
+      // var num = line.slice(0, 2);
+      // num[0] = parseFloat(num[0]); num[1] = parseFloat(num[1]);
+      var y = parseFloat(line[2]);
+      // ht.process([], num, y);
+      ht.process(dis, [], y);
+      if (++examplesN % 10000 == 0) {
+         console.say("Processing example "+examplesN);
+      }
+   }
+   console.say("Exporting the model...");
+   ht.exportModel({ "file": "./sandbox/ht/reg-dis-drift.gv", "type": "DOT" });
+}
+
 function testRegression() {
    // algorithm parameters 
    var htParams = {
       "gracePeriod": 300,
       "splitConfidence": 1e-6,
       "tieBreaking": 0.005,
-      "driftCheck": 1000,
-      "windowSize": 100000,
-      "conceptDriftP": true,
-      "maxNodes": 10
+      "conceptDriftP": false,
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
+      "phInit": 1000,
+      "maxNodes": 50,
+      "sdrThreshold": 0.1
    };
    
    // TODO: Extract this info from feature space. Potential problem with
@@ -425,10 +484,12 @@ function realRegressionTest() {
       "gracePeriod": 300,
       "splitConfidence": 1e-6,
       "tieBreaking": 0.005,
-      "driftCheck": 1000,
-      "windowSize": 100000,
       "conceptDriftP": false,
-      "maxNodes": 10
+      "phAlpha": 0.005,
+      "phLambda": 50.0,
+      "phInit": 100,
+      "maxNodes": 50,
+      "sdrThreshold": 0.06
    };
    
    var ht = analytics.newHoeffdingTree(jsonCfg, htParams);
@@ -446,40 +507,8 @@ function realRegressionTest() {
    ht.exportModel({ "file": "./sandbox/ht/winequality.gv", "type": "DOT" });
 }
 
-// Need this to see how to get hoeffding trees accept feature spaces 
-function ftrTest() {
-   var Test = qm.store("Test");
-   
-   var ftrSpace = analytics.newFeatureSpace([
-      { type: "numeric", source: "Test", field: "f1" },
-      { type: "numeric", source: "Test", field: "f2" },
-      { type: "numeric", source: "Test", field: "f3" }
-   ]);
-   
-   // var ht = analytics.newHoeffdingTree(ftrSpace, htParams);
-   
-   console.say("Feature space dimension: "+ftrSpace.dim);
-   console.start();
-   
-   Test.addTrigger({
-      onAdd: function (val) {
-         console.say(JSON.stringify(ftrSpace.ftrVec(val)));
-         return console.say(JSON.stringify(val)); 
-      }
-   });
-   
-   for (var i = 1; i <= 100; ++i) {
-      Test.add({ f1: i, f2: 2*i, f3: 3*i });
-   }
-   
-   console.say("Size = "+Test.length);
-}
-
-// ftrTest();
-
-// Warn the user 
 console.say("In case you get an error of the form \"File 'file_path' does not exist\", it means a dataset is missing.");
-console.say("Run `sh fetch-datasets.sh` to download missing files.");
+console.say("If this the case, run `sh fetch-datasets.sh` to download missing files.");
 console.say("Press ENTER to continue");
 console.start();
 
@@ -489,6 +518,9 @@ testClassificationContAttr();
 console.say("- Second classification secnario using bootstrapped TITANIC dataset -");
 testClassification();
 
+
+console.say("Breakfast at Tiffany's :)");
+testRegressionDrift();
 console.say(" --- Example using regression HoeffdingTree --- ");
 console.say("- Regression scenario with discrete attributes -");
 testRegressionDisAttr();

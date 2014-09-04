@@ -32,6 +32,7 @@ qm.storeProto.map = function (callback) {
     while (iter.next()) {
         result.push(callback(iter.rec, i++));
     }
+    return result;
 }
 //#- `rs = store.head(num)` -- return record set with first `num` records
 qm.storeProto.head = function (recs) {

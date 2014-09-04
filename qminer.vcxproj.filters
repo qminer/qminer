@@ -72,5 +72,8 @@
     <None Include="src\qminer\js\evaluation.js">
       <Filter>javascript</Filter>
     </None>
+    <None Include="src\qminer\js\visualization.js">
+      <Filter>javascript</Filter>
+    </None>
   </ItemGroup>
 </Project>

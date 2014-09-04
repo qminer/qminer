@@ -10,7 +10,7 @@
 include ./Makefile.config
 
 # QMiner version
-VERSION = 0.5.0
+VERSION = 0.7.0
 
 # dependencies
 THIRD_PARTY = src/third_party
@@ -36,17 +36,30 @@ QMOBJS = $(QMINER)/qminer_core.o $(QMINER)/qminer_ftr.o $(QMINER)/qminer_aggr.o 
 	$(QMINER)/qminer_srv.o $(QMINER)/qminer_snap.o
 MAINOBJ = $(QMINER)/main.o
 
-all: qm
+
+# default make target
+all: release
+
+# release target turns on compiler optimizations and disables debugging asserts
+release: CXXFLAGS += -O3 -DNDEBUG
+release: TARGET=release
+release: qm
+
+# debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
+debug: CXXFLAGS += -g
+debug: LDFLAGS += -rdynamic
+debug: TARGET=debug
+debug: qm
 
 qm:
 	# compile glib
-	make -C $(GLIB)
+	make -C $(GLIB) $(TARGET)
 	# compile SNAP
 	make -C $(SNAP)	
 	# compile qminer
-	make -C $(QMINER)
+	make -C $(QMINER) $(TARGET)
 	# create qm commandline tool
-	$(CC) -o qm $(QMOBJS) $(MAINOBJ) $(STATIC_LIBS) $(LDFLAGS) $(LIBS) 
+	$(CC) -o qm $(QMOBJS) $(MAINOBJ) $(STATIC_LIBS) $(CXXFLAGS) $(LDFLAGS) $(LIBS) 
 	# create qminer static library
 	rm -f qm.a
 	ar -cvq qm.a $(QMOBJS)
@@ -67,6 +80,7 @@ qm:
 	# copy resources
 	mkdir -p ./$(BUILD)/resources
 	cp -r ./$(QMINER)/resources/* ./$(BUILD)/resources
+	(cat ./$(QMINER)/gui/js/Highcharts/js/highcharts.js; echo; cat ./$(QMINER)/gui/js/Highcharts/js/modules/exporting.js; echo; cat ./$(QMINER)/js/visualization.js) > ./$(BUILD)/gui/js/visualization.js
 	
 cleanall: clean cleandoc
 	make -C $(THIRD_PARTY) clean

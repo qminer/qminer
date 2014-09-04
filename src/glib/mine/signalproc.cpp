@@ -173,14 +173,15 @@ double TEma::GetNi(const double& Alpha, const double& Mi) {
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const double& _Decay, const TEmaType& _Type, const uint64& _InitMinMSecs, 
-    const double& _TmInterval): Decay(_Decay), Type(_Type), TmInterval(_TmInterval), 
-    InitP(false), InitMinMSecs(_InitMinMSecs) { }
+    const double& _TmInterval): Decay(_Decay), Type(_Type), LastVal(TFlt::Mn),
+    TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) { }
 
 //TODO: compute InitMinMSecs initialization time window from decay factor
 TEma::TEma(const TEmaType& _Type, const uint64& _InitMinMSecs,const double& _TmInterval):
-	Type(_Type), TmInterval(_TmInterval), InitP(false), InitMinMSecs(_InitMinMSecs) { }
+    Type(_Type), LastVal(TFlt::Mn), TmInterval(_TmInterval), InitP(false), 
+    InitMinMSecs(_InitMinMSecs) { }
 
-TEma::TEma(const PJsonVal& ParamVal): InitP(false) {
+TEma::TEma(const PJsonVal& ParamVal) : LastVal(TFlt::Mn), InitP(false) {
     // type
     TStr TypeStr = ParamVal->GetObjStr("emaType");
     if (TypeStr == "previous") { 
@@ -230,6 +231,10 @@ void TEma::Save(TSOut& SOut) const {
 
 void TEma::Update(const double& Val, const uint64& NewTmMSecs) {
 	double TmInterval1;
+	// EMA(first_point) = first_point (no smoothing is possible)
+	if (InitMinMSecs == 0) {
+		if (LastVal == TFlt::Mn) { LastVal = Val; Ema = Val; TmMSecs = NewTmMSecs; InitP = true;  return; }
+	}
 	if(NewTmMSecs == TmMSecs) {
 		TmInterval1 = 1.0;
     } else{
@@ -490,7 +495,9 @@ TNNet::TNeuron::TNeuron(TInt OutputsN, TInt MyId, TTFunc TransFunc){
     TFuncNm = TransFunc;
     for(int c = 0; c < OutputsN; ++c){
         // define the edges, 0 element is weight, 1 element is weight delta
-        OutEdgeV.Add(TIntFltFltTr(c, RandomWeight(), 0.0));
+        TFlt RandWeight = RandomWeight();
+        OutEdgeV.Add(TIntFltFltTr(c, RandWeight, 0.0));
+        SumDeltaWeight.Add(0.0);
     }
 
     Id = MyId;
@@ -513,6 +520,9 @@ TFlt TNNet::TNeuron::TransferFcn(TFlt Sum){
             // tanh output range [-1.0..1.0]
             // training data should be scaled to what the transfer function can handle
            return tanh(Sum);
+        case softPlus:
+            // the softplus function
+            return log(1.0 + exp(Sum));
         case sigmoid:
            // sigmoid output range [0.0..1.0]
            // training data should be scaled to what the transfer function can handle
@@ -535,7 +545,10 @@ TFlt TNNet::TNeuron::TransferFcnDeriv(TFlt Sum){
     switch (TFuncNm){
         case tanHyper:
             // tanh derivative approximation
-            return 1.0 - Sum * Sum;
+            return 1.0 - tanh(Sum) * tanh(Sum);
+        case softPlus:
+            // softplus derivative
+            return 1.0 / (1.0 + exp(-Sum));
         case sigmoid:{
            double Fun = 1.0 / (1.0 + exp(-Sum));
            return Fun * (1.0 - Fun);
@@ -573,25 +586,35 @@ TFlt TNNet::TNeuron::SumDOW(const TLayer& NextLayer) const{
     return sum;
 }
 
-void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate, const TFlt& Momentum){
+void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate, const TFlt& Momentum, const TBool& UpdateWeights){
     // the weights to be updated are in the OutEdgeV
     // in the neurons in the preceding layer
     for(int NeuronN = 0; NeuronN < PrevLayer.GetNeuronN(); ++NeuronN){
         TNeuron& Neuron = PrevLayer.GetNeuron(NeuronN);
         TFlt OldDeltaWeight = Neuron.GetDeltaWeight(Id);
-        //printf(" LearnRate N: %f \n", LearnRate);
-
+        //TFlt OldWeight = Neuron.GetWeight(Id);
+        TFlt OldSumDeltaWeight = Neuron.GetSumDeltaWeight(Id);
+        
         TFlt NewDeltaWeight = 
                 // individual input magnified by the gradient and train rate
                 LearnRate
                 * Neuron.GetOutVal()
                 * Gradient
-                // add momentum = fraction of previous delta weight
-                + Momentum
+                // add momentum = fraction of previous delta weight, if we are not in batch mode
+                + (UpdateWeights  && OldSumDeltaWeight == 0.0 ? Momentum : TFlt())
                 * OldDeltaWeight;
-
-        Neuron.SetDeltaWeight(Id, NewDeltaWeight);
-        Neuron.UpdateWeight(Id, NewDeltaWeight);
+        
+        if(UpdateWeights){
+            if(OldSumDeltaWeight != 0.0){
+                NewDeltaWeight = OldSumDeltaWeight + NewDeltaWeight;
+                Neuron.SetSumDeltaWeight(Id, 0.0);
+            }
+            Neuron.SetDeltaWeight(Id, NewDeltaWeight);
+            Neuron.UpdateWeight(Id, NewDeltaWeight);
+       }
+        else{
+            Neuron.SumDeltaWeights(Id, NewDeltaWeight);
+        }
     }
 }
     
@@ -655,7 +678,7 @@ void TNNet::FeedFwd(const TFltV& InValV){
     }
 }
 
-void TNNet::BackProp(const TFltV& TargValV){
+void TNNet::BackProp(const TFltV& TargValV, const TBool& UpdateWeights){
     // calculate overall net error (RMS of output neuron errors)
     TLayer& OutputLayer = LayerV.Last();
     Error = 0.0;
@@ -666,7 +689,7 @@ void TNNet::BackProp(const TFltV& TargValV){
     }
     Error /= OutputLayer.GetNeuronN() - 1;
     Error = sqrt(Error); // RMS
-
+    
     // recent avg error measurement
     RecentAvgError = (RecentAvgError * RecentAvgSmoothingFactor + Error)
             / (RecentAvgSmoothingFactor + 1.0);
@@ -691,7 +714,7 @@ void TNNet::BackProp(const TFltV& TargValV){
         TLayer& PrevLayer = LayerV[LayerN - 1];
 
         for(int NeuronN = 0; NeuronN < Layer.GetNeuronN() - 1; ++NeuronN){
-            Layer.UpdateInputWeights(NeuronN, PrevLayer, LearnRate, Momentum);
+            Layer.UpdateInputWeights(NeuronN, PrevLayer, LearnRate, Momentum, UpdateWeights);
         }
     }
 }
