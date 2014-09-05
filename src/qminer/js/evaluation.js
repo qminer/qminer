@@ -32,8 +32,8 @@ function createOnlineMetric(updateCallback) {
     var error = -1;
     var calcError = new updateCallback();
     // update function defined with callback function
-    this.update = function (err) {
-        error = calcError.update(err);
+    this.update = function (true_num, pred_num) {
+        error = calcError.update(true_num, pred_num);
     }
     // getter for error
     this.getError = function () {
@@ -44,14 +44,15 @@ function createOnlineMetric(updateCallback) {
 
 //////////// MEAN ERROR
 //#- `me = evaluation.newMeanError()` -- create new (online) mean error instance.
-//#   - `me.update(num)` -- updates error with new sample `num`
+//#   - `me.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = me.getError()` -- returns current error `num`
 exports.newMeanError = function () {
     function calcError() {
         this.sumErr = 0;
         this.count = 0;
         // update function
-        this.update = function (err) {
+        this.update = function (true_num, pred_num) {
+            var err = true_num - pred_num;
             this.sumErr += err;
             this.count++;
             var error = this.sumErr / this.count;
@@ -63,14 +64,15 @@ exports.newMeanError = function () {
 
 //////////// MEAN ABSOLUTE ERROR
 //#- `mae = evaluation.newMeanAbsoluteError()` -- create new (online) mean absolute error instance.
-//#   - `mae.update(num)` -- updates error with new sample `num`
+//#   - `mae.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = mae.getError()` -- returns current error `num`
 exports.newMeanAbsoluteError = function () {
     function calcError () {
         this.sumErr = 0;
         this.count = 0;
         // update function
-        this.update = function (err) {
+        this.update = function (true_num, pred_num) {
+            var err = true_num - pred_num;
             this.sumErr += Math.abs(err);
             this.count++;
             var error = this.sumErr / this.count;
@@ -82,14 +84,15 @@ exports.newMeanAbsoluteError = function () {
 
 //////////// MEAN SQUARE ERROR
 //#- `mse = evaluation.newMeanSquareError()` -- create new (online) mean square error instance.
-//#   - `mse.update(num)` -- updates error with new sample `num`
+//#   - `mse.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = mse.getError()` -- returns current error `num`
 exports.newMeanSquareError = function () {
     function calcError() {
         this.sumErr = 0;
         this.count = 0;
         // update function
-        this.update = function (err) {
+        this.update = function (true_num, pred_num) {
+            var err = true_num - pred_num;
             this.sumErr += (err*err);
             this.count++;
             var error = this.sumErr / this.count;
@@ -101,14 +104,15 @@ exports.newMeanSquareError = function () {
 
 //////////// ROOT MEAN ABSOLUTE ERROR
 //#- `rmse = evaluation.newRootMeanSquareError()` -- create new (online) root mean square error instance.
-//#   - `rmse.update(num)` -- updates error with new sample `num`
+//#   - `rmse.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = rmse.getError()` -- returns current error `num`
 exports.newRootMeanSquareError = function () {
     function calcError() {
         this.sumErr = 0;
         this.count = 0;
         // update function
-        this.update = function (err) {
+        this.update = function (true_num, pred_num) {
+            var err = true_num - pred_num;
             this.sumErr += (err * err);
             this.count++;
             var error = this.sumErr / this.count;
@@ -118,37 +122,34 @@ exports.newRootMeanSquareError = function () {
     return new createOnlineMetric(calcError);
 }
 
-
-exports.newRSquare = function () {
+//////////// R SQUARED SCORE
+//#- `r2 = evaluation.newRSquareScore()` -- create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
+//#   - `r2.update(num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
+//#   - `num = rmse.getError()` -- returns current score `num`
+exports.newRSquareScore = function () {
     function rSquare() {
         this.sst = 0;
         this.sse = 0;
         this.mean = 0;
         this.count = 0;
-        this.sumReal = 0;
-        this.sumReal2 = 0;
-        this.r2 = -1;
+        this.sumTrue = 0;
+        this.sumTrue2 = 0;
         // update function
-        this.update = function (real, est) {
+        this.update = function (true_num, pred_num) {
             this.count++;
-            this.sumReal += real;
-            this.sumReal2 += real * real;
-            this.mean = this.sumReal / this.count;
-            //calculate error
-            this.sse += (real - est) * (real - est);
-            this.sst = this.sumReal2 - this.count * this.mean * this.mean;           
+            this.sumTrue += true_num;
+            this.sumTrue2 += true_num * true_num;
+            this.mean = this.sumTrue / this.count;
+            //calculate R squared score 
+            this.sse += (true_num - pred_num) * (true_num - pred_num);
+            this.sst = this.sumTrue2 - this.count * this.mean * this.mean;
             if (this.sst == 0.0) {
-                this.r2 = (this.sse == 0.0) ? this.r2 = 1.0 : this.r2 = 0.0;
-            } else {
-                this.r2 = (1 - this.sse / this.sst);
+                return (this.sse == 0.0) ? 1.0 : 0.0;
             }
-        }
-        // getter
-        this.getError = function () {
-            return this.r2;
+            return 1 - this.sse / this.sst;           
         }
     }
-    return new rSquare();
+    return new createOnlineMetric(rSquare);
 }
 
 // About this module
