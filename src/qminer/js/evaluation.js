@@ -32,7 +32,10 @@ function createOnlineMetric(updateCallback) {
     var error = -1;
     var calcError = new updateCallback();
     // update function defined with callback function
-    this.update = function (true_num, pred_num) {
+    this.update = function (true_num, pred_num, ref_num) {
+        var pred_num = pred_num == null ? 0 : pred_num;
+        var ref_num = ref_num == null ? 0 : ref_num;
+
         error = calcError.update(true_num, pred_num);
     }
     // getter for error
