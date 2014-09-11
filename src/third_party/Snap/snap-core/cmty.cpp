@@ -70,12 +70,10 @@ namespace TSnap {
 					if (InModule + OutModule > 0) {
 						Val = OutModule / (InModule + OutModule);
 					}
-					int control = Mds[i];
 					Qi1.DelKey(Mds[i]);
 					Qi1.AddDat(Mds[i], Val);
 				}
 				else {
-					int control = Mds[i];
 					Qi1.DelKey(Mds[i]);
 					Qi1.AddDat(Mds[i], 0.0);
 				}
@@ -162,8 +160,6 @@ namespace TSnap {
 						Module.DelKey(NI.GetId());
 						Module.AddDat(NI.GetId(), NewModule);
 						Qi = TSnapDetail::MapEquationNew2Modules(Graph, Module, Qi, OldModule, NewModule);
-						for (int i = 0; i < Qi.Len(); i++)
-							double c = Qi[i];
 						NewCodeLength = TSnapDetail::Equation(Graph, PAlpha, SumPAlphaLogPAlpha, Qi);
 						if (NewCodeLength<MinCodeLength) {
 							MinCodeLength = NewCodeLength;
@@ -255,11 +251,10 @@ namespace TSnap {
 
 		TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
 		Ss.Next();
-		int internal_year_counter = 0;
 		// variable for delimiter between networks
 		TStr Marker;
 		// defining variables for node ids and starting year
-		int SrcNId, DstNId, t = 1970;
+		int SrcNId, DstNId, t;
 
 		// temporal container for edges
 		TIntIntVH edges_;
@@ -298,7 +293,7 @@ namespace TSnap {
 
 					TSnap::DelSelfEdges(Graph);
 					TCnComV CmtyV;
-					double Q = 0.0;
+					double Q;
 					TStr CmtyAlgStr;
 					if (CmtyAlg == 1) {
 						CmtyAlgStr = "Girvan-Newman";
@@ -318,12 +313,10 @@ namespace TSnap {
 
 					if (br == 0) {
 						prev.Clr();
-						int size = 0;
 						for (int c = 0; c < CmtyV.Len(); c++) {
 							for (int i = 0; i < CmtyV[c].Len(); i++){
 								prev.AddDat(CmtyV[c][i].Val, c);
 							}
-							int s = CmtyV[c].Len();
 							prev_sizes.AddDat(c, CmtyV[c].Len());
 						}
 					}
@@ -444,7 +437,6 @@ namespace TSnap {
 							for (int i = 0; i < CmtyV[c].Len(); i++){
 								prev.AddDat(CmtyV[c][i].Val, map.GetDat(c));
 							}
-							int s = CmtyV[c].Len();
 							prev_sizes.AddDat(map.GetDat(c), CmtyV[c].Len());
 						}
 
@@ -591,9 +583,6 @@ namespace TSnap {
 		double beta = 0.75;
 		CmtyEvolutionFileBatch(InFNm, sizesContV, cContV, edges, alpha, beta, CmtyAlg);
 		TStr out;
-		int a = sizesContV.Len();
-		int b = cContV.Len();
-		int c = edges.Len();
 		CmtyEvolutionJson(out, sizesContV, cContV, edges);
 
 		return out;
