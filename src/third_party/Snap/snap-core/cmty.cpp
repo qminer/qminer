@@ -582,14 +582,13 @@ namespace TSnap {
 
 	}
 
-	TStr CmtyTest(TStr InFNm){
+	TStr CmtyTest(TStr InFNm, int CmtyAlg){
 
 		TIntIntVH sizesContV;
 		TIntIntVH cContV;
 		TIntIntVH edges;
 		double alpha = 0.5;
 		double beta = 0.75;
-		int CmtyAlg = 1;
 		CmtyEvolutionFileBatch(InFNm, sizesContV, cContV, edges, alpha, beta, CmtyAlg);
 		TStr out;
 		int a = sizesContV.Len();

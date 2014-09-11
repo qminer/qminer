@@ -72,11 +72,11 @@ function getLabel(c, dist, prev_sizes, prev, alpha, beta, first_new_id) {
     return returnName;
 }
 
-//#- `JSON = snap.evolutionJs(data, alpha, beta)` -- returns JSON of nodes and edges of community evolution
+//#- `JSON = snap.evolutionJs(data, alpha, beta)` -- returns JSON of nodes and edges of community evolution graph
 exports.evolutionJs = function (data, alpha, beta) {
     // containers for edges and nodes of the output json string
-    var edgesJson = "";
-    var communitiesJson = "";
+    var edgesJson = new Array()
+    var communitiesJson = new Array();
     // container for community sizes in t-1
     var prev_sizes = new Array();
     // container for communities
@@ -117,7 +117,7 @@ exports.evolutionJs = function (data, alpha, beta) {
             prev_sizes.push(new CmtySizes(cKey[cKey.length - 1], count));
             
             for (var i = 0; i < prev_sizes.length; i++)
-                communitiesJson += ",{\"id\":" + prev_sizes[i].CommunityId + ", \"size\":" + prev_sizes[i].Size + ", \"t\":" + br + "}\n";
+                communitiesJson.push({ id: prev_sizes[i].CommunityId, size: prev_sizes[i].Size, t: br });
         }
         // later iterations (br>0)
         else {
@@ -176,7 +176,7 @@ exports.evolutionJs = function (data, alpha, beta) {
                 for (var i = 0; i < dist.length; i++) {
                     sum_temp += dist[i].Size;
                     if (dist[i].Size > 0 && dist[i].CommunityId != -1)
-                        edgesJson += ",{ \"n1\":" + dist[i].CommunityId + ", \"n2\":" + label + ", \"w\": " + dist[i].Size + ", \"t0\":"+(br-1)+", \"t1\":"+br+"}\n";
+                        edgesJson.push({n1:dist[i].CommunityId,n2:label,w:dist[i].Size, t0:(br-1), t1:br});
                 }
                 // first adding to file, then sorting and finally printing to json string 
                 cJ.push({ id: label, size: sum_temp, t: br });
@@ -192,7 +192,7 @@ exports.evolutionJs = function (data, alpha, beta) {
             cJ.sort(function (obj1, obj2) { return obj1.id - obj2.id; });
             // print communites to json string
             for (var i = 0; i < cJ.length; i++)
-                communitiesJson += ",{\"id\":" + cJ[i].id + ", \"size\":" + cJ[i].size + ", \"t\":" + cJ[i].t + "}\n";
+                communitiesJson.push({id:cJ[i].id, size:cJ[i].size, t:cJ[i].t});
 
             // update prev - node community assignements and prev_sizes - communities sizes 
             prev = [];
@@ -207,28 +207,44 @@ exports.evolutionJs = function (data, alpha, beta) {
     } // end main iteration
 
     // printing all out to json string
-    var out = "{ \"edges\": [\n";
-    out += edgesJson.substr(1, edgesJson.length-1);
-    out += "],\n\"communities\": [\n";
-    out += communitiesJson.substr(1, communitiesJson.length-1);
-    out += "]\n}";
-
-    return out;
+    var out = {};
+    var out = { edges: edgesJson, communities: communitiesJson };
+    
+    return JSON.stringify(out)
+    ;
 };
 
 //#- `JSON = snap.toJson(graph)` -- returns JSON object of graph with `source` and `target` attributes
-exports.toJsonGraph = function (data) {
+exports.toJsonGraph = function (graph, opts) {
     var br = 0;
-    var json_out = "";
-    for (var i = data.getFirstEdge() ; br < data.edgeCount() ; i.getNext()) {
-        var n1 = i.getSrcNodeId();
-        var n2 = i.getDstNodeId();
-        json_out += ",{\"source\":" + n1 + ",\"target\":" + n2 + "}\n";
+    var json_out = {};
+    var json_out_edges = new Array();
+    for (var i = graph.getFirstEdge() ; br < graph.edgeCount() ; i.getNext()) {
+        var id1 = i.getSrcNodeId();
+        var id2 = i.getDstNodeId();
+        json_out_edges.push({ source: id1, target: id2 });
         br++;
     }
-    json_out = "\n[" + json_out.substr(1, json_out.length - 1) + "]";
-    var obj_out = eval("(" + json_out + ')');
-    return obj_out;
+    br = 0;
+    // object
+    var json_out_data = {};
+    if (opts.color) {
+        cVal = opts.color.valVec(); // ids
+        cKey = opts.color.idxVec(); // values for data
+        for (var i = 0; i < cVal.length; i++)
+            json_out_data[cVal[i]] = { size: graph.getNode(cVal[i]).getDeg(), color: cKey[i] };
+    }
+    else {
+        for (var i = graph.getFirstNode() ; br < graph.nodeCount() ; i.getNext()) {
+            var id = i.getId();
+            var size_var = i.getDeg();
+            json_out_data[id] = { size: size_var };
+            br++;
+        }
+    }
+    json_out["edges"] = json_out_edges;
+    json_out["data"] = json_out_data;
+    return json_out;
 };
 
 //#- `JSON = snap.toJson(graph)` -- returns JSON object of array of graphs with `source` and `target` attributes
@@ -256,3 +272,83 @@ exports.toJsonGraphArray = function (data) {
     var obj_out = eval("(" + json + ')');
     return obj_out;
 };
+
+
+//#- `graph = snap.removeNodes(graph, n)` -- removes nodes with degree up to n
+exports.removeNodes = function (graph, n) {
+    var br = 0;
+    var c = graph.nodeCount();
+    var toDelete = new Array();
+    for (var i = graph.getFirstNode() ; br < c ; i.getNext()) {
+        if (i.getDeg() <= n)
+            toDelete.push(i.getId());
+        br++;
+    }
+
+    for (var i = 0; i < toDelete.length; i++)
+        graph.delNode(toDelete[i]);
+
+    return graph;
+};
+
+//#- `graph = snap.groupNodes(graph, n)` -- groups nodes by SpVec
+exports.groupNodes = function (graph, data) {
+    //  nodes
+    cVal = data.valVec();
+    // communities
+    cKey = data.idxVec();
+
+    var g = snap.newUGraph();
+    for (var i = 0; i < cKey.length; i++) {
+        if (!g.isNode(cKey[i]))
+            g.addNode(cKey[i]);
+    }
+
+    var br = 0;
+    for (var i = graph.getFirstEdge() ; br < graph.edgeCount() ; i.getNext()) {
+        var n1 = i.getSrcNodeId();
+        var n2 = i.getDstNodeId();
+        var c1=-1;
+        var c2=-1;
+
+        for (var j = 0; j < cKey.length; j++) {
+            if (cVal[j] == n1)
+                c1 = cKey[j];
+            if (cVal[j] == n2)
+                c2 = cKey[j];
+        }
+
+        g.addEdge(c1, c2);
+
+        br++;
+    }
+
+    return g;
+};
+
+//#- `spVector = snap.readData(path)` -- read data for nodes - IN PROGRESS...
+/*
+exports.readData = function (path, del) {
+    var spVec = la.newSpVec();
+    spVec = spVec.put(0, 1231);
+    var lines = 0;
+    var fin = fs.openRead(path);
+    var n1, n2;
+    while (!fin.eof) {
+        lines = lines + 1;
+        var line = fin.readLine();
+        if (line == "") { continue; }
+        else {
+            n1 = -1; n2 = -1;
+            var lineArray = line.split(del);
+            var n1 = -1, n2 = -1;
+            if (lineArray.length >= 2){
+                n1 = lineArray[0];
+                n2 = lineArray[1];
+                if (n1 === parseInt(n1) && n2 === parseInt(n2))
+                    spVec = spVec.put(n2, n1);
+            }
+        }
+    }
+    return spVec;
+};*/

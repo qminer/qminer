@@ -367,7 +367,7 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   TKeyDat& operator=(const TKeyDat& KeyDat){
-    if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
+  if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
   bool operator==(const TKeyDat& KeyDat) const {return Key==KeyDat.Key;}
   bool operator<(const TKeyDat& KeyDat) const {return Key<KeyDat.Key;}
 
@@ -471,8 +471,10 @@ public:
     if (_Vals==0){ValT=NULL;} else {ValT=new TVal[_Vals];}}
   /// Constructs a vector (an array) of length \c _Vals, while reserving enough memory to store \c _MxVals elements.
   TVec(const TSizeTy& _MxVals, const TSizeTy& _Vals){
-    IAssert((0<=_Vals)&&(_Vals<=_MxVals)); MxVals=_MxVals; Vals=_Vals;
-    if (_MxVals==0){ValT=NULL;} else {ValT=new TVal[_MxVals];}}
+	  //IAssert((0<=_Vals)&&(_Vals<=_MxVals)); MxVals=_MxVals; Vals=_Vals;
+	  if ((0 <= _Vals) && (_Vals <= _MxVals)){ MxVals = _MxVals; Vals = _Vals; if (_MxVals == 0){ ValT = NULL; } else { ValT = new TVal[_MxVals]; } }
+	  else { MxVals = _Vals; Vals = _MxVals; if (_Vals == 0){ ValT = NULL; } else { ValT = new TVal[_Vals]; } }
+  }
   /// Constructs a vector of \c _Vals elements of memory array \c _ValT. ##TVec::TVec
   explicit TVec(TVal *_ValT, const TSizeTy& _Vals):
     MxVals(-1), Vals(_Vals), ValT(_ValT){}

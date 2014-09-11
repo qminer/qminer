@@ -5636,6 +5636,7 @@ v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
 		JsRegisterFunction(TmpTemp, DegreeCentrality);
 		JsRegisterFunction(TmpTemp, CommunityDetection);
 		JsRegisterFunction(TmpTemp, CommunityEvolution);
+		JsRegisterFunction(TmpTemp, CorePeriphery);
 
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -5723,14 +5724,51 @@ v8::Handle<v8::Value> TJsSnap::CommunityEvolution(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
-	if (ArgsLen == 1){
+	if (ArgsLen == 2){
 		QmAssertR(TJsSnapUtil::IsArgStr(Args, 0), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
 		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-		TStr jsonout = TSnap::CmtyTest(path);
+		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
+		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
 		return HandleScope.Close(v8::String::New(jsonout.CStr()));
 	}
 	else
 		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::CorePeriphery(const v8::Arguments& Args) {
+	int Dim = -1;
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TIntIntH coreperiphery;
+	TIntV ReturnP;
+	TIntV ReturnC;
+	TCnCom SnapReturnCP;
+
+	if (ArgsLen == 2) {
+		//QmAssertR(TJsObjUtil<TJsUGraph>::IsArgClass(Args, 0, "TJsUGraph"), "TJsUGraph::addNode: Args[0] expected to be a graph object!");
+		TJsUGraph* JsUGraph = TJsObjUtil<TJsUGraph>::GetArgObj(Args, 0);
+		PUNGraph graph = JsUGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
+		double d = 0;
+		if (alg == "lip")
+			d = TSnap::FastCorePeriphery(graph, coreperiphery);
+		else
+			throw TQmExcept::New("TJsSnap::CorePeriphery: this algorithm does not exist!");
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::CorePeriphery: two input arguments expected!");
+	}
+
+	
+	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
+		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
+
+	return TJsSpV::New(JsSnap->Js, Vec, Dim);
 }
 ///////////////////////////////
 // QMiner-Undirected-Graph
