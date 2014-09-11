@@ -2859,15 +2859,15 @@ public:
 	JsDeclareFunction(delNode);
 	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
 	JsDeclareFunction(delEdge);
-	//#- `isNode = graph.IsNode(idx)` -- check if a node with ID 'idx' exists in the graph
+	//#- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
 	JsDeclareFunction(isNode);
-	//#- `isEdge = graph.IsEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs 'idx1' and 'idx2' exists in the graph
+	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
 	JsDeclareFunction(isEdge);
 	//#- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
 	JsDeclareFunction(nodeCount);
 	//#- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
 	JsDeclareFunction(edgeCount);
-	//#- `node = graph.getNode(idx)` -- gets node with ID 'idx'
+	//#- `node = graph.getNode(idx)` -- gets node with ID `idx`
 	JsDeclareFunction(getNode);
 	//#- `node = graph.getFirstNode()` -- gets first node
 	JsDeclareFunction(getFirstNode);

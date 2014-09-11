@@ -32,8 +32,9 @@ function buildGraph(nstore, lstore, nstoreFieldName,  njoinName, ljoinName) {
         console.say(i + "/" + recs.length);
         var rec = recs[i];
         var recId = rec[nstoreFieldName];
-        // is node Id? TODO
-        graph.addNode(recId);
+        if (!graph.isNode(recId)) {
+            graph.addNode(recId);
+        }
         // iterate over all recs in the other table
         var joinRecSet = rec[njoinName]; // rec set in lstore
         for (var j = 0; j < joinRecSet.length; j++) {
@@ -42,8 +43,9 @@ function buildGraph(nstore, lstore, nstoreFieldName,  njoinName, ljoinName) {
             for (var k = 0; k < joinjoinRecSet.length; k++) {
                 var joinjoinRec = joinjoinRecSet[k];
                 var rec2Id = joinjoinRec[nstoreFieldName]; // get the id of the author at hop 2
-                // is node Id? TODO
-                graph.addNode(rec2Id);
+                if (!graph.isNode(rec2Id)) {
+                    graph.addNode(rec2Id);
+                }
                 graph.addEdge(recId, rec2Id);                
             }
         }
