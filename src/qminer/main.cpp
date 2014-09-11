@@ -340,7 +340,6 @@ int main(int argc, char* argv[]) {
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
-
 		// create app environment
 		Env = TEnv(argc, argv, TNotify::StdNotify);
 		Env.SetNoLine(); // making output prettier
@@ -437,6 +436,7 @@ int main(int argc, char* argv[]) {
 			if (!TFile::Exists("sandbox")) { TDir::GenDir("sandbox"); }			
 		}
 
+		
 		// parse configuration file
 		TQmParam Param(ConfFNm);
 		// prepare lock
@@ -504,6 +504,7 @@ int main(int argc, char* argv[]) {
 				}
                 // save base
                 TQm::TStorage::SaveBase(Base);
+
 			}
 			// remove lock
 			Lock.Unlock();

@@ -65,6 +65,8 @@ public:
 
     /// Increment iterator.
     TNodeI& operator++ (int) { NodeHI++; return *this; }
+	/// Decrement iterator.
+	TNodeI& operator-- (int) { NodeHI--; return *this; }
 
     bool operator < (const TNodeI& NodeI) const { return NodeHI < NodeI.NodeHI; }
     bool operator == (const TNodeI& NodeI) const { return NodeHI == NodeI.NodeHI; }
