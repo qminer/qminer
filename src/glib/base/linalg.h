@@ -512,6 +512,8 @@ public:
     static void GS(TVec<TFltV>& Q);
     // Gram-Schmidt on columns of matrix Q
     static void GS(TFltVV& Q);
+	// Gram-Schmidt on columns of matrix Q
+	static void MGS(TFltVV& Q);
 
     // rotates vector (OldX,OldY) for angle Angle (in radians!)
     static void Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY);
