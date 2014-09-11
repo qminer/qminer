@@ -5673,7 +5673,7 @@ v8::Handle<v8::Value> TJsSnap::DegreeCentrality(const v8::Arguments& Args) {
 		ReturnCentrality = TSnap::GetDegreeCentr(graph, TJsSnapUtil::GetArgInt32(Args, 1));
 	}
 	else {
-		throw TQmExcept::New("TJsUGraph::addNode: two input argument expected!");
+		throw TQmExcept::New("TJsUGraph::addNode: two input arguments expected!");
 	}
 
 	return HandleScope.Close(v8::Number::New(ReturnCentrality));
@@ -5717,7 +5717,7 @@ v8::Handle<v8::Value> TJsSnap::CommunityDetection(const v8::Arguments& Args) {
 		}
 	}
 
-	return TJsSpV::New(JsSnap->Js, Vec, Dim);
+	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
 }
 
 v8::Handle<v8::Value> TJsSnap::CommunityEvolution(const v8::Arguments& Args) {
@@ -5768,7 +5768,7 @@ v8::Handle<v8::Value> TJsSnap::CorePeriphery(const v8::Arguments& Args) {
 	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
 		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
 
-	return TJsSpV::New(JsSnap->Js, Vec, Dim);
+	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
 }
 ///////////////////////////////
 // QMiner-Undirected-Graph
