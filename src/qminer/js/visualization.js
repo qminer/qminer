@@ -25,8 +25,13 @@
 
 
 if (typeof exports == 'undefined') {
+    // client side functions must not use require!
     exports = {};
-};
+} else {
+    // server side functions such as highchartsTSConverter require time
+    time = require('time.js');
+}
+
 
 // array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 // Input: [{ema : {Val : v1, Time : t1}, tick : {Val : v2, Time : t2}}, {ema : {Val : v3, Time : t3}, tick : {Val : v4, Time : t4}}]
@@ -59,25 +64,27 @@ exports.highchartsTSConverter = function (dataJson) {
 exports.highchartsConverter = function (fieldsJson, dataJson) {
 
     var keys = {};
+    var datetime;
     for (key in fieldsJson) {
-        if (fieldsJson[key].name != "datetime") {
+        if (fieldsJson[key].type != "datetime") {
             keys[fieldsJson[key].name] = [];
             //console.log("" + fieldsJson[key].name);  
-        }
+        } else datetime = fieldsJson[key].name;
     }
+    //printj(keys)
 
     var result = [];
     for (objN = 0; objN < dataJson.records.length; objN++) {
         var obj = dataJson.records[objN];
         for (key in obj) {
             var longtime;
-            if (key == "datetime") {
+            if (key == datetime) {
                 var tm = time.parse(obj[key]);
                 longtime = 1000 * tm.timestamp + tm.millisecond;
             } else {
                 if (keys[key]) {
                     keys[key].push([longtime, obj[key]]);
-                    console.log(longtime + " " + JSON.stringify(obj[key]));
+                    //console.log(longtime + " " + JSON.stringify(obj[key]));
                 }
             }
         }
@@ -87,7 +94,7 @@ exports.highchartsConverter = function (fieldsJson, dataJson) {
         result.push({ name: key, data: keys[key] });
     }
     return result;
-};
+}
 
 exports.highchartsParams = function () {
     return {

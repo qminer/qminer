@@ -111,7 +111,6 @@ _addIntellisenseVar("_httpRequest", "{host:_str, connection:_str, cache-control:
 
 
 
-
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case
 _addIntellisenseVar("_addIntellisenseVar", "_addIntellisenseVar"); // eval doesn't change _addIntellisenseVar, we just add the variable "_addIntellisenseVar" to ignore list

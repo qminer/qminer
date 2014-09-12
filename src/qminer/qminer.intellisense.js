@@ -111,7 +111,6 @@ _addIntellisenseVar("_httpRequest", "{host:_str, connection:_str, cache-control:
 
 
 
-
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case
 _addIntellisenseVar("_addIntellisenseVar", "_addIntellisenseVar"); // eval doesn't change _addIntellisenseVar, we just add the variable "_addIntellisenseVar" to ignore list
@@ -213,11 +212,12 @@ var _fin = new function () { }
 var _hashTable = new function () { }
 var console = new function () { }
 var la = new function () { }
-var _sa = new function () { }
+var _edge = new function () { }
 var _spMat = new function () { }
 var _batchModel = new function () { }
 var _httpResponse = new function () { }
 var _svmModel = new function () { }
+var _node = new function () { }
 var _utilities = new function () { }
 var _fout = new function () { }
 var _rs = new function () { }
@@ -226,6 +226,7 @@ var _lloydModel = new function () { }
 var _analytics = new function () { }
 var _recLinRegModel = new function () { }
 var _kf = new function () { }
+var _sa = new function () { }
 var _tokenizer = new function () { }
 var _snap = new function () { }
 var _graph = new function () { }
@@ -678,6 +679,30 @@ _vis.highchartsTSConverter = function () {
 	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
 	/// <param name="_objJson" value="_objJson">param</param>
 	/// <returns value ="_objJson"/>
+	/// </signature>
+};
+
+_vis.drawCommunityEvolution = function () {
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -1306,6 +1331,27 @@ la.copyVecToArr = function () {
 	/// </signature>
 };
 
+la.zscore = function () {
+	/// <signature>
+	/// <summary> returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_zscoreResult"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <returns value ="_zscoreResult"/>
+	/// </signature>
+	/// <signature>
+	/// <summary>  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_zscoreResult"/>
+	/// </signature>
+};
+
 la.repvec = function () {
 	/// <signature>
 	/// <summary> creates a matrix `mat2` consisting of an `m`-by-`n` tiling of copies of `vec`</summary>
@@ -1382,6 +1428,27 @@ la.newIntVec = function () {
 	/// <summary> clone an int vector `vec2`</summary>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value ="_intVec"/>
+	/// </signature>
+};
+
+la.std = function () {
+	/// <signature>
+	/// <summary> returns `vec` containing the standard deviation of each column from matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> computes the standard deviations along the dimension of X specified by parameter `dim`</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_flag" value="_flag">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -1544,141 +1611,45 @@ la.loadIntVec = function () {
 	/// </signature>
 };
 
-_sa.getTm = function () {
+la.mean = function () {
 	/// <signature>
-	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
-	/// <returns value ="_num"/>
+	/// <summary> returns `vec` containing the mean of each column from matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
-};
-
-_sa.saveJson = function () {
 	/// <signature>
-	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
-	/// <param name="_limit" value="_limit">param</param>
-	/// <returns value ="_objJSON"/>
-	/// </signature>
-};
-
-_sa.getTmLen = function () {
-	/// <signature>
-	/// <summary> returns a number (timestamp vector length) if sa implements the interface ITmVec.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getFlt = function () {
-	/// <signature>
-	/// <summary> returns a number if sa implements the interface IFlt</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getOutFltV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <summary> returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_dim" value="_dim">param</param>
 	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
-_sa.getN = function () {
+_edge.getNext = function () {
 	/// <signature>
-	/// <summary> returns a number of records in the input buffer if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_num"/>
+	/// <summary> return next edge</summary>
+	/// <returns value ="_edge"/>
 	/// </signature>
 };
 
-_sa.getFltAt = function () {
+_edge.getDstNodeId = function () {
 	/// <signature>
-	/// <summary> returns a number (element at index) if sa implements the interface IFltVec.</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
+	/// <summary> return id of destination node</summary>
+	/// <returns value ="_id"/>
 	/// </signature>
 };
 
-_sa.getOutTmV = function () {
+_edge.getSrcNodeId = function () {
 	/// <signature>
-	/// <summary> returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_vec"/>
+	/// <summary> return id of source node</summary>
+	/// <returns value ="_id"/>
 	/// </signature>
 };
 
-_sa.onDelete = function () {
+_edge.getId = function () {
 	/// <signature>
-	/// <summary> executes onDelete function given an input record `rec` and returns self</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-_sa.getInTm = function () {
-	/// <signature>
-	/// <summary> returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.onUpdate = function () {
-	/// <signature>
-	/// <summary> executes onUpdate function given an input record `rec` and returns self</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-_sa.getInt = function () {
-	/// <signature>
-	/// <summary> returns a number if sa implements the interface IInt</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
-_sa.val = _objJSON;
-
-_sa.getInFlt = function () {
-	/// <signature>
-	/// <summary> returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getFltLen = function () {
-	/// <signature>
-	/// <summary> returns a number (internal vector length) if sa implements the interface IFltVec.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getFltV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector if sa implements the interface IFltVec.</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
-_sa.getTmAt = function () {
-	/// <signature>
-	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
-_sa.name = _str;
-
-_sa.onAdd = function () {
-	/// <signature>
-	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-_sa.getTmV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector of windows timestamps if sa implements the interface ITmVec.</summary>
-	/// <returns value ="_vec"/>
+	/// <summary> return id of the edge</summary>
+	/// <returns value ="_id"/>
 	/// </signature>
 };
 
@@ -1966,6 +1937,43 @@ _svmModel.save = function () {
 
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
+
+_node.getNext = function () {
+	/// <signature>
+	/// <summary> return next node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.getNbrNId = function () {
+	/// <signature>
+	/// <summary> return id of Nth neighbour</summary>
+	/// <param name="_N" value="_N">param</param>
+	/// <returns value ="_nid"/>
+	/// </signature>
+};
+
+_node.getId = function () {
+	/// <signature>
+	/// <summary> return id of the node</summary>
+	/// <returns value ="_id"/>
+	/// </signature>
+};
+
+_node.getDeg = function () {
+	/// <signature>
+	/// <summary> return degree of the node</summary>
+	/// <returns value ="_deg"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> return in-degree of the node</summary>
+	/// <returns value ="_indeg"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> return out-degree of the node</summary>
+	/// <returns value ="_outdeg"/>
+	/// </signature>
+};
 
 _utilities.isArray = function () {
 	/// <signature>
@@ -2769,6 +2777,160 @@ _kf.correct = function () {
 	/// </signature>
 };
 
+_sa.load = function () {
+	/// <signature>
+	/// <summary> executes load function given input stream `fin` as input. returns self.</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getN = function () {
+	/// <signature>
+	/// <summary> returns a number of records in the input buffer if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getTm = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.saveJson = function () {
+	/// <signature>
+	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_sa.getFlt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IFlt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
+_sa.val = _objJSON;
+
+_sa.getInFlt = function () {
+	/// <signature>
+	/// <summary> returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getTmAt = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.save = function () {
+	/// <signature>
+	/// <summary> executes save function given output stream `fout` as input. returns self.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.onAdd = function () {
+	/// <signature>
+	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getTmLen = function () {
+	/// <signature>
+	/// <summary> returns a number (timestamp vector length) if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltLen = function () {
+	/// <signature>
+	/// <summary> returns a number (internal vector length) if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltAt = function () {
+	/// <signature>
+	/// <summary> returns a number (element at index) if sa implements the interface IFltVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getInTm = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.onUpdate = function () {
+	/// <signature>
+	/// <summary> executes onUpdate function given an input record `rec` and returns self</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getInt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IInt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.onDelete = function () {
+	/// <signature>
+	/// <summary> executes onDelete function given an input record `rec` and returns self</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
+_sa.name = _str;
+
+_sa.getOutTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getOutFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector of windows timestamps if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _tokenizer.getTokens = function () {
 	/// <signature>
 	/// <summary> tokenizes given strings and returns it as an array of strings.</summary>
@@ -2793,6 +2955,14 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
+_snap.CommunityEvolution = function () {
+	/// <signature>
+	/// <summary> return communities alg = "gn", "imap" or "cnm"</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <returns value ="_jsonstring"/>
+	/// </signature>
+};
+
 _snap.newUGraph = function () {
 	/// <signature>
 	/// <summary> generate an empty undirected graph</summary>
@@ -2800,20 +2970,36 @@ _snap.newUGraph = function () {
 	/// </signature>
 };
 
-_graph.dump = function () {
+_snap.DegreeCentrality = function () {
 	/// <signature>
-	/// <summary> dumps a graph to file named `fNm`</summary>
-	/// <param name="_fNm" value="_fNm">param</param>
-	/// <returns value ="_graph"/>
+	/// <summary> returns degree centrality of a node</summary>
+	/// <param name="_node" value="_node">param</param>
+	/// <returns value ="_number"/>
 	/// </signature>
 };
 
-_graph.addEdge = function () {
+_snap.CommunityDetection = function () {
 	/// <signature>
-	/// <summary> add an edge</summary>
-	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
-	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
-	/// <returns value ="_edgeIdx"/>
+	/// <summary> returns communities of graph (alg = "gn", "imap" or "cnm")</summary>
+	/// <param name="_UGraph" value="_UGraph">param</param>
+	/// <param name="_alg" value="_alg">param</param>
+	/// <returns value ="_spvector"/>
+	/// </signature>
+};
+
+_graph.getLastEdge = function () {
+	/// <signature>
+	/// <summary> gets last edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
+};
+
+_graph.delEdge = function () {
+	/// <signature>
+	/// <summary> delete an edge</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_idx"/>
 	/// </signature>
 };
 
@@ -2826,6 +3012,98 @@ _graph.addNode = function () {
 	/// <summary> add a node with ID `idx`, returns node ID</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.dump = function () {
+	/// <signature>
+	/// <summary> dumps a graph to file named `fNm`</summary>
+	/// <param name="_fNm" value="_fNm">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.delNode = function () {
+	/// <signature>
+	/// <summary> delete a node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.getFirstNode = function () {
+	/// <signature>
+	/// <summary> gets first node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.getLastNode = function () {
+	/// <signature>
+	/// <summary> gets last node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.getPrev = function () {
+	/// <signature>
+	/// <summary> return previous node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.getFirstEdge = function () {
+	/// <signature>
+	/// <summary> gets first edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
+};
+
+_graph.nodeCount = function () {
+	/// <signature>
+	/// <summary> gets number of nodes in the graph</summary>
+	/// <returns value ="_nodesCount"/>
+	/// </signature>
+};
+
+_graph.isEdge = function () {
+	/// <signature>
+	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_isEdge"/>
+	/// </signature>
+};
+
+_graph.isNode = function () {
+	/// <signature>
+	/// <summary> check if a node with ID `idx` exists in the graph</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_isNode"/>
+	/// </signature>
+};
+
+_graph.getNode = function () {
+	/// <signature>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.addEdge = function () {
+	/// <signature>
+	/// <summary> add an edge</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <returns value ="_edgeIdx"/>
+	/// </signature>
+};
+
+_graph.edgeCount = function () {
+	/// <signature>
+	/// <summary> gets number of edges in the graph</summary>
+	/// <returns value ="_edgesCount"/>
 	/// </signature>
 };
 
@@ -3051,6 +3329,14 @@ _model.predict = function () {
 	/// </signature>
 };
 
+_mat.load = function () {
+	/// <signature>
+	/// <summary> replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
 /// <field name = "cols" value = "_num"> integer `num` corresponds to the number of columns of `mat`</field>
 _mat.cols = _num;
 
@@ -3166,10 +3452,18 @@ _mat.print = function () {
 	/// </signature>
 };
 
-_mat.plus = function () {
+_mat.solve = function () {
 	/// <signature>
-	/// <summary> `mat3` is the sum of matrices `mat` and `mat2`</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
+	/// <summary> vector `vec2` is the solution to the linear system `mat * vec2 = vec`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_mat.save = function () {
+	/// <signature>
+	/// <summary> print `mat` (full matrix) to output stream `fout`. Returns self.</summary>
+	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value ="_mat"/>
 	/// </signature>
 };
@@ -3228,11 +3522,11 @@ _mat.rowMaxIdx = function () {
 	/// </signature>
 };
 
-_mat.solve = function () {
+_mat.plus = function () {
 	/// <signature>
-	/// <summary> vector `vec2` is the solution to the linear system `mat * vec2 = vec`</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec"/>
+	/// <summary> `mat3` is the sum of matrices `mat` and `mat2`</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -3938,3 +4232,4 @@ _spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
 _rs[0] = _rec; // record set at index returns a record
 _store[0] = _rec; // store index operator returns a record
 _addIntellisenseVar("_rsArr", "[_rs]");
+_addIntellisenseVar("_zscoreResult", "{Z: _mat, mu: _vec, sigma: _vec}");

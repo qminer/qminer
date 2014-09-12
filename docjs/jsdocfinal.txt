@@ -137,6 +137,8 @@ Stream aggregates are objects used for processing data streams - their main func
 - `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 - `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 - `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+- `sa = sa.save(fout)` -- executes save function given output stream `fout` as input. returns self.
+- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 - `objJSON = sa.val` -- same as sa.saveJson(-1)
 - `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 - `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
@@ -341,8 +343,8 @@ several functions from linear algebra.
 - `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
 - `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 - `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 - `la.printVec(vecec)` -- print the vector `vec` in the console
 - `la.printVec(intVec)` -- print the int vector `intVec` in the console
 - `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
@@ -378,6 +380,14 @@ several functions from linear algebra.
 - `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
 - `fout = la.saveIntVec(vec, fout)` - saves `vec` to output stream `fout` as a JSON string, and returns `fout`.
 - `intVec = la.loadIntVec(fin)` -- loads JSON string from `fin` and casts to JavaScript array and then to integer vector.
+- `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
+- `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
+- `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+- `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+- `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of X specified by parameter `dim`
+- `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
+- `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+- `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 
 ### Vector
 
@@ -477,6 +487,8 @@ var fltv = la.newVec(); //empty matrix
 - `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 - `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
 - `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 
 ### SpVector (sparse vector)
 
@@ -880,6 +892,9 @@ several functions from snap library.
 **Functions and properties:**
 
 - `graph = snap.newUGraph()` -- generate an empty undirected graph
+- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
+- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
+- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
 
 ### Undirected Graph
 
@@ -890,7 +905,43 @@ Undirected graph...
 - `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
 - `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
 - `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
+- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
+- `node = graph.getNode(idx)` -- gets node with ID `idx`
+- `node = graph.getFirstNode()` -- gets first node
+- `node = graph.getLastNode()` -- gets last node
+- `edge = graph.getFirstEdge()` -- gets first edge
+- `edge = graph.getLastEdge()` -- gets last edge
 - `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+
+### Node
+
+Node
+
+**Functions and properties:**
+
+- `id = node.getId()` -- return id of the node
+- `deg = node.getDeg()` -- return degree of the node
+- `indeg = node.getDeg()` -- return in-degree of the node
+- `outdeg = node.getDeg()` -- return out-degree of the node
+- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
+- `node = node.getNext()` -- return next node
+- `node = graph.getPrev()` -- return previous node
+
+### Edge
+
+Edge
+
+**Functions and properties:**
+
+- `id = edge.getId()` -- return id of the edge
+- `id = edge.getSrcNodeId()` -- return id of source node
+- `id = edge.getDstNodeId()` -- return id of destination node
+- `edge = edge.getNext()` -- return next edge
 
 ## System and I/O
 
@@ -1123,3 +1174,6 @@ The library must be loaded using `var vis = require('visualization.js');`.
 - `objJson = vis.highchartsTSConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `objJson = vis.highchartsConverter(fieldsJson, objJson)` -- arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
