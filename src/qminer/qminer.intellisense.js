@@ -2970,6 +2970,15 @@ _snap.newUGraph = function () {
 	/// </signature>
 };
 
+_snap.CorePeriphery = function () {
+	/// <signature>
+	/// <summary> return communities alg = "lip"</summary>
+	/// <param name="_UGraph" value="_UGraph">param</param>
+	/// <param name="_alg" value="_alg">param</param>
+	/// <returns value ="_jsonstring"/>
+	/// </signature>
+};
+
 _snap.DegreeCentrality = function () {
 	/// <signature>
 	/// <summary> returns degree centrality of a node</summary>

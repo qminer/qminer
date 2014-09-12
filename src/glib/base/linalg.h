@@ -885,6 +885,7 @@ public:
 	double DotProduct(const TVector& y) const;
 
 	TFlt& operator [] (const int& Idx) { return Vec[Idx]; }
+	const TFlt& operator [] (const int& Idx) const { return Vec[Idx]; }
 
     TFullMatrix operator *(const TVector& y) const;
     TVector operator *(const TFullMatrix& Mat) const;

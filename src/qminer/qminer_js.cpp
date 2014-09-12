@@ -2903,7 +2903,12 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         Rec.SetFieldBool(FieldId, Value->BooleanValue());
 	} else if (Desc.IsFlt()) {
         QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
-        Rec.SetFieldFlt(FieldId, Value->NumberValue());
+		TFlt Val(Value->NumberValue());
+		bool NaNFound = Val.IsNan();
+		if (NaNFound) {
+			throw TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
+		}
+        Rec.SetFieldFlt(FieldId, Val);
 	} else if (Desc.IsFltPr()) {
         QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");   
         v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
@@ -5601,6 +5606,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
     const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
     // learn
     JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
+	QmAssertR(!JsRecLinRegModel->Model->HasNaN(), "RecLinRegModel.learn: NaN detected!");
 	return Args.Holder();
 }
 

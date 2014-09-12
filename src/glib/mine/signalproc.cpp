@@ -798,4 +798,14 @@ void TRecLinReg::GetCoeffs(TFltV& Coef) const {
 	Coef = Coeffs.GetVec();
 }
 
+bool TRecLinReg::HasNaN() const {
+	int Dim = Coeffs.GetDim();	
+	for (int ElN = 0; ElN < Dim; ElN++) {
+		if (Coeffs[ElN].IsNan()) {
+			return true;
+		}
+	}
+	return false;
+}
+
 }

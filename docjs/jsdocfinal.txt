@@ -895,6 +895,7 @@ several functions from snap library.
 - `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
 - `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
 - `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = "lip"
 
 ### Undirected Graph
 
