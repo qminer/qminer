@@ -506,7 +506,14 @@ TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base,
 
 TTimeStreamAggr::TTimeStreamAggr(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) :
 	TStreamAggr(Base, SABase, SIn), TimeStore(TStore::LoadById(Base, SIn)), 
-    TimeFieldId(SIn), TimeWndMSecs(SIn) { }
+    TimeFieldId(SIn), TimeWndMSecs(SIn) {
+	_Load(SIn);
+}
+
+void TTimeStreamAggr::_Load(TSIn& SIn) {
+	TQQueue<TQm::TRec> _RecIdQ(SIn);
+	RecIdQ = _RecIdQ;
+}
 
 void TTimeStreamAggr::Save(TSOut& SOut) const {
 	// super save
@@ -514,8 +521,12 @@ void TTimeStreamAggr::Save(TSOut& SOut) const {
 	// save our stuff
 	TimeStore->SaveId(SOut);
 	TimeFieldId.Save(SOut); 
-	TimeWndMSecs.Save(SOut); 
-	RecIdQ.Save(SOut); 
+	TimeWndMSecs.Save(SOut);
+	_Save(SOut);
+}
+
+void TTimeStreamAggr::_Save(TSOut& SOut) const {
+	RecIdQ.Save(SOut);
 }
 
 void TTimeStreamAggr::OnAddRec(const TRec& Rec) {
@@ -570,13 +581,21 @@ PStreamAggr TCount::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SA
     return new TCount(Base, SABase, SIn); 
 }
 
+void TCount::_Load(TSIn& SIn) {
+	Count.Load(SIn);
+}
+
 void TCount::Save(TSOut& SOut) const {
 	// save name of the class
 	TTypeNm<TCount>().Save(SOut);
 	// super save
 	TTimeStreamAggr::Save(SOut);
 	// save our stuff
-	Count.Save(SOut); 
+	_Save(SOut); 
+}
+
+void TCount::_Save(TSOut& SOut) const {
+	Count.Save(SOut);
 }
 
 ///////////////////////////////
@@ -656,6 +675,13 @@ PStreamAggr TTimeSeriesTick::Load(const TWPt<TBase>& Base, const TWPt<TStreamAgg
 	return new TTimeSeriesTick(Base, SABase, SIn);
 }
 
+
+void TTimeSeriesTick::_Load(TSIn& SIn) {
+	InitP.Load(SIn);
+	TickVal.Load(SIn);
+	TmMSecs.Load(SIn);
+}
+
 void TTimeSeriesTick::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
@@ -664,6 +690,10 @@ void TTimeSeriesTick::Save(TSOut& SOut) const {
 	// save our stuff
 	TimeFieldId.Save(SOut);
 	TickValFieldId.Save(SOut);
+	_Save(SOut);
+}
+
+void TTimeSeriesTick::_Save(TSOut& SOut) const {
 	InitP.Save(SOut);
 	TickVal.Save(SOut);
 	TmMSecs.Save(SOut);
@@ -748,6 +778,15 @@ PStreamAggr TTimeSeriesWinBuf::Load(const TWPt<TBase>& Base, const TWPt<TStreamA
 	return new TTimeSeriesWinBuf(Base, SABase, SIn);
 }
 
+void TTimeSeriesWinBuf::_Load(TSIn& SIn) {
+	InitP.Load(SIn);
+	InVal.Load(SIn);
+	InTmMSecs.Load(SIn);
+	OutValV.Load(SIn);
+	OutTmMSecsV.Load(SIn);
+	AllValV.Load(SIn);
+}
+
 void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
@@ -757,6 +796,10 @@ void TTimeSeriesWinBuf::Save(TSOut& SOut) const {
 	TimeFieldId.Save(SOut);
 	TickValFieldId.Save(SOut);
 	WinSizeMSecs.Save(SOut);
+	_Save(SOut);
+}
+
+void TTimeSeriesWinBuf::_Save(TSOut& SOut) const {
 	InitP.Save(SOut);
 	InVal.Save(SOut);
 	InTmMSecs.Save(SOut);
@@ -853,7 +896,7 @@ void TWinBufCount::Save(TSOut& SOut) const {
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff
-	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+	TStr InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
 }
 
 PJsonVal TWinBufCount::SaveJson(const int& Limit) const {
@@ -926,14 +969,22 @@ PStreamAggr TWinBufSum::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase
 	return new TWinBufSum(Base, SABase, SIn);
 }
 
+void TWinBufSum::_Load(TSIn& SIn) {
+	Sum.Load(SIn);
+}
+
 void TWinBufSum::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff	
+	_Save(SOut);
+	TStr InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);	
+}
+
+void TWinBufSum::_Save(TSOut& SOut) const {
 	Sum.Save(SOut);
-	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);	
 }
 
 PJsonVal TWinBufSum::SaveJson(const int& Limit) const {
@@ -1006,14 +1057,22 @@ PStreamAggr TWinBufMin::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase
 	return new TWinBufMin(Base, SABase, SIn);
 }
 
+void TWinBufMin::_Load(TSIn& SIn) {
+	Min.Load(SIn);
+}
+
 void TWinBufMin::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff	
-	Min.Save(SOut);
+	_Save(SOut);
 	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+void TWinBufMin::_Save(TSOut& SOut) const {
+	Min.Save(SOut);
 }
 
 PJsonVal TWinBufMin::SaveJson(const int& Limit) const {
@@ -1086,14 +1145,22 @@ PStreamAggr TWinBufMax::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase
 	return new TWinBufMax(Base, SABase, SIn);
 }
 
+void TWinBufMax::_Load(TSIn& SIn) {
+	Max.Load(SIn);
+}
+
 void TWinBufMax::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff	
-	Max.Save(SOut);
+	_Save(SOut);
 	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+void TWinBufMax::_Save(TSOut& SOut) const {
+	Max.Save(SOut);
 }
 
 PJsonVal TWinBufMax::SaveJson(const int& Limit) const {
@@ -1166,14 +1233,22 @@ PStreamAggr TMa::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABas
 	return new TMa(Base, SABase, SIn);
 }
 
+void TMa::_Load(TSIn& SIn) {
+	Ma.Load(SIn);
+}
+
 void TMa::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
-	Ma.Save(SOut);
+	_Save(SOut);
 	// save our stuff
 	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);	
+}
+
+void TMa::_Save(TSOut& SOut) const {
+	Ma.Save(SOut);
 }
 
 PJsonVal TMa::SaveJson(const int& Limit) const {
@@ -1226,7 +1301,6 @@ TEma::TEma(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TStreamAggr(Base,
 
 TEma::TEma(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) : TStreamAggr(Base, SABase, SIn), Ema(SIn) {
 	TStr InAggrNm; InAggrNm.Load(SIn);
-	InTypeId.Load(SIn);
 	
 	PStreamAggr _InAggr = SABase->GetStreamAggr(InAggrNm);
 	InAggr = dynamic_cast<TStreamAggr*>(_InAggr());
@@ -1258,15 +1332,22 @@ PStreamAggr TEma::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABa
 	return new TEma(Base, SABase, SIn);
 }
 
+void TEma::_Load(TSIn& SIn) {
+	Ema.Load(SIn);
+}
+
 void TEma::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
-	Ema.Save(SOut);
+	_Save(SOut);
 	// save our stuff
-	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
-	InTypeId.Save(SOut);
+	TStr InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
+}
+
+void TEma::_Save(TSOut& SOut) const {	
+	Ema.Save(SOut);	
 }
 
 PJsonVal TEma::SaveJson(const int& Limit) const {
@@ -1343,15 +1424,25 @@ PStreamAggr TVar::Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABa
 	return new TVar(Base, SABase, SIn);
 }
 
+
+void TVar::_Load(TSIn& SIn) {
+	Var.Load(SIn);
+}
+
 void TVar::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	GetType().Save(SOut);
 	// super save
 	TStreamAggr::Save(SOut);
 	// save our stuff
-	Var.Save(SOut);
+	_Save(SOut);
 	TStr InAggrNm; InAggrNm = InAggr->GetAggrNm(); InAggrNm.Save(SOut);
 }
+
+void TVar::_Save(TSOut& SOut) const {
+	Var.Save(SOut);
+}
+
 
 PJsonVal TVar::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewObj();
@@ -1512,12 +1603,22 @@ PStreamAggr TCorr::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TCorr(Base, ParamVal);
 }
 
+void TCorr::_Load(TSIn& SIn) {
+	//TODO
+	Fail;
+}
+
 void TCorr::Save(TSOut& SOut) const {
     GetType().Save(SOut);
     TStreamAggr::Save(SOut);
     
     //TODO
     Fail;
+}
+
+void TCorr::_Save(TSOut& SOut) const {
+	//TODO
+	Fail;
 }
 
 PJsonVal TCorr::SaveJson(const int& Limit) const {
@@ -1704,6 +1805,18 @@ PStreamAggr TStMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TStMerger(Base, ParamVal);
 }
 
+
+void TStMerger::_Load(TSIn& SIn) {
+	TSignalProc::TLinkedBuffer<TUInt64> _Buff(SIn);
+	Buff = _Buff;
+	SignalsPresentV.Load(SIn);
+	SignalsPresent.Load(SIn);
+	NextInterpTm.Load(SIn);
+	PrevInterpTm.Load(SIn);
+	OnlyPast.Load(SIn);
+	PrevInterpPt.Load(SIn);
+}
+
 void TStMerger::Save(TSOut& SOut) const {
 	// save the type of the aggregate
 	// TODO: BUG - serialization not working;
@@ -1719,6 +1832,10 @@ void TStMerger::Save(TSOut& SOut) const {
 	InterpV.Save(SOut);
 	StoreIdFldIdVH.Save(SOut),
 	NInFlds.Save(SOut);
+	_Save(SOut);
+}
+
+void TStMerger::_Save(TSOut& SOut) const {
 	Buff.Save(SOut);
 	SignalsPresentV.Save(SOut);
 	SignalsPresent.Save(SOut);
@@ -2138,6 +2255,11 @@ PStreamAggr TResampler::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
     return new TResampler(Base, ParamVal);
 }
 
+void TResampler::_Load(TSIn& SIn) {
+	InterpPointMSecs.Load(SIn);
+	UpdatedP.Load(SIn);
+}
+
 void TResampler::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	TStreamAggr::Save(SOut);
@@ -2147,6 +2269,10 @@ void TResampler::Save(TSOut& SOut) const {
 	OutStore->SaveId(SOut);
 	TimeFieldId.Save(SOut);
 	IntervalMSecs.Save(SOut);
+	_Save(SOut);
+}
+
+void TResampler::_Save(TSOut& SOut) const {
 	InterpPointMSecs.Save(SOut);
 	UpdatedP.Save(SOut);
 }
@@ -2180,6 +2306,16 @@ double TFtrExtAggr::GetFlt(const TInt& ElN) const {
 PJsonVal TFtrExtAggr::SaveJson(const int& Limit) const {
 	PJsonVal Val = TJsonVal::NewArr(Vec);
 	return Val;
+}
+
+void TFtrExtAggr::_Load(TSIn& SIn) {
+	Vec.Load(SIn);
+}
+void TFtrExtAggr::Save(TSOut& SOut) const {
+	throw TQmExcept::New("FTrExtAggr::Save not implemented:" + GetAggrNm());
+}
+void TFtrExtAggr::_Save(TSOut& SOut) const {
+	Vec.Save(SOut);
 }
 
 
