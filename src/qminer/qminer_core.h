@@ -2451,8 +2451,12 @@ public:
     
 	/// Load stream aggregate from stream
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	virtual void _Load(TSIn& SIn) { throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm()); };
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	virtual void _Save(TSOut& SOut) const { throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm()); };
 
 	/// Get aggregate name
 	const TStr& GetAggrNm() const { return AggrNm; }
@@ -2475,7 +2479,9 @@ public:
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
 	/// Unique ID of the stream aggregate
-	const TStr& GetGuid() const { return Guid; }    
+	const TStr& GetGuid() const { return Guid; }  
+
+	virtual TStr Type() const = 0;
 };
 
 ///////////////////////////////
