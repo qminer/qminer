@@ -897,10 +897,10 @@ public:
 	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const TStr& AggrNm, const TStr& OutStoreNm,
 			const TStr& OutTmFieldNm, const bool& CreateStoreP, const bool& OnlyPast,
 			const TVec<TStMergerFieldMap>& FieldMap, const TStrV& InterpV);
-	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-	PJsonVal SaveJson(const int& Limit) const;
-	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) { return new TStMerger(Base, SABase, SIn); }
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);	
+	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) { return new TStMerger(Base, SABase, SIn); }	
 	void Save(TSOut& SOut) const;
+	PJsonVal SaveJson(const int& Limit) const;
 
 	static TStr GetType() { return "stmerger"; }
 

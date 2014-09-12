@@ -2430,7 +2430,6 @@ private:
     TWPt<TBase> Base;
 	/// Stream aggreagte name
 	const TStr AggrNm;
-
 	/// Each trigger has a unique internal ID
 	TStr Guid;
 protected:

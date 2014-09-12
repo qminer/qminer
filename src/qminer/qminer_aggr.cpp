@@ -1705,7 +1705,13 @@ PStreamAggr TStMerger::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
 }
 
 void TStMerger::Save(TSOut& SOut) const {
+	// save the type of the aggregate
+	// TODO: BUG - serialization not working;
+	// TODO: move GetType save to TStreamAggr!
+	// GetType().Save(SOut);
+	// super save
 	TStreamAggr::Save(SOut);
+	// save our stuff
 	OutStore->SaveId(SOut);
 	TimeFieldId.Save(SOut);
 	OutFldNmV.Save(SOut);
