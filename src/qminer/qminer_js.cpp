@@ -5732,16 +5732,16 @@ v8::Handle<v8::Value> TJsSnap::newUGraph(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsSnap::DegreeCentrality(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 
 	double ReturnCentrality = -1;
 
 	if (ArgsLen == 2) {
-		//QmAssertR(TJsObjUtil<TJsUGraph>::IsArgClass(Args, 0, "TJsUGraph"), "TJsUGraph::addNode: Args[0] expected to be a graph object!");
 		TJsUGraph* JsUGraph = TJsObjUtil<TJsUGraph>::GetArgObj(Args, 0);
 		PUNGraph graph = JsUGraph->Graph();
-		ReturnCentrality = TSnap::GetDegreeCentr(graph, TJsSnapUtil::GetArgInt32(Args, 1));
+		QmAssertR(TJsSnapUtil::IsArgInt32(Args, 1), "TJsSnap::DegreeCentrality: Args[1] expected to be integer!");
+		int NodeId = TJsSnapUtil::GetArgInt32(Args, 1);
+		ReturnCentrality = TSnap::GetDegreeCentr(graph, NodeId);
 	}
 	else {
 		throw TQmExcept::New("TJsUGraph::addNode: two input arguments expected!");
@@ -5762,7 +5762,6 @@ v8::Handle<v8::Value> TJsSnap::CommunityDetection(const v8::Arguments& Args) {
 	TCnCom SnapReturnCommunities;
 
 	if (ArgsLen == 2) {
-		//QmAssertR(TJsObjUtil<TJsUGraph>::IsArgClass(Args, 0, "TJsUGraph"), "TJsUGraph::addNode: Args[0] expected to be a graph object!");
 		TJsUGraph* JsUGraph = TJsObjUtil<TJsUGraph>::GetArgObj(Args, 0);
 		PUNGraph graph = JsUGraph->Graph();
 		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
@@ -5770,7 +5769,7 @@ v8::Handle<v8::Value> TJsSnap::CommunityDetection(const v8::Arguments& Args) {
 		if (alg == "gn")
 			TSnap::CommunityGirvanNewman(graph, communities);
 		else if (alg == "cnm")
-			TSnap::CommunityCNM(graph, communities); //issues with new (qminer) version of ds.h and dt.h
+			TSnap::CommunityCNM(graph, communities);
 		else if (alg == "imap")
 			TSnap::Infomap(graph, communities);
 		else
@@ -6010,35 +6009,35 @@ v8::Handle<v8::Value> TJsUGraph::getNode(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsUGraph::getNode: one input argument expected!");
 	}
 
-	return TJsNode::New(JsUGraph->Js, ReturnNode);
+	return HandleScope.Close(TJsNode::New(JsUGraph->Js, ReturnNode));
 }
 
 v8::Handle<v8::Value> TJsUGraph::getFirstNode(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);
 	TUNGraph::TNodeI ReturnNode = JsUGraph->Graph->BegNI();
-	return TJsNode::New(JsUGraph->Js, ReturnNode);
+	return HandleScope.Close(TJsNode::New(JsUGraph->Js, ReturnNode));
 }
 
 v8::Handle<v8::Value> TJsUGraph::getLastNode(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);
 	TUNGraph::TNodeI ReturnNode = JsUGraph->Graph->EndNI();
-	return TJsNode::New(JsUGraph->Js, ReturnNode);
+	return HandleScope.Close(TJsNode::New(JsUGraph->Js, ReturnNode));
 }
 
 v8::Handle<v8::Value> TJsUGraph::getFirstEdge(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);
 	TUNGraph::TEdgeI ReturnEdge = JsUGraph->Graph->BegEI();
-	return TJsEdge::New(JsUGraph->Js, ReturnEdge);
+	return HandleScope.Close(TJsEdge::New(JsUGraph->Js, ReturnEdge));
 }
 
 v8::Handle<v8::Value> TJsUGraph::getLastEdge(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsUGraph* JsUGraph = TJsUGraphUtil::GetSelf(Args);
 	TUNGraph::TEdgeI ReturnEdge = JsUGraph->Graph->EndEI();
-	return TJsEdge::New(JsUGraph->Js, ReturnEdge);
+	return HandleScope.Close(TJsEdge::New(JsUGraph->Js, ReturnEdge));
 }
 
 v8::Handle<v8::Value> TJsUGraph::dump(const v8::Arguments& Args) {
@@ -6081,10 +6080,6 @@ v8::Handle<v8::ObjectTemplate> TJsNode::GetTemplate() {
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
 	return Template;
-}
-
-bool TJsNode::operator==(const TJsNode& NodeI) const{ 
-	return Node.GetId() == NodeI.Node.GetId(); 
 }
 
 v8::Handle<v8::Value> TJsNode::getId(const v8::Arguments& Args) {
@@ -6143,14 +6138,14 @@ v8::Handle<v8::Value> TJsNode::getNext(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	TUNGraph::TNodeI ReturnNode = JsNode->Node++;
-	return TJsNode::New(JsNode->Js, ReturnNode);
+	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
 }
 
 v8::Handle<v8::Value> TJsNode::getPrev(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	TUNGraph::TNodeI ReturnNode = JsNode->Node--;
-	return TJsNode::New(JsNode->Js, ReturnNode);
+	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
 }
 
 ///////////////////////////////
@@ -6199,7 +6194,7 @@ v8::Handle<v8::Value> TJsEdge::getNext(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
 	TUNGraph::TEdgeI ReturnEdge = JsEdge->Edge++;
-	return TJsEdge::New(JsEdge->Js, ReturnEdge);
+	return HandleScope.Close(TJsEdge::New(JsEdge->Js, ReturnEdge));
 }
 
 ///////////////////////////////

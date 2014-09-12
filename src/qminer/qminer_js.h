@@ -2806,11 +2806,11 @@ public:
 	JsDeclareFunction(newUGraph);
 	//#- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(DegreeCentrality);
-	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
+	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(CommunityDetection);
-	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(CommunityEvolution);
-	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = "lip"
+	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(CorePeriphery);
 };
 
@@ -2905,10 +2905,6 @@ public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TNodeI a) {
 		return TJsNodeUtil::New(new TJsNode(Js, a));
 	}
-
-	// Operators
-	bool operator== (const TJsNode& NodeI) const;
-	TJsNode& operator++ (int) { this->getNext; return *this; }
 
 	/// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
