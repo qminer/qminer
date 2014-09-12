@@ -1,6 +1,7 @@
 // import libraries
 snap = require('snap.js');
 viz = require('visualization.js');
+utilities = require('utilities.js');
 
 // Some basic operations
 
@@ -50,7 +51,6 @@ viz.drawGraphArray(graphs, "out\\graphs.html", { title: { text: "none" } });
 // determining communities for the array of graphs and storing the results in array of sparse vectors
 var communities = new Array();
 for (var i = 0; i < graphs.length; i++) {
-    viz.drawGraph(graphs[i], "out\\g" + (1999 + i) + ".html", { title: { text: "none" } });
     communities.push(snap.CommunityDetection(graphs[i], "gn"));
 }
 
@@ -59,7 +59,6 @@ var json = snap.evolutionJs(communities, 0.5, 0.75);
 
 // plot the evolution graph
 viz.drawCommunityEvolution(json, "out\\plot.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
-
 
 console.log("end loading graphs from files and community evolution plotting");
 
@@ -108,6 +107,7 @@ gs.push(g1); gs.push(g2); gs.push(g3); gs.push(g4); gs.push(g5);
 var cms = new Array();
 for (var i = 0; i < gs.length; i++)
     cms.push(snap.CommunityDetection(gs[i], "gn"));
+//    cms.push(snap.CorePeriphery(gs[i], "lip"));
 
 // return json string of evolution graph
 var json_gs = snap.evolutionJs(cms, 0.5, 0.75);
@@ -117,22 +117,20 @@ viz.drawCommunityEvolution(json_gs, "out/plot_gs.html", { title: { text: "Commun
 
 console.log("end graph construction and community evolution plotting");
 
-// Returning Json string from c++ implementation for community evolution
+sw1 = utilities.newStopWatch();
+var g = snap.newUGraph("C:\\Users\\mario\\Snap-Mario\\snap\\examples\\CPEgoDataEvoExample\\networks_aggregate_res-bib\\researchersBib_1970-1971.edg");
+sw1.start();
+// iterate and remove small nodes
+//snap.removeNodes(g, 10);
+var veco1 = snap.CommunityDetection(g, "gn");
+//var veco1 = snap.CorePeriphery(g, "lip")
+//var gr = snap.groupNodes(g, veco1);
+//viz.drawGraph(gr, "out\\gr.html", {});
+viz.drawGraph(g, "out\\g.html", { "color": veco1 });
+sw1.stop();
+sw1.saytime("community");
 
-//var json_ce = snap.CommunityEvolution("data\\ego_evo.edg");
-// plot the evolution graph
-//viz.drawCommunityEvolution(json_ce, "plot_ce.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
-console.log("end the complete c++ implementation for community evolution");
-
-var json_ce = snap.CommunityEvolution("data\\ego_evo1.edg");
-// plot the evolution graph
-viz.drawCommunityEvolution(json_ce, "out/plot_ce1.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
-
-console.log("end the complete c++ implementation for community evolution");
-
-var g = snap.newUGraph("data\\evo\\2001.edg");
-viz.drawGraph(g, "out\\g.html", { title: { text: "none" } });
 
 eval(breakpoint);
 

@@ -2810,6 +2810,8 @@ public:
 	JsDeclareFunction(CommunityDetection);
 	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
 	JsDeclareFunction(CommunityEvolution);
+	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = "lip"
+	JsDeclareFunction(CorePeriphery);
 };
 
 

@@ -29,7 +29,7 @@ namespace TSnap {
 	void CmtyEvolutionFileBatch(TStr InFNm, TIntIntHH& sizesCont, TIntIntHH& cCont, TIntIntVH& edges, double alpha, double beta, int CmtyAlg);
 	void CmtyEvolutionFileBatch(TStr InFNm, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges, double alpha, double beta, int CmtyAlg);
 	void CmtyEvolutionJson(TStr& Json, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges);
-	TStr CmtyTest(TStr t);
+	TStr CmtyTest(TStr t, int CmtyAlg);
 
 	namespace TSnapDetail {
 		/// A single step of Girvan-Newman clustering procedure.
