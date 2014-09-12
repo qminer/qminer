@@ -97,7 +97,7 @@ typedef TPair<TUCh, TUInt64> TUChUInt64Pr;
 typedef TPair<TUCh, TStr> TUChStrPr;
 typedef TPair<TInt, TBool> TIntBoolPr;
 typedef TPair<TInt, TCh> TIntChPr;
-typedef TPair<TInt, TInt> TIntPr;
+typedef TPair<TInt, TInt> TIntPr;	
 typedef TPair<TInt, TUInt64> TIntUInt64Pr;
 typedef TPair<TInt, TIntPr> TIntIntPrPr;
 typedef TPair<TInt, TVec<TInt, int> > TIntIntVPr;
@@ -471,10 +471,8 @@ public:
     if (_Vals==0){ValT=NULL;} else {ValT=new TVal[_Vals];}}
   /// Constructs a vector (an array) of length \c _Vals, while reserving enough memory to store \c _MxVals elements.
   TVec(const TSizeTy& _MxVals, const TSizeTy& _Vals){
-	  //IAssert((0<=_Vals)&&(_Vals<=_MxVals)); MxVals=_MxVals; Vals=_Vals;
-	  if ((0 <= _Vals) && (_Vals <= _MxVals)){ MxVals = _MxVals; Vals = _Vals; if (_MxVals == 0){ ValT = NULL; } else { ValT = new TVal[_MxVals]; } }
-	  else { MxVals = _Vals; Vals = _MxVals; if (_Vals == 0){ ValT = NULL; } else { ValT = new TVal[_Vals]; } }
-  }
+	  IAssert((0 <= _Vals) && (_Vals <= _MxVals)); MxVals = _MxVals; Vals = _Vals;
+	  if (_MxVals == 0){ ValT = NULL; } else { ValT = new TVal[_MxVals]; }}
   /// Constructs a vector of \c _Vals elements of memory array \c _ValT. ##TVec::TVec
   explicit TVec(TVal *_ValT, const TSizeTy& _Vals):
     MxVals(-1), Vals(_Vals), ValT(_ValT){}
