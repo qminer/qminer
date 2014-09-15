@@ -961,90 +961,6 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Stream Aggregator
-class TJsStreamAggr : 
-	public TStreamAggr, 
-	public TStreamAggrOut::IInt,
-	//public TStreamAggrOut::IFlt,	
-	//public TStreamAggrOut::ITm,
-	public TStreamAggrOut::IFltTmIO,
-	public TStreamAggrOut::IFltVec,
-	public TStreamAggrOut::INmFlt,
-	public TStreamAggrOut::INmInt,
-	// combinations
-	public TStreamAggrOut::IFltTm
-	//public TStreamAggrOut::IFltVecTm
-{
-private:
-	/// JS script context
-	TWPt<TScript> Js;
-	// callbacks
-	v8::Persistent<v8::Function> OnAddFun;
-	v8::Persistent<v8::Function> OnUpdateFun;
-	v8::Persistent<v8::Function> OnDeleteFun;
-	v8::Persistent<v8::Function> SaveJsonFun;
-
-	v8::Persistent<v8::Function> GetIntFun;
-	// IFlt 
-	v8::Persistent<v8::Function> GetFltFun;
-	// ITm 
-	v8::Persistent<v8::Function> GetTmMSecsFun;
-	// IFltTmIO 
-	v8::Persistent<v8::Function> GetInFltFun;
-	v8::Persistent<v8::Function> GetInTmMSecsFun;
-	v8::Persistent<v8::Function> GetOutFltVFun;
-	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
-	v8::Persistent<v8::Function> GetNFun;
-	// IFltVec
-	v8::Persistent<v8::Function> GetFltLenFun;
-	v8::Persistent<v8::Function> GetFltAtFun;
-	v8::Persistent<v8::Function> GetFltVFun;
-	// INmFlt 
-	v8::Persistent<v8::Function> IsNmFltFun;
-	v8::Persistent<v8::Function> GetNmFltFun;
-	v8::Persistent<v8::Function> GetNmFltVFun;
-	// INmInt
-	v8::Persistent<v8::Function> IsNmFun;
-	v8::Persistent<v8::Function> GetNmIntFun;
-	v8::Persistent<v8::Function> GetNmIntVFun;
-
-public:
-	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
-	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(Js, _AggrNm, TriggerVal); }
-    
-	void OnAddRec(const TRec& Rec);
-	void OnUpdateRec(const TRec& Rec);
-	void OnDeleteRec(const TRec& Rec);
-	PJsonVal SaveJson(const int& Limit) const;
-
-	// IInt
-	int GetInt() const;
-	// IFlt 
-	double GetFlt() const;
-	// ITm 
-	uint64 GetTmMSecs() const;
-	// IFltTmIO 
-	double GetInFlt() const;
-	uint64 GetInTmMSecs() const;
-	void GetOutFltV(TFltV& ValV) const;
-	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
-	int GetN() const;
-	// IFltVec
-	int GetFltLen() const;
-	double GetFlt(const TInt& ElN) const; // GetFltAtFun
-	void GetFltV(TFltV& ValV) const;
-	// INmFlt 
-	bool IsNmFlt(const TStr& Nm) const;
-	double GetNmFlt(const TStr& Nm) const;
-	void GetNmFltV(TStrFltPrV& NmFltV) const;
-	// INmInt
-	bool IsNm(const TStr& Nm) const;
-	double GetNmInt(const TStr& Nm) const;
-	void GetNmIntV(TStrIntPrV& NmIntV) const;
-};
-
-///////////////////////////////
 // JavaScript WebPgFetch Request
 class TJsFetchRq {
 private:
@@ -1204,22 +1120,151 @@ public:
 	JsDeclareFunction(onDelete);
 	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	JsDeclareFunction(saveJson);
+	//#- `sa = sa.save(fout)` -- executes save function given output stream `fout` as input. returns self.
+	JsDeclareFunction(save);
+	//#- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
+	JsDeclareFunction(load);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
+	// IInt
 	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
 	JsDeclareFunction(getInt);
+	// IFlt
 	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
 	JsDeclareFunction(getFlt);
+	// ITm
 	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
 	JsDeclareFunction(getTm);
+	// IFltVec
 	//#- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltLen);
 	//#- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltAt);
 	//#- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
 	JsDeclareFunction(getFltV);
+	// ITmVec
+	//#- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmLen);
+	//#- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmAt);
+	//#- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmV);
+	// IFltTmIO
+	//#- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInFlt);
+	//#- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInTm);
+	//#- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutFltV);
+	//#- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutTmV);
+	//#- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getN);
 
 };
+
+///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr :
+	public TStreamAggr,
+	public TStreamAggrOut::IInt,
+	//public TStreamAggrOut::IFlt,	
+	//public TStreamAggrOut::ITm,
+	public TStreamAggrOut::IFltTmIO,
+	public TStreamAggrOut::IFltVec,
+	public TStreamAggrOut::ITmVec,
+	public TStreamAggrOut::INmFlt,
+	public TStreamAggrOut::INmInt,
+	// combinations
+	public TStreamAggrOut::IFltTm
+	//public TStreamAggrOut::IFltVecTm
+{
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
+
+	v8::Persistent<v8::Function> GetIntFun;
+	// IFlt 
+	v8::Persistent<v8::Function> GetFltFun;
+	// ITm 
+	v8::Persistent<v8::Function> GetTmMSecsFun;
+	// IFltTmIO 
+	v8::Persistent<v8::Function> GetInFltFun;
+	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetOutFltVFun;
+	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
+	v8::Persistent<v8::Function> GetNFun;
+	// IFltVec
+	v8::Persistent<v8::Function> GetFltLenFun;
+	v8::Persistent<v8::Function> GetFltAtFun;
+	v8::Persistent<v8::Function> GetFltVFun;
+	// ITmVec
+	v8::Persistent<v8::Function> GetTmLenFun;
+	v8::Persistent<v8::Function> GetTmAtFun;
+	v8::Persistent<v8::Function> GetTmVFun;
+	// INmFlt 
+	v8::Persistent<v8::Function> IsNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltVFun;
+	// INmInt
+	v8::Persistent<v8::Function> IsNmFun;
+	v8::Persistent<v8::Function> GetNmIntFun;
+	v8::Persistent<v8::Function> GetNmIntVFun;
+
+public:
+	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
+	}
+
+	void OnAddRec(const TRec& Rec);
+	void OnUpdateRec(const TRec& Rec);
+	void OnDeleteRec(const TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "javaScript"; }
+	TStr Type() const { return GetType(); }
+	void _Save(TSOut& SOut) const;
+	v8::Persistent<v8::Function> SaveFun;
+	void _Load(TSIn& SIn);
+	v8::Persistent<v8::Function> LoadFun;
+
+	// IInt
+	int GetInt() const;
+	// IFlt 
+	double GetFlt() const;
+	// ITm 
+	uint64 GetTmMSecs() const;
+	// IFltTmIO 
+	double GetInFlt() const;
+	uint64 GetInTmMSecs() const;
+	void GetOutFltV(TFltV& ValV) const;
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	int GetN() const;
+	// IFltVec
+	int GetFltLen() const;
+	double GetFlt(const TInt& ElN) const; // GetFltAtFun
+	void GetFltV(TFltV& ValV) const;
+	// ITmVec
+	int GetTmLen() const;
+	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+	void GetTmV(TUInt64V& TmMSecsV) const;
+	// INmFlt 
+	bool IsNmFlt(const TStr& Nm) const;
+	double GetNmFlt(const TStr& Nm) const;
+	void GetNmFltV(TStrFltPrV& NmFltV) const;
+	// INmInt
+	bool IsNm(const TStr& Nm) const;
+	double GetNmInt(const TStr& Nm) const;
+	void GetNmIntV(TStrIntPrV& NmIntV) const;
+};
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Store
@@ -1671,8 +1716,8 @@ public:
 	//#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
-	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
     //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
     //JsDeclareFunction(loadIntVec);
@@ -2138,6 +2183,10 @@ public:
 	JsDeclareFunction(setRow);
 	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
 	JsDeclareFunction(diag);
+	//#- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+	JsDeclareFunction(save);
+	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(load);
 };
 
 ///////////////////////////////
@@ -2371,25 +2420,21 @@ public:
     JsDeclareFunction(newFeatureSpace);
     //#- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
-    JsDeclareFunction(loadFeatureSpace);
-    
+    JsDeclareFunction(loadFeatureSpace);    
     //#- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
-    //#     classification model using columns from `mat` as training data and vector
-    //#     `vec` as target variable (must be of values either 1 or -1); optional
-    //#     training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
-    //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
-    //#     examples with (default is 1.0)); result is a linear model
+    //#     classification model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector
+    //#     `vec` represents the training targets (must be of values either 1 or -1); optional
+    //#     training parameters with their default values are a JSON object: `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+    //#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 	JsDeclareFunction(trainSvmClassify);
     //#- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
-    //#     regression model using columns from `mat` as training data and vector `vec` as 
-    //#     target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
-    //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
-    //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
+    //#     regression model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector `vec` represents the training targets;
+    //#     optional training parameters with their default values are a JSON object: `svmRegParameters = {c : 1.0, eps : 1.0, batchSize : 10000, maxIterations : 10000, maxTime : 600, minDiff : 1e-6, varbose : false}`.
+	//#     The parameter `c` is the SVM cost parameter, `eps` controls the epsilon-insensitive L1 loss, `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model.
     JsDeclareFunction(trainSvmRegression);
     //#- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     //#     from `fin` stream
-	JsDeclareFunction(loadSvmModel);
-    
+	JsDeclareFunction(loadSvmModel);    
     //#- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
     //#     model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
     //#     ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
@@ -2727,6 +2772,206 @@ public:
 	JsDeclareFunction(getParagraphs);
 };
 
+
+
+///////////////////////////////
+// QMiner-Snap
+//# 
+//# ## Snap graph library
+//# 
+//# A global object `snap` is used to construct graphs
+//# it is available in any script. The object includes
+//# several functions from snap library.
+class TJsSnap {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSnap> TJsSnapUtil;
+
+	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsSnapUtil::New(new TJsSnap(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
+	JsDeclareFunction(newUGraph);
+	//#- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
+	JsDeclareFunction(DegreeCentrality);
+	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
+	JsDeclareFunction(CommunityDetection);
+	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+	JsDeclareFunction(CommunityEvolution);
+	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = "lip"
+	JsDeclareFunction(CorePeriphery);
+};
+
+
+///////////////////////////////
+// QMiner-Undirected-Graph
+//# 
+//# ### Undirected Graph
+//# 
+//# Undirected graph...
+class TJsUGraph {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	PUNGraph Graph;
+	TStr InFNm;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsUGraph> TJsUGraphUtil;
+
+	TJsUGraph(TWPt<TScript> _Js) : Js(_Js) { 
+		Graph = TUNGraph::New(); 
+	};
+
+	TJsUGraph(TWPt<TScript> _Js, TStr path) : Js(_Js), InFNm(path) { 
+		Graph = TSnap::LoadEdgeList<PUNGraph>(InFNm); 
+	};
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsUGraphUtil::New(new TJsUGraph(Js));
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path) {
+		return TJsUGraphUtil::New(new TJsUGraph(Js, path));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+	JsDeclareFunction(addNode);
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+	JsDeclareFunction(addEdge);
+	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+	JsDeclareFunction(delNode);
+	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+	JsDeclareFunction(delEdge);
+	//#- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+	JsDeclareFunction(isNode);
+	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+	JsDeclareFunction(isEdge);
+	//#- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
+	JsDeclareFunction(nodeCount);
+	//#- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
+	JsDeclareFunction(edgeCount);
+	//#- `node = graph.getNode(idx)` -- gets node with ID `idx`
+	JsDeclareFunction(getNode);
+	//#- `node = graph.getFirstNode()` -- gets first node
+	JsDeclareFunction(getFirstNode);
+	//#- `node = graph.getLastNode()` -- gets last node
+	JsDeclareFunction(getLastNode);
+	//#- `edge = graph.getFirstEdge()` -- gets first edge
+	JsDeclareFunction(getFirstEdge);
+	//#- `edge = graph.getLastEdge()` -- gets last edge
+	JsDeclareFunction(getLastEdge)
+	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+	JsDeclareFunction(dump);
+};
+
+///////////////////////////////
+// QMiner-Node
+//# 
+//# ### Node
+//# 
+//# Node
+class TJsNode {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	TUNGraph::TNodeI Node;
+	TIntV NIdV;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsNode> TJsNodeUtil;
+	TInt Id;
+	explicit TJsNode(TWPt<TScript> Js_, TUNGraph::TNodeI a);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TNodeI a) {
+		return TJsNodeUtil::New(new TJsNode(Js, a));
+	}
+
+	// Operators
+	bool operator== (const TJsNode& NodeI) const;
+	TJsNode& operator++ (int) { this->getNext; return *this; }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = node.getId()` -- return id of the node
+	JsDeclareFunction(getId);
+	//#- `deg = node.getDeg()` -- return degree of the node
+	JsDeclareFunction(getDeg);
+	//#- `indeg = node.getDeg()` -- return in-degree of the node
+	JsDeclareFunction(getInDeg);
+	//#- `outdeg = node.getDeg()` -- return out-degree of the node
+	JsDeclareFunction(getOutDeg);
+	//#- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
+	JsDeclareFunction(getNbrNId);
+	//#- `node = node.getNext()` -- return next node
+	JsDeclareFunction(getNext);
+	//#- `node = graph.getPrev()` -- return previous node
+	JsDeclareFunction(getPrev);
+};
+
+///////////////////////////////
+// QMiner-Edge
+//# 
+//# ### Edge
+//# 
+//# Edge
+class TJsEdge {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	TUNGraph::TEdgeI Edge;
+	TIntV NIdV;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
+	TInt Id;
+	explicit TJsEdge(TWPt<TScript> Js_, TUNGraph::TEdgeI edge);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TEdgeI edge) {
+		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = edge.getId()` -- return id of the edge
+	JsDeclareFunction(getId);
+	//#- `id = edge.getSrcNodeId()` -- return id of source node
+	JsDeclareFunction(getSrcNodeId);
+	//#- `id = edge.getDstNodeId()` -- return id of destination node
+	JsDeclareFunction(getDstNodeId);
+	//#- `edge = edge.getNext()` -- return next edge
+	JsDeclareFunction(getNext);
+
+};
+
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
 class TJsGeoIp {
@@ -2983,10 +3228,13 @@ private:
 	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
 	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
 	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-
+	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
 public:
 	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
 		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
+	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
+		return TJsFOutUtil::New(new TJsFOut(SOut_)); }
+
     static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
     
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -3162,10 +3410,14 @@ public:
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.fromWindowsTimestamp(num)` -- constructs date time from a windows timestamp (milliseconds since 1601).
+	JsDeclareFunction(fromWindowsTimestamp);
+	//#- `tm2 = tm.fromUnixTimestamp(num)` -- constructs date time from a UNIX timestamp (seconds since 1970).
+	JsDeclareFunction(fromUnixTimestamp);
 	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
 	JsDeclareFunction(clone);
-	//#- `num = tm.windowstimestamp` -- returns windows system time in milliseconds from 1/1/1601
-	JsDeclareProperty(windowstimestamp);
+	//#- `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
+	JsDeclareProperty(windowsTimestamp);
 };
 //#
 //# ## Other libraries

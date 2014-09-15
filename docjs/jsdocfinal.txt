@@ -137,7 +137,23 @@ Stream aggregates are objects used for processing data streams - their main func
 - `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 - `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 - `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+- `sa = sa.save(fout)` -- executes save function given output stream `fout` as input. returns self.
+- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 - `objJSON = sa.val` -- same as sa.saveJson(-1)
+- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
+- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
+- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
+- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
 
 ### Store
 
@@ -327,8 +343,8 @@ several functions from linear algebra.
 - `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
 - `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 - `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 - `la.printVec(vecec)` -- print the vector `vec` in the console
 - `la.printVec(intVec)` -- print the int vector `intVec` in the console
 - `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
@@ -364,6 +380,14 @@ several functions from linear algebra.
 - `mat3 = la.elementByElement(mat, mat2, callback)` -- performs element-by-element operation of `mat` or `vec`, defined in `callback` function. Example: `mat3 = la.elementByElement(mat, mat2, function (a, b) { return a*b } )`
 - `fout = la.saveIntVec(vec, fout)` - saves `vec` to output stream `fout` as a JSON string, and returns `fout`.
 - `intVec = la.loadIntVec(fin)` -- loads JSON string from `fin` and casts to JavaScript array and then to integer vector.
+- `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
+- `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
+- `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+- `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+- `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of X specified by parameter `dim`
+- `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
+- `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+- `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 
 ### Vector
 
@@ -463,6 +487,8 @@ var fltv = la.newVec(); //empty matrix
 - `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 - `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
 - `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 
 ### SpVector (sparse vector)
 
@@ -550,16 +576,14 @@ To start using it must be loaded using `var analytics = require('analytics.js');
 - `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     space from `fin` stream
 - `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
-    classification model using columns from `mat` as training data and vector
-    `vec` as target variable (must be of values either 1 or -1); optional
-    training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
-    default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
-    examples with (default is 1.0)); result is a linear model
+    classification model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector
+    `vec` represents the training targets (must be of values either 1 or -1); optional
+    training parameters with their default values are a JSON object: `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+    The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 - `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
-    regression model using columns from `mat` as training data and vector `vec` as 
-    target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
-    (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
-    epsilon size tunnel around the model, default is 1.0)); result is a linear model
+    regression model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector `vec` represents the training targets;
+    optional training parameters with their default values are a JSON object: `svmRegParameters = {c : 1.0, eps : 1.0, batchSize : 10000, maxIterations : 10000, maxTime : 600, minDiff : 1e-6, varbose : false}`.
+    The parameter `c` is the SVM cost parameter, `eps` controls the epsilon-insensitive L1 loss, `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model.
 - `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     from `fin` stream
 - `nnModel = analytics.newNN(nnParameters)` -- create new neural network
@@ -783,10 +807,10 @@ its type and --- in case of discrete attributes --- enumerate all possible value
 
 The HoeffdingTree algorithm comes with many parameters:
 
-- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
-	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+- `gracePeriod` -- Denotes ``recomputation period''; if `gracePeriod=200`, the algorithm
+	    will recompute information gains (or Gini indices) every `200` examples. Recomputation
 	    is the most expensive operation in the algorithm, because we have to recompute gains at each
-	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+	    leaf of the tree for each attribute. (If `ConceptDriftP=true`, we have to recompute gains in each
       node of the tree.)
 - `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
 	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
@@ -826,6 +850,15 @@ The HoeffdingTree algorithm comes with many parameters:
       means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
       [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
       for details.)
+- `sdrTreshold` -- Stopping criterion for regression tree learner. The algorithm will not split the leaf unless the standard
+      deviation reduction `sdr(A)` for the best attribute `A` is at least `sdtrTreshold`. Make sure that `sdrTreshold >= 0`.
+- `phAlpha` -- Correction parameter for the [Page-Hinkley test](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf):
+      It is the minimal absolute amplitude of change that we wish to detect. Should be adjusted according to the expected
+      standard deviation of the signal. (See Elena Ikonomovska's [thesis](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf)
+      for details.) Default is `phAlpha=0.005`.
+- `phLambda` -- This is the threshold that corresponds to the admissible false alarm rate. Default is `phLambda=50.0`.
+- `phInit` -- This threshold tells the algorithm when to start using Page-Hinkley test. The idea is to wait for `phInit` examples
+      to accumulate in the nodes, so we have "more stable" estimates of mean. Default is `phInit=100`.
 
 
 **Functions and properties:**
@@ -849,6 +882,66 @@ Breaks text into tokens (i.e. words).
 - `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
 - `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
 - `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
+
+## Snap graph library
+
+A global object `snap` is used to construct graphs
+it is available in any script. The object includes
+several functions from snap library.
+
+**Functions and properties:**
+
+- `graph = snap.newUGraph()` -- generate an empty undirected graph
+- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
+- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
+- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+
+### Undirected Graph
+
+Undirected graph...
+
+**Functions and properties:**
+
+- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
+- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
+- `node = graph.getNode(idx)` -- gets node with ID `idx`
+- `node = graph.getFirstNode()` -- gets first node
+- `node = graph.getLastNode()` -- gets last node
+- `edge = graph.getFirstEdge()` -- gets first edge
+- `edge = graph.getLastEdge()` -- gets last edge
+- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+
+### Node
+
+Node
+
+**Functions and properties:**
+
+- `id = node.getId()` -- return id of the node
+- `deg = node.getDeg()` -- return degree of the node
+- `indeg = node.getDeg()` -- return in-degree of the node
+- `outdeg = node.getDeg()` -- return out-degree of the node
+- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
+- `node = node.getNext()` -- return next node
+- `node = graph.getPrev()` -- return previous node
+
+### Edge
+
+Edge
+
+**Functions and properties:**
+
+- `id = edge.getId()` -- return id of the edge
+- `id = edge.getSrcNodeId()` -- return id of source node
+- `id = edge.getDstNodeId()` -- return id of destination node
+- `edge = edge.getNext()` -- return next edge
 
 ## System and I/O
 
@@ -1042,8 +1135,10 @@ New one can be created using `tm = require('time.js')`.
 - `tmJSON = tm.toJSON()` -- returns json representation of time    
 - `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     as Date-Time object
+- `tm2 = tm.fromWindowsTimestamp(num)` -- constructs date time from a windows timestamp (milliseconds since 1601).
+- `tm2 = tm.fromUnixTimestamp(num)` -- constructs date time from a UNIX timestamp (seconds since 1970).
 - `tm2 = tm.clone()` -- clones `tm` to `tm2`
-- `num = tm.windowstimestamp` -- returns windows system time in milliseconds from 1/1/1601
+- `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
 
 ## Other libraries
 
@@ -1078,4 +1173,7 @@ The library must be loaded using `var vis = require('visualization.js');`.
 
 - `objJson = vis.highchartsTSConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `objJson = vis.highchartsConverter(fieldsJson, objJson)` -- arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
-- `vis.drawHighChartsTimeSeries(data, fileName, paramsJson)` -- copies the highCharts_ts.html template, injects JSON data, injects libraries, overrides the chart parameters if provided
+- `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 

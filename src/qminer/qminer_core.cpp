@@ -4216,11 +4216,7 @@ TBase::~TBase() {
 	if (FAccess != faRdOnly) {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
-		IndexVoc->Save(IndexVocFOut);
-		TEnv::Logger->OnStatus("Saving stream aggregates ...");
-		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
-        SaveStreamAggrBaseV(StreamAggrFOut);
-		StreamAggrDefaultBase->Save(StreamAggrFOut);		
+		IndexVoc->Save(IndexVocFOut);		
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -4439,14 +4435,7 @@ bool TBase::Exists(const TStr& FPath) {
 		TFile::Exists(FPath + "StreamAggr.dat");
 }
 
-void TBase::Init() {
-	if (FAccess != faCreate) {
-		// load stream aggregates
-		TFIn StreamAggrBaseFIn(FPath + "StreamAggr.dat");
-        LoadStreamAggrBaseV(StreamAggrBaseFIn);
-		StreamAggrDefaultBase = TStreamAggrBase::Load(this, StreamAggrBaseFIn);
-	}
-	// done
+void TBase::Init() {	
 	InitP = true;
 }
 

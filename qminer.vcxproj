@@ -56,7 +56,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>EXTENDEDOPENFILES;SWTIMER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/third_party/snap/snap-exp/;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>INTEL;LAPACKE;EIGEN;BLAS;CBLAS;</UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -67,6 +67,9 @@
     <PostBuildEvent>
       <Command>del /F /Q "$(IntDir)\$(MSBuildProjectName).lastbuildstate"</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>guilibs.bat</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -126,8 +129,10 @@
     <None Include="src\qminer\js\analytics.js" />
     <None Include="src\qminer\js\assert.js" />
     <None Include="src\qminer\js\evaluation.js" />
+    <None Include="src\qminer\js\snap.js" />
     <None Include="src\qminer\js\twitter.js" />
     <None Include="src\qminer\js\utilities.js" />
+    <None Include="src\qminer\js\visualization.js" />
     <None Include="src\qminer\linalg.js" />
     <None Include="src\qminer\process.js" />
     <None Include="src\qminer\qminer.js" />
