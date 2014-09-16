@@ -26,3 +26,8 @@ fs.readFile = function (fileName) {
     }
     return out;
 };
+
+//#- `json = fs.readJson(fileName)` - read file as a string and parse it top JSON
+fs.readJson = function (fileName) {
+    return JSON.parse(fs.readFile(fileName));
+}

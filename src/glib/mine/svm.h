@@ -105,7 +105,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     // function for writing progress reports
     int PosCount = 0, NegCount = 0;
     auto ProgressNotify = [&]() {
-        Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g , ratio %.2f", 
+        Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g, ratio %.2f", 
             Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff, 
             (double)PosCount / (double)(PosCount + NegCount));
         PosCount = 0; NegCount = 0;
