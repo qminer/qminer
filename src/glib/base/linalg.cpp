@@ -1627,8 +1627,8 @@ void TLinAlg::MGS(TFltVV& Q) {
 void TLinAlg::QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol) {
 	int Rows = X.GetRows();
 	int Cols = X.GetCols();
-	int d = min(Rows, Cols);
-
+	int d = MIN(Rows, Cols);
+	
 	// make a copy of X
 	TFltVV A(X);
 	if (Q.GetRows() != Rows || Q.GetCols() != d) { Q.Gen(Rows, d); }
