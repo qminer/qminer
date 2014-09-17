@@ -3223,6 +3223,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, newSpVec);
 		JsRegisterFunction(TmpTemp, newSpMat);
 		JsRegisterFunction(TmpTemp, svd);
+		JsRegisterFunction(TmpTemp, qr);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3487,6 +3488,27 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 		}
 	}
 	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsLinAlg::qr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	// result object
+	v8::Handle<v8::Object> JsObj = v8::Object::New();
+	// algorithm outputs
+	TFltVV Q;
+	TFltVV R;
+	// tolerance parameter
+	double Tol = TJsLinAlgUtil::GetArgFlt(Args, 1, 1e-6);
+	
+	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+		// get argument matrix
+		TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+		TLinAlg::QR(JsMat->Mat, Q, R, Tol);
+	}
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("Q")), TJsFltVV::New(JsLinAlg->Js, Q));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("R")), TJsFltVV::New(JsLinAlg->Js, R));
+	return HandleScope.Close(JsObj);
 }
 
 ///////////////////////////////

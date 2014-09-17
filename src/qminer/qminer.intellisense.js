@@ -1503,6 +1503,15 @@ la.saveMat = function () {
 	/// </signature>
 };
 
+la.qr = function () {
+	/// <signature>
+	/// <summary> Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_tol" value="_tol">param</param>
+	/// <returns value ="_qrRes"/>
+	/// </signature>
+};
+
 la.genRandomPerm = function () {
 	/// <signature>
 	/// <summary> returns a permutation of `k` elements. `arr` is a javascript array of integers</summary>

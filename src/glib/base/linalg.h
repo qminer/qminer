@@ -330,7 +330,8 @@ public:
     static double EuclDist(const TFltV& x, const TFltV& y);
     // Result = ||x-y|| (Euclidian)
     static double EuclDist(const TFltPr& x, const TFltPr& y);
-	
+	// Result = ||A||_F (Frobenious)
+	static double Frob(const TFltVV&A);
 	// Result = ||A - B||_F (Frobenious)
 	static double FrobDist2(const TFltVV& A, const TFltVV& B);
 	// Result = ||A - B||_F (Frobenious)
@@ -512,8 +513,10 @@ public:
     static void GS(TVec<TFltV>& Q);
     // Gram-Schmidt on columns of matrix Q
     static void GS(TFltVV& Q);
-	// Gram-Schmidt on columns of matrix Q
+	// Modified Gram-Schmidt on columns of matrix Q
 	static void MGS(TFltVV& Q);
+	// QR based on Modified Gram-Schmidt decomposition.
+	static void QR(const TFltVV& A, TFltVV& Q, TFltVV& R, const TFlt& Tol);
 
     // rotates vector (OldX,OldY) for angle Angle (in radians!)
     static void Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY);
@@ -521,6 +524,7 @@ public:
     // checks if set of vectors is ortogonal
     static void AssertOrtogonality(const TVec<TFltV>& Vecs, const double& Threshold);
     static void AssertOrtogonality(const TFltVV& Vecs, const double& Threshold);
+	static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 };
 
 //////////////////////////////////////////////////////////////////////
