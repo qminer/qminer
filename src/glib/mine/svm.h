@@ -222,7 +222,7 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
         
         Profiler.StartTimer(ProfilerPre);
         // tells how much we can move
-        const double Nu = 1.0 / (Lambda * double(IterN + 2)); // ??
+        const double Nu = 1.0 / (Lambda * double(IterN + 2));
         const double VecUpdate = Nu / double(SampleSize);
         // initialize updated normal vector
         TLinAlg::MultiplyScalar((1.0 - Nu * Lambda), WgtV, NewWgtV);

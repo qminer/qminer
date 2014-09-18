@@ -2213,10 +2213,10 @@ v8::Persistent<v8::Object> TJsRecSet::New(TWPt<TScript> Js, const PRecSet& RecSe
 PRecSet TJsRecSet::GetArgRecSet(const v8::Arguments& Args, const int& ArgN) {
     v8::HandleScope HandleScope;
     // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
     // get the wrapped 
     v8::Handle<v8::Object> RecordSet = v8::Handle<v8::Object>::Cast(Val);
     v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RecordSet->GetInternalField(0));
@@ -2695,10 +2695,10 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 TRec TJsRec::GetArgRec(const v8::Arguments& Args, const int& ArgN) { 
     v8::HandleScope HandleScope;
     // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
     // get the wrapped 
     v8::Handle<v8::Object> Rec = v8::Handle<v8::Object>::Cast(Val);
     v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Rec->GetInternalField(0));
@@ -4871,7 +4871,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
+    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
@@ -4923,7 +4923,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmEps = SvmParamVal->GetObjNum("eps", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 10000);
+    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
@@ -5082,7 +5082,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainKMeans(const v8::Arguments& Args) {
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 1);
     PJsonVal KMeansParamVal = TJsAnalyticsUtil::IsArgJson(Args, 2) ?
         TJsAnalyticsUtil::GetArgJson(Args, 2) : TJsonVal::NewObj();
-    // parse SVM parameters
+    // parse parameters
     const int Clusts = KMeansParamVal->GetObjInt("k");
     const int MaxIter = KMeansParamVal->GetObjInt("maxIterations", 50);
     const int RndSeed = KMeansParamVal->GetObjInt("randomSeed", 1);
@@ -5186,10 +5186,10 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN) {
     v8::HandleScope HandleScope;
     // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
     // get the wrapped 
     v8::Handle<v8::Object> FtrSpace = v8::Handle<v8::Object>::Cast(Val);
     v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(FtrSpace->GetInternalField(0));
@@ -5201,7 +5201,7 @@ PFtrSpace TJsFtrSpace::GetArgFtrSpace(const v8::Arguments& Args, const int& ArgN
 PFtrSpace TJsFtrSpace::GetArgFtrSpace(v8::Handle<v8::Value> Val) {
 	v8::HandleScope HandleScope;	
 	// check it's of the right type
-	AssertR(Val->IsObject(), "GetArgFtrSpace: Argument expected to be Object");
+	QmAssertR(Val->IsObject(), "GetArgFtrSpace: Argument expected to be Object");
 	// get the wrapped 
 	v8::Handle<v8::Object> FtrSpace = v8::Handle<v8::Object>::Cast(Val);
 	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(FtrSpace->GetInternalField(0));
@@ -6117,10 +6117,10 @@ v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
 PSIn TJsFIn::GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
     v8::HandleScope HandleScope;
     // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
     // get the wrapped 
     v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
     v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
@@ -6192,10 +6192,10 @@ v8::Handle<v8::Value> TJsFIn::readAll(const v8::Arguments& Args) {
 PSOut TJsFOut::GetArgFOut(const v8::Arguments& Args, const int& ArgN) {
     v8::HandleScope HandleScope;
     // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
     // get the wrapped 
     v8::Handle<v8::Object> _JsFOut = v8::Handle<v8::Object>::Cast(Val);
     v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFOut->GetInternalField(0));
@@ -6432,10 +6432,10 @@ v8::Handle<v8::Value> TJsHttpResp::send(const v8::Arguments& Args) {
 TTm& TJsTm::GetArgTm(const v8::Arguments& Args, const int& ArgN) {
     v8::HandleScope HandleScope;
     // check we have the argument at all
-    AssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     // check it's of the right type
-    AssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
     // get the wrapped 
     v8::Handle<v8::Object> _JsTm = v8::Handle<v8::Object>::Cast(Val);
     v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsTm->GetInternalField(0));
