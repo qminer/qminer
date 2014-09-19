@@ -1603,6 +1603,18 @@ void TLinAlg::GS(TFltVV& Q) {
     }
 }
 
+void TLinAlg::MGS(TFltVV& Q) {
+	int Cols = Q.GetCols(), Rows = Q.GetRows();
+	IAssertR(Rows >= Cols, "TLinAlg::MGS: number of rows should be greater or equal to the number of cols");
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		TLinAlg::NormalizeColumns(Q);
+		for (int ColN2 = ColN+1; ColN2 < Cols; ColN2++) {
+			double r = TLinAlg::DotProduct(Q, ColN, Q, ColN2);
+			TLinAlg::AddVec(-r, Q, ColN, Q, ColN2);
+		}	
+	}
+}
+
 void TLinAlg::Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY) {
     NewX = OldX*cos(Angle) - OldY*sin(Angle);
     NewY = OldX*sin(Angle) + OldY*cos(Angle);
@@ -2061,9 +2073,10 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 		Matrix.MultiplyT(U, V);
 		for (int i = 0; i < k; i++) {
 			S[i] = TLinAlg::Norm(V,i);
-		}
-		Matrix.Multiply(V, U);		
-		TLinAlg::GS(U);		
+		}		
+		TLinAlg::MGS(V);
+		Matrix.Multiply(V, U);
+		TLinAlg::MGS(U);
 		if (IterN > 0 && sqrt(TLinAlg::FrobDist2(S, SOld)/TLinAlg::Norm2(S)) < Tol) {break;}
 		SOld = S;
     } 

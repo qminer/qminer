@@ -212,11 +212,12 @@ var _fin = new function () { }
 var _hashTable = new function () { }
 var console = new function () { }
 var la = new function () { }
-var _sa = new function () { }
+var _edge = new function () { }
 var _spMat = new function () { }
 var _batchModel = new function () { }
 var _httpResponse = new function () { }
 var _svmModel = new function () { }
+var _node = new function () { }
 var _utilities = new function () { }
 var _fout = new function () { }
 var _rs = new function () { }
@@ -225,6 +226,7 @@ var _lloydModel = new function () { }
 var _analytics = new function () { }
 var _recLinRegModel = new function () { }
 var _kf = new function () { }
+var _sa = new function () { }
 var _tokenizer = new function () { }
 var _snap = new function () { }
 var _graph = new function () { }
@@ -677,6 +679,30 @@ _vis.highchartsTSConverter = function () {
 	/// <summary> array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.</summary>
 	/// <param name="_objJson" value="_objJson">param</param>
 	/// <returns value ="_objJson"/>
+	/// </signature>
+};
+
+_vis.drawCommunityEvolution = function () {
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -1599,149 +1625,31 @@ la.mean = function () {
 	/// </signature>
 };
 
-_sa.getTm = function () {
+_edge.getNext = function () {
 	/// <signature>
-	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
-	/// <returns value ="_num"/>
+	/// <summary> return next edge</summary>
+	/// <returns value ="_edge"/>
 	/// </signature>
 };
 
-_sa.saveJson = function () {
+_edge.getDstNodeId = function () {
 	/// <signature>
-	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
-	/// <param name="_limit" value="_limit">param</param>
-	/// <returns value ="_objJSON"/>
+	/// <summary> return id of destination node</summary>
+	/// <returns value ="_id"/>
 	/// </signature>
 };
 
-_sa.getTmLen = function () {
+_edge.getSrcNodeId = function () {
 	/// <signature>
-	/// <summary> returns a number (timestamp vector length) if sa implements the interface ITmVec.</summary>
-	/// <returns value ="_num"/>
+	/// <summary> return id of source node</summary>
+	/// <returns value ="_id"/>
 	/// </signature>
 };
 
-_sa.getFlt = function () {
+_edge.getId = function () {
 	/// <signature>
-	/// <summary> returns a number if sa implements the interface IFlt</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getOutFltV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
-_sa.getN = function () {
-	/// <signature>
-	/// <summary> returns a number of records in the input buffer if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getFltAt = function () {
-	/// <signature>
-	/// <summary> returns a number (element at index) if sa implements the interface IFltVec.</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getOutTmV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
-_sa.onDelete = function () {
-	/// <signature>
-	/// <summary> executes onDelete function given an input record `rec` and returns self</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-_sa.getInTm = function () {
-	/// <signature>
-	/// <summary> returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.onUpdate = function () {
-	/// <signature>
-	/// <summary> executes onUpdate function given an input record `rec` and returns self</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-_sa.getInt = function () {
-	/// <signature>
-	/// <summary> returns a number if sa implements the interface IInt</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
-_sa.val = _objJSON;
-
-_sa.getInFlt = function () {
-	/// <signature>
-	/// <summary> returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getFltLen = function () {
-	/// <signature>
-	/// <summary> returns a number (internal vector length) if sa implements the interface IFltVec.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.getFltV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector if sa implements the interface IFltVec.</summary>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
-_sa.getTmAt = function () {
-	/// <signature>
-	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sa.save = function () {
-	/// <signature>
-	/// <summary> executes save function given output stream `fout` as input. returns self.</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
-_sa.name = _str;
-
-_sa.onAdd = function () {
-	/// <signature>
-	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_sa"/>
-	/// </signature>
-};
-
-_sa.getTmV = function () {
-	/// <signature>
-	/// <summary> returns a dense vector of windows timestamps if sa implements the interface ITmVec.</summary>
-	/// <returns value ="_vec"/>
+	/// <summary> return id of the edge</summary>
+	/// <returns value ="_id"/>
 	/// </signature>
 };
 
@@ -2029,6 +1937,43 @@ _svmModel.save = function () {
 
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
+
+_node.getNext = function () {
+	/// <signature>
+	/// <summary> return next node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.getNbrNId = function () {
+	/// <signature>
+	/// <summary> return id of Nth neighbour</summary>
+	/// <param name="_N" value="_N">param</param>
+	/// <returns value ="_nid"/>
+	/// </signature>
+};
+
+_node.getId = function () {
+	/// <signature>
+	/// <summary> return id of the node</summary>
+	/// <returns value ="_id"/>
+	/// </signature>
+};
+
+_node.getDeg = function () {
+	/// <signature>
+	/// <summary> return degree of the node</summary>
+	/// <returns value ="_deg"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> return in-degree of the node</summary>
+	/// <returns value ="_indeg"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> return out-degree of the node</summary>
+	/// <returns value ="_outdeg"/>
+	/// </signature>
+};
 
 _utilities.isArray = function () {
 	/// <signature>
@@ -2832,6 +2777,160 @@ _kf.correct = function () {
 	/// </signature>
 };
 
+_sa.load = function () {
+	/// <signature>
+	/// <summary> executes load function given input stream `fin` as input. returns self.</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getN = function () {
+	/// <signature>
+	/// <summary> returns a number of records in the input buffer if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getTm = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.saveJson = function () {
+	/// <signature>
+	/// <summary> executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate</summary>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_sa.getFlt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IFlt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "val" value = "_objJSON"> same as sa.saveJson(-1)</field>
+_sa.val = _objJSON;
+
+_sa.getInFlt = function () {
+	/// <signature>
+	/// <summary> returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getTmAt = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp at index) if sa implements the interface ITmVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.save = function () {
+	/// <signature>
+	/// <summary> executes save function given output stream `fout` as input. returns self.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.onAdd = function () {
+	/// <signature>
+	/// <summary> executes onAdd function given an input record `rec` and returns self</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getTmLen = function () {
+	/// <signature>
+	/// <summary> returns a number (timestamp vector length) if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltLen = function () {
+	/// <signature>
+	/// <summary> returns a number (internal vector length) if sa implements the interface IFltVec.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getFltAt = function () {
+	/// <signature>
+	/// <summary> returns a number (element at index) if sa implements the interface IFltVec.</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.getInTm = function () {
+	/// <signature>
+	/// <summary> returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.onUpdate = function () {
+	/// <signature>
+	/// <summary> executes onUpdate function given an input record `rec` and returns self</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+_sa.getInt = function () {
+	/// <signature>
+	/// <summary> returns a number if sa implements the interface IInt</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sa.onDelete = function () {
+	/// <signature>
+	/// <summary> executes onDelete function given an input record `rec` and returns self</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_sa"/>
+	/// </signature>
+};
+
+/// <field name = "name" value = "_str"> returns the name (unique) of the stream aggregate</field>
+_sa.name = _str;
+
+_sa.getOutTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getOutFltV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_sa.getTmV = function () {
+	/// <signature>
+	/// <summary> returns a dense vector of windows timestamps if sa implements the interface ITmVec.</summary>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _tokenizer.getTokens = function () {
 	/// <signature>
 	/// <summary> tokenizes given strings and returns it as an array of strings.</summary>
@@ -2856,6 +2955,14 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
+_snap.CommunityEvolution = function () {
+	/// <signature>
+	/// <summary> return communities alg = "gn", "imap" or "cnm"</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <returns value ="_jsonstring"/>
+	/// </signature>
+};
+
 _snap.newUGraph = function () {
 	/// <signature>
 	/// <summary> generate an empty undirected graph</summary>
@@ -2863,20 +2970,36 @@ _snap.newUGraph = function () {
 	/// </signature>
 };
 
-_graph.dump = function () {
+_snap.DegreeCentrality = function () {
 	/// <signature>
-	/// <summary> dumps a graph to file named `fNm`</summary>
-	/// <param name="_fNm" value="_fNm">param</param>
-	/// <returns value ="_graph"/>
+	/// <summary> returns degree centrality of a node</summary>
+	/// <param name="_node" value="_node">param</param>
+	/// <returns value ="_number"/>
 	/// </signature>
 };
 
-_graph.addEdge = function () {
+_snap.CommunityDetection = function () {
 	/// <signature>
-	/// <summary> add an edge</summary>
-	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
-	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
-	/// <returns value ="_edgeIdx"/>
+	/// <summary> returns communities of graph (alg = "gn", "imap" or "cnm")</summary>
+	/// <param name="_UGraph" value="_UGraph">param</param>
+	/// <param name="_alg" value="_alg">param</param>
+	/// <returns value ="_spvector"/>
+	/// </signature>
+};
+
+_graph.getLastEdge = function () {
+	/// <signature>
+	/// <summary> gets last edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
+};
+
+_graph.delEdge = function () {
+	/// <signature>
+	/// <summary> delete an edge</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_idx"/>
 	/// </signature>
 };
 
@@ -2889,6 +3012,98 @@ _graph.addNode = function () {
 	/// <summary> add a node with ID `idx`, returns node ID</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.dump = function () {
+	/// <signature>
+	/// <summary> dumps a graph to file named `fNm`</summary>
+	/// <param name="_fNm" value="_fNm">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.delNode = function () {
+	/// <signature>
+	/// <summary> delete a node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.getFirstNode = function () {
+	/// <signature>
+	/// <summary> gets first node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.getLastNode = function () {
+	/// <signature>
+	/// <summary> gets last node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.getPrev = function () {
+	/// <signature>
+	/// <summary> return previous node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.getFirstEdge = function () {
+	/// <signature>
+	/// <summary> gets first edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
+};
+
+_graph.nodeCount = function () {
+	/// <signature>
+	/// <summary> gets number of nodes in the graph</summary>
+	/// <returns value ="_nodesCount"/>
+	/// </signature>
+};
+
+_graph.isEdge = function () {
+	/// <signature>
+	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_isEdge"/>
+	/// </signature>
+};
+
+_graph.isNode = function () {
+	/// <signature>
+	/// <summary> check if a node with ID `idx` exists in the graph</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_isNode"/>
+	/// </signature>
+};
+
+_graph.getNode = function () {
+	/// <signature>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.addEdge = function () {
+	/// <signature>
+	/// <summary> add an edge</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <returns value ="_edgeIdx"/>
+	/// </signature>
+};
+
+_graph.edgeCount = function () {
+	/// <signature>
+	/// <summary> gets number of edges in the graph</summary>
+	/// <returns value ="_edgesCount"/>
 	/// </signature>
 };
 

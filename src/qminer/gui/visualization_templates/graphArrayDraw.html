@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+<style>
+.link {
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
+}
+
+.node circle {
+  fill: #ccc;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+text {
+  font: 12px sans-serif;
+  pointer-events: none;
+}
+
+.graph_title{
+	position: relative;
+	text-align:center;
+	font: 16px sans-serif;
+	pointer-events: none;
+	color: #7B7B87;
+	font-weight: 900;
+}
+
+.graph{
+	width:360px;
+	height:360px; 
+	float: left;
+	border-style: solid; 
+	border-width: 1px;
+	border-color: #CED3DE;;
+	margin-right: 5px;
+	margin-top:5px
+}
+</style>
+<body>
+<script>
+
+// http://blog.thomsonreuters.com/index.php/mobile-patent-suits-graphic-of-the-day/
+var graphs = {{{data}}};
+
+console.log(graphs.length);
+
+function draw_graphs(name_subsystem){   
+
+    var force;
+    var div;
+    var svg;
+    var link;
+    var node;
+    var width = 360;
+    var height = 360;
+    var r=5;
+    var brush = new Array();
+    var shiftKey;
+
+	
+	// create nodes from links
+	var nodes_ = {};
+	
+	var links_ = graphs[name_subsystem];
+	// Compute the distinct nodes from the links.
+	links_.forEach(function(link) {
+	  link.source = nodes_[link.source] || (nodes_[link.source] = {name: link.source});
+	  link.target = nodes_[link.target] || (nodes_[link.target] = {name: link.target});
+	});
+	
+    //add a div for each subsystem
+    var div = document.createElement("div");
+    div.id = "g"+name_subsystem;
+	div.className = "graph";
+    document.body.appendChild(div);
+
+    force = d3.layout.force()
+        .size([width, height])
+        .linkDistance(45)
+        .linkStrength(3)
+        .friction(0.9)
+        .charge(-150)
+        .theta(0.8)
+        .gravity(0.05);
+
+	var divTitle = document.createElement("div");
+	divTitle.className = "graph_title";
+    divTitle.appendChild(document.createTextNode(name_subsystem));
+	div.appendChild(divTitle);
+	
+    //create the svg rectangle in which other elements can be visualised
+    svg = d3.select("#g"+name_subsystem.toString()).append("svg").attr("width", width).attr("height", height).attr("id",name_subsystem.toString());
+
+    //force is started
+    force.nodes(d3.values(nodes_)).links(links_).start();
+		
+    //link elements are called, joined with the data, and links are created for each link object in links
+    link = svg.selectAll(".link")
+        .data(links_)
+        .enter().append("line")
+        .attr("class", "link")
+        .style("stroke-width", function(d) { return Math.sqrt(d.thickness); });
+
+    //node elements are called, joined with the data, and circles are created for each node object in nodes
+    node = svg.selectAll(".node").data(d3.values(nodes_)).enter().append("g").attr("class", "node")
+		.append("circle")
+        .attr("r", r)
+        .call(force.drag()
+            .on("dragstart",function dragstart(d){
+                d.fixed=true;
+                d3.select(this).classed("fixed",true);
+            })
+        );
+		
+	node.select(function() { return this.parentNode; }).data(force.nodes()).append("text")
+    .attr("x", 12)
+    .attr("dy", ".35em")
+    .text(function(d) { return d.name; });
+	
+	node = svg.selectAll(".node");
+	
+    //gives titles to nodes. i do not know why this is separated from the first node calling.
+    /*
+	node = svg.selectAll(".node").append("text")
+	.attr("x", 12)
+    .attr("dy", ".35em")
+    .text(function(d) { return d.name; });
+*/
+
+    //applies force per step or 'tick'.
+    force.on("tick", function() {
+        node
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+        link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+    });
+};
+for(name_subsystem in graphs) {
+    draw_graphs(name_subsystem);
+}
+
+</script>
