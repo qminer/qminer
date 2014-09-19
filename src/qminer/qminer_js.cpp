@@ -4428,6 +4428,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpMat::GetTemplate() {
 		JsRegisterFunction(TmpTemp, print);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, sign);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4840,6 +4841,18 @@ v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
 	JsSpMat->Rows.Load(*SIn);
 	JsSpMat->Mat.Load(*SIn);
 	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsSpMat::sign(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// get caller matrix
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	// result
+	TVec<TIntFltKdV> Mat2;
+	// computation
+	TLinAlg::Sign(JsSpMat->Mat, Mat2);
+	// wrap result and return
+	return TJsSpMat::New(JsSpMat->Js, Mat2, JsSpMat->Rows);
 }
 
 ///////////////////////////////

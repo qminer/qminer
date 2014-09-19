@@ -1684,6 +1684,13 @@ _spMat.normalizeCols = function () {
 	/// </signature>
 };
 
+_spMat.sign = function () {
+	/// <signature>
+	/// <summary> create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.</summary>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+};
+
 _spMat.push = function () {
 	/// <signature>
 	/// <summary> attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.</summary>

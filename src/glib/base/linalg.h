@@ -348,6 +348,8 @@ public:
 	static void Transpose(const TTriple<TIntV, TIntV, TFltV>& A, TTriple<TIntV, TIntV, TFltV>& At);
 	// Transpose
 	static void Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows = -1);
+	// Sign
+	static void Sign(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& B);
 	// Vector of sparse vectors to sparse matrix (coordinate representation)
 	static void Convert(const TVec<TPair<TIntV, TFltV> >& A, TTriple<TIntV, TIntV, TFltV>& B);
 	// Vector of sparse vectors to sparse matrix (coordinate representation)

@@ -609,6 +609,17 @@ void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Row
 	}
 }
 
+void TLinAlg::Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2) {
+	Mat2 = Mat;
+	int Cols = Mat2.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = Mat2[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			Mat2[ColN][ElN].Dat = TMath::Sign(Mat2[ColN][ElN].Dat);
+		}
+	}
+}
+
 void TLinAlg::Convert(const TVec<TPair<TIntV, TFltV>>&A, TTriple<TIntV, TIntV, TFltV>&B) {
 	B.Val1.Clr(); 
 	B.Val2.Clr(); 
