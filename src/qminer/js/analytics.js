@@ -185,7 +185,7 @@ exports.newBatchModel = function (records, features, target, limitCategories) {
     console.log("newBatchModel", "Done");  
     // we finished the constructor
     return new createBatchModel(featureSpace, models);
-}
+};
 
 //#- `batchModel = analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
 exports.loadBatchModel = function (sin) {
@@ -196,7 +196,7 @@ exports.loadBatchModel = function (sin) {
     }
     // we finished the constructor
     return new createBatchModel(featureSpace, models);    
-}
+};
 
 function round100(num) { return Math.round(num * 100) / 100; }
 
@@ -223,7 +223,7 @@ function classifcationScore(cats) {
         if (util.isString(correct)) { this.count([correct], predicted); return; }
         if (util.isString(predicted)) { this.count(correct, [predicted]); return; }
         // go over all possible categories and counts
-        for (cat in this.target) {
+        for (var cat in this.target) {
             var catCorrect = util.isInArray(correct, cat);
             var catPredicted = util.isInArray(predicted, cat);            
             // update counts for correct categories
@@ -253,10 +253,10 @@ function classifcationScore(cats) {
 //            var old_count = this.confusion.at(correct_i, predicted_i);
 //            this.confusion.put(correct_i, predicted_i, old_count + 1);
 //        }
-	}
+	};
 
 	this.report = function () { 
-		for (cat in this.target) {
+		for (var cat in this.target) {
 			console.log(cat + 
 				": Count " + this.target[cat].count + 
 				", All " + this.target[cat].all() + 
@@ -264,12 +264,12 @@ function classifcationScore(cats) {
 				", Recall " +   round100(this.target[cat].recall()) +
 				", Accuracy " +   round100(this.target[cat].accuracy()));
 		}
-	}
+	};
 
 	this.reportCSV = function (fout) { 
 		// precison recall
 		fout.writeLine("category,count,precision,recall,accuracy");
-		for (cat in this.target) {
+		for (var cat in this.target) {
 			fout.writeLine(cat + 
 				"," + this.target[cat].count + 
 				"," + round100(this.target[cat].precision()) + 
@@ -291,18 +291,18 @@ function classifcationScore(cats) {
 //			}
 //			fout.writeLine();
 //		}
-	}
+	};
 	
 	this.results = function () {
 		var res = { };
-		for (cat in this.target) {
+		for (var cat in this.target) {
 			res[cat] = {
 				precision : this.target[cat].precision(),
 				recall    : this.target[cat].recall(),
 				accuracy  : this.target[cat].accuracy(),
-			}
+			};
 		}
-	}
+	};
 }
 
 //#- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
@@ -358,7 +358,7 @@ exports.crossValidation = function (records, features, target, folds, limitCateg
 		cfyRes.report();
 	}
 	return cfyRes;
-}
+};
 
 // active learning (analytics:function activeLearner, parameters
 //#- `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
@@ -372,52 +372,87 @@ exports.crossValidation = function (records, features, target, folds, limitCateg
 //#    examples that have to be identified in the query mode before the program enters SVM mode.
 //#   The next parameter is the `query` (string) which should be related to positive examples. 
 //#   Final Parameters `c` and `j` are SVM parameters.
-exports.newActiveLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query, c, j) {
-    return new exports.activeLearner(ftrSpace, textField, recSet, nPos, nNeg, query, c, j);
-}
-exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query, c, j) {
-    // svm parameter defaults
-    c = c || 1.0; j = j || 1.0;
-    var store = recSet.store;
+exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
+    var settings = stts || {};
+    settings.nPos = stts.nPos || 2;
+    settings.nNeg = stts.nNeg || 2;
+    settings.textField = stts.textField || "Text";
+    settings.querySampleSize = stts.querySampleSize || 1000;
+    settings.randomSampleSize = stts.randomSampleSize || 0;
+    settings.c = stts.c || 1.0;
+    settings.j = stts.j || 1.0;
+    settings.batchSize = stts.batchSize || 100;
+    settings.maxIterations = stts.maxIterations || 100000;
+    settings.maxTime = stts.maxTime || 100000;
+    settings.minDiff = stts.minDiff || 1e-6;
+    settings.verbose = stts.verbose || false;
+
+    var store = qRecSet.store;
     var X = la.newSpMat();
     var y = la.newVec();
     // QUERY MODE
     var queryMode = true;
-    // bow similarity between query and training set 
-    var queryObj ={}; queryObj[textField] = query;
-    var queryRec = store.newRec(queryObj); // record
+    // bow similarity between query and training set
+    var temp = {}; temp[settings.textField] = query;
+    var queryRec = store.newRec(temp); // record
     var querySpVec = ftrSpace.ftrSpVec(queryRec); // query sparse vector
     querySpVec.normalize();
-    var recsMat = ftrSpace.ftrSpColMat(recSet); //recSet feature matrix
-    recsMat.normalizeCols();
-    var simV = recsMat.multiplyT(querySpVec); //similarities (q, recSet)
+
+    var rRecSet = store.sample(settings.randomSampleSize);
+
+    // query index sample, random sample
+    var uRecSet = qRecSet.sample(settings.querySampleSize).setunion(rRecSet);
+    var uMat = ftrSpace.ftrSpColMat(uRecSet); uMat.normalizeCols();
+
+    var simV = uMat.multiplyT(querySpVec); //similarities (q, recSet)
     var sortedSimV = simV.sortPerm(); //ascending sort
     var simVs = sortedSimV.vec; //sorted similarities (q, recSet)
     var simVp = sortedSimV.perm; //permutation of sorted similarities (q, recSet)
-    // counters for questions in query mode
+    //// counters for questions in query mode
     var nPosQ = 0; //for traversing simVp from the end
     var nNegQ = 0; //for traversing simVp from the start
+
 
     // SVM MODE
     var svm;
     var posIdxV = la.newIntVec(); //indices in recordSet
     var negIdxV = la.newIntVec(); //indices in recordSet
-    var posIdV = la.newIntVec(); //record IDs
-    var negIdV = la.newIntVec(); //record IDs
-    var classVec = la.newVec({ "vals": recSet.length }); //svm scores for record set
-    var resultVec = la.newVec({ "vals": recSet.length }); // non-absolute svm scores for record set
+
+    var posRecIdV = la.newIntVec(); //record IDs
+    var negRecIdV = la.newIntVec(); //record IDs
+
+    var classVec = la.newVec({ "vals": uRecSet.length }); //svm scores for record set
+    var resultVec = la.newVec({ "vals": uRecSet.length }); // non-absolute svm scores for record set
+
+    //#   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
+    this.getQueryMode = function() { return queryMode; };
+
+    //#   - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+    this.getPos = function(threshold) {
+      if(this.queryMode) { return null; } // must be in SVM mode to return results
+      if(!threshold) { threshold = 0; }
+      var posIdxArray = [];
+      for (var recN = 0; recN < uRecSet.length; recN++) {
+        if (resultVec[recN] >= threshold) {
+          posIdxArray.push(recN);
+        }
+      }
+      return posIdxArray;
+    };
+
     // returns record set index of the unlabeled record that is closest to the margin
-    //#   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+    //#   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
     this.selectQuestion = function () {
-        if (posIdV.length >= nPos && negIdV.length >= nNeg) { queryMode = false; }
+        if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
         if (queryMode) {
-            if (posIdV.length < nPos) {
+            if (posRecIdV.length < settings.nPos && nPosQ + 1 < uRecSet.length) {
                 nPosQ = nPosQ + 1;
                 console.say("query mode, try to get pos");
                 return simVp[simVp.length - 1 - (nPosQ - 1)];
             }
-            if (negIdV.length < nNeg) {
+            if (negRecIdV.length < settings.nNeg && nNegQ + 1 < uRecSet.length) {
                 nNegQ = nNegQ + 1;
+                // TODO if nNegQ == rRecSet.length, find a new sample
                 console.say("query mode, try to get neg");
                 return simVp[nNegQ - 1];
             }
@@ -425,24 +460,20 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
         else {
             ////call svm, get record closest to the margin            
             //console.startx(function (x) { return eval(x); });
-            svm = analytics.trainSvmClassify(X, y, {c: c, j: j}); //column examples, y float vector of +1/-1, default svm paramvals
+            svm = analytics.trainSvmClassify(X, y, settings); //column examples, y float vector of +1/-1, default svm paramvals
             // mark positives
-            for (var i = 0; i < posIdxV.length; i++) { 
-              classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; 
-              resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY; 
-            }
+            for (var i = 0; i < posIdxV.length; i++) { classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; }
             // mark negatives
             for (var i = 0; i < negIdxV.length; i++) { 
-              classVec[negIdxV[i]] = Number.POSITIVE_INFINITY; 
+              classVec[negIdxV[i]] = Number.POSITIVE_INFINITY;
               resultVec[negIdxV[i]] = Number.NEGATIVE_INFINITY; 
             }
             var posCount = posIdxV.length;
             var negCount = negIdxV.length;
             // classify unlabeled
-            for (var recN = 0; recN < recSet.length; recN++) {
+            for (var recN = 0; recN < uRecSet.length; recN++) {
                 if (classVec[recN] !== Number.POSITIVE_INFINITY) {
-
-                    var svmMargin = svm.predict(recsMat[recN]);
+                    var svmMargin = svm.predict(uMat[recN]);
                     if (svmMargin > 0) {
                         posCount++;
                     } else {
@@ -454,40 +485,40 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
             }
             var sorted = classVec.sortPerm();
             console.say("svm mode, margin: " + sorted.vec[0] + ", npos: " + posCount + ", nneg: " + negCount);
-            return sorted.perm[0];            
+            return sorted.perm[0];
         }
     };
     // asks the user for class label given a record set index
-    //#   - `alModel.getAnswer(alAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+    //#   - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
     //#      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
     this.getAnswer = function (ALanswer, recSetIdx) {
         //todo options: ?newQuery
         if (ALanswer === "y") {
             posIdxV.push(recSetIdx);
-            posIdV.push(recSet[recSetIdx].$id);
-            X.push(recsMat[recSetIdx]);
+            posRecIdV.push(uRecSet[recSetIdx].$id);
+            X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
             y.push(1.0);
         } else {
             negIdxV.push(recSetIdx);
-            negIdV.push(recSet[recSetIdx].$id);
-            X.push(recsMat[recSetIdx]);
+            negRecIdV.push(uRecSet[recSetIdx].$id);
+            X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
             y.push(-1.0);
         }
         // +k query // rank unlabeled according to query, ask for k most similar
         // -k query // rank unlabeled according to query, ask for k least similar
     };
-    //#   - `alModel.startLoop()` -- starts the active learning loop in console
-    this.startLoop = function() {
+    //#   - `model.startLoop()` -- starts the active learning loop in console
+    this.startLoop = function () {
         while (true) {
             var recSetIdx = this.selectQuestion();
-            console.say(recSet[recSetIdx].Text + ": y/(n)/stop?");
+            console.say(uRecSet[recSetIdx].Text + ": y/(n)/stop?");
             var ALanswer = console.getln();
             if (ALanswer == "stop") { break; }
-            if (posIdxV.length + negIdxV.length == recSet.length) { break;}
-            this.getAnswer(ALanswer, recSetIdx);            
+            if (posIdxV.length + negIdxV.length == uRecSet.length) { break; }
+            this.getAnswer(ALanswer, recSetIdx);
         }
     };
-    //#   - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+    //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
         if (queryMode) {
@@ -496,34 +527,9 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
         }
         svm.save(outputStream);
     };
-    //#   - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
-    this.getPos = function(threshold) {
-      if(this.queryMode) { return null; } // must be in SVM mode to return results
-      if(!threshold) { threshold = 0; }
-      var posIdxArray = [];
-      for (var recN = 0; recN < recSet.length; recN++) {
-        if (resultVec[recN] >= threshold) {
-          posIdxArray.push(recN);
-        }
-      }
-      return posIdxArray;
-    };
-    //#   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
-    this.getQueryMode = function() {
-      return queryMode;
-    };
-    //#   - `num = alModel.getnpos()` -- return the  number of examples marked as positive. 
-    this.getnpos = function() { return npos; };
-    //#   - `num = alModel.getnneg()` -- return the  number of examples marked as negative.
-    this.getnneg = function() { return nneg; };
-    //#   - `alModel.setj(num)` - sets the SVM j parameter to the provided value.
-    this.setj = function(nj) { j = nj; };
-    //#   - `alModel.setc(num)` - sets the SVM c parameter to the provided value.
-    this.setc = function(nc) { c = nc; };
     //this.saveLabeled
     //this.loadLabeled
 };
-
 
 //////////// RIDGE REGRESSION 
 // solve a regularized least squares problem
@@ -533,7 +539,7 @@ exports.activeLearner = function (ftrSpace, textField, recSet, nPos, nNeg, query
 //#  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
 exports.newRidgeRegression = function (kappa, dim, buffer) {
     return new analytics.ridgeRegression(kappa, dim, buffer);
-}
+};
 exports.ridgeRegression = function (kappa, dim, buffer) {
     var X = [];
     var y = [];
