@@ -2234,6 +2234,8 @@ public:
 	//#- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
 	//#- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
 	JsDeclareFunction(inner);	
+    //#- `spVec = spVec.plus(spVec2)` -- adds `spVec2` to `spVec`, result is stored in `spVec. Return self.
+	JsDeclareFunction(plus);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
 	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.

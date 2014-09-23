@@ -690,9 +690,13 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         // compile the module
         v8::Handle<v8::Script> Module = v8::Script::Compile(
             v8::String::New(ModuleSource.CStr()),
-             v8::String::New(ModuleFNm.CStr()));
+            v8::String::New(ModuleFNm.CStr()));
+        // check if compilation failed
+        TJsUtil::HandleTryCatch(TryCatch);
         // execute the module
         Module->Run();
+        // check if ran correctly
+        TJsUtil::HandleTryCatch(TryCatch);
         // collect the result
         v8::Handle<v8::Function> ModuleFun = v8::Handle<v8::Function>::Cast(
             Context->Global()->Get(v8::String::New("module")));
@@ -4115,6 +4119,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, put);
 		JsRegisterFunction(TmpTemp, sum);
 		JsRegisterFunction(TmpTemp, inner);
+		JsRegisterFunction(TmpTemp, plus);
 		JsRegisterFunction(TmpTemp, multiply);
 		JsRegisterFunction(TmpTemp, normalize);
 		JsRegisterProperty(TmpTemp, nnz);
@@ -4202,6 +4207,20 @@ v8::Handle<v8::Value> TJsSpV::inner(const v8::Arguments& Args) {
 		}
 	}
 	return HandleScope.Close(v8::Number::New(Result));
+}
+
+v8::Handle<v8::Value> TJsSpV::plus(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+	if (Args[0]->IsObject()) {
+		if (TJsSpVUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+			TJsSpV* JsVec = TJsObjUtil<TQm::TJsSpV>::GetArgObj(Args, 0);
+			QmAssertR(JsSpV->Dim == -1 || JsVec->Dim == -1 || JsSpV->Dim == JsVec->Dim, "sparse_vector + sparse_vector: dimensions mismatch");
+			TIntFltKdV ResultSpV; TLinAlg::AddVec(JsVec->Vec, JsSpV->Vec, ResultSpV);
+            JsSpV->Vec = ResultSpV;
+		}
+	}
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSpV::multiply(const v8::Arguments& Args) {
@@ -4871,7 +4890,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
+    const int SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
