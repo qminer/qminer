@@ -2914,7 +2914,9 @@ void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
  int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 	 int MaxDim = 0;
 	 for (int ColN = 0; ColN < SpMat.Len(); ColN++) {
-		 MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
+          if(!SpMat[ColN].Empty()) {
+             MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
+          }
 	 }
 	 return MaxDim;
  }

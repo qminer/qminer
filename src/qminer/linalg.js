@@ -441,7 +441,7 @@ la.mean = function (mat, dim) {
 
 //# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
 //# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
-//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of X specified by parameter `dim`
+//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`
 la.std = function (mat, flag, dim) {
     // if flag is not defined, set it to 0
     var flag = flag == null ? 0 : flag;
@@ -494,6 +494,33 @@ la.zscore = function (mat, flag, dim) {
     result.mu = mean;
     result.sigma = sigma;
     return result;
+}
+
+//# - `vec = la.standardize(vec, mu, sigma)` - returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.
+//# - `mat = la.standardize(mat, mu, sigma)` - returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.
+//# - `mat = la.standardize(mat, mu, sigma, dim)` - returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.
+la.standardize = function (input, mu, sigma, dim) {
+    var dim = dim == null ? 1 : dim;
+    // check if input is vector. If it is, cast it to matrix.
+    mat = (typeof input.length == "undefined") ? input : input.toMat().transpose();
+    if (dim == 1) {
+        var mat2 = mat.minus(la.repmat(mu.toMat().transpose(), mat.rows, 1));
+    } else {
+        var mat2 = mat.minus(la.repvec(mu, 1, mat.cols));
+    }
+    var invsigma = la.newVec(sigma);
+    for (var i = 0; i < invsigma.length; i++) {
+        if (invsigma[i] > 0) {
+            invsigma[i] = 1.0 / invsigma[i];
+        }
+    }
+    if (dim == 1) {
+        mat2 = mat2.multiply(invsigma.spDiag());
+    } else {
+        mat2 = invsigma.spDiag().multiply(mat2);
+    }
+    // If input is vector, cast matrix back to vector.
+    return (typeof input.length == "undefined") ? mat2 : mat2.getRow(0);
 }
 
 var linalg = la;
