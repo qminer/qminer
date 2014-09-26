@@ -2976,6 +2976,161 @@ public:
 
 };
 
+class TAuxStrIntH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrIntH"
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	/*static int CastDat(const v8::Local<v8::Value>& Value) {
+		return (int)Value->ToNumber()->Value();
+	}*/
+};
+
+template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
+class TJsHash {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	typedef THash<TKey, TDat> HT;
+	HT Map;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsHash<TKey, TDat, TAux> > TJsHashUtil;
+	explicit TJsHash(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		v8::Persistent<v8::Object> obj = TJsHashUtil::New(new TJsHash(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(TAux::ClassId.CStr());
+		obj->SetHiddenValue(key, value);
+		return  obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const HT& _Map) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsHash::SetMap(obj, _Map);
+		return  obj;
+	}
+	static HT& GetMap(const v8::Handle<v8::Object> Obj) {
+		return TJsHashUtil::GetSelf(Obj)->Map;
+	}
+	static void SetMap(const v8::Handle<v8::Object> Obj, const HT& _Map) {
+		TJsHashUtil::GetSelf(Obj)->Map = _Map;
+	}
+
+	/// template	
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `num = map.get(str)` -- return next numeric data based on string key
+	JsDeclareFunction(get);
+	//#- `map = map.put(str, num)` -- add/update key-value pair. Returns self
+	JsDeclareFunction(put);
+	//#- `bool = map.hasKey(str)` -- returns true if the map has a given key `str`
+	JsDeclareFunction(hasKey);
+	//#- `num = map.length` -- returns the number of keys
+	JsDeclareProperty(length);
+	//#- `str = map.key(idx)` -- returns the `idx`-th key
+	JsDeclareFunction(key);
+	//#- `num = map.dat(idx)` -- returns the `idx`-th dat
+	JsDeclareFunction(dat);
+};
+
+typedef TJsHash<TStr, TInt, TAuxStrIntH> TJsStrIntH;
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::ObjectTemplate> TJsHash<TKey, TDat, TAux>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, get);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, hasKey);
+		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, key);
+		JsRegisterFunction(TmpTemp, dat);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::get(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	TDat Dat;
+	if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
+		return TAux::WrapDat(Dat, HandleScope);
+	}
+	else { return v8::Undefined(); }
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::put(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	TDat Dat = TAux::GetArgDat(Args, 1);
+	JsMap->Map.AddDat(Key, Dat);
+	return Args.Holder();
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::hasKey(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	return HandleScope.Close(v8::Boolean::New(JsMap->Map.IsKey(Key)));
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Info); 
+	return HandleScope.Close(v8::Integer::New(JsMap->Map.Len()));
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::key(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
+	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::key Incorrect KeyId:%d", Idx));
+	return TAux::WrapKey(JsMap->Map.GetKey(Idx), HandleScope);
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::dat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
+	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::dat Incorrect KeyId:%d", Idx));
+	TKey Key;
+	TDat Dat; 
+	JsMap->Map.GetKeyDat(Idx, Key, Dat);
+	return TAux::WrapDat(Dat, HandleScope);
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
 class TJsGeoIp {
@@ -3078,7 +3233,32 @@ public:
 //#
 //# ### utilities.js (use require)
 //# 
+class TJsUtilities {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsUtilities> TJsUtilitiesUtil;
+	explicit TJsUtilities(TWPt<TScript> _Js) : Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsUtilitiesUtil::New(new TJsUtilities(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//#
+	//# **Functions and properties:**
+	//#
+	//#- `map = utilities.newStrIntH()` -- Stops the current process.
+	JsDeclareFunction(newStrIntH);
+};
 //#JSIMPLEMENT:src/qminer/js/utilities.js    
+
 
 //#
 //# ### assert.js (use require)

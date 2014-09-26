@@ -672,8 +672,9 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         // check if one of built-in modules
 		if (ModuleFNm == "__analytics__") {
 			return TJsAnalytics::New(Script);
-		}
-		else if (ModuleFNm == "__snap__") {
+		} else if (ModuleFNm == "__utilities__") {
+			return TJsUtilities::New(Script);
+		} else if (ModuleFNm == "__snap__") {
 			return TJsSnap::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
@@ -6243,6 +6244,12 @@ v8::Handle<v8::Value> TJsEdge::getNext(const v8::Arguments& Args) {
 	return TJsEdge::New(JsEdge->Js, ReturnEdge);
 }
 
+
+///////////////////////////////
+// QMiner-JavaScript-HashMap
+
+const TStr TAuxStrIntH::ClassId = "TStrIntH";
+
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
 bool TJsGeoIp::InitP = false;
@@ -6476,6 +6483,26 @@ v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties,
 	v8::HandleScope HandleScope;
 	v8::Local<v8::String> RootFPath = v8::String::New(TEnv::RootFPath.CStr());
 	return HandleScope.Close(RootFPath);
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Utilities
+
+v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newStrIntH);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrIntH::New(JsUtils->Js);
 }
 
 ///////////////////////////////

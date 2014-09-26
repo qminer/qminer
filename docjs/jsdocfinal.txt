@@ -194,6 +194,7 @@ var record = store[1234];
 - `objJSON = store.toJSON()` -- returns the store as a JSON
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
+- `str = store.toString()` -- returns a string `str` - a description of `store`
 - `store.each(callback)` -- call `callback` on each element of the store
 - `arr = store.map(callback)` -- call `callback` on each element of the store and store result to `arr`
 - `rs = store.head(num)` -- return record set with first `num` records
@@ -385,10 +386,13 @@ several functions from linear algebra.
 - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
 - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
 - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
-- `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of X specified by parameter `dim`
+- `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`
 - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
 - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 - `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+- `vec = la.standardize(vec, mu, sigma)` - returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.
+- `mat = la.standardize(mat, mu, sigma)` - returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.
+- `mat = la.standardize(mat, mu, sigma, dim)` - returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.
 
 ### Vector
 
@@ -643,17 +647,13 @@ To start using it must be loaded using `var analytics = require('analytics.js');
    examples that have to be identified in the query mode before the program enters SVM mode.
   The next parameter is the `query` (string) which should be related to positive examples. 
   Final Parameters `c` and `j` are SVM parameters.
-  - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
-  - `alModel.getAnswer(alAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
-     The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
-  - `alModel.startLoop()` -- starts the active learning loop in console
-  - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
-  - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
-  - `num = alModel.getnpos()` -- return the  number of examples marked as positive. 
-  - `num = alModel.getnneg()` -- return the  number of examples marked as negative.
-  - `alModel.setj(num)` - sets the SVM j parameter to the provided value.
-  - `alModel.setc(num)` - sets the SVM c parameter to the provided value.
+  - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+  - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+  - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+     The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
+  - `model.startLoop()` -- starts the active learning loop in console
+  - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
 - `ridgeRegressionModel = analytics.newRidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
@@ -946,6 +946,15 @@ Edge
 - `id = edge.getDstNodeId()` -- return id of destination node
 - `edge = edge.getNext()` -- return next edge
 
+**Functions and properties:**
+
+- `num = map.get(str)` -- return next numeric data based on string key
+- `map = map.put(str, num)` -- add/update key-value pair. Returns self
+- `bool = map.hasKey(str)` -- returns true if the map has a given key `str`
+- `num = map.length` -- returns the number of keys
+- `str = map.key(idx)` -- returns the `idx`-th key
+- `num = map.dat(idx)` -- returns the `idx`-th dat
+
 ## System and I/O
 
 ### Process
@@ -974,6 +983,10 @@ Edge
 
 ### utilities.js (use require)
 
+
+**Functions and properties:**
+
+- `map = utilities.newStrIntH()` -- Stops the current process.
 - `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 - `bool = utilities.isObject(arg)` -- is parameter an object?
 - `bool = utilities.isArray(arg)` -- is parameter an array?

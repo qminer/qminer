@@ -235,6 +235,7 @@ var _htModel = new function () { }
 var _alModel = new function () { }
 var _model = new function () { }
 var _mat = new function () { }
+var _map = new function () { }
 var _key = new function () { }
 var qm = new function () { }
 var _ekf = new function () { }
@@ -325,6 +326,13 @@ _store.add = function () {
 	/// <summary> add record `rec` to the store and return its ID `recId`</summary>
 	/// <param name="_rec" value="_rec">param</param>
 	/// <returns value ="_recId"/>
+	/// </signature>
+};
+
+_store.toString = function () {
+	/// <signature>
+	/// <summary> returns a string `str` - a description of `store`</summary>
+	/// <returns value ="_str"/>
 	/// </signature>
 };
 
@@ -1444,11 +1452,36 @@ la.std = function () {
 	/// <returns value ="_vec"/>
 	/// </signature>
 	/// <signature>
-	/// <summary> computes the standard deviations along the dimension of X specified by parameter `dim`</summary>
+	/// <summary> computes the standard deviations along the dimension of `mat` specified by parameter `dim`</summary>
 	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_flag" value="_flag">param</param>
 	/// <param name="_dim" value="_dim">param</param>
 	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+la.standardize = function () {
+	/// <signature>
+	/// <summary> returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_mu" value="_mu">param</param>
+	/// <param name="_sigma" value="_sigma">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mu" value="_mu">param</param>
+	/// <param name="_sigma" value="_sigma">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mu" value="_mu">param</param>
+	/// <param name="_sigma" value="_sigma">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -2045,6 +2078,13 @@ _utilities.newHashTable = function () {
 	/// <signature>
 	/// <summary> creates a hash table</summary>
 	/// <returns value ="_hashTable"/>
+	/// </signature>
+};
+
+_utilities.newStrIntH = function () {
+	/// <signature>
+	/// <summary> Stops the current process.</summary>
+	/// <returns value ="_map"/>
 	/// </signature>
 };
 
@@ -3270,65 +3310,11 @@ _htModel.classify = function () {
 	/// </signature>
 };
 
-_alModel.selectQuestion = function () {
-	/// <signature>
-	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
-	/// <returns value ="_recSetIdx"/>
-	/// </signature>
-};
-
-_alModel.getAnswer = function () {
-	/// <signature>
-	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
-	/// <param name="_alAnswer" value="_alAnswer">param</param>
-	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
 _alModel.getPos = function () {
 	/// <signature>
 	/// <summary> given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.</summary>
 	/// <param name="_thresh" value="_thresh">param</param>
 	/// <returns value ="_numArr"/>
-	/// </signature>
-};
-
-_alModel.setc = function () {
-	/// <signature>
-	/// <summary> sets the SVM c parameter to the provided value.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.setj = function () {
-	/// <signature>
-	/// <summary> sets the SVM j parameter to the provided value.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.startLoop = function () {
-	/// <signature>
-	/// <summary> starts the active learning loop in console</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.getnpos = function () {
-	/// <signature>
-	/// <summary> return the  number of examples marked as positive.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_alModel.saveSvmModel = function () {
-	/// <signature>
-	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -3339,18 +3325,42 @@ _alModel.getQueryMode = function () {
 	/// </signature>
 };
 
-_alModel.getnneg = function () {
-	/// <signature>
-	/// <summary> return the  number of examples marked as negative.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
 _model.predict = function () {
 	/// <signature>
 	/// <summary> predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.</summary>
 	/// <param name="_vec" value="_vec">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_model.selectQuestion = function () {
+	/// <signature>
+	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
+	/// <returns value ="_recSetIdx"/>
+	/// </signature>
+};
+
+_model.getAnswer = function () {
+	/// <signature>
+	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
+	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
+	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_model.saveSvmModel = function () {
+	/// <signature>
+	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_model.startLoop = function () {
+	/// <signature>
+	/// <summary> starts the active learning loop in console</summary>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -3585,6 +3595,50 @@ _mat.at = function () {
 	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_map.get = function () {
+	/// <signature>
+	/// <summary> return next numeric data based on string key</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_map.dat = function () {
+	/// <signature>
+	/// <summary> returns the `idx`-th dat</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "length" value = "_num"> returns the number of keys</field>
+_map.length = _num;
+
+_map.key = function () {
+	/// <signature>
+	/// <summary> returns the `idx`-th key</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_str"/>
+	/// </signature>
+};
+
+_map.put = function () {
+	/// <signature>
+	/// <summary> add/update key-value pair. Returns self</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_map.hasKey = function () {
+	/// <signature>
+	/// <summary> returns true if the map has a given key `str`</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value ="_bool"/>
 	/// </signature>
 };
 

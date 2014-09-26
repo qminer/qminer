@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+module.exports = require("__utilities__");
+exports = module.exports; // re-establish link
+
 //////////////////////////////////////////
 //#- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 //#- `bool = utilities.isObject(arg)` -- is parameter an object?
