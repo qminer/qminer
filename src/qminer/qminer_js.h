@@ -2979,23 +2979,118 @@ public:
 class TAuxStrIntH {
 public:
 	static const TStr ClassId; //ClassId is set to "TStrIntH"
-	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
-		return Handlescope.Close(v8::Number::New(Val));
-	}
-	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
-		return Handlescope.Close(v8::String::New(Val.CStr()));
-	}
 	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
 		// TJsBase is arbitrary here
 		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
 	}
 	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
 		// TJsBase is arbitrary here
 		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
 	}
-	/*static int CastDat(const v8::Local<v8::Value>& Value) {
-		return (int)Value->ToNumber()->Value();
-	}*/
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+};
+
+class TAuxStrFltH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrFltH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TFlt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgFlt(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+};
+
+class TAuxStrStrH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrStrH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TStr GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+};
+
+
+
+
+class TAuxIntIntH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntIntH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+};
+
+class TAuxIntFltH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntFltH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TFlt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgFlt(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+};
+
+class TAuxIntStrH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntStrH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TStr GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
 };
 
 template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
@@ -3034,21 +3129,26 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `num = map.get(str)` -- return next numeric data based on string key
+	//#- `dat = map.get(key)` -- return data given on key
 	JsDeclareFunction(get);
-	//#- `map = map.put(str, num)` -- add/update key-value pair. Returns self
+	//#- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
 	JsDeclareFunction(put);
-	//#- `bool = map.hasKey(str)` -- returns true if the map has a given key `str`
+	//#- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
 	JsDeclareFunction(hasKey);
 	//#- `num = map.length` -- returns the number of keys
 	JsDeclareProperty(length);
-	//#- `str = map.key(idx)` -- returns the `idx`-th key
+	//#- `key = map.key(idx)` -- returns the `idx`-th key
 	JsDeclareFunction(key);
-	//#- `num = map.dat(idx)` -- returns the `idx`-th dat
+	//#- `dat = map.dat(idx)` -- returns the `idx`-th dat
 	JsDeclareFunction(dat);
 };
 
 typedef TJsHash<TStr, TInt, TAuxStrIntH> TJsStrIntH;
+typedef TJsHash<TStr, TFlt, TAuxStrFltH> TJsStrFltH;
+typedef TJsHash<TStr, TStr, TAuxStrStrH> TJsStrStrH;
+typedef TJsHash<TInt, TInt, TAuxIntIntH> TJsIntIntH;
+typedef TJsHash<TInt, TFlt, TAuxIntFltH> TJsIntFltH;
+typedef TJsHash<TInt, TStr, TAuxIntStrH> TJsIntStrH;
 
 template <class TKey, class TDat, class TAux>
 v8::Handle<v8::ObjectTemplate> TJsHash<TKey, TDat, TAux>::GetTemplate() {
@@ -3254,8 +3354,18 @@ public:
 	//#
 	//# **Functions and properties:**
 	//#
-	//#- `map = utilities.newStrIntH()` -- Stops the current process.
+	//#- `map = utilities.newStrIntH()` -- New string-int hashmap
 	JsDeclareFunction(newStrIntH);
+	//#- `map = utilities.newStrFltH()` -- New string-double hashmap
+	JsDeclareFunction(newStrFltH);
+	//#- `map = utilities.newStrStrH()` -- New string-string hashmap
+	JsDeclareFunction(newStrStrH);
+	//#- `map = utilities.newIntIntH()` -- New int-int hashmap
+	JsDeclareFunction(newIntIntH);
+	//#- `map = utilities.newIntFltH()` -- New int-double hashmap
+	JsDeclareFunction(newIntFltH);
+	//#- `map = utilities.newIntStrH()` -- New int-string hashmap
+	JsDeclareFunction(newIntStrH);
 };
 //#JSIMPLEMENT:src/qminer/js/utilities.js    
 

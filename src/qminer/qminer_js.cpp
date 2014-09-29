@@ -6249,6 +6249,12 @@ v8::Handle<v8::Value> TJsEdge::getNext(const v8::Arguments& Args) {
 // QMiner-JavaScript-HashMap
 
 const TStr TAuxStrIntH::ClassId = "TStrIntH";
+const TStr TAuxStrFltH::ClassId = "TStrFltH";
+const TStr TAuxStrStrH::ClassId = "TStrStrH";
+const TStr TAuxIntIntH::ClassId = "TIntIntH";
+const TStr TAuxIntFltH::ClassId = "TIntFltH";
+const TStr TAuxIntStrH::ClassId = "TIntStrH";
+
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -6494,6 +6500,11 @@ v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 		JsRegisterFunction(TmpTemp, newStrIntH);
+		JsRegisterFunction(TmpTemp, newStrFltH);
+		JsRegisterFunction(TmpTemp, newStrStrH);
+		JsRegisterFunction(TmpTemp, newIntIntH);
+		JsRegisterFunction(TmpTemp, newIntFltH);
+		JsRegisterFunction(TmpTemp, newIntStrH);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -6503,6 +6514,31 @@ v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
 v8::Handle<v8::Value> TJsUtilities::newStrIntH(const v8::Arguments& Args) {
 	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
 	return TJsStrIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrStrH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntStrH::New(JsUtils->Js);
 }
 
 ///////////////////////////////
