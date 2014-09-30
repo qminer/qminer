@@ -2823,7 +2823,9 @@ public:
 //# 
 //# ### Graph
 //# 
-//#  Graph
+//# TUNGraph: undirected graph(single edge between an unordered pair of nodes)
+//# TNGraph : directed graph(single directed edge between an ordered pair of nodes)
+//# TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
 
 template <class T>
 class TJsGraph {
