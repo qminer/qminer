@@ -2883,20 +2883,20 @@ public:
 	JsDeclareFunction(isNode);
 	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
 	JsDeclareFunction(isEdge);
-	//#- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
-	JsDeclareFunction(nodeCount);
-	//#- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
-	JsDeclareFunction(edgeCount);
-	//#- `node = graph.getNode(idx)` -- gets node with ID `idx`
-	JsDeclareFunction(getNode);
+	//#- `nodes = graph.nodes` -- gets number of nodes in the graph
+	JsDeclareProperty(nodes);
+	//#- `edges = graph.edges` -- gets number of edges in the graph
+	JsDeclareProperty(edges);
+	//#- `node = graph.node(idx)` -- gets node with ID `idx`
+	JsDeclareFunction(node);
 	//#- `node = graph.getFirstNode()` -- gets first node
-	JsDeclareFunction(getFirstNode);
+	JsDeclareProperty(firstNode);
 	//#- `node = graph.getLastNode()` -- gets last node
-	JsDeclareFunction(getLastNode);
+	JsDeclareProperty(lastNode);
 	//#- `edge = graph.getFirstEdge()` -- gets first edge
-	JsDeclareFunction(getFirstEdge);
+	JsDeclareProperty(firstEdge);
 	//#- `edge = graph.getLastEdge()` -- gets last edge
-	JsDeclareFunction(getLastEdge)
+	JsDeclareProperty(lastEdge)
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
 };
@@ -2922,9 +2922,11 @@ private:
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T a) {
 		v8::Persistent<v8::Object> obj = TJsNodeUtil::New(new TJsNode(Js, a));
+		/*
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New("Graph");
 		obj->SetHiddenValue(key, value);
+		*/
 		return obj;
 	}
 
@@ -2935,19 +2937,19 @@ public:
 	//# **Functions and properties:**
 	//# 
 	//#- `id = node.getId()` -- return id of the node
-	JsDeclareFunction(getId);
+	JsDeclareProperty(id);
 	//#- `deg = node.getDeg()` -- return degree of the node
-	JsDeclareFunction(getDeg);
+	JsDeclareProperty(deg);
 	//#- `indeg = node.getDeg()` -- return in-degree of the node
-	JsDeclareFunction(getInDeg);
+	JsDeclareProperty(inDeg);
 	//#- `outdeg = node.getDeg()` -- return out-degree of the node
-	JsDeclareFunction(getOutDeg);
+	JsDeclareProperty(outDeg);
 	//#- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
-	JsDeclareFunction(getNbrNId);
+	JsDeclareFunction(nbrNId);
 	//#- `node = node.getNext()` -- return next node
-	JsDeclareFunction(getNext);
+	JsDeclareProperty(next);
 	//#- `node = graph.getPrev()` -- return previous node
-	JsDeclareFunction(getPrev);
+	JsDeclareProperty(prev);
 };
 
 ///////////////////////////////
@@ -2979,13 +2981,13 @@ public:
 	//# **Functions and properties:**
 	//# 
 	//#- `id = edge.getId()` -- return id of the edge
-	JsDeclareFunction(getId);
+	JsDeclareProperty(id);
 	//#- `id = edge.getSrcNodeId()` -- return id of source node
-	JsDeclareFunction(getSrcNodeId);
+	JsDeclareProperty(srcId);
 	//#- `id = edge.getDstNodeId()` -- return id of destination node
-	JsDeclareFunction(getDstNodeId);
+	JsDeclareProperty(dstId);
 	//#- `edge = edge.getNext()` -- return next edge
-	JsDeclareFunction(getNext);
+	JsDeclareProperty(next);
 
 };
 
