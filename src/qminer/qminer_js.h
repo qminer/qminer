@@ -2777,7 +2777,6 @@ public:
 };
 
 
-
 ///////////////////////////////
 // QMiner-Snap
 //# 
@@ -2808,23 +2807,24 @@ public:
 	//# 
 	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
 	JsDeclareFunction(newUGraph);
+	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
+	JsDeclareFunction(newDGraph);
 	//#- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(DegreeCentrality);
-	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
+	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(CommunityDetection);
-	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(CommunityEvolution);
-	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = "lip"
+	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(CorePeriphery);
 };
-
 
 ///////////////////////////////
 // QMiner-Undirected-Graph
 //# 
 //# ### Undirected Graph
 //# 
-//# Undirected graph...
+//# Undirected graph
 class TJsUGraph {
 public:
 	/// JS script context
@@ -2845,14 +2845,105 @@ private:
 
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
-		return TJsUGraphUtil::New(new TJsUGraph(Js));
+		v8::Persistent<v8::Object> obj = TJsUGraphUtil::New(new TJsUGraph(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TUNGraph");
+		obj->SetHiddenValue(key, value);
+		return obj;
 	}
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path) {
-		return TJsUGraphUtil::New(new TJsUGraph(Js, path));
+		v8::Persistent<v8::Object> obj = TJsUGraphUtil::New(new TJsUGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TUNGraph");
+		obj->SetHiddenValue(key, value);
+		return obj;
 	}
 
 	/// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+	JsDeclareFunction(addNode);
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+	JsDeclareFunction(addEdge);
+	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+	JsDeclareFunction(delNode);
+	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+	JsDeclareFunction(delEdge);
+	//#- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+	JsDeclareFunction(isNode);
+	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+	JsDeclareFunction(isEdge);
+	//#- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
+	JsDeclareFunction(nodeCount);
+	//#- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
+	JsDeclareFunction(edgeCount);
+	//#- `node = graph.getNode(idx)` -- gets node with ID `idx`
+	JsDeclareFunction(getNode);
+	//#- `node = graph.getFirstNode()` -- gets first node
+	JsDeclareFunction(getFirstNode);
+	//#- `node = graph.getLastNode()` -- gets last node
+	JsDeclareFunction(getLastNode);
+	//#- `edge = graph.getFirstEdge()` -- gets first edge
+	JsDeclareFunction(getFirstEdge);
+	//#- `edge = graph.getLastEdge()` -- gets last edge
+	JsDeclareFunction(getLastEdge)
+	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+	JsDeclareFunction(dump);
+};
+
+///////////////////////////////
+// QMiner-Directed-Graph
+//# 
+//# ### Directed Graph
+//# 
+//# Directed graph
+class TJsDGraph {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	PNGraph Graph;
+	TStr InFNm;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsDGraph> TJsDGraphUtil;
+
+	TJsDGraph(TWPt<TScript> _Js) : Js(_Js) {
+		Graph = TNGraph::New();
+	};
+
+	TJsDGraph(TWPt<TScript> _Js, TStr path) : Js(_Js), InFNm(path) {
+		Graph = TSnap::LoadEdgeList<PNGraph>(InFNm);
+	};
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		v8::Persistent<v8::Object> obj = TJsDGraphUtil::New(new TJsDGraph(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TNGraph");
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path) {
+
+		v8::Persistent<v8::Object> obj = TJsDGraphUtil::New(new TJsDGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("TNGraph");
+		obj->SetHiddenValue(key, value);
+		return obj;
+
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
 	//# 
 	//# **Functions and properties:**
 	//# 
@@ -2893,26 +2984,28 @@ public:
 //# ### Node
 //# 
 //# Node
+
+template <class T>
 class TJsNode {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
-	TUNGraph::TNodeI Node;
+	T Node;
 	TIntV NIdV;
 
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsNode> TJsNodeUtil;
 	TInt Id;
-	explicit TJsNode(TWPt<TScript> Js_, TUNGraph::TNodeI a);
+	TJsNode(TWPt<TScript> Js_, T a);
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TNodeI a) {
-		return TJsNodeUtil::New(new TJsNode(Js, a));
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T a) {
+		v8::Persistent<v8::Object> obj = TJsNodeUtil::New(new TJsNode(Js, a));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("Graph");
+		obj->SetHiddenValue(key, value);
+		return obj;
 	}
-
-	// Operators
-	bool operator== (const TJsNode& NodeI) const;
-	TJsNode& operator++ (int) { this->getNext; return *this; }
 
 	/// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -2942,20 +3035,21 @@ public:
 //# ### Edge
 //# 
 //# Edge
+template <class T>
 class TJsEdge {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
-	TUNGraph::TEdgeI Edge;
+	T Edge;
 	TIntV NIdV;
 
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
 	TInt Id;
-	explicit TJsEdge(TWPt<TScript> Js_, TUNGraph::TEdgeI edge);
+	explicit TJsEdge(TWPt<TScript> Js_, T edge);
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TUNGraph::TEdgeI edge) {
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T edge) {
 		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
 	}
 
