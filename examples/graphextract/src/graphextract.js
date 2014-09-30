@@ -42,7 +42,7 @@ while (!fin.eof) {
 // read data and fill publications store
 
 console.log("reading pubs");
-var fin = fs.openRead("cobiss_publication1.txt");
+var fin = fs.openRead("cobiss_publication.txt");
 fin.readLine();
 while (!fin.eof) {
     var line = fin.readLine();
@@ -61,7 +61,7 @@ while (!fin.eof) {
 // read data and fill authors - publications relation store
 
 console.log("reading pubs auth");
-var fin = fs.openRead("cobiss_pub_auth1.txt");
+var fin = fs.openRead("cobiss_pub_auth.txt");
 fin.readLine();
 while (!fin.eof) {
     var line = fin.readLine();
@@ -222,19 +222,11 @@ eval(breakpoint);
 console.log("start creating graph...");
 var t = biPartiteEdgeListTime(auths, "mstid", "publications", "authors");
 //t.sort(function (a, b) { return parseInt(a.att) - parseInt(b.att) });
-console.say("now sort");
+console.say("sort");
 t.sort(sort_by('att', true, parseInt));
-console.say("now table to graph");
+console.say("table to graph");
 var g = tableToGraph(t);
 var gs = tableToGraphArrayAggTime(t,6);
 console.log("finished creating graph - test t");
-
-var communities = new Array();
-for (var i = 0; i < gs.length; i++) {
-    console.say("doing g" + i);
-    communities.push(snap.CommunityDetection(gs[i], "cnm"));
-}
-var json = snap.evolutionJs(communities, 0.5, 0.75);
-viz.drawCommunityEvolution(json, "cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 eval(breakpoint);
