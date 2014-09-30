@@ -6050,7 +6050,7 @@ v8::Handle<v8::Value> TJsGraph<T>::getNode(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
-	T::TNodeI ReturnNode;
+	typename T::TNodeI ReturnNode;
 	if (ArgsLen == 1) {
 		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
 		ReturnNode = JsGraph->Graph->GetNI(TJsGraphUtil::GetArgInt32(Args, 0));
@@ -6059,39 +6059,39 @@ v8::Handle<v8::Value> TJsGraph<T>::getNode(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsGraph::getNode: one input argument expected!");
 	}
 
-	return HandleScope.Close(TJsNode<T::TNodeI>::New(JsGraph->Js, ReturnNode)); 
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
 }
 
 template <class T>
 v8::Handle<v8::Value> TJsGraph<T>::getFirstNode(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	T::TNodeI ReturnNode = JsGraph->Graph->BegNI();
-	return HandleScope.Close(TJsNode<T::TNodeI>::New(JsGraph->Js, ReturnNode));
+	typename T::TNodeI ReturnNode = JsGraph->Graph->BegNI();
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
 }
 
 template <class T>
 v8::Handle<v8::Value> TJsGraph<T>::getLastNode(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	T::TNodeI ReturnNode = JsGraph->Graph->EndNI();
-	return HandleScope.Close(TJsNode<T::TNodeI>::New(JsGraph->Js, ReturnNode));
+	typename T::TNodeI ReturnNode = JsGraph->Graph->EndNI();
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
 }
 
 template <class T>
 v8::Handle<v8::Value> TJsGraph<T>::getFirstEdge(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
-	return HandleScope.Close(TJsEdge<T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
+	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
+	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
 }
 
 template <class T>
 v8::Handle<v8::Value> TJsGraph<T>::getLastEdge(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	T::TEdgeI ReturnEdge = JsGraph->Graph->EndEI();
-	return HandleScope.Close(TJsEdge<T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
+	typename T::TEdgeI ReturnEdge = JsGraph->Graph->EndEI();
+	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
 }
 
 template <class T>
@@ -6220,7 +6220,7 @@ v8::Handle<v8::Value> TJsNode<T>::getNext(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	T ReturnNode = JsNode->Node++;
-	//return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
+	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
 }
 
 template <>
