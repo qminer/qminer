@@ -11,4 +11,5 @@ script:
 os: linux
 notifications:
   email:
-  - mario.karlovcec@ijs.com
+  - blaz.fortuna@ijs.si
+  - jan.rupnik@ijs.si
