@@ -540,36 +540,6 @@ namespace TSnap {
 			}
 		}
 
-		// printing communities into json file - alternative ordering
-		/*
-		for (THashKeyDatI<TInt, TIntV> it = sizesContV.BegI();  !it.IsEnd(); it++)
-		{
-		TInt id = it.GetKey();
-		int len = it.GetDat().Len();
-		for (int i=0; i < it.GetDat().Len(); i++)
-		{
-		TInt size = it.GetDat()[i];
-		TInt j = i;
-		if (size > 0) {
-
-		if(br>0)
-		Json.InsStr(Json.Len(),",");
-
-		TInt size = it.GetDat()[i];
-
-		Json.InsStr(Json.Len(),"{\"id\":"); Json.InsStr(Json.Len(),id.GetStr());
-		Json.InsStr(Json.Len(),", \"size\":"); Json.InsStr(Json.Len(),size.GetStr());
-		Json.InsStr(Json.Len(),", \"t\":"); Json.InsStr(Json.Len(),j.GetStr());
-		Json.InsStr(Json.Len()," }\n");
-
-		br++;
-
-		}
-
-		}
-		}
-		*/
-
 		Json.InsStr(Json.Len(), "]\n}");
 
 	}
@@ -598,7 +568,9 @@ namespace TSnap {
 				double DegFrac;
 				TIntFltH NIdQH;
 				int MxQId;
-				TCmtyDat() : MxQId(-1) { }
+				TCmtyDat() : MxQId(-1) {
+					int b = MxQId;
+				}
 				TCmtyDat(const double& NodeDegFrac, const int& OutDeg) :
 					DegFrac(NodeDegFrac), NIdQH(OutDeg), MxQId(-1) { }
 				void AddQ(const int& NId, const double& Q) {
@@ -616,7 +588,10 @@ namespace TSnap {
 					NIdQH.DelKey(K); if (NId == K) { UpdateMaxQ(); }
 				}
 				int GetMxQNId() const { return NIdQH.GetKey(MxQId); }
-				double GetMxQ() const { return NIdQH[MxQId]; }
+				double GetMxQ() const { 
+					int something_temp = NIdQH[MxQId];
+					return NIdQH[MxQId];
+				}
 			};
 		private:
 			THash<TInt, TCmtyDat> CmtyQH;
@@ -624,10 +599,10 @@ namespace TSnap {
 			TUnionFind CmtyIdUF;
 			double Q;
 		public:
-			TCNMQMatrix(const PUNGraph& Graph) : CmtyQH(Graph->GetNodes()),
-				MxQHeap(Graph->GetNodes()), CmtyIdUF(Graph->GetNodes()) {
-				Init(Graph);
-			}
+			TCNMQMatrix(const PUNGraph& Graph) : 
+				CmtyQH(Graph->GetNodes()), MxQHeap(Graph->GetNodes()), 
+				CmtyIdUF(Graph->GetNodes()) 
+				{ Init(Graph); }
 			void Init(const PUNGraph& Graph) {
 				const double M = 0.5 / Graph->GetEdges(); // 1/2m
 				Q = 0.0;
