@@ -5,7 +5,9 @@ utilities = require('utilities.js');
 
 // Creating a new graph, adding nodes and edges
 
-// creating a new graph
+console.log("created directed graph");
+
+// creating a new undirected graph
 gTest = snap.newUGraph();
 
 //  adding nodes
@@ -24,6 +26,17 @@ for (var i = gTest.getFirstNode() ; br < gTest.nodeCount() ; i.getNext()) {
     br++;
 }
 
+// creating a new directed graph
+gD = snap.newDGraph();
+gD.addNode(1); gD.addNode(2); gD.addNode(3); gD.addNode(4);
+gD.addEdge(1, 2); gD.addEdge(1, 3); gD.addEdge(3, 1); gD.addEdge(4, 2);
+var br = 0;
+for (var i = gD.getFirstNode() ; br < gD.nodeCount() ; i.getNext()) {
+    console.log("id: " + i.getId() + ", deg: " + i.getDeg() + ", inDeg: " + i.getInDeg() + ", outDeg: " + i.getOutDeg() + "\n");
+    br++;
+}
+
+
 // Reading graphs from files, drawing graphs, detecting communities, computing community evolution and plotting
 
 // loading graphs
@@ -39,6 +52,7 @@ graphs.push(g2001); graphs.push(g2002);
 graphs.push(g2003); graphs.push(g2004);
 graphs.push(g2005); graphs.push(g2006);
 
+
 // determining communities for the array of graphs and storing the results in array of sparse vectors
 var communities = new Array();
 for (var i = 0; i < graphs.length; i++) {
@@ -52,9 +66,10 @@ var json = snap.evolutionJs(communities, 0.5, 0.75);
 viz.drawCommunityEvolution(json, "out\\cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 // load a new graph from a file
-console.log("Loading cobiss graph 1970-1975");
+console.log("Loading cobiss graph 1970-1975.edg");
 var g = snap.newUGraph("data\\researchersBib_1970-1975.edg");
 console.log("Done loading graph. N = " + g.nodeCount() + ", E = " + g.edgeCount());
+var g =  snap.removeNodes(g, 3)
 
 // detect communities using 2 different algorithms
 console.log("Calculating communities using Clauset-Newman-Moore community detection method");
@@ -63,6 +78,7 @@ console.log("Calculating communities using Info-map community detection method")
 var CmtyImap = snap.CommunityDetection(g, "imap");
 
 // draw the graph using two different colorings
+
 viz.drawGraph(g, "out\\gCNM.html", { "color": CmtyCNM });
 viz.drawGraph(g, "out\\gImap.html", { "color": CmtyImap });
 
