@@ -9,7 +9,5 @@ script:
   - make
   - ./test/javascript/test.sh
 os: linux
-notifications:
-  email:
-    - blaz.fortuna@ijs.si
-    - jan.rupnik@ijs.si
+  - mario.karlovcec@ijs.com
+  - mario.karlovcec@gmail.com
