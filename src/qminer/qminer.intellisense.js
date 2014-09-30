@@ -2032,6 +2032,13 @@ _utilities.isArray = function () {
 	/// </signature>
 };
 
+_utilities.newIntIntH = function () {
+	/// <signature>
+	/// <summary> New int-int hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
 _utilities.isString = function () {
 	/// <signature>
 	/// <summary> is `s` a string?</summary>
@@ -2081,9 +2088,37 @@ _utilities.newHashTable = function () {
 	/// </signature>
 };
 
+_utilities.newStrFltH = function () {
+	/// <signature>
+	/// <summary> New string-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
 _utilities.newStrIntH = function () {
 	/// <signature>
-	/// <summary> Stops the current process.</summary>
+	/// <summary> New string-int hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newIntFltH = function () {
+	/// <signature>
+	/// <summary> New int-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newIntStrH = function () {
+	/// <signature>
+	/// <summary> New int-string hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newStrStrH = function () {
+	/// <signature>
+	/// <summary> New string-string hashmap</summary>
 	/// <returns value ="_map"/>
 	/// </signature>
 };
@@ -3011,14 +3046,6 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
-_snap.CommunityEvolution = function () {
-	/// <signature>
-	/// <summary> return communities alg = "gn", "imap" or "cnm"</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <returns value ="_jsonstring"/>
-	/// </signature>
-};
-
 _snap.newUGraph = function () {
 	/// <signature>
 	/// <summary> generate an empty undirected graph</summary>
@@ -3026,9 +3053,16 @@ _snap.newUGraph = function () {
 	/// </signature>
 };
 
+_snap.newDGraph = function () {
+	/// <signature>
+	/// <summary> generate an empty directed graph</summary>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
 _snap.CorePeriphery = function () {
 	/// <signature>
-	/// <summary> return communities alg = "lip"</summary>
+	/// <summary> return communities alg = `lip`</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
 	/// <returns value ="_jsonstring"/>
@@ -3045,10 +3079,18 @@ _snap.DegreeCentrality = function () {
 
 _snap.CommunityDetection = function () {
 	/// <signature>
-	/// <summary> returns communities of graph (alg = "gn", "imap" or "cnm")</summary>
+	/// <summary> returns communities of graph (alg = `gn`, `imap` or `cnm`)</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
 	/// <returns value ="_spvector"/>
+	/// </signature>
+};
+
+_snap.CommunityEvolution = function () {
+	/// <signature>
+	/// <summary> return communities alg = `gn`, `imap` or `cnm`</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <returns value ="_jsonstring"/>
 	/// </signature>
 };
 
@@ -3057,9 +3099,19 @@ _graph.getLastEdge = function () {
 	/// <summary> gets last edge</summary>
 	/// <returns value ="_edge"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> gets last edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
 };
 
 _graph.delEdge = function () {
+	/// <signature>
+	/// <summary> delete an edge</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
 	/// <signature>
 	/// <summary> delete an edge</summary>
 	/// <param name="_idx1" value="_idx1">param</param>
@@ -3078,9 +3130,32 @@ _graph.addNode = function () {
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_idx"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> add a node to graph and return its ID `idx`</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add a node with ID `idx`, returns node ID</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add a node to graph and return its ID `idx`</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add a node with ID `idx`, returns node ID</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
 };
 
 _graph.dump = function () {
+	/// <signature>
+	/// <summary> dumps a graph to file named `fNm`</summary>
+	/// <param name="_fNm" value="_fNm">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
 	/// <signature>
 	/// <summary> dumps a graph to file named `fNm`</summary>
 	/// <param name="_fNm" value="_fNm">param</param>
@@ -3094,6 +3169,11 @@ _graph.delNode = function () {
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_idx"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> delete a node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
 };
 
 _graph.getFirstNode = function () {
@@ -3101,9 +3181,17 @@ _graph.getFirstNode = function () {
 	/// <summary> gets first node</summary>
 	/// <returns value ="_node"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> gets first node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
 };
 
 _graph.getLastNode = function () {
+	/// <signature>
+	/// <summary> gets last node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
 	/// <signature>
 	/// <summary> gets last node</summary>
 	/// <returns value ="_node"/>
@@ -3122,6 +3210,10 @@ _graph.getFirstEdge = function () {
 	/// <summary> gets first edge</summary>
 	/// <returns value ="_edge"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> gets first edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
 };
 
 _graph.nodeCount = function () {
@@ -3129,9 +3221,19 @@ _graph.nodeCount = function () {
 	/// <summary> gets number of nodes in the graph</summary>
 	/// <returns value ="_nodesCount"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> gets number of nodes in the graph</summary>
+	/// <returns value ="_nodesCount"/>
+	/// </signature>
 };
 
 _graph.isEdge = function () {
+	/// <signature>
+	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_isEdge"/>
+	/// </signature>
 	/// <signature>
 	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
 	/// <param name="_idx1" value="_idx1">param</param>
@@ -3146,9 +3248,19 @@ _graph.isNode = function () {
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_isNode"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> check if a node with ID `idx` exists in the graph</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_isNode"/>
+	/// </signature>
 };
 
 _graph.getNode = function () {
+	/// <signature>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
 	/// <signature>
 	/// <summary> gets node with ID `idx`</summary>
 	/// <param name="_idx" value="_idx">param</param>
@@ -3163,9 +3275,19 @@ _graph.addEdge = function () {
 	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
 	/// <returns value ="_edgeIdx"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> add an edge</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <returns value ="_edgeIdx"/>
+	/// </signature>
 };
 
 _graph.edgeCount = function () {
+	/// <signature>
+	/// <summary> gets number of edges in the graph</summary>
+	/// <returns value ="_edgesCount"/>
+	/// </signature>
 	/// <signature>
 	/// <summary> gets number of edges in the graph</summary>
 	/// <returns value ="_edgesCount"/>
@@ -3600,9 +3722,9 @@ _mat.at = function () {
 
 _map.get = function () {
 	/// <signature>
-	/// <summary> return next numeric data based on string key</summary>
-	/// <param name="_str" value="_str">param</param>
-	/// <returns value ="_num"/>
+	/// <summary> return data given on key</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_dat"/>
 	/// </signature>
 };
 
@@ -3610,7 +3732,7 @@ _map.dat = function () {
 	/// <signature>
 	/// <summary> returns the `idx`-th dat</summary>
 	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_num"/>
+	/// <returns value ="_dat"/>
 	/// </signature>
 };
 
@@ -3621,23 +3743,23 @@ _map.key = function () {
 	/// <signature>
 	/// <summary> returns the `idx`-th key</summary>
 	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_str"/>
+	/// <returns value ="_key"/>
 	/// </signature>
 };
 
 _map.put = function () {
 	/// <signature>
 	/// <summary> add/update key-value pair. Returns self</summary>
-	/// <param name="_str" value="_str">param</param>
-	/// <param name="_num" value="_num">param</param>
+	/// <param name="_key" value="_key">param</param>
+	/// <param name="_dat" value="_dat">param</param>
 	/// <returns value ="_map"/>
 	/// </signature>
 };
 
 _map.hasKey = function () {
 	/// <signature>
-	/// <summary> returns true if the map has a given key `str`</summary>
-	/// <param name="_str" value="_str">param</param>
+	/// <summary> returns true if the map has a given key `key`</summary>
+	/// <param name="_key" value="_key">param</param>
 	/// <returns value ="_bool"/>
 	/// </signature>
 };
