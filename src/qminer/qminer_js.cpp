@@ -6059,7 +6059,7 @@ v8::Handle<v8::Value> TJsGraph<T>::getNode(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsGraph::getNode: one input argument expected!");
 	}
 
-	return HandleScope.Close(TJsNode<T::TNodeI>::New(JsGraph->Js, ReturnNode));
+	return HandleScope.Close(TJsNode<T::TNodeI>::New(JsGraph->Js, ReturnNode)); 
 }
 
 template <class T>
@@ -6220,7 +6220,7 @@ v8::Handle<v8::Value> TJsNode<T>::getNext(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	T ReturnNode = JsNode->Node++;
-	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
+	//return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
 }
 
 template <>
