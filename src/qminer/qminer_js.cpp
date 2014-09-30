@@ -5895,13 +5895,13 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, delEdge);
 		JsRegisterFunction(TmpTemp, isNode);
 		JsRegisterFunction(TmpTemp, isEdge);
-		JsRegisterFunction(TmpTemp, nodeCount);
-		JsRegisterFunction(TmpTemp, edgeCount);
-		JsRegisterFunction(TmpTemp, getNode);
-		JsRegisterFunction(TmpTemp, getFirstNode);
-		JsRegisterFunction(TmpTemp, getLastNode);
-		JsRegisterFunction(TmpTemp, getFirstEdge);
-		JsRegisterFunction(TmpTemp, getLastEdge);
+		JsRegisterProperty(TmpTemp, nodes);
+		JsRegisterProperty(TmpTemp, edges);
+		JsRegisterFunction(TmpTemp, node);
+		JsRegisterProperty(TmpTemp, firstNode);
+		JsRegisterProperty(TmpTemp, lastNode);
+		JsRegisterProperty(TmpTemp, firstEdge);
+		JsRegisterProperty(TmpTemp, lastEdge);
 		JsRegisterFunction(TmpTemp, dump);
 
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -6032,21 +6032,21 @@ v8::Handle<v8::Value> TJsGraph<T>::isEdge(const v8::Arguments& Args) {
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::nodeCount(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::nodes(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetNodes()));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::edgeCount(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::edges(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetEdges()));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::getNode(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::node(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
@@ -6056,40 +6056,40 @@ v8::Handle<v8::Value> TJsGraph<T>::getNode(const v8::Arguments& Args) {
 		ReturnNode = JsGraph->Graph->GetNI(TJsGraphUtil::GetArgInt32(Args, 0));
 	}
 	else {
-		throw TQmExcept::New("TJsGraph::getNode: one input argument expected!");
+		throw TQmExcept::New("TJsGraph::node: one input argument expected!");
 	}
 
 	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::getFirstNode(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::firstNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	typename T::TNodeI ReturnNode = JsGraph->Graph->BegNI();
 	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::getLastNode(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::lastNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	typename T::TNodeI ReturnNode = JsGraph->Graph->EndNI();
 	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::getFirstEdge(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
 	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::getLastEdge(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsGraph<T>::lastEdge(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	typename T::TEdgeI ReturnEdge = JsGraph->Graph->EndEI();
 	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
 }
@@ -6125,12 +6125,12 @@ v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, getId);
-		JsRegisterFunction(TmpTemp, getDeg);
-		JsRegisterFunction(TmpTemp, getInDeg);
-		JsRegisterFunction(TmpTemp, getOutDeg);
-		JsRegisterFunction(TmpTemp, getNbrNId);
-		JsRegisterFunction(TmpTemp, getNext);
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, deg);
+		JsRegisterProperty(TmpTemp, inDeg);
+		JsRegisterProperty(TmpTemp, outDeg);
+		JsRegisterFunction(TmpTemp, nbrNId);
+		JsRegisterProperty(TmpTemp, next);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6144,13 +6144,13 @@ v8::Handle<v8::ObjectTemplate> TJsNode<TUNGraph::TNodeI>::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, getId);
-		JsRegisterFunction(TmpTemp, getDeg);
-		JsRegisterFunction(TmpTemp, getInDeg);
-		JsRegisterFunction(TmpTemp, getOutDeg);
-		JsRegisterFunction(TmpTemp, getNbrNId);
-		JsRegisterFunction(TmpTemp, getNext);
-		JsRegisterFunction(TmpTemp, getPrev);
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, deg);
+		JsRegisterProperty(TmpTemp, inDeg);
+		JsRegisterProperty(TmpTemp, outDeg);
+		JsRegisterFunction(TmpTemp, nbrNId);
+		JsRegisterProperty(TmpTemp, next);
+		JsRegisterProperty(TmpTemp, prev);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6159,76 +6159,78 @@ v8::Handle<v8::ObjectTemplate> TJsNode<TUNGraph::TNodeI>::GetTemplate() {
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::getId(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
 	int ReturnDegree = -1;
 	ReturnDegree = JsNode->Node.GetId();
 	return HandleScope.Close(v8::Number::New(ReturnDegree));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::getDeg(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::deg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
 	int ReturnDegree = -1;
 	ReturnDegree = JsNode->Node.GetDeg();
 	return HandleScope.Close(v8::Number::New(ReturnDegree));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::getInDeg(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::inDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
 	int ReturnDegree = -1;
 	ReturnDegree = JsNode->Node.GetInDeg();
 	return HandleScope.Close(v8::Number::New(ReturnDegree));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::getOutDeg(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::outDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
 	int ReturnDegree = -1;
 	ReturnDegree = JsNode->Node.GetOutDeg();
 	return HandleScope.Close(v8::Number::New(ReturnDegree));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::getNbrNId(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::nbrNId(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 	int ReturnNId = -1;
 	int N = -1;
 	if (ArgsLen == 1) {
-		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::getNbrNId: Args[0] expected to be an integer!");
+		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrNId: Args[0] expected to be an integer!");
 		N = TJsNodeUtil::GetArgInt32(Args, 0);
 		if (N < JsNode->Node.GetDeg())
 			ReturnNId = JsNode->Node.GetNbrNId(N);
 		else
-			throw TQmExcept::New("TJsNode::getNbrNId: Index is out of bounds!");
+			throw TQmExcept::New("TJsNode::nbrNId: Index is out of bounds!");
 	}
 	else {
-		throw TQmExcept::New("TJsNode::getNbrNId: one input argument expected!");
+		throw TQmExcept::New("TJsNode::nbrNId: one input argument expected!");
 	}
 	return HandleScope.Close(v8::Number::New(ReturnNId));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::getNext(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::next(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
 	T ReturnNode = JsNode->Node++;
-	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
+	//return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
+	return HandleScope.Close(Info.Holder());
 }
 
 template <>
-v8::Handle<v8::Value> TJsNode<TUNGraph::TNodeI>::getPrev(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<TUNGraph::TNodeI>::prev(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
 	TUNGraph::TNodeI ReturnNode = JsNode->Node--;
-	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
+	//return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
+	return HandleScope.Close(Info.Holder());
 }
 
 
@@ -6243,10 +6245,10 @@ v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, getId);
-		JsRegisterFunction(TmpTemp, getSrcNodeId);
-		JsRegisterFunction(TmpTemp, getDstNodeId);
-		JsRegisterFunction(TmpTemp, getNext);
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, srcId);
+		JsRegisterProperty(TmpTemp, dstId);
+		JsRegisterProperty(TmpTemp, next);
 
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -6256,33 +6258,33 @@ v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::getId(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsEdge<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
 	TInt ReturnId = JsEdge->Edge.GetId();
 	return HandleScope.Close(v8::Number::New(ReturnId));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::getSrcNodeId(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsEdge<T>::srcId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
 	TInt ReturnSrcNodeId = JsEdge->Edge.GetSrcNId();
 	return HandleScope.Close(v8::Number::New(ReturnSrcNodeId));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::getDstNodeId(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsEdge<T>::dstId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
 	TInt ReturnDstNodeId = JsEdge->Edge.GetDstNId();
 	return HandleScope.Close(v8::Number::New(ReturnDstNodeId));
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::getNext(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsEdge<T>::next(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
 	T ReturnEdge = JsEdge->Edge++;
 	return HandleScope.Close(TJsEdge<T>::New(JsEdge->Js, ReturnEdge));
 }
