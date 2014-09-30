@@ -26,24 +26,23 @@ g1.addEdge(2, 1); g2.addEdge(2, 1); g3.addEdge(2, 1);
 g1.addEdge(1, 3); g2.addEdge(1, 3); g3.addEdge(1, 3);
 g1.addEdge(1, 4); g2.addEdge(1, 4); g3.addEdge(1, 4);
 
-
 // iterating graph and returning node ids, degree and degree centrality
 var br = 0;
 console.say("UNDIRECTED GRAPH:");
-for (var i = g1.getFirstNode() ; br < g1.nodeCount(); i.getNext()) {
-    console.log("id: " + i.getId() + ", deg: " + i.getDeg() + ", inDeg: " + i.getInDeg() + ", outDeg: " + i.getOutDeg());
+for (var i = g1.firstNode ; br < g1.nodes; i.next) {
+    console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
     br++;
 }
 br = 0;
 console.say("DIRECTED GRAPH:");
-for (var i = g2.getFirstNode() ; br < g2.nodeCount(); i.getNext()) {
-    console.log("id: " + i.getId() + ", deg: " + i.getDeg() + ", inDeg: " + i.getInDeg() + ", outDeg: " + i.getOutDeg());
+for (var i = g2.firstNode ; br < g2.nodes; i.next) {
+    console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
     br++;
 }
 br = 0;
 console.say("DIRECTED-MULTIGRAPH:");
-for (var i = g3.getFirstNode() ; br < g3.nodeCount(); i.getNext()) {
-    console.log("id: " + i.getId() + ", deg: " + i.getDeg() + ", inDeg: " + i.getInDeg() + ", outDeg: " + i.getOutDeg());
+for (var i = g3.firstNode ; br < g3.nodes; i.next) {
+    console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
     br++;
 }
 
@@ -78,7 +77,7 @@ viz.drawCommunityEvolution(json, "out\\cmty_evolution.html", { title: { text: "C
 // load a new graph from a file
 console.log("Loading cobiss graph 1970-1975.edg");
 var g = snap.newUGraph("data\\researchersBib_1970-1975.edg");
-console.log("Done loading graph. N = " + g.nodeCount() + ", E = " + g.edgeCount());
+console.log("Done loading graph. N = " + g.nodes+ ", E = " + g.edges);
 var g =  snap.removeNodes(g, 3)
 
 // detect communities using 2 different algorithms
