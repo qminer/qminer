@@ -5767,6 +5767,7 @@ v8::Handle<v8::Value> TJsSnap::DegreeCentrality(const v8::Arguments& Args) {
 
 	return HandleScope.Close(v8::Number::New(ReturnCentrality));
 }
+
 v8::Handle<v8::Value> TJsSnap::CommunityDetection(const v8::Arguments& Args) {
 	int Dim = -1;
 	TIntFltKdV Vec;
@@ -5810,7 +5811,6 @@ v8::Handle<v8::Value> TJsSnap::CommunityDetection(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsSnap::CommunityEvolution(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 	if (ArgsLen == 2){
 		QmAssertR(TJsSnapUtil::IsArgStr(Args, 0), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
@@ -5852,12 +5852,12 @@ v8::Handle<v8::Value> TJsSnap::CorePeriphery(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsSnap::CorePeriphery: two input arguments expected!");
 	}
 
-	
 	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
 		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
 
 	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
 }
+
 ///////////////////////////////
 // QMiner-Undirected-Graph
 
@@ -6319,6 +6319,7 @@ v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
 	return Template;
 }
 
+template <>
 v8::Handle<v8::ObjectTemplate> TJsNode<TUNGraph::TNodeI>::GetTemplate() {
 	v8::HandleScope HandleScope;
 	static v8::Persistent<v8::ObjectTemplate> Template;
@@ -6403,6 +6404,7 @@ v8::Handle<v8::Value> TJsNode<T>::getNext(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsNode::New(JsNode->Js, ReturnNode));
 }
 
+template <>
 v8::Handle<v8::Value> TJsNode<TUNGraph::TNodeI>::getPrev(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
