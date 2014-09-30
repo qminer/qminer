@@ -6286,7 +6286,8 @@ v8::Handle<v8::Value> TJsEdge<T>::next(v8::Local<v8::String> Properties, const v
 	v8::HandleScope HandleScope;
 	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
 	T ReturnEdge = JsEdge->Edge++;
-	return HandleScope.Close(TJsEdge<T>::New(JsEdge->Js, ReturnEdge));
+	//return HandleScope.Close(TJsEdge<T>::New(JsEdge->Js, ReturnEdge));
+	return HandleScope.Close(Info.Holder());
 }
 
 ///////////////////////////////
