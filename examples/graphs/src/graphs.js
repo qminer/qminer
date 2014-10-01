@@ -5,37 +5,46 @@ utilities = require('utilities.js');
 
 // Creating a new graph, adding nodes and edges
 
-console.log("created directed graph");
+console.log("creating 1) undirected, 2) directed and  3) directe-multi graph");
 
-// creating a new undirected graph
-gTest = snap.newUGraph();
+// creating 1) undirected, 2) directed and  3) directe-multi graph
+
+g1 = snap.newUGraph();
+g2 = snap.newDGraph();
+g3 = snap.newDMGraph();
 
 //  adding nodes
-gTest.addNode(0); gTest.addNode(1); gTest.addNode(2);
-gTest.addNode(3); gTest.addNode(4); gTest.addNode(5);
+g1.addNode(1); g2.addNode(1); g3.addNode(1);
+g1.addNode(2); g2.addNode(2); g3.addNode(2);
+g1.addNode(3); g2.addNode(3); g3.addNode(3);
+g1.addNode(4); g2.addNode(4); g3.addNode(4);
 
 // adding edges
-gTest.addEdge(0, 1); gTest.addEdge(2, 1); gTest.addEdge(2, 4);
-gTest.addEdge(4, 3); gTest.addEdge(5, 3); gTest.addEdge(4, 5);
-gTest.addEdge(3, 1); gTest.addEdge(3, 2);
+g1.addEdge(1, 2); g2.addEdge(1, 2); g3.addEdge(1, 2);
+g1.addEdge(1, 2); g2.addEdge(1, 2); g3.addEdge(1, 2);
+g1.addEdge(2, 1); g2.addEdge(2, 1); g3.addEdge(2, 1);
+g1.addEdge(1, 3); g2.addEdge(1, 3); g3.addEdge(1, 3);
+g1.addEdge(1, 4); g2.addEdge(1, 4); g3.addEdge(1, 4);
 
 // iterating graph and returning node ids, degree and degree centrality
 var br = 0;
-for (var i = gTest.getFirstNode() ; br < gTest.nodeCount() ; i.getNext()) {
-    console.log("id: " + i.getId() + ", deg: " + i.getDeg() + ", deg centrality: " + snap.DegreeCentrality(gTest, i.getId()));
+console.say("UNDIRECTED GRAPH:");
+for (var i = g1.firstNode ; br < g1.nodes; i.next) {
+    console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
     br++;
 }
-
-// creating a new directed graph
-gD = snap.newDGraph();
-gD.addNode(1); gD.addNode(2); gD.addNode(3); gD.addNode(4);
-gD.addEdge(1, 2); gD.addEdge(1, 3); gD.addEdge(3, 1); gD.addEdge(4, 2);
-var br = 0;
-for (var i = gD.getFirstNode() ; br < gD.nodeCount() ; i.getNext()) {
-    console.log("id: " + i.getId() + ", deg: " + i.getDeg() + ", inDeg: " + i.getInDeg() + ", outDeg: " + i.getOutDeg() + "\n");
+br = 0;
+console.say("DIRECTED GRAPH:");
+for (var i = g2.firstNode ; br < g2.nodes; i.next) {
+    console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
     br++;
 }
-
+br = 0;
+console.say("DIRECTED-MULTIGRAPH:");
+for (var i = g3.firstNode ; br < g3.nodes; i.next) {
+    console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
+    br++;
+}
 
 // Reading graphs from files, drawing graphs, detecting communities, computing community evolution and plotting
 
@@ -68,7 +77,7 @@ viz.drawCommunityEvolution(json, "out\\cmty_evolution.html", { title: { text: "C
 // load a new graph from a file
 console.log("Loading cobiss graph 1970-1975.edg");
 var g = snap.newUGraph("data\\researchersBib_1970-1975.edg");
-console.log("Done loading graph. N = " + g.nodeCount() + ", E = " + g.edgeCount());
+console.log("Done loading graph. N = " + g.nodes+ ", E = " + g.edges);
 var g =  snap.removeNodes(g, 3)
 
 // detect communities using 2 different algorithms

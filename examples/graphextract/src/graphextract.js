@@ -229,4 +229,12 @@ var g = tableToGraph(t);
 var gs = tableToGraphArrayAggTime(t,6);
 console.log("finished creating graph - test t");
 
+var communities = new Array();
+for (var i = 0; i < gs.length; i++) {
+    console.say("doing g" + i);
+    communities.push(snap.CommunityDetection(gs[i], "imap"));
+}
+var json = snap.evolutionJs(communities, 0.5, 0.75);
+viz.drawCommunityEvolution(json, "cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+
 eval(breakpoint);

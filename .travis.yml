@@ -11,5 +11,5 @@ script:
 os: linux
 notifications:
   email:
-    - blaz.fortuna@ijs.si
-    - jan.rupnik@ijs.si
+  - blaz.fortuna@ijs.si
+  - jan.rupnik@ijs.si
