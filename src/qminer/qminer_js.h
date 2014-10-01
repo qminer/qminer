@@ -2816,14 +2816,14 @@ public:
 	JsDeclareFunction(newDGraph);
 	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
 	JsDeclareFunction(newDMGraph);
-	//#- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
-	JsDeclareFunction(DegreeCentrality);
-	//#- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
-	JsDeclareFunction(CommunityDetection);
-	//#- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
-	JsDeclareFunction(CommunityEvolution);
-	//#- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = `lip`
-	JsDeclareFunction(CorePeriphery);
+	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
+	JsDeclareFunction(degreeCentrality);
+	//#- `spvector = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	JsDeclareFunction(communityDetection);
+	//#- `jsonstring = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+	JsDeclareFunction(communityEvolution);
+	//#- `jsonstring = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(corePeriphery);
 };
 
 
@@ -2905,6 +2905,12 @@ public:
 	JsDeclareProperty(lastEdge)
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
+	//#- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
+	//#  - `graph.eachNode(function (node) { console.log(node.id); })`
+	JsDeclareFunction(eachNode);
+	//#- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
+	//#  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
+	JsDeclareFunction(eachEdge);
 };
 
 ///////////////////////////////
@@ -2950,12 +2956,12 @@ public:
 	JsDeclareProperty(inDeg);
 	//#- `outdeg = node.outDeg` -- return out-degree of the node
 	JsDeclareProperty(outDeg);
-	//#- `nid = node.nbrNId(N)` -- return id of Nth neighbour
-	JsDeclareFunction(nbrNId);
-	//#- `node = node.next` -- return next node
-	JsDeclareProperty(next);
-	//#- `node = graph.prev` -- return previous node
-	JsDeclareProperty(prev);
+	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
+	JsDeclareFunction(nbrId);
+	//#- `node = node.next()` -- return next node
+	JsDeclareFunction(next);
+	//#- `node = graph.prev()` -- return previous node
+	JsDeclareFunction(prev);
 };
 
 ///////////////////////////////
@@ -2992,8 +2998,8 @@ public:
 	JsDeclareProperty(srcId);
 	//#- `id = edge.dstId` -- return id of destination node
 	JsDeclareProperty(dstId);
-	//#- `edge = edge.next` -- return next edge
-	JsDeclareProperty(next);
+	//#- `edge = edge.next()` -- return next edge
+	JsDeclareFunction(next);
 
 };
 

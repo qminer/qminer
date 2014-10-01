@@ -219,7 +219,7 @@ exports.toJsonGraph = function (graph, opts) {
     var br = 0;
     var json_out = {};
     var json_out_edges = new Array();
-    for (var i = graph.firstEdge; br < graph.edges ; i.next) {
+    for (var i = graph.firstEdge; br < graph.edges ; i.next()) {
         var id1 = i.srcId;
         var id2 = i.dstId;
         json_out_edges.push({ source: id1, target: id2 });
@@ -235,7 +235,7 @@ exports.toJsonGraph = function (graph, opts) {
             json_out_data[cVal[i]] = { size: graph.node(cVal[i]).deg, color: cKey[i] };
     }
     else {
-        for (var i = graph.firstNode ; br < graph.nodes ; i.next) {
+        for (var i = graph.firstNode ; br < graph.nodes ; i.next()) {
             var id = i.id;
             var size_var = i.deg;
             json_out_data[id] = { size: size_var };
@@ -255,7 +255,7 @@ exports.toJsonGraphArray = function (data) {
     for (var j=0; j<data.length; j++) {
         json_out = "";
         var br = 0;
-        for (var i = data[j].firstEdge() ; br < data[j].edges ; i.next) {
+        for (var i = data[j].firstEdge() ; br < data[j].edges ; i.next()) {
             var n1 = i.srcId;
             var n2 = i.dstId;
             json_out += ",{\"source\":" + n1 + ",\"target\":" + n2 + "}\n";
@@ -279,7 +279,7 @@ exports.removeNodes = function (graph, n) {
     var br = 0;
     var c = graph.nodes;
     var toDelete = new Array();
-    for (var i = graph.firstNode ; br < c ; i.next) {
+    for (var i = graph.firstNode ; br < c ; i.next()) {
         if (i.deg <= n)
             toDelete.push(i.id);
         br++;
@@ -305,7 +305,7 @@ exports.groupNodes = function (graph, data) {
     }
 
     var br = 0;
-    for (var i = graph.firstEdge() ; br < graph.edges ; i.next) {
+    for (var i = graph.firstEdge() ; br < graph.edges ; i.next()) {
         var n1 = i.srcId;
         var n2 = i.dstId;
         var c1=-1;
