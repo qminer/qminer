@@ -6168,7 +6168,7 @@ v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
 		JsRegisterProperty(TmpTemp, deg);
 		JsRegisterProperty(TmpTemp, inDeg);
 		JsRegisterProperty(TmpTemp, outDeg);
-		JsRegisterFunction(TmpTemp, nbrNId);
+		JsRegisterFunction(TmpTemp, nbrId);
 		JsRegisterFunction(TmpTemp, next);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -6187,7 +6187,7 @@ v8::Handle<v8::ObjectTemplate> TJsNode<TUNGraph::TNodeI>::GetTemplate() {
 		JsRegisterProperty(TmpTemp, deg);
 		JsRegisterProperty(TmpTemp, inDeg);
 		JsRegisterProperty(TmpTemp, outDeg);
-		JsRegisterFunction(TmpTemp, nbrNId);
+		JsRegisterFunction(TmpTemp, nbrId);
 		JsRegisterFunction(TmpTemp, next);
 		JsRegisterFunction(TmpTemp, prev);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -6234,22 +6234,22 @@ v8::Handle<v8::Value> TJsNode<T>::outDeg(v8::Local<v8::String> Properties, const
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsNode<T>::nbrNId(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsNode<T>::nbrId(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 	int ReturnNId = -1;
 	int N = -1;
 	if (ArgsLen == 1) {
-		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrNId: Args[0] expected to be an integer!");
+		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrId: Args[0] expected to be an integer!");
 		N = TJsNodeUtil::GetArgInt32(Args, 0);
 		if (N < JsNode->Node.GetDeg())
 			ReturnNId = JsNode->Node.GetNbrNId(N);
 		else
-			throw TQmExcept::New("TJsNode::nbrNId: Index is out of bounds!");
+			throw TQmExcept::New("TJsNode::nbrId: Index is out of bounds!");
 	}
 	else {
-		throw TQmExcept::New("TJsNode::nbrNId: one input argument expected!");
+		throw TQmExcept::New("TJsNode::nbrId: one input argument expected!");
 	}
 	return HandleScope.Close(v8::Number::New(ReturnNId));
 }
