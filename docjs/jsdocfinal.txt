@@ -37,8 +37,7 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Recursive Linear Regression model](#recursive-linear-regression-model)
  - [Hoeffding Tree model](#hoeffding-tree-model)
 - [snap.js (use require)](#snap-graph-library)
- - [Undirected Graph](#undirected-graph)
- - [Directed Graph](#directed-graph)
+ - [Graph](#graph)
  - [Node](#node)
  - [Edge](#edge)
 - [System and I/O](#system-and-io)
@@ -902,10 +901,10 @@ several functions from snap library.
 - `graph = snap.newUGraph()` -- generate an empty undirected graph
 - `graph = snap.newDGraph()` -- generate an empty directed graph
 - `graph = snap.newDGraph()` -- generate an empty directed graph
-- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
-- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
-- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
-- `jsonstring = snap.CorePeriphery(UGraph, alg)` -- return communities alg = `lip`
+- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
+- `spvector = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+- `jsonstring = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+- `jsonstring = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 
 ### Graph
 
@@ -930,6 +929,10 @@ TNEGraph : directed multi - graph(multiple directed edges between a pair of node
 - `edge = graph.firstEdge` -- gets first edge
 - `edge = graph.lastEdge` -- gets last edge
 - `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
+ - `graph.eachNode(function (node) { console.log(node.id); })`
+- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
+ - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
 
 ### Node
 
@@ -941,9 +944,9 @@ Node
 - `deg = node.deg` -- return degree of the node
 - `indeg = node.inDeg` -- return in-degree of the node
 - `outdeg = node.outDeg` -- return out-degree of the node
-- `nid = node.nbrNId(N)` -- return id of Nth neighbour
-- `node = node.next` -- return next node
-- `node = graph.prev` -- return previous node
+- `nid = node.nbrId(N)` -- return id of Nth neighbour
+- `node = node.next()` -- return next node
+- `node = graph.prev()` -- return previous node
 
 ### Edge
 
@@ -954,7 +957,7 @@ Edge
 - `id = edge.id` -- return id of the edge
 - `id = edge.srcId` -- return id of source node
 - `id = edge.dstId` -- return id of destination node
-- `edge = edge.next` -- return next edge
+- `edge = edge.next()` -- return next edge
 
 ## System and I/O
 

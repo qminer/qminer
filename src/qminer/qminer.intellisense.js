@@ -1667,8 +1667,12 @@ la.mean = function () {
 	/// </signature>
 };
 
-/// <field name = "next" value = "_edge"> return next edge</field>
-_edge.next = _edge;
+_edge.next = function () {
+	/// <signature>
+	/// <summary> return next edge</summary>
+	/// <returns value ="_edge"/>
+	/// </signature>
+};
 
 /// <field name = "srcId" value = "_id"> return id of source node</field>
 _edge.srcId = _id;
@@ -1971,7 +1975,7 @@ _svmModel.save = function () {
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
 
-_node.nbrNId = function () {
+_node.nbrId = function () {
 	/// <signature>
 	/// <summary> return id of Nth neighbour</summary>
 	/// <param name="_N" value="_N">param</param>
@@ -1979,8 +1983,12 @@ _node.nbrNId = function () {
 	/// </signature>
 };
 
-/// <field name = "next" value = "_node"> return next node</field>
-_node.next = _node;
+_node.next = function () {
+	/// <signature>
+	/// <summary> return next node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
 
 /// <field name = "inDeg" value = "_indeg"> return in-degree of the node</field>
 _node.inDeg = _indeg;
@@ -3034,7 +3042,7 @@ _snap.newDGraph = function () {
 	/// </signature>
 };
 
-_snap.CorePeriphery = function () {
+_snap.corePeriphery = function () {
 	/// <signature>
 	/// <summary> return communities alg = `lip`</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
@@ -3043,7 +3051,7 @@ _snap.CorePeriphery = function () {
 	/// </signature>
 };
 
-_snap.DegreeCentrality = function () {
+_snap.degreeCentrality = function () {
 	/// <signature>
 	/// <summary> returns degree centrality of a node</summary>
 	/// <param name="_node" value="_node">param</param>
@@ -3051,7 +3059,7 @@ _snap.DegreeCentrality = function () {
 	/// </signature>
 };
 
-_snap.CommunityDetection = function () {
+_snap.communityDetection = function () {
 	/// <signature>
 	/// <summary> returns communities of graph (alg = `gn`, `imap` or `cnm`)</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
@@ -3060,7 +3068,7 @@ _snap.CommunityDetection = function () {
 	/// </signature>
 };
 
-_snap.CommunityEvolution = function () {
+_snap.communityEvolution = function () {
 	/// <signature>
 	/// <summary> return communities alg = `gn`, `imap` or `cnm`</summary>
 	/// <param name="_path" value="_path">param</param>
@@ -3127,6 +3135,22 @@ _graph.lastNode = _node;
 /// <field name = "edges" value = "_edges"> gets number of edges in the graph</field>
 _graph.edges = _edges;
 
+_graph.eachEdge = function () {
+	/// <signature>
+	/// <summary> iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.eachNode = function () {
+	/// <signature>
+	/// <summary> iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
 /// <field name = "firstEdge" value = "_edge"> gets first edge</field>
 _graph.firstEdge = _edge;
 
@@ -3145,8 +3169,12 @@ _graph.isEdge = function () {
 /// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
 _graph.nodes = _nodes;
 
-/// <field name = "prev" value = "_node"> return previous node</field>
-_graph.prev = _node;
+_graph.prev = function () {
+	/// <signature>
+	/// <summary> return previous node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
 
 _graph.addEdge = function () {
 	/// <signature>
