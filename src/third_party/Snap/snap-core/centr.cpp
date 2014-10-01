@@ -3,7 +3,6 @@ namespace TSnap {
 /////////////////////////////////////////////////
 // Node centrality measures
 double GetDegreeCentr(const PUNGraph& Graph, const int& NId) {
-  int NidVd = Graph->GetNI(NId).GetDeg(); // just for debugging
   if (Graph->GetNodes() > 1) {
     return double(Graph->GetNI(NId).GetDeg())/double(Graph->GetNodes()-1); }
   else { return 0.0; }
