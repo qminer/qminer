@@ -36,9 +36,15 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Neural network model](#neural-network-model)
  - [Recursive Linear Regression model](#recursive-linear-regression-model)
  - [Hoeffding Tree model](#hoeffding-tree-model)
+- [snap.js (use require)](#snap-graph-library)
+ - [Undirected Graph](#undirected-graph)
+ - [Directed Graph](#directed-graph)
+ - [Node](#node)
+ - [Edge](#edge)
 - [System and I/O](#system-and-io)
  - [Process](#process)
  - [utilities.js (use require)](#utilitiesjs-use-require)
+ - [utilities.map (use require)](#hash-map)
  - [assert.js (use require)](#assertjs-use-require)
  - [Console](#console)
  - [File system](#file-system)
@@ -974,15 +980,6 @@ Edge
 - `id = edge.getDstNodeId()` -- return id of destination node
 - `edge = edge.getNext()` -- return next edge
 
-**Functions and properties:**
-
-- `dat = map.get(key)` -- return data given on key
-- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
-- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
-- `num = map.length` -- returns the number of keys
-- `key = map.key(idx)` -- returns the `idx`-th key
-- `dat = map.dat(idx)` -- returns the `idx`-th dat
-
 ## System and I/O
 
 ### Process
@@ -1044,6 +1041,19 @@ Edge
 - `sw.toc(str)` -- displays time from tic and message `str`
 - `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
 - `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
+
+### Hash Map
+
+Several implementations of hash-map can be constructed. Use require('utilities.js').
+
+**Functions and properties:**
+
+- `dat = map.get(key)` -- return data given on key
+- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
+- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+- `num = map.length` -- returns the number of keys
+- `key = map.key(idx)` -- returns the `idx`-th key
+- `dat = map.dat(idx)` -- returns the `idx`-th dat
 
 ### assert.js (use require)
 

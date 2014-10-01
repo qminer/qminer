@@ -78,9 +78,15 @@ namespace TQm {
 //#  - [Neural network model](#neural-network-model)
 //#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
 //#  - [Hoeffding Tree model](#hoeffding-tree-model)
+//# - [snap.js (use require)](#snap-graph-library)
+//#  - [Undirected Graph](#undirected-graph)
+//#  - [Directed Graph](#directed-graph)
+//#  - [Node](#node)
+//#  - [Edge](#edge)
 //# - [System and I/O](#system-and-io)
 //#  - [Process](#process)
 //#  - [utilities.js (use require)](#utilitiesjs-use-require)
+//#  - [utilities.map (use require)](#hash-map)
 //#  - [assert.js (use require)](#assertjs-use-require)
 //#  - [Console](#console)
 //#  - [File system](#file-system)
@@ -3070,6 +3076,153 @@ public:
 
 };
 
+
+
+///////////////////////////////
+// QMiner-JavaScript-GeoIP
+class TJsGeoIp {
+private:
+	// this is singleton
+	static bool InitP;
+	static PGeoIpBs GeoIpBs;	
+	static PGeoIpBs GetGeoIpBs();
+
+private:
+	typedef TJsObjUtil<TJsGeoIp> TJsGeoIpUtil;
+	explicit TJsGeoIp() { }	
+public:
+	static v8::Persistent<v8::Object> New() { return TJsGeoIpUtil::New(new TJsGeoIp); }
+	~TJsGeoIp() { }
+
+	// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// function
+	JsDeclareFunction(country);				
+	JsDeclareFunction(location);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-DMoz
+class TJsDMoz {
+private:
+	// this is singleton
+	static bool InitP;
+	static PDMozCfy DMozCfy;	
+	static const PDMozCfy& GetDMozCfy();
+
+private:
+	typedef TJsObjUtil<TJsDMoz> TJsDMozUtil;
+	explicit TJsDMoz() { }	
+public:
+	static v8::Persistent<v8::Object> New() { return TJsDMozUtil::New(new TJsDMoz); }
+	~TJsDMoz() { }
+
+	// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// function
+	JsDeclareFunction(classify);				
+};
+
+//#
+//# ## System and I/O
+//#
+//# ### Process
+//# 
+class TJsProcess {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsProcess> TJsProcessUtil;
+
+	explicit TJsProcess(TWPt<TScript> _Js): Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsProcessUtil::New(new TJsProcess(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //#
+	//# **Functions and properties:**
+	//#
+	//#- `process.stop()` -- Stops the current process.
+	//#- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
+    JsDeclareFunction(stop);
+	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
+    JsDeclareFunction(sleep);
+    //#- `a = process.args` -- array of command-line arguments 
+    //#     used to start current QMiner instance
+    JsDeclareProperty(args);
+    //#- `objJSON = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
+    JsDeclareProperty(sysStat);
+	//#- `str = process.scriptNm` -- Returns the name of the script.
+	JsDeclareProperty(scriptNm);
+	//#- `str = process.scriptFNm` -- Returns absolute script file path.
+	JsDeclareProperty(scriptFNm);
+	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
+	JsDeclareFunction(getGlobals);
+	//#- `process.exitScript()` -- Exits the current script
+	JsDeclareFunction(exitScript);
+    //#- `process.returnCode` -- current code to be returned by QMiner process
+  	JsDeclareSetProperty(getReturnCode, setReturnCode);
+	//#- `str = process.qminer_home` -- returns the path to QMINER_HOME
+	JsDeclareProperty(qminer_home);
+	//#- `str = process.project_home` -- returns the path to project folder
+	JsDeclareProperty(project_home);
+    //#JSIMPLEMENT:src/qminer/process.js
+};
+
+
+//#
+//# ### utilities.js (use require)
+//# 
+class TJsUtilities {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsUtilities> TJsUtilitiesUtil;
+	explicit TJsUtilities(TWPt<TScript> _Js) : Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsUtilitiesUtil::New(new TJsUtilities(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//#
+	//# **Functions and properties:**
+	//#
+	//#- `map = utilities.newStrIntH()` -- New string-int hashmap
+	JsDeclareFunction(newStrIntH);
+	//#- `map = utilities.newStrFltH()` -- New string-double hashmap
+	JsDeclareFunction(newStrFltH);
+	//#- `map = utilities.newStrStrH()` -- New string-string hashmap
+	JsDeclareFunction(newStrStrH);
+	//#- `map = utilities.newIntIntH()` -- New int-int hashmap
+	JsDeclareFunction(newIntIntH);
+	//#- `map = utilities.newIntFltH()` -- New int-double hashmap
+	JsDeclareFunction(newIntFltH);
+	//#- `map = utilities.newIntStrH()` -- New int-string hashmap
+	JsDeclareFunction(newIntStrH);
+};
+//#JSIMPLEMENT:src/qminer/js/utilities.js    
+
+///////////////////////////////
+// QMiner-Hash-Map
+//# 
+//# ### Hash Map
+//# 
+//# Several implementations of hash-map can be constructed. Use require('utilities.js').
+
 class TAuxStrIntH {
 public:
 	static const TStr ClassId; //ClassId is set to "TStrIntH"
@@ -3126,9 +3279,6 @@ public:
 		return Handlescope.Close(v8::String::New(Val.CStr()));
 	}
 };
-
-
-
 
 class TAuxIntIntH {
 public:
@@ -3298,7 +3448,7 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::hasKey(const v8::Arguments& Arg
 template <class TKey, class TDat, class TAux>
 v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	TJsHash* JsMap = TJsHashUtil::GetSelf(Info); 
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsMap->Map.Len()));
 }
 
@@ -3320,148 +3470,10 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::dat(const v8::Arguments& Args) 
 	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
 	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::dat Incorrect KeyId:%d", Idx));
 	TKey Key;
-	TDat Dat; 
+	TDat Dat;
 	JsMap->Map.GetKeyDat(Idx, Key, Dat);
 	return TAux::WrapDat(Dat, HandleScope);
 }
-
-///////////////////////////////
-// QMiner-JavaScript-GeoIP
-class TJsGeoIp {
-private:
-	// this is singleton
-	static bool InitP;
-	static PGeoIpBs GeoIpBs;	
-	static PGeoIpBs GetGeoIpBs();
-
-private:
-	typedef TJsObjUtil<TJsGeoIp> TJsGeoIpUtil;
-	explicit TJsGeoIp() { }	
-public:
-	static v8::Persistent<v8::Object> New() { return TJsGeoIpUtil::New(new TJsGeoIp); }
-	~TJsGeoIp() { }
-
-	// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// function
-	JsDeclareFunction(country);				
-	JsDeclareFunction(location);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-DMoz
-class TJsDMoz {
-private:
-	// this is singleton
-	static bool InitP;
-	static PDMozCfy DMozCfy;	
-	static const PDMozCfy& GetDMozCfy();
-
-private:
-	typedef TJsObjUtil<TJsDMoz> TJsDMozUtil;
-	explicit TJsDMoz() { }	
-public:
-	static v8::Persistent<v8::Object> New() { return TJsDMozUtil::New(new TJsDMoz); }
-	~TJsDMoz() { }
-
-	// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	// function
-	JsDeclareFunction(classify);				
-};
-
-//#
-//# ## System and I/O
-//#
-//# ### Process
-//# 
-class TJsProcess {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsProcess> TJsProcessUtil;
-
-	explicit TJsProcess(TWPt<TScript> _Js): Js(_Js) { }
-
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
-		return TJsProcessUtil::New(new TJsProcess(Js)); }
-
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //#
-	//# **Functions and properties:**
-	//#
-	//#- `process.stop()` -- Stops the current process.
-	//#- `process.stop(returnCode)` -- Stops the current process and returns `returnCode
-    JsDeclareFunction(stop);
-	//#- `process.sleep(millis)` -- Halts execution for the given amount of milliseconds `millis`.
-    JsDeclareFunction(sleep);
-    //#- `a = process.args` -- array of command-line arguments 
-    //#     used to start current QMiner instance
-    JsDeclareProperty(args);
-    //#- `objJSON = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption).
-    JsDeclareProperty(sysStat);
-	//#- `str = process.scriptNm` -- Returns the name of the script.
-	JsDeclareProperty(scriptNm);
-	//#- `str = process.scriptFNm` -- Returns absolute script file path.
-	JsDeclareProperty(scriptFNm);
-	//#- `globalVarNames = process.getGlobals()` -- Returns an array of all global variable names
-	JsDeclareFunction(getGlobals);
-	//#- `process.exitScript()` -- Exits the current script
-	JsDeclareFunction(exitScript);
-    //#- `process.returnCode` -- current code to be returned by QMiner process
-  	JsDeclareSetProperty(getReturnCode, setReturnCode);
-	//#- `str = process.qminer_home` -- returns the path to QMINER_HOME
-	JsDeclareProperty(qminer_home);
-	//#- `str = process.project_home` -- returns the path to project folder
-	JsDeclareProperty(project_home);
-    //#JSIMPLEMENT:src/qminer/process.js
-};
-
-
-//#
-//# ### utilities.js (use require)
-//# 
-class TJsUtilities {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsUtilities> TJsUtilitiesUtil;
-	explicit TJsUtilities(TWPt<TScript> _Js) : Js(_Js) { }
-
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
-		return TJsUtilitiesUtil::New(new TJsUtilities(Js));
-	}
-
-	/// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	//#
-	//# **Functions and properties:**
-	//#
-	//#- `map = utilities.newStrIntH()` -- New string-int hashmap
-	JsDeclareFunction(newStrIntH);
-	//#- `map = utilities.newStrFltH()` -- New string-double hashmap
-	JsDeclareFunction(newStrFltH);
-	//#- `map = utilities.newStrStrH()` -- New string-string hashmap
-	JsDeclareFunction(newStrStrH);
-	//#- `map = utilities.newIntIntH()` -- New int-int hashmap
-	JsDeclareFunction(newIntIntH);
-	//#- `map = utilities.newIntFltH()` -- New int-double hashmap
-	JsDeclareFunction(newIntFltH);
-	//#- `map = utilities.newIntStrH()` -- New int-string hashmap
-	JsDeclareFunction(newIntStrH);
-};
-//#JSIMPLEMENT:src/qminer/js/utilities.js    
 
 
 //#
