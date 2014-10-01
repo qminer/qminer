@@ -2952,8 +2952,8 @@ public:
 	JsDeclareProperty(inDeg);
 	//#- `outdeg = node.outDeg` -- return out-degree of the node
 	JsDeclareProperty(outDeg);
-	//#- `nid = node.nbrNId(N)` -- return id of Nth neighbour
-	JsDeclareFunction(nbrNId);
+	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
+	JsDeclareFunction(nbrId);
 	//#- `node = node.next()` -- return next node
 	JsDeclareFunction(next);
 	//#- `node = graph.prev()` -- return previous node
