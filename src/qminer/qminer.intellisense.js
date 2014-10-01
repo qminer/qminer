@@ -1667,33 +1667,17 @@ la.mean = function () {
 	/// </signature>
 };
 
-_edge.getNext = function () {
-	/// <signature>
-	/// <summary> return next edge</summary>
-	/// <returns value ="_edge"/>
-	/// </signature>
-};
+/// <field name = "next" value = "_edge"> return next edge</field>
+_edge.next = _edge;
 
-_edge.getDstNodeId = function () {
-	/// <signature>
-	/// <summary> return id of destination node</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "srcId" value = "_id"> return id of source node</field>
+_edge.srcId = _id;
 
-_edge.getSrcNodeId = function () {
-	/// <signature>
-	/// <summary> return id of source node</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "id" value = "_id"> return id of the edge</field>
+_edge.id = _id;
 
-_edge.getId = function () {
-	/// <signature>
-	/// <summary> return id of the edge</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "dstId" value = "_id"> return id of destination node</field>
+_edge.dstId = _id;
 
 _spMat.load = function () {
 	/// <signature>
@@ -1987,14 +1971,7 @@ _svmModel.save = function () {
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
 
-_node.getNext = function () {
-	/// <signature>
-	/// <summary> return next node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
-_node.getNbrNId = function () {
+_node.nbrNId = function () {
 	/// <signature>
 	/// <summary> return id of Nth neighbour</summary>
 	/// <param name="_N" value="_N">param</param>
@@ -2002,27 +1979,20 @@ _node.getNbrNId = function () {
 	/// </signature>
 };
 
-_node.getId = function () {
-	/// <signature>
-	/// <summary> return id of the node</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "next" value = "_node"> return next node</field>
+_node.next = _node;
 
-_node.getDeg = function () {
-	/// <signature>
-	/// <summary> return degree of the node</summary>
-	/// <returns value ="_deg"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> return in-degree of the node</summary>
-	/// <returns value ="_indeg"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> return out-degree of the node</summary>
-	/// <returns value ="_outdeg"/>
-	/// </signature>
-};
+/// <field name = "inDeg" value = "_indeg"> return in-degree of the node</field>
+_node.inDeg = _indeg;
+
+/// <field name = "id" value = "_id"> return id of the node</field>
+_node.id = _id;
+
+/// <field name = "outDeg" value = "_outdeg"> return out-degree of the node</field>
+_node.outDeg = _outdeg;
+
+/// <field name = "deg" value = "_deg"> return degree of the node</field>
+_node.deg = _deg;
 
 _utilities.isArray = function () {
 	/// <signature>
@@ -3058,6 +3028,10 @@ _snap.newDGraph = function () {
 	/// <summary> generate an empty directed graph</summary>
 	/// <returns value ="_graph"/>
 	/// </signature>
+	/// <signature>
+	/// <summary> generate an empty directed graph</summary>
+	/// <returns value ="_graph"/>
+	/// </signature>
 };
 
 _snap.CorePeriphery = function () {
@@ -3094,24 +3068,15 @@ _snap.CommunityEvolution = function () {
 	/// </signature>
 };
 
-_graph.getLastEdge = function () {
+_graph.node = function () {
 	/// <signature>
-	/// <summary> gets last edge</summary>
-	/// <returns value ="_edge"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets last edge</summary>
-	/// <returns value ="_edge"/>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
 	/// </signature>
 };
 
 _graph.delEdge = function () {
-	/// <signature>
-	/// <summary> delete an edge</summary>
-	/// <param name="_idx1" value="_idx1">param</param>
-	/// <param name="_idx2" value="_idx2">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
 	/// <signature>
 	/// <summary> delete an edge</summary>
 	/// <param name="_idx1" value="_idx1">param</param>
@@ -3130,32 +3095,9 @@ _graph.addNode = function () {
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_idx"/>
 	/// </signature>
-	/// <signature>
-	/// <summary> add a node to graph and return its ID `idx`</summary>
-	/// <returns value ="_idx"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> add a node with ID `idx`, returns node ID</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> add a node to graph and return its ID `idx`</summary>
-	/// <returns value ="_idx"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> add a node with ID `idx`, returns node ID</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
 };
 
 _graph.dump = function () {
-	/// <signature>
-	/// <summary> dumps a graph to file named `fNm`</summary>
-	/// <param name="_fNm" value="_fNm">param</param>
-	/// <returns value ="_graph"/>
-	/// </signature>
 	/// <signature>
 	/// <summary> dumps a graph to file named `fNm`</summary>
 	/// <param name="_fNm" value="_fNm">param</param>
@@ -3169,77 +3111,6 @@ _graph.delNode = function () {
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_idx"/>
 	/// </signature>
-	/// <signature>
-	/// <summary> delete a node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
-};
-
-_graph.getFirstNode = function () {
-	/// <signature>
-	/// <summary> gets first node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets first node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
-_graph.getLastNode = function () {
-	/// <signature>
-	/// <summary> gets last node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets last node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
-_graph.getPrev = function () {
-	/// <signature>
-	/// <summary> return previous node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
-_graph.getFirstEdge = function () {
-	/// <signature>
-	/// <summary> gets first edge</summary>
-	/// <returns value ="_edge"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets first edge</summary>
-	/// <returns value ="_edge"/>
-	/// </signature>
-};
-
-_graph.nodeCount = function () {
-	/// <signature>
-	/// <summary> gets number of nodes in the graph</summary>
-	/// <returns value ="_nodesCount"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets number of nodes in the graph</summary>
-	/// <returns value ="_nodesCount"/>
-	/// </signature>
-};
-
-_graph.isEdge = function () {
-	/// <signature>
-	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
-	/// <param name="_idx1" value="_idx1">param</param>
-	/// <param name="_idx2" value="_idx2">param</param>
-	/// <returns value ="_isEdge"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
-	/// <param name="_idx1" value="_idx1">param</param>
-	/// <param name="_idx2" value="_idx2">param</param>
-	/// <returns value ="_isEdge"/>
-	/// </signature>
 };
 
 _graph.isNode = function () {
@@ -3248,25 +3119,34 @@ _graph.isNode = function () {
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_isNode"/>
 	/// </signature>
+};
+
+/// <field name = "lastNode" value = "_node"> gets last node</field>
+_graph.lastNode = _node;
+
+/// <field name = "edges" value = "_edges"> gets number of edges in the graph</field>
+_graph.edges = _edges;
+
+/// <field name = "firstEdge" value = "_edge"> gets first edge</field>
+_graph.firstEdge = _edge;
+
+/// <field name = "firstNode" value = "_node"> gets first node</field>
+_graph.firstNode = _node;
+
+_graph.isEdge = function () {
 	/// <signature>
-	/// <summary> check if a node with ID `idx` exists in the graph</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_isNode"/>
+	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_isEdge"/>
 	/// </signature>
 };
 
-_graph.getNode = function () {
-	/// <signature>
-	/// <summary> gets node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_node"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
+/// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
+_graph.nodes = _nodes;
+
+/// <field name = "prev" value = "_node"> return previous node</field>
+_graph.prev = _node;
 
 _graph.addEdge = function () {
 	/// <signature>
@@ -3275,24 +3155,10 @@ _graph.addEdge = function () {
 	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
 	/// <returns value ="_edgeIdx"/>
 	/// </signature>
-	/// <signature>
-	/// <summary> add an edge</summary>
-	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
-	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
-	/// <returns value ="_edgeIdx"/>
-	/// </signature>
 };
 
-_graph.edgeCount = function () {
-	/// <signature>
-	/// <summary> gets number of edges in the graph</summary>
-	/// <returns value ="_edgesCount"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> gets number of edges in the graph</summary>
-	/// <returns value ="_edgesCount"/>
-	/// </signature>
-};
+/// <field name = "lastEdge" value = "_edge"> gets last edge</field>
+_graph.lastEdge = _edge;
 
 /// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 _tm.nowUTC = _tm;

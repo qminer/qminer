@@ -79,8 +79,7 @@ namespace TQm {
 //#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
 //#  - [Hoeffding Tree model](#hoeffding-tree-model)
 //# - [snap.js (use require)](#snap-graph-library)
-//#  - [Undirected Graph](#undirected-graph)
-//#  - [Directed Graph](#directed-graph)
+//#  - [Graph](#graph)
 //#  - [Node](#node)
 //#  - [Edge](#edge)
 //# - [System and I/O](#system-and-io)
@@ -2879,11 +2878,6 @@ public:
 	//# 
 	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
 	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
-	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
 	JsDeclareFunction(addNode);
 	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
 	JsDeclareFunction(addEdge);
@@ -2901,13 +2895,13 @@ public:
 	JsDeclareProperty(edges);
 	//#- `node = graph.node(idx)` -- gets node with ID `idx`
 	JsDeclareFunction(node);
-	//#- `node = graph.getFirstNode()` -- gets first node
+	//#- `node = graph.firstNode` -- gets first node
 	JsDeclareProperty(firstNode);
-	//#- `node = graph.getLastNode()` -- gets last node
+	//#- `node = graph.lastNode` -- gets last node
 	JsDeclareProperty(lastNode);
-	//#- `edge = graph.getFirstEdge()` -- gets first edge
+	//#- `edge = graph.firstEdge` -- gets first edge
 	JsDeclareProperty(firstEdge);
-	//#- `edge = graph.getLastEdge()` -- gets last edge
+	//#- `edge = graph.lastEdge` -- gets last edge
 	JsDeclareProperty(lastEdge)
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
@@ -2948,19 +2942,19 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `id = node.getId()` -- return id of the node
+	//#- `id = node.id` -- return id of the node
 	JsDeclareProperty(id);
-	//#- `deg = node.getDeg()` -- return degree of the node
+	//#- `deg = node.deg` -- return degree of the node
 	JsDeclareProperty(deg);
-	//#- `indeg = node.getDeg()` -- return in-degree of the node
+	//#- `indeg = node.inDeg` -- return in-degree of the node
 	JsDeclareProperty(inDeg);
-	//#- `outdeg = node.getDeg()` -- return out-degree of the node
+	//#- `outdeg = node.outDeg` -- return out-degree of the node
 	JsDeclareProperty(outDeg);
-	//#- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
+	//#- `nid = node.nbrNId(N)` -- return id of Nth neighbour
 	JsDeclareFunction(nbrNId);
-	//#- `node = node.getNext()` -- return next node
+	//#- `node = node.next` -- return next node
 	JsDeclareProperty(next);
-	//#- `node = graph.getPrev()` -- return previous node
+	//#- `node = graph.prev` -- return previous node
 	JsDeclareProperty(prev);
 };
 
@@ -2992,13 +2986,13 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `id = edge.getId()` -- return id of the edge
+	//#- `id = edge.id` -- return id of the edge
 	JsDeclareProperty(id);
-	//#- `id = edge.getSrcNodeId()` -- return id of source node
+	//#- `id = edge.srcId` -- return id of source node
 	JsDeclareProperty(srcId);
-	//#- `id = edge.getDstNodeId()` -- return id of destination node
+	//#- `id = edge.dstId` -- return id of destination node
 	JsDeclareProperty(dstId);
-	//#- `edge = edge.getNext()` -- return next edge
+	//#- `edge = edge.next` -- return next edge
 	JsDeclareProperty(next);
 
 };
