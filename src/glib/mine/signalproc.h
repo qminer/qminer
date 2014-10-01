@@ -589,7 +589,7 @@ public:
 	TRecLinReg& operator =(TRecLinReg LinReg);
 
 	// returns the dimension of the instances
-	int GetDim() const { return Coeffs.GetDim(); }
+	int GetDim() const { return Coeffs.Len(); }
 	// learns a new sample
 	void Learn(const TFltV& Sample, const double& SampleVal);
 	// predicts a value

@@ -56,6 +56,7 @@
 
 // clustering
 #include "kmpp.h"
+#include "denseclust.h"
 #include "hac.h"
 
 // Signal-Processing

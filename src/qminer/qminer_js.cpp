@@ -1305,6 +1305,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, newStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
+		JsRegisterFunction(TmpTemp, newProcessStateAggr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1536,6 +1537,22 @@ v8::Handle<v8::Value> TJsBase::getStreamAggrNames(const v8::Arguments& Args) {
 		Counter++;
 	}
 	return HandleScope.Close(Arr);	
+}
+
+
+v8::Handle<v8::Value> TJsBase::newProcessStateAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		// parse arguments
+		TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+
+		return TJsProcessStateModel::New(JsBase->Js, JsBase->Base, ParamVal);
+	} catch (const PExcept& Except) {
+		InfoLog("[except] Failed to create a new state process aggregate: " + Except->GetMsgStr());
+	}
+	return v8::Undefined();
 }
 
 ///////////////////////////////
@@ -5572,6 +5589,38 @@ v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, c
 	// parse arguments
     TJsRecLinRegModel* JsRecLinRegModel = TJsRecLinRegModelUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsRecLinRegModel->Model->GetDim()));
+}
+
+TJsProcessStateModel::TJsProcessStateModel(TWPt<TScript> _Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+		Js(_Js),
+		Model(*dynamic_cast<TStreamAggrs::THierchCtmc*>(TStreamAggr::New(Base, ParamVal->GetObjStr("type"), ParamVal)())) {
+
+	Base->AddStreamAggr(Base->GetStoreByStoreNm(ParamVal->GetObjStr("source"))->GetStoreId(), PStreamAggr(&Model));
+}
+
+v8::Handle<v8::ObjectTemplate> TJsProcessStateModel::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+
+		JsRegisterFunction(TmpTemp, toJSON);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsProcessStateModel::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsProcessStateModel* Model = TJsProcessStateModelUtil::GetSelf(Args);
+
+	PJsonVal ModelJson = Model->Model.SaveJson(TInt::Mx);
+	const TStr JsonStr = TJsonVal::GetStrFromVal(ModelJson);
+
+	return HandleScope.Close(TJsUtil::ParseJson(JsonStr));
 }
 
 ///////////////////////////////

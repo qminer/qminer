@@ -50,6 +50,8 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
+// clustering
+#include "denseclust.cpp"
 
 // Signal-Processing
 #include "signalproc.cpp"

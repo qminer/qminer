@@ -1171,6 +1171,17 @@ public:
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
 	JsDeclareFunction(getStreamAggrNames);
+
+
+	//#- `aggr = analytics.newProcessStateAggr(opts)` -- new stream aggregate that describes a process as a state machine.
+	//#		the aggregate uses hierarchical clustering to compute states and substates of the process and computes transition intensities between states on each level
+	//#		`opts` is a javascript object which must contain the following fields:
+	//#		- source: name of the input store
+	//#		- name: name of the stream aggregate
+	//#		- minRecs: the minimum number of records in a state, before the state expands (substates are created)
+	//#		- timestamp: name of the time field
+	JsDeclareFunction(newProcessStateAggr);
+
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -2448,6 +2459,7 @@ public:
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
 	JsDeclareFunction(getLanguageOptions);     
+
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -2616,6 +2628,25 @@ public:
 	JsDeclareProperty(dim);
 	//#- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
 	JsDeclareFunction(save);
+};
+
+class TJsProcessStateModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	// model
+	TStreamAggrs::THierchCtmc Model;
+
+private:
+	typedef TJsObjUtil<TJsProcessStateModel> TJsProcessStateModelUtil;
+	TJsProcessStateModel(TWPt<TScript> Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TWPt<TBase>& Base, PJsonVal& ParamVal) {
+		return TJsProcessStateModelUtil::New(new TJsProcessStateModel(Js, Base, ParamVal)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(toJSON);
 };
 
 ///////////////////////////////

@@ -27,7 +27,7 @@ release: $(MAINOBJS)
 
 
 # debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
-debug: CXXFLAGS += -g
+debug: CXXFLAGS += -g -DV8_DEBUG
 debug: LDFLAGS += -rdynamic
 debug: $(MAINOBJS)
 
