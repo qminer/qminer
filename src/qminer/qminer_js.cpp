@@ -5901,7 +5901,6 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterProperty(TmpTemp, firstNode);
 		JsRegisterProperty(TmpTemp, lastNode);
 		JsRegisterProperty(TmpTemp, firstEdge);
-		JsRegisterProperty(TmpTemp, lastEdge);
 		JsRegisterFunction(TmpTemp, dump);
 		JsRegisterFunction(TmpTemp, eachNode);
 		JsRegisterFunction(TmpTemp, eachEdge);
@@ -6090,14 +6089,6 @@ v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, c
 }
 
 template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::lastEdge(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-	typename T::TEdgeI ReturnEdge = JsGraph->Graph->EndEI();
-	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
-}
-
-template <class T>
 v8::Handle<v8::Value> TJsGraph<T>::dump(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
@@ -6160,25 +6151,6 @@ TJsNode<T>::TJsNode(TWPt<TScript> J, T a) : Js(Js), Node(a){ Node = a; }
 
 template <class T>
 v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterProperty(TmpTemp, id);
-		JsRegisterProperty(TmpTemp, deg);
-		JsRegisterProperty(TmpTemp, inDeg);
-		JsRegisterProperty(TmpTemp, outDeg);
-		JsRegisterFunction(TmpTemp, nbrId);
-		JsRegisterFunction(TmpTemp, next);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-template <>
-v8::Handle<v8::ObjectTemplate> TJsNode<TUNGraph::TNodeI>::GetTemplate() {
 	v8::HandleScope HandleScope;
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
@@ -6262,14 +6234,13 @@ v8::Handle<v8::Value> TJsNode<T>::next(const v8::Arguments& Args) {
 	return HandleScope.Close(Args.Holder());
 }
 
-template <>
-v8::Handle<v8::Value> TJsNode<TUNGraph::TNodeI>::prev(const v8::Arguments& Args) {
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
-	TUNGraph::TNodeI ReturnNode = JsNode->Node--;
+	T ReturnNode = JsNode->Node--;
 	return HandleScope.Close(Args.Holder());
 }
-
 
 ///////////////////////////////
 // QMiner-Edge
