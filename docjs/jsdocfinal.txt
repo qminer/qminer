@@ -900,9 +900,9 @@ several functions from snap library.
 
 - `graph = snap.newUGraph()` -- generate an empty undirected graph
 - `graph = snap.newDGraph()` -- generate an empty directed graph
-- `graph = snap.newDGraph()` -- generate an empty directed graph
+- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
 - `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
-- `spvector = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 - `jsonstring = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 - `jsonstring = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 
@@ -933,6 +933,7 @@ TNEGraph : directed multi - graph(multiple directed edges between a pair of node
  - `graph.eachNode(function (node) { console.log(node.id); })`
 - `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
+ - `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
 
 ### Node
 

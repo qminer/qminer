@@ -3036,10 +3036,6 @@ _snap.newDGraph = function () {
 	/// <summary> generate an empty directed graph</summary>
 	/// <returns value ="_graph"/>
 	/// </signature>
-	/// <signature>
-	/// <summary> generate an empty directed graph</summary>
-	/// <returns value ="_graph"/>
-	/// </signature>
 };
 
 _snap.corePeriphery = function () {
@@ -3048,6 +3044,13 @@ _snap.corePeriphery = function () {
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
 	/// <returns value ="_jsonstring"/>
+	/// </signature>
+};
+
+_snap.newDMGraph = function () {
+	/// <signature>
+	/// <summary> generate an empty directed multi-graph</summary>
+	/// <returns value ="_graph"/>
 	/// </signature>
 };
 
@@ -3064,7 +3067,7 @@ _snap.communityDetection = function () {
 	/// <summary> returns communities of graph (alg = `gn`, `imap` or `cnm`)</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
-	/// <returns value ="_spvector"/>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 };
 
@@ -3081,6 +3084,13 @@ _graph.node = function () {
 	/// <summary> gets node with ID `idx`</summary>
 	/// <param name="_idx" value="_idx">param</param>
 	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.adjMat = function () {
+	/// <signature>
+	/// <summary> returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities</summary>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 };
 

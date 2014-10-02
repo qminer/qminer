@@ -5947,7 +5947,7 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, dump);
 		JsRegisterFunction(TmpTemp, eachNode);
 		JsRegisterFunction(TmpTemp, eachEdge);
-
+		JsRegisterFunction(TmpTemp, adjMat);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6192,6 +6192,54 @@ v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
 	}
 
 	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	int Nodes = JsGraph->Graph->GetNodes();
+	TVec<TIntFltKdV> Mat(Nodes);
+
+	THash<TInt, THash<TInt, TInt> > MultiGraph;
+
+	TIntSet NIdSet(JsGraph->Graph->GetNodes()); // remapping
+	// build the remapping of all keys
+	for (T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		NIdSet.AddKey(NId);
+	}
+	// count outgoing edges, remap ids and build the sparse ajdacency matrix
+	for (T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		int RemappedNId = NIdSet.GetKeyId(NId);
+		int OutDeg = NI.GetOutDeg();
+		TIntIntH Neigh(OutDeg);
+		MultiGraph.AddDat(NId, Neigh);
+		// take all outgoing edges and increment or add
+		for (int k = 0; k < OutDeg; k++) {
+			int OutNId = NI.GetOutNId(k);
+			if (MultiGraph.GetDat(NId).IsKey(OutNId)) {
+				MultiGraph.GetDat(NId).GetDat(OutNId)++;
+			}
+			else {
+				MultiGraph.GetDat(NId).AddDat(OutNId, 1);
+			}
+		}
+
+		// Mat[RemappedNId] = remap(MultiGraph.GetDat(NId).KeyV), MultiGraph.GetDat(NId).ValV
+		int Len = MultiGraph.GetDat(NId).Len();
+		Mat[RemappedNId].Gen(Len);
+		for (int k = 0; k < Len; k++) {
+			int Key = MultiGraph.GetDat(NId).GetKey(k);
+			Mat[RemappedNId][k].Key = NIdSet.GetKeyId(Key);
+			Mat[RemappedNId][k].Dat = MultiGraph.GetDat(NId).GetDat(Key);
+		}
+		Mat[RemappedNId].Sort();
+	}
+	return TJsSpMat::New(JsGraph->Js, Mat, Nodes);
 }
 
 ///////////////////////////////
