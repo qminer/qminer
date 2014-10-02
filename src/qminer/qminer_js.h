@@ -2901,8 +2901,6 @@ public:
 	JsDeclareProperty(lastNode);
 	//#- `edge = graph.firstEdge` -- gets first edge
 	JsDeclareProperty(firstEdge);
-	//#- `edge = graph.lastEdge` -- gets last edge
-	JsDeclareProperty(lastEdge)
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
 	//#- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
