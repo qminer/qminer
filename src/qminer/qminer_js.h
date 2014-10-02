@@ -2912,48 +2912,6 @@ public:
 	//#  - `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
 	JsDeclareFunction(adjMat);
 };
-//
-//static void lala() {
-//	PNEGraph Graph;
-//	// replace Graph with JsGraph->Graph annd TNEGraph:: with T::!
-//	
-//	int Nodes = Graph->GetNodes();
-//	TVec<TIntFltKdV> Mat(Nodes);
-//
-//	THash<TInt, THash<TInt, TInt> > MultiGraph;
-//
-//	TIntSet NIdSet(Graph->GetNodes()); // remapping
-//	for (TNEGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
-//		int NId = NI.GetId();
-//		int RemappedNId = NIdSet.AddKey(NId);
-//		int OutDeg = NI.GetOutDeg();
-//		TIntIntH Neigh(OutDeg);
-//		MultiGraph.AddDat(NId, Neigh);
-//		// take all outgoing edges and increment or add
-//		for (int k = 0; k < OutDeg; k++) {
-//			int OutNId = NI.GetOutNId(k);
-//			if (MultiGraph[NId].IsKey(OutNId)) {
-//				MultiGraph[NId][OutNId]++;
-//			}
-//			else {
-//				MultiGraph[NId].AddDat(OutNId, 1);
-//			}
-//		}
-//		
-//		// Mat[RemappedNId] = remap(MultiGraph[NId].KeyV), MultiGraph[NId].ValV
-//		int Len = MultiGraph[NId].Len();
-//		Mat[RemappedNId].Gen(Len);
-//		for (int k = 0; k < Len; k++) {
-//			int Key = MultiGraph[NId].GetKey(k);
-//			Mat[RemappedNId][k].Key = NIdSet.GetKeyId(Key);
-//			Mat[RemappedNId][k].Dat = MultiGraph[NId].GetDat(Key);
-//		}
-//		Mat[RemappedNId].Sort();
-//	}
-//	
-//	
-//
-//}
 
 ///////////////////////////////
 // QMiner-Node

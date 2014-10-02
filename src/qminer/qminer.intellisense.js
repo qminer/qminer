@@ -3195,9 +3195,6 @@ _graph.addEdge = function () {
 	/// </signature>
 };
 
-/// <field name = "lastEdge" value = "_edge"> gets last edge</field>
-_graph.lastEdge = _edge;
-
 /// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
 _tm.nowUTC = _tm;
 
