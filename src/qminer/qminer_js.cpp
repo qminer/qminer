@@ -6198,12 +6198,12 @@ v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
 
 	TIntSet NIdSet(JsGraph->Graph->GetNodes()); // remapping
 	// build the remapping of all keys
-	for (T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
 		int NId = NI.GetId();
 		NIdSet.AddKey(NId);
 	}
 	// count outgoing edges, remap ids and build the sparse ajdacency matrix
-	for (T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
 		int NId = NI.GetId();
 		int RemappedNId = NIdSet.GetKeyId(NId);
 		int OutDeg = NI.GetOutDeg();
