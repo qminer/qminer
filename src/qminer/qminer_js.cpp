@@ -672,8 +672,9 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         // check if one of built-in modules
 		if (ModuleFNm == "__analytics__") {
 			return TJsAnalytics::New(Script);
-		}
-		else if (ModuleFNm == "__snap__") {
+		} else if (ModuleFNm == "__utilities__") {
+			return TJsUtilities::New(Script);
+		} else if (ModuleFNm == "__snap__") {
 			return TJsSnap::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
@@ -2903,7 +2904,12 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         Rec.SetFieldBool(FieldId, Value->BooleanValue());
 	} else if (Desc.IsFlt()) {
         QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
-        Rec.SetFieldFlt(FieldId, Value->NumberValue());
+		TFlt Val(Value->NumberValue());
+		bool NaNFound = Val.IsNan();
+		if (NaNFound) {
+			throw TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
+		}
+        Rec.SetFieldFlt(FieldId, Val);
 	} else if (Desc.IsFltPr()) {
         QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");   
         v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
@@ -3218,6 +3224,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, newSpVec);
 		JsRegisterFunction(TmpTemp, newSpMat);
 		JsRegisterFunction(TmpTemp, svd);
+		JsRegisterFunction(TmpTemp, qr);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3482,6 +3489,27 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 		}
 	}
 	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsLinAlg::qr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	// result object
+	v8::Handle<v8::Object> JsObj = v8::Object::New();
+	// algorithm outputs
+	TFltVV Q;
+	TFltVV R;
+	// tolerance parameter
+	double Tol = TJsLinAlgUtil::GetArgFlt(Args, 1, 1e-6);
+	
+	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+		// get argument matrix
+		TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+		TLinAlg::QR(JsMat->Mat, Q, R, Tol);
+	}
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("Q")), TJsFltVV::New(JsLinAlg->Js, Q));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("R")), TJsFltVV::New(JsLinAlg->Js, R));
+	return HandleScope.Close(JsObj);
 }
 
 ///////////////////////////////
@@ -4401,6 +4429,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpMat::GetTemplate() {
 		JsRegisterFunction(TmpTemp, print);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, sign);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4813,6 +4842,18 @@ v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
 	JsSpMat->Rows.Load(*SIn);
 	JsSpMat->Mat.Load(*SIn);
 	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsSpMat::sign(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// get caller matrix
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	// result
+	TVec<TIntFltKdV> Mat2;
+	// computation
+	TLinAlg::Sign(JsSpMat->Mat, Mat2);
+	// wrap result and return
+	return TJsSpMat::New(JsSpMat->Js, Mat2, JsSpMat->Rows);
 }
 
 ///////////////////////////////
@@ -5601,6 +5642,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
     const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
     // learn
     JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
+	QmAssertR(!JsRecLinRegModel->Model->HasNaN(), "RecLinRegModel.learn: NaN detected!");
 	return Args.Holder();
 }
 
@@ -5904,7 +5946,7 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, dump);
 		JsRegisterFunction(TmpTemp, eachNode);
 		JsRegisterFunction(TmpTemp, eachEdge);
-
+		JsRegisterFunction(TmpTemp, adjMat);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6143,6 +6185,54 @@ v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
 	return Args.Holder();
 }
 
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	int Nodes = JsGraph->Graph->GetNodes();
+	TVec<TIntFltKdV> Mat(Nodes);
+
+	THash<TInt, THash<TInt, TInt> > MultiGraph;
+
+	TIntSet NIdSet(JsGraph->Graph->GetNodes()); // remapping
+	// build the remapping of all keys
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		NIdSet.AddKey(NId);
+	}
+	// count outgoing edges, remap ids and build the sparse ajdacency matrix
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		int RemappedNId = NIdSet.GetKeyId(NId);
+		int OutDeg = NI.GetOutDeg();
+		TIntIntH Neigh(OutDeg);
+		MultiGraph.AddDat(NId, Neigh);
+		// take all outgoing edges and increment or add
+		for (int k = 0; k < OutDeg; k++) {
+			int OutNId = NI.GetOutNId(k);
+			if (MultiGraph.GetDat(NId).IsKey(OutNId)) {
+				MultiGraph.GetDat(NId).GetDat(OutNId)++;
+			}
+			else {
+				MultiGraph.GetDat(NId).AddDat(OutNId, 1);
+			}
+		}
+
+		// Mat[RemappedNId] = remap(MultiGraph.GetDat(NId).KeyV), MultiGraph.GetDat(NId).ValV
+		int Len = MultiGraph.GetDat(NId).Len();
+		Mat[RemappedNId].Gen(Len);
+		for (int k = 0; k < Len; k++) {
+			int Key = MultiGraph.GetDat(NId).GetKey(k);
+			Mat[RemappedNId][k].Key = NIdSet.GetKeyId(Key);
+			Mat[RemappedNId][k].Dat = MultiGraph.GetDat(NId).GetDat(Key);
+		}
+		Mat[RemappedNId].Sort();
+	}
+	return TJsSpMat::New(JsGraph->Js, Mat, Nodes);
+}
+
 ///////////////////////////////
 // QMiner-Node
 
@@ -6296,6 +6386,18 @@ v8::Handle<v8::Value> TJsEdge<T>::next(const v8::Arguments& Args) {
 	T ReturnEdge = JsEdge->Edge++;
 	return HandleScope.Close(Args.Holder());
 }
+
+
+///////////////////////////////
+// QMiner-JavaScript-HashMap
+
+const TStr TAuxStrIntH::ClassId = "TStrIntH";
+const TStr TAuxStrFltH::ClassId = "TStrFltH";
+const TStr TAuxStrStrH::ClassId = "TStrStrH";
+const TStr TAuxIntIntH::ClassId = "TIntIntH";
+const TStr TAuxIntFltH::ClassId = "TIntFltH";
+const TStr TAuxIntStrH::ClassId = "TIntStrH";
+
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -6530,6 +6632,56 @@ v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties,
 	v8::HandleScope HandleScope;
 	v8::Local<v8::String> RootFPath = v8::String::New(TEnv::RootFPath.CStr());
 	return HandleScope.Close(RootFPath);
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Utilities
+
+v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newStrIntH);
+		JsRegisterFunction(TmpTemp, newStrFltH);
+		JsRegisterFunction(TmpTemp, newStrStrH);
+		JsRegisterFunction(TmpTemp, newIntIntH);
+		JsRegisterFunction(TmpTemp, newIntFltH);
+		JsRegisterFunction(TmpTemp, newIntStrH);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrStrH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntStrH::New(JsUtils->Js);
 }
 
 ///////////////////////////////

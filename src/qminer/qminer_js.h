@@ -78,9 +78,14 @@ namespace TQm {
 //#  - [Neural network model](#neural-network-model)
 //#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
 //#  - [Hoeffding Tree model](#hoeffding-tree-model)
+//# - [snap.js (use require)](#snap-graph-library)
+//#  - [Graph](#graph)
+//#  - [Node](#node)
+//#  - [Edge](#edge)
 //# - [System and I/O](#system-and-io)
 //#  - [Process](#process)
 //#  - [utilities.js (use require)](#utilitiesjs-use-require)
+//#  - [utilities.map (use require)](#hash-map)
 //#  - [assert.js (use require)](#assertjs-use-require)
 //#  - [Console](#console)
 //#  - [File system](#file-system)
@@ -1717,8 +1722,10 @@ public:
 	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
 	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-	JsDeclareFunction(svd);	
+	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	JsDeclareFunction(svd);
+	//#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
+	JsDeclareFunction(qr);
     //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
     //JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
@@ -2383,6 +2390,8 @@ public:
 	JsDeclareFunction(save);
 	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 	JsDeclareFunction(load);
+	//#- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
+	JsDeclareFunction(sign);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
 
@@ -2805,11 +2814,11 @@ public:
 	JsDeclareFunction(newUGraph);
 	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
 	JsDeclareFunction(newDGraph);
-	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
+	//#- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
 	JsDeclareFunction(newDMGraph);
 	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(degreeCentrality);
-	//#- `spvector = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(communityDetection);
 	//#- `jsonstring = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
@@ -2869,11 +2878,6 @@ public:
 	//# 
 	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
 	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
-	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
 	JsDeclareFunction(addNode);
 	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
 	JsDeclareFunction(addEdge);
@@ -2891,11 +2895,11 @@ public:
 	JsDeclareProperty(edges);
 	//#- `node = graph.node(idx)` -- gets node with ID `idx`
 	JsDeclareFunction(node);
-	//#- `node = graph.getFirstNode()` -- gets first node
+	//#- `node = graph.firstNode` -- gets first node
 	JsDeclareProperty(firstNode);
-	//#- `node = graph.getLastNode()` -- gets last node
+	//#- `node = graph.lastNode` -- gets last node
 	JsDeclareProperty(lastNode);
-	//#- `edge = graph.getFirstEdge()` -- gets first edge
+	//#- `edge = graph.firstEdge` -- gets first edge
 	JsDeclareProperty(firstEdge);
 	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
 	JsDeclareFunction(dump);
@@ -2905,6 +2909,8 @@ public:
 	//#- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
 	//#  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
 	JsDeclareFunction(eachEdge);
+	//#  - `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
+	JsDeclareFunction(adjMat);
 };
 
 ///////////////////////////////
@@ -2996,6 +3002,8 @@ public:
 	JsDeclareFunction(next);
 
 };
+
+
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -3099,7 +3107,301 @@ public:
 //#
 //# ### utilities.js (use require)
 //# 
+class TJsUtilities {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsUtilities> TJsUtilitiesUtil;
+	explicit TJsUtilities(TWPt<TScript> _Js) : Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsUtilitiesUtil::New(new TJsUtilities(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//#
+	//# **Functions and properties:**
+	//#
+	//#- `map = utilities.newStrIntH()` -- New string-int hashmap
+	JsDeclareFunction(newStrIntH);
+	//#- `map = utilities.newStrFltH()` -- New string-double hashmap
+	JsDeclareFunction(newStrFltH);
+	//#- `map = utilities.newStrStrH()` -- New string-string hashmap
+	JsDeclareFunction(newStrStrH);
+	//#- `map = utilities.newIntIntH()` -- New int-int hashmap
+	JsDeclareFunction(newIntIntH);
+	//#- `map = utilities.newIntFltH()` -- New int-double hashmap
+	JsDeclareFunction(newIntFltH);
+	//#- `map = utilities.newIntStrH()` -- New int-string hashmap
+	JsDeclareFunction(newIntStrH);
+};
 //#JSIMPLEMENT:src/qminer/js/utilities.js    
+
+///////////////////////////////
+// QMiner-Hash-Map
+//# 
+//# ### Hash Map
+//# 
+//# Several implementations of hash-map can be constructed. Use require('utilities.js').
+
+class TAuxStrIntH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrIntH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+};
+
+class TAuxStrFltH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrFltH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TFlt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgFlt(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+};
+
+class TAuxStrStrH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrStrH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TStr GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+};
+
+class TAuxIntIntH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntIntH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+};
+
+class TAuxIntFltH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntFltH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TFlt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgFlt(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+};
+
+class TAuxIntStrH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntStrH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TStr GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+};
+
+template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
+class TJsHash {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	typedef THash<TKey, TDat> HT;
+	HT Map;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsHash<TKey, TDat, TAux> > TJsHashUtil;
+	explicit TJsHash(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		v8::Persistent<v8::Object> obj = TJsHashUtil::New(new TJsHash(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(TAux::ClassId.CStr());
+		obj->SetHiddenValue(key, value);
+		return  obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const HT& _Map) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsHash::SetMap(obj, _Map);
+		return  obj;
+	}
+	static HT& GetMap(const v8::Handle<v8::Object> Obj) {
+		return TJsHashUtil::GetSelf(Obj)->Map;
+	}
+	static void SetMap(const v8::Handle<v8::Object> Obj, const HT& _Map) {
+		TJsHashUtil::GetSelf(Obj)->Map = _Map;
+	}
+
+	/// template	
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `dat = map.get(key)` -- return data given on key
+	JsDeclareFunction(get);
+	//#- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
+	JsDeclareFunction(put);
+	//#- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+	JsDeclareFunction(hasKey);
+	//#- `num = map.length` -- returns the number of keys
+	JsDeclareProperty(length);
+	//#- `key = map.key(idx)` -- returns the `idx`-th key
+	JsDeclareFunction(key);
+	//#- `dat = map.dat(idx)` -- returns the `idx`-th dat
+	JsDeclareFunction(dat);
+};
+
+typedef TJsHash<TStr, TInt, TAuxStrIntH> TJsStrIntH;
+typedef TJsHash<TStr, TFlt, TAuxStrFltH> TJsStrFltH;
+typedef TJsHash<TStr, TStr, TAuxStrStrH> TJsStrStrH;
+typedef TJsHash<TInt, TInt, TAuxIntIntH> TJsIntIntH;
+typedef TJsHash<TInt, TFlt, TAuxIntFltH> TJsIntFltH;
+typedef TJsHash<TInt, TStr, TAuxIntStrH> TJsIntStrH;
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::ObjectTemplate> TJsHash<TKey, TDat, TAux>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, get);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, hasKey);
+		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, key);
+		JsRegisterFunction(TmpTemp, dat);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::get(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	TDat Dat;
+	if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
+		return TAux::WrapDat(Dat, HandleScope);
+	}
+	else { return v8::Undefined(); }
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::put(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	TDat Dat = TAux::GetArgDat(Args, 1);
+	JsMap->Map.AddDat(Key, Dat);
+	return Args.Holder();
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::hasKey(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	return HandleScope.Close(v8::Boolean::New(JsMap->Map.IsKey(Key)));
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Integer::New(JsMap->Map.Len()));
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::key(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
+	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::key Incorrect KeyId:%d", Idx));
+	return TAux::WrapKey(JsMap->Map.GetKey(Idx), HandleScope);
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::dat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
+	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::dat Incorrect KeyId:%d", Idx));
+	TKey Key;
+	TDat Dat;
+	JsMap->Map.GetKeyDat(Idx, Key, Dat);
+	return TAux::WrapDat(Dat, HandleScope);
+}
+
 
 //#
 //# ### assert.js (use require)

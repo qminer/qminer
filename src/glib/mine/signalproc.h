@@ -596,6 +596,8 @@ public:
 	double Predict(const TFltV& Sample);
 	// copies the current models coefficients into the specified list
 	void GetCoeffs(TFltV& Coef) const;
+	// check if the coefficient vector contains NaN
+	bool HasNaN() const;
 };
 
 }
