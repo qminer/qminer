@@ -857,6 +857,28 @@ void TLinAlg::GetColMaxIdxV(const TFltVV& X, TIntV& IdxV) {
 	}
 }
 
+int TLinAlg::GetColMinIdx(const TFltVV& X, const int& ColN) {
+	const int Rows = X.GetRows();
+	double MinVal = TFlt::Mx;
+	int MinIdx = -1;
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		double Val = X(RowN, ColN);
+		if (Val < MinVal) {
+			MinVal = Val;
+			MinIdx = RowN;
+		}
+	}
+	return MinIdx;
+}
+
+void TLinAlg::GetColMinIdxV(const TFltVV& X, TIntV& IdxV) {
+	int Cols = X.GetCols();
+	IdxV.Gen(X.GetCols());
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		IdxV[ColN] = GetColMinIdx(X, ColN);
+	}
+}
+
 void TLinAlg::MultiplyScalar(const double& k, const TFltV& x, TFltV& y) {
     Assert(x.Len() == y.Len());
     int Len = x.Len();
@@ -3111,7 +3133,15 @@ TIntV TVector::GetIntVec() const {
 	 return Res;
 }
 
+double TVector::GetMaxVal() const {
+	return GetMax().Val2;
+}
+
 int TVector::GetMaxIdx() const {
+	return GetMax().Val1;
+}
+
+TIntFltPr TVector::GetMax() const {
 	const int Dim = Len();
 
 	double MaxVal = TFlt::Mn;
@@ -3124,7 +3154,23 @@ int TVector::GetMaxIdx() const {
 		}
 	}
 
-	return MaxIdx;
+	return TIntFltPr(MaxIdx, MaxVal);
+}
+
+int TVector::GetMinIdx() const {
+	const int Dim = Len();
+
+	double MinVal = TFlt::Mx;
+	int MinIdx = 0;
+
+	for (int i = 0; i < Dim; i++) {
+		if (Vec[i] < MinVal) {
+			MinVal = Vec[i];
+			MinIdx = i;
+		}
+	}
+
+	return MinIdx;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -3222,6 +3268,20 @@ TFullMatrix TFullMatrix::GetT() const {
 	TFullMatrix Res(*this);      // copy
 	Res.Transpose();
 	return Res;
+}
+
+TFullMatrix& TFullMatrix::AddCol(const TVector& Col) {
+	const int Rows = GetRows();
+	const int LastColIdx = GetCols();
+
+	EAssertR(Col.Len() == Rows, "TFullMatrix::AddCol: dimension mismatch!");
+
+	Mat.AddYDim();
+	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
+		Mat(RowIdx, LastColIdx) = Col[RowIdx];
+	}
+
+	return *this;
 }
 
 TFullMatrix& TFullMatrix::operator -=(const TFullMatrix& B) {
@@ -3343,12 +3403,12 @@ double TFullMatrix::ColNorm2(const int& ColIdx) const {
 TVector TFullMatrix::ColNormV() const {
 	const int Cols = GetCols();
 
-	TFltV Res(GetCols());
+	TVector Res(Cols, false);
 	for (int i = 0; i < Cols; i++) {
 		Res[i] = ColNorm(i);
 	}
 
-	return TVector(Res, false);
+	return Res;
 }
 
 TVector TFullMatrix::ColNorm2V() const {
@@ -3386,35 +3446,19 @@ TVector TFullMatrix::RowSumV() const {
 	return Res;
 }
 
+TVector TFullMatrix::GetColMinV() const {
+	TVector Result;	TLinAlg::GetColMinV(Mat, Result.Vec);
+	return Result;
+}
+
 TVector TFullMatrix::GetColMaxIdxV() const {
 	TIntV IdxV;	TLinAlg::GetColMaxIdxV(Mat, IdxV);
 	return TVector(IdxV, false);
 }
 
 TVector TFullMatrix::GetColMinIdxV() const {
-	const int Rows = GetRows();
-	const int Cols = GetCols();
-
-	TVector Result(Cols, false);
-
-	int MinIdx;
-	double MinVal;
-
-	for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
-		MinIdx = -1;
-		MinVal = TFlt::Mx;
-
-		for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
-			if (At(RowIdx, ColIdx) < MinVal) {
-				MinVal = At(RowIdx, ColIdx);
-				MinIdx = RowIdx;
-			}
-		}
-
-		Result[ColIdx] = MinIdx;
-	}
-
-	return Result;
+	TIntV IdxV;	TLinAlg::GetColMinIdxV(Mat, IdxV);
+	return TVector(IdxV, false);
 }
 
  

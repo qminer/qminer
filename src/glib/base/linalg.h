@@ -412,6 +412,14 @@ public:
 	// find the index of maximum elements for each col of X
 	static void GetColMaxIdxV(const TFltVV& X, TIntV& IdxV);
 
+	// find the index of maximum elements for a given each col of X
+	static int GetColMinIdx(const TFltVV& X, const int& ColN);
+	// find the index of maximum elements for each col of X
+	static void GetColMinIdxV(const TFltVV& X, TIntV& IdxV);
+
+	template <class TVal> static TVal GetColMin(const TVVec<TVal>& X, const int& ColN);
+	template <class TVal> static void GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV);
+
     // y := k * x
     static void MultiplyScalar(const double& k, const TFltV& x, TFltV& y);
     // y := k * x
@@ -521,6 +529,32 @@ public:
     static void AssertOrtogonality(const TVec<TFltV>& Vecs, const double& Threshold);
     static void AssertOrtogonality(const TFltVV& Vecs, const double& Threshold);
 };
+
+template <class TVal>
+TVal TLinAlg::GetColMin(const TVVec<TVal>& X, const int& ColN) {
+	const int Rows = X.GetRows();
+	EAssertR(Rows > 0, "Input matrix should have at least one row!");
+
+	TVal MinVal = X(0, ColN);
+	for (int RowN = 1; RowN < Rows; RowN++) {
+		TVal Val = X(RowN, ColN);
+		if (Val < MinVal) {
+			MinVal = Val;
+		}
+	}
+
+	return MinVal;
+}
+
+template <class TVal>
+void TLinAlg::GetColMinV(const TVVec<TVal>& X, TVec<TVal>& ValV) {
+	const int Cols = X.GetCols();
+
+	ValV.Gen(Cols);
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		ValV[ColN] = GetColMin(X, ColN);
+	}
+}
 
 //////////////////////////////////////////////////////////////////////
 // Numerical-Recipes-Exception
@@ -926,6 +960,8 @@ public:
     bool Empty() const { return Vec.Empty(); }
 
     template<typename TFunc> TVector& Map(const TFunc& Func);
+    // applies sqrt on all elements of this matrix
+	TVector& Sqrt() { return Map([](TFlt Val) { return sqrt(Val); }); }
 
     // returns a vector containing indexes of all the elements satisfying a condition
     template<typename TFunc> TVector Find(const TFunc& Func) const;
@@ -937,15 +973,22 @@ public:
     // returns the sum of elements
     double Sum() const;
 
-    // returns the eucledian distance to the other vector
+    // returns the euclidean distance to the other vector
     double EuclDist(const TVector& y) const;
 
     // returns the underlying list
     const TFltV& GetVec() const { return Vec; }
     // returns this vector as a list of integers
     TIntV GetIntVec() const;
+
+    double GetMaxVal() const;
     // returns the index of the maximum element
     int GetMaxIdx() const;
+    // returns the index and value of the maximum element
+    TIntFltPr GetMax() const;
+
+    // returns the index of the minimum element
+	int GetMinIdx() const;
 
     void Save(TSOut& SOut) const { TBool(IsColVector).Save(SOut); Vec.Save(SOut); }
     void Load(TSIn& SIn) { IsColVector = TBool(SIn); Vec.Load(SIn); }
@@ -1035,6 +1078,8 @@ public:
     // returns true if the matrix is empty
     bool Empty() const { return Mat.Empty(); }
     
+    TFullMatrix& AddCol(const TVector& Col);
+
     // operators
     TFlt& operator ()(const int& i, const int& j) { return At(i,j); }
     const TFlt& operator ()(const int& i, const int& j) const { return At(i,j); }
@@ -1093,6 +1138,9 @@ public:
     double RowSum(const int& i) const;
     // returns a vector containing the sum of rows
     TVector RowSumV() const;
+
+    // returns a vector containing the minimum values of each column
+    TVector GetColMinV() const;
 
     // returns the index of the maximum element in each column in a row vector
     TVector GetColMaxIdxV() const;

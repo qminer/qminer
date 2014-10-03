@@ -1038,7 +1038,7 @@ private:
 		// and sum is the sum of distances to the centroid
 		TVec<TUInt64FltPr> StateStatV;
 
-		TFullKMeans KMeans;
+		TFullClust::TClust* Clust;
 
 		TUInt64V RecIdV;
 
@@ -1050,6 +1050,8 @@ private:
 	public:
 		TNode();
 		TNode(THierchCtmc* Model, const PRecSet& RecSet);
+
+		~TNode() { delete Clust; }
 
 		PJsonVal SaveJson() const;
 
@@ -1099,7 +1101,7 @@ private:
 	TUInt64 CurrRecs;
 	TUInt64 MinRecs;
 
-	TInt K;
+	PJsonVal ClustParams;
 	TFlt ExpandThreshold;
 	TUInt64 TimeUnit;
 
@@ -1111,16 +1113,16 @@ private:
 
 protected:
 	THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
-			const TStr& TimeFldNm, const TInt& MinRecs, const TInt& K,
-			const TFlt& ExpandThreshold, const TUInt64 TimeUnit, const int& RndSeed=0);
+			const TStr& TimeFldNm, const TInt& _MinRecs, const PJsonVal& ClustParams,
+			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const int& RndSeed=0);
 
 public:
 	THierchCtmc(const THierchCtmc& Model);
 	~THierchCtmc();
 
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
-			const TStr& TimeFldNm, const TInt& MinRecs, const TInt& K,
-			const TFlt& ExpandThreshold, const TUInt64 TimeUnit, const int& RndSeed=0);
+			const TStr& TimeFldNm, const TInt& _MinRecs, const PJsonVal& ClustParams,
+			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const int& RndSeed=0);
 	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 
 	PJsonVal SaveJson(const int& Limit) const;
@@ -1135,6 +1137,9 @@ protected:
 	TVector GetInstanceV(const TRec& Rec) const;
 	TFullMatrix GetInstanceVV(const PRecSet& RecSet) const;
 	TFullMatrix GetInstanceVV(const TUInt64V& RecIdV) const;
+
+	// clustering
+	TFullClust::TClust* GetClust() const;
 
 	// records
 	PRecSet GetRecSet(const TUInt64V& RecIdV) const;

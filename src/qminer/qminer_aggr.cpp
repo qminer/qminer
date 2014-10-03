@@ -2174,7 +2174,7 @@ THierchCtmc::TNode::TNode():
 		Model(NULL),
 		CentroidMat(),
 		QMatrixStats(),
-		KMeans(1),
+		Clust(Model->GetClust()),
 		RecIdV(),
 		ChildV(),
 		PrevStateIdx(-1) {}
@@ -2184,7 +2184,7 @@ THierchCtmc::TNode::TNode(THierchCtmc* _Model, const PRecSet& RecSet):
 		Model(_Model),
 		CentroidMat(),
 		QMatrixStats(),
-		KMeans(Model->K),
+		Clust(Model->GetClust()),
 		RecIdV(),
 		ChildV(),
 		PrevStateIdx(-1) {
@@ -2200,6 +2200,8 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 	const int NStates = GetStates();
 	PJsonVal RootJson = TJsonVal::NewObj();
 
+	printf("Saving json ...\n");
+
 	// centroids
 	PJsonVal CentroidJsonV = TJsonVal::NewArr();
 	for (int i = 0; i < NStates; i++) {
@@ -2208,6 +2210,8 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 		StateJson->AddToObj("meanCentroidDist", GetMeanPtCentroidDist(i));
 		StateJson->AddToObj("size", GetStateSize(i));
 		StateJson->AddToObj("centroid", TJsonVal::NewArr(CentroidMat.GetCol(i).GetVec()));
+
+		printf("node id: %ld, size: %ld, mean centroid dist: %.3f\n", NodeId.Val, GetStateSize(i), GetMeanPtCentroidDist(i));
 
 		CentroidJsonV->AddToArr(StateJson);
 	}
@@ -2241,27 +2245,25 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 	return RootJson;
 }
 
-void THierchCtmc::TNode::OnAddRec(const TRec& Rec, const bool Expand) {
+void THierchCtmc::TNode::OnAddRec(const TRec& Rec, const bool IsInitialized) {
 	const int NStates = GetStates();
-
-	printf("Adding record ...\n");
 
 	// add record ID to the internal structure
 	RecIdV.Add(Rec.GetRecId());
 	// update statistics
-	UpdateStatistics(Rec);
+	if (IsInitialized) { UpdateStatistics(Rec); }
 	// update intensities
 	UpdateIntensities(Rec);
 
 	// add to children
 	// check to which child the record belongs
-	int StateIdx = KMeans.Assign(Model->GetInstanceV(Rec));
+	int StateIdx = Clust->Assign(Model->GetInstanceV(Rec));
 	if (IsStateExpanded(StateIdx)) {
-		ChildV[StateIdx]->OnAddRec(Rec, Expand);
+		ChildV[StateIdx]->OnAddRec(Rec, IsInitialized);
 	}
 
 	// check if any state should be expanded
-	if (Expand) {
+	if (IsInitialized) {
 		for (int i = 0; i < NStates; i++) {
 			if (ShouldExpand(i)) {
 				ExpandState(i);
@@ -2272,7 +2274,7 @@ void THierchCtmc::TNode::OnAddRec(const TRec& Rec, const bool Expand) {
 
 
 void THierchCtmc::TNode::UpdateIntensities(const TRec& Rec) {
-	int CurrStateIdx = KMeans.Assign(Model->GetInstanceV(Rec));
+	int CurrStateIdx = Clust->Assign(Model->GetInstanceV(Rec));
 
 	if (PrevStateIdx != -1 && CurrStateIdx != PrevStateIdx) {
 		// the state has changed
@@ -2293,8 +2295,8 @@ void THierchCtmc::TNode::UpdateIntensities(const TRec& Rec) {
 void THierchCtmc::TNode::UpdateStatistics(const TRec& Rec) {
 	TVector Pt = Model->GetInstanceV(Rec);
 
-	int StateIdx = KMeans.Assign(Pt);
-	double CentroidDist = KMeans.GetDist(StateIdx, Pt);
+	int StateIdx = Clust->Assign(Pt);
+	double CentroidDist = Clust->GetDist(StateIdx, Pt);
 
 	StateStatV[StateIdx].Val1 += 1;
 	StateStatV[StateIdx].Val2 += CentroidDist;
@@ -2303,17 +2305,22 @@ void THierchCtmc::TNode::UpdateStatistics(const TRec& Rec) {
 void THierchCtmc::TNode::InitStateStats() {
 	const int NStates = GetStates();
 
+	printf("Initailizing statistics ...\n");
+
 	StateStatV.Gen(NStates, 0);
 	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
-		double MeanPtCentDist = KMeans.GetMeanPtCentDist(StateIdx);
-		uint64 ClustSize = KMeans.GetClustSize(StateIdx);
+		double MeanPtCentDist = Clust->GetMeanPtCentDist(StateIdx);
+		uint64 ClustSize = Clust->GetClustSize(StateIdx);
 
 		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
+
+		printf("Node: %ld: state %d, points %ld, mean centroid dist %.3f\n", NodeId.Val, StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
 	}
 }
 
 double THierchCtmc::TNode::GetMeanPtCentroidDist(const int& StateIdx) const {
-	return StateStatV[StateIdx].Val2 / StateStatV[StateIdx].Val1;
+	if (GetStateSize(StateIdx) == 0) { return 0; }
+	return StateStatV[StateIdx].Val2 / GetStateSize(StateIdx);
 }
 
 uint64 THierchCtmc::TNode::GetStateSize(const int& StateIdx) const {
@@ -2322,7 +2329,8 @@ uint64 THierchCtmc::TNode::GetStateSize(const int& StateIdx) const {
 
 bool THierchCtmc::TNode::ShouldExpand(const int& StateIdx) const {
 	if (IsStateExpanded(StateIdx)) { return false; }
-	return GetMeanPtCentroidDist(StateIdx) > Model->ExpandThreshold;
+	double MeanPtCentDist = GetMeanPtCentroidDist(StateIdx);
+	return MeanPtCentDist > Model->ExpandThreshold;
 }
 
 bool THierchCtmc::TNode::IsStateExpanded(const int& StateIdx) const {
@@ -2336,10 +2344,12 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 
 	// fetch all the records that belong to the state
 	TFullMatrix InstanceMat = Model->GetInstanceVV(RecIdV);
-	TVector AssignV = KMeans.Assign(InstanceMat);
+	TVector AssignV = Clust->Assign(InstanceMat);
 
-	const TFlt StateIdxFlt = TFlt(StateIdx);
-	TVector StateAssignIdxV = AssignV.Find([&] (const TFlt& Val) { return Val == StateIdxFlt; });
+	TVector StateAssignIdxV = AssignV.Find([&] (const int Val) { return Val == StateIdx; });
+
+	// if the state doesn't have enough points => ignore
+	if (StateAssignIdxV.Len() < 15) { return; }	// TODO hardcoded
 
 	// get the record ids
 	TUInt64V StateRecIdV(StateAssignIdxV.Len(), 0);
@@ -2384,7 +2394,19 @@ void THierchCtmc::TNode::InitChildV() {
 void THierchCtmc::TNode::InitClusts(const PRecSet& RecSet, TIntV& AssignIdxV) {
 	TFullMatrix X = Model->GetInstanceVV(RecSet);
 	// run the algorithm
-	CentroidMat = KMeans.Apply(X, AssignIdxV);
+	CentroidMat = Clust->Apply(X, AssignIdxV);
+
+	//================================================================
+	// TODO delete
+	TVector AssignV1(AssignIdxV);
+	for (int i = 0; i < GetStates(); i++) {
+		TVector StateV = AssignV1.Find([&] (int Val) { return Val == i; });
+
+		printf("State %d has %d points\n", i, StateV.Len());
+	}
+
+	//================================================================
+
 	// initialize children vector
 	InitChildV();
 	InitStateStats();
@@ -2409,7 +2431,7 @@ void THierchCtmc::TNode::InitIntensities(const PRecSet& RecSet, const TIntV& Ass
 }
 
 THierchCtmc::THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
-			const TStr& TimeFldNm, const TInt& _MinRecs, const TInt& _K,
+			const TStr& TimeFldNm, const TInt& _MinRecs, const PJsonVal& _ClustParams,
 			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const int& RndSeed):
 		TQm::TStreamAggr(Base, AggrNm),
 		InStore(Base->GetStoreByStoreNm(InStoreNm)),
@@ -2418,7 +2440,7 @@ THierchCtmc::THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr
 		RootNode(NULL),
 		CurrRecs(),
 		MinRecs(_MinRecs),
-		K(_K),
+		ClustParams(_ClustParams),
 		ExpandThreshold(_ExpandThreshold),
 		TimeUnit(_TimeUnit),
 		Normalize(true),
@@ -2433,7 +2455,7 @@ THierchCtmc::THierchCtmc(const THierchCtmc& Model):
 		RootNode(Model.RootNode),
 		CurrRecs(Model.CurrRecs),
 		MinRecs(Model.MinRecs),
-		K(Model.K),
+		ClustParams(Model.ClustParams),
 		ExpandThreshold(Model.ExpandThreshold),
 		TimeUnit(Model.TimeUnit),
 		Normalize(true),
@@ -2445,17 +2467,17 @@ THierchCtmc::~THierchCtmc() {
 }
 
 PStreamAggr THierchCtmc::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
-		const TStr& TimeFldNm, const TInt& MinRecs, const TInt& K,
+		const TStr& TimeFldNm, const TInt& MinRecs, const PJsonVal& ClustParams,
 		const TFlt& ExpandThreshold, const TUInt64 TimeUnit, const int& RndSeed) {
-	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, K, ExpandThreshold, TimeUnit, RndSeed);
+	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, ClustParams, ExpandThreshold, TimeUnit, RndSeed);
 }
 
 PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
 	const TStr InStoreNm = ParamVal->GetObjStr("source");
 	const TStr AggrNm = ParamVal->GetObjStr("name");
 	const TInt MinRecs = ParamVal->GetObjNum("minRecs");
+	const PJsonVal ClustParams = ParamVal->GetObjKey("clustering");
 	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
-	const TInt K = ParamVal->GetObjInt("nstates");
 	const TFlt ExpandThreshold = ParamVal->GetObjNum("expandThreshold");
 	const TInt RndSeed = ParamVal->IsObjKey("randSeed") ? ParamVal->GetObjInt("randSeed") : 0;
 
@@ -2474,7 +2496,7 @@ PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& Param
 		throw TExcept::New("THierchCtmc::New: invalid time unit!", "THierchCtmc::New");
 	}
 
-	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, K, ExpandThreshold, TimeUnit, RndSeed);
+	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, ClustParams, ExpandThreshold, TimeUnit, RndSeed);
 }
 
 PJsonVal THierchCtmc::SaveJson(const int& Limit) const {
@@ -2505,6 +2527,22 @@ TFullMatrix THierchCtmc::GetInstanceVV(const PRecSet& RecSet) const {
 
 TFullMatrix THierchCtmc::GetInstanceVV(const TUInt64V& RecIdV) const {
 	return GetInstanceVV(GetRecSet(RecIdV));
+}
+
+TFullClust::TClust* THierchCtmc::GetClust() const {
+	const TStr ClustType = ClustParams->GetObjStr("type");
+
+	if (ClustType == "dpmeans") {
+		const double Lambda = ClustParams->GetObjNum("lambda");
+		const int MinClusts = ClustParams->GetObjInt("minclusts");
+		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
+		return new TFullClust::TDpMeans(Lambda, MinClusts, MaxClusts, Rnd);
+	} else if (ClustType == "kmeans") {
+		const int K = ClustParams->GetObjInt("k");
+		return new TFullClust::TKMeans(K, Rnd);
+	} else {
+		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
+	}
 }
 
 PRecSet THierchCtmc::GetRecSet(const TUInt64V& RecIdV) const {
