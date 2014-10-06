@@ -4216,7 +4216,15 @@ TBase::~TBase() {
 	if (FAccess != faRdOnly) {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
-		IndexVoc->Save(IndexVocFOut);		
+		IndexVoc->Save(IndexVocFOut);
+
+		// OBSOLETE CODE - ONLY FOR NRG4CAST
+		TEnv::Logger->OnStatus("Saving stream aggregates ...");
+		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
+		SaveStreamAggrBaseV(StreamAggrFOut);
+		StreamAggrDefaultBase->Save(StreamAggrFOut);
+		// END OF OBSOLETE CODE
+		
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -4436,6 +4444,15 @@ bool TBase::Exists(const TStr& FPath) {
 }
 
 void TBase::Init() {	
+	// OBSOLETE CODE - ONLY FOR NRG4CAST
+	if (FAccess != faCreate) {
+		// load stream aggregates
+		TFIn StreamAggrBaseFIn(FPath + "StreamAggr.dat");
+		LoadStreamAggrBaseV(StreamAggrBaseFIn);
+		StreamAggrDefaultBase = TStreamAggrBase::Load(this, StreamAggrBaseFIn);		
+	}
+	// END OF OBSOLETE CODE
+	
 	InitP = true;
 }
 
