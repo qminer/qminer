@@ -63,6 +63,8 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     EAssertR(SampleSize > 0, "Sampling size must be positive!");
     EAssertR(MxIter > 1, "Number of iterations to small!");
     
+    Notify->OnStatusFmt("SVM parameters: c=%.2f, j=%.2f", Cost, UnbalanceWgt);
+    
     // initialization 
     TRnd Rnd(1); 
     const double Lambda = 1.0 / (double(Vecs) * Cost);
@@ -89,8 +91,8 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     //  - if larger then 1.0, then there is bias towards positives
     double SamplingRatio = (double(PosVecs) * UnbalanceWgt) /
         (double(PosVecs) * UnbalanceWgt + double(NegVecs));
-    Notify->OnStatusFmt("Sampling ration 1 positive vs %.2f negative", 
-        (UnbalanceWgt / SamplingRatio - UnbalanceWgt));
+    Notify->OnStatusFmt("Sampling ration 1 positive vs %.2f negative [%.2f]", 
+        (1.0 / SamplingRatio - 1.0), SamplingRatio);
     
     TTmTimer Timer(MxMSecs); int Iters = 0; double Diff = 1.0;
     Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, (double)MxMSecs /1000.0, MnDiff);
@@ -101,9 +103,12 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     const int ProfilerPost = Profiler.AddTimer("Post");
 
     // function for writing progress reports
+    int PosCount = 0, NegCount = 0;
     auto ProgressNotify = [&]() {
-        Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g", 
-            Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff);
+        Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g, ratio %.2f", 
+            Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff, 
+            (double)PosCount / (double)(PosCount + NegCount));
+        PosCount = 0; NegCount = 0;
     };
        
     for (int IterN = 0; IterN < MxIter; IterN++) {
@@ -120,10 +125,17 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         // classify examples from the sample
         Profiler.StartTimer(ProfilerBatch);
         int DiffCount = 0;
-        for (int SampleN = 0; SampleN < SampleSize; SampleN++) {            
-            const int VecN = (Rnd.GetUniDev() > SamplingRatio) ?
-                NegVecIdV[Rnd.GetUniDevInt(NegVecs)] : // we select negative vector
-                PosVecIdV[Rnd.GetUniDevInt(PosVecs)];  // we select positive vector
+        for (int SampleN = 0; SampleN < SampleSize; SampleN++) {
+            int VecN = 0;
+            if (Rnd.GetUniDev() > SamplingRatio) {
+                // we select negative vector
+                VecN = NegVecIdV[Rnd.GetUniDevInt(NegVecs)];
+                NegCount++;
+            } else {
+                // we select positive vector
+                VecN = PosVecIdV[Rnd.GetUniDevInt(PosVecs)];
+                PosCount++;
+            }
             const double VecCfyVal = TargetV[VecN];
             const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
             if (CfyVal < 1.0) { 
@@ -155,7 +167,7 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         //if (DiffCount > 0 && (1.0 - DiffCos) < MnDiff) { 
         if (DiffCount > 0 && Diff < MnDiff) { 
             Notify->OnStatusFmt("Finishing due to reached difference limit of %g", MnDiff);
-            break; 
+            break;
         }
     }
     if (Iters == MxIter) { 
@@ -210,7 +222,7 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
         
         Profiler.StartTimer(ProfilerPre);
         // tells how much we can move
-        const double Nu = 1.0 / (Lambda * double(IterN + 2)); // ??
+        const double Nu = 1.0 / (Lambda * double(IterN + 2));
         const double VecUpdate = Nu / double(SampleSize);
         // initialize updated normal vector
         TLinAlg::MultiplyScalar((1.0 - Nu * Lambda), WgtV, NewWgtV);

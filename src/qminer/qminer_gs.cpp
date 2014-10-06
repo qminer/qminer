@@ -336,7 +336,8 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 		TStoreSchema& Schema = SchemaV[SchemaN];
 		// unique store names
 		TStr StoreName = Schema.StoreName;
-        QmAssertR(!StoreNameH.IsKey(StoreName), "Duplicate store name " + StoreName);
+        QmAssertR(!Base->IsStoreNm(StoreName), "Store already exists: " + StoreName);
+        QmAssertR(!StoreNameH.IsKey(StoreName), "Duplicate store name: " + StoreName);
 		StoreNameH.AddDat(StoreName, 0);
 		// check unique store ids
 		if (SchemaV[SchemaN].HasStoreIdP) {

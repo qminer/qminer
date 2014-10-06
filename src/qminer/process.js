@@ -30,5 +30,31 @@ process.isArg = function(arg) {
 	return false;
 }
 
-//#- `sysStatJson = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
+//#- `str = process.getArg(argStr)` -- returns the value of command-line 
+//      argument with prefix `argStr`
+process.getArg = function(arg, defValue) {
+    for (var i = 0; i < process.args.length; i++) {
+        if (process.args[i].indexOf(arg) == 0) { 
+            return process.args[i].slice(arg.length);
+        }
+	}
+	return defValue; 
+}
+
+//#- `num = process.getArgFloat(argStr)` -- returns the value of command-line 
+//      argument with prefix `argStr`, and transform it to float before return
+process.getArgFloat = function(arg, defValue) {
+    var val = process.getArg(arg);
+	return val ? parseFloat(val) : defValue; 
+}
+
+//#- `num = process.getArgInt(argStr)` -- returns the value of command-line 
+//      argument with prefix `argStr`, and transform it to integer before return
+process.getArgInt = function(arg, defValue) {
+    var val = process.getArg(arg);
+	return val ? parseInt(val) : defValue; 
+}
+
+//#- `sysStatJson = process.sysStat` -- statistics about system and qminer
+//      process (E.g. memory consumption). Currently only works on LINUX.
 process.sysStat = qm.sysStat;
