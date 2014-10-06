@@ -5953,9 +5953,9 @@ v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
 		PUNGraph graph = JsGraph->Graph();
 		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
 		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
-		double d = 0;
+		// double d = 0;
 		if (alg == "lip")
-			d = TSnap::FastCorePeriphery(graph, coreperiphery);
+			TSnap::FastCorePeriphery(graph, coreperiphery);
 		else
 			throw TQmExcept::New("TJsSnap::CorePeriphery: this algorithm does not exist!");
 	}
@@ -6368,7 +6368,7 @@ template <class T>
 v8::Handle<v8::Value> TJsNode<T>::next(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
-	T ReturnNode = JsNode->Node++;
+	JsNode->Node++;
 	return HandleScope.Close(Args.Holder());
 }
 
@@ -6376,7 +6376,7 @@ template <class T>
 v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
-	T ReturnNode = JsNode->Node--;
+	JsNode->Node--;
 	return HandleScope.Close(Args.Holder());
 }
 
@@ -6431,7 +6431,7 @@ template <class T>
 v8::Handle<v8::Value> TJsEdge<T>::next(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
-	T ReturnEdge = JsEdge->Edge++;
+	JsEdge->Edge++;
 	return HandleScope.Close(Args.Holder());
 }
 
