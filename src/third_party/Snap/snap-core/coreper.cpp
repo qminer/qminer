@@ -81,8 +81,8 @@ namespace TSnap {
 		}
 
 		double Zbest = 99999900000000000;
-		int kbest;
-		int olddeg;
+		//int kbest;
+		//int olddeg;
 		int br=0;
 		for (int k=0; k<nodes.Len(); k++){
 			if (k<nodes.Len()-1){
@@ -110,9 +110,9 @@ namespace TSnap {
 							if (Z < (Zbest)){ // or <=
 								//if (olddeg>nodes[kind])
 									
-								olddeg = nodes[kind];
+								//olddeg = nodes[kind];
 								Zbest = Z;
-								kbest = br;
+								//kbest = br;
 								int w = nodes[kind];
 								int id = nodesIds[kind];
 								GroupNodes.AddDat(id,w);
@@ -133,9 +133,9 @@ namespace TSnap {
 					if (Z < (Zbest)){ // or <=
 						//if (olddeg>nodes[k])
 							
-						olddeg = nodes[k];
+						//olddeg = nodes[k];
 						Zbest = Z;
-						kbest = br;
+						//kbest = br;
 						int w = nodes[k];
 						int id = nodesIds[k];
 						GroupNodes.AddDat(id,w);
@@ -151,9 +151,9 @@ namespace TSnap {
 				if (Z < Zbest){ // or <=
 					//if (olddeg>nodes[k])
 						
-					olddeg = nodes[k];
+					//olddeg = nodes[k];
 					Zbest = Z;
-					kbest = br;
+					//kbest = br;
 					int w = nodes[k];
 					int id = nodesIds[k];
 					GroupNodes.AddDat(id,w);

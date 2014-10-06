@@ -1430,7 +1430,7 @@ v8::Handle<v8::Value> TJsSA::getTm(const v8::Arguments& Args) {
 	if (Aggr.Empty()) {
 		throw TQmExcept::New("TJsSA::getTm : stream aggregate does not implement ITm: " + JsSA->SA->GetAggrNm());
 	}
-	return HandleScope.Close(v8::Number::New(Aggr->GetTmMSecs()));
+	return HandleScope.Close(v8::Number::New((double)Aggr->GetTmMSecs()));
 }
 
 v8::Handle<v8::Value> TJsSA::getFltLen(const v8::Arguments& Args) {
@@ -1489,7 +1489,7 @@ v8::Handle<v8::Value> TJsSA::getTmAt(const v8::Arguments& Args) {
 	if (Aggr.Empty()) {
 		throw TQmExcept::New("TJsSA::getTmAt : stream aggregate does not implement ITmVec: " + JsSA->SA->GetAggrNm());
 	}
-	return HandleScope.Close(v8::Number::New(Aggr->GetTm(ElN)));
+	return HandleScope.Close(v8::Number::New((double)Aggr->GetTm(ElN)));
 }
 
 v8::Handle<v8::Value> TJsSA::getTmV(const v8::Arguments& Args) {
@@ -1529,7 +1529,7 @@ v8::Handle<v8::Value> TJsSA::getInTm(const v8::Arguments& Args) {
 	if (Aggr.Empty()) {
 		throw TQmExcept::New("TJsSA::getInTm : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
-	return HandleScope.Close(v8::Number::New(Aggr->GetInTmMSecs()));
+	return HandleScope.Close(v8::Number::New((double)Aggr->GetInTmMSecs()));
 }
 
 v8::Handle<v8::Value> TJsSA::getOutFltV(const v8::Arguments& Args) {
@@ -5005,7 +5005,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
-    const int SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
+    const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
@@ -5057,7 +5057,7 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmRegression(const v8::Arguments& Args
         SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmEps = SvmParamVal->GetObjNum("eps", 1.0);
-    const double SampleSize = SvmParamVal->GetObjNum("batchSize", 1000);
+    const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);

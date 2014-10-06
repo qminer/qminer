@@ -7,13 +7,12 @@
 
     <script type="text/javascript">
     	google.load('visualization', '1', { packages: ['annotatedtimeline'] });
-	    google.setOnLoadCallback(drawChart);
-	    function drawChart() {
+	    $(function () {
             var dataJSON = {{{data}}};    //inject data
             var data = visualize.convertDates(dataJSON);
             var overrideParams = {{{overrideParams}}}; //inject plot parameters
             visualize.googleAnnotatedTimeLine(data, overrideParams, 'chart_div');
-        };
+        });
     </script>
     
 </head>	

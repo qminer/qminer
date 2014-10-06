@@ -219,7 +219,6 @@ exports.googleAnnotatedTimeLine = function (data, overrideParams, containerName)
     }
 
     var chart = new google.visualization.AnnotatedTimeLine(document.getElementById(containerName));
-    //chart.draw(table, { displayAnnotations: true });
     chart.draw(table, params);
 };
 
