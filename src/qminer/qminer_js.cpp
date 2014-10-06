@@ -6285,7 +6285,7 @@ v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
 // QMiner-Node
 
 template <class T>
-TJsNode<T>::TJsNode(TWPt<TScript> J, T a) : Js(Js), Node(a){ Node = a; }
+TJsNode<T>::TJsNode(TWPt<TScript> _Js, T a) : Js(_Js), Node(a){ Node = a; }
 
 template <class T>
 v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
@@ -6383,7 +6383,7 @@ v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
 ///////////////////////////////
 // QMiner-Edge
 template <class T>
-TJsEdge<T>::TJsEdge(TWPt<TScript> J, T edge) : Js(Js), Edge(edge){ Edge = edge; }
+TJsEdge<T>::TJsEdge(TWPt<TScript> _Js, T edge) : Js(_Js), Edge(edge){ Edge = edge; }
 
 template <class T>
 v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
