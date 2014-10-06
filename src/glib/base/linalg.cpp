@@ -493,6 +493,15 @@ double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
     return sqrt(EuclDist2(x, y));
 }
 
+double TLinAlg::Frob(const TFltVV&A) {
+	double frob = 0;
+	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < A.GetCols(); ColN++) {
+			frob += A.At(RowN, ColN)*A.At(RowN, ColN);
+		}
+	}
+	return sqrt(frob);
+}
 
 double TLinAlg::FrobDist2(const TFltVV&A, const TFltVV&B) {
 	double frob = 0;
@@ -597,6 +606,17 @@ void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Row
 	// sort
 	for (int ColN = 0; ColN < Rows; ColN++) {
 		At[ColN].Sort();
+	}
+}
+
+void TLinAlg::Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2) {
+	Mat2 = Mat;
+	int Cols = Mat2.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = Mat2[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			Mat2[ColN][ElN].Dat = TMath::Sign(Mat2[ColN][ElN].Dat);
+		}
 	}
 }
 
@@ -1603,6 +1623,58 @@ void TLinAlg::GS(TFltVV& Q) {
     }
 }
 
+void TLinAlg::MGS(TFltVV& Q) {
+	int Cols = Q.GetCols(), Rows = Q.GetRows();
+	IAssertR(Rows >= Cols, "TLinAlg::MGS: number of rows should be greater or equal to the number of cols");
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		TLinAlg::NormalizeColumns(Q);
+		for (int ColN2 = ColN+1; ColN2 < Cols; ColN2++) {
+			double r = TLinAlg::DotProduct(Q, ColN, Q, ColN2);
+			TLinAlg::AddVec(-r, Q, ColN, Q, ColN2);
+		}
+	}
+}
+
+void TLinAlg::QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol) {
+	int Rows = X.GetRows();
+	int Cols = X.GetCols();
+	int d = MIN(Rows, Cols);
+	
+	// make a copy of X
+	TFltVV A(X);
+	if (Q.GetRows() != Rows || Q.GetCols() != d) { Q.Gen(Rows, d); }
+	if (R.GetRows() != d || R.GetCols() != Cols) { R.Gen(d, Cols); }
+	TRnd Random;
+	for (int k = 0; k < d; k++) {
+		R(k, k) = TLinAlg::Norm(A, k);
+		// if the remainders norm is too small we construct a random vector (handles rank deficient) 
+		if (R(k, k) < Tol) {
+			// random Q(:,k)
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = Random.GetNrmDev();
+			}			
+			// make it orthonormal on others
+			for (int j = 0; j < k; j++) {
+				TLinAlg::AddVec(-TLinAlg::DotProduct(Q, j, Q, k), Q, j, Q, k);
+			}
+			TLinAlg::NormalizeColumn(Q, k);
+			R(k, k) = 0;
+		}
+		else {
+			// normalize
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = A(RowN, k) / R(k, k);
+			}
+		}
+		
+		// make the rest of the columns of A orthogonal to the current basis Q
+		for (int j = k + 1; j < Cols; j++) {
+			R(k, j) = TLinAlg::DotProduct(Q, k, A, j);
+			TLinAlg::AddVec(-R(k, j), Q, k, A, j);
+		}
+	}
+}
+
 void TLinAlg::Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY) {
     NewX = OldX*cos(Angle) - OldY*sin(Angle);
     NewY = OldX*sin(Angle) + OldY*cos(Angle);
@@ -1635,6 +1707,14 @@ void TLinAlg::AssertOrtogonality(const TFltVV& Vecs, const double& Threshold) {
             printf("||%d|| = %.5f", i, norm);
     }
     printf("\n");
+}
+
+bool TLinAlg::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
+	int m = Vecs.GetCols();
+	TFltVV R(m, m);
+	TLinAlg::MultiplyT(Vecs, Vecs, R);
+	for (int i = 0; i < m; i++) { R(i, i) -= 1;}
+	return TLinAlg::Frob(R) < Threshold;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -2051,23 +2131,39 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 	int Rows = Matrix.GetRows();
 	int Cols = Matrix.GetCols();
 	Assert(k <= Rows && k <= Cols);
+	TFltVV Q, R;
+	
 	if (S.Empty()) {S.Gen(k);}
 	if (U.Empty()) {U.Gen(Rows, k); TLAMisc::FillRnd(U);}
 	if (V.Empty()) {V.Gen(Cols, k);}
 
+
 	TFltV SOld = S;	
     for (int IterN = 0; IterN < Iters; IterN++) {
-		//U = GS(AA'U)
 		Matrix.MultiplyT(U, V);
 		for (int i = 0; i < k; i++) {
 			S[i] = TLinAlg::Norm(V,i);
+		}		
+		Matrix.Multiply(V, U);
+		//U = GS(AA'U)
+		// orthogonalization
+		TLinAlg::QR(U, U, R, Tol);
+		if (!TLinAlg::IsOrthonormal(U, Tol)) {
+			// reorthogonalization
+			TLinAlg::QR(U, U, R, Tol);
 		}
-		Matrix.Multiply(V, U);		
-		TLinAlg::GS(U);		
+		if (!TLinAlg::IsOrthonormal(U, Tol)) {
+			printf("Orthofail!\n");
+		}
 		if (IterN > 0 && sqrt(TLinAlg::FrobDist2(S, SOld)/TLinAlg::Norm2(S)) < Tol) {break;}
 		SOld = S;
-    } 
-	TLinAlg::NormalizeColumns(V);
+    }
+
+	Matrix.MultiplyT(U, V);
+	for (int i = 0; i < k; i++) {
+		S[i] = TLinAlg::Norm(V, i);
+	}
+	TLinAlg::QR(V, V, R, Tol);
 }
 
 void TSparseSVD::SimpleLanczos(const TMatrix& Matrix,
@@ -2901,7 +2997,9 @@ void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
  int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
 	 int MaxDim = 0;
 	 for (int ColN = 0; ColN < SpMat.Len(); ColN++) {
-		 MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
+          if(!SpMat[ColN].Empty()) {
+             MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
+          }
 	 }
 	 return MaxDim;
  }

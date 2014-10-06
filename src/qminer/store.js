@@ -19,6 +19,10 @@
 qm.storeProto = function() {};
 //#- `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 qm.storeProto.addStreamAggr = function (param) { return qm.newStreamAggr(param, this.name);}
+//#- `str = store.toString()` -- returns a string `str` - a description of `store`
+qm.storeProto.toString = function () {
+    return JSON.stringify(this.toJSON());
+}
 //#- `store.each(callback)` -- call `callback` on each element of the store
 qm.storeProto.each = function (callback) {
     var iter = this.forwardIter, i = 0;

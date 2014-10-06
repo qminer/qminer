@@ -1943,7 +1943,7 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
         // parse out record id, if referred directly
         {
             const uint64 RecId = TStore::GetRecId(RecVal);
-            if (RecId != TUInt64::Mx) {
+			if (IsRecId(RecId)) {
                 // check if we have anything more than record identifier, which would require calling UpdateRec
                 if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
                 // return named record

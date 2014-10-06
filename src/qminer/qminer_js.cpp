@@ -670,8 +670,12 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
         // get module filename
         ModuleFNm = TJsObjUtil<TScript>::GetArgStr(Args, 0);
         // check if one of built-in modules
-        if (ModuleFNm == "__analytics__") { 
-            return TJsAnalytics::New(Script);
+		if (ModuleFNm == "__analytics__") {
+			return TJsAnalytics::New(Script);
+		} else if (ModuleFNm == "__utilities__") {
+			return TJsUtilities::New(Script);
+		} else if (ModuleFNm == "__snap__") {
+			return TJsSnap::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
         } else if (ModuleFNm == "dmoz") { 
@@ -981,262 +985,6 @@ void TJsStoreTrigger::OnDelete(const TRec& Rec) {
 		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
 	}
 }
-
-///////////////////////////////
-// QMiner-JavaScript-Stream-Aggr
-TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Js->Base, _AggrNm), Js(_Js) {
-	v8::HandleScope HandleScope;
-	// Every stream aggregate should implement these two
-	QmAssertR(TriggerVal->Has(v8::String::New("onAdd")), "TJsStreamAggr constructor, name: " + _AggrNm  + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
-	QmAssertR(TriggerVal->Has(v8::String::New("saveJson")), "TJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
-		
-	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
-	QmAssert(_OnAddFun->IsFunction());
-	OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
-	
-	if (TriggerVal->Has(v8::String::New("onUpdate"))) {
-		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::New("onUpdate"));
-		QmAssert(_OnUpdateFun->IsFunction());
-		OnUpdateFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnUpdateFun));
-	}
-	if (TriggerVal->Has(v8::String::New("onDelete"))) {
-		v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::New("onDelete"));
-		QmAssert(_OnDeleteFun->IsFunction());
-		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
-	}
-	
-	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
-	QmAssert(_SaveJsonFun->IsFunction());
-	SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
-
-	// IInt
-	if (TriggerVal->Has(v8::String::New("getInt"))) {
-		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::New("getInt"));
-		QmAssert(_GetInt->IsFunction());
-		GetIntFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInt));
-	}
-	// IFlt 
-	if (TriggerVal->Has(v8::String::New("getFlt"))) {
-		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::New("getFlt"));
-		QmAssert(_GetFlt->IsFunction());
-		GetFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFlt));
-	}
-	// ITm 
-	if (TriggerVal->Has(v8::String::New("getTm"))) {
-		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::New("getTm"));
-		QmAssert(_GetTm->IsFunction());
-		GetTmMSecsFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetTm));
-	}
-	// IFltTmIO 
-	if (TriggerVal->Has(v8::String::New("getInFlt"))) {
-		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::New("getInFlt"));
-		QmAssert(_GetInFlt->IsFunction());
-		GetInFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInFlt));
-	}
-	if (TriggerVal->Has(v8::String::New("getInTm"))) {
-		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::New("getInTm"));
-		QmAssert(_GetInTm->IsFunction());
-		GetInTmMSecsFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInTm));
-	}
-	if (TriggerVal->Has(v8::String::New("getOutFltV"))) {
-		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::New("getOutFltV"));
-		QmAssert(_GetOutFltV->IsFunction());
-		GetOutFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetOutFltV));
-	}
-	if (TriggerVal->Has(v8::String::New("getOutTmV"))) {
-		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::New("getOutTmV"));
-		QmAssert(_GetOutTmV->IsFunction());
-		GetOutTmMSecsVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetOutTmV));
-	}
-	if (TriggerVal->Has(v8::String::New("getN"))) {
-		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::New("getN"));
-		QmAssert(_GetN->IsFunction());
-		GetNFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetN));
-	}
-	// IFltVec
-	if (TriggerVal->Has(v8::String::New("getFltLen"))) {
-		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::New("getFltLen"));
-		QmAssert(_GetFltLen->IsFunction());
-		GetFltLenFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltLen));
-	}	
-	if (TriggerVal->Has(v8::String::New("getFltAt"))) {
-		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::New("getFltAt"));
-		QmAssert(_GetFltAt->IsFunction());
-		GetFltAtFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltAt));
-	}
-	if (TriggerVal->Has(v8::String::New("getFltV"))) {
-		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::New("getFltV"));
-		QmAssert(_GetFltV->IsFunction());
-		GetFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltV));
-	}
-	// INmFlt 
-	if (TriggerVal->Has(v8::String::New("isNmFlt"))) {
-		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::New("isNmFlt"));
-		QmAssert(_IsNmFlt->IsFunction());
-		IsNmFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_IsNmFlt));
-	}
-	if (TriggerVal->Has(v8::String::New("getNmFlt"))) {
-		v8::Handle<v8::Value> _GetNmFlt = TriggerVal->Get(v8::String::New("getNmFlt"));
-		QmAssert(_GetNmFlt->IsFunction());
-		GetNmFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmFlt));
-	}
-	if (TriggerVal->Has(v8::String::New("getNmFltV"))) {
-		v8::Handle<v8::Value> _GetNmFltV = TriggerVal->Get(v8::String::New("getNmFltV"));
-		QmAssert(_GetNmFltV->IsFunction());
-		GetNmFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmFltV));
-	}
-	// INmInt
-	if (TriggerVal->Has(v8::String::New("isNm"))) {
-		v8::Handle<v8::Value> _IsNm = TriggerVal->Get(v8::String::New("isNm"));
-		QmAssert(_IsNm->IsFunction());
-		IsNmFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_IsNm));
-	}
-	if (TriggerVal->Has(v8::String::New("getNmInt"))) {
-		v8::Handle<v8::Value> _GetNmInt = TriggerVal->Get(v8::String::New("getNmInt"));
-		QmAssert(_GetNmInt->IsFunction());
-		GetNmIntFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmInt));
-	}
-	if (TriggerVal->Has(v8::String::New("getNmIntV"))) {
-		v8::Handle<v8::Value> _GetNmIntV = TriggerVal->Get(v8::String::New("getNmIntV"));
-		QmAssert(_GetNmIntV->IsFunction());
-		GetNmIntVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmIntV));
-	}
-}
-
-void TJsStreamAggr::OnAddRec(const TRec& Rec) {
-	v8::HandleScope HandleScope;
-	if (!OnAddFun.IsEmpty()) {
-		Js->Execute(OnAddFun, TJsRec::New(Js, Rec));
-	}
-}
-
-void TJsStreamAggr::OnUpdateRec(const TRec& Rec) {
-	v8::HandleScope HandleScope;
-	if (!OnUpdateFun.IsEmpty()) {
-		Js->Execute(OnUpdateFun, TJsRec::New(Js, Rec));
-	}
-}
-
-void TJsStreamAggr::OnDeleteRec(const TRec& Rec) {
-	v8::HandleScope HandleScope;
-	if (!OnDeleteFun.IsEmpty()) {
-		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
-	}
-}
-
-PJsonVal TJsStreamAggr::SaveJson(const int& Limit) const {
-	if (!SaveJsonFun.IsEmpty()) {
-		PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
-		QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
-		return Res;
-	}
-	else {
-		return TJsonVal::NewObj();
-	}
-}
-
-
-// IInt
-int TJsStreamAggr::GetInt() const {
-	if (!GetIntFun.IsEmpty()) {
-		v8::HandleScope HandleScope;
-		v8::TryCatch TryCatch;
-		v8::Handle<v8::Value> RetVal = GetIntFun->Call(Js->Context->Global(), 0, NULL);
-		TJsUtil::HandleTryCatch(TryCatch);
-		QmAssertR(RetVal->IsInt32(), "TJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
-		return RetVal->Int32Value();
-	}
-	else {
-		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");		
-	}
-}
-// IFlt 
-double TJsStreamAggr::GetFlt() const {
-	if (!GetFltFun.IsEmpty()) {
-		v8::HandleScope HandleScope;
-		v8::TryCatch TryCatch;
-		v8::Handle<v8::Value> RetVal = GetFltFun->Call(Js->Context->Global(), 0, NULL);
-		TJsUtil::HandleTryCatch(TryCatch);
-		QmAssertR(RetVal->IsNumber(), "TJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
-		return RetVal->NumberValue();
-	}
-	else {
-		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
-	}
-}
-// ITm 
-uint64 TJsStreamAggr::GetTmMSecs() const {
-	if (!GetTmMSecsFun.IsEmpty()) {
-		v8::HandleScope HandleScope;
-		v8::TryCatch TryCatch;
-		v8::Handle<v8::Value> RetVal = GetTmMSecsFun->Call(Js->Context->Global(), 0, NULL);
-		TJsUtil::HandleTryCatch(TryCatch);
-		QmAssertR(RetVal->IsNumber(), "TJsStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
-		return (uint64)RetVal->NumberValue();
-	}
-	else {
-		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
-	}
-}
-// IFltTmIO 
-double TJsStreamAggr::GetInFlt() const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
-}
-uint64 TJsStreamAggr::GetInTmMSecs() const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
-}
-void TJsStreamAggr::GetOutFltV(TFltV& ValV) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
-}
-void TJsStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetOutTmMSecsV not implemented");
-}
-int TJsStreamAggr::GetN() const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
-}
-// IFltVec
-int TJsStreamAggr::GetFltLen() const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
-}
-double TJsStreamAggr::GetFlt(const TInt& ElN) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
-} // GetFltAtFun
-void TJsStreamAggr::GetFltV(TFltV& ValV) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
-}
-// ITmVec
-int TJsStreamAggr::GetTmLen() const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
-}
-uint64 TJsStreamAggr::GetTm(const TInt& ElN) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
-} // GetTmAtFun
-void TJsStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
-}
-// INmFlt 
-bool TJsStreamAggr::IsNmFlt(const TStr& Nm) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
-}
-double TJsStreamAggr::GetNmFlt(const TStr& Nm) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmFlt not implemented");
-}
-void TJsStreamAggr::GetNmFltV(TStrFltPrV& NmFltV) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmFltV not implemented");
-}
-// INmInt
-bool TJsStreamAggr::IsNm(const TStr& Nm) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNm not implemented");
-}
-double TJsStreamAggr::GetNmInt(const TStr& Nm) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmInt not implemented");
-}
-void TJsStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
-	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
-}
-
-
-
 
 ///////////////////////////////
 // QMiner-JavaScript-WebPgFetch
@@ -1554,6 +1302,8 @@ v8::Handle<v8::ObjectTemplate> TJsSA::GetTemplate() {
 		JsRegisterFunction(TmpTemp, onUpdate);
 		JsRegisterFunction(TmpTemp, onDelete);
 		JsRegisterFunction(TmpTemp, saveJson);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
 		JsRegisterProperty(TmpTemp, val);
 		JsRegisterFunction(TmpTemp, getInt);
 		JsRegisterFunction(TmpTemp, getFlt);
@@ -1614,6 +1364,32 @@ v8::Handle<v8::Value> TJsSA::saveJson(const v8::Arguments& Args) {
 	PJsonVal Json = JsSA->SA->SaveJson(Limit);
 	v8::Handle<v8::Value> V8Json = TJsUtil::ParseJson(Json);
 	return HandleScope.Close(V8Json);
+}
+
+v8::Handle<v8::Value> TJsSA::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	JsSA->SA->_Save(*SOut);
+	if (JsSA->SA->Type() == "javaScript") {
+		auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
+		JsSA->Js->Execute(SA->SaveFun, Args[0]);
+		
+	}
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsSA::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSA* JsSA = TJsSAUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	
+	JsSA->SA->_Load(*SIn);
+	if (JsSA->SA->Type() == "javaScript") {
+		auto SA = dynamic_cast<TJsStreamAggr*>(JsSA->SA());
+		JsSA->Js->Execute(SA->LoadFun, Args[0]);
+	}
+	return Args.Holder();
 }
 
 v8::Handle<v8::Value> TJsSA::val(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -1797,6 +1573,285 @@ v8::Handle<v8::Value> TJsSA::getN(const v8::Arguments& Args) {
 	}
 	return HandleScope.Close(v8::Number::New(Aggr->GetN()));
 }
+
+///////////////////////////////
+// QMiner-JavaScript-Stream-Aggr
+TJsStreamAggr::TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Js->Base, _AggrNm), Js(_Js) {
+	v8::HandleScope HandleScope;
+	// Every stream aggregate should implement these two
+	QmAssertR(TriggerVal->Has(v8::String::New("onAdd")), "TJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+	QmAssertR(TriggerVal->Has(v8::String::New("saveJson")), "TJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+
+	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::New("onAdd"));
+	QmAssert(_OnAddFun->IsFunction());
+	OnAddFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnAddFun));
+
+	if (TriggerVal->Has(v8::String::New("onUpdate"))) {
+		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::New("onUpdate"));
+		QmAssert(_OnUpdateFun->IsFunction());
+		OnUpdateFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnUpdateFun));
+	}
+	if (TriggerVal->Has(v8::String::New("onDelete"))) {
+		v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::New("onDelete"));
+		QmAssert(_OnDeleteFun->IsFunction());
+		OnDeleteFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_OnDeleteFun));
+	}
+
+	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::New("saveJson"));
+	QmAssert(_SaveJsonFun->IsFunction());
+	SaveJsonFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+
+	// StreamAggr::_Save
+	if (TriggerVal->Has(v8::String::New("save"))) {
+		v8::Handle<v8::Value> _Save = TriggerVal->Get(v8::String::New("save"));
+		QmAssert(_Save->IsFunction());
+		SaveFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_Save));
+	}
+
+	// StreamAggr::_Load
+	if (TriggerVal->Has(v8::String::New("load"))) {
+		v8::Handle<v8::Value> _Load = TriggerVal->Get(v8::String::New("load"));
+		QmAssert(_Load->IsFunction());
+		LoadFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_Load));
+	}
+
+	// IInt
+	if (TriggerVal->Has(v8::String::New("getInt"))) {
+		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::New("getInt"));
+		QmAssert(_GetInt->IsFunction());
+		GetIntFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInt));
+	}
+	// IFlt 
+	if (TriggerVal->Has(v8::String::New("getFlt"))) {
+		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::New("getFlt"));
+		QmAssert(_GetFlt->IsFunction());
+		GetFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFlt));
+	}
+	// ITm 
+	if (TriggerVal->Has(v8::String::New("getTm"))) {
+		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::New("getTm"));
+		QmAssert(_GetTm->IsFunction());
+		GetTmMSecsFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetTm));
+	}
+	// IFltTmIO 
+	if (TriggerVal->Has(v8::String::New("getInFlt"))) {
+		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::New("getInFlt"));
+		QmAssert(_GetInFlt->IsFunction());
+		GetInFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInFlt));
+	}
+	if (TriggerVal->Has(v8::String::New("getInTm"))) {
+		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::New("getInTm"));
+		QmAssert(_GetInTm->IsFunction());
+		GetInTmMSecsFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetInTm));
+	}
+	if (TriggerVal->Has(v8::String::New("getOutFltV"))) {
+		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::New("getOutFltV"));
+		QmAssert(_GetOutFltV->IsFunction());
+		GetOutFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetOutFltV));
+	}
+	if (TriggerVal->Has(v8::String::New("getOutTmV"))) {
+		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::New("getOutTmV"));
+		QmAssert(_GetOutTmV->IsFunction());
+		GetOutTmMSecsVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetOutTmV));
+	}
+	if (TriggerVal->Has(v8::String::New("getN"))) {
+		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::New("getN"));
+		QmAssert(_GetN->IsFunction());
+		GetNFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetN));
+	}
+	// IFltVec
+	if (TriggerVal->Has(v8::String::New("getFltLen"))) {
+		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::New("getFltLen"));
+		QmAssert(_GetFltLen->IsFunction());
+		GetFltLenFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltLen));
+	}
+	if (TriggerVal->Has(v8::String::New("getFltAt"))) {
+		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::New("getFltAt"));
+		QmAssert(_GetFltAt->IsFunction());
+		GetFltAtFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltAt));
+	}
+	if (TriggerVal->Has(v8::String::New("getFltV"))) {
+		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::New("getFltV"));
+		QmAssert(_GetFltV->IsFunction());
+		GetFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetFltV));
+	}
+	// INmFlt 
+	if (TriggerVal->Has(v8::String::New("isNmFlt"))) {
+		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::New("isNmFlt"));
+		QmAssert(_IsNmFlt->IsFunction());
+		IsNmFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_IsNmFlt));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmFlt"))) {
+		v8::Handle<v8::Value> _GetNmFlt = TriggerVal->Get(v8::String::New("getNmFlt"));
+		QmAssert(_GetNmFlt->IsFunction());
+		GetNmFltFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmFlt));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmFltV"))) {
+		v8::Handle<v8::Value> _GetNmFltV = TriggerVal->Get(v8::String::New("getNmFltV"));
+		QmAssert(_GetNmFltV->IsFunction());
+		GetNmFltVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmFltV));
+	}
+	// INmInt
+	if (TriggerVal->Has(v8::String::New("isNm"))) {
+		v8::Handle<v8::Value> _IsNm = TriggerVal->Get(v8::String::New("isNm"));
+		QmAssert(_IsNm->IsFunction());
+		IsNmFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_IsNm));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmInt"))) {
+		v8::Handle<v8::Value> _GetNmInt = TriggerVal->Get(v8::String::New("getNmInt"));
+		QmAssert(_GetNmInt->IsFunction());
+		GetNmIntFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmInt));
+	}
+	if (TriggerVal->Has(v8::String::New("getNmIntV"))) {
+		v8::Handle<v8::Value> _GetNmIntV = TriggerVal->Get(v8::String::New("getNmIntV"));
+		QmAssert(_GetNmIntV->IsFunction());
+		GetNmIntVFun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(_GetNmIntV));
+	}
+}
+
+void TJsStreamAggr::OnAddRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnAddFun.IsEmpty()) {
+		Js->Execute(OnAddFun, TJsRec::New(Js, Rec));
+	}
+}
+
+void TJsStreamAggr::OnUpdateRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnUpdateFun.IsEmpty()) {
+		Js->Execute(OnUpdateFun, TJsRec::New(Js, Rec));
+	}
+}
+
+void TJsStreamAggr::OnDeleteRec(const TRec& Rec) {
+	v8::HandleScope HandleScope;
+	if (!OnDeleteFun.IsEmpty()) {
+		Js->Execute(OnDeleteFun, TJsRec::New(Js, Rec));
+	}
+}
+
+PJsonVal TJsStreamAggr::SaveJson(const int& Limit) const {
+	if (!SaveJsonFun.IsEmpty()) {
+		PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
+		QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+		return Res;
+	}
+	else {
+		return TJsonVal::NewObj();
+	}
+}
+
+void TJsStreamAggr::_Save(TSOut& SOut) const {
+	if (SaveFun.IsEmpty()) {
+		throw TQmExcept::New("TJsStreamAggr::_Save (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+	}
+}
+
+void TJsStreamAggr::_Load(TSIn& SIn) {
+	if (LoadFun.IsEmpty()) {
+		throw TQmExcept::New("TJsStreamAggr::_Load (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
+	}
+}
+
+// IInt
+int TJsStreamAggr::GetInt() const {
+	if (!GetIntFun.IsEmpty()) {
+		v8::HandleScope HandleScope;
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = GetIntFun->Call(Js->Context->Global(), 0, NULL);
+		TJsUtil::HandleTryCatch(TryCatch);
+		QmAssertR(RetVal->IsInt32(), "TJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
+		return RetVal->Int32Value();
+	}
+	else {
+		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");
+	}
+}
+// IFlt 
+double TJsStreamAggr::GetFlt() const {
+	if (!GetFltFun.IsEmpty()) {
+		v8::HandleScope HandleScope;
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = GetFltFun->Call(Js->Context->Global(), 0, NULL);
+		TJsUtil::HandleTryCatch(TryCatch);
+		QmAssertR(RetVal->IsNumber(), "TJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
+		return RetVal->NumberValue();
+	}
+	else {
+		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
+	}
+}
+// ITm 
+uint64 TJsStreamAggr::GetTmMSecs() const {
+	if (!GetTmMSecsFun.IsEmpty()) {
+		v8::HandleScope HandleScope;
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = GetTmMSecsFun->Call(Js->Context->Global(), 0, NULL);
+		TJsUtil::HandleTryCatch(TryCatch);
+		QmAssertR(RetVal->IsNumber(), "TJsStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
+		return (uint64)RetVal->NumberValue();
+	}
+	else {
+		throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
+	}
+}
+// IFltTmIO 
+double TJsStreamAggr::GetInFlt() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
+}
+uint64 TJsStreamAggr::GetInTmMSecs() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
+}
+void TJsStreamAggr::GetOutFltV(TFltV& ValV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
+}
+void TJsStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetOutTmMSecsV not implemented");
+}
+int TJsStreamAggr::GetN() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
+}
+// IFltVec
+int TJsStreamAggr::GetFltLen() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
+}
+double TJsStreamAggr::GetFlt(const TInt& ElN) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
+} // GetFltAtFun
+void TJsStreamAggr::GetFltV(TFltV& ValV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
+}
+// ITmVec
+int TJsStreamAggr::GetTmLen() const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
+}
+uint64 TJsStreamAggr::GetTm(const TInt& ElN) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
+} // GetTmAtFun
+void TJsStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
+}
+// INmFlt 
+bool TJsStreamAggr::IsNmFlt(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
+}
+double TJsStreamAggr::GetNmFlt(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmFlt not implemented");
+}
+void TJsStreamAggr::GetNmFltV(TStrFltPrV& NmFltV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmFltV not implemented");
+}
+// INmInt
+bool TJsStreamAggr::IsNm(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", IsNm not implemented");
+}
+double TJsStreamAggr::GetNmInt(const TStr& Nm) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmInt not implemented");
+}
+void TJsStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
+	throw  TQmExcept::New("TJsStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
+}
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Store
@@ -2753,7 +2808,7 @@ v8::Handle<v8::Value> TJsRec::getField(v8::Local<v8::String> Properties, const v
 		return HandleScope.Close(v8::Integer::New(Val));
     } else if (Desc.IsIntV()) {
         TIntV IntV; Rec.GetFieldIntV(FieldId, IntV);
-        return TJsIntV::New(JsRec->Js, IntV);;
+        return TJsIntV::New(JsRec->Js, IntV);
     } else if (Desc.IsUInt64()) {
 		const uint64 Val = Rec.GetFieldUInt64(FieldId);
 		return HandleScope.Close(v8::Integer::New((int)Val));
@@ -2853,7 +2908,12 @@ void TJsRec::setField(v8::Local<v8::String> Properties,
         Rec.SetFieldBool(FieldId, Value->BooleanValue());
 	} else if (Desc.IsFlt()) {
         QmAssertR(Value->IsNumber(), "Field " + FieldNm + " not numeric");
-        Rec.SetFieldFlt(FieldId, Value->NumberValue());
+		TFlt Val(Value->NumberValue());
+		bool NaNFound = Val.IsNan();
+		if (NaNFound) {
+			throw TQmExcept::New("Cannot set record field (type float) to NaN, for field name: " + FieldNm);
+		}
+        Rec.SetFieldFlt(FieldId, Val);
 	} else if (Desc.IsFltPr()) {
         QmAssertR(Value->IsArray(), "Field " + FieldNm + " not array");   
         v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
@@ -3168,6 +3228,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, newSpVec);
 		JsRegisterFunction(TmpTemp, newSpMat);
 		JsRegisterFunction(TmpTemp, svd);
+		JsRegisterFunction(TmpTemp, qr);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3399,7 +3460,7 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 	v8::Handle<v8::Object> JsObj = v8::Object::New();
 	
 	if (Args.Length() > 1) {
-		int Iters = 2;
+		int Iters = -1;
 		double Tol = 1e-6;
 		if (Args.Length() > 2) {			
 			PJsonVal ParamVal = TJsLinAlgUtil::GetArgJson(Args, 2);   
@@ -3432,6 +3493,27 @@ v8::Handle<v8::Value> TJsLinAlg::svd(const v8::Arguments& Args) {
 		}
 	}
 	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsLinAlg::qr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	// result object
+	v8::Handle<v8::Object> JsObj = v8::Object::New();
+	// algorithm outputs
+	TFltVV Q;
+	TFltVV R;
+	// tolerance parameter
+	double Tol = TJsLinAlgUtil::GetArgFlt(Args, 1, 1e-6);
+	
+	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+		// get argument matrix
+		TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+		TLinAlg::QR(JsMat->Mat, Q, R, Tol);
+	}
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("Q")), TJsFltVV::New(JsLinAlg->Js, Q));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("R")), TJsFltVV::New(JsLinAlg->Js, R));
+	return HandleScope.Close(JsObj);
 }
 
 ///////////////////////////////
@@ -3691,6 +3773,8 @@ v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getRow);
 		JsRegisterFunction(TmpTemp, setRow);
 		JsRegisterFunction(TmpTemp, diag);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4107,6 +4191,24 @@ v8::Handle<v8::Value> TJsFltVV::diag(const v8::Arguments& Args) {
 	return TJsFltV::New(JsMat->Js, Result);
 }
 
+v8::Handle<v8::Value> TJsFltVV::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	JsMat->Mat.Save(*SOut);
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsFltVV::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	JsMat->Mat.Load(*SIn);
+	return Args.Holder();
+}
+
 ///////////////////////////////
 // QMiner-SparseVec
 
@@ -4346,6 +4448,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpMat::GetTemplate() {
 		JsRegisterFunction(TmpTemp, print);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, sign);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4764,6 +4867,18 @@ v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
 	JsSpMat->Rows.Load(*SIn);
 	JsSpMat->Mat.Load(*SIn);
 	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsSpMat::sign(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// get caller matrix
+	TJsSpMat* JsSpMat = TJsSpMatUtil::GetSelf(Args);
+	// result
+	TVec<TIntFltKdV> Mat2;
+	// computation
+	TLinAlg::Sign(JsSpMat->Mat, Mat2);
+	// wrap result and return
+	return TJsSpMat::New(JsSpMat->Js, Mat2, JsSpMat->Rows);
 }
 
 ///////////////////////////////
@@ -5477,7 +5592,7 @@ v8::Handle<v8::Value> TJsNN::learn(const v8::Arguments& Args) {
 
         JsNN->NN->GetResults(FltV);
 
-        printf("&&Predicted when learning %f \n", (double)FltV[0]);
+        //printf("&&Predicted when learning %f \n", (double)FltV[0]);
 
         // then check how we performed and learn
         JsNN->NN->BackProp(JsVecTarget->Vec);
@@ -5523,7 +5638,7 @@ v8::Handle<v8::Value> TJsNN::predict(const v8::Arguments& Args) {
     
     JsNN->NN->GetResults(FltV);
 
-    printf("&&Predicted %f \n", (double)FltV[0]);
+    //printf("&&Predicted %f \n", (double)FltV[0]);
 
     return HandleScope.Close(JsFltV);
 }
@@ -5575,6 +5690,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::learn(const v8::Arguments& Args) {
     const double Target = TJsRecLinRegModelUtil::GetArgFlt(Args, 1);
     // learn
     JsRecLinRegModel->Model->Learn(JsVec->Vec, Target);
+	QmAssertR(!JsRecLinRegModel->Model->HasNaN(), "RecLinRegModel.learn: NaN detected!");
 	return Args.Holder();
 }
 
@@ -5669,6 +5785,667 @@ v8::Handle<v8::Value> TJsTokenizer::getParagraphs(const v8::Arguments& Args) {
 	// return
 	return HandleScope.Close(TJsUtil::GetStrArr(ParagraphV));
 }
+
+///////////////////////////////
+// QMiner-Snap
+v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newUGraph);
+		JsRegisterFunction(TmpTemp, newDGraph);
+		JsRegisterFunction(TmpTemp, newDMGraph);
+		JsRegisterFunction(TmpTemp, degreeCentrality);
+		JsRegisterFunction(TmpTemp, communityDetection);
+		JsRegisterFunction(TmpTemp, communityEvolution);
+		JsRegisterFunction(TmpTemp, corePeriphery);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+
+v8::Handle<v8::Value> TJsSnap::newUGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 0) {
+		return TJsGraph<TUNGraph>::New(JsSnap->Js, "TUNGraph");
+	}
+	else if (ArgsLen == 1) {
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		return TJsGraph<TUNGraph>::New(JsSnap->Js, path, "TUNGraph");
+	}
+	else
+		throw TQmExcept::New("TJsUGraph::addNode: one or zero input argument expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::newDGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	if (ArgsLen == 0) {
+		return TJsGraph<TNGraph>::New(JsSnap->Js, "TNGraph");
+	}
+	else if (ArgsLen == 1){
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		return TJsGraph<TNGraph>::New(JsSnap->Js, path, "TNGraph");
+	}
+	else
+		throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::newDMGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	if (ArgsLen == 0) {
+		return TJsGraph<TNEGraph>::New(JsSnap->Js, "TNEGraph");
+	}
+	else if (ArgsLen == 1){
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		return TJsGraph<TNEGraph>::New(JsSnap->Js, path, "TNEGraph");
+	}
+	else
+		throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::degreeCentrality(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	int ArgsLen = Args.Length();
+
+	double ReturnCentrality = -1;
+
+	if (ArgsLen == 2) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
+		// graph class name can be checked with: JsGraph->Graph_class
+		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
+		PUNGraph graph = JsGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgInt32(Args, 1), "TJsSnap::DegreeCentrality: Args[1] expected to be integer!");
+		int NodeId = TJsSnapUtil::GetArgInt32(Args, 1);
+		ReturnCentrality = TSnap::GetDegreeCentr(graph, NodeId);
+	}
+	else {
+		throw TQmExcept::New("TJsUGraph::DegreeCentrality: two input arguments expected!");
+	}
+
+	return HandleScope.Close(v8::Number::New(ReturnCentrality));
+}
+
+v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
+	int Dim = -1;
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TCnComV communities;
+	TIntV ReturnCommunity;
+	TCnCom SnapReturnCommunities;
+
+	if (ArgsLen == 2) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
+		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
+		PUNGraph graph = JsGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
+		if (alg == "gn")
+			TSnap::CommunityGirvanNewman(graph, communities);
+		else if (alg == "cnm")
+			TSnap::CommunityCNM(graph, communities);
+		else if (alg == "imap")
+			TSnap::Infomap(graph, communities);
+		else
+			throw TQmExcept::New("TJsSnap::CommunityDetection: this algorithm does not exist!");
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::CommunityDetection: two input arguments expected!");
+	}
+
+	for (int j = 0; j < communities.Len(); j++){
+		SnapReturnCommunities = communities.GetDat(communities[j]);
+		for (int i = 0; i < SnapReturnCommunities.Len(); i++){
+			ReturnCommunity.Add(SnapReturnCommunities[i]);
+			Vec.Add(TIntFltKd(j, (int)SnapReturnCommunities[i]));
+		}
+	}
+
+	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
+}
+
+v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2){
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 0), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
+		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
+		return HandleScope.Close(v8::String::New(jsonout.CStr()));
+	}
+	else
+		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
+	int Dim = -1;
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TIntIntH coreperiphery;
+	TIntV ReturnP;
+	TIntV ReturnC;
+	TCnCom SnapReturnCP;
+
+	if (ArgsLen == 2) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
+		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
+		PUNGraph graph = JsGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
+		double d = 0;
+		if (alg == "lip")
+			d = TSnap::FastCorePeriphery(graph, coreperiphery);
+		else
+			throw TQmExcept::New("TJsSnap::CorePeriphery: this algorithm does not exist!");
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::CorePeriphery: two input arguments expected!");
+	}
+
+	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
+		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
+
+	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
+}
+
+///////////////////////////////
+// QMiner-Graph
+
+template <class T>
+v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+
+		JsRegisterFunction(TmpTemp, addNode);
+		JsRegisterFunction(TmpTemp, addEdge);
+		JsRegisterFunction(TmpTemp, delNode);
+		JsRegisterFunction(TmpTemp, delEdge);
+		JsRegisterFunction(TmpTemp, isNode);
+		JsRegisterFunction(TmpTemp, isEdge);
+		JsRegisterProperty(TmpTemp, nodes);
+		JsRegisterProperty(TmpTemp, edges);
+		JsRegisterFunction(TmpTemp, node);
+		JsRegisterProperty(TmpTemp, firstNode);
+		JsRegisterProperty(TmpTemp, lastNode);
+		JsRegisterProperty(TmpTemp, firstEdge);
+		JsRegisterFunction(TmpTemp, dump);
+		JsRegisterFunction(TmpTemp, eachNode);
+		JsRegisterFunction(TmpTemp, eachEdge);
+		JsRegisterFunction(TmpTemp, adjMat);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::addNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	int ReturnId = -1;
+	if (ArgsLen == 0) {
+		ReturnId = JsGraph->Graph->AddNode();
+	}
+	else if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::addNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		ReturnId = JsGraph->Graph->AddNode(NodeId);
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::addNode: one or zero input arguments!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::addEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ReturnId = -1;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::addEdge: Args[0] and Args[1] expected to be integers!");
+		int SourceId = TJsGraphUtil::GetArgInt32(Args, 0);
+		int TargetId = TJsGraphUtil::GetArgInt32(Args, 1);
+		if (JsGraph->Graph->IsNode(SourceId) && JsGraph->Graph->IsNode(TargetId))
+			ReturnId = JsGraph->Graph->AddEdge(SourceId, TargetId);
+		else
+			throw TQmExcept::New("TJsGraph::addEdge: Args[0] and Args[1] need to be nodes!");
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::addEdge: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::delNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::addNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		if (JsGraph->Graph->IsNode(NodeId)) {
+			JsGraph->Graph->DelNode(NodeId);
+		}
+		else {
+			throw TQmExcept::New(TStr::Fmt("TJsGraph::delNode: the node %i does not exist!", TJsGraphUtil::GetArgInt32(Args, 0)));
+		}
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::delNode: one input argument!");
+	}
+	return HandleScope.Close(v8::Null());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::delEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::delEdge: Args[0] and Args[1] expected to be integers!");
+		int NodeId1 = TJsGraphUtil::GetArgInt32(Args, 0);
+		int NodeId2 = TJsGraphUtil::GetArgInt32(Args, 1);
+		if (JsGraph->Graph->IsEdge(NodeId1, NodeId2)) {
+			JsGraph->Graph->DelEdge(NodeId1, NodeId2);
+		}
+		else {
+			throw TQmExcept::New(TStr::Fmt("TJsGraph::delEdge: an edge connecting %i and %i does not exist!", TJsGraphUtil::GetArgInt32(Args, 0), TJsGraphUtil::GetArgInt32(Args, 1)));
+		}
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::delNode: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Null());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::isNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	bool ReturnExist = false;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::isNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		ReturnExist = JsGraph->Graph->IsNode(NodeId);
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::isNode: one input argument expected!");
+	}
+	return HandleScope.Close(v8::Boolean::New(ReturnExist));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::isEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	bool ReturnExist = false;
+	if (ArgsLen == 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::isEdge: Args[0] and Args[1] expected to be integers!");
+		int NodeId1 = TJsGraphUtil::GetArgInt32(Args, 0);
+		int NodeId2 = TJsGraphUtil::GetArgInt32(Args, 1);
+		ReturnExist = JsGraph->Graph->IsEdge(NodeId1, NodeId2);
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::isNode: two input argument expected!");
+	}
+
+	return HandleScope.Close(v8::Boolean::New(ReturnExist));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::nodes(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetNodes()));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::edges(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetEdges()));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::node(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	typename T::TNodeI ReturnNode;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
+		ReturnNode = JsGraph->Graph->GetNI(TJsGraphUtil::GetArgInt32(Args, 0));
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::node: one input argument expected!");
+	}
+
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::firstNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	typename T::TNodeI ReturnNode = JsGraph->Graph->BegNI();
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::lastNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	typename T::TNodeI ReturnNode = JsGraph->Graph->EndNI();
+	ReturnNode--;
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
+	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::dump(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	QmAssertR(ArgsLen <= 1, "TJsGraph::dump: one or zero input arguments expected!");
+	TStr FNm = TJsGraphUtil::GetArgStr(Args, 0, "");
+	if (FNm != "") {
+		FILE* pFile = fopen(FNm.CStr(), "w");
+		JsGraph->Graph->Dump(pFile);
+		fclose(pFile);
+	}
+	else {
+		JsGraph->Graph->Dump();
+	}
+	return HandleScope.Close(Args.Holder());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::eachNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsGraphUtil::GetArgFun(Args, 0);
+
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++)
+	{
+		v8::Handle<v8::Value> NodeArg = TJsNode<typename T::TNodeI>::New(JsGraph->Js, NI);
+		JsGraph->Js->Execute(CallbackFun, NodeArg);
+	}
+
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsGraphUtil::GetArgFun(Args, 0);
+
+	for (typename T::TEdgeI EI = JsGraph->Graph->BegEI(); EI < JsGraph->Graph->EndEI(); EI++)
+	{
+		v8::Handle<v8::Value> EdgeArg = TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, EI);
+		JsGraph->Js->Execute(CallbackFun, EdgeArg);
+	}
+
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	int Nodes = JsGraph->Graph->GetNodes();
+	TVec<TIntFltKdV> Mat(Nodes);
+
+	THash<TInt, THash<TInt, TInt> > MultiGraph;
+
+	TIntSet NIdSet(JsGraph->Graph->GetNodes()); // remapping
+	// build the remapping of all keys
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		NIdSet.AddKey(NId);
+	}
+	// count outgoing edges, remap ids and build the sparse ajdacency matrix
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		int RemappedNId = NIdSet.GetKeyId(NId);
+		int OutDeg = NI.GetOutDeg();
+		TIntIntH Neigh(OutDeg);
+		MultiGraph.AddDat(NId, Neigh);
+		// take all outgoing edges and increment or add
+		for (int k = 0; k < OutDeg; k++) {
+			int OutNId = NI.GetOutNId(k);
+			if (MultiGraph.GetDat(NId).IsKey(OutNId)) {
+				MultiGraph.GetDat(NId).GetDat(OutNId)++;
+			}
+			else {
+				MultiGraph.GetDat(NId).AddDat(OutNId, 1);
+			}
+		}
+
+		// Mat[RemappedNId] = remap(MultiGraph.GetDat(NId).KeyV), MultiGraph.GetDat(NId).ValV
+		int Len = MultiGraph.GetDat(NId).Len();
+		Mat[RemappedNId].Gen(Len);
+		for (int k = 0; k < Len; k++) {
+			int Key = MultiGraph.GetDat(NId).GetKey(k);
+			Mat[RemappedNId][k].Key = NIdSet.GetKeyId(Key);
+			Mat[RemappedNId][k].Dat = MultiGraph.GetDat(NId).GetDat(Key);
+		}
+		Mat[RemappedNId].Sort();
+	}
+	return TJsSpMat::New(JsGraph->Js, Mat, Nodes);
+}
+
+///////////////////////////////
+// QMiner-Node
+
+template <class T>
+TJsNode<T>::TJsNode(TWPt<TScript> J, T a) : Js(Js), Node(a){ Node = a; }
+
+template <class T>
+v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, deg);
+		JsRegisterProperty(TmpTemp, inDeg);
+		JsRegisterProperty(TmpTemp, outDeg);
+		JsRegisterFunction(TmpTemp, nbrId);
+		JsRegisterFunction(TmpTemp, next);
+		JsRegisterFunction(TmpTemp, prev);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetId();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::deg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetDeg();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::inDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetInDeg();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::outDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetOutDeg();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::nbrId(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	int ReturnNId = -1;
+	int N = -1;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrId: Args[0] expected to be an integer!");
+		N = TJsNodeUtil::GetArgInt32(Args, 0);
+		if (N < JsNode->Node.GetDeg())
+			ReturnNId = JsNode->Node.GetNbrNId(N);
+		else
+			throw TQmExcept::New("TJsNode::nbrId: Index is out of bounds!");
+	}
+	else {
+		throw TQmExcept::New("TJsNode::nbrId: one input argument expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnNId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::next(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	T ReturnNode = JsNode->Node++;
+	return HandleScope.Close(Args.Holder());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	T ReturnNode = JsNode->Node--;
+	return HandleScope.Close(Args.Holder());
+}
+
+///////////////////////////////
+// QMiner-Edge
+template <class T>
+TJsEdge<T>::TJsEdge(TWPt<TScript> J, T edge) : Js(Js), Edge(edge){ Edge = edge; }
+
+template <class T>
+v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, srcId);
+		JsRegisterProperty(TmpTemp, dstId);
+		JsRegisterFunction(TmpTemp, next);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
+	TInt ReturnId = JsEdge->Edge.GetId();
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::srcId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
+	TInt ReturnSrcNodeId = JsEdge->Edge.GetSrcNId();
+	return HandleScope.Close(v8::Number::New(ReturnSrcNodeId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::dstId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
+	TInt ReturnDstNodeId = JsEdge->Edge.GetDstNId();
+	return HandleScope.Close(v8::Number::New(ReturnDstNodeId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::next(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
+	T ReturnEdge = JsEdge->Edge++;
+	return HandleScope.Close(Args.Holder());
+}
+
+
+///////////////////////////////
+// QMiner-JavaScript-HashMap
+
+const TStr TAuxStrIntH::ClassId = "TStrIntH";
+const TStr TAuxStrFltH::ClassId = "TStrFltH";
+const TStr TAuxStrStrH::ClassId = "TStrStrH";
+const TStr TAuxIntIntH::ClassId = "TIntIntH";
+const TStr TAuxIntFltH::ClassId = "TIntFltH";
+const TStr TAuxIntStrH::ClassId = "TIntStrH";
+
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -5903,6 +6680,56 @@ v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties,
 	v8::HandleScope HandleScope;
 	v8::Local<v8::String> RootFPath = v8::String::New(TEnv::RootFPath.CStr());
 	return HandleScope.Close(RootFPath);
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Utilities
+
+v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newStrIntH);
+		JsRegisterFunction(TmpTemp, newStrFltH);
+		JsRegisterFunction(TmpTemp, newStrStrH);
+		JsRegisterFunction(TmpTemp, newIntIntH);
+		JsRegisterFunction(TmpTemp, newIntFltH);
+		JsRegisterFunction(TmpTemp, newIntStrH);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrStrH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntStrH::New(JsUtils->Js);
 }
 
 ///////////////////////////////

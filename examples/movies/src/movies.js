@@ -6,7 +6,7 @@ var People = qm.store("People");
 var Movies = qm.store("Movies");
 
 // Check if we are starting for the first time
-if (Movies.empty) {
+//if (Movies.empty) {
     // We are, we start by loading in the dataset.
     console.log("Movies", "Loading and indexing input data")
     var filename = "./sandbox/movies/movies.json"
@@ -43,7 +43,7 @@ if (Movies.empty) {
     // Serialize the model to disk so we can use it later
     var ratingOut = fs.openWrite("./sandbox/movies/rating.dat");
     ratingModel.save(ratingOut); ratingOut.close();
-}
+//}
 
 // Load the models for genres and rating from disk
 var genreModel = analytics.loadBatchModel(fs.openRead("./sandbox/movies/genre.dat"));
