@@ -1354,8 +1354,9 @@ public:
 	JsDeclareFunction(getStreamAggrNames);
 	//#- `objJSON = store.toJSON()` -- returns the store as a JSON
 	JsDeclareFunction(toJSON);
-	//#- `len = store.delFirstN(num)` -- deletes the first `num` records
-	JsDeclareFunction(delFirstN);
+	//#- `store.clear()` -- deletes all records
+	//#- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+	JsDeclareFunction(clear);
 	//#JSIMPLEMENT:src/qminer/store.js
 
     //# 

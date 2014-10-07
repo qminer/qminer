@@ -1883,7 +1883,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		JsRegisterFunction(TmpTemp, toJSON);
-		JsRegisterFunction(TmpTemp, delFirstN);
+		JsRegisterFunction(TmpTemp, clear);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2174,10 +2174,10 @@ v8::Handle<v8::Value> TJsStore::toJSON(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsUtil::ParseJson(StoreJson));
 }
 
-v8::Handle<v8::Value> TJsStore::delFirstN(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsStore::clear(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
-	const int DelRecs = TJsStoreUtil::GetArgInt32(Args, 1, 0);
+	const int DelRecs = TJsStoreUtil::GetArgInt32(Args, 0, JsStore->Store->GetRecs());
 	JsStore->Store->DeleteFirstNRecs(DelRecs);
 	return HandleScope.Close(v8::Integer::New((int)JsStore->Store->GetRecs()));
 }
