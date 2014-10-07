@@ -56,3 +56,8 @@ qm.storeProto.tail = function (recs) {
     }
     return this.newRecSet(recIdV);
 }
+
+//#- `store.clear()` -- deletes all records in the store
+qm.storeProto.clear = function () {
+    store.delFirstN(this.length);
+}

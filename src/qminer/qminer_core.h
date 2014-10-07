@@ -606,6 +606,8 @@ public:
     
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
 	virtual void GarbageCollect() { }
+	/// Delete the first DelRecs records (the records that were inserted first)
+	virtual void DeleteFirstNRecs(int DelRecs) { };
     
     /// Check if the value of given field for a given record is NULL
 	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
