@@ -67,17 +67,17 @@ namespace TSnap {
 
 					for (int j = 0; j<newM.Len(); j++)
 					{
-						int len1 = newM.Len();
+						//int len1 = newM.Len();
 
-						int c = CentralModule;
+						//int c = CentralModule;
 						for (int k = 0; k<Graph->GetNI(newM[j]).GetDeg(); k++) {
-							int len = Graph->GetNI(newM[j]).GetDeg();
+							//int len = Graph->GetNI(newM[j]).GetDeg();
 
 							int ids = Graph->GetNI(newM[j]).GetId();
 							int idd = Graph->GetNI(newM[j]).GetNbrNId(k);
 							int ms = Module.GetDat(ids);
 							int md = Module.GetDat(idd);
-							int c = CentralModule;
+							//int c = CentralModule;
 
 							if (ms == md) {
 								InModule += 1.0;
@@ -97,18 +97,18 @@ namespace TSnap {
 					if (InModule + OutModule > 0) {
 						Val = OutModule / (InModule + OutModule);
 					}
-					int control = Mds[i];
+					//int control = Mds[i];
 					Qi.AddDat(Mds[i], Val);
 				}
 				else {
-					int control = Mds[i];
+					//int control = Mds[i];
 					Qi.AddDat(Mds[i], 0.0);
 				}
 			}
 		}
 
-		float Equation(TIntFltH& PAlpha, float& SumPAlphaLogPAlpha, TIntFltH& Qi){
-			float SumPAlpha = 1.0, SumQi = 0.0, SumQiLogQi = 0.0, SumQiSumPAlphaLogQiSumPAlpha = 0.0, logqi = 0.0, qi = 0.0;
+		double Equation(TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi){
+			double SumPAlpha = 1.0, SumQi = 0.0, SumQiLogQi = 0.0, SumQiSumPAlphaLogQiSumPAlpha = 0.0, logqi = 0.0, qi = 0.0;
 			for (int i = 0; i<Qi.Len(); i++) {
 				SumQi += Qi[i];
 				qi = Qi[i];
@@ -122,7 +122,7 @@ namespace TSnap {
 			return (SumQi*log(SumQi) - 2 * SumQiLogQi - SumPAlphaLogPAlpha + SumQiSumPAlphaLogQiSumPAlpha);
 		}
 
-		double InfomapOnlineIncrement(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, float& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br) {
+		double InfomapOnlineIncrement(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br) {
 			// NOW NEW stuff add another additional iteration:
 
 			bool n1new = false;
@@ -195,7 +195,7 @@ namespace TSnap {
 				for (int k = 0; k<2; k++) {
 					for (int i = 0; i<Graph->GetNI(id[k]).GetDeg(); i++) {
 						TUNGraph::TNodeI n = Graph->GetNI(id[k]);
-						int n_deg = n.GetDeg();
+						//int n_deg = n.GetDeg();
 
 						int OldModule = Module.GetDat(id[k]);
 						int NewModule = Module.GetDat(Graph->GetNI(id[k]).GetNbrNId(i));
@@ -252,7 +252,7 @@ namespace TSnap {
 		TIntH Module; // module of each node
 		TIntFltH Qi; // probability of leaving each module
 
-		float SumPAlphaLogPAlpha = 0.0;
+		double SumPAlphaLogPAlpha = 0.0;
 		int Br = 0;
 		const int e = Graph->GetEdges();
 
@@ -268,8 +268,8 @@ namespace TSnap {
 			Br += 1;
 		}
 
-		float MinCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
-		float NewCodeLength, PrevIterationCodeLength = 0.0;
+		double MinCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
+		double NewCodeLength, PrevIterationCodeLength = 0.0;
 		int OldModule, NewModule;
 
 		TIntV nodes;
@@ -326,7 +326,7 @@ namespace TSnap {
 		return MinCodeLength;
 	}
 
-	double InfomapOnline(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, float& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br, TCnComV& CmtyV) {
+	double InfomapOnline(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br, TCnComV& CmtyV) {
 
 		double MinCodeLength = TSnapDetail::InfomapOnlineIncrement(Graph, n1, n2, PAlpha, SumPAlphaLogPAlpha, Qi, Module, Br);
 
@@ -407,11 +407,11 @@ namespace TSnap {
 
 		TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
 		Ss.Next();
-		int internal_year_counter = 0;
+		//int internal_year_counter = 0;
 		// variable for delimiter between networks
 		TStr Marker;
 		// defining variables for node ids and starting year
-		int SrcNId, DstNId, t = 1970;
+		int SrcNId, DstNId; // , t = 1970;
 
 		// temporal container for edges
 		TIntIntVH edges_;
@@ -421,7 +421,7 @@ namespace TSnap {
 			//printf("%i\n", t);
 			Marker = Ss.GetLnStr();
 			// get the year from the network seperator
-			t = Marker.GetSubStr(1, 4).GetInt();
+			//t = Marker.GetSubStr(1, 4).GetInt();
 
 			if (Marker.GetCh(0) == '#'){
 
@@ -450,19 +450,19 @@ namespace TSnap {
 
 					TSnap::DelSelfEdges(Graph);
 					TCnComV CmtyV;
-					double Q = 0.0;
+					//double Q = 0.0;
 					TStr CmtyAlgStr;
 					if (CmtyAlg == 1) {
 						CmtyAlgStr = "Girvan-Newman";
-						Q = TSnap::CommunityGirvanNewman(Graph, CmtyV);
+						//Q = TSnap::CommunityGirvanNewman(Graph, CmtyV);
 					}
 					else if (CmtyAlg == 2) {
 						CmtyAlgStr = "Clauset-Newman-Moore";
-						Q = TSnap::CommunityCNM(Graph, CmtyV);
+						//Q = TSnap::CommunityCNM(Graph, CmtyV);
 					}
 					else if (CmtyAlg == 3) {
 						CmtyAlgStr = "Infomap";
-						Q = TSnap::Infomap(Graph, CmtyV);
+						//Q = TSnap::Infomap(Graph, CmtyV);
 					}
 					else { Fail; }
 
@@ -470,12 +470,12 @@ namespace TSnap {
 
 					if (br == 0) {
 						prev.Clr();
-						int size = 0;
+						//int size = 0;
 						for (int c = 0; c < CmtyV.Len(); c++) {
 							for (int i = 0; i < CmtyV[c].Len(); i++){
 								prev.AddDat(CmtyV[c][i].Val, c);
 							}
-							int s = CmtyV[c].Len();
+							//int s = CmtyV[c].Len();
 							prev_sizes.AddDat(c, CmtyV[c].Len());
 						}
 					}
@@ -596,7 +596,7 @@ namespace TSnap {
 							for (int i = 0; i < CmtyV[c].Len(); i++){
 								prev.AddDat(CmtyV[c][i].Val, map.GetDat(c));
 							}
-							int s = CmtyV[c].Len();
+							//int s = CmtyV[c].Len();
 							prev_sizes.AddDat(map.GetDat(c), CmtyV[c].Len());
 						}
 
@@ -743,9 +743,9 @@ namespace TSnap {
 		double beta = 0.75;
 		CmtyEvolutionFileBatch(InFNm, sizesContV, cContV, edges, alpha, beta, CmtyAlg);
 		TStr out;
-		int a = sizesContV.Len();
-		int b = cContV.Len();
-		int c = edges.Len();
+		//int a = sizesContV.Len();
+		//int b = cContV.Len();
+		//int c = edges.Len();
 		CmtyEvolutionJson(out, sizesContV, cContV, edges);
 
 		return out;
