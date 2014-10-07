@@ -229,7 +229,7 @@ function classifcationScore(cats) {
             // update counts for correct categories
             if (catCorrect) { this.target[cat].count++; }
             // update counts for how many times category was predicted
-            if (catPredicted) { this.target[cat].predictionCount; }
+            if (catPredicted) { this.target[cat].predictionCount++; }
             // update true/false positive/negative count
             if (catCorrect && catPredicted) {
                 // both predicted and correct say true
