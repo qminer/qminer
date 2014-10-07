@@ -900,6 +900,10 @@ void TJsSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
         // send response
        	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);
     } else {
+#ifdef V8_DEBUG
+    	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    	v8::Locker Locker(Isolate);
+#endif
         // prepare response object
     	v8::HandleScope HandleScope;
     	v8::Context::Scope ContextScope(Js->Context);
@@ -5905,6 +5909,7 @@ v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties,
 	v8::Local<v8::String> RootFPath = v8::String::New(TEnv::RootFPath.CStr());
 	return HandleScope.Close(RootFPath);
 }
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Console

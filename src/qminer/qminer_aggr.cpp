@@ -2170,19 +2170,23 @@ const uint64 THierchCtmc::TU_HOUR = TU_MINUTE*60;
 const uint64 THierchCtmc::TU_DAY = TU_HOUR*24;
 
 THierchCtmc::TNode::TNode():
-		NodeId(TUInt64::Mx),
+		NodeId(),
+		Depth(),
 		Model(NULL),
 		CentroidMat(),
+		StateIdV(),
 		QMatrixStats(),
 		Clust(Model->GetClust()),
 		RecIdV(),
 		ChildV(),
 		PrevStateIdx(-1) {}
 
-THierchCtmc::TNode::TNode(THierchCtmc* _Model, const PRecSet& RecSet):
-		NodeId(_Model->GenNodeId()),
+THierchCtmc::TNode::TNode(THierchCtmc* _Model, const PRecSet& RecSet, const int& NodeId, const int& _Depth):
+		NodeId(NodeId),
+		Depth(_Depth),
 		Model(_Model),
 		CentroidMat(),
+		StateIdV(),
 		QMatrixStats(),
 		Clust(Model->GetClust()),
 		RecIdV(),
@@ -2203,17 +2207,30 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 	printf("Saving json ...\n");
 
 	// centroids
-	PJsonVal CentroidJsonV = TJsonVal::NewArr();
+	PJsonVal StateJsonV = TJsonVal::NewArr();
 	for (int i = 0; i < NStates; i++) {
 		PJsonVal StateJson = TJsonVal::NewObj();
 
+		TVector FeatV = Model->InvertFtrV(CentroidMat.GetCol(i).GetVec());
+
+		PJsonVal CentroidJsonV = TJsonVal::NewArr();
+		for (int FldIdx = 0; FldIdx < GetDim(); FldIdx++) {
+			PJsonVal SigJson = TJsonVal::NewObj();
+
+			SigJson->AddToObj("name", Model->GetFldNm(FldIdx));
+			SigJson->AddToObj("value", FeatV[FldIdx]);
+
+			CentroidJsonV->AddToArr(SigJson);
+		}
+
+		StateJson->AddToObj("id", StateIdV[i]);
 		StateJson->AddToObj("meanCentroidDist", GetMeanPtCentroidDist(i));
 		StateJson->AddToObj("size", GetStateSize(i));
-		StateJson->AddToObj("centroid", TJsonVal::NewArr(CentroidMat.GetCol(i).GetVec()));
+		StateJson->AddToObj("centroid", CentroidJsonV);
 
 		printf("node id: %ld, size: %ld, mean centroid dist: %.3f\n", NodeId.Val, GetStateSize(i), GetMeanPtCentroidDist(i));
 
-		CentroidJsonV->AddToArr(StateJson);
+		StateJsonV->AddToArr(StateJson);
 	}
 
 	// intensities
@@ -2238,7 +2255,7 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 
 	RootJson->AddToObj("id", NodeId.GetStr());
 	RootJson->AddToObj("size", RecIdV.Len());
-	RootJson->AddToObj("states", CentroidJsonV);
+	RootJson->AddToObj("states", StateJsonV);
 	RootJson->AddToObj("intensities", QMatJson);
 	RootJson->AddToObj("children", ChildJsonV);
 
@@ -2257,7 +2274,7 @@ void THierchCtmc::TNode::OnAddRec(const TRec& Rec, const bool IsInitialized) {
 
 	// add to children
 	// check to which child the record belongs
-	int StateIdx = Clust->Assign(Model->GetInstanceV(Rec));
+	int StateIdx = Clust->Assign(Model->GetFtrV(Rec));
 	if (IsStateExpanded(StateIdx)) {
 		ChildV[StateIdx]->OnAddRec(Rec, IsInitialized);
 	}
@@ -2274,7 +2291,7 @@ void THierchCtmc::TNode::OnAddRec(const TRec& Rec, const bool IsInitialized) {
 
 
 void THierchCtmc::TNode::UpdateIntensities(const TRec& Rec) {
-	int CurrStateIdx = Clust->Assign(Model->GetInstanceV(Rec));
+	int CurrStateIdx = Clust->Assign(Model->GetFtrV(Rec));
 
 	if (PrevStateIdx != -1 && CurrStateIdx != PrevStateIdx) {
 		// the state has changed
@@ -2283,6 +2300,7 @@ void THierchCtmc::TNode::UpdateIntensities(const TRec& Rec) {
 			uint64 HoldingTm = CurrTm - PrevJumpTm;
 			QMatrixStats[PrevStateIdx][CurrStateIdx].Val1++;
 			QMatrixStats[PrevStateIdx][CurrStateIdx].Val2 += (double) HoldingTm / Model->TimeUnit;
+			printf("Updated intensity: prev state: %d, curr state: %d\n", PrevStateIdx.Val, CurrStateIdx);
 		}
 		PrevJumpTm = CurrTm;
 	} else if (PrevStateIdx == -1) {
@@ -2293,7 +2311,7 @@ void THierchCtmc::TNode::UpdateIntensities(const TRec& Rec) {
 }
 
 void THierchCtmc::TNode::UpdateStatistics(const TRec& Rec) {
-	TVector Pt = Model->GetInstanceV(Rec);
+	TVector Pt = Model->GetFtrV(Rec);
 
 	int StateIdx = Clust->Assign(Pt);
 	double CentroidDist = Clust->GetDist(StateIdx, Pt);
@@ -2328,7 +2346,7 @@ uint64 THierchCtmc::TNode::GetStateSize(const int& StateIdx) const {
 }
 
 bool THierchCtmc::TNode::ShouldExpand(const int& StateIdx) const {
-	if (IsStateExpanded(StateIdx)) { return false; }
+	if (Depth >= Model->MaxDepth() || IsStateExpanded(StateIdx)) { return false; }
 	double MeanPtCentDist = GetMeanPtCentroidDist(StateIdx);
 	return MeanPtCentDist > Model->ExpandThreshold;
 }
@@ -2343,7 +2361,7 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	printf("Expanding state: %d\n", StateIdx);
 
 	// fetch all the records that belong to the state
-	TFullMatrix InstanceMat = Model->GetInstanceVV(RecIdV);
+	TFullMatrix InstanceMat = Model->GetFtrVV(RecIdV);
 	TVector AssignV = Clust->Assign(InstanceMat);
 
 	TVector StateAssignIdxV = AssignV.Find([&] (const int Val) { return Val == StateIdx; });
@@ -2358,7 +2376,7 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	}
 
 	// get the instance matrix
-	ChildV[StateIdx] = new TNode(Model, Model->GetRecSet(StateRecIdV));
+	ChildV[StateIdx] = new TNode(Model, Model->GetRecSet(StateRecIdV), StateIdV[StateIdx], Depth+1);
 }
 
 TFullMatrix THierchCtmc::TNode::GetQMatrix() const {
@@ -2386,13 +2404,15 @@ void THierchCtmc::TNode::InitChildV() {
 	const int NStates = CentroidMat.GetCols();
 
 	ChildV.Gen(NStates, 0);
+	StateIdV.Gen(NStates, 0);
 	for (int i = 0; i < NStates; i++) {
 		ChildV.Add(NULL);
+		StateIdV.Add(Model->GenNodeId());
 	}
 }
 
 void THierchCtmc::TNode::InitClusts(const PRecSet& RecSet, TIntV& AssignIdxV) {
-	TFullMatrix X = Model->GetInstanceVV(RecSet);
+	TFullMatrix X = Model->GetFtrVV(RecSet);
 	// run the algorithm
 	CentroidMat = Clust->Apply(X, AssignIdxV);
 
@@ -2432,7 +2452,7 @@ void THierchCtmc::TNode::InitIntensities(const PRecSet& RecSet, const TIntV& Ass
 
 THierchCtmc::THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
 			const TStr& TimeFldNm, const TInt& _MinRecs, const PJsonVal& _ClustParams,
-			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const int& RndSeed):
+			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const TInt& _MaxDepth, const int& RndSeed):
 		TQm::TStreamAggr(Base, AggrNm),
 		InStore(Base->GetStoreByStoreNm(InStoreNm)),
 		TimeFldId(Base->GetStoreByStoreNm(InStoreNm)->GetFieldId(TimeFldNm)),
@@ -2440,6 +2460,7 @@ THierchCtmc::THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr
 		RootNode(NULL),
 		CurrRecs(),
 		MinRecs(_MinRecs),
+		MaxDepth(_MaxDepth),
 		ClustParams(_ClustParams),
 		ExpandThreshold(_ExpandThreshold),
 		TimeUnit(_TimeUnit),
@@ -2450,11 +2471,13 @@ THierchCtmc::THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr
 THierchCtmc::THierchCtmc(const THierchCtmc& Model):
 		TQm::TStreamAggr(Model.Base, Model.AggrNm),
 		InStore(Model.InStore),
+		FldIdV(Model.FldIdV),
 		TimeFldId(Model.TimeFldId),
 		FtrSpace(NULL),
 		RootNode(Model.RootNode),
 		CurrRecs(Model.CurrRecs),
 		MinRecs(Model.MinRecs),
+		MaxDepth(Model.MaxDepth),
 		ClustParams(Model.ClustParams),
 		ExpandThreshold(Model.ExpandThreshold),
 		TimeUnit(Model.TimeUnit),
@@ -2468,8 +2491,8 @@ THierchCtmc::~THierchCtmc() {
 
 PStreamAggr THierchCtmc::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
 		const TStr& TimeFldNm, const TInt& MinRecs, const PJsonVal& ClustParams,
-		const TFlt& ExpandThreshold, const TUInt64 TimeUnit, const int& RndSeed) {
-	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, ClustParams, ExpandThreshold, TimeUnit, RndSeed);
+		const TFlt& ExpandThreshold, const TUInt64 TimeUnit, const TInt& MaxDepth, const int& RndSeed) {
+	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, ClustParams, ExpandThreshold, TimeUnit, MaxDepth, RndSeed);
 }
 
 PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
@@ -2479,6 +2502,7 @@ PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& Param
 	const PJsonVal ClustParams = ParamVal->GetObjKey("clustering");
 	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
 	const TFlt ExpandThreshold = ParamVal->GetObjNum("expandThreshold");
+	const TInt MaxDepth = ParamVal->IsObjKey("depth") ? ParamVal->GetObjInt("depth") : TInt::Mx;
 	const TInt RndSeed = ParamVal->IsObjKey("randSeed") ? ParamVal->GetObjInt("randSeed") : 0;
 
 	const TStr TimeUnitStr = ParamVal->GetObjStr("timeUnit");
@@ -2496,7 +2520,7 @@ PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& Param
 		throw TExcept::New("THierchCtmc::New: invalid time unit!", "THierchCtmc::New");
 	}
 
-	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, ClustParams, ExpandThreshold, TimeUnit, RndSeed);
+	return new THierchCtmc(Base, AggrNm, InStoreNm, TimeFldNm, MinRecs, ClustParams, ExpandThreshold, TimeUnit, MaxDepth, RndSeed);
 }
 
 PJsonVal THierchCtmc::SaveJson(const int& Limit) const {
@@ -2514,19 +2538,28 @@ void THierchCtmc::OnAddRec(const TRec& Rec) {
 	}
 }
 
-TVector THierchCtmc::GetInstanceV(const TRec& Rec) const {
+TVector THierchCtmc::GetFtrV(const TRec& Rec) const {
 	TVector Result;	FtrSpace->GetFullV(Rec, Result.Vec);
 	return Result;
 }
 
-TFullMatrix THierchCtmc::GetInstanceVV(const PRecSet& RecSet) const {
+TFullMatrix THierchCtmc::GetFtrVV(const PRecSet& RecSet) const {
 	// construct the input matrix
 	TVec<TFltV> InstanceVV;	FtrSpace->GetFullVV(RecSet, InstanceVV);
 	return TFullMatrix::ColMatrix(InstanceVV);
 }
 
-TFullMatrix THierchCtmc::GetInstanceVV(const TUInt64V& RecIdV) const {
-	return GetInstanceVV(GetRecSet(RecIdV));
+TFullMatrix THierchCtmc::GetFtrVV(const TUInt64V& RecIdV) const {
+	return GetFtrVV(GetRecSet(RecIdV));
+}
+
+TVector THierchCtmc::InvertFtrV(const TVector& FeatV) const {
+	TVector Result;	FtrSpace->InvertFullV(FeatV.GetVec(), Result.Vec);
+	return Result;
+}
+
+int THierchCtmc::GetMaxDepth() const {
+	return MaxDepth;
 }
 
 TFullClust::TClust* THierchCtmc::GetClust() const {
@@ -2557,18 +2590,18 @@ void THierchCtmc::InitRoot() {
 
 	// construct feature space
 	const TWPt<TStore>& InStore = AllRecSet->GetStore();
-	const TIntV& FieldIdV = InStore->GetFieldIdV(TFieldType::oftFlt);
+	FldIdV = InStore->GetFieldIdV(TFieldType::oftFlt);
 
 	TFtrExtV FtrExtV;
-	for (int i = 0; i < FieldIdV.Len(); i++) {
-		PFtrExt FtrExt = TFtrExts::TNumeric::New(Base, InStore, FieldIdV[i], Normalize);
+	for (int i = 0; i < FldIdV.Len(); i++) {
+		PFtrExt FtrExt = TFtrExts::TNumeric::New(Base, InStore, FldIdV[i], Normalize);
 		FtrExtV.Add(FtrExt);
 	}
 
 	FtrSpace = TFtrSpace::New(Base, FtrExtV);
 	FtrSpace->Update(AllRecSet);
 
-	RootNode = new TNode(this, AllRecSet);
+	RootNode = new TNode(this, AllRecSet, GenNodeId(), 1);
 }
 
 void THierchCtmc::DestroyNode(TNode* Node) {

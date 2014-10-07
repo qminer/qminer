@@ -67,4 +67,44 @@ public:
 	~TLock() { CriticalSection.Leave(); }
 };
 
+////////////////////////////////////////////
+// Thread executor
+//   contains a pool of threads which can execute a TRunnable object
+class TThreadExecutor {
+public:
+	ClassTP(TRunnable, PRunnable)// {
+	public:
+		void Run() = 0;
+	};
+private:
+	class TExecutorThread: public TThread {
+	private:
+		PRunnable Runnable;
+		PNotify Notify;
+	public:
+		TExecutorThread(const PNotify& _Notify): Runnable(NULL), Notify(_Notify) {}
+
+		void Run();
+		void ExecuteRunnable(PRunnable& Runnable);
+	};
+
+private:
+	TVec<TExecutorThread> ThreadV;
+	TVec<PRunnable> TaskQ;
+
+	TCriticalSection QSection;
+
+	PNotify Notify;
+
+public:
+	TThreadExecutor(const TInt& PoolSize=1, const PNotify& Notify=TNullNotify::New());
+
+	virtual ~TThreadExecutor() {}
+
+	void Execute(const TRunnable& Runnable);
+
+private:
+	void ExecuteTasks();
+};
+
 #endif

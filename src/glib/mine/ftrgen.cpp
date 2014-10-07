@@ -59,6 +59,16 @@ void TNumeric::AddFtr(const double& Val, TFltV& FullV, int& Offset) const {
     FullV[Offset] = GetFtr(Val); Offset++;
 }
 
+double TNumeric::InvFtr(const TFltV& FullV, int& Offset) const {
+	double Val = FullV[Offset++];
+
+	if (Type != ntNone && MnVal < MxVal) {
+		Val =  Val*(MxVal - MnVal) + MnVal;
+	}
+
+	return Val;
+}
+
 ///////////////////////////////////////
 // Nominal-Feature-Generator
 void TCategorical::Save(TSOut& SOut) const { 

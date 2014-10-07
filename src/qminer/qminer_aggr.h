@@ -1028,10 +1028,12 @@ private:
 	class TNode {
 	public:
 		const TUInt64 NodeId;
+		const TInt Depth;
 
 		THierchCtmc* Model;
 
 		TFullMatrix CentroidMat;
+		TIntV StateIdV;
 		TVec<TUInt64FltPrV> QMatrixStats;
 
 		// holds pairs <n,sum> where n is the number of points in state i
@@ -1049,13 +1051,14 @@ private:
 
 	public:
 		TNode();
-		TNode(THierchCtmc* Model, const PRecSet& RecSet);
+		TNode(THierchCtmc* _Model, const PRecSet& RecSet, const int& NodeId, const int& Depth);
 
 		~TNode() { delete Clust; }
 
 		PJsonVal SaveJson() const;
 
 		int GetStates() const { return CentroidMat.GetCols(); }
+		int GetDim() const { return CentroidMat.GetRows(); }
 
 		void OnAddRec(const TRec& Rec, const bool ShouldExpand=true);
 
@@ -1092,6 +1095,7 @@ private:
 	const static uint64 TU_DAY;
 
 	TWPt<TStore> InStore;
+	TIntV FldIdV;
 	TInt TimeFldId;
 
 	PFtrSpace FtrSpace;
@@ -1100,6 +1104,8 @@ private:
 
 	TUInt64 CurrRecs;
 	TUInt64 MinRecs;
+
+	TInt MaxDepth;
 
 	PJsonVal ClustParams;
 	TFlt ExpandThreshold;
@@ -1114,7 +1120,7 @@ private:
 protected:
 	THierchCtmc(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
 			const TStr& TimeFldNm, const TInt& _MinRecs, const PJsonVal& ClustParams,
-			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const int& RndSeed=0);
+			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const TInt& MaxDepth=TInt::Mx, const int& RndSeed=0);
 
 public:
 	THierchCtmc(const THierchCtmc& Model);
@@ -1122,7 +1128,7 @@ public:
 
 	static PStreamAggr New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
 			const TStr& TimeFldNm, const TInt& _MinRecs, const PJsonVal& ClustParams,
-			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const int& RndSeed=0);
+			const TFlt& _ExpandThreshold, const TUInt64 _TimeUnit, const TInt& MaxDepth=TInt::Mx, const int& RndSeed=0);
 	static PStreamAggr New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal);
 
 	PJsonVal SaveJson(const int& Limit) const;
@@ -1134,9 +1140,15 @@ protected:
 	uint64 GenNodeId() { return CurrNodeId++; }
 
 	// feature space
-	TVector GetInstanceV(const TRec& Rec) const;
-	TFullMatrix GetInstanceVV(const PRecSet& RecSet) const;
-	TFullMatrix GetInstanceVV(const TUInt64V& RecIdV) const;
+	TVector GetFtrV(const TRec& Rec) const;
+	TFullMatrix GetFtrVV(const PRecSet& RecSet) const;
+	TFullMatrix GetFtrVV(const TUInt64V& RecIdV) const;
+
+	TVector InvertFtrV(const TVector& Vec) const;
+
+	TStr GetFldNm(const int& FldIdx) const { return InStore->GetFieldNm(FldIdV[FldIdx]); }
+
+	int GetMaxDepth() const;
 
 	// clustering
 	TFullClust::TClust* GetClust() const;

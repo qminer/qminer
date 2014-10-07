@@ -106,6 +106,10 @@ public:
 	/// Attaches features to a given full feature vectors with a given offset
 	virtual void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
+	/// Inverts features from the given feature vector. The features must start
+	/// at the given offset. Increases the offset by its dimension
+	virtual void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const = 0;
+
 	// for more strait-forward feature extraction (i.e. used by basic aggregators)
 	// attaches values to the given vector, keeps what is in there already
 	virtual void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -182,6 +186,8 @@ public:
 	void GetCentroidSpV(const PRecSet& RecSet, TIntFltKdV& CentroidSpV, const bool& NormalizeP = true) const;
 	/// Compute full centroid of a given record set
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
+	/// Returns the inverse operation on the feature vector
+	void InvertFullV(const TFltV& FullV, TFltV& InvertV) const;
     
     /// String vector for a record transformed by a feature extractor
     void ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const;
@@ -223,7 +229,9 @@ public:
 	void Clr() { }; 
     bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
-	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const; 
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -260,6 +268,8 @@ public:
     bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
@@ -310,6 +320,8 @@ public:
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
 	// flat feature extraction
 	void ExtractFltV(const TRec& Rec, TFltV& FltV) const;
     
@@ -358,6 +370,8 @@ public:
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -410,6 +424,8 @@ public:
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -483,6 +499,8 @@ public:
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
 
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
+
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
 
@@ -528,6 +546,8 @@ public:
 	// sparse vector extraction
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& Rec, TStrV& StrV) const;
@@ -578,6 +598,8 @@ public:
 	bool Update(const TRec& FtrRec);
 	void AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const;
 	//void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const;
 
 	// flat feature extraction
 	void ExtractStrV(const TRec& FtrRec, TStrV& StrV) const;

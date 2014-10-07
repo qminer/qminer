@@ -23,6 +23,7 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
+#include <thread.h>
 #include <v8.h>
 #include <typeinfo>
 
@@ -3323,6 +3324,10 @@ public:
 	bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV");
+	}
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;

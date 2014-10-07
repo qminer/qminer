@@ -47,3 +47,53 @@ void TInterruptibleThread::WaitForInterrupt(const int Msecs) {
 void TInterruptibleThread::Interrupt() {
 	SleeperBlocker.Release();
 }
+
+
+////////////////////////////////////////////
+// Thread executor
+void TThreadExecutor::TExecutorThread::Run() {
+	Notify->OnNotify("Executing task ...");
+
+	try {
+		Runnable->Run();
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "Failed to execute thread: %s", Except->GetMsgStr());
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "%s", Except->GetLocStr());
+	}
+
+	TLock Lck(QSection);
+
+}
+
+TThreadExecutor::TThreadExecutor(const TInt& PoolSize, const PNotify& _Notify):
+		ThreadV(PoolSize, PoolSize),
+		TaskQ(),
+		QSection(TCriticalSectionType::cstRecursive),
+		Notify(_Notify) {}
+
+void TThreadExecutor::Execute(const TRunnable& Runnable) {
+	Notify->OnNotify(TNotifyType::ntInfo, "Adding new runnable to queue ...");
+
+	{
+		TLock Lck(QSection);
+		TaskQ.Add(Runnable);
+		ExecuteTasks();
+	}
+}
+
+void TThreadExecutor::ExecuteTasks() {
+	Notify->OnNotify("Checking if any tasks can be executed ...");
+
+	TLock Lck(QSection);
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "%d tasks in queue ...", TaskQ.Len());
+
+	// check if a thread is free
+	int i = 0;
+	while (!TaskQ.Empty() && i < ThreadV.Len()) {
+		if (!ThreadV[i].IsRunning()) {
+			ThreadV[i].ExecuteRunnable(TaskQ[0]);
+		}
+		i++;
+	}
+}
