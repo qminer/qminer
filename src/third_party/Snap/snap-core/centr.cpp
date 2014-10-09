@@ -300,7 +300,8 @@ TIntH MaxCPGreedyBetter(const PUNGraph& Graph, const int k) {
   TIntH GroupNodes; // buildup cpntainer of group nodes
   TIntH NNodes; // container of neighbouring nodes
   TIntH Nodes; // nodes sorted by vd
-  double gc = 0, gc0 = 0, addId, addIdPrev = 0;
+  double gc = 0, gc0 = 0;
+  int addId, addIdPrev = 0;
   
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
 	  Nodes.AddDat(NI.GetId(),NI.GetDeg());
@@ -350,7 +351,8 @@ TIntH MaxCPGreedyBetter1(const PUNGraph& Graph, const int k) {
   TIntH GroupNodes;
   TIntH NNodes;
   TIntH Nodes;
-  double gc=0, gc0=0, addId, addIdPrev=0;
+  double gc = 0, gc0 = 0;
+  int addId, addIdPrev = 0;
   
   // put nodes in the container and sort them by vertex degree
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
@@ -399,7 +401,8 @@ TIntH MaxCPGreedyBetter2(const PUNGraph& Graph, const int k) {
   TIntH GroupNodes; // buildup cpntainer of group nodes
   TStr NNodes; // container of neighbouring nodes
   TIntH Nodes; // nodes sorted by vd
-  double gc=0, gc0=0, addId, addIdPrev=0;
+  double gc = 0, gc0 = 0;
+  int addId, addIdPrev=0;
   
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
 	  Nodes.AddDat(NI.GetId(),NI.GetDeg());
@@ -457,7 +460,8 @@ TIntH MaxCPGreedyBetter3(const PUNGraph& Graph, const int k) {
   int *NNodes = new int[n]; // container of neighbouring nodes
   int NNodes_br = 0;
   TIntH Nodes; // nodes sorted by vd
-  double gc=0, gc0=0, addId, addIdPrev=0;
+  double gc = 0, gc0 = 0;
+  int addId, addIdPrev = 0;
   
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
 	  Nodes.AddDat(NI.GetId(),NI.GetDeg());

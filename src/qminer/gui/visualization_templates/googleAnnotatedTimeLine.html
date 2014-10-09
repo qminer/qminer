@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>Google annotated time line</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+    <script type="text/javascript">
+    	google.load('visualization', '1', { packages: ['annotatedtimeline'] });
+	    $(function () {
+            var dataJSON = {{{data}}};    //inject data
+            var data = visualize.convertDates(dataJSON);
+            var overrideParams = {{{overrideParams}}}; //inject plot parameters
+            visualize.googleAnnotatedTimeLine(data, overrideParams, 'chart_div');
+        });
+    </script>
+    
+</head>	
+<body>	
+	<div id='chart_div' style='width: 700px; height: 240px;'></div>
+	<script type="text/javascript">
+        {{{libs}}}
+    </script>
+</body>
+</html>
