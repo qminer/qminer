@@ -1353,6 +1353,9 @@ public:
 	JsDeclareFunction(getStreamAggrNames);
 	//#- `objJSON = store.toJSON()` -- returns the store as a JSON
 	JsDeclareFunction(toJSON);
+	//#- `store.clear()` -- deletes all records
+	//#- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+	JsDeclareFunction(clear);
 	//#JSIMPLEMENT:src/qminer/store.js
 
     //# 
@@ -2820,9 +2823,9 @@ public:
 	JsDeclareFunction(degreeCentrality);
 	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(communityDetection);
-	//#- `jsonstring = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
-	//#- `jsonstring = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
 };
 
@@ -2909,7 +2912,7 @@ public:
 	//#- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
 	//#  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
 	JsDeclareFunction(eachEdge);
-	//#  - `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
+	//#- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
 	JsDeclareFunction(adjMat);
 };
 
@@ -2960,7 +2963,7 @@ public:
 	JsDeclareFunction(nbrId);
 	//#- `node = node.next()` -- return next node
 	JsDeclareFunction(next);
-	//#- `node = graph.prev()` -- return previous node
+	//#- `node = node.prev()` -- return previous node
 	JsDeclareFunction(prev);
 };
 
@@ -3000,7 +3003,6 @@ public:
 	JsDeclareProperty(dstId);
 	//#- `edge = edge.next()` -- return next edge
 	JsDeclareFunction(next);
-
 };
 
 

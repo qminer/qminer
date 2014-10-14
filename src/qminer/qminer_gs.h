@@ -664,6 +664,8 @@ public:
 
     /// Purge records that fall out of store window (when it has one)
 	void GarbageCollect();
+	void DeleteFirstNRecs(int Recs);
+	void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
 
     /// Check if the value of given field for a given record is NULL
 	bool IsFieldNull(const uint64& RecId, const int& FieldId) const;

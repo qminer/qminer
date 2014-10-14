@@ -86,7 +86,7 @@ for (var i = 0; i < graphs.length; i++) {
 var json = snap.evolutionJs(communities, 0.5, 0.75);
 
 // plot the community evolution graph
-viz.drawCommunityEvolution(json, "./out/cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+viz.drawCommunityEvolution(JSON.stringify(json), "./out/cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 // load a new graph from a file
 console.log("Loading cobiss graph 1970-1975.edg");
