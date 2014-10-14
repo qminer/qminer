@@ -1051,7 +1051,6 @@ public:
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
     // temporary stuff
-	JsDeclareProperty(analytics); // deprecated    
 	JsDeclareFunction(op); // soon to be deprecated, functionality moved to TJsRecSet
 
 	//# 
@@ -2523,7 +2522,6 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-    JsDeclareFunction(finishUpdate); // deprecated
     //#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
     //#     features from record `rec` (e.g. words from string fields); results are returned
     //#     as a string array
@@ -3727,7 +3725,6 @@ public:
     JsDeclareProperty(second);
     //#- `num = tm.millisecond` -- millisecond (number)
     JsDeclareProperty(millisecond);
-	JsDeclareProperty(milisecond); // deprecated
     //#- `tm2 = tm.now` -- returns new time object representing current local time
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
