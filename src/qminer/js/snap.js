@@ -210,8 +210,7 @@ exports.evolutionJs = function (data, alpha, beta) {
     var out = {};
     var out = { edges: edgesJson, communities: communitiesJson };
     
-    return JSON.stringify(out)
-    ;
+    return out;
 };
 
 //#- `JSON = snap.toJson(graph)` -- returns JSON object of graph with `source` and `target` attributes

@@ -1880,10 +1880,10 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
-        //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, clear);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2174,6 +2174,14 @@ v8::Handle<v8::Value> TJsStore::toJSON(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsUtil::ParseJson(StoreJson));
 }
 
+v8::Handle<v8::Value> TJsStore::clear(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	const int DelRecs = TJsStoreUtil::GetArgInt32(Args, 0, (int)JsStore->Store->GetRecs());
+	JsStore->Store->DeleteFirstNRecs(DelRecs);
+	return HandleScope.Close(v8::Integer::New((int)JsStore->Store->GetRecs()));
+}
+
 ///////////////////////////////
 // JavaScript Store Iterator
 v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
@@ -2309,6 +2317,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filterByFq);
 		JsRegisterFunction(TmpTemp, filterByField);
 		JsRegisterFunction(TmpTemp, filter);
+		JsRegisterFunction(TmpTemp, split);
 		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, each);
@@ -5928,7 +5937,8 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
 		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
 		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
-		return HandleScope.Close(v8::String::New(jsonout.CStr()));
+		PJsonVal Res = TJsonVal::GetValFromStr(jsonout);
+		return HandleScope.Close(TJsUtil::ParseJson(Res));
 	}
 	else
 		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
@@ -6144,7 +6154,12 @@ v8::Handle<v8::Value> TJsGraph<T>::node(const v8::Arguments& Args) {
 	typename T::TNodeI ReturnNode;
 	if (ArgsLen == 1) {
 		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
-		ReturnNode = JsGraph->Graph->GetNI(TJsGraphUtil::GetArgInt32(Args, 0));
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		if (JsGraph->Graph->IsNode(NodeId)) {
+			ReturnNode = JsGraph->Graph->GetNI(NodeId);
+		} else {
+			return HandleScope.Close(v8::Null());		
+		}
 	}
 	else {
 		throw TQmExcept::New("TJsGraph::node: one input argument expected!");
