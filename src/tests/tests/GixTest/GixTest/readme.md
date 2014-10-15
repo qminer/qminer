@@ -2,12 +2,12 @@
 
 ## Task 1
 
-**Problem:** 
+### Problem
 
 I/O traffic and memory consumption for huge data vectors (popular words like *Obama*) in `TGix` (inverted index) 
 that need to be swapped when single item (new document) is added into them.
 
-**Proposed solution:**
+### Proposed solution
 
 Change the way `TGix` is handling data vectors - split single vector into several vectors,
 so that only the last one needs to be updated.
@@ -19,6 +19,11 @@ In class `TGix` there are two members that we need to expand:
 	THash<TKey, TBlobPt> KeyIdH
 	mutable TCache<TBlobPt, PGixItemSet> ItemSetCache
 
+`KeyIdH` is used to map between keys and BLOB pointers. `ItemSetCache` is used for caching of
+BLOB data - this object contains data vectors that reside in memory, so it needs to be refactored.
+
+
+	
 ## Github stuff
 
 Establish a link to the official repository
