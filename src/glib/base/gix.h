@@ -202,26 +202,35 @@ private:
     typedef TGixDefMerger<TKey, TItem> _TGixDefMerger;
 	typedef TPt<TGixKeyStr<TKey> > PGixKeyStr;
 private:
+	/// File access mode - checked during index operations
     TFAccess Access;
+	/// Name of the main file
     TStr GixFNm;
+	/// Name of the BLOB file
     TStr GixBlobFNm;
+	/// mapping between key and BLOB pointer
     THash<TKey, TBlobPt> KeyIdH; 
+	/// cache for BLOB data, mapping between pointers and data
     mutable TCache<TBlobPt, PGixItemSet> ItemSetCache;
+	/// BLOB handler
     PBlobBs ItemSetBlobBs;
+	/// record merger, used for packing data vectors
 	PGixMerger Merger;
 
     int64 CacheResetThreshold;
     int64 NewCacheSizeInc;
+	/// flag if cache is full
     bool CacheFullP;
 
-    // returnes pointer to this object (used in cache call-backs)
+    /// returns pointer to this object (used in cache call-backs)
     void* GetVoidThis() const { return (void*)this; }
-    // asserts if we are allowed to change this index
+    /// asserts if we are allowed to change this index
     void AssertReadOnly() const {
         EAssertR(((Access==faCreate)||(Access==faUpdate)), 
             "Index opened in Read-Only mode!"); }
-    // get keyid of a given key and create it if does not exist
+    /// get keyid of a given key and create it if does not exist
     TBlobPt AddKeyId(const TKey& Key);
+	/// get keyid of a given key
     TBlobPt GetKeyId(const TKey& Key) const;
 
 public:
@@ -240,32 +249,35 @@ public:
     TStr GetFPath() const { return GixFNm.GetFPath(); }
 	int64 GetMxCacheSize() const { return ItemSetCache.GetMxMemUsed(); }
 
-    // do we have Key in the index?
+    /// do we have Key in the index?
     bool IsKey(const TKey& Key) const { return KeyIdH.IsKey(Key); }
-    // number of keys in the index
+    /// number of keys in the index
     int GetKeys() const { return KeyIdH.Len(); }
-    // sort keys
+    /// sort keys
     void SortKeys() { KeyIdH.SortByKey(true); }
-    // get item set for given key
+    /// get item set for given key
     PGixItemSet GetItemSet(const TKey& Key) const; 
-    // adding new item to the inverted index
+    /// adding new item to the inverted index
     void AddItem(const TKey& Key, const TItem& Item);
-    // adding new items to the inverted index
+    /// adding new items to the inverted index
     void AddItemV(const TKey& Key, const TVec<TItem>& ItemV);
-    // delite one item
+    /// delete one item
     void DelItem(const TKey& Key, const TItem& Item);
-	// clears items
+	/// clears items
     void Clr(const TKey& Key);
 
     // traversing keys
-    int FFirstKeyId() const { return KeyIdH.FFirstKeyId(); }
+    /// get first key id
+	int FFirstKeyId() const { return KeyIdH.FFirstKeyId(); }
+	/// get next key id
     bool FNextKeyId(int& KeyId) const { return KeyIdH.FNextKeyId(KeyId); }
+	/// get key for given key id
     const TKey& GetKey(const int& KeyId) const { return KeyIdH.GetKey(KeyId); }
 
     // merges another index with same key and item vocabulary
     void MergeIndex(const PGix& TmpGix);
 
-    // get amount of memory currently used
+    /// get amount of memory currently used
     int64 GetMemUsed() const { 
         return int64(sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) + 
             int64(KeyIdH.GetMemUsed()) + int64(ItemSetCache.GetMemUsed()); }
@@ -274,10 +286,10 @@ public:
     bool IsCacheFull() const { return CacheFullP; }
     void RefreshMemUsed();
 
-    // for storing item sets from cache to blob
+    /// for storing item sets from cache to blob
     void StoreItemSet(const TBlobPt& KeyId);
 
-	// print statistics for index keys
+	/// print statistics for index keys
 	void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
 
     friend class TPt<TGix>;

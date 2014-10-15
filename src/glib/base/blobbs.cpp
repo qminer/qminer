@@ -298,6 +298,7 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
   GetAllocInfo(BfL, BlockLenV, MxBfL, FFreeBlobPtN);
   TBlobPt BlobPt; TCs Cs;
   if (FFreeBlobPtV[FFreeBlobPtN].Empty()){
+	// allocate new block in BLOB storage
     int FLen=FBlobBs->GetFLen();
     if (FLen<=MxSegLen){
       EAssert(FLen<=MxBlobFLen);
@@ -313,13 +314,14 @@ TBlobPt TGBlobBs::PutBlob(const PSIn& SIn){
       PutBlobTag(FBlobBs, btEnd);
     }
   } else {
+	// ok, reuse existing BLOB pointer of the BLOB of the same size that was freed earlier
     BlobPt=FFreeBlobPtV[FFreeBlobPtN];
     FBlobBs->SetFPos(BlobPt.GetAddr());
     AssertBlobTag(FBlobBs, btBegin);
     int MxBfL=FBlobBs->GetInt();
     int FPos=FBlobBs->GetFPos();
     AssertBlobState(FBlobBs, bsFree);
-    FFreeBlobPtV[FFreeBlobPtN]=TBlobPt::LoadAddr(FBlobBs);
+    FFreeBlobPtV[FFreeBlobPtN]=TBlobPt::LoadAddr(FBlobBs); // deleted blocks are saved in "linked list" - the address of the next free block was stored in the content of previous
     FBlobBs->SetFPos(FPos);
     PutBlobState(FBlobBs, bsActive);
     FBlobBs->PutInt(BfL);
@@ -369,24 +371,25 @@ PSIn TGBlobBs::GetBlob(const TBlobPt& BlobPt){
   return SIn;
 }
 
+/// Deletes specified BLOB
 void TGBlobBs::DelBlob(const TBlobPt& BlobPt){
   EAssert((Access==faCreate)||(Access==faUpdate)||(Access==faRestore));
-  FBlobBs->SetFPos(BlobPt.GetAddr());
+  FBlobBs->SetFPos(BlobPt.GetAddr());                                  // find BLOB start
   AssertBlobTag(FBlobBs, btBegin);
-  int MxBfL=FBlobBs->GetInt();
-  int FPos=FBlobBs->GetFPos();
-  AssertBlobState(FBlobBs, bsActive);
+  int MxBfL=FBlobBs->GetInt();                                         // read buffer length
+  int FPos=FBlobBs->GetFPos();                                         // remember position of status flag
+  AssertBlobState(FBlobBs, bsActive);                                  // make sure BLOB is active
   /*int BfL=*/FBlobBs->GetInt();
   FBlobBs->SetFPos(FPos);
-  PutBlobState(FBlobBs, bsFree);
+  PutBlobState(FBlobBs, bsFree);                                       // mark BLOB as free
   int _MxBfL; int FFreeBlobPtN;
   GetAllocInfo(MxBfL, BlockLenV, _MxBfL, FFreeBlobPtN);
   EAssert(MxBfL==_MxBfL);
-  FFreeBlobPtV[FFreeBlobPtN].SaveAddr(FBlobBs);
-  FFreeBlobPtV[FFreeBlobPtN]=BlobPt;
-  FBlobBs->PutCh(TCh::NullCh, MxBfL+sizeof(TCs));
+  FFreeBlobPtV[FFreeBlobPtN].SaveAddr(FBlobBs);                        // store current block address into existing free BLOB (of this size) - creating "linked list" free blocks
+  FFreeBlobPtV[FFreeBlobPtN]=BlobPt;                                   // save BLOB into list of deleted BLOBs
+  FBlobBs->PutCh(TCh::NullCh, MxBfL+sizeof(TCs));                      // erase existing content
   AssertBlobTag(FBlobBs, btEnd);
-  FBlobBs->Flush();
+  FBlobBs->Flush();                                                    // write to disk
 }
 
 TBlobPt TGBlobBs::FFirstBlobPt(){
