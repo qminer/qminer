@@ -136,7 +136,7 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 	Def();
 	// save item key and set
 	ItemSetKey.Save(SOut);
-	ItemV.Save(SOut); 
+	ItemV.Save(SOut);
 }
 
 
@@ -187,7 +187,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 	// call merger to pack items, if not yet done
 	if (!MergedP) { 
 		Merger->Merge(ItemV); MergedP = true;
-	} 
+	}
 }
 
 /////////////////////////////////////////////////
@@ -222,7 +222,7 @@ private:
 	/// flag if cache is full
     bool CacheFullP;
 
-    /// returns pointer to this object (used in cache call-backs)
+    // returns pointer to this object (used in cache call-backs)
     void* GetVoidThis() const { return (void*)this; }
     /// asserts if we are allowed to change this index
     void AssertReadOnly() const {
@@ -261,7 +261,7 @@ public:
     void AddItem(const TKey& Key, const TItem& Item);
     /// adding new items to the inverted index
     void AddItemV(const TKey& Key, const TVec<TItem>& ItemV);
-    /// delete one item
+    // delete one item
     void DelItem(const TKey& Key, const TItem& Item);
 	/// clears items
     void Clr(const TKey& Key);

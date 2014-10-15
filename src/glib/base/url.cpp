@@ -391,7 +391,7 @@ TStr TUrl::GetUrlSearchStr(const TStr& Str){
     if (Ch==' '){
       OutChA+='+';
     } else
-    if ((' '<Ch)&&(Ch<='~')&&(Ch!='+')&&(Ch!='&')&&(Ch!='%')){
+    if ((' '<Ch)&&(Ch<='~')&&(Ch!='+')&&(Ch!='&')&&(Ch!='%')&&(Ch!='#')&&(Ch!='/')){
       OutChA+=Ch;
     } else {
       OutChA+='%';

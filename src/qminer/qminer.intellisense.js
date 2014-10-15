@@ -235,6 +235,7 @@ var _htModel = new function () { }
 var _alModel = new function () { }
 var _model = new function () { }
 var _mat = new function () { }
+var _map = new function () { }
 var _key = new function () { }
 var qm = new function () { }
 var _ekf = new function () { }
@@ -328,6 +329,13 @@ _store.add = function () {
 	/// </signature>
 };
 
+_store.toString = function () {
+	/// <signature>
+	/// <summary> returns a string `str` - a description of `store`</summary>
+	/// <returns value ="_str"/>
+	/// </signature>
+};
+
 _store.rec = function () {
 	/// <signature>
 	/// <summary> get record named `recName`;</summary>
@@ -399,6 +407,18 @@ _store.addTrigger = function () {
 /// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
 _store.fields = _objArr;
 
+_store.clear = function () {
+	/// <signature>
+	/// <summary> deletes all records</summary>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> deletes the first `num` records and returns new length `len`</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_len"/>
+	/// </signature>
+};
+
 /// <field name = "length" value = "_len"> number of records in the store</field>
 _store.length = _len;
 
@@ -458,6 +478,14 @@ process.stop = function () {
 /// <field name = "sysStat" value = "_objJSON"> statistics about system and qminer process (E.g. memory consumption).</field>
 process.sysStat = _objJSON;
 
+process.getArgFloat = function () {
+	/// <signature>
+	/// <summary> returns the value of command-line</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
 process.sleep = function () {
 	/// <signature>
 	/// <summary> Halts execution for the given amount of milliseconds `millis`.</summary>
@@ -477,6 +505,22 @@ process.exitScript = function () {
 	/// <signature>
 	/// <summary> Exits the current script</summary>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+process.getArgInt = function () {
+	/// <signature>
+	/// <summary> returns the value of command-line</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+process.getArg = function () {
+	/// <signature>
+	/// <summary> returns the value of command-line</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_str"/>
 	/// </signature>
 };
 
@@ -699,6 +743,16 @@ _vis.drawCommunityEvolution = function () {
 	/// </signature>
 	/// <signature>
 	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_vis.drawGoogleAnnotatedTimeLine = function () {
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (google time line JSON), based on plot parameters `overrideParam` (JSON)</summary>
 	/// <param name="_data" value="_data">param</param>
 	/// <param name="_fnm" value="_fnm">param</param>
 	/// <param name="_overrideParam" value="_overrideParam">param</param>
@@ -1444,11 +1498,36 @@ la.std = function () {
 	/// <returns value ="_vec"/>
 	/// </signature>
 	/// <signature>
-	/// <summary> computes the standard deviations along the dimension of X specified by parameter `dim`</summary>
+	/// <summary> computes the standard deviations along the dimension of `mat` specified by parameter `dim`</summary>
 	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_flag" value="_flag">param</param>
 	/// <param name="_dim" value="_dim">param</param>
 	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+la.standardize = function () {
+	/// <signature>
+	/// <summary> returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_mu" value="_mu">param</param>
+	/// <param name="_sigma" value="_sigma">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mu" value="_mu">param</param>
+	/// <param name="_sigma" value="_sigma">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_mu" value="_mu">param</param>
+	/// <param name="_sigma" value="_sigma">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -1500,6 +1579,15 @@ la.saveMat = function () {
 	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+la.qr = function () {
+	/// <signature>
+	/// <summary> Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_tol" value="_tol">param</param>
+	/// <returns value ="_qrRes"/>
 	/// </signature>
 };
 
@@ -1625,33 +1713,21 @@ la.mean = function () {
 	/// </signature>
 };
 
-_edge.getNext = function () {
+_edge.next = function () {
 	/// <signature>
 	/// <summary> return next edge</summary>
 	/// <returns value ="_edge"/>
 	/// </signature>
 };
 
-_edge.getDstNodeId = function () {
-	/// <signature>
-	/// <summary> return id of destination node</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "srcId" value = "_id"> return id of source node</field>
+_edge.srcId = _id;
 
-_edge.getSrcNodeId = function () {
-	/// <signature>
-	/// <summary> return id of source node</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "id" value = "_id"> return id of the edge</field>
+_edge.id = _id;
 
-_edge.getId = function () {
-	/// <signature>
-	/// <summary> return id of the edge</summary>
-	/// <returns value ="_id"/>
-	/// </signature>
-};
+/// <field name = "dstId" value = "_id"> return id of destination node</field>
+_edge.dstId = _id;
 
 _spMat.load = function () {
 	/// <signature>
@@ -1671,6 +1747,13 @@ _spMat.full = function () {
 _spMat.normalizeCols = function () {
 	/// <signature>
 	/// <summary> normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.</summary>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+};
+
+_spMat.sign = function () {
+	/// <signature>
+	/// <summary> create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.</summary>
 	/// <returns value ="_spMat"/>
 	/// </signature>
 };
@@ -1938,14 +2021,7 @@ _svmModel.save = function () {
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
 
-_node.getNext = function () {
-	/// <signature>
-	/// <summary> return next node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
-_node.getNbrNId = function () {
+_node.nbrId = function () {
 	/// <signature>
 	/// <summary> return id of Nth neighbour</summary>
 	/// <param name="_N" value="_N">param</param>
@@ -1953,33 +2029,44 @@ _node.getNbrNId = function () {
 	/// </signature>
 };
 
-_node.getId = function () {
+_node.next = function () {
 	/// <signature>
-	/// <summary> return id of the node</summary>
-	/// <returns value ="_id"/>
+	/// <summary> return next node</summary>
+	/// <returns value ="_node"/>
 	/// </signature>
 };
 
-_node.getDeg = function () {
+/// <field name = "inDeg" value = "_indeg"> return in-degree of the node</field>
+_node.inDeg = _indeg;
+
+_node.prev = function () {
 	/// <signature>
-	/// <summary> return degree of the node</summary>
-	/// <returns value ="_deg"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> return in-degree of the node</summary>
-	/// <returns value ="_indeg"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> return out-degree of the node</summary>
-	/// <returns value ="_outdeg"/>
+	/// <summary> return previous node</summary>
+	/// <returns value ="_node"/>
 	/// </signature>
 };
+
+/// <field name = "id" value = "_id"> return id of the node</field>
+_node.id = _id;
+
+/// <field name = "outDeg" value = "_outdeg"> return out-degree of the node</field>
+_node.outDeg = _outdeg;
+
+/// <field name = "deg" value = "_deg"> return degree of the node</field>
+_node.deg = _deg;
 
 _utilities.isArray = function () {
 	/// <signature>
 	/// <summary> is parameter an array?</summary>
 	/// <param name="_arg" value="_arg">param</param>
 	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.newIntIntH = function () {
+	/// <signature>
+	/// <summary> New int-int hashmap</summary>
+	/// <returns value ="_map"/>
 	/// </signature>
 };
 
@@ -2029,6 +2116,41 @@ _utilities.newHashTable = function () {
 	/// <signature>
 	/// <summary> creates a hash table</summary>
 	/// <returns value ="_hashTable"/>
+	/// </signature>
+};
+
+_utilities.newStrFltH = function () {
+	/// <signature>
+	/// <summary> New string-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newStrIntH = function () {
+	/// <signature>
+	/// <summary> New string-int hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newIntFltH = function () {
+	/// <signature>
+	/// <summary> New int-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newIntStrH = function () {
+	/// <signature>
+	/// <summary> New int-string hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newStrStrH = function () {
+	/// <signature>
+	/// <summary> New string-string hashmap</summary>
+	/// <returns value ="_map"/>
 	/// </signature>
 };
 
@@ -2362,6 +2484,14 @@ _spVec.print = function () {
 
 /// <field name = "nnz" value = "_num"> gets the number of nonzero elements `num` of vector `spVec`</field>
 _spVec.nnz = _num;
+
+_spVec.plus = function () {
+	/// <signature>
+	/// <summary> adds `spVec2` to `spVec`, result is stored in `spVec. Return self.</summary>
+	/// <param name="_spVec2" value="_spVec2">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+};
 
 _spVec.inner = function () {
 	/// <signature>
@@ -2955,14 +3085,6 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
-_snap.CommunityEvolution = function () {
-	/// <signature>
-	/// <summary> return communities alg = "gn", "imap" or "cnm"</summary>
-	/// <param name="_path" value="_path">param</param>
-	/// <returns value ="_jsonstring"/>
-	/// </signature>
-};
-
 _snap.newUGraph = function () {
 	/// <signature>
 	/// <summary> generate an empty undirected graph</summary>
@@ -2970,7 +3092,30 @@ _snap.newUGraph = function () {
 	/// </signature>
 };
 
-_snap.DegreeCentrality = function () {
+_snap.newDGraph = function () {
+	/// <signature>
+	/// <summary> generate an empty directed graph</summary>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_snap.corePeriphery = function () {
+	/// <signature>
+	/// <summary> return communities alg = `lip`</summary>
+	/// <param name="_UGraph" value="_UGraph">param</param>
+	/// <param name="_alg" value="_alg">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+};
+
+_snap.newDMGraph = function () {
+	/// <signature>
+	/// <summary> generate an empty directed multi-graph</summary>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_snap.degreeCentrality = function () {
 	/// <signature>
 	/// <summary> returns degree centrality of a node</summary>
 	/// <param name="_node" value="_node">param</param>
@@ -2978,19 +3123,35 @@ _snap.DegreeCentrality = function () {
 	/// </signature>
 };
 
-_snap.CommunityDetection = function () {
+_snap.communityDetection = function () {
 	/// <signature>
-	/// <summary> returns communities of graph (alg = "gn", "imap" or "cnm")</summary>
+	/// <summary> returns communities of graph (alg = `gn`, `imap` or `cnm`)</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
-	/// <returns value ="_spvector"/>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 };
 
-_graph.getLastEdge = function () {
+_snap.communityEvolution = function () {
 	/// <signature>
-	/// <summary> gets last edge</summary>
-	/// <returns value ="_edge"/>
+	/// <summary> return communities alg = `gn`, `imap` or `cnm`</summary>
+	/// <param name="_path" value="_path">param</param>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_graph.node = function () {
+	/// <signature>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.adjMat = function () {
+	/// <signature>
+	/// <summary> returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities</summary>
+	/// <returns value ="_spMat"/>
 	/// </signature>
 };
 
@@ -3031,40 +3192,41 @@ _graph.delNode = function () {
 	/// </signature>
 };
 
-_graph.getFirstNode = function () {
+_graph.isNode = function () {
 	/// <signature>
-	/// <summary> gets first node</summary>
-	/// <returns value ="_node"/>
+	/// <summary> check if a node with ID `idx` exists in the graph</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_isNode"/>
 	/// </signature>
 };
 
-_graph.getLastNode = function () {
+/// <field name = "lastNode" value = "_node"> gets last node</field>
+_graph.lastNode = _node;
+
+/// <field name = "edges" value = "_edges"> gets number of edges in the graph</field>
+_graph.edges = _edges;
+
+_graph.eachEdge = function () {
 	/// <signature>
-	/// <summary> gets last node</summary>
-	/// <returns value ="_node"/>
+	/// <summary> iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_graph"/>
 	/// </signature>
 };
 
-_graph.getPrev = function () {
+_graph.eachNode = function () {
 	/// <signature>
-	/// <summary> return previous node</summary>
-	/// <returns value ="_node"/>
+	/// <summary> iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_graph"/>
 	/// </signature>
 };
 
-_graph.getFirstEdge = function () {
-	/// <signature>
-	/// <summary> gets first edge</summary>
-	/// <returns value ="_edge"/>
-	/// </signature>
-};
+/// <field name = "firstEdge" value = "_edge"> gets first edge</field>
+_graph.firstEdge = _edge;
 
-_graph.nodeCount = function () {
-	/// <signature>
-	/// <summary> gets number of nodes in the graph</summary>
-	/// <returns value ="_nodesCount"/>
-	/// </signature>
-};
+/// <field name = "firstNode" value = "_node"> gets first node</field>
+_graph.firstNode = _node;
 
 _graph.isEdge = function () {
 	/// <signature>
@@ -3075,21 +3237,8 @@ _graph.isEdge = function () {
 	/// </signature>
 };
 
-_graph.isNode = function () {
-	/// <signature>
-	/// <summary> check if a node with ID `idx` exists in the graph</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_isNode"/>
-	/// </signature>
-};
-
-_graph.getNode = function () {
-	/// <signature>
-	/// <summary> gets node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
+/// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
+_graph.nodes = _nodes;
 
 _graph.addEdge = function () {
 	/// <signature>
@@ -3097,13 +3246,6 @@ _graph.addEdge = function () {
 	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
 	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
 	/// <returns value ="_edgeIdx"/>
-	/// </signature>
-};
-
-_graph.edgeCount = function () {
-	/// <signature>
-	/// <summary> gets number of edges in the graph</summary>
-	/// <returns value ="_edgesCount"/>
 	/// </signature>
 };
 
@@ -3130,6 +3272,20 @@ _tm.second = _num;
 /// <field name = "year" value = "_num"> year (number)</field>
 _tm.year = _num;
 
+_tm.diff = function () {
+	/// <signature>
+	/// <summary> computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)</summary>
+	/// <param name="_tm2" value="_tm2">param</param>
+	/// <returns value ="_diff_json"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
+	/// <param name="_tm2" value="_tm2">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_diff_num"/>
+	/// </signature>
+};
+
 _tm.toJSON = function () {
 	/// <signature>
 	/// <summary> returns json representation of time</summary>
@@ -3142,7 +3298,12 @@ _tm.millisecond = _num;
 
 _tm.sub = function () {
 	/// <signature>
-	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <summary> subtracts `val` secodns from the time and returns self</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
 	/// <param name="_val" value="_val">param</param>
 	/// <param name="_unit" value="_unit">param</param>
 	/// <returns value ="_tm"/>
@@ -3154,7 +3315,12 @@ _tm.windowsTimestamp = _num;
 
 _tm.add = function () {
 	/// <signature>
-	/// <summary> adds `val` to the time and returns self; `unit` defines the unit</summary>
+	/// <summary> adds `val` seconds to the time and returns self</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
 	/// <param name="_val" value="_val">param</param>
 	/// <param name="_unit" value="_unit">param</param>
 	/// <returns value ="_tm"/>
@@ -3245,65 +3411,11 @@ _htModel.classify = function () {
 	/// </signature>
 };
 
-_alModel.selectQuestion = function () {
-	/// <signature>
-	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
-	/// <returns value ="_recSetIdx"/>
-	/// </signature>
-};
-
-_alModel.getAnswer = function () {
-	/// <signature>
-	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
-	/// <param name="_alAnswer" value="_alAnswer">param</param>
-	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
 _alModel.getPos = function () {
 	/// <signature>
 	/// <summary> given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.</summary>
 	/// <param name="_thresh" value="_thresh">param</param>
 	/// <returns value ="_numArr"/>
-	/// </signature>
-};
-
-_alModel.setc = function () {
-	/// <signature>
-	/// <summary> sets the SVM c parameter to the provided value.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.setj = function () {
-	/// <signature>
-	/// <summary> sets the SVM j parameter to the provided value.</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.startLoop = function () {
-	/// <signature>
-	/// <summary> starts the active learning loop in console</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.getnpos = function () {
-	/// <signature>
-	/// <summary> return the  number of examples marked as positive.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_alModel.saveSvmModel = function () {
-	/// <signature>
-	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -3314,18 +3426,42 @@ _alModel.getQueryMode = function () {
 	/// </signature>
 };
 
-_alModel.getnneg = function () {
-	/// <signature>
-	/// <summary> return the  number of examples marked as negative.</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
 _model.predict = function () {
 	/// <signature>
 	/// <summary> predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.</summary>
 	/// <param name="_vec" value="_vec">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_model.selectQuestion = function () {
+	/// <signature>
+	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
+	/// <returns value ="_recSetIdx"/>
+	/// </signature>
+};
+
+_model.getAnswer = function () {
+	/// <signature>
+	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
+	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
+	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_model.saveSvmModel = function () {
+	/// <signature>
+	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_model.startLoop = function () {
+	/// <signature>
+	/// <summary> starts the active learning loop in console</summary>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -3560,6 +3696,50 @@ _mat.at = function () {
 	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_map.get = function () {
+	/// <signature>
+	/// <summary> return data given on key</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_dat"/>
+	/// </signature>
+};
+
+_map.dat = function () {
+	/// <signature>
+	/// <summary> returns the `idx`-th dat</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_dat"/>
+	/// </signature>
+};
+
+/// <field name = "length" value = "_num"> returns the number of keys</field>
+_map.length = _num;
+
+_map.key = function () {
+	/// <signature>
+	/// <summary> returns the `idx`-th key</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_key"/>
+	/// </signature>
+};
+
+_map.put = function () {
+	/// <signature>
+	/// <summary> add/update key-value pair. Returns self</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <param name="_dat" value="_dat">param</param>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_map.hasKey = function () {
+	/// <signature>
+	/// <summary> returns true if the map has a given key `key`</summary>
+	/// <param name="_key" value="_key">param</param>
+	/// <returns value ="_bool"/>
 	/// </signature>
 };
 
@@ -4004,11 +4184,12 @@ _fsp.ftrSpVec = function () {
 	/// </signature>
 };
 
-_fsp.ftrVec = function () {
+_fsp.filter = function () {
 	/// <signature>
-	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_vec"/>
+	/// <summary> filter the vector to keep only elements from the feature extractor ID `ftrExtractor`</summary>
+	/// <param name="_in_vec" value="_in_vec">param</param>
+	/// <param name="_ftrExtractor" value="_ftrExtractor">param</param>
+	/// <returns value ="_out_vec"/>
 	/// </signature>
 };
 
@@ -4017,6 +4198,14 @@ _fsp.ftrColMat = function () {
 	/// <summary> extracts feature vectors from</summary>
 	/// <param name="_rs" value="_rs">param</param>
 	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
+_fsp.ftrVec = function () {
+	/// <signature>
+	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 

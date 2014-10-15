@@ -36,9 +36,14 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Neural network model](#neural-network-model)
  - [Recursive Linear Regression model](#recursive-linear-regression-model)
  - [Hoeffding Tree model](#hoeffding-tree-model)
+- [snap.js (use require)](#snap-graph-library)
+ - [Graph](#graph)
+ - [Node](#node)
+ - [Edge](#edge)
 - [System and I/O](#system-and-io)
  - [Process](#process)
  - [utilities.js (use require)](#utilitiesjs-use-require)
+ - [utilities.map (use require)](#hash-map)
  - [assert.js (use require)](#assertjs-use-require)
  - [Console](#console)
  - [File system](#file-system)
@@ -125,6 +130,8 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 - `printj(obj)` -- prints json (converts obj to json using toJSON if necessary)
+- `exejs(fnm)` -- executes a javascript in file `fnm` in the global context
+- `exejslocal(fnm)` -- executes a javascript in file `fnm` in the local context
 
 ### Stream Aggregate
 
@@ -192,8 +199,11 @@ var record = store[1234];
 - `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 - `objJSON = store.toJSON()` -- returns the store as a JSON
+- `store.clear()` -- deletes all records
+- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
+- `str = store.toString()` -- returns a string `str` - a description of `store`
 - `store.each(callback)` -- call `callback` on each element of the store
 - `arr = store.map(callback)` -- call `callback` on each element of the store and store result to `arr`
 - `rs = store.head(num)` -- return record set with first `num` records
@@ -220,11 +230,9 @@ qm.store("People").addTrigger({
 });
 
 // iterating over records
-var rs = qm.store("People");
-for (var i = 0; i < rs.length; i++) {
-  var rec = rs[i];
+qm.store("People").each(function (rec) {
   console.log(rec.Name + " (" + rec.Gender + ")");
-}
+});
 ```    
 
 ### Store iterator
@@ -344,7 +352,8 @@ several functions from linear algebra.
 - `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 - `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 - `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 - `la.printVec(vecec)` -- print the vector `vec` in the console
 - `la.printVec(intVec)` -- print the int vector `intVec` in the console
 - `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
@@ -384,10 +393,13 @@ several functions from linear algebra.
 - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
 - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
 - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
-- `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of X specified by parameter `dim`
+- `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`
 - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
 - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 - `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+- `vec = la.standardize(vec, mu, sigma)` - returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.
+- `mat = la.standardize(mat, mu, sigma)` - returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.
+- `mat = la.standardize(mat, mu, sigma, dim)` - returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.
 
 ### Vector
 
@@ -508,6 +520,7 @@ var spVec = la.newSpVec(); //empty vector
 - `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
 - `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
 - `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
+- `spVec = spVec.plus(spVec2)` -- adds `spVec2` to `spVec`, result is stored in `spVec. Return self.
 - `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 - `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
 - `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
@@ -557,6 +570,7 @@ var spMat = la.newSpMat(); //empty matrix
 - `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
 - `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
 - `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
+- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
 - `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
 - `str = spMat.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
 - `num = spMat.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
@@ -641,17 +655,13 @@ To start using it must be loaded using `var analytics = require('analytics.js');
    examples that have to be identified in the query mode before the program enters SVM mode.
   The next parameter is the `query` (string) which should be related to positive examples. 
   Final Parameters `c` and `j` are SVM parameters.
-  - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
-  - `alModel.getAnswer(alAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
-     The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
-  - `alModel.startLoop()` -- starts the active learning loop in console
-  - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
-  - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
-  - `num = alModel.getnpos()` -- return the  number of examples marked as positive. 
-  - `num = alModel.getnneg()` -- return the  number of examples marked as negative.
-  - `alModel.setj(num)` - sets the SVM j parameter to the provided value.
-  - `alModel.setc(num)` - sets the SVM c parameter to the provided value.
+  - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
+  - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+  - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+     The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
+  - `model.startLoop()` -- starts the active learning loop in console
+  - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
 - `ridgeRegressionModel = analytics.newRidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
@@ -762,6 +772,7 @@ declarations as parameters.
     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 - `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     record set `rs` and returns them as columns in a matrix `mat`.
+- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
 
 ### Support Vector Machine model
 
@@ -892,13 +903,18 @@ several functions from snap library.
 **Functions and properties:**
 
 - `graph = snap.newUGraph()` -- generate an empty undirected graph
-- `number = snap.DegreeCentrality(node)` -- returns degree centrality of a node
-- `spvector = snap.CommunityDetection(UGraph, alg)` -- returns communities of graph (alg = "gn", "imap" or "cnm")
-- `jsonstring = snap.CommunityEvolution(path)` -- return communities alg = "gn", "imap" or "cnm"
+- `graph = snap.newDGraph()` -- generate an empty directed graph
+- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
+- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
+- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 
-### Undirected Graph
+### Graph
 
-Undirected graph...
+TUNGraph: undirected graph(single edge between an unordered pair of nodes)
+TNGraph : directed graph(single directed edge between an ordered pair of nodes)
+TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
 
 **Functions and properties:**
 
@@ -909,14 +925,18 @@ Undirected graph...
 - `idx = graph.delEdge(idx1, idx2)` -- delete an edge
 - `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
 - `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
-- `nodesCount = graph.nodeCount()` -- gets number of nodes in the graph
-- `edgesCount = graph.edgeCount()` -- gets number of edges in the graph
-- `node = graph.getNode(idx)` -- gets node with ID `idx`
-- `node = graph.getFirstNode()` -- gets first node
-- `node = graph.getLastNode()` -- gets last node
-- `edge = graph.getFirstEdge()` -- gets first edge
-- `edge = graph.getLastEdge()` -- gets last edge
+- `nodes = graph.nodes` -- gets number of nodes in the graph
+- `edges = graph.edges` -- gets number of edges in the graph
+- `node = graph.node(idx)` -- gets node with ID `idx`
+- `node = graph.firstNode` -- gets first node
+- `node = graph.lastNode` -- gets last node
+- `edge = graph.firstEdge` -- gets first edge
 - `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
+ - `graph.eachNode(function (node) { console.log(node.id); })`
+- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
+ - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
+- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
 
 ### Node
 
@@ -924,13 +944,13 @@ Node
 
 **Functions and properties:**
 
-- `id = node.getId()` -- return id of the node
-- `deg = node.getDeg()` -- return degree of the node
-- `indeg = node.getDeg()` -- return in-degree of the node
-- `outdeg = node.getDeg()` -- return out-degree of the node
-- `nid = node.getNbrNId(N)` -- return id of Nth neighbour
-- `node = node.getNext()` -- return next node
-- `node = graph.getPrev()` -- return previous node
+- `id = node.id` -- return id of the node
+- `deg = node.deg` -- return degree of the node
+- `indeg = node.inDeg` -- return in-degree of the node
+- `outdeg = node.outDeg` -- return out-degree of the node
+- `nid = node.nbrId(N)` -- return id of Nth neighbour
+- `node = node.next()` -- return next node
+- `node = node.prev()` -- return previous node
 
 ### Edge
 
@@ -938,10 +958,10 @@ Edge
 
 **Functions and properties:**
 
-- `id = edge.getId()` -- return id of the edge
-- `id = edge.getSrcNodeId()` -- return id of source node
-- `id = edge.getDstNodeId()` -- return id of destination node
-- `edge = edge.getNext()` -- return next edge
+- `id = edge.id` -- return id of the edge
+- `id = edge.srcId` -- return id of source node
+- `id = edge.dstId` -- return id of destination node
+- `edge = edge.next()` -- return next edge
 
 ## System and I/O
 
@@ -967,10 +987,22 @@ Edge
     used to start current QMiner instance
 - `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
     command-line arguments used to start current QMiner instance
-- `sysStatJson = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
+- `str = process.getArg(argStr)` -- returns the value of command-line 
+- `num = process.getArgFloat(argStr)` -- returns the value of command-line 
+- `num = process.getArgInt(argStr)` -- returns the value of command-line 
+- `sysStatJson = process.sysStat` -- statistics about system and qminer
 
 ### utilities.js (use require)
 
+
+**Functions and properties:**
+
+- `map = utilities.newStrIntH()` -- New string-int hashmap
+- `map = utilities.newStrFltH()` -- New string-double hashmap
+- `map = utilities.newStrStrH()` -- New string-string hashmap
+- `map = utilities.newIntIntH()` -- New int-int hashmap
+- `map = utilities.newIntFltH()` -- New int-double hashmap
+- `map = utilities.newIntStrH()` -- New int-string hashmap
 - `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 - `bool = utilities.isObject(arg)` -- is parameter an object?
 - `bool = utilities.isArray(arg)` -- is parameter an array?
@@ -995,6 +1027,19 @@ Edge
 - `sw.toc(str)` -- displays time from tic and message `str`
 - `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
 - `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
+
+### Hash Map
+
+Several implementations of hash-map can be constructed. Use require('utilities.js').
+
+**Functions and properties:**
+
+- `dat = map.get(key)` -- return data given on key
+- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
+- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+- `num = map.length` -- returns the number of keys
+- `key = map.key(idx)` -- returns the `idx`-th key
+- `dat = map.dat(idx)` -- returns the `idx`-th dat
 
 ### assert.js (use require)
 
@@ -1129,9 +1174,12 @@ New one can be created using `tm = require('time.js')`.
 - `num = tm.millisecond` -- millisecond (number)
 - `tm2 = tm.now` -- returns new time object representing current local time
 - `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
-- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
-    of `val`, options are `second` (default), `minute`, `hour`, and `day`.
-- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+- `tm = tm.add(val)` -- adds `val` seconds to the time and returns self
+- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.
+- `tm = tm.sub(val)` -- subtracts `val` secodns from the time and returns self
+- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
+- `diff_json = tm.diff(tm2)` -- computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)
+- `diff_num = tm.diff(tm2, unit)` -- computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
 - `tmJSON = tm.toJSON()` -- returns json representation of time    
 - `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     as Date-Time object
@@ -1174,6 +1222,7 @@ The library must be loaded using `var vis = require('visualization.js');`.
 - `objJson = vis.highchartsTSConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `objJson = vis.highchartsConverter(fieldsJson, objJson)` -- arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawGoogleAnnotatedTimeLine(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (google time line JSON), based on plot parameters `overrideParam` (JSON) 
 - `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 - `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 - `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 

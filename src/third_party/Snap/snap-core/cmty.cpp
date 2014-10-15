@@ -49,41 +49,66 @@ namespace TSnap {
 			else { return Mod / (2.0*OrigEdges); }
 		}
 
-		TIntFltH MapEquationNew2Modules(PUNGraph& Graph, TIntH& Module, TIntFltH& Qi, int a, int b){
-			TIntFltH Qi1;
-			Qi1 = Qi;
+		void MapEquationNew2Modules(PUNGraph& Graph, TIntH& Module, TIntFltH& Qi, int a, int b){
 			float InModule = 0.0, OutModule = 0.0, Val;
 			int Mds[2] = { a, b };
 			for (int i = 0; i<2; i++) {
 				InModule = 0.0, OutModule = 0.0;
-				if (Qi1.IsKey(Mds[i])){
+				if (Qi.IsKey(Mds[i])){
 					int CentralModule = Mds[i];
-					for (TUNGraph::TEdgeI EI = Graph->BegEI(); EI < Graph->EndEI(); EI++) {
-						if (Module.GetDat(EI.GetSrcNId()) == Module.GetDat(EI.GetDstNId()) && Module.GetDat(EI.GetDstNId()) == CentralModule) {
-							InModule += 1.0;
-						}
-						else if ((Module.GetDat(EI.GetSrcNId()) == CentralModule && Module.GetDat(EI.GetDstNId()) != CentralModule) || (Module.GetDat(EI.GetSrcNId()) != CentralModule && Module.GetDat(EI.GetDstNId()) == CentralModule)) {
-							OutModule += 1.0;
+
+					//printf("central module: %i\n ",CentralModule);
+
+					TIntV newM;
+					for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+						if (Module.GetDat(NI.GetId()) == CentralModule)
+							newM.Add(NI.GetId());
+					}
+
+					for (int j = 0; j<newM.Len(); j++)
+					{
+						//int len1 = newM.Len();
+
+						//int c = CentralModule;
+						for (int k = 0; k<Graph->GetNI(newM[j]).GetDeg(); k++) {
+							//int len = Graph->GetNI(newM[j]).GetDeg();
+
+							int ids = Graph->GetNI(newM[j]).GetId();
+							int idd = Graph->GetNI(newM[j]).GetNbrNId(k);
+							int ms = Module.GetDat(ids);
+							int md = Module.GetDat(idd);
+							//int c = CentralModule;
+
+							if (ms == md) {
+								InModule += 1.0;
+								//printf("IN: \t%i - %i; moduls: %i - %i\n", ids, idd, ms, md);
+							}
+							else {
+								OutModule += 1.0;
+								//printf("OUT: \t%i - %i; moduls: %i - %i\n", ids, idd, ms, md);
+							}
 						}
 					}
+					if (InModule >1) InModule = InModule / 2;
+
+					//printf("\n");
+
 					Val = 0.0;
 					if (InModule + OutModule > 0) {
 						Val = OutModule / (InModule + OutModule);
 					}
-					Qi1.DelKey(Mds[i]);
-					Qi1.AddDat(Mds[i], Val);
+					//int control = Mds[i];
+					Qi.AddDat(Mds[i], Val);
 				}
 				else {
-					Qi1.DelKey(Mds[i]);
-					Qi1.AddDat(Mds[i], 0.0);
+					//int control = Mds[i];
+					Qi.AddDat(Mds[i], 0.0);
 				}
 			}
-
-			return Qi1;
 		}
 
-		float Equation(PUNGraph& Graph, TIntFltH& PAlpha, float& SumPAlphaLogPAlpha, TIntFltH& Qi){
-			float SumPAlpha = 1.0, SumQi = 0.0, SumQiLogQi = 0.0, SumQiSumPAlphaLogQiSumPAlpha = 0.0, logqi = 0.0, qi = 0.0;
+		double Equation(TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi){
+			double SumPAlpha = 1.0, SumQi = 0.0, SumQiLogQi = 0.0, SumQiSumPAlphaLogQiSumPAlpha = 0.0, logqi = 0.0, qi = 0.0;
 			for (int i = 0; i<Qi.Len(); i++) {
 				SumQi += Qi[i];
 				qi = Qi[i];
@@ -95,6 +120,102 @@ namespace TSnap {
 				SumQiSumPAlphaLogQiSumPAlpha += (Qi[i] + SumPAlpha)*log(Qi[i] + SumPAlpha);
 			}
 			return (SumQi*log(SumQi) - 2 * SumQiLogQi - SumPAlphaLogPAlpha + SumQiSumPAlphaLogQiSumPAlpha);
+		}
+
+		double InfomapOnlineIncrement(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br) {
+			// NOW NEW stuff add another additional iteration:
+
+			bool n1new = false;
+			bool n2new = false;
+
+			// add edge
+			if (!Graph->IsNode(n1)){
+				Graph->AddNode(n1);
+				n1new = true;
+			}
+
+			if (!Graph->IsNode(n2)) {
+				Graph->AddNode(n2);
+				n2new = true;
+			}
+
+			Graph->AddEdge(n1, n2);
+
+			int e = Graph->GetEdges();
+
+			// get previous alpha for 27 
+			double oldAlphaN1 = 0.0;
+			double oldAlphaN2 = 0.0;
+
+			if (!n1new)
+				oldAlphaN1 = PAlpha.GetDat(n1);
+
+			if (!n2new)
+				oldAlphaN2 = PAlpha.GetDat(n2);
+
+			// update alpha for 27
+			TUNGraph::TNodeI node = Graph->GetNI(n1);
+			int nodeDeg = node.GetDeg();
+			float d = ((float)nodeDeg / (float)(2 * e));
+			PAlpha.AddDat(n1, d);
+
+			//update alphasum
+			SumPAlphaLogPAlpha = SumPAlphaLogPAlpha - oldAlphaN1 + d*log(d);
+
+			if (n1new) {
+				Module.AddDat(n1, Br);
+				Qi.AddDat(Br, 1.0);
+				Br++;
+			}
+
+			// update alpha for 28
+			node = Graph->GetNI(n2);
+			nodeDeg = node.GetDeg();
+			d = ((float)nodeDeg / (float)(2 * e));
+			PAlpha.AddDat(n2, d);
+
+			//update alphasum
+			SumPAlphaLogPAlpha = SumPAlphaLogPAlpha - oldAlphaN2 + d*log(d);
+
+			//add module
+			if (n2new) {
+				Module.AddDat(n2, Br);
+				Qi.AddDat(Br, 1.0);
+				Br++;
+			}
+
+			// Start
+
+			double MinCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
+			double PrevIterationCodeLength = 0.0;
+
+			do {
+				PrevIterationCodeLength = MinCodeLength;
+				int id[2] = { n1, n2 };
+				for (int k = 0; k<2; k++) {
+					for (int i = 0; i<Graph->GetNI(id[k]).GetDeg(); i++) {
+						TUNGraph::TNodeI n = Graph->GetNI(id[k]);
+						//int n_deg = n.GetDeg();
+
+						int OldModule = Module.GetDat(id[k]);
+						int NewModule = Module.GetDat(Graph->GetNI(id[k]).GetNbrNId(i));
+
+						Module.AddDat(id[k], NewModule);
+
+						TSnapDetail::MapEquationNew2Modules(Graph, Module, Qi, OldModule, NewModule);
+						double NewCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
+						if (NewCodeLength<MinCodeLength) {
+							MinCodeLength = NewCodeLength;
+							OldModule = NewModule;
+						}
+						else {
+							Module.AddDat(id[k], OldModule);
+						}
+					}
+				}
+			} while (MinCodeLength<PrevIterationCodeLength);
+
+			return MinCodeLength;
 		}
 
 	} // namespace TSnapDetail
@@ -126,53 +247,88 @@ namespace TSnap {
 	// Rosvall-Bergstrom community detection algorithm based on information theoretic approach.
 	// See: Rosvall M., Bergstrom C. T., Maps of random walks on complex networks reveal community structure, Proc. Natl. Acad. Sci. USA 105, 1118-1123 (2008)
 	double Infomap(PUNGraph& Graph, TCnComV& CmtyV){
-		TIntH DegH;
+
 		TIntFltH PAlpha; // probability of visiting node alpha
 		TIntH Module; // module of each node
 		TIntFltH Qi; // probability of leaving each module
-		float SumPAlphaLogPAlpha = 0.0;
+
+		double SumPAlphaLogPAlpha = 0.0;
 		int Br = 0;
 		const int e = Graph->GetEdges();
 
 		// initial values
 		for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
-			DegH.AddDat(NI.GetId(), NI.GetDeg());
-			float d = ((float)NI.GetDeg() / (float)(2 * e));
-			PAlpha.AddDat(NI.GetId(), d);
+			int nodeId = NI.GetId();
+			int nodeDeg = NI.GetDeg();
+			float d = ((float)nodeDeg / (float)(2 * e));
+			PAlpha.AddDat(nodeId, d);
 			SumPAlphaLogPAlpha += d*log(d);
-			Module.AddDat(NI.GetId(), Br);
-			Qi.AddDat(Module[Br], 1.0);
+			Module.AddDat(nodeId, Br);
+			Qi.AddDat(Br, 1.0);
 			Br += 1;
 		}
 
-		float MinCodeLength = TSnapDetail::Equation(Graph, PAlpha, SumPAlphaLogPAlpha, Qi);
-		float NewCodeLength, PrevIterationCodeLength = 0.0;
+		double MinCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
+		double NewCodeLength, PrevIterationCodeLength = 0.0;
 		int OldModule, NewModule;
+
+		TIntV nodes;
+		for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++)
+			nodes.Add(NI.GetId());
 
 		do {
 			PrevIterationCodeLength = MinCodeLength;
-			for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
-				MinCodeLength = TSnapDetail::Equation(Graph, PAlpha, SumPAlphaLogPAlpha, Qi);
-				for (int i = 0; i<DegH.GetDat(NI.GetId()); i++) {
-					OldModule = Module.GetDat(NI.GetId());
+			TRnd rnd;
+			rnd.Randomize();
+			nodes.Shuffle(rnd);
+			for (int ndcounter = 0; ndcounter<nodes.Len(); ndcounter++) {
+				MinCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
+				int nodeId = nodes[ndcounter];
+				TUNGraph::TNodeI NI = Graph->GetNI(nodeId);
+				for (int i = 0; i<NI.GetDeg(); i++) {
+
+					OldModule = Module.GetDat(nodeId);
 					NewModule = Module.GetDat(NI.GetNbrNId(i));
+
 					if (OldModule != NewModule){
-						Module.DelKey(NI.GetId());
-						Module.AddDat(NI.GetId(), NewModule);
-						Qi = TSnapDetail::MapEquationNew2Modules(Graph, Module, Qi, OldModule, NewModule);
-						NewCodeLength = TSnapDetail::Equation(Graph, PAlpha, SumPAlphaLogPAlpha, Qi);
+
+						Module.AddDat(nodeId, NewModule);
+
+						TSnapDetail::MapEquationNew2Modules(Graph, Module, Qi, OldModule, NewModule);
+						NewCodeLength = TSnapDetail::Equation(PAlpha, SumPAlphaLogPAlpha, Qi);
 						if (NewCodeLength<MinCodeLength) {
 							MinCodeLength = NewCodeLength;
 							OldModule = NewModule;
 						}
 						else {
-							Module.DelKey(NI.GetId());
-							Module.AddDat(NI.GetId(), OldModule);
+							Module.AddDat(nodeId, OldModule);
 						}
 					}
 				}
 			}
 		} while (MinCodeLength<PrevIterationCodeLength);
+
+		Module.SortByDat(true);
+
+		int Mod = -1;
+		for (int i = 0; i<Module.Len(); i++) {
+			if (Module[i]>Mod){
+				Mod = Module[i];
+				TCnCom t;
+				for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
+					if (Module.GetDat(NI.GetId()) == Mod)
+						t.Add(NI.GetId());
+				}
+				CmtyV.Add(t);
+			}
+		}
+
+		return MinCodeLength;
+	}
+
+	double InfomapOnline(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br, TCnComV& CmtyV) {
+
+		double MinCodeLength = TSnapDetail::InfomapOnlineIncrement(Graph, n1, n2, PAlpha, SumPAlphaLogPAlpha, Qi, Module, Br);
 
 		Module.SortByDat(true);
 
@@ -251,10 +407,11 @@ namespace TSnap {
 
 		TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
 		Ss.Next();
+		//int internal_year_counter = 0;
 		// variable for delimiter between networks
 		TStr Marker;
 		// defining variables for node ids and starting year
-		int SrcNId, DstNId, t;
+		int SrcNId, DstNId; // , t = 1970;
 
 		// temporal container for edges
 		TIntIntVH edges_;
@@ -264,7 +421,7 @@ namespace TSnap {
 			//printf("%i\n", t);
 			Marker = Ss.GetLnStr();
 			// get the year from the network seperator
-			t = Marker.GetSubStr(1, 4).GetInt();
+			//t = Marker.GetSubStr(1, 4).GetInt();
 
 			if (Marker.GetCh(0) == '#'){
 
@@ -293,19 +450,19 @@ namespace TSnap {
 
 					TSnap::DelSelfEdges(Graph);
 					TCnComV CmtyV;
-					double Q;
+					//double Q = 0.0;
 					TStr CmtyAlgStr;
 					if (CmtyAlg == 1) {
 						CmtyAlgStr = "Girvan-Newman";
-						Q = TSnap::CommunityGirvanNewman(Graph, CmtyV);
+						//Q = TSnap::CommunityGirvanNewman(Graph, CmtyV);
 					}
 					else if (CmtyAlg == 2) {
 						CmtyAlgStr = "Clauset-Newman-Moore";
-						Q = TSnap::CommunityCNM(Graph, CmtyV);
+						//Q = TSnap::CommunityCNM(Graph, CmtyV);
 					}
 					else if (CmtyAlg == 3) {
 						CmtyAlgStr = "Infomap";
-						Q = TSnap::Infomap(Graph, CmtyV);
+						//Q = TSnap::Infomap(Graph, CmtyV);
 					}
 					else { Fail; }
 
@@ -313,10 +470,12 @@ namespace TSnap {
 
 					if (br == 0) {
 						prev.Clr();
+						//int size = 0;
 						for (int c = 0; c < CmtyV.Len(); c++) {
 							for (int i = 0; i < CmtyV[c].Len(); i++){
 								prev.AddDat(CmtyV[c][i].Val, c);
 							}
+							//int s = CmtyV[c].Len();
 							prev_sizes.AddDat(c, CmtyV[c].Len());
 						}
 					}
@@ -437,6 +596,7 @@ namespace TSnap {
 							for (int i = 0; i < CmtyV[c].Len(); i++){
 								prev.AddDat(CmtyV[c][i].Val, map.GetDat(c));
 							}
+							//int s = CmtyV[c].Len();
 							prev_sizes.AddDat(map.GetDat(c), CmtyV[c].Len());
 						}
 
@@ -583,6 +743,9 @@ namespace TSnap {
 		double beta = 0.75;
 		CmtyEvolutionFileBatch(InFNm, sizesContV, cContV, edges, alpha, beta, CmtyAlg);
 		TStr out;
+		//int a = sizesContV.Len();
+		//int b = cContV.Len();
+		//int c = edges.Len();
 		CmtyEvolutionJson(out, sizesContV, cContV, edges);
 
 		return out;
