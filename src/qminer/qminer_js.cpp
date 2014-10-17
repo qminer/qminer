@@ -6902,11 +6902,11 @@ v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
     // read parameters
     TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
     QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-    TStr FExt = TJsFsUtil::GetArgStr(Args, 1);
+    TStrV FExtV; if (TJsFsUtil::IsArg(Args, 1)) { FExtV.Add(TJsFsUtil::GetArgStr(Args, 1)); }
     const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
     // get file list
 	TStrV FNmV;
-	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
+	TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
     FNmV.Sort();
 	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
 	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
