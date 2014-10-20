@@ -296,6 +296,7 @@ public:
 	int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
 	bool IsCacheFull() const { return CacheFullP; }
 	void RefreshMemUsed();
+	void AddToNewCacheSizeInc(int64 diff){ NewCacheSizeInc += diff; }
 
 	/// for storing item sets from cache to blob
 	TBlobPt StoreItemSet(const TBlobPt& KeyId);
@@ -675,13 +676,8 @@ void TGix<TKey, TItem>::AddItem(const TKey& Key, const TItem& Item) {
     TBlobPt KeyId = AddKeyId(Key);
     // load the current item set
 	PGixItemSet ItemSet = GetItemSet(Key);
-
-	// TODO tole je tricky - itemset se spremeni in bi moral o tem obvestiti cache
-	// ki bi moral narediti reload
-
     // add the new item to the set and update the size of new items
-    //NewCacheSizeInc += int64(ItemSet->AddItem(Item));
-	ItemSet->AddItem(Item);
+    GixSL->AddToNewCacheSizeInc(ItemSet->AddItem(Item));
     // check if we have to drop anything from the cache
     RefreshMemUsed();
 }
@@ -692,14 +688,9 @@ void TGix<TKey, TItem>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
     // get the key handle
     TBlobPt KeyId = AddKeyId(Key);
     // load the current item set
-    PGixItemSet ItemSet = GetItemSet(Key);
-	
-	// TODO tole je tricky - itemset se spremeni in bi moral o tem obvestiti cache
-	// ki bi moral narediti reload
-	
+    PGixItemSet ItemSet = GetItemSet(Key);	
 	// add the new items to the set and update the size of new items
-    //NewCacheSizeInc += int64(ItemSet->AddItemV(ItemV));
-	ItemSet->AddItemV(ItemV);
+    GixSL->AddToNewCacheSizeInc(ItemSet->AddItemV(ItemV));
     // check if we have to drop anything from the cache
     GixSL->RefreshMemUsed();
 }
