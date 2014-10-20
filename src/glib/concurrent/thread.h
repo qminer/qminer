@@ -74,23 +74,28 @@ class TThreadExecutor {
 public:
 	ClassTP(TRunnable, PRunnable)// {
 	public:
-		void Run() = 0;
+		virtual void Run() = 0;
+		virtual ~TRunnable() {}
+
+		bool operator ==(const TRunnable& Other) const { return this == &Other; }
 	};
 private:
 	class TExecutorThread: public TThread {
 	private:
+		TThreadExecutor* Executor;
 		PRunnable Runnable;
 		PNotify Notify;
 	public:
-		TExecutorThread(const PNotify& _Notify): Runnable(NULL), Notify(_Notify) {}
+		TExecutorThread();
+		TExecutorThread(TThreadExecutor* Executor, const PNotify& Notify);
 
 		void Run();
-		void ExecuteRunnable(PRunnable& Runnable);
+		void SetRunnable(const PRunnable& _Runnable) { Runnable = _Runnable; };
 	};
 
 private:
 	TVec<TExecutorThread> ThreadV;
-	TVec<PRunnable> TaskQ;
+	TLinkedQueue<PRunnable> TaskQ;
 
 	TCriticalSection QSection;
 
@@ -101,9 +106,10 @@ public:
 
 	virtual ~TThreadExecutor() {}
 
-	void Execute(const TRunnable& Runnable);
+	void Execute(const PRunnable& Runnable);
 
 private:
+	void OnThreadFinished(TExecutorThread* Thread);
 	void ExecuteTasks();
 };
 

@@ -120,13 +120,40 @@ void TBlocker::Release() {
 
 ////////////////////////////////////////////
 // Thread
+const int TThread::STATUS_CREATED = 0;
+const int TThread::STATUS_STARTED = 1;
+const int TThread::STATUS_CANCELLED = 2;
+const int TThread::STATUS_FINISHED = 3;
+
 void * TThread::EntryPoint(void * pArg) {
     TThread *pThis = (TThread *)pArg;
-    pThis->Run();
+
+    // set the routine which cleans up after the thread has finished
+    pthread_cleanup_push(SetFinished, NULL);
+
+    try {
+    	pThis->Run();
+    } catch (...) {
+    	printf("Unknown exception while running thread: %d!\n", pThis->GetThreadId());
+    }
+
+    // pop and execute the cleanup routine
+    pthread_cleanup_pop(1);
     return 0;
 }
 
-TThread::TThread(): ThreadHandle(), ThreadId(0) { }
+void TThread::SetFinished(void *pArg) {
+	TThread *pThis = (TThread *) pArg;
+
+	TLock Lck(pThis->CriticalSection);
+	pThis->Status = STATUS_FINISHED;
+}
+
+TThread::TThread():
+		ThreadHandle(),
+		ThreadId(0),
+		CriticalSection(cstRecursive),
+		Status(STATUS_CREATED) { }
 
 TThread::~TThread() {
 }
@@ -134,10 +161,18 @@ TThread::~TThread() {
 TThread &TThread::operator =(const TThread& Other) {
 	ThreadHandle = Other.ThreadHandle;
 	ThreadId = Other.ThreadId;
+	CriticalSection = Other.CriticalSection;
 	return *this;
 }
 
 void TThread::Start() {
+	TLock Lck(CriticalSection);
+
+	if (IsAlive()) {
+		printf("Tried to start a thread that is already alive! Ignoring ...\n");
+		return;
+	}
+
     // create new thread
 	int code = pthread_create(
 			&ThreadHandle,	// Handle
@@ -146,8 +181,15 @@ void TThread::Start() {
 			this			// Arg
 	);
 	EAssert(code == 0);
+}
 
+void TThread::Cancel() {
+	TLock Lck(CriticalSection);
 
+	if (!IsAlive()) { return; }
+	Status = STATUS_CANCELLED;
+	int code = pthread_cancel(ThreadHandle);
+	EAssertR(code == 0, "Failed to cancel thread!");
 }
 
 int TThread::Join() {

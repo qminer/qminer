@@ -47,19 +47,44 @@ public:
 	void Release();
 };
 
+/** Critical section */
+class TCriticalSection {
+protected:
+	//CRITICAL_SECTION Cs;
+	TCriticalSectionType Type;
+	pthread_mutex_t Cs;
+	pthread_mutexattr_t CsAttr;
+
+public:
+	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
+	~TCriticalSection();
+
+	void Enter();
+	bool TryEnter();
+	void Leave();
+};
+
 ////////////////////////////////////////////
 // Thread
 ClassTP(TThread, PThread)// {
 private:
+	const static int STATUS_CREATED;
+	const static int STATUS_STARTED;
+	const static int STATUS_CANCELLED;
+	const static int STATUS_FINISHED;
+
 	pthread_t ThreadHandle;
 	int ThreadId;
 
 	// Use for interrupting and waiting
 	TBlocker* SleeperBlocker;
+	TCriticalSection CriticalSection;
+
+	volatile sig_atomic_t Status;
 
 private:
     static void * EntryPoint(void * pArg);
-
+    static void SetFinished(void *pArg);
 public:
     TThread();
 
@@ -75,6 +100,9 @@ public:
     // when started the thread calls this function
     virtual void Run() { printf("empty run\n"); };
 
+    // terminates the thread
+    void Cancel();
+
     // windows thread id
     int GetThreadId() const { return ThreadId; }
     // windows thread handle
@@ -84,6 +112,9 @@ public:
 	void WaitForInterrupt(const int Msecs = INFINITE);
 
 	int Join();
+
+	bool IsAlive() const { return Status == STATUS_STARTED; }
+	bool IsCancelled() const { return Status == STATUS_CANCELLED; }
 
 	static int GetCoreCount();
 };
@@ -172,24 +203,5 @@ public:
     // mutex handle
     pthread_mutex_t GetThreadHandle() const { return MutexHandle; }
 };
-
-/** Critical section */
-class TCriticalSection {
-protected:
-	//CRITICAL_SECTION Cs;
-	TCriticalSectionType Type;
-	pthread_mutex_t Cs;
-	pthread_mutexattr_t CsAttr;
-
-public:
-	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
-	~TCriticalSection();
-
-	void Enter();
-	bool TryEnter();
-	void Leave();
-};
-
-
 
 #endif /* THREAD_H_ */
