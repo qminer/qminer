@@ -23,7 +23,10 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
+
+#ifdef USE_JS
 #include <qminer_js.h>
+#endif
 
 class TQmParam {
 public:
@@ -261,6 +264,7 @@ void DispatchDebugMessages() {
 }
 #endif
 
+#ifdef USE_JS
 // initialize javascript
 void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScriptNm, TVec<TQm::PScript>& ScriptV) {
     if (!OnlyScriptNm.Empty()) {
@@ -314,6 +318,8 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
         }
 	}
 }
+
+#endif
 
 void ExecUrl(const TStr& UrlStr, const TStr& OkMsgStr, const TStr& ErrMsgStr) {
 	// execute request
@@ -470,9 +476,12 @@ int main(int argc, char* argv[]) {
 				// load base
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess, 
                     Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+
+#ifdef USE_JS
 				// initialize javascript contexts
                 TQm::TJsUtil::SetObjStatRate(JsStatRate);
 				TVec<TQm::PScript> ScriptV; InitJs(Param, Base, OnlyScriptNm, ScriptV);
+#endif
 				// start server
 				if (!NoLoopP) {
                     // prepare server functions 
@@ -488,6 +497,8 @@ int main(int argc, char* argv[]) {
                         TQm::TEnv::Logger->OnStatusFmt("Registering '%s' at '/%s/'", FPath.CStr(), UrlPath.CStr());
                         SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
                     }
+
+#ifdef USE_JS
                     // register admin services
                     SrvFunV.Add(TQm::TJsAdminSrvFun::New(ScriptV, "qm_status"));
 					// register javascript contexts
@@ -495,6 +506,7 @@ int main(int argc, char* argv[]) {
 						// register server function
 						ScriptV[ScriptN]->RegSrvFun(SrvFunV);
 					}
+#endif
 					// start server
 					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
 					// report we started

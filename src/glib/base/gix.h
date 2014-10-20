@@ -258,7 +258,7 @@ private:
 		EAssertR(((Access == faCreate) || (Access == faUpdate)),
 			"Index opened in Read-Only mode!");
 	}
-	
+
 public:
 	TGixStorageLayer(const TStr& _GixBlobFNm,
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
@@ -273,6 +273,7 @@ public:
 
 	// Gix properties
 	bool IsReadOnly() const { return Access == faRdOnly; }
+	bool IsCacheFullP() const { return CacheFullP; }
 	TStr GetFPath() const { return GixFNm.GetFPath(); }
 	int64 GetMxCacheSize() const { return ItemSetCache.GetMxMemUsed(); }
 
@@ -294,6 +295,7 @@ public:
 	}
 	int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
 	int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
+	int64 GetMxMemUsed() { return ItemSetCache.GetMxMemUsed(); }
 	bool IsCacheFull() const { return CacheFullP; }
 	void RefreshMemUsed();
 	void AddToNewCacheSizeInc(int64 diff){ NewCacheSizeInc += diff; }
@@ -515,7 +517,7 @@ public:
     // Gix properties
     bool IsReadOnly() const { return Access == faRdOnly; }
     TStr GetFPath() const { return GixFNm.GetFPath(); }
-	int64 GetMxCacheSize() const { return ItemSetCache.GetMxMemUsed(); }
+	int64 GetMxCacheSize() const { return GixSL->GetMxMemUsed(); }
 
     /// do we have Key in the index?
     bool IsKey(const TKey& Key) const { return KeyIdH.IsKey(Key); }
@@ -553,7 +555,7 @@ public:
             int64(KeyIdH.GetMemUsed()) + int64(ItemSetCache.GetMemUsed()); }
     int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
     int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
-    bool IsCacheFull() const { return CacheFullP; }
+	bool IsCacheFull() const { return GixSL->IsCacheFullP(); }
     void RefreshMemUsed();
 
     /// for storing item sets from cache to blob

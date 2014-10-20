@@ -17,6 +17,8 @@
  * 
  */
 
+#ifdef USE_JS
+
 #include "qminer_js.h"
 
 #ifdef GLib_WIN
@@ -7555,3 +7557,5 @@ void TJsFuncFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
 }
 
 }
+
+#endif
