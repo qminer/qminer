@@ -324,6 +324,15 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	return TStr();
 }
 
+int TFtrSpace::GetFtrExts() const {
+    return FtrExtV.Len();
+}
+
+int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
+    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
+    return DimV[FtrExtN];
+}
+
 int TFtrSpace::GetMnFtrN(const int& FtrExtN) const {
     QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
     return (FtrExtN == 0) ? 0 : DimV[FtrExtN - 1].Val;

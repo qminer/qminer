@@ -190,9 +190,13 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
-    /// Start dimension for the FtrN-th feature extractor
+    /// Number of feature extractors
+    int GetFtrExts() const;
+    /// Dimensionality of space formed by FtrExtN-th feature extractor
+    int GetFtrExtDim(const int& FtrExtN) const;
+    /// Start dimension for the FtrExtN-th feature extractor
     int GetMnFtrN(const int& FtrExtN) const;
-    /// End dimension +1 for the FtrN-th feature extractor
+    /// End dimension +1 for the FtrExtN-th feature extractor
     int GetMxFtrN(const int& FtrExtN) const;
 
 	/// Prepares an empty bow and registers all the features

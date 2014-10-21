@@ -5257,6 +5257,7 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
         JsRegisterProperty(TmpTemp, dim);
+        JsRegisterProperty(TmpTemp, dims);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
@@ -5306,6 +5307,19 @@ v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v
 	v8::HandleScope HandleScope;
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsFtrSpace->FtrSpace->GetDim()));
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::dims(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
+	// return as JS array
+    const int FtrExts = JsFtrSpace->FtrSpace->GetFtrExts();
+	v8::Handle<v8::Array> IntArr = v8::Array::New(FtrExts);
+    for(int FtrExtN = 0; FtrExtN < FtrExts; FtrExtN++) {
+		IntArr->Set(v8::Uint32::New(FtrExtN), 
+            v8::Integer::New(JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN)));
+	}
+	return HandleScope.Close(IntArr);
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
