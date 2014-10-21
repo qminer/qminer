@@ -147,6 +147,7 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 	// save item key and set
 	ItemSetKey.Save(SOut);
 	ItemV.Save(SOut);
+	Children.Save(SOut);
 }
 
 
