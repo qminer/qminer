@@ -1,3 +1,5 @@
+#define GIX_DEBUG
+
 #include <base.h>
 #include <mine.h>
 
@@ -31,7 +33,7 @@ void TestStorageLayer1() {
 	TStr FNameGix("data\\Test1.gix");
 	{
 		PGixMerger merger = TMyMerger::New();
-		TMyStorageLayer gixsl(FNameBlob, faCreate, 100, merger);
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 390, merger);
 		TVec<TBlobPt> blob_pt_v;
 		for (int i = 0; i < 10; i++){
 			TIntUInt64Pr x(i, i);
@@ -46,7 +48,17 @@ void TestStorageLayer1() {
 		gixsl.RefreshMemUsed();
 
 		Print(&gixsl, &blob_pt_v);
+		gixsl.PrintCacheKeys(); // should be 9, 8, 7, 6
 
+		// randomly access some items and check the output - what is in cache
+		gixsl.GetItemSet(blob_pt_v[4]);
+		gixsl.GetItemSet(blob_pt_v[2]);
+		gixsl.GetItemSet(blob_pt_v[3]);
+		gixsl.GetItemSet(blob_pt_v[4]);
+
+		gixsl.PrintCacheKeys(); // should be 4, 3, 2, 9
+
+		// store data into file
 		TFOut FOut(FNameGix);
 		blob_pt_v.Save(FOut);
 	}
@@ -57,29 +69,38 @@ void TestStorageLayer1() {
 		blob_pt_v.Load(FIn);
 
 		PGixMerger merger = TMyMerger::New();
-		TMyStorageLayer gixsl(FNameBlob, faRdOnly, 100, merger);
+		TMyStorageLayer gixsl(FNameBlob, faRdOnly, 200, merger);
 
 		Print(&gixsl, &blob_pt_v);
+		gixsl.PrintCacheKeys(); // should be 9, 8
+
+		// randomly access some items and check the output - what is in cache
+		gixsl.GetItemSet(blob_pt_v[4]);
+		gixsl.GetItemSet(blob_pt_v[3]);
+		gixsl.GetItemSet(blob_pt_v[2]);
+		gixsl.GetItemSet(blob_pt_v[4]);
+
+		gixsl.PrintCacheKeys(); // should be 4, 3
+	}
+}
+
+////////////////////////////////////////////////////////////////////////
+
+void SimpleGixTest() {
+	TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+	for (int i = 0; i < 100000; i++) {
+		TIntUInt64Pr x(i, i);
+		gix.AddItem(x, i * 5 % 16);
+		if (i % 5000 == 1) {
+			printf("Evo: %d\n", i);
+		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
-	/*
-	{
-	TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
-
-	for (int i = 0; i < 100000; i++) {
-	TIntUInt64Pr x(i, i);
-	gix.AddItem(x, i*5 % 16);
-	if (i % 5000 == 1) {
-	printf("Evo: %d\n", i);
-	}
-	}
-
-	}
-	*/
+	//SimpleGixTest();
 	TestStorageLayer1();
 	return 0;
 }

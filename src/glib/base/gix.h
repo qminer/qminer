@@ -125,8 +125,8 @@ public:
 
     // key & items
     const TKey& GetKey() const { return ItemSetKey; }
-	int AddItem(const TItem& NewItem);
-	int AddItemV(const TVec<TItem>& NewItemV);
+	void AddItem(const TItem& NewItem);
+	void AddItemV(const TVec<TItem>& NewItemV);
     int GetItems() const { return ItemV.Len(); }
     const TItem& GetItem(const int& ItemN) const { return ItemV[ItemN]; }
     const TVec<TItem>& GetItemV() const { return ItemV; }
@@ -159,7 +159,7 @@ void TGixItemSet<TKey, TItem>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) 
 }
 
 template <class TKey, class TItem>
-int TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) { 
+void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) { 
     const int OldSize = ItemV.GetMemUsed();
 	if (IsFull()) {
 		bool AddNewChild = false;
@@ -185,15 +185,17 @@ int TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 		ItemV.Add(NewItem);
 	}
     MergedP = false;
-    return ItemV.GetMemUsed() - OldSize;
+	// notify cache that this item grew
+	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem>
-int TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) { 
+void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) { 
     const int OldSize = ItemV.GetMemUsed();
     ItemV.AddV(NewItemV);
     MergedP = false;
-    return ItemV.GetMemUsed() - OldSize;
+	// notify cache that this item grew
+	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem>
@@ -248,7 +250,7 @@ private:
 	PGixMerger Merger;
 
 	int64 CacheResetThreshold;
-	int64 NewCacheSizeInc;
+	mutable int64 NewCacheSizeInc;
 	/// flag if cache is full
 	bool CacheFullP;
 
@@ -285,21 +287,16 @@ public:
 	/// clears items
 	void Clr(const TKey& Key);
 
-	// merges another index with same key and item vocabulary
-	//void MergeIndex(const PGix& TmpGix);
-
 	/// get amount of memory currently used
 	int64 GetMemUsed() const {
-		return int64(sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) +
-			//int64(KeyIdH.GetMemUsed()) + 
-			int64(ItemSetCache.GetMemUsed());
+		return int64(sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) + int64(ItemSetCache.GetMemUsed());
 	}
 	int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
 	int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
-	int64 GetMxMemUsed() { return ItemSetCache.GetMxMemUsed(); }
+	int64 GetMxMemUsed() const { return ItemSetCache.GetMxMemUsed(); }
 	bool IsCacheFull() const { return CacheFullP; }
 	void RefreshMemUsed();
-	void AddToNewCacheSizeInc(int64 diff){ NewCacheSizeInc += diff; }
+	void AddToNewCacheSizeInc(int64 diff) const { NewCacheSizeInc += diff; }
 
 	/// for storing item sets from cache to blob
 	TBlobPt StoreItemSet(const TBlobPt& KeyId);
@@ -311,6 +308,18 @@ public:
 	//void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
 
 	friend class TPt<TGixStorageLayer>;
+
+#ifdef GIX_DEBUG
+	void PrintCacheKeys() {
+		TBlobPt BlobPt; 
+		PGixItemSet ItemSet;
+		void* KeyDatP = ItemSetCache.FFirstKeyDat();
+		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { 
+			printf("%d\n\r", ItemSet->GetKey().Val1); 
+		}
+		printf("-------------------\n\r");
+	}
+#endif
 };
 
 template <class TKey, class TItem>
@@ -355,8 +364,7 @@ TPt<TGixItemSet<TKey, TItem> > TGixStorageLayer<TKey, TItem>::GetItemSet(const T
 	if (!ItemSetCache.Get(KeyId, ItemSet)) {
 		// have to load it from the hard drive...
 		PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
-		const TGixStorageLayer<TKey, TItem> *tmp = this;
-		ItemSet = TGixItemSet<TKey, TItem>::Load(*ItemSetSIn, Merger, tmp);
+		ItemSet = TGixItemSet<TKey, TItem>::Load(*ItemSetSIn, Merger, this);
 	}
 	// bring the itemset to the top of the cache
 	ItemSetCache.Put(KeyId, ItemSet);
@@ -557,7 +565,7 @@ public:
     int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
     int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
 	bool IsCacheFull() const { return GixSL->IsCacheFullP(); }
-    void RefreshMemUsed();
+	void RefreshMemUsed() { GixSL->RefreshMemUsed(); }
 
     /// for storing item sets from cache to blob
     //void StoreItemSet(const TBlobPt& KeyId);
@@ -679,8 +687,7 @@ void TGix<TKey, TItem>::AddItem(const TKey& Key, const TItem& Item) {
     TBlobPt KeyId = AddKeyId(Key);
     // load the current item set
 	PGixItemSet ItemSet = GetItemSet(Key);
-    // add the new item to the set and update the size of new items
-    GixSL->AddToNewCacheSizeInc(ItemSet->AddItem(Item));
+    ItemSet->AddItem(Item);
     // check if we have to drop anything from the cache
     RefreshMemUsed();
 }
@@ -693,9 +700,9 @@ void TGix<TKey, TItem>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
     // load the current item set
     PGixItemSet ItemSet = GetItemSet(Key);	
 	// add the new items to the set and update the size of new items
-    GixSL->AddToNewCacheSizeInc(ItemSet->AddItemV(ItemV));
-    // check if we have to drop anything from the cache
-    GixSL->RefreshMemUsed();
+    ItemSet->AddItemV(ItemV);    
+	// check if we have to drop anything from the cache
+	RefreshMemUsed();
 }
 
 template <class TKey, class TItem>
@@ -734,45 +741,6 @@ void TGix<TKey, TItem>::MergeIndex(const TPt<TGix<TKey, TItem> >& TmpGix) {
     }
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::RefreshMemUsed() {
-	GixSL->RefreshMemUsed();
-
-  //  // check if we have to drop anything from the cache
-  //  if (NewCacheSizeInc > CacheResetThreshold) {
-  //      printf("Cache clean-up [%s] ... ", 
-  //          TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
-  //      // pack all the item sets
-  //      /*TBlobPt BlobPt; 
-		//PGixItemSet ItemSet;
-  //      void* KeyDatP = ItemSetCache.FFirstKeyDat();
-  //      while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { 
-		//	ItemSet->Def(); 
-		//}*/
-		//GixSL->RefreshMemUsed();
-  //      // clean-up cache
-  //      //CacheFullP = ItemSetCache.RefreshMemUsed(); 
-  //      //NewCacheSizeInc = 0; 
-		//const uint64 NewSize = GixSL->GetMemUsed(); // ItemSetCache.GetMemUsed();
-  //      printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
-  //  }
-}
-/*
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
-    AssertReadOnly(); // check if we are allowed to write
-    // get the pointer to the item set
-    PGixItemSet ItemSet; 
-	EAssert(ItemSetCache.Get(KeyId, ItemSet));
-    // store the current version to the blob
-
-    TMOut MOut; 
-	ItemSet->Save(MOut);
-    TBlobPt NewKeyId = ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
-    // and update the KeyId in the hash table
-    KeyIdH.GetDat(ItemSet->GetKey()) = NewKeyId;
-}
-*/
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
 	TFOut FOut(FNm);
