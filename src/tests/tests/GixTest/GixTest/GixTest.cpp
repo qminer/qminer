@@ -16,7 +16,7 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 
 ////////////////////////////////////////////////////////////////////////
 
-void Print(TMyStorageLayer* gixsl, TVec<TBlobPt>* blob_pt_v){
+void Print(TMyStorageLayer* gixsl, TVec<TBlobPt>* blob_pt_v) {
 	printf("\n\r\n\r");
 	for (int i = 0; i < blob_pt_v->Len(); i++) {
 		PMyItemSet itemset = gixsl->GetItemSet(blob_pt_v->operator[](i));
@@ -35,10 +35,10 @@ void TestStorageLayer1() {
 		PGixMerger merger = TMyMerger::New();
 		TMyStorageLayer gixsl(FNameBlob, faCreate, 390, merger);
 		TVec<TBlobPt> blob_pt_v;
-		for (int i = 0; i < 10; i++){
+		for (int i = 0; i < 10; i++) {
 			TIntUInt64Pr x(i, i);
 			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
-			for (int j = 0; j < 5; j++){
+			for (int j = 0; j < 5; j++) {
 				itemset->AddItem(i + j);
 			}
 			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
@@ -84,6 +84,45 @@ void TestStorageLayer1() {
 	}
 }
 
+////////////////////////////////////////////////
+
+void TestSplitting() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+		for (int i = 0; i < 3; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < 100; j++) {
+				itemset->AddItem((j * 16103) % 16381);
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+
+		Print(&gixsl, &blob_pt_v);
+		gixsl.PrintCacheKeys(); // should be 5,4,3,2
+
+		// randomly access some items and check the output - what is in cache
+		TVec<TUInt64> items;
+		gixsl.GetItemSet(blob_pt_v[0])->GetItemV(items);
+
+		//gixsl.GetItemSet(blob_pt_v[2]);
+		//gixsl.GetItemSet(blob_pt_v[3]);
+		//gixsl.GetItemSet(blob_pt_v[4]);
+
+		gixsl.PrintCacheKeys(); // should be 4, 3, 2, 6
+
+		// store data into file
+		TFOut FOut(FNameGix);
+		blob_pt_v.Save(FOut);
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 void SimpleGixTest() {
@@ -101,7 +140,8 @@ void SimpleGixTest() {
 
 int main(int argc, char* argv[]) {
 	//SimpleGixTest();
-	TestStorageLayer1();
+	//TestStorageLayer1();
+	TestSplitting();
 	return 0;
 }
 

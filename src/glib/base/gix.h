@@ -104,6 +104,13 @@ private:
     PGixMerger Merger;
 	const TGixStorageLayer<TKey, TItem> *GixSL;
 
+	/// Load all child Itemsets into memory and get pointers to them
+	void GetChildItemSets(TVec<PGixItemSet>& Items) {
+		for (int i = 0; i < Children.Len(); i++) {
+			Items.Add(GixSL->GetItemSet(Children[i]));
+		}
+	}
+
 public:
 	TGixItemSet(const TKey& _ItemSetKey, const PGixMerger& _Merger, const TGixStorageLayer<TKey, TItem>* _GixSL) :
 		ItemSetKey(_ItemSetKey), MergedP(true), Merger(_Merger), GixSL(_GixSL){}
@@ -129,13 +136,17 @@ public:
 	void AddItemV(const TVec<TItem>& NewItemV);
     int GetItems() const { return ItemV.Len(); }
     const TItem& GetItem(const int& ItemN) const { return ItemV[ItemN]; }
-    const TVec<TItem>& GetItemV() const { return ItemV; }
-    void GetItemV(TVec<TItem>& _ItemV);
-	int DelItem(const TItem& Item);
-    int Clr();
+
+    //const TVec<TItem>& GetItemV() const { return ItemV; }
+	void AppendItemSet(const TPt<TGixItemSet>& Src);
+	void GetItemV(TVec<TItem>& _ItemV, bool IsParent = true);
+	void DelItem(const TItem& Item);
+    void Clr();
     void Def();
 
-	bool IsFull(){ return (ItemV.GetMemUsed() > 10 * 1024 * 1024); }
+	bool IsFull() { 
+		return (ItemV.GetMemUsed() > 200 /*10 * 1024 * 1024*/); 
+	}
 
     friend class TPt<TGixItemSet>;
 };
@@ -192,6 +203,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) { 
     const int OldSize = ItemV.GetMemUsed();
+	// TODO tu boš moral paziti na splitanje...
     ItemV.AddV(NewItemV);
     MergedP = false;
 	// notify cache that this item grew
@@ -199,29 +211,56 @@ void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) {
 }
 
 template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) { 
-    _ItemV = ItemV; 
+void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
+	/// access direct data of Src itemset
+	AddItemV(Src->ItemV);
+	if (Src->Children.Len() > 0) {
+		// get references to children of Src
+		TVec<PGixItemSet> Items(Children.Len());
+		Src->GetChildItemSets(Items);
+		// merge each of them
+		for (int i = 0; i < Items.Len(); i++) {
+			AppendItemSet(Items[i]);
+		}
+	}
 }
 
 template <class TKey, class TItem>
-int TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
+void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV, bool IsParent = true) {
+	if (IsParent) {
+		_ItemV = ItemV;
+		if (Children.Len() > 0) {
+			// collect data from child itemsets
+			for (int i = 0; i < Children.Len(); i++) {
+				GixSL->GetItemSet(Children[i])->GetItemV(_ItemV, false);
+			}
+		}
+	} else {
+		// just append to destination, preserve what was inside so far
+		_ItemV.AddV(ItemV);
+	}
+}
+
+template <class TKey, class TItem>
+void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
     const int OldSize = ItemV.GetMemUsed();
     ItemV.DelIfIn(Item);
-    return ItemV.GetMemUsed() - OldSize;
+	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem>
-int TGixItemSet<TKey, TItem>::Clr() { 
+void TGixItemSet<TKey, TItem>::Clr() { 
     const int OldSize = ItemV.GetMemUsed();
     ItemV.Clr();
-    return ItemV.GetMemUsed() - OldSize;
+    GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Def() { 
 	// call merger to pack items, if not yet done
 	if (!MergedP) { 
-		Merger->Merge(ItemV); MergedP = true;
+		Merger->Merge(ItemV); 
+		MergedP = true;
 	}
 }
 
@@ -370,48 +409,7 @@ TPt<TGixItemSet<TKey, TItem> > TGixStorageLayer<TKey, TItem>::GetItemSet(const T
 	ItemSetCache.Put(KeyId, ItemSet);
 	return ItemSet;
 }
-/*
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::AddItem(const TKey& Key, const TItem& Item) {
-	AssertReadOnly(); // check if we are allowed to write
-	// get the key handle
-	TBlobPt KeyId = AddKeyId(Key);
-	// load the current item set
-	PGixItemSet ItemSet = GetItemSet(Key);
-	// add the new item to the set and update the size of new items
-	NewCacheSizeInc += int64(ItemSet->AddItem(Item));
-	// check if we have to drop anything from the cache
-	RefreshMemUsed();
-}
 
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
-	AssertReadOnly(); // check if we are allowed to write
-	// get the key handle
-	TBlobPt KeyId = AddKeyId(Key);
-	// load the current item set
-	PGixItemSet ItemSet = GetItemSet(Key);
-	// add the new items to the set and update the size of new items
-	NewCacheSizeInc += int64(ItemSet->AddItemV(ItemV));
-	// check if we have to drop anything from the cache
-	RefreshMemUsed();
-}
-
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::MergeIndex(const TPt<TGix<TKey, TItem> >& TmpGix) {
-	// merge itemsets
-	const int TmpKeys = TmpGix->GetKeys();
-	int TmpKeyId = TmpGix->FFirstKeyId();
-	while (TmpGix->FNextKeyId(TmpKeyId)) {
-		const TKey& TmpKey = TmpGix->GetKey(TmpKeyId);
-		PGixItemSet ItemSet = TmpGix->GetItemSet(TmpKey);
-		AddItemV(ItemSet->GetKey(), ItemSet->GetItemV());
-		if (TmpKeyId % 1000 == 0) {
-			printf("[%d/%d]\r", TmpKeyId, TmpKeys);
-		}
-	}
-}
-*/
 template <class TKey, class TItem>
 void TGixStorageLayer<TKey, TItem>::RefreshMemUsed() {
 	// check if we have to drop anything from the cache
@@ -441,30 +439,7 @@ TBlobPt TGixStorageLayer<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
 	ItemSet->Save(MOut);
 	return ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
 }
-/*
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
-	TFOut FOut(FNm);
-	// iterate over all the keys
-	printf("Starting Gix SaveTxt\n");
-	int KeyId = FFirstKeyId();
-	int KeyN = 0; 
-	const int Keys = GetKeys();
-	while (FNextKeyId(KeyId)) {
-		if (KeyN % 1000 == 0) { printf("%d / %d\r", KeyN, Keys); } KeyN++;
-		// get key and associated item set
-		const TKey& Key = GetKey(KeyId);
-		PGixItemSet ItemSet = GetItemSet(Key);
-		// get statistics
-		TStr KeyNm = KeyStr->GetKeyNm(Key);
-		const int Items = ItemSet->GetItems();
-		const int MemUsed = ItemSet->GetMemUsed();
-		// output statistics
-		FOut.PutStrFmtLn("%s\t%d\t%d", KeyNm.CStr(), Items, MemUsed);
-	}
-	printf("Done: %d / %d\n", Keys, Keys);
-}
-*/
+
 /////////////////////////////////////////////////
 // General-Inverted-Index
 template <class TKey, class TItem>
@@ -486,23 +461,12 @@ private:
     TStr GixBlobFNm;
 	/// mapping between key and BLOB pointer
     THash<TKey, TBlobPt> KeyIdH; 
-	/// cache for BLOB data, mapping between pointers and data
-    //mutable TCache<TBlobPt, PGixItemSet> ItemSetCache;
-	/// BLOB handler
-    //PBlobBs ItemSetBlobBs;
 
 	/// Storage layer
 	PGixStorageLayer GixSL;
 	/// record merger, used for packing data vectors
 	PGixMerger Merger;
 
-    //int64 CacheResetThreshold;
-    //int64 NewCacheSizeInc;
-	/// flag if cache is full
-    //bool CacheFullP;
-
-    // returns pointer to this object (used in cache call-backs)
-    void* GetVoidThis() const { return (void*)this; }
     /// asserts if we are allowed to change this index
     void AssertReadOnly() const {
         EAssertR(((Access==faCreate)||(Access==faUpdate)), 
@@ -536,8 +500,6 @@ public:
     void SortKeys() { KeyIdH.SortByKey(true); }
     /// get item set for given key
     PGixItemSet GetItemSet(const TKey& Key) const; 
-	/// get item set for given BLOB pointer
-	//PGixItemSet GetItemSet(const TBlobPt& Pt) const;
     /// adding new item to the inverted index
     void AddItem(const TKey& Key, const TItem& Item);
     /// adding new items to the inverted index
@@ -562,16 +524,8 @@ public:
     int64 GetMemUsed() const { 
         return int64(sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) + 
             int64(KeyIdH.GetMemUsed()) + int64(ItemSetCache.GetMemUsed()); }
-    int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
-    int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
 	bool IsCacheFull() const { return GixSL->IsCacheFullP(); }
 	void RefreshMemUsed() { GixSL->RefreshMemUsed(); }
-
-    /// for storing item sets from cache to blob
-    //void StoreItemSet(const TBlobPt& KeyId);
-
-	/// For enlisting new itemsets into blob
-	//TBlobPt EnlistItemSet(const PGixItemSet& ItemSet);
 
 	/// print statistics for index keys
 	void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
@@ -586,21 +540,11 @@ TBlobPt TGix<TKey, TItem>::AddKeyId(const TKey& Key) {
     // we don't have this key, create an empty item set and return pointer to it
     AssertReadOnly(); // check if we are allowed to write
 	PGixItemSet ItemSet = TGixItemSet<TKey, TItem>::New(Key, Merger, GixSL());
-	//TMOut MOut; 
-	//ItemSet->Save(MOut);
-	//TBlobPt KeyId = ItemSetBlobBs->PutBlob(MOut.GetSIn());
 	TBlobPt KeyId = GixSL->EnlistItemSet(ItemSet);
     KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
     return KeyId;
 }
-/*
-template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::EnlistItemSet(const PGixItemSet& ItemSet) {
-	TMOut MOut;
-	ItemSet->Save(MOut);
-	return ItemSetBlobBs->PutBlob(MOut.GetSIn());
-}
-*/
+
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::GetKeyId(const TKey& Key) const { 
     if (IsKey(Key)) { return KeyIdH.GetDat(Key); }
@@ -641,8 +585,7 @@ template <class TKey, class TItem>
 TGix<TKey, TItem>::~TGix() {
     if ((Access == faCreate) || (Access == faUpdate)) {
         // flush all the latest changes in cache to the disk
-        //ItemSetCache.Flush();
-		GixSL.Clr();
+    	GixSL.Clr();
         // save the rest to GixFNm
         TFOut FOut(GixFNm); 
 		KeyIdH.Save(FOut);
@@ -651,35 +594,10 @@ TGix<TKey, TItem>::~TGix() {
 
 template <class TKey, class TItem>
 TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TKey& Key) const {
-    //PGixItemSet ItemSet;
-    // load the item set, if possible from cache
     TBlobPt KeyId = GetKeyId(Key);
 	return GixSL->GetItemSet(KeyId);
-    //if (KeyId.Empty()) { return NULL; }
-    //if (!ItemSetCache.Get(KeyId, ItemSet)) {
-    //    // have to load it from the hard drive...
-    //    PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
-    //    ItemSet = TGixItemSet<TKey, TItem>::Load(*ItemSetSIn, Merger, &ItemSetCache);
-    //}
-    //// bring the itemset to the top of the cache
-    //ItemSetCache.Put(KeyId, ItemSet);
-    //return ItemSet;    
 }
-/*
-template <class TKey, class TItem>
-TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TBlobPt& KeyId) const {
-	PGixItemSet ItemSet;
-	if (KeyId.Empty()) { return NULL; }
-	if (!ItemSetCache.Get(KeyId, ItemSet)) {
-		// have to load it from the hard drive...
-		PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
-		ItemSet = TGixItemSet<TKey, TItem>::Load(*ItemSetSIn, Merger, this);
-	}
-	// bring the itemset to the top of the cache
-	ItemSetCache.Put(KeyId, ItemSet);
-	return ItemSet;
-}
-*/
+
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::AddItem(const TKey& Key, const TItem& Item) {
     AssertReadOnly(); // check if we are allowed to write
@@ -734,8 +652,10 @@ void TGix<TKey, TItem>::MergeIndex(const TPt<TGix<TKey, TItem> >& TmpGix) {
     int TmpKeyId = TmpGix->FFirstKeyId();
     while (TmpGix->FNextKeyId(TmpKeyId)) {
         const TKey& TmpKey = TmpGix->GetKey(TmpKeyId);
-        PGixItemSet ItemSet = TmpGix->GetItemSet(TmpKey);
-        AddItemV(ItemSet->GetKey(), ItemSet->GetItemV());
+        PGixItemSet TmpItemSet = TmpGix->GetItemSet(TmpKey);
+		PGixItemSet MyItemSet = GetItemSet(TmpKey);
+		MyItemSet->AppendItemSet(TmpItemSet);
+        //AddItemV(ItemSet->GetKey(), ItemSet->GetItemV());
         if (TmpKeyId % 1000 == 0) { 
             printf("[%d/%d]\r", TmpKeyId, TmpKeys); }
     }
@@ -956,7 +876,7 @@ bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
         if (!ItemSet.Empty()) { 
             ItemSet->Def();
             ItemSet->GetItemV(ResItemV); 
-            Merger->Def(ItemSet->GetKey(), ResItemV);
+			Merger->Def(ItemSet->GetKey(), ResItemV);
         }
         return false;
     } else if (ExpType == getNot) {

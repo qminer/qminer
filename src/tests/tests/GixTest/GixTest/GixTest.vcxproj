@@ -83,6 +83,9 @@
     <ClCompile Include="..\..\..\..\glib\net\net.cpp" />
     <ClCompile Include="GixTest.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\glib\base\gix.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
