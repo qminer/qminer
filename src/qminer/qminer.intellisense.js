@@ -407,6 +407,18 @@ _store.addTrigger = function () {
 /// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
 _store.fields = _objArr;
 
+_store.clear = function () {
+	/// <signature>
+	/// <summary> deletes all records</summary>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> deletes the first `num` records and returns new length `len`</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_len"/>
+	/// </signature>
+};
+
 /// <field name = "length" value = "_len"> number of records in the store</field>
 _store.length = _len;
 
@@ -466,6 +478,14 @@ process.stop = function () {
 /// <field name = "sysStat" value = "_objJSON"> statistics about system and qminer process (E.g. memory consumption).</field>
 process.sysStat = _objJSON;
 
+process.getArgFloat = function () {
+	/// <signature>
+	/// <summary> returns the value of command-line</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
 process.sleep = function () {
 	/// <signature>
 	/// <summary> Halts execution for the given amount of milliseconds `millis`.</summary>
@@ -485,6 +505,22 @@ process.exitScript = function () {
 	/// <signature>
 	/// <summary> Exits the current script</summary>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+process.getArgInt = function () {
+	/// <signature>
+	/// <summary> returns the value of command-line</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+process.getArg = function () {
+	/// <signature>
+	/// <summary> returns the value of command-line</summary>
+	/// <param name="_argStr" value="_argStr">param</param>
+	/// <returns value ="_str"/>
 	/// </signature>
 };
 
@@ -707,6 +743,16 @@ _vis.drawCommunityEvolution = function () {
 	/// </signature>
 	/// <signature>
 	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON)</summary>
+	/// <param name="_data" value="_data">param</param>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_overrideParam" value="_overrideParam">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_vis.drawGoogleAnnotatedTimeLine = function () {
+	/// <signature>
+	/// <summary> generates a html file `fnm` (file name) with a visualization of  `data` (google time line JSON), based on plot parameters `overrideParam` (JSON)</summary>
 	/// <param name="_data" value="_data">param</param>
 	/// <param name="_fnm" value="_fnm">param</param>
 	/// <param name="_overrideParam" value="_overrideParam">param</param>
@@ -1993,6 +2039,13 @@ _node.next = function () {
 /// <field name = "inDeg" value = "_indeg"> return in-degree of the node</field>
 _node.inDeg = _indeg;
 
+_node.prev = function () {
+	/// <signature>
+	/// <summary> return previous node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
 /// <field name = "id" value = "_id"> return id of the node</field>
 _node.id = _id;
 
@@ -2431,6 +2484,14 @@ _spVec.print = function () {
 
 /// <field name = "nnz" value = "_num"> gets the number of nonzero elements `num` of vector `spVec`</field>
 _spVec.nnz = _num;
+
+_spVec.plus = function () {
+	/// <signature>
+	/// <summary> adds `spVec2` to `spVec`, result is stored in `spVec. Return self.</summary>
+	/// <param name="_spVec2" value="_spVec2">param</param>
+	/// <returns value ="_spVec"/>
+	/// </signature>
+};
 
 _spVec.inner = function () {
 	/// <signature>
@@ -3043,7 +3104,7 @@ _snap.corePeriphery = function () {
 	/// <summary> return communities alg = `lip`</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
-	/// <returns value ="_jsonstring"/>
+	/// <returns value ="_spVec"/>
 	/// </signature>
 };
 
@@ -3075,7 +3136,7 @@ _snap.communityEvolution = function () {
 	/// <signature>
 	/// <summary> return communities alg = `gn`, `imap` or `cnm`</summary>
 	/// <param name="_path" value="_path">param</param>
-	/// <returns value ="_jsonstring"/>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 };
 
@@ -3179,13 +3240,6 @@ _graph.isEdge = function () {
 /// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
 _graph.nodes = _nodes;
 
-_graph.prev = function () {
-	/// <signature>
-	/// <summary> return previous node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
 _graph.addEdge = function () {
 	/// <signature>
 	/// <summary> add an edge</summary>
@@ -3218,6 +3272,20 @@ _tm.second = _num;
 /// <field name = "year" value = "_num"> year (number)</field>
 _tm.year = _num;
 
+_tm.diff = function () {
+	/// <signature>
+	/// <summary> computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)</summary>
+	/// <param name="_tm2" value="_tm2">param</param>
+	/// <returns value ="_diff_json"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
+	/// <param name="_tm2" value="_tm2">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_diff_num"/>
+	/// </signature>
+};
+
 _tm.toJSON = function () {
 	/// <signature>
 	/// <summary> returns json representation of time</summary>
@@ -3230,7 +3298,12 @@ _tm.millisecond = _num;
 
 _tm.sub = function () {
 	/// <signature>
-	/// <summary> subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.</summary>
+	/// <summary> subtracts `val` secodns from the time and returns self</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
 	/// <param name="_val" value="_val">param</param>
 	/// <param name="_unit" value="_unit">param</param>
 	/// <returns value ="_tm"/>
@@ -3242,7 +3315,12 @@ _tm.windowsTimestamp = _num;
 
 _tm.add = function () {
 	/// <signature>
-	/// <summary> adds `val` to the time and returns self; `unit` defines the unit</summary>
+	/// <summary> adds `val` seconds to the time and returns self</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
 	/// <param name="_val" value="_val">param</param>
 	/// <param name="_unit" value="_unit">param</param>
 	/// <returns value ="_tm"/>
@@ -4106,11 +4184,12 @@ _fsp.ftrSpVec = function () {
 	/// </signature>
 };
 
-_fsp.ftrVec = function () {
+_fsp.filter = function () {
 	/// <signature>
-	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_vec"/>
+	/// <summary> filter the vector to keep only elements from the feature extractor ID `ftrExtractor`</summary>
+	/// <param name="_in_vec" value="_in_vec">param</param>
+	/// <param name="_ftrExtractor" value="_ftrExtractor">param</param>
+	/// <returns value ="_out_vec"/>
 	/// </signature>
 };
 
@@ -4119,6 +4198,14 @@ _fsp.ftrColMat = function () {
 	/// <summary> extracts feature vectors from</summary>
 	/// <param name="_rs" value="_rs">param</param>
 	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
+_fsp.ftrVec = function () {
+	/// <signature>
+	/// <summary> extracts feature vector `vec` from record  `rec`</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 

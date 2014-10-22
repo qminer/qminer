@@ -56,3 +56,4 @@ qm.storeProto.tail = function (recs) {
     }
     return this.newRecSet(recIdV);
 }
+

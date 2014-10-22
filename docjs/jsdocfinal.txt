@@ -130,6 +130,8 @@ QMiner (`qm`) is the core object in the API and is available in any script.
 - `dir(obj, printVals, depth, width, prefix, showProto)` -- recursively prints all keys of object `obj` as well as the keys of `obj.__proto__` (if `showProto` is true, default is false). 
   Parameter `printVals` (boolean, default false) prints values if `true` and type if `false`. Depth of recursion is controlled by `depth` (integer, default 1), width is controlled by `width` (integer, default 50). Every line starts with string `prefix`.
 - `printj(obj)` -- prints json (converts obj to json using toJSON if necessary)
+- `exejs(fnm)` -- executes a javascript in file `fnm` in the global context
+- `exejslocal(fnm)` -- executes a javascript in file `fnm` in the local context
 
 ### Stream Aggregate
 
@@ -197,6 +199,8 @@ var record = store[1234];
 - `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 - `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 - `objJSON = store.toJSON()` -- returns the store as a JSON
+- `store.clear()` -- deletes all records
+- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 - `str = store.toString()` -- returns a string `str` - a description of `store`
@@ -226,11 +230,9 @@ qm.store("People").addTrigger({
 });
 
 // iterating over records
-var rs = qm.store("People");
-for (var i = 0; i < rs.length; i++) {
-  var rec = rs[i];
+qm.store("People").each(function (rec) {
   console.log(rec.Name + " (" + rec.Gender + ")");
-}
+});
 ```    
 
 ### Store iterator
@@ -518,6 +520,7 @@ var spVec = la.newSpVec(); //empty vector
 - `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
 - `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
 - `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
+- `spVec = spVec.plus(spVec2)` -- adds `spVec2` to `spVec`, result is stored in `spVec. Return self.
 - `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 - `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
 - `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
@@ -769,6 +772,7 @@ declarations as parameters.
     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 - `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     record set `rs` and returns them as columns in a matrix `mat`.
+- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
 
 ### Support Vector Machine model
 
@@ -903,8 +907,8 @@ several functions from snap library.
 - `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
 - `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 - `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
-- `jsonstring = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
-- `jsonstring = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 
 ### Graph
 
@@ -932,7 +936,7 @@ TNEGraph : directed multi - graph(multiple directed edges between a pair of node
  - `graph.eachNode(function (node) { console.log(node.id); })`
 - `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
- - `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
+- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
 
 ### Node
 
@@ -946,7 +950,7 @@ Node
 - `outdeg = node.outDeg` -- return out-degree of the node
 - `nid = node.nbrId(N)` -- return id of Nth neighbour
 - `node = node.next()` -- return next node
-- `node = graph.prev()` -- return previous node
+- `node = node.prev()` -- return previous node
 
 ### Edge
 
@@ -983,7 +987,10 @@ Edge
     used to start current QMiner instance
 - `bool = process.isArg(argStr)` -- returns true when `argStr` among the 
     command-line arguments used to start current QMiner instance
-- `sysStatJson = process.sysStat` -- statistics about system and qminer process (E.g. memory consumption). Currently only works on LINUX.
+- `str = process.getArg(argStr)` -- returns the value of command-line 
+- `num = process.getArgFloat(argStr)` -- returns the value of command-line 
+- `num = process.getArgInt(argStr)` -- returns the value of command-line 
+- `sysStatJson = process.sysStat` -- statistics about system and qminer
 
 ### utilities.js (use require)
 
@@ -1167,9 +1174,12 @@ New one can be created using `tm = require('time.js')`.
 - `num = tm.millisecond` -- millisecond (number)
 - `tm2 = tm.now` -- returns new time object representing current local time
 - `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
-- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
-    of `val`, options are `second` (default), `minute`, `hour`, and `day`.
-- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+- `tm = tm.add(val)` -- adds `val` seconds to the time and returns self
+- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.
+- `tm = tm.sub(val)` -- subtracts `val` secodns from the time and returns self
+- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
+- `diff_json = tm.diff(tm2)` -- computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)
+- `diff_num = tm.diff(tm2, unit)` -- computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
 - `tmJSON = tm.toJSON()` -- returns json representation of time    
 - `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     as Date-Time object
@@ -1212,6 +1222,7 @@ The library must be loaded using `var vis = require('visualization.js');`.
 - `objJson = vis.highchartsTSConverter(objJson)` -- array of multimeasurements to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `objJson = vis.highchartsConverter(fieldsJson, objJson)` -- arecord set JSON to array of univariate time series. Input time stamps are strings. Output time stamps are milliseconds from 1970.
 - `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
+- `vis.drawGoogleAnnotatedTimeLine(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (google time line JSON), based on plot parameters `overrideParam` (JSON) 
 - `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 - `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 - `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 

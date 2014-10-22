@@ -674,18 +674,15 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
 			return TJsAnalytics::New(Script);
 		} else if (ModuleFNm == "__utilities__") {
 			return TJsUtilities::New(Script);
-		} else if (ModuleFNm == "__snap__") {
+		} else if (ModuleFNm == "time") {
+            return TJsTm::New();
+        } else if (ModuleFNm == "__snap__") {
 			return TJsSnap::New(Script);
         } else if (ModuleFNm == "geoip") { 
             return TJsGeoIp::New();
         } else if (ModuleFNm == "dmoz") { 
             return TJsDMoz::New();
-        } else if (ModuleFNm == "time") {
-            return TJsTm::New();
-        } else if (ModuleFNm == "analytics") { 
-            InfoLog("Warning: require('analytics') is deprecated, use require('analytics.js') instead");
-            return TJsAnalytics::New(Script);
-        }
+        } 
         // load the source of the module
         InfoLog("Loading " + ModuleFNm);
         TStr ModuleSource = Script->LoadModuleSrc(ModuleFNm);
@@ -791,46 +788,7 @@ void TScript::Install() {
 }
 
 TStr TScript::LoadSource(const TStr& FNm) {
-	THash<TStr, bool> ImportH; // make sure each file is imported only once 
-	TSStack<TStr> Headers; // depth-first importing 
-	TStr LineStr; int IndexN;
-	// import requested files 
-	ImportH.AddDat(FNm, true);
-	Headers.Push(FNm);
-	TChA ScriptSource = "";
-	while (!Headers.Empty()) {
-		TStr TmpFile(Headers.Top());
-        TChA TmpSource;
-		Headers.Pop();
-		TFIn FIn(TmpFile);
-		TStr FPath = TmpFile.GetFPath();
-		while (FIn.GetNextLn(LineStr)) {
-			IndexN = 0; 
-			// skip whitespace 
-			while (IndexN < LineStr.Len() && TCh::IsWs(LineStr.GetCh(IndexN))) { ++IndexN; }
-			// 10 = length of (import + quotes + space + at least one character)
-			if (LineStr.Len() >= IndexN+10 && LineStr.GetSubStr(IndexN, IndexN+6) == "import ") {
-                InfoLog("Warning: 'import' will be deprecated, use require to load libraries");
-				// extract library path, assuming no syntax errors in the userscript 
-				TStr LibNm = LineStr.RightOf('"').LeftOf('"');
-                if (LibNm == "util.js") { 
-                    InfoLog("Warning: util.js is no longer needed, now included by default");
-                    continue; 
-                }
-				TStr LibFNm = GetLibFNm(LibNm);
-				if (!ImportH.IsKey(LibFNm)) {
-					ImportH.AddDat(LibFNm, true); Headers.Push(LibFNm); 
-				} else {
-					//TEnv::Logger->OnStatusFmt("[%s] Already imported: '%s'", TmpFile.CStr(), LibFNm.CStr());
-				}
-			} else { 
-				TmpSource += LineStr + "\n";
-			}
-		}
-        TmpSource += ScriptSource;
-		ScriptSource = TmpSource; TmpSource = "";
-	}
-    return ScriptSource;
+    return TStr::LoadTxt(FNm);
 }
 
 void TScript::Execute(const TStr& FNm) {
@@ -1047,7 +1005,6 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterProperty(TmpTemp, analytics);
 		JsRegisterFunction(TmpTemp, store);
 		JsRegisterFunction(TmpTemp, getStoreList);
 		JsRegisterFunction(TmpTemp, createStore);
@@ -1062,13 +1019,6 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
 	return Template;
-}
-
-v8::Handle<v8::Value> TJsBase::analytics(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsBase* JsBase = TJsBaseUtil::GetSelf(Info);
-    InfoLog("Warning: qm.analytics will be deprecated, use require('analytics') instead.");
-	return TJsAnalytics::New(JsBase->Js);
 }
 
 v8::Handle<v8::Value> TJsBase::op(const v8::Arguments& Args) {	
@@ -1880,10 +1830,10 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
-        //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, clear);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -2174,6 +2124,14 @@ v8::Handle<v8::Value> TJsStore::toJSON(const v8::Arguments& Args) {
 	return HandleScope.Close(TJsUtil::ParseJson(StoreJson));
 }
 
+v8::Handle<v8::Value> TJsStore::clear(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	const int DelRecs = TJsStoreUtil::GetArgInt32(Args, 0, (int)JsStore->Store->GetRecs());
+	JsStore->Store->DeleteFirstNRecs(DelRecs);
+	return HandleScope.Close(v8::Integer::New((int)JsStore->Store->GetRecs()));
+}
+
 ///////////////////////////////
 // JavaScript Store Iterator
 v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
@@ -2309,6 +2267,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, filterByFq);
 		JsRegisterFunction(TmpTemp, filterByField);
 		JsRegisterFunction(TmpTemp, filter);
+		JsRegisterFunction(TmpTemp, split);
 		JsRegisterFunction(TmpTemp, deleteRecs);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, each);
@@ -5301,7 +5260,6 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
-		JsRegisterFunction(TmpTemp, finishUpdate);					
 		JsRegisterFunction(TmpTemp, extractStrings);	
 		JsRegisterFunction(TmpTemp, getFtr);
 		JsRegisterFunction(TmpTemp, ftrSpVec);						
@@ -5381,13 +5339,6 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
     JsFtrSpace->FtrSpace->Update(RecSet);
 	// return
 	return Args.Holder();
-}
-
-v8::Handle<v8::Value> TJsFtrSpace::finishUpdate(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    InfoLog("Warning: featureSpace.finishUpdate() is no longer necessary and hence deprecated.");
-	// return
-	return HandleScope.Close(v8::Null());
 }
 
 // extractStrings(String, Dimension=0)
@@ -5947,7 +5898,8 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
 		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
 		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
-		return HandleScope.Close(v8::String::New(jsonout.CStr()));
+		PJsonVal Res = TJsonVal::GetValFromStr(jsonout);
+		return HandleScope.Close(TJsUtil::ParseJson(Res));
 	}
 	else
 		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
@@ -6282,7 +6234,12 @@ v8::Handle<v8::Value> TJsGraph<T>::node(const v8::Arguments& Args) {
 	typename T::TNodeI ReturnNode;
 	if (ArgsLen == 1) {
 		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
-		ReturnNode = JsGraph->Graph->GetNI(TJsGraphUtil::GetArgInt32(Args, 0));
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		if (JsGraph->Graph->IsNode(NodeId)) {
+			ReturnNode = JsGraph->Graph->GetNI(NodeId);
+		} else {
+			return HandleScope.Close(v8::Null());		
+		}
 	}
 	else {
 		throw TQmExcept::New("TJsGraph::node: one input argument expected!");
@@ -7444,8 +7401,7 @@ v8::Handle<v8::ObjectTemplate> TJsTm::GetTemplate() {
         JsRegisterProperty(TmpTemp, hour);
         JsRegisterProperty(TmpTemp, minute);
         JsRegisterProperty(TmpTemp, second);
-		JsRegisterProperty(TmpTemp, millisecond);
-        JsRegisterProperty(TmpTemp, milisecond);                
+		JsRegisterProperty(TmpTemp, millisecond);       
         JsRegisterProperty(TmpTemp, now);
         JsRegisterProperty(TmpTemp, nowUTC);
         JsRegisterFunction(TmpTemp, add);
@@ -7529,12 +7485,6 @@ v8::Handle<v8::Value> TJsTm::second(v8::Local<v8::String> Properties, const v8::
 
 v8::Handle<v8::Value> TJsTm::millisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
-	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
-}
-
-v8::Handle<v8::Value> TJsTm::milisecond(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	InfoLog("Warning: milisecond (bad spelling) is deprecated, use millisecond instead. 18-8-2014");
 	return HandleScope.Close(v8::Int32::New(TJsTmUtil::GetSelf(Info)->Tm.GetMSec()));
 }
 
@@ -7633,7 +7583,6 @@ v8::Handle<v8::Value> TJsTm::toJSON(const v8::Arguments& Args) {
     TmJson->Set(v8::String::New("hour"), v8::Int32::New(JsTm->Tm.GetHour()));
     TmJson->Set(v8::String::New("minute"), v8::Int32::New(JsTm->Tm.GetMin()));
     TmJson->Set(v8::String::New("second"), v8::Int32::New(JsTm->Tm.GetSec()));
-	TmJson->Set(v8::String::New("milisecond"), v8::Int32::New(JsTm->Tm.GetMSec())); // deprecated 18-8-2014, will be removed
     TmJson->Set(v8::String::New("millisecond"), v8::Int32::New(JsTm->Tm.GetMSec()));
     // return constructed json
     return HandleScope.Close(TmJson);

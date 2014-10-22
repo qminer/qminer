@@ -31,3 +31,18 @@ fs.readJson = function (fileName) {
 fs.writeJson = function(fileName, json) {
     fs.openWrite(fileName).writeLine(JSON.stringify(json)).close();
 }
+
+//#- `fs.readJsonLines(fileName, callback)` - raed file line by line as string,
+//#     parse each line to JSON and callback with JSON as only parameter
+fs.readJsonLines = function(fileName, callback) {
+    var fin = fs.openRead(fileName);
+    while (!fin.eof) {
+        try {
+            var line = fin.readLine();
+            var json = JSON.parse(line);
+            callback(json);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}
