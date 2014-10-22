@@ -33,6 +33,10 @@ namespace TSnap {
 	void CmtyEvolutionJson(TStr& Json, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges);
 	TStr CmtyTest(TStr t, int CmtyAlg);
 
+	void ReebSimplify(PNGraph& Graph, TIntH& t, int e, int step, PNGraph& gFinal, TIntH& tFinal, bool collapse);
+	void ReebSimplify(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse);
+	void ReebRefine(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse);
+
 	namespace TSnapDetail {
 		/// A single step of Girvan-Newman clustering procedure.
 		void CmtyGirvanNewmanStep(PUNGraph& Graph, TIntV& Cmty1, TIntV& Cmty2);
