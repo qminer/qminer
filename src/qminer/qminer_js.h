@@ -290,6 +290,8 @@ class TJsBase; typedef TPt<TJsBase> PJsBase;
 class TJsFetch;
 class TJsFetchRq;
 class TJsHttpResp;
+class TJsFOut;
+class TJsFIn;
 
 ///////////////////////////////
 /// JavaScript Utility Function
@@ -3415,18 +3417,26 @@ template <class TKey, class TDat, class TAux>
 v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::save(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
-	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-	JsMap->Map.Save(*SOut);
-	return Args[0];
+	if (Args.Length() > 0) {
+		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+		JsMap->Map.Save(*SOut);
+		return Args[0];
+	}
+	else {
+		return v8::Undefined();
+	}
 }
 
 template <class TKey, class TDat, class TAux>
 v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::load(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
-	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-	JsMap->Map.Load(*SIn);
+	if (Args.Length() > 0) {
+		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+		JsMap->Map.Load(*SIn);
+	}
 	return Args.Holder();
+
 }
 
 
