@@ -122,6 +122,94 @@ namespace TSnap {
 			return (SumQi*log(SumQi) - 2 * SumQiLogQi - SumPAlphaLogPAlpha + SumQiSumPAlphaLogQiSumPAlpha);
 		}
 
+		bool edgeIntersect(PNGraph& graph, TIntV& a, TIntV& b) {
+			for (int i = 0; i<a.Len(); i++) {
+				for (int j = 0; j<b.Len(); j++) {
+					if (graph->IsEdge(a[i], b[j]))
+						return true;
+				}
+			}
+
+			return false;
+		}
+
+		int vectorIntersect(TIntV& a, TIntV& b) {
+			int count = 0;
+			for (int i = 0; i<a.Len(); i++) {
+				for (int j = 0; j<b.Len(); j++) {
+					if (a[i] == b[j])
+						count++;
+				}
+			}
+
+			return count;
+		}
+
+		bool inComp(PNGraph& g1, PNGraph& Graph, TIntH& inCompCount, int id, int neigh) {
+			bool out = true;
+
+			int inCompN = 0;
+			int inComp = 0;
+
+			if (g1->IsNode(id) && g1->IsNode(neigh)) {
+				int deg = g1->GetNI(id).GetDeg();
+				int neighDeg = g1->GetNI(neigh).GetDeg();
+
+
+				if (inCompCount.IsKey(id)) {
+					inComp = inCompCount.GetDat(id);
+				}
+				if (inCompCount.IsKey(neigh)) {
+					inCompN = inCompCount.GetDat(neigh);
+				}
+
+				if (inCompN < neighDeg && inComp < deg && (!g1->IsNode(neigh) || Graph->GetNI(neigh).GetDeg() - neighDeg == 0)) {
+					inCompCount.AddDat(neigh, ++inCompN);
+					inCompCount.AddDat(id, ++inComp);
+					out = true;
+				}
+				else {
+					out = false;
+				}
+			}
+			return out;
+		}
+
+		void transitiveTransform(TIntV& a, TIntV& b) {
+			for (int i = 0; i < a.Len(); i++) {
+				bool diff = false;
+				for (int j = 0; j < b.Len(); j++) {
+					if (a[i] == a[j]) {
+						diff = true;
+						break;
+					}
+				}
+				if (!diff) {
+					b.Add(a[i]);
+					break;
+				}
+			}
+		}
+
+		bool chekIfCrossing(TIntV& a, TIntH& t, int f, int l, int TP) {
+			bool after = false;
+			bool before = false;
+			for (int i = 0; i < a.Len(); i++) {
+				if (t.GetDat(a[i]) < TP)
+					before = true;
+				if (t.GetDat(a[i]) > TP)
+					after = true;
+			}
+
+			if (TP == f)
+				before = true;
+
+			if (TP == l)
+				after = true;
+
+			return (after && before);
+		}
+
 		double InfomapOnlineIncrement(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br) {
 			// NOW NEW stuff add another additional iteration:
 
@@ -750,6 +838,856 @@ namespace TSnap {
 
 		return out;
 	}
+	
+	void ReebSimplify(PNGraph& Graph, TIntH& t, int e, int step, PNGraph& gFinal, TIntH& tFinal, bool collapse) {
+		TIntIntVH components;
+		TIntIntVH ct;
+
+		int newId = 0; //get first new free id;
+
+		// gett first and last t
+		int first = 429496729;
+		int last = -1;
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			if (it.GetDat() < first)
+				first = it.GetDat();
+			if (it.GetDat() > last)
+				last = it.GetDat();
+		}
+
+		int nc = Graph->GetNodes();
+
+
+		for (int focusTimePoint = first; focusTimePoint <= last; focusTimePoint += step) {
+
+			TIntV fnodes; // all the nodes int the focus in that step
+
+			// getting nodes in focus -- in epsilon
+			for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+				if ((it.GetDat() <= focusTimePoint + (e / 2)) && (it.GetDat() >= focusTimePoint - (e / 2)))
+					fnodes.Add(it.GetKey());
+			}
+
+			PNGraph g1 = TNGraph::New();
+
+			for (int i = 0; i < fnodes.Len(); i++) {
+				if (!g1->IsNode(fnodes[i]))
+					g1->AddNode(fnodes[i]);
+				int focusNodeId = fnodes[i];
+				// lower star
+				for (int j = 0; j < Graph->GetNI(fnodes[i]).GetInDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetInNId(j);
+					if (t.GetDat(NeighId) < focusTimePoint - (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(NeighId, fnodes[i]);
+					}
+				}
+				// upper star
+				for (int j = 0; j < Graph->GetNI(fnodes[i]).GetOutDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetOutNId(j);
+					if (t.GetDat(NeighId) > focusTimePoint + (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(fnodes[i], NeighId);
+					}
+				}
+			}
+
+			// getting results from commponents detection and recording elements of components and timestamps of components
+			TCnComV CnComV;
+			GetWccs(g1, CnComV);
+			TIntV communitiesAtT;
+			for (int cc = 0; cc < CnComV.Len(); cc++) {
+				components.AddDat(newId, CnComV[cc].NIdV);
+				communitiesAtT.Add(newId);
+				newId++;
+			}
+			if (CnComV.Len() > 0)
+				ct.AddDat(focusTimePoint, communitiesAtT);
+
+		}
+
+		// connecting neighbouring communities
+		THashKeyDatI<TInt, TIntV> it = ct.BegI();
+		THashKeyDatI<TInt, TIntV> prelast = ct.EndI()--;
+		prelast--;
+		while (it < prelast) {
+			TIntV cms0;
+			TIntV cms1;
+			int focusTimePoint;
+			int focusTimePoint1;
+			focusTimePoint = it.GetKey();
+			cms0 = it.GetDat();
+			it++;
+			focusTimePoint1 = it.GetKey();
+			cms1 = it.GetDat();
+			if (cms0.Len()>0 && cms1.Len() > 0) {
+				for (int i = 0; i < cms0.Len(); i++) {
+					for (int j = 0; j < cms1.Len(); j++) {
+						TIntV ids0 = components.GetDat(cms0[i]);
+						TIntV ids1 = components.GetDat(cms1[j]);
+						if (ids0.IntrsLen(ids1) > 0 || TSnapDetail::edgeIntersect(Graph, ids0, ids1)) {
+							if (!gFinal->IsNode(cms0[i])) {
+								gFinal->AddNode(cms0[i]);
+								tFinal.AddDat(cms0[i], focusTimePoint);
+							}
+							if (!gFinal->IsNode(cms1[j])) {
+								gFinal->AddNode(cms1[j]);
+								tFinal.AddDat(cms1[j], focusTimePoint1);
+							}
+							gFinal->AddEdge(cms0[i], cms1[j]);
+						}
+					}
+				}
+			}
+		}
+
+		if (collapse) {
+			// collapsing chains
+			for (TNGraph::TNodeI NI = gFinal->BegNI(); NI < gFinal->EndNI(); NI++) {
+				if (NI.GetInDeg() == 1 && NI.GetOutDeg() == 1)
+					if (gFinal->GetNI(NI.GetInNId(0)).GetOutDeg() == 1 && gFinal->GetNI(NI.GetOutNId(0)).GetInDeg() == 1)
+					{
+						gFinal->AddEdge(NI.GetInNId(0), NI.GetOutNId(0));
+						gFinal->DelEdge(NI.GetInNId(0), NI.GetId());
+						tFinal.DelKey(NI.GetId());
+						gFinal->DelNode(NI.GetId());
+					}
+			}
+		}
+	}
+
+	void ReebSimplify(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse) {
+		TIntIntVH components;
+		TIntIntVH ct;
+
+		int newId = 0; //get first new free id;
+
+		// gett first and last t
+		int first = 429496729;
+		int last = -1;
+
+		// smarter way of determining focus time points
+		TIntV timePoints;
+
+		// get first and last time point
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			int test = it.GetDat();
+			if (it.GetDat()<first)
+				first = it.GetDat();
+			if (it.GetDat()>last)
+				last = it.GetDat();
+		}
+
+		// adding focus timepoints
+		// this can be put in the previous (first, last time point detection) iteration if breaking borders is not an issue
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			if (it.GetDat() - (e / 2) >= first)
+				timePoints.Add(it.GetDat() - (e / 2) /*- 0.1*/);
+			timePoints.Add(it.GetDat());
+			if (it.GetDat() + (e / 2) <= last)
+				timePoints.Add(it.GetDat() + (e / 2) /*+ 0.1*/);
+		}
+		
+
+		//iterate each time point
+		for (int i = 0; i<timePoints.Len(); i++) {
+
+			int focusTimePoint = timePoints[i];
+
+			TIntV fnodes; // all the nodes int the focus in that step
+
+			// getting nodes in focus -- in epsilon
+			for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+				if ((it.GetDat() <= focusTimePoint + (e / 2)) && (it.GetDat() >= focusTimePoint - (e / 2)))
+					fnodes.Add(it.GetKey());
+			}
+
+			// create graph from nodes in focus
+			PNGraph g1 = TNGraph::New();
+			for (int i = 0; i<fnodes.Len(); i++) {
+				if (!g1->IsNode(fnodes[i]))
+					g1->AddNode(fnodes[i]);
+				int focusNodeId = fnodes[i];
+				// lower star
+				for (int j = 0; j<Graph->GetNI(fnodes[i]).GetInDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetInNId(j);
+					if (t.GetDat(NeighId)<focusTimePoint - (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(NeighId, fnodes[i]);
+					}
+				}
+				// upper star
+				for (int j = 0; j<Graph->GetNI(fnodes[i]).GetOutDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetOutNId(j);
+					if (t.GetDat(NeighId)>focusTimePoint + (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(fnodes[i], NeighId);
+					}
+				}
+			}
+
+			// getting results from commponents detection and recording elements of components and timestamps of components
+			TCnComV CnComV;
+			GetWccs(g1, CnComV);
+			TIntV communitiesAtT;
+			for (int cc = 0; cc < CnComV.Len(); cc++) {
+				components.AddDat(newId, CnComV[cc].NIdV);
+				communitiesAtT.Add(newId);
+				newId++;
+			}
+			if (CnComV.Len() > 0)
+				ct.AddDat(focusTimePoint, communitiesAtT);
+		} // end iterate each node
+
+		// connecting neighbouring components
+		THashKeyDatI<TInt, TIntV> it = ct.BegI();
+		THashKeyDatI<TInt, TIntV> prelast = ct.EndI()--;
+		prelast--;
+		while (it < prelast) {
+			TIntV cms0;
+			TIntV cms1;
+			int focusTimePoint;
+			int focusTimePoint1;
+			focusTimePoint = it.GetKey();
+			cms0 = it.GetDat();
+			it++;
+			focusTimePoint1 = it.GetKey();
+			cms1 = it.GetDat();
+			if (cms0.Len()>0 && cms1.Len() > 0) {
+				for (int i = 0; i < cms0.Len(); i++) {
+					for (int j = 0; j < cms1.Len(); j++) {
+						TIntV ids0 = components.GetDat(cms0[i]);
+						TIntV ids1 = components.GetDat(cms1[j]);
+						if (ids0.IntrsLen(ids1) > 0 || TSnapDetail::edgeIntersect(Graph, ids0, ids1)) {
+							if (!gFinal->IsNode(cms0[i])) {
+								gFinal->AddNode(cms0[i]);
+								tFinal.AddDat(cms0[i], focusTimePoint);
+							}
+							if (!gFinal->IsNode(cms1[j])) {
+								gFinal->AddNode(cms1[j]);
+								tFinal.AddDat(cms1[j], focusTimePoint1);
+							}
+							gFinal->AddEdge(cms0[i], cms1[j]);
+						}
+					}
+				}
+			}
+		}// end connecting components 
+
+		// collapsing chains
+		if (collapse) {
+			for (TNGraph::TNodeI NI = gFinal->BegNI(); NI < gFinal->EndNI(); NI++) {
+				int d1 = NI.GetInDeg();
+				int d2 = NI.GetOutDeg();
+				int idd = NI.GetId();
+				if (NI.GetInDeg() == 1 && NI.GetOutDeg() == 1)
+					if (gFinal->GetNI(NI.GetInNId(0)).GetOutDeg() == 1 && gFinal->GetNI(NI.GetOutNId(0)).GetInDeg() == 1)
+					{
+					gFinal->AddEdge(NI.GetInNId(0), NI.GetOutNId(0));
+					gFinal->DelEdge(NI.GetInNId(0), NI.GetId());
+					tFinal.DelKey(NI.GetId());
+					gFinal->DelNode(NI.GetId());
+					}
+			}
+		}// end collapsing
+
+	}
+
+	void ReebRefine1(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse) {
+		TIntIntVH components;
+		TIntIntVH ct;
+
+		int newId = 0; //get first new free id;
+
+		// gett first and last t
+		int first = 429496729;
+		int last = -1;
+
+		// smarter way of determining focus time points
+		TIntV timePoints;
+
+		// get first and last time point
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			int test = it.GetDat();
+			if (it.GetDat()<first)
+				first = it.GetDat();
+			if (it.GetDat()>last)
+				last = it.GetDat();
+		}
+
+		// adding focus timepoints
+		// this can be put in the previous (first, last time point detection) iteration if breaking borders is not an issue
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			if (it.GetDat() - (e / 2) >= first)
+				timePoints.Add(it.GetDat() - (e / 2) /*- 0.1*/);
+			timePoints.Add(it.GetDat());
+			if (it.GetDat() + (e / 2) <= last)
+				timePoints.Add(it.GetDat() + (e / 2) /*+ 0.1*/);
+		}
+
+
+		//iterate each time point
+		for (int i = 0; i<timePoints.Len(); i++) {
+
+			int focusTimePoint = timePoints[i];
+
+			TIntV fnodes; // all the nodes int the focus in that step
+
+			// getting nodes in focus -- in epsilon
+			for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+				if ((it.GetDat() <= focusTimePoint + (e / 2)) && (it.GetDat() >= focusTimePoint - (e / 2)))
+					fnodes.Add(it.GetKey());
+			}
+
+			// create graph from nodes in focus
+			PNGraph g1 = TNGraph::New();
+			for (int i = 0; i<fnodes.Len(); i++) {
+				if (!g1->IsNode(fnodes[i]))
+					g1->AddNode(fnodes[i]);
+				int focusNodeId = fnodes[i];
+				// lower star
+				for (int j = 0; j<Graph->GetNI(fnodes[i]).GetInDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetInNId(j);
+					if (t.GetDat(NeighId)<focusTimePoint - (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(NeighId, fnodes[i]);
+					}
+				}
+				// upper star
+				for (int j = 0; j<Graph->GetNI(fnodes[i]).GetOutDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetOutNId(j);
+					if (t.GetDat(NeighId)>focusTimePoint + (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(fnodes[i], NeighId);
+					}
+				}
+			}
+
+			// getting results from commponents detection and recording elements of components and timestamps of components
+			TIntH inCompCount;
+			TIntIntVH comps;
+			int compBr = 0;
+			for (TNGraph::TNodeI NI = g1->BegNI(); NI < g1->EndNI(); NI++) {
+				int deg = NI.GetDeg();
+				int degOut = Graph->GetNI(NI.GetId()).GetDeg() - deg;
+				if (deg > 0) {
+					for (int i = 0; i < deg; i++) {
+						int neigh = NI.GetNbrNId(i);
+						int neighDeg = g1->GetNI(neigh).GetDeg();
+						int inCompN = 0;
+						int inComp = 0;
+						if (inCompCount.IsKey(NI.GetId())) {
+							inComp = inCompCount.GetDat(NI.GetId());
+						}
+						if (inCompCount.IsKey(neigh)) {
+							inCompN = inCompCount.GetDat(neigh);
+						}
+						if (inCompN < neighDeg && inComp < deg) {
+							inCompCount.AddDat(neigh, inCompN++);
+							inCompCount.AddDat(NI.GetId(), inComp++);
+							TIntV nds;
+							nds.Add(NI.GetId());
+							nds.Add(neigh);
+							comps.AddDat(compBr, nds);
+							compBr++;
+						}
+					}
+				} // end if
+				else if (degOut > 0) {
+					if (focusTimePoint < t.GetDat(NI.GetId())) {
+						degOut = Graph->GetNI(NI.GetId()).GetInDeg() - deg;
+						for (int i = 0; i < degOut; i++) {
+							int outNeigh = Graph->GetNI(NI.GetId()).GetInNId(i);
+							TIntV nds;
+							nds.Add(NI.GetId());
+							//nds.Add(outNeigh);
+							comps.AddDat(compBr, nds);
+							compBr++;
+						}
+					}
+					else {
+						degOut = Graph->GetNI(NI.GetId()).GetOutDeg() - deg;
+						for (int i = 0; i < degOut; i++) {
+							int outNeigh = Graph->GetNI(NI.GetId()).GetOutNId(i);
+							TIntV nds;
+							nds.Add(NI.GetId());
+							//nds.Add(outNeigh);
+							comps.AddDat(compBr, nds);
+							compBr++;
+						}
+					}
+				}
+				else {
+					int inComp = 0;
+					inCompCount.AddDat(NI.GetId(), inComp++);
+					TIntV nds;
+					nds.Add(NI.GetId());
+					comps.AddDat(compBr, nds);
+					compBr++;
+				}
+
+				
+			} //end for
+
+			TIntV communitiesAtT;
+			for (int cc = 0; cc < comps.Len(); cc++) {
+				components.AddDat(newId, comps[cc]);
+				communitiesAtT.Add(newId);
+				newId++;
+			}
+			if (comps.Len() > 0)
+				ct.AddDat(focusTimePoint, communitiesAtT);
+
+
+		} // end iterate each node
+
+		// connecting neighbouring components
+		THashKeyDatI<TInt, TIntV> it = ct.BegI();
+		THashKeyDatI<TInt, TIntV> prelast = ct.EndI()--;
+		prelast--;
+		while (it < prelast) {
+			TIntV cms0;
+			TIntV cms1;
+			int focusTimePoint;
+			int focusTimePoint1;
+			focusTimePoint = it.GetKey();
+			cms0 = it.GetDat();
+			it++;
+			focusTimePoint1 = it.GetKey();
+			cms1 = it.GetDat();
+			if (cms0.Len()>0 && cms1.Len() > 0) {
+				for (int i = 0; i < cms0.Len(); i++) {
+					for (int j = 0; j < cms1.Len(); j++) {
+						TIntV ids0 = components.GetDat(cms0[i]);
+						TIntV ids1 = components.GetDat(cms1[j]);
+						if (ids0.IntrsLen(ids1) > 0 || TSnapDetail::edgeIntersect(Graph, ids0, ids1)) {
+							if (!gFinal->IsNode(cms0[i])) {
+								gFinal->AddNode(cms0[i]);
+								tFinal.AddDat(cms0[i], focusTimePoint);
+							}
+							if (!gFinal->IsNode(cms1[j])) {
+								gFinal->AddNode(cms1[j]);
+								tFinal.AddDat(cms1[j], focusTimePoint1);
+							}
+							gFinal->AddEdge(cms0[i], cms1[j]);
+						}
+					}
+				}
+			}
+		}// end connecting components 
+
+		// collapsing chains
+		if (collapse) {
+			for (TNGraph::TNodeI NI = gFinal->BegNI(); NI < gFinal->EndNI(); NI++) {
+				int d1 = NI.GetInDeg();
+				int d2 = NI.GetOutDeg();
+				int idd = NI.GetId();
+				if (NI.GetInDeg() == 1 && NI.GetOutDeg() == 1)
+					if (gFinal->GetNI(NI.GetInNId(0)).GetOutDeg() == 1 && gFinal->GetNI(NI.GetOutNId(0)).GetInDeg() == 1)
+					{
+					gFinal->AddEdge(NI.GetInNId(0), NI.GetOutNId(0));
+					gFinal->DelEdge(NI.GetInNId(0), NI.GetId());
+					tFinal.DelKey(NI.GetId());
+					gFinal->DelNode(NI.GetId());
+					}
+			}
+		}// end collapsing
+
+	}
+
+	void ReebRefine(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse) {
+		TIntIntVH components;
+		TIntIntVH ct;
+
+		int newId = 0; //get first new free id;
+
+		// gett first and last t
+		int first = 429496729;
+		int last = -1;
+
+		// smarter way of determining focus time points
+		TIntV timePoints;
+
+		// get first and last time point
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			int test = it.GetDat();
+			if (it.GetDat() < first)
+				first = it.GetDat();
+			if (it.GetDat() > last)
+				last = it.GetDat();
+		}
+
+		// adding focus timepoints
+		// this can be put in the previous (first, last time point detection) iteration if breaking borders is not an issue
+		for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+			if (it.GetDat() - (e / 2) >= first)
+				timePoints.Add(it.GetDat() - (e / 2) /*- 0.1*/);
+			timePoints.Add(it.GetDat());
+			if (it.GetDat() + (e / 2) <= last)
+				timePoints.Add(it.GetDat() + (e / 2) /*+ 0.1*/);
+		}
+
+		TIntV timePointsUnique;
+		int prevtp = -1;
+		//get unique time points
+		for (int i = 0; i < timePoints.Len(); i++){
+			if (timePoints[i] > prevtp)
+				timePointsUnique.Add(timePoints[i]);
+			prevtp = timePoints[i];
+		}
+
+		timePoints.Clr();
+		timePoints = timePointsUnique;
+
+		//iterate each time point
+		for (int i = 0; i < timePoints.Len(); i++) {
+
+			int focusTimePoint = timePoints[i];
+
+			TIntV fnodes; // all the nodes int the focus in that step
+
+			// getting nodes in focus -- in epsilon
+			for (THashKeyDatI<TInt, TInt> it = t.BegI(); !it.IsEnd(); it++) {
+				if ((it.GetDat() <= focusTimePoint + (e / 2)) && (it.GetDat() >= focusTimePoint - (e / 2)))
+					fnodes.Add(it.GetKey());
+			}
+
+			// create graph from nodes in focus
+			PNGraph g1 = TNGraph::New();
+			for (int i = 0; i < fnodes.Len(); i++) {
+				if (!g1->IsNode(fnodes[i]))
+					g1->AddNode(fnodes[i]);
+				int focusNodeId = fnodes[i];
+				// lower star
+				for (int j = 0; j < Graph->GetNI(fnodes[i]).GetInDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetInNId(j);
+					if (t.GetDat(NeighId) < focusTimePoint - (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(NeighId, fnodes[i]);
+					}
+				}
+				// upper star
+				for (int j = 0; j < Graph->GetNI(fnodes[i]).GetOutDeg(); j++) {
+					int NeighId = Graph->GetNI(fnodes[i]).GetOutNId(j);
+					if (t.GetDat(NeighId) > focusTimePoint + (e / 2)) {
+
+					}
+					else {
+						if (!g1->IsNode(NeighId))
+							g1->AddNode(NeighId);
+						g1->AddEdge(fnodes[i], NeighId);
+					}
+				}
+			}
+
+			// getting results from commponents detection and recording elements of components and timestamps of components
+			TIntH inCompCount;
+			TIntIntVH comps;
+			int compBr = 0;
+			int NN = g1->GetNodes();
+			int NE = g1->GetEdges();
+			TIntH nn_nodes;
+
+			int FTP = focusTimePoint;
+			TIntH TEdges;
+
+			for (TNGraph::TNodeI NI = g1->BegNI(); NI < g1->EndNI(); NI++) {
+
+				
+				int FTPNode = NI.GetId();
+				TNGraph::TNodeI GNI = Graph->GetNI(FTPNode);
+				int FI, FO, F, RI, RO, R, I, O, D;
+
+				RI = NI.GetInDeg();
+				RO = NI.GetOutDeg();
+
+				FI = Graph->GetNI(FTPNode).GetInDeg() - RI;
+				FO = Graph->GetNI(FTPNode).GetOutDeg() - RO;
+
+				R = RI + RO;
+				F = FI + FO;
+
+				if (focusTimePoint + (e / 2) == t.GetDat(NI.GetId())) { // if its on the right edge only in degree is observed
+					RO = FO = 0;
+				}
+				if (focusTimePoint - (e / 2) == t.GetDat(NI.GetId())) { // if its on the left edge only out degree is observed
+					RI = FI = 0;
+				}
+
+				R = RI + RO;
+				F = FI + FO;
+
+				I = RI + FI;
+				O = RO + FO;
+
+				D = I + O;
+
+				// counting edges imidiately after time point
+				int temp = 0;
+				if (TEdges.IsKey(FTP))
+					temp = TEdges.GetDat(FTP);
+				TEdges.AddDat(FTP, O + temp);
+
+				// FIND ELEMENTS
+
+				// n - n,
+				if (I > 1 && O > 1) {
+					// number of nodes is in our out degree
+					int nn = I;
+					if (O > I)
+						nn = O;
+
+					TIntV nds;
+					nds.Add(FTPNode);
+					for (int i = 0; i < I; i++) {
+						nds.Add(GNI.GetInNId(i));
+					}
+
+					for (int i = 0; i < O; i++) {
+						nds.Add(GNI.GetOutNId(i));
+					}
+
+					for (int j = 0; j < nn; j++) {
+						nn_nodes.AddDat(compBr);
+						comps.AddDat(compBr, nds);
+						compBr++;
+					}
+				}
+				
+				// 1 - n
+				else if (I == 1 && O > 1) {
+					for (int i = 0; i < O; i++) {
+						TIntV nds;
+						nds.Add(FTPNode);
+						nds.Add(GNI.GetInNId(0));
+						nds.Add(GNI.GetOutNId(i));
+						comps.AddDat(compBr, nds);
+						compBr++;
+					}
+				}
+
+				// n - 1
+				else if (I > 1 && O == 1) {
+					for (int i = 0; i < I; i++) {
+						TIntV nds;
+						nds.Add(FTPNode);
+						nds.Add(GNI.GetOutNId(0));
+						nds.Add(GNI.GetInNId(i));
+						comps.AddDat(compBr, nds);
+						compBr++;
+					}
+				}
+
+				// 0 - n
+				else if (I == 0 && O > 1) {
+					for (int i = 0; i < O; i++) {
+						TIntV nds;
+						nds.Add(FTPNode);
+						nds.Add(GNI.GetOutNId(i));
+						comps.AddDat(compBr, nds);
+						compBr++;
+					}
+				}
+
+				// n - 0
+				else if (I > 1 && O == 0) {
+					for (int i = 0; i < I; i++) {
+						TIntV nds;
+						nds.Add(FTPNode);
+						nds.Add(GNI.GetInNId(i));
+						comps.AddDat(compBr, nds);
+						compBr++;
+					}
+				}
+
+				// 1 - 1
+				else if (I == 1 && O == 1) {
+					TIntV nds;
+					nds.Add(FTPNode);
+					nds.Add(GNI.GetOutNId(0));
+					nds.Add(GNI.GetInNId(0));
+					comps.AddDat(compBr, nds);
+					compBr++;
+				}
+
+				// 0 - 1
+				else if (I == 0 && O == 1) {
+					TIntV nds;
+					nds.Add(FTPNode);
+					nds.Add(GNI.GetOutNId(0));
+					comps.AddDat(compBr, nds);
+					compBr++;
+				}
+
+				// 1 - 0
+				else if (I == 1 && O == 0) {
+					TIntV nds;
+					nds.Add(FTPNode);
+					nds.Add(GNI.GetInNId(0));
+					comps.AddDat(compBr, nds);
+					compBr++;
+				}
+
+				
+
+			} // end iterate each node
+
+			// connecting inside of epsilon
+
+			TIntIntVH elements;
+			TIntH banned;
+			for (int cc0 = 0; cc0 < comps.Len(); cc0++) {
+				for (int cc1 = cc0; cc1 < comps.Len(); cc1++) {
+					int smaller = comps[cc0].Len();
+					int smaller_id = cc0;
+					if (cc0 != cc1) {
+						if (comps[cc1].Len() < smaller) {
+							smaller = comps[cc1].Len();
+							smaller_id = cc1;
+						}
+						int vi = TSnapDetail::vectorIntersect(comps[cc0], comps[cc1]);
+						if (vi == smaller && !nn_nodes.IsKey(smaller_id)){
+							banned.AddDat(smaller_id);
+						}
+						/*else if (smaller > 2 && vi == smaller - 1 && !nn_nodes.IsKey(smaller_id)) {
+							TSnapDetail::transitiveTransform(comps[cc0], comps[cc1]);
+							banned.AddDat(cc0);
+						}*/
+					}
+				}
+			}
+
+			/*
+			int max_out_tp = -1;
+			int max_out = -1;
+			for (THashKeyDatI<TInt, TInt> it = TEdges.BegI(); !it.IsEnd(); it++) {
+				if (it.GetDat() > max_out) {
+					max_out = it.GetDat();
+					max_out_tp = it.GetKey();
+				}
+			}
+			*/
+			for (int cc0 = 0; cc0 < comps.Len(); cc0++) {
+				if (!banned.IsKey(cc0) /*&& TSnapDetail::chekIfCrossing(comps[cc0], t, first, last, max_out_tp)*/)
+					elements.AddDat(cc0, comps[cc0]);
+			}
+			
+
+			printf("\nTIME %i\n: ", FTP);
+			for (int cc0 = 0; cc0 < elements.Len(); cc0++) {
+				printf("\n%i: ", cc0);
+				for (int cc1 = 0; cc1 < elements[cc0].Len(); cc1++) {
+					printf("%i, ", elements[cc0][cc1]);
+				}
+			}
+			printf("\n");
+			
+			// add transitivity connection
+
+			TIntV communitiesAtT;
+			for (int cc = 0; cc < elements.Len(); cc++) {
+				components.AddDat(newId, elements[cc]);
+			communitiesAtT.Add(newId);
+			newId++;
+			}
+			if (elements.Len() > 0)
+				ct.AddDat(focusTimePoint, communitiesAtT);
+			
+			
+		} // FOR
+
+		// connecting neighbouring components
+		THashKeyDatI<TInt, TIntV> it = ct.BegI();
+		THashKeyDatI<TInt, TIntV> prelast = ct.EndI()--;
+		prelast--;
+		while (it < prelast) {
+			TIntV cms0;
+			TIntV cms1;
+			int focusTimePoint;
+			int focusTimePoint1;
+			focusTimePoint = it.GetKey();
+			cms0 = it.GetDat();
+			it++;
+			focusTimePoint1 = it.GetKey();
+			cms1 = it.GetDat();
+			if (cms0.Len() > 0 && cms1.Len() > 0) {
+				printf("\n,");
+				for (int i = 0; i < cms0.Len(); i++) {
+					printf("\n%i(%i):,", cms0[i], focusTimePoint);
+					TIntV idss = components.GetDat(cms0[i]);
+					for (int i = 0; i < idss.Len(); i++) {
+						printf("%i,", idss[i]);
+					}
+					for (int j = 0; j < cms1.Len(); j++) {
+						TIntV ids0 = components.GetDat(cms0[i]);
+						TIntV ids1 = components.GetDat(cms1[j]);
+						int smaller = ids0.Len();
+						if (ids1.Len() < smaller)
+							smaller = ids1.Len();
+						int len = ids0.IntrsLen(ids1);
+						if (TSnapDetail::vectorIntersect(ids0, ids1) == smaller || (smaller > 2 && TSnapDetail::vectorIntersect(ids0, ids1) == (smaller -1 ))) {
+							if (!gFinal->IsNode(cms0[i])) {
+								gFinal->AddNode(cms0[i]);
+								tFinal.AddDat(cms0[i], focusTimePoint);
+							}
+							if (!gFinal->IsNode(cms1[j])) {
+								gFinal->AddNode(cms1[j]);
+								tFinal.AddDat(cms1[j], focusTimePoint1);
+							}
+							gFinal->AddEdge(cms0[i], cms1[j]);
+						}
+					}
+				}
+			}
+		}// end connecting components 
+
+		// collapsing chains
+		if (collapse) {
+			for (TNGraph::TNodeI NI = gFinal->BegNI(); NI < gFinal->EndNI(); NI++) {
+				int d1 = NI.GetInDeg();
+				int d2 = NI.GetOutDeg();
+				int idd = NI.GetId();
+				if (NI.GetInDeg() == 1 && NI.GetOutDeg() == 1)
+					if (gFinal->GetNI(NI.GetInNId(0)).GetOutDeg() == 1 && gFinal->GetNI(NI.GetOutNId(0)).GetInDeg() == 1)
+					{
+					gFinal->AddEdge(NI.GetInNId(0), NI.GetOutNId(0));
+					gFinal->DelEdge(NI.GetInNId(0), NI.GetId());
+					tFinal.DelKey(NI.GetId());
+					gFinal->DelNode(NI.GetId());
+					}
+			}
+		}// end collapsing
+
+	}
+	
 
 	namespace TSnapDetail {
 		/// Clauset-Newman-Moore community detection method.
