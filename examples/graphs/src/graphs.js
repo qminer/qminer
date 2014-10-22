@@ -63,10 +63,10 @@ for (var i = g3.firstNode ; br < g3.nodes; i.next()) {
 // Reading graphs from files, drawing graphs, detecting communities, computing community evolution and plotting
 
 // loading graphs
-var g1999 = snap.newUGraph("data\\evo\\1999.edg"); var g2000 = snap.newUGraph("data\\evo\\2000.edg");
-var g2001 = snap.newUGraph("data\\evo\\2001.edg"); var g2002 = snap.newUGraph("data\\evo\\2002.edg");
-var g2003 = snap.newUGraph("data\\evo\\2003.edg"); var g2004 = snap.newUGraph("data\\evo\\2004.edg");
-var g2005 = snap.newUGraph("data\\evo\\2005.edg"); var g2006 = snap.newUGraph("data\\evo\\2006.edg");
+var g1999 = snap.newUGraph("./data/evo/1999.edg"); var g2000 = snap.newUGraph("./data/evo/2000.edg");
+var g2001 = snap.newUGraph("./data/evo/2001.edg"); var g2002 = snap.newUGraph("./data/evo/2002.edg");
+var g2003 = snap.newUGraph("./data/evo/2003.edg"); var g2004 = snap.newUGraph("./data/evo/2004.edg");
+var g2005 = snap.newUGraph("./data/evo/2005.edg"); var g2006 = snap.newUGraph("./data/evo/2006.edg");
 
 // storing graphs int an array
 var graphs = new Array();
@@ -91,11 +91,11 @@ var json = snap.evolutionJs(communities, 0.5, 0.75);
 console.log("heyo");
 
 // plot the community evolution graph
-viz.drawCommunityEvolution(json, "out\\cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+viz.drawCommunityEvolution(JSON.stringify(json), "./out/cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 // load a new graph from a file
 console.log("Loading cobiss graph 1970-1975.edg");
-var g = snap.newUGraph("data\\2013_bio.edg");
+var g = snap.newUGraph("./data/researchersBib_1970-1975.edg");
 console.log("Done loading graph. N = " + g.nodes+ ", E = " + g.edges);
 var g = snap.removeNodes(g, 3);
 
@@ -112,8 +112,8 @@ var CP = snap.corePeriphery(g, "lip");
 
 // draw the graph using two different colorings
 
-viz.drawGraph(g, "out\\gCNM.html", { "color": CmtyCNM });
-//viz.drawGraph(g, "out\\gImap.html", { "color": CmtyImap });
+viz.drawGraph(g, "./out/gCNM.html", { "color": CmtyCNM });
+viz.drawGraph(g, "./out/gImap.html", { "color": CmtyImap });
 
 // directed graphs
 
