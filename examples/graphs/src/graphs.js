@@ -104,9 +104,6 @@ console.log("Calculating communities using Clauset-Newman-Moore community detect
 var CmtyCNM = snap.communityDetection(g, "cnm");
 console.log("communities count: " + CmtyCNM.cols);
 
-//console.log("Calculating communities using Info-map community detection method");
-//var CmtyImap = snap.communityDetection(g, "imap");
-
 // core periphery
 var CP = snap.corePeriphery(g, "lip");
 
@@ -114,42 +111,6 @@ var CP = snap.corePeriphery(g, "lip");
 
 viz.drawGraph(g, "./out/gCNM.html", { "color": CmtyCNM });
 viz.drawGraph(g, "./out/gImap.html", { "color": CmtyImap });
-
-// directed graphs
-
-var dirGraph = snap.newDGraph("data\\dg1.txt");
-//var dirGraph = snap.newDGraph("data\\graph.txt");
-
-
-var t = utilities.newIntIntH();
-
-fin = fs.openRead("data\\t1.txt");
-//fin = fs.openRead("data\\times.txt");
-while (!fin.eof) {
-    var line = fin.readLine();
-    var vals = line.split('\t');
-    if (vals.length >= 2) {
-        t.put(parseInt(vals[0]), parseFloat(vals[1]));
-    }
-}
-
-// cmty graph
-var cmtyGraph = snap.newDGraph("data\\graph.txt");
-
-
-var cmtyt = utilities.newIntIntH();
-
-fin = fs.openRead("data\\times.txt");
-while (!fin.eof) {
-    var line = fin.readLine();
-    var vals = line.split('\t');
-    if (vals.length >= 2) {
-        cmtyt.put(parseInt(vals[0]), parseFloat(vals[1]));
-    }
-}
-
-var dirJson = snap.directedJson(cmtyGraph, cmtyt);
-viz.drawCommunityEvolution(dirJson, "out\\cmty_graph.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 console.log("Done");
 eval(breakpoint);
