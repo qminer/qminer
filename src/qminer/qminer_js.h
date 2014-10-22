@@ -2883,6 +2883,7 @@ public:
 	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
 	JsDeclareFunction(addNode);
 	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2, edgeId)` -- add an edge when `graph` is of the type `snap.newDMGraph()` 
 	JsDeclareFunction(addEdge);
 	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
 	JsDeclareFunction(delNode);
@@ -3314,6 +3315,10 @@ public:
 	JsDeclareFunction(key);
 	//#- `dat = map.dat(idx)` -- returns the `idx`-th dat
 	JsDeclareFunction(dat);
+	//#- `map = map.load(fin)` -- loads the hashtable from input stream `fin`
+	JsDeclareFunction(load);
+	//#- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
+	JsDeclareFunction(save);
 };
 
 typedef TJsHash<TStr, TInt, TAuxStrIntH> TJsStrIntH;
@@ -3335,6 +3340,8 @@ v8::Handle<v8::ObjectTemplate> TJsHash<TKey, TDat, TAux>::GetTemplate() {
 		JsRegisterProperty(TmpTemp, length);
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, dat);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -3402,6 +3409,24 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::dat(const v8::Arguments& Args) 
 	TDat Dat;
 	JsMap->Map.GetKeyDat(Idx, Key, Dat);
 	return TAux::WrapDat(Dat, HandleScope);
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	JsMap->Map.Save(*SOut);
+	return Args[0];
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	JsMap->Map.Load(*SIn);
+	return Args.Holder();
 }
 
 

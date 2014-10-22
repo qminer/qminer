@@ -2733,14 +2733,11 @@ _analytics.newKNearestNeighbors = function () {
 _analytics.newActiveLearner = function () {
 	/// <signature>
 	/// <summary> initializes the</summary>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_textField" value="_textField">param</param>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <param name="_nPos" value="_nPos">param</param>
-	/// <param name="_nNeg" value="_nNeg">param</param>
 	/// <param name="_query" value="_query">param</param>
-	/// <param name="_c" value="_c">param</param>
-	/// <param name="_j" value="_j">param</param>
+	/// <param name="_qRecSet" value="_qRecSet">param</param>
+	/// <param name="_fRecSet" value="_fRecSet">param</param>
+	/// <param name="_ftrSpace" value="_ftrSpace">param</param>
+	/// <param name="_settings" value="_settings">param</param>
 	/// <returns value ="_alModel"/>
 	/// </signature>
 };
@@ -3411,11 +3408,49 @@ _htModel.classify = function () {
 	/// </signature>
 };
 
+_alModel.selectQuestion = function () {
+	/// <signature>
+	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
+	/// <returns value ="_recSetIdx"/>
+	/// </signature>
+};
+
+_alModel.getAnswer = function () {
+	/// <signature>
+	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
+	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
+	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 _alModel.getPos = function () {
 	/// <signature>
 	/// <summary> given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.</summary>
 	/// <param name="_thresh" value="_thresh">param</param>
 	/// <returns value ="_numArr"/>
+	/// </signature>
+};
+
+_alModel.startLoop = function () {
+	/// <signature>
+	/// <summary> starts the active learning loop in console</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_alModel.getSettings = function () {
+	/// <signature>
+	/// <summary> returns the settings object</summary>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_alModel.saveSvmModel = function () {
+	/// <signature>
+	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -3431,37 +3466,6 @@ _model.predict = function () {
 	/// <summary> predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.</summary>
 	/// <param name="_vec" value="_vec">param</param>
 	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_model.selectQuestion = function () {
-	/// <signature>
-	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
-	/// <returns value ="_recSetIdx"/>
-	/// </signature>
-};
-
-_model.getAnswer = function () {
-	/// <signature>
-	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
-	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
-	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_model.saveSvmModel = function () {
-	/// <signature>
-	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_model.startLoop = function () {
-	/// <signature>
-	/// <summary> starts the active learning loop in console</summary>
-	/// <returns value =""/>
 	/// </signature>
 };
 

@@ -5995,6 +5995,29 @@ v8::Handle<v8::Value> TJsGraph<T>::addEdge(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Number::New(ReturnId));
 }
 
+template<> 
+v8::Handle<v8::Value> TJsGraph<TNEGraph>::addEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ReturnId = -1;
+	int ArgsLen = Args.Length();
+	if (ArgsLen >= 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::addEdge: Args[0] and Args[1] expected to be integers!");
+		int SourceId = TJsGraphUtil::GetArgInt32(Args, 0);
+		int TargetId = TJsGraphUtil::GetArgInt32(Args, 1);
+		if (JsGraph->Graph->IsNode(SourceId) && JsGraph->Graph->IsNode(TargetId)) {
+			int EdgeId = TJsGraphUtil::GetArgInt32(Args, 2, -1);
+			ReturnId = JsGraph->Graph->AddEdge(SourceId, TargetId, EdgeId);
+		}
+		else
+			throw TQmExcept::New("TJsGraph::addEdge: Args[0] and Args[1] need to be nodes!");
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::addEdge: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
 template <class T>
 v8::Handle<v8::Value> TJsGraph<T>::delNode(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
