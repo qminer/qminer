@@ -3109,6 +3109,184 @@ public:
 };
 
 
+
+//#
+//# ### assert.js (use require)
+//# 
+//#JSIMPLEMENT:src/qminer/js/assert.js    
+
+///////////////////////////////
+// JavaScript Console
+//#
+//# ### Console
+//# 
+//# Writing and reading from console. Also very useful to create
+//# "interactive breakpoints" using `console.start()`. All outputs
+//# are automatically prefixed by current date and time.
+class TJsConsole {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+    
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsConsole> TJsConsoleUtil;
+    
+    explicit TJsConsole(TWPt<TScript> _Js): Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
+		return TJsConsoleUtil::New(new TJsConsole(Js)); }
+
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `console.log(message)` -- writes `message` to standard output, using
+    //#     prefix `[console]` to indicate the text came from console object;
+    //#     `message` must be of type string
+    //#- `console.log(prefixStr, message)` -- writes `message` to standard output, 
+    //#     using provided prefix `[prefixStr]`; both `message` and `prefixStr` must
+    //#     be of type string
+	JsDeclareFunction(log);
+    //#- `line = console.getln()` -- reads a line from command line and returns
+    //#     it as string
+	JsDeclareFunction(getln);
+	//#- `console.print(str)` -- prints a string to standard output
+	JsDeclareFunction(print);
+    //#JSIMPLEMENT:src/qminer/console.js    
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Filesystem
+//#
+//# ### File system
+//# 
+class TJsFs {
+public:
+	// directories we're allowed to access 
+	TVec<TJsFPath> AllowedFPathV;
+	
+private:
+	typedef TJsObjUtil<TJsFs> TJsFsUtil;
+
+	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
+public:
+	static v8::Persistent<v8::Object> New(TScript* Js) { 
+		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
+	~TJsFs() { }
+	
+	/// template
+    static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    /// Are we allowed to access given path
+	bool CanAccess(const TStr& FPath);
+    /// Are we allowed to access given path
+	static bool CanAccess(const v8::Arguments& Args);
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+	JsDeclareFunction(openRead);
+    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+	JsDeclareFunction(openWrite);
+    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+	JsDeclareFunction(openAppend);
+    //#- `bool = fs.exists(fileName)` -- does file exist?
+	JsDeclareFunction(exists);
+    //#- `fs.copy(fromFileName, toFileName)` -- copy file
+	JsDeclareFunction(copy);
+    //#- `fs.move(fromFileName, toFileName)` -- move file
+	JsDeclareFunction(move);
+    //#- `fs.del(fileName)` -- delete file
+	JsDeclareFunction(del);
+    //#- `fs.rename(fromFileName, toFileName)` -- rename file
+	JsDeclareFunction(rename);
+    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+	JsDeclareFunction(fileInfo);
+    //#- `fs.mkdir(dirName)` -- make folder
+	JsDeclareFunction(mkdir);
+    //#- `fs.rmdir(dirName)` -- delete folder
+	JsDeclareFunction(rmdir);
+    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+	JsDeclareFunction(listFile);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+//#
+//# ### Input File Stream
+//# 
+class TJsFIn {
+public:
+	PSIn SIn;
+private:
+	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
+	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FNm) {
+		return TJsFInUtil::New(new TJsFIn(FNm)); }
+    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
+
+   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `char = fin.peekCh()` -- peeks a character
+	JsDeclareFunction(peekCh);
+    //#- `char = fin.getCh()` -- reads a character
+	JsDeclareFunction(getCh);
+    //#- `line = fin.readLine()` -- reads a line
+	JsDeclareFunction(readLine);
+    //#- `bool = fin.eof` -- end of stream?
+	JsDeclareProperty(eof);
+    //#- `len = fin.length` -- returns the length of input stream
+	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+//#
+//# ### Output File Stream
+//# 
+class TJsFOut {
+public:
+	PSOut SOut;
+private:
+	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
+	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
+	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
+	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
+		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
+	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
+		return TJsFOutUtil::New(new TJsFOut(SOut_)); }
+
+    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
+    
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+    //# 
+	//# **Functions and properties:**
+	//#     
+    //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+	JsDeclareFunction(write);
+    //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+	JsDeclareFunction(writeLine);
+    //#- `fout = fout.flush()` -- flushes output stream
+	JsDeclareFunction(flush);
+    //#- `fout = fout.close()` -- closes output stream
+  	JsDeclareFunction(close);
+};
+
+
 //#
 //# ### utilities.js (use require)
 //# 
@@ -3438,183 +3616,6 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::load(const v8::Arguments& Args)
 	return Args.Holder();
 
 }
-
-
-//#
-//# ### assert.js (use require)
-//# 
-//#JSIMPLEMENT:src/qminer/js/assert.js    
-
-///////////////////////////////
-// JavaScript Console
-//#
-//# ### Console
-//# 
-//# Writing and reading from console. Also very useful to create
-//# "interactive breakpoints" using `console.start()`. All outputs
-//# are automatically prefixed by current date and time.
-class TJsConsole {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-    
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsConsole> TJsConsoleUtil;
-    
-    explicit TJsConsole(TWPt<TScript> _Js): Js(_Js) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) { 
-		return TJsConsoleUtil::New(new TJsConsole(Js)); }
-
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `console.log(message)` -- writes `message` to standard output, using
-    //#     prefix `[console]` to indicate the text came from console object;
-    //#     `message` must be of type string
-    //#- `console.log(prefixStr, message)` -- writes `message` to standard output, 
-    //#     using provided prefix `[prefixStr]`; both `message` and `prefixStr` must
-    //#     be of type string
-	JsDeclareFunction(log);
-    //#- `line = console.getln()` -- reads a line from command line and returns
-    //#     it as string
-	JsDeclareFunction(getln);
-	//#- `console.print(str)` -- prints a string to standard output
-	JsDeclareFunction(print);
-    //#JSIMPLEMENT:src/qminer/console.js    
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Filesystem
-//#
-//# ### File system
-//# 
-class TJsFs {
-public:
-	// directories we're allowed to access 
-	TVec<TJsFPath> AllowedFPathV;
-	
-private:
-	typedef TJsObjUtil<TJsFs> TJsFsUtil;
-
-	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
-public:
-	static v8::Persistent<v8::Object> New(TScript* Js) { 
-		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
-	~TJsFs() { }
-	
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    /// Are we allowed to access given path
-	bool CanAccess(const TStr& FPath);
-    /// Are we allowed to access given path
-	static bool CanAccess(const v8::Arguments& Args);
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
-	JsDeclareFunction(openRead);
-    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
-	JsDeclareFunction(openWrite);
-    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-	JsDeclareFunction(openAppend);
-    //#- `bool = fs.exists(fileName)` -- does file exist?
-	JsDeclareFunction(exists);
-    //#- `fs.copy(fromFileName, toFileName)` -- copy file
-	JsDeclareFunction(copy);
-    //#- `fs.move(fromFileName, toFileName)` -- move file
-	JsDeclareFunction(move);
-    //#- `fs.del(fileName)` -- delete file
-	JsDeclareFunction(del);
-    //#- `fs.rename(fromFileName, toFileName)` -- rename file
-	JsDeclareFunction(rename);
-    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
-	JsDeclareFunction(fileInfo);
-    //#- `fs.mkdir(dirName)` -- make folder
-	JsDeclareFunction(mkdir);
-    //#- `fs.rmdir(dirName)` -- delete folder
-	JsDeclareFunction(rmdir);
-    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
-	JsDeclareFunction(listFile);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-//#
-//# ### Input File Stream
-//# 
-class TJsFIn {
-public:
-	PSIn SIn;
-private:
-	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
-	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FNm) {
-		return TJsFInUtil::New(new TJsFIn(FNm)); }
-    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
-
-   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `char = fin.peekCh()` -- peeks a character
-	JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()` -- reads a character
-	JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()` -- reads a line
-	JsDeclareFunction(readLine);
-    //#- `bool = fin.eof` -- end of stream?
-	JsDeclareProperty(eof);
-    //#- `len = fin.length` -- returns the length of input stream
-	JsDeclareProperty(length);
-	//#- `str = fin.readAll()` -- reads the whole file
-	JsDeclareFunction(readAll);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-//#
-//# ### Output File Stream
-//# 
-class TJsFOut {
-public:
-	PSOut SOut;
-private:
-	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
-	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
-	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
-		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
-	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
-		return TJsFOutUtil::New(new TJsFOut(SOut_)); }
-
-    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
-    
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-	JsDeclareFunction(write);
-    //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
-	JsDeclareFunction(writeLine);
-    //#- `fout = fout.flush()` -- flushes output stream
-	JsDeclareFunction(flush);
-    //#- `fout = fout.close()` -- closes output stream
-  	JsDeclareFunction(close);
-};
 
 ///////////////////////////////
 // JavaScript Http
