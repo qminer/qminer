@@ -5959,30 +5959,7 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 	int step;
 	bool collapse;
 
-	if (ArgsLen == 7) {
-		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
-		TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
-		inGraph = JsInGraph->Graph();
-
-		TJsHash<TInt, TInt, TAuxIntIntH>* JsInT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
-		inT = JsInT->Map;
-
-		e = TJsSnapUtil::GetArgInt32(Args, 2);
-		step = TJsSnapUtil::GetArgInt32(Args, 3);
-
-		QmAssertR(TJsSnapUtil::IsArgClass(Args, 4, "TNGraph"), "TJsSnap::DegreeCentrality: Args[4] expected directed graph!");
-		TJsGraph<TNGraph>* JsOutGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 4);
-		PNGraph outGraph = JsOutGraph->Graph();
-		
-		TJsHash<TInt, TInt, TAuxIntIntH>* JsOutT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 5);
-		TIntH &outT = JsOutT->Map;
-
-		collapse = TJsSnapUtil::GetArgBool(Args, 6);
-
-		TSnap::ReebSimplify(inGraph, inT, e, step, outGraph, outT, collapse);
-		int lllen = outT.Len();
-	}
-	else if (ArgsLen == 6) {
+	if (ArgsLen == 6) {
 		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
 		TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
 		inGraph = JsInGraph->Graph();
