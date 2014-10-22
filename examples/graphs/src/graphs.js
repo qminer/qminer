@@ -82,28 +82,75 @@ for (var i = 0; i < graphs.length; i++) {
     communities.push(snap.communityDetection(graphs[i], "gn"));
 }
 
+//console.log("Have a break");
+//eval(breakpoint);
+
 // return json string of graph evolution
 var json = snap.evolutionJs(communities, 0.5, 0.75);
+
+console.log("heyo");
 
 // plot the community evolution graph
 viz.drawCommunityEvolution(json, "out\\cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
 // load a new graph from a file
 console.log("Loading cobiss graph 1970-1975.edg");
-var g = snap.newUGraph("data\\researchersBib_1970-1975.edg");
+var g = snap.newUGraph("data\\2013_bio.edg");
 console.log("Done loading graph. N = " + g.nodes+ ", E = " + g.edges);
-var g =  snap.removeNodes(g, 3)
+var g = snap.removeNodes(g, 3);
 
 // detect communities using 2 different algorithms
 console.log("Calculating communities using Clauset-Newman-Moore community detection method");
 var CmtyCNM = snap.communityDetection(g, "cnm");
-console.log("Calculating communities using Info-map community detection method");
-var CmtyImap = snap.communityDetection(g, "imap");
+console.log("communities count: " + CmtyCNM.cols);
+
+//console.log("Calculating communities using Info-map community detection method");
+//var CmtyImap = snap.communityDetection(g, "imap");
+
+// core periphery
+var CP = snap.corePeriphery(g, "lip");
 
 // draw the graph using two different colorings
 
 viz.drawGraph(g, "out\\gCNM.html", { "color": CmtyCNM });
-viz.drawGraph(g, "out\\gImap.html", { "color": CmtyImap });
+//viz.drawGraph(g, "out\\gImap.html", { "color": CmtyImap });
+
+// directed graphs
+
+var dirGraph = snap.newDGraph("data\\dg1.txt");
+//var dirGraph = snap.newDGraph("data\\graph.txt");
+
+
+var t = utilities.newIntIntH();
+
+fin = fs.openRead("data\\t1.txt");
+//fin = fs.openRead("data\\times.txt");
+while (!fin.eof) {
+    var line = fin.readLine();
+    var vals = line.split('\t');
+    if (vals.length >= 2) {
+        t.put(parseInt(vals[0]), parseFloat(vals[1]));
+    }
+}
+
+// cmty graph
+var cmtyGraph = snap.newDGraph("data\\graph.txt");
+
+
+var cmtyt = utilities.newIntIntH();
+
+fin = fs.openRead("data\\times.txt");
+while (!fin.eof) {
+    var line = fin.readLine();
+    var vals = line.split('\t');
+    if (vals.length >= 2) {
+        cmtyt.put(parseInt(vals[0]), parseFloat(vals[1]));
+    }
+}
+
+var dirJson = snap.directedJson(cmtyGraph, cmtyt);
+viz.drawCommunityEvolution(dirJson, "out\\cmty_graph.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+
 
 console.log("Done");
 eval(breakpoint);
