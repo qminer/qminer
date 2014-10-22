@@ -114,7 +114,6 @@ var CP = snap.corePeriphery(g, "lip");
 
 viz.drawGraph(g, "./out/gCNM.html", { "color": CmtyCNM });
 viz.drawGraph(g, "./out/gImap.html", { "color": CmtyImap });
-<<<<<<< .merge_file_a13088
 
 // directed graphs
 
@@ -151,9 +150,6 @@ while (!fin.eof) {
 
 var dirJson = snap.directedJson(cmtyGraph, cmtyt);
 viz.drawCommunityEvolution(dirJson, "out\\cmty_graph.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
-
-=======
->>>>>>> .merge_file_a10300
 
 console.log("Done");
 eval(breakpoint);
