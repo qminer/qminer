@@ -223,7 +223,7 @@ exports.evolutionJs = function (data, alpha, beta) {
     var out = {};
     var out = { edges: edgesJson, communities: communitiesJson };
     
-    return JSON.stringify(out);
+    return out;
 };
 
 exports.directedJson = function (graph, t) {
