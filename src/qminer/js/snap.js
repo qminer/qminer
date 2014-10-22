@@ -224,6 +224,7 @@ exports.evolutionJs = function (data, alpha, beta) {
     var out = { edges: edgesJson, communities: communitiesJson };
     
     return out;
+<<<<<<< .merge_file_a10728
 };
 
 exports.directedJson = function (graph, t) {
@@ -244,6 +245,8 @@ exports.directedJson = function (graph, t) {
     var out = { edges: edges, communities: nodes };
 
     return JSON.stringify(out);
+=======
+>>>>>>> .merge_file_a05396
 };
 
 //#- `JSON = snap.toJson(graph)` -- returns JSON object of graph with `source` and `target` attributes
