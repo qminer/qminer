@@ -5883,7 +5883,6 @@ v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 			int RemappedNId = NIdSet.GetKeyId(id);
 			Mat[i][RemappedNId].Key = RemappedNId;
 			Mat[i][RemappedNId].Dat = id;
-			//Mat[i][RemappedNId].Dat = 1;
 		}
 	}
 
