@@ -1585,6 +1585,8 @@ namespace TSnap {
 				}
 			}
 
+			// add transitivity connection
+
 			/*
 			int max_out_tp = -1;
 			int max_out = -1;
@@ -1600,7 +1602,6 @@ namespace TSnap {
 					elements.AddDat(cc0, comps[cc0]);
 			}
 			
-
 			printf("\nTIME %i\n: ", FTP);
 			for (int cc0 = 0; cc0 < elements.Len(); cc0++) {
 				printf("\n%i: ", cc0);
@@ -1609,8 +1610,6 @@ namespace TSnap {
 				}
 			}
 			printf("\n");
-			
-			// add transitivity connection
 
 			TIntV communitiesAtT;
 			for (int cc = 0; cc < elements.Len(); cc++) {
@@ -1620,7 +1619,6 @@ namespace TSnap {
 			}
 			if (elements.Len() > 0)
 				ct.AddDat(focusTimePoint, communitiesAtT);
-			
 			
 		} // FOR
 
