@@ -91,11 +91,11 @@ int TBigStrPool::AddStr(const char *Str, uint Len) {
 }
 
 int TBigStrPool::GetPrimHashCd(const char *CStr) {
-  return TStrHashF_DJB::GetPrimHashCd(CStr);
+  return TStrHashF_Murmur3::GetPrimHashCd(CStr);
 }
 
 int TBigStrPool::GetSecHashCd(const char *CStr) {
-  return TStrHashF_DJB::GetSecHashCd(CStr);
+  return TStrHashF_Murmur3::GetSecHashCd(CStr);
 }
 
 /////////////////////////////////////////////////
@@ -121,4 +121,3 @@ int TStrHashF_Md5::GetSecHashCd(const TStr& s) {
   TMd5Sig sig(s);
   return sig.GetSecHashCd();
 }
-

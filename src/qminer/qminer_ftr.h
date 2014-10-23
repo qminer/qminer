@@ -447,6 +447,11 @@ private:
     /// Forgetting factor
     TFlt ForgetFactor;            
 
+    /// n-grams Start
+    int NStart;
+    /// n-grams End
+    int NEnd;
+
 	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
 	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
 	void GetVal(const TRec& Rec, TStrV& StrV) const; 
@@ -457,21 +462,26 @@ protected:
 
 private:
     TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
-        const int& _FieldId, const TBagOfWordsMode& _Mode, 
-        const PTokenizer& Tokenizer, const int& HashDim = -1);
+                const int& _FieldId, const TBagOfWordsMode& _Mode, 
+                const PTokenizer& Tokenizer, const int& HashDim = -1, 
+                const int& NStart=1, const int& NEnd=1);
+
     TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn);
     
 public:
 	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
+                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
+                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+
 	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
+                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);

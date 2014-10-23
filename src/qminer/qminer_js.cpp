@@ -5378,7 +5378,7 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
     // create feature vector
 	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
-	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js, SpV);
+	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js, SpV, JsFtrSpace->FtrSpace->GetDim());
 	// return
 	return HandleScope.Close(JsSpV);
 }
