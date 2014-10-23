@@ -1326,7 +1326,7 @@ v8::Handle<v8::Value> TJsSA::save(const v8::Arguments& Args) {
 		JsSA->Js->Execute(SA->SaveFun, Args[0]);
 		
 	}
-	return Args.Holder();
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsSA::load(const v8::Arguments& Args) {
@@ -4156,7 +4156,7 @@ v8::Handle<v8::Value> TJsFltVV::save(const v8::Arguments& Args) {
 	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 	// save to stream
 	JsMat->Mat.Save(*SOut);
-	return Args.Holder();
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsFltVV::load(const v8::Arguments& Args) {
@@ -4815,7 +4815,7 @@ v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
 	// save to stream
 	JsSpMat->Rows.Save(*SOut);
 	JsSpMat->Mat.Save(*SOut);
-	return Args.Holder();
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
@@ -5316,7 +5316,7 @@ v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
     // save to stream
     JsFtrSpace->FtrSpace->Save(*SOut);
 	// return
-	return Args.Holder();
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
@@ -5378,7 +5378,7 @@ v8::Handle<v8::Value> TJsFtrSpace::ftrSpVec(const v8::Arguments& Args) {
     // create feature vector
 	TIntFltKdV SpV;
 	JsFtrSpace->FtrSpace->GetSpV(Rec, SpV);
-	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js, SpV);
+	v8::Persistent<v8::Object> JsSpV = TJsSpV::New(JsFtrSpace->Js, SpV, JsFtrSpace->FtrSpace->GetDim());
 	// return
 	return HandleScope.Close(JsSpV);
 }
@@ -5500,7 +5500,7 @@ v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsSvmModel->Model.Save(*SOut);
 	}
-	return Args.Holder();
+	return HandleScope.Close(Args[0]);
 }
 
 ///////////////////////////////
@@ -5679,7 +5679,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::save(const v8::Arguments& Args) {
 	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 	JsModel->Model->Save(*SOut);
 
-	return Args.Holder();
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -5736,673 +5736,6 @@ v8::Handle<v8::Value> TJsTokenizer::getParagraphs(const v8::Arguments& Args) {
 	// return
 	return HandleScope.Close(TJsUtil::GetStrArr(ParagraphV));
 }
-
-///////////////////////////////
-// QMiner-Snap
-v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, newUGraph);
-		JsRegisterFunction(TmpTemp, newDGraph);
-		JsRegisterFunction(TmpTemp, newDMGraph);
-		JsRegisterFunction(TmpTemp, degreeCentrality);
-		JsRegisterFunction(TmpTemp, communityDetection);
-		JsRegisterFunction(TmpTemp, communityEvolution);
-		JsRegisterFunction(TmpTemp, corePeriphery);
-
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-
-v8::Handle<v8::Value> TJsSnap::newUGraph(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	if (ArgsLen == 0) {
-		return TJsGraph<TUNGraph>::New(JsSnap->Js, "TUNGraph");
-	}
-	else if (ArgsLen == 1) {
-		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-		return TJsGraph<TUNGraph>::New(JsSnap->Js, path, "TUNGraph");
-	}
-	else
-		throw TQmExcept::New("TJsUGraph::addNode: one or zero input argument expected!");
-}
-
-v8::Handle<v8::Value> TJsSnap::newDGraph(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-
-	if (ArgsLen == 0) {
-		return TJsGraph<TNGraph>::New(JsSnap->Js, "TNGraph");
-	}
-	else if (ArgsLen == 1){
-		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-		return TJsGraph<TNGraph>::New(JsSnap->Js, path, "TNGraph");
-	}
-	else
-		throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
-}
-
-v8::Handle<v8::Value> TJsSnap::newDMGraph(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-
-	if (ArgsLen == 0) {
-		return TJsGraph<TNEGraph>::New(JsSnap->Js, "TNEGraph");
-	}
-	else if (ArgsLen == 1){
-		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-		return TJsGraph<TNEGraph>::New(JsSnap->Js, path, "TNEGraph");
-	}
-	else
-		throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
-}
-
-v8::Handle<v8::Value> TJsSnap::degreeCentrality(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	int ArgsLen = Args.Length();
-
-	double ReturnCentrality = -1;
-
-	if (ArgsLen == 2) {
-		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
-		// graph class name can be checked with: JsGraph->Graph_class
-		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
-		PUNGraph graph = JsGraph->Graph();
-		QmAssertR(TJsSnapUtil::IsArgInt32(Args, 1), "TJsSnap::DegreeCentrality: Args[1] expected to be integer!");
-		int NodeId = TJsSnapUtil::GetArgInt32(Args, 1);
-		ReturnCentrality = TSnap::GetDegreeCentr(graph, NodeId);
-	}
-	else {
-		throw TQmExcept::New("TJsUGraph::DegreeCentrality: two input arguments expected!");
-	}
-
-	return HandleScope.Close(v8::Number::New(ReturnCentrality));
-}
-
-v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
-	int Dim = -1;
-	TIntFltKdV Vec;
-
-	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-
-	TCnComV communities;
-	TIntV ReturnCommunity;
-	TCnCom SnapReturnCommunities;
-
-	if (ArgsLen == 2) {
-		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
-		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
-		PUNGraph graph = JsGraph->Graph();
-		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
-		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
-		if (alg == "gn")
-			TSnap::CommunityGirvanNewman(graph, communities);
-		else if (alg == "cnm")
-			TSnap::CommunityCNM(graph, communities);
-		else if (alg == "imap")
-			TSnap::Infomap(graph, communities);
-		else
-			throw TQmExcept::New("TJsSnap::CommunityDetection: this algorithm does not exist!");
-	}
-	else {
-		throw TQmExcept::New("TJsSnap::CommunityDetection: two input arguments expected!");
-	}
-
-	for (int j = 0; j < communities.Len(); j++){
-		SnapReturnCommunities = communities.GetDat(communities[j]);
-		for (int i = 0; i < SnapReturnCommunities.Len(); i++){
-			ReturnCommunity.Add(SnapReturnCommunities[i]);
-			Vec.Add(TIntFltKd(j, (int)SnapReturnCommunities[i]));
-		}
-	}
-
-	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
-}
-
-v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	int ArgsLen = Args.Length();
-	if (ArgsLen == 2){
-		QmAssertR(TJsSnapUtil::IsArgStr(Args, 0), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
-		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
-		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
-		PJsonVal Res = TJsonVal::GetValFromStr(jsonout);
-		return HandleScope.Close(TJsUtil::ParseJson(Res));
-	}
-	else
-		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
-}
-
-v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
-	int Dim = -1;
-	TIntFltKdV Vec;
-
-	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-
-	TIntIntH coreperiphery;
-	TIntV ReturnP;
-	TIntV ReturnC;
-	TCnCom SnapReturnCP;
-
-	if (ArgsLen == 2) {
-		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
-		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
-		PUNGraph graph = JsGraph->Graph();
-		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
-		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
-		// double d = 0;
-		if (alg == "lip")
-			TSnap::FastCorePeriphery(graph, coreperiphery);
-		else
-			throw TQmExcept::New("TJsSnap::CorePeriphery: this algorithm does not exist!");
-	}
-	else {
-		throw TQmExcept::New("TJsSnap::CorePeriphery: two input arguments expected!");
-	}
-
-	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
-		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
-
-	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
-}
-
-///////////////////////////////
-// QMiner-Graph
-
-template <class T>
-v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-
-		JsRegisterFunction(TmpTemp, addNode);
-		JsRegisterFunction(TmpTemp, addEdge);
-		JsRegisterFunction(TmpTemp, delNode);
-		JsRegisterFunction(TmpTemp, delEdge);
-		JsRegisterFunction(TmpTemp, isNode);
-		JsRegisterFunction(TmpTemp, isEdge);
-		JsRegisterProperty(TmpTemp, nodes);
-		JsRegisterProperty(TmpTemp, edges);
-		JsRegisterFunction(TmpTemp, node);
-		JsRegisterProperty(TmpTemp, firstNode);
-		JsRegisterProperty(TmpTemp, lastNode);
-		JsRegisterProperty(TmpTemp, firstEdge);
-		JsRegisterFunction(TmpTemp, dump);
-		JsRegisterFunction(TmpTemp, eachNode);
-		JsRegisterFunction(TmpTemp, eachEdge);
-		JsRegisterFunction(TmpTemp, adjMat);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::addNode(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	int ReturnId = -1;
-	if (ArgsLen == 0) {
-		ReturnId = JsGraph->Graph->AddNode();
-	}
-	else if (ArgsLen == 1) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::addNode: Args[0] expected to be an integer!");
-		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
-		ReturnId = JsGraph->Graph->AddNode(NodeId);
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::addNode: one or zero input arguments!");
-	}
-	return HandleScope.Close(v8::Number::New(ReturnId));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::addEdge(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ReturnId = -1;
-	int ArgsLen = Args.Length();
-	if (ArgsLen == 2) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::addEdge: Args[0] and Args[1] expected to be integers!");
-		int SourceId = TJsGraphUtil::GetArgInt32(Args, 0);
-		int TargetId = TJsGraphUtil::GetArgInt32(Args, 1);
-		if (JsGraph->Graph->IsNode(SourceId) && JsGraph->Graph->IsNode(TargetId))
-			ReturnId = JsGraph->Graph->AddEdge(SourceId, TargetId);
-		else
-			throw TQmExcept::New("TJsGraph::addEdge: Args[0] and Args[1] need to be nodes!");
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::addEdge: two input arguments expected!");
-	}
-	return HandleScope.Close(v8::Number::New(ReturnId));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::delNode(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	if (ArgsLen == 1) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::addNode: Args[0] expected to be an integer!");
-		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
-		if (JsGraph->Graph->IsNode(NodeId)) {
-			JsGraph->Graph->DelNode(NodeId);
-		}
-		else {
-			throw TQmExcept::New(TStr::Fmt("TJsGraph::delNode: the node %i does not exist!", TJsGraphUtil::GetArgInt32(Args, 0)));
-		}
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::delNode: one input argument!");
-	}
-	return HandleScope.Close(v8::Null());
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::delEdge(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	if (ArgsLen == 2) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::delEdge: Args[0] and Args[1] expected to be integers!");
-		int NodeId1 = TJsGraphUtil::GetArgInt32(Args, 0);
-		int NodeId2 = TJsGraphUtil::GetArgInt32(Args, 1);
-		if (JsGraph->Graph->IsEdge(NodeId1, NodeId2)) {
-			JsGraph->Graph->DelEdge(NodeId1, NodeId2);
-		}
-		else {
-			throw TQmExcept::New(TStr::Fmt("TJsGraph::delEdge: an edge connecting %i and %i does not exist!", TJsGraphUtil::GetArgInt32(Args, 0), TJsGraphUtil::GetArgInt32(Args, 1)));
-		}
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::delNode: two input arguments expected!");
-	}
-	return HandleScope.Close(v8::Null());
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::isNode(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	bool ReturnExist = false;
-	if (ArgsLen == 1) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::isNode: Args[0] expected to be an integer!");
-		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
-		ReturnExist = JsGraph->Graph->IsNode(NodeId);
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::isNode: one input argument expected!");
-	}
-	return HandleScope.Close(v8::Boolean::New(ReturnExist));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::isEdge(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	bool ReturnExist = false;
-	if (ArgsLen == 2) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::isEdge: Args[0] and Args[1] expected to be integers!");
-		int NodeId1 = TJsGraphUtil::GetArgInt32(Args, 0);
-		int NodeId2 = TJsGraphUtil::GetArgInt32(Args, 1);
-		ReturnExist = JsGraph->Graph->IsEdge(NodeId1, NodeId2);
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::isNode: two input argument expected!");
-	}
-
-	return HandleScope.Close(v8::Boolean::New(ReturnExist));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::nodes(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetNodes()));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::edges(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetEdges()));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::node(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	typename T::TNodeI ReturnNode;
-	if (ArgsLen == 1) {
-		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
-		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
-		if (JsGraph->Graph->IsNode(NodeId)) {
-			ReturnNode = JsGraph->Graph->GetNI(NodeId);
-		} else {
-			return HandleScope.Close(v8::Null());		
-		}
-	}
-	else {
-		throw TQmExcept::New("TJsGraph::node: one input argument expected!");
-	}
-
-	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::firstNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-	typename T::TNodeI ReturnNode = JsGraph->Graph->BegNI();
-	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::lastNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-	typename T::TNodeI ReturnNode = JsGraph->Graph->EndNI();
-	ReturnNode--;
-	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
-	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::dump(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-
-	QmAssertR(ArgsLen <= 1, "TJsGraph::dump: one or zero input arguments expected!");
-	TStr FNm = TJsGraphUtil::GetArgStr(Args, 0, "");
-	if (FNm != "") {
-		FILE* pFile = fopen(FNm.CStr(), "w");
-		JsGraph->Graph->Dump(pFile);
-		fclose(pFile);
-	}
-	else {
-		JsGraph->Graph->Dump();
-	}
-	return HandleScope.Close(Args.Holder());
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::eachNode(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-
-	QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
-	v8::Handle<v8::Function> CallbackFun = TJsGraphUtil::GetArgFun(Args, 0);
-
-	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++)
-	{
-		v8::Handle<v8::Value> NodeArg = TJsNode<typename T::TNodeI>::New(JsGraph->Js, NI);
-		JsGraph->Js->Execute(CallbackFun, NodeArg);
-	}
-
-	return Args.Holder();
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-
-	QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
-	v8::Handle<v8::Function> CallbackFun = TJsGraphUtil::GetArgFun(Args, 0);
-
-	for (typename T::TEdgeI EI = JsGraph->Graph->BegEI(); EI < JsGraph->Graph->EndEI(); EI++)
-	{
-		v8::Handle<v8::Value> EdgeArg = TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, EI);
-		JsGraph->Js->Execute(CallbackFun, EdgeArg);
-	}
-
-	return Args.Holder();
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-
-	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-
-	int Nodes = JsGraph->Graph->GetNodes();
-	TVec<TIntFltKdV> Mat(Nodes);
-
-	THash<TInt, THash<TInt, TInt> > MultiGraph;
-
-	TIntSet NIdSet(JsGraph->Graph->GetNodes()); // remapping
-	// build the remapping of all keys
-	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
-		int NId = NI.GetId();
-		NIdSet.AddKey(NId);
-	}
-	// count outgoing edges, remap ids and build the sparse ajdacency matrix
-	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
-		int NId = NI.GetId();
-		int RemappedNId = NIdSet.GetKeyId(NId);
-		int OutDeg = NI.GetOutDeg();
-		TIntIntH Neigh(OutDeg);
-		MultiGraph.AddDat(NId, Neigh);
-		// take all outgoing edges and increment or add
-		for (int k = 0; k < OutDeg; k++) {
-			int OutNId = NI.GetOutNId(k);
-			if (MultiGraph.GetDat(NId).IsKey(OutNId)) {
-				MultiGraph.GetDat(NId).GetDat(OutNId)++;
-			}
-			else {
-				MultiGraph.GetDat(NId).AddDat(OutNId, 1);
-			}
-		}
-
-		// Mat[RemappedNId] = remap(MultiGraph.GetDat(NId).KeyV), MultiGraph.GetDat(NId).ValV
-		int Len = MultiGraph.GetDat(NId).Len();
-		Mat[RemappedNId].Gen(Len);
-		for (int k = 0; k < Len; k++) {
-			int Key = MultiGraph.GetDat(NId).GetKey(k);
-			Mat[RemappedNId][k].Key = NIdSet.GetKeyId(Key);
-			Mat[RemappedNId][k].Dat = MultiGraph.GetDat(NId).GetDat(Key);
-		}
-		Mat[RemappedNId].Sort();
-	}
-	return TJsSpMat::New(JsGraph->Js, Mat, Nodes);
-}
-
-///////////////////////////////
-// QMiner-Node
-
-template <class T>
-TJsNode<T>::TJsNode(TWPt<TScript> _Js, T a) : Js(_Js), Node(a){ Node = a; }
-
-template <class T>
-v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterProperty(TmpTemp, id);
-		JsRegisterProperty(TmpTemp, deg);
-		JsRegisterProperty(TmpTemp, inDeg);
-		JsRegisterProperty(TmpTemp, outDeg);
-		JsRegisterFunction(TmpTemp, nbrId);
-		JsRegisterFunction(TmpTemp, next);
-		JsRegisterFunction(TmpTemp, prev);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
-	int ReturnDegree = -1;
-	ReturnDegree = JsNode->Node.GetId();
-	return HandleScope.Close(v8::Number::New(ReturnDegree));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::deg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
-	int ReturnDegree = -1;
-	ReturnDegree = JsNode->Node.GetDeg();
-	return HandleScope.Close(v8::Number::New(ReturnDegree));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::inDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
-	int ReturnDegree = -1;
-	ReturnDegree = JsNode->Node.GetInDeg();
-	return HandleScope.Close(v8::Number::New(ReturnDegree));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::outDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
-	int ReturnDegree = -1;
-	ReturnDegree = JsNode->Node.GetOutDeg();
-	return HandleScope.Close(v8::Number::New(ReturnDegree));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::nbrId(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
-	int ReturnNId = -1;
-	int N = -1;
-	if (ArgsLen == 1) {
-		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrId: Args[0] expected to be an integer!");
-		N = TJsNodeUtil::GetArgInt32(Args, 0);
-		if (N < JsNode->Node.GetDeg())
-			ReturnNId = JsNode->Node.GetNbrNId(N);
-		else
-			throw TQmExcept::New("TJsNode::nbrId: Index is out of bounds!");
-	}
-	else {
-		throw TQmExcept::New("TJsNode::nbrId: one input argument expected!");
-	}
-	return HandleScope.Close(v8::Number::New(ReturnNId));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::next(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
-	JsNode->Node++;
-	return HandleScope.Close(Args.Holder());
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
-	JsNode->Node--;
-	return HandleScope.Close(Args.Holder());
-}
-
-///////////////////////////////
-// QMiner-Edge
-template <class T>
-TJsEdge<T>::TJsEdge(TWPt<TScript> _Js, T edge) : Js(_Js), Edge(edge){ Edge = edge; }
-
-template <class T>
-v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterProperty(TmpTemp, id);
-		JsRegisterProperty(TmpTemp, srcId);
-		JsRegisterProperty(TmpTemp, dstId);
-		JsRegisterFunction(TmpTemp, next);
-
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
-	TInt ReturnId = JsEdge->Edge.GetId();
-	return HandleScope.Close(v8::Number::New(ReturnId));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::srcId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
-	TInt ReturnSrcNodeId = JsEdge->Edge.GetSrcNId();
-	return HandleScope.Close(v8::Number::New(ReturnSrcNodeId));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::dstId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
-	TInt ReturnDstNodeId = JsEdge->Edge.GetDstNId();
-	return HandleScope.Close(v8::Number::New(ReturnDstNodeId));
-}
-
-template <class T>
-v8::Handle<v8::Value> TJsEdge<T>::next(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
-	JsEdge->Edge++;
-	return HandleScope.Close(Args.Holder());
-}
-
-
-///////////////////////////////
-// QMiner-JavaScript-HashMap
-
-const TStr TAuxStrIntH::ClassId = "TStrIntH";
-const TStr TAuxStrFltH::ClassId = "TStrFltH";
-const TStr TAuxStrStrH::ClassId = "TStrStrH";
-const TStr TAuxIntIntH::ClassId = "TIntIntH";
-const TStr TAuxIntFltH::ClassId = "TIntFltH";
-const TStr TAuxIntStrH::ClassId = "TIntStrH";
-
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -6639,55 +5972,6 @@ v8::Handle<v8::Value> TJsProcess::project_home(v8::Local<v8::String> Properties,
 	return HandleScope.Close(RootFPath);
 }
 
-///////////////////////////////
-// QMiner-JavaScript-Utilities
-
-v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, newStrIntH);
-		JsRegisterFunction(TmpTemp, newStrFltH);
-		JsRegisterFunction(TmpTemp, newStrStrH);
-		JsRegisterFunction(TmpTemp, newIntIntH);
-		JsRegisterFunction(TmpTemp, newIntFltH);
-		JsRegisterFunction(TmpTemp, newIntStrH);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsUtilities::newStrIntH(const v8::Arguments& Args) {
-	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
-	return TJsStrIntH::New(JsUtils->Js);
-}
-
-v8::Handle<v8::Value> TJsUtilities::newStrFltH(const v8::Arguments& Args) {
-	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
-	return TJsStrFltH::New(JsUtils->Js);
-}
-
-v8::Handle<v8::Value> TJsUtilities::newStrStrH(const v8::Arguments& Args) {
-	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
-	return TJsStrStrH::New(JsUtils->Js);
-}
-
-v8::Handle<v8::Value> TJsUtilities::newIntIntH(const v8::Arguments& Args) {
-	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
-	return TJsIntIntH::New(JsUtils->Js);
-}
-
-v8::Handle<v8::Value> TJsUtilities::newIntFltH(const v8::Arguments& Args) {
-	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
-	return TJsIntFltH::New(JsUtils->Js);
-}
-
-v8::Handle<v8::Value> TJsUtilities::newIntStrH(const v8::Arguments& Args) {
-	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
-	return TJsIntStrH::New(JsUtils->Js);
-}
 
 ///////////////////////////////
 // QMiner-JavaScript-Console
@@ -7069,6 +6353,71 @@ v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
 	JsFOut->SOut.Clr();
 	return HandleScope.Close(Args.Holder());
 }
+
+
+///////////////////////////////
+// QMiner-JavaScript-Utilities
+
+v8::Handle<v8::ObjectTemplate> TJsUtilities::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newStrIntH);
+		JsRegisterFunction(TmpTemp, newStrFltH);
+		JsRegisterFunction(TmpTemp, newStrStrH);
+		JsRegisterFunction(TmpTemp, newIntIntH);
+		JsRegisterFunction(TmpTemp, newIntFltH);
+		JsRegisterFunction(TmpTemp, newIntStrH);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newStrStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsStrStrH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntIntH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntIntH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntFltH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntFltH::New(JsUtils->Js);
+}
+
+v8::Handle<v8::Value> TJsUtilities::newIntStrH(const v8::Arguments& Args) {
+	TJsUtilities* JsUtils = TJsUtilitiesUtil::GetSelf(Args);
+	return TJsIntStrH::New(JsUtils->Js);
+}
+
+
+///////////////////////////////
+// QMiner-JavaScript-HashMap
+
+const TStr TAuxStrIntH::ClassId = "TStrIntH";
+const TStr TAuxStrFltH::ClassId = "TStrFltH";
+const TStr TAuxStrStrH::ClassId = "TStrStrH";
+const TStr TAuxIntIntH::ClassId = "TIntIntH";
+const TStr TAuxIntFltH::ClassId = "TIntFltH";
+const TStr TAuxIntStrH::ClassId = "TIntStrH";
+
+
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Console
@@ -7489,6 +6838,713 @@ v8::Handle<v8::Value> TJsTm::windowsTimestamp(v8::Local<v8::String> Properties, 
 	v8::HandleScope HandleScope; 
 	TJsTm* JsTm = TJsTmUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Number::New((double)TTm::GetMSecsFromTm(JsTm->Tm)));
+}
+
+
+///////////////////////////////
+// QMiner-Snap
+v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, newUGraph);
+		JsRegisterFunction(TmpTemp, newDGraph);
+		JsRegisterFunction(TmpTemp, newDMGraph);
+		JsRegisterFunction(TmpTemp, degreeCentrality);
+		JsRegisterFunction(TmpTemp, communityDetection);
+		JsRegisterFunction(TmpTemp, communityEvolution);
+		JsRegisterFunction(TmpTemp, corePeriphery);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+
+v8::Handle<v8::Value> TJsSnap::newUGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 0) {
+		return TJsGraph<TUNGraph>::New(JsSnap->Js, "TUNGraph");
+	}
+	else if (ArgsLen == 1) {
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		return TJsGraph<TUNGraph>::New(JsSnap->Js, path, "TUNGraph");
+	}
+	else
+		throw TQmExcept::New("TJsUGraph::addNode: one or zero input argument expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::newDGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	if (ArgsLen == 0) {
+		return TJsGraph<TNGraph>::New(JsSnap->Js, "TNGraph");
+	}
+	else if (ArgsLen == 1){
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		return TJsGraph<TNGraph>::New(JsSnap->Js, path, "TNGraph");
+	}
+	else
+		throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::newDMGraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	if (ArgsLen == 0) {
+		return TJsGraph<TNEGraph>::New(JsSnap->Js, "TNEGraph");
+	}
+	else if (ArgsLen == 1){
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		return TJsGraph<TNEGraph>::New(JsSnap->Js, path, "TNEGraph");
+	}
+	else
+		throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::degreeCentrality(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	int ArgsLen = Args.Length();
+
+	double ReturnCentrality = -1;
+
+	if (ArgsLen == 2) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
+		// graph class name can be checked with: JsGraph->Graph_class
+		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
+		PUNGraph graph = JsGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgInt32(Args, 1), "TJsSnap::DegreeCentrality: Args[1] expected to be integer!");
+		int NodeId = TJsSnapUtil::GetArgInt32(Args, 1);
+		ReturnCentrality = TSnap::GetDegreeCentr(graph, NodeId);
+	}
+	else {
+		throw TQmExcept::New("TJsUGraph::DegreeCentrality: two input arguments expected!");
+	}
+
+	return HandleScope.Close(v8::Number::New(ReturnCentrality));
+}
+
+v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
+	int Dim = -1;
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TCnComV communities;
+	TIntV ReturnCommunity;
+	TCnCom SnapReturnCommunities;
+
+	if (ArgsLen == 2) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
+		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
+		PUNGraph graph = JsGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
+		if (alg == "gn")
+			TSnap::CommunityGirvanNewman(graph, communities);
+		else if (alg == "cnm")
+			TSnap::CommunityCNM(graph, communities);
+		else if (alg == "imap")
+			TSnap::Infomap(graph, communities);
+		else
+			throw TQmExcept::New("TJsSnap::CommunityDetection: this algorithm does not exist!");
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::CommunityDetection: two input arguments expected!");
+	}
+
+	for (int j = 0; j < communities.Len(); j++){
+		SnapReturnCommunities = communities.GetDat(communities[j]);
+		for (int i = 0; i < SnapReturnCommunities.Len(); i++){
+			ReturnCommunity.Add(SnapReturnCommunities[i]);
+			Vec.Add(TIntFltKd(j, (int)SnapReturnCommunities[i]));
+		}
+	}
+
+	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
+}
+
+v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2){
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 0), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
+		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
+		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
+		PJsonVal Res = TJsonVal::GetValFromStr(jsonout);
+		return HandleScope.Close(TJsUtil::ParseJson(Res));
+	}
+	else
+		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
+	int Dim = -1;
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TIntIntH coreperiphery;
+	TIntV ReturnP;
+	TIntV ReturnC;
+	TCnCom SnapReturnCP;
+
+	if (ArgsLen == 2) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
+		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
+		PUNGraph graph = JsGraph->Graph();
+		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
+		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
+		// double d = 0;
+		if (alg == "lip")
+			TSnap::FastCorePeriphery(graph, coreperiphery);
+		else
+			throw TQmExcept::New("TJsSnap::CorePeriphery: this algorithm does not exist!");
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::CorePeriphery: two input arguments expected!");
+	}
+
+	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
+		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
+
+	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
+}
+
+///////////////////////////////
+// QMiner-Graph
+
+template <class T>
+v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+
+		JsRegisterFunction(TmpTemp, addNode);
+		JsRegisterFunction(TmpTemp, addEdge);
+		JsRegisterFunction(TmpTemp, delNode);
+		JsRegisterFunction(TmpTemp, delEdge);
+		JsRegisterFunction(TmpTemp, isNode);
+		JsRegisterFunction(TmpTemp, isEdge);
+		JsRegisterProperty(TmpTemp, nodes);
+		JsRegisterProperty(TmpTemp, edges);
+		JsRegisterFunction(TmpTemp, node);
+		JsRegisterProperty(TmpTemp, firstNode);
+		JsRegisterProperty(TmpTemp, lastNode);
+		JsRegisterProperty(TmpTemp, firstEdge);
+		JsRegisterFunction(TmpTemp, dump);
+		JsRegisterFunction(TmpTemp, eachNode);
+		JsRegisterFunction(TmpTemp, eachEdge);
+		JsRegisterFunction(TmpTemp, adjMat);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::addNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	int ReturnId = -1;
+	if (ArgsLen == 0) {
+		ReturnId = JsGraph->Graph->AddNode();
+	}
+	else if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::addNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		ReturnId = JsGraph->Graph->AddNode(NodeId);
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::addNode: one or zero input arguments!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::addEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ReturnId = -1;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::addEdge: Args[0] and Args[1] expected to be integers!");
+		int SourceId = TJsGraphUtil::GetArgInt32(Args, 0);
+		int TargetId = TJsGraphUtil::GetArgInt32(Args, 1);
+		if (JsGraph->Graph->IsNode(SourceId) && JsGraph->Graph->IsNode(TargetId))
+			ReturnId = JsGraph->Graph->AddEdge(SourceId, TargetId);
+		else
+			throw TQmExcept::New("TJsGraph::addEdge: Args[0] and Args[1] need to be nodes!");
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::addEdge: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template<>
+v8::Handle<v8::Value> TJsGraph<TNEGraph>::addEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ReturnId = -1;
+	int ArgsLen = Args.Length();
+	if (ArgsLen >= 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::addEdge: Args[0] and Args[1] expected to be integers!");
+		int SourceId = TJsGraphUtil::GetArgInt32(Args, 0);
+		int TargetId = TJsGraphUtil::GetArgInt32(Args, 1);
+		if (JsGraph->Graph->IsNode(SourceId) && JsGraph->Graph->IsNode(TargetId)) {
+			int EdgeId = TJsGraphUtil::GetArgInt32(Args, 2, -1);
+			ReturnId = JsGraph->Graph->AddEdge(SourceId, TargetId, EdgeId);
+		}
+		else
+			throw TQmExcept::New("TJsGraph::addEdge: Args[0] and Args[1] need to be nodes!");
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::addEdge: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::delNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::addNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		if (JsGraph->Graph->IsNode(NodeId)) {
+			JsGraph->Graph->DelNode(NodeId);
+		}
+		else {
+			throw TQmExcept::New(TStr::Fmt("TJsGraph::delNode: the node %i does not exist!", TJsGraphUtil::GetArgInt32(Args, 0)));
+		}
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::delNode: one input argument!");
+	}
+	return HandleScope.Close(v8::Null());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::delEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::delEdge: Args[0] and Args[1] expected to be integers!");
+		int NodeId1 = TJsGraphUtil::GetArgInt32(Args, 0);
+		int NodeId2 = TJsGraphUtil::GetArgInt32(Args, 1);
+		if (JsGraph->Graph->IsEdge(NodeId1, NodeId2)) {
+			JsGraph->Graph->DelEdge(NodeId1, NodeId2);
+		}
+		else {
+			throw TQmExcept::New(TStr::Fmt("TJsGraph::delEdge: an edge connecting %i and %i does not exist!", TJsGraphUtil::GetArgInt32(Args, 0), TJsGraphUtil::GetArgInt32(Args, 1)));
+		}
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::delNode: two input arguments expected!");
+	}
+	return HandleScope.Close(v8::Null());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::isNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	bool ReturnExist = false;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::isNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		ReturnExist = JsGraph->Graph->IsNode(NodeId);
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::isNode: one input argument expected!");
+	}
+	return HandleScope.Close(v8::Boolean::New(ReturnExist));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::isEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	bool ReturnExist = false;
+	if (ArgsLen == 2) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0) && TJsGraphUtil::IsArgInt32(Args, 1), "TJsGraph::isEdge: Args[0] and Args[1] expected to be integers!");
+		int NodeId1 = TJsGraphUtil::GetArgInt32(Args, 0);
+		int NodeId2 = TJsGraphUtil::GetArgInt32(Args, 1);
+		ReturnExist = JsGraph->Graph->IsEdge(NodeId1, NodeId2);
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::isNode: two input argument expected!");
+	}
+
+	return HandleScope.Close(v8::Boolean::New(ReturnExist));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::nodes(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetNodes()));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::edges(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetEdges()));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::node(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	typename T::TNodeI ReturnNode;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
+		int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
+		if (JsGraph->Graph->IsNode(NodeId)) {
+			ReturnNode = JsGraph->Graph->GetNI(NodeId);
+		}
+		else {
+			return HandleScope.Close(v8::Null());
+		}
+	}
+	else {
+		throw TQmExcept::New("TJsGraph::node: one input argument expected!");
+	}
+
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::firstNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	typename T::TNodeI ReturnNode = JsGraph->Graph->BegNI();
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::lastNode(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	typename T::TNodeI ReturnNode = JsGraph->Graph->EndNI();
+	ReturnNode--;
+	return HandleScope.Close(TJsNode<typename T::TNodeI>::New(JsGraph->Js, ReturnNode));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
+	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
+	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::dump(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	QmAssertR(ArgsLen <= 1, "TJsGraph::dump: one or zero input arguments expected!");
+	TStr FNm = TJsGraphUtil::GetArgStr(Args, 0, "");
+	if (FNm != "") {
+		FILE* pFile = fopen(FNm.CStr(), "w");
+		JsGraph->Graph->Dump(pFile);
+		fclose(pFile);
+	}
+	else {
+		JsGraph->Graph->Dump();
+	}
+	return HandleScope.Close(Args.Holder());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::eachNode(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsGraphUtil::GetArgFun(Args, 0);
+
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++)
+	{
+		v8::Handle<v8::Value> NodeArg = TJsNode<typename T::TNodeI>::New(JsGraph->Js, NI);
+		JsGraph->Js->Execute(CallbackFun, NodeArg);
+	}
+
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsGraphUtil::GetArgFun(Args, 0);
+
+	for (typename T::TEdgeI EI = JsGraph->Graph->BegEI(); EI < JsGraph->Graph->EndEI(); EI++)
+	{
+		v8::Handle<v8::Value> EdgeArg = TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, EI);
+		JsGraph->Js->Execute(CallbackFun, EdgeArg);
+	}
+
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::adjMat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+
+	int Nodes = JsGraph->Graph->GetNodes();
+	TVec<TIntFltKdV> Mat(Nodes);
+
+	THash<TInt, THash<TInt, TInt> > MultiGraph;
+
+	TIntSet NIdSet(JsGraph->Graph->GetNodes()); // remapping
+	// build the remapping of all keys
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		NIdSet.AddKey(NId);
+	}
+	// count outgoing edges, remap ids and build the sparse ajdacency matrix
+	for (typename T::TNodeI NI = JsGraph->Graph->BegNI(); NI < JsGraph->Graph->EndNI(); NI++) {
+		int NId = NI.GetId();
+		int RemappedNId = NIdSet.GetKeyId(NId);
+		int OutDeg = NI.GetOutDeg();
+		TIntIntH Neigh(OutDeg);
+		MultiGraph.AddDat(NId, Neigh);
+		// take all outgoing edges and increment or add
+		for (int k = 0; k < OutDeg; k++) {
+			int OutNId = NI.GetOutNId(k);
+			if (MultiGraph.GetDat(NId).IsKey(OutNId)) {
+				MultiGraph.GetDat(NId).GetDat(OutNId)++;
+			}
+			else {
+				MultiGraph.GetDat(NId).AddDat(OutNId, 1);
+			}
+		}
+
+		// Mat[RemappedNId] = remap(MultiGraph.GetDat(NId).KeyV), MultiGraph.GetDat(NId).ValV
+		int Len = MultiGraph.GetDat(NId).Len();
+		Mat[RemappedNId].Gen(Len);
+		for (int k = 0; k < Len; k++) {
+			int Key = MultiGraph.GetDat(NId).GetKey(k);
+			Mat[RemappedNId][k].Key = NIdSet.GetKeyId(Key);
+			Mat[RemappedNId][k].Dat = MultiGraph.GetDat(NId).GetDat(Key);
+		}
+		Mat[RemappedNId].Sort();
+	}
+	return TJsSpMat::New(JsGraph->Js, Mat, Nodes);
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+		JsGraph->Graph->Save(*SOut);
+		return HandleScope.Close(Args[0]);
+	}
+	else {
+		return v8::Undefined();
+	}
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+		JsGraph->Graph = JsGraph->Graph->Load(*SIn);		 
+	}
+	return Args.Holder();
+}
+
+///////////////////////////////
+// QMiner-Node
+
+template <class T>
+TJsNode<T>::TJsNode(TWPt<TScript> _Js, T a) : Js(_Js), Node(a){ Node = a; }
+
+template <class T>
+v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, deg);
+		JsRegisterProperty(TmpTemp, inDeg);
+		JsRegisterProperty(TmpTemp, outDeg);
+		JsRegisterFunction(TmpTemp, nbrId);
+		JsRegisterFunction(TmpTemp, next);
+		JsRegisterFunction(TmpTemp, prev);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetId();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::deg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetDeg();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::inDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetInDeg();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::outDeg(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Info);
+	int ReturnDegree = -1;
+	ReturnDegree = JsNode->Node.GetOutDeg();
+	return HandleScope.Close(v8::Number::New(ReturnDegree));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::nbrId(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	int ReturnNId = -1;
+	int N = -1;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrId: Args[0] expected to be an integer!");
+		N = TJsNodeUtil::GetArgInt32(Args, 0);
+		if (N < JsNode->Node.GetDeg())
+			ReturnNId = JsNode->Node.GetNbrNId(N);
+		else
+			throw TQmExcept::New("TJsNode::nbrId: Index is out of bounds!");
+	}
+	else {
+		throw TQmExcept::New("TJsNode::nbrId: one input argument expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnNId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::next(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	JsNode->Node++;
+	return HandleScope.Close(Args.Holder());
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	JsNode->Node--;
+	return HandleScope.Close(Args.Holder());
+}
+
+///////////////////////////////
+// QMiner-Edge
+template <class T>
+TJsEdge<T>::TJsEdge(TWPt<TScript> _Js, T edge) : Js(_Js), Edge(edge){ Edge = edge; }
+
+template <class T>
+v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterProperty(TmpTemp, id);
+		JsRegisterProperty(TmpTemp, srcId);
+		JsRegisterProperty(TmpTemp, dstId);
+		JsRegisterFunction(TmpTemp, next);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
+	TInt ReturnId = JsEdge->Edge.GetId();
+	return HandleScope.Close(v8::Number::New(ReturnId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::srcId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
+	TInt ReturnSrcNodeId = JsEdge->Edge.GetSrcNId();
+	return HandleScope.Close(v8::Number::New(ReturnSrcNodeId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::dstId(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Info);
+	TInt ReturnDstNodeId = JsEdge->Edge.GetDstNId();
+	return HandleScope.Close(v8::Number::New(ReturnDstNodeId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsEdge<T>::next(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsEdge* JsEdge = TJsEdgeUtil::GetSelf(Args);
+	JsEdge->Edge++;
+	return HandleScope.Close(Args.Holder());
 }
 
 ///////////////////////////////////////////////
