@@ -78,22 +78,22 @@ namespace TQm {
 //#  - [Neural network model](#neural-network-model)
 //#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
 //#  - [Hoeffding Tree model](#hoeffding-tree-model)
-//# - [snap.js (use require)](#snap-graph-library)
-//#  - [Graph](#graph)
-//#  - [Node](#node)
-//#  - [Edge](#edge)
 //# - [System and I/O](#system-and-io)
 //#  - [Process](#process)
-//#  - [utilities.js (use require)](#utilitiesjs-use-require)
-//#  - [utilities.map (use require)](#hash-map)
 //#  - [assert.js (use require)](#assertjs-use-require)
 //#  - [Console](#console)
 //#  - [File system](#file-system)
 //#  - [Input File Stream](#input-file-stream)
 //#  - [Output File Stream](#output-file-stream)
+//#  - [utilities.js (use require)](#utilitiesjs-use-require)
+//#  - [utilities.map (use require)](#hash-map)
 //#  - [HTTP](#http)
 //#  - [HTTP Response](#http-response)
 //#  - [Date-Time](#date-time)
+//# - [snap.js (use require)](#snap-graph-library)
+//#  - [Graph](#graph)
+//#  - [Node](#node)
+//#  - [Edge](#edge)
 //# - [Other libraries](#other-libraries)
 //#  - [twitter.js (use require)](#twitterjs-use-require)
 //#   
@@ -1126,7 +1126,7 @@ public:
 	JsDeclareFunction(onDelete);
 	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	JsDeclareFunction(saveJson);
-	//#- `sa = sa.save(fout)` -- executes save function given output stream `fout` as input. returns self.
+	//#- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
 	JsDeclareFunction(save);
 	//#- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 	JsDeclareFunction(load);
@@ -2192,7 +2192,7 @@ public:
 	JsDeclareFunction(setRow);
 	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
 	JsDeclareFunction(diag);
-	//#- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+	//#- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 	JsDeclareFunction(load);
@@ -2390,7 +2390,7 @@ public:
 	JsDeclareProperty(cols);
 	//#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
 	JsDeclareFunction(print);
-	//#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
+	//#- `fout = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 	JsDeclareFunction(load);
@@ -2514,7 +2514,7 @@ public:
 	//#     
     //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `fsp = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns self.
+    //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
@@ -2578,7 +2578,7 @@ public:
 	JsDeclareFunction(predict);
     //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);   
-    //#- `svmModel = svmModel.save(fout)` -- saves model to output stream `fout`. Returns self.
+    //#- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 };
 
@@ -2646,7 +2646,7 @@ public:
 	JsDeclareProperty(weights);
     //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
-	//#- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
+	//#- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 };
 
@@ -2785,229 +2785,6 @@ public:
 	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
-
-
-///////////////////////////////
-// QMiner-Snap
-//# 
-//# ## Snap graph library
-//# 
-//# A global object `snap` is used to construct graphs
-//# it is available in any script. The object includes
-//# several functions from snap library.
-class TJsSnap {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsSnap> TJsSnapUtil;
-
-	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
-		return TJsSnapUtil::New(new TJsSnap(Js));
-	}
-
-	/// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
-	JsDeclareFunction(newUGraph);
-	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
-	JsDeclareFunction(newDGraph);
-	//#- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
-	JsDeclareFunction(newDMGraph);
-	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
-	JsDeclareFunction(degreeCentrality);
-	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
-	JsDeclareFunction(communityDetection);
-	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
-	JsDeclareFunction(communityEvolution);
-	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
-	JsDeclareFunction(corePeriphery);
-};
-
-
-///////////////////////////////
-// QMiner-Graph
-//# 
-//# ### Graph
-//# 
-//# TUNGraph: undirected graph(single edge between an unordered pair of nodes)
-//# TNGraph : directed graph(single directed edge between an ordered pair of nodes)
-//# TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
-
-template <class T>
-class TJsGraph {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-	TPt<T> Graph;
-	TStr InFNm;
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsGraph> TJsGraphUtil;
-
-	TJsGraph(TWPt<TScript> _Js) : Js(_Js) {
-		Graph = T::New();
-	};
-
-	TJsGraph(TWPt<TScript> _Js, TStr path) : Js(_Js), InFNm(path) {
-		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
-	};
-
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
-		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
-		v8::Handle<v8::String> key = v8::String::New("class");
-		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
-		obj->SetHiddenValue(key, value);
-		return obj;
-	}
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
-		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
-		v8::Handle<v8::String> key = v8::String::New("class");
-		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
-		obj->SetHiddenValue(key, value);
-		return obj;
-	}
-
-	/// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
-	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
-	JsDeclareFunction(addNode);
-	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
-	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2, edgeId)` -- add an edge when `graph` is of the type `snap.newDMGraph()` 
-	JsDeclareFunction(addEdge);
-	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
-	JsDeclareFunction(delNode);
-	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
-	JsDeclareFunction(delEdge);
-	//#- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
-	JsDeclareFunction(isNode);
-	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
-	JsDeclareFunction(isEdge);
-	//#- `nodes = graph.nodes` -- gets number of nodes in the graph
-	JsDeclareProperty(nodes);
-	//#- `edges = graph.edges` -- gets number of edges in the graph
-	JsDeclareProperty(edges);
-	//#- `node = graph.node(idx)` -- gets node with ID `idx`
-	JsDeclareFunction(node);
-	//#- `node = graph.firstNode` -- gets first node
-	JsDeclareProperty(firstNode);
-	//#- `node = graph.lastNode` -- gets last node
-	JsDeclareProperty(lastNode);
-	//#- `edge = graph.firstEdge` -- gets first edge
-	JsDeclareProperty(firstEdge);
-	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
-	JsDeclareFunction(dump);
-	//#- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
-	//#  - `graph.eachNode(function (node) { console.log(node.id); })`
-	JsDeclareFunction(eachNode);
-	//#- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
-	//#  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
-	JsDeclareFunction(eachEdge);
-	//#- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
-	JsDeclareFunction(adjMat);
-};
-
-///////////////////////////////
-// QMiner-Node
-//# 
-//# ### Node
-//# 
-//# Node
-
-template <class T>
-class TJsNode {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-	T Node;
-
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsNode> TJsNodeUtil;
-	TJsNode(TWPt<TScript> Js_, T a);
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T a) {
-		v8::Persistent<v8::Object> obj = TJsNodeUtil::New(new TJsNode(Js, a));
-		/*
-		v8::Handle<v8::String> key = v8::String::New("class");
-		v8::Handle<v8::String> value = v8::String::New("Graph");
-		obj->SetHiddenValue(key, value);
-		*/
-		return obj;
-	}
-
-	/// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `id = node.id` -- return id of the node
-	JsDeclareProperty(id);
-	//#- `deg = node.deg` -- return degree of the node
-	JsDeclareProperty(deg);
-	//#- `indeg = node.inDeg` -- return in-degree of the node
-	JsDeclareProperty(inDeg);
-	//#- `outdeg = node.outDeg` -- return out-degree of the node
-	JsDeclareProperty(outDeg);
-	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
-	JsDeclareFunction(nbrId);
-	//#- `node = node.next()` -- return next node
-	JsDeclareFunction(next);
-	//#- `node = node.prev()` -- return previous node
-	JsDeclareFunction(prev);
-};
-
-///////////////////////////////
-// QMiner-Edge
-//# 
-//# ### Edge
-//# 
-//# Edge
-template <class T>
-class TJsEdge {
-public:
-	/// JS script context
-	TWPt<TScript> Js;
-	T Edge;
-
-private:
-	/// Object utility class
-	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
-	explicit TJsEdge(TWPt<TScript> Js_, T edge);
-public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T edge) {
-		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
-	}
-
-	/// template
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-	//# 
-	//# **Functions and properties:**
-	//# 
-	//#- `id = edge.id` -- return id of the edge
-	JsDeclareProperty(id);
-	//#- `id = edge.srcId` -- return id of source node
-	JsDeclareProperty(srcId);
-	//#- `id = edge.dstId` -- return id of destination node
-	JsDeclareProperty(dstId);
-	//#- `edge = edge.next()` -- return next edge
-	JsDeclareFunction(next);
-};
-
 
 
 ///////////////////////////////
@@ -3788,6 +3565,235 @@ public:
 	//#- `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
 	JsDeclareProperty(windowsTimestamp);
 };
+
+
+///////////////////////////////
+// QMiner-Snap
+//# 
+//# ## Snap graph library
+//# 
+//# A global object `snap` is used to construct graphs
+//# it is available in any script. The object includes
+//# several functions from snap library.
+class TJsSnap {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSnap> TJsSnapUtil;
+
+	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsSnapUtil::New(new TJsSnap(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
+	JsDeclareFunction(newUGraph);
+	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
+	JsDeclareFunction(newDGraph);
+	//#- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
+	JsDeclareFunction(newDMGraph);
+	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
+	JsDeclareFunction(degreeCentrality);
+	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	JsDeclareFunction(communityDetection);
+	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+	JsDeclareFunction(communityEvolution);
+	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(corePeriphery);
+};
+
+
+///////////////////////////////
+// QMiner-Graph
+//# 
+//# ### Graph
+//# 
+//# TUNGraph: undirected graph(single edge between an unordered pair of nodes)
+//# TNGraph : directed graph(single directed edge between an ordered pair of nodes)
+//# TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
+
+template <class T>
+class TJsGraph {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	TPt<T> Graph;
+	TStr InFNm;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsGraph> TJsGraphUtil;
+
+	TJsGraph(TWPt<TScript> _Js) : Js(_Js) {
+		Graph = T::New();
+	};
+
+	TJsGraph(TWPt<TScript> _Js, TStr path) : Js(_Js), InFNm(path) {
+		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
+	};
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+	JsDeclareFunction(addNode);
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2, edgeId)` -- add an edge when `graph` is of the type `snap.newDMGraph()` 
+	JsDeclareFunction(addEdge);
+	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+	JsDeclareFunction(delNode);
+	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+	JsDeclareFunction(delEdge);
+	//#- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+	JsDeclareFunction(isNode);
+	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+	JsDeclareFunction(isEdge);
+	//#- `nodes = graph.nodes` -- gets number of nodes in the graph
+	JsDeclareProperty(nodes);
+	//#- `edges = graph.edges` -- gets number of edges in the graph
+	JsDeclareProperty(edges);
+	//#- `node = graph.node(idx)` -- gets node with ID `idx`
+	JsDeclareFunction(node);
+	//#- `node = graph.firstNode` -- gets first node
+	JsDeclareProperty(firstNode);
+	//#- `node = graph.lastNode` -- gets last node
+	JsDeclareProperty(lastNode);
+	//#- `edge = graph.firstEdge` -- gets first edge
+	JsDeclareProperty(firstEdge);
+	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+	JsDeclareFunction(dump);
+	//#- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
+	//#  - `graph.eachNode(function (node) { console.log(node.id); })`
+	JsDeclareFunction(eachNode);
+	//#- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
+	//#  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
+	JsDeclareFunction(eachEdge);
+	//#- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
+	JsDeclareFunction(adjMat);
+	//#- `fout = graph.save(fout)` -- saves graph to output stream `fout`
+	JsDeclareFunction(save);
+	//#- `graph = graph.load(fin)` -- loads graph from input stream `fin`
+	JsDeclareFunction(load);
+};
+
+///////////////////////////////
+// QMiner-Node
+//# 
+//# ### Node
+//# 
+//# Node
+
+template <class T>
+class TJsNode {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	T Node;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsNode> TJsNodeUtil;
+	TJsNode(TWPt<TScript> Js_, T a);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T a) {
+		v8::Persistent<v8::Object> obj = TJsNodeUtil::New(new TJsNode(Js, a));
+		/*
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("Graph");
+		obj->SetHiddenValue(key, value);
+		*/
+		return obj;
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = node.id` -- return id of the node
+	JsDeclareProperty(id);
+	//#- `deg = node.deg` -- return degree of the node
+	JsDeclareProperty(deg);
+	//#- `indeg = node.inDeg` -- return in-degree of the node
+	JsDeclareProperty(inDeg);
+	//#- `outdeg = node.outDeg` -- return out-degree of the node
+	JsDeclareProperty(outDeg);
+	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
+	JsDeclareFunction(nbrId);
+	//#- `node = node.next()` -- return next node
+	JsDeclareFunction(next);
+	//#- `node = node.prev()` -- return previous node
+	JsDeclareFunction(prev);
+};
+
+///////////////////////////////
+// QMiner-Edge
+//# 
+//# ### Edge
+//# 
+//# Edge
+template <class T>
+class TJsEdge {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	T Edge;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
+	explicit TJsEdge(TWPt<TScript> Js_, T edge);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T edge) {
+		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = edge.id` -- return id of the edge
+	JsDeclareProperty(id);
+	//#- `id = edge.srcId` -- return id of source node
+	JsDeclareProperty(srcId);
+	//#- `id = edge.dstId` -- return id of destination node
+	JsDeclareProperty(dstId);
+	//#- `edge = edge.next()` -- return next edge
+	JsDeclareFunction(next);
+};
+
+
+
 //#
 //# ## Other libraries
 //#
