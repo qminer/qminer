@@ -142,6 +142,10 @@ private:
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
+    /// Ngrams Range Start
+    TInt NStart;
+    /// Ngrams Range End
+    TInt NEnd;
     
     /// Number of documents processed so far
     TInt Docs;
@@ -157,8 +161,8 @@ private:
 
 public:
     TBagOfWords() { }
-    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1);
+    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const int& NStart=1, const int& NEnd=1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -183,10 +187,17 @@ public:
     void Forget(const double& Factor);
 
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
-    TStr GetVal(const int& ValN) const { return IsHashing() ? "hash" : TokenSet.GetKey(ValN); }
+    TStr GetVal(const int& ValN) const { if(IsHashing()) {return TInt::GetStr(ValN);
+    	} else {
+    		return TokenSet.GetKey(ValN);
+    	}
+    }
     
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
+
+    /// Generate Ngrams
+    void GenerateNgrams(const TStrV& TokenStrV, TStrV& NgramStrV) const;
 }; 
 
 ///////////////////////////////////////

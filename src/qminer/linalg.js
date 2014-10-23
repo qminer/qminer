@@ -27,6 +27,20 @@ la.printVec = function (vec, prec) {
 	str += "]\n";
 	console.say(str);
 };
+
+//#- `la.getSpFeatVecCols(spVec, fsp)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
+la.getSpFeatVecCols = function (spVec, fsp) {
+    
+    // get index and value vectors
+    var valVec = spVec.valVec();
+    var idxVec = spVec.idxVec();
+    var cols = [];
+    for (var elN = 0; elN < idxVec.length; elN++) {
+        cols.push(fsp.getFtr(idxVec[elN]));
+    }
+    return cols;
+}
+
 //#- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
