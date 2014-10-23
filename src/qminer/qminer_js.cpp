@@ -1326,7 +1326,7 @@ v8::Handle<v8::Value> TJsSA::save(const v8::Arguments& Args) {
 		JsSA->Js->Execute(SA->SaveFun, Args[0]);
 		
 	}
-	return Args[0];
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsSA::load(const v8::Arguments& Args) {
@@ -4156,7 +4156,7 @@ v8::Handle<v8::Value> TJsFltVV::save(const v8::Arguments& Args) {
 	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 	// save to stream
 	JsMat->Mat.Save(*SOut);
-	return Args[0];
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsFltVV::load(const v8::Arguments& Args) {
@@ -4815,7 +4815,7 @@ v8::Handle<v8::Value> TJsSpMat::save(const v8::Arguments& Args) {
 	// save to stream
 	JsSpMat->Rows.Save(*SOut);
 	JsSpMat->Mat.Save(*SOut);
-	return Args[0];
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsSpMat::load(const v8::Arguments& Args) {
@@ -5316,7 +5316,7 @@ v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
     // save to stream
     JsFtrSpace->FtrSpace->Save(*SOut);
 	// return
-	return Args[0];
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::updateRecord(const v8::Arguments& Args) {
@@ -5500,7 +5500,7 @@ v8::Handle<v8::Value> TJsSvmModel::save(const v8::Arguments& Args) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsSvmModel->Model.Save(*SOut);
 	}
-	return Args[0];
+	return HandleScope.Close(Args[0]);
 }
 
 ///////////////////////////////
@@ -5679,7 +5679,7 @@ v8::Handle<v8::Value> TJsRecLinRegModel::save(const v8::Arguments& Args) {
 	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 	JsModel->Model->Save(*SOut);
 
-	return Args[0];
+	return HandleScope.Close(Args[0]);
 }
 
 v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -7375,7 +7375,7 @@ v8::Handle<v8::Value> TJsGraph<T>::save(const v8::Arguments& Args) {
 	if (Args.Length() > 0) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsGraph->Graph->Save(*SOut);
-		return Args[0];
+		return HandleScope.Close(Args[0]);
 	}
 	else {
 		return v8::Undefined();
@@ -7388,7 +7388,7 @@ v8::Handle<v8::Value> TJsGraph<T>::load(const v8::Arguments& Args) {
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
 	if (Args.Length() > 0) {
 		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-		JsGraph->Graph->Load(*SIn);
+		JsGraph->Graph = JsGraph->Graph->Load(*SIn);		 
 	}
 	return Args.Holder();
 }

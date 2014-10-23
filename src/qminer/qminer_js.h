@@ -3375,7 +3375,7 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::save(const v8::Arguments& Args)
 	if (Args.Length() > 0) {
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsMap->Map.Save(*SOut);
-		return Args[0];
+		return HandleScope.Close(Args[0]);
 	}
 	else {
 		return v8::Undefined();
