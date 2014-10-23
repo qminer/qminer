@@ -110,6 +110,10 @@ private:
 			Items.Add(GixSL->GetItemSet(Children[i]));
 		}
 	}
+	/// Returns i-th child itemset
+	PGixItemSet GetChildItemSet(int i) {
+		return GixSL->GetItemSet(Children[i]);
+	}
 
 public:
 	TGixItemSet(const TKey& _ItemSetKey, const PGixMerger& _Merger, const TGixStorageLayer<TKey, TItem>* _GixSL) :
@@ -134,6 +138,7 @@ public:
     const TKey& GetKey() const { return ItemSetKey; }
 	void AddItem(const TItem& NewItem);
 	void AddItemV(const TVec<TItem>& NewItemV);
+	void OverrideItems(const TVec<TItem>& NewItemV, int From, int To);
     int GetItems() const { return ItemV.Len(); }
     const TItem& GetItem(const int& ItemN) const { return ItemV[ItemN]; }
 
@@ -173,12 +178,17 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) { 
     const int OldSize = ItemV.GetMemUsed();
 	if (IsFull()) {
-		bool AddNewChild = false;
+		bool AddNewChild = false; // flag if new child Itemset should be added
+		const TItem *LastItem;    // pointer to last item in the itemset, will be used for calculating MergedP
 		if (Children.Len() == 0) {
 			AddNewChild = true;
+			LastItem = &ItemV.Last();
 		} else {
 			PGixItemSet Last = GixSL->GetItemSet(Children.Last());
+			LastItem = &(Last->ItemV.Last());
+			
 			// TODO perform Level1 merge
+			
 			if (Last->IsFull()) {
 				AddNewChild = true;
 			} else {
@@ -192,10 +202,17 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			TBlobPt Addr = GixSL->EnlistItemSet(NewChild);
 			Children.Add(Addr);
 		}
-	} else {
+		if (MergedP) {
+			MergedP = (ItemV.Len() == 0 ? true : *LastItem < NewItem);
+		}
+	} else {		
+		if (MergedP) {
+			// if itemset is merged and the newly added item is bigger than the last one
+			// the itemset remains merged
+			MergedP = (ItemV.Len() == 0 ? true : ItemV.Last() < NewItem);
+		}
 		ItemV.Add(NewItem);
 	}
-    MergedP = false;
 	// notify cache that this item grew
 	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
@@ -203,7 +220,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) { 
     const int OldSize = ItemV.GetMemUsed();
-	// TODO tu boš moral paziti na splitanje...
+	// TODO tu boš moral paziti na splitanje in hitro izvajanje...
     ItemV.AddV(NewItemV);
     MergedP = false;
 	// notify cache that this item grew
@@ -211,9 +228,20 @@ void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) {
 }
 
 template <class TKey, class TItem>
+void TGixItemSet<TKey, TItem>::OverrideItems(const TVec<TItem>& NewItemV, int From, int To) {
+	const int OldSize = ItemV.GetMemUsed();
+	ItemV.Clr();
+	NewItemV.GetSubValV(From, To - From, ItemV);
+	MergedP = false;
+	// notify cache that this item grew
+	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
+}
+
+template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
-	/// access direct data of Src itemset
+	// access data of Src itemset directly, no child records
 	AddItemV(Src->ItemV);
+	// ok, now process children if present
 	if (Src->Children.Len() > 0) {
 		// get references to children of Src
 		TVec<PGixItemSet> Items(Children.Len());
@@ -257,9 +285,44 @@ void TGixItemSet<TKey, TItem>::Clr() {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Def() { 
+
 	// call merger to pack items, if not yet done
 	if (!MergedP) { 
-		Merger->Merge(ItemV); 
+		if (Children.Len() > 0) {
+
+			// merge child records
+			
+			// get all items
+			TVec<TItem> MergedItems;
+			GetItemV(MergedItems); // this also retrieves data from child itemsets
+
+			// perform merge
+			Merger->Merge(MergedItems);
+
+			// TODO now save them back
+			int curr_index = 0;
+			int child_index = -1;
+			while (curr_index < MergedItems.Len()) {
+				if (child_index < 0) {
+					OverrideItems(MergedItems, curr_index, ItemV.Len());
+					curr_index += ItemV.Len();
+					child_index++;
+				} else {
+					auto ItemSet = GetChildItemSet(child_index++);
+					ItemSet->OverrideItems(MergedItems, curr_index, ItemSet->ItemV.Len());
+					curr_index += ItemSet->ItemV.Len();
+					ItemSet->MergedP = true;
+				}
+			}
+			// TODO - clear those children became empty
+			while (child_index < Children.Len()) {
+				auto ItemSet = GetChildItemSet(child_index++);
+				ItemSet->Clr();
+			}
+		} else {
+			// no child records, just merge this 
+			Merger->Merge(ItemV);
+		}
 		MergedP = true;
 	}
 }
