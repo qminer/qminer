@@ -1892,9 +1892,9 @@ _spMat.toString = function () {
 
 _spMat.save = function () {
 	/// <signature>
-	/// <summary> print `spMat` (sparse matrix) to output stream `fout`. Returns self.</summary>
+	/// <summary> print `spMat` (sparse matrix) to output stream `fout`. Returns `fout`.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_spMat"/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -2012,14 +2012,37 @@ _svmModel.predict = function () {
 
 _svmModel.save = function () {
 	/// <signature>
-	/// <summary> saves model to output stream `fout`. Returns self.</summary>
+	/// <summary> saves model to output stream `fout`. Returns `fout`.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
 /// <field name = "weights" value = "_vec"> weights of the SVM linear model as a full vector `vec`</field>
 _svmModel.weights = _vec;
+
+_node.eachNbr = function () {
+	/// <signature>
+	/// <summary> calls the callback function(nodeid) {...} on all neighbors</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.eachInNbr = function () {
+	/// <signature>
+	/// <summary> calls the callback function(nodeid) {...} on all in-neighbors</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.prev = function () {
+	/// <signature>
+	/// <summary> return previous node</summary>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
 
 _node.nbrId = function () {
 	/// <signature>
@@ -2029,6 +2052,57 @@ _node.nbrId = function () {
 	/// </signature>
 };
 
+_node.eachOutNbr = function () {
+	/// <signature>
+	/// <summary> calls the callback function(nodeid) {...} on all out-neighbors</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.eachEdge = function () {
+	/// <signature>
+	/// <summary> calls the callback function(edgeid) {...} on the ids of all of node's in/out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.eachInEdge = function () {
+	/// <signature>
+	/// <summary> calls the callback function(edgeid) {...} on the ids of all of node's in-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_node.outNbrId = function () {
+	/// <signature>
+	/// <summary> return id of Nth out-neighbour</summary>
+	/// <param name="_N" value="_N">param</param>
+	/// <returns value ="_nid"/>
+	/// </signature>
+};
+
+_node.inNbrId = function () {
+	/// <signature>
+	/// <summary> return id of Nth in-neighbour</summary>
+	/// <param name="_N" value="_N">param</param>
+	/// <returns value ="_nid"/>
+	/// </signature>
+};
+
+_node.eachOutEdge = function () {
+	/// <signature>
+	/// <summary> calls the callback function(edgeid) {...} on the ids of all of node's out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+/// <field name = "outDeg" value = "_outdeg"> return out-degree of the node</field>
+_node.outDeg = _outdeg;
+
 _node.next = function () {
 	/// <signature>
 	/// <summary> return next node</summary>
@@ -2036,21 +2110,11 @@ _node.next = function () {
 	/// </signature>
 };
 
-/// <field name = "inDeg" value = "_indeg"> return in-degree of the node</field>
-_node.inDeg = _indeg;
-
-_node.prev = function () {
-	/// <signature>
-	/// <summary> return previous node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
 /// <field name = "id" value = "_id"> return id of the node</field>
 _node.id = _id;
 
-/// <field name = "outDeg" value = "_outdeg"> return out-degree of the node</field>
-_node.outDeg = _outdeg;
+/// <field name = "inDeg" value = "_indeg"> return in-degree of the node</field>
+_node.inDeg = _indeg;
 
 /// <field name = "deg" value = "_deg"> return degree of the node</field>
 _node.deg = _deg;
@@ -2809,9 +2873,9 @@ _recLinRegModel.dim = _num;
 
 _recLinRegModel.save = function () {
 	/// <signature>
-	/// <summary> saves model to output stream `fout`. Returns self.</summary>
+	/// <summary> saves model to output stream `fout`. Returns `fout`.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_recLinRegModel"/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -2968,9 +3032,9 @@ _sa.getTmAt = function () {
 
 _sa.save = function () {
 	/// <signature>
-	/// <summary> executes save function given output stream `fout` as input. returns self.</summary>
+	/// <summary> executes save function given output stream `fout` as input. returns `fout`.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_sa"/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -3137,11 +3201,11 @@ _snap.communityEvolution = function () {
 	/// </signature>
 };
 
-_graph.node = function () {
+_graph.load = function () {
 	/// <signature>
-	/// <summary> gets node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_node"/>
+	/// <summary> loads graph from input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_graph"/>
 	/// </signature>
 };
 
@@ -3158,6 +3222,14 @@ _graph.delEdge = function () {
 	/// <param name="_idx1" value="_idx1">param</param>
 	/// <param name="_idx2" value="_idx2">param</param>
 	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.node = function () {
+	/// <signature>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
 	/// </signature>
 };
 
@@ -3237,11 +3309,26 @@ _graph.isEdge = function () {
 /// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
 _graph.nodes = _nodes;
 
+_graph.save = function () {
+	/// <signature>
+	/// <summary> saves graph to output stream `fout`</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+};
+
 _graph.addEdge = function () {
 	/// <signature>
 	/// <summary> add an edge</summary>
 	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
 	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <returns value ="_edgeIdx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add an edge when `graph` is of the type `snap.newDMGraph()`</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <param name="_edgeId" value="_edgeId">param</param>
 	/// <returns value ="_edgeIdx"/>
 	/// </signature>
 };
@@ -3432,10 +3519,17 @@ _alModel.getPos = function () {
 	/// </signature>
 };
 
-_alModel.startLoop = function () {
+_alModel.getRecSet = function () {
 	/// <signature>
-	/// <summary> starts the active learning loop in console</summary>
-	/// <returns value =""/>
+	/// <summary> returns the record set that is being used (result of sampling)</summary>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
+_alModel.selectedQuestionIdx = function () {
+	/// <signature>
+	/// <summary> returns the index of the last selected question in alModel.getRecSet()</summary>
+	/// <returns value ="_idx"/>
 	/// </signature>
 };
 
@@ -3458,6 +3552,13 @@ _alModel.getQueryMode = function () {
 	/// <signature>
 	/// <summary> returns true if in query mode, false otherwise (SVM mode)</summary>
 	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_alModel.startLoop = function () {
+	/// <signature>
+	/// <summary> starts the active learning loop in console</summary>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -3602,9 +3703,9 @@ _mat.solve = function () {
 
 _mat.save = function () {
 	/// <signature>
-	/// <summary> print `mat` (full matrix) to output stream `fout`. Returns self.</summary>
+	/// <summary> print `mat` (full matrix) to output stream `fout`. Returns `fout`.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_mat"/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -3700,6 +3801,22 @@ _mat.at = function () {
 	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_map.load = function () {
+	/// <signature>
+	/// <summary> loads the hashtable from input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_map.save = function () {
+	/// <signature>
+	/// <summary> saves the hashtable to output stream `fout`</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 
@@ -4215,9 +4332,9 @@ _fsp.ftrVec = function () {
 
 _fsp.save = function () {
 	/// <signature>
-	/// <summary> serialize feature space to `fout` output stream. Returns self.</summary>
+	/// <summary> serialize feature space to `fout` output stream. Returns `fout`.</summary>
 	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_fsp"/>
+	/// <returns value ="_fout"/>
 	/// </signature>
 };
 

@@ -3655,6 +3655,7 @@ public:
 		obj->SetHiddenValue(key, value);
 		return obj;
 	}
+	static TPt<T> TJsGraph<T>::GetArgGraph(const v8::Arguments& Args, const int& ArgN);
 
 	/// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -3748,10 +3749,26 @@ public:
 	JsDeclareProperty(outDeg);
 	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
 	JsDeclareFunction(nbrId);
+	//#- `nid = node.outNbrId(N)` -- return id of Nth out-neighbour
+	JsDeclareFunction(outNbrId);
+	//#- `nid = node.inNbrId(N)` -- return id of Nth in-neighbour
+	JsDeclareFunction(inNbrId);
 	//#- `node = node.next()` -- return next node
 	JsDeclareFunction(next);
 	//#- `node = node.prev()` -- return previous node
 	JsDeclareFunction(prev);
+	//#- `node = node.eachNbr(callback)` -- calls the callback function(nodeid) {...} on all neighbors
+	JsDeclareFunction(eachNbr);
+	//#- `node = node.eachOutNbr(callback)` -- calls the callback function(nodeid) {...} on all out-neighbors
+	JsDeclareFunction(eachOutNbr);
+	//#- `node = node.eachInNbr(callback)` -- calls the callback function(nodeid) {...} on all in-neighbors
+	JsDeclareFunction(eachInNbr);
+	//#- `node = node.eachEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in/out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachEdge);
+	//#- `node = node.eachOutEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachOutEdge);
+	//#- `node = node.eachInEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachInEdge);
 };
 
 ///////////////////////////////
@@ -3765,14 +3782,14 @@ class TJsEdge {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
-	T Edge;
+	typename T::TEdgeI Edge;
 
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
-	explicit TJsEdge(TWPt<TScript> Js_, T edge);
+	explicit TJsEdge(TWPt<TScript> Js_, typename T::TEdgeI edge);
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T edge) {
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, typename T::TEdgeI edge) {
 		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
 	}
 

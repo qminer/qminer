@@ -7029,6 +7029,12 @@ v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
 // QMiner-Graph
 
 template <class T>
+TPt<T> TJsGraph<T>::GetArgGraph(const v8::Arguments& Args, const int& ArgN) {
+	throw TQmExcept("not implemented");
+	return T::New();
+}
+
+template <class T>
 v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 	v8::HandleScope HandleScope;
 	static v8::Persistent<v8::ObjectTemplate> Template;
@@ -7262,7 +7268,7 @@ v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, c
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
-	return HandleScope.Close(TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, ReturnEdge));
+	return HandleScope.Close(TJsEdge<typename T>::New(JsGraph->Js, ReturnEdge));
 }
 
 template <class T>
@@ -7313,7 +7319,7 @@ v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
 
 	for (typename T::TEdgeI EI = JsGraph->Graph->BegEI(); EI < JsGraph->Graph->EndEI(); EI++)
 	{
-		v8::Handle<v8::Value> EdgeArg = TJsEdge<typename T::TEdgeI>::New(JsGraph->Js, EI);
+		v8::Handle<v8::Value> EdgeArg = TJsEdge<typename T>::New(JsGraph->Js, EI);
 		JsGraph->Js->Execute(CallbackFun, EdgeArg);
 	}
 
@@ -7410,8 +7416,16 @@ v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
 		JsRegisterProperty(TmpTemp, inDeg);
 		JsRegisterProperty(TmpTemp, outDeg);
 		JsRegisterFunction(TmpTemp, nbrId);
+		JsRegisterFunction(TmpTemp, outNbrId);
+		JsRegisterFunction(TmpTemp, inNbrId);
 		JsRegisterFunction(TmpTemp, next);
 		JsRegisterFunction(TmpTemp, prev);
+		JsRegisterFunction(TmpTemp, eachNbr);
+		JsRegisterFunction(TmpTemp, eachOutNbr);
+		JsRegisterFunction(TmpTemp, eachInNbr);
+		JsRegisterFunction(TmpTemp, eachEdge);
+		JsRegisterFunction(TmpTemp, eachOutEdge);
+		JsRegisterFunction(TmpTemp, eachInEdge);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -7477,6 +7491,48 @@ v8::Handle<v8::Value> TJsNode<T>::nbrId(const v8::Arguments& Args) {
 }
 
 template <class T>
+v8::Handle<v8::Value> TJsNode<T>::outNbrId(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	int ReturnNId = -1;
+	int N = -1;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrId: Args[0] expected to be an integer!");
+		N = TJsNodeUtil::GetArgInt32(Args, 0);
+		if (N < JsNode->Node.GetOutDeg())
+			ReturnNId = JsNode->Node.GetOutNId(N);
+		else
+			throw TQmExcept::New("TJsNode::outNbrId: Index is out of bounds!");
+	}
+	else {
+		throw TQmExcept::New("TJsNode::outNbrId: one input argument expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnNId));
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::inNbrId(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	int ArgsLen = Args.Length(); 
+	int ReturnNId = -1;
+	int N = -1;
+	if (ArgsLen == 1) {
+		QmAssertR(TJsNodeUtil::IsArgInt32(Args, 0), "TJsNode::nbrId: Args[0] expected to be an integer!");
+		N = TJsNodeUtil::GetArgInt32(Args, 0);
+		if (N < JsNode->Node.GetInDeg())
+			ReturnNId = JsNode->Node.GetInNId(N);
+		else
+			throw TQmExcept::New("TJsNode::inNbrId: Index is out of bounds!");
+	}
+	else {
+		throw TQmExcept::New("TJsNode::inNbrId: one input argument expected!");
+	}
+	return HandleScope.Close(v8::Number::New(ReturnNId));
+}
+
+template <class T>
 v8::Handle<v8::Value> TJsNode<T>::next(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
@@ -7492,10 +7548,109 @@ v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
 	return HandleScope.Close(Args.Holder());
 }
 
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::eachNbr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "node.eachNbr: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+	
+	int Len = JsNode->Node.GetDeg();	
+	for (int NodeN = 0; NodeN < Len; NodeN++) {		
+		int NbrId = JsNode->Node.GetNbrNId(NodeN);
+		JsNode->Js->Execute(CallbackFun, v8::Integer::New(NbrId));
+	}
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::eachOutNbr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "node.eachNbr: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	int Len = JsNode->Node.GetOutDeg();
+	for (int NodeN = 0; NodeN < Len; NodeN++) {
+		int NbrId = JsNode->Node.GetOutNId(NodeN);
+		JsNode->Js->Execute(CallbackFun, v8::Integer::New(NbrId));
+	}
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::eachInNbr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "node.eachNbr: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	int Len = JsNode->Node.GetInDeg();
+	for (int NodeN = 0; NodeN < Len; NodeN++) {
+		int NbrId = JsNode->Node.GetInNId(NodeN);
+		JsNode->Js->Execute(CallbackFun, v8::Integer::New(NbrId));
+	}
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::eachEdge(const v8::Arguments& Args) {	throw TQmExcept::New("node.eachEdge not implemented for the node iterator type");}
+
+template<>
+v8::Handle<v8::Value> TJsNode<TNEGraph::TNodeI>::eachEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "node.eachEdge: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	int Len = JsNode->Node.GetDeg();
+	for (int EdgeN = 0; EdgeN < Len; EdgeN++) {
+		int NbrEId = JsNode->Node.GetNbrEId(EdgeN);
+		JsNode->Js->Execute(CallbackFun, v8::Integer::New(NbrEId));
+	}
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::eachOutEdge(const v8::Arguments& Args) { throw TQmExcept::New("node.eachOutEdge not implemented for the node iterator type");}
+
+template <>
+v8::Handle<v8::Value> TJsNode<TNEGraph::TNodeI>::eachOutEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "node.eachOutEdge: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	int Len = JsNode->Node.GetOutDeg();
+	for (int EdgeN = 0; EdgeN < Len; EdgeN++) {
+		int NbrEId = JsNode->Node.GetOutEId(EdgeN);
+		JsNode->Js->Execute(CallbackFun, v8::Integer::New(NbrEId));
+	}
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsNode<T>::eachInEdge(const v8::Arguments& Args) { throw TQmExcept::New("node.eachInEdge not implemented for the node iterator type");}
+
+template <>
+v8::Handle<v8::Value> TJsNode<TNEGraph::TNodeI>::eachInEdge(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "node.eachInEdge: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	int Len = JsNode->Node.GetInDeg();
+	for (int EdgeN = 0; EdgeN < Len; EdgeN++) {
+		int NbrEId = JsNode->Node.GetInEId(EdgeN);
+		JsNode->Js->Execute(CallbackFun, v8::Integer::New(NbrEId));
+	}
+	return Args.Holder();
+}
+
 ///////////////////////////////
 // QMiner-Edge
 template <class T>
-TJsEdge<T>::TJsEdge(TWPt<TScript> _Js, T edge) : Js(_Js), Edge(edge){ Edge = edge; }
+TJsEdge<T>::TJsEdge(TWPt<TScript> _Js, typename T::TEdgeI edge) : Js(_Js), Edge(edge){ Edge = edge; }
 
 template <class T>
 v8::Handle<v8::ObjectTemplate> TJsEdge<T>::GetTemplate() {
