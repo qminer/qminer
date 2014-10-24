@@ -7268,7 +7268,7 @@ v8::Handle<v8::Value> TJsGraph<T>::firstEdge(v8::Local<v8::String> Properties, c
 	v8::HandleScope HandleScope;
 	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
 	typename T::TEdgeI ReturnEdge = JsGraph->Graph->BegEI();
-	return HandleScope.Close(TJsEdge<typename T>::New(JsGraph->Js, ReturnEdge));
+	return HandleScope.Close(TJsEdge<T>::New(JsGraph->Js, ReturnEdge));
 }
 
 template <class T>
@@ -7319,7 +7319,7 @@ v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
 
 	for (typename T::TEdgeI EI = JsGraph->Graph->BegEI(); EI < JsGraph->Graph->EndEI(); EI++)
 	{
-		v8::Handle<v8::Value> EdgeArg = TJsEdge<typename T>::New(JsGraph->Js, EI);
+		v8::Handle<v8::Value> EdgeArg = TJsEdge<T>::New(JsGraph->Js, EI);
 		JsGraph->Js->Execute(CallbackFun, EdgeArg);
 	}
 
