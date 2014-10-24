@@ -3655,7 +3655,7 @@ public:
 		obj->SetHiddenValue(key, value);
 		return obj;
 	}
-	static TPt<T> TJsGraph<T>::GetArgGraph(const v8::Arguments& Args, const int& ArgN);
+	static TPt<T> GetArgGraph(const v8::Arguments& Args, const int& ArgN);
 
 	/// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
