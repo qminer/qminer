@@ -44,6 +44,7 @@ public:
 		const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
 	virtual void Merge(TVec<TItem>& ItemV) const = 0;
     virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
+	virtual bool IsLt(const TItem& Item1, const TItem& Item2) const = 0;
 
     friend class TPt<TGixMerger<TKey, TItem> >;
 };
@@ -64,6 +65,7 @@ public:
         TVec<TItem>& ResV) const { MainV.Diff(JoinV, ResV); }
 	void Merge(TVec<TItem>& ItemV) const { ItemV.Merge(); }
     void Def(const TKey& Key, TVec<TItem>& MainV) const  { }
+	bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
 };
 
 /////////////////////////////////////////////////
@@ -93,7 +95,9 @@ private:
     typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
     typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
 private:
+	/// The key of this itemset
     TKey ItemSetKey;
+	/// Items of this itemset - could be only part of them, other can be stored in child itemsets
     TVec<TItem> ItemV;
 
 	// optional list of child vectors - will be populated only for frequent keys
@@ -101,7 +105,9 @@ private:
 
     // for keeping the ItemV unique and sorted
     TBool MergedP;
+	// pointer to merger that will merge this itemset
     PGixMerger Merger;
+	// pointer to storage-layer (serialization of self, loading children, notifying about chnages...)
 	const TGixStorageLayer<TKey, TItem> *GixSL;
 
 	/// Load all child Itemsets into memory and get pointers to them
@@ -116,17 +122,22 @@ private:
 	}
 
 public:
+	/// Standard constructor
 	TGixItemSet(const TKey& _ItemSetKey, const PGixMerger& _Merger, const TGixStorageLayer<TKey, TItem>* _GixSL) :
 		ItemSetKey(_ItemSetKey), MergedP(true), Merger(_Merger), GixSL(_GixSL){}
+	/// Standard factory method
 	static PGixItemSet New(const TKey& ItemSetKey, const PGixMerger& Merger, const TGixStorageLayer<TKey, TItem>* GixSL) {
 		return new TGixItemSet(ItemSetKey, Merger, GixSL);
 	}
 
+	/// Constructor for deserialization
 	TGixItemSet(TSIn& SIn, const PGixMerger& _Merger, const TGixStorageLayer<TKey, TItem>* _GixSL) :
 		ItemSetKey(SIn), ItemV(SIn), Children(SIn), MergedP(true), Merger(_Merger), GixSL(_GixSL)  { }
+	/// Standard factory method for deserialization
 	static PGixItemSet Load(TSIn& SIn, const PGixMerger& Merger, const TGixStorageLayer<TKey, TItem>* GixSL) {
 		return new TGixItemSet(SIn, Merger, GixSL);
 	}
+	/// Saves this itemset to output stream
     void Save(TSOut& SOut);
 
     // functions used by TCache
@@ -139,18 +150,25 @@ public:
 	void AddItem(const TItem& NewItem);
 	void AddItemV(const TVec<TItem>& NewItemV);
 	void OverrideItems(const TVec<TItem>& NewItemV, int From, int Len);
+	/// Get number of items TODO access to child itemsets?
     int GetItems() const { return ItemV.Len(); }
+	/// Get item at given index TODO access to child itemsets?
     const TItem& GetItem(const int& ItemN) const { return ItemV[ItemN]; }
 
     //const TVec<TItem>& GetItemV() const { return ItemV; }
 	void AppendItemSet(const TPt<TGixItemSet>& Src);
-	void GetItemV(TVec<TItem>& _ItemV, bool IsParent = true);
+	/// Get items into vector, append of overwrite
+	void GetItemV(TVec<TItem>& _ItemV, bool Overwrite = true);
+	/// Delete specified item from this itemset
 	void DelItem(const TItem& Item);
+	/// Clear all items from this itemset
     void Clr();
+	/// Pack/merge this itemset
     void Def();
 
+	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() { 
-		return (ItemV.GetMemUsed() > 200 /*10 * 1024 * 1024*/); 
+		return (ItemV.GetMemUsed() > 200 /*10 * 1024 * 1024*/);  // TODO remove this after dev tests
 	}
 
     friend class TPt<TGixItemSet>;
@@ -203,13 +221,13 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			Children.Add(Addr);
 		}
 		if (MergedP) {
-			MergedP = (ItemV.Len() == 0 ? true : *LastItem < NewItem);
+			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(*LastItem, NewItem));
 		}
 	} else {		
 		if (MergedP) {
 			// if itemset is merged and the newly added item is bigger than the last one
 			// the itemset remains merged
-			MergedP = (ItemV.Len() == 0 ? true : ItemV.Last() < NewItem);
+			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(ItemV.Last(), NewItem));
 		}
 		ItemV.Add(NewItem);
 	}
@@ -220,10 +238,10 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) { 
     const int OldSize = ItemV.GetMemUsed();
-	// TODO tu boš moral paziti na splitanje in hitro izvajanje...
-    ItemV.AddV(NewItemV);
-    MergedP = false;
-	// notify cache that this item grew
+	for (int i = 0; i < NewItemV.Len(); i++) {
+		AddItem(NewItemV[i]);
+	}
+    // notify cache that this item grew
 	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
@@ -254,8 +272,8 @@ void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
 }
 
 template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV, bool IsParent = true) {
-	if (IsParent) {
+void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV, bool Overwrite = true) {
+	if (Overwrite) {
 		_ItemV = ItemV;
 		if (Children.Len() > 0) {
 			// collect data from child itemsets
@@ -271,9 +289,7 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV, bool IsParent = tru
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
-
-	// TODO tole predpostavlja da je zadeva zmerge-ana, ker pobriše samo prvo pojavitev
-	// tako je delalo že prej(!?)
+	Def();
     const int OldSize = ItemV.GetMemUsed();
     ItemV.DelIfIn(Item);
 	if (Children.Len()>0) {
@@ -293,39 +309,49 @@ void TGixItemSet<TKey, TItem>::Clr() {
 			GetChildItemSet(i)->Clr();
 		}
 	}
-	ItemSet->MergedP = true;
+	MergedP = true;
     GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Def() { 
-	// call merger to pack items, if not yet done
+	// call merger to pack items, if not merged yet 
 	if (!MergedP) { 
 		if (Children.Len() > 0) {
 			// complex merge - need to also use child itemsets			
 			TVec<TItem> MergedItems;  
 			GetItemV(MergedItems); // collect all items - this also retrieves data from child itemsets
 			Merger->Merge(MergedItems); // perform merge
-			// TODO now save them back
+
+			// now save them back
 			int curr_index = 0;
 			int child_index = -1;
 			while (curr_index < MergedItems.Len()) {
 				if (child_index < 0) {
-					OverrideItems(MergedItems, curr_index, ItemV.Len());
+					int len = TMath::Mn<int>(ItemV.Len(), MergedItems.Len() - curr_index);
+					OverrideItems(MergedItems, curr_index, len);
 					curr_index += ItemV.Len();
 					child_index++;
 				} else {
-					auto ItemSet = GetChildItemSet(child_index++);
+					PGixItemSet ItemSet = GetChildItemSet(child_index++);
 					int len = TMath::Mn<int>(ItemSet->ItemV.Len(), MergedItems.Len() - curr_index);
 					ItemSet->OverrideItems(MergedItems, curr_index, len);
 					curr_index += ItemSet->ItemV.Len();
 					ItemSet->MergedP = true;
 				}
 			}
-			// TODO - clear children that became empty
+			// clear children that became empty - 1 should remain, other must be destroyed
+			bool keep_next_child = true;
 			while (child_index < Children.Len()) {
-				auto ItemSet = GetChildItemSet(child_index++);
+				PGixItemSet ItemSet = GetChildItemSet(child_index++);
 				ItemSet->Clr();
+				if (keep_next_child) {
+					keep_next_child = false;
+				} else {
+					// TODO destroy this itemset
+					ItemSet.Clr();
+					//Children[i]
+				}
 			}
 		} else {
 			// no child records, just merge this 
