@@ -458,4 +458,89 @@ void TSparseNumeric::AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offse
     Offset += GetVals();
 }
 
+///////////////////////////////////////
+// Date window feature generator
+void TDateWnd::InitWgt() {
+    if (NormalizeP) {
+       Wgt = 1.0 / TMath::Sqrt((double)WndSize); 
+    } else {
+       Wgt = 1.0;
+    }
+}
+
+TDateWnd::TDateWnd(const int& _WndSize, const TTmUnit& _TmUnit, 
+    const bool& _NormalizeP): InitP(false), WndSize(_WndSize), 
+        TmUnit(_TmUnit), NormalizeP(_NormalizeP) {
+    
+    EAssert(WndSize > 0);  
+    // initialize feature vector weight
+    InitWgt();
+}
+
+
+TDateWnd::TDateWnd(const TTm& StartTm, const TTm& EndTm, const int& _WndSize, 
+        const TTmUnit& _TmUnit, const bool& _NormalizeP): InitP(true),
+            WndSize(_WndSize), TmUnit(_TmUnit), NormalizeP(_NormalizeP) {
+
+    EAssert(WndSize > 0);
+    // use borders to construct time boundaries
+    Update(StartTm);
+    Update(EndTm);
+    // initialize feature vector weight
+    InitWgt();
+}
+
+void TDateWnd::Save(TSOut& SOut) const {
+    InitP.Save(SOut);
+    StartUnit.Save(SOut);
+    EndUnit.Save(SOut);
+    WndSize.Save(SOut);
+    SaveEnum<TTmUnit>(SOut, TmUnit);
+    NormalizeP.Save(SOut);
+}
+    
+bool TDateWnd::Update(const TTm& Val) {
+    // if first time, use it to initialize
+    if (!InitP) {
+        StartUnit = TSecTm(Val).GetInUnits(TmUnit);
+        EndUnit = TSecTm(Val).GetInUnits(TmUnit);
+        InitP = true;
+        return true;
+    }
+    // check if we moved start or end boundary
+    const uint ValUnit = TSecTm(Val).GetInUnits(TmUnit);
+    if (StartUnit > ValUnit) {
+        StartUnit = ValUnit; return true;
+    }
+    if (EndUnit < ValUnit) {
+        EndUnit = ValUnit; return true;
+    }
+    // nope, we are fine
+    return false;
+}
+
+int TDateWnd::GetFtr(const TTm& Val) const {
+    EAssert(InitP);
+    const uint ValUnit = TSecTm(Val).GetInUnits(TmUnit);
+    if (ValUnit < StartUnit) { return 0; }
+    if (ValUnit > EndUnit) { return (int)(EndUnit - StartUnit); }
+    return (int)(ValUnit - StartUnit);
+}
+
+void TDateWnd::AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const {
+    const int Ftr = GetFtr(Val);
+    for (int FtrN = 0; FtrN < WndSize; FtrN++) {
+        SpV.Add(TIntFltKd(Offset + Ftr + FtrN, Wgt));
+    }
+    Offset += GetDim();
+}
+
+void TDateWnd::AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const {
+    const int Ftr = GetFtr(Val);
+    for (int FtrN = 0; FtrN < WndSize; FtrN++) {
+        FullV[Offset + Ftr + FtrN] = Wgt;
+    }    
+    Offset += GetDim();
+}
+
 }

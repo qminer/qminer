@@ -207,4 +207,43 @@ public:
     int GetVals() const { return MxId + 1; }
 };
 
+///////////////////////////////////////
+/// Date window feature generator
+class TDateWnd {
+private:
+    TBool InitP;
+    /// Start date
+    TUInt StartUnit;
+    /// End date
+    TUInt EndUnit;
+    /// Window size
+    TInt WndSize;
+    /// Time unit
+    TTmUnit TmUnit;
+    /// Normalize output to 1
+    TBool NormalizeP;
+    /// Weight used in the feature vectors
+    TFlt Wgt;
+    
+    // initialize the weight based on parameters
+    void InitWgt();
+
+public:
+    TDateWnd(): InitP(false), TmUnit(tmuUndef) { }
+    TDateWnd(const int& _WndSize, const TTmUnit& _TmUnit, const bool& _NormalizeP = true);
+    TDateWnd(const TTm& StartTm, const TTm& EndTm, const int& _WndSize, 
+        const TTmUnit& _TmUnit, const bool& _NormalizeP = true);
+    TDateWnd(TSIn& SIn): InitP(SIn), StartUnit(SIn), EndUnit(SIn), WndSize(SIn),
+        TmUnit(LoadEnum<TTmUnit>(SIn)), NormalizeP(SIn) { InitWgt(); }
+    void Save(TSOut& SOut) const;
+
+    void Clr() { InitP = false; }
+    bool Update(const TTm& Val);
+    int GetFtr(const TTm& Val) const;
+    void AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const;
+    
+    int GetDim() const { return EndUnit - StartUnit + WndSize; }
+};
+
 }

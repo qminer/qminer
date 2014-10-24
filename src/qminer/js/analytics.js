@@ -1224,6 +1224,8 @@ exports.newRocchio = function (trainMat, targetVec, params) {
 			negFilter.push(1.0 / colNorm[i]);
 		}
 	}
+    console.log(" - Rocchio training: P=" + posCount + ", N=" + negCount);
+
 	// check we have some of each class
 	if (posCount == 0 || negCount == 0) { 
 		console.log("Not enough positive and/or negative examples: P=" + posCount + " / N=" + negCount);
@@ -1268,7 +1270,7 @@ exports.newPULearning = function (trainMat, posVec, params) {
 	var rocchioTargetVec = la.newVec({ mxvals: cols });
 	for (var i = 0; i < cols; i++) { rocchioTargetVec.push(classVec[i] > 0 ? 1 : -1); }
 	// train rocchio model
-	var rocchio = newRocchio(trainMat, rocchioTargetVec, params)
+	var rocchio = exports.newRocchio(trainMat, rocchioTargetVec, params)
 	// apply to get reliable negative data
 	for (var i = 0; i < cols; i++) { 
 		if (classVec[i] > 0) {
@@ -1286,9 +1288,10 @@ exports.newPULearning = function (trainMat, posVec, params) {
 	console.log(" - training SVM model");
 	// train SVM model
 	var svm = analytics.trainSvmClassify(trainMat, classVec, params);
-	// apply to undecided data
+	// apply to all data
+    posCount = 0; negCount = 0;
 	for (var i = 0; i < cols; i++) {
-		if (classVec[i] == 0) {
+		//if (classVec[i] == 0) {
 			// unlabled example, let's classify it!
 			if (svm.predict(trainMat[i]) > 0) {
 				classVec[i] = 1;
@@ -1297,7 +1300,7 @@ exports.newPULearning = function (trainMat, posVec, params) {
 				classVec[i] = -1;
 				negCount++;
 			}
-		}
+		//}
 	}
 	console.log(" - after step 2: P=" + posCount + ", N=" + negCount);	
 	// we are complete

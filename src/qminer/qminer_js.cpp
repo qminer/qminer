@@ -4928,6 +4928,8 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
 		
 		// create feature space
 		PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
+        // report on what was created
+        InfoLog(FtrSpace->GetNm());
 		// done
 		return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);		
 	}
