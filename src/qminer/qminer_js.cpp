@@ -5750,6 +5750,7 @@ v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
 		JsRegisterFunction(TmpTemp, degreeCentrality);
 		JsRegisterFunction(TmpTemp, communityDetection);
 		JsRegisterFunction(TmpTemp, communityEvolution);
+		JsRegisterFunction(TmpTemp, evolutionJson);
 		JsRegisterFunction(TmpTemp, corePeriphery);
 		JsRegisterFunction(TmpTemp, reebSimplify);
 		JsRegisterFunction(TmpTemp, reebRefine);
@@ -5873,7 +5874,6 @@ v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 		int NId = NI.GetId();
 		NIdSet.AddKey(NId);
 		int RemappedNId = NIdSet.GetKeyId(NId);
-		
 	}
 
 	for (int i = 0; i < communities.Len(); i++) {
@@ -5892,13 +5892,122 @@ v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	int ArgsLen = Args.Length();
-	if (ArgsLen == 2){
+	if (ArgsLen == 9){
+
 		QmAssertR(TJsSnapUtil::IsArgStr(Args, 0), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
 		TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-		int CmtyAlg = TJsSnapUtil::GetArgInt32(Args, 1);
-		TStr jsonout = TSnap::CmtyTest(path, CmtyAlg);
-		PJsonVal Res = TJsonVal::GetValFromStr(jsonout);
-		return HandleScope.Close(TJsUtil::ParseJson(Res));
+
+		double alpha = TJsSnapUtil::GetArgFlt(Args, 1);
+		double beta = TJsSnapUtil::GetArgFlt(Args, 2);
+
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 3, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
+		TJsGraph<TNGraph>* JsOutGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 3);
+		PNGraph outGraph = JsOutGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* timeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 4);
+		TIntH& t = timeHash->Map;
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* commHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 5);
+		TIntH& c = commHash->Map;
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* sizeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 6);
+		TIntH& s = sizeHash->Map;
+
+		TJsIntV* edgeSize = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 7);
+		TIntV& e = edgeSize->Vec;
+
+		TJsSpMat* membersMat = TJsObjUtil<TJsSpMat>::GetArgObj(Args, 8);
+		TIntIntVH m;	
+		
+		TVec<PUNGraph, TSize> gs;
+		TSnap::GraphVFile(path, gs);
+
+		TSnap::CmtyEvolutionBatchGraph(gs, outGraph, t, c, s, e, m, 0.5, 0.5, 2);
+
+		int tlen = t.Len();
+		int mlen = m.Len();
+		int Nodes = 0;
+
+		TIntH uniqueNodes;
+		for (int i = 0; i < gs.Len(); i++) {
+			for (TUNGraph::TNodeI it = gs[i]->BegNI(); it < gs[i]->EndNI(); it++) {
+				uniqueNodes.AddDat(it.GetId(), it.GetId());
+			}
+		}
+	
+		Nodes = uniqueNodes.Len();
+
+		TIntSet NIdSet(Nodes);
+
+		/*
+		for (int i = 0; i < gs.Len(); i++) {
+			TIntV nodev;
+			gs[i]->GetNIdV(nodev);
+			for (int j = 0; j < nodev.Len(); j++) {
+				int NId = nodev[j];
+				NIdSet.AddKey(NId);
+				int RemappedNId = NIdSet.GetKeyId(NId);
+			}
+		}
+		*/
+
+		for (int i = 0; i < uniqueNodes.Len(); i++) {
+			int NId = uniqueNodes[i];
+			NIdSet.AddKey(NId);
+		}
+
+		int NIdSetLen = NIdSet.Len();
+		
+
+		TVec<TIntFltKdV> Mat(tlen);
+
+		for (int i = 0; i < m.Len(); i++) {
+			Mat[i].Gen(Nodes);
+			for (int j = 0; j < m[i].Len(); j++) {
+				int milen = m[i].Len();
+				int id = m[i][j];
+				int RemappedNId = NIdSet.GetKeyId(id);
+				Mat[i][RemappedNId].Key = RemappedNId;
+				Mat[i][RemappedNId].Dat = id;
+			}
+		}
+
+		TVec<TIntFltKdV>& M = membersMat->Mat;
+		M = Mat;
+
+		return HandleScope.Close(Args.Holder());
+	}
+	else
+		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::evolutionJson(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 6){
+
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
+		TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
+		PNGraph inGraph = JsInGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* timeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
+		TIntH& t = timeHash->Map;
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* commHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 2);
+		TIntH& c = commHash->Map;
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* sizeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 3);
+		TIntH& s = sizeHash->Map;
+
+		TJsIntV* edgeSize = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 4);
+		TIntV& e = edgeSize->Vec;
+
+		TJsHash<TInt, TStr, TAuxIntIntH>* txtHash = TJsObjUtil<TJsHash<TInt, TStr, TAuxIntIntH>>::GetArgObj(Args, 5);
+		TIntStrH& txt = txtHash->Map;
+
+		TStr out = TSnap::CmtyEvolutionGraphToJson(inGraph, t, c, s, e, txt);
+
+		return HandleScope.Close(v8::String::New(out.CStr()));
 	}
 	else
 		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
@@ -6371,6 +6480,7 @@ v8::Handle<v8::ObjectTemplate> TJsNode<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, nbrId);
 		JsRegisterFunction(TmpTemp, next);
 		JsRegisterFunction(TmpTemp, prev);
+		JsRegisterFunction(TmpTemp, eachNbr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6449,6 +6559,60 @@ v8::Handle<v8::Value> TJsNode<T>::prev(const v8::Arguments& Args) {
 	TJsNode* JsNode = TJsNodeUtil::GetSelf(Args);
 	JsNode->Node--;
 	return HandleScope.Close(Args.Holder());
+}
+
+template <>
+v8::Handle<v8::Value> TJsNode<TUNGraph::TNodeI>::eachNbr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode<TUNGraph::TNodeI>* JsNode = TJsNodeUtil::GetSelf(Args);
+
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 1);
+	for (int i = 0; i < JsNode->Node.GetDeg(); i++) {
+		TUNGraph::TNodeI NI = JsGraph->Graph->GetNI(JsNode->Node.GetNbrNId(i));
+		v8::Handle<v8::Value> NodeArg = TJsNode<TUNGraph::TNodeI>::New(JsNode->Js, NI);
+		JsNode->Js->Execute(CallbackFun, NodeArg);
+	}
+		
+	return Args.Holder();
+}
+
+template <>
+v8::Handle<v8::Value> TJsNode<TNGraph::TNodeI>::eachNbr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode<TNGraph::TNodeI>* JsNode = TJsNodeUtil::GetSelf(Args);
+
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	TJsGraph<TNGraph>* JsGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 1);
+	for (int i = 0; i < JsNode->Node.GetDeg(); i++) {
+		TNGraph::TNodeI NI = JsGraph->Graph->GetNI(JsNode->Node.GetNbrNId(i));
+		v8::Handle<v8::Value> NodeArg = TJsNode<TNGraph::TNodeI>::New(JsNode->Js, NI);
+		JsNode->Js->Execute(CallbackFun, NodeArg);
+	}
+
+	return Args.Holder();
+}
+
+template <>
+v8::Handle<v8::Value> TJsNode<TNEGraph::TNodeI>::eachNbr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsNode<TNEGraph::TNodeI>* JsNode = TJsNodeUtil::GetSelf(Args);
+
+	QmAssertR(TJsNodeUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsNodeUtil::GetArgFun(Args, 0);
+
+	TJsGraph<TNEGraph>* JsGraph = TJsObjUtil<TJsGraph<TNEGraph>>::GetArgObj(Args, 1);
+	for (int i = 0; i < JsNode->Node.GetDeg(); i++) {
+		TNEGraph::TNodeI NI = JsGraph->Graph->GetNI(JsNode->Node.GetNbrNId(i));
+		v8::Handle<v8::Value> NodeArg = TJsNode<TNEGraph::TNodeI>::New(JsNode->Js, NI);
+		JsNode->Js->Execute(CallbackFun, NodeArg);
+	}
+
+	return Args.Holder();
 }
 
 ///////////////////////////////
