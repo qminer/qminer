@@ -228,6 +228,7 @@ void TGixItemSet<TKey, TItem>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) { 
     const int OldSize = ItemV.GetMemUsed();
+	printf("adding %d \n", NewItem);
 	if (IsFull()) {
 		bool AddNewChild = false; // flag if new child Itemset should be added
 		const TItem *LastItem;    // pointer to last item in the itemset, will be used for calculating MergedP
@@ -249,6 +250,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			}
 		}
 		if (AddNewChild){
+			printf("adding new child, at index %d \n", Children.Len() + 1);
 			PGixItemSet NewChild = New(GetKey(), Merger, GixSL);
 			NewChild->AddItem(NewItem);
 			TBlobPt Addr = GixSL->EnlistItemSet(NewChild);
@@ -383,6 +385,8 @@ void TGixItemSet<TKey, TItem>::Def() {
 					ItemSet->MergedP = true;
 				}
 			}
+
+			/*
 			// clear children that became empty - 1 should remain, others must be destroyed
 			bool keep_next_child = true;
 			int last_good_child = -1;
@@ -403,6 +407,19 @@ void TGixItemSet<TKey, TItem>::Def() {
 				Children.Del(last_good_child + 1, Children.Len() - 1);
 				ChildrenLen.Del(last_good_child + 1, ChildrenLen.Len() - 1);
 			}
+			*/
+
+			// clear children that became empty - kill'em all
+			int first_empty_child = child_index;
+			while (child_index < Children.Len()) {
+				GixSL->DeleteItemSet(Children[child_index++]); // remove from storage
+			}
+			if (first_empty_child < Children.Len()) {
+				// remove deleted itemsets
+				Children.Del(first_empty_child, Children.Len() - 1);
+				ChildrenLen.Del(first_empty_child, ChildrenLen.Len() - 1);
+			}
+
 			TotalCnt = MergedItems.Len();
 		} else {
 			// no child records, just merge this 
@@ -517,7 +534,9 @@ template <class TKey, class TItem>
 TBlobPt TGixStorageLayer<TKey, TItem>::EnlistItemSet(const PGixItemSet& ItemSet) const {
 	TMOut MOut;
 	ItemSet->Save(MOut);
-	return ItemSetBlobBs->PutBlob(MOut.GetSIn());
+	TBlobPt res = ItemSetBlobBs->PutBlob(MOut.GetSIn());
+	printf("enlisted new itemset to storage: %d %d \n", res.Addr, res.Seg);
+	return res;
 }
 
 template <class TKey, class TItem>

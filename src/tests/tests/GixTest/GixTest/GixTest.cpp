@@ -203,6 +203,163 @@ void Test_Splitting_1Split() {
 		}
 	}
 }
+
+void Test_Splitting_1SplitNoRealMerge() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+
+		// we have 1 itemset, containing 15 items (12 unique), enough for 1 split
+		// split should remain after merge
+		int len = 15;
+		int cnt = 1;
+		int diff_vals = 12;
+		for (int i = 0; i < cnt; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < len; j++) {
+				itemset->AddItem(j % diff_vals); // non-unique
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset); // here the merge occurs
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+		TAssert(blob_pt_v.Len() == cnt, "Bad itemset count.");
+
+		TVec<TUInt64> items;
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		itemset->GetItemV(items);
+		TAssert(items.Len() == diff_vals, "Bad item count.");
+		for (int j = 0; j < items.Len(); j++) {
+			TAssert(items[j] == j, "Bad item value.");
+		}
+		for (int j = 0; j < diff_vals; j++) {
+			TAssert(itemset->GetItem(j) == j, "Bad item value.");
+		}
+	}
+}
+
+void Test_Splitting_1SplitMerge() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+
+		// we have 1 itemset, containing 12 non-unique items, enough for 1 split
+		// but when merged, falls bellow 1 vector => children deletion must take place
+		int len = 12;
+		int cnt = 1;
+		int diff_vals = 4;
+		for (int i = 0; i < cnt; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < len; j++) {
+				itemset->AddItem(j % diff_vals); // non-unique
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+		TAssert(blob_pt_v.Len() == cnt, "Bad itemset count.");
+
+		TVec<TUInt64> items;
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		itemset->GetItemV(items);
+		TAssert(items.Len() == diff_vals, "Bad item count.");
+		for (int j = 0; j < items.Len(); j++) {
+			TAssert(items[j] == j, "Bad item value.");
+		}
+		for (int j = 0; j < diff_vals; j++) {
+			TAssert(itemset->GetItem(j) == j, "Bad item value.");
+		}
+	}
+}
+
+void Test_Splitting_2SplitMerge() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+
+		// we have 1 itemset, containing 25 non-unique items, enough for 2 splits
+		// but when merged, they fit into 2 vectors => children deletion must take place
+		int len = 25;
+		int cnt = 1;
+		int diff_vals = 15;
+		for (int i = 0; i < cnt; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < len; j++) {
+				itemset->AddItem(j % diff_vals); // non-unique
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+		TAssert(blob_pt_v.Len() == cnt, "Bad itemset count.");
+
+		TVec<TUInt64> items;
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		itemset->GetItemV(items);
+		TAssert(items.Len() == diff_vals, "Bad item count.");
+		for (int j = 0; j < items.Len(); j++) {
+			TAssert(items[j] == j, "Bad item value.");
+		}
+		for (int j = 0; j < diff_vals; j++) {
+			TAssert(itemset->GetItem(j) == j, "Bad item value.");
+		}
+	}
+}
+
+void Test_Splitting_10SplitsMerge() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+
+		// we have 1 itemset, containing 97 non-unique items, enough for 9 split
+		// but when merged, fits inside 2 vectors => children deletion must take place
+
+		// TODO there is a bug in the code - when child itemset is saved, storage layer 
+		// returns updated blob pointer and that change is not recorded anywhere...!!!
+
+		int len = 10*10 - 3;
+		int cnt = 1;
+		int diff_vals = 15;
+		for (int i = 0; i < cnt; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < len; j++) {
+				itemset->AddItem(j % diff_vals); // non-unique
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+		TAssert(blob_pt_v.Len() == cnt, "Bad itemset count.");
+
+		TVec<TUInt64> items;
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		itemset->GetItemV(items);
+		TAssert(items.Len() == diff_vals, "Bad item count.");
+		for (int j = 0; j < items.Len(); j++) {
+			TAssert(items[j] == j, "Bad item value.");
+		}
+		for (int j = 0; j < diff_vals; j++) {
+			TAssert(itemset->GetItem(j) == j, "Bad item value.");
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 void SimpleGixTest() {
@@ -223,8 +380,13 @@ int main(int argc, char* argv[]) {
 	//TestStorageLayer1();
 	//TestSplitting();
 	
-	Test_Splitting_NoSplit();
-	Test_Splitting_1Split();
+	// "unit-tests"
+	//Test_Splitting_NoSplit();
+	//Test_Splitting_1Split();
+	//Test_Splitting_1SplitNoRealMerge();
+	//Test_Splitting_1SplitMerge();
+	//Test_Splitting_2SplitMerge();
+	Test_Splitting_10SplitsMerge();
 
 	return 0;
 }
