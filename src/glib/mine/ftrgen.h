@@ -142,6 +142,9 @@ private:
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
+    // Keep Hash Table?
+    TBool KeepHashTable;
+
     /// Ngrams Range Start
     TInt NStart;
     /// Ngrams Range End
@@ -159,10 +162,14 @@ private:
     /// Document frequency counts before last forget
     TFltV OldDocFqV;
 
+    /// Hash Table
+    TVec<TStrSet> HashTable;
+
 public:
     TBagOfWords() { }
     TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const int& NStart=1, const int& NEnd=1);
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const bool& KHT = false,
+        const int& NStart = 1, const int& NEnd = 1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -170,7 +177,8 @@ public:
     bool IsTf() const { return ((Type & btTf) != 0); }
     bool IsIdf() const { return ((Type & btIdf) != 0); }
     bool IsNormalize() const { return ((Type & btNormalize) != 0); }
-    bool IsHashing() const { return ((Type & btHashing) != 0); }    
+    bool IsHashing() const { return ((Type & btHashing) != 0); }
+    bool IsKeepingHashTable() const { return KeepHashTable; }
     
     void Clr();
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
@@ -186,13 +194,13 @@ public:
     /// Forgetting, assumes calling on equally spaced time interval.
     void Forget(const double& Factor);
 
+    /// Hashing Related Functions
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
-    TStr GetVal(const int& ValN) const { if(IsHashing()) {return TInt::GetStr(ValN);
-    	} else {
-    		return TokenSet.GetKey(ValN);
-    	}
-    }
+    TStr GetVal(const int& ValN) const { return IsHashing() ? TInt::GetStr(ValN) : TokenSet.GetKey(ValN); }
+    TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
+    TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
     
+
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
 
