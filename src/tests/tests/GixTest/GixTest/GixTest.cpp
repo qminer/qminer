@@ -14,6 +14,9 @@ typedef  TGixStorageLayer < TIntUInt64Pr, TUInt64 > TMyStorageLayer;
 typedef  TGixItemSet < TIntUInt64Pr, TUInt64 > TMyItemSet;
 typedef  TPt < TMyItemSet > PMyItemSet;
 
+#define TAssert(Cond, MsgCStr) \
+  ((Cond) ? static_cast<void>(0) : WarnNotify( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
+
 ////////////////////////////////////////////////////////////////////////
 
 void Print(TMyStorageLayer* gixsl, TVec<TBlobPt>* blob_pt_v) {
@@ -129,6 +132,79 @@ void TestSplitting() {
 
 ////////////////////////////////////////////////////////////////////////
 
+void Test_Splitting_NoSplit() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+
+		// we have 1 itemset, containing 8 unique items, not enough for split
+		int len = 8;
+		int cnt = 1;
+		for (int i = 0; i < cnt; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < len; j++) {
+				itemset->AddItem(j); // increasing, unique
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+		TAssert(blob_pt_v.Len() == cnt, "Bad itemset count.");
+
+		TVec<TUInt64> items;
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		itemset->GetItemV(items);
+		TAssert(items.Len() == len, "Bad item count.");
+		for (int j = 0; j < items.Len(); j++) {
+			TAssert(items[j] == j, "Bad item value.");
+		}
+		for (int j = 0; j < len; j++) {
+			TAssert(itemset->GetItem(j) == j, "Bad item value.");
+		}
+	}
+}
+
+void Test_Splitting_1Split() {
+	TStr FNameBlob("data\\Test1");
+	TStr FNameGix("data\\Test1.gix");
+	{
+		PGixMerger merger = TMyMerger::New();
+		TMyStorageLayer gixsl(FNameBlob, faCreate, 500, merger);
+		TVec<TBlobPt> blob_pt_v;
+
+		// we have 1 itemset, containing 12 unique items, enough for 1 split
+		int len = 12;
+		int cnt = 1;
+		for (int i = 0; i < cnt; i++) {
+			TIntUInt64Pr x(i, i);
+			PMyItemSet itemset = TMyItemSet::New(x, merger, &gixsl);
+			for (int j = 0; j < len; j++) {
+				itemset->AddItem(j); // increasing, unique
+			}
+			TBlobPt blob_pt = gixsl.EnlistItemSet(itemset);
+			blob_pt_v.Add(blob_pt);
+		}
+		gixsl.RefreshMemUsed();
+		TAssert(blob_pt_v.Len() == cnt, "Bad itemset count.");
+
+		TVec<TUInt64> items;
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		itemset->GetItemV(items);
+		TAssert(items.Len() == len, "Bad item count.");
+		for (int j = 0; j < items.Len(); j++) {
+			TAssert(items[j] == j, "Bad item value.");
+		}
+		for (int j = 0; j < len; j++) {
+			TAssert(itemset->GetItem(j) == j, "Bad item value.");
+		}
+	}
+}
+////////////////////////////////////////////////////////////////////////
+
 void SimpleGixTest() {
 	TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
 	for (int i = 0; i < 100000; i++) {
@@ -145,7 +221,11 @@ void SimpleGixTest() {
 int main(int argc, char* argv[]) {
 	//SimpleGixTest();
 	//TestStorageLayer1();
-	TestSplitting();
+	//TestSplitting();
+	
+	Test_Splitting_NoSplit();
+	Test_Splitting_1Split();
+
 	return 0;
 }
 

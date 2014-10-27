@@ -180,7 +180,8 @@ public:
 
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() { 
-		return (ItemV.GetMemUsed() > 200 /*10 * 1024 * 1024*/);  // TODO remove this after dev tests
+		return (ItemV.Len() >= 10);
+		//return (ItemV.GetMemUsed() > 10 * 1024 * 1024);  // TODO remove this after dev tests
 	}
 
     friend class TPt<TGixItemSet>;
@@ -190,8 +191,10 @@ template <class TKey, class TItem>
 const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 	AssertR(ItemN >= 0 && ItemN < TotalCnt, TStr() + "Index: " + TInt::GetStr(ItemN) + ", TotalCnt: " + TInt::GetStr(TotalCnt));
 	if (ItemN < ItemV.Len()) {
+		// data is in this itemset
 		return ItemV[ItemN];
 	}
+	// data is in child itemsets
 	int index = ItemN - ItemV.Len();
 	for (int i = 0; i < ChildrenLen.Len(); i++) {
 		if (index < ChildrenLen[i]) {
@@ -235,14 +238,14 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			PGixItemSet Last = GixSL->GetItemSet(Children.Last());
 			LastItem = &(Last->ItemV.Last());
 			
-			// TODO perform Level1 merge
+			// TODO perform Level1 merge?
 			
 			if (Last->IsFull()) {
 				AddNewChild = true;
 			} else {
 				AddNewChild = false;
 				Last->AddItem(NewItem);
-				Children.Last() = Last->GetItems();
+				ChildrenLen.Last() = Last->GetItems();
 			}
 		}
 		if (AddNewChild){
@@ -263,7 +266,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 		}
 		ItemV.Add(NewItem);
 	}
-	TotalCnt++;
+	RecalcTotalCnt(); // child itemsets might have been merged
 	// notify cache that this item grew
 	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
@@ -282,7 +285,7 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::OverrideItems(const TVec<TItem>& NewItemV, int From, int Len) {
 	const int OldSize = ItemV.GetMemUsed();
 	ItemV.Clr();
-	NewItemV.GetSubValV(From, Len, ItemV);
+	NewItemV.GetSubValV(From, From + Len - 1, ItemV);
 	MergedP = false;
 	TotalCnt = Len;
 	// notify cache that this item grew
@@ -312,7 +315,8 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV, bool Overwrite = tr
 		if (Children.Len() > 0) {
 			// collect data from child itemsets
 			for (int i = 0; i < Children.Len(); i++) {
-				GixSL->GetItemSet(Children[i])->GetItemV(_ItemV, false);
+				PGixItemSet child = GetChildItemSet(i);
+				child->GetItemV(_ItemV, false);
 			}
 		}
 	} else {
@@ -375,7 +379,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 					PGixItemSet ItemSet = GetChildItemSet(child_index++);
 					int len = TMath::Mn<int>(ItemSet->ItemV.Len(), MergedItems.Len() - curr_index);
 					ItemSet->OverrideItems(MergedItems, curr_index, len);
-					curr_index += ItemSet->ItemV.Len();
+					curr_index += ItemSet->GetItems();
 					ItemSet->MergedP = true;
 				}
 			}
