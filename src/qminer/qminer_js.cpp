@@ -5920,6 +5920,7 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 		TIntIntVH m;	
 		
 		TVec<PUNGraph, TSize> gs;
+
 		TSnap::GraphVFile(path, gs);
 
 		TSnap::CmtyEvolutionBatchGraph(gs, outGraph, t, c, s, e, m, 0.5, 0.5, 2);

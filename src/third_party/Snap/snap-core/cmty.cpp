@@ -820,6 +820,306 @@ namespace TSnap {
 
 	}
 
+	TStr CmtyEvolutionGraphToJson(PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntStrH txt){
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// This function creates a JSON string with communities and edges for community evolution visualization using D3.js
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		TStr Json;
+
+		// writing json label for edges
+		Json.InsStr(Json.Len(), "{\n\"edges\":[\n");
+
+		TInt br = 0;
+		// iterating hash of vector of edges and writing into string 
+		for (TNGraph::TEdgeI EI = graph->BegEI(); EI<graph->EndEI(); EI++)
+		{
+			if (br>0)
+				Json.InsStr(Json.Len(), ",");
+
+			TInt n1 = EI.GetSrcNId();
+			TInt n2 = EI.GetDstNId();
+			TInt w = 1;
+			if (br < e.Len())
+				w = e[br];
+			TInt t0 = t.GetDat(n1);
+			TInt t1 = t.GetDat(n2);
+
+			// writing to string
+			Json.InsStr(Json.Len(), "{\"n1\":"); Json.InsStr(Json.Len(), n1.GetStr());
+			Json.InsStr(Json.Len(), ", \"n2\":"); Json.InsStr(Json.Len(), n2.GetStr());
+			Json.InsStr(Json.Len(), ", \"w\":"); Json.InsStr(Json.Len(), w.GetStr());
+			Json.InsStr(Json.Len(), ", \"t0\":"); Json.InsStr(Json.Len(), t0.GetStr());
+			Json.InsStr(Json.Len(), ", \"t1\":"); Json.InsStr(Json.Len(), t1.GetStr());
+			Json.InsStr(Json.Len(), " }\n");
+			br++;
+		}
+
+		// json label for communities
+		Json.InsStr(Json.Len(), "],\n\"communities\":[\n");
+
+		br = 0;
+		// printing communities into json file
+
+		TIntV nodes;
+
+		// sorting by node ids
+
+		graph->GetNIdV(nodes);
+		nodes.Sort();
+
+
+		// sorting by cmty ids
+		/*c.SortByDat();
+		c.GetKeyV(nodes);
+
+		for (THashKeyDatI<TInt, TInt> it = c.BegI(); it < c.EndI(); it++){
+		nodes.Add(it.GetKey());
+		}*/
+
+		for (int i = 0; i< nodes.Len(); i++) {
+			// id of community
+			TInt id = nodes[i];
+
+			// cmty
+			TInt cmty = 1;
+			if (c.IsKey(id))
+				cmty = c.GetDat(id);
+
+			// community size
+			TInt size = 1;
+			if (s.IsKey(id))
+				size = s.GetDat(id);
+
+			// time
+			TInt j = t.GetDat(id);
+
+			//text
+			TStr text = "";
+			if (txt.IsKey(id))
+				text = txt.GetDat(id);
+
+			// if the community has size greater than 0, output it to json string
+			if (size > 0) {
+				if (br>0)
+					Json.InsStr(Json.Len(), ",");
+
+				Json.InsStr(Json.Len(), "{\"id\":"); Json.InsStr(Json.Len(), id.GetStr());
+				Json.InsStr(Json.Len(), ", \"size\":"); Json.InsStr(Json.Len(), size.GetStr());
+				Json.InsStr(Json.Len(), ", \"t\":"); Json.InsStr(Json.Len(), j.GetStr());
+				Json.InsStr(Json.Len(), ", \"cmty\":"); Json.InsStr(Json.Len(), cmty.GetStr());
+				Json.InsStr(Json.Len(), ", \"txt\":\""); Json.InsStr(Json.Len(), text.CStr()); Json.InsStr(Json.Len(), "\"");
+				Json.InsStr(Json.Len(), " }\n");
+
+				br++;
+			}
+		}
+
+		// printing communities into json file - alternative ordering
+		/*
+		for (THashKeyDatI<TInt, TIntV> it = sizesContV.BegI();  !it.IsEnd(); it++)
+		{
+		TInt id = it.GetKey();
+		int len = it.GetDat().Len();
+		for (int i=0; i < it.GetDat().Len(); i++)
+		{
+		TInt size = it.GetDat()[i];
+		TInt j = i;
+		if (size > 0) {
+
+		if(br>0)
+		Json.InsStr(Json.Len(),",");
+
+		TInt size = it.GetDat()[i];
+
+		Json.InsStr(Json.Len(),"{\"id\":"); Json.InsStr(Json.Len(),id.GetStr());
+		Json.InsStr(Json.Len(),", \"size\":"); Json.InsStr(Json.Len(),size.GetStr());
+		Json.InsStr(Json.Len(),", \"t\":"); Json.InsStr(Json.Len(),j.GetStr());
+		Json.InsStr(Json.Len()," }\n");
+
+		br++;
+
+		}
+
+		}
+		}
+		*/
+
+		Json.InsStr(Json.Len(), "]\n}");
+
+		return Json;
+	}
+
+	void GraphVFile(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
+
+		if (InFNm.GetCh(InFNm.Len() - 1) == '/' || InFNm.GetCh(InFNm.Len() - 1) == '\\') {
+			TFFile FFile(InFNm);  TStr FNm;
+			for (int t = 0; FFile.Next(FNm); t++) {
+				PUNGraph Graph = TSnap::LoadEdgeList<PUNGraph>(FNm.CStr(), 0, 1);
+				if (Graph->GetNodes()>0) {
+					gs.Add(Graph);
+				}
+			}
+		}
+		else {
+			TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
+			Ss.Next();
+			int internal_year_counter = 0;
+			int newcom = 0;
+			TStr Marker = "";
+			int SrcNId, DstNId;
+
+			TIntIntVH CommsAtT;
+
+
+			while (!Ss.Eof()) {
+
+				//printf("%i\n", t);
+				Marker = Ss.GetLnStr();
+				// get the year from the network seperator
+				if (Marker.GetCh(0) == '#'){
+
+					Ss.Next();
+					PUNGraph Graph = PUNGraph::TObj::New();
+					do{
+						if (!Ss.GetInt(0, SrcNId) || !Ss.GetInt(1, DstNId)) {
+							if (!Ss.Eof()){
+								Ss.Next();
+								if (!Ss.Eof())
+									Marker = Ss.GetLnStr();
+							}
+							continue;
+						}
+						if (!Graph->IsNode(SrcNId)) { Graph->AddNode(SrcNId); }
+						if (!Graph->IsNode(DstNId)) { Graph->AddNode(DstNId); }
+						Graph->AddEdge(SrcNId, DstNId);
+						Ss.Next();
+						if (!Ss.Eof())
+							Marker = Ss.GetLnStr();
+					} while (Marker.GetCh(0) != '#' && !Ss.Eof());
+
+
+					if (Graph->GetNodes()>0) {
+						gs.Add(Graph);
+					}
+				}
+			}
+		}
+	}
+
+	void CmtyEvolutionBatchGraph(TVec<PUNGraph, TSize>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg) {
+
+
+		int internal_year_counter = 0;
+		int newcom = 0;
+		TStr Marker = "";
+		int SrcNId, DstNId;
+
+		TIntIntVH CommsAtT;
+
+
+		for (int gcounter = 0; gcounter < gs.Len(); gcounter++) {
+
+			PUNGraph Graph = gs[gcounter];
+
+			if (Graph->GetNodes()>0) {
+				// WORK
+
+				TSnap::DelSelfEdges(Graph);
+				TCnComV CmtyV;
+				double Q = 0.0;
+				TStr CmtyAlgStr;
+				if (CmtyAlg == 1) {
+					CmtyAlgStr = "Girvan-Newman";
+					Q = TSnap::CommunityGirvanNewman(Graph, CmtyV);
+				}
+				else if (CmtyAlg == 2) {
+					CmtyAlgStr = "Clauset-Newman-Moore";
+					Q = TSnap::CommunityCNM(Graph, CmtyV);
+				}
+				else if (CmtyAlg == 3) {
+					CmtyAlgStr = "Infomap";
+					Q = TSnap::Infomap(Graph, CmtyV);
+				}
+				else { Fail; }
+
+				TIntV coms;
+				for (int c = 0; c < CmtyV.Len(); c++) {
+					TIntV ids;
+					for (int i = 0; i < CmtyV[c].Len(); i++){
+						ids.Add(CmtyV[c][i].Val);
+					}
+					members.AddDat(newcom, ids);
+					t.AddDat(newcom, internal_year_counter);
+					s.AddDat(newcom, CmtyV[c].Len());
+					coms.Add(newcom);
+					newcom++;
+				}
+
+				CommsAtT.AddDat(internal_year_counter, coms);
+				internal_year_counter++;
+			}
+
+		} // end for end reading communities
+
+		int newfreeid = 0;
+		int br = 0;
+		THashKeyDatI<TInt, TIntV> it = CommsAtT.BegI();
+
+		while (!it.IsEnd() && br < CommsAtT.Len() - 1) {
+
+			// Check if there is one more Time point after this one
+			if (br < CommsAtT.Len() - 1) {
+				TIntV commsA = it.GetDat();
+				it++;
+				TIntV commsB = it.GetDat();
+
+				for (int i = 0; i<commsA.Len(); i++) {
+					for (int j = 0; j<commsB.Len(); j++) {
+
+						TIntV a = members.GetDat(commsA[i]);
+						TIntV b = members.GetDat(commsB[j]);
+						int intersect = TSnapDetail::vectorIntersect(a, b);
+						if (intersect > 0) {
+							if (!graph->IsNode(commsA[i]))
+								graph->AddNode(commsA[i]);
+							if (!graph->IsNode(commsB[j]))
+								graph->AddNode(commsB[j]);
+							graph->AddEdge(commsA[i], commsB[j]);
+							e.Add(intersect);
+
+							int sizeA = a.Len();
+							int sizeB = b.Len();
+
+							double alpha0 = (double)intersect / (double)sizeA;
+							double beta0 = (double)intersect / (double)sizeB;
+
+							int c0 = newfreeid;
+							if (c.IsKey(commsA[i])) {
+								c0 = c.GetDat(commsA[i]);
+							}
+							else {
+								c.AddDat(commsA[i], newfreeid);
+								newfreeid++;
+							}
+							if (alpha0 > alpha && beta0 > beta) {
+								c.AddDat(commsB[j], c0);
+							}
+							else {
+								c.AddDat(commsB[j], newfreeid);
+								newfreeid++;
+							}
+						}
+
+					}
+				}
+
+			} // end if
+
+			br++;
+		}
+	}
+
 	TStr CmtyTest(TStr InFNm, int CmtyAlg){
 
 		TIntIntVH sizesContV;

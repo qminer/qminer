@@ -31,6 +31,9 @@ namespace TSnap {
 	void CmtyEvolutionFileBatch(TStr InFNm, TIntIntHH& sizesCont, TIntIntHH& cCont, TIntIntVH& edges, double alpha, double beta, int CmtyAlg);
 	void CmtyEvolutionFileBatch(TStr InFNm, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges, double alpha, double beta, int CmtyAlg);
 	void CmtyEvolutionJson(TStr& Json, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges);
+	TStr CmtyEvolutionGraphToJson(PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntStrH txt);
+	void GraphVFile(TStr InFNm, TVec<PUNGraph, TSize>& gs);
+	void CmtyEvolutionBatchGraph(TVec<PUNGraph, TSize>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg);
 	TStr CmtyTest(TStr t, int CmtyAlg);
 	void ReebSimplify(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse);
 	void ReebRefine(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse);
