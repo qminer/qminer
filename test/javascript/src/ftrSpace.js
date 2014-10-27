@@ -202,6 +202,3 @@ ftrSpace5.updateRecord(testRec);
 testAnswer = ftrSpace5.getFtr(239).split(",");
 assert.ok(arraysIdentical(testAnswer, trueAnswer), "hashing with tables");
 printError(testAnswer, trueAnswer);
-eval(breakpoint);
-
-
