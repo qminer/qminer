@@ -2825,6 +2825,8 @@ public:
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
+	//#- `objJSON = snap.evolutionJson(path)` -- return communities alg = `gn`, `imap` or `cnm`
+	JsDeclareFunction(evolutionJson);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
 	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
@@ -2969,6 +2971,7 @@ public:
 	JsDeclareFunction(next);
 	//#- `node = node.prev()` -- return previous node
 	JsDeclareFunction(prev);
+	JsDeclareFunction(eachNbr);
 };
 
 ///////////////////////////////
