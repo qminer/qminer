@@ -82,8 +82,36 @@ for (var i = 0; i < graphs.length; i++) {
     communities.push(snap.communityDetection(graphs[i], "gn"));
 }
 
-//console.log("Have a break");
-//eval(breakpoint);
+console.log("Have a break");
+eval(breakpoint);
+
+var t = utilities.newIntIntH();
+var c = utilities.newIntIntH();
+var s = utilities.newIntIntH();
+var e = la.newIntVec()
+var m = la.newSpMat();
+var graph = snap.newDGraph();
+snap.communityEvolution("./data/2.edg", 0.5, 0.5, graph, t, c, s, e, m);
+var txt = utilities.newIntStrH();
+
+graph.eachNode(function (N) {
+    var id = N.id;
+    var someText = "";
+    var spVec = m[id].valVec();
+    for (var i = 0; i < spVec.length; i++) {
+        if (spVec[i] != 0)
+            someText += spVec[i].toString() + " ";
+    }
+    txt.put(id, someText);
+});
+
+var json_string = snap.evolutionJson(graph, t, c, s, e, txt);
+eval(breakpoint);
+var obj_out = eval("(" + json_string + ')');
+viz.drawCommunityEvolution(JSON.stringify(obj_out), "./out/cmty.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+
+console.log("C eval ????");
+eval(breakpoint);
 
 // return json string of graph evolution
 var json = snap.evolutionJs(communities, 0.5, 0.75);
