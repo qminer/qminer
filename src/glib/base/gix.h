@@ -99,9 +99,13 @@ private:
     TKey ItemSetKey;
 	/// Items of this itemset - could be only part of them, other can be stored in child itemsets
     TVec<TItem> ItemV;
+	/// Combined count - from this itemset and children
+	int TotalCnt;
 
 	// optional list of child vectors - will be populated only for frequent keys
 	TVec<TBlobPt> Children;
+	// optional list of child vector lengths - will be populated only for frequent keys
+	TVec<TInt> ChildrenLen;
 
     // for keeping the ItemV unique and sorted
     TBool MergedP;
@@ -110,6 +114,7 @@ private:
 	// pointer to storage-layer (serialization of self, loading children, notifying about chnages...)
 	const TGixStorageLayer<TKey, TItem> *GixSL;
 
+
 	/// Load all child Itemsets into memory and get pointers to them
 	void GetChildItemSets(TVec<PGixItemSet>& Items) {
 		for (int i = 0; i < Children.Len(); i++) {
@@ -117,14 +122,19 @@ private:
 		}
 	}
 	/// Returns i-th child itemset
-	PGixItemSet GetChildItemSet(int i) {
+	const PGixItemSet GetChildItemSet(int i) const {
 		return GixSL->GetItemSet(Children[i]);
+	}
+	void RecalcTotalCnt() {
+		TotalCnt = ItemV.Len();
+		for (int i = 0; i < ChildrenLen.Len(); i++)
+			TotalCnt += ChildrenLen[i];
 	}
 
 public:
 	/// Standard constructor
 	TGixItemSet(const TKey& _ItemSetKey, const PGixMerger& _Merger, const TGixStorageLayer<TKey, TItem>* _GixSL) :
-		ItemSetKey(_ItemSetKey), MergedP(true), Merger(_Merger), GixSL(_GixSL){}
+		ItemSetKey(_ItemSetKey), MergedP(true), Merger(_Merger), GixSL(_GixSL), TotalCnt(0) {}
 	/// Standard factory method
 	static PGixItemSet New(const TKey& ItemSetKey, const PGixMerger& Merger, const TGixStorageLayer<TKey, TItem>* GixSL) {
 		return new TGixItemSet(ItemSetKey, Merger, GixSL);
@@ -132,7 +142,9 @@ public:
 
 	/// Constructor for deserialization
 	TGixItemSet(TSIn& SIn, const PGixMerger& _Merger, const TGixStorageLayer<TKey, TItem>* _GixSL) :
-		ItemSetKey(SIn), ItemV(SIn), Children(SIn), MergedP(true), Merger(_Merger), GixSL(_GixSL)  { }
+		ItemSetKey(SIn), ItemV(SIn), Children(SIn), ChildrenLen(SIn), MergedP(true), Merger(_Merger), GixSL(_GixSL)  { 
+		RecalcTotalCnt();
+	}
 	/// Standard factory method for deserialization
 	static PGixItemSet Load(TSIn& SIn, const PGixMerger& Merger, const TGixStorageLayer<TKey, TItem>* GixSL) {
 		return new TGixItemSet(SIn, Merger, GixSL);
@@ -150,10 +162,10 @@ public:
 	void AddItem(const TItem& NewItem);
 	void AddItemV(const TVec<TItem>& NewItemV);
 	void OverrideItems(const TVec<TItem>& NewItemV, int From, int Len);
-	/// Get number of items TODO access to child itemsets?
-    int GetItems() const { return ItemV.Len(); }
-	/// Get item at given index TODO access to child itemsets?
-    const TItem& GetItem(const int& ItemN) const { return ItemV[ItemN]; }
+	/// Get number of items (including child itemsets)
+	int GetItems() const { return TotalCnt;	}
+	/// Get item at given index (including child itemsets)
+	const TItem& GetItem(const int& ItemN) const;
 
     //const TVec<TItem>& GetItemV() const { return ItemV; }
 	void AppendItemSet(const TPt<TGixItemSet>& Src);
@@ -175,6 +187,23 @@ public:
 };
 
 template <class TKey, class TItem>
+const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
+	AssertR(ItemN >= 0 && ItemN < TotalCnt, TStr() + "Index: " + TInt::GetStr(ItemN) + ", TotalCnt: " + TInt::GetStr(TotalCnt));
+	if (ItemN < ItemV.Len()) {
+		return ItemV[ItemN];
+	}
+	int index = ItemN - ItemV.Len();
+	for (int i = 0; i < ChildrenLen.Len(); i++) {
+		if (index < ChildrenLen[i]) {
+			const PGixItemSet child = GetChildItemSet(i);
+			return child->GetItem(index);
+		}
+		index -= ChildrenLen[i];
+	}
+	return ItemV[-1]; // will trigger error, should not happen anyway
+}
+
+template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) { 
 	// make sure all is merged before saving
 	Def();
@@ -182,6 +211,7 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 	ItemSetKey.Save(SOut);
 	ItemV.Save(SOut);
 	Children.Save(SOut);
+	ChildrenLen.Save(SOut);
 }
 
 
@@ -212,6 +242,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			} else {
 				AddNewChild = false;
 				Last->AddItem(NewItem);
+				Children.Last() = Last->GetItems();
 			}
 		}
 		if (AddNewChild){
@@ -219,6 +250,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			NewChild->AddItem(NewItem);
 			TBlobPt Addr = GixSL->EnlistItemSet(NewChild);
 			Children.Add(Addr);
+			ChildrenLen.Add(NewChild->GetItems());
 		}
 		if (MergedP) {
 			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(*LastItem, NewItem));
@@ -231,6 +263,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 		}
 		ItemV.Add(NewItem);
 	}
+	TotalCnt++;
 	// notify cache that this item grew
 	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
@@ -251,6 +284,7 @@ void TGixItemSet<TKey, TItem>::OverrideItems(const TVec<TItem>& NewItemV, int Fr
 	ItemV.Clr();
 	NewItemV.GetSubValV(From, Len, ItemV);
 	MergedP = false;
+	TotalCnt = Len;
 	// notify cache that this item grew
 	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
@@ -290,13 +324,16 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV, bool Overwrite = tr
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
 	Def();
-    const int OldSize = ItemV.GetMemUsed();
-    ItemV.DelIfIn(Item);
+	const int OldSize = ItemV.GetMemUsed();
+	ItemV.DelIfIn(Item);
 	if (Children.Len()>0) {
 		for (int i = 0; i < Children.Len(); i++) {
-			GetChildItemSet(i)->DelItem(Item);
+			PGixItemSet child = GetChildItemSet(i);
+			child->DelItem(Item);
+			ChildrenLen[i] = child->GetPrimHashCd();
 		}
 	}
+	RecalcTotalCnt();
 	GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
@@ -307,9 +344,11 @@ void TGixItemSet<TKey, TItem>::Clr() {
 	if (Children.Len()>0) {
 		for (int i = 0; i < Children.Len(); i++) {
 			GetChildItemSet(i)->Clr();
+			ChildrenLen[i] = 0;
 		}
 	}
 	MergedP = true;
+	TotalCnt = 0;
     GixSL->AddToNewCacheSizeInc(ItemV.GetMemUsed() - OldSize);
 }
 
@@ -340,22 +379,31 @@ void TGixItemSet<TKey, TItem>::Def() {
 					ItemSet->MergedP = true;
 				}
 			}
-			// clear children that became empty - 1 should remain, other must be destroyed
+			// clear children that became empty - 1 should remain, others must be destroyed
 			bool keep_next_child = true;
+			int last_good_child = -1;
 			while (child_index < Children.Len()) {
-				PGixItemSet ItemSet = GetChildItemSet(child_index++);
-				ItemSet->Clr();
 				if (keep_next_child) {
 					keep_next_child = false;
+					PGixItemSet ItemSet = GetChildItemSet(child_index);
+					ItemSet->Clr();
+					last_good_child = child_index;
 				} else {
-					// TODO destroy this itemset
-					ItemSet.Clr();
-					//Children[i]
+					// destroy this itemset 
+					GixSL->DeleteItemSet(Children[child_index]);
 				}
+				child_index++;
 			}
+			if (last_good_child > 0 && last_good_child < Children.Len() - 1) {
+				// remove deleted itemsets
+				Children.Del(last_good_child + 1, Children.Len() - 1);
+				ChildrenLen.Del(last_good_child + 1, ChildrenLen.Len() - 1);
+			}
+			TotalCnt = MergedItems.Len();
 		} else {
 			// no child records, just merge this 
 			Merger->Merge(ItemV);
+			TotalCnt = ItemV.Len();
 		}
 		MergedP = true;
 	}
@@ -436,6 +484,9 @@ public:
 
 	/// for storing item sets from cache to blob
 	TBlobPt StoreItemSet(const TBlobPt& KeyId);
+
+	/// for deleting item sets from cache and blob
+	void DeleteItemSet(const TBlobPt& KeyId) const;
 
 	/// For enlisting new itemsets into blob
 	TBlobPt EnlistItemSet(const PGixItemSet& ItemSet) const;
@@ -535,6 +586,13 @@ TBlobPt TGixStorageLayer<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
 	TMOut MOut; 
 	ItemSet->Save(MOut);
 	return ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
+}
+
+template <class TKey, class TItem>
+void TGixStorageLayer<TKey, TItem>::DeleteItemSet(const TBlobPt& KeyId) const {
+	AssertReadOnly(); // check if we are allowed to write
+	ItemSetCache.Del(KeyId, false); // don't trigger callback, we will handle it
+	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
 }
 
 /////////////////////////////////////////////////

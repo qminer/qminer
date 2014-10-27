@@ -109,7 +109,11 @@ void TestSplitting() {
 
 		// randomly access some items and check the output - what is in cache
 		TVec<TUInt64> items;
-		gixsl.GetItemSet(blob_pt_v[0])->GetItemV(items);
+		auto itemset = gixsl.GetItemSet(blob_pt_v[0]);
+		printf("%d \n", itemset->GetItems());
+		printf("%d \n", itemset->GetItem(3));
+		itemset->GetItemV(items);
+
 
 		//gixsl.GetItemSet(blob_pt_v[2]);
 		//gixsl.GetItemSet(blob_pt_v[3]);
