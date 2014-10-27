@@ -1009,6 +1009,8 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
 
     // hashing dimension
     const int HashDim = ParamVal->GetObjInt("hashDimension", -1);
+    // keep hash table?
+    const bool KHT = ParamVal->GetObjBool("hashTable", false);
 
     // parse ngrams
     TInt NgramsStart = 1;
@@ -1034,7 +1036,7 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
     }
 
     // initialize
-    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, NgramsStart, NgramsEnd);
+    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, KHT, NgramsStart, NgramsEnd);
     
     // parse input field
     TStr FieldNm = ParamVal->GetObjStr("field");

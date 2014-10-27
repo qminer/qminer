@@ -489,7 +489,14 @@ public:
     
 	TStr GetNm() const { return "BagOfWords[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
 	int GetDim() const { return FtrGen.GetDim(); }
-	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
+	TStr GetFtr(const int& FtrN) const {
+		if(FtrGen.IsKeepingHashTable()) {
+			TStrV StrV;
+			FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
+			return TStr::GetStr(StrV, ",");
+		}
+		else { return FtrGen.GetVal(FtrN); }
+	}
 
 	void Clr() { FtrGen.Clr(); }
 	// sparse vector extraction
