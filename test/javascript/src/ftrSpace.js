@@ -189,3 +189,19 @@ vec = ftrSpace4.ftrSpVec(testRec);
 testAnswer = la.getSpFeatVecCols(vec, ftrSpace4);
 assert.ok(arraysIdentical(testAnswer, trueAnswer), "ngrams 2, 4 with hashing");
 printError(testAnswer, trueAnswer);
+
+var ftrSpace5 = analytics.newFeatureSpace([
+    //{ type: "random", source: "FtrSpaceTest", seed: 1 },
+    { type: "text", source: "FtrSpaceTest", field: "Text", tokenizer:{type:'simple', stopwords: 'none'},
+     ngrams:[2,4], hashDimension: 320, hashTable: true},
+]);
+trueAnswer = ["OTHER VOLATILE", "UNIT TO", "DEPTHS OF", "WHEN BARBIE SETTLED", "I LIKE"];
+
+ftrSpace5.updateRecords(Store.recs);
+ftrSpace5.updateRecord(testRec);
+testAnswer = ftrSpace5.getFtr(239).split(",");
+assert.ok(arraysIdentical(testAnswer, trueAnswer), "hashing with tables");
+printError(testAnswer, trueAnswer);
+eval(breakpoint);
+
+
