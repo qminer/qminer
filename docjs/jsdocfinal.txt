@@ -36,22 +36,22 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Neural network model](#neural-network-model)
  - [Recursive Linear Regression model](#recursive-linear-regression-model)
  - [Hoeffding Tree model](#hoeffding-tree-model)
-- [snap.js (use require)](#snap-graph-library)
- - [Graph](#graph)
- - [Node](#node)
- - [Edge](#edge)
 - [System and I/O](#system-and-io)
  - [Process](#process)
- - [utilities.js (use require)](#utilitiesjs-use-require)
- - [utilities.map (use require)](#hash-map)
  - [assert.js (use require)](#assertjs-use-require)
  - [Console](#console)
  - [File system](#file-system)
  - [Input File Stream](#input-file-stream)
  - [Output File Stream](#output-file-stream)
+ - [utilities.js (use require)](#utilitiesjs-use-require)
+ - [utilities.map (use require)](#hash-map)
  - [HTTP](#http)
  - [HTTP Response](#http-response)
  - [Date-Time](#date-time)
+- [snap.js (use require)](#snap-graph-library)
+ - [Graph](#graph)
+ - [Node](#node)
+ - [Edge](#edge)
 - [Other libraries](#other-libraries)
  - [twitter.js (use require)](#twitterjs-use-require)
   
@@ -144,7 +144,7 @@ Stream aggregates are objects used for processing data streams - their main func
 - `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
 - `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
 - `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
-- `sa = sa.save(fout)` -- executes save function given output stream `fout` as input. returns self.
+- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
 - `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
 - `objJSON = sa.val` -- same as sa.saveJson(-1)
 - `num = sa.getInt()` -- returns a number if sa implements the interface IInt
@@ -201,6 +201,11 @@ var record = store[1234];
 - `objJSON = store.toJSON()` -- returns the store as a JSON
 - `store.clear()` -- deletes all records
 - `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+- `vec = store.getCol(fieldName)` -- gets the `fieldName` column
+- `val = store.getField(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.getCellFlt(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.getCellInt(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.getCellStr(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 - `str = store.toString()` -- returns a string `str` - a description of `store`
@@ -340,7 +345,11 @@ several functions from linear algebra.
 - `intVec = la.newIntVec()` -- generate an empty integer vector
 - `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 - `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+- `intVec = la.newIntVec(intVec2)` -- clone an int vector `intVec2`
+- `strVec = la.newStrVec()` -- generate an empty integer vector
+- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
 - `mat = la.newMat()` -- generates a 0x0 matrix
 - `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 - `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
@@ -453,6 +462,14 @@ var intVec = la.newIntVec(); //empty vector
 - `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
 - `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
 - `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
+- `fout = vec.save(fout)` -- saves to output stream `fout`
+- `fout = intVec.save(fout)` -- saves to output stream `fout`
+- `vec = vec.load(fin)` -- loads from input stream `fin`
+- `intVec = intVec.load(fin)` -- loads from input stream `fin`	
+- `fout = vec.saveascii(fout)` -- saves to output stream `fout`
+- `fout = intVec.saveascii(fout)` -- saves to output stream `fout`
+- `vec = vec.loadascii(fin)` -- loads from input stream `fin`
+- `intVec = intVec.loadascii(fin)` -- loads from input stream `fin`	
 
 ### Matrix (dense matrix)
 
@@ -499,7 +516,7 @@ var fltv = la.newVec(); //empty matrix
 - `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 - `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
 - `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
-- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
 - `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 
 ### SpVector (sparse vector)
@@ -568,7 +585,7 @@ var spMat = la.newSpMat(); //empty matrix
 - `num = spMat.rows` -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
 - `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
 - `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
-- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
+- `fout = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns `fout`.
 - `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 - `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
 - `la.spMat` -- the prototype object for sparse column matrices. Implemented in spMat.js, every sparse matrix inherits from it.
@@ -655,6 +672,8 @@ To start using it must be loaded using `var analytics = require('analytics.js');
    examples that have to be identified in the query mode before the program enters SVM mode.
   We can set two additional parameters `querySampleSize` and `randomSampleSize` which specify the sizes of subsamples of qRecSet and fRecSet, where the rest of the data is ignored in the active learning.
   Final parameters are all SVM parameters (c, j, batchSize, maxIterations, maxTime, minDiff, verbose).
+  - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
+  - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
   - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
   - `objJSON = alModel.getSettings()` -- returns the settings object
@@ -677,11 +696,11 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
-- `mat2 = analytics.computeKmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+- `mat2 = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
    is a cluster centroid.
-- `mat2 = analytics.computeKmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+- `mat2 = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
   matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
    is a cluster centroid.
@@ -756,7 +775,7 @@ declarations as parameters.
 **Functions and properties:**
     
 - `num = fsp.dim` -- dimensionality of feature space
-- `fsp = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns self.
+- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
 - `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     used by bag-of-words extractor by taking into account new text.
@@ -785,7 +804,7 @@ Holds SVM classification or regression model. This object is result of
 - `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 - `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 - `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
-- `svmModel = svmModel.save(fout)` -- saves model to output stream `fout`. Returns self.
+- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 
 ### Neural network model
 
@@ -808,7 +827,7 @@ Holds online regression model. This object is result of `analytics.newRecLinReg`
     model and returns the prediction as a real number `num`
 - `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`   
 - `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
-- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
+- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 
 ### Hoeffding Tree model
 
@@ -993,55 +1012,6 @@ Edge
 - `num = process.getArgInt(argStr)` -- returns the value of command-line 
 - `sysStatJson = process.sysStat` -- statistics about system and qminer
 
-### utilities.js (use require)
-
-
-**Functions and properties:**
-
-- `map = utilities.newStrIntH()` -- New string-int hashmap
-- `map = utilities.newStrFltH()` -- New string-double hashmap
-- `map = utilities.newStrStrH()` -- New string-string hashmap
-- `map = utilities.newIntIntH()` -- New int-int hashmap
-- `map = utilities.newIntFltH()` -- New int-double hashmap
-- `map = utilities.newIntStrH()` -- New int-string hashmap
-- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
-- `bool = utilities.isObject(arg)` -- is parameter an object?
-- `bool = utilities.isArray(arg)` -- is parameter an array?
-- `bool = utilities.isInArray(array, value)` -- is element in an array?
-- `bool = utilities.isNumber(n)` -- is `n` a number?
-- `bool = utilities.isString(s)` -- is `s` a string?
-- `returnVal = utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
-- `hashTable = utilities.newHashTable()` -- creates a hash table
- - `strArr = hashTable.keys` -- array of keys (strings)
- - `array = hashTable.vals` -- array of values
- - `hashTable.put(key)` -- add a key
- - `hashTable.put(key, dat)` -- add key-dat
- - `bool = hashTable.contains(key)` -- does the table contain the key?
- - `dat = hashTable.get(key)` -- get data
-- `sw = utilities.newStopWatch()` -- creates a stop watch object `sw`
-- `sw.start()` -- starts the stopwatch
-- `sw.stop()` -- stops the stopwatch
-- `sw.reset()` -- resets 
-- `num = sw.time()` -- returns unix epoch time in milliseconds
-- `sw.saytime(message)` -- displays elpased time from tic
-- `sw.tic()` -- resets and starts the stop watch
-- `sw.toc(str)` -- displays time from tic and message `str`
-- `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
-- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
-
-### Hash Map
-
-Several implementations of hash-map can be constructed. Use require('utilities.js').
-
-**Functions and properties:**
-
-- `dat = map.get(key)` -- return data given on key
-- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
-- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
-- `num = map.length` -- returns the number of keys
-- `key = map.key(idx)` -- returns the `idx`-th key
-- `dat = map.dat(idx)` -- returns the `idx`-th dat
-
 ### assert.js (use require)
 
 - `assert.run(test, msg)` -- prints success if this code is reached
@@ -1116,6 +1086,57 @@ are automatically prefixed by current date and time.
 - `fout = fout.flush()` -- flushes output stream
 - `fout = fout.close()` -- closes output stream
 
+### utilities.js (use require)
+
+
+**Functions and properties:**
+
+- `map = utilities.newStrIntH()` -- New string-int hashmap
+- `map = utilities.newStrFltH()` -- New string-double hashmap
+- `map = utilities.newStrStrH()` -- New string-string hashmap
+- `map = utilities.newIntIntH()` -- New int-int hashmap
+- `map = utilities.newIntFltH()` -- New int-double hashmap
+- `map = utilities.newIntStrH()` -- New int-string hashmap
+- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
+- `bool = utilities.isObject(arg)` -- is parameter an object?
+- `bool = utilities.isArray(arg)` -- is parameter an array?
+- `bool = utilities.isInArray(array, value)` -- is element in an array?
+- `bool = utilities.isNumber(n)` -- is `n` a number?
+- `bool = utilities.isString(s)` -- is `s` a string?
+- `returnVal = utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
+- `hashTable = utilities.newHashTable()` -- creates a hash table
+ - `strArr = hashTable.keys` -- array of keys (strings)
+ - `array = hashTable.vals` -- array of values
+ - `hashTable.put(key)` -- add a key
+ - `hashTable.put(key, dat)` -- add key-dat
+ - `bool = hashTable.contains(key)` -- does the table contain the key?
+ - `dat = hashTable.get(key)` -- get data
+- `sw = utilities.newStopWatch()` -- creates a stop watch object `sw`
+- `sw.start()` -- starts the stopwatch
+- `sw.stop()` -- stops the stopwatch
+- `sw.reset()` -- resets 
+- `num = sw.time()` -- returns unix epoch time in milliseconds
+- `sw.saytime(message)` -- displays elpased time from tic
+- `sw.tic()` -- resets and starts the stop watch
+- `sw.toc(str)` -- displays time from tic and message `str`
+- `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
+- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
+
+### Hash Map
+
+Several implementations of hash-map can be constructed. Use require('utilities.js').
+
+**Functions and properties:**
+
+- `dat = map.get(key)` -- return data given on key
+- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
+- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+- `num = map.length` -- returns the number of keys
+- `key = map.key(idx)` -- returns the `idx`-th key
+- `dat = map.dat(idx)` -- returns the `idx`-th dat
+- `map = map.load(fin)` -- loads the hashtable from input stream `fin`
+- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
+
 ### HTTP
 
 
@@ -1188,6 +1209,90 @@ New one can be created using `tm = require('time.js')`.
 - `tm2 = tm.fromUnixTimestamp(num)` -- constructs date time from a UNIX timestamp (seconds since 1970).
 - `tm2 = tm.clone()` -- clones `tm` to `tm2`
 - `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
+
+## Snap graph library
+
+A global object `snap` is used to construct graphs
+it is available in any script. The object includes
+several functions from snap library.
+
+**Functions and properties:**
+
+- `graph = snap.newUGraph()` -- generate an empty undirected graph
+- `graph = snap.newDGraph()` -- generate an empty directed graph
+- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
+- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
+- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
+
+### Graph
+
+TUNGraph: undirected graph(single edge between an unordered pair of nodes)
+TNGraph : directed graph(single directed edge between an ordered pair of nodes)
+TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
+
+**Functions and properties:**
+
+- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2, edgeId)` -- add an edge when `graph` is of the type `snap.newDMGraph()` 
+- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+- `nodes = graph.nodes` -- gets number of nodes in the graph
+- `edges = graph.edges` -- gets number of edges in the graph
+- `node = graph.node(idx)` -- gets node with ID `idx`
+- `node = graph.firstNode` -- gets first node
+- `node = graph.lastNode` -- gets last node
+- `edge = graph.firstEdge` -- gets first edge
+- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
+ - `graph.eachNode(function (node) { console.log(node.id); })`
+- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
+ - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
+- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
+- `fout = graph.save(fout)` -- saves graph to output stream `fout`
+- `graph = graph.load(fin)` -- loads graph from input stream `fin`
+
+### Node
+
+Node
+
+**Functions and properties:**
+
+- `id = node.id` -- return id of the node
+- `deg = node.deg` -- return degree of the node
+- `indeg = node.inDeg` -- return in-degree of the node
+- `outdeg = node.outDeg` -- return out-degree of the node
+- `nid = node.nbrId(N)` -- return id of Nth neighbour
+- `nid = node.outNbrId(N)` -- return id of Nth out-neighbour
+- `nid = node.inNbrId(N)` -- return id of Nth in-neighbour
+- `eid = node.nbrEId(N)` -- return edge id of Nth neighbour
+- `eid = node.outEId(N)` -- return edge id of Nth out-neighbour
+- `eid = node.inEId(N)` -- return edge id of Nth in-neighbour
+- `node = node.next()` -- return next node
+- `node = node.prev()` -- return previous node
+- `node = node.eachNbr(callback)` -- calls the callback function(nodeid) {...} on all neighbors
+- `node = node.eachOutNbr(callback)` -- calls the callback function(nodeid) {...} on all out-neighbors
+- `node = node.eachInNbr(callback)` -- calls the callback function(nodeid) {...} on all in-neighbors
+- `node = node.eachEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in/out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+- `node = node.eachOutEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+- `node = node.eachInEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+
+### Edge
+
+Edge
+
+**Functions and properties:**
+
+- `id = edge.id` -- return id of the edge
+- `id = edge.srcId` -- return id of source node
+- `id = edge.dstId` -- return id of destination node
+- `edge = edge.next()` -- return next edge
 
 ## Other libraries
 

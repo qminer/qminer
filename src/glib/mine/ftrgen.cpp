@@ -290,7 +290,7 @@ void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const
     for(TSize TokenN = 0; TokenN < Total; TokenN++) { // for each token position, generate ngrams starting at that position
     	// Start with Token Position
     	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
-        for(TSize Pos = TokenN + (NStart - 1); Pos < std::min(Total-1, TokenN + NEnd - 1) + 1; Pos++) {
+        for(TSize Pos = TokenN + (NStart - 1); Pos < MIN(Total-1, TokenN + NEnd - 1) + 1; Pos++) {
             TokenStrV.GetSubValV(TokenN, Pos , Slice);
             Ngram = TStr::GetStr(Slice, " ");
             NgramStrV.Add(Ngram);
