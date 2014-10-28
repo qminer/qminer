@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 var util = require("utilities.js");
+var assert = require("assert.js");
 
 module.exports = require("__analytics__");
 exports = module.exports; // re-establish link
