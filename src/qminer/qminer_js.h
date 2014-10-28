@@ -3837,7 +3837,10 @@ public:
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(evolutionJson);
 	JsDeclareFunction(corePeriphery);
+	JsDeclareFunction(reebSimplify);
+	JsDeclareFunction(reebRefine);
 };
 
 
