@@ -201,6 +201,11 @@ var record = store[1234];
 - `objJSON = store.toJSON()` -- returns the store as a JSON
 - `store.clear()` -- deletes all records
 - `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+- `vec = store.getCol(fieldName)` -- gets the `fieldName` column
+- `val = store.getField(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.getCellFlt(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.getCellInt(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.getCellStr(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 - `str = store.toString()` -- returns a string `str` - a description of `store`
@@ -340,7 +345,11 @@ several functions from linear algebra.
 - `intVec = la.newIntVec()` -- generate an empty integer vector
 - `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 - `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+- `intVec = la.newIntVec(intVec2)` -- clone an int vector `intVec2`
+- `strVec = la.newStrVec()` -- generate an empty integer vector
+- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
 - `mat = la.newMat()` -- generates a 0x0 matrix
 - `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 - `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
@@ -453,6 +462,14 @@ var intVec = la.newIntVec(); //empty vector
 - `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
 - `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
 - `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
+- `fout = vec.save(fout)` -- saves to output stream `fout`
+- `fout = intVec.save(fout)` -- saves to output stream `fout`
+- `vec = vec.load(fin)` -- loads from input stream `fin`
+- `intVec = intVec.load(fin)` -- loads from input stream `fin`	
+- `fout = vec.saveascii(fout)` -- saves to output stream `fout`
+- `fout = intVec.saveascii(fout)` -- saves to output stream `fout`
+- `vec = vec.loadascii(fin)` -- loads from input stream `fin`
+- `intVec = intVec.loadascii(fin)` -- loads from input stream `fin`	
 
 ### Matrix (dense matrix)
 
@@ -679,11 +696,11 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
-- `mat2 = analytics.computeKmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+- `mat2 = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
    is a cluster centroid.
-- `mat2 = analytics.computeKmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+- `mat2 = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
   matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
    is a cluster centroid.
@@ -1139,6 +1156,7 @@ several functions from snap library.
 - `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 - `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 - `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 
 ### Graph
 
@@ -1184,6 +1202,9 @@ Node
 - `nid = node.nbrId(N)` -- return id of Nth neighbour
 - `nid = node.outNbrId(N)` -- return id of Nth out-neighbour
 - `nid = node.inNbrId(N)` -- return id of Nth in-neighbour
+- `eid = node.nbrEId(N)` -- return edge id of Nth neighbour
+- `eid = node.outEId(N)` -- return edge id of Nth out-neighbour
+- `eid = node.inEId(N)` -- return edge id of Nth in-neighbour
 - `node = node.next()` -- return next node
 - `node = node.prev()` -- return previous node
 - `node = node.eachNbr(callback)` -- calls the callback function(nodeid) {...} on all neighbors
