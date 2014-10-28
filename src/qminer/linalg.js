@@ -537,4 +537,19 @@ la.standardize = function (input, mu, sigma, dim) {
     return (typeof input.length == "undefined") ? mat2 : mat2.getRow(0);
 }
 
+//# - `mat = la.correlate(m1, m2)` - returns the correlation matrix (Pearson). Each column should be an observation.
+la.correlate = function(m1, m2) {
+  var mu1 = la.mean(m1, 1);
+  var std1 = la.std(m1);
+  var x = la.standardize(m1, mu1, std1);
+
+  var mu2 = la.mean(m2, 1);
+  var std2 = la.std(m2);
+  var y = la.standardize(m2, mu2, std2);
+  var c = x.multiply(y);
+  c = c.multiply(1/c.cols);
+
+  return c;
+}
+
 var linalg = la;
