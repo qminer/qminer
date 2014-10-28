@@ -1025,7 +1025,7 @@ public:
 // Multi-level analysis clustering
 class THierchCtmc: public TStreamAggr {
 private:
-	class TNode {
+	ClassTP(TNode, PNode)// {
 	public:
 		const TUInt64 NodeId;
 		const TInt Depth;
@@ -1074,6 +1074,19 @@ private:
 		double GetMeanPtCentroidDist(const int& StateIdx) const;
 		uint64 GetStateSize(const int& StateIdx) const;
 
+		// continuous time Markov chain stuff
+		// returns the stationary distribution of the stohastic process
+		TVector GetStatDist() const;
+		// returns a jump matrix for the given transition rate matrix
+		// when the process decides to jump the jump matrix describes to
+		// which state it will jump with which probability
+		static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
+		// returns a vector of holding times
+		// a holding time is the expected time that the process will stay in state i
+		// it is an exponential random variable of parameter -q_ii, so its expected value
+		// is -1/q_ii
+		static TVector GetHoldingTimeV(const TFullMatrix& QMat);
+
 		// state utility functions
 		bool ShouldExpand(const int& StateIdx) const;
 		bool IsStateExpanded(const int& StateIdx) const;
@@ -1100,7 +1113,7 @@ private:
 
 	PFtrSpace FtrSpace;
 
-	TNode* RootNode;
+	PNode RootNode;
 
 	TUInt64 CurrRecs;
 	TUInt64 MinRecs;
@@ -1160,7 +1173,7 @@ private:
 	void InitRoot();
 
 	// called by the destructor to cleanup the node structure
-	static void DestroyNode(TNode* Node);
+//	static void DestroyNode(TNode* Node);
 
 public:
 	static TStr GetType() { return "process_state"; }

@@ -2636,7 +2636,7 @@ public:
 	/// JS script context
 	TWPt<TScript> Js;
 	// model
-	TStreamAggrs::THierchCtmc Model;
+	PStreamAggr Model;
 
 private:
 	typedef TJsObjUtil<TJsProcessStateModel> TJsProcessStateModelUtil;

@@ -74,7 +74,7 @@ private:
 	const static int STATUS_FINISHED;
 
 	pthread_t ThreadHandle;
-	int ThreadId;
+	uint64 ThreadId;
 
 	// Use for interrupting and waiting
 	TBlocker* SleeperBlocker;
@@ -104,7 +104,7 @@ public:
     void Cancel();
 
     // windows thread id
-    int GetThreadId() const { return ThreadId; }
+    uint64 GetThreadId() const { return ThreadId; }
     // windows thread handle
     pthread_t GetThreadHandle() const { return ThreadHandle; }
 
@@ -113,10 +113,11 @@ public:
 
 	int Join();
 
-	bool IsAlive() const { return Status == STATUS_STARTED; }
-	bool IsCancelled() const { return Status == STATUS_CANCELLED; }
+	bool IsAlive();
+	bool IsCancelled();
 
 	static int GetCoreCount();
+
 };
 
 

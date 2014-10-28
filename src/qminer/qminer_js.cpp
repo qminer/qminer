@@ -5597,9 +5597,9 @@ v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, c
 
 TJsProcessStateModel::TJsProcessStateModel(TWPt<TScript> _Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal):
 		Js(_Js),
-		Model(*dynamic_cast<TStreamAggrs::THierchCtmc*>(TStreamAggr::New(Base, ParamVal->GetObjStr("type"), ParamVal)())) {
+		Model(TStreamAggr::New(Base, ParamVal->GetObjStr("type"), ParamVal)) {
 
-	Base->AddStreamAggr(Base->GetStoreByStoreNm(ParamVal->GetObjStr("source"))->GetStoreId(), PStreamAggr(&Model));
+	Base->AddStreamAggr(Base->GetStoreByStoreNm(ParamVal->GetObjStr("source"))->GetStoreId(), Model);
 }
 
 v8::Handle<v8::ObjectTemplate> TJsProcessStateModel::GetTemplate() {
@@ -5621,8 +5621,12 @@ v8::Handle<v8::Value> TJsProcessStateModel::toJSON(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsProcessStateModel* Model = TJsProcessStateModelUtil::GetSelf(Args);
 
-	PJsonVal ModelJson = Model->Model.SaveJson(TInt::Mx);
+	TStreamAggrs::THierchCtmc* CtmcModel = dynamic_cast<TStreamAggrs::THierchCtmc*>(Model->Model());
+
+	PJsonVal ModelJson = CtmcModel->SaveJson(TInt::Mx);
 	const TStr JsonStr = TJsonVal::GetStrFromVal(ModelJson);
+
+	printf("%s\n", JsonStr.CStr());
 
 	return HandleScope.Close(TJsUtil::ParseJson(JsonStr));
 }

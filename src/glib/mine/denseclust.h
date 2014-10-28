@@ -10,7 +10,13 @@
 
 namespace TFullClust {
 
+class TClust;
+typedef TPt<TClust> PClust;
 class TClust {
+private:
+  TCRef CRef;
+public:
+  friend class TPt<TClust>;
 protected:
 	TRnd Rnd;
 	// holds centroids as column vectors
@@ -86,6 +92,65 @@ public:
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
 	TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000);
+};
+
+/////////////////////////////////////////////////////////////////
+// Continous time Markov Chain
+class TCtmc {
+private:
+	TFullMatrix CentroidMat;
+	TVec<TUInt64FltPrV> QMatStats;
+
+	// holds pairs <n,sum> where n is the number of points in state i
+	// and sum is the sum of distances to the centroid
+	TVec<TUInt64FltPr> StateStatV;
+
+	PClust Clust;
+
+	TUInt64V RecIdV;
+
+	uint64 TimeUnit;
+
+	int CurrStateIdx;
+	uint64 PrevJumpTm;
+
+public:
+	TCtmc(const PClust& Clust);
+
+	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+
+	void OnAddRec(const TVector& Rec, const uint64& RecTm);
+
+	// returns the total number of stats in the system
+	int GetStates() const { return CentroidMat.GetCols(); }
+	// returns the dimension of the points
+	int GetDim() const { return CentroidMat.GetRows(); }
+
+	// continuous time Markov chain stuff
+	// returns the stationary distribution of the stohastic process
+	TVector GetStatDist() const;
+	// returns a jump matrix for the given transition rate matrix
+	// when the process decides to jump the jump matrix describes to
+	// which state it will jump with which probability
+	static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
+	// returns a vector of holding times
+	// a holding time is the expected time that the process will stay in state i
+	// it is an exponential random variable of parameter -q_ii, so its expected value
+	// is -1/q_ii
+	static TVector GetHoldingTimeV(const TFullMatrix& QMat);
+
+private:
+	// init functions
+	void InitStateStats(const TFullMatrix& X);
+	void InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignV);
+
+	// update functions
+	void UpdateIntensities(const TVector& Rec, const uint64 RecTm, const int& RecState);
+	void UpdateStatistics(const TVector& Rec, const int& RecState);
+
+	// clustering stuff
+	double GetMeanPtCentroidDist(const int& StateIdx) const;
+	uint64 GetStateSize(const int& StateIdx) const;
 };
 
 }

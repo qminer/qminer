@@ -2208,6 +2208,7 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 
 	// centroids
 	PJsonVal StateJsonV = TJsonVal::NewArr();
+	TVector SizeV = GetStatDist();
 	for (int i = 0; i < NStates; i++) {
 		PJsonVal StateJson = TJsonVal::NewObj();
 
@@ -2226,9 +2227,10 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 		StateJson->AddToObj("id", StateIdV[i]);
 		StateJson->AddToObj("meanCentroidDist", GetMeanPtCentroidDist(i));
 		StateJson->AddToObj("size", GetStateSize(i));
+		StateJson->AddToObj("time", SizeV[i]);
 		StateJson->AddToObj("centroid", CentroidJsonV);
 
-		printf("node id: %ld, size: %ld, mean centroid dist: %.3f\n", NodeId.Val, GetStateSize(i), GetMeanPtCentroidDist(i));
+		printf("node id: %ld, size: %.2f, mean centroid dist: %.3f\n", NodeId.Val, SizeV[i].Val, GetMeanPtCentroidDist(i));
 
 		StateJsonV->AddToArr(StateJson);
 	}
@@ -2337,16 +2339,82 @@ void THierchCtmc::TNode::InitStateStats() {
 }
 
 double THierchCtmc::TNode::GetMeanPtCentroidDist(const int& StateIdx) const {
-	if (GetStateSize(StateIdx) == 0) { return 0; }
-	return StateStatV[StateIdx].Val2 / GetStateSize(StateIdx);
+	uint64 StateSize = GetStateSize(StateIdx);
+	return StateSize == 0 ? 0 : StateStatV[StateIdx].Val2 / GetStateSize(StateIdx);
 }
 
 uint64 THierchCtmc::TNode::GetStateSize(const int& StateIdx) const {
 	return StateStatV[StateIdx].Val1;
 }
 
+TVector THierchCtmc::TNode::GetStatDist() const {
+	// returns the stationary distribution
+
+	// Norris: Markov Chains states:
+	// Let Q be a Q-matrix with jump matrix Pi and let lambda be a measure,
+	// than the following are equivalent
+	// 1) lambda is invariant
+	// 2) mu*Pi = mu where mu_i = lambda_i / q_i, where q_i = -q_ii
+
+	TFullMatrix QMat = GetQMatrix();	// transition rate matrix
+	TFullMatrix JumpMat = GetJumpMatrix(QMat);
+
+	printf("Q: %s\n", TStrUtil::GetStr(QMat.GetMat(), ", ", "%.3f").CStr());
+	printf("Pi: %s\n", TStrUtil::GetStr(JumpMat.GetMat(), ", ", "%.3f").CStr());
+
+	// find the eigenvector of the jump matrix with eigen value 1
+	TVector EigenVec(QMat.GetRows());
+	TNumericalStuff::GetEigenVec(JumpMat.GetT().GetMat(), 1.0, EigenVec.Vec);
+
+	printf("Mu: %s\n", TStrUtil::GetStr(EigenVec.Vec, ", ", "%.3f").CStr());
+	printf("Mu*Pi: %s\n", TStrUtil::GetStr((EigenVec.GetT()*GetJumpMatrix(QMat)).Vec, ", ", "%.3f").CStr());
+
+	// divide the elements by q_i
+	for (int i = 0; i < QMat.GetRows(); i++) {
+		EigenVec[i] /= -QMat(i,i);
+	}
+
+	printf("Lambda * Q: %s\n", TStrUtil::GetStr((EigenVec.GetT() * QMat).Vec, ", ", "%.3f").CStr());
+
+	// normalize to get a distribution
+	return EigenVec /= EigenVec.Sum();
+}
+
+TFullMatrix THierchCtmc::TNode::GetJumpMatrix(const TFullMatrix& QMat) {
+	const int Rows = QMat.GetRows();
+	const int Cols = QMat.GetCols();
+
+	TFullMatrix JumpMat(Rows, Cols);
+
+	for (int i = 0; i < Rows; i++) {
+		if (QMat(i,i) == 0.0) {
+			JumpMat(i,i) = 1;
+		} else {
+			for (int j = 0; j < Cols; j++) {
+				if (j != i) {
+					JumpMat(i,j) = QMat(i,j) / (-QMat(i,i));
+				}
+			}
+		}
+	}
+
+	return JumpMat;
+}
+
+TVector THierchCtmc::TNode::GetHoldingTimeV(const TFullMatrix& QMat) {
+	const int Rows = QMat.GetRows();
+
+	TVector HoldTmV(Rows);
+	for (int i = 0; i < Rows; i++) {
+		HoldTmV[i] = -1 / QMat(i,i);
+	}
+
+	return HoldTmV;
+}
+
 bool THierchCtmc::TNode::ShouldExpand(const int& StateIdx) const {
 	if (Depth >= Model->MaxDepth() || IsStateExpanded(StateIdx)) { return false; }
+	if (GetStateSize(StateIdx) < 100) { return false; }
 	double MeanPtCentDist = GetMeanPtCentroidDist(StateIdx);
 	return MeanPtCentDist > Model->ExpandThreshold;
 }
@@ -2358,7 +2426,7 @@ bool THierchCtmc::TNode::IsStateExpanded(const int& StateIdx) const {
 void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	if (IsStateExpanded(StateIdx)) { return; }
 
-	printf("Expanding state: %d\n", StateIdx);
+	printf("Expanding state: %d\n", StateIdV[StateIdx].Val);
 
 	// fetch all the records that belong to the state
 	TFullMatrix InstanceMat = Model->GetFtrVV(RecIdV);
@@ -2367,7 +2435,10 @@ void THierchCtmc::TNode::ExpandState(const int& StateIdx) {
 	TVector StateAssignIdxV = AssignV.Find([&] (const int Val) { return Val == StateIdx; });
 
 	// if the state doesn't have enough points => ignore
-	if (StateAssignIdxV.Len() < 15) { return; }	// TODO hardcoded
+	if (StateAssignIdxV.Len() < 15) {		// TODO hardcoded remove this part
+		printf("Cannot expand state %d!\n", StateIdV[StateIdx].Val);
+		return;
+	}
 
 	// get the record ids
 	TUInt64V StateRecIdV(StateAssignIdxV.Len(), 0);
@@ -2416,16 +2487,16 @@ void THierchCtmc::TNode::InitClusts(const PRecSet& RecSet, TIntV& AssignIdxV) {
 	// run the algorithm
 	CentroidMat = Clust->Apply(X, AssignIdxV);
 
-	//================================================================
-	// TODO delete
-	TVector AssignV1(AssignIdxV);
-	for (int i = 0; i < GetStates(); i++) {
-		TVector StateV = AssignV1.Find([&] (int Val) { return Val == i; });
-
-		printf("State %d has %d points\n", i, StateV.Len());
-	}
-
-	//================================================================
+//	//================================================================
+//	// TODO delete
+//	TVector AssignV1(AssignIdxV);
+//	for (int i = 0; i < GetStates(); i++) {
+//		TVector StateV = AssignV1.Find([&] (int Val) { return Val == i; });
+//
+//		printf("State %d has %d points\n", i, StateV.Len());
+//	}
+//
+//	//================================================================
 
 	// initialize children vector
 	InitChildV();
@@ -2486,7 +2557,7 @@ THierchCtmc::THierchCtmc(const THierchCtmc& Model):
 
 
 THierchCtmc::~THierchCtmc() {
-	DestroyNode(RootNode);
+//	DestroyNode(RootNode);
 }
 
 PStreamAggr THierchCtmc::New(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& InStoreNm,
@@ -2524,7 +2595,7 @@ PStreamAggr THierchCtmc::New(const TWPt<TQm::TBase>& Base, const PJsonVal& Param
 }
 
 PJsonVal THierchCtmc::SaveJson(const int& Limit) const {
-	if (RootNode == NULL) { return TJsonVal::NewNull(); }
+	if (RootNode.Empty()) { return TJsonVal::NewNull(); }
 	return RootNode->SaveJson();
 }
 
@@ -2604,17 +2675,17 @@ void THierchCtmc::InitRoot() {
 	RootNode = new TNode(this, AllRecSet, GenNodeId(), 1);
 }
 
-void THierchCtmc::DestroyNode(TNode* Node) {
-	if (Node == NULL) { return; }
-
-	const int NChild = Node->ChildV.Len();
-
-	for (int i = 0; i < NChild; i++) {
-		DestroyNode(Node->ChildV[i]);
-	}
-
-	delete Node;
-}
+//void THierchCtmc::DestroyNode(TNode* Node) {
+//	if (Node == NULL) { return; }
+//
+//	const int NChild = Node->ChildV.Len();
+//
+//	for (int i = 0; i < NChild; i++) {
+//		DestroyNode(Node->ChildV[i]);
+//	}
+//
+//	delete Node;
+//}
 
 
 //////////////////////////////////////////////

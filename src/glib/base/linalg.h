@@ -371,6 +371,8 @@ public:
 	static void NormalizeColumns(TTriple<TIntV, TIntV, TFltV>& X);
 	// Normalize the columns of X
 	static void NormalizeColumns(TVec<TIntFltKdV>& X);
+	// Frobenius norm of matrix A
+	static double FrobNorm(const TFltVV& A);
 
     // ||x||^2 (Euclidian), x is sparse
     static double Norm2(const TIntFltKdV& x);
@@ -646,7 +648,7 @@ public:
     // Given a matrix a[1..n][1..n], this routine replaces it by the LU
     // decomposition of a rowwise permutation of itself. a and n are input.
     // a is output, arranged as in equation (2.3.14) above; indx[1..n] is
-    // an output vector that records the row permutation efected by the partial
+    // an output vector that records the row permutation effected by the partial
     // pivoting; d is output as +-1 depending on whether the number of row
     // interchanges was even or odd, respectively. This routine is used in
     // combination with lubksb to solve linear equations or invert a matrix.
@@ -665,6 +667,11 @@ public:
     // Solves system of linear equations A * x = b. A is first decomposed using
     // LUDecomposition and after solved using LUSolve. A is modified!
     static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
+
+    // Computes the eigenvector of A belonging to the specified eigenvalue
+    // uses the inverse iteration algorithm
+    // the algorithms does modify A due to its use of LU decomposition
+    static void GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -917,6 +924,8 @@ public:
     static TVector Init(const int& Dim, const bool _IsColVect);
     // returns a vector of ones
     static TVector Ones(const int& Dim, const bool IsColVect = true);
+    // returns a vector of zeros
+    static TVector Zeros(const int& Dim, const bool IsColVec=true);
     // returns a vector with a sequence starting with Start (inclusive) and ending
     // with End (exclusive)
     static TVector Range(const int& Start, const int& End, const bool IsColVect = true);
@@ -941,7 +950,10 @@ public:
     TVector operator *(const TFullMatrix& Mat) const;
     TVector operator *(const double& k) const;
 
-	TVector& operator *=(const double& k);
+    // multiplies all elements by Lambda
+	TVector& operator *=(const double& Lambda);
+	// divides all elements by Lambda
+	TVector& operator /=(const double& Lambda);
 
     // multiply the transpose of this vector with B (e.g. x'*B)
 	TVector MulT(const TFullMatrix& B) const;
@@ -978,6 +990,8 @@ public:
 
     // returns the underlying list
     const TFltV& GetVec() const { return Vec; }
+    // returns the underlying list
+	TFltV& GetVec() { return Vec; }
     // returns this vector as a list of integers
     TIntV GetIntVec() const;
 
@@ -1031,9 +1045,9 @@ public:
     // empty matrix with 0 rows and 0 cols
     TFullMatrix();
     // zero matrix with the specified number of rows and cols
-    TFullMatrix(const int& _Rows, const int& _Cols);
+    TFullMatrix(const int& Rows, const int& Cols);
     // matrix from TFltVV
-    TFullMatrix(const TFltVV& _Mat);
+    TFullMatrix(const TFltVV& Mat);
 
     // copy constructor
 	TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) {} // { printf("Matrix copied\n"); }
@@ -1065,7 +1079,9 @@ protected:
     virtual int PGetCols() const { return Mat.GetCols(); }
 public:
     // returns the underlying TFltVV
-    const TFltVV& GetMat() const { return Mat; }
+    const  TFltVV& GetMat() const { return Mat; }
+    // returns the underlying TFltVV
+    TFltVV& GetMat() { return Mat; }
     // transposed
     virtual void Transpose();
     // returns the transpose of this matrix

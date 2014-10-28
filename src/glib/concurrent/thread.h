@@ -104,7 +104,7 @@ private:
 public:
 	TThreadExecutor(const TInt& PoolSize=1, const PNotify& Notify=TNullNotify::New());
 
-	virtual ~TThreadExecutor() {}
+	~TThreadExecutor();
 
 	void Execute(const PRunnable& Runnable);
 

@@ -256,3 +256,89 @@ TFullMatrix TDpMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& Max
 
 	return CentroidMat;
 }
+
+/////////////////////////////////////////////////////////////////
+// Continous time Markov Chain
+void TCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
+	TIntV AssignV;
+	CentroidMat = Clust->Apply(X, AssignV, 10000);
+	InitStateStats(X);
+	InitIntensities(X, RecTmV, AssignV);
+}
+
+void TCtmc::OnAddRec(const TVector& Rec, const uint64& RecTm) {
+	int RecState = Clust->Assign(Rec);
+
+	// update statistics
+	UpdateStatistics(Rec, RecState);
+	// update intensities
+	UpdateIntensities(Rec, RecTm, RecState);
+	// update current state
+	CurrStateIdx = RecState;
+}
+
+void TCtmc::InitStateStats(const TFullMatrix& X) {
+	const int NStates = GetStates();
+
+	printf("Initailizing statistics ...\n");
+
+	StateStatV.Gen(NStates, 0);
+	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
+		double MeanPtCentDist = Clust->GetMeanPtCentDist(StateIdx);
+		uint64 ClustSize = Clust->GetClustSize(StateIdx);
+
+		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
+
+		printf("State %d, points %ld, mean centroid dist %.3f\n", StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
+	}
+}
+
+void TCtmc::InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignIdxV) {
+	// compute the intensities using the maximum likelihood estimate
+	// lambda = 1 / t_avg = n / sum(t_i)
+
+	const int NRecs = X.GetCols();
+	const int NStates = GetStates();
+
+	// initialize a matrix holding the number of measurements and the sum
+	QMatStats.Gen(NStates, 0);
+	for (int i = 0; i < NStates; i++) {
+		QMatStats.Add(TUInt64FltPrV(NStates, NStates));
+	}
+
+	// update intensities
+	for (int i = 0; i < NRecs; i++) {
+		UpdateIntensities(X.GetCol(i), RecTmV[i], AssignIdxV[i]);
+	}
+}
+
+void TCtmc::UpdateIntensities(const TVector& Rec, const uint64 RecTm, const int& RecState) {
+	if (CurrStateIdx != -1 && RecState != CurrStateIdx) {
+		// the state has changed
+		if (PrevJumpTm != TUInt64::Mx) {
+			uint64 HoldingTm = RecTm - PrevJumpTm;
+			QMatStats[CurrStateIdx][RecState].Val1++;
+			QMatStats[CurrStateIdx][RecState].Val2 += (double) HoldingTm / TimeUnit;
+			printf("Updated intensity: prev state: %d, curr state: %d\n", CurrStateIdx, RecState);
+		}
+		PrevJumpTm = RecTm;
+	} else if (CurrStateIdx == -1) {
+		PrevJumpTm = RecTm;
+	}
+}
+
+void TCtmc::UpdateStatistics(const TVector& Rec, const int& RecState) {
+	double CentroidDist = Clust->GetDist(RecState, Rec);
+
+	StateStatV[RecState].Val1 += 1;
+	StateStatV[RecState].Val2 += CentroidDist;
+}
+
+double TCtmc::GetMeanPtCentroidDist(const int& StateIdx) const {
+	uint64 StateSize = GetStateSize(StateIdx);
+	return StateSize == 0 ? 0 : StateStatV[StateIdx].Val2 / GetStateSize(StateIdx);
+}
+
+uint64 TCtmc::GetStateSize(const int& StateIdx) const {
+	return StateStatV[StateIdx].Val1;
+}

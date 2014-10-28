@@ -67,8 +67,13 @@ TThreadExecutor::TExecutorThread::TExecutorThread(TThreadExecutor* _Executor, co
 void TThreadExecutor::TExecutorThread::Run() {
 	while (Runnable != NULL) {
 		try {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Executing on thread %ld ...", GetThreadId());
+
 			Runnable->Run();
 			Runnable = NULL;
+
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Thread %ld finished!", GetThreadId());
+
 			Executor->OnThreadFinished(this);
 		} catch (const PExcept& Except) {
 			Notify->OnNotifyFmt(TNotifyType::ntErr, "Failed to execute thread: %s", Except->GetMsgStr().CStr());
@@ -78,47 +83,66 @@ void TThreadExecutor::TExecutorThread::Run() {
 		}
 	}
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Thread %d exiting Run method ...", GetThreadId());
+	// TODO danger!!! A task can remain the the queue and all threads are paused!!! Fix this before using
+	// in a real scenario
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Thread %ld exiting Run method ...", GetThreadId());
 }
 
 TThreadExecutor::TThreadExecutor(const TInt& PoolSize, const PNotify& _Notify):
-		ThreadV(PoolSize, PoolSize),
+		ThreadV(),
 		TaskQ(),
 		QSection(TCriticalSectionType::cstRecursive),
-		Notify(_Notify) {}
+		Notify(_Notify) {
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating executor with %d threads ...", PoolSize.Val);
+
+	for (int i = 0; i < PoolSize; i++) {
+		ThreadV.Add(TExecutorThread(this, Notify));
+	}
+}
+
+TThreadExecutor::~TThreadExecutor() {
+	TLock Lck(QSection);
+
+	for (int i = 0; i < ThreadV.Len(); i++) {
+		if (ThreadV[i].IsAlive()) {
+			ThreadV[i].Cancel();
+		}
+	}
+}
 
 void TThreadExecutor::Execute(const PRunnable& Runnable) {
-	Notify->OnNotify(TNotifyType::ntInfo, "Adding new runnable to queue ...");
-
 	TLock Lck(QSection);
+	Notify->OnNotify(TNotifyType::ntInfo, "Adding new runnable to queue ...");
 	TaskQ.Push(Runnable);
 	ExecuteTasks();
 }
 
 void TThreadExecutor::OnThreadFinished(TExecutorThread* Thread) {
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Thread %d finished working, fetching new task ...", Thread->GetThreadId());
+	TLock Lock(QSection);
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Thread %ld finished working, fetching new task ...", Thread->GetThreadId());
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "%ld tasks in queue ...", TaskQ.Len().Val);
 
-	{
-		TLock Lock(QSection);
-		if (!TaskQ.Empty()) {
-			Thread->SetRunnable(TaskQ.Pop());
-		}
+	if (!TaskQ.Empty()) {
+		Thread->SetRunnable(TaskQ.Pop());
 	}
 }
 
 void TThreadExecutor::ExecuteTasks() {
-	Notify->OnNotify(TNotifyType::ntInfo, "Checking if any tasks can be executed ...");
-
 	TLock Lck(QSection);
-
+	Notify->OnNotify(TNotifyType::ntInfo, "Checking if any tasks can be executed ...");
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "%ld tasks in queue ...", TaskQ.Len().Val);
 
 	// check if a thread is free
 	int i = 0;
 	while (!TaskQ.Empty() && i < ThreadV.Len()) {
-		if (!ThreadV[i].IsAlive()) {
-			ThreadV[i].SetRunnable(TaskQ.Pop());
-			ThreadV[i].Start();
+		TExecutorThread& Worker = ThreadV[i];
+
+		if (!Worker.IsAlive()) {
+			Notify->OnNotify(TNotifyType::ntInfo, "Executing task ...");
+			Worker.SetRunnable(TaskQ.Pop());
+			Worker.Start();
 		}
 		i++;
 	}

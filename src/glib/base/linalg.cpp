@@ -729,6 +729,20 @@ void TLinAlg::NormalizeColumns(TVec<TIntFltKdV>& X) {
 	}	
 }
 
+double TLinAlg::FrobNorm(const TFltVV& A) {
+	const int Rows = A.GetRows();
+	const int Cols = A.GetCols();
+
+	double Norm = 0;
+	for (int i = 0; i < Rows; i++) {
+		for (int j = 0; j < Cols; j++) {
+			Norm += A(i,j)*A(i,j);
+		}
+	}
+
+	return sqrt(Norm);
+}
+
 double TLinAlg::Norm2(const TIntFltKdV& x) {
     double Result = 0;
     for (int i = 0; i < x.Len(); i++) {
@@ -2015,6 +2029,55 @@ void TNumericalStuff::SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x) {
     LUSolve(A, indx, x);
 }
 
+void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
+	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
+
+	const int Dim = A.GetRows();
+	const double UEps = 1e-8;
+
+	int i, j;
+
+	EigenV.Gen(Dim);
+	TFltV EigenVTemp(Dim);
+
+	// inverse iteration algorithm
+	// first compute (A - Lambda*I)
+	for (int i = 0; i < Dim; i++) {
+		A(i,i) -= EigenVal;
+	}
+
+	const double NormA = TLinAlg::FrobNorm(A);
+
+	// build an initial estimate of the eigenvector
+	// decompose (A - Lambda*I) into LU
+	TIntV PermIdxV;
+	double d;
+	LUDecomposition(A, PermIdxV, d);
+
+	// extract U, replace any zero diagonal elements by |A|*eps
+	TFltVV U(Dim, Dim);
+	TFltV OnesV(Dim,0);
+	for (i = 0; i < Dim; i++) {
+		OnesV.Add(1);
+		U(i,i) = abs(A(i,i)) < UEps ? TMath::Sign(A(i,i))*UEps*NormA : (double) A(i,i);
+		for (j = i+1; j < Dim; j++) {
+			U(i,j) = A(i,j);
+		}
+	}
+
+	// compute an initial estimate for the eigenvector
+	// TODO this could be optimized since U is upper diagonal
+	SolveLinearSystem(U, OnesV, EigenV);
+
+	// iterate (A - Lambda*I)*x_n+1 = x_n
+	do {
+		EigenVTemp = EigenV;
+
+		LUSolve(A, PermIdxV, EigenV);
+		TLinAlg::Normalize(EigenV);
+	} while (TLinAlg::EuclDist(EigenV, EigenVTemp) < ConvergEps);
+}
+
 ///////////////////////////////////////////////////////////////////////
 // Sparse-SVD
 void TSparseSVD::MultiplyATA(const TMatrix& Matrix,
@@ -2989,6 +3052,10 @@ TVector TVector::Ones(const int& Dim, const bool IsColVect) {
 	return TVector(Res);
 }
 
+TVector TVector::Zeros(const int& Dim, const bool IsColVec) {
+	return TVector(Dim, IsColVec);
+}
+
 TVector TVector::Range(const int& Start, const int& End, const bool IsColVect) {
 	EAssert(Start < End);
 
@@ -3066,6 +3133,10 @@ TVector TVector::operator *(const double& Lambda) const {
 TVector& TVector::operator *=(const double& Lambda) {
 	TLinAlg::MultiplyScalar(Lambda, Vec, Vec);
 	return *this;
+}
+
+TVector& TVector::operator /=(const double& Lambda) {
+	return operator *=(1/Lambda);
 }
 
 TVector TVector::MulT(const TFullMatrix& B) const {

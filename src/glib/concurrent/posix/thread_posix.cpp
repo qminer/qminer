@@ -129,12 +129,12 @@ void * TThread::EntryPoint(void * pArg) {
     TThread *pThis = (TThread *)pArg;
 
     // set the routine which cleans up after the thread has finished
-    pthread_cleanup_push(SetFinished, NULL);
+    pthread_cleanup_push(SetFinished, pThis);
 
     try {
     	pThis->Run();
     } catch (...) {
-    	printf("Unknown exception while running thread: %d!\n", pThis->GetThreadId());
+    	printf("Unknown exception while running thread: %ld!\n", pThis->GetThreadId());
     }
 
     // pop and execute the cleanup routine
@@ -156,6 +156,10 @@ TThread::TThread():
 		Status(STATUS_CREATED) { }
 
 TThread::~TThread() {
+	TLock Lck(CriticalSection);
+	if (IsAlive() && !IsCancelled()) {
+		Cancel();
+	}
 }
 
 TThread &TThread::operator =(const TThread& Other) {
@@ -172,6 +176,11 @@ void TThread::Start() {
 		printf("Tried to start a thread that is already alive! Ignoring ...\n");
 		return;
 	}
+	if (IsCancelled()) {
+		return;
+	}
+
+	Status = STATUS_STARTED;
 
     // create new thread
 	int code = pthread_create(
@@ -181,6 +190,7 @@ void TThread::Start() {
 			this			// Arg
 	);
 	EAssert(code == 0);
+	ThreadId = ThreadHandle;
 }
 
 void TThread::Cancel() {
@@ -197,6 +207,15 @@ int TThread::Join() {
 	return 0;
 }
 
+bool TThread::IsAlive() {
+	TLock Lck(CriticalSection);
+	return Status == STATUS_STARTED || IsCancelled();
+}
+
+bool TThread::IsCancelled() {
+	TLock Lck(CriticalSection);
+	return Status == STATUS_CANCELLED;
+}
 
 int TThread::GetCoreCount() {
 	int NumCpu;
