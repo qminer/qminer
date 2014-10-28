@@ -646,14 +646,14 @@ exports.ridgeRegression = function (kappa, dim, buffer) {
 };
 
 ///////// CLUSTERING BATCH K-MEANS
-//#- `mat2 = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+//#- `kmeansResult = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
 //#   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
-//#   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
-//#    is a cluster centroid.
-//#- `mat2 = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
-//#   matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
-//#   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
-//#    is a cluster centroid.
+//#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+//#    is a cluster centroid and an index array of cluster indices for each data point.
+//#- `kmeansResult = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+//#   sparse matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
+//#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+//#    is a cluster centroid and an index array of cluster indices for each data point.
 exports.kmeans = function(X, k, iter) {
     // select random k columns of X, returns a dense C++ matrix
     var selectCols = function (X, k) {
@@ -731,7 +731,10 @@ exports.kmeans = function(X, k, iter) {
         C = getCentroids(X, idxv, C); //drag
     }
     w.toc("end");
-    return C;
+    var result = {};
+    result.C = C;
+    result.idxv = idxv;
+    return result;
 };
 
 
