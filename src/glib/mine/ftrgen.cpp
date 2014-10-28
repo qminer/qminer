@@ -205,7 +205,8 @@ void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
 TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer, const int& _HashDim): Tokenizer(_Tokenizer) { 
+        PTokenizer _Tokenizer, const int& _HashDim, const bool& KHT,
+        const int& _NStart, const int& _NEnd): Tokenizer(_Tokenizer) {
 
     // get settings flags
     Type = 0;
@@ -218,26 +219,36 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
         Type.Val |= btHashing;
         // .. and the dimension
         HashDim = _HashDim;
+        // keep hash table?initialize it if true
+        KeepHashTable = KHT;
+        if(KeepHashTable) { HashTable.Gen(HashDim); }
         // initialize DF counts for hashes
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
     }
+    NStart = _NStart;
+    NEnd = _NEnd;
 }
 
 TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
-    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), Docs(SIn), 
-        DocFqV(SIn), ForgetP(SIn), OldDocs(SIn), OldDocFqV(SIn) { }
+    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), KeepHashTable(SIn),
+    NStart(SIn),NEnd(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn), OldDocs(SIn),
+    OldDocFqV(SIn), HashTable(SIn) { }
 
 void TBagOfWords::Save(TSOut& SOut) const {
     Type.Save(SOut);
     Tokenizer->Save(SOut);
     TokenSet.Save(SOut);
     HashDim.Save(SOut);
+    KeepHashTable.Save(SOut);
+    NStart.Save(SOut);
+    NEnd.Save(SOut);
     Docs.Save(SOut);
     DocFqV.Save(SOut);
     ForgetP.Save(SOut);
     OldDocs.Save(SOut);
     OldDocFqV.Save(SOut);
+    HashTable.Save(SOut);
 }
 
 void TBagOfWords::Clr() {
@@ -265,16 +276,43 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
     }*/
 }
 
+void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {
+
+    if((NStart == 1) && (NEnd == 1)) { 
+        NgramStrV = TokenStrV;
+    }
+    
+    TSize Total = TokenStrV.Len();
+    TStr NgramString;
+    TStrV Slice;
+    TStr Ngram;
+
+    for(TSize TokenN = 0; TokenN < Total; TokenN++) { // for each token position, generate ngrams starting at that position
+    	// Start with Token Position
+    	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
+        for(TSize Pos = TokenN + (NStart - 1); Pos < std::min(Total-1, TokenN + NEnd - 1) + 1; Pos++) {
+            TokenStrV.GetSubValV(TokenN, Pos , Slice);
+            Ngram = TStr::GetStr(Slice, " ");
+            NgramStrV.Add(Ngram);
+        }
+    }
+}
+
 bool TBagOfWords::Update(const TStrV& TokenStrV) {    
+    // Generate Ngrams if necessary
+	TStrV NgramStrV;
+    GenerateNgrams(TokenStrV, NgramStrV);
+
     // process tokens to update DF counts
     bool UpdateP = false;
     if (IsHashing()) {  
         // consolidate tokens and get their hashed IDs
         TIntSet TokenIdH;
-        for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-            const TStr& TokenStr = TokenStrV[TokenStrN];
-            const int TokenId = TokenStr.GetPrimHashCd() % HashDim;
+        for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
+            const TStr& TokenStr = NgramStrV[TokenStrN];
+            TInt TokenId = TokenStr.GetHashTrick() % HashDim;
             TokenIdH.AddKey(TokenId);
+            if(KeepHashTable) { HashTable[TokenId].AddKey(TokenStr); }
         }
         // update document counts
         int KeyId = TokenIdH.FFirstKeyId();
@@ -286,8 +324,8 @@ bool TBagOfWords::Update(const TStrV& TokenStrV) {
     } else {
         // consolidate tokens
         TStrH TokenStrH;
-        for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-            const TStr& TokenStr = TokenStrV[TokenStrN];
+        for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
+            const TStr& TokenStr = NgramStrV[TokenStrN];
             TokenStrH.AddKey(TokenStr);
         }
         // update document counts and update vocabulary with new tokens
@@ -330,11 +368,13 @@ bool TBagOfWords::Update(const TStr& Val) {
 void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const {
     // aggregate token counts
     TIntH TermFqH;
-    for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-        const TStr& TokenStr = TokenStrV[TokenStrN];
+	TStrV NgramStrV;
+    GenerateNgrams(TokenStrV, NgramStrV);
+    for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
+        const TStr& TokenStr = NgramStrV[TokenStrN];
         // get token ID
         const int TokenId = IsHashing() ?
-            (TokenStr.GetPrimHashCd() % HashDim) : // hashing
+            (TokenStr.GetHashTrick() % HashDim) : // hashing
             TokenSet.GetKeyId(TokenStr); // vocabulary
         // add if known token
         if (TokenId != -1) {
@@ -371,6 +411,7 @@ void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
 }
 
 void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV, int& Offset) const {
+	printf("addFtr3\n");
     // create sparse vector
     TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
     // add to the full feature vector and increase offset count
