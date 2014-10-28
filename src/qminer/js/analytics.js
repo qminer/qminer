@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 var util = require("utilities.js");
+var assert = require("assert.js");
 
 module.exports = require("__analytics__");
 exports = module.exports; // re-establish link
@@ -387,7 +388,7 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     settings.j = stts.j || 1.0;
     settings.batchSize = stts.batchSize || 100;
     settings.maxIterations = stts.maxIterations || 100000;
-    settings.maxTime = stts.maxTime || 100000;
+    settings.maxTime = stts.maxTime || 1;
     settings.minDiff = stts.minDiff || 1e-6;
     settings.verbose = stts.verbose || false;
 
@@ -645,11 +646,11 @@ exports.ridgeRegression = function (kappa, dim, buffer) {
 };
 
 ///////// CLUSTERING BATCH K-MEANS
-//#- `mat2 = analytics.computeKmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+//#- `mat2 = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
 //#   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
 //#   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
 //#    is a cluster centroid.
-//#- `mat2 = analytics.computeKmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+//#- `mat2 = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
 //#   matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
 //#   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
 //#    is a cluster centroid.
