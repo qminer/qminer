@@ -361,18 +361,22 @@ exports.crossValidation = function (records, features, target, folds, limitCateg
 	return cfyRes;
 };
 
-// active learning (analytics:function activeLearner, parameters
-//#- `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
+
+//#- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
 //#    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
 //#    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
 //#   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
 //#   is retrained.
-//#   The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
-//#    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
-//#    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
+//#   The inputs are: query (text), record set `qRecSet`, record set `fRecSet`,  the feature space `ftrSpace` and a 
+//#   `settings`JSON object. The settings object specifies:`textField` (string) which is the name
+//#    of the field in records that is used to create feature vectors, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
 //#    examples that have to be identified in the query mode before the program enters SVM mode.
-//#   The next parameter is the `query` (string) which should be related to positive examples. 
-//#   Final Parameters `c` and `j` are SVM parameters.
+//#   We can set two additional parameters `querySampleSize` and `randomSampleSize` which specify the sizes of subsamples of qRecSet and fRecSet, where the rest of the data is ignored in the active learning.
+//#   Final parameters are all SVM parameters (c, j, batchSize, maxIterations, maxTime, minDiff, verbose).
+exports.newActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
+    return new analytics.activeLearner(query, qRecSet, fRecSet, ftrSpace, stts);
+}
+
 exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     var settings = stts || {};
     settings.nPos = stts.nPos || 2;
@@ -403,6 +407,10 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
 
     // query index sample, random sample
     var uRecSet = qRecSet.sample(settings.querySampleSize).setunion(rRecSet);
+
+    //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
+    this.getRecSet = function () { return uRecSet };
+
     var uMat = ftrSpace.ftrSpColMat(uRecSet); uMat.normalizeCols();
 
     var simV = uMat.multiplyT(querySpVec); //similarities (q, recSet)
@@ -413,6 +421,8 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     var nPosQ = 0; //for traversing simVp from the end
     var nNegQ = 0; //for traversing simVp from the start
 
+    //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
+    this.selectedQuestionIdx = -1;
 
     // SVM MODE
     var svm;
@@ -441,29 +451,56 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
       return posIdxArray;
     };
 
+    this.debug = function () { eval(breakpoint);}
+
+    this.getTop = function (limit) {
+        if (this.queryMode) { return null; } // must be in SVM mode to return results
+        if (!limit) { limit = 20; }
+        var idxArray = [];
+        var marginArray = [];
+        var sorted = resultVec.sortPerm(false);
+        for (var recN = 0; recN < uRecSet.length && recN < limit; recN++) {
+            idxArray.push(sorted.perm[recN]);
+            var val = sorted.vec[recN];
+            val = val == Number.POSITIVE_INFINITY ? Number.MAX_VALUE : val;
+            val = val == Number.NEGATIVE_INFINITY ? -Number.MAX_VALUE : val;
+            marginArray.push(val);
+        }
+        return { posIdx: idxArray, margins: marginArray };
+    };
+
+    //#   - `objJSON = alModel.getSettings()` -- returns the settings object
+    this.getSettings = function() {return settings;}
+
     // returns record set index of the unlabeled record that is closest to the margin
-    //#   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+    //#   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
     this.selectQuestion = function () {
         if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
         if (queryMode) {
             if (posRecIdV.length < settings.nPos && nPosQ + 1 < uRecSet.length) {
                 nPosQ = nPosQ + 1;
                 console.say("query mode, try to get pos");
-                return simVp[simVp.length - 1 - (nPosQ - 1)];
+                this.selectedQuestionIdx = simVp[simVp.length - 1 - (nPosQ - 1)];
+                return this.selectedQuestionIdx;
             }
             if (negRecIdV.length < settings.nNeg && nNegQ + 1 < uRecSet.length) {
                 nNegQ = nNegQ + 1;
                 // TODO if nNegQ == rRecSet.length, find a new sample
                 console.say("query mode, try to get neg");
-                return simVp[nNegQ - 1];
+                this.selectedQuestionIdx = simVp[nNegQ - 1];
+                return this.selectedQuestionIdx;
             }
         }
         else {
             ////call svm, get record closest to the margin            
             //console.startx(function (x) { return eval(x); });
             svm = analytics.trainSvmClassify(X, y, settings); //column examples, y float vector of +1/-1, default svm paramvals
+            
             // mark positives
-            for (var i = 0; i < posIdxV.length; i++) { classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; }
+            for (var i = 0; i < posIdxV.length; i++) {
+                classVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
+                resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
+            }
             // mark negatives
             for (var i = 0; i < negIdxV.length; i++) { 
               classVec[negIdxV[i]] = Number.POSITIVE_INFINITY;
@@ -486,11 +523,13 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
             }
             var sorted = classVec.sortPerm();
             console.say("svm mode, margin: " + sorted.vec[0] + ", npos: " + posCount + ", nneg: " + negCount);
-            return sorted.perm[0];
+            this.selectedQuestionIdx = sorted.perm[0];
+            return this.selectedQuestionIdx;
         }
+
     };
     // asks the user for class label given a record set index
-    //#   - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+    //#   - `alModel.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
     //#      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
     this.getAnswer = function (ALanswer, recSetIdx) {
         //todo options: ?newQuery
@@ -508,7 +547,7 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
         // +k query // rank unlabeled according to query, ask for k most similar
         // -k query // rank unlabeled according to query, ask for k least similar
     };
-    //#   - `model.startLoop()` -- starts the active learning loop in console
+    //#   - `alModel.startLoop()` -- starts the active learning loop in console
     this.startLoop = function () {
         while (true) {
             var recSetIdx = this.selectQuestion();
@@ -519,15 +558,19 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
             this.getAnswer(ALanswer, recSetIdx);
         }
     };
-    //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+    //#   - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
         if (queryMode) {
             console.say("AL.save: Must be in svm mode");
             return;
         }
-        svm.save(outputStream);
+        svm.save(outputStream);        
     };
+
+    this.getWeights = function () {
+        return svm.weights;
+    }
     //this.saveLabeled
     //this.loadLabeled
 };

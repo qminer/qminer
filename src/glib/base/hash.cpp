@@ -121,4 +121,3 @@ int TStrHashF_Md5::GetSecHashCd(const TStr& s) {
   TMd5Sig sig(s);
   return sig.GetSecHashCd();
 }
-
