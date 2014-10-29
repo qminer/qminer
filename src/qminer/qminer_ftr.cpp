@@ -1030,8 +1030,9 @@ void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSec
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
     const int& _FieldId, const TBagOfWordsMode& _Mode, const PTokenizer& Tokenizer, 
-    const int& HashDim): TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, 
-        Tokenizer, HashDim), Mode(_Mode) { AddField(_FieldId); }
+    const int& HashDim, const int& _NStart, const int& _NEnd):
+        TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, Tokenizer, HashDim), 
+        Mode(_Mode), NStart(_NStart), NEnd(_NEnd) { AddField(_FieldId); }
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
         TFtrExt(Base, ParamVal) {
@@ -1072,10 +1073,37 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     } else {
         Tokenizer = TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtNone, false));
     }
+
     // hashing dimension
     const int HashDim = ParamVal->GetObjInt("hashDimension", -1);
+    // keep hash table?
+    const bool KHT = ParamVal->GetObjBool("hashTable", false);
+
+    // parse ngrams
+    TInt NgramsStart = 1;
+    TInt NgramsEnd = 1;
+    if (ParamVal->IsObjKey("ngrams")) {
+        PJsonVal NgramsVal = ParamVal->GetObjKey("ngrams");
+        if(NgramsVal->IsNum()) {
+            NgramsEnd = int(NgramsVal->GetNum());
+        }
+        else if (NgramsVal->IsArr()) {
+            if(NgramsVal->GetArrVals() != 2) {
+                throw TQmExcept::New("ngrams array parameter must be [start, end]");
+            }
+            NgramsStart = (int) NgramsVal->GetArrVal(0)->GetNum();
+            NgramsEnd = (int) NgramsVal->GetArrVal(1)->GetNum();
+        }
+        else {
+            throw TQmExcept::New("ngrams parameter must be number or array");
+        }
+        if((NgramsStart > NgramsEnd) || (NgramsStart <= 0) || (NgramsEnd <= 0)) {
+            throw TQmExcept::New("ngrams parameters must be greater than zero and start >= end");
+        }
+    }
+
     // initialize
-    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim);
+    FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, KHT, NgramsStart, NgramsEnd);
     
     // parse input field(s)
     PJsonVal FieldVal = ParamVal->GetObjKey("field");
