@@ -1208,6 +1208,16 @@ TStr TBagOfWords::GetNm() const {
     return FieldNmChA; 
 };
 
+TStr TBagOfWords::GetFtr(const int& FtrN) const {
+    if(FtrGen.IsKeepingHashTable()) {
+        TStrV StrV;
+        FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
+        return TStr::GetStr(StrV, ",");
+    } else { 
+        return FtrGen.GetVal(FtrN); 
+    }
+}
+
 bool TBagOfWords::Update(const TRec& Rec) {
     // check if we should forget
     if (TmWnd.IsInit()) {

@@ -277,23 +277,23 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
 }
 
 void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {
-
     if((NStart == 1) && (NEnd == 1)) { 
         NgramStrV = TokenStrV;
     }
     
-    TSize Total = TokenStrV.Len();
-    TStr NgramString;
-    TStrV Slice;
-    TStr Ngram;
-
-    for(TSize TokenN = 0; TokenN < Total; TokenN++) { // for each token position, generate ngrams starting at that position
+    const TSize TotalStrLen = TokenStrV.Len();
+    for(TSize TokenStrN = 0; TokenStrN < TotalStrLen; TokenStrN++) { // for each token position, generate ngrams starting at that position
     	// Start with Token Position
     	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
-        for(TSize Pos = TokenN + (NStart - 1); Pos < std::min(Total-1, TokenN + NEnd - 1) + 1; Pos++) {
-            TokenStrV.GetSubValV(TokenN, Pos , Slice);
-            Ngram = TStr::GetStr(Slice, " ");
-            NgramStrV.Add(Ngram);
+        const TSize NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
+        for(TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
+            TChA NgramChA = TokenStrV[TokenStrN];
+            for (int NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
+                NgramChA += " "; NgramChA += TokenStrV[NgramTokenN];
+            }
+//            TokenStrV.GetSubValV(TokenStrN, NgramPos, Slice);
+//            Ngram = TStr::GetStr(Slice, " ");
+            NgramStrV.Add(NgramChA);
         }
     }
 }

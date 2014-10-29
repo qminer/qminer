@@ -497,14 +497,7 @@ public:
     
 	TStr GetNm() const;
 	int GetDim() const { return FtrGen.GetDim(); }
-	TStr GetFtr(const int& FtrN) const {
-		if(FtrGen.IsKeepingHashTable()) {
-			TStrV StrV;
-			FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
-			return TStr::GetStr(StrV, ",");
-		}
-		else { return FtrGen.GetVal(FtrN); }
-	}
+	TStr GetFtr(const int& FtrN) const;
 
 	void Clr() { FtrGen.Clr(); }
 	// sparse vector extraction
