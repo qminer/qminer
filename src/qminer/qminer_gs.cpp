@@ -2166,7 +2166,7 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
 		// assert that DelRecIdV is valid, without gaps and that deleting will not create gaps
 		PStoreIter Iter = GetIter();
 		int Counter = 0;
-		QmAssertR(DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs incorrect record id sequence. The length is greater than the total number of records.");
+		QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs incorrect record id sequence. The length is greater than the total number of records.");
 		while (Iter->Next()) {
 			QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStoreImpl::DeleteRecs: incorrect record id sequence. The sequence should start at the first store records, should contain only record ids and should not contain gaps");
 			Counter++;
