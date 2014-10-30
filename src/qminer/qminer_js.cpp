@@ -7333,7 +7333,7 @@ v8::Handle<v8::Value> TJsSnap::perfTest(const v8::Arguments& Args) {
 
 template <class T>
 TPt<T> TJsGraph<T>::GetArgGraph(const v8::Arguments& Args, const int& ArgN) {
-	throw TQmExcept("not implemented");
+	throw TQmExcept::New("not implemented");
 	return T::New();
 }
 
