@@ -2599,6 +2599,8 @@ v8::Handle<v8::Value> TJsStore::clear(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Integer::New((int)JsStore->Store->GetRecs()));
 }
 
+
+// TODO: add support for TVec<TTm>, TVec<TUInt64>, TVec<TBool> and update the returning functions
 v8::Handle<v8::Value> TJsStore::getCol(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
@@ -2613,38 +2615,62 @@ v8::Handle<v8::Value> TJsStore::getCol(const v8::Arguments& Args) {
 	
 	if (Desc.IsInt()) {
 		TIntV ColV(Recs);
-		PStoreIter Iter = Store->ForwardIter();
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 		for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV[RecN] = JsStore->Store->GetFieldInt(Iter->GetRecId(), FieldId);
 			Iter->Next();
 		}
 		return HandleScope.Close(TJsIntV::New(JsStore->Js, ColV));
 	}
-	/*else if (Desc.IsUInt64()) {
-		const uint64 Val = Store->GetFieldUInt64(RecId, FieldId);
-		return HandleScope.Close(v8::Integer::New((int)Val));
+	else if (Desc.IsUInt64()) {
+		TFltV ColV(Recs);
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (double)JsStore->Store->GetFieldUInt64(Iter->GetRecId(), FieldId);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsFltV::New(JsStore->Js, ColV));
 	}
+	
 	else if (Desc.IsStr()) {
-		const TStr Val = Store->GetFieldStr(RecId, FieldId);
-		return HandleScope.Close(v8::String::New(Val.CStr()));
+		TStrV ColV(Recs);
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = JsStore->Store->GetFieldStr(Iter->GetRecId(), FieldId);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsStrV::New(JsStore->Js, ColV));
 	}
+	
 	else if (Desc.IsBool()) {
-		const bool Val = Store->GetFieldBool(RecId, FieldId);
-		return HandleScope.Close(v8::Boolean::New(Val));
+		TIntV ColV(Recs);
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (int)JsStore->Store->GetFieldBool(Iter->GetRecId(), FieldId);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsIntV::New(JsStore->Js, ColV));
 	}
 	else if (Desc.IsFlt()) {
-		const double Val = Store->GetFieldFlt(RecId, FieldId);
-		return HandleScope.Close(v8::Number::New(Val));
+		TFltV ColV(Recs);
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsFltV::New(JsStore->Js, ColV));
 	}
 	else if (Desc.IsTm()) {
-		TTm FieldTm; Store->GetFieldTm(RecId, FieldId, FieldTm);
-		if (FieldTm.IsDef()) {
-			return TJsTm::New(FieldTm);
+		TFltV ColV(Recs);
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		TTm Tm;
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
+			ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+			Iter->Next();
 		}
-		else {
-			return HandleScope.Close(v8::Null());
-		}
-	}*/
+		return HandleScope.Close(TJsFltV::New(JsStore->Js, ColV));
+	}
 	throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
 }
 
@@ -3203,15 +3229,62 @@ v8::Handle<v8::Value> TJsRecSet::setdiff(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsRecSet::getCol(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	PRecSet RecSet = JsRecSet->RecSet;
+	TWPt<TStore> Store = RecSet->GetStore();
 	const TStr FieldNm = TJsRecSetUtil::GetArgStr(Args, 0);	
 	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
 	int Recs = (int)JsRecSet->RecSet->GetRecs();
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 
-	TFltV ColV(Recs);
-	for (int RecN = 0; RecN < Recs; RecN++) {
-		ColV[RecN] = JsRecSet->RecSet->GetRec(RecN).GetFieldFlt(FieldId);
+	if (Desc.IsInt()) {
+		TIntV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldInt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		return HandleScope.Close(TJsIntV::New(JsRecSet->Js, ColV));
 	}
-	return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	else if (Desc.IsUInt64()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
+		}
+		return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	}
+
+	else if (Desc.IsStr()) {
+		TStrV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldStr(RecSet()->GetRecId(RecN), FieldId);
+		}
+		return HandleScope.Close(TJsStrV::New(JsRecSet->Js, ColV));
+	}
+
+	else if (Desc.IsBool()) {
+		TIntV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = (int)Store->GetFieldBool(RecSet()->GetRecId(RecN), FieldId);
+		}
+		return HandleScope.Close(TJsIntV::New(JsRecSet->Js, ColV));
+	}
+	else if (Desc.IsFlt()) {
+		TFltV ColV(Recs);
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+		}
+		return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	}
+	else if (Desc.IsTm()) {
+		TFltV ColV(Recs);
+		TTm Tm;
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
+			ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+		}
+		return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	}
+	throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+
+
 }
 
 ///////////////////////////////
