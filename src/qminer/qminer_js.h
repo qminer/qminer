@@ -656,7 +656,7 @@ public:
 		return TStr(*Utf8);
 	}
 
-	static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
+	static PSIn GetArgFIn2(const v8::Arguments& Args, const int& ArgN) {
 		v8::HandleScope HandleScope;
 		// check we have the argument at all
 		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
@@ -2160,7 +2160,7 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::load (const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
-	PSIn SIn = TJsVecUtil::GetArgFIn(Args, 0);// //TJsFIn::GetArgFIn(Args, 0);
+	PSIn SIn = TJsVecUtil::GetArgFIn2(Args, 0);// //TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	JsVec->Vec.Load(*SIn);
 	return Args.Holder();
@@ -2184,7 +2184,7 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::loadascii(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
-	PSIn SIn = TJsVecUtil::GetArgFIn(Args, 0);//TJsFIn::GetArgFIn(Args, 0);
+	PSIn SIn = TJsVecUtil::GetArgFIn2(Args, 0);//TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	TStr Line;
 	while (SIn->GetNextLn(Line)) {
