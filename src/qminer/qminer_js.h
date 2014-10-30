@@ -656,6 +656,21 @@ public:
 		return TStr(*Utf8);
 	}
 
+	static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
+		v8::HandleScope HandleScope;
+		// check we have the argument at all
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		// check it's of the right type
+		QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+		// get the wrapped 
+		v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
+		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
+		// cast it to record set
+		TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
+		return JsFIn->SIn;
+	}
+
 	/// Extract argument ArgN as TStr, and use DefVal in case when not present
 	static TStr GetArgStr(const v8::Arguments& Args, const int& ArgN, const TStr& DefVal) {
 		v8::HandleScope HandleScope;
@@ -2145,7 +2160,7 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::load (const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
-	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	PSIn SIn = TJsVecUtil::GetArgFIn(Args, 0);// //TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	JsVec->Vec.Load(*SIn);
 	return Args.Holder();
@@ -2169,7 +2184,7 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::loadascii(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
-	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	PSIn SIn = TJsVecUtil::GetArgFIn(Args, 0);//TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	TStr Line;
 	while (SIn->GetNextLn(Line)) {

@@ -2264,14 +2264,50 @@ v8::Handle<v8::Value> TJsStore::clear(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsStore::getCol(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+	TWPt<TStore> Store = JsStore->Store;
 	const TStr FieldNm = TJsStoreUtil::GetArgStr(Args, 0);
+	if (!Store->IsFieldNm(FieldNm)) {
+		throw TQmExcept::New("store.getCol: fieldName not found: " + FieldNm);
+	}
 	const int FieldId = JsStore->Store->GetFieldId(FieldNm);
 	int Recs = (int)JsStore->Store->GetRecs();
-	TFltV ColV(Recs);
-	for (int RecN = 0; RecN < Recs; RecN++) {
-		ColV[RecN] = JsStore->Store->GetFieldFlt(RecN, FieldId);
+	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	
+	if (Desc.IsInt()) {
+		TIntV ColV(Recs);
+		PStoreIter Iter = Store->ForwardIter();
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			ColV[RecN] = JsStore->Store->GetFieldInt(Iter->GetRecId(), FieldId);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsIntV::New(JsStore->Js, ColV));
 	}
-	return HandleScope.Close(TJsFltV::New(JsStore->Js, ColV));
+	/*else if (Desc.IsUInt64()) {
+		const uint64 Val = Store->GetFieldUInt64(RecId, FieldId);
+		return HandleScope.Close(v8::Integer::New((int)Val));
+	}
+	else if (Desc.IsStr()) {
+		const TStr Val = Store->GetFieldStr(RecId, FieldId);
+		return HandleScope.Close(v8::String::New(Val.CStr()));
+	}
+	else if (Desc.IsBool()) {
+		const bool Val = Store->GetFieldBool(RecId, FieldId);
+		return HandleScope.Close(v8::Boolean::New(Val));
+	}
+	else if (Desc.IsFlt()) {
+		const double Val = Store->GetFieldFlt(RecId, FieldId);
+		return HandleScope.Close(v8::Number::New(Val));
+	}
+	else if (Desc.IsTm()) {
+		TTm FieldTm; Store->GetFieldTm(RecId, FieldId, FieldTm);
+		if (FieldTm.IsDef()) {
+			return TJsTm::New(FieldTm);
+		}
+		else {
+			return HandleScope.Close(v8::Null());
+		}
+	}*/
+	throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
 }
 
 v8::Handle<v8::Value> TJsStore::cell(const v8::Arguments& Args) {
