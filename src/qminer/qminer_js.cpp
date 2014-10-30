@@ -2660,6 +2660,23 @@ v8::Handle<v8::Value> TJsStore::getCol(const v8::Arguments& Args) {
 		}
 		return HandleScope.Close(TJsFltV::New(JsStore->Js, ColV));
 	}
+	else if (Desc.IsFltV()) {
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		TFltV Vec;
+		JsStore->Store->GetFieldFltV(Iter->GetRecId(), FieldId, Vec);
+		TFltVV ColV(Recs, Vec.Len());
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			JsStore->Store->GetFieldFltV(Iter->GetRecId(), FieldId, Vec);
+			QmAssertR(Vec.Len() == ColV.GetCols(), TStr::Fmt("store.getCol for field type fltvec: row dimensions are not consistent! %d expected, %d found in row %d", ColV.GetCols(), Vec.Len(), RecN));
+			// copy row
+			ColV.SetRow(RecN, Vec);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsFltVV::New(JsStore->Js, ColV));
+	}
+	else if (Desc.IsBowSpV()) {
+		throw TQmExcept::New("store.getCol for type sparse vector is not implemented yet.");
+	}
 	else if (Desc.IsTm()) {
 		TFltV ColV(Recs);
 		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
@@ -3272,6 +3289,23 @@ v8::Handle<v8::Value> TJsRecSet::getCol(const v8::Arguments& Args) {
 			ColV[RecN] = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
 		}
 		return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	}
+	else if (Desc.IsFltV()) {
+		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+		TFltV Vec;
+		Store->GetFieldFltV(RecSet()->GetRecId(0), FieldId, Vec);
+		TFltVV ColV(Recs, Vec.Len());
+		for (int RecN = 0; RecN < Recs; RecN++) {
+			Store->GetFieldFltV(RecSet()->GetRecId(RecN), FieldId, Vec);
+			QmAssertR(Vec.Len() == ColV.GetCols(), TStr::Fmt("store.getCol for field type fltvec: row dimensions are not consistent! %d expected, %d found in row %d", ColV.GetCols(), Vec.Len(), RecN));
+			// copy row
+			ColV.SetRow(RecN, Vec);
+			Iter->Next();
+		}
+		return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	}
+	else if (Desc.IsBowSpV()) {
+		throw TQmExcept::New("rs.getCol for type sparse vector is not implemented yet.");
 	}
 	else if (Desc.IsTm()) {
 		TFltV ColV(Recs);
@@ -7165,6 +7199,7 @@ v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
 		JsRegisterFunction(TmpTemp, communityEvolution);
 		JsRegisterFunction(TmpTemp, corePeriphery);
 		JsRegisterFunction(TmpTemp, dagImportance);
+		JsRegisterFunction(TmpTemp, dagImportanceStore);
 		JsRegisterFunction(TmpTemp, perfTest);
 
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
@@ -7349,6 +7384,52 @@ v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
 	TJsFltV* JsNodeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
 	TJsFltV* JsEdgeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 2);
 	
+	// node store, edge store, nodeWeightFieldName, edgeWeightFieldName
+
+
+	TFlt Decay = TJsSnapUtil::GetArgFlt(Args, 3, 1e+100);
+
+	TFltV Importance(Graph->GetNodes());
+	for (auto NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+		int InDeg = NI.GetInDeg();
+		int TrgId = NI.GetId();
+		double D = 1.0 + Importance[NI.GetId()] / InDeg;
+		for (int NbrN = 0; NbrN < InDeg; NbrN++) {
+			int EId = NI.GetInEId(NbrN);
+			int SrcId = NI.GetInNId(NbrN);
+			double Weight = JsEdgeData->Vec[EId] * exp((JsNodeData->Vec[SrcId] - JsNodeData->Vec[TrgId]) / Decay);
+			Importance[SrcId] += Weight * D;
+		}
+	}
+	return HandleScope.Close(TJsFltV::New(JsSnap->Js, Importance));
+}
+
+v8::Handle<v8::Value> TJsSnap::dagImportanceStore(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+	QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNEGraph"), "snap.dagImportance: Args[0] expected a dmgraph!");
+	TJsGraph<TNEGraph>* JsGraph = TJsObjUtil<TJsGraph<TNEGraph>>::GetArgObj(Args, 0);
+	PNEGraph Graph = JsGraph->Graph();
+
+	TStr NodeStoreNm = TJsSnapUtil::GetArgStr(Args, 0);
+	TStr NodeDataFieldNm = TJsSnapUtil::GetArgStr(Args, 1);
+	TStr EdgeStoreNm = TJsSnapUtil::GetArgStr(Args, 2);
+	TStr EdgeDataFieldNm = TJsSnapUtil::GetArgStr(Args, 3);
+
+	TWPt<TStore> NodeS = JsSnap->Js->Base->GetStoreByStoreNm(NodeStoreNm);
+	int NodeFieldId = NodeS->GetFieldId(NodeDataFieldNm);
+	TWPt<TStore> EdgeS = JsSnap->Js->Base->GetStoreByStoreNm(EdgeStoreNm);
+	int EdgeFieldId = EdgeS->GetFieldId(EdgeDataFieldNm);
+
+	QmAssertR(TJsSnapUtil::IsArgClass(Args, 1, "TFltV"), "snap.dagImportance: Args[1] expected a vector!");
+	QmAssertR(TJsSnapUtil::IsArgClass(Args, 2, "TFltV"), "snap.dagImportance: Args[2] expected a vector!");
+	TJsFltV* JsNodeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
+	TJsFltV* JsEdgeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 2);
+
+	// node store, edge store, nodeWeightFieldName, edgeWeightFieldName
+
+
 	TFlt Decay = TJsSnapUtil::GetArgFlt(Args, 3, 1e+100);
 
 	TFltV Importance(Graph->GetNodes());

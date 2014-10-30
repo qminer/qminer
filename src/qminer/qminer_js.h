@@ -3707,6 +3707,7 @@ public:
 	JsDeclareFunction(corePeriphery);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
+	JsDeclareFunction(dagImportanceStore);
 	JsDeclareFunction(perfTest);
 };
 
