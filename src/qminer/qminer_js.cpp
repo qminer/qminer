@@ -996,6 +996,344 @@ void TJsFetch::Fetch(const TJsFetchRq& Rq) {
 	CallbackH.AddDat(FId, Rq);
 }
 
+
+///////////////////////////////
+// QMiner-JavaScript-Fs
+v8::Handle<v8::ObjectTemplate> TJsFs::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, openRead);
+		JsRegisterFunction(TmpTemp, openWrite);
+		JsRegisterFunction(TmpTemp, openAppend);
+		JsRegisterFunction(TmpTemp, exists);
+		JsRegisterFunction(TmpTemp, copy);
+		JsRegisterFunction(TmpTemp, move);
+		JsRegisterFunction(TmpTemp, del);
+		JsRegisterFunction(TmpTemp, rename);
+		JsRegisterFunction(TmpTemp, fileInfo);
+		JsRegisterFunction(TmpTemp, mkdir);
+		JsRegisterFunction(TmpTemp, rmdir);
+		JsRegisterFunction(TmpTemp, listFile);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+bool TJsFs::CanAccess(const TStr& FPath) {
+	if (!TEnv::IsSandbox()) { return true; }
+	TJsFPath JsFPath(FPath);
+	for (int AllowedFPathN = 0; AllowedFPathN < AllowedFPathV.Len(); AllowedFPathN++) {
+		if (JsFPath.IsSubdir(AllowedFPathV[AllowedFPathN])) { return true; }
+	}
+	return false;
+}
+
+bool TJsFs::CanAccess(const v8::Arguments& Args) {
+	if (!TEnv::IsSandbox()) { return true; }
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+	return JsFs->CanAccess(FPath);
+}
+
+// TODO: Perform standard check for file existence, etc.
+v8::Handle<v8::Value> TJsFs::openRead(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+	return TJsFIn::New(FNm);
+}
+
+v8::Handle<v8::Value> TJsFs::openWrite(const v8::Arguments& Args) { // call withb AppendP = false
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	return TJsFOut::New(FNm);
+}
+
+v8::Handle<v8::Value> TJsFs::openAppend(const v8::Arguments& Args) { // call with AppendP = true 
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	return TJsFOut::New(FNm, true);
+}
+
+v8::Handle<v8::Value> TJsFs::exists(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	return v8::Boolean::New(TFile::Exists(FNm));
+}
+
+v8::Handle<v8::Value> TJsFs::copy(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
+	QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+	TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
+	QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
+	TFile::Copy(SrcFNm, DstFNm);
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::move(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
+	QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+	TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
+	QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
+	TFile::Copy(SrcFNm, DstFNm);
+	TFile::Del(SrcFNm, false); // ThrowExceptP = false 
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::del(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+	TFile::Del(FNm, false); // ThrowExceptP = false 
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::rename(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
+	QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+	TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
+	QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
+	TFile::Rename(SrcFNm, DstFNm);
+	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsFs::fileInfo(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
+	QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
+	const uint64 CreateTm = TFile::GetCreateTm(FNm);
+	const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
+	const uint64 LastWriteTm = TFile::GetLastWriteTm(FNm);
+	const uint64 Size = TFile::GetSize(FNm);
+	v8::Handle<v8::Object> Obj = v8::Object::New();
+	Obj->Set(v8::String::New("createTime"), v8::String::New(TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr()));
+	Obj->Set(v8::String::New("lastAccessTime"), v8::String::New(TTm::GetTmFromMSecs(LastAccessTm).GetWebLogDateTimeStr().CStr()));
+	Obj->Set(v8::String::New("lastWriteTime"), v8::String::New(TTm::GetTmFromMSecs(LastWriteTm).GetWebLogDateTimeStr().CStr()));
+	Obj->Set(v8::String::New("size"), v8::Number::New(static_cast<double>(Size)));
+	return HandleScope.Close(Obj);
+}
+
+v8::Handle<v8::Value> TJsFs::mkdir(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+	const bool GenDirP = TDir::GenDir(FPath);
+	return v8::Boolean::New(GenDirP);
+}
+
+v8::Handle<v8::Value> TJsFs::rmdir(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+	const bool DelDirP = TDir::DelDir(FPath);
+	return HandleScope.Close(v8::Boolean::New(DelDirP));
+}
+
+v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
+	// read parameters
+	TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+	QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+	TStr FExt = TJsFsUtil::GetArgStr(Args, 1);
+	const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
+	// get file list
+	TStrV FNmV;
+	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
+	FNmV.Sort();
+	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
+	for (int FldN = 0; FldN < FNmV.Len(); ++FldN) {
+		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
+	}
+	return HandleScope.Close(FNmArr);
+}
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+PSIn TJsFIn::GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
+	v8::HandleScope HandleScope;
+	// check we have the argument at all
+	QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	// check it's of the right type
+	QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+	// get the wrapped 
+	v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
+	// cast it to record set
+	TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
+	return JsFIn->SIn;
+}
+
+v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, peekCh);
+		JsRegisterFunction(TmpTemp, getCh);
+		JsRegisterFunction(TmpTemp, readLine);
+		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
+		JsRegisterProperty(TmpTemp, eof);
+		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, readAll);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+// takes no arguments 
+v8::Handle<v8::Value> TJsFIn::getCh(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	return v8::String::New(TStr(JsFIn->SIn->GetCh()).CStr());
+}
+
+v8::Handle<v8::Value> TJsFIn::peekCh(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	return v8::String::New(TStr(JsFIn->SIn->PeekCh()).CStr());
+}
+
+v8::Handle<v8::Value> TJsFIn::readLine(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	TChA LnChA; JsFIn->SIn->GetNextLnBf(LnChA);
+	return v8::String::New(LnChA.CStr());
+}
+
+v8::Handle<v8::Value> TJsFIn::eof(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
+	return v8::Boolean::New(JsFIn->SIn->Eof());
+}
+
+v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
+	return v8::Uint32::New(JsFIn->SIn->Len());
+}
+
+v8::Handle<v8::Value> TJsFIn::readAll(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
+	TStr Res = TStr::LoadTxt(JsFIn->SIn);
+	return v8::String::New(Res.CStr());
+}
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+PSOut TJsFOut::GetArgFOut(const v8::Arguments& Args, const int& ArgN) {
+	v8::HandleScope HandleScope;
+	// check we have the argument at all
+	QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	// check it's of the right type
+	QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
+	// get the wrapped 
+	v8::Handle<v8::Object> _JsFOut = v8::Handle<v8::Object>::Cast(Val);
+	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFOut->GetInternalField(0));
+	// cast it to record set
+	TJsFOut* JsFOut = static_cast<TJsFOut*>(WrappedObject->Value());
+	return JsFOut->SOut;
+}
+
+v8::Handle<v8::ObjectTemplate> TJsFOut::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, write);
+		JsRegisterFunction(TmpTemp, writeLine);
+		JsRegisterFunction(TmpTemp, flush);
+		JsRegisterFunction(TmpTemp, close);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	QmAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+	QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+	if (TJsFOutUtil::IsArgFlt(Args, 0)) {
+		JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
+	}
+	else if (TJsFOutUtil::IsArgJson(Args, 0)) {
+		JsFOut->SOut->PutStr(TJsFOutUtil::GetArgJsonStr(Args, 0));
+	}
+	else if (TJsFOutUtil::IsArgStr(Args, 0)) {
+		JsFOut->SOut->PutStr(TJsFOutUtil::GetArgStr(Args, 0));
+	}
+	else {
+		throw TQmExcept::New("Invalid parameter type to fout.write()");
+	}
+	return HandleScope.Close(Args.Holder());;
+}
+
+v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// first we write, if we have any argument
+	int OutN = 0;
+	if (TJsFOutUtil::IsArg(Args, 0)) {
+		v8::Handle<v8::Value> Res = write(Args);
+		OutN += Res->Int32Value();
+	}
+	// then we make a new line
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+	QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+	OutN += JsFOut->SOut->PutLn();
+	return HandleScope.Close(Args.Holder());
+}
+
+v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+	QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+	JsFOut->SOut->Flush();
+	return HandleScope.Close(Args.Holder());
+}
+
+v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
+	JsFOut->SOut.Clr();
+	return HandleScope.Close(Args.Holder());
+}
+
 ///////////////////////////////
 // QMiner-JavaScript-Base
 TJsBase::TJsBase(TWPt<TScript> _Js): Js(_Js), Base(_Js->Base) { }
@@ -6252,341 +6590,6 @@ v8::Handle<v8::Value> TJsConsole::print(const v8::Arguments& Args) {
 	printf("%s", Str.CStr());
 	return HandleScope.Close(v8::Undefined());
 }
-
-///////////////////////////////
-// QMiner-JavaScript-Fs
-v8::Handle<v8::ObjectTemplate> TJsFs::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, openRead);
-		JsRegisterFunction(TmpTemp, openWrite);
-		JsRegisterFunction(TmpTemp, openAppend);
-		JsRegisterFunction(TmpTemp, exists);
-		JsRegisterFunction(TmpTemp, copy);
-		JsRegisterFunction(TmpTemp, move);
-		JsRegisterFunction(TmpTemp, del);
-		JsRegisterFunction(TmpTemp, rename);
-		JsRegisterFunction(TmpTemp, fileInfo);
-		JsRegisterFunction(TmpTemp, mkdir);
-		JsRegisterFunction(TmpTemp, rmdir);
-		JsRegisterFunction(TmpTemp, listFile);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-bool TJsFs::CanAccess(const TStr& FPath) {
-    if (!TEnv::IsSandbox()) { return true; }
-    TJsFPath JsFPath(FPath);
-    for (int AllowedFPathN = 0; AllowedFPathN < AllowedFPathV.Len(); AllowedFPathN++) {
-        if (JsFPath.IsSubdir(AllowedFPathV[AllowedFPathN])) { return true; }
-    }
-    return false;
-}
-
-bool TJsFs::CanAccess(const v8::Arguments& Args) {
-    if (!TEnv::IsSandbox()) { return true; }
-	v8::HandleScope HandleScope;    
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-	return JsFs->CanAccess(FPath);
-}
-
-// TODO: Perform standard check for file existence, etc.
-v8::Handle<v8::Value> TJsFs::openRead(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
-	return TJsFIn::New(FNm);
-}
-
-v8::Handle<v8::Value> TJsFs::openWrite(const v8::Arguments& Args) { // call withb AppendP = false
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");    
-	return TJsFOut::New(FNm);
-}
-
-v8::Handle<v8::Value> TJsFs::openAppend(const v8::Arguments& Args) { // call with AppendP = true 
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-	return TJsFOut::New(FNm, true);
-}
-
-v8::Handle<v8::Value> TJsFs::exists(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-	return v8::Boolean::New(TFile::Exists(FNm));
-}
-
-v8::Handle<v8::Value> TJsFs::copy(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
-    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
-    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
-	TFile::Copy(SrcFNm, DstFNm);
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::move(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
-    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
-    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
-	TFile::Copy(SrcFNm, DstFNm);
-	TFile::Del(SrcFNm, false); // ThrowExceptP = false 
-    return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::del(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
-	TFile::Del(FNm, false); // ThrowExceptP = false 
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::rename(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr SrcFNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(SrcFNm), "You don't have permission to access file '" + SrcFNm + "'");
-    QmAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm = TJsFsUtil::GetArgStr(Args, 1);
-    QmAssertR(JsFs->CanAccess(DstFNm), "You don't have permission to access file '" + DstFNm + "'");
-	TFile::Rename(SrcFNm, DstFNm);
-	return v8::Undefined();
-}
-
-v8::Handle<v8::Value> TJsFs::fileInfo(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FNm = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FNm), "You don't have permission to access file '" + FNm + "'");
-    QmAssertR(TFile::Exists(FNm), "File '" + FNm + "' does not exist");
-	const uint64 CreateTm = TFile::GetCreateTm(FNm);
-	const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
-	const uint64 LastWriteTm = TFile::GetLastWriteTm(FNm);
-	const uint64 Size = TFile::GetSize(FNm);
-	v8::Handle<v8::Object> Obj = v8::Object::New();
-	Obj->Set(v8::String::New("createTime"), v8::String::New(TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr()));
-	Obj->Set(v8::String::New("lastAccessTime"), v8::String::New(TTm::GetTmFromMSecs(LastAccessTm).GetWebLogDateTimeStr().CStr()));
-	Obj->Set(v8::String::New("lastWriteTime"), v8::String::New(TTm::GetTmFromMSecs(LastWriteTm).GetWebLogDateTimeStr().CStr()));
-	Obj->Set(v8::String::New("size"), v8::Number::New(static_cast<double>(Size)));
-	return HandleScope.Close(Obj);
-}
-
-v8::Handle<v8::Value> TJsFs::mkdir(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-	const bool GenDirP = TDir::GenDir(FPath);
-	return v8::Boolean::New(GenDirP);
-}
-
-v8::Handle<v8::Value> TJsFs::rmdir(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-	const bool DelDirP = TDir::DelDir(FPath);
-	return HandleScope.Close(v8::Boolean::New(DelDirP));
-}
-
-v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-    // read parameters
-    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-    TStr FExt = TJsFsUtil::GetArgStr(Args, 1);
-    const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
-    // get file list
-	TStrV FNmV;
-	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
-    FNmV.Sort();
-	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
-	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
-		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
-	}
-	return HandleScope.Close(FNmArr);
-}
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-PSIn TJsFIn::GetArgFIn(const v8::Arguments& Args, const int& ArgN) {
-    v8::HandleScope HandleScope;
-    // check we have the argument at all
-    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    // check it's of the right type
-    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-    // get the wrapped 
-    v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
-    // cast it to record set
-    TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
-    return JsFIn->SIn;    
-}
-
-v8::Handle<v8::ObjectTemplate> TJsFIn::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, peekCh);
-		JsRegisterFunction(TmpTemp, getCh);
-		JsRegisterFunction(TmpTemp, readLine);
-		JsLongRegisterFunction(TmpTemp, "getNextLn", readLine);
-		JsRegisterProperty(TmpTemp, eof);
-		JsRegisterProperty(TmpTemp, length);
-		JsRegisterFunction(TmpTemp, readAll);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-// takes no arguments 
-v8::Handle<v8::Value> TJsFIn::getCh(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	return v8::String::New(TStr(JsFIn->SIn->GetCh()).CStr());
-}
-
-v8::Handle<v8::Value> TJsFIn::peekCh(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	return v8::String::New(TStr(JsFIn->SIn->PeekCh()).CStr());
-}
-
-v8::Handle<v8::Value> TJsFIn::readLine(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	TChA LnChA; JsFIn->SIn->GetNextLnBf(LnChA);
-	return v8::String::New(LnChA.CStr());
-}
-
-v8::Handle<v8::Value> TJsFIn::eof(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
-	return v8::Boolean::New(JsFIn->SIn->Eof());
-}
-
-v8::Handle<v8::Value> TJsFIn::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Info);
-	return v8::Uint32::New(JsFIn->SIn->Len());
-}
-
-v8::Handle<v8::Value> TJsFIn::readAll(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFIn* JsFIn = TJsFInUtil::GetSelf(Args);
-	TStr Res = TStr::LoadTxt(JsFIn->SIn);
-	return v8::String::New(Res.CStr());
-}
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-PSOut TJsFOut::GetArgFOut(const v8::Arguments& Args, const int& ArgN) {
-    v8::HandleScope HandleScope;
-    // check we have the argument at all
-    QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-    v8::Handle<v8::Value> Val = Args[ArgN];
-    // check it's of the right type
-    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-    // get the wrapped 
-    v8::Handle<v8::Object> _JsFOut = v8::Handle<v8::Object>::Cast(Val);
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFOut->GetInternalField(0));
-    // cast it to record set
-    TJsFOut* JsFOut = static_cast<TJsFOut*>(WrappedObject->Value());
-    return JsFOut->SOut;    
-}
-
-v8::Handle<v8::ObjectTemplate> TJsFOut::GetTemplate() {
-	v8::HandleScope HandleScope;
-	static v8::Persistent<v8::ObjectTemplate> Template;
-	if (Template.IsEmpty()) {
-		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
-		JsRegisterFunction(TmpTemp, write);
-		JsRegisterFunction(TmpTemp, writeLine);
-        JsRegisterFunction(TmpTemp, flush);
-        JsRegisterFunction(TmpTemp, close);
-		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
-		TmpTemp->SetInternalFieldCount(1);
-		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
-	}
-	return Template;
-}
-
-v8::Handle<v8::Value> TJsFOut::write(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    QmAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
-    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-	if(TJsFOutUtil::IsArgFlt(Args, 0)) {
-        JsFOut->SOut->PutFlt(TJsFOutUtil::GetArgFlt(Args, 0));
-	} else if(TJsFOutUtil::IsArgJson(Args, 0)) {
-        JsFOut->SOut->PutStr(TJsFOutUtil::GetArgJsonStr(Args, 0));
-	} else if (TJsFOutUtil::IsArgStr(Args, 0)) {
-        JsFOut->SOut->PutStr(TJsFOutUtil::GetArgStr(Args, 0));
-	} else {
-        throw TQmExcept::New("Invalid parameter type to fout.write()");
-	}
-	return HandleScope.Close(Args.Holder());;
-}
-
-v8::Handle<v8::Value> TJsFOut::writeLine(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-    // first we write, if we have any argument
-    int OutN = 0;
-    if (TJsFOutUtil::IsArg(Args, 0)) {
-        v8::Handle<v8::Value> Res = write(Args);
-        OutN += Res->Int32Value();
-    }
-    // then we make a new line
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);  
-    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-    OutN += JsFOut->SOut->PutLn();
-	return HandleScope.Close(Args.Holder());
-}
-
-v8::Handle<v8::Value> TJsFOut::flush(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
-    QmAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
-	JsFOut->SOut->Flush();
-	return HandleScope.Close(Args.Holder());
-}
-
-v8::Handle<v8::Value> TJsFOut::close(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-	TJsFOut* JsFOut = TJsFOutUtil::GetSelf(Args);
-	JsFOut->SOut.Clr();
-	return HandleScope.Close(Args.Holder());
-}
-
 
 ///////////////////////////////
 // QMiner-JavaScript-Utilities

@@ -2587,6 +2587,14 @@ _rs.reverse = function () {
 	/// </signature>
 };
 
+_rs.getCol = function () {
+	/// <signature>
+	/// <summary> gets the `fieldName` column</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _rs.filter = function () {
 	/// <signature>
 	/// <summary> keeps only records that pass `filterCallback` function. Returns self.</summary>

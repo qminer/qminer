@@ -17,6 +17,10 @@ JavaScript API requires [initialized work environment](Quick-Start).
 ## Table of contents
 
 - [Libraries](#libraries)
+- [File system, I/O](#file-system-and-io)
+ - [File system](#file-system)
+ - [Input File Stream](#input-file-stream)
+ - [Output File Stream](#output-file-stream)
 - [Core QMiner objects](#core-qminer-objects)
  - [QMiner](#qminer)
  - [Stream Aggregate](#stream-aggregate)
@@ -36,13 +40,10 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Neural network model](#neural-network-model)
  - [Recursive Linear Regression model](#recursive-linear-regression-model)
  - [Hoeffding Tree model](#hoeffding-tree-model)
-- [System and I/O](#system-and-io)
+- [System](#system)
  - [Process](#process)
  - [assert.js (use require)](#assertjs-use-require)
  - [Console](#console)
- - [File system](#file-system)
- - [Input File Stream](#input-file-stream)
- - [Output File Stream](#output-file-stream)
  - [utilities.js (use require)](#utilitiesjs-use-require)
  - [utilities.map (use require)](#hash-map)
  - [HTTP](#http)
@@ -87,6 +88,50 @@ The QMiner system comes with the following libraries:
 - **time** -- wrapper around user-friendly date-time object
 - **assert.js** -- support for writing unit tests
 - **twitter.js** -- support for processing tweets
+
+## File System and I/O
+
+
+### File system
+
+
+**Functions and properties:**
+    
+- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+- `bool = fs.exists(fileName)` -- does file exist?
+- `fs.copy(fromFileName, toFileName)` -- copy file
+- `fs.move(fromFileName, toFileName)` -- move file
+- `fs.del(fileName)` -- delete file
+- `fs.rename(fromFileName, toFileName)` -- rename file
+- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+- `fs.mkdir(dirName)` -- make folder
+- `fs.rmdir(dirName)` -- delete folder
+- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+
+### Input File Stream
+
+
+**Functions and properties:**
+    
+- `char = fin.peekCh()` -- peeks a character
+- `char = fin.getCh()` -- reads a character
+- `line = fin.readLine()` -- reads a line
+- `bool = fin.eof` -- end of stream?
+- `len = fin.length` -- returns the length of input stream
+- `str = fin.readAll()` -- reads the whole file
+
+### Output File Stream
+
+
+**Functions and properties:**
+    
+- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+- `fout = fout.flush()` -- flushes output stream
+- `fout = fout.close()` -- closes output stream
 
 ## Core QMiner objects
 
@@ -292,6 +337,7 @@ the set.
 - `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 - `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 - `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+- `vec = rs.getCol(fieldName)` -- gets the `fieldName` column
 
 **Examples**:
 
@@ -914,7 +960,7 @@ Breaks text into tokens (i.e. words).
 - `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
 - `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 
-## System and I/O
+## System
 
 ### Process
 
@@ -975,47 +1021,6 @@ are automatically prefixed by current date and time.
     Receiving empty imput (Enter was pressed) exits the interactive mode.
 - `console.pause()` -- waits until enter is pressed
 - `console.println(str)` -- `print(str); print("\n")`
-
-### File system
-
-
-**Functions and properties:**
-    
-- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
-- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
-- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-- `bool = fs.exists(fileName)` -- does file exist?
-- `fs.copy(fromFileName, toFileName)` -- copy file
-- `fs.move(fromFileName, toFileName)` -- move file
-- `fs.del(fileName)` -- delete file
-- `fs.rename(fromFileName, toFileName)` -- rename file
-- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
-- `fs.mkdir(dirName)` -- make folder
-- `fs.rmdir(dirName)` -- delete folder
-- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
-
-### Input File Stream
-
-
-**Functions and properties:**
-    
-- `char = fin.peekCh()` -- peeks a character
-- `char = fin.getCh()` -- reads a character
-- `line = fin.readLine()` -- reads a line
-- `bool = fin.eof` -- end of stream?
-- `len = fin.length` -- returns the length of input stream
-- `str = fin.readAll()` -- reads the whole file
-
-### Output File Stream
-
-
-**Functions and properties:**
-    
-- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
-- `fout = fout.flush()` -- flushes output stream
-- `fout = fout.close()` -- closes output stream
 
 ### utilities.js (use require)
 

@@ -59,6 +59,10 @@ namespace TQm {
 //# ## Table of contents
 //#
 //# - [Libraries](#libraries)
+//# - [File system, I/O](#file-system-and-io)
+//#  - [File system](#file-system)
+//#  - [Input File Stream](#input-file-stream)
+//#  - [Output File Stream](#output-file-stream)
 //# - [Core QMiner objects](#core-qminer-objects)
 //#  - [QMiner](#qminer)
 //#  - [Stream Aggregate](#stream-aggregate)
@@ -78,13 +82,10 @@ namespace TQm {
 //#  - [Neural network model](#neural-network-model)
 //#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
 //#  - [Hoeffding Tree model](#hoeffding-tree-model)
-//# - [System and I/O](#system-and-io)
+//# - [System](#system)
 //#  - [Process](#process)
 //#  - [assert.js (use require)](#assertjs-use-require)
 //#  - [Console](#console)
-//#  - [File system](#file-system)
-//#  - [Input File Stream](#input-file-stream)
-//#  - [Output File Stream](#output-file-stream)
 //#  - [utilities.js (use require)](#utilitiesjs-use-require)
 //#  - [utilities.map (use require)](#hash-map)
 //#  - [HTTP](#http)
@@ -656,21 +657,6 @@ public:
 		return TStr(*Utf8);
 	}
 
-	static PSIn GetArgFIn2(const v8::Arguments& Args, const int& ArgN) {
-		v8::HandleScope HandleScope;
-		// check we have the argument at all
-		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-		v8::Handle<v8::Value> Val = Args[ArgN];
-		// check it's of the right type
-		QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-		// get the wrapped 
-		v8::Handle<v8::Object> _JsFIn = v8::Handle<v8::Object>::Cast(Val);
-		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(_JsFIn->GetInternalField(0));
-		// cast it to record set
-		TJsFIn* JsFIn = static_cast<TJsFIn*>(WrappedObject->Value());
-		return JsFIn->SIn;
-	}
-
 	/// Extract argument ArgN as TStr, and use DefVal in case when not present
 	static TStr GetArgStr(const v8::Arguments& Args, const int& ArgN, const TStr& DefVal) {
 		v8::HandleScope HandleScope;
@@ -1037,6 +1023,141 @@ public:
 	TJsFetch(TWPt<TScript> _Js): Js(_Js) { PutMxConns(10); }
 	
 	void Fetch(const TJsFetchRq& Rq);
+};
+
+//#
+//# ## File System and I/O
+//#
+///////////////////////////////
+// QMiner-JavaScript-Filesystem
+//#
+//# ### File system
+//# 
+class TJsFs {
+public:
+	// directories we're allowed to access 
+	TVec<TJsFPath> AllowedFPathV;
+
+private:
+	typedef TJsObjUtil<TJsFs> TJsFsUtil;
+
+	TJsFs(const TVec<TJsFPath>& AllowedDirV_) : AllowedFPathV(AllowedDirV_) { }
+public:
+	static v8::Persistent<v8::Object> New(TScript* Js) {
+		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV));
+	}
+	~TJsFs() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	/// Are we allowed to access given path
+	bool CanAccess(const TStr& FPath);
+	/// Are we allowed to access given path
+	static bool CanAccess(const v8::Arguments& Args);
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+	JsDeclareFunction(openRead);
+	//#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+	JsDeclareFunction(openWrite);
+	//#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+	JsDeclareFunction(openAppend);
+	//#- `bool = fs.exists(fileName)` -- does file exist?
+	JsDeclareFunction(exists);
+	//#- `fs.copy(fromFileName, toFileName)` -- copy file
+	JsDeclareFunction(copy);
+	//#- `fs.move(fromFileName, toFileName)` -- move file
+	JsDeclareFunction(move);
+	//#- `fs.del(fileName)` -- delete file
+	JsDeclareFunction(del);
+	//#- `fs.rename(fromFileName, toFileName)` -- rename file
+	JsDeclareFunction(rename);
+	//#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+	JsDeclareFunction(fileInfo);
+	//#- `fs.mkdir(dirName)` -- make folder
+	JsDeclareFunction(mkdir);
+	//#- `fs.rmdir(dirName)` -- delete folder
+	JsDeclareFunction(rmdir);
+	//#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+	//#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+	JsDeclareFunction(listFile);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+//#
+//# ### Input File Stream
+//# 
+class TJsFIn {
+public:
+	PSIn SIn;
+private:
+	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
+	TJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FNm) {
+		return TJsFInUtil::New(new TJsFIn(FNm));
+	}
+	static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `char = fin.peekCh()` -- peeks a character
+	JsDeclareFunction(peekCh);
+	//#- `char = fin.getCh()` -- reads a character
+	JsDeclareFunction(getCh);
+	//#- `line = fin.readLine()` -- reads a line
+	JsDeclareFunction(readLine);
+	//#- `bool = fin.eof` -- end of stream?
+	JsDeclareProperty(eof);
+	//#- `len = fin.length` -- returns the length of input stream
+	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+//#
+//# ### Output File Stream
+//# 
+class TJsFOut {
+public:
+	PSOut SOut;
+private:
+	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
+	TJsFOut(const TStr& FilePath, const bool& AppendP) : SOut(TFOut::New(FilePath, AppendP)) { }
+	TJsFOut(const TStr& FilePath) : SOut(TZipOut::NewIfZip(FilePath)) { }
+	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) {
+		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP));
+	}
+	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
+		return TJsFOutUtil::New(new TJsFOut(SOut_));
+	}
+
+	static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+	JsDeclareFunction(write);
+	//#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+	JsDeclareFunction(writeLine);
+	//#- `fout = fout.flush()` -- flushes output stream
+	JsDeclareFunction(flush);
+	//#- `fout = fout.close()` -- closes output stream
+	JsDeclareFunction(close);
 };
 
 ///////////////////////////////
@@ -2160,7 +2281,7 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::load (const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
-	PSIn SIn = TJsVecUtil::GetArgFIn2(Args, 0);// //TJsFIn::GetArgFIn(Args, 0);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	JsVec->Vec.Load(*SIn);
 	return Args.Holder();
@@ -2184,7 +2305,7 @@ template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::loadascii(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
-	PSIn SIn = TJsVecUtil::GetArgFIn2(Args, 0);//TJsFIn::GetArgFIn(Args, 0);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	TStr Line;
 	while (SIn->GetNextLn(Line)) {
@@ -2936,7 +3057,7 @@ public:
 };
 
 //#
-//# ## System and I/O
+//# ## System
 //#
 //# ### Process
 //# 
@@ -3036,134 +3157,6 @@ public:
 	//#- `console.print(str)` -- prints a string to standard output
 	JsDeclareFunction(print);
     //#JSIMPLEMENT:src/qminer/console.js    
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Filesystem
-//#
-//# ### File system
-//# 
-class TJsFs {
-public:
-	// directories we're allowed to access 
-	TVec<TJsFPath> AllowedFPathV;
-	
-private:
-	typedef TJsObjUtil<TJsFs> TJsFsUtil;
-
-	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
-public:
-	static v8::Persistent<v8::Object> New(TScript* Js) { 
-		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
-	~TJsFs() { }
-	
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    /// Are we allowed to access given path
-	bool CanAccess(const TStr& FPath);
-    /// Are we allowed to access given path
-	static bool CanAccess(const v8::Arguments& Args);
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
-	JsDeclareFunction(openRead);
-    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
-	JsDeclareFunction(openWrite);
-    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-	JsDeclareFunction(openAppend);
-    //#- `bool = fs.exists(fileName)` -- does file exist?
-	JsDeclareFunction(exists);
-    //#- `fs.copy(fromFileName, toFileName)` -- copy file
-	JsDeclareFunction(copy);
-    //#- `fs.move(fromFileName, toFileName)` -- move file
-	JsDeclareFunction(move);
-    //#- `fs.del(fileName)` -- delete file
-	JsDeclareFunction(del);
-    //#- `fs.rename(fromFileName, toFileName)` -- rename file
-	JsDeclareFunction(rename);
-    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
-	JsDeclareFunction(fileInfo);
-    //#- `fs.mkdir(dirName)` -- make folder
-	JsDeclareFunction(mkdir);
-    //#- `fs.rmdir(dirName)` -- delete folder
-	JsDeclareFunction(rmdir);
-    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
-	JsDeclareFunction(listFile);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-//#
-//# ### Input File Stream
-//# 
-class TJsFIn {
-public:
-	PSIn SIn;
-private:
-	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
-	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FNm) {
-		return TJsFInUtil::New(new TJsFIn(FNm)); }
-    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
-
-   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `char = fin.peekCh()` -- peeks a character
-	JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()` -- reads a character
-	JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()` -- reads a line
-	JsDeclareFunction(readLine);
-    //#- `bool = fin.eof` -- end of stream?
-	JsDeclareProperty(eof);
-    //#- `len = fin.length` -- returns the length of input stream
-	JsDeclareProperty(length);
-	//#- `str = fin.readAll()` -- reads the whole file
-	JsDeclareFunction(readAll);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-//#
-//# ### Output File Stream
-//# 
-class TJsFOut {
-public:
-	PSOut SOut;
-private:
-	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
-	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
-	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
-		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
-	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
-		return TJsFOutUtil::New(new TJsFOut(SOut_)); }
-
-    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
-    
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-	JsDeclareFunction(write);
-    //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
-	JsDeclareFunction(writeLine);
-    //#- `fout = fout.flush()` -- flushes output stream
-	JsDeclareFunction(flush);
-    //#- `fout = fout.close()` -- closes output stream
-  	JsDeclareFunction(close);
 };
 
 
