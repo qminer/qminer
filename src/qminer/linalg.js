@@ -271,7 +271,7 @@ la.copyFltArrayToVec = function(arr) {
     return vec;
 };
 
-//#- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+//#- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
 la.copyVecToArray = function (vec) {
     var len = vec.length;
     var arr = [];
