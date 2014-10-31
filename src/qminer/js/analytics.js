@@ -36,6 +36,7 @@ function createBatchModel(featureSpace, models) {
         for (var cat in this.models) {
             this.models[cat].model.save(sout);
         }
+        return sout;
     }
 
     this.predict = function (record) {
@@ -174,11 +175,11 @@ exports.newBatchModel = function (records, features, target, limitCategories) {
             if (targets[cat].type === "classification") {
                 console.log("newBatchModel", "    ... " + cat + " (classification)");
                 models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target, 
-                    { c: 1, j: 1, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
+                    { c: 1, j: 1, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
             } else if (targets[cat].type === "regression") {
                 console.log("newBatchModel", "    ... " + cat + " (regression)");
                 models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target, 
-                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
+                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
             }
         }
     }
