@@ -1352,6 +1352,14 @@ la.square = function () {
 	/// </signature>
 };
 
+la.copyVecToArray = function () {
+	/// <signature>
+	/// <summary> copies vector `vec` into a JS array of numbers `arr`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
 la.printArray = function () {
 	/// <signature>
 	/// <summary> print the javascript array `arr` in the console</summary>
@@ -1438,14 +1446,6 @@ la.rangeVec = function () {
 	/// <param name="_num" value="_num">param</param>
 	/// <param name="_num2" value="_num2">param</param>
 	/// <returns value ="_intVec"/>
-	/// </signature>
-};
-
-la.copyVecToArr = function () {
-	/// <signature>
-	/// <summary> copies vector `vec` into a JS array of numbers `arr`</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_arr"/>
 	/// </signature>
 };
 
