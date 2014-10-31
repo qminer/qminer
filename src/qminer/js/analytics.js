@@ -247,13 +247,6 @@ function classifcationScore(cats) {
             }
             // update confusion matrix
         }
-        // update confusion matrix for case when are predicting only one label
-//        if (correct.length == 1 && predicted.length == 1) {
-//            var correct_i = this.target[correct[0]].id;
-//            var predicted_i = this.target[predicted[0]].id;	
-//            var old_count = this.confusion.at(correct_i, predicted_i);
-//            this.confusion.put(correct_i, predicted_i, old_count + 1);
-//        }
 	};
 
 	this.report = function () { 
@@ -277,21 +270,6 @@ function classifcationScore(cats) {
 				"," + round100(this.target[cat].recall()) +
 				"," + round100(this.target[cat].accuracy()));
 		}
-		// confusion header
-//		fout.writeLine();		
-//		for (var i = 0; i < this.targetList.length; i++) {
-//			fout.write(",");
-//			fout.write(this.targetList[i]);
-//		}
-//		fout.writeLine();
-//		for (var i = 0; i < this.targetList.length; i++) {
-//			fout.write(this.targetList[i]);
-//			for (var j = 0; j < this.targetList.length; j++) {
-//				fout.write(",");
-//				fout.write(this.confusion.at(i,j));
-//			}
-//			fout.writeLine();
-//		}
 	};
 	
 	this.results = function () {
@@ -1264,3 +1242,114 @@ exports.extendedKalmanFilter = function (dynamParams, measureParams, controlPara
     };
 
 };
+
+///////// Rocchio classification 
+//# - `model = analytics.newRocchio(trainMat, targetVec)` -- train Rocchio model 
+//      using columns from `trainMat` as feature vectors and values from `targetVec` to 
+//      indicate positive (>0) or negative (<=0) class. Returned `model` has a function 
+//      `predict`, which returns +1 for positive and -1 for negative classification. 
+//      Rocchio centroids are stored as `model.pos` and `model.neg`.
+exports.newRocchio = function (trainMat, targetVec, params) {
+	// parse parameters; magic default values according to C. Buckley, G. Salton, and J. Allan.
+	// The effect of adding relevance information in a relevance feedback environment. SIGIR-94, 1994
+	var alpha = params.alpha ? params.alpha : 16;
+	var beta = params.beta ? params.beta : 4;
+	// get column norms, used in filter to normalize columns
+	var colNorm = trainMat.colNorms();
+	// go over matrix and add them to the appropriate centroid
+	var posFilter = la.newVec({ mxvals: trainMat.cols });
+	var negFilter = la.newVec({ mxvals: trainMat.cols });
+	var posCount = 0, negCount = 0;
+	for (var i = 0; i < trainMat.cols; i++) {
+		if (targetVec[i] > 0) {
+			posCount++;
+			posFilter.push(1.0 / colNorm[i]);
+			negFilter.push(0.0);
+		} else {
+			negCount++;
+			posFilter.push(0.0);
+			negFilter.push(1.0 / colNorm[i]);
+		}
+	}
+    console.log(" - Rocchio training: P=" + posCount + ", N=" + negCount);
+
+	// check we have some of each class
+	if (posCount == 0 || negCount == 0) { 
+		console.log("Not enough positive and/or negative examples: P=" + posCount + " / N=" + negCount);
+		return null;
+	}
+	// prepare sum positives and negatives
+	var posSum = trainMat.multiply(posFilter);
+	var negSum = trainMat.multiply(negFilter);
+	// prepare model centroids
+	var posModel = posSum.multiply(alpha / posCount).minus(negSum.multiply(beta / negCount));
+	var negModel = negSum.multiply(alpha / negCount).minus(posSum.multiply(beta / posCount));
+	// prepare and return model object with centroids
+	return {
+		pos: posModel,
+		neg: negModel,
+		predict: function (vec) {
+			var posScore = this.pos.inner(vec);
+			var negScore = this.neg.inner(vec);
+			return (posScore > negScore) ? 1 : -1;
+		}
+	};
+}
+
+///////// Learning with positive and unlabled examples
+//# - `result = newPULearning(trainMat, posVec, params)` -- apply PU learning 
+//      to `trainMat` using  positive examples in `posVec` (value > 0) to 
+//      bootstrap a model and classfiy rest of examples. Parameters `params` 
+//      are passed to first step Rocchio model (alpha and beta) and to second 
+//      step SVM model (C, j, time, ...). Result contains `result.classVec` 
+//      containing 1 for positive and -1 for negative examples, according to 
+//      bootstraped SVM, and the SVM model itself as `result.svm`. Implemented 
+//      based on **Li, Xiaoli, and Bing Liu. "Learning to classify texts using 
+//      positive and unlabeled data." IJCAI. Vol. 3. 2003.**
+exports.newPULearning = function (trainMat, posVec, params) {
+	// We start by preparing classification result vector, with what we know (positive data)
+	var cols = trainMat.cols, posCount = 0, negCount = 0;
+	var classVec = la.newVec({ mxvals: cols });
+	for (var i = 0; i < cols; i++) { classVec.push(posVec[i] > 0 ? 1 : 0); }
+	// (1) Do Rocchio to get initial set of reliable negative data
+	console.log(" - training Rocchio model");
+	// we assumed all unlabled vectors as negative for now
+	var rocchioTargetVec = la.newVec({ mxvals: cols });
+	for (var i = 0; i < cols; i++) { rocchioTargetVec.push(classVec[i] > 0 ? 1 : -1); }
+	// train rocchio model
+	var rocchio = exports.newRocchio(trainMat, rocchioTargetVec, params)
+	// apply to get reliable negative data
+	for (var i = 0; i < cols; i++) { 
+		if (classVec[i] > 0) {
+			posCount++;
+		} else {
+			if (rocchio.predict(trainMat[i]) < 0) {
+				classVec[i] = -1;
+				negCount++;
+			}
+		}
+	}
+	console.log(" - after step 1: P=" + posCount + ", N=" + negCount + ", U=" + (cols-posCount-negCount));
+	// (2) use this to train SVM model and apply it to remaining unlabled data
+	// TODO: iterate SVM models and check for divergence
+	console.log(" - training SVM model");
+	// train SVM model
+	var svm = analytics.trainSvmClassify(trainMat, classVec, params);
+	// apply to all data
+    posCount = 0; negCount = 0;
+	for (var i = 0; i < cols; i++) {
+		//if (classVec[i] == 0) {
+			// unlabled example, let's classify it!
+			if (svm.predict(trainMat[i]) > 0) {
+				classVec[i] = 1;
+				posCount++;
+			} else {
+				classVec[i] = -1;
+				negCount++;
+			}
+		//}
+	}
+	console.log(" - after step 2: P=" + posCount + ", N=" + negCount);	
+	// we are complete
+	return { "classVec" : classVec, "svm" : svm };
+}

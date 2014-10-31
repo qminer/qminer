@@ -1160,17 +1160,17 @@ v8::Handle<v8::Value> TJsFs::rmdir(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsFs::listFile(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsFs* JsFs = TJsFsUtil::GetSelf(Args);
-	// read parameters
-	TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
-	QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
-	TStr FExt = TJsFsUtil::GetArgStr(Args, 1);
-	const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
-	// get file list
+    // read parameters
+    TStr FPath = TJsFsUtil::GetArgStr(Args, 0);
+    QmAssertR(JsFs->CanAccess(FPath), "You don't have permission to access directory '" + FPath + "'");
+    TStrV FExtV; if (TJsFsUtil::IsArg(Args, 1)) { FExtV.Add(TJsFsUtil::GetArgStr(Args, 1)); }
+    const bool RecurseP = TJsFsUtil::GetArgBool(Args, 2, false);
+    // get file list
 	TStrV FNmV;
-	TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
-	FNmV.Sort();
+	TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
+    FNmV.Sort();
 	v8::Handle<v8::Array> FNmArr = v8::Array::New(FNmV.Len());
-	for (int FldN = 0; FldN < FNmV.Len(); ++FldN) {
+	for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
 		FNmArr->Set(v8::Uint32::New(FldN), v8::String::New(FNmV.GetVal(FldN).CStr()));
 	}
 	return HandleScope.Close(FNmArr);
@@ -5499,6 +5499,8 @@ v8::Handle<v8::Value> TJsAnalytics::newFeatureSpace(const v8::Arguments& Args) {
 		
 		// create feature space
 		PFtrSpace FtrSpace = TFtrSpace::New(JsAnalytics->Js->Base, FtrExtV);
+        // report on what was created
+        InfoLog(FtrSpace->GetNm());
 		// done
 		return TJsFtrSpace::New(JsAnalytics->Js, FtrSpace);		
 	}
@@ -5828,6 +5830,7 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 	if (Template.IsEmpty()) {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
         JsRegisterProperty(TmpTemp, dim);
+        JsRegisterProperty(TmpTemp, dims);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
@@ -5877,6 +5880,19 @@ v8::Handle<v8::Value> TJsFtrSpace::dim(v8::Local<v8::String> Properties, const v
 	v8::HandleScope HandleScope;
 	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
 	return HandleScope.Close(v8::Integer::New(JsFtrSpace->FtrSpace->GetDim()));
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::dims(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Info);
+	// return as JS array
+    const int FtrExts = JsFtrSpace->FtrSpace->GetFtrExts();
+	v8::Handle<v8::Array> IntArr = v8::Array::New(FtrExts);
+    for(int FtrExtN = 0; FtrExtN < FtrExts; FtrExtN++) {
+		IntArr->Set(v8::Uint32::New(FtrExtN), 
+            v8::Integer::New(JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN)));
+	}
+	return HandleScope.Close(IntArr);
 }
 
 v8::Handle<v8::Value> TJsFtrSpace::save(const v8::Arguments& Args) {
@@ -7317,7 +7333,7 @@ v8::Handle<v8::Value> TJsSnap::perfTest(const v8::Arguments& Args) {
 
 template <class T>
 TPt<T> TJsGraph<T>::GetArgGraph(const v8::Arguments& Args, const int& ArgN) {
-	throw TQmExcept("not implemented");
+	throw TQmExcept::New("not implemented");
 	return T::New();
 }
 

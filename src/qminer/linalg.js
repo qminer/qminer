@@ -28,6 +28,7 @@ la.printVec = function (vec, prec) {
 	console.say(str);
 };
 
+//TODO: I would move this to analytics.js, to avoid linalg depandencies towards analytics (Blaz)
 //#- `la.getSpFeatVecCols(spVec, fsp)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
 la.getSpFeatVecCols = function (spVec, fsp) {
     

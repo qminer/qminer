@@ -38,6 +38,7 @@ void TFtrExt::Init() {
     Register<TFtrExts::TBagOfWords>();
     Register<TFtrExts::TJoin>();
     Register<TFtrExts::TPair>();
+    Register<TFtrExts::TDateWnd>();
 }
     
 TRec TFtrExt::DoSingleJoin(const TRec& Rec) const {
@@ -48,7 +49,7 @@ TRec TFtrExt::DoSingleJoin(const TRec& Rec) const {
 TFtrExt::TFtrExt(const TWPt<TBase>& _Base, const TJoinSeqV& JoinSeqV): Base(_Base) {
 	QmAssertR(!JoinSeqV.Empty(), "At least one join sequence must be supplied!");
 	FtrStore = JoinSeqV[0].GetEndStore(Base);
-    // get maping from stores to join sequence
+    // get mapping from stores to join sequence
 	for (int JoinSeqN = 0; JoinSeqN < JoinSeqV.Len(); JoinSeqN++) {
 		const TJoinSeq& JoinSeq = JoinSeqV[JoinSeqN];
         QmAssertR(JoinSeq.GetEndStoreId(Base) == FtrStore->GetStoreId(), "Mismatching feature stores");
@@ -109,7 +110,7 @@ PFtrExt TFtrExt::New(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal
 }
 
 PFtrExt TFtrExt::Load(const TWPt<TBase>& Base, TSIn& SIn) {
-	TStr TypeNm(SIn); 
+	TStr TypeNm(SIn);
     return LoadRouter.Fun(TypeNm)(Base, SIn);
 }
 
@@ -190,12 +191,11 @@ void TFtrSpace::Save(TSOut& SOut) const {
 }
 
 TStr TFtrSpace::GetNm() const {
-	TChA NmChA = "Space: [";
+	TChA NmChA = "Space:";
 	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
-		if (FtrExtN > 0) { NmChA += ", "; }
-		NmChA += FtrExtV[FtrExtN]->GetNm();
+		NmChA += "\n - ";
+        NmChA += FtrExtV[FtrExtN]->GetNm();
 	}
-	NmChA += "]";
 	return NmChA;
 }
 
@@ -322,6 +322,15 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	}
 	throw TQmExcept::New("Feature number out of bounds!");
 	return TStr();
+}
+
+int TFtrSpace::GetFtrExts() const {
+    return FtrExtV.Len();
+}
+
+int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
+    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
+    return DimV[FtrExtN];
 }
 
 int TFtrSpace::GetMnFtrN(const int& FtrExtN) const {
@@ -676,63 +685,67 @@ void TMultinomial::_GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const {
 	// assert store
 	TWPt<TStore> FtrStore = GetFtrStore();
 	Assert(FtrRecSet->GetStoreId() == FtrStore->GetStoreId());
-	// go over all the records extract feature value
-    if (FieldDesc.IsStr()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                StrV.Add(FtrStore->GetFieldStr(RecId, FieldId));
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        const int FieldId = FieldIdV[FieldIdN];
+        const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
+        // go over all the records extract feature value
+        if (FieldDesc.IsStr()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    StrV.Add(FtrStore->GetFieldStr(RecId, FieldId));
+                }
             }
-        }
-    } else if (FieldDesc.IsStrV()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                TStrV RecStrV; FtrStore->GetFieldStrV(RecId, FieldId, RecStrV);
-                StrV.AddV(RecStrV);
+        } else if (FieldDesc.IsStrV()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    TStrV RecStrV; FtrStore->GetFieldStrV(RecId, FieldId, RecStrV);
+                    StrV.AddV(RecStrV);
+                }
             }
-        }
-    } else if (FieldDesc.IsInt()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                StrV.Add(TInt::GetStr(FtrStore->GetFieldInt(RecId, FieldId)));
+        } else if (FieldDesc.IsInt()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    StrV.Add(TInt::GetStr(FtrStore->GetFieldInt(RecId, FieldId)));
+                }
             }
-        }
-    } else if (FieldDesc.IsIntV()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                TIntV RecIntV; FtrStore->GetFieldIntV(RecId, FieldId, RecIntV);
-                for (int RecIntN = 0; RecIntN < RecIntV.Len(); RecIntN++) {
-                    StrV.Add(RecIntV[RecIntN].GetStr()); }
+        } else if (FieldDesc.IsIntV()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    TIntV RecIntV; FtrStore->GetFieldIntV(RecId, FieldId, RecIntV);
+                    for (int RecIntN = 0; RecIntN < RecIntV.Len(); RecIntN++) {
+                        StrV.Add(RecIntV[RecIntN].GetStr()); }
+                }
             }
-        }
-    } else if (FieldDesc.IsUInt64()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                StrV.Add(TUInt64::GetStr(FtrStore->GetFieldUInt64(RecId, FieldId)));
+        } else if (FieldDesc.IsUInt64()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    StrV.Add(TUInt64::GetStr(FtrStore->GetFieldUInt64(RecId, FieldId)));
+                }
             }
-        }
-    } else if (FieldDesc.IsBool()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                StrV.Add(FtrStore->GetFieldBool(RecId, FieldId) ? "Yes" : "No");
+        } else if (FieldDesc.IsBool()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    StrV.Add(FtrStore->GetFieldBool(RecId, FieldId) ? "Yes" : "No");
+                }
             }
-        }
-    } else if (FieldDesc.IsTm()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                TTm FieldTm; FtrStore->GetFieldTm(RecId, FieldId, FieldTm);
-                ParseDate(FieldTm, StrV);
+        } else if (FieldDesc.IsTm()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    TTm FieldTm; FtrStore->GetFieldTm(RecId, FieldId, FieldTm);
+                    ParseDate(FieldTm, StrV);
+                }
             }
+        } else {
+            throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+                " not supported by Multinomial Feature Extractor!");
         }
-    } else {
-        throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
-            " not supported by Multinomial Feature Extractor!");
     }
 }
 
@@ -740,30 +753,34 @@ void TMultinomial::_GetVal(const TRec& FtrRec, TStrV& StrV) const {
 	// assert store
 	TWPt<TStore> FtrStore = GetFtrStore();
 	Assert(FtrRec.GetStoreId() == FtrStore->GetStoreId());
-	// extract feature value
-	if (FtrRec.IsFieldNull(FieldId)) {
-		// do nothing
-	} else if (FieldDesc.IsStr()) {
-		StrV.Add(FtrRec.GetFieldStr(FieldId));
-	} else if (FieldDesc.IsStrV()) {
-		TStrV RecStrV; FtrRec.GetFieldStrV(FieldId, RecStrV);
-		StrV.AddV(RecStrV);
-	} else if (FieldDesc.IsInt()) {
-		StrV.Add(TInt::GetStr(FtrRec.GetFieldInt(FieldId)));
-	} else if (FieldDesc.IsIntV()) {
-		TIntV RecIntV; FtrRec.GetFieldIntV(FieldId, RecIntV);
-		for (int RecIntN = 0; RecIntN < RecIntV.Len(); RecIntN++) {
-			StrV.Add(RecIntV[RecIntN].GetStr()); }
-	} else if (FieldDesc.IsUInt64()) {
-		StrV.Add(TUInt64::GetStr(FtrRec.GetFieldUInt64(FieldId)));
-	} else if (FieldDesc.IsBool()) {
-		StrV.Add(FtrRec.GetFieldBool(FieldId) ? "Yes" : "No");
-	} else if (FieldDesc.IsTm()) {
-		TTm FieldTm; FtrRec.GetFieldTm(FieldId, FieldTm);
-		ParseDate(FieldTm, StrV);
-	} else {
-    	throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
-        	" not supported by Multinomial Feature Extractor!");
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        const int FieldId = FieldIdV[FieldIdN];
+        const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
+        // extract feature value
+        if (FtrRec.IsFieldNull(FieldId)) {
+            // do nothing
+        } else if (FieldDesc.IsStr()) {
+            StrV.Add(FtrRec.GetFieldStr(FieldId));
+        } else if (FieldDesc.IsStrV()) {
+            TStrV RecStrV; FtrRec.GetFieldStrV(FieldId, RecStrV);
+            StrV.AddV(RecStrV);
+        } else if (FieldDesc.IsInt()) {
+            StrV.Add(TInt::GetStr(FtrRec.GetFieldInt(FieldId)));
+        } else if (FieldDesc.IsIntV()) {
+            TIntV RecIntV; FtrRec.GetFieldIntV(FieldId, RecIntV);
+            for (int RecIntN = 0; RecIntN < RecIntV.Len(); RecIntN++) {
+                StrV.Add(RecIntV[RecIntN].GetStr()); }
+        } else if (FieldDesc.IsUInt64()) {
+            StrV.Add(TUInt64::GetStr(FtrRec.GetFieldUInt64(FieldId)));
+        } else if (FieldDesc.IsBool()) {
+            StrV.Add(FtrRec.GetFieldBool(FieldId) ? "Yes" : "No");
+        } else if (FieldDesc.IsTm()) {
+            TTm FieldTm; FtrRec.GetFieldTm(FieldId, FieldTm);
+            ParseDate(FieldTm, StrV);
+        } else {
+            throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+                " not supported by Multinomial Feature Extractor!");
+        }
     }
 }
 
@@ -777,8 +794,17 @@ void TMultinomial::GetVal(const TRec& Rec, TStrV& StrV) const {
 	}
 }
 
-TMultinomial::TMultinomial(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId): 
-    TFtrExt(Base, JoinSeqV), FieldId(_FieldId), FieldDesc(GetFtrStore()->GetFieldDesc(FieldId)) { }
+void TMultinomial::AddField(const int& FieldId) {
+    FieldIdV.Add(FieldId);
+    FieldDescV.Add(GetFtrStore()->GetFieldDesc(FieldId));
+}
+
+void TMultinomial::AddField(const TStr& FieldNm) {
+    AddField(GetFtrStore()->GetFieldId(FieldNm));
+}
+
+TMultinomial::TMultinomial(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+    const int& _FieldId): TFtrExt(Base, JoinSeqV) { AddField(_FieldId); }
     
 TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {
     // warning for over-eager users
@@ -816,13 +842,21 @@ TMultinomial::TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal): T
         // we have open value set
         FtrGen = TFtrGen::TMultinomial(NormalizeP);
     }
-    TStr FieldNm = ParamVal->GetObjStr("field");
-    FieldId = GetFtrStore()->GetFieldId(FieldNm);
-    FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
+    
+    PJsonVal FieldVal = ParamVal->GetObjKey("field");
+    if (FieldVal->IsStr()) {
+        AddField(ParamVal->GetObjStr("field"));
+    } else if (FieldVal->IsArr()) {
+        for (int FieldN = 0; FieldN < FieldVal->GetArrVals(); FieldN++) {
+            AddField(FieldVal->GetArrVal(FieldN)->GetStr());
+        }
+    } else {
+        throw TQmExcept::New("Missing field(s) in bag-of-words feature extractor");
+    }    
 }
 
 TMultinomial::TMultinomial(const TWPt<TBase>& Base, TSIn& SIn):
-    TFtrExt(Base, SIn), FtrGen(SIn), FieldId(SIn), FieldDesc(SIn) { }
+    TFtrExt(Base, SIn), FtrGen(SIn), FieldIdV(SIn), FieldDescV(SIn) { }
 
 PFtrExt TMultinomial::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId) {
     return new TMultinomial(Base, TJoinSeqV::GetV(TJoinSeq(Store)), FieldId); 
@@ -849,10 +883,20 @@ void TMultinomial::Save(TSOut& SOut) const {
     TFtrExt::Save(SOut);
     
     FtrGen.Save(SOut);
-    FieldId.Save(SOut);
-    FieldDesc.Save(SOut);
+    FieldIdV.Save(SOut);
+    FieldDescV.Save(SOut);
 }
-    
+
+TStr TMultinomial::GetNm() const { 
+    TChA FieldNmChA = "Multinomial[";
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        if (!FieldNmChA.Empty()) { FieldNmChA += ";"; }
+        FieldNmChA += GetFtrStore()->GetFieldNm(FieldIdV[FieldIdN]);
+    }
+    FieldNmChA += "]";
+    return FieldNmChA; 
+};
+
 bool TMultinomial::Update(const TRec& Rec) {
 	TStrV StrV; GetVal(Rec, StrV);
 	FtrGen.Update(StrV);
@@ -881,23 +925,26 @@ void TMultinomial::ExtractTmV(const TRec& Rec, TTmV& TmV) const {
 	TWPt<TStore> FtrStore = GetFtrStore();
 	Assert(Rec.GetStoreId() == FtrStore->GetStoreId());
 	// ... and field description
-	const TFieldDesc& FieldDesc = FtrStore->GetFieldDesc(FieldId);
-	// check if start store valid
-	Assert(IsStartStore(Rec.GetStoreId()));
-	if (FieldDesc.IsTm()) {
-		if (IsJoin(Rec.GetStoreId())) {
-			PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
-			for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-				TTm FieldTm; FtrStore->GetFieldTm(Rec.GetRecId(), FieldId, FieldTm);				
-				TmV.Add(FieldTm);
-			}
-		} else {
-			TTm FieldTm; Rec.GetFieldTm(FieldId, FieldTm);
-			TmV.Add(FieldTm);
-		}
-	} else {
-		throw TQmExcept::New("Expected TTm type, but found " + FieldDesc.GetFieldTypeStr());
-	}
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        const int FieldId = FieldIdV[FieldIdN];
+        const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];    
+        // check if start store valid
+        Assert(IsStartStore(Rec.GetStoreId()));
+        if (FieldDesc.IsTm()) {
+            if (IsJoin(Rec.GetStoreId())) {
+                PRecSet RecSet = Rec.DoJoin(GetBase(), GetJoinIdV(Rec.GetStoreId()));
+                for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
+                    TTm FieldTm; FtrStore->GetFieldTm(Rec.GetRecId(), FieldId, FieldTm);				
+                    TmV.Add(FieldTm);
+                }
+            } else {
+                TTm FieldTm; Rec.GetFieldTm(FieldId, FieldTm);
+                TmV.Add(FieldTm);
+            }
+        } else {
+            throw TQmExcept::New("Expected TTm type, but found " + FieldDesc.GetFieldTypeStr());
+        }
+    }
 }
 
 ///////////////////////////////////////////////
@@ -906,42 +953,51 @@ void TBagOfWords::_GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const {
 	// assert store
 	TWPt<TStore> FtrStore = GetFtrStore();
 	Assert(FtrRecSet->GetStoreId() == FtrStore->GetStoreId());
-	// go over all the records
-    if (FieldDesc.IsStr()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                StrV.Add(FtrStore->GetFieldStr(RecId, FieldId));
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        const int FieldId = FieldIdV[FieldIdN];
+        const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
+        // go over all the records
+        if (FieldDesc.IsStr()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    StrV.Add(FtrStore->GetFieldStr(RecId, FieldId));
+                }
             }
-        }
-    } else if (FieldDesc.IsStrV()) {
-        for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
-            const uint64 RecId = FtrRecSet->GetRecId(RecN);
-            if (!FtrStore->IsFieldNull(RecId, FieldId)) {
-                TStrV RecStrV; FtrStore->GetFieldStrV(RecId, FieldId, RecStrV);
-                StrV.AddV(RecStrV);
+        } else if (FieldDesc.IsStrV()) {
+            for (int RecN = 0; RecN < FtrRecSet->GetRecs(); RecN++) {
+                const uint64 RecId = FtrRecSet->GetRecId(RecN);
+                if (!FtrStore->IsFieldNull(RecId, FieldId)) {
+                    TStrV RecStrV; FtrStore->GetFieldStrV(RecId, FieldId, RecStrV);
+                    StrV.AddV(RecStrV);
+                }
             }
+        } else {
+            throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+                " not supported by Bag-Of-Words Feature Extractor!");
         }
-    } else {
-        throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
-            " not supported by Bag-Of-Words Feature Extractor!");
     }
 }
 
 void TBagOfWords::_GetVal(const TRec& FtrRec, TStrV& StrV) const {
 	// assert store
 	Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
-	// extract feature value
-	if (FtrRec.IsFieldNull(FieldId)) {
-		// do nothing
-	} else if (FieldDesc.IsStr()) {
-		StrV.Add(FtrRec.GetFieldStr(FieldId));
-	} else if (FieldDesc.IsStrV()) {
-		TStrV RecStrV; FtrRec.GetFieldStrV(FieldId, RecStrV);
-		StrV.AddV(RecStrV);
-	} else {
-        throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
-            " not supported by Bag-Of-Words Feature Extractor!");
+    // go over all the fields
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        const int FieldId = FieldIdV[FieldIdN];
+        const TFieldDesc& FieldDesc = FieldDescV[FieldIdN];
+        // extract feature value
+        if (FtrRec.IsFieldNull(FieldId)) {
+            // do nothing
+        } else if (FieldDesc.IsStr()) {
+            StrV.Add(FtrRec.GetFieldStr(FieldId));
+        } else if (FieldDesc.IsStrV()) {
+            TStrV RecStrV; FtrRec.GetFieldStrV(FieldId, RecStrV);
+            StrV.AddV(RecStrV);
+        } else {
+            throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+                " not supported by Bag-Of-Words Feature Extractor!");
+        }
     }
 }
 
@@ -953,6 +1009,15 @@ void TBagOfWords::GetVal(const TRec& Rec, TStrV& StrV) const {
 	} else {
         _GetVal(Rec, StrV);
 	}
+}
+
+void TBagOfWords::AddField(const int& FieldId) {
+    FieldIdV.Add(FieldId);
+    FieldDescV.Add(GetFtrStore()->GetFieldDesc(FieldId));
+}
+
+void TBagOfWords::AddField(const TStr& FieldNm) {
+    AddField(GetFtrStore()->GetFieldId(FieldNm));
 }
 
 void TBagOfWords::NewTimeWnd(const uint64& TimeWndMSecs, const uint64& StartMSecs) {
@@ -967,9 +1032,11 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV,
     const int& _FieldId, const TBagOfWordsMode& _Mode, const PTokenizer& Tokenizer, 
     const int& HashDim, const int& _NStart, const int& _NEnd):
         TFtrExt(Base, JoinSeqV), FtrGen(true, true, true, Tokenizer, HashDim), 
-        FieldId(_FieldId), FieldDesc(GetFtrStore()->GetFieldDesc(FieldId)), Mode(_Mode), NStart(_NStart), NEnd(_NEnd) { }
+        Mode(_Mode), NStart(_NStart), NEnd(_NEnd) { AddField(_FieldId); }
 
-TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFtrExt(Base, ParamVal) {
+TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
+        TFtrExt(Base, ParamVal) {
+    
     // parse feature generator parameters
     const bool NormalizeP = ParamVal->GetObjBool("normalize", true);
     // get weighting type, default is IDF
@@ -1038,10 +1105,17 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
     // initialize
     FtrGen = TFtrGen::TBagOfWords(TfP, IdfP, NormalizeP, Tokenizer, HashDim, KHT, NgramsStart, NgramsEnd);
     
-    // parse input field
-    TStr FieldNm = ParamVal->GetObjStr("field");
-    FieldId = GetFtrStore()->GetFieldId(FieldNm);
-    FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
+    // parse input field(s)
+    PJsonVal FieldVal = ParamVal->GetObjKey("field");
+    if (FieldVal->IsStr()) {
+        AddField(ParamVal->GetObjStr("field"));
+    } else if (FieldVal->IsArr()) {
+        for (int FieldN = 0; FieldN < FieldVal->GetArrVals(); FieldN++) {
+            AddField(FieldVal->GetArrVal(FieldN)->GetStr());
+        }
+    } else {
+        throw TQmExcept::New("Missing field(s) in bag-of-words feature extractor");
+    }
     
     // parse multi-instance mode settings
     TStr ModeStr = ParamVal->GetObjStr("mode", "concatenate");
@@ -1077,12 +1151,10 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal): TFt
         // set callback
         TmWnd.SetCallback(this);
     }
-
-
 }
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn):
-    TFtrExt(Base, SIn), FtrGen(SIn), FieldId(SIn), FieldDesc(SIn),
+    TFtrExt(Base, SIn), FtrGen(SIn), FieldIdV(SIn), FieldDescV(SIn),
     Mode(LoadEnum<TBagOfWordsMode>(SIn)), TimeFieldId(SIn),
     TmWnd(SIn), ForgetFactor(SIn) { }
 
@@ -1118,14 +1190,34 @@ void TBagOfWords::Save(TSOut& SOut) const {
     TFtrExt::Save(SOut);
     
     FtrGen.Save(SOut);
-    FieldId.Save(SOut);
-    FieldDesc.Save(SOut);
+    FieldIdV.Save(SOut);
+    FieldDescV.Save(SOut);
     SaveEnum<TBagOfWordsMode>(SOut, Mode);
     TimeFieldId.Save(SOut);
     TmWnd.Save(SOut);
     ForgetFactor.Save(SOut);
 }
     
+TStr TBagOfWords::GetNm() const { 
+    TChA FieldNmChA = "BagOfWords[";
+    for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
+        if (!FieldNmChA.Empty()) { FieldNmChA += ";"; }
+        FieldNmChA += GetFtrStore()->GetFieldNm(FieldIdV[FieldIdN]);
+    }
+    FieldNmChA += "]";
+    return FieldNmChA; 
+};
+
+TStr TBagOfWords::GetFtr(const int& FtrN) const {
+    if(FtrGen.IsKeepingHashTable()) {
+        TStrV StrV;
+        FtrGen.GetHashVals(FtrN).GetKeyV(StrV);
+        return TStr::GetStr(StrV, ",");
+    } else { 
+        return FtrGen.GetVal(FtrN); 
+    }
+}
+
 bool TBagOfWords::Update(const TRec& Rec) {
     // check if we should forget
     if (TmWnd.IsInit()) {
@@ -1516,6 +1608,138 @@ void TPair::ExtractStrV(const TRec& _FtrRec, TStrV& StrV) const {
 			}
 		}
 	}
+}
+
+///////////////////////////////////////////////
+// Date Window Feature Extractor
+uint64 TDateWnd::_GetVal(const TRec& FtrRec) const {
+    // assert store
+    Assert(FtrRec.GetStoreId() == GetFtrStore()->GetStoreId());
+    // extract feature value
+    if (FtrRec.IsFieldNull(FieldId)) {
+        return 0;
+    } else if (FieldDesc.IsTm()) {
+        return FtrRec.GetFieldTmMSecs(FieldId);
+    }
+    throw TQmExcept::New("Field type " + FieldDesc.GetFieldTypeStr() + 
+        " not supported by Numeric Feature Extractor!");
+}
+
+uint64 TDateWnd::GetVal(const TRec& FtrRec) const {
+	Assert(IsStartStore(FtrRec.GetStoreId()));
+	if (IsJoin(FtrRec.GetStoreId())) {
+        // do the join
+        TRec JoinRec = FtrRec.DoSingleJoin(GetBase(), GetJoinIdV(FtrRec.GetStoreId()));
+        // get feature value
+		return _GetVal(JoinRec);
+    } else {
+        // get feature value
+        return _GetVal(FtrRec);
+	}
+}
+
+TDateWnd::TDateWnd(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+    const int& _FieldId, const int& WndSize, const TTmUnit& TmUnit,
+    const bool& NormalizeP): TFtrExt(Base, JoinSeqV), 
+        FtrGen(WndSize, TmUnit, NormalizeP), FieldId(_FieldId), 
+        FieldDesc(GetFtrStore()->GetFieldDesc(FieldId)) { }
+
+TDateWnd::TDateWnd(const TWPt<TBase>& Base, const PJsonVal& ParamVal): 
+    TFtrExt(Base, ParamVal) {       
+    
+    // parse out parameters and initialize feature generator
+    TTmUnit TmUnit = tmuUndef;
+    TStr UnitStr = ParamVal->GetObjStr("unit", "day");
+    if (UnitStr == "day") { TmUnit = tmuDay; }
+    else if (UnitStr == "week") { TmUnit = tmuWeek; }
+    else if (UnitStr == "month") { TmUnit = tmuMonth; }
+    else if (UnitStr == "year") { TmUnit = tmuYear; }
+    else if (UnitStr == "12hours") { TmUnit = tmu12Hour; }
+    else if (UnitStr == "6hours") { TmUnit = tmu6Hour; }
+    else if (UnitStr == "4hours") { TmUnit = tmu4Hour; }
+    else if (UnitStr == "2hours") { TmUnit = tmu2Hour; }
+    else if (UnitStr == "hour") { TmUnit = tmu1Hour; }
+    else if (UnitStr == "30minutes") { TmUnit = tmu30Min; }
+    else if (UnitStr == "15minutes") { TmUnit = tmu15Min; }
+    else if (UnitStr == "10minutes") { TmUnit = tmu10Min; }
+    else if (UnitStr == "minute") { TmUnit = tmu1Min; }
+    else if (UnitStr == "second") { TmUnit = tmu1Sec; }
+    QmAssert(TmUnit != tmuUndef);
+    // rest of parameters
+    const int WndSize = ParamVal->GetObjInt("window", 1);
+    const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
+    // check if we have predefined 
+    if (ParamVal->IsObjKey("start") && ParamVal->IsObjKey("end")) {
+        TTm StartTm = TTm::GetTmFromWebLogDateTimeStr(
+            ParamVal->GetObjStr("start"), '-', ':', '.', 'T');
+        TTm EndTm = TTm::GetTmFromWebLogDateTimeStr(
+            ParamVal->GetObjStr("end"), '-', ':', '.', 'T');
+        FtrGen = TFtrGen::TDateWnd(StartTm, EndTm, WndSize, TmUnit, NormalizeP);
+    } else {
+        FtrGen = TFtrGen::TDateWnd(WndSize, TmUnit, NormalizeP);
+    }
+    // parse out input parameters
+    TStr FieldNm = ParamVal->GetObjStr("field");
+    QmAssertR(GetFtrStore()->IsFieldNm(FieldNm), "Unknown field '" + 
+        FieldNm + "' in store '" + GetFtrStore()->GetStoreNm() + "'");
+    FieldId = GetFtrStore()->GetFieldId(FieldNm);
+    FieldDesc = GetFtrStore()->GetFieldDesc(FieldId);
+}
+
+TDateWnd::TDateWnd(const TWPt<TBase>& Base, TSIn& SIn): 
+    TFtrExt(Base, SIn), FtrGen(SIn), FieldId(SIn), FieldDesc(SIn) { }
+
+PFtrExt TDateWnd::New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP) { 
+
+    return new TDateWnd(Base, TJoinSeqV::GetV(TJoinSeq(Store)), 
+        FieldId, WndSize, TmUnit, NormalizeP); 
+}
+
+PFtrExt TDateWnd::New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP) { 
+    
+    return new TDateWnd(Base, TJoinSeqV::GetV(JoinSeq),
+        FieldId, WndSize, TmUnit, NormalizeP); 
+}
+
+PFtrExt TDateWnd::New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP) { 
+    
+    return new TDateWnd(Base, JoinSeqV, FieldId, 
+        WndSize, TmUnit, NormalizeP); 
+}
+
+PFtrExt TDateWnd::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { 
+    return new TDateWnd(Base, ParamVal);
+}
+
+PFtrExt TDateWnd::Load(const TWPt<TBase>& Base, TSIn& SIn) {
+    return new TDateWnd(Base, SIn);
+}
+
+void TDateWnd::Save(TSOut& SOut) const {
+    GetType().Save(SOut);
+    TFtrExt::Save(SOut);
+    
+    FtrGen.Save(SOut);
+    FieldId.Save(SOut);
+    FieldDesc.Save(SOut);
+}
+
+bool TDateWnd::Update(const TRec& Rec) {
+    return FtrGen.Update(TTm::GetTmFromMSecs(GetVal(Rec)));
+}
+
+void TDateWnd::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
+    FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), SpV, Offset);
+}
+
+void TDateWnd::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+    FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
 }
 
 }

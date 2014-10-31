@@ -2738,6 +2738,8 @@ public:
 	//#     
     //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
+    //#- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+    JsDeclareProperty(dims);    
     //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
