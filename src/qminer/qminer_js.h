@@ -1442,8 +1442,6 @@ public:
 	static v8::Handle<v8::Value> Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const TRec& Rec, const int FieldId, v8::HandleScope& HandleScope);
 	static v8::Handle<v8::Value> Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const uint64& RecId, const int FieldId, v8::HandleScope& HandleScope);
 
-
-
 	//# 
 	//# **Functions and properties:**
 	//#     
@@ -1499,8 +1497,10 @@ public:
 	//#- `store.clear()` -- deletes all records
 	//#- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 	JsDeclareFunction(clear);
-	//#- `vec = store.getCol(fieldName)` -- gets the `fieldName` column
-	JsDeclareFunction(getCol);
+	//#- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
 	//#- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
 	//#- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
 	JsDeclareFunction(cell);
@@ -1716,8 +1716,10 @@ public:
 	JsDeclareFunction(setunion);
 	//#- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	JsDeclareFunction(setdiff);
-	//#- `vec = rs.getCol(fieldName)` -- gets the `fieldName` column
-	JsDeclareFunction(getCol)
+	//#- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
 
 
     //# 
@@ -3709,6 +3711,7 @@ public:
 	JsDeclareFunction(corePeriphery);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
+	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportanceStore);
 	JsDeclareFunction(perfTest);
 };

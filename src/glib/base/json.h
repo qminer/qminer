@@ -127,6 +127,7 @@ public:
   int GetArrVals() const {EAssert(IsArr()); return ValV.Len();}
   PJsonVal GetArrVal(const int& ValN) const {return ValV[ValN];}
   void GetArrNumV(TFltV& FltV) const;
+  void GetArrNumSpV(TIntFltKdV& NumSpV) const;
   void GetArrIntV(TIntV& IntV) const;
   void GetArrStrV(TStrV& StrV) const;
   int GetObjKeys() const {EAssert(IsObj()); return KeyValH.Len();}
