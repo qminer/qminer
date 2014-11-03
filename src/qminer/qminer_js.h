@@ -2422,6 +2422,10 @@ public:
 	JsDeclareFunction(save);
 	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 	JsDeclareFunction(load);
+	//#- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(saveascii);
+	//#- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(loadascii);
 };
 
 ///////////////////////////////

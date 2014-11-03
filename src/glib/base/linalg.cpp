@@ -2759,16 +2759,20 @@ void TLAMisc::SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName)
 
 void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, const TStr& FName) {
     PSOut out = TFOut::New(FName);
-    const int RowN = m.GetRows();
-    const int ColN = m.GetCols();
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        for (int ColId = 0; ColId < ColN; ColId++) {
-            out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18));
-            out->PutCh(' ');
-        }
-        out->PutCh('\n');
-    }
-    out->Flush();
+	TLAMisc::SaveMatlabTFltVV(m, *out);	
+}
+
+void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut) {	
+	const int RowN = m.GetRows();
+	const int ColN = m.GetCols();
+	for (int RowId = 0; RowId < RowN; RowId++) {
+		for (int ColId = 0; ColId < ColN; ColId++) {
+			SOut.PutStr(TFlt::GetStr(m(RowId, ColId), 20, 18));
+			SOut.PutCh(' ');
+		}
+		SOut.PutCh('\n');
+	}
+	SOut.Flush();
 }
 
 void TLAMisc::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,

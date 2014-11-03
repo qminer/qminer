@@ -752,6 +752,8 @@ public:
     static void SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName);
 	// Dumps matrix to file so Matlab can read it
     static void SaveMatlabTFltVV(const TFltVV& m, const TStr& FName);
+	// Dumps matrix to output stream so Matlab can read it
+	static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
 	// Dumps main minor rowN x colN to file so Matlab can read it
 	static void SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m, int rowN, int colN, const TStr& FName);
     // loads matlab full matrix

@@ -4548,6 +4548,8 @@ v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, diag);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, saveascii);
+		JsRegisterFunction(TmpTemp, loadascii);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4980,6 +4982,19 @@ v8::Handle<v8::Value> TJsFltVV::load(const v8::Arguments& Args) {
 	// load from stream
 	JsMat->Mat.Load(*SIn);
 	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsFltVV::saveascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream	
+	TLAMisc::SaveMatlabTFltVV(JsMat->Mat, *SOut);
+	return HandleScope.Close(Args[0]);
+}
+
+v8::Handle<v8::Value> TJsFltVV::loadascii(const v8::Arguments& Args) {
+	throw TQmExcept::New("mat.loadascii: Not implemented!");
 }
 
 ///////////////////////////////
