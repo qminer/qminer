@@ -1,4 +1,5 @@
 #define GIX_DEBUG
+#define GIX_TEST
 
 #include <base.h>
 #include <mine.h>
@@ -16,6 +17,51 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 
 #define TAssert(Cond, MsgCStr) \
   ((Cond) ? static_cast<void>(0) : WarnNotify( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
+
+////////////////////////////////////////////////////////////////////////
+
+class XTest {
+public:
+
+	void Test_Simple_1() {
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		int i = 122;
+		TIntUInt64Pr x(i, i);
+		gix.AddItem(x, 7234);
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
+	}
+
+	void Test_Simple_220() {
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		int i = 122;
+		TIntUInt64Pr x(i, i);
+		for (int i = 0; i < 220; i++) {
+			gix.AddItem(x, i);
+		}
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
+		auto itemset = gix.GetItemSet(x);
+		TAssert(itemset->GetKey() == x, "Invalid itemset key");
+		TAssert(itemset->IsFull(), "Itemset should be full");
+		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
+		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
+		TAssert(itemset->ChildrenLen[0] == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->ChildrenLen[1] == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
+		
+		gix.ItemSetCache.FlushAndClr();
+		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
+	}
+};
+
+
+
 /*
 ////////////////////////////////////////////////////////////////////////
 
@@ -362,7 +408,18 @@ void Test_Splitting_10SplitsMerge() {
 */
 ////////////////////////////////////////////////////////////////////////
 
-void SimpleGixTest() {
+//void SimpleGixTest_1() {
+//	TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+//	int i = 122;
+//	TIntUInt64Pr x(i, i);
+//	gix.AddItem(x, i * 5 % 16);
+//
+//	TAssert(gix.IsCacheFull(), "Cache cannot be full");
+//	TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+//}
+
+
+void SimpleGixTest1() {
 	TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
 	for (int i = 0; i < 100000; i++) {
 		TIntUInt64Pr x(i, i);
@@ -373,10 +430,32 @@ void SimpleGixTest() {
 	}
 }
 
+void SimpleGixTest2() {
+	TGix<TIntUInt64Pr, TUInt64> gix("Test2", "data", faCreate, 10000);
+	for (int i = 0; i < 100; i++) {
+		TIntUInt64Pr x(i, i);
+		for (int j = 0; j < 220; j++) {
+			gix.AddItem(x, j);
+		}
+		if (i % 5000 == 1) {
+			printf("Evo: %d\n", i);
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
-	SimpleGixTest();
+	XTest test;
+
+	//test.Test_Simple_1();
+	test.Test_Simple_220();
+
+	//SimpleGixTest_1();
+
+	//SimpleGixTest1();
+	//SimpleGixTest2();
+
 	//TestStorageLayer1();
 	//TestSplitting();
 	

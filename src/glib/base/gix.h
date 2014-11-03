@@ -192,11 +192,14 @@ public:
 
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() { 
-		return (ItemV.Len() >= 10);
+		return (ItemV.Len() >= 100);
 		//return (ItemV.GetMemUsed() > 10 * 1024 * 1024);  // TODO remove this after dev tests
 	}
 
-    friend class TPt<TGixItemSet>;
+	friend class TPt<TGixItemSet>; 
+#ifdef GIX_TEST
+	friend class XTest;
+#endif
 };
 
 template <class TKey, class TItem>
@@ -223,11 +226,6 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) { 
 	// make sure all is merged before saving - TODO is this needed?
 	Def();
-	// save item key and set
-	ItemSetKey.Save(SOut);
-	ItemV.Save(SOut);
-	Children.Save(SOut);
-	ChildrenLen.Save(SOut);
 
 	// save child vectors separately
 	for (int i = 0; i < Children.Len(); i++) {
@@ -236,6 +234,11 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 			Children[i] = Gix->StoreChildVector(Children[i], ChildrenData[i]);
 		}
 	}
+	// save item key and set
+	ItemSetKey.Save(SOut);
+	ItemV.Save(SOut);
+	Children.Save(SOut);
+	ChildrenLen.Save(SOut);
 }
 
 
@@ -249,7 +252,6 @@ void TGixItemSet<TKey, TItem>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) { 
     const int OldSize = GetMemUsed();
-	printf("adding %d \n", NewItem);
 	if (IsFull()) {
 		bool AddNewChild = false; // flag if new child Itemset should be added
 		const TItem *LastItem;    // pointer to last item in the itemset, will be used for calculating MergedP
@@ -798,6 +800,9 @@ public:
 
     friend class TPt<TGix>;
     friend class TGixItemSet<TKey, TItem>;
+#ifdef GIX_TEST
+	friend class XTest;
+#endif
 };
 
 template <class TKey, class TItem>
@@ -987,6 +992,7 @@ void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const
 /// for storing vectors to blob
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const {
+	printf("Storing child vector - len=%d, addr=%d\n", Data.Len(), ExistingKeyId.Addr);
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
@@ -997,6 +1003,7 @@ TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const 
 /// for deleting child vector from blob
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
+	printf("Deleting child vector - addr=%d\n", KeyId.Addr);
 	AssertReadOnly(); // check if we are allowed to write
 	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
 }
@@ -1004,6 +1011,7 @@ void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
 /// For enlisting new child vectors into blob
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
+	printf("Enlisting child vector - len=%d\n", Data.Len());
 	AssertReadOnly(); // check if we are allowed to write
 	TMOut MOut;
 	Data.Save(MOut);
