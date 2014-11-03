@@ -834,8 +834,12 @@ void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
         }
 		case oftBowSpV:
             throw TQmExcept::New("Parsing of BowSpV from JSon not yet implemented");
-		case oftNumSpV:
-            throw TQmExcept::New("Parsing of NumSpV from JSon not yet implemented");
+		case oftNumSpV: {
+			QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+			TIntFltKdV NumSpV; JsonVal->GetArrNumSpV(NumSpV);
+			SetFieldNumSpV(RecMem, SOut, FieldSerialDesc, NumSpV);
+			break;
+		}
         default:
             throw TQmExcept::New("Unsupported JSon data type for DB storage (variable part) - " + FieldDesc.GetFieldTypeStr());
 	}
