@@ -16,7 +16,7 @@ typedef  TPt < TMyItemSet > PMyItemSet;
 
 #define TAssert(Cond, MsgCStr) \
   ((Cond) ? static_cast<void>(0) : WarnNotify( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
-
+/*
 ////////////////////////////////////////////////////////////////////////
 
 void Print(TMyStorageLayer* gixsl, TVec<TBlobPt>* blob_pt_v) {
@@ -359,7 +359,7 @@ void Test_Splitting_10SplitsMerge() {
 		}
 	}
 }
-
+*/
 ////////////////////////////////////////////////////////////////////////
 
 void SimpleGixTest() {
@@ -376,7 +376,7 @@ void SimpleGixTest() {
 ////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
-	//SimpleGixTest();
+	SimpleGixTest();
 	//TestStorageLayer1();
 	//TestSplitting();
 	
@@ -386,7 +386,8 @@ int main(int argc, char* argv[]) {
 	//Test_Splitting_1SplitNoRealMerge();
 	//Test_Splitting_1SplitMerge();
 	//Test_Splitting_2SplitMerge();
-	Test_Splitting_10SplitsMerge();
+	
+	//Test_Splitting_10SplitsMerge();
 
 	return 0;
 }
