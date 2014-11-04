@@ -199,6 +199,20 @@ public:
 	friend class TPt<TGixItemSet>; 
 #ifdef GIX_TEST
 	friend class XTest;
+
+	void Print() {
+		printf("TotalCnt=%d\n", TotalCnt);
+		for (int i = 0; i < ItemV.Len(); i++) {
+			printf("   %d=%d\n", i, ItemV[i]);
+		}
+		for (int j = 0; j < Children.Len(); j++) {
+			printf("   *** child %d\n", j);
+			printf("   *** len %d\n", ChildrenLen[j]);
+			for (int i = 0; i < ChildrenData[j].Len(); i++) {
+				printf("      %d=%d\n", i, ChildrenData[j][i]);
+			}
+		}
+	}
 #endif
 };
 
@@ -254,14 +268,14 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
     const int OldSize = GetMemUsed();
 	if (IsFull()) {
 		bool AddNewChild = false; // flag if new child Itemset should be added
-		const TItem *LastItem;    // pointer to last item in the itemset, will be used for calculating MergedP
+		TItem LastItem;    // last item in the itemset, will be used for calculating MergedP
 		if (Children.Len() == 0) {
 			AddNewChild = true;
-			LastItem = &ItemV.Last();
+			LastItem = ItemV.Last();
 		} else {
 			LoadChildVector(Children.Len() - 1);
 			TVec<TItem>& Last = ChildrenData.Last();
-			LastItem = &(Last.Last());
+			LastItem = (Last.Last());
 			
 			// TODO perform Level1 merge?
 			
@@ -274,7 +288,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			}
 		}
 		if (AddNewChild){
-			printf("adding new child, at index %d \n", Children.Len() + 1);
+			printf("*** adding new child, at index %d \n", Children.Len() + 1);
 			TVec<TItem> new_child;
 			new_child.Add(NewItem);
 			ChildrenData.Add(new_child);
@@ -282,7 +296,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			Children.Add(Gix->EnlistChildVector(new_child));
 		}
 		if (MergedP) {
-			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(*LastItem, NewItem));
+			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(LastItem, NewItem));
 		}
 	} else {		
 		if (MergedP) {
@@ -292,7 +306,15 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 		}
 		ItemV.Add(NewItem);
 	}
-	RecalcTotalCnt(); // child itemsets might have been merged
+	RecalcTotalCnt(); // child vectors might have been merged
+	
+	//printf("adding %i, total=%i, ", NewItem, TotalCnt);
+	//if (MergedP) {
+	//	printf("merged\n");
+	//} else {
+	//	printf("NOT merged\n");
+	//}
+
 	// notify cache that this item grew
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
@@ -992,7 +1014,7 @@ void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const
 /// for storing vectors to blob
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const {
-	printf("Storing child vector - len=%d, addr=%d\n", Data.Len(), ExistingKeyId.Addr);
+	//printf("Storing child vector - len=%d, addr=%d\n", Data.Len(), ExistingKeyId.Addr);
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
@@ -1003,7 +1025,7 @@ TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const 
 /// for deleting child vector from blob
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
-	printf("Deleting child vector - addr=%d\n", KeyId.Addr);
+	//printf("Deleting child vector - addr=%d\n", KeyId.Addr);
 	AssertReadOnly(); // check if we are allowed to write
 	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
 }
@@ -1011,7 +1033,7 @@ void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
 /// For enlisting new child vectors into blob
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
-	printf("Enlisting child vector - len=%d\n", Data.Len());
+	//printf("Enlisting child vector - len=%d\n", Data.Len());
 	AssertReadOnly(); // check if we are allowed to write
 	TMOut MOut;
 	Data.Save(MOut);
