@@ -52,11 +52,17 @@ public:
 	static TStr GetFldVal(const TStrKdV& FldNmValPrV, const TStr& FldNm, const TStr& DefFldVal = "");
 	static int GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm); 
 	static int GetFldInt(const TStrKdV& FldNmValPrV, const TStr& FldNm, const int& DefInt); 
+	static double GetFldFlt(const TStrKdV& FldNmValPrV, const TStr& FldNm, const double& DefFlt);
 	static bool GetFldBool(const TStrKdV& FldNmValPrV, const TStr& FldNm, const bool& DefVal);
 	static uint64 GetFldUInt64(const TStrKdV& FldNmValPrV, const TStr& FldNm, const uint64& DefVal);
 	static void GetFldValV(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrV& FldValV);
 	static void GetFldValSet(const TStrKdV& FldNmValPrV, const TStr& FldNm, TStrSet& FldValSet);
 	static bool IsFldNmVal(const TStrKdV& FldNmValPrV,	const TStr& FldNm, const TStr& FldVal);
+	
+	static void SetFldNmVal(TStrKdV& FldNmValPrV, const TStr& FldNm, const TStr& FldVal);
+	static void SetFldNmInt(TStrKdV& FldNmValPrV, const TStr& FldNm, const int& FldVal);
+	static void SetFldNmBool(TStrKdV& FldNmValPrV, const TStr& FldNm, const bool& FldVal);
+	static void SetFldNmFlt(TStrKdV& FldNmValPrV, const TStr& FldNm, const double& FldVal);
 
 	static TStr XmlHdStr;
 
@@ -110,23 +116,81 @@ public:
 //////////////////////////////////////
 // Simple-App-Server
 class TSAppSrv : public TWebSrv {
-private:
+protected:
 	TMem Favicon;
     TBool ShowParamP;
 	TBool ListFunP;
     THash<TStr, PSAppSrvFun> FunNmToFunH;
-private:
+
 	static unsigned char Favicon_bf[];
 	static unsigned int Favicon_len;
 
 public:
-    TSAppSrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify, 
+    TSAppSrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
 		const bool& _ShowParamP = false, const bool& _ListFunP = true);
     static PWebSrv New(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify, 
 		const bool& ShowParamP = false, const bool& ListFunP = true) { 
             return new TSAppSrv(PortN, SrvFunV, Notify, ShowParamP, ListFunP); }
     
     virtual void OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq);
+};
+
+
+//////////////////////////////////////
+// Http Request Serialization Info
+// info that we serialize for each http request
+// this info can later be used to do the replay
+class HttpReqSerInfo
+{
+	TStr UrlRel;
+	TStr UrlBase;
+	TCh ReqMethod;
+	TMem Body;
+
+public:
+	HttpReqSerInfo(const TStr& UrlRel, const TStr& UrlBase, const THttpRqMethod& ReqMethod, const TMem& Body);
+	HttpReqSerInfo(const PHttpRq& HttpRq);
+	HttpReqSerInfo(TSIn& SIn);
+	void Save(TSOut& SOut);
+
+	PHttpRq GetHttpRq();
+};
+
+class THttpReqLogger;
+typedef TPt<THttpReqLogger> PHttpReqLogger;
+class THttpReqLogger {
+private:
+	TCRef CRef;
+	THttpReqLogger();
+public:
+	friend class TPt<THttpReqLogger>;
+	static PHttpReqLogger New(const TStr& ReqFNm, const bool& FlushEachReq = false);
+	static void ApplyRequests(const TStr& ReqFNm);
+};
+
+//////////////////////////////////////
+// App-Server with loging and replaying of requests
+class TReplaySrv : public TSAppSrv {
+private:
+	void ReplayHttpRq(const PHttpRq& HttpRq);
+
+	PSOut SOut;
+	bool FlushEachRequest;
+
+public:
+	TReplaySrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
+		const bool& _ShowParamP = false, const bool& _ListFunP = true);
+	static TReplaySrv* New(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
+		const bool& ShowParamP = false, const bool& ListFunP = true) {
+		return new TReplaySrv(PortN, SrvFunV, Notify, ShowParamP, ListFunP);
+	}
+
+	bool ReplayLog(const TStr& LogFNm);
+	void StartLogging(const TStr& LogFNm, const bool& _FlushEachRequest = false, const bool& Append = true);
+	void StopLogging();
+	static bool RemoveLogData(const TStr& LogFNm);
+
+	virtual void OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq);
 };
 
 //////////////////////////////////////
