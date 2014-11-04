@@ -1081,6 +1081,7 @@ public:
 	JsDeclareFunction(mkdir);
 	//#- `fs.rmdir(dirName)` -- delete folder
 	JsDeclareFunction(rmdir);
+    //#- `strArr = fs.listFile(dirName)` -- returns list of files in directory
 	//#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
 	//#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 	JsDeclareFunction(listFile);
