@@ -4994,7 +4994,12 @@ v8::Handle<v8::Value> TJsFltVV::saveascii(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsFltVV::loadascii(const v8::Arguments& Args) {
-	throw TQmExcept::New("mat.loadascii: Not implemented!");
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	TLAMisc::LoadMatlabTFltVV(JsMat->Mat, *SIn);	
+	return Args.Holder();
 }
 
 ///////////////////////////////

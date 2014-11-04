@@ -760,6 +760,10 @@ public:
     static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
     // loads matlab full matrix
     static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn);
     // prints vector to screen
     static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
 	// print matrix to string
