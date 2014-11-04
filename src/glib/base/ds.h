@@ -660,7 +660,7 @@ public:
   void Merge();
 
   TStr GetStr() const { return TStr("<Vector>");}
-
+  
   /// Picks three random elements at positions <tt>BI...EI</tt> and returns the middle one under the comparator \c Cmp.
   template <class TCmp>
   static TIter GetPivotValNCmp(const TIter& BI, const TIter& EI, const TCmp& Cmp) {
@@ -2594,6 +2594,11 @@ public:
     if (Last>MxLast){ValV.Del(0, Last-1); First-=Last; Last=0;}
     if ((MxLen!=-1)&&(MxLen==Len())){Pop();}
     First++; ValV.Add(Val);}
+  // add all items from the vector to the queue
+  void PushV(const TVec<TVal>& ValV) {
+	  for (int N = 0; N < ValV.Len(); N++)
+		  Push(ValV[N]);
+  }
 
   void Shuffle(TRnd& Rnd){
     TVec<TVal> ValV(Len(), 0); while (!Empty()){ValV.Add(Top()); Pop();}
