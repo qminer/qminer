@@ -445,8 +445,12 @@ public:
 /////////////////////////////////////////////////
 // String
 class TStr;
+class TInt;
+class TUInt64;
 template <class TVal, class TSizeTy> class TVec;
 typedef TVec<TStr, int> TStrV;
+typedef TVec<TInt, int> TIntV;
+typedef TVec<TUInt64, int> TUInt64V;
 
 class TStr{
 private:
@@ -722,6 +726,9 @@ public:
   static TStr GetStr(const TStr& Str, const TStr& FmtStr){
     return GetStr(Str, FmtStr.CStr());}
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
+  static TStr GetStr(const TIntV& Vec, const TStr& DelimiterStr);
+  static TStr GetStr(const TUInt64V& Vec, const TStr& DelimiterStr);
+  
   static TStr Fmt(const char *FmtStr, ...);
   static TStr FmtBf(char* Bf, int BfSize, const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);

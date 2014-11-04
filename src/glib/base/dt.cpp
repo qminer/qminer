@@ -1645,6 +1645,26 @@ TStr TStr::GetStr(const TStrV& StrV, const TStr& DelimiterStr){
   return ResStr;
 }
 
+TStr TStr::GetStr(const TIntV& Vec, const TStr& DelimiterStr) {
+	if (Vec.Empty()) { return TStr(); }
+	TChA ResStr = Vec[0].GetStr();
+	for (int StrN = 1; StrN < Vec.Len(); StrN++) {
+		ResStr += DelimiterStr;
+		ResStr += Vec[StrN].GetStr();
+	}
+	return ResStr;
+}
+
+TStr TStr::GetStr(const TUInt64V& Vec, const TStr& DelimiterStr) {
+	if (Vec.Empty()) { return TStr(); }
+	TChA ResStr = Vec[0].GetStr();
+	for (int StrN = 1; StrN < Vec.Len(); StrN++) {
+		ResStr += DelimiterStr;
+		ResStr += Vec[StrN].GetStr();
+	}
+	return ResStr;
+}
+
 TStr TStr::Fmt(const char *FmtStr, ...){
   char Bf[10*1024];
   va_list valist;
