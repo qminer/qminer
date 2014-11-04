@@ -264,14 +264,6 @@ public:
 // Standard-Notifier
 class TStdNotify: public TNotify{
 public:
-/////////////////////////////////////////////////
-// System-Messages
-class TSysMsg{
-public:
-  static void Loop();
-  static void Quit();
-};
-
   TStdNotify(){}
   static PNotify New(){return PNotify(new TStdNotify());}
 
