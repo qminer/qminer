@@ -1120,6 +1120,18 @@ TStr TFile::GetUniqueFNm(const TStr& FNm){
   return NewFNm;
 }
 
+void TFile::SplitPath(const TStr& FPathFNm, TStrV& PartV) {
+	FPathFNm.SplitOnAllAnyCh("\\/", PartV);
+}
+
+TStr TFile::GetFileName(const TStr& FileWithDir)
+{
+	TStrV PartsV; TFile::SplitPath(FileWithDir, PartsV);
+	if (PartsV.Len() > 0)
+		return PartsV[PartsV.Len() - 1];
+	return "";
+}
+
 #ifdef GLib_WIN
 
 uint64 TFile::GetSize(const TStr& FNm) {
