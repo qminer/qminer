@@ -36,6 +36,7 @@ function createBatchModel(featureSpace, models) {
         for (var cat in this.models) {
             this.models[cat].model.save(sout);
         }
+        return sout;
     }
 
     this.predict = function (record) {
@@ -174,11 +175,11 @@ exports.newBatchModel = function (records, features, target, limitCategories) {
             if (targets[cat].type === "classification") {
                 console.log("newBatchModel", "    ... " + cat + " (classification)");
                 models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target, 
-                    { c: 1, j: 1, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
+                    { c: 1, j: 10, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
             } else if (targets[cat].type === "regression") {
                 console.log("newBatchModel", "    ... " + cat + " (regression)");
                 models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target, 
-                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
+                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
             }
         }
     }
@@ -199,9 +200,7 @@ exports.loadBatchModel = function (sin) {
     return new createBatchModel(featureSpace, models);    
 };
 
-function round100(num) { return Math.round(num * 100) / 100; }
-
-function classifcationScore(cats) {
+exports.classifcationScore = function (cats) {
 	this.target = { };
     
 	this.targetList = [ ];
@@ -210,8 +209,9 @@ function classifcationScore(cats) {
 			id: i, count: 0, predictionCount: 0,
 			TP: 0, TN: 0, FP: 0, FN: 0,
 			all : function () { return this.TP + this.FP + this.TN + this.FN; },
-			precision : function () { return this.TP / (this.TP + this.FP); },
-			recall : function () { return this.TP / (this.TP + this.FN); },				
+			precision : function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
+			recall : function () { return this.TP / (this.TP + this.FN); },
+            f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
 			accuracy : function () { return (this.TP + this.TN) / this.all(); }
 		};
 		this.targetList.push(cats[i]);		
@@ -254,22 +254,41 @@ function classifcationScore(cats) {
 			console.log(cat + 
 				": Count " + this.target[cat].count + 
 				", All " + this.target[cat].all() + 
-				", Precission " + round100(this.target[cat].precision()) + 
-				", Recall " +   round100(this.target[cat].recall()) +
-				", Accuracy " +   round100(this.target[cat].accuracy()));
+				", Precission " + this.target[cat].precision().toFixed(2) + 
+				", Recall " +  this.target[cat].recall().toFixed(2) +
+				", F1 " + this.target[cat].f1().toFixed(2) +
+				", Accuracy " + this.target[cat].accuracy().toFixed(2));
 		}
 	};
+    
+    this.reportAvg = function () {
+        var count = 0, precision = 0, recall = 0, f1 = 0, accuracy = 0; 
+        for (var cat in this.target) {
+            count++;
+            precision = precision + this.target[cat].precision();
+            recall = recall + this.target[cat].recall();
+            f1 = f1 + this.target[cat].f1();
+            accuracy = accuracy + this.target[cat].accuracy();
+        }
+        console.log("Categories " + count + 
+            ", Precission " + (precision / count).toFixed(2) + 
+            ", Recall " +  (recall / count).toFixed(2) +
+            ", F1 " + (f1 / count).toFixed(2) +
+            ", Accuracy " + (accuracy / count).toFixed(2));        
+    }
 
 	this.reportCSV = function (fout) { 
 		// precison recall
-		fout.writeLine("category,count,precision,recall,accuracy");
+		fout.writeLine("category,count,precision,recall,f1,accuracy");
 		for (var cat in this.target) {
 			fout.writeLine(cat + 
 				"," + this.target[cat].count + 
-				"," + round100(this.target[cat].precision()) + 
-				"," + round100(this.target[cat].recall()) +
-				"," + round100(this.target[cat].accuracy()));
+				"," + this.target[cat].precision().toFixed(2) + 
+				"," + this.target[cat].recall().toFixed(2) +
+				"," + this.target[cat].f1().toFixed(2) +
+				"," + this.target[cat].accuracy().toFixed(2));
 		}
+        return fout;r
 	};
 	
 	this.results = function () {
@@ -284,7 +303,7 @@ function classifcationScore(cats) {
 	};
 }
 
-//#- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+//#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
 //#     model for records from record set `rs` using `features; `target` is the
 //#     target field and is assumed discrete; the result is a results object
 //#     with the following API:
