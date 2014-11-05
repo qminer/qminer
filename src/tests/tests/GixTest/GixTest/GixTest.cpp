@@ -225,7 +225,7 @@ public:
 		printf("Overwritting counts done.\n");
 	}
 
-	void Test_Feed() {
+	void Test_Feed(int cache_size = 50 * 1024 * 1024) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
 		int total = 30000;
@@ -235,7 +235,7 @@ public:
 		{
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
-			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, 50 * 1024 * 1024);
+			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, cache_size);
 			TRnd rnd(1);			
 			for (int j = 0; j < total; j++) {
 				// every doc containes the same 5 words
@@ -295,8 +295,18 @@ public:
 		Test_Merge_220_Into_120();
 		Test_Merge_22000_Into_50();
 		
+		// this will split only big itemsets
 		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 1000;
 		Test_Feed();
+
+		// this will split probably all itemsets
+		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
+		Test_Feed();
+
+		// this will split probably all itemsets
+		// it will also limit cache to less than 10% of the itemsets
+		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
+		Test_Feed(1 * 1024 * 1024);
 	}
 };
 
