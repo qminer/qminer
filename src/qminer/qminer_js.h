@@ -2522,6 +2522,8 @@ public:
 	JsDeclareFunction(print);
 	//#- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
 	JsDeclareFunction(norm);
+	//#- `vec = spVec.sort()` -- sort by values and return permutation integer vector.
+	JsDeclareFunction(sort);
 	//#- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
 	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.

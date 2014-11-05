@@ -5127,6 +5127,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpV::GetTemplate() {
 		JsRegisterProperty(TmpTemp, dim);
 		JsRegisterFunction(TmpTemp, print);
 		JsRegisterFunction(TmpTemp, norm);
+		JsRegisterFunction(TmpTemp, sort);
 		JsRegisterFunction(TmpTemp, full);
 		JsRegisterFunction(TmpTemp, valVec);
 		JsRegisterFunction(TmpTemp, idxVec);
@@ -5154,23 +5155,21 @@ v8::Handle<v8::Value> TJsSpV::at(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSpV::put(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+    TIntFltKdV& Vec = JsSpV->Vec;
 	if (Args.Length() == 2) {
 		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
 		QmAssertR(Args[1]->IsNumber(), "the second argument should be a number");				
-		TInt Index = TJsSpVUtil::GetArgInt32(Args, 0);	
-		TFlt Val = TJsSpVUtil::GetArgFlt(Args, 1);	
-		bool Found = false;
-		for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
-			if (JsSpV->Vec[ElN].Key == Index) {
-				JsSpV->Vec[ElN].Dat = Val;
-				Found = true;
-				break;
-			}
-		}
-		if (!Found) {
-			JsSpV->Vec.Add(TIntFltKd(Index, Val));
-			JsSpV->Vec.Sort();
-		}		
+		const int Index = TJsSpVUtil::GetArgInt32(Args, 0);	
+		const double Val = TJsSpVUtil::GetArgFlt(Args, 1);
+        // check we have the index already
+		const int Existing = Vec.SearchBin(TIntFltKd(Index, Val));
+        if (Existing == -1) {
+            // new value
+            Vec.AddSorted(TIntFltKd(Index, Val));
+        } else {
+            // update existing value
+            Vec[Existing].Dat = Val;
+        }
 		// update dimension
 		if (JsSpV->Dim != -1) {
 			if (Index >= JsSpV->Dim) {
@@ -5275,6 +5274,15 @@ v8::Handle<v8::Value> TJsSpV::norm(const v8::Arguments& Args) {
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
 	double Result = TLinAlg::Norm(JsSpV->Vec);
 	return HandleScope.Close(v8::Number::New(Result));
+}
+
+v8::Handle<v8::Value> TJsSpV::sort(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    bool AscP = TJsSpVUtil::GetArgBool(Args, 0, true);
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+    TIntFltKdV ResV; TIntV PermV;
+    TIntFltKdV::SortGetPerm(JsSpV->Vec, ResV, PermV, AscP);
+	return TJsIntV::New(JsSpV->Js, PermV);
 }
 
 v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
