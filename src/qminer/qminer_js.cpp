@@ -2252,7 +2252,7 @@ v8::Handle<v8::Value> TJsStore::Field(TWPt<TScript> _Js, const TWPt<TStore>& Sto
 v8::Handle<v8::Value> TJsStore::Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const uint64& RecId, const int FieldId, v8::HandleScope& HandleScope) {
 	// check if null
 	if (!Store->IsRecId(RecId)) { return HandleScope.Close(v8::Null()); }
-	if (!Store->IsFieldNull(RecId, FieldId)) { return HandleScope.Close(v8::Null()); }
+	if (Store->IsFieldNull(RecId, FieldId)) { return HandleScope.Close(v8::Null()); }
 	// not null, get value
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
@@ -7544,6 +7544,11 @@ v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
+	// Assumption: node ids and edge ids start with 0, and there are no gaps in the ids
+	// Assumption: node times (node data) are descending
+	// Assumption: JsNodeData->Vec[nid] corresponds to Graph->GetNI(nid);
+	// Assumption: JsEdgeData->Vec[eid] corresponds to Graph->GetEI(eid);
+	
 	v8::HandleScope HandleScope;
 	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
@@ -7555,23 +7560,22 @@ v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
 	QmAssertR(TJsSnapUtil::IsArgClass(Args, 2, "TFltV"), "snap.dagImportance: Args[2] expected a vector!");
 	TJsFltV* JsNodeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
 	TJsFltV* JsEdgeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 2);
-	
-	// node store, edge store, nodeWeightFieldName, edgeWeightFieldName
-
+		
 
 	TFlt Decay = TJsSnapUtil::GetArgFlt(Args, 3, 1e+100);
-
+	TInt StartNode = TJsSnapUtil::GetArgInt32(Args, 4, 0);
+	
 	TFltV Importance(Graph->GetNodes());
-	for (auto NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+	for (auto NI = Graph->GetNI(StartNode); NI < Graph->EndNI(); NI++) {
 		int InDeg = NI.GetInDeg();
 		int TrgId = NI.GetId();
 		double TrgT = JsNodeData->Vec[TrgId];
 		double D = 1.0 + Importance[NI.GetId()] / InDeg;
-		for (int NbrN = 0; NbrN < InDeg; NbrN++) {
+		for (int NbrN = 0; NbrN < InDeg; NbrN++) {			
 			int EId = NI.GetInEId(NbrN);
 			int SrcId = NI.GetInNId(NbrN);
 			double Weight = JsEdgeData->Vec[EId] * exp((JsNodeData->Vec[SrcId] - TrgT) / Decay);
-			Importance[SrcId] += Weight * D;
+			Importance[SrcId] += Weight * D;			
 		}
 	}
 	return HandleScope.Close(TJsFltV::New(JsSnap->Js, Importance));
