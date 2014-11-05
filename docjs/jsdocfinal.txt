@@ -432,7 +432,7 @@ several functions from linear algebra.
 - `arr = la.findMaxIdx(vec)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.
 - `intVec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `intVec`
 - `vec = la.copyFltArrayToVec(arr)` -- copies a JS array of numbers `arr` into a float vector `vec`
-- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
 - `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
 - `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
 - `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
