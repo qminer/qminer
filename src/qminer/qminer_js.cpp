@@ -7686,7 +7686,7 @@ v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSnap::dagImportanceStore(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
+	//int ArgsLen = Args.Length();
 	QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNEGraph"), "snap.dagImportance: Args[0] expected a dmgraph!");
 	TJsGraph<TNEGraph>* JsGraph = TJsObjUtil<TJsGraph<TNEGraph>>::GetArgObj(Args, 0);
 	PNEGraph Graph = JsGraph->Graph();
