@@ -246,6 +246,7 @@ const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) { 
+
 	// make sure all is merged before saving - TODO is this needed?
 	Def();
 
@@ -266,7 +267,7 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) {
-    if (!((TGix<TKey, TItem>*)Gix)->IsReadOnly()) {
+		if (!((TGix<TKey, TItem>*)Gix)->IsReadOnly()) {
 		((TGix<TKey, TItem>*)Gix)->StoreItemSet(BlobPt);
     } 
 }
@@ -296,7 +297,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			}
 		}
 		if (AddNewChild){
-			printf("*** adding new child, at index %d \n", Children.Len() + 1);
+			//printf("*** adding new child, at index %d \n", Children.Len() + 1);
 			TVec<TItem> new_child;
 			new_child.Add(NewItem);
 			ChildrenData.Add(new_child);
@@ -343,7 +344,7 @@ void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
 	if (Src->Children.Len() > 0) {
 		// merge each of them
 		for (int i = 0; i < ChildrenData.Len(); i++) {
-			AddItemV(Src->ChildrenData);
+			AddItemV(Src->ChildrenData[i]);
 		}
 	}
 }
@@ -772,7 +773,7 @@ public:
     bool IsReadOnly() const { return Access == faRdOnly; }
 	bool IsCacheFullP() const { return CacheFullP; }
 	TStr GetFPath() const { return GixFNm.GetFPath(); }
-	int64 GetMxCacheSize() const { return GixSL->GetMxMemUsed(); }
+	int64 GetMxCacheSize() const { return GetMxMemUsed(); }
 
     /// do we have Key in the index?
     bool IsKey(const TKey& Key) const { return KeyIdH.IsKey(Key); }

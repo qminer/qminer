@@ -198,35 +198,92 @@ public:
 
 	}
 
-	void Test_Feed() {
-		// simmulate news feed
-		// many articles, containing 50 random words + everyone containing words 1-5
-		TGix<TIntUInt64Pr, TUInt64> gix("Test_Feed", "data", faCreate, 50 * 1024 * 1024);
-		TRnd rnd(1);
-		int total = 30000;
-		for (int j = 0; j < total; j++) {
-			// every doc containes the same 5 words
-			for (int i = 1; i <= 5; i++) {
-				gix.AddItem(TIntUInt64Pr(i, i), j);
-			}
-			// each document contains 50 random words
-			for (int i = 0; i < 50; i++) {
-				int w = rnd.GetUniDevInt(10, 10000);
-				gix.AddItem(TIntUInt64Pr(w, w), j);
-			}
+	void AddToCounter(THash<TInt, TInt>& counter, TInt i) {
+		if (!counter.IsKey(i)) {
+			counter.AddKey(i);
 		}
+		counter.GetDat(i)++;
+	}
 
-		auto itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
-		TAssert(itemset->IsFull(), "Itemset should be full");
-		TAssert(itemset->MergedP, "Itemset should remain merged");
-		TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
+	void CheckCounts(THash<TInt, TInt>& counts, TGix<TIntUInt64Pr, TUInt64>& gix) {
+		printf("Checking counts...\n");
+		for (auto &key : counts) {
+			auto itemset = gix.GetItemSet(TIntUInt64Pr(key.Key, (int)key.Key));
+			auto cnt = key.Dat;
+			TAssert(itemset->IsFull() == (cnt > TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split), "Itemset should be full");
+			TAssert(itemset->MergedP, "Itemset should be merged");
+			TAssert(itemset->TotalCnt == cnt, TStr::Fmt("Invalid itemset TotalCnt: key=%d, expected=%d, actual=%d", key.Key, cnt, itemset->TotalCnt));
+		}
+		printf("Checking counts done.\n");
+	}
+	void OverwriteCounts(THash<TInt, TInt>& counts, TGix<TIntUInt64Pr, TUInt64>& gix) {
+		printf("Overwritting counts...\n");
+		for (auto &key : counts) {
+			auto itemset = gix.GetItemSet(TIntUInt64Pr(key.Key, (int)key.Key));
+			key.Dat = itemset->TotalCnt;
+		}
+		printf("Overwritting counts done.\n");
+	}
 
-		gix.Flush();
+	void Test_Feed() {
+		TStr Nm("Test_Feed");
+		TStr FName("data");
+		int total = 30000;
+		int keys = 0;
 
-		itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
-		TAssert(itemset->IsFull(), "Itemset should be full");
-		TAssert(itemset->MergedP, "Itemset should remain merged");
-		TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
+		THash<TInt, TInt> counts;
+		{
+			// simmulate news feed
+			// many articles, containing 50 random words + everyone containing words 1-5
+			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, 50 * 1024 * 1024);
+			TRnd rnd(1);			
+			for (int j = 0; j < total; j++) {
+				// every doc containes the same 5 words
+				for (int i = 1; i <= 5; i++) {
+					gix.AddItem(TIntUInt64Pr(i, i), j);
+				}
+				// each document contains 50 random words
+				TVec<int> vals;
+				for (int i = 0; i < 50; i++) {
+					int w = rnd.GetUniDevInt(10, 10000);
+					
+					// prevent the same word for the same document
+					while (vals.IsIn(w)) {
+						w = rnd.GetUniDevInt(10, 10000);
+					}
+					vals.Add(w);
+
+					auto key = TIntUInt64Pr(w, w);
+					gix.AddItem(key, j);
+					AddToCounter(counts, w);
+				}
+			}
+
+			auto itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
+			TAssert(itemset->IsFull(), "Itemset should be full");
+			TAssert(itemset->MergedP, "Itemset should remain merged");
+			TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
+
+			CheckCounts(counts, gix);
+
+			gix.Flush();
+
+			keys = gix.GetKeys();
+			itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
+			TAssert(itemset->IsFull(), "Itemset should be full");
+			TAssert(itemset->MergedP, "Itemset should remain merged");
+			TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
+			
+			OverwriteCounts(counts, gix); // itemsets could be merged
+		}
+		{
+			// reload data - in read-only mode
+			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faRdOnly, 50 * 1024 * 1024);
+
+			TAssert(gix.GetKeys() == keys, "Invalid key count");			
+
+			CheckCounts(counts, gix);
+		}
 	}
 
 	void PerformTests() {
