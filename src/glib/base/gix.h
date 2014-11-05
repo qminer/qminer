@@ -152,6 +152,9 @@ public:
 	/// Constructor for deserialization
 	TGixItemSet(TSIn& SIn, const PGixMerger& _Merger, const TGix<TKey, TItem>* _Gix) :
 		ItemSetKey(SIn), ItemV(SIn), Children(SIn), ChildrenLen(SIn), MergedP(true), Merger(_Merger), Gix(_Gix)  { 
+		for (int i = 0; i < Children.Len(); i++) {
+			ChildrenData.Add(TVec<TItem>());
+		};
 		RecalcTotalCnt();
 	}
 	/// Standard factory method for deserialization
@@ -192,8 +195,11 @@ public:
 
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() { 
-		return (ItemV.Len() >= 100);
-		//return (ItemV.GetMemUsed() > 10 * 1024 * 1024);  // TODO remove this after dev tests
+#ifdef GIX_TEST
+		return (ItemV.Len() >= len_to_split);
+#else
+		return (ItemV.GetMemUsed() > 10 * 1024 * 1024); // 10 MB
+#endif
 	}
 
 	friend class TPt<TGixItemSet>; 
@@ -213,6 +219,8 @@ public:
 			}
 		}
 	}
+
+	static int len_to_split;
 #endif
 };
 
@@ -778,7 +786,7 @@ public:
 	/// get item set for given BLOB pointer
 	PGixItemSet GetItemSet(const TBlobPt& Pt) const;
 	/// for storing item sets from cache to blob
-	TBlobPt StoreItemSet(const TBlobPt& KeyId);
+	void StoreItemSet(const TBlobPt& KeyId);
 	/// for deleting item sets from cache and blob
 	void DeleteItemSet(const TBlobPt& KeyId) const;
 	/// For enlisting new itemsets into blob
@@ -792,6 +800,8 @@ public:
     void DelItem(const TKey& Key, const TItem& Item);
 	/// clears items
     void Clr(const TKey& Key);
+	/// flush all data from cache to disk
+	void Flush() { ItemSetCache.FlushAndClr(); }
 
 	
     // traversing keys
@@ -905,7 +915,7 @@ TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TBlobPt& KeyI
 }
 
 template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
+void TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
 	AssertReadOnly(); // check if we are allowed to write
 	// get the pointer to the item set
 	PGixItemSet ItemSet;
@@ -913,7 +923,9 @@ TBlobPt TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
 	// store the current version to the blob
 	TMOut MOut;
 	ItemSet->Save(MOut);
-	return ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
+	TBlobPt NewKeyId = ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
+	// and update the KeyId in the hash table
+	KeyIdH.GetDat(ItemSet->GetKey()) = NewKeyId;
 }
 
 template <class TKey, class TItem>
