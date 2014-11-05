@@ -97,7 +97,9 @@ public:
   static TStr GetExeDir();
   static bool GenDir(const TStr& FPathFNm);
   static bool DelDir(const TStr& FPathFNm);
+  static bool DelNonEmptyDir(const TStr& FPathFNm);
   static bool Exists(const TStr& FPathFNm);
+  static TStr GetLastDirPart(const TStr& FPathFNm);
 };
 
 /////////////////////////////////////////////////

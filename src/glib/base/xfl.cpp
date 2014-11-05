@@ -274,6 +274,29 @@ bool TDir::DelDir(const TStr& FPathFNm){
   return RemoveDirectory(FPathFNm.CStr())!=0;
 }
 
+bool TDir::DelNonEmptyDir(const TStr& FPathFNm)
+{
+	TStrV FileV;
+	TFFile::GetFNmV(FPathFNm, TStrV(), false, FileV);
+	bool Ok = true;
+	for (int N = 0; N < FileV.Len(); N++) {
+		// if this is a file delete it
+		if (TFile::Exists(FileV[N]))
+			Ok = Ok && TFile::Del(FileV[N], false);
+		// if this is a folder, delete it recursively
+		else
+			Ok = Ok && DelNonEmptyDir(FileV[N]);
+	}
+	// remove the (hopefully) empty directory
+	Ok = Ok && TDir::DelDir(FPathFNm);
+	return Ok;
+}
+
+TStr TDir::GetLastDirPart(const TStr& FPathFNm)
+{
+	return TFile::GetFileName(FPathFNm);
+}
+
 #ifdef GLib_WIN
 
 bool TDir::Exists(const TStr& FPathFNm){
