@@ -288,6 +288,7 @@ namespace TQm {
 // Forward declarations 
 class TScript; typedef TPt<TScript> PScript;
 class TJsBase; typedef TPt<TJsBase> PJsBase;
+class TJsRec;
 class TJsFetch;
 class TJsFetchRq;
 class TJsHttpResp;
@@ -452,8 +453,12 @@ public:
 	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
 	/// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
+    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
@@ -573,7 +578,7 @@ public:
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Handle);
 		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Object->GetInternalField(0));
-                TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
+        TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
 		delete static_cast<TJsObj*>(WrappedObject->Value());
 		Handle.Dispose();
 		Handle.Clear();
@@ -1476,6 +1481,14 @@ public:
     //#- `rec = store.rec(recName)` -- get record named `recName`; 
     //#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
+	//#- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
+	//#  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
+	//#  - `store.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(each);
+	//#- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
+	//#  - `arr = store.map(function (rec) { return JSON.stringify(rec); })`
+	//#  - `arr = store.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	JsDeclareFunction(map);
     //#- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
 	JsDeclareFunction(add);
     //#- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
@@ -1546,16 +1559,18 @@ private:
 	TWPt<TScript> Js;	
 	TWPt<TStore> Store;
     PStoreIter Iter;
+    // placeholder for last object
+    v8::Persistent<v8::Object> RecObj;
+    TJsRec* JsRec;
 
 	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
 
-	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, 
-        const PStoreIter& _Iter): Js(_Js), Store(_Store), Iter(_Iter) { }	
+	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, const PStoreIter& _Iter);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, 
         const TWPt<TStore>& Store, const PStoreIter& Iter) { 
 		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter)); }
-	~TJsStoreIter() { }
+	~TJsStoreIter() { if (JsRec != NULL) { TJsObjUtil<TJsRec>::MakeWeak(RecObj); } }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
@@ -1564,7 +1579,7 @@ public:
 	//#   
     //#- `store = iter.store` -- get the store
 	JsDeclareProperty(store);
-    //#- `rec = iter.rec` -- get current record
+    //#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	JsDeclareProperty(rec);
     //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
     JsDeclareFunction(next);
@@ -1703,11 +1718,11 @@ public:
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Returns self. Examples:
+	//#- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
 	//#  - `rs.each(function (rec) { console.log(JSON.stringify(rec)); })`
 	//#  - `rs.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(each);
-	//#- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Examples:
+	//#- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
 	//#  - `arr = rs.map(function (rec) { return JSON.stringify(rec); })`
 	//#  - `arr = rs.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
 	JsDeclareFunction(map);
@@ -1754,6 +1769,7 @@ public:
         const int& Fq = 0, const bool& MakeWeakP = true) { 
     		return TJsRecUtil::New(new TJsRec(Js, Rec, Fq), 
                 GetTemplate(Js->Base, Rec.GetStore()), MakeWeakP); }
+    static TJsRec* GetJsRec(const v8::Handle<v8::Value>& Val);
     static TRec GetArgRec(const v8::Arguments& Args, const int& ArgN);
 
 	~TJsRec() { }
@@ -1778,6 +1794,8 @@ public:
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
+    //#- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
+    JsDeclareFunction(clone);
     //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
     //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);

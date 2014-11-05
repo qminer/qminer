@@ -378,7 +378,16 @@ void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
 	const int Argc = 2;
-	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
+	v8::Handle<v8::Value> Argv[Argc] = { Arg1, Arg2 };
+	Fun->Call(Context->Global(), Argc, Argv);
+	TJsUtil::HandleTryCatch(TryCatch);
+}
+
+void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 2;
+	v8::Handle<v8::Value> Argv[Argc] = { Arg1, Arg2 };
 	Fun->Call(Context->Global(), Argc, Argv);
 	TJsUtil::HandleTryCatch(TryCatch);
 }
@@ -387,9 +396,19 @@ void TScript::Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1,
 	v8::HandleScope HandleScope;
 	v8::TryCatch TryCatch;
 	const int Argc = 2;
-	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
+	v8::Handle<v8::Value> Argv[Argc] = { Arg1, Arg2 };
 	Fun->Call(Context->Global(), Argc, Argv);
 	TJsUtil::HandleTryCatch(TryCatch);
+}
+
+v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2) {
+	v8::HandleScope HandleScope;
+	v8::TryCatch TryCatch;
+	const int Argc = 2;
+	v8::Handle<v8::Value> Argv[Argc] = {Arg1, Arg2 };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Context->Global(), Argc, Argv);
+	TJsUtil::HandleTryCatch(TryCatch);
+    return HandleScope.Close(RetVal);
 }
 
 v8::Handle<v8::Value> TScript::ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2) {
@@ -2161,6 +2180,8 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
         JsRegisterProperty(TmpTemp, backwardIter);
 		JsRegIndexedProperty(TmpTemp, indexId);
 		JsRegisterFunction(TmpTemp, rec);
+		JsRegisterFunction(TmpTemp, each);
+		JsRegisterFunction(TmpTemp, map);
 		JsRegisterFunction(TmpTemp, add);
 		JsRegisterFunction(TmpTemp, newRec);
 		JsRegisterFunction(TmpTemp, newRecSet);
@@ -2457,6 +2478,72 @@ v8::Handle<v8::Value> TJsStore::rec(const v8::Arguments& Args) {
 	}
 }
 
+v8::Handle<v8::Value> TJsStore::each(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+    TWPt<TStore> Store = JsStore->Store;
+	QmAssertR(TJsStoreUtil::IsArgFun(Args, 0), "each: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsStoreUtil::GetArgFun(Args, 0);
+    // if empty do nothing
+    if (Store->Empty()) { return Args.Holder(); }
+	// get iterator and move to the first record
+    PStoreIter Iter = Store->ForwardIter(); 
+    QmAssert(Iter->Next()); int Count = 0;
+    // prepare placeholder
+    v8::Persistent<v8::Object> RecArg = TJsRec::New(
+        JsStore->Js, Store->GetRec(Iter->GetRecId()), 1, false);
+    TJsRec* JsRec = TJsRec::GetJsRec(RecArg);
+    // iterate through all the records
+    do {
+        JsRec->Rec = Store->GetRec(Iter->GetRecId());
+        v8::Handle<v8::Value> IdxArg = v8::Integer::New(Count);
+        // execute callback
+        JsStore->Js->Execute(CallbackFun, RecArg, IdxArg);
+        // move to the next one
+        Count++;
+    } while (Iter->Next());
+    // we are done
+    TJsObjUtil<TJsRec>::MakeWeak(RecArg);    
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsStore::map(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+    TWPt<TStore> Store = JsStore->Store;
+	QmAssertR(TJsStoreUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	v8::Handle<v8::Function> CallbackFun = TJsStoreUtil::GetArgFun(Args, 0);
+    // if empty do nothing
+    if (Store->Empty()) { return Args.Holder(); }
+	// get iterator and move to the first record
+    PStoreIter Iter = Store->ForwardIter(); 
+    QmAssert(Iter->Next()); int Count = 0;
+    // prepare placeholder
+    v8::Persistent<v8::Object> RecArg = TJsRec::New(
+        JsStore->Js, Store->GetRec(Iter->GetRecId()), 1, false);
+    TJsRec* JsRec = TJsRec::GetJsRec(RecArg);
+    // prepare array for storing results
+    const int Recs = (int)Store->GetRecs();
+    v8::Handle<v8::Array> ResultV = v8::Array::New(Recs);
+    // iterate through all the records
+    do { 
+        JsRec->Rec = Store->GetRec(Iter->GetRecId());
+        v8::Handle<v8::Value> IdxArg = v8::Integer::New(Count);
+        // execute callback
+        v8::Handle<v8::Value> Result = JsStore->Js->ExecuteV8(CallbackFun, RecArg, IdxArg);
+        // store in the new array
+        QmAssert(Count < Recs);
+        ResultV->Set(Count, Result);
+        // move to the next one
+        Count++;
+    } while (Iter->Next());
+    // make sure numbers match)
+    QmAssert(Recs == Count);
+    // we are done
+    TJsObjUtil<TJsRec>::MakeWeak(RecArg);
+	return ResultV;
+}
+
 v8::Handle<v8::Value> TJsStore::add(const v8::Arguments& Args) {
 	//TODO check if !Base->IsRdOnly() and GenericBase != NULL
 	v8::HandleScope HandleScope;
@@ -2684,6 +2771,9 @@ v8::Handle<v8::ObjectTemplate> TJsStoreIter::GetTemplate() {
 	return Template;
 }
 
+TJsStoreIter::TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, const PStoreIter& _Iter): 
+    Js(_Js), Store(_Store), Iter(_Iter),  JsRec(NULL) { }
+
 v8::Handle<v8::Value> TJsStoreIter::store(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Info);
@@ -2693,14 +2783,24 @@ v8::Handle<v8::Value> TJsStoreIter::store(v8::Local<v8::String> Properties, cons
 v8::Handle<v8::Value> TJsStoreIter::rec(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 	v8::HandleScope HandleScope;
 	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Info);
-    const uint64 RecId = JsStoreIter->Iter->GetRecId();
-	return HandleScope.Close(TJsRec::New(JsStoreIter->Js, JsStoreIter->Store->GetRec(RecId)));
+    return JsStoreIter->RecObj;
 }
 
 v8::Handle<v8::Value> TJsStoreIter::next(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Args);    
-	return HandleScope.Close(v8::Boolean::New(JsStoreIter->Iter->Next()));
+	TJsStoreIter* JsStoreIter = TJsStoreIterUtil::GetSelf(Args);
+    const bool NextP = JsStoreIter->Iter->Next();
+    if (JsStoreIter->JsRec == NULL && NextP) {
+        // first time, create placeholder, mark it NOT WEAK
+        const uint64 RecId = JsStoreIter->Iter->GetRecId();
+        JsStoreIter->RecObj = TJsRec::New(JsStoreIter->Js, JsStoreIter->Store->GetRec(RecId), 1, false);
+        JsStoreIter->JsRec = TJsRec::GetJsRec(JsStoreIter->RecObj);
+    } else if (NextP) {
+        // not first time, just update the placeholder
+        const uint64 RecId = JsStoreIter->Iter->GetRecId();
+        JsStoreIter->JsRec->Rec = JsStoreIter->Store->GetRec(RecId);
+    }    
+	return HandleScope.Close(v8::Boolean::New(NextP));
 }
 
 ///////////////////////////////
@@ -3124,17 +3224,25 @@ v8::Handle<v8::Value> TJsRecSet::each(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet = JsRecSet->RecSet;
-	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "each: Argument 0 is not a function!");
 	v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
 	// iterate through the recset
-	const int Recs = RecSet->GetRecs();
-	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
-		TRec Rec = RecSet->GetRec(RecIdN);
-		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdN));
-		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
-		// execute callback
-		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
-	}
+    const int Recs = RecSet->GetRecs();
+    if (Recs > 0) {
+        // prepare record placeholder
+        v8::Persistent<v8::Object> RecArg = TJsRec::New(JsRecSet->Js, 
+            RecSet->GetRec(0), RecSet->GetRecFq(0), false);
+        TJsRec* JsRec = TJsRec::GetJsRec(RecArg);
+        // go over the record set
+        for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+            JsRec->Rec = RecSet->GetRec(RecIdN);
+            JsRec->Fq = RecSet->GetRecFq(RecIdN);
+            v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
+            // execute callback
+            JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
+        }
+        TJsObjUtil<TJsRec>::MakeWeak(RecArg);
+    }
 	return Args.Holder();
 }
 
@@ -3147,16 +3255,23 @@ v8::Handle<v8::Value> TJsRecSet::map(const v8::Arguments& Args) {
     // create a new array for storing the results
 	const int Recs = RecSet->GetRecs();
     v8::Handle<v8::Array> ResultV = v8::Array::New(Recs);
-	// iterate through the recset
-	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
-		TRec Rec = RecSet->GetRec(RecIdN);
-		v8::Handle<v8::Value> RecArg = TJsRec::New(JsRecSet->Js, Rec, RecSet->GetRecFq(RecIdN));
-		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
-		// execute callback
-		v8::Handle<v8::Value> Result = JsRecSet->Js->ExecuteV8(CallbackFun, RecArg, IdxArg);
-        // store in the new array
-        ResultV->Set(RecIdN, Result);
-	}
+    if (Recs > 0) {
+        // prepare record placeholder
+        v8::Persistent<v8::Object> RecArg = TJsRec::New(JsRecSet->Js, 
+            RecSet->GetRec(0), RecSet->GetRecFq(0), false);
+        TJsRec* JsRec = TJsRec::GetJsRec(RecArg);    
+        // iterate through the recset
+        for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+            JsRec->Rec = RecSet->GetRec(RecIdN);
+            JsRec->Fq = RecSet->GetRecFq(RecIdN);
+            v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
+            // execute callback
+            v8::Handle<v8::Value> Result = JsRecSet->Js->ExecuteV8(CallbackFun, RecArg, IdxArg);
+            // store in the new array
+            ResultV->Set(RecIdN, Result);
+        }
+        TJsObjUtil<TJsRec>::MakeWeak(RecArg);
+    }
 	return ResultV;
 }
 
@@ -3235,6 +3350,7 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 		JsLongRegisterProperty(TmpTemp, "$name", name);
 		JsLongRegisterProperty(TmpTemp, "$fq", fq);
 		JsLongRegisterProperty(TmpTemp, "$store", store);
+		JsLongRegisterFunction(TmpTemp, "$clone", clone);
 		JsRegisterFunction(TmpTemp, toJSON);
 		JsRegisterFunction(TmpTemp, addJoin);
 		JsRegisterFunction(TmpTemp, delJoin);
@@ -3260,19 +3376,23 @@ v8::Handle<v8::ObjectTemplate> TJsRec::GetTemplate(const TWPt<TBase>& Base, cons
 	return TemplateV[(int)StoreId];
 }
 
+TJsRec* TJsRec::GetJsRec(const v8::Handle<v8::Value>& Val) {
+       // check it's of the right type
+    QmAssertR(Val->IsObject(), "Argument expected to be Object");
+    // get the wrapped 
+    v8::Handle<v8::Object> Rec = v8::Handle<v8::Object>::Cast(Val);
+    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Rec->GetInternalField(0));
+    // cast it to record set
+    return static_cast<TJsRec*>(WrappedObject->Value());
+}
+
 TRec TJsRec::GetArgRec(const v8::Arguments& Args, const int& ArgN) { 
     v8::HandleScope HandleScope;
     // check we have the argument at all
     QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
-    // check it's of the right type
-    QmAssertR(Val->IsObject(), TStr::Fmt("Argument %d expected to be Object", ArgN));
-    // get the wrapped 
-    v8::Handle<v8::Object> Rec = v8::Handle<v8::Object>::Cast(Val);
-    v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Rec->GetInternalField(0));
-    // cast it to record set
-    TJsRec* JsRec = static_cast<TJsRec*>(WrappedObject->Value());
-    return JsRec->Rec;
+    // get the value
+    return GetJsRec(Val)->Rec;
 }
 
 v8::Handle<v8::Value> TJsRec::id(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
@@ -3435,6 +3555,12 @@ v8::Handle<v8::Value> TJsRec::sjoin(v8::Local<v8::String> Properties, const v8::
 	} else {
 		return HandleScope.Close(v8::Null());
 	}
+}
+
+v8::Handle<v8::Value> TJsRec::clone(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    TJsRec* JsRec = TJsRecUtil::GetSelf(Args);
+    return TJsRec::New(JsRec->Js, JsRec->Rec, JsRec->Fq);
 }
 
 v8::Handle<v8::Value> TJsRec::addJoin(const v8::Arguments& Args) {
@@ -7282,7 +7408,7 @@ v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
+	//int ArgsLen = Args.Length();
 	QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNEGraph"), "snap.dagImportance: Args[0] expected a dmgraph!");
 	TJsGraph<TNEGraph>* JsGraph = TJsObjUtil<TJsGraph<TNEGraph>>::GetArgObj(Args, 0);
 	PNEGraph Graph = JsGraph->Graph();
@@ -7311,8 +7437,8 @@ v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
 
 v8::Handle<v8::Value> TJsSnap::perfTest(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-	int ArgsLen = Args.Length();
+	//TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	//int ArgsLen = Args.Length();
 	QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNEGraph"), "snap.dagImportance: Args[0] expected a dmgraph!");
 	TJsGraph<TNEGraph>* JsGraph = TJsObjUtil<TJsGraph<TNEGraph>>::GetArgObj(Args, 0);
 	PNEGraph Graph = JsGraph->Graph();
