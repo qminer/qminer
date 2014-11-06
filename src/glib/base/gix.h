@@ -89,8 +89,8 @@ public:
 /////////////////////////////////////////////////
 // General-Inverted-Index Item-Set
 //
-// Supports splitting of data into child vectors
-// 
+// Supports splitting of data into child vectors.
+// Assumes child vectors are individually and globaly merged
 
 template <class TKey, class TItem>
 class TGixItemSet {
@@ -109,16 +109,20 @@ private:
 		TBlobPt Pt;
 		TBool MergedP;
 
+		/// default constructor
 		TGixItemSetChildInfo()
 			: Len(0), MergedP(true) {}
 
+		/// constructor with values
 		TGixItemSetChildInfo(const TItem& _MinVal, const TItem& _MaxVal,
 			const TInt& _Len, const TBlobPt& _Pt, const TBool& _MergedP)
 			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), MergedP(_MergedP) { }
 
+		/// constructor for serialization
 		TGixItemSetChildInfo(TSIn& SIn) :
 			MinVal(SIn), MaxVal(SIn), Len(SIn), Pt(SIn), MergedP(SIn) {}
 
+		/// deserialize from stream
 		void Load(TSIn& SIn) {
 			MinVal.Load(SIn);
 			MaxVal.Load(SIn);
@@ -126,6 +130,7 @@ private:
 			Pt.Load(SIn);
 			MergedP.Load(SIn);
 		}
+		/// serialize to stream
 		void Save(TSOut& SOut) const {
 			MinVal.Save(SOut);
 			MaxVal.Save(SOut);
@@ -201,6 +206,7 @@ public:
     void Save(TSOut& SOut);
 
     // functions used by TCache
+	// TODO child-vector size is not included!!!
     int GetMemUsed() const {
         return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() 
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed()
@@ -297,7 +303,6 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 	ItemSetKey.Save(SOut);
 	ItemV.Save(SOut);
 	Children.Save(SOut);
-	//ChildrenLen.Save(SOut);
 }
 
 
@@ -312,55 +317,52 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) { 
     const int OldSize = GetMemUsed();
 	if (IsFull()) {
-		bool AddNewChild = false; // flag if new child Itemset should be added
-		TItem LastItem;    // last item in the itemset, will be used for calculating MergedP
-		if (Children.Len() == 0) {
-			AddNewChild = true;
-			LastItem = ItemV.Last();
-		} else {
-			LoadChildVector(Children.Len() - 1);
-			TVec<TItem>& Last = ChildrenData.Last();
-			LastItem = (Last.Last());
+		// work-buffer is full, send data into child vector
+
+		bool store = true;
+		if (!MergedP) {
+			// first perform local-merge
+			int old_len = ItemV.Len();
+			Merger->Merge(ItemV);
+			int new_len = ItemV.Len();
 			
-			// TODO perform Level1 merge?
-			
-			if (Last.Len() == ItemV.Len()) {
-				AddNewChild = true;
+			// TODO verify
+			// check if global MergedP is now achieved
+			if (Children.Len() > 0) {
+				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
+					MergedP = true; // work-buffer contents was "greater than" data in child vectors
+				} else {
+					Def(); // perform global merge
+				}
 			} else {
-				AddNewChild = false;
-				Last.Add(NewItem);
-				Children.Last().Len = Last.Len();
+				MergedP = true; // no children, local merge was also global merge
+
 			}
+			store = ((double)new_len / (double)old_len > 0.9); // check if itemset is still large
 		}
-		if (AddNewChild){
-			TVec<TItem> new_child;
-			new_child.Add(NewItem);
-			ChildrenData.Add(new_child);
-			
-			TGixItemSetChildInfo child_info(NewItem, NewItem, 1, Gix->EnlistChildVector(new_child), true);
-			//child_info.Len = 1;
-			//child_info.Pt = Gix->EnlistChildVector(new_child);
+		
+		if (store) {
+			// push work-buffer into children array
+			TGixItemSetChildInfo child_info(ItemV[0], ItemV.Last(), ItemV.Len(), Gix->EnlistChildVector(ItemV), MergedP);
 			Children.Add(child_info);
+			ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it was just saved to disk
+			ItemV.Clr();
 		}
-		if (MergedP) {
-			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(LastItem, NewItem));
-		}
-	} else {		
-		if (MergedP) {
-			// if itemset is merged and the newly added item is bigger than the last one
-			// the itemset remains merged
-			MergedP = (ItemV.Len() == 0 ? true : Merger->IsLt(ItemV.Last(), NewItem));
-		}
-		ItemV.Add(NewItem);
 	}
-	RecalcTotalCnt(); // child vectors might have been merged
-	
-	//printf("adding %i, total=%i, ", NewItem, TotalCnt);
-	//if (MergedP) {
-	//	printf("merged\n");
-	//} else {
-	//	printf("NOT merged\n");
-	//}
+
+	if (MergedP) {
+		// if itemset is merged and the newly added item is bigger than the last one
+		// the itemset remains merged
+		if (ItemV.Len() == 0 && Children.Len() == 0) {
+			MergedP = true;
+		} else if (ItemV.Len() == 0 && Children.Len() != 0) {
+			MergedP = Merger->IsLt(Children.Last().MaxVal, NewItem);
+		} else {
+			MergedP = Merger->IsLt(ItemV.Last(), NewItem);
+		}
+	}
+	ItemV.Add(NewItem);
+	TotalCnt++;
 
 	// notify cache that this item grew
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
