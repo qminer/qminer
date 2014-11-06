@@ -4,6 +4,9 @@
 #include <base.h>
 #include <mine.h>
 
+#include <iostream>
+#include <windows.h>
+
 ////////////////////////////////////////////////////////////////////////
 // typedefs
 
@@ -15,8 +18,24 @@ typedef  TGixStorageLayer < TIntUInt64Pr, TUInt64 > TMyStorageLayer;
 typedef  TGixItemSet < TIntUInt64Pr, TUInt64 > TMyItemSet;
 typedef  TPt < TMyItemSet > PMyItemSet;
 
+///////////////////////////////////////////////////////////////////////
+// for nice outputs
+
+HANDLE  hConsole;
+
+void WarnNotifyI(TStr& const s) {
+	SetConsoleTextAttribute(hConsole, 11);
+	WarnNotify(s);
+	SetConsoleTextAttribute(hConsole, 15);
+}
+void WarnNotifyW(TStr& const s) {
+	SetConsoleTextAttribute(hConsole, 14);
+	WarnNotify(s);
+	SetConsoleTextAttribute(hConsole, 15);
+}
+
 #define TAssert(Cond, MsgCStr) \
-  ((Cond) ? static_cast<void>(0) : WarnNotify( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
+  ((Cond) ? static_cast<void>(0) : WarnNotifyW( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -34,7 +53,7 @@ public:
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
 		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
-		
+
 		auto itemset = gix.GetItemSet(x);
 		TAssert(itemset->GetKey() == x, "Invalid itemset key");
 		TAssert(!itemset->IsFull(), "Itemset should be full");
@@ -60,11 +79,11 @@ public:
 		TAssert(itemset->TotalCnt == 220, "Invalid itemset TotalCnt");
 		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		TAssert(itemset->ChildrenLen[0] == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenLen[1] == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->Children[1].Len == 20, "Itemset content - invalid second child length");
 		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
 		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
-		
+
 		gix.ItemSetCache.FlushAndClr();
 		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
 	}
@@ -87,8 +106,8 @@ public:
 		TAssert(itemset->TotalCnt == 220, "Invalid itemset TotalCnt");
 		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		TAssert(itemset->ChildrenLen[0] == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenLen[1] == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->Children[1].Len == 20, "Itemset content - invalid second child length");
 		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
 		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
 
@@ -97,8 +116,8 @@ public:
 		TAssert(itemset->MergedP, "Itemset should be merged");
 		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		TAssert(itemset->ChildrenLen[0] == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenLen[1] == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->Children[1].Len == 20, "Itemset content - invalid second child length");
 		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
 		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
 
@@ -111,7 +130,7 @@ public:
 		for (int i = 0; i < 220; i++) {
 			gix.AddItem(x, i % 50);
 		}
-		
+
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
 		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
@@ -122,8 +141,8 @@ public:
 		TAssert(!itemset->MergedP, "Itemset should remain merged");
 		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		TAssert(itemset->ChildrenLen[0] == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenLen[1] == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->Children[1].Len == 20, "Itemset content - invalid second child length");
 		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
 		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
 
@@ -153,8 +172,8 @@ public:
 		TAssert(!itemset->MergedP, "Itemset should remain merged");
 		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		TAssert(itemset->ChildrenLen[0] == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenLen[1] == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
+		TAssert(itemset->Children[1].Len == 20, "Itemset content - invalid second child length");
 		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
 		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
 
@@ -164,13 +183,13 @@ public:
 		TAssert(itemset->MergedP, "Itemset should be merged");
 		TAssert(itemset->Children.Len() == 1, "Itemset should have 1 child");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		TAssert(itemset->ChildrenLen[0] == 20, "Itemset content - invalid first child length");
+		TAssert(itemset->Children[0].Len == 20, "Itemset content - invalid first child length");
 		TAssert(itemset->ChildrenData[0].Len() == 20, "Itemset content - invalid first child length");
 
 	}
 
 	void Test_Merge_22000_Into_50() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000000);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 22000; i++) {
@@ -187,7 +206,7 @@ public:
 		TAssert(itemset->TotalCnt == 22000, "Invalid itemset TotalCnt");
 		TAssert(itemset->Children.Len() == 219, "Itemset should have 219 children");
 		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
-		
+
 		itemset->Def();
 
 		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
@@ -236,7 +255,7 @@ public:
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
 			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, cache_size);
-			TRnd rnd(1);			
+			TRnd rnd(1);
 			for (int j = 0; j < total; j++) {
 				// every doc containes the same 5 words
 				for (int i = 1; i <= 5; i++) {
@@ -246,7 +265,7 @@ public:
 				TVec<int> vals;
 				for (int i = 0; i < 50; i++) {
 					int w = rnd.GetUniDevInt(10, 10000);
-					
+
 					// prevent the same word for the same document
 					while (vals.IsIn(w)) {
 						w = rnd.GetUniDevInt(10, 10000);
@@ -268,19 +287,22 @@ public:
 
 			gix.Flush();
 
+			//gix.AddItem(TIntUInt64Pr(1, 1), total + 1);
+			//gix.Flush();
+
 			keys = gix.GetKeys();
 			itemset = gix.GetItemSet(TIntUInt64Pr(1, 1));
 			TAssert(itemset->IsFull(), "Itemset should be full");
 			TAssert(itemset->MergedP, "Itemset should remain merged");
-			TAssert(itemset->TotalCnt == total, "Invalid itemset TotalCnt");
-			
+			TAssert(itemset->TotalCnt == total, TStr::Fmt("Invalid itemset TotalCnt, expected=%d, actual=%d", total, itemset->TotalCnt));
+
 			OverwriteCounts(counts, gix); // itemsets could be merged
 		}
 		{
 			// reload data - in read-only mode
 			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faRdOnly, 50 * 1024 * 1024);
 
-			TAssert(gix.GetKeys() == keys, "Invalid key count");			
+			TAssert(gix.GetKeys() == keys, "Invalid key count");
 
 			CheckCounts(counts, gix);
 		}
@@ -294,25 +316,30 @@ public:
 		Test_Merge_220_Into_50();
 		Test_Merge_220_Into_120();
 		Test_Merge_22000_Into_50();
-		
+
 		// this will split only big itemsets
+		WarnNotifyI(TStr("Split onyl big itemsets\n"));
 		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 1000;
 		Test_Feed();
 
-		// this will split probably all itemsets
-		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
-		Test_Feed();
+		//// this will split probably all itemsets
+		//WarnNotifyI(TStr("Split all itemsets\n"));
+		//TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
+		//Test_Feed();
 
-		// this will split probably all itemsets
-		// it will also limit cache to less than 10% of the itemsets
-		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
-		Test_Feed(1 * 1024 * 1024);
+		//// this will split probably all itemsets
+		//// it will also limit cache to less than 10% of the itemsets
+		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		//TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
+		//Test_Feed(1 * 1024 * 1024);
 	}
 };
 
 ////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
+
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	XTest test;
 	test.PerformTests();
