@@ -2273,7 +2273,7 @@ v8::Handle<v8::Value> TJsStore::Field(TWPt<TScript> _Js, const TWPt<TStore>& Sto
 v8::Handle<v8::Value> TJsStore::Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const uint64& RecId, const int FieldId, v8::HandleScope& HandleScope) {
 	// check if null
 	if (!Store->IsRecId(RecId)) { return HandleScope.Close(v8::Null()); }
-	if (!Store->IsFieldNull(RecId, FieldId)) { return HandleScope.Close(v8::Null()); }
+	if (Store->IsFieldNull(RecId, FieldId)) { return HandleScope.Close(v8::Null()); }
 	// not null, get value
 	const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
@@ -4674,6 +4674,8 @@ v8::Handle<v8::ObjectTemplate> TJsFltVV::GetTemplate() {
 		JsRegisterFunction(TmpTemp, diag);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, saveascii);
+		JsRegisterFunction(TmpTemp, loadascii);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4898,7 +4900,12 @@ v8::HandleScope HandleScope;
 				Result.Gen(JsMat->Mat.GetCols());
 				TFltVV Mat2 = JsMat->Mat;
 				TFltV Vec2 = JsVec->Vec;
-				TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
+				try {
+					TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
+				}
+				catch (const PExcept& Except) {
+					throw TQmExcept::New(Except->GetMsgStr());					
+				}
 				return TJsFltV::New(JsMat->Js, Result);
 			}
 		}
@@ -5105,6 +5112,24 @@ v8::Handle<v8::Value> TJsFltVV::load(const v8::Arguments& Args) {
 	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
 	// load from stream
 	JsMat->Mat.Load(*SIn);
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsFltVV::saveascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream	
+	TLAMisc::SaveMatlabTFltVV(JsMat->Mat, *SOut);
+	return HandleScope.Close(Args[0]);
+}
+
+v8::Handle<v8::Value> TJsFltVV::loadascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsFltVV* JsMat = TJsFltVVUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	TLAMisc::LoadMatlabTFltVV(JsMat->Mat, *SIn);	
 	return Args.Holder();
 }
 
@@ -6203,6 +6228,7 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
+		JsRegisterFunction(TmpTemp, add);
 		JsRegisterFunction(TmpTemp, extractStrings);	
 		JsRegisterFunction(TmpTemp, getFtr);
 		JsRegisterFunction(TmpTemp, ftrSpVec);						
@@ -6293,6 +6319,35 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     // update with new records
     JsFtrSpace->FtrSpace->Update(RecSet);
+	// return
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::add(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+	
+	TStr Type = TJsFtrSpaceUtil::GetArgStr(Args, 0, "type", "");
+	if (Type == "jsfunc") {
+		// All properties should be JSON objects, except for "fun", which is a function
+		// example (Twitter text length feature extractor):
+		// { type : 'jsfunc', source: { store: 'Tweets' }, fun : function(rec) {return rec.Text.length;}}
+		// extract function!
+		v8::Persistent<v8::Function> Fun = TJsFtrSpaceUtil::GetArgFunPer(Args, 0, "fun");
+		PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Args[0]->ToObject());
+		PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsFtrSpace->Js, ParamVal, Fun);
+		JsFtrSpace->FtrSpace->AddFtrExt(FtrExt);
+	}
+	else {
+		// JSON object expected
+		// example (bag of words extractor)
+		// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+		PJsonVal ParamVal = TJsFtrSpaceUtil::GetArgJson(Args, 0);
+		if (ParamVal->IsObj()) {
+			JsFtrSpace->FtrSpace->AddFtrExt(TFtrExt::New(JsFtrSpace->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+		}
+	}	
 	// return
 	return Args.Holder();
 }
@@ -7650,6 +7705,11 @@ v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
+	// Assumption: node ids and edge ids start with 0, and there are no gaps in the ids
+	// Assumption: node times (node data) are descending
+	// Assumption: JsNodeData->Vec[nid] corresponds to Graph->GetNI(nid);
+	// Assumption: JsEdgeData->Vec[eid] corresponds to Graph->GetEI(eid);
+	
 	v8::HandleScope HandleScope;
 	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	//int ArgsLen = Args.Length();
@@ -7661,23 +7721,22 @@ v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
 	QmAssertR(TJsSnapUtil::IsArgClass(Args, 2, "TFltV"), "snap.dagImportance: Args[2] expected a vector!");
 	TJsFltV* JsNodeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
 	TJsFltV* JsEdgeData = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 2);
-	
-	// node store, edge store, nodeWeightFieldName, edgeWeightFieldName
-
+		
 
 	TFlt Decay = TJsSnapUtil::GetArgFlt(Args, 3, 1e+100);
-
+	TInt StartNode = TJsSnapUtil::GetArgInt32(Args, 4, 0);
+	
 	TFltV Importance(Graph->GetNodes());
-	for (auto NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+	for (auto NI = Graph->GetNI(StartNode); NI < Graph->EndNI(); NI++) {
 		int InDeg = NI.GetInDeg();
 		int TrgId = NI.GetId();
 		double TrgT = JsNodeData->Vec[TrgId];
 		double D = 1.0 + Importance[NI.GetId()] / InDeg;
-		for (int NbrN = 0; NbrN < InDeg; NbrN++) {
+		for (int NbrN = 0; NbrN < InDeg; NbrN++) {			
 			int EId = NI.GetInEId(NbrN);
 			int SrcId = NI.GetInNId(NbrN);
 			double Weight = JsEdgeData->Vec[EId] * exp((JsNodeData->Vec[SrcId] - TrgT) / Decay);
-			Importance[SrcId] += Weight * D;
+			Importance[SrcId] += Weight * D;			
 		}
 	}
 	return HandleScope.Close(TJsFltV::New(JsSnap->Js, Importance));

@@ -2759,16 +2759,20 @@ void TLAMisc::SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName)
 
 void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, const TStr& FName) {
     PSOut out = TFOut::New(FName);
-    const int RowN = m.GetRows();
-    const int ColN = m.GetCols();
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        for (int ColId = 0; ColId < ColN; ColId++) {
-            out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18));
-            out->PutCh(' ');
-        }
-        out->PutCh('\n');
-    }
-    out->Flush();
+	TLAMisc::SaveMatlabTFltVV(m, *out);	
+}
+
+void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut) {	
+	const int RowN = m.GetRows();
+	const int ColN = m.GetCols();
+	for (int RowId = 0; RowId < RowN; RowId++) {
+		for (int ColId = 0; ColId < ColN; ColId++) {
+			SOut.PutStr(TFlt::GetStr(m(RowId, ColId), 20, 18));
+			SOut.PutCh(' ');
+		}
+		SOut.PutCh('\n');
+	}
+	SOut.Flush();
 }
 
 void TLAMisc::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,
@@ -2786,47 +2790,58 @@ void TLAMisc::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,
 
 void TLAMisc::LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV) {
     PSIn SIn = TFIn::New(FNm);
-    TILx Lx(SIn, TFSet()|iloRetEoln|iloSigNum|iloExcept);
-    int Row = 0, Col = 0; ColV.Clr();
-    Lx.GetSym(syFlt, syEof, syEoln);
-    //printf("%d x %d\r", Row, ColV.Len());
-    while (Lx.Sym != syEof) {
-        if (Lx.Sym == syFlt) {
-            if (ColV.Len() > Col) {
-                IAssert(ColV[Col].Len() == Row);
-                ColV[Col].Add(Lx.Flt);
-            } else {
-                IAssert(Row == 0);
-                ColV.Add(TFltV::GetV(Lx.Flt));
-            }
-            Col++;
-        } else if (Lx.Sym == syEoln) {
-            IAssert(Col == ColV.Len());
-            Col = 0; Row++;
-            if (Row%100 == 0) {
-                //printf("%d x %d\r", Row, ColV.Len());
-            }
-        } else {
-            Fail;
-        }
-        Lx.GetSym(syFlt, syEof, syEoln);
-    }
-    //printf("\n");
-    IAssert(Col == ColV.Len() || Col == 0);
+	TLAMisc::LoadMatlabTFltVV(ColV, *SIn);
 }
 
 void TLAMisc::LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV) {
-    TVec<TFltV> ColV; LoadMatlabTFltVV(FNm, ColV);
-    if (ColV.Empty()) { MatrixVV.Clr(); return; }
-    const int Rows = ColV[0].Len(), Cols = ColV.Len();
-    MatrixVV.Gen(Rows, Cols);
-    for (int RowN = 0; RowN < Rows; RowN++) {
-        for (int ColN = 0; ColN < Cols; ColN++) {
-            MatrixVV(RowN, ColN) = ColV[ColN][RowN];
-        }
-    }
+	PSIn SIn = TFIn::New(FNm);
+	TLAMisc::LoadMatlabTFltVV(MatrixVV, *SIn);
 }
 
+void TLAMisc::LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn) {
+	TVec<TFltV> ColV; LoadMatlabTFltVV(ColV, SIn);
+	if (ColV.Empty()) { MatrixVV.Clr(); return; }
+	const int Rows = ColV[0].Len(), Cols = ColV.Len();
+	MatrixVV.Gen(Rows, Cols);
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			MatrixVV(RowN, ColN) = ColV[ColN][RowN];
+		}
+	}
+}
+
+void TLAMisc::LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn) {
+	TILx Lx(&SIn, TFSet() | iloRetEoln | iloSigNum | iloExcept);
+	int Row = 0, Col = 0; ColV.Clr();
+	Lx.GetSym(syFlt, syEof, syEoln);
+	//printf("%d x %d\r", Row, ColV.Len());
+	while (Lx.Sym != syEof) {
+		if (Lx.Sym == syFlt) {
+			if (ColV.Len() > Col) {
+				IAssert(ColV[Col].Len() == Row);
+				ColV[Col].Add(Lx.Flt);
+			}
+			else {
+				IAssert(Row == 0);
+				ColV.Add(TFltV::GetV(Lx.Flt));
+			}
+			Col++;
+		}
+		else if (Lx.Sym == syEoln) {
+			IAssert(Col == ColV.Len());
+			Col = 0; Row++;
+			if (Row % 100 == 0) {
+				//printf("%d x %d\r", Row, ColV.Len());
+			}
+		}
+		else {
+			Fail;
+		}
+		Lx.GetSym(syFlt, syEof, syEoln);
+	}
+	//printf("\n");
+	IAssert(Col == ColV.Len() || Col == 0);
+}
 
 void TLAMisc::PrintTFltV(const TFltV& Vec, const TStr& VecNm) {
     printf("%s = [", VecNm.CStr());
@@ -2836,7 +2851,6 @@ void TLAMisc::PrintTFltV(const TFltV& Vec, const TStr& VecNm) {
     }
     printf("]\n");
 }
-
 
 void TLAMisc::PrintTFltVVToStr(const TFltVV& A, TStr& Out) {
 	Out = "";

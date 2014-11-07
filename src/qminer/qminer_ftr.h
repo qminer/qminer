@@ -158,6 +158,8 @@ public:
     static TPt<TFtrSpace> Load(const TWPt<TBase>& Base, TSIn& SIn);
     /// Save feature space to stream
 	void Save(TSOut& SOut) const;       
+	/// Add a feature extractore
+	void AddFtrExt(const PFtrExt& FtrExt);
 
 	/// Generate a name of feature space. Composed by concatenating feature extractor names.
 	TStr GetNm() const;

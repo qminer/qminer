@@ -752,12 +752,18 @@ public:
     static void SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName);
 	// Dumps matrix to file so Matlab can read it
     static void SaveMatlabTFltVV(const TFltVV& m, const TStr& FName);
+	// Dumps matrix to output stream so Matlab can read it
+	static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
 	// Dumps main minor rowN x colN to file so Matlab can read it
 	static void SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m, int rowN, int colN, const TStr& FName);
     // loads matlab full matrix
     static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
     // loads matlab full matrix
     static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn);
     // prints vector to screen
     static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
 	// print matrix to string

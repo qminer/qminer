@@ -190,6 +190,13 @@ void TFtrSpace::Save(TSOut& SOut) const {
     }
 }
 
+void TFtrSpace::AddFtrExt(const PFtrExt& FtrExt) {
+	const int FtrExtDim = FtrExt->GetDim();
+	DimV.Add(FtrExtDim);
+	Dim += FtrExtDim;
+	FtrExtV.Add(FtrExt);
+}
+
 TStr TFtrSpace::GetNm() const {
 	TChA NmChA = "Space:";
 	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
