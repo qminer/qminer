@@ -74,15 +74,15 @@ public:
 		//TAssert(gix.GetCacheSize() == 1, "Cache should contain 1 item");
 		auto itemset = gix.GetItemSet(x);
 		TAssert(itemset->GetKey() == x, "Invalid itemset key");
-		TAssert(itemset->IsFull(), "Itemset should be full");
+		TAssert(!itemset->IsFull(), "Work-buffer should be full");
 		TAssert(itemset->MergedP, "Itemset should remain merged");
 		TAssert(itemset->TotalCnt == 220, "Invalid itemset TotalCnt");
 		TAssert(itemset->Children.Len() == 2, "Itemset should have 2 children");
-		TAssert(itemset->ItemV.Len() == 100, "Itemset content - invalid ItemV length");
+		TAssert(itemset->ItemV.Len() == 20, "Itemset content - invalid ItemV length");
 		TAssert(itemset->Children[0].Len == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->Children[1].Len == 20, "Itemset content - invalid second child length");
-		TAssert(itemset->ChildrenData[0].Len() == 100, "Itemset content - invalid first child length");
-		TAssert(itemset->ChildrenData[1].Len() == 20, "Itemset content - invalid second child length");
+		TAssert(itemset->Children[1].Len == 100, "Itemset content - invalid second child length");
+		TAssert(itemset->ChildrenData[0].Len() == 0, "Itemset child content - invalid first child length");
+		TAssert(itemset->ChildrenData[1].Len() == 0, "Itemset child content - invalid second child length");
 
 		gix.ItemSetCache.FlushAndClr();
 		//TAssert(gix.GetCacheSize() == 0, "Cache should contain 0 items");
@@ -317,10 +317,10 @@ public:
 		Test_Merge_220_Into_120();
 		Test_Merge_22000_Into_50();
 
-		// this will split only big itemsets
-		WarnNotifyI(TStr("Split onyl big itemsets\n"));
-		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 1000;
-		Test_Feed();
+		//// this will split only big itemsets
+		//WarnNotifyI(TStr("Split onyl big itemsets\n"));
+		//TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 1000;
+		//Test_Feed();
 
 		//// this will split probably all itemsets
 		//WarnNotifyI(TStr("Split all itemsets\n"));

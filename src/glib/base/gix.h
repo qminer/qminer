@@ -318,7 +318,6 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
     const int OldSize = GetMemUsed();
 	if (IsFull()) {
 		// work-buffer is full, send data into child vector
-
 		bool store = true;
 		if (!MergedP) {
 			// first perform local-merge
@@ -345,7 +344,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			// push work-buffer into children array
 			TGixItemSetChildInfo child_info(ItemV[0], ItemV.Last(), ItemV.Len(), Gix->EnlistChildVector(ItemV), MergedP);
 			Children.Add(child_info);
-			ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it was just saved to disk
+			ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it has just been saved to disk...
 			ItemV.Clr();
 		}
 	}
@@ -377,21 +376,20 @@ void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
-	// access data of Src itemset directly, no child records
-	AddItemV(Src->ItemV);
 	Src->LoadChildVectors();
-	// ok, now process children if present
+	// first, now process children if present
 	if (Src->Children.Len() > 0) {
 		// merge each of them
 		for (int i = 0; i < ChildrenData.Len(); i++) {
 			AddItemV(Src->ChildrenData[i]);
 		}
 	}
+	// now get work buffer
+	AddItemV(Src->ItemV);
 }
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
-	_ItemV = ItemV;
 	if (Children.Len() > 0) {
 		// collect data from child itemsets
 		LoadChildVectors();
@@ -399,6 +397,7 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 			_ItemV.AddV(ChildrenData[i]);
 		}
 	}
+	_ItemV.AddV(ItemV);
 }
 
 template <class TKey, class TItem>
@@ -419,17 +418,15 @@ void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Clr() { 
-    const int OldSize = GetMemUsed();
-	ItemV.Clr();
-	if (Children.Len()>0) {
-		LoadChildVectors();
+	const int OldSize = GetMemUsed();
+	if (Children.Len() > 0) {
 		for (int i = 0; i < Children.Len(); i++) {
-			Gix->DeleteChildVector(Children[i]);
+			Gix->DeleteChildVector(Children[i].Pt);
 		}
-		ChildrenLen.Clr();
 		ChildrenData.Clr();
 		Children.Clr();
 	}
+	ItemV.Clr();
 	MergedP = true;
 	TotalCnt = 0;
     Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
@@ -438,284 +435,62 @@ void TGixItemSet<TKey, TItem>::Clr() {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Def() { 
 	// call merger to pack items, if not merged yet 
-	if (!MergedP) { 
-		if (Children.Len() > 0) {
-			// complex merge - need to also use child itemsets			
+	if (!MergedP) {  
+		Merger->Merge(ItemV); // first local merge
+		if (Children.Len() > 0 && ItemV.Len() > 0) {		
+			// detect the first child that needs to be merged
+			TItem ItemVMin = ItemV[0];
+			int first_child_to_merge = Children.Len() - 1;
+			while (first_child_to_merge >= 0 && Merger->IsLt(ItemVMin, Children[first_child_to_merge].MaxVal)) {
+				first_child_to_merge--;
+			}
+			first_child_to_merge++;
+			// collect all data from subsequent child vectors and work-buffer
 			TVec<TItem> MergedItems;  
-			GetItemV(MergedItems); // collect all items - this also retrieves data from child vectors
-			Merger->Merge(MergedItems); // perform merge
-			int split_len = ItemV.Len(); // use first vector's size as measure for splitting
-
+			for (int i = first_child_to_merge; i < Children.Len(); i++) {
+				LoadChildVector(i);
+				MergedItems.AddV(ChildrenData[i]);
+			}
+			MergedItems.AddV(ItemV);
+			Merger->Merge(MergedItems);
+			
 			// now save them back
 			int curr_index = 0;
-			int child_index = -1;
+			int remaining = MergedItems.Len() - curr_index;
+			int child_index = first_child_to_merge;
 			while (curr_index < MergedItems.Len()) {
-				int len = TMath::Mn<int>(split_len, MergedItems.Len() - curr_index);
-				if (child_index < 0) {
-					ItemV.Clr();
-					MergedItems.GetSubValV(curr_index, curr_index + len - 1, ItemV);
-				} else {
+				if (child_index < Children.Len() && remaining > Children[child_index].Len) {
 					ChildrenData[child_index].Clr();
-					MergedItems.GetSubValV(curr_index, curr_index + len - 1, ChildrenData[child_index]);
-					Children[child_index].Len = ChildrenData[child_index].Len();					
+					MergedItems.GetSubValV(curr_index, curr_index + Children[child_index].Len - 1, ChildrenData[child_index]);
+					curr_index += Children[child_index].Len;
+					remaining = MergedItems.Len() - curr_index;
+					child_index++;
+				} else {
+					// the remaining data fits into work-buffer
+					ItemV.Clr();
+					MergedItems.GetSubValV(curr_index, curr_index + remaining - 1, ItemV);
+					break;
 				}
-				curr_index += len;
-				child_index++;
 			}
 
 			// clear children that became empty - kill'em all
 			int first_empty_child = child_index;
-			while (child_index < Children.Len()) {
+			while (child_index < Children.Len()) { // remove them from BLOB storage
 				Gix->DeleteChildVector(Children[child_index++].Pt); // remove from storage
 			}
-			if (first_empty_child < Children.Len()) {
-				// remove deleted itemsets
+			if (first_empty_child < Children.Len()) { // now remove their stuff from memory
 				Children.Del(first_empty_child, Children.Len() - 1);
 				ChildrenData.Del(first_empty_child, ChildrenData.Len() - 1);
 			}
+		} else if (Children.Len() > 0 && ItemV.Len() == 0) {
+			// nothing, children should already be merged and work-buffer is empty
 		} else {
-			// no child records, just merge this 
-			Merger->Merge(ItemV);
+			// nothing, there are no children and work-buffer has already been merged
 		}
 		RecalcTotalCnt();
 		MergedP = true;
 	}
 }
-/*
-/////////////////////////////////////////////////
-// General-Inverted-Index Storage Layer
-
-template <class TKey, class TItem>
-class TGixStorageLayer {
-private:
-	TCRef CRef;
-	typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
-	typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
-	typedef TGixDefMerger<TKey, TItem> _TGixDefMerger;
-	typedef TPt<TGixKeyStr<TKey> > PGixKeyStr;
-	typedef TPt<TGixStorageLayer<TKey, TItem> > PGixStorageLayer;
-private:
-	/// File access mode - checked during index operations
-	TFAccess Access;
-	/// Name of the BLOB file
-	TStr GixBlobFNm;
-	/// cache for BLOB data, mapping between pointers and data
-	mutable TCache<TBlobPt, PGixItemSet> ItemSetCache;
-	/// BLOB handler
-	PBlobBs ItemSetBlobBs;
-	/// record merger, used for packing data vectors
-	PGixMerger Merger;
-
-	int64 CacheResetThreshold;
-	mutable int64 NewCacheSizeInc;
-	/// flag if cache is full
-	bool CacheFullP;
-
-	// returns pointer to this object (used in cache call-backs)
-	void* GetVoidThis() const { return (void*)this; }
-	/// asserts if we are allowed to change this index
-	void AssertReadOnly() const {
-		EAssertR(((Access == faCreate) || (Access == faUpdate)),
-			"Index opened in Read-Only mode!");
-	}
-
-public:
-	TGixStorageLayer(const TStr& _GixBlobFNm,
-		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		const PGixMerger& _Merger = _TGixDefMerger::New());
-	static PGixStorageLayer New(const TStr& GixBlobFNm,
-		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		const PGixMerger& Merger = _TGixDefMerger::New()) {
-		return new TGixStorageLayer(GixBlobFNm, Access, CacheSize, Merger);
-	}
-
-	~TGixStorageLayer();
-
-	// Gix properties
-	bool IsReadOnly() const { return Access == faRdOnly; }
-	bool IsCacheFullP() const { return CacheFullP; }
-	TStr GetFPath() const { return GixFNm.GetFPath(); }
-	int64 GetMxCacheSize() const { return ItemSetCache.GetMxMemUsed(); }
-
-	/// get item set for given BLOB pointer
-	PGixItemSet GetItemSet(const TBlobPt& Pt) const;
-
-	/// get child vector for given blob pointer
-	void GetChildVector(const TBlobPt& Pt, TVec<TItem>& Dest) const;
-
-	// delete one item
-	void DelItem(const TKey& Key, const TItem& Item);
-	/// clears items
-	void Clr(const TKey& Key);
-
-	/// get amount of memory currently used
-	int64 GetMemUsed() const {
-		return int64(sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) + int64(ItemSetCache.GetMemUsed());
-	}
-	int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
-	int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
-	int64 GetMxMemUsed() const { return ItemSetCache.GetMxMemUsed(); }
-	bool IsCacheFull() const { return CacheFullP; }
-	void RefreshMemUsed();
-	void AddToNewCacheSizeInc(int64 diff) const { NewCacheSizeInc += diff; }
-
-	/// for storing item sets from cache to blob
-	TBlobPt StoreItemSet(const TBlobPt& KeyId);
-	/// for deleting item sets from cache and blob
-	void DeleteItemSet(const TBlobPt& KeyId) const;
-	/// For enlisting new itemsets into blob
-	TBlobPt EnlistItemSet(const PGixItemSet& ItemSet) const;
-
-	/// for storing child vectors to blob
-	TBlobPt StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data);
-	/// for deleting child vectors from cache and blob
-	void DeleteChildVector(const TBlobPt& KeyId) const;
-	/// For enlisting new child vectors into blob
-	TBlobPt EnlistChildVector(const TVec<TItem>& Data) const;
-
-	/// print statistics for index keys
-	//void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
-
-	friend class TPt<TGixStorageLayer>;
-
-#ifdef GIX_DEBUG
-	void PrintCacheKeys() {
-		TBlobPt BlobPt; 
-		PGixItemSet ItemSet;
-		void* KeyDatP = ItemSetCache.FFirstKeyDat();
-		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { 
-			printf("%d\n\r", ItemSet->GetKey().Val1); 
-		}
-		printf("-------------------\n\r");
-	}
-#endif
-};
-
-template <class TKey, class TItem>
-TGixStorageLayer<TKey, TItem>::TGixStorageLayer(const TStr& _GixBlobFNm, const TFAccess& _Access,
-	const int64& CacheSize, const TPt<TGixMerger<TKey, TItem> >& _Merger) : GixBlobFNm(_GixBlobFNm), Access(_Access),
-	ItemSetCache(CacheSize, 1000000, GetVoidThis()), Merger(_Merger) {
-
-	if (Access == faCreate) {
-		// creating a new Gix
-		ItemSetBlobBs = TMBlobBs::New(GixBlobFNm, faCreate);
-	} else {
-		// loading an old Gix and getting it ready for search and update
-		EAssert((Access == faUpdate) || (Access == faRdOnly) || (Access == faRestore));
-		// load ItemSets from GixBlobFNm
-		ItemSetBlobBs = TMBlobBs::New(GixBlobFNm, Access);
-	}
-
-	CacheResetThreshold = int64(0.1 * double(CacheSize));
-	NewCacheSizeInc = 0; 
-	CacheFullP = false;
-}
-
-template <class TKey, class TItem>
-TGixStorageLayer<TKey, TItem>::~TGixStorageLayer() {
-	if ((Access == faCreate) || (Access == faUpdate)) {
-		// flush all the latest changes in cache to the disk
-		ItemSetCache.Flush();
-	}
-}
-
-template <class TKey, class TItem>
-TPt<TGixItemSet<TKey, TItem> > TGixStorageLayer<TKey, TItem>::GetItemSet(const TBlobPt& KeyId) const {
-	if (KeyId.Empty()) { return NULL; }
-	PGixItemSet ItemSet;
-	if (!ItemSetCache.Get(KeyId, ItemSet)) {
-		// have to load it from the hard drive...
-		PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
-		ItemSet = TGixItemSet<TKey, TItem>::Load(*ItemSetSIn, Merger, this);
-	}
-	// bring the itemset to the top of the cache
-	ItemSetCache.Put(KeyId, ItemSet);
-	return ItemSet;
-}
-
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::GetChildVector(const TBlobPt& KeyId, TVec<TItem>& Dest) const {
-	if (KeyId.Empty()) { return; }
-	PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
-	Dest.Load(*ItemSetSIn);
-}
-
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::RefreshMemUsed() {
-	// check if we have to drop anything from the cache
-	if (NewCacheSizeInc > CacheResetThreshold) {
-		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
-		// pack all the item sets
-		TBlobPt BlobPt; 
-		PGixItemSet ItemSet;
-		void* KeyDatP = ItemSetCache.FFirstKeyDat();
-		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { ItemSet->Def(); }
-		// clean-up cache
-		CacheFullP = ItemSetCache.RefreshMemUsed();
-		NewCacheSizeInc = 0;
-		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
-	}
-}
-
-template <class TKey, class TItem>
-TBlobPt TGixStorageLayer<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
-	AssertReadOnly(); // check if we are allowed to write
-	// get the pointer to the item set
-	PGixItemSet ItemSet; 
-	EAssert(ItemSetCache.Get(KeyId, ItemSet));
-	// store the current version to the blob
-	TMOut MOut; 
-	ItemSet->Save(MOut);
-	return ItemSetBlobBs->PutBlob(KeyId, MOut.GetSIn());
-}
-
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::DeleteItemSet(const TBlobPt& KeyId) const {
-	AssertReadOnly(); // check if we are allowed to write
-	ItemSetCache.Del(KeyId, false); // don't trigger callback, we will handle it
-	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
-}
-
-template <class TKey, class TItem>
-TBlobPt TGixStorageLayer<TKey, TItem>::EnlistItemSet(const PGixItemSet& ItemSet) const {
-	AssertReadOnly(); // check if we are allowed to write
-	TMOut MOut;
-	ItemSet->Save(MOut);
-	TBlobPt res = ItemSetBlobBs->PutBlob(MOut.GetSIn());
-	//printf("enlisted new itemset to storage: %d %d \n", res.Addr, res.Seg);
-	return res;
-}
-
-/// for storing vectors to blob
-template <class TKey, class TItem>
-TBlobPt TGixStorageLayer<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) {
-	AssertReadOnly(); // check if we are allowed to write
-	// store the current version to the blob
-	TMOut MOut;
-	Data.Save(MOut);
-	return ItemSetBlobBs->PutBlob(ExistingKeyId, MOut.GetSIn());
-}
-
-/// for deleting child vector from blob
-template <class TKey, class TItem>
-void TGixStorageLayer<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
-	AssertReadOnly(); // check if we are allowed to write
-	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
-}
-
-/// For enlisting new child vectors into blob
-template <class TKey, class TItem>
-TBlobPt TGixStorageLayer<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
-	AssertReadOnly(); // check if we are allowed to write
-	TMOut MOut;
-	Data.Save(MOut);
-	TBlobPt res = ItemSetBlobBs->PutBlob(MOut.GetSIn());
-	//printf("enlisted new child vector to storage: %d %d \n", res.Addr, res.Seg);
-	return res;
-}
-*/
-
 
 /////////////////////////////////////////////////
 // General-Inverted-Index
@@ -1043,7 +818,6 @@ void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const
 /// for storing vectors to blob
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const {
-	//printf("Storing child vector - len=%d, addr=%d\n", Data.Len(), ExistingKeyId.Addr);
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
@@ -1054,7 +828,6 @@ TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const 
 /// for deleting child vector from blob
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
-	//printf("Deleting child vector - addr=%d\n", KeyId.Addr);
 	AssertReadOnly(); // check if we are allowed to write
 	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
 }
@@ -1062,12 +835,10 @@ void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
 /// For enlisting new child vectors into blob
 template <class TKey, class TItem>
 TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
-	//printf("Enlisting child vector - len=%d\n", Data.Len());
 	AssertReadOnly(); // check if we are allowed to write
 	TMOut MOut;
 	Data.Save(MOut);
 	TBlobPt res = ItemSetBlobBs->PutBlob(MOut.GetSIn());
-	//printf("enlisted new child vector to storage: %d %d \n", res.Addr, res.Seg);
 	return res;
 }
 
@@ -1087,7 +858,7 @@ void TGix<TKey, TItem>::RefreshMemUsed() {
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
 		void* KeyDatP = ItemSetCache.FFirstKeyDat();
-		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { ItemSet->Def(); }
+		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { ItemSet->Def(); } // TODO this should be some sort of light-weigth Def()
 		// clean-up cache
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
