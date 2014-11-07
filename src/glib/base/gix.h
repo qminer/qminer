@@ -234,6 +234,8 @@ public:
     void Clr();
 	/// Pack/merge this itemset
     void Def();
+	/// Pack/merge this itemset - just workng buffer
+	void DefLocal();
 
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() { 
@@ -250,12 +252,13 @@ public:
 
 	void Print() {
 		printf("TotalCnt=%d\n", TotalCnt);
+		printf("len=%d\n", ItemV.Len());
 		for (int i = 0; i < ItemV.Len(); i++) {
 			printf("   %d=%d\n", i, ItemV[i]);
 		}
 		for (int j = 0; j < Children.Len(); j++) {
 			printf("   *** child %d\n", j);
-			printf("   *** len %d\n", ChildrenLen[j]);
+			printf("   *** len %d\n", Children[j].Len);
 			for (int i = 0; i < ChildrenData[j].Len(); i++) {
 				printf("      %d=%d\n", i, ChildrenData[j][i]);
 			}
@@ -289,7 +292,7 @@ const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) { 
 
-	// make sure all is merged before saving - TODO is this needed?
+	// make sure all is merged before saving
 	Def();
 
 	// save child vectors separately
@@ -325,17 +328,16 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			Merger->Merge(ItemV);
 			int new_len = ItemV.Len();
 			
-			// TODO verify
 			// check if global MergedP is now achieved
 			if (Children.Len() > 0) {
 				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
 					MergedP = true; // work-buffer contents was "greater than" data in child vectors
 				} else {
 					Def(); // perform global merge
+					new_len = ItemV.Len();
 				}
 			} else {
 				MergedP = true; // no children, local merge was also global merge
-
 			}
 			store = ((double)new_len / (double)old_len > 0.9); // check if itemset is still large
 		}
@@ -347,6 +349,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 			ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it has just been saved to disk...
 			ItemV.Clr();
 		}
+		RecalcTotalCnt(); // work buffer might have been merged
 	}
 
 	if (MergedP) {
@@ -390,6 +393,8 @@ void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
+	// TODO think about adding memcpy-enabled methods to TVec
+
 	if (Children.Len() > 0) {
 		// collect data from child itemsets
 		LoadChildVectors();
@@ -402,6 +407,8 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
+	// TODO rewrite - delete should add special "delete command" to data, not perform true merge
+
 	Def();
 	const int OldSize = GetMemUsed();
 	ItemV.DelIfIn(Item);
@@ -436,6 +443,9 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Def() { 
 	// call merger to pack items, if not merged yet 
 	if (!MergedP) {  
+
+		// TODO first execute deletes
+
 		Merger->Merge(ItemV); // first local merge
 		if (Children.Len() > 0 && ItemV.Len() > 0) {		
 			// detect the first child that needs to be merged
@@ -489,6 +499,23 @@ void TGixItemSet<TKey, TItem>::Def() {
 		}
 		RecalcTotalCnt();
 		MergedP = true;
+	}
+}
+
+template <class TKey, class TItem>
+void TGixItemSet<TKey, TItem>::DefLocal() {
+	// call merger to pack items in work buffer, if not merged yet 
+	if (!MergedP) {
+		Merger->Merge(ItemV); // perform local merge
+		if (Children.Len() > 0 && ItemV.Len() > 0) {
+			if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
+				// local merge achieved global merge
+				MergedP = true;
+			}
+		} else {
+			MergedP = true;
+		}
+		RecalcTotalCnt();
 	}
 }
 
@@ -858,7 +885,9 @@ void TGix<TKey, TItem>::RefreshMemUsed() {
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
 		void* KeyDatP = ItemSetCache.FFirstKeyDat();
-		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { ItemSet->Def(); } // TODO this should be some sort of light-weigth Def()
+		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) { 
+			ItemSet->DefLocal(); 
+		}
 		// clean-up cache
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
