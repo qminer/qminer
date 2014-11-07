@@ -1,0 +1,37 @@
+(*) Prerequisites:
+Python v2.7.3 is recommended, tested on python 2.6, doesn't work on python > 3
+Visual studio 2013
+
+(*) Getting the sources: 
+
+download and uncompress: http://nodejs.org/dist/v0.11.14/node-v0.11.14.tar.gz
+create a folder in addons/test/la and copy sources (binding.gyp, la_nodejs.cpp, la_nodejs.h, run.js, test.js, test-chai.js)
+clone qminer into qminer folder inside la: https://github.com/qminer/qminer.git
+Folder structure: NODE_ROOT, NODE_ROOT/test/addons/la, NODE_ROOT/test/addons/la/qminer
+NODE_ROOT should contain vcbuild.bat, node.gyp,...
+
+(*) Download npm (http://nodejs.org/dist/npm/) and ucompress to NODE_ROOT
+> npm update
+
+(*) Build node:
+
+set path to python 2.6 (incompatible with python > 2.7): this overrides any default path
+> set PATH=C:\python_26;%PATH%
+> vcbuild clean nosign
+> vcbuild release x64 nosign
+
+(*) Build LA addon
+
+> npm install node-gyp
+> cd NODE_ROOT/test/addons/la
+
+If path was set, python should be not be necessary
+(node-gyp configure build --python D:/work/code/cpp/qminer/src/third_party/v8/third_party/python_26/python.exe --nodedir="C:/Program Files/nodejs/source")
+> node-gyp configure build --nodedir=NODE_ROOT
+
+> npm install -g mocha
+> npm install -g chai
+
+In la folder:
+> NODE_ROOT/node run.js
+> mocha
