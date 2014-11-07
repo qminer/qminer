@@ -2633,17 +2633,17 @@ int THierchCtmc::GetMaxDepth() const {
 	return MaxDepth;
 }
 
-TFullClust::TClust* THierchCtmc::GetClust() const {
+TCtmc::PClust THierchCtmc::GetClust() const {
 	const TStr ClustType = ClustParams->GetObjStr("type");
 
 	if (ClustType == "dpmeans") {
 		const double Lambda = ClustParams->GetObjNum("lambda");
 		const int MinClusts = ClustParams->GetObjInt("minclusts");
 		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
-		return new TFullClust::TDpMeans(Lambda, MinClusts, MaxClusts, Rnd);
+		return new TCtmc::TDpMeans(Lambda, MinClusts, MaxClusts, Rnd);
 	} else if (ClustType == "kmeans") {
 		const int K = ClustParams->GetObjInt("k");
-		return new TFullClust::TKMeans(K, Rnd);
+		return new TCtmc::TFullKMeans(K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
 	}
@@ -2674,18 +2674,6 @@ void THierchCtmc::InitRoot() {
 
 	RootNode = new TNode(this, AllRecSet, GenNodeId(), 1);
 }
-
-//void THierchCtmc::DestroyNode(TNode* Node) {
-//	if (Node == NULL) { return; }
-//
-//	const int NChild = Node->ChildV.Len();
-//
-//	for (int i = 0; i < NChild; i++) {
-//		DestroyNode(Node->ChildV[i]);
-//	}
-//
-//	delete Node;
-//}
 
 
 //////////////////////////////////////////////

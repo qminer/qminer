@@ -1040,7 +1040,7 @@ private:
 		// and sum is the sum of distances to the centroid
 		TVec<TUInt64FltPr> StateStatV;
 
-		TFullClust::TClust* Clust;
+		TCtmc::PClust Clust;
 
 		TUInt64V RecIdV;
 
@@ -1053,7 +1053,7 @@ private:
 		TNode();
 		TNode(THierchCtmc* _Model, const PRecSet& RecSet, const int& NodeId, const int& Depth);
 
-		~TNode() { delete Clust; }
+		~TNode() {}
 
 		PJsonVal SaveJson() const;
 
@@ -1164,7 +1164,7 @@ protected:
 	int GetMaxDepth() const;
 
 	// clustering
-	TFullClust::TClust* GetClust() const;
+	TCtmc::PClust GetClust() const;
 
 	// records
 	PRecSet GetRecSet(const TUInt64V& RecIdV) const;
@@ -1177,6 +1177,26 @@ private:
 
 public:
 	static TStr GetType() { return "process_state"; }
+};
+
+class THierchCtmcAggr: public TStreamAggr {
+private:
+	TWPt<TStore> InStore;
+	TIntV FldIdV;
+	TInt TimeFldId;
+
+	PFtrSpace FtrSpace;
+
+	TCtmc::PHierarchCtmc HCtmc;
+
+public:
+
+
+public:
+	void OnAddRec(const TRec& Rec);
+
+public:
+	static TStr GetType() { return "hctmc"; }
 };
 
 //////////////////////////////////////////////

@@ -2459,7 +2459,10 @@ public:
     //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-	JsDeclareFunction(getLanguageOptions);     
+	JsDeclareFunction(getLanguageOptions);
+
+	//#- `model = analytics.newCtmc(opts)` creates a new hierarchical continous time Markov chain model
+	JsDeclareFunction(newCtmc);
 
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
@@ -2648,6 +2651,37 @@ public:
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	JsDeclareFunction(toJSON);
+};
+
+class TJsHierCtmc {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	TCtmc::PHierarchCtmc McModel;
+	PFtrSpace FtrSpace;
+
+	// QMiner stuff
+//	TWPt<TStore> InStore;
+//	TIntV FldIdV;
+//	TInt TimeFldId;
+
+//	TWPt<TBase> Base;
+
+private:
+	typedef TJsObjUtil<TJsHierCtmc> TJsHierCtmcUtil;
+	TJsHierCtmc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace) {
+		return TJsHierCtmcUtil::New(new TJsHierCtmc(Js, ParamVal, FtrSpace)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(init);
+
+private:
+	void Init(const PRecSet& RecSet);
+	uint64 GetRecTm(const TRec& Rec) const;
 };
 
 ///////////////////////////////

@@ -5,10 +5,24 @@
  *      Author: lstopar
  */
 
-#ifndef DENSECLUST_H_
-#define DENSECLUST_H_
+#ifndef CTMC_H_
+#define CTMC_H_
 
-namespace TFullClust {
+namespace TCtmc {
+
+//////////////////////////////////////////////////////
+// Distance measures - eucledian distance
+class TEuclDist {
+public:
+	// returns a matrix D of distances between elements of X to elements of Y
+	// X and Y are assumed to have column vectors
+	// D_ij is the distance between x_i and y_j
+	static TFullMatrix GetDist(const TFullMatrix& X, const TFullMatrix& Y);
+	// returns a matrix D of squared distances between elements of X to elements of Y
+	// X and Y are assumed to have column vectors
+	// D_ij is the distance between x_i and y_j
+	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
+};
 
 class TClust;
 typedef TPt<TClust> PClust;
@@ -33,7 +47,8 @@ public:
 	// Applies the algorithm. Instances should be in the columns of X.
 	virtual TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000) = 0;
 
-	const TInt GetClusts() const { return CentroidMat.GetCols(); }
+	const int GetClusts() const { return CentroidMat.GetCols(); }
+	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
 
 	// assign instances to centroids
 	int Assign(const TVector& Inst) const;
@@ -68,12 +83,12 @@ protected:
 	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
 };
 
-class TKMeans: public TClust {
+class TFullKMeans: public TClust {
 private:
 	TInt K;
 
 public:
-	TKMeans(const int& K, const TRnd& Rnd=TRnd(0));
+	TFullKMeans(const int& K, const TRnd& Rnd=TRnd(0));
 
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
@@ -94,37 +109,60 @@ public:
 	TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000);
 };
 
+class TAggClust;
+typedef TPt<TAggClust> PAggClust;
+class TAggClust {
+private:
+	TCRef CRef;
+public:
+	friend class TPt<TAggClust>;
+public:
+	void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV);
+};
+
 /////////////////////////////////////////////////////////////////
 // Continous time Markov Chain
-class TCtmc {
+class TCtMChain;
+typedef TPt<TCtMChain> PCtMChain;
+class TCtMChain {
 private:
-	TFullMatrix CentroidMat;
+	TCRef CRef;
+public:
+	friend class TPt<TCtMChain>;
+public:
+	const static uint64 TU_SECOND;
+	const static uint64 TU_MINUTE;
+	const static uint64 TU_HOUR;
+	const static uint64 TU_DAY;
+
+private:
+//	TFullMatrix StateCentMat;
 	TVec<TUInt64FltPrV> QMatStats;
 
-	// holds pairs <n,sum> where n is the number of points in state i
-	// and sum is the sum of distances to the centroid
-	TVec<TUInt64FltPr> StateStatV;
+//	// holds pairs <n,sum> where n is the number of points in state i
+//	// and sum is the sum of distances to the centroid
+//	TVec<TUInt64FltPr> StateStatV;
 
-	PClust Clust;
+//	PClust Clust;
 
-	TUInt64V RecIdV;
-
-	uint64 TimeUnit;
+	const uint64 TimeUnit;
+	int NStates;
 
 	int CurrStateIdx;
 	uint64 PrevJumpTm;
 
 public:
-	TCtmc(const PClust& Clust);
+	TCtMChain(const uint64 TimeUnit);
 
-	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV);
+//	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
 
-	void OnAddRec(const TVector& Rec, const uint64& RecTm);
+	void OnAddRec(const int& StateIdx, const uint64& RecTm);
 
 	// returns the total number of stats in the system
-	int GetStates() const { return CentroidMat.GetCols(); }
+	int GetStates() const { return NStates; }
 	// returns the dimension of the points
-	int GetDim() const { return CentroidMat.GetRows(); }
+//	int GetDim() const { return StateCentMat.GetRows(); }
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
@@ -141,18 +179,50 @@ public:
 
 private:
 	// init functions
-	void InitStateStats(const TFullMatrix& X);
-	void InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignV);
+//	void InitStateStats(const TFullMatrix& X);
+//	void InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignV);
 
 	// update functions
-	void UpdateIntensities(const TVector& Rec, const uint64 RecTm, const int& RecState);
-	void UpdateStatistics(const TVector& Rec, const int& RecState);
+	void UpdateIntensities(const uint64 RecTm, const int& RecState);
+//	void UpdateStatistics(const TVector& Rec, const int& RecState);
 
 	// clustering stuff
-	double GetMeanPtCentroidDist(const int& StateIdx) const;
-	uint64 GetStateSize(const int& StateIdx) const;
+//	double GetMeanPtCentroidDist(const int& StateIdx) const;
+//	uint64 GetStateSize(const int& StateIdx) const;
+};
+
+class THierarchCtmc;
+typedef TPt<THierarchCtmc> PHierarchCtmc;
+class THierarchCtmc {
+private:
+	TCRef CRef;
+public:
+	friend class TPt<THierarchCtmc>;
+private:
+	PClust Clust;
+    PCtMChain MChain;
+    PAggClust AggClust;
+
+    // a vector which describes the hierarchy. each state has its own index
+    // and the value at index i is the index of i-ths parent
+    TIntV HierarchV;
+    TIntV StateHeightV;
+
+public:
+    THierarchCtmc(const PClust& _Clust, const PCtMChain& _MChain, const PAggClust& _AggClust);
+
+    // initializes the model
+	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+
+	// saves this models as JSON
+	PJsonVal SaveJson() const;
+
+private:
+	// returns the index of the oldest ancestor of the state
+	// this method is only used when initially building the hierarchy
+	int GetOldestAncestIdx(const int& StateIdx) const;
 };
 
 }
 
-#endif /* DENSECLUST_H_ */
+#endif /* CTMC_H_ */

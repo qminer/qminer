@@ -2249,7 +2249,7 @@ public:
 
   void CopyFrom(const TVVec<TVal, TSizeTy>& VVec);
   void AddXDim();
-  void AddYDim();
+  void AddYDim(const TSizeTy& NDims=1);
   void DelX(const TSizeTy& X);
   void DelY(const TSizeTy& Y);
 
@@ -2334,8 +2334,8 @@ void TVVec<TVal, TSizeTy>::AddXDim(){
 }
 
 template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::AddYDim(){
-  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+1);
+void TVVec<TVal, TSizeTy>::AddYDim(const TSizeTy& NDims){
+  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+NDims);
   NewVVec.CopyFrom(*this);
   *this=NewVVec;
 }

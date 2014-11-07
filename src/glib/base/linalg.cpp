@@ -3002,26 +3002,41 @@ void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
 
 ///////////////////////////////////////////////////////////////////////
 // TVector
- TVector::TVector(const bool& _IsColVector):
+TVector::TVector(const bool& _IsColVector):
 		IsColVector(_IsColVector),
 		Vec() {}
 
- TVector::TVector(const int& Dim, const bool _IsColVector):
+TVector::TVector(const int& Dim, const bool _IsColVector):
 		IsColVector(_IsColVector),
 		Vec(Dim) {}
 
- TVector::TVector(const TFltV& Vect, const bool _IsColVector):
+TVector::TVector(const TFltV& Vect, const bool _IsColVector):
 		IsColVector(_IsColVector),
 		Vec(Vect) {}
 
- TVector::TVector(const TIntV& Vect, const bool _IsColVector):
-		 IsColVector(_IsColVector),
-		 Vec(Vect.Len()) {
+TVector::TVector(const TIntV& Vect, const bool _IsColVector):
+		IsColVector(_IsColVector),
+		Vec(Vect.Len()) {
 
-	 for (int i = 0; i < Vec.Len(); i++) {
-		 Vec[i] = Vect[i];
-	 }
- }
+	for (int i = 0; i < Vec.Len(); i++) {
+		Vec[i] = Vect[i];
+	}
+}
+
+TVector::TVector(const TFullMatrix& Mat):
+		IsColVector(Mat.GetRows() > 1),
+		Vec(TMath::Mx(Mat.GetRows(), Mat.GetCols())) {
+	EAssertR(Mat.GetRows() == 1 || Mat.GetCols() == 1, "Cannot create a vector from matrix that is not a vector!");
+	if (Mat.GetRows() == 1) {
+		for (int ColIdx = 0; ColIdx < Mat.GetCols(); ColIdx++) {
+			Vec[ColIdx] = Mat(0, ColIdx);
+		}
+	} else {
+		for (int RowIdx = 0; RowIdx < Mat.GetRows(); RowIdx++) {
+			Vec[RowIdx] = Mat(RowIdx, 0);
+		}
+	}
+}
 
 TVector::TVector(const TVector& Vector) {
 	IsColVector = Vector.IsColVector;
@@ -3133,6 +3148,10 @@ TVector TVector::operator *(const double& Lambda) const {
 TVector& TVector::operator *=(const double& Lambda) {
 	TLinAlg::MultiplyScalar(Lambda, Vec, Vec);
 	return *this;
+}
+
+TVector TVector::operator /(const double& Lambda) const {
+	return operator *(1/Lambda);
 }
 
 TVector& TVector::operator /=(const double& Lambda) {
@@ -3258,6 +3277,20 @@ TFullMatrix::TFullMatrix(const TFltVV& _Mat):
 		TMatrix(),
 		Mat(_Mat) {}
 
+TFullMatrix::TFullMatrix(const TVector& Vec):
+		TMatrix(),
+		Mat(Vec.IsColVec() ? Vec.Len() : 1, Vec.IsRowVec() ? Vec.Len() : 1) {
+	if (Vec.IsColVec()) {
+		for (int i = 0; i < Vec.Len(); i++) {
+			Mat(i,0) = Vec[i];
+		}
+	} else {
+		for (int i = 0; i < Vec.Len(); i++) {
+			Mat(0,i) = Vec[i];
+		}
+	}
+}
+
 TFullMatrix& TFullMatrix::operator =(TFullMatrix _Mat) {
 	std::swap(Mat, _Mat.Mat);
 	return *this;
@@ -3350,6 +3383,23 @@ TFullMatrix& TFullMatrix::AddCol(const TVector& Col) {
 	Mat.AddYDim();
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
 		Mat(RowIdx, LastColIdx) = Col[RowIdx];
+	}
+
+	return *this;
+}
+
+TFullMatrix& TFullMatrix::AddCols(const TFullMatrix& ColMat) {
+	EAssertR(GetRows() == ColMat.GetRows(), "Invalid dimensions when concatenating matrices!");
+
+	const int Rows = GetRows();
+	const int Cols = GetCols();
+	const int NNewCols = ColMat.GetCols();
+
+	Mat.AddYDim(NNewCols);
+	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
+		for (int ColIdx = 0; ColIdx < NNewCols; ColIdx++) {
+			Mat(RowIdx, Cols + ColIdx) = ColMat(RowIdx, ColIdx);
+		}
 	}
 
 	return *this;
@@ -3460,6 +3510,28 @@ TVector TFullMatrix::GetCol(const int& ColIdx) const {
 	}
 
 	return Res;
+}
+
+void TFullMatrix::SetRow(const int& RowIdx, const TVector& RowV) {
+	EAssertR(RowV.IsRowVec(), "When setting a row the input vector should be a row vector!");
+	EAssertR(RowV.Len() == GetCols(), "Dimension mismatch!");
+
+	const int Cols = GetCols();
+
+	for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
+		Mat(RowIdx, ColIdx) = RowV[ColIdx];
+	}
+}
+
+void TFullMatrix::SetCol(const int& ColIdx, const TVector& ColV) {
+	EAssertR(ColV.IsColVec(), "When setting a column the input vector should be a column vector!");
+	EAssertR(ColV.Len() == GetRows(), "Dimension mismatch!");
+
+	const int Rows = GetRows();
+
+	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
+		Mat(RowIdx, ColIdx) = ColV[RowIdx];
+	}
 }
 
 double TFullMatrix::ColNorm(const int& ColIdx) const {

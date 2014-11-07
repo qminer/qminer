@@ -912,6 +912,7 @@ public:
     TVector(const int& Dim, const bool IsColVector=true);
     TVector(const TFltV& Vect, const bool IsColVector=true);
     TVector(const TIntV& Vect, const bool IsColVector=true);
+    TVector(const TFullMatrix& Mat);
 
     // copy constructor
     TVector(const TVector& Vector);
@@ -949,9 +950,12 @@ public:
     TFullMatrix operator *(const TVector& y) const;
     TVector operator *(const TFullMatrix& Mat) const;
     TVector operator *(const double& k) const;
-
     // multiplies all elements by Lambda
 	TVector& operator *=(const double& Lambda);
+
+	// division
+	// divides all elements by Lambda
+	TVector operator /(const double& Lambda) const;
 	// divides all elements by Lambda
 	TVector& operator /=(const double& Lambda);
 
@@ -1048,7 +1052,8 @@ public:
     TFullMatrix(const int& Rows, const int& Cols);
     // matrix from TFltVV
     TFullMatrix(const TFltVV& Mat);
-
+    // matrix from vector
+    TFullMatrix(const TVector& Vec);
     // copy constructor
 	TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) {} // { printf("Matrix copied\n"); }
 	// move constructor
@@ -1095,6 +1100,7 @@ public:
     bool Empty() const { return Mat.Empty(); }
     
     TFullMatrix& AddCol(const TVector& Col);
+    TFullMatrix& AddCols(const TFullMatrix& Cols);
 
     // operators
     TFlt& operator ()(const int& i, const int& j) { return At(i,j); }
@@ -1136,6 +1142,9 @@ public:
     // returns the ColIdx-th column
     TVector GetCol(const int& ColIdx) const;
     
+    void SetRow(const int& RowIdx, const TVector& RowV);
+    void SetCol(const int& ColIdx, const TVector& ColV);
+
     // applies an element-wise operation on this matrix and returns the matrix itself
     template<typename TFunc> TFullMatrix& Map(const TFunc& Func);
     // applies sqrt on all elements of this matrix

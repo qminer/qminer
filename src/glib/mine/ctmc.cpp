@@ -1,6 +1,21 @@
-#include "denseclust.h"
+#include "ctmc.h"
 
-using namespace TFullClust;
+using namespace TCtmc;
+
+//////////////////////////////////////////////////////
+// Distance measures
+TFullMatrix TEuclDist::GetDist(const TFullMatrix& X, const TFullMatrix& Y) {
+	return GetDist(X, Y).Sqrt();
+}
+
+TFullMatrix TEuclDist::GetDist2(const TFullMatrix& X, const TFullMatrix& Y) {
+	const TVector OnesX = TVector::Ones(X.GetCols(), true);
+	const TVector OnesY = TVector::Ones(Y.GetCols(), false);
+	const TVector NormX2 = X.ColNorm2V().Transpose();
+	const TVector NormY2 = Y.ColNorm2V();
+
+	return (NormX2 * OnesY) - (X*2).MulT(Y) + (OnesX * NormY2);
+}
 
 //////////////////////////////////////////////////
 // Abstract clustering
@@ -123,12 +138,11 @@ void TClust::InitStatistics(const TFullMatrix& X, const TVector& AssignV) {
 }
 
 //////////////////////////////////////////////////
-// K-Means
-TFullClust::TKMeans::TKMeans(const int& _K, const TRnd& Rnd):
+TFullKMeans::TFullKMeans(const int& _K, const TRnd& Rnd):
 		TClust(Rnd),
 		K(_K) {}
 
-TFullMatrix TFullClust::TKMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter) {
+TFullMatrix TFullKMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter) {
 	EAssertR(K <= X.GetRows(), "Matrix should have more rows then k!");
 
 	printf("Executing KMeans ...\n");
@@ -187,11 +201,13 @@ TDpMeans::TDpMeans(const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _Max
 }
 
 TFullMatrix TDpMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter) {
-	EAssertR(MinClusts <= X.GetRows(), "Matrix should have more rows then the min number of clusters!");
+	EAssertR(MinClusts <= X.GetCols(), "Matrix should have more rows then the min number of clusters!");
 
 	printf("Executing DPMeans ...\n");
 
 	const int NInst = X.GetCols();
+
+	const double LambdaSq = Lambda*Lambda;
 
 	// select initial centroids
 	TVector AssignIdxV;
@@ -209,32 +225,30 @@ TFullMatrix TDpMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& Max
 
 	int i = 0;
 	while (i++ < MaxIter) {
-		if (i % 10000 == 0) { printf("%d\n", i); }
+		if (i % 10 == 0) { printf("%d\n", i); }
 
 		// add new centroids and compute the distance matrix
-		TFullMatrix D;
-
-		double MaxCentrDist = TFlt::Mx;
-		do {
-			D = GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK);
-
-			// if the max number of clusters is reached => break
-			if (GetClusts() >= MaxClusts) { break; }
-
-			TVector CentrDistV = D.GetColMinV();
-			TVector MinIdxV = D.GetColMinIdxV();
-
-			TIntFltPr MaxCentrDistPr = CentrDistV.GetMax();
-			MaxCentrDist = MaxCentrDistPr.Val2;
-
-			if (sqrt(MaxCentrDist) > Lambda) {
-				CentroidMat.AddCol(X.GetCol(MaxCentrDistPr.Val1));
-				OnesK = TVector::Ones(GetClusts(), true);
-			}
-		} while (sqrt(MaxCentrDist) > Lambda);
+		TFullMatrix D = GetDistMat2(X, NormX2, CentroidMat.ColNorm2V().Transpose(), OnesN, OnesK);
 
 		// assign
 		*AssignIdxVPtr = D.GetColMinIdxV();
+
+		// check if we need to increase the number of clusters
+		if (GetClusts() < MaxClusts) {
+			TVector CentrDistV = D.GetColMinV();
+			TVector MinIdxV = D.GetColMinIdxV();
+
+			int NewCentrIdx = CentrDistV.GetMaxIdx();
+			double MaxDist = CentrDistV[NewCentrIdx];
+
+			if (MaxDist > LambdaSq) {
+				CentroidMat.AddCol(X.GetCol(NewCentrIdx));
+				OnesK = TVector::Ones(GetClusts(), true);
+				(*AssignIdxVPtr)[NewCentrIdx] = GetClusts()-1;
+
+				printf("Max distance to centroid: %.3f, number of clusters: %d...\n", sqrt(MaxDist), GetClusts());
+			}
+		}
 
 		// check if converged
 		if (*AssignIdxVPtr == *OldAssignIdxVPtr) {
@@ -258,47 +272,79 @@ TFullMatrix TDpMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& Max
 }
 
 /////////////////////////////////////////////////////////////////
-// Continous time Markov Chain
-void TCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
-	TIntV AssignV;
-	CentroidMat = Clust->Apply(X, AssignV, 10000);
-	InitStateStats(X);
-	InitIntensities(X, RecTmV, AssignV);
-}
+// Agglomerative clustering
+void TAggClust::MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV) {
+	const int NInst = X.GetCols();
 
-void TCtmc::OnAddRec(const TVector& Rec, const uint64& RecTm) {
-	int RecState = Clust->Assign(Rec);
+	printf("%s\n\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
 
-	// update statistics
-	UpdateStatistics(Rec, RecState);
-	// update intensities
-	UpdateIntensities(Rec, RecTm, RecState);
-	// update current state
-	CurrStateIdx = RecState;
-}
+	TFullMatrix X1 = X;	// copy
 
-void TCtmc::InitStateStats(const TFullMatrix& X) {
-	const int NStates = GetStates();
+	TFullMatrix ClustDistMat = TEuclDist::GetDist2(X,X);
+	TVector ItemCountV = TVector::Ones(NInst);
 
-	printf("Initailizing statistics ...\n");
+	for (int k = 0; k < NInst-1; k++) {
+		// find active <i,j> with minimum distance
+		int MnI = -1;
+		int MnJ = -1;
+		double MnDist = TFlt::PInf;
 
-	StateStatV.Gen(NStates, 0);
-	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
-		double MeanPtCentDist = Clust->GetMeanPtCentDist(StateIdx);
-		uint64 ClustSize = Clust->GetClustSize(StateIdx);
+		// find clusters with min distance
+		for (int i = 0; i < NInst; i++) {
+			if (ItemCountV[i] == 0.0) { continue; }
 
-		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
+			for (int j = i+1; j < NInst; j++) {
+				if (i == j || ItemCountV[j] == 0.0) { continue; }
 
-		printf("State %d, points %ld, mean centroid dist %.3f\n", StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
+				if (ClustDistMat(i,j) < MnDist) {
+					MnDist = ClustDistMat(i,j);
+					MnI = i;
+					MnJ = j;
+				}
+			}
+		}
+
+		printf("%s\n\n", TStrUtil::GetStr(ItemCountV.Vec, ", ", "%.3f").CStr());
+		printf("%s\n\n", TStrUtil::GetStr(ClustDistMat.GetMat(), ", ", "%.3f").CStr());
+
+		// merge
+		MergeV.Add(TIntIntFltTr(MnI, MnJ, sqrt(MnDist < 0 ? 0 : MnDist)));
+
+		// average x_i and x_j and update counts
+		int NewClustSize = ItemCountV[MnI] + ItemCountV[MnJ];
+		X1.SetCol(MnI, (X1.GetCol(MnI)*ItemCountV[MnI] + X1.GetCol(MnJ)*ItemCountV[MnJ]) / (double) NewClustSize);
+		// update counts
+		ItemCountV[MnI] = NewClustSize;
+		ItemCountV[MnJ] = 0;
+
+		// update distances
+		TVector NewDistV = TEuclDist::GetDist2(TFullMatrix(X1.GetCol(MnI)), X1);
+		ClustDistMat.SetRow(MnI, NewDistV);
+		ClustDistMat.SetCol(MnI, NewDistV.Transpose());
 	}
 }
 
-void TCtmc::InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignIdxV) {
-	// compute the intensities using the maximum likelihood estimate
-	// lambda = 1 / t_avg = n / sum(t_i)
+/////////////////////////////////////////////////////////////////
+// Continous time Markov Chain
+const uint64 TCtMChain::TU_SECOND = 1000;
+const uint64 TCtMChain::TU_MINUTE = TU_SECOND*60;
+const uint64 TCtMChain::TU_HOUR = TU_MINUTE*60;
+const uint64 TCtMChain::TU_DAY = TU_HOUR*24;
 
-	const int NRecs = X.GetCols();
-	const int NStates = GetStates();
+TCtMChain::TCtMChain(const uint64 _TimeUnit):
+//		StateCentMat(),
+		QMatStats(),
+//		StateStatV(),
+//		Clust(_Clust),
+		TimeUnit(_TimeUnit),
+		NStates(-1),
+		CurrStateIdx(-1),
+		PrevJumpTm(-1) {}
+
+void TCtMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64V& TmV) {
+	NStates = _NStates;
+
+	const int NRecs = StateAssignV.Len();
 
 	// initialize a matrix holding the number of measurements and the sum
 	QMatStats.Gen(NStates, 0);
@@ -308,11 +354,60 @@ void TCtmc::InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const 
 
 	// update intensities
 	for (int i = 0; i < NRecs; i++) {
-		UpdateIntensities(X.GetCol(i), RecTmV[i], AssignIdxV[i]);
+		UpdateIntensities(TmV[i], StateAssignV[i]);
 	}
 }
 
-void TCtmc::UpdateIntensities(const TVector& Rec, const uint64 RecTm, const int& RecState) {
+//void TCtMChain::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
+////	InitStateStats(X);
+//	InitIntensities(X, RecTmV, AssignV);
+//}
+
+void TCtMChain::OnAddRec(const int& StateIdx, const uint64& RecTm) {
+	// update statistics
+//	UpdateStatistics(Rec, StateIdx);
+	// update intensities
+	UpdateIntensities(RecTm, StateIdx);
+	// update current state
+	CurrStateIdx = StateIdx;
+}
+
+//void TCtMChain::InitStateStats(const TFullMatrix& X) {
+//	const int NStates = GetStates();
+//
+//	printf("Initailizing statistics ...\n");
+//
+//	StateStatV.Gen(NStates, 0);
+//	for (int StateIdx = 0; StateIdx < NStates; StateIdx++) {
+//		double MeanPtCentDist = Clust->GetMeanPtCentDist(StateIdx);
+//		uint64 ClustSize = Clust->GetClustSize(StateIdx);
+//
+//		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
+//
+//		printf("State %d, points %ld, mean centroid dist %.3f\n", StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
+//	}
+//}
+
+//void TCtMChain::InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignIdxV) {
+//	// compute the intensities using the maximum likelihood estimate
+//	// lambda = 1 / t_avg = n / sum(t_i)
+//
+//	const int NRecs = X.GetCols();
+//	const int NStates = GetStates();
+//
+//	// initialize a matrix holding the number of measurements and the sum
+//	QMatStats.Gen(NStates, 0);
+//	for (int i = 0; i < NStates; i++) {
+//		QMatStats.Add(TUInt64FltPrV(NStates, NStates));
+//	}
+//
+//	// update intensities
+//	for (int i = 0; i < NRecs; i++) {
+//		UpdateIntensities(X.GetCol(i), RecTmV[i], AssignIdxV[i]);
+//	}
+//}
+
+void TCtMChain::UpdateIntensities(const uint64 RecTm, const int& RecState) {
 	if (CurrStateIdx != -1 && RecState != CurrStateIdx) {
 		// the state has changed
 		if (PrevJumpTm != TUInt64::Mx) {
@@ -327,18 +422,80 @@ void TCtmc::UpdateIntensities(const TVector& Rec, const uint64 RecTm, const int&
 	}
 }
 
-void TCtmc::UpdateStatistics(const TVector& Rec, const int& RecState) {
-	double CentroidDist = Clust->GetDist(RecState, Rec);
+//void TCtMChain::UpdateStatistics(const TVector& Rec, const int& RecState) {
+//	double CentroidDist = Clust->GetDist(RecState, Rec);
+//
+//	StateStatV[RecState].Val1 += 1;
+//	StateStatV[RecState].Val2 += CentroidDist;
+//}
 
-	StateStatV[RecState].Val1 += 1;
-	StateStatV[RecState].Val2 += CentroidDist;
+//double TCtMChain::GetMeanPtCentroidDist(const int& StateIdx) const {
+//	uint64 StateSize = GetStateSize(StateIdx);
+//	return StateSize == 0 ? 0 : StateStatV[StateIdx].Val2 / GetStateSize(StateIdx);
+//}
+
+//uint64 TCtMChain::GetStateSize(const int& StateIdx) const {
+//	return StateStatV[StateIdx].Val1;
+//}
+
+/////////////////////////////////////////////////////////////////
+// Hierarchical continous time Markov Chain
+THierarchCtmc::THierarchCtmc(const PClust& _Clust, const PCtMChain& _MChain, const PAggClust& _AggClust):
+		Clust(_Clust),
+		MChain(_MChain),
+		AggClust(_AggClust),
+		HierarchV(),
+		StateHeightV() {}
+
+void THierarchCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
+	// partition the input space
+	TIntV AssignV;	Clust->Apply(X, AssignV, 10000);
+	// initialize intensities
+	MChain->Init(Clust->GetClusts(), AssignV, RecTmV);
+
+	// create a hierarchy
+	TIntIntFltTrV MergeV;
+	AggClust->MakeDendro(Clust->GetCentroidMat(), MergeV);
+
+	printf("%s\n", TStrUtil::GetStr(MergeV, ", ").CStr());
+
+	const int NLeafStates = MChain->GetStates();
+	const int NMiddleStates = MergeV.Len();
+	const int NStates = NLeafStates + NMiddleStates;
+
+	HierarchV.Gen(NStates);
+	StateHeightV.Gen(NStates);
+	for (int i = 0; i < HierarchV.Len(); i++) {
+		HierarchV[i] = -1;
+	}
+
+	for (int i = 0; i < MergeV.Len(); i++) {
+		const int LeafState1Idx = MergeV[i].Val1;
+		const int LeafState2Idx = MergeV[i].Val2;
+		const double Height = MergeV[i].Val3;
+
+		// find the states into which state 1 and state 2 were merged
+		const int State1Idx = GetOldestAncestIdx(LeafState1Idx);
+		const int State2Idx = GetOldestAncestIdx(LeafState2Idx);
+		const int MergeStateIdx = NLeafStates + i;
+
+		HierarchV[State1Idx] = MergeStateIdx;
+		HierarchV[State2Idx] = MergeStateIdx;
+		StateHeightV[MergeStateIdx] = Height;
+	}
 }
 
-double TCtmc::GetMeanPtCentroidDist(const int& StateIdx) const {
-	uint64 StateSize = GetStateSize(StateIdx);
-	return StateSize == 0 ? 0 : StateStatV[StateIdx].Val2 / GetStateSize(StateIdx);
+PJsonVal THierarchCtmc::SaveJson() const {
+	// TODO
+	return NULL;
 }
 
-uint64 TCtmc::GetStateSize(const int& StateIdx) const {
-	return StateStatV[StateIdx].Val1;
+int THierarchCtmc::GetOldestAncestIdx(const int& StateIdx) const {
+	int AncestIdx = StateIdx;
+
+	while (HierarchV[AncestIdx] != -1) {
+		AncestIdx = HierarchV[AncestIdx];
+	}
+
+	return AncestIdx;
 }

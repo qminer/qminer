@@ -50,8 +50,8 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
-// clustering
-#include "denseclust.cpp"
+// Markov Chains
+#include "ctmc.cpp"
 
 // Signal-Processing
 #include "signalproc.cpp"
