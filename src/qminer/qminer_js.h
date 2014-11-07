@@ -2775,7 +2775,9 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-    //#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
     //#     features from record `rec` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);

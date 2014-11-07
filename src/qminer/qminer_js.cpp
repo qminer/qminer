@@ -4900,7 +4900,12 @@ v8::HandleScope HandleScope;
 				Result.Gen(JsMat->Mat.GetCols());
 				TFltVV Mat2 = JsMat->Mat;
 				TFltV Vec2 = JsVec->Vec;
-				TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
+				try {
+					TNumericalStuff::SolveLinearSystem(Mat2, Vec2, Result);
+				}
+				catch (const PExcept& Except) {
+					throw TQmExcept::New(Except->GetMsgStr());					
+				}
 				return TJsFltV::New(JsMat->Js, Result);
 			}
 		}
@@ -6223,6 +6228,7 @@ v8::Handle<v8::ObjectTemplate> TJsFtrSpace::GetTemplate() {
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, updateRecord);
 		JsRegisterFunction(TmpTemp, updateRecords);
+		JsRegisterFunction(TmpTemp, add);
 		JsRegisterFunction(TmpTemp, extractStrings);	
 		JsRegisterFunction(TmpTemp, getFtr);
 		JsRegisterFunction(TmpTemp, ftrSpVec);						
@@ -6313,6 +6319,35 @@ v8::Handle<v8::Value> TJsFtrSpace::updateRecords(const v8::Arguments& Args) {
     PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
     // update with new records
     JsFtrSpace->FtrSpace->Update(RecSet);
+	// return
+	return Args.Holder();
+}
+
+v8::Handle<v8::Value> TJsFtrSpace::add(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	// parse arguments
+	TJsFtrSpace* JsFtrSpace = TJsFtrSpaceUtil::GetSelf(Args);
+	
+	TStr Type = TJsFtrSpaceUtil::GetArgStr(Args, 0, "type", "");
+	if (Type == "jsfunc") {
+		// All properties should be JSON objects, except for "fun", which is a function
+		// example (Twitter text length feature extractor):
+		// { type : 'jsfunc', source: { store: 'Tweets' }, fun : function(rec) {return rec.Text.length;}}
+		// extract function!
+		v8::Persistent<v8::Function> Fun = TJsFtrSpaceUtil::GetArgFunPer(Args, 0, "fun");
+		PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Args[0]->ToObject());
+		PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsFtrSpace->Js, ParamVal, Fun);
+		JsFtrSpace->FtrSpace->AddFtrExt(FtrExt);
+	}
+	else {
+		// JSON object expected
+		// example (bag of words extractor)
+		// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+		PJsonVal ParamVal = TJsFtrSpaceUtil::GetArgJson(Args, 0);
+		if (ParamVal->IsObj()) {
+			JsFtrSpace->FtrSpace->AddFtrExt(TFtrExt::New(JsFtrSpace->Js->Base, ParamVal->GetObjStr("type"), ParamVal));
+		}
+	}	
 	// return
 	return Args.Holder();
 }
