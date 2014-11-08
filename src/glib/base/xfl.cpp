@@ -297,6 +297,27 @@ TStr TDir::GetLastDirPart(const TStr& FPathFNm)
 	return TFile::GetFileName(FPathFNm);
 }
 
+// copy (nonempty) directory SourceDir to DestDir
+void TDir::CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists)
+{
+	TDir::GenDir(DestDir);
+	// get all files in source dir
+	TStrV FileV;
+	TFFile::GetFNmV(SourceDir, TStrV(), false, FileV);
+	for (int N = 0; N < FileV.Len(); N++) {
+		TStrV PartV; TFile::SplitPath(FileV[N], PartV);
+		const TStr FName = PartV[PartV.Len() - 1];
+		// if this is a file copy it
+		if (TFile::Exists(FileV[N])) {
+			TFile::Copy(FileV[N], DestDir + "/" + FName, false, !OverwriteIfExists);
+		}
+		// if this is a folder, copy it recursively
+		else {
+			TDir::CopyDir(FileV[N], DestDir + "/" + FName, OverwriteIfExists);
+		}
+	}
+}
+
 #ifdef GLib_WIN
 
 bool TDir::Exists(const TStr& FPathFNm){

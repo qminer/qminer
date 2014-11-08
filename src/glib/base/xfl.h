@@ -100,6 +100,7 @@ public:
   static bool DelNonEmptyDir(const TStr& FPathFNm);
   static bool Exists(const TStr& FPathFNm);
   static TStr GetLastDirPart(const TStr& FPathFNm);
+  static void CopyDir(const TStr& SourceDir, const TStr& DestDir, const bool& OverwriteIfExists = true);
 };
 
 /////////////////////////////////////////////////
