@@ -58,9 +58,10 @@ public:
 class TBackupFolderInfo
 {
 public:
-	TStr Folder;
-	TStrV Extensions;
-	TBool IncludeSubfolders;
+	TStr Folder;				// folder to backup
+	TStrV Extensions;			// list of extensions to backup. empty = backup all. specify only extensions (bin and not *.bin)
+	TBool IncludeSubfolders;	// should subfolders also be backedup
+	TStrV SkipIfContainingV;	// if a part of the full filename will match any text in this list, the file will not be backedup. Case sensitive!
 };
 
 class TBackupProfile
@@ -71,14 +72,15 @@ private:
 	TVec<TBackupFolderInfo> FolderV;
 
 	TStr GetFolderNameForCurrentTime() const;
-	void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const bool& IncludeSubfolders, TStr& ErrMsg);
-
+	void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, TStr& ErrMsg);
+	
 public:
 	TBackupProfile() {}
 	TBackupProfile(const PJsonVal& SettingsJson);
 	TBackupLogInfo CreateBackup();
 	int GetVersionsToKeep() const { return VersionsToKeep; }
 	TStr GetDestination() const { return Destination; }
+	const TVec<TBackupFolderInfo> GetFolders() const { return FolderV; }
 };
 
 
@@ -98,6 +100,8 @@ private:
 	void SaveLogs() const;
 
 public:
+	enum ERestoringMode { RemoveExistingFirst, SkipIfExisting, OverwriteIfExisting };
+
 	TFolderBackup(const TStr& SettingsFNm);
 	TFolderBackup(const PJsonVal& SettingsJson);
 
@@ -105,7 +109,9 @@ public:
 	TBackupLogInfo CreateBackup(const TStr& ProfileName);
 	// backup all profiles
 	void CreateBackup(TVec<TBackupLogInfo>& BackupLogInfo);
-
+	
+	void GetBackupFolders(const TStr& ProfileName, TStrV& FolderNmV) const;
+	void Restore(const TStr& ProfileName, const TStr& BackupFolderName, const ERestoringMode& RestoringMode = RemoveExistingFirst) const;
 };
 
 /*
@@ -121,6 +127,7 @@ example of a json file containing the settings to be used when initializing the 
 			{
 				"folder": "E:\\data\\NewsMiner\\IndexArticles",
 					"extensions" : ["*"],
+					"skipIfContaining" : ["ArticlesWebRqLog.bin"],
 					"includeSubfolders" : true
 			},
 			{
