@@ -390,7 +390,7 @@ TReplaySrv::TReplaySrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNot
 }
 
 // open the log file and replay all the requests that we can find in it
-bool TReplaySrv::ReplayLog(const TStr& LogFNm)
+bool TReplaySrv::ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify)
 {
 	if (TFile::Exists(LogFNm)) {
 		TFIn FIn(LogFNm);
@@ -401,9 +401,10 @@ bool TReplaySrv::ReplayLog(const TStr& LogFNm)
 				ReplayHttpRq(HttpRq);
 			}
 			catch (PExcept E) {
-				TNotify::StdNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. %s", E->GetMsgStr().CStr());
+				ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. Exception while loading next request: %s", E->GetMsgStr().CStr());
 			}
 			catch (...) {
+				ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. General exception while loading next request.");
 			}
 		}
 		return true;
@@ -437,19 +438,22 @@ bool TReplaySrv::RemoveLogData(const TStr& LogFNm)
 // and then optionally also save the request to the log file
 void TReplaySrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq)
 {
-	TSAppSrv::OnHttpRq(SockId, HttpRq);
-
 	// if we are logging requests then log it
 	if (!SOut.Empty()) {
 		PUrl HttpRqUrl = HttpRq->GetUrl();
 		TStr FunNm = HttpRqUrl->GetPathSeg(0);
 		if (FunNm == "favicon.ico")
 			return;
+		if (LoggingFunNmH.Len() > 0 && !LoggingFunNmH.IsKey(FunNm))
+			return;
 		HttpReqSerInfo ReqInfo(HttpRq);
 		ReqInfo.Save(*SOut);
 		if (FlushEachRequest)
 			SOut->Flush();
 	}
+
+	// only after we've logged the request we also execute it - otherwise we could process the request and crash before saving the data
+	TSAppSrv::OnHttpRq(SockId, HttpRq);
 }
 
 // replay a particular http request

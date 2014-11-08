@@ -176,6 +176,7 @@ private:
 
 	PSOut SOut;
 	bool FlushEachRequest;
+	THashSet<TStr> LoggingFunNmH;	// the set of function names for which we do the logging
 
 public:
 	TReplaySrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNotify& Notify,
@@ -185,7 +186,12 @@ public:
 		return new TReplaySrv(PortN, SrvFunV, Notify, ShowParamP, ListFunP);
 	}
 
-	bool ReplayLog(const TStr& LogFNm);
+	// which functions should be logged - if empty, log all functions
+	void AddLoggingFunNm(const TStr& FunNm) { LoggingFunNmH.AddKey(FunNm); }
+	void AddLoggingFunNms(const TStrV& FunNmV) { LoggingFunNmH.AddKeyV(FunNmV); }
+	void ClearLoggingFunNms() { LoggingFunNmH.Clr(); }
+
+	bool ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify);
 	void StartLogging(const TStr& LogFNm, const bool& _FlushEachRequest = false, const bool& Append = true);
 	void StopLogging();
 	static bool RemoveLogData(const TStr& LogFNm);
