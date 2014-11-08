@@ -40,6 +40,7 @@ public:
 	void SetVerbosityLevel(const int _VerbosityLevel) { VerbosityLevel = _VerbosityLevel; }
 	int GetVerbosityLevel() { return VerbosityLevel; }
 	void AddLogger(const PNotify& Notify) { NotifyInstV.Add(Notify); }
+	void RemoveLoggers() { NotifyInstV.Clr(); }
 	void RemoveLogger(const PNotify& Notify) { 
 		// SearchForW on the vector doesn't compile so we have to check item by item
 		for (int N = 0; N < NotifyInstV.Len(); N++) {
@@ -53,6 +54,7 @@ public:
 	void NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...);
 	
 	void NotifyInfo(const char *FmtStr, ...);
+	void NotifyWarn(const char *FmtStr, ...);
 	void NotifyErr(const char *FmtStr, ...);
 	void NotifyErr(const char *Str, const PExcept& Except);
 	void Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr);

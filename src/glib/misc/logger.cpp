@@ -20,6 +20,12 @@ void TLogger::NotifyInfo(const char *FmtStr, ...)
 	Notify(ntInfo, FmtStr, valist); va_end(valist); 
 }
 
+void TLogger::NotifyWarn(const char *FmtStr, ...)
+{
+	va_list valist; va_start(valist, FmtStr);
+	Notify(ntWarn, FmtStr, valist); va_end(valist);
+}
+
 void TLogger::NotifyErr(const char *FmtStr, ...) 
 {
 	va_list valist; va_start(valist, FmtStr);
