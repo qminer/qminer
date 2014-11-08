@@ -59,7 +59,7 @@ public:
     EAssert(_MxConns>0); MxConns=_MxConns;}
   int GetMxConns() const {return MxConns;}
   bool IsOkConns(const int& Conns) const {
-    return (MxConns==-1)||(Conns<=MxConns);}
+    return (MxConns==-1)||(Conns<MxConns);}
   void PutMxContLen(const int& _MxContLen){
     EAssert((_MxContLen==-1)||(_MxContLen>=0)); MxContLen=_MxContLen;}
   int GetMxContLen() const {return MxContLen;}
@@ -187,3 +187,44 @@ public:
   void SendJson(const PJsonVal& Json); 
   uint64 GetNumSent() {return NumSent;}
 };
+
+
+
+// the persisten version of the web page fetch class
+// if SaveFName is provided then the class will save in the provided file name
+// the page requests that are still in the queue
+// on creating the class instance the requests will be loaded from the file 
+// and again requested
+
+// if RepeatFailedRequests == true then the failed requests will be again requeued
+// useful for calling web services that often timeout
+
+ClassTPE(TWebPgFetchPersist, PWebPgFetchPersist, TWebPgFetch)//{
+protected:
+	TInt SuccessCount;
+	TInt ErrorCount;
+	TStr SaveFName;
+	bool RepeatFailedRequests;
+	bool ReportState;
+	TStr ReportPrefix;
+	PNotify Notify;
+
+	TWebPgFetchPersist(const TStr& _SaveFName = "", const bool& _RepeatFailedRequests = true, const bool& _ReportState = false, const TStr& _ReportPrefix = "", const PNotify& _Notify = NULL);
+	
+	void Load(TSIn& SIn);
+	void Save(TSOut& SOut) const;
+	
+public:
+	~TWebPgFetchPersist();
+
+	static PWebPgFetchPersist New(const TStr& SaveFName = "", const bool& RepeatFailedRequests = true, const bool& ReportState = false, const TStr& ReportPrefix = "") {
+		return new TWebPgFetchPersist(SaveFName, RepeatFailedRequests, ReportState, ReportPrefix);
+	}
+
+	virtual void ReportError(const TStr& MsgStr);
+	virtual void OnFetch(const int& FId, const PWebPg& WebPg);
+	virtual void OnError(const int& FId, const TStr& MsgStr);
+	virtual void Report();
+
+};
+

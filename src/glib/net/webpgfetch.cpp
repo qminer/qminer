@@ -527,3 +527,102 @@ void TWebFetchSendBatchJson::Send() {
   PHttpRq HttpRq = THttpRq::New(hrmPost, TUrl::New(UrlStr), THttp::AppJSonFldVal, BodyMem);
   FetchHttpRq(HttpRq);
 }
+
+
+/////////////////////////////////////////////////
+// TWebPgFetchPersist
+TWebPgFetchPersist::TWebPgFetchPersist(const TStr& _SaveFName, const bool& _RepeatFailedRequests, const bool& _ReportState, const TStr& _ReportPrefix, const PNotify& _Notify) :
+SaveFName(_SaveFName), RepeatFailedRequests(_RepeatFailedRequests), ReportState(_ReportState), ReportPrefix(_ReportPrefix), Notify(_Notify)
+{
+	PutMxConns(10);
+	PutTimeOutMSecs(30 * 1000);
+	if (SaveFName != "" && TFile::Exists(SaveFName)) {
+		TFIn FIn(SaveFName);
+		Load(FIn);
+	}
+}
+
+TWebPgFetchPersist::~TWebPgFetchPersist() {
+	if (SaveFName != "") {
+		TFOut FOut(SaveFName);
+		Save(FOut);
+	}
+}
+
+
+void TWebPgFetchPersist::Load(TSIn& SIn)
+{
+	// load PUrls and call FetchUrl on each of them
+	TVec<PUrl> UrlV = TVec<PUrl>(SIn);
+	int Len = UrlV.Len();
+	for (int N = 0; N < Len; N++) {
+		FetchUrl(UrlV[N]);
+	}
+	if (!Notify.Empty() && Len > 0)
+		Notify->OnStatusFmt("TWebPgFetchPersist.Load. Loaded %d requests from the disk", Len);
+}
+
+void TWebPgFetchPersist::Save(TSOut& SOut) const
+{
+	// serialize requests in the queue + requests that are currently in progress
+	TVec<PUrl> UrlV;
+	for (int KeyId = ConnFIdToEventH.FFirstKeyId(); ConnFIdToEventH.FNextKeyId(KeyId);) {
+		const int FId = ConnFIdToEventH.GetKey(KeyId);
+		PUrl Url = GetConnUrl(FId);
+		UrlV.Add(Url);
+	}
+	
+	TLstNd<TIdUrlPr>* Item = WaitFIdUrlPrL.First();
+	while (Item != NULL) {
+		UrlV.Add(Item->Val.Val2);
+		Item = Item->Next();
+	}
+	UrlV.Save(SOut);
+	if (!Notify.Empty() && UrlV.Len() > 0)
+		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saving %d requests to the disk", UrlV.Len());
+}
+
+void TWebPgFetchPersist::ReportError(const TStr& MsgStr) 
+{
+	TNotify::StdNotify->OnStatusFmt("Error info: %s\n", MsgStr.CStr());
+	/*if (!Notify.Empty())
+	Notify->OnStatusFmt("TWebPgFetchPersist.ReportError: %s", MsgStr.CStr());*/
+}
+
+void TWebPgFetchPersist::OnFetch(const int& FId, const PWebPg& WebPg) 
+{
+	SuccessCount++; 
+	Report();
+}
+
+void TWebPgFetchPersist::OnError(const int& FId, const TStr& MsgStr) 
+{
+	ErrorCount++;
+	ReportError(MsgStr);
+	Report();
+	// in case of bad request don't make the request again
+	/*if (!HttpResp.Empty() && HttpResp->GetStatusCd() == 400) {
+	TStr Url = "";
+	if (IsConn(FId))
+	Url = GetConnUrl(FId)->GetUrlStr();
+	if (!Notify.Empty()) {
+	TStr Error = "TWebPgFetchPersist.OnError: Received http response 400 (Bad request). Skipping the request. Request: " + Url;
+	Notify->OnStatus(Error.CStr());
+	}
+	return;
+	}
+	else if (!HttpResp.Empty() && !Notify.Empty()) {
+	Notify->OnStatusFmt("TWebPgFetchPersist.OnError: Received http response %d.", HttpResp->GetStatusCd());
+	}*/
+
+	if (IsConn(FId) && RepeatFailedRequests) {
+		PUrl Url = GetConnUrl(FId);
+		FetchUrl(Url, false);	// enqueue request at the beginning of the queue		
+	}
+}
+
+void TWebPgFetchPersist::Report() 
+{
+	if (ReportState)
+		printf("%squeue size: %6d. Completed: %6d. Failed: %6d\r", ReportPrefix.CStr(), WaitFIdUrlPrL.Len(), SuccessCount.Val, ErrorCount.Val);
+}
