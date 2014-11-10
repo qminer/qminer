@@ -7668,28 +7668,17 @@ v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsSnap::CommunityDetection: two input arguments expected!");
 	}
 
-	int Nodes = graph->GetNodes();
 	TVec<TIntFltKdV> Mat(communities.Len());
-	TIntSet NIdSet(Nodes);
-
-	for (TUNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++) {
-		int NId = NI.GetId();
-		NIdSet.AddKey(NId);
-		int RemappedNId = NIdSet.GetKeyId(NId);
-		
-	}
-
 	for (int i = 0; i < communities.Len(); i++) {
-		Mat[i].Gen(Nodes);
+		Mat[i].Gen(communities[i].Len());
 		for (int j = 0; j < communities[i].Len(); j++) {
 			int id = communities[i][j];
-			int RemappedNId = NIdSet.GetKeyId(id);
-			Mat[i][RemappedNId].Key = RemappedNId;
-			Mat[i][RemappedNId].Dat = id;
+			Mat[i][j].Key = id;
+			Mat[i][j].Dat = i;
 		}
 	}
 
-	return HandleScope.Close(TJsSpMat::New(JsSnap->Js, Mat, Nodes));
+	return HandleScope.Close(TJsSpMat::New(JsSnap->Js, Mat));
 }
 
 v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
