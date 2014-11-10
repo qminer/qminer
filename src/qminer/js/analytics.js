@@ -288,7 +288,7 @@ exports.classifcationScore = function (cats) {
 				"," + this.target[cat].f1().toFixed(2) +
 				"," + this.target[cat].accuracy().toFixed(2));
 		}
-        return fout;r
+        return fout;
 	};
 	
 	this.results = function () {

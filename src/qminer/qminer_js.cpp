@@ -5282,6 +5282,9 @@ v8::Handle<v8::Value> TJsSpV::sort(const v8::Arguments& Args) {
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
     TIntFltKdV ResV; TIntV PermV;
     TIntFltKdV::SortGetPerm(JsSpV->Vec, ResV, PermV, AscP);
+    for (int PermN = 0; PermN < PermV.Len(); PermN++) {
+        PermV[PermN] = JsSpV->Vec[PermV[PermN]].Key;
+    }
 	return TJsIntV::New(JsSpV->Js, PermV);
 }
 
