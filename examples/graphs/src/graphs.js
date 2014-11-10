@@ -82,8 +82,13 @@ for (var i = 0; i < graphs.length; i++) {
     communities.push(snap.communityDetection(graphs[i], "gn"));
 }
 
+//console.log("Have a break");
+//eval(breakpoint);
+
 // return json string of graph evolution
 var json = snap.evolutionJs(communities, 0.5, 0.75);
+
+console.log("heyo");
 
 // plot the community evolution graph
 viz.drawCommunityEvolution(JSON.stringify(json), "./out/cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
@@ -92,13 +97,15 @@ viz.drawCommunityEvolution(JSON.stringify(json), "./out/cmty_evolution.html", { 
 console.log("Loading cobiss graph 1970-1975.edg");
 var g = snap.newUGraph("./data/researchersBib_1970-1975.edg");
 console.log("Done loading graph. N = " + g.nodes+ ", E = " + g.edges);
-var g =  snap.removeNodes(g, 3)
+var g = snap.removeNodes(g, 3);
 
 // detect communities using 2 different algorithms
 console.log("Calculating communities using Clauset-Newman-Moore community detection method");
 var CmtyCNM = snap.communityDetection(g, "cnm");
-console.log("Calculating communities using Info-map community detection method");
-var CmtyImap = snap.communityDetection(g, "imap");
+console.log("communities count: " + CmtyCNM.cols);
+
+// core periphery
+var CP = snap.corePeriphery(g, "lip");
 
 // draw the graph using two different colorings
 

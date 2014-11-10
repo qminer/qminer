@@ -3737,6 +3737,10 @@ public:
 	JsDeclareFunction(communityEvolution);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
+	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebSimplify);
+	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebRefine);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
 	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
