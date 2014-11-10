@@ -1368,6 +1368,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, search);
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
+		JsRegisterFunction(TmpTemp, v8gc);
 		JsRegisterFunction(TmpTemp, newStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
@@ -1473,6 +1474,12 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 		InfoLog("[except] " + Except->GetMsgStr());
 	}
 	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsBase::v8gc(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	while (!v8::V8::IdleNotification()) {};
+	return HandleScope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
@@ -4700,14 +4707,27 @@ v8::Handle<v8::Value> TJsFltVV::put(const v8::Arguments& Args) {
 	if (Args.Length() == 3) {
 		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
 		QmAssertR(Args[1]->IsInt32(), "the second argument should be an integer");
-		QmAssertR(Args[2]->IsNumber(), "the third argument should be a number");
+		QmAssertR(Args[2]->IsNumber() || TJsFltVVUtil::IsArgClass(Args,2, "TFltVV")  , "the third argument should be a number or a matrix");
 		TInt Row = TJsFltVVUtil::GetArgInt32(Args, 0);	
 		TInt Col = TJsFltVVUtil::GetArgInt32(Args, 1);	
 		TInt Rows = JsFltVV->Mat.GetRows();
 		TInt Cols = JsFltVV->Mat.GetCols();
-		QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols, "matrix put: index out of bounds");
-		TFlt Val = TJsFltVVUtil::GetArgFlt(Args, 2);
-		JsFltVV->Mat.At(Row, Col) = Val;	
+		if (Args[2]->IsNumber()) {
+			QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols, "matrix put: index out of bounds");
+			TFlt Val = TJsFltVVUtil::GetArgFlt(Args, 2);
+			JsFltVV->Mat.At(Row, Col) = Val;
+		}
+		else {
+			TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 2);
+			int Rows2 = JsMat2->Mat.GetRows();
+			int Cols2 = JsMat2->Mat.GetCols();
+			QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols && Row + (Rows2-1) < Rows && Col + (Cols2-1) < Cols, "matrix put matrix: index out of bounds");
+			for (int RowN = 0; RowN < Rows2; RowN++) {
+				for (int ColN = 0; ColN < Cols2; ColN++) {
+					JsFltVV->Mat.At(Row + RowN, Col + ColN) = JsMat2->Mat.At(RowN, ColN);
+				}
+			}
+		}		
 	}
 	return Args.Holder();
 }
@@ -7832,6 +7852,7 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, adjMat);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, connectedComponents);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -8169,6 +8190,25 @@ v8::Handle<v8::Value> TJsGraph<T>::load(const v8::Arguments& Args) {
 		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
 		JsGraph->Graph = JsGraph->Graph->Load(*SIn);		 
 	}
+	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::connectedComponents(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	bool IsWeak = TJsGraphUtil::GetArgBool(Args, 0, true);
+	
+	TCnComV CnComV;
+	if (IsWeak) {
+		TSnap::GetWccs(JsGraph->Graph, CnComV);
+	}
+	else {
+		TSnap::GetSccs(JsGraph->Graph, CnComV);
+	}
+
+
+	
 	return Args.Holder();
 }
 
