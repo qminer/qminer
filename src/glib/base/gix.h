@@ -113,19 +113,20 @@ private:
 		TBlobPt Pt;
 		TBool MergedP;
 		bool Loaded;
+		bool Dirty;
 
 		/// default constructor
 		TGixItemSetChildInfo()
-			: Len(0), MergedP(true), Loaded(false) {}
+			: Len(0), MergedP(true), Loaded(false), Dirty(false) {}
 
 		/// constructor with values
 		TGixItemSetChildInfo(const TItem& _MinVal, const TItem& _MaxVal,
 			const TInt& _Len, const TBlobPt& _Pt, const TBool& _MergedP)
-			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), MergedP(_MergedP), Loaded(false) {}
+			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), MergedP(_MergedP), Loaded(false), Dirty(false) {}
 
 		/// constructor for serialization
 		TGixItemSetChildInfo(TSIn& SIn) :
-			MinVal(SIn), MaxVal(SIn), Len(SIn), Pt(SIn), MergedP(SIn), Loaded(false) {}
+			MinVal(SIn), MaxVal(SIn), Len(SIn), Pt(SIn), MergedP(SIn), Loaded(false), Dirty(false) {}
 
 		/// deserialize from stream
 		void Load(TSIn& SIn) {
@@ -174,6 +175,7 @@ private:
 		if (!Children[i].Loaded) {
 			Gix->GetChildVector(Children[i].Pt, ChildrenData[i]);
 			Children[i].Loaded = true;
+			Children[i].Dirty = false;
 		}
 	}
 	/// Load all child vectors into memory and get pointers to them
@@ -188,6 +190,15 @@ private:
 		TotalCnt = ItemV.Len();
 		for (int i = 0; i < Children.Len(); i++)
 			TotalCnt += Children[i].Len;
+	}
+
+	/// Check if there are any dirty child vectors => "change the diapers"
+	int FirstDirtyChild() {
+		for (int i = 0; i < Children.Len(); i++) {
+			if (Children[i].Dirty)
+				return i;
+		}
+		return -1;
 	}
 
 	/// Work buffer is merged and still full, push it to children collection
@@ -251,65 +262,66 @@ public:
 	void Def();
 	/// Pack/merge this itemset - just workng buffer
 	void DefLocal();
-
+	
 	/// Tests if current itemset is full and subsequent item should be pushed to children
 	bool IsFull() {
-#ifdef GIX_TEST
-		return (ItemV.Len() >= len_to_split);
-#else
-		return (ItemV.GetMemUsed() > 10 * 1024 * 1024); // 10 MB
-#endif
+		return (ItemV.Len() >= SplitLen);
 	}
+
+	/// Size of work-buffer
+	static int SplitLen;
+
 
 	friend class TPt < TGixItemSet > ;
 #ifdef GIX_TEST
 	friend class XTest;
-
-	void Print() const {
-		LoadChildVectors();
-		printf("TotalCnt=%d\n", TotalCnt);
-		printf("len=%d\n", ItemV.Len());
-		for (int i = 0; i < ItemV.Len(); i++) {
-			printf("   %d=%d\n", i, ItemV[i]);
-		}
-		if (ItemVDel.Len()> 0) {
-			printf("deleted=%d\n", ItemVDel.Len());
-			for (int i = 0; i < ItemVDel.Len(); i++) {
-				printf("   %d=%d\n", i, ItemVDel[i]);
-			}
-		}
-		for (int j = 0; j < Children.Len(); j++) {
-			printf("   *** child %d\n", j);
-			printf("   *** len %d\n", Children[j].Len);			
-			printf("   *** mem-len %d\n", ChildrenData[j].Len());
-			for (int i = 0; i < ChildrenData[j].Len(); i++) {
-				printf("      %d=%d\n", i, ChildrenData[j][i]);
-			}
-		}
-	}
-
-	static int len_to_split;
+	void Print() const;
 #endif
 };
+
+#ifdef GIX_TEST
+
+template <class TKey, class TItem>
+void TGixItemSet<TKey, TItem>::Print() const {
+	LoadChildVectors();
+	printf("TotalCnt=%d\n", TotalCnt);
+	printf("len=%d\n", ItemV.Len());
+	for (int i = 0; i < ItemV.Len(); i++) {
+		printf("   %d=%d\n", i, ItemV[i]);
+	}
+	if (ItemVDel.Len()> 0) {
+		printf("deleted=%d\n", ItemVDel.Len());
+		for (int i = 0; i < ItemVDel.Len(); i++) {
+			printf("   %d=%d\n", i, ItemVDel[i]);
+		}
+	}
+	for (int j = 0; j < Children.Len(); j++) {
+		printf("   *** child %d\n", j);
+		printf("   *** len %d\n", Children[j].Len);
+		printf("   *** mem-len %d\n", ChildrenData[j].Len());
+		for (int i = 0; i < ChildrenData[j].Len(); i++) {
+			printf("      %d=%d\n", i, ChildrenData[j][i]);
+		}
+	}
+}
+
+#endif
+
+int TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 10000;
 
 template <class TKey, class TItem>
 const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 	AssertR(ItemN >= 0 && ItemN < TotalCnt, TStr() + "Index: " + TInt::GetStr(ItemN) + ", TotalCnt: " + TInt::GetStr(TotalCnt));
-	if (ItemN < ItemV.Len()) {
-		// data is in this itemset
-		return ItemV[ItemN];
-	}
-	// data is in child itemsets
-	int index = ItemN - ItemV.Len();
-	for (int i = 0; i < ChildrenLen.Len(); i++) {
-		if (index < ChildrenLen[i]) {
+	int index = ItemN;
+	for (int i = 0; i < Children.Len(); i++) {
+		if (index < Children[i].Len) {
 			// load child vector only if needed
 			LoadChildVector(i);
 			return ChildrenData[i][index];
 		}
-		index -= ChildrenLen[i];
+		index -= Children[i].Len;
 	}
-	return ItemV[-1]; // will trigger error, should not happen anyway
+	return ItemV[index];
 }
 
 template <class TKey, class TItem>
@@ -320,8 +332,7 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 
 	// save child vectors separately
 	for (int i = 0; i < Children.Len(); i++) {
-		if (ChildrenData[i].Len() > 0) {
-			// TODO check dirty bit
+		if (Children[i].Dirty && Children[i].Loaded) {
 			Children[i].Pt = Gix->StoreChildVector(Children[i].Pt, ChildrenData[i]);
 		}
 	}
@@ -343,10 +354,10 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	// push work-buffer into children array
 	TGixItemSetChildInfo child_info(ItemV[0], ItemV.Last(), ItemV.Len(), Gix->EnlistChildVector(ItemV), MergedP);
-	child_info.Loaded = false;
 	Children.Add(child_info);
 	ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it has just been saved to disk...
 	child_info.Loaded = false;       // TODO see above
+	child_info.Dirty = false;        // TODO see above
 	ItemV.Clr();
 }
 
@@ -421,6 +432,7 @@ void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
 		if (IsFull()) {
 			PushWorkBufferToChildren();
 		}
+		RecalcTotalCnt(); // work buffer might have been merged
 	}
 	ItemVDel.Add(ItemV.Len());
 	ItemV.Add(Item);
@@ -460,6 +472,8 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 					LoadChildVector(j);
 					ChildrenData[j].DelAll(val);
 					Children[j].Len = ChildrenData[j].Len();
+					Children[j].Dirty = true;
+					// we don't update stats (min & max), because they are still usable.
 				}
 				j--;
 			}
@@ -487,14 +501,21 @@ void TGixItemSet<TKey, TItem>::Def() {
 		ProcessDeletes();
 
 		Merger->Merge(ItemV); // first local merge
-		if (Children.Len() > 0 && ItemV.Len() > 0) {
+		int first_dirty_child = FirstDirtyChild();
+		if (first_dirty_child >= 0 || Children.Len() > 0 && ItemV.Len() > 0) {
 			// detect the first child that needs to be merged
-			TItem ItemVMin = ItemV[0];
-			int first_child_to_merge = Children.Len() - 1;
-			while (first_child_to_merge >= 0 && Merger->IsLt(ItemVMin, Children[first_child_to_merge].MaxVal)) {
-				first_child_to_merge--;
+			int first_child_to_merge = Children.Len();
+			if (ItemV.Len() > 0) {
+				TItem ItemVMin = ItemV[0];
+				first_child_to_merge = Children.Len() - 1;
+				while (first_child_to_merge >= 0 && Merger->IsLt(ItemVMin, Children[first_child_to_merge].MaxVal)) {
+					first_child_to_merge--;
+				}
+				first_child_to_merge++;
 			}
-			first_child_to_merge++;
+			if (first_child_to_merge > first_dirty_child && first_dirty_child >= 0)
+				first_child_to_merge = first_dirty_child;
+
 			// collect all data from subsequent child vectors and work-buffer
 			TVec<TItem> MergedItems;
 			for (int i = first_child_to_merge; i < Children.Len(); i++) {
@@ -509,10 +530,13 @@ void TGixItemSet<TKey, TItem>::Def() {
 			int remaining = MergedItems.Len() - curr_index;
 			int child_index = first_child_to_merge;
 			while (curr_index < MergedItems.Len()) {
-				if (child_index < Children.Len() && remaining > Children[child_index].Len) {
+				if (child_index < Children.Len() && remaining > SplitLen) {
 					ChildrenData[child_index].Clr();
-					// TODO use constant child length...
-					MergedItems.GetSubValV(curr_index, curr_index + Children[child_index].Len - 1, ChildrenData[child_index]);
+					MergedItems.GetSubValV(curr_index, curr_index + SplitLen - 1, ChildrenData[child_index]);
+					Children[child_index].Len = ChildrenData[child_index].Len();
+					Children[child_index].MinVal = ChildrenData[child_index][0];
+					Children[child_index].MaxVal = ChildrenData[child_index].Last();
+					Children[child_index].Dirty = true;
 					curr_index += Children[child_index].Len;
 					remaining = MergedItems.Len() - curr_index;
 					child_index++;
@@ -546,20 +570,19 @@ void TGixItemSet<TKey, TItem>::Def() {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DefLocal() {
 	// call merger to pack items in work buffer, if not merged yet 
-	if (!MergedP) {
-		
-		ProcessDeletes(); // this might not be local operation, but i can't find a better way
-
-		Merger->Merge(ItemV); // perform local merge
-		if (Children.Len() > 0 && ItemV.Len() > 0) {
-			if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
-				// local merge achieved global merge
+	if (!MergedP) {		
+		if (ItemVDel.Len() == 0) { // deletes are probably not local			
+			Merger->Merge(ItemV); // perform local merge
+			if (Children.Len() > 0 && ItemV.Len() > 0) {
+				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
+					// local merge achieved global merge
+					MergedP = true;
+				}
+			} else {
 				MergedP = true;
 			}
-		} else {
-			MergedP = true;
+			RecalcTotalCnt();
 		}
-		RecalcTotalCnt();
 	}
 }
 

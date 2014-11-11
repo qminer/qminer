@@ -39,8 +39,6 @@ void WarnNotifyW(TStr& const s) {
 
 ////////////////////////////////////////////////////////////////////////
 
-int TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split;
-
 class XTest {
 public:
 
@@ -435,9 +433,72 @@ public:
 		TAssert(itemset->TotalCnt == 121, "Invalid itemset TotalCnt");
 	}
 
-	void PerformTests() {
-		TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
+	void Test_Delete_120And110() {
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		int i = 122;
+		TIntUInt64Pr x(i, i);
+		for (int i = 0; i < 120; i++) {
+			gix.AddItem(x, i);
+		}
+		for (int i = 0; i < 110; i++) {
+			gix.DelItem(x, i);
+		}
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+
+		auto itemset = gix.GetItemSet(x);
+		TAssert(itemset->GetKey() == x, "Invalid itemset key");
+		TAssert(!itemset->IsFull(), "Itemset should be full");
+		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
+		TAssert(itemset->TotalCnt == 20 + 20 + 30, "Invalid itemset TotalCnt");
+		TAssert(itemset->ItemVDel.Len() == 30, "Invalid list of deletes");
+		TAssert(itemset->ItemVDel[0] == 20 + 20, "Invalid list of deletes - invalid index");
+
+		itemset->Def();
+
+		TAssert(itemset->MergedP, "Itemset should be merged");
+		TAssert(itemset->TotalCnt == 10, "Invalid itemset TotalCnt");
+	}
+
+	void Test_Delete_22000And1000() {
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 1000000);
+		int xx = 122;
+		int all = 22000;
+		int to_delete = 980;
+		TIntUInt64Pr x(xx, xx);
+		// fill all
+		for (int i = 0; i < all; i++) {
+			gix.AddItem(x, i);
+		}
+		// now delete data from the front
+		for (int i = 0; i < to_delete; i++) {
+			gix.DelItem(x, i);
+		}
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+
+		auto itemset = gix.GetItemSet(x);
+		TAssert(itemset->GetKey() == x, "Invalid itemset key");
+		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
+		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
+		TAssert(itemset->TotalCnt == all - to_delete + 80+ 80, "Invalid itemset TotalCnt");
+		TAssert(itemset->ItemVDel.Len() == to_delete % 100, "Invalid list of deletes");
+		TAssert(itemset->ItemVDel[0] == 0, "Invalid list of deletes - invalid index");
 		
+		itemset->Def();
+
+		TAssert(itemset->MergedP, "Itemset should be merged");
+		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
+		for (int i = to_delete; i < all; i++) {
+			TAssert(itemset->GetItem(i - to_delete) == i, "Invalid item at specific index");
+		}
+	}
+
+	void PerformTests() {
+		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 100;
+
 		Test_Simple_1();
 		Test_Simple_220();
 		Test_Simple_220_Unsorted();
@@ -450,22 +511,24 @@ public:
 		Test_Delete_20And1();
 		Test_Delete_120();
 		Test_Delete_120And1();
+		Test_Delete_120And110();
+		Test_Delete_22000And1000();
 
-		//// this will split only big itemsets
-		//WarnNotifyI(TStr("Split only big itemsets\n"));
-		//TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 1000;
-		//Test_Feed();
+		// this will split only big itemsets
+		WarnNotifyI(TStr("Split only big itemsets\n"));
+		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 1000;
+		Test_Feed();
 
-		//// this will split probably all itemsets
-		//WarnNotifyI(TStr("Split all itemsets\n"));
-		//TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
-		//Test_Feed();
+		// this will split probably all itemsets
+		WarnNotifyI(TStr("Split all itemsets\n"));
+		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 100;
+		Test_Feed();
 
-		//// this will split probably all itemsets
-		//// it will also limit cache to less than 10% of the itemsets
-		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		//TGixItemSet<TIntUInt64Pr, TUInt64>::len_to_split = 100;
-		//Test_Feed(1 * 1024 * 1024);
+		// this will split probably all itemsets
+		// it will also limit cache to less than 10% of the itemsets
+		WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 100;
+		Test_Feed(1 * 1024 * 1024);
 	}
 };
 
