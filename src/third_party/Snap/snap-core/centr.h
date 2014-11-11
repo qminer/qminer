@@ -6,6 +6,8 @@ namespace TSnap {
 /// Returns Degree centrality of a given node NId.
 /// Degree centrality if a node is defined as its degree/(N-1), where N is the number of nodes in the network.
 double GetDegreeCentr(const PUNGraph& Graph, const int& NId);
+double GetDegreeCentralization(const PUNGraph& Graph);
+int GetMaxDegreeCentr(const PUNGraph& Graph);
 /// Returns Group Degree centrality of a given group NId.
 /// Degree centrality if a node is defined as its degree/(N-1), where N is the number of nodes in the network.
 //double GetGroupDegreeCentr(const PUNGraph& Graph, const PUNGraph& Group);
