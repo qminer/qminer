@@ -28,57 +28,6 @@ template <class TKey, class TItem> class TGix;
 template <class TKey, class TItem> class TGixStorageLayer;
 
 /////////////////////////////////////////////////
-// Special memcpy-enabled TVec
-
-template <class TVal, class TSizeTy = int>
-class TVecMemCpy : public TVec < TVal, TSizeTy > {
-public:
-	// Default constructor
-	TVecMemCpy() {}
-	// Copy contructor
-	TVecMemCpy(const TVec<TVal, TSizeTy>& Vec) : TVec(Vec) {}
-	// Move constructor
-	TVecMemCpy(TVec<TVal, TSizeTy>&& Vec) : TVec(Vec) {}
-	/// Constructs a vector (an array) of length \c _Vals.
-	explicit TVecMemCpy(const TSizeTy& _Vals) : TVec(_Vals) {}
-	/// Constructs a vector (an array) of length \c _Vals, while reserving enough memory to store \c _MxVals elements.
-	TVecMemCpy(const TSizeTy& _MxVals, const TSizeTy& _Vals) : TVec(_MxVals, const TSizeTy& _Vals) {}
-	// For deserialization
-	explicit TVecMemCpy(TSIn& SIn) : TVec(SIn) { }
-	// For fast deserialization
-	explicit TVecMemCpy(TMIn& MemIn) : TVec() { LoadMemCpy(MemIn); }
-
-	// add new vector of data to current vector, use memcpy for performance
-	TSizeTy AddVMemCpy(const TVec<TVal, TSizeTy>& ValV) {
-		if (ValV.Len() == 0)
-			return;
-		Resize(Vals + ValV.Len());
-		memcpy(ValT + Vals, ValV.ValT, ValV.Len());
-	}
-	// optimized deserialization from stream, uses memcpy
-	void LoadMemCpy(TMIn& SIn) {
-		// TODO this is never called, since memory stream (TMIn) coming from TBlobBs is hidden behind PSIn
-		if ((ValT != NULL) && (MxVals != -1)) { delete[] ValT; }
-		SIn.Load(MxVals);
-		SIn.Load(Vals);
-		MxVals = Vals;
-		if (MxVals == 0) {
-			ValT = NULL;
-		} else {
-			ValT = new TVal[MxVals];
-			SIn.GetBfMemCpy(ValT, Vals);
-		}
-	}
-	// optimized serialization from stream, uses memcpy
-	void SaveMemCpy(TMOut& SOut) const {
-		SOut.Save(MxVals);
-		SOut.Save(Vals);
-		if (MxVals > 0)
-			SOut.AppendBf(ValT, Vals);
-	}
-};
-
-/////////////////////////////////////////////////
 // General-Inverted-Index-Merger
 template <class TKey, class TItem>
 class TGixMerger {
@@ -200,7 +149,7 @@ private:
 	/// The key of this itemset
 	TKey ItemSetKey;
 	/// "Working buffer" of items of this itemset - could be only part of them, other can be stored in child vectors
-	TVecMemCpy<TItem> ItemV;
+	TVec<TItem> ItemV;
 	/// List of indeces with "deleted" items
 	TVec<int> ItemVDel;
 	/// Combined count - from this itemset and children
@@ -210,7 +159,7 @@ private:
 	mutable TVec<TGixItemSetChildInfo> Children;
 
 	// optional list of child vector contents - will be populated only for frequent keys
-	mutable TVec<TVecMemCpy<TItem>> ChildrenData;
+	mutable TVec<TVec<TItem>> ChildrenData;
 
 	// for keeping the ItemV unique and sorted
 	TBool MergedP;
@@ -301,7 +250,7 @@ public:
 	// key & items
 	const TKey& GetKey() const { return ItemSetKey; }
 	void AddItem(const TItem& NewItem);
-	void AddItemV(const TVecMemCpy<TItem>& NewItemV);
+	void AddItemV(const TVec<TItem>& NewItemV);
 	void OverrideItems(const TVec<TItem>& NewItemV, int From, int Len);
 	/// Get number of items (including child itemsets)
 	int GetItems() const { return TotalCnt; }
@@ -310,7 +259,7 @@ public:
 
 	void AppendItemSet(const TPt<TGixItemSet>& Src);
 	/// Get items into vector
-	void GetItemV(TVecMemCpy<TItem>& _ItemV);
+	void GetItemV(TVec<TItem>& _ItemV);
 	/// Delete specified item from this itemset
 	void DelItem(const TItem& Item);
 	/// Clear all items from this itemset
@@ -442,7 +391,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 }
 
 template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::AddItemV(const TVecMemCpy<TItem>& NewItemV) {
+void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) {
 	for (int i = 0; i < NewItemV.Len(); i++) {
 		AddItem(NewItemV[i]);
 	}
@@ -463,15 +412,15 @@ void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
 }
 
 template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::GetItemV(TVecMemCpy<TItem>& _ItemV) {
+void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 	if (Children.Len() > 0) {
 		// collect data from child itemsets
 		LoadChildVectors();
 		for (int i = 0; i < Children.Len(); i++) {
-			_ItemV.AddVMemCpy(ChildrenData[i]);
+			_ItemV.AddV(ChildrenData[i]);
 		}
 	}
-	_ItemV.AddVMemCpy(ItemV);
+	_ItemV.AddV(ItemV);
 }
 
 template <class TKey, class TItem>
@@ -685,13 +634,13 @@ private:
 	TBlobPt GetKeyId(const TKey& Key) const;
 
 	/// get child vector for given blob pointer
-	void GetChildVector(const TBlobPt& Pt, TVecMemCpy<TItem>& Dest) const;
+	void GetChildVector(const TBlobPt& Pt, TVec<TItem>& Dest) const;
 	/// for storing child vectors to blob
-	TBlobPt StoreChildVector(const TBlobPt& ExistingKeyId, const TVecMemCpy<TItem>& Data) const;
+	TBlobPt StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const;
 	/// for deleting child vectors from cache and blob
 	void DeleteChildVector(const TBlobPt& KeyId) const;
 	/// For enlisting new child vectors into blob
-	TBlobPt EnlistChildVector(const TVecMemCpy<TItem>& Data) const;
+	TBlobPt EnlistChildVector(const TVec<TItem>& Data) const;
 	/// Size of work-buffer
 	int SplitLen;
 
@@ -971,7 +920,7 @@ void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const
 
 /// for storing vectors to blob
 template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVecMemCpy<TItem>& Data) const {
+TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const {
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
@@ -988,7 +937,7 @@ void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
 
 /// For enlisting new child vectors into blob
 template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVecMemCpy<TItem>& Data) const {
+TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
 	AssertReadOnly(); // check if we are allowed to write
 	TMOut MOut;
 	Data.Save(MOut);
@@ -997,7 +946,7 @@ TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVecMemCpy<TItem>& Data) cons
 }
 
 template <class TKey, class TItem>
-void TGix<TKey, TItem>::GetChildVector(const TBlobPt& KeyId, TVecMemCpy<TItem>& Dest) const {
+void TGix<TKey, TItem>::GetChildVector(const TBlobPt& KeyId, TVec<TItem>& Dest) const {
 	if (KeyId.Empty()) { return; }
 	PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
 	Dest.Load(*ItemSetSIn);
