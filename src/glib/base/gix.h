@@ -207,6 +207,14 @@ private:
 	/// Process any pending "delete" commands
 	void ProcessDeletes();
 
+	/// Ask child vectors about their memory usage
+	int GetChildMemUsed() const {
+		int mem = 0;
+		for (int i = 0; i < ChildrenData.Len(); i++)
+			mem += ChildrenData[i].GetMemUsed();
+		return mem;
+	}
+
 public:
 	/// Standard constructor
 	TGixItemSet(const TKey& _ItemSetKey, const PGixMerger& _Merger, const TGix<TKey, TItem>* _Gix) :
@@ -232,10 +240,9 @@ public:
 	void Save(TSOut& SOut);
 
 	// functions used by TCache
-	// TODO child-vector size is not included!!!
 	int GetMemUsed() const {
-		return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed()
-			+ Children.GetMemUsed() + ChildrenData.GetMemUsed()
+		return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
+			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
 			+ sizeof(TBool) + sizeof(int) + sizeof(PGixMerger);
 	}
 	void OnDelFromCache(const TBlobPt& BlobPt, void* Gix);
@@ -350,8 +357,8 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	TGixItemSetChildInfo child_info(ItemV[0], ItemV.Last(), ItemV.Len(), Gix->EnlistChildVector(ItemV), MergedP);
 	Children.Add(child_info);
 	ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it has just been saved to disk...
-	child_info.Loaded = false;       // TODO see above
-	child_info.Dirty = false;        // TODO see above
+	child_info.Loaded = false;       // see above
+	child_info.Dirty = false;        // see above
 	ItemV.Clr();
 }
 
