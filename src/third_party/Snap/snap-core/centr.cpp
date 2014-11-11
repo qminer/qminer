@@ -8,6 +8,50 @@ double GetDegreeCentr(const PUNGraph& Graph, const int& NId) {
   else { return 0.0; }
 }
 
+double GetDegreeCentralization(const PUNGraph& Graph) {
+	int MaxDeg = -1;
+	int N = Graph->GetNodes();
+	int Sum = 0;
+	
+	if (Graph->GetNodes() > 1 && (double(N - 2.0)*double(N - 1)) > 0) {
+
+		for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+			int deg = NI.GetDeg();
+			if (deg > MaxDeg) {
+				MaxDeg = deg;
+			}
+		}
+
+		for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+			Sum += MaxDeg - NI.GetDeg();
+		}
+
+		return double(Sum) / (double(N - 2.0)*double(N - 1));
+
+	}
+	else { return 0.0; }
+}
+
+int GetMaxDegreeCentr(const PUNGraph& Graph) {
+	int MaxDeg = -1;
+	int N = Graph->GetNodes();
+	int NId = -1;
+	if (Graph->GetNodes() > 1) {
+
+		for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++) {
+			int deg = NI.GetDeg();
+			if (deg > MaxDeg) {
+				MaxDeg = deg;
+				NId = NI.GetId();
+			}
+		}
+
+		//return double(Graph->GetNI(NId).GetDeg()) / double(Graph->GetNodes() - 1);
+		return NId;
+	}
+	else { return -1; }
+}
+
 double GetFarnessCentr(const PUNGraph& Graph, const int& NId) {
   TIntH NDistH(Graph->GetNodes());
   TSnap::GetShortPath<PUNGraph>(Graph, NId, NDistH, true, TInt::Mx);
