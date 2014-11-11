@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 var util = require("utilities.js");
+var assert = require("assert.js");
 
 module.exports = require("__analytics__");
 exports = module.exports; // re-establish link
@@ -35,6 +36,7 @@ function createBatchModel(featureSpace, models) {
         for (var cat in this.models) {
             this.models[cat].model.save(sout);
         }
+        return sout;
     }
 
     this.predict = function (record) {
@@ -173,11 +175,11 @@ exports.newBatchModel = function (records, features, target, limitCategories) {
             if (targets[cat].type === "classification") {
                 console.log("newBatchModel", "    ... " + cat + " (classification)");
                 models[cat].model = exports.trainSvmClassify(sparseVecs, targets[cat].target, 
-                    { c: 1, j: 1, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
+                    { c: 1, j: 10, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
             } else if (targets[cat].type === "regression") {
                 console.log("newBatchModel", "    ... " + cat + " (regression)");
                 models[cat].model = exports.trainSvmRegression(sparseVecs, targets[cat].target, 
-                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 600, minDiff: 0.001 });
+                    { c: 1, eps: 1e-2, batchSize: 10000, maxIterations: 100000, maxTime: 1800, minDiff: 0.001 });
             }
         }
     }
@@ -198,9 +200,7 @@ exports.loadBatchModel = function (sin) {
     return new createBatchModel(featureSpace, models);    
 };
 
-function round100(num) { return Math.round(num * 100) / 100; }
-
-function classifcationScore(cats) {
+exports.classifcationScore = function (cats) {
 	this.target = { };
     
 	this.targetList = [ ];
@@ -209,8 +209,9 @@ function classifcationScore(cats) {
 			id: i, count: 0, predictionCount: 0,
 			TP: 0, TN: 0, FP: 0, FN: 0,
 			all : function () { return this.TP + this.FP + this.TN + this.FN; },
-			precision : function () { return this.TP / (this.TP + this.FP); },
-			recall : function () { return this.TP / (this.TP + this.FN); },				
+			precision : function () { return (this.FP == 0) ? 1 : this.TP / (this.TP + this.FP); },
+			recall : function () { return this.TP / (this.TP + this.FN); },
+            f1: function () { return 2 * this.precision() * this.recall() / (this.precision() + this.recall()); },
 			accuracy : function () { return (this.TP + this.TN) / this.all(); }
 		};
 		this.targetList.push(cats[i]);		
@@ -246,13 +247,6 @@ function classifcationScore(cats) {
             }
             // update confusion matrix
         }
-        // update confusion matrix for case when are predicting only one label
-//        if (correct.length == 1 && predicted.length == 1) {
-//            var correct_i = this.target[correct[0]].id;
-//            var predicted_i = this.target[predicted[0]].id;	
-//            var old_count = this.confusion.at(correct_i, predicted_i);
-//            this.confusion.put(correct_i, predicted_i, old_count + 1);
-//        }
 	};
 
 	this.report = function () { 
@@ -260,37 +254,41 @@ function classifcationScore(cats) {
 			console.log(cat + 
 				": Count " + this.target[cat].count + 
 				", All " + this.target[cat].all() + 
-				", Precission " + round100(this.target[cat].precision()) + 
-				", Recall " +   round100(this.target[cat].recall()) +
-				", Accuracy " +   round100(this.target[cat].accuracy()));
+				", Precission " + this.target[cat].precision().toFixed(2) + 
+				", Recall " +  this.target[cat].recall().toFixed(2) +
+				", F1 " + this.target[cat].f1().toFixed(2) +
+				", Accuracy " + this.target[cat].accuracy().toFixed(2));
 		}
 	};
+    
+    this.reportAvg = function () {
+        var count = 0, precision = 0, recall = 0, f1 = 0, accuracy = 0; 
+        for (var cat in this.target) {
+            count++;
+            precision = precision + this.target[cat].precision();
+            recall = recall + this.target[cat].recall();
+            f1 = f1 + this.target[cat].f1();
+            accuracy = accuracy + this.target[cat].accuracy();
+        }
+        console.log("Categories " + count + 
+            ", Precission " + (precision / count).toFixed(2) + 
+            ", Recall " +  (recall / count).toFixed(2) +
+            ", F1 " + (f1 / count).toFixed(2) +
+            ", Accuracy " + (accuracy / count).toFixed(2));        
+    }
 
 	this.reportCSV = function (fout) { 
 		// precison recall
-		fout.writeLine("category,count,precision,recall,accuracy");
+		fout.writeLine("category,count,precision,recall,f1,accuracy");
 		for (var cat in this.target) {
 			fout.writeLine(cat + 
 				"," + this.target[cat].count + 
-				"," + round100(this.target[cat].precision()) + 
-				"," + round100(this.target[cat].recall()) +
-				"," + round100(this.target[cat].accuracy()));
+				"," + this.target[cat].precision().toFixed(2) + 
+				"," + this.target[cat].recall().toFixed(2) +
+				"," + this.target[cat].f1().toFixed(2) +
+				"," + this.target[cat].accuracy().toFixed(2));
 		}
-		// confusion header
-//		fout.writeLine();		
-//		for (var i = 0; i < this.targetList.length; i++) {
-//			fout.write(",");
-//			fout.write(this.targetList[i]);
-//		}
-//		fout.writeLine();
-//		for (var i = 0; i < this.targetList.length; i++) {
-//			fout.write(this.targetList[i]);
-//			for (var j = 0; j < this.targetList.length; j++) {
-//				fout.write(",");
-//				fout.write(this.confusion.at(i,j));
-//			}
-//			fout.writeLine();
-//		}
+        return fout;r
 	};
 	
 	this.results = function () {
@@ -305,7 +303,7 @@ function classifcationScore(cats) {
 	};
 }
 
-//#- `result = analytics.crossValidation(rs, features, target)` -- creates a batch
+//#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
 //#     model for records from record set `rs` using `features; `target` is the
 //#     target field and is assumed discrete; the result is a results object
 //#     with the following API:
@@ -360,18 +358,22 @@ exports.crossValidation = function (records, features, target, folds, limitCateg
 	return cfyRes;
 };
 
-// active learning (analytics:function activeLearner, parameters
-//#- `alModel = analytics.newActiveLearner(fsp, textField, rs, nPos, nNeg, query, c, j)` -- initializes the
+
+//#- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
 //#    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
 //#    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
 //#   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
 //#   is retrained.
-//#   The inputs are the feature space `ftrSpace`, `textField` (string) which is the name
-//#    of the field in records that is used to create feature vectors, `recSet` (record set) a set of records from a store
-//#    that is used as unlabeled data, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
+//#   The inputs are: query (text), record set `qRecSet`, record set `fRecSet`,  the feature space `ftrSpace` and a 
+//#   `settings`JSON object. The settings object specifies:`textField` (string) which is the name
+//#    of the field in records that is used to create feature vectors, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
 //#    examples that have to be identified in the query mode before the program enters SVM mode.
-//#   The next parameter is the `query` (string) which should be related to positive examples. 
-//#   Final Parameters `c` and `j` are SVM parameters.
+//#   We can set two additional parameters `querySampleSize` and `randomSampleSize` which specify the sizes of subsamples of qRecSet and fRecSet, where the rest of the data is ignored in the active learning.
+//#   Final parameters are all SVM parameters (c, j, batchSize, maxIterations, maxTime, minDiff, verbose).
+exports.newActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
+    return new analytics.activeLearner(query, qRecSet, fRecSet, ftrSpace, stts);
+}
+
 exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     var settings = stts || {};
     settings.nPos = stts.nPos || 2;
@@ -383,7 +385,7 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     settings.j = stts.j || 1.0;
     settings.batchSize = stts.batchSize || 100;
     settings.maxIterations = stts.maxIterations || 100000;
-    settings.maxTime = stts.maxTime || 100000;
+    settings.maxTime = stts.maxTime || 1;
     settings.minDiff = stts.minDiff || 1e-6;
     settings.verbose = stts.verbose || false;
 
@@ -402,6 +404,10 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
 
     // query index sample, random sample
     var uRecSet = qRecSet.sample(settings.querySampleSize).setunion(rRecSet);
+
+    //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
+    this.getRecSet = function () { return uRecSet };
+
     var uMat = ftrSpace.ftrSpColMat(uRecSet); uMat.normalizeCols();
 
     var simV = uMat.multiplyT(querySpVec); //similarities (q, recSet)
@@ -412,6 +418,8 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     var nPosQ = 0; //for traversing simVp from the end
     var nNegQ = 0; //for traversing simVp from the start
 
+    //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
+    this.selectedQuestionIdx = -1;
 
     // SVM MODE
     var svm;
@@ -440,29 +448,56 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
       return posIdxArray;
     };
 
+    this.debug = function () { eval(breakpoint);}
+
+    this.getTop = function (limit) {
+        if (this.queryMode) { return null; } // must be in SVM mode to return results
+        if (!limit) { limit = 20; }
+        var idxArray = [];
+        var marginArray = [];
+        var sorted = resultVec.sortPerm(false);
+        for (var recN = 0; recN < uRecSet.length && recN < limit; recN++) {
+            idxArray.push(sorted.perm[recN]);
+            var val = sorted.vec[recN];
+            val = val == Number.POSITIVE_INFINITY ? Number.MAX_VALUE : val;
+            val = val == Number.NEGATIVE_INFINITY ? -Number.MAX_VALUE : val;
+            marginArray.push(val);
+        }
+        return { posIdx: idxArray, margins: marginArray };
+    };
+
+    //#   - `objJSON = alModel.getSettings()` -- returns the settings object
+    this.getSettings = function() {return settings;}
+
     // returns record set index of the unlabeled record that is closest to the margin
-    //#   - `recSetIdx = model.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
+    //#   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
     this.selectQuestion = function () {
         if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
         if (queryMode) {
             if (posRecIdV.length < settings.nPos && nPosQ + 1 < uRecSet.length) {
                 nPosQ = nPosQ + 1;
                 console.say("query mode, try to get pos");
-                return simVp[simVp.length - 1 - (nPosQ - 1)];
+                this.selectedQuestionIdx = simVp[simVp.length - 1 - (nPosQ - 1)];
+                return this.selectedQuestionIdx;
             }
             if (negRecIdV.length < settings.nNeg && nNegQ + 1 < uRecSet.length) {
                 nNegQ = nNegQ + 1;
                 // TODO if nNegQ == rRecSet.length, find a new sample
                 console.say("query mode, try to get neg");
-                return simVp[nNegQ - 1];
+                this.selectedQuestionIdx = simVp[nNegQ - 1];
+                return this.selectedQuestionIdx;
             }
         }
         else {
             ////call svm, get record closest to the margin            
             //console.startx(function (x) { return eval(x); });
             svm = analytics.trainSvmClassify(X, y, settings); //column examples, y float vector of +1/-1, default svm paramvals
+            
             // mark positives
-            for (var i = 0; i < posIdxV.length; i++) { classVec[posIdxV[i]] = Number.POSITIVE_INFINITY; }
+            for (var i = 0; i < posIdxV.length; i++) {
+                classVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
+                resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
+            }
             // mark negatives
             for (var i = 0; i < negIdxV.length; i++) { 
               classVec[negIdxV[i]] = Number.POSITIVE_INFINITY;
@@ -485,11 +520,13 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
             }
             var sorted = classVec.sortPerm();
             console.say("svm mode, margin: " + sorted.vec[0] + ", npos: " + posCount + ", nneg: " + negCount);
-            return sorted.perm[0];
+            this.selectedQuestionIdx = sorted.perm[0];
+            return this.selectedQuestionIdx;
         }
+
     };
     // asks the user for class label given a record set index
-    //#   - `model.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
+    //#   - `alModel.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
     //#      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
     this.getAnswer = function (ALanswer, recSetIdx) {
         //todo options: ?newQuery
@@ -507,7 +544,7 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
         // +k query // rank unlabeled according to query, ask for k most similar
         // -k query // rank unlabeled according to query, ask for k least similar
     };
-    //#   - `model.startLoop()` -- starts the active learning loop in console
+    //#   - `alModel.startLoop()` -- starts the active learning loop in console
     this.startLoop = function () {
         while (true) {
             var recSetIdx = this.selectQuestion();
@@ -518,15 +555,19 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
             this.getAnswer(ALanswer, recSetIdx);
         }
     };
-    //#   - `model.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
+    //#   - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
     this.saveSvmModel = function (outputStream) {
         // must be in SVM mode
         if (queryMode) {
             console.say("AL.save: Must be in svm mode");
             return;
         }
-        svm.save(outputStream);
+        svm.save(outputStream);        
     };
+
+    this.getWeights = function () {
+        return svm.weights;
+    }
     //this.saveLabeled
     //this.loadLabeled
 };
@@ -602,14 +643,14 @@ exports.ridgeRegression = function (kappa, dim, buffer) {
 };
 
 ///////// CLUSTERING BATCH K-MEANS
-//#- `mat2 = analytics.computeKmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+//#- `kmeansResult = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
 //#   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
-//#   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
-//#    is a cluster centroid.
-//#- `mat2 = analytics.computeKmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
-//#   matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
-//#   `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
-//#    is a cluster centroid.
+//#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+//#    is a cluster centroid and an index array of cluster indices for each data point.
+//#- `kmeansResult = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+//#   sparse matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
+//#   `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+//#    is a cluster centroid and an index array of cluster indices for each data point.
 exports.kmeans = function(X, k, iter) {
     // select random k columns of X, returns a dense C++ matrix
     var selectCols = function (X, k) {
@@ -687,7 +728,10 @@ exports.kmeans = function(X, k, iter) {
         C = getCentroids(X, idxv, C); //drag
     }
     w.toc("end");
-    return C;
+    var result = {};
+    result.C = C;
+    result.idxv = idxv;
+    return result;
 };
 
 
@@ -1217,3 +1261,114 @@ exports.extendedKalmanFilter = function (dynamParams, measureParams, controlPara
     };
 
 };
+
+///////// Rocchio classification 
+//# - `model = analytics.newRocchio(trainMat, targetVec)` -- train Rocchio model 
+//      using columns from `trainMat` as feature vectors and values from `targetVec` to 
+//      indicate positive (>0) or negative (<=0) class. Returned `model` has a function 
+//      `predict`, which returns +1 for positive and -1 for negative classification. 
+//      Rocchio centroids are stored as `model.pos` and `model.neg`.
+exports.newRocchio = function (trainMat, targetVec, params) {
+	// parse parameters; magic default values according to C. Buckley, G. Salton, and J. Allan.
+	// The effect of adding relevance information in a relevance feedback environment. SIGIR-94, 1994
+	var alpha = params.alpha ? params.alpha : 16;
+	var beta = params.beta ? params.beta : 4;
+	// get column norms, used in filter to normalize columns
+	var colNorm = trainMat.colNorms();
+	// go over matrix and add them to the appropriate centroid
+	var posFilter = la.newVec({ mxvals: trainMat.cols });
+	var negFilter = la.newVec({ mxvals: trainMat.cols });
+	var posCount = 0, negCount = 0;
+	for (var i = 0; i < trainMat.cols; i++) {
+		if (targetVec[i] > 0) {
+			posCount++;
+			posFilter.push(1.0 / colNorm[i]);
+			negFilter.push(0.0);
+		} else {
+			negCount++;
+			posFilter.push(0.0);
+			negFilter.push(1.0 / colNorm[i]);
+		}
+	}
+    console.log(" - Rocchio training: P=" + posCount + ", N=" + negCount);
+
+	// check we have some of each class
+	if (posCount == 0 || negCount == 0) { 
+		console.log("Not enough positive and/or negative examples: P=" + posCount + " / N=" + negCount);
+		return null;
+	}
+	// prepare sum positives and negatives
+	var posSum = trainMat.multiply(posFilter);
+	var negSum = trainMat.multiply(negFilter);
+	// prepare model centroids
+	var posModel = posSum.multiply(alpha / posCount).minus(negSum.multiply(beta / negCount));
+	var negModel = negSum.multiply(alpha / negCount).minus(posSum.multiply(beta / posCount));
+	// prepare and return model object with centroids
+	return {
+		pos: posModel,
+		neg: negModel,
+		predict: function (vec) {
+			var posScore = this.pos.inner(vec);
+			var negScore = this.neg.inner(vec);
+			return (posScore > negScore) ? 1 : -1;
+		}
+	};
+}
+
+///////// Learning with positive and unlabled examples
+//# - `result = newPULearning(trainMat, posVec, params)` -- apply PU learning 
+//      to `trainMat` using  positive examples in `posVec` (value > 0) to 
+//      bootstrap a model and classfiy rest of examples. Parameters `params` 
+//      are passed to first step Rocchio model (alpha and beta) and to second 
+//      step SVM model (C, j, time, ...). Result contains `result.classVec` 
+//      containing 1 for positive and -1 for negative examples, according to 
+//      bootstraped SVM, and the SVM model itself as `result.svm`. Implemented 
+//      based on **Li, Xiaoli, and Bing Liu. "Learning to classify texts using 
+//      positive and unlabeled data." IJCAI. Vol. 3. 2003.**
+exports.newPULearning = function (trainMat, posVec, params) {
+	// We start by preparing classification result vector, with what we know (positive data)
+	var cols = trainMat.cols, posCount = 0, negCount = 0;
+	var classVec = la.newVec({ mxvals: cols });
+	for (var i = 0; i < cols; i++) { classVec.push(posVec[i] > 0 ? 1 : 0); }
+	// (1) Do Rocchio to get initial set of reliable negative data
+	console.log(" - training Rocchio model");
+	// we assumed all unlabled vectors as negative for now
+	var rocchioTargetVec = la.newVec({ mxvals: cols });
+	for (var i = 0; i < cols; i++) { rocchioTargetVec.push(classVec[i] > 0 ? 1 : -1); }
+	// train rocchio model
+	var rocchio = exports.newRocchio(trainMat, rocchioTargetVec, params)
+	// apply to get reliable negative data
+	for (var i = 0; i < cols; i++) { 
+		if (classVec[i] > 0) {
+			posCount++;
+		} else {
+			if (rocchio.predict(trainMat[i]) < 0) {
+				classVec[i] = -1;
+				negCount++;
+			}
+		}
+	}
+	console.log(" - after step 1: P=" + posCount + ", N=" + negCount + ", U=" + (cols-posCount-negCount));
+	// (2) use this to train SVM model and apply it to remaining unlabled data
+	// TODO: iterate SVM models and check for divergence
+	console.log(" - training SVM model");
+	// train SVM model
+	var svm = analytics.trainSvmClassify(trainMat, classVec, params);
+	// apply to all data
+    posCount = 0; negCount = 0;
+	for (var i = 0; i < cols; i++) {
+		//if (classVec[i] == 0) {
+			// unlabled example, let's classify it!
+			if (svm.predict(trainMat[i]) > 0) {
+				classVec[i] = 1;
+				posCount++;
+			} else {
+				classVec[i] = -1;
+				negCount++;
+			}
+		//}
+	}
+	console.log(" - after step 2: P=" + posCount + ", N=" + negCount);	
+	// we are complete
+	return { "classVec" : classVec, "svm" : svm };
+}

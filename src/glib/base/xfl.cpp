@@ -198,7 +198,7 @@ bool TFFile::Next(TStr& FNm){
 
         struct stat Stat;
         int ErrCd = stat(FNm.CStr(), &Stat);
-        EAssert(ErrCd==0); // !bn: assert-with-exception [pa se drugje po tej funkciji]
+        EAssert(ErrCd==0);
 
         if (S_ISREG(Stat.st_mode)) {
           if ((FBase!=".")&&(FBase!="..")){

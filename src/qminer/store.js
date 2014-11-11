@@ -23,15 +23,13 @@ qm.storeProto.addStreamAggr = function (param) { return qm.newStreamAggr(param, 
 qm.storeProto.toString = function () {
     return JSON.stringify(this.toJSON());
 }
-//#- `store.each(callback)` -- call `callback` on each element of the store
-qm.storeProto.each = function (callback) {
+qm.storeProto.__each = function (callback) {
     var iter = this.forwardIter, i = 0;
     while (iter.next()) {
         callback(iter.rec, i++);
     }
 }
-//#- `arr = store.map(callback)` -- call `callback` on each element of the store and store result to `arr`
-qm.storeProto.map = function (callback) {
+qm.storeProto.__map = function (callback) {
     var iter = this.forwardIter, i = 0, result = [];
     while (iter.next()) {
         result.push(callback(iter.rec, i++));

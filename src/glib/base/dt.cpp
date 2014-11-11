@@ -766,6 +766,10 @@ int TRStr::GetSecHashCd() const {
   return TStrHashF_DJB::GetSecHashCd(Bf);
 }
 
+int TRStr::GetHashTrick() const {
+  return TStrHashF_Murmur3::GetPrimHashCd(Bf);
+}
+
 /////////////////////////////////////////////////
 // String
 TRStr* TStr::GetRStr(const char* CStr){
