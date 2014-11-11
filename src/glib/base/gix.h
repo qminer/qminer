@@ -154,7 +154,7 @@ private:
 	TVec<int> ItemVDel;
 	/// Combined count - from this itemset and children
 	int TotalCnt;
-
+	
 	// optional data about child vectors - will be populated only for frequent keys
 	mutable TVec<TGixItemSetChildInfo> Children;
 
@@ -164,7 +164,7 @@ private:
 	// for keeping the ItemV unique and sorted
 	TBool MergedP;
 	// pointer to merger that will merge this itemset
-	PGixMerger Merger;
+	const PGixMerger Merger;
 	// pointer to gix - the storage-layer (serialization of self, loading children, notifying about chnages...)
 	const TGix<TKey, TItem> *Gix;
 
@@ -264,13 +264,9 @@ public:
 	void DefLocal();
 	
 	/// Tests if current itemset is full and subsequent item should be pushed to children
-	bool IsFull() {
-		return (ItemV.Len() >= SplitLen);
+	bool IsFull() const {
+		return (ItemV.Len() >= Gix->GetSplitLen());
 	}
-
-	/// Size of work-buffer
-	static int SplitLen;
-
 
 	friend class TPt < TGixItemSet > ;
 #ifdef GIX_TEST
@@ -306,8 +302,6 @@ void TGixItemSet<TKey, TItem>::Print() const {
 }
 
 #endif
-
-int TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 10000;
 
 template <class TKey, class TItem>
 const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
@@ -530,9 +524,9 @@ void TGixItemSet<TKey, TItem>::Def() {
 			int remaining = MergedItems.Len() - curr_index;
 			int child_index = first_child_to_merge;
 			while (curr_index < MergedItems.Len()) {
-				if (child_index < Children.Len() && remaining > SplitLen) {
+				if (child_index < Children.Len() && remaining > Gix->GetSplitLen()) {
 					ChildrenData[child_index].Clr();
-					MergedItems.GetSubValV(curr_index, curr_index + SplitLen - 1, ChildrenData[child_index]);
+					MergedItems.GetSubValV(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
 					Children[child_index].Len = ChildrenData[child_index].Len();
 					Children[child_index].MinVal = ChildrenData[child_index][0];
 					Children[child_index].MaxVal = ChildrenData[child_index].Last();
@@ -643,15 +637,19 @@ private:
 	void DeleteChildVector(const TBlobPt& KeyId) const;
 	/// For enlisting new child vectors into blob
 	TBlobPt EnlistChildVector(const TVec<TItem>& Data) const;
+	/// Size of work-buffer
+	int SplitLen;
 
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		const PGixMerger& _Merger = _TGixDefMerger::New());
+		const PGixMerger& _Merger = _TGixDefMerger::New(),
+		int _SplitLen = 1000000);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		const PGixMerger& Merger = _TGixDefMerger::New()) {
-		return new TGix(Nm, FPath, Access, CacheSize, Merger);
+		const PGixMerger& Merger = _TGixDefMerger::New(),
+		int _SplitLen = 1000000) {
+		return new TGix(Nm, FPath, Access, CacheSize, Merger, _SplitLen);
 	}
 
 	~TGix();
@@ -661,6 +659,8 @@ public:
 	bool IsCacheFullP() const { return CacheFullP; }
 	TStr GetFPath() const { return GixFNm.GetFPath(); }
 	int64 GetMxCacheSize() const { return GetMxMemUsed(); }
+	int GetSplitLen()const { return SplitLen; };
+
 
 	/// do we have Key in the index?
 	bool IsKey(const TKey& Key) const { return KeyIdH.IsKey(Key); }
@@ -746,9 +746,10 @@ TBlobPt TGix<TKey, TItem>::GetKeyId(const TKey& Key) const {
 
 template <class TKey, class TItem>
 TGix<TKey, TItem>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-	const int64& CacheSize, const TPt<TGixMerger<TKey, TItem> >& _Merger) : Access(_Access),
+	const int64& CacheSize, const TPt<TGixMerger<TKey, TItem> >& _Merger,
+	int _SplitLen) : Access(_Access),
 	ItemSetCache(CacheSize, 1000000, GetVoidThis()),
-	Merger(_Merger) {
+	Merger(_Merger), SplitLen(_SplitLen) {
 
 	// filenames of the GIX datastore
 	GixFNm = TStr::GetNrFPath(FPath) + Nm.GetFBase() + ".Gix";

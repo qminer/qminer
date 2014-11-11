@@ -43,7 +43,7 @@ class XTest {
 public:
 
 	void Test_Simple_1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		gix.AddItem(x, 7234);
@@ -60,7 +60,7 @@ public:
 	}
 
 	void Test_Simple_220() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -87,7 +87,7 @@ public:
 	}
 
 	void Test_Simple_220_Unsorted() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -122,7 +122,7 @@ public:
 	}
 
 	void Test_Merge_220_Into_50() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -150,7 +150,7 @@ public:
 	}
 
 	void Test_Merge_220_Into_120() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -182,7 +182,7 @@ public:
 	}
 
 	void Test_Merge_22000_Into_50() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 22000; i++) {
@@ -235,7 +235,7 @@ public:
 		printf("Overwritting counts done.\n");
 	}
 
-	void Test_Feed(int cache_size = 50 * 1024 * 1024) {
+	void Test_Feed(int cache_size = 50 * 1024 * 1024, int split_len = 100) {
 		TStr Nm("Test_Feed");
 		TStr FName("data");
 		int total = 30000;
@@ -245,7 +245,7 @@ public:
 		{
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
-			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, cache_size);
+			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, cache_size, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), split_len);
 			TRnd rnd(1);
 			for (int j = 0; j < total; j++) {
 				// every doc containes the same 5 words
@@ -300,7 +300,7 @@ public:
 	}
 
 	void Test_Delete_1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		gix.AddItem(x, 7234);
@@ -324,7 +324,7 @@ public:
 	}
 
 	void Test_Delete_20() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 20; i++) {
@@ -351,7 +351,7 @@ public:
 	}
 
 	void Test_Delete_20And1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 20; i++) {
@@ -379,7 +379,7 @@ public:
 	}
 
 	void Test_Delete_120() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
@@ -406,7 +406,7 @@ public:
 	}
 
 	void Test_Delete_120And1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
@@ -434,7 +434,7 @@ public:
 	}
 
 	void Test_Delete_120And110() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
@@ -462,7 +462,7 @@ public:
 	}
 
 	void Test_Delete_22000And1000() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 1000000);
+		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 1000000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
 		int xx = 122;
 		int all = 22000;
 		int to_delete = 980;
@@ -497,7 +497,6 @@ public:
 	}
 
 	void PerformTests() {
-		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 100;
 
 		Test_Simple_1();
 		Test_Simple_220();
@@ -516,19 +515,16 @@ public:
 
 		// this will split only big itemsets
 		WarnNotifyI(TStr("Split only big itemsets\n"));
-		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 1000;
-		Test_Feed();
+		Test_Feed(50*1024*1025, 1000);
 
 		// this will split probably all itemsets
 		WarnNotifyI(TStr("Split all itemsets\n"));
-		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 100;
-		Test_Feed();
+		Test_Feed(50 * 1024 * 1025, 100);
 
 		// this will split probably all itemsets
 		// it will also limit cache to less than 10% of the itemsets
 		WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		TGixItemSet<TIntUInt64Pr, TUInt64>::SplitLen = 100;
-		Test_Feed(1 * 1024 * 1024);
+		Test_Feed(1 * 1024 * 1025, 1000);
 	}
 };
 

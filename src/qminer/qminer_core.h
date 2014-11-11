@@ -2108,6 +2108,7 @@ public:
 		void Merge(TQmGixItemV& ItemV) const;
 		void Def(const TQmGixKey& Key, TQmGixItemV& MainV) const {}
 		bool IsLt(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 < Item2; }
+		bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
 	};
 
 	/// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
