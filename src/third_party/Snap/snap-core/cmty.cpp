@@ -950,7 +950,7 @@ namespace TSnap {
 		return Json;
 	}
 
-	void GraphVFile(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
+	void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
 
 		if (InFNm.GetCh(InFNm.Len() - 1) == '/' || InFNm.GetCh(InFNm.Len() - 1) == '\\') {
 			TFFile FFile(InFNm);  TStr FNm;
@@ -971,10 +971,7 @@ namespace TSnap {
 
 			TIntIntVH CommsAtT;
 
-
 			while (!Ss.Eof()) {
-
-				//printf("%i\n", t);
 				Marker = Ss.GetLnStr();
 				// get the year from the network seperator
 				if (Marker.GetCh(0) == '#'){
@@ -997,11 +994,64 @@ namespace TSnap {
 						if (!Ss.Eof())
 							Marker = Ss.GetLnStr();
 					} while (Marker.GetCh(0) != '#' && !Ss.Eof());
-
-
 					if (Graph->GetNodes()>0) {
 						gs.Add(Graph);
 					}
+				}
+			}
+		}
+	}
+
+	void GraphVAt(TStr InFNm, PUNGraph& Graph, int at) {
+
+		if (InFNm.GetCh(InFNm.Len() - 1) == '/' || InFNm.GetCh(InFNm.Len() - 1) == '\\') {
+			TFFile FFile(InFNm);  TStr FNm;
+			for (int t = 0; FFile.Next(FNm); t++) {
+				if (t == at) {
+					Graph = TSnap::LoadEdgeList<PUNGraph>(FNm.CStr(), 0, 1);
+				}
+			}
+		}
+		else {
+			TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
+			Ss.Next();
+			int internal_year_counter = 0;
+			int newcom = 0;
+			TStr Marker = "";
+			int SrcNId, DstNId;
+
+			TIntIntVH CommsAtT;
+
+
+			while (!Ss.Eof() && Graph->GetNodes() == 0) {
+
+				//printf("%i\n", t);
+				Marker = Ss.GetLnStr();
+				// get the year from the network seperator
+				if (Marker.GetCh(0) == '#'){
+					Ss.Next();
+					if (internal_year_counter == at) {
+						do{
+							if (!Ss.GetInt(0, SrcNId) || !Ss.GetInt(1, DstNId)) {
+								if (!Ss.Eof()){
+									Ss.Next();
+									if (!Ss.Eof())
+										Marker = Ss.GetLnStr();
+								}
+								continue;
+							}
+							if (!Graph->IsNode(SrcNId)) { Graph->AddNode(SrcNId); }
+							if (!Graph->IsNode(DstNId)) { Graph->AddNode(DstNId); }
+							Graph->AddEdge(SrcNId, DstNId);
+							Ss.Next();
+							if (!Ss.Eof())
+								Marker = Ss.GetLnStr();
+						} while (Marker.GetCh(0) != '#' && !Ss.Eof());
+					}
+					internal_year_counter++;
+				}
+				else {
+					Ss.Next();
 				}
 			}
 		}
