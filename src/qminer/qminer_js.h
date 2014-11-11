@@ -3600,8 +3600,12 @@ public:
 	JsDeclareFunction(newDGraph);
 	//#- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
 	JsDeclareFunction(newDMGraph);
+	//#- `graph = snap.newUGraphArray()` -- generate an array of undirected graphs
+	JsDeclareFunction(newUGraphArray);
 	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(degreeCentrality);
+	//#- `number = snap.degreeCentralization(UGraph)` -- returns degree centralization of a graph
+	JsDeclareFunction(degreeCentralization);
 	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
@@ -3610,9 +3614,9 @@ public:
 	JsDeclareFunction(evolutionJson);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
-	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
+	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- returns reeb simplification directed graph
 	JsDeclareFunction(reebSimplify);
-	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
+	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return reeb refinement directed graph
 	JsDeclareFunction(reebRefine);
 };
 
@@ -3645,6 +3649,10 @@ private:
 		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
 	};
 
+	TJsGraph(TWPt<TScript> _Js, TPt<T> _graph) : Js(_Js) {
+		Graph = _graph;
+	};
+
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
@@ -3655,6 +3663,13 @@ public:
 	}
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TPt<T> _graph, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, _graph));
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
 		obj->SetHiddenValue(key, value);
