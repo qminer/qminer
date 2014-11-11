@@ -3,6 +3,7 @@ snap = require('snap.js');
 viz = require('visualization.js');
 utilities = require('utilities.js');
 
+// BASIC OPERATIONS
 // Creating a new graph, adding nodes and edges
 
 console.log("creating 1) undirected, 2) directed and  3) directe-multi graph");
@@ -82,44 +83,71 @@ for (var i = 0; i < graphs.length; i++) {
     communities.push(snap.communityDetection(graphs[i], "gn"));
 }
 
-console.log("Have a break");
-eval(breakpoint);
+///
+/// END - BASIC OPERATIONS
 
-var t = utilities.newIntIntH();
-var c = utilities.newIntIntH();
-var s = utilities.newIntIntH();
-var e = la.newIntVec()
-var m = la.newSpMat();
-var graph = snap.newDGraph();
-snap.communityEvolution("./data/2.edg", 0.5, 0.5, graph, t, c, s, e, m);
+
+///
+/// COMMUNITY EVOLUTION
+///
+
+// creating hash tables for community evolultion
+var t = utilities.newIntIntH(); // time
+var c = utilities.newIntIntH(); // community membership
+var s = utilities.newIntIntH(); // community size
+var e = la.newIntVec() // vector of edge weights (should be changed to triples or similar)
+var m = la.newSpMat(); // community member ids from original graph
+var graph = snap.newDGraph(); // directed graph of evolution
+
+var gs = new Array();
+
+// community evolution algorithm
+snap.communityEvolution(gs, 0.5, 0.5, graph, t, c, s, e, m, "./data/2.edg"); //
+
+
+// hash table for evolution nodes (communities) text
+var txtHash = utilities.newIntStrH();
 var txt = utilities.newIntStrH();
 
+// reading text data
+fin = fs.openRead("data\\data.txt");
+while (!fin.eof) {
+    var line = fin.readLine();
+    var vals = line.split('\t');
+    var id = -1;
+    var text = "";
+    if (vals.length == 2) {
+        id = parseInt(vals[0]);
+        text = String(vals[1]);
+        txtHash.put(id, text);
+    }
+}
+
+// assigning text to communities based on the members
 graph.eachNode(function (N) {
     var id = N.id;
     var someText = "";
-    var spVec = m[id].valVec();
+    var spVec = m[id].idxVec();
     for (var i = 0; i < spVec.length; i++) {
-        if (spVec[i] != 0)
-            someText += spVec[i].toString() + " ";
+        if (txtHash.hasKey(spVec[i])) {
+            someText += txtHash.get(spVec[i]) + " ";
+        }
     }
     txt.put(id, someText);
+    
 });
 
+// drawing community evolution graph
 var json_string = snap.evolutionJson(graph, t, c, s, e, txt);
-eval(breakpoint);
 var obj_out = eval("(" + json_string + ')');
 viz.drawCommunityEvolution(JSON.stringify(obj_out), "./out/cmty.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
 
-console.log("C eval ????");
-eval(breakpoint);
+// END - Community evolution
 
-// return json string of graph evolution
-var json = snap.evolutionJs(communities, 0.5, 0.75);
 
-console.log("heyo");
-
-// plot the community evolution graph
-viz.drawCommunityEvolution(JSON.stringify(json), "./out/cmty_evolution.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+//
+// OTHER
+//
 
 // load a new graph from a file
 console.log("Loading cobiss graph 1970-1975.edg");
@@ -127,18 +155,15 @@ var g = snap.newUGraph("./data/researchersBib_1970-1975.edg");
 console.log("Done loading graph. N = " + g.nodes+ ", E = " + g.edges);
 var g = snap.removeNodes(g, 3);
 
-// detect communities using 2 different algorithms
-console.log("Calculating communities using Clauset-Newman-Moore community detection method");
+// detect communities
 var CmtyCNM = snap.communityDetection(g, "cnm");
-console.log("communities count: " + CmtyCNM.cols);
-
-// core periphery
-var CP = snap.corePeriphery(g, "lip");
 
 // draw the graph using two different colorings
-
 viz.drawGraph(g, "./out/gCNM.html", { "color": CmtyCNM });
-viz.drawGraph(g, "./out/gImap.html", { "color": CmtyImap });
+//viz.drawGraph(g, "./out/gCNM.html", {});
+
+
+// END  - other
 
 console.log("Done");
 eval(breakpoint);
