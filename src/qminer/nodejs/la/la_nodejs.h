@@ -9,25 +9,6 @@
 
 // NOTE: This is *not* the same as in QMiner JS. 
 #define JsDeclareProperty(Function) \
-<<<<<<< .merge_file_a08792
-	static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info);
-
-#define JsDeclareFunction(Function) \
-   static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
-#define QmAssert(Cond) \
-  if (!(Cond)) { Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); }
-
-// XXX: The macro expects that the variable Isolate exists. 
-#define QmAssertR(Cond, MsgStr) \
-  if (!(Cond)) { Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, MsgStr))); }
-
-#define QmFailR(MsgStr) \
-   Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, MsgStr)));
-=======
 	static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
 	static void _ ## Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
 	   v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
@@ -77,7 +58,6 @@
 #define QmFailR(MsgStr) \
    Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
          v8::String::NewFromUtf8(Isolate, MsgStr)))); return;
->>>>>>> .merge_file_a04824
 
 class TNodeJsUtil {
 public:
@@ -88,11 +68,7 @@ public:
 		if (Args.Length() > ArgN) {
 			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
 				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
-<<<<<<< .merge_file_a08792
-				 QmAssertR(Val->IsBoolean(),
-=======
 				 EAssertR(Val->IsBoolean(),
->>>>>>> .merge_file_a04824
 				   TStr::Fmt("Argument %d, property %s expected to be boolean", ArgN, Property.CStr()).CStr());
 				 return static_cast<bool>(Val->BooleanValue());
 			}
@@ -105,11 +81,7 @@ public:
 		if (Args.Length() > ArgN) {			
 			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
 				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
-<<<<<<< .merge_file_a08792
-				 QmAssertR(Val->IsInt32(),
-=======
 				 EAssertR(Val->IsInt32(),
->>>>>>> .merge_file_a04824
 				   TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
 				 return Val->ToNumber()->Int32Value();
 			}
@@ -136,13 +108,8 @@ public:
 	static bool IsArgClass(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-<<<<<<< .merge_file_a08792
-		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()).CStr());
-      QmAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!").CStr());
-=======
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()).CStr());
       EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!").CStr());
->>>>>>> .merge_file_a04824
 		v8::Handle<v8::Value> Val = Args[ArgN];
 	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);			
 		TStr ClassStr = GetClass(Data);
@@ -222,13 +189,9 @@ class TNodeJsVec : public node::ObjectWrap {
 public: // So we can register the class 
    static void Init(v8::Handle<v8::Object> exports);
    // Does the job of the new operator in Javascript 
-<<<<<<< .merge_file_a08792
-   static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args);
-=======
    static v8::Handle<v8::Value> NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args);
    static v8::Local<v8::Object> New(const TFltV& FltV);
    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
->>>>>>> .merge_file_a04824
 public:
    TNodeJsVec() { }
    TNodeJsVec(const TFltV& FltV) : Vec(FltV) { }
@@ -318,11 +281,8 @@ private:
 class TNodeJsFltVV : public node::ObjectWrap {
 public:
    static void Init(v8::Handle<v8::Object> exports);
-<<<<<<< .merge_file_a08792
-=======
    static v8::Handle<v8::Value> New(const TFltVV& FltVV);
    static v8::Handle<v8::Value> New(v8::Local<v8::Array> Arr);
->>>>>>> .merge_file_a04824
 public:
    TNodeJsFltVV() { } 
    TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { } 

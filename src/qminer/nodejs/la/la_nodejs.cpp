@@ -27,11 +27,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
    // Add all prototype methods, getters and setters here.
    NODE_SET_PROTOTYPE_METHOD(tpl, "newIntVec", newIntVec);
    NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
-<<<<<<< .merge_file_a08808
-   // (TODO) NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", subVec);
-=======
    NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", subVec);
->>>>>>> .merge_file_a08388
    NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
    NODE_SET_PROTOTYPE_METHOD(tpl, "push", push);
    NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", unshift);
@@ -62,11 +58,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 
 // Creates a new instance of the object -- esentially does the job of Javascript new operator 
 template <typename TVal, typename TAux>
-<<<<<<< .merge_file_a08808
-void TNodeJsVec<TVal, TAux>::NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-=======
 v8::Handle<v8::Value> TNodeJsVec<TVal, TAux>::NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args) {
->>>>>>> .merge_file_a08388
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    
@@ -75,9 +67,6 @@ v8::Handle<v8::Value> TNodeJsVec<TVal, TAux>::NewInstance(const v8::FunctionCall
    v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
    v8::Local<v8::Object> Instance = Cons->NewInstance(Argc, Argv);
    
-<<<<<<< .merge_file_a08808
-   Args.GetReturnValue().Set(Instance);
-=======
    return Args.GetReturnValue().Set(Instance);
 }
 
@@ -103,7 +92,6 @@ v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(v8::Local<v8::Array> Arr) {
    v8::Handle<v8::Value> Argv[Argc] = { Arr };
    v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
    return HandleScope.Escape(Cons->NewInstance(Argc, Argv));
->>>>>>> .merge_file_a08388
 }
 
 template <typename TVal, typename TAux>
@@ -181,44 +169,6 @@ void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args)
    
    QmAssertR(Args.Length() >= 1 && Args[0]->IsInt32(), "Expected integer.");
    const int Idx = Args[0]->IntegerValue();
-<<<<<<< .merge_file_a08808
-   QmAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
-   
-   Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.GetVal(Idx).Val));
-}
-
-//void TNodeJsVec::subVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//   v8::HandleScope HandleScope(Isolate);
-//   TNodeJsVec* JsVec = ObjectWrap::Unwrap<TNodeJsVec>(Args.This());
-   /*
-   if (Args.Length() > 0) {
-		if (TJsVecUtil::IsArgClass(Args, 0, "TIntV")) {
-			TJsIntV* IdxV = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
-			int Len = IdxV->Vec.Len();
-			TVec<TVal> Res(Len);
-			for (int ElN = 0; ElN < Len; ElN++) {
-				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
-			}
-			return TJsVec<TVal, TAux>::New(JsVec->Js, Res);
-		}
-		else if (Args[0]->IsArray()) {
-			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
-			v8::Handle<v8::Object> V8IdxVObj = v8::Handle<v8::Object>::Cast(V8IdxV);
-			v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(V8IdxVObj->GetInternalField(0));
-			TJsIntV* IdxV = static_cast<TJsIntV*>(WrappedObject->Value());
-			int Len = IdxV->Vec.Len();
-			TVec<TVal> Res(Len);
-			for (int ElN = 0; ElN < Len; ElN++) {
-				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
-			}
-			return TJsVec<TVal, TAux>::New(JsVec->Js, Res);
-		}		
-	}
-	*/
-//   Args.GetReturnValue().Set();
-//}
-=======
    
    QmAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
    Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.GetVal(Idx).Val));
@@ -263,18 +213,13 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 	   QmFailR("No arguments.");
 	}
 }
->>>>>>> .merge_file_a08388
 
 // Returns the sum of the vectors elements (only make sense for numeric values) 
 template <class TVal, class TAux>
 void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-<<<<<<< .merge_file_a08808
-   TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
-=======
    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
->>>>>>> .merge_file_a08388
    TFlt Sum = 0.0;
    for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
       Sum += JsVec->Vec.GetVal(ElN);
@@ -294,11 +239,7 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
    EAssertR(Args[1]->IsNumber(),
       "Second argument should be a number.");
    
-<<<<<<< .merge_file_a08808
-   TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
-=======
    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
->>>>>>> .merge_file_a08388
    
    const int Idx = Args[0]->IntegerValue();
    
@@ -347,11 +288,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-<<<<<<< .merge_file_a08808
-   TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
-=======
    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
->>>>>>> .merge_file_a08388
    
    double MxVal = JsVec->Vec.GetVal(0);
    int MxIdx = 0;
@@ -367,25 +304,15 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-<<<<<<< .merge_file_a08808
-=======
    
->>>>>>> .merge_file_a08388
    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
    
    const bool Asc = Args.Length() > 0 && Args[0]->BooleanValue();
    
-<<<<<<< .merge_file_a08808
-   TNodeJsVec<TVal, TAux>* JsResV = new TNodeJsVec<TVal, TAux>(JsVec->Vec);
-   JsResV->Wrap(Args.This());
-   Args.GetReturnValue().Set(JsResV);
-   JsResV->Vec.Sort(Asc);
-=======
    TFltV ResV(JsVec->Vec);
    ResV.Sort(Asc);
    
    Args.GetReturnValue().Set(New(ResV));
->>>>>>> .merge_file_a08388
 }
 
 template <typename TVal, typename TAux>
@@ -444,19 +371,10 @@ void TNodeJsVec<TVal, TAux>::plus(const v8::FunctionCallbackInfo<v8::Value>& Arg
    
    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
    TNodeJsVec<TVal, TAux>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
-<<<<<<< .merge_file_a08808
-   TFltV Result;
-   TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
-   
-   TNodeJsVec<TVal, TAux>* JsResVec = new TNodeJsVec<TVal, TAux>(Result);
-   JsResVec->Wrap(Args.This());
-   Args.GetReturnValue().Set(JsResVec);
-=======
    TFltV Result(JsVec->Vec.Len());
    TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
    
    Args.GetReturnValue().Set(New(Result));
->>>>>>> .merge_file_a08388
 }
 
 template<typename TVal, typename TAux>
@@ -472,13 +390,7 @@ void TNodeJsVec<TVal, TAux>::minus(const v8::FunctionCallbackInfo<v8::Value>& Ar
    TFltV Result; Result.Gen(JsVec->Vec.Len());
    TLinAlg::LinComb(1.0, JsVec->Vec, -1.0, OthVec->Vec, Result);
    
-<<<<<<< .merge_file_a08808
-   TNodeJsVec<TVal, TAux>* JsResVec = new TNodeJsVec<TVal, TAux>(Result);
-   JsResVec->Wrap(Args.This());
-   Args.GetReturnValue().Set(JsResVec);
-=======
    Args.GetReturnValue().Set(New(Result));
->>>>>>> .merge_file_a08388
 }
 
 template<typename TVal, typename TAux>
@@ -496,13 +408,7 @@ void TNodeJsVec<TVal, TAux>::multiply(const v8::FunctionCallbackInfo<v8::Value>&
    Result.Gen(JsVec->Vec.Len());
    TLinAlg::MultiplyScalar(Scalar, JsVec->Vec, Result);
    
-<<<<<<< .merge_file_a08808
-   TNodeJsVec<TVal, TAux>* JsResVec = new TNodeJsVec<TVal, TAux>(Result);
-   JsResVec->Wrap(Args.Holder());
-   Args.GetReturnValue().Set(JsResVec);
-=======
    Args.GetReturnValue().Set(New(Result));
->>>>>>> .merge_file_a08388
 }
 
 template<typename TVal, typename TAux>
@@ -600,10 +506,7 @@ void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    if (Args.IsConstructCall()) {
       if (Args.Length() > 0) {
          if (Args[0]->IsArray()) {
-<<<<<<< .merge_file_a08808
-=======
             printf("ok..\n");
->>>>>>> .merge_file_a08388
             v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
             int Rows = Array->Length();
             if (Rows > 0) {
@@ -625,12 +528,9 @@ void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                   }
                }
             }
-<<<<<<< .merge_file_a08808
-=======
             TNodeJsFltVV* JsMat = new TNodeJsFltVV(Mat);
             JsMat->Wrap(Args.This());
             Args.GetReturnValue().Set(Args.This());
->>>>>>> .merge_file_a08388
          } else {
             if (Args[0]->IsObject()) {
                const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", true);
@@ -726,22 +626,6 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
          TFltV Result(JsMat->Mat.GetRows());
          
 			TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
-<<<<<<< .merge_file_a08808
-			
-			TNodeJsVec<TFlt, TAuxFltV>* JsResV = new TNodeJsVec<TFlt, TAuxFltV>(Result);
-			
-			// TODO: 
-			// TLAMisc::PrintTFltV(JsResV->Vec, "bla");
-			
-			// v8::Handle<v8::Object> Obj = TNodeJsVec::NewInstance();
-			
-			// XXX: Najprej polinkaj, potem naj bo weak, da ne bo stale 
-			Args.GetReturnValue().Set(JsResV);
-			JsResV->Wrap(Args.This());
-      } else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
-         // TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-         // TODO: Implement matrix multiplication 
-=======
 			printf("xxxx %d\n", Result.Len());
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 		} else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
@@ -751,7 +635,6 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			Result.Gen(JsMat->Mat.GetRows(), FltVV->Mat.GetCols());
 			TLinAlg::Multiply(JsMat->Mat, FltVV->Mat, Result);
          Args.GetReturnValue().Set(v8::Undefined(Isolate));
->>>>>>> .merge_file_a08388
       }
    } else { // TODO: What if object, etc.? 
       Args.GetReturnValue().Set(v8::Undefined(Isolate));
