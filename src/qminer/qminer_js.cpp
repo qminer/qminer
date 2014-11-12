@@ -4867,10 +4867,6 @@ v8::Handle<v8::Value> TJsFltVV::plus(const v8::Arguments& Args) {
 		if (Args[0]->IsObject()) {			
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-				int cm = JsMat->Mat.GetCols();
-				int rm = JsMat->Mat.GetRows();
-				int cm2 = JsMat2->Mat.GetCols();
-				int rm2 = JsMat2->Mat.GetRows();
 				QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "TJsFltVV::plus: matrix - matrix: dimensions mismatch");
 				TFltVV Result;
 				// computation
@@ -4890,10 +4886,6 @@ v8::Handle<v8::Value> TJsFltVV::minus(const v8::Arguments& Args) {
 		if (Args[0]->IsObject()) {			
 			if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-				int cm = JsMat->Mat.GetCols();
-				int rm = JsMat->Mat.GetRows();
-				int cm2 = JsMat2->Mat.GetCols();
-				int rm2 = JsMat2->Mat.GetRows();
 				QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "TJsFltVV::minus: matrix - matrix: dimensions mismatch");
 				TFltVV Result;
 				// computation
@@ -5700,8 +5692,6 @@ v8::Handle<v8::Value> TJsSpMat::minus(const v8::Arguments& Args) {
 		if (Args[0]->IsObject()) {			
 			if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {			
 				TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
-				int rws = JsMat->Rows;
-				int rws2 = JsMat2->Rows;
 				QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "TJsSpMat::minus: matrix - matrix: dimensions mismatch");
 				TVec<TIntFltKdV> Result;
 				// computation				
@@ -7632,7 +7622,7 @@ v8::Handle<v8::Value> TJsSnap::newUGraphArray(const v8::Arguments& Args) {
 	TVec<PUNGraph, TSize> gs;
 
 	if (ArgsLen == 2) {
-		v8::Handle<v8::Array>& Array = v8::Handle<v8::Array>::Cast(Args[1]);
+		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[1]);
 
 		if (TJsSnapUtil::IsArgStr(Args, 0)) {
 			TStr path = TJsSnapUtil::GetArgStr(Args, 0);
@@ -7646,9 +7636,7 @@ v8::Handle<v8::Value> TJsSnap::newUGraphArray(const v8::Arguments& Args) {
 				gs.Add(g);
 			}
 		}
-		else {
-
-		}
+		else { }
 
 		for (int i = 0; i < gs.Len(); i++) {
 			Array->Set(i, TJsGraph<TUNGraph>::New(JsSnap->Js, gs[i], "TUNGraph"));
@@ -7701,7 +7689,6 @@ v8::Handle<v8::Value> TJsSnap::degreeCentralization(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
-	int Dim = -1;
 	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
@@ -7752,7 +7739,7 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 	int ArgsLen = Args.Length();
 	if (ArgsLen == 9 || ArgsLen == 10){
 
-		v8::Handle<v8::Array>& Array = v8::Handle<v8::Array>::Cast(Args[0]);
+		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 		TVec<PUNGraph, TSize> gs;
 
 		if (ArgsLen == 10) {
@@ -7889,7 +7876,6 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 
 	TIntIntH coreperiphery;
@@ -7900,7 +7886,6 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 	PNGraph inGraph;
 	TIntH inT;
 	int e = 2;
-	int step;
 	bool collapse;
 
 	if (ArgsLen == 6) {
@@ -7923,7 +7908,6 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 		collapse = TJsSnapUtil::GetArgBool(Args, 5);
 
 		TSnap::ReebSimplify(inGraph, inT, e, outGraph, outT, collapse);
-		int lllen = outT.Len();
 	}
 	else {
 		throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
@@ -7936,7 +7920,6 @@ v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
 	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 
 	TIntIntH coreperiphery;
@@ -7947,7 +7930,6 @@ v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
 	PNGraph inGraph;
 	TIntH inT;
 	int e = 2;
-	int step;
 	bool collapse;
 
 	if (ArgsLen == 6) {
@@ -7970,7 +7952,6 @@ v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
 		collapse = TJsSnapUtil::GetArgBool(Args, 5);
 
 		TSnap::ReebRefine(inGraph, inT, e, outGraph, outT, collapse);
-		int lllen = outT.Len();
 	}
 	else {
 		throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");

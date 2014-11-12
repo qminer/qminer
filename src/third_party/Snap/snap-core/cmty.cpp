@@ -964,7 +964,6 @@ namespace TSnap {
 		else {
 			TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
 			Ss.Next();
-			int internal_year_counter = 0;
 			int newcom = 0;
 			TStr Marker = "";
 			int SrcNId, DstNId;
@@ -1632,7 +1631,6 @@ namespace TSnap {
 						int smaller = ids0.Len();
 						if (ids1.Len() < smaller)
 							smaller = ids1.Len();
-						int len = ids0.IntrsLen(ids1);
 						if (TSnapDetail::vectorIntersect(ids0, ids1) == smaller || (smaller > 2 && TSnapDetail::vectorIntersect(ids0, ids1) == (smaller -1 ))) {
 							if (!gFinal->IsNode(cms0[i])) {
 								gFinal->AddNode(cms0[i]);

@@ -76,7 +76,6 @@ graphs.push(g2001); graphs.push(g2002);
 graphs.push(g2003); graphs.push(g2004);
 graphs.push(g2005); graphs.push(g2006);
 
-
 // determining communities for the array of graphs and storing the results in array of sparse vectors
 var communities = new Array();
 for (var i = 0; i < graphs.length; i++) {
