@@ -834,8 +834,12 @@ void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
         }
 		case oftBowSpV:
             throw TQmExcept::New("Parsing of BowSpV from JSon not yet implemented");
-		case oftNumSpV:
-            throw TQmExcept::New("Parsing of NumSpV from JSon not yet implemented");
+		case oftNumSpV: {
+			QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+			TIntFltKdV NumSpV; JsonVal->GetArrNumSpV(NumSpV);
+			SetFieldNumSpV(RecMem, SOut, FieldSerialDesc, NumSpV);
+			break;
+		}
         default:
             throw TQmExcept::New("Unsupported JSon data type for DB storage (variable part) - " + FieldDesc.GetFieldTypeStr());
 	}
@@ -2166,7 +2170,7 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
 		// assert that DelRecIdV is valid, without gaps and that deleting will not create gaps
 		PStoreIter Iter = GetIter();
 		int Counter = 0;
-		QmAssertR(DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs incorrect record id sequence. The length is greater than the total number of records.");
+		QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs incorrect record id sequence. The length is greater than the total number of records.");
 		while (Iter->Next()) {
 			QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStoreImpl::DeleteRecs: incorrect record id sequence. The sequence should start at the first store records, should contain only record ids and should not contain gaps");
 			Counter++;

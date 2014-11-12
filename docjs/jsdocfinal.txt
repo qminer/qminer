@@ -17,6 +17,10 @@ JavaScript API requires [initialized work environment](Quick-Start).
 ## Table of contents
 
 - [Libraries](#libraries)
+- [File system, I/O](#file-system-and-io)
+ - [File system](#file-system)
+ - [Input File Stream](#input-file-stream)
+ - [Output File Stream](#output-file-stream)
 - [Core QMiner objects](#core-qminer-objects)
  - [QMiner](#qminer)
  - [Stream Aggregate](#stream-aggregate)
@@ -36,13 +40,12 @@ JavaScript API requires [initialized work environment](Quick-Start).
  - [Neural network model](#neural-network-model)
  - [Recursive Linear Regression model](#recursive-linear-regression-model)
  - [Hoeffding Tree model](#hoeffding-tree-model)
-- [System and I/O](#system-and-io)
+- [System](#system)
  - [Process](#process)
  - [assert.js (use require)](#assertjs-use-require)
  - [Console](#console)
- - [File system](#file-system)
- - [Input File Stream](#input-file-stream)
- - [Output File Stream](#output-file-stream)
+ - [utilities.js (use require)](#utilitiesjs-use-require)
+ - [utilities.map (use require)](#hash-map)
  - [utilities.js (use require)](#utilitiesjs-use-require)
  - [utilities.map (use require)](#hash-map)
  - [HTTP](#http)
@@ -87,6 +90,50 @@ The QMiner system comes with the following libraries:
 - **time** -- wrapper around user-friendly date-time object
 - **assert.js** -- support for writing unit tests
 - **twitter.js** -- support for processing tweets
+
+## File System and I/O
+
+
+### File system
+
+
+**Functions and properties:**
+    
+- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+- `bool = fs.exists(fileName)` -- does file exist?
+- `fs.copy(fromFileName, toFileName)` -- copy file
+- `fs.move(fromFileName, toFileName)` -- move file
+- `fs.del(fileName)` -- delete file
+- `fs.rename(fromFileName, toFileName)` -- rename file
+- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+- `fs.mkdir(dirName)` -- make folder
+- `fs.rmdir(dirName)` -- delete folder
+- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+
+### Input File Stream
+
+
+**Functions and properties:**
+    
+- `char = fin.peekCh()` -- peeks a character
+- `char = fin.getCh()` -- reads a character
+- `line = fin.readLine()` -- reads a line
+- `bool = fin.eof` -- end of stream?
+- `len = fin.length` -- returns the length of input stream
+- `str = fin.readAll()` -- reads the whole file
+
+### Output File Stream
+
+
+**Functions and properties:**
+    
+- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+- `fout = fout.flush()` -- flushes output stream
+- `fout = fout.close()` -- closes output stream
 
 ## Core QMiner objects
 
@@ -202,10 +249,8 @@ var record = store[1234];
 - `store.clear()` -- deletes all records
 - `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 - `vec = store.getCol(fieldName)` -- gets the `fieldName` column
-- `val = store.getField(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
-- `val = store.getCellFlt(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
-- `val = store.getCellInt(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
-- `val = store.getCellStr(recId, fieldId)` -- equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)
+- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
+- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
 - `qm.storeProto` -- the prototype object for qminer store. Implemented in store.js, every store inherits from it.
 - `sa = store.addStreamAggr(param)` -- creates a new stream aggregate `sa` and registers it to the store
 - `str = store.toString()` -- returns a string `str` - a description of `store`
@@ -282,7 +327,7 @@ the set.
 - `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
 - `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
 - `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
-- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
 - `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 - `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 - `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Returns self. Examples:
@@ -294,6 +339,7 @@ the set.
 - `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 - `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 - `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs``rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+- `vec = rs.getCol(fieldName)` -- gets the `fieldName` column
 
 **Examples**:
 
@@ -365,6 +411,7 @@ several functions from linear algebra.
 - `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 - `la.printVec(vecec)` -- print the vector `vec` in the console
 - `la.printVec(intVec)` -- print the int vector `intVec` in the console
+- `la.getSpFeatVecCols(spVec, fsp)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
 - `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 - `la.printFeatVec(vec, fsp, limit, asc)` -- Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 - `la.printArray(arr)` -- print the javascript array `arr` in the console
@@ -387,7 +434,7 @@ several functions from linear algebra.
 - `arr = la.findMaxIdx(vec)` -- returns a JS array of indices `idxArray` that correspond to the max elements in each column of dense matrix `vec`. The resulting array has one element.
 - `intVec = la.copyIntArrayToVec(arr)` -- copies a JS array of integers `arr` into an integer vector `intVec`
 - `vec = la.copyFltArrayToVec(arr)` -- copies a JS array of numbers `arr` into a float vector `vec`
-- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
 - `la.saveMat(mat, fout)` -- writes a dense matrix `mat` to output file stream `fout`
 - `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
 - `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
@@ -409,6 +456,7 @@ several functions from linear algebra.
 - `vec = la.standardize(vec, mu, sigma)` - returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.
 - `mat = la.standardize(mat, mu, sigma)` - returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.
 - `mat = la.standardize(mat, mu, sigma, dim)` - returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.
+- `mat = la.correlate(m1, m2)` - returns the correlation matrix (Pearson). Each column should be an observation.
 
 ### Vector
 
@@ -696,14 +744,14 @@ To start using it must be loaded using `var analytics = require('analytics.js');
   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
-- `mat2 = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
+- `kmeansResult = analytics.kmeans(mat, k, iter)`-- solves the k-means algorithm based on a training
   matrix `mat`  where colums represent examples, `k` (integer) the number of centroids and
-  `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
-   is a cluster centroid.
-- `mat2 = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
-  matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
-  `iter` (integer), the number of iterations. The solution `mat2` is a dense matrix, where each column
-   is a cluster centroid.
+  `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+   is a cluster centroid and an index array of cluster indices for each data point.
+- `kmeansResult = analytics.kmeans(spMat, k, iter)`-- solves the k-means algorithm based on a training
+  sparse matrix `spMat`  where colums represent examples, `k` (integer) the number of centroids and
+  `iter` (integer), the number of iterations. The result contains objects `kmeansResult.C` and `kmeansResult.idxv` - a dense centroid matrix, where each column
+   is a cluster centroid and an index array of cluster indices for each data point.
 - `lloydModel = analytics.newLloyd(dim, k)` -- online clustering based on the Lloyd alogrithm. The model intialization
  requires `dim` (integer) the dimensionality of the inputs and `k` (integer), number of centroids. The model exposes the following functions:
   - `lloydModel.init()` -- initializes the model with random centroids
@@ -914,76 +962,7 @@ Breaks text into tokens (i.e. words).
 - `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
 - `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 
-## Snap graph library
-
-A global object `snap` is used to construct graphs
-it is available in any script. The object includes
-several functions from snap library.
-
-**Functions and properties:**
-
-- `graph = snap.newUGraph()` -- generate an empty undirected graph
-- `graph = snap.newDGraph()` -- generate an empty directed graph
-- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
-- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
-- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
-- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
-- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
-
-### Graph
-
-TUNGraph: undirected graph(single edge between an unordered pair of nodes)
-TNGraph : directed graph(single directed edge between an ordered pair of nodes)
-TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
-
-**Functions and properties:**
-
-- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
-- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
-- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
-- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
-- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
-- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
-- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
-- `nodes = graph.nodes` -- gets number of nodes in the graph
-- `edges = graph.edges` -- gets number of edges in the graph
-- `node = graph.node(idx)` -- gets node with ID `idx`
-- `node = graph.firstNode` -- gets first node
-- `node = graph.lastNode` -- gets last node
-- `edge = graph.firstEdge` -- gets first edge
-- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
-- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
- - `graph.eachNode(function (node) { console.log(node.id); })`
-- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
- - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
-- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
-
-### Node
-
-Node
-
-**Functions and properties:**
-
-- `id = node.id` -- return id of the node
-- `deg = node.deg` -- return degree of the node
-- `indeg = node.inDeg` -- return in-degree of the node
-- `outdeg = node.outDeg` -- return out-degree of the node
-- `nid = node.nbrId(N)` -- return id of Nth neighbour
-- `node = node.next()` -- return next node
-- `node = node.prev()` -- return previous node
-
-### Edge
-
-Edge
-
-**Functions and properties:**
-
-- `id = edge.id` -- return id of the edge
-- `id = edge.srcId` -- return id of source node
-- `id = edge.dstId` -- return id of destination node
-- `edge = edge.next()` -- return next edge
-
-## System and I/O
+## System
 
 ### Process
 
@@ -1045,46 +1024,56 @@ are automatically prefixed by current date and time.
 - `console.pause()` -- waits until enter is pressed
 - `console.println(str)` -- `print(str); print("\n")`
 
-### File system
+### utilities.js (use require)
 
 
 **Functions and properties:**
-    
-- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
-- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
-- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-- `bool = fs.exists(fileName)` -- does file exist?
-- `fs.copy(fromFileName, toFileName)` -- copy file
-- `fs.move(fromFileName, toFileName)` -- move file
-- `fs.del(fileName)` -- delete file
-- `fs.rename(fromFileName, toFileName)` -- rename file
-- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
-- `fs.mkdir(dirName)` -- make folder
-- `fs.rmdir(dirName)` -- delete folder
-- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 
-### Input File Stream
+- `map = utilities.newStrIntH()` -- New string-int hashmap
+- `map = utilities.newStrFltH()` -- New string-double hashmap
+- `map = utilities.newStrStrH()` -- New string-string hashmap
+- `map = utilities.newIntIntH()` -- New int-int hashmap
+- `map = utilities.newIntFltH()` -- New int-double hashmap
+- `map = utilities.newIntStrH()` -- New int-string hashmap
+- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
+- `bool = utilities.isObject(arg)` -- is parameter an object?
+- `bool = utilities.isArray(arg)` -- is parameter an array?
+- `bool = utilities.isInArray(array, value)` -- is element in an array?
+- `bool = utilities.isNumber(n)` -- is `n` a number?
+- `bool = utilities.isString(s)` -- is `s` a string?
+- `returnVal = utilities.ifNull(val, defVal)` -- checks if `val` is null and returns default value `defVal`
+- `hashTable = utilities.newHashTable()` -- creates a hash table
+ - `strArr = hashTable.keys` -- array of keys (strings)
+ - `array = hashTable.vals` -- array of values
+ - `hashTable.put(key)` -- add a key
+ - `hashTable.put(key, dat)` -- add key-dat
+ - `bool = hashTable.contains(key)` -- does the table contain the key?
+ - `dat = hashTable.get(key)` -- get data
+- `sw = utilities.newStopWatch()` -- creates a stop watch object `sw`
+- `sw.start()` -- starts the stopwatch
+- `sw.stop()` -- stops the stopwatch
+- `sw.reset()` -- resets 
+- `num = sw.time()` -- returns unix epoch time in milliseconds
+- `sw.saytime(message)` -- displays elpased time from tic
+- `sw.tic()` -- resets and starts the stop watch
+- `sw.toc(str)` -- displays time from tic and message `str`
+- `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
+- `string = utilities.numberWithCommas(number)` -- format number 1234 to 1,234
 
+### Hash Map
+
+Several implementations of hash-map can be constructed. Use require('utilities.js').
 
 **Functions and properties:**
-    
-- `char = fin.peekCh()` -- peeks a character
-- `char = fin.getCh()` -- reads a character
-- `line = fin.readLine()` -- reads a line
-- `bool = fin.eof` -- end of stream?
-- `len = fin.length` -- returns the length of input stream
-- `str = fin.readAll()` -- reads the whole file
 
-### Output File Stream
-
-
-**Functions and properties:**
-    
-- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
-- `fout = fout.flush()` -- flushes output stream
-- `fout = fout.close()` -- closes output stream
+- `dat = map.get(key)` -- return data given on key
+- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
+- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+- `num = map.length` -- returns the number of keys
+- `key = map.key(idx)` -- returns the `idx`-th key
+- `dat = map.dat(idx)` -- returns the `idx`-th dat
+- `map = map.load(fin)` -- loads the hashtable from input stream `fin`
+- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
 
 ### utilities.js (use require)
 

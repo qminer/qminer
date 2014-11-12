@@ -102,7 +102,7 @@ var graph = snap.newDGraph(); // directed graph of evolution
 var gs = new Array();
 
 // community evolution algorithm
-snap.communityEvolution(gs, 0.5, 0.5, graph, t, c, s, e, m, "./data/2.edg"); //
+snap.communityEvolution(gs, 0.5, 0.5, graph, t, c, s, e, m, "./data/evo/"); //
 
 
 // hash table for evolution nodes (communities) text
@@ -140,7 +140,7 @@ graph.eachNode(function (N) {
 // drawing community evolution graph
 var json_string = snap.evolutionJson(graph, t, c, s, e, txt);
 var obj_out = eval("(" + json_string + ')');
-viz.drawCommunityEvolution(JSON.stringify(obj_out), "./out/cmty.html", { title: { text: "Community evolution - GirvanNewman, small graphs 8 years, alpha=0.5. beta=0.75" } });
+viz.drawCommunityEvolution(JSON.stringify(obj_out), "./out/cmty.html", { title: { text: "Community evolution" } });
 
 // END - Community evolution
 
@@ -167,4 +167,3 @@ viz.drawGraph(g, "./out/gCNM.html", { "color": CmtyCNM });
 
 console.log("Done");
 eval(breakpoint);
-

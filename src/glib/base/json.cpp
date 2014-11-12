@@ -110,6 +110,19 @@ void TJsonVal::GetArrNumV(TFltV& FltV) const {
     }
 }
 
+void TJsonVal::GetArrNumSpV(TIntFltKdV& NumSpV) const {
+	EAssert(IsArr());
+	for (int ElN = 0; ElN < GetArrVals(); ElN++) {
+		PJsonVal ArrVal = GetArrVal(ElN);
+		EAssert(ArrVal->IsArr());
+		EAssert(ArrVal->GetArrVals() ==  2);
+		int Idx = ArrVal->GetArrVal(0)->GetInt();
+		double Val = ArrVal->GetArrVal(1)->GetNum();
+		NumSpV.Add(TIntFltKd(Idx, Val));
+	}
+	NumSpV.Sort();
+}
+
 void TJsonVal::GetArrIntV(TIntV& IntV) const {
     EAssert(IsArr());
     for (int IntN = 0; IntN < GetArrVals(); IntN++) {

@@ -320,6 +320,21 @@ _store.tail = function () {
 /// <field name = "forwardIter" value = "_iter"> returns iterator for iterating over the store from start to end</field>
 _store.forwardIter = _iter;
 
+_store.cell = function () {
+	/// <signature>
+	/// <summary> if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]</summary>
+	/// <param name="_recId" value="_recId">param</param>
+	/// <param name="_fieldId" value="_fieldId">param</param>
+	/// <returns value ="_val"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> equivalent to store[recId][fieldName]</summary>
+	/// <param name="_recId" value="_recId">param</param>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_val"/>
+	/// </signature>
+};
+
 _store.field = function () {
 	/// <signature>
 	/// <summary> get details of field named `fieldName`</summary>
@@ -1324,6 +1339,15 @@ console.print = function () {
 	/// </signature>
 };
 
+la.getSpFeatVecCols = function () {
+	/// <signature>
+	/// <summary> Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 la.printSpFeatVec = function () {
 	/// <signature>
 	/// <summary> Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
@@ -1361,6 +1385,14 @@ la.square = function () {
 	/// <summary> returns `sq` which is the quare of number `num`.</summary>
 	/// <param name="_num" value="_num">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+la.copyVecToArray = function () {
+	/// <signature>
+	/// <summary> copies vector `vec` into a JS array of numbers `arr`</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_arr"/>
 	/// </signature>
 };
 
@@ -1450,14 +1482,6 @@ la.rangeVec = function () {
 	/// <param name="_num" value="_num">param</param>
 	/// <param name="_num2" value="_num2">param</param>
 	/// <returns value ="_intVec"/>
-	/// </signature>
-};
-
-la.copyVecToArr = function () {
-	/// <signature>
-	/// <summary> copies vector `vec` into a JS array of numbers `arr`</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_arr"/>
 	/// </signature>
 };
 
@@ -1689,6 +1713,15 @@ la.genRandomPerm = function () {
 	/// <summary> returns a permutation of `k` elements. `arr` is a javascript array of integers</summary>
 	/// <param name="_k" value="_k">param</param>
 	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+la.correlate = function () {
+	/// <signature>
+	/// <summary> returns the correlation matrix (Pearson). Each column should be an observation.</summary>
+	/// <param name="_m1" value="_m1">param</param>
+	/// <param name="_m2" value="_m2">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -2227,13 +2260,6 @@ _node.next = function () {
 	/// </signature>
 };
 
-_node.prev = function () {
-	/// <signature>
-	/// <summary> return previous node</summary>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
 /// <field name = "id" value = "_id"> return id of the node</field>
 _node.id = _id;
 
@@ -2497,7 +2523,7 @@ _rs.setintersect = function () {
 
 _rs.split = function () {
 	/// <signature>
-	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) &gt; 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets.</summary>
+	/// <summary> split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) &gt; 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets.</summary>
 	/// <param name="_splitterCallback" value="_splitterCallback">param</param>
 	/// <returns value ="_rsArr"/>
 	/// </signature>
@@ -2594,6 +2620,14 @@ _rs.reverse = function () {
 	/// <signature>
 	/// <summary> reverse record order. Returns self.</summary>
 	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
+_rs.getCol = function () {
+	/// <signature>
+	/// <summary> gets the `fieldName` column</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -2877,14 +2911,14 @@ _analytics.kmeans = function () {
 	/// <param name="_mat" value="_mat">param</param>
 	/// <param name="_k" value="_k">param</param>
 	/// <param name="_iter" value="_iter">param</param>
-	/// <returns value ="_mat"/>
+	/// <returns value ="_kmeansResult"/>
 	/// </signature>
 	/// <signature>
 	/// <summary> solves the k-means algorithm based on a training</summary>
 	/// <param name="_spMat" value="_spMat">param</param>
 	/// <param name="_k" value="_k">param</param>
 	/// <param name="_iter" value="_iter">param</param>
-	/// <returns value ="_mat"/>
+	/// <returns value ="_kmeansResult"/>
 	/// </signature>
 };
 
