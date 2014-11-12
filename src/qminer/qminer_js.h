@@ -3731,7 +3731,7 @@ public:
 	JsDeclareFunction(newDMGraph);
 	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(degreeCentrality);
-	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	//#- `spMat = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);

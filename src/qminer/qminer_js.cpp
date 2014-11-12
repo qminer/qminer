@@ -8310,8 +8310,17 @@ v8::Handle<v8::Value> TJsGraph<T>::connectedComponents(const v8::Arguments& Args
 	}
 
 
-	
-	return Args.Holder();
+	TVec<TIntFltKdV> Mat(CnComV.Len());
+	for (int i = 0; i < CnComV.Len(); i++) {
+		Mat[i].Gen(CnComV[i].Len());
+		for (int j = 0; j < CnComV[i].Len(); j++) {
+			int id = CnComV[i][j];
+			Mat[i][j].Key = id;
+			Mat[i][j].Dat = 1;
+		}
+	}
+
+	return HandleScope.Close(TJsSpMat::New(JsGraph->Js, Mat));
 }
 
 ///////////////////////////////
