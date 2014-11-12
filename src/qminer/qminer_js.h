@@ -2512,7 +2512,7 @@ public:
 	JsDeclareFunction(plus);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (in-place operation). Returns self.
 	JsDeclareFunction(normalize);
 	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 	JsDeclareProperty(nnz);	

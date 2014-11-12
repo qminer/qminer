@@ -345,7 +345,7 @@ exports.crossValidation = function (records, features, target, folds, limitCateg
 		// create model for the fold
 		var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
 		// prepare test counts for each target
-		if (!cfyRes) { cfyRes = new classifcationScore(model.target); }
+		if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
 		// evaluate predictions
 		for (var i = 0; i < testRecs.length; i++) {
 			var correct = testRecs[i][target.name];

@@ -5280,10 +5280,17 @@ v8::Handle<v8::Value> TJsSpV::sort(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
     bool AscP = TJsSpVUtil::GetArgBool(Args, 0, true);
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
-    TIntFltKdV ResV; TIntV PermV;
-    TIntFltKdV::SortGetPerm(JsSpV->Vec, ResV, PermV, AscP);
-    for (int PermN = 0; PermN < PermV.Len(); PermN++) {
-        PermV[PermN] = JsSpV->Vec[PermV[PermN]].Key;
+    const TIntFltKdV& SpV = JsSpV->Vec;
+    // create value vector and sort it 
+    TFltIntPrV SortV(SpV.Len(), 0);
+    for (int SpN = 0; SpN < SpV.Len(); SpN++) {
+        SortV.Add(TFltIntPr(SpV[SpN].Dat, SpN));
+    }
+    SortV.Sort(AscP);
+    // get out idx
+    TIntV PermV(SortV.Len());
+    for (int SortN = 0; SortN < SortV.Len(); SortN++) {
+        PermV[SortN] = SortV[SortN].Val2;
     }
 	return TJsIntV::New(JsSpV->Js, PermV);
 }
@@ -5914,41 +5921,58 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     // parse SVM parameters
     PJsonVal SvmParamVal = TJsonVal::NewObj();
     if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
-        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
+        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); 
+    }
+     // default algorithm is stochastic gradient descent
+    const TStr Algorithm = SvmParamVal->GetObjStr("algorithm", "SGD");
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
     const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
-	PNotify Notify = TEnv::Logger;
 	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
-	if (!Verbose) {
-		Notify = TNotify::NullNotify;
-	}
+	PNotify Notify = Verbose ? TEnv::Logger : TNotify::NullNotify;
+    // make sure we know of the type
+    QmAssertR(Algorithm == "SGD" || Algorithm == "PR_LOQO",
+        "trainSvmClassify: unknown algorithm " + Algorithm);
     // check what kind of input data we got and train and return the model
     try {
         if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
             // we have sparse matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
             TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
-            return TJsSvmModel::New(JsAnalytics->Js, 
-                TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
-                    TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
-                    SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
-                    Notify));
+            if (Algorithm == "SGD") {
+                return TJsSvmModel::New(JsAnalytics->Js, 
+                    TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
+                        TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
+                        SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, Notify));
+            } else if (Algorithm == "PR_LOQO") {
+                PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
+                PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, SvmCost, SvmUnbalance, 
+                    TIntV(), TSVMLearnParam::Lin(MxTime, Verbose ? 2 : 0));
+                return TJsSvmModel::New(JsAnalytics->Js,
+                        TSvm::TLinModel(Model->GetWgtV(), Model->GetThresh()));
+            }
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
             // we have dense matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
             TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-            return TJsSvmModel::New(JsAnalytics->Js, 
-                TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
-					MxIter, MnDiff, SampleSize, Notify));
-        } else {
-            // TODO support JavaScript array of TJsFltV or TJsSpV
-            throw TQmExcept::New("unsupported type of the first argument");
-        }
+            if (Algorithm == "SGD") {
+                return TJsSvmModel::New(JsAnalytics->Js, 
+                    TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
+                        VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
+                        MxIter, MnDiff, SampleSize, Notify));
+            } else if (Algorithm == "PR_LOQO") {
+                PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
+                PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, SvmCost, SvmUnbalance, 
+                    TIntV(), TSVMLearnParam::Lin(MxTime, Verbose ? 2 : 0));
+                return TJsSvmModel::New(JsAnalytics->Js,
+                        TSvm::TLinModel(Model->GetWgtV(), Model->GetThresh()));
+            }
+        } 
+        // TODO support JavaScript array of TJsFltV or TJsSpV
+        throw TQmExcept::New("unsupported type of the first argument");
     } catch (const PExcept& Except) {
         InfoLog("[except] trainSvmClassify: " + Except->GetMsgStr());
     }    
