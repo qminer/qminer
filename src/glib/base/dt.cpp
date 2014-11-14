@@ -789,12 +789,12 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 }
 
 TStr TStr::GetUc() const {
-	int StrLen=Len();
+	int StrLen = Len();
 	// allocate memory
 	char new_array = new char[StrLen];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN]=(char)toupper(inner[ChN]);
+		new_array[ChN] = (char) toupper(inner[ChN]);
 	}
 	// create new TStr, assign character memory array to it
 	return TStr(new_array, true);
@@ -1211,50 +1211,72 @@ bool TStr::IsSuffix(const char *Str) const {
 	}
 }
 
-int TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN){
-  int ChN=SearchCh(SrcCh, BChN);
-  if (ChN!=-1){PutCh(ChN, DstCh);}
-  return ChN;
+TStr TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) const {
+	int ChN = SearchCh(SrcCh, BChN);
+	char* Res = CloneCStr();
+	if (ChN != -1){
+		Res[ChN] = DstCh;
+	}
+	return TStr(Res, true);
 }
 
-int TStr::ChangeChAll(const char& SrcCh, const char& DstCh){
-  int FirstChN=SearchCh(SrcCh);
-  if (FirstChN==-1){
-    return 0;
-  } else {
-    TRStr* NewRStr=new TRStr(RStr->CStr());
-    RStr->UnRef(); RStr=NewRStr; RStr->MkRef();
-    char* ThisBf=CStr(); int StrLen=Len(); int Changes=0;
-    for (int ChN=FirstChN; ChN<StrLen; ChN++){
-      // slow: if (GetCh(ChN)==SrcCh){RStr->PutCh(ChN, DstCh); Changes++;}
-      if (ThisBf[ChN]==SrcCh){ThisBf[ChN]=DstCh; Changes++;}
-    }
-    Optimize();
-    return Changes;
-  }
+TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
+	int FirstChN = SearchCh(SrcCh);
+	if (FirstChN == -1){
+		return *this;
+	}
+	else {
+		char* Res = CloneCStr();
+		int StrLen = Len();
+		for (int ChN = FirstChN; ChN < StrLen; ChN++){
+			if (Res[ChN] == SrcCh){ Res[ChN] = DstCh; }
+		}
+		return TStr(Res, true);
+	}
 }
 
-int TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN){
-  int ChN=SearchStr(SrcStr, BChN);
-  if (ChN==-1){
-    return -1;
-  } else {
-    DelSubStr(ChN, ChN+SrcStr.Len()-1);
-    InsStr(ChN, DstStr);
-    return ChN;
-  }
+TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
+	if (inner == NULL || SrcStr.Empty()) { return *this; }
+
+	int ChN = SearchStr(SrcStr, BChN);
+	if (ChN == -1){
+		BChN = ChN;
+		return *this;
+	}
+	else {
+		int DstLen = DstStr.Len();
+		int SrcLen = SrcStr.Len();
+		int OldLen = Len();
+		int Len = OldLen - SrcLen + DstLen;
+		char* Res = new char[Len + 1];
+		// three copies
+		strncpy(Res, CStr(), ChN);
+		strcpy(Res + (ChN + DstLen), CStr() + (ChN + SrcLen));
+		if (OldLen > 0) {
+			strncpy(Res + ChN, DstStr.CStr(), DstLen);
+		}
+		Res[Len] = 0;
+		BChN = ChN;
+		return TStr(Res, true);
+	}
 }
 
-int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP){
-  const int DstStrLen=DstStr.Len();
-  int Changes=0-1; int BChN=0-DstStrLen;
-  do {
-    Changes++;
-    if (FromStartP){BChN=0-DstStrLen;}
-    BChN+=DstStrLen;
-    BChN=ChangeStr(SrcStr, DstStr, BChN);
-  } while (BChN!=-1);
-  return Changes;
+TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP) const {
+	if (inner == NULL || SrcStr.Empty()) { return *this; }
+
+	TStr Res(*this);
+
+	const int DstStrLen = DstStr.Len();
+	int Changes = 0 - 1; int BChN = 0 - DstStrLen;
+	//do {
+	//	Changes++;
+	//	if (FromStartP){ BChN = 0 - DstStrLen; }
+	//	BChN += DstStrLen;
+	//	
+	//	*this = ChangeStr(SrcStr, DstStr, BChN); //BChN = ChangeStr(SrcStr, DstStr, BChN); // before
+	//} while (BChN != -1);
+	
+	return TStr(Res, true);	
 }
 
 TStr TStr::Reverse() const {
