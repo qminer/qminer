@@ -459,8 +459,6 @@ public:
     //static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
 };
 
-class TStrPr;
-
 /////////////////////////////////////////////////
 // String
 class TStr;
@@ -664,7 +662,6 @@ public:
 
   /// Split on the index, return Pair of Left/Right strings, omits the target index
   TStrPr SplitOnIdx(const int& Idx) const;
-
   /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
   /// if the character is not found the whole string is returned as the left side
   TStrPr SplitOnCh(const char& SplitCh) const;
