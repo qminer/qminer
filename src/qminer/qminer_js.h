@@ -1212,6 +1212,8 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
+	//#- `qm.v8gc()` -- start v8 garbage collection
+	JsDeclareFunction(v8gc);
 	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
 	//#- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
 	//#- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
@@ -2384,6 +2386,7 @@ public:
 	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
 	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
+	//#- `mat = mat.put(rowIdx, colIdx, mat2)` -- Inserts `mat2` into `mat`, where mat2.at(0,0) gets copied to mat.at(rowIdx, colIdx)
 	JsDeclareFunction(put);
 	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
 	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
@@ -3440,7 +3443,7 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::get(const v8::Arguments& Args) 
 	if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
 		return TAux::WrapDat(Dat, HandleScope);
 	}
-	else { return v8::Undefined(); }
+	else { return HandleScope.Close(v8::Null()); }
 }
 
 template <class TKey, class TDat, class TAux>
@@ -3728,12 +3731,16 @@ public:
 	JsDeclareFunction(newDMGraph);
 	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(degreeCentrality);
-	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	//#- `spMat = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
+	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebSimplify);
+	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebRefine);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
 	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
@@ -3832,6 +3839,8 @@ public:
 	JsDeclareFunction(save);
 	//#- `graph = graph.load(fin)` -- loads graph from input stream `fin`
 	JsDeclareFunction(load);
+	//#- `intVec = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
+	JsDeclareFunction(connectedComponents)
 };
 
 ///////////////////////////////

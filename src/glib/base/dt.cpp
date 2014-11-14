@@ -787,7 +787,7 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 TStr TStr::GetUc() const {
 	int StrLen=Len();
 	// allocate memory
-	char new_array = new char[StrLen];
+	char* new_array = new char[StrLen];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN]=(char)toupper(inner[ChN]);
@@ -799,7 +799,7 @@ TStr TStr::GetUc() const {
 TStr TStr::GetLc() const {
 	int StrLen = Len();
 	// allocate memory
-	char new_array = new char[StrLen];
+	char* new_array = new char[StrLen];
 	// copy in lowercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) tolower(inner[ChN]);

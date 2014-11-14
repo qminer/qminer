@@ -496,9 +496,9 @@ int main(int argc, char* argv[]) {
 						ScriptV[ScriptN]->RegSrvFun(SrvFunV);
 					}
 					// start server
-					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
+					PWebSrv WebSrv = TSAppSrv::New(Env.IsArgPrefix("-port=") ? PortN : Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
 					// report we started
-					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Param.PortN);
+					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Env.IsArgPrefix("-port=") ? PortN : Param.PortN);
 					// wait for the end
 					TLoop::Run();
 				}

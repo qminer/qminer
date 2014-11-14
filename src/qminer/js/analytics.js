@@ -374,41 +374,62 @@ exports.newActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     return new analytics.activeLearner(query, qRecSet, fRecSet, ftrSpace, stts);
 }
 
-exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
-    var settings = stts || {};
-    settings.nPos = stts.nPos || 2;
-    settings.nNeg = stts.nNeg || 2;
-    settings.textField = stts.textField || "Text";
-    settings.querySampleSize = stts.querySampleSize || 1000;
-    settings.randomSampleSize = stts.randomSampleSize || 0;
-    settings.c = stts.c || 1.0;
-    settings.j = stts.j || 1.0;
-    settings.batchSize = stts.batchSize || 100;
-    settings.maxIterations = stts.maxIterations || 100000;
-    settings.maxTime = stts.maxTime || 1;
-    settings.minDiff = stts.minDiff || 1e-6;
-    settings.verbose = stts.verbose || false;
+function defarg(arg, defaultval) {
+    return arg == null ? defaultval : arg;
+}
 
-    var store = qRecSet.store;
-    var X = la.newSpMat();
-    var y = la.newVec();
+
+exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
+    var settings = defarg(stts, {});
+    settings.nPos = defarg(stts.nPos, 2);
+    settings.nNeg = defarg(stts.nNeg, 2);
+    settings.textField = defarg(stts.textField, "Text");
+    settings.querySampleSize = defarg(stts.querySampleSize, 1000);
+    settings.randomSampleSize = defarg(stts.randomSampleSize, 0);
+    settings.c = defarg(stts.c, 1.0);
+    settings.j = defarg(stts.j, 1.0);
+    settings.batchSize = defarg(stts.batchSize, 100);
+    settings.maxIterations = defarg(stts.maxIterations, 100000);
+    settings.maxTime = defarg(stts.maxTime, 1);
+    settings.minDiff = defarg(stts.minDiff, 1e-6);
+    settings.verbose = defarg(stts.verbose, false);
+    
+    // compute features or provide them    
+    settings.extractFeatures = defarg(stts.extractFeatures, true);
+    
+    if (!settings.extractFeatures) {
+        if (stts.uMat == null) { throw exception('settings uMat not provided, extractFeatures = false'); }
+        if (stts.uRecSet == null) { throw exception('settings uRecSet not provided, extractFeatures = false'); }
+        if (stts.querySpVec == null) { throw exception('settings querySpVec not provided, extractFeatures = false'); }
+    }
+        
     // QUERY MODE
     var queryMode = true;
     // bow similarity between query and training set
-    var temp = {}; temp[settings.textField] = query;
-    var queryRec = store.newRec(temp); // record
-    var querySpVec = ftrSpace.ftrSpVec(queryRec); // query sparse vector
+
+    var querySpVec;
+    var uRecSet;
+    var uMat;
+
+    if (settings.extractFeatures) {
+        var temp = {}; temp[settings.textField] = query;
+        var queryRec = qRecSet.store.newRec(temp); // record
+        querySpVec = ftrSpace.ftrSpVec(queryRec);
+        uRecSet = qRecSet.sample(settings.querySampleSize).setunion(fRecSet.sample(settings.randomSampleSize));
+        uMat = ftrSpace.ftrSpColMat(uRecSet);
+
+    } else {
+        querySpVec = stts.querySpVec;
+        uRecSet = stts.uRecSet;
+        uMat = stts.uMat;
+    }
+
+
     querySpVec.normalize();
+    uMat.normalizeCols();
 
-    var rRecSet = store.sample(settings.randomSampleSize);
-
-    // query index sample, random sample
-    var uRecSet = qRecSet.sample(settings.querySampleSize).setunion(rRecSet);
-
-    //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
-    this.getRecSet = function () { return uRecSet };
-
-    var uMat = ftrSpace.ftrSpColMat(uRecSet); uMat.normalizeCols();
+    var X = la.newSpMat();
+    var y = la.newVec();
 
     var simV = uMat.multiplyT(querySpVec); //similarities (q, recSet)
     var sortedSimV = simV.sortPerm(); //ascending sort
@@ -417,9 +438,7 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     //// counters for questions in query mode
     var nPosQ = 0; //for traversing simVp from the end
     var nNegQ = 0; //for traversing simVp from the start
-
-    //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
-    this.selectedQuestionIdx = -1;
+        
 
     // SVM MODE
     var svm;
@@ -431,6 +450,13 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
 
     var classVec = la.newVec({ "vals": uRecSet.length }); //svm scores for record set
     var resultVec = la.newVec({ "vals": uRecSet.length }); // non-absolute svm scores for record set
+
+
+    //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
+    this.getRecSet = function () { return uRecSet };
+
+    //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
+    this.selectedQuestionIdx = -1;
 
     //#   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
     this.getQueryMode = function() { return queryMode; };
@@ -533,12 +559,14 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
         if (ALanswer === "y") {
             posIdxV.push(recSetIdx);
             posRecIdV.push(uRecSet[recSetIdx].$id);
-            X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            X.push(uMat[recSetIdx]);
             y.push(1.0);
         } else {
             negIdxV.push(recSetIdx);
             negRecIdV.push(uRecSet[recSetIdx].$id);
-            X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            X.push(uMat[recSetIdx]);
             y.push(-1.0);
         }
         // +k query // rank unlabeled according to query, ask for k most similar
