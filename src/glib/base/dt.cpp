@@ -1205,11 +1205,12 @@ TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
 	}
 }
 
-TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) const {
+TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 	if (inner == NULL || SrcStr.Empty()) { return *this; }
 
 	int ChN = SearchStr(SrcStr, BChN);
 	if (ChN == -1){
+		BChN = ChN;
 		return *this;
 	}
 	else {
@@ -1225,6 +1226,7 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) co
 			strncpy(Res + ChN, DstStr.CStr(), DstLen);
 		}
 		Res[Len] = 0;
+		BChN = ChN;
 		return TStr(Res, true);
 	}
 }
@@ -1232,15 +1234,19 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) co
 TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP) const {
 	if (inner == NULL || SrcStr.Empty()) { return *this; }
 
-	const int DstStrLen = DstStr.Len();
-	int Changes = 0 - 1; int BChN = 0 - DstStrLen;
-	do {
-		Changes++;
-		if (FromStartP){ BChN = 0 - DstStrLen; }
-		BChN += DstStrLen;
-		BChN = ChangeStr(SrcStr, DstStr, BChN);
-	} while (BChN != -1);
-	return Changes;
+	char* Res = CloneCStr();
+
+	//const int DstStrLen = DstStr.Len();
+	//int Changes = 0 - 1; int BChN = 0 - DstStrLen;
+	//do {
+	//	Changes++;
+	//	if (FromStartP){ BChN = 0 - DstStrLen; }
+	//	BChN += DstStrLen;
+	//	
+	//	*this = ChangeStr(SrcStr, DstStr, BChN); //BChN = ChangeStr(SrcStr, DstStr, BChN); // before
+	//} while (BChN != -1);
+	//
+	return TStr(Res, true);	
 }
 
 int TStr::GetPrimHashCd() const {
