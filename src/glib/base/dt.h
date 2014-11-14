@@ -907,16 +907,16 @@ private:
 // Input-String
 class TStrIn: public TSIn{
 private:
-  TStr Str;
+  bool OwnP; 
   char* Bf;
   int BfC, BfL;
 private:
-  TStrIn();
-  TStrIn(const TStrIn&);
-  TStrIn& operator = (const TStrIn&);
+  TStrIn() { }
+  TStrIn(const TStrIn&) { }
+  TStrIn& operator = (const TStrIn&) { }
 public:
-  TStrIn(const TStr& _Str);
-  static PSIn New(const TStr& Str){return PSIn(new TStrIn(Str));}
+  TStrIn(const TStr& Str, const bool& _OwnP = true);
+  static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
   ~TStrIn(){}
 
   bool Eof(){return BfC==BfL;}
