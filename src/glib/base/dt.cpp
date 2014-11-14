@@ -776,6 +776,59 @@ TStr::TStr(const char *Ch): inner(NULL) {
 	}
 }
 
+TStr::TStr(const char& Ch1, const char& Ch2, bool): Inner(new char[3]) {
+    Inner[0] = Ch1; Inner[1] = Ch2; Inner[2] = 0;
+}
+
+TStr::TStr(const char& Ch): Inner(new char[2]) {
+    Inner[0] = Ch; Inner[1] = 0;
+}
+
+TStr::TStr(const TStr& Str): Inner((Str.Inner == NULL) ? NULL, Str.CloneCStr()) { }
+
+TStr::TStr(TStr&& Str) {
+    Inner = Str.Inner;
+    // reset other
+    Str.Inner=nullptr;
+}
+
+TStr::TStr(const TChA& ChA): Inner(NULL) {
+    if (!ChA.Empty()) {
+        Inner = new char[ChA.Len()+1];
+        strcpy(Inner, ChA.CStr());        
+    }
+}
+
+TStr::TStr(const TMem& Mem): Inner(NULL) {
+    if (!Mem.Empty()) {
+        Inner = new char[Mem.Len()];
+        memcpy(Inner, Mem(), Mem.Len());
+    }
+}
+  
+TStr::TStr(const PSIn& SIn) { 
+    int SInLen = SIn->Len();
+    Inner = new char[SInLen];
+    SIn->GetBf(Inner, SInLen);
+}
+
+TStr::TStr(TSIn& SIn, const bool& IsSmall) {
+    if (IsSmall){ 
+        SIn.Load(Inner); 
+    } else { 
+        int BfL; SIn.Load(BfL); SIn.Load(Inner, BfL, BfL); 
+    }
+}
+
+void TStr::Load(TSIn& SIn, const bool& IsSmall) {
+    *this = TStr(SIn, IsSmall); 
+} 
+ 
+void TStr::Save(TSOut& SOut, const bool& IsSmall) const { 
+    if (IsSmall){ SOut.Save(CStr()); }
+    else { const int BfL = Len(); SOut.Save(BfL); SOut.Save(CStr(), BfL); }
+}
+
 void TStr::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
   XLoadHd(Nm);
   TStr TokStr=XmlTok->GetTokStr(false);
@@ -788,6 +841,30 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
   else {XSaveHd(Nm); SOut.PutStr(XmlStr);}
 }
 
+TStr& TStr::operator=(const TStr& Str) {
+    TStr temp(Str);
+    std::swap(*this, temp);
+    return *this;
+}
+
+TStr& TStr::operator=(const TChA& ChA) {
+    TStr temp(ChA);
+    std::swap(*this, temp);
+    return *this;
+}
+
+TStr& TStr::operator=(const char* CStr) {
+    TStr temp(CStr);
+    std::swap(*this, temp);
+    return *this;
+}
+
+TStr& TStr::operator=(const char& Ch) {
+    TStr temp(Ch);
+    std::swap(*this, temp);
+    return *this;
+}
+  
 TStr TStr::GetUc() const {
 	int StrLen = Len();
 	// allocate memory
@@ -982,7 +1059,7 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
   return (ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
-TStrPr TStr::SplitOnIdx(const int& Idx) const {
+TStrPr TStr::SplitOnChN(const int& Idx) const {
 	EAssertR(Idx >= 0 && Idx < Len(), "Splitting index should be greater than 0 and less than length!");
 
 	if (inner == NULL) { return TStrPr(); }
@@ -1016,7 +1093,7 @@ TStrPr TStr::SplitOnCh(const char& SplitCh) const {
 	if (ChPtr == NULL) { return TStrPr(*this, TStr()); }
 
 	// split
-	return SplitOnIdx(ChPtr - inner);
+	return SplitOnChN(ChPtr - inner);
 }
 
 TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
@@ -1029,7 +1106,7 @@ TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
 	// if the character was not found than return this in the right string
 	if (ChPtr == NULL) { return TStrPr(TStr(), *this); }
 
-	return SplitOnIdx(ChPtr - inner);
+	return SplitOnChN(ChPtr - inner);
 }
 
 void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {

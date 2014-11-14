@@ -481,41 +481,42 @@ typedef TVec<TStr, int> TStrV;
 
 class TStr{
 private:
+  /// Used to construct empty strings ("") to be returned by CStr()
   const static char EmptyStr;
-
-  char* inner;
+  /// String
+  char* Inner;
   
 public:
-  // Empty String Constructor
-  TStr(): inner(NULL) {}
-  // C-String constructor
+  /// Empty String Constructor
+  TStr(): Inner(NULL) {}
+  /// C-String constructor
   TStr(const char *Ch);
-  // 2 char constructor
-  TStr(const char& Ch1, const char& Ch2, bool): inner(new char[3]) {
-	  inner[0] = Ch1; inner[1] = Ch2; inner[2] = 0;
-  }
-  // 1 char constructor
-  explicit TStr(const char& Ch): inner(new char[2]) {
-	  inner[0] = Ch; inner[1] = 0;
-  }
-  // copy constructor
-  TStr(const TStr& Str): inner(new char[Str.Len()+1]) {
-	  strcpy(inner, Str.inner);
-  }
-  // move constructor
-  TStr(TStr&& Str) {
-	  inner = Str.inner;
-	  // reset other
-	  Str.inner=nullptr;
-  }
-  // TCha constructor (char-array class)
-  TStr(const TChA& ChA): TStr(ChA.CStr()) {}
+  /// 2 char constructor
+  TStr(const char& Ch1, const char& Ch2, bool);
+  /// 1 char constructor
+  explicit TStr(const char& Ch);
+  /// copy constructor
+  TStr(const TStr& Str);
+  /// move constructor
+  TStr(TStr&& Str);
+  /// TChA constructor (char-array class)
+  TStr(const TChA& ChA);
+  /// TMem constructor
+  TStr(const TMem& Mem);
+  /// Stream (file) reading constructor
+  explicit TStr(const PSIn& SIn);
+  
+  /// We only delete when not empty
+  ~TStr(){ if (Inner != NULL) delete[] Inner; }
 
-  TStr(const TMem& Mem): inner(new char[Mem.Len()]) {
-    memcpy(inner, Mem(), Mem.Len());
-  }
-  explicit TStr(const PSIn& SIn){ // Stream (file) reading constructor
-    int SInLen = SIn->Len();
+  /// Deserialize TStr from stream, when IsSmall, the string is save as CStr,
+  /// otherwise format is first the length and then the data without last \0
+  explicit TStr(TSIn& SIn, const bool& IsSmall = false);
+  // Left for compatibility reasons, best if we can remove it at some point
+  void Load(TSIn& SIn, const bool& IsSmall = false);
+  /// Serialize TStr to stream, when IsSmall, the string is save as CStr,
+  /// otherwise format is first the length and then the data without last \0
+  void Save(TSOut& SOut, const bool& IsSmall = false) const;
 
     inner = new char[SInLen];
     SIn->GetBf(inner, SInLen);
@@ -533,55 +534,33 @@ public:
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
-  /*
-   *  Assigment operators
-   */
-  // TStr = TStr
-  TStr& operator=(const TStr& Str) {
-	  TStr temp(Str);
-	  std::swap(*this, temp);
-	  return *this;
-  }
-  // TStr = TCha
-  TStr& operator=(const TChA& ChA) {
-	  TStr temp(ChA);
-	  std::swap(*this, temp);
-	  return *this;
-  }
-  // TStr = char* (C-String)
-  TStr& operator=(const char* CStr) {
-	  TStr temp(CStr);
-	  std::swap(*this, temp);
-	  return *this;
-  }
-  // TStr = char
-  TStr& operator=(const char& Ch) {
-	  TStr temp(Ch);
-	  std::swap(*this, temp);
-	  return *this;
-  }
+  /// Assigment operator TStr = TStr
+  TStr& operator=(const TStr& Str);
+  /// Assigment operator TStr = TChA
+  TStr& operator=(const TChA& ChA);
+  /// Assigment operator TStr = char* (C-String)
+  TStr& operator=(const char* CStr);
+  /// Assigment operator TStr = char
+  TStr& operator=(const char& Ch);
 
   /*
    * Concatenation Assignment Operator +=
    */
-  // Concatenates and assigns
+  /// Concatenates and assigns
   TStr operator+=(const TStr& Str) const { return *this + Str; } ;
+  /// Concatenates and assigns
   TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
-
-  // Boolean comparisons
-  /*
-   *  == (is equal comparison)
-   */
-  // TStr == TStr
+  /// Boolean comparison TStr == TStr
   bool operator==(const TStr& Str) const {
 	  // self = self
 	  if(this == &Str) return true;
 	  // string comparison
-	  return strcmp(inner, Str.inner) == 0;
+	  return strcmp(Inner, Str.Inner) == 0;
   }
-  bool operator==(const char* CStr) const { // TStr == C-String
-    return strcmp(inner, CStr) == 0;
+  /// Boolean comparison TStr == char*
+  bool operator==(const char* CStr) const { 
+    return strcmp(Inner, CStr) == 0;
   }
 
   /*
@@ -592,39 +571,39 @@ public:
 	  // self = self
 	  if(this == &Str) return false;
 	  // string comparison
-	  return strcmp(inner, Str.inner) != 0;
+	  return strcmp(Inner, Str.Inner) != 0;
   }
   // TStr != C-String
   bool operator!=(const char* CStr) const {
-	  return strcmp(inner, CStr) != 0;
+	  return strcmp(Inner, CStr) != 0;
   }
   // < (is less than comparison)
   /// TStr < TStr
   bool operator<(const TStr& Str) const {
-    return strcmp(inner, Str.inner)<0;
+    return strcmp(Inner, Str.Inner)<0;
   }
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Memory used by this String object
   int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(inner) );}
-  /// Get the inner C-String
-  const char* CStr() const {return inner == NULL ? &EmptyStr : inner;}
-  /// Return a COPY of the string as a C String (char array)
+  // Get the inner C-String
+  const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
+  // Return a COPY of the string as a C String (char array)
   char* CloneCStr() const {
       char* Bf = new char[Len()+1];
-      strcpy(Bf, inner);
+      strcpy(Bf, Inner);
       return Bf;
   }
   /// Get character at position ChN
   char GetCh(const int& ChN) const {
 	  Assert( (0 <= ChN) && (ChN < Len()) ); // Assert index not negative, index not >= Length
-	  return inner[ChN];
+	  return Inner[ChN];
   }
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
-  /// Get String Length (null terminator not included)
-  int Len() const { return inner != NULL ? strlen(inner) : 0;}
-  /// Check if this is an empty string
+  // Get String Length (null terminator not included)
+  int Len() const { return Inner != NULL ? strlen(Inner) : 0;}
+  // Check if this is an empty string
   bool Empty() const { return Len() == 0;}
 
   /*
@@ -645,7 +624,7 @@ public:
   /// Capitalize
   TStr GetCap() const;
 
-  /// Truncate (no spaces in the end)
+  /// Truncate
   TStr GetTrunc() const;
 
   /// Get hex
@@ -680,8 +659,7 @@ public:
   TStr RightOfLast(const char& SplitCh) const;
 
   /// Split on the index, return Pair of Left/Right strings, omits the target index
-  TStrPr SplitOnIdx(const int& Idx) const;
-
+  TStrPr SplitOnChN(const int& ChN) const;
   /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
   /// if the character is not found the whole string is returned as the left side
   TStrPr SplitOnCh(const char& SplitCh) const;
@@ -920,14 +898,15 @@ public:
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
 
+
   /*
    * Private methods
    */
 private:
   // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
-  TStr(char *Ch, const bool Own=false) {
+  TStr(char *Ch, const bool Own) {
 	  if(!Own) { TStr(Ch); } // guard against misuse
-	  inner = Ch; // straight up pointer assignment
+	  Inner = Ch; // straight up pointer assignment
   }
 };
 
@@ -939,9 +918,9 @@ private:
   char* Bf;
   int BfC, BfL;
 private:
-  TStrIn() { }
-  TStrIn(const TStrIn&) { }
-  TStrIn& operator = (const TStrIn&) { }
+  TStrIn();
+  TStrIn(const TStrIn&);
+  TStrIn& operator = (const TStrIn&);
 public:
   TStrIn(const TStr& Str, const bool& _OwnP = true);
   static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
