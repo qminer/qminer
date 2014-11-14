@@ -791,7 +791,7 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 TStr TStr::GetUc() const {
 	int StrLen=Len();
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char new_array = new char[StrLen];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN]=(char)toupper(inner[ChN]);
@@ -803,7 +803,7 @@ TStr TStr::GetUc() const {
 TStr TStr::GetLc() const {
 	int StrLen = Len();
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char new_array = new char[StrLen];
 	// copy in lowercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) tolower(inner[ChN]);
@@ -825,7 +825,6 @@ TStr TStr::GetCap() const{
 	}
 	return TStr(new_array, true);
 }
-// @TODO: ALL OTHER METHODS [ REI ]
 
 TStr& TStr::ToTrunc(){
   int ThisLen=Len(); char* ThisBf=CStr();
@@ -1135,64 +1134,67 @@ void TStr::SplitOnStr(TStr& LeftStr, const TStr& MidStr, TStr& RightStr) const {
   }
 }
 
-int TStr::CountCh(const char& Ch, const int& BChN) const {
-  const int ThisLen=Len();
-  const char* ThisBf=CStr();
-  int Chs=0;
-  for (int ChN=TInt::GetMx(BChN, 0); ChN<ThisLen; ChN++){
-    if (ThisBf[ChN]==Ch){Chs++;}
+int TStr::CountCh(const char& Ch, const unsigned int& BChN) const {
+	const int ThisLen = Len();
+	if(ThisLen == 0) { return 0; }
+
+	const char* ThisBf = CStr();
+	int Chs = 0;
+
+	for (int ChN = TInt::GetMx(BChN, 0); ChN<ThisLen; ChN++) {
+    if (ThisBf[ChN]==Ch) { Chs++; }
   }
   return Chs;
 }
 
 int TStr::SearchCh(const char& Ch, const int& BChN) const {
-  int ThisLen=Len(); const char* ThisBf=CStr();
-  int ChN=TInt::GetMx(BChN, 0);
-  while (ChN<ThisLen){
-    if (ThisBf[ChN]==Ch){return ChN;}
+  int ThisLen = Len();
+  if(ThisLen == 0) { return -1; }
+
+  const char* ThisBf = CStr();
+  int ChN = TInt::GetMx(BChN, 0);
+
+  while (ChN < ThisLen){
+    if (ThisBf[ChN] == Ch){ return ChN; }
     ChN++;
   }
   return -1;
 }
 
 int TStr::SearchChBack(const char& Ch, int BChN) const {
-  const int StrLen=Len();
-  if (BChN==-1||BChN>=StrLen){BChN=StrLen-1;}
-  const char* ThisBf=CStr();
-  const char* Pt=ThisBf + BChN;
-  while (Pt>=ThisBf) {
-    if (*Pt==Ch){return (int)(Pt-ThisBf);}
+  const int StrLen = Len();
+  if(ThisLen == 0) { return 0; }
+  const char* ThisBf = CStr();
+
+  if (BChN < 0 || BChN >= StrLen) { BChN = StrLen - 1; }
+
+  const char* Pt = ThisBf + BChN;
+
+  while (Pt >= ThisBf) {
+    if (*Pt == Ch){ return (int) (Pt - ThisBf); }
     Pt--;
   }
   return -1;
 }
 
 int TStr::SearchStr(const TStr& Str, const int& BChN) const {
-  int NrBChN=TInt::GetMx(BChN, 0);
-  const char* StrPt=strstr((const char*)CStr()+NrBChN, Str.CStr());
-  if (StrPt==NULL){return -1;}
-  else {return int(StrPt-CStr());}
-/*  // slow implementation
-  int ThisLen=Len(); int StrLen=Str.Len();
-  int ChN=TInt::GetMx(BChN, 0);
-  while (ChN<ThisLen-StrLen+1){
-    if (strncmp(CStr()+ChN, Str.CStr(), StrLen)==0){
-      return ChN;}
-    ChN++;
-  }
-  return -1;*/
+  int NrBChN = TInt::GetMx(BChN, 0);
+  int ThisLen = Len();
+  if(ThisLen == 0) { return -1; }
+  if(NrBChN > ThisLen) { return -1; }
+
+  const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
+  if (StrPt == NULL) { return -1; }
+  return int(StrPt - CStr());
 }
 
 bool TStr::IsPrefix(const char *Str) const {
-	size_t len = strlen(Str);
-	size_t thisLen = Len();
-	if (len > thisLen) {
-		return false;
-	} else {
-		size_t minLen = MIN(len, thisLen);
-		int cmp = strncmp(Str, RStr->Bf, minLen);
-		return cmp == 0;
-	}
+	int OtherLen = strlen(Str);
+	int ThisLen = Len();
+	if (OtherLen > ThisLen || ThisLen == 0) { return false; }
+
+	int Cmp = strncmp(Str, CStr(), OtherLen);
+	return Cmp == 0;
 }
 
 bool TStr::IsSuffix(const char *Str) const {
