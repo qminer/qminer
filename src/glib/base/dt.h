@@ -534,58 +534,30 @@ public:
   // += operators disabled (Immutable)
 
   /// Boolean comparison TStr == TStr
-  bool operator==(const TStr& Str) const {
-	  // self = self
-	  if(this == &Str) return true;
-	  // string comparison
-	  return strcmp(Inner, Str.Inner) == 0;
-  }
+  bool operator==(const TStr& Str) const;
   /// Boolean comparison TStr == char*
-  bool operator==(const char* CStr) const { 
-    return strcmp(Inner, CStr) == 0;
-  }
-
-  /*
-   * != (is not equal comparison)
-   */
-  // TStr != TStr
-  bool operator!=(const TStr& Str) const {
-	  // self = self
-	  if(this == &Str) return false;
-	  // string comparison
-	  return strcmp(Inner, Str.Inner) != 0;
-  }
-  // TStr != C-String
-  bool operator!=(const char* CStr) const {
-	  return strcmp(Inner, CStr) != 0;
-  }
-  // < (is less than comparison)
-  // TStr < TStr
-  bool operator<(const TStr& Str) const {
-    return strcmp(Inner, Str.Inner)<0;
-  }
-  // Indexing operator, returns character at position ChN
+  bool operator==(const char* _CStr) const;
+  /// Boolean comparison TStr != TStr
+  bool operator!=(const TStr& Str) const;
+  /// Boolean comparison TStr != C-String
+  bool operator!=(const char* _CStr) const;
+  /// < (is less than comparison) TStr < TStr
+  bool operator<(const TStr& Str) const;
+  /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
-  // Memory used by this String object
-  int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(Inner) );}
-  // Get the inner C-String
-  const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
-  // Return a COPY of the string as a C String (char array)
-  char* CloneCStr() const {
-      char* Bf = new char[Len()+1];
-      strcpy(Bf, Inner);
-      return Bf;
-  }
-  // Get character at position ChN
-  char GetCh(const int& ChN) const {
-	  Assert( (0 <= ChN) && (ChN < Len()) ); // Assert index not negative, index not >= Length
-	  return Inner[ChN];
-  }
-  // Get last character in string (before null terminator)
+  /// Memory used by this String object
+  int GetMemUsed() const;
+  /// Get the inner C-String
+  const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
+  /// Return a COPY of the string as a C String (char array)
+  char* CloneCStr() const;
+  /// Get character at position ChN
+  char GetCh(const int& ChN) const;
+  /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
-  // Get String Length (null terminator not included)
-  int Len() const { return Inner != NULL ? strlen(Inner) : 0;}
-  // Check if this is an empty string
+  /// Get String Length (null terminator not included)
+  int Len() const { return (Inner != NULL) ? strlen(Inner) : 0;}
+  /// Check if this is an empty string
   bool Empty() const { return Len() == 0;}
 
   /*

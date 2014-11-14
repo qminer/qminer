@@ -864,7 +864,49 @@ TStr& TStr::operator=(const char& Ch) {
     std::swap(*this, temp);
     return *this;
 }
+
+bool TStr::operator==(const TStr& Str) const {
+    // self = self
+    if(this == &Str) return true;
+    // string comparison
+    return strcmp(CStr(), Str.CStr()) == 0;
+}
+
+bool TStr::operator==(const char* _CStr) const { 
+    return strcmp(CStr(), _CStr) == 0;
+}
+
+bool TStr::operator!=(const TStr& Str) const {
+    // self = self
+    if(this == &Str) return false;
+    // string comparison
+    return strcmp(CStr(), Str.CStr()) != 0;
+}
+
+bool TStr::operator!=(const char* _CStr) const {
+    return strcmp(CStr(), _CStr) != 0;
+}
+
+bool TStr::operator<(const TStr& Str) const {
+    return strcmp(CStr(), Str.CStr()) < 0;
+}
   
+int TStr::GetMemUsed() const { 
+    return int(sizeof(TStr*) + ((Inner != NULL) ? (strlen(Inner)+1) : 0));
+}
+
+char* TStr::CloneCStr() const {
+    char* Bf = new char[Len()+1];
+    strcpy(Bf, Inner);
+    return Bf;
+}
+
+char TStr::GetCh(const int& ChN) const {
+    // Assert index not negative, index not >= Length
+    Assert( (0 <= ChN) && (ChN < Len()) ); 
+    return Inner[ChN];
+}
+
 TStr TStr::GetUc() const {
 	int StrLen = Len();
 	// allocate memory
