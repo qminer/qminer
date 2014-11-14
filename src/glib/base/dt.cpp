@@ -826,13 +826,17 @@ TStr TStr::GetCap() const{
 	return TStr(new_array, true);
 }
 
-TStr& TStr::ToTrunc(){
-  int ThisLen=Len(); char* ThisBf=CStr();
-  int BChN=0; int EChN=ThisLen-1;
-  while ((BChN<ThisLen)&&TCh::IsWs(ThisBf[BChN])){BChN++;}
-  while ((EChN>=0)&&TCh::IsWs(ThisBf[EChN])){EChN--;}
-  *this=GetSubStr(BChN, EChN);
-  return *this;
+TStr TStr::GetTrunc() const {
+  int ThisLen = Len();
+  char* ThisBf = CStr();
+  int BChN = 0;
+  int EChN = ThisLen - 1;
+
+  while ((BChN < ThisLen) && TCh::IsWs(ThisBf[BChN])) { BChN++; }
+  while ((EChN>=0) && TCh::IsWs(ThisBf[EChN])){ EChN--; }
+
+  TStr  Truncated = GetSubStr(BChN, EChN);
+  return Truncated;
 }
 
 TStr& TStr::ToHex(){

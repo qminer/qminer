@@ -599,58 +599,58 @@ public:
 	  return strcmp(inner, CStr) != 0;
   }
   // < (is less than comparison)
-  // TStr < TStr
+  /// TStr < TStr
   bool operator<(const TStr& Str) const {
     return strcmp(inner, Str.inner)<0;
   }
-  // Indexing operator, returns character at position ChN
+  /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
-  // Memory used by this String object
+  /// Memory used by this String object
   int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(inner) );}
-  // Get the inner C-String
+  /// Get the inner C-String
   const char* CStr() const {return inner == NULL ? &EmptyStr : inner;}
-  // Return a COPY of the string as a C String (char array)
+  /// Return a COPY of the string as a C String (char array)
   char* CloneCStr() const {
       char* Bf = new char[Len()+1];
       strcpy(Bf, inner);
       return Bf;
   }
-  // Get character at position ChN
+  /// Get character at position ChN
   char GetCh(const int& ChN) const {
 	  Assert( (0 <= ChN) && (ChN < Len()) ); // Assert index not negative, index not >= Length
 	  return inner[ChN];
   }
-  // Get last character in string (before null terminator)
+  /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
-  // Get String Length (null terminator not included)
+  /// Get String Length (null terminator not included)
   int Len() const { return inner != NULL ? strlen(inner) : 0;}
-  // Check if this is an empty string
+  /// Check if this is an empty string
   bool Empty() const { return Len() == 0;}
 
   /*
    * Case related methods
    */
-  // Is upper-case?
+  /// Is upper-case?
   bool IsUc() const;
-  // Returns a new string converted to uppercase
+  /// Returns a new string converted to uppercase
   TStr GetUc() const;
-  // Case insensitive comparison
+  /// Case insensitive comparison
   int CmpI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr());}
-  // Case insensitive equality
+  /// Case insensitive equality
   bool EqI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr())==0;}
-  // Is lower-case?
+  /// Is lower-case?
   bool IsLc() const;
-  // Returns new string converted to lowercase
+  /// Returns new string converted to lowercase
   TStr GetLc() const;
-  // Capitalize
+  /// Capitalize
   TStr GetCap() const;
 
-  // truncate
+  /// Truncate (no spaces in the end)
   TStr GetTrunc() const;
 
-  // get hex
+  /// Get hex
   TStr GetHex() const;
-  // create from hex string
+  /// create from hex string
   TStr GetFromHex() const;
 
   /*
