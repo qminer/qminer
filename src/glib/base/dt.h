@@ -472,27 +472,23 @@ private:
   char* inner;
 public:
   // Empty String Constructor
-  TStr() {
-	  inner = new char[1]; inner[0] = 0;
+  TStr(): inner(new char[1]) {
+	  inner[0] = 0;
   }
   // C-String constructor
-  TStr(const char *Ch) {
-	  // if Own is true we "Own" th
-	  inner = new char[strlen(Ch)+1];
+  TStr(const char *Ch): inner(new char[strlen(Ch)+1]) {
 	  strcpy(inner, Ch);
   }
   // 2 char constructor
-  TStr(const char& Ch1, const char& Ch2, bool){
-	  inner = new char[3]; inner[0] = Ch1; inner[1] = Ch2; inner[2] = 0;
+  TStr(const char& Ch1, const char& Ch2, bool): inner(new char[3]) {
+	  inner[0] = Ch1; inner[1] = Ch2; inner[2] = 0;
   }
   // 1 char constructor
-  explicit TStr(const char& Ch){
-	  inner = new char[2];
+  explicit TStr(const char& Ch): inner(new char[2]) {
 	  inner[0] = Ch; inner[1] = 0;
   }
   // copy constructor
-  TStr(const TStr& Str) {
-	  inner = new char[strlen(Str.inner)+1];
+  TStr(const TStr& Str): inner(new char[strlen(Str.inner)+1]) {
 	  strcpy(inner, Str.inner);
   }
   // move constructor
@@ -504,8 +500,7 @@ public:
   // TCha constructor (char-array class)
   TStr(const TChA& ChA): TStr(ChA.CStr()) {}
 
-  TStr(const TMem& Mem) {
-    inner = new char[Mem.Len()];
+  TStr(const TMem& Mem): inner(new char[Mem.Len()]) {
     memcpy(inner, Mem(), Mem.Len());
   }
   explicit TStr(const PSIn& SIn){ // Stream (file) reading constructor
