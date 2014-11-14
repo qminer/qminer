@@ -1262,10 +1262,10 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP) const {
 	if (inner == NULL || SrcStr.Empty()) { return *this; }
 
-	char* Res = CloneCStr();
+	char* Res = Clone();
 
-	//const int DstStrLen = DstStr.Len();
-	//int Changes = 0 - 1; int BChN = 0 - DstStrLen;
+	const int DstStrLen = DstStr.Len();
+	int Changes = 0 - 1; int BChN = 0 - DstStrLen;
 	//do {
 	//	Changes++;
 	//	if (FromStartP){ BChN = 0 - DstStrLen; }
@@ -1273,7 +1273,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& From
 	//	
 	//	*this = ChangeStr(SrcStr, DstStr, BChN); //BChN = ChangeStr(SrcStr, DstStr, BChN); // before
 	//} while (BChN != -1);
-	//
+	
 	return TStr(Res, true);	
 }
 
