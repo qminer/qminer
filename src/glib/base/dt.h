@@ -19,6 +19,7 @@
 
 #include "bd.h"
 
+
 /////////////////////////////////////////////////
 // Forward
 class TILx;
@@ -662,6 +663,7 @@ public:
 
   /// Split on the index, return Pair of Left/Right strings, omits the target index
   TStrPr SplitOnIdx(const int& Idx) const;
+
   /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
   /// if the character is not found the whole string is returned as the left side
   TStrPr SplitOnCh(const char& SplitCh) const;
@@ -700,16 +702,26 @@ public:
   /*
    * Count, Search, Exists in, Prefix, Suffix
    */
-  int CountCh(const char& Ch, const int& BChN=0) const;
+  /// Counts occurrences of a character between [BChN, end]
+  int CountCh(const char& Ch, const unsigned int& BChN=0) const;
+  /// Returns the position of the first occurrence of a character between [BChN, end]
   int SearchCh(const char& Ch, const int& BChN=0) const;
+  /// Returns the position of the last occurrence of a character between [BChN, end]
   int SearchChBack(const char& Ch, int BChN=-1) const;
+  /// Returns the position of the first occurrence of a (sub)string between [BChN, end]
   int SearchStr(const TStr& Str, const int& BChN=0) const;
+  /// Returns true if character occurs in string
   bool IsChIn(const char& Ch) const {return SearchCh(Ch)!=-1;}
+  /// Returns true if (sub)string occurs in string
   bool IsStrIn(const TStr& Str) const {return SearchStr(Str)!=-1;}
+  /// Returns true if this string starts with the prefix c-string
   bool IsPrefix(const char *Str) const;
+  /// Returns true if this string starts with the prefix string
   bool IsPrefix(const TStr& Str) const {
     return IsPrefix(Str.CStr());}
+  /// Returns true if this string ends with the sufix c-string
   bool IsSuffix(const char *Str) const;
+  /// Returns true if this string ends with the sufix string
   bool IsSuffix(const TStr& Str) const {
     return IsSuffix(Str.CStr());}
 
@@ -721,9 +733,9 @@ public:
   // Return a string with all occurrences of SrcCh character replaced with DstCh
   TStr ChangeChAll(const char& SrcCh, const char& DstCh) const;
   // Return a string with first occurrence of ScrStr string replaced with DstStr string.
-  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
-  // Return a string with all occurrences of ScrStr string replaced with DstStr string - @TODO not sure what FromStartP is - remove?
-  int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP=false);
+  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN=0) const;
+  // Return a string with all occurrences of ScrStr string replaced with DstStr string
+  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const ;
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
