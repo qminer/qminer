@@ -935,7 +935,7 @@ TStr TStr::DelStr(const TStr& Str){
     }
 }
 
-TStr TStr::DelStr(const TStr& Str){
+TStr TStr::DelStrAll(const TStr& Str){
     TStr NewStr = TStr(CStr());
     while (true) {
         int ChN = NewStr.SearchStr(Str);
