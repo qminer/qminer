@@ -1227,6 +1227,18 @@ int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromS
   return Changes;
 }
 
+int TStr::GetPrimHashCd() const {
+  return TStrHashF_DJB::GetPrimHashCd(CStr());
+}
+
+int TStr::GetSecHashCd() const {
+  return TStrHashF_DJB::GetSecHashCd(CStr());
+}
+
+int TStr::GetHashTrick() const {
+  return TStrHashF_Murmur3::GetPrimHashCd(CStr());
+}
+
 bool TStr::IsBool(bool& Val) const {
   if (operator==("T")){Val=true; return true;}
   else if (operator==("F")){Val=false; return true;}
