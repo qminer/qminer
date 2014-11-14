@@ -698,16 +698,26 @@ public:
   /*
    * Count, Search, Exists in, Prefix, Suffix
    */
-  int CountCh(const char& Ch, const int& BChN=0) const;
+  /// Counts occurrences of a character between [BChN, end]
+  int CountCh(const char& Ch, const unsigned int& BChN=0) const;
+  /// Returns the position of the first occurrence of a character between [BChN, end]
   int SearchCh(const char& Ch, const int& BChN=0) const;
+  /// Returns the position of the last occurrence of a character between [BChN, end]
   int SearchChBack(const char& Ch, int BChN=-1) const;
+  /// Returns the position of the first occurrence of a (sub)string between [BChN, end]
   int SearchStr(const TStr& Str, const int& BChN=0) const;
+  /// Returns true if character occurs in string
   bool IsChIn(const char& Ch) const {return SearchCh(Ch)!=-1;}
+  /// Returns true if (sub)string occurs in string
   bool IsStrIn(const TStr& Str) const {return SearchStr(Str)!=-1;}
+  /// Returns true if this string starts with the prefix c-string
   bool IsPrefix(const char *Str) const;
+  /// Returns true if this string starts with the prefix string
   bool IsPrefix(const TStr& Str) const {
     return IsPrefix(Str.CStr());}
+  /// Returns true if this string ends with the sufix c-string
   bool IsSuffix(const char *Str) const;
+  /// Returns true if this string ends with the sufix string
   bool IsSuffix(const TStr& Str) const {
     return IsSuffix(Str.CStr());}
 
