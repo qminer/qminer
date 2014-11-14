@@ -548,10 +548,15 @@ public:
 	  return *this;
   }
 
-  // += operators disabled (Immutable)
+  /*
+   * Concatenation Assignment Operator +=
+   */
+  // Concatenates and assigns
+  TStr operator+=(const TStr& Str) const { return *this + Str; } ;
+  TStr operator+=(const char* CStr) const { return *this + CStr; } ;
+
 
   // Boolean comparisons
-
   /*
    *  == (is equal comparison)
    */
@@ -891,7 +896,7 @@ public:
   /*
    * Static methods: clone and NullStr
    */
-  // Create a clone of a String
+  /// Create a clone of a String
   static TStr MkClone(const TStr& Str){return TStr(Str.CStr());}
 
   /*
@@ -901,7 +906,6 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
-
 
   /*
    * Private methods
