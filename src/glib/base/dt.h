@@ -18,7 +18,7 @@
  */
 
 #include "bd.h"
-#include "atomic"
+
 
 /////////////////////////////////////////////////
 // Forward
@@ -384,8 +384,8 @@ public:
 class TRStr{
 public:
   char* Bf;
-  //int Refs;
-  mutable std::atomic<unsigned> Refs;
+  int Refs;
+  //mutable std::atomic<unsigned> Refs;
 
 public:
   TRStr(){Refs=1; Bf=new char[0+1]; Bf[0]=0;}
@@ -418,20 +418,20 @@ public:
 
   //void MkRef(){Refs++;}
   void MkRef(){
-        std::atomic_fetch_add_explicit(&Refs, 1u, std::memory_order_relaxed);
-  //      Refs++;
+        //std::atomic_fetch_add_explicit(&Refs, 1u, std::memory_order_relaxed);
+        Refs++;
     }
 
   //void UnRef(){Assert(Refs>0); if (--Refs==0){delete this;}}
   void UnRef() {
-        if (std::atomic_fetch_sub_explicit (&Refs, 1u, std::memory_order_release) == 1) {
+        /*if (std::atomic_fetch_sub_explicit (&Refs, 1u, std::memory_order_release) == 1) {
              std::atomic_thread_fence(std::memory_order_acquire);
              delete this;
+        }*/
+        Assert(Refs>0);
+        if (--Refs==0) {
+            delete this;
         }
-  //      Assert(Refs>0);
-  //      if (--Refs==0) {
-  //          delete this;
-  //      }
     }
 
   const char* CStr() const {return Bf;}
@@ -518,10 +518,10 @@ public:
   /*
    * Save & Load From File
    */
-  explicit TStr(TSIn& SIn, const bool& IsSmall): TStr(SIn) {}
-  void Load(TSIn& SIn, const bool& IsSmall): TStr(SIn){} // Compatibility
+  explicit TStr(TSIn& SIn, const bool& IsSmall) { SIn.Load(inner); }
+  void Load(TSIn& SIn, const bool& IsSmall) { *this = TStr(SIn, IsSmall); } // Compatibility
   void Save(TSOut& SOut) const { SOut.Save(inner); }
-  void Save(TSOut& SOut, const bool& IsSmall) const: Save(Sout){} // Compatibility
+  void Save(TSOut& SOut, const bool& IsSmall) const{ Save(SOut); } // Compatibility
   // Save & Load From XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
@@ -531,27 +531,28 @@ public:
    */
   // TStr = TStr
   TStr& operator=(const TStr& Str) {
-	  // self = self
-	  if(this == &Str) return *this;
-
-	  // 1: allocate new memory and copy the elements
-	  size_t other_size = strlen(Str.inner)+1;
-	  char *new_array = new char[other_size];
-	  strcpy(new_array, Str.inner);
-
-	  // 2: deallocate old memory
-	  delete [] inner;
-
-	 // 3: assign the new memory to the object
-	 inner = new_array;
-	 return *this; // note this calls the copy constructor
+	  TStr temp(Str);
+	  std::swap(*this, temp);
+	  return *this;
   }
   // TStr = TCha
-  TStr& operator=(const TChA& ChA): TStr(Cha){return *this;}
+  TStr& operator=(const TChA& ChA) {
+	  TStr temp(ChA);
+	  std::swap(*this, temp);
+	  return *this;
+  }
   // TStr = char* (C-String)
-  TStr& operator=(const char* CStr): TStr(CStr) { return *this; }
+  TStr& operator=(const char* CStr) {
+	  TStr temp(CStr);
+	  std::swap(*this, temp);
+	  return *this;
+  }
   // TStr = char
-  TStr& operator=(const char& Ch): TStr(Ch) { return *this;}
+  TStr& operator=(const char& Ch) {
+	  TStr temp(Ch);
+	  std::swap(*this, temp);
+	  return *this;
+  }
 
   // += operators disabled (Immutable)
 
