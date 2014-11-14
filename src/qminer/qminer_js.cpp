@@ -1368,6 +1368,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, search);
 		JsLongRegisterFunction(TmpTemp, "operator", op);
 		JsRegisterFunction(TmpTemp, gc);
+		JsRegisterFunction(TmpTemp, v8gc);
 		JsRegisterFunction(TmpTemp, newStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
@@ -1473,6 +1474,12 @@ v8::Handle<v8::Value> TJsBase::gc(const v8::Arguments& Args) {
 		InfoLog("[except] " + Except->GetMsgStr());
 	}
 	return v8::Undefined();
+}
+
+v8::Handle<v8::Value> TJsBase::v8gc(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	while (!v8::V8::IdleNotification()) {};
+	return HandleScope.Close(v8::Undefined());
 }
 
 v8::Handle<v8::Value> TJsBase::newStreamAggr(const v8::Arguments& Args) {
@@ -4700,14 +4707,27 @@ v8::Handle<v8::Value> TJsFltVV::put(const v8::Arguments& Args) {
 	if (Args.Length() == 3) {
 		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
 		QmAssertR(Args[1]->IsInt32(), "the second argument should be an integer");
-		QmAssertR(Args[2]->IsNumber(), "the third argument should be a number");
+		QmAssertR(Args[2]->IsNumber() || TJsFltVVUtil::IsArgClass(Args,2, "TFltVV")  , "the third argument should be a number or a matrix");
 		TInt Row = TJsFltVVUtil::GetArgInt32(Args, 0);	
 		TInt Col = TJsFltVVUtil::GetArgInt32(Args, 1);	
 		TInt Rows = JsFltVV->Mat.GetRows();
 		TInt Cols = JsFltVV->Mat.GetCols();
-		QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols, "matrix put: index out of bounds");
-		TFlt Val = TJsFltVVUtil::GetArgFlt(Args, 2);
-		JsFltVV->Mat.At(Row, Col) = Val;	
+		if (Args[2]->IsNumber()) {
+			QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols, "matrix put: index out of bounds");
+			TFlt Val = TJsFltVVUtil::GetArgFlt(Args, 2);
+			JsFltVV->Mat.At(Row, Col) = Val;
+		}
+		else {
+			TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 2);
+			int Rows2 = JsMat2->Mat.GetRows();
+			int Cols2 = JsMat2->Mat.GetCols();
+			QmAssertR(Row >= 0 && Col >= 0 && Row < Rows && Col < Cols && Row + (Rows2-1) < Rows && Col + (Cols2-1) < Cols, "matrix put matrix: index out of bounds");
+			for (int RowN = 0; RowN < Rows2; RowN++) {
+				for (int ColN = 0; ColN < Cols2; ColN++) {
+					JsFltVV->Mat.At(Row + RowN, Col + ColN) = JsMat2->Mat.At(RowN, ColN);
+				}
+			}
+		}		
 	}
 	return Args.Holder();
 }
@@ -7531,6 +7551,8 @@ v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
 		JsRegisterFunction(TmpTemp, communityDetection);
 		JsRegisterFunction(TmpTemp, communityEvolution);
 		JsRegisterFunction(TmpTemp, corePeriphery);
+		JsRegisterFunction(TmpTemp, reebSimplify);
+		JsRegisterFunction(TmpTemp, reebRefine);
 		JsRegisterFunction(TmpTemp, dagImportance);
 		JsRegisterFunction(TmpTemp, dagImportanceStore);
 		JsRegisterFunction(TmpTemp, perfTest);
@@ -7624,10 +7646,13 @@ v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 	TIntV ReturnCommunity;
 	TCnCom SnapReturnCommunities;
 
+	PUNGraph graph;
+	
+
 	if (ArgsLen == 2) {
 		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
 		TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
-		PUNGraph graph = JsGraph->Graph();
+		graph = JsGraph->Graph();
 		QmAssertR(TJsSnapUtil::IsArgStr(Args, 1), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
 		TStr alg = TJsSnapUtil::GetArgStr(Args, 1);
 		if (alg == "gn")
@@ -7643,15 +7668,17 @@ v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsSnap::CommunityDetection: two input arguments expected!");
 	}
 
-	for (int j = 0; j < communities.Len(); j++){
-		SnapReturnCommunities = communities.GetDat(communities[j]);
-		for (int i = 0; i < SnapReturnCommunities.Len(); i++){
-			ReturnCommunity.Add(SnapReturnCommunities[i]);
-			Vec.Add(TIntFltKd(j, (int)SnapReturnCommunities[i]));
+	TVec<TIntFltKdV> Mat(communities.Len());
+	for (int i = 0; i < communities.Len(); i++) {
+		Mat[i].Gen(communities[i].Len());
+		for (int j = 0; j < communities[i].Len(); j++) {
+			int id = communities[i][j];
+			Mat[i][j].Key = id;
+			Mat[i][j].Dat = i;
 		}
 	}
 
-	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
+	return HandleScope.Close(TJsSpMat::New(JsSnap->Js, Mat));
 }
 
 v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
@@ -7670,7 +7697,6 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
-	int Dim = -1;
 	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
@@ -7698,10 +7724,106 @@ v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
 		throw TQmExcept::New("TJsSnap::CorePeriphery: two input arguments expected!");
 	}
 
-	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++)
+	int Dim = 0;
+	for (THashKeyDatI<TInt, TInt> it = coreperiphery.BegI(); !it.IsEnd(); it++) {
 		Vec.Add(TIntFltKd(it.GetDat(), (int)it.GetKey()));
+		Dim++;
+	}
 
 	return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
+}
+v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TIntIntH coreperiphery;
+	TIntV ReturnP;
+	TIntV ReturnC;
+	TCnCom SnapReturnCP;
+
+	PNGraph inGraph;
+	TIntH inT;
+	int e = 2;
+	int step;
+	bool collapse;
+
+	if (ArgsLen == 6) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
+		TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
+		inGraph = JsInGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* JsInT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
+		inT = JsInT->Map;
+
+		e = TJsSnapUtil::GetArgInt32(Args, 2);
+
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 3, "TNGraph"), "TJsSnap::DegreeCentrality: Args[4] expected directed graph!");
+		TJsGraph<TNGraph>* JsOutGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 3);
+		PNGraph outGraph = JsOutGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* JsOutT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 4);
+		TIntH &outT = JsOutT->Map;
+
+		collapse = TJsSnapUtil::GetArgBool(Args, 5);
+
+		TSnap::ReebSimplify(inGraph, inT, e, outGraph, outT, collapse);
+		int lllen = outT.Len();
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
+	}
+
+	return HandleScope.Close(Args.Holder());
+}
+
+v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
+	TIntFltKdV Vec;
+
+	v8::HandleScope HandleScope;
+	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+	int ArgsLen = Args.Length();
+
+	TIntIntH coreperiphery;
+	TIntV ReturnP;
+	TIntV ReturnC;
+	TCnCom SnapReturnCP;
+
+	PNGraph inGraph;
+	TIntH inT;
+	int e = 2;
+	int step;
+	bool collapse;
+
+	if (ArgsLen == 6) {
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
+		TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
+		inGraph = JsInGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* JsInT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
+		inT = JsInT->Map;
+
+		e = TJsSnapUtil::GetArgInt32(Args, 2);
+
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 3, "TNGraph"), "TJsSnap::DegreeCentrality: Args[4] expected directed graph!");
+		TJsGraph<TNGraph>* JsOutGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 3);
+		PNGraph outGraph = JsOutGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* JsOutT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 4);
+		TIntH &outT = JsOutT->Map;
+
+		collapse = TJsSnapUtil::GetArgBool(Args, 5);
+
+		TSnap::ReebRefine(inGraph, inT, e, outGraph, outT, collapse);
+		int lllen = outT.Len();
+	}
+	else {
+		throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
+	}
+
+	return HandleScope.Close(Args.Holder());
 }
 
 v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {
@@ -7832,6 +7954,7 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, adjMat);
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, connectedComponents);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -8170,6 +8293,34 @@ v8::Handle<v8::Value> TJsGraph<T>::load(const v8::Arguments& Args) {
 		JsGraph->Graph = JsGraph->Graph->Load(*SIn);		 
 	}
 	return Args.Holder();
+}
+
+template <class T>
+v8::Handle<v8::Value> TJsGraph<T>::connectedComponents(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	bool IsWeak = TJsGraphUtil::GetArgBool(Args, 0, true);
+	
+	TCnComV CnComV;
+	if (IsWeak) {
+		TSnap::GetWccs(JsGraph->Graph, CnComV);
+	}
+	else {
+		TSnap::GetSccs(JsGraph->Graph, CnComV);
+	}
+
+
+	TVec<TIntFltKdV> Mat(CnComV.Len());
+	for (int i = 0; i < CnComV.Len(); i++) {
+		Mat[i].Gen(CnComV[i].Len());
+		for (int j = 0; j < CnComV[i].Len(); j++) {
+			int id = CnComV[i][j];
+			Mat[i][j].Key = id;
+			Mat[i][j].Dat = 1;
+		}
+	}
+
+	return HandleScope.Close(TJsSpMat::New(JsGraph->Js, Mat));
 }
 
 ///////////////////////////////
