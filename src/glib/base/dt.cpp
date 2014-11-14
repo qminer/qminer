@@ -482,7 +482,7 @@ TChA TChA::GetSubStr(const int& _BChN, const int& _EChN) const {
   int BChN=TInt::GetMx(_BChN, 0);
   int EChN=TInt::GetMn(_EChN, Len()-1);
   int Chs=EChN-BChN+1;
-  if (Chs<=0){return TStr::GetNullStr();}
+  if (Chs<=0){return TStr();}
   else if (Chs==Len()){return *this;}
   else {
     //char* Bf=new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
@@ -740,12 +740,6 @@ void TRStr::ToCap(){
     Bf[0]=(char)toupper(Bf[0]);}
   for (int ChN=1; ChN<StrLen; ChN++){
     Bf[ChN]=(char)tolower(Bf[ChN]);}
-}
-
-void TRStr::ConvUsFromYuAscii(){
-  int StrLen=Len();
-  for (int ChN=0; ChN<StrLen; ChN++){
-    Bf[ChN]=TCh::GetUsFromYuAscii(Bf[ChN]);}
 }
 
 int TRStr::CmpI(const char* p, const char* r){
@@ -1107,7 +1101,7 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
 void TStr::SplitOnStr(TStr& LeftStr, const TStr& MidStr, TStr& RightStr) const {
   const int ChN=SearchStr(MidStr);
   if (ChN==-1){
-    LeftStr=*this; RightStr=GetNullStr();
+    LeftStr=*this; RightStr=TStr();
   } else {
     LeftStr=GetSubStr(0, ChN-1);
     RightStr=GetSubStr(ChN+MidStr.Len(), Len()-1);
@@ -1701,7 +1695,7 @@ TStr TStr::Fmt(const char *FmtStr, ...){
   va_start(valist, FmtStr);
   const int RetVal=vsnprintf(Bf, 10*1024-2, FmtStr, valist);
   va_end(valist);
-  return RetVal!=-1 ? TStr(Bf) : TStr::GetNullStr();
+  return RetVal!=-1 ? TStr(Bf) : TStr::TStr();
 }
 
 TStr TStr::GetSpaceStr(const int& Spaces){
@@ -1722,19 +1716,33 @@ TStr TStr::GetSpaceStr(const int& Spaces){
   }
 }
 
-TStr TStr::GetNullStr(){
-  static TStr NullStr="";
-  return NullStr;
+TStr operator +(const TStr& LStr, const char* RCStr) {
+	const size_t LeftLen = LStr.Len();
+	const size_t RightLen = RCStr == NULL ? 0 : strlen(RCStr);
+
+	// check if any of the strings are empty
+	if (LeftLen == 0) return TStr(RCStr);
+	else if (RightLen == 0) { return LStr; }
+	else {
+		const char* LCStr = LStr.CStr();
+
+		// allocate memory
+		char* ConcatStr = new char[LeftLen + RightLen + 1];
+
+		// copy the two strings into the new memory
+		memcpy(ConcatStr, LCStr, LeftLen);
+		memcpy(ConcatStr + LeftLen, LCStr, RightLen);
+
+		// finish the new string
+		ConcatStr[LeftLen + RightLen] = 0;
+
+		// return
+		return TStr(ConcatStr, true);
+	}
 }
 
-TStr operator+(const TStr& LStr, const TStr& RStr){
-  if (LStr.Empty()){return RStr;}
-  else if (RStr.Empty()){return LStr;}
-  else {return TStr(LStr)+=RStr;}
-}
-
-TStr operator+(const TStr& LStr, const char* RCStr){
-  return TStr(LStr)+=RCStr;
+TStr operator +(const TStr& LStr, const TStr& RStr) {
+	return operator +(LStr, RStr.CStr());
 }
 
 /////////////////////////////////////////////////
@@ -1979,20 +1987,6 @@ void TCh::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
 
 void TCh::SaveXml(TSOut& SOut, const TStr& Nm) const {
   XSaveBETagArg(Nm, "Val", TInt::GetStr(Val));
-}
-
-char TCh::GetUsFromYuAscii(const char& Ch){
-  switch (Ch){
-    case '~': return 'c';
-    case '^': return 'C';
-    case '{': return 's';
-    case '[': return 'S';
-    case '`': return 'z';
-    case '@': return 'Z';
-    case '|': return 'd';
-    case '\\': return 'D';
-    default: return Ch;
-  }
 }
 
 /////////////////////////////////////////////////

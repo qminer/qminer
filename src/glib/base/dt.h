@@ -880,14 +880,14 @@ public:
    */
   // Create a clone of a String
   static TStr MkClone(const TStr& Str){return TStr(Str.CStr());}
-  // Create a null String
-  static TStr GetNullStr();
 
   /*
    * Concatenation operator +
    */
-  friend TStr operator+(const TStr& LStr, const TStr& RStr);
+  /// Concatenates the first string parameter with the char array
   friend TStr operator+(const TStr& LStr, const char* RCStr);
+  /// Concatenates the two strings
+  friend TStr operator+(const TStr& LStr, const TStr& RStr);
 
 
   /*
@@ -1015,9 +1015,9 @@ public:
   uint AddStr(const TStr& Str) { return AddStr(Str.CStr(), Str.Len() + 1); }
 
   TStr GetStr(const uint& Offset) const { Assert(Offset < BfL);
-    if (Offset == 0) return TStr::GetNullStr(); else return TStr(Bf + Offset); }
+    if (Offset == 0) return TStr(); else return TStr(Bf + Offset); }
   const char *GetCStr(const uint& Offset) const { Assert(Offset < BfL);
-    if (Offset == 0) return TStr::GetNullStr().CStr(); else return Bf + Offset; }
+    if (Offset == 0) return TStr().CStr(); else return Bf + Offset; }
 
   // Clr() removes the empty string at the start.
   // Call AddStr("") after Clr(), if you want to use the pool again.

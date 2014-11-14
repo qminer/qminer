@@ -415,8 +415,12 @@ public:
 		return impl.FromUnicode(src, srcIdx, srcCount, dest, clrDest); }
 	virtual size_t FromUnicode(const TIntV& src, size_t srcIdx, const size_t srcCount, TStr& dest, const bool clrDest = true) const {
 		TChA buf; size_t retVal = impl.FromUnicode(src, srcIdx, srcCount, buf, false);
-		if (clrDest) dest += buf.CStr(); else dest = buf.CStr();
-		return retVal; }
+		if (clrDest)
+			dest += buf.CStr();
+		else
+			dest = buf.CStr();
+		return retVal;
+	}
 };
 
 template<class TCodecImpl>

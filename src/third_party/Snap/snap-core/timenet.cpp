@@ -105,7 +105,7 @@ PGStatVec TTimeNet::TimeGrowth(const TTmUnit& TmUnit, const TFSet& TakeStat, con
 
 void TTimeNet::PlotEffDiam(const TStr& FNmPref, const TStr& Desc, const TTmUnit& TmUnit,
                            const TSecTm& StartTm, const int& NDiamRuns, const bool& OnlyWcc, const bool& AlsoRewire) const {
-  const TStr WccStr = OnlyWcc ? "WCC " : TStr::GetNullStr();
+  const TStr WccStr = OnlyWcc ? "WCC " : TStr();
   TTmBucketV TmBucketV;
   GetTmBuckets(TmUnit, TmBucketV);
   TIntV NodeIdV;
@@ -956,7 +956,7 @@ void TTimeNENet::PlotEffDiam(const TStr& FNmPref, const TStr& Desc, const TTmUni
     NdsDiamV.Add(TFltTr(PreGraph->GetNodes(), Mom.GetMean(), Mom.GetSDev()));
     NdsDiamV.Sort();
     printf("  [%s]          \n", ExeTm.GetTmStr());
-    const TStr WccStr = OnlyWcc ? "WCC " : TStr::GetNullStr();
+    const TStr WccStr = OnlyWcc ? "WCC " : TStr();
     { TGnuPlot GnuPlot("diamEff1."+FNmPref, TStr::Fmt("%s. G(%d, %d). %d RUNS.", Desc.CStr(), GetNodes(), GetEdges(), NDiamRuns));
     GnuPlot.SetXYLabel(TStr::Fmt("TIME [%s]", TTmInfo::GetTmUnitStr(TmUnit).CStr()), "AVERAGE "+WccStr+"Effective Diameter");
     GnuPlot.AddErrBar(TmDiamV, "", "");
