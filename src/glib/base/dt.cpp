@@ -772,6 +772,16 @@ int TRStr::GetHashTrick() const {
 
 /////////////////////////////////////////////////
 // String
+const char TStr::EmptyStr = 0;
+
+TStr::TStr(const char *Ch): inner(NULL) {
+	const int Len = strlen(Ch);
+	if (Len > 0) {
+		inner = new char[Len+1];
+		strcpy(inner, Ch);
+	}
+}
+
 void TStr::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
   XLoadHd(Nm);
   TStr TokStr=XmlTok->GetTokStr(false);
@@ -948,33 +958,57 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
   return (ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
-void TStr::SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
-  int ThisLen=Len(); const char* ThisBf=CStr();
-  int ChN=0;
-  while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  if (ChN==ThisLen){
-    LStr=GetSubStr(0, ThisLen-1); RStr="";
-  } else {
-    LStr=GetSubStr(0, ChN-1); RStr=GetSubStr(ChN+1, ThisLen-1);
-  }
+TStrPr TStr::SplitOnIdx(const int& Idx) const {
+	EAssertR(Idx >= 0 && Idx < Len(), "Splitting index should be greater than 0 and less than length!");
+
+	if (inner == NULL) { return TStrPr(); }
+
+	const int LeftLen = Idx;
+	const int RightLen = Len() - LeftLen - 1;
+
+	// create char arrays for the left and right side
+	char* Left = new char[LeftLen + 1];
+	char* Right = new char[RightLen + 1];
+
+	// insert null characters
+	Left[LeftLen] = 0;
+	Right[RightLen] = 0;
+
+	// copy memory
+	memcpy(Left, inner, LeftLen);
+	memcpy(Right, inner + LeftLen + 1, RightLen);
+
+	return TStrPr(TStr(Left, true), TStr(Right, true));
 }
 
-void TStr::SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
-  int ThisLen=Len(); const char* ThisBf=CStr();
-  int ChN=Len()-1;
-  while ((ChN>=0)&&(ThisBf[ChN]!=SplitCh)){ChN--;}
-  if (ChN==-1){
-    LStr=""; RStr=*this;
-  } else
-  if (ChN==0){
-    LStr=""; RStr=GetSubStr(1, ThisLen-1);
-  } else {
-    LStr=GetSubStr(0, ChN-1); RStr=GetSubStr(ChN+1, ThisLen-1);
-  }
+TStrPr TStr::SplitOnCh(const char& SplitCh) const {
+	// check if the string is empty
+	if (inner == NULL) { return TStrPr(); }
+
+	// find the pointer to the delimiter
+	const char* ChPtr = strchr(inner, SplitCh);
+
+	// if the character was not found than return this in the left string
+	if (ChPtr == NULL) { return TStrPr(*this, TStr()); }
+
+	// split
+	return SplitOnIdx(ChPtr - inner);
 }
 
-void TStr::SplitOnAllCh(
- const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
+TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
+	// check if the string is empty
+	if (inner == NULL) { return TStrPr(); }
+
+	// find the pointer to the delimiter
+	const char* ChPtr = strrchr(inner, SplitCh);
+
+	// if the character was not found than return this in the right string
+	if (ChPtr == NULL) { return TStrPr(TStr(), *this); }
+
+	return SplitOnIdx(ChPtr - inner);
+}
+
+void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
   StrV.Clr();
   char* Bf=new char[Len()+1];
   strcpy(Bf, CStr());
@@ -1198,6 +1232,18 @@ int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromS
     BChN=ChangeStr(SrcStr, DstStr, BChN);
   } while (BChN!=-1);
   return Changes;
+}
+
+TStr TStr::Reverse() const {
+	char* Reversed = new char[Length+1];
+
+	for (int i = 0; i < Length; i++) {
+		Reversed[i] = inner[Length-i-1];
+	}
+
+	Reversed[Length] = 0;
+
+	return TStr(Reversed, true);
 }
 
 bool TStr::IsBool(bool& Val) const {

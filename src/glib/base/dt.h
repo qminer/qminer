@@ -449,7 +449,6 @@ public:
   bool IsLc() const;
   void ToLc();
   void ToCap();
-  void ConvUsFromYuAscii();
   static int CmpI(const char* CStr1, const char* CStr2);
 
   int GetPrimHashCd() const;
@@ -469,16 +468,14 @@ typedef TVec<TStr, int> TStrV;
 
 class TStr{
 private:
+  const static char EmptyStr;
+
   char* inner;
 public:
   // Empty String Constructor
-  TStr(): inner(new char[1]) {
-	  inner[0] = 0;
-  }
+  TStr(): inner(NULL) {}
   // C-String constructor
-  TStr(const char *Ch): inner(new char[strlen(Ch)+1]) {
-	  strcpy(inner, Ch);
-  }
+  TStr(const char *Ch);
   // 2 char constructor
   TStr(const char& Ch1, const char& Ch2, bool): inner(new char[3]) {
 	  inner[0] = Ch1; inner[1] = Ch2; inner[2] = 0;
@@ -488,7 +485,7 @@ public:
 	  inner[0] = Ch; inner[1] = 0;
   }
   // copy constructor
-  TStr(const TStr& Str): inner(new char[strlen(Str.inner)+1]) {
+  TStr(const TStr& Str): inner(new char[Str.Len()+1]) {
 	  strcpy(inner, Str.inner);
   }
   // move constructor
@@ -505,10 +502,11 @@ public:
   }
   explicit TStr(const PSIn& SIn){ // Stream (file) reading constructor
     int SInLen = SIn->Len();
+
     inner = new char[SInLen];
     SIn->GetBf(inner, SInLen);
   }
-  ~TStr(){ delete[] inner; } // Destructor
+  ~TStr(){ if (inner != NULL) delete[] inner; } // Destructor
 
   /*
    * Save & Load From File
@@ -587,11 +585,11 @@ public:
     return strcmp(inner, Str.inner)<0;
   }
   // Indexing operator, returns character at position ChN
-  char operator[](const int& ChN) const { GetCh(ChN); }
+  char operator[](const int& ChN) const { return GetCh(ChN); }
   // Memory used by this String object
   int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(inner) );}
   // Get the inner C-String
-  const char* CStr() const {return inner;}
+  const char* CStr() const {return inner == NULL ? &EmptyStr : inner;}
   // Return a COPY of the string as a C String (char array)
   char* CloneCStr() const {
       char* Bf = new char[Len()+1];
@@ -606,9 +604,9 @@ public:
   // Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   // Get String Length (null terminator not included)
-  int Len() const {return strlen(inner);}
+  int Len() const { return inner != NULL ? strlen(inner) : 0;}
   // Check if this is an empty string
-  bool Empty() const { return inner[0] == 0;}
+  bool Empty() const { return Len() == 0;}
 
   /*
    * Case related methods
@@ -659,11 +657,17 @@ public:
   TStr LeftOfLast(const char& SplitCh) const;
   TStr RightOf(const char& SplitCh) const;
   TStr RightOfLast(const char& SplitCh) const;
-  // Split on first occurrence of SplitCh, return Pair of Left/Right strings
+
+  /// Split on the index, return Pair of Left/Right strings, omits the target index
+  TStrPr SplitOnIdx(const int& Idx) const;
+
+  /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
+  /// if the character is not found the whole string is returned as the left side
   TStrPr SplitOnCh(const char& SplitCh) const;
-  // Split on last occurrence of SplitCh, return Pair of Left/Right strings
+  /// Split on last occurrence of SplitCh, return Pair of Left/Right strings
+  /// if the character is not found the whole string is returned as the right side
   TStrPr SplitOnLastCh(const char& SplitCh) const;
-  // Split on all occurrences of SplitCh, write to StrV, optionally don't create empy strings (default true)
+  /// Split on all occurrences of SplitCh, write to StrV, optionally don't create empy strings (default true)
   void SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty=true) const;
   // Split on all occurrences of any char in SplitChStr, optionally don't create empy strings (default true)
   void SplitOnAllAnyCh(const TStr& SplitChStr, TStrV& StrV, const bool& SkipEmpty=true) const;
@@ -673,6 +677,8 @@ public:
   void SplitOnNonAlNum(TStrV& StrV) const;
   // Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
+
+
 
   /* comment preserved for future archaeologists:
   //TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
@@ -717,8 +723,8 @@ public:
   TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
   // Return a string with all occurrences of ScrStr string replaced with DstStr string - @TODO not sure what FromStartP is - remove?
   int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP=false);
-  // Return a String with the order of the characters in this String Reversed
-  TStr Reverse() const {TChA ChA(*this); ChA.Reverse(); return TStr(ChA);}
+  /// Returns a String with the order of the characters in this String Reversed
+  TStr Reverse() const;
 
   /*
    * Hashing
@@ -1188,7 +1194,6 @@ public:
     return ('A'<=Ch)&&(Ch<='Z');}
   static char GetUc(const char& Ch){
     if (('a'<=Ch)&&(Ch<='z')){return Ch-'a'+'A';} else {return Ch;}}
-  static char GetUsFromYuAscii(const char& Ch);
 
   static TStr GetStr(const TCh& Ch){
     return TStr(Ch.Val);}
