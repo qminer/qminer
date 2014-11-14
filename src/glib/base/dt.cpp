@@ -1760,7 +1760,7 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 	const size_t RightLen = RCStr == NULL ? 0 : strlen(RCStr);
 
 	// check if any of the strings are empty
-	if (LeftLen == 0) return TStr(RCStr);
+	if (LeftLen == 0) return RCStr;
 	else if (RightLen == 0) { return LStr; }
 	else {
 		const char* LCStr = LStr.CStr();
