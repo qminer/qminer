@@ -772,21 +772,6 @@ int TRStr::GetHashTrick() const {
 
 /////////////////////////////////////////////////
 // String
-TRStr* TStr::GetRStr(const char* CStr){
-  int CStrLen;
-  if (CStr==NULL){CStrLen=0;} else {CStrLen=int(strlen(CStr));}
-  if (CStrLen==0){return TRStr::GetNullRStr();}
-  else {return new TRStr(CStr);}
-}
-
-void TStr::Optimize(){
-  char* CStr=RStr->CStr(); int CStrLen=int(strlen(CStr));
-  TRStr* NewRStr;
-  if (CStrLen==0){NewRStr=TRStr::GetNullRStr();}
-  else {NewRStr=RStr;}
-  NewRStr->MkRef(); RStr->UnRef(); RStr=NewRStr;
-}
-
 void TStr::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
   XLoadHd(Nm);
   TStr TokStr=XmlTok->GetTokStr(false);
@@ -799,23 +784,44 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
   else {XSaveHd(Nm); SOut.PutStr(XmlStr);}
 }
 
-TStr& TStr::ToUc(){
-  TRStr* NewRStr=new TRStr(RStr->CStr()); NewRStr->ToUc();
-  RStr->UnRef(); RStr=NewRStr; RStr->MkRef();
-  Optimize(); return *this;
+TStr TStr::GetUc() const {
+	int StrLen=Len();
+	// allocate memory
+	char* new_array = new char[StrLen];
+	// copy in uppercase to new char array
+	for (int ChN = 0; ChN < StrLen; ChN++){
+		new_array[ChN]=(char)toupper(inner[ChN]);
+	}
+	// create new TStr, assign character memory array to it
+	return TStr(new_array, true);
 }
 
-TStr& TStr::ToLc(){
-  TRStr* NewRStr=new TRStr(RStr->CStr()); NewRStr->ToLc();
-  RStr->UnRef(); RStr=NewRStr; RStr->MkRef();
-  Optimize(); return *this;
+TStr TStr::GetLc() const {
+	int StrLen = Len();
+	// allocate memory
+	char* new_array = new char[StrLen];
+	// copy in lowercase to new char array
+	for (int ChN = 0; ChN < StrLen; ChN++){
+		new_array[ChN] = (char) tolower(inner[ChN]);
+	}
+	// create new TStr, assign character memory array to it
+	return TStr(new_array, true);
 }
 
-TStr& TStr::ToCap(){
-  TRStr* NewRStr=new TRStr(RStr->CStr()); NewRStr->ToCap();
-  RStr->UnRef(); RStr=NewRStr; RStr->MkRef();
-  Optimize(); return *this;
+TStr TStr::GetCap() const{
+	int StrLen = Len();
+	if (StrLen == 0) return TStr(); // if empty string, return new empty string
+	// allocate memory
+	char new_array = new char[StrLen];
+	// copy first char in uppercase
+	new_array[0] = (char)toupper(inner[0]);
+	// copy all other chars in lowercase
+	for (int ChN = 1; ChN < StrLen; ChN++){
+		new_array[ChN] = (char)tolower(inner[ChN]);
+	}
+	return TStr(new_array, true);
 }
+// @TODO: ALL OTHER METHODS [ REI ]
 
 TStr& TStr::ToTrunc(){
   int ThisLen=Len(); char* ThisBf=CStr();
@@ -824,12 +830,6 @@ TStr& TStr::ToTrunc(){
   while ((EChN>=0)&&TCh::IsWs(ThisBf[EChN])){EChN--;}
   *this=GetSubStr(BChN, EChN);
   return *this;
-}
-
-TStr& TStr::ConvUsFromYuAscii(){
-  TRStr* NewRStr=new TRStr(RStr->CStr()); NewRStr->ConvUsFromYuAscii();
-  RStr->UnRef(); RStr=NewRStr; RStr->MkRef();
-  Optimize(); return *this;
 }
 
 TStr& TStr::ToHex(){
