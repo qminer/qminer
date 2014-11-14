@@ -162,7 +162,7 @@ private:
     /// Document frequency counts before last forget
     TFltV OldDocFqV;
 
-    /// Hash Table
+    /// Set of tokens that hash into specific dimension
     TVec<TStrSet> HashTable;
 
 public:

@@ -6424,6 +6424,7 @@ v8::Handle<v8::Value> TJsFtrSpace::filter(const v8::Arguments& Args) {
     QmAssertR(Args[0]->IsObject(), "fsp.filter: Expecting vector as parameter");
     const TIntFltKdV& SpV = TJsSpV::GetSpV(Args[0]->ToObject());
     const int FtrExtN = TJsFtrSpaceUtil::GetArgInt32(Args, 1);
+    const bool KeepOffsetP = TJsFtrSpaceUtil::GetArgBool(Args, 2, true);
     // get dimension border
     const int MnFtrN = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
     const int MxFtrN = JsFtrSpace->FtrSpace->GetMxFtrN(FtrExtN);
@@ -6433,6 +6434,11 @@ v8::Handle<v8::Value> TJsFtrSpace::filter(const v8::Arguments& Args) {
         const TIntFltKd& Ftr = SpV[FtrN];
         if (MnFtrN <= Ftr.Key && Ftr.Key < MxFtrN) {
             NewSpV.Add(Ftr);
+        }
+    }
+    if (!KeepOffsetP) { 
+        for (int NewFtrN = 0; NewFtrN < NewSpV.Len(); NewFtrN++) {
+            NewSpV[NewSpN].Key -= MnFtrN; 
         }
     }
 	// return
