@@ -55,7 +55,7 @@ public:
         NewRouter.Register(TObj::GetType(), TObj::New);
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
-private:    
+private:
     /// QMiner Base pointer
     TWPt<TBase> Base;
     
