@@ -471,6 +471,7 @@ private:
   const static char EmptyStr;
 
   char* inner;
+  
 public:
   // Empty String Constructor
   TStr(): inner(NULL) {}
@@ -641,14 +642,16 @@ public:
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   // Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
-  // Insert a string Str  into this string starting position BchN, return the new string
+  // Insert a string Str into this string starting position BchN, return the new string
   TStr InsStr(const int& BChN, const TStr& Str) const;
   // Return a new string with all the occurrences of char Ch replaced
   TStr DelChAll(const char& Ch) const;
-  // Return a new string with all the substring from BChN to EChN removed
+  // Return a new string with the substring from BChN to EChN removed
   TStr DelSubStr(const int& BChN, const int& EChN) const;
-  // Return a new string with all occurrences of substring Str removed
+  // Return a new string with the first occurrences of substring Str removed
   TStr DelStr(const TStr& Str) const;
+  // Return a new string with the all occurrences of substring Str removed
+  TStr DelStrAll(const TStr& Str) const;
 
   /*
    * Split methods
@@ -896,7 +899,7 @@ public:
 private:
   // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
   TStr(char *Ch, const bool Own=false) {
-	  if(!Own) TStr(Ch); // guard against misuse
+	  if(!Own) { TStr(Ch); } // guard against misuse
 	  inner = Ch; // straight up pointer assignment
   }
 };
@@ -905,16 +908,16 @@ private:
 // Input-String
 class TStrIn: public TSIn{
 private:
-  TStr Str;
+  bool OwnP; 
   char* Bf;
   int BfC, BfL;
 private:
-  TStrIn();
-  TStrIn(const TStrIn&);
-  TStrIn& operator = (const TStrIn&);
+  TStrIn() { }
+  TStrIn(const TStrIn&) { }
+  TStrIn& operator = (const TStrIn&) { }
 public:
-  TStrIn(const TStr& _Str);
-  static PSIn New(const TStr& Str){return PSIn(new TStrIn(Str));}
+  TStrIn(const TStr& Str, const bool& _OwnP = true);
+  static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
   ~TStrIn(){}
 
   bool Eof(){return BfC==BfL;}
