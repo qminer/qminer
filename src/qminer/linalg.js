@@ -553,4 +553,38 @@ la.correlate = function(m1, m2) {
   return c;
 }
 
+//# - `mat = la.cat(nestedArrMat)` - concatenates the matrices in nestedArrayMat. E.g. mat = la.cat([[m1, m2], [m3, m4]])
+la.cat = function(nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            dimx[row] = nestedArrMat[row][col].rows;
+            dimy[col] = nestedArrMat[row][col].cols;
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = la.newMat({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols -1])});
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+
+
 var linalg = la;

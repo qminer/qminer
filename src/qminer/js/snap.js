@@ -74,20 +74,25 @@ function getLabel(c, dist, prev_sizes, prev, alpha, beta, first_new_id) {
 
 //#- `JSON = snap.evolutionJs(data, alpha, beta)` -- returns JSON of nodes and edges of community evolution graph
 exports.evolutionJs = function (data, alpha, beta) {
+    
     // containers for edges and nodes of the output json string
-    var edgesJson = new Array()
+    var edgesJson = new Array();
     var communitiesJson = new Array();
+    
     // container for community sizes in t-1
     var prev_sizes = new Array();
+    
     // container for communities
     var prev = new Array();
+    
     for (var br = 0; br < data.length; br++) {
-        // data object assignement - CmtyV is a sparse vector
+        // data object assignement - CmtyV is a sparse matrix
         var CmtyV = data[br];
+       
         //  nodes
-        cVal = CmtyV.valVec();
+        // cVal = CmtyV.rows;
         // communities
-        cKey = CmtyV.idxVec();
+        // cKey = CmtyV.cols;
         // container for sizes of communities
         var prev_sizes_temp = new Array();
         // container for communities
@@ -95,27 +100,33 @@ exports.evolutionJs = function (data, alpha, beta) {
         // get unique communites
         cUnique = new Array();
         var temp_prev = -2;
-        for (var i = 0; i < cKey.length; i++) {
-            if (cKey[i] != temp_prev) {
-                cUnique.push(cKey[i]);
-                temp_prev = cKey[i];
-            }
+        for (var i = 0; i < CmtyV.cols; i++) {
+            cUnique.push(i);
+            console.log("t " + br + " " + i);
         }
         // first iteration
         if (br == 0) {
+            
             // counter for storing community size
             count = 0;
-            // initial state - store the communities and their sizes
-            for (var i = 0; i < cKey.length; i++) {
-                prev.push(new CmtyC(cVal[i], cKey[i]));
-                if (i == 0) { count++; }
-                else {
-                    if (cKey[i] == cKey[i - 1]) { count++; }
-                    else { prev_sizes.push(new CmtySizes(cKey[i - 1], count)); count = 1; }
-                }
-            }
-            prev_sizes.push(new CmtySizes(cKey[cKey.length - 1], count));
             
+            // initial state - store the communities and their sizes
+            for (var i = 0; i < CmtyV.cols; i++) {
+                var column = CmtyV[i];
+                console.log("len " + column.idxVec().length);
+                for (var j = 0; j < column.idxVec().length; j++) {
+                    console.log(column.at(j));
+                    if (column.at(j) != 0) {
+                        prev.push(new CmtyC(column.at(j), i));
+                        count++;
+                    }
+                }
+
+                prev_sizes.push(new CmtySizes(i, count));
+                console.log(i +" cmty has "+count);  
+                count = 0;
+            }
+
             for (var i = 0; i < prev_sizes.length; i++)
                 communitiesJson.push({ id: prev_sizes[i].CommunityId, size: prev_sizes[i].Size, t: br });
         }
@@ -133,7 +144,7 @@ exports.evolutionJs = function (data, alpha, beta) {
             if (cUnique.length - 1 > first_new_c_id)
                 first_new_c_id = cUnique.length - 1;
             first_new_c_id += 1;
-            // needed for sorted printing out communities (nodes)  after labeling
+            // needed for sorted printing out communities (nodes) after labeling
             var cJ = new Array();
             // iterate each community in t
             for (var c = 0; c < cUnique.length; c++) {
@@ -146,10 +157,11 @@ exports.evolutionJs = function (data, alpha, beta) {
                 // for new communities
                 dist.push(new CmtySizes(-1, 0));
                 // iterate all nodes in community c in time t
-                for (var i = 0; i < cVal.length; i++) {
-                    if (cKey[i]==C) {
+                column = CmtyV[C];
+                for (var i = 0; i < column.idxVec().length; i++) {
+                    if (column.at(i) != 0) {
                         // node id
-                        var id = cVal[i];
+                        var id = column.at(i);
                         // prev_comm is the community of node i in t-1
                         var prev_comm = -1;
                         for (var j = 0; j < prev.length; j++)
@@ -182,9 +194,10 @@ exports.evolutionJs = function (data, alpha, beta) {
                 cJ.push({ id: label, size: sum_temp, t: br });
                 //n saving basic statistic for current time (br)
                 prev_sizes_temp.push(new CmtySizes(label, sum_temp));
-                for (var i = 0; i < cVal.length; i++)
-                    if (cKey[i] == C) 
-                        prev_temp.push(new CmtyC(cVal[i], label));
+                var column = CmtyV[C];
+                for (var i = 0; i < column.idxVec().length; i++)
+                    if (column.at(i) != 0)
+                        prev_temp.push(new CmtyC(column.at(i), label));
                 
             } // end iterate all communties
 
@@ -213,6 +226,26 @@ exports.evolutionJs = function (data, alpha, beta) {
     return out;
 };
 
+exports.directedJson = function (graph, t) {
+
+    var edges = new Array();
+    var nodes = new Array();
+
+    graph.eachEdge(function (E) { 
+        edges.push({n1:E.srcId, n2:E.dstId, w:2, t0:t.get(E.srcId), t1:t.get(E.dstId)});
+    });
+
+    graph.eachNode(function (N) { 
+        nodes.push({id:N.id, size:2, t:t.get(N.id)});
+    });
+
+    var out = {};
+
+    var out = { edges: edges, communities: nodes };
+
+    return JSON.stringify(out);
+};
+
 //#- `JSON = snap.toJson(graph)` -- returns JSON object of graph with `source` and `target` attributes
 exports.toJsonGraph = function (graph, opts) {
     var br = 0;
@@ -228,10 +261,15 @@ exports.toJsonGraph = function (graph, opts) {
     // object
     var json_out_data = {};
     if (opts.color) {
-        cVal = opts.color.valVec(); // ids
-        cKey = opts.color.idxVec(); // values for data
-        for (var i = 0; i < cVal.length; i++)
-            json_out_data[cVal[i]] = { size: graph.node(cVal[i]).deg, color: cKey[i] };
+   
+        for (var k = 0; k < opts.color.cols; k++) {
+            var column = opts.color[k];
+            for (var i = 0; i < column.idxVec().length; i++) {
+                if (column.at(i) != 0)
+                    json_out_data[column.at(i)] = { size: graph.node(column.at(i)).deg, color: k };
+            }
+        }
+
     }
     else {
         for (var i = graph.firstNode ; br < graph.nodes ; i.next()) {
@@ -292,15 +330,15 @@ exports.removeNodes = function (graph, n) {
 
 //#- `graph = snap.groupNodes(graph, n)` -- groups nodes by SpVec
 exports.groupNodes = function (graph, data) {
-    //  nodes
-    cVal = data.valVec();
+    //  communities number
+    columns = data.cols;
     // communities
     cKey = data.idxVec();
 
     var g = snap.newUGraph();
-    for (var i = 0; i < cKey.length; i++) {
-        if (!g.isNode(cKey[i]))
-            g.addNode(cKey[i]);
+    for (var i = 0; i < columns; i++) {
+        if (!g.isNode(i))
+            g.addNode(i);
     }
 
     var br = 0;
@@ -310,11 +348,13 @@ exports.groupNodes = function (graph, data) {
         var c1=-1;
         var c2=-1;
 
-        for (var j = 0; j < cKey.length; j++) {
-            if (cVal[j] == n1)
-                c1 = cKey[j];
-            if (cVal[j] == n2)
-                c2 = cKey[j];
+        for (var i = 0; i < columns; i++) {
+            for (var j = 0; i < data[i].idxVec().length; j++) {
+                if (data[i].at(j) == n1)
+                    c1 = i;
+                if (data[i].at(j) == n2)
+                    c2 = i;
+            }
         }
 
         g.addEdge(c1, c2);
@@ -324,30 +364,3 @@ exports.groupNodes = function (graph, data) {
 
     return g;
 };
-
-//#- `spVector = snap.readData(path)` -- read data for nodes - IN PROGRESS...
-/*
-exports.readData = function (path, del) {
-    var spVec = la.newSpVec();
-    spVec = spVec.put(0, 1231);
-    var lines = 0;
-    var fin = fs.openRead(path);
-    var n1, n2;
-    while (!fin.eof) {
-        lines = lines + 1;
-        var line = fin.readLine();
-        if (line == "") { continue; }
-        else {
-            n1 = -1; n2 = -1;
-            var lineArray = line.split(del);
-            var n1 = -1, n2 = -1;
-            if (lineArray.length >= 2){
-                n1 = lineArray[0];
-                n2 = lineArray[1];
-                if (n1 === parseInt(n1) && n2 === parseInt(n2))
-                    spVec = spVec.put(n2, n1);
-            }
-        }
-    }
-    return spVec;
-};*/
