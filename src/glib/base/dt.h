@@ -462,6 +462,19 @@ public:
 
 /////////////////////////////////////////////////
 // String
+// Small example that 
+//int main() {
+//	TStr Str0("abc"); // char* constructor
+//	TStr Str1("def"); // char* constructor
+//	TStr Str2 = Str1; // copy constructor
+//	Str2 = Str0;      // copy assignment
+//	TStr& Str3 = Str2; // no copying
+//
+//	// Str0, Str and Str2 call destructors, Str3 doesnt call destructor (that's as it should be)
+//	return 0;
+//}
+
+
 class TStr;
 template <class TVal, class TSizeTy> class TVec;
 typedef TVec<TStr, int> TStrV;
@@ -738,9 +751,9 @@ public:
   // Return a string with all occurrences of SrcCh character replaced with DstCh
   TStr ChangeChAll(const char& SrcCh, const char& DstCh) const;
   // Return a string with first occurrence of ScrStr string replaced with DstStr string.
-  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
+  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN=0) const;
   // Return a string with all occurrences of ScrStr string replaced with DstStr string - @TODO not sure what FromStartP is - remove?
-  int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP=false);
+  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP = false) const ;
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
