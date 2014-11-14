@@ -162,7 +162,7 @@ TStr TTmInfo::GetTmUnitStr(const TTmUnit& TmUnit) {
     case tmuEdges : return "Edges";
     default: Fail;
   }
-  return TStr::GetNullStr();
+  return TStr();
 }
 
 TStr TTmInfo::GetTmZoneDiffStr(const TStr& TmZoneStr){

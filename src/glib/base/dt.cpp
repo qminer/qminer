@@ -482,7 +482,7 @@ TChA TChA::GetSubStr(const int& _BChN, const int& _EChN) const {
   int BChN=TInt::GetMx(_BChN, 0);
   int EChN=TInt::GetMn(_EChN, Len()-1);
   int Chs=EChN-BChN+1;
-  if (Chs<=0){return TStr::GetNullStr();}
+  if (Chs<=0){return TStr();}
   else if (Chs==Len()){return *this;}
   else {
     //char* Bf=new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
@@ -742,12 +742,6 @@ void TRStr::ToCap(){
     Bf[ChN]=(char)tolower(Bf[ChN]);}
 }
 
-void TRStr::ConvUsFromYuAscii(){
-  int StrLen=Len();
-  for (int ChN=0; ChN<StrLen; ChN++){
-    Bf[ChN]=TCh::GetUsFromYuAscii(Bf[ChN]);}
-}
-
 int TRStr::CmpI(const char* p, const char* r){
   if (!p){return r ? (*r ? -1 : 0) : 0;}
   if (!r){return (*p ? 1 : 0);}
@@ -772,6 +766,16 @@ int TRStr::GetHashTrick() const {
 
 /////////////////////////////////////////////////
 // String
+const char TStr::EmptyStr = 0;
+
+TStr::TStr(const char *Ch): inner(NULL) {
+	const int Len = strlen(Ch);
+	if (Len > 0) {
+		inner = new char[Len+1];
+		strcpy(inner, Ch);
+	}
+}
+
 void TStr::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
   XLoadHd(Nm);
   TStr TokStr=XmlTok->GetTokStr(false);
@@ -975,33 +979,57 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
   return (ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
-void TStr::SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
-  int ThisLen=Len(); const char* ThisBf=CStr();
-  int ChN=0;
-  while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  if (ChN==ThisLen){
-    LStr=GetSubStr(0, ThisLen-1); RStr="";
-  } else {
-    LStr=GetSubStr(0, ChN-1); RStr=GetSubStr(ChN+1, ThisLen-1);
-  }
+TStrPr TStr::SplitOnIdx(const int& Idx) const {
+	EAssertR(Idx >= 0 && Idx < Len(), "Splitting index should be greater than 0 and less than length!");
+
+	if (inner == NULL) { return TStrPr(); }
+
+	const int LeftLen = Idx;
+	const int RightLen = Len() - LeftLen - 1;
+
+	// create char arrays for the left and right side
+	char* Left = new char[LeftLen + 1];
+	char* Right = new char[RightLen + 1];
+
+	// insert null characters
+	Left[LeftLen] = 0;
+	Right[RightLen] = 0;
+
+	// copy memory
+	memcpy(Left, inner, LeftLen);
+	memcpy(Right, inner + LeftLen + 1, RightLen);
+
+	return TStrPr(TStr(Left, true), TStr(Right, true));
 }
 
-void TStr::SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
-  int ThisLen=Len(); const char* ThisBf=CStr();
-  int ChN=Len()-1;
-  while ((ChN>=0)&&(ThisBf[ChN]!=SplitCh)){ChN--;}
-  if (ChN==-1){
-    LStr=""; RStr=*this;
-  } else
-  if (ChN==0){
-    LStr=""; RStr=GetSubStr(1, ThisLen-1);
-  } else {
-    LStr=GetSubStr(0, ChN-1); RStr=GetSubStr(ChN+1, ThisLen-1);
-  }
+TStrPr TStr::SplitOnCh(const char& SplitCh) const {
+	// check if the string is empty
+	if (inner == NULL) { return TStrPr(); }
+
+	// find the pointer to the delimiter
+	const char* ChPtr = strchr(inner, SplitCh);
+
+	// if the character was not found than return this in the left string
+	if (ChPtr == NULL) { return TStrPr(*this, TStr()); }
+
+	// split
+	return SplitOnIdx(ChPtr - inner);
 }
 
-void TStr::SplitOnAllCh(
- const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
+TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
+	// check if the string is empty
+	if (inner == NULL) { return TStrPr(); }
+
+	// find the pointer to the delimiter
+	const char* ChPtr = strrchr(inner, SplitCh);
+
+	// if the character was not found than return this in the right string
+	if (ChPtr == NULL) { return TStrPr(TStr(), *this); }
+
+	return SplitOnIdx(ChPtr - inner);
+}
+
+void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
   StrV.Clr();
   char* Bf=new char[Len()+1];
   strcpy(Bf, CStr());
@@ -1100,7 +1128,7 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
 void TStr::SplitOnStr(TStr& LeftStr, const TStr& MidStr, TStr& RightStr) const {
   const int ChN=SearchStr(MidStr);
   if (ChN==-1){
-    LeftStr=*this; RightStr=GetNullStr();
+    LeftStr=*this; RightStr=TStr();
   } else {
     LeftStr=GetSubStr(0, ChN-1);
     RightStr=GetSubStr(ChN+MidStr.Len(), Len()-1);
@@ -1225,6 +1253,18 @@ int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromS
     BChN=ChangeStr(SrcStr, DstStr, BChN);
   } while (BChN!=-1);
   return Changes;
+}
+
+TStr TStr::Reverse() const {
+	char* Reversed = new char[Length+1];
+
+	for (int i = 0; i < Length; i++) {
+		Reversed[i] = inner[Length-i-1];
+	}
+
+	Reversed[Length] = 0;
+
+	return TStr(Reversed, true);
 }
 
 int TStr::GetPrimHashCd() const {
@@ -1694,7 +1734,7 @@ TStr TStr::Fmt(const char *FmtStr, ...){
   va_start(valist, FmtStr);
   const int RetVal=vsnprintf(Bf, 10*1024-2, FmtStr, valist);
   va_end(valist);
-  return RetVal!=-1 ? TStr(Bf) : TStr::GetNullStr();
+  return RetVal!=-1 ? TStr(Bf) : TStr();
 }
 
 TStr TStr::GetSpaceStr(const int& Spaces){
@@ -1715,26 +1755,39 @@ TStr TStr::GetSpaceStr(const int& Spaces){
   }
 }
 
-TStr TStr::GetNullStr(){
-  static TStr NullStr="";
-  return NullStr;
+TStr operator +(const TStr& LStr, const char* RCStr) {
+	const size_t LeftLen = LStr.Len();
+	const size_t RightLen = RCStr == NULL ? 0 : strlen(RCStr);
+
+	// check if any of the strings are empty
+	if (LeftLen == 0) return TStr(RCStr);
+	else if (RightLen == 0) { return LStr; }
+	else {
+		const char* LCStr = LStr.CStr();
+
+		// allocate memory
+		char* ConcatStr = new char[LeftLen + RightLen + 1];
+
+		// copy the two strings into the new memory
+		memcpy(ConcatStr, LCStr, LeftLen);
+		memcpy(ConcatStr + LeftLen, LCStr, RightLen);
+
+		// finish the new string
+		ConcatStr[LeftLen + RightLen] = 0;
+
+		// return
+		return TStr(ConcatStr, true);
+	}
 }
 
-TStr operator+(const TStr& LStr, const TStr& RStr){
-  if (LStr.Empty()){return RStr;}
-  else if (RStr.Empty()){return LStr;}
-  else {return TStr(LStr)+=RStr;}
-}
-
-TStr operator+(const TStr& LStr, const char* RCStr){
-  return TStr(LStr)+=RCStr;
+TStr operator +(const TStr& LStr, const TStr& RStr) {
+	return operator +(LStr, RStr.CStr());
 }
 
 /////////////////////////////////////////////////
 // Input-String
-TStrIn::TStrIn(const TStr& Str, const bool& _OwnP):
-  TSBase("Input-String"), TSIn("Input-String"), OwnP(_OwnP), 
-  Bf(_OwnP ? Str.CloneCStr() : Str.CStr()), BfC(0), BfL(Str.Len()){}
+TStrIn::TStrIn(const TStr& _Str):
+  TSBase("Input-String"), TSIn("Input-String"), Str(_Str), Bf(Str.CStr()), BfC(0), BfL(Str.Len()){}
 
 int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
@@ -1973,20 +2026,6 @@ void TCh::LoadXml(const PXmlTok& XmlTok, const TStr& Nm){
 
 void TCh::SaveXml(TSOut& SOut, const TStr& Nm) const {
   XSaveBETagArg(Nm, "Val", TInt::GetStr(Val));
-}
-
-char TCh::GetUsFromYuAscii(const char& Ch){
-  switch (Ch){
-    case '~': return 'c';
-    case '^': return 'C';
-    case '{': return 's';
-    case '[': return 'S';
-    case '`': return 'z';
-    case '@': return 'Z';
-    case '|': return 'd';
-    case '\\': return 'D';
-    default: return Ch;
-  }
 }
 
 /////////////////////////////////////////////////
