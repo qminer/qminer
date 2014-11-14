@@ -28,6 +28,7 @@ la.printVec = function (vec, prec) {
 	console.say(str);
 };
 
+//TODO: I would move this to analytics.js, to avoid linalg depandencies towards analytics (Blaz)
 //#- `la.getSpFeatVecCols(spVec, fsp)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
 la.getSpFeatVecCols = function (spVec, fsp) {
     
@@ -271,7 +272,7 @@ la.copyFltArrayToVec = function(arr) {
     return vec;
 };
 
-//#- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+//#- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
 la.copyVecToArray = function (vec) {
     var len = vec.length;
     var arr = [];
@@ -535,6 +536,21 @@ la.standardize = function (input, mu, sigma, dim) {
     }
     // If input is vector, cast matrix back to vector.
     return (typeof input.length == "undefined") ? mat2 : mat2.getRow(0);
+}
+
+//# - `mat = la.correlate(m1, m2)` - returns the correlation matrix (Pearson). Each column should be an observation.
+la.correlate = function(m1, m2) {
+  var mu1 = la.mean(m1, 1);
+  var std1 = la.std(m1);
+  var x = la.standardize(m1, mu1, std1);
+
+  var mu2 = la.mean(m2, 1);
+  var std2 = la.std(m2);
+  var y = la.standardize(m2, mu2, std2);
+  var c = x.multiply(y);
+  c = c.multiply(1/c.cols);
+
+  return c;
 }
 
 var linalg = la;

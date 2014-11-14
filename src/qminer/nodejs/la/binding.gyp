@@ -6,9 +6,9 @@
             'la_nodejs.cpp'
          ],
          'include_dirs': [
-            './qminer/src/glib/',
-            './qminer/src/glib/base/',
-            './qminer/src/glib/mine/'
+            '../../../glib/',
+            '../../../glib/base/',
+            '../../../glib/mine/'
          ],
          'dependencies': [
             'glib'
@@ -40,9 +40,9 @@
          'type': 'static_library',
          'include_dirs': [
             '.',
-            './qminer/src/glib/base/',
-            './qminer/src/glib/mine/',
-            './qminer/src/glib/misc/'
+            '../../../glib/base/',
+            '../../../glib/mine/',
+            '../../../glib/misc/'
          ],
          'cflags_cc!': [
             '-fno-rtti',
@@ -71,8 +71,8 @@
             }]
          ],
          'sources': [
-            './qminer/src/glib/base/base.cpp',
-            './qminer/src/glib/mine/mine.cpp'
+            '../../../glib/base/base.cpp',
+            '../../../glib/mine/mine.cpp'
          ]
       }
    ]

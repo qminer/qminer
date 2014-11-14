@@ -59,6 +59,10 @@ namespace TQm {
 //# ## Table of contents
 //#
 //# - [Libraries](#libraries)
+//# - [File system, I/O](#file-system-and-io)
+//#  - [File system](#file-system)
+//#  - [Input File Stream](#input-file-stream)
+//#  - [Output File Stream](#output-file-stream)
 //# - [Core QMiner objects](#core-qminer-objects)
 //#  - [QMiner](#qminer)
 //#  - [Stream Aggregate](#stream-aggregate)
@@ -78,13 +82,10 @@ namespace TQm {
 //#  - [Neural network model](#neural-network-model)
 //#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
 //#  - [Hoeffding Tree model](#hoeffding-tree-model)
-//# - [System and I/O](#system-and-io)
+//# - [System](#system)
 //#  - [Process](#process)
 //#  - [assert.js (use require)](#assertjs-use-require)
 //#  - [Console](#console)
-//#  - [File system](#file-system)
-//#  - [Input File Stream](#input-file-stream)
-//#  - [Output File Stream](#output-file-stream)
 //#  - [utilities.js (use require)](#utilitiesjs-use-require)
 //#  - [utilities.map (use require)](#hash-map)
 //#  - [HTTP](#http)
@@ -287,6 +288,7 @@ namespace TQm {
 // Forward declarations 
 class TScript; typedef TPt<TScript> PScript;
 class TJsBase; typedef TPt<TJsBase> PJsBase;
+class TJsRec;
 class TJsFetch;
 class TJsFetchRq;
 class TJsHttpResp;
@@ -451,8 +453,12 @@ public:
 	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
 	/// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
+    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
@@ -572,7 +578,7 @@ public:
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Handle);
 		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Object->GetInternalField(0));
-                TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
+        TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
 		delete static_cast<TJsObj*>(WrappedObject->Value());
 		Handle.Dispose();
 		Handle.Clear();
@@ -1024,6 +1030,142 @@ public:
 	void Fetch(const TJsFetchRq& Rq);
 };
 
+//#
+//# ## File System and I/O
+//#
+///////////////////////////////
+// QMiner-JavaScript-Filesystem
+//#
+//# ### File system
+//# 
+class TJsFs {
+public:
+	// directories we're allowed to access 
+	TVec<TJsFPath> AllowedFPathV;
+
+private:
+	typedef TJsObjUtil<TJsFs> TJsFsUtil;
+
+	TJsFs(const TVec<TJsFPath>& AllowedDirV_) : AllowedFPathV(AllowedDirV_) { }
+public:
+	static v8::Persistent<v8::Object> New(TScript* Js) {
+		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV));
+	}
+	~TJsFs() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	/// Are we allowed to access given path
+	bool CanAccess(const TStr& FPath);
+	/// Are we allowed to access given path
+	static bool CanAccess(const v8::Arguments& Args);
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+	JsDeclareFunction(openRead);
+	//#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+	JsDeclareFunction(openWrite);
+	//#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+	JsDeclareFunction(openAppend);
+	//#- `bool = fs.exists(fileName)` -- does file exist?
+	JsDeclareFunction(exists);
+	//#- `fs.copy(fromFileName, toFileName)` -- copy file
+	JsDeclareFunction(copy);
+	//#- `fs.move(fromFileName, toFileName)` -- move file
+	JsDeclareFunction(move);
+	//#- `fs.del(fileName)` -- delete file
+	JsDeclareFunction(del);
+	//#- `fs.rename(fromFileName, toFileName)` -- rename file
+	JsDeclareFunction(rename);
+	//#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+	JsDeclareFunction(fileInfo);
+	//#- `fs.mkdir(dirName)` -- make folder
+	JsDeclareFunction(mkdir);
+	//#- `fs.rmdir(dirName)` -- delete folder
+	JsDeclareFunction(rmdir);
+    //#- `strArr = fs.listFile(dirName)` -- returns list of files in directory
+	//#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+	//#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+	JsDeclareFunction(listFile);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+//#
+//# ### Input File Stream
+//# 
+class TJsFIn {
+public:
+	PSIn SIn;
+private:
+	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
+	TJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FNm) {
+		return TJsFInUtil::New(new TJsFIn(FNm));
+	}
+	static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `char = fin.peekCh()` -- peeks a character
+	JsDeclareFunction(peekCh);
+	//#- `char = fin.getCh()` -- reads a character
+	JsDeclareFunction(getCh);
+	//#- `line = fin.readLine()` -- reads a line
+	JsDeclareFunction(readLine);
+	//#- `bool = fin.eof` -- end of stream?
+	JsDeclareProperty(eof);
+	//#- `len = fin.length` -- returns the length of input stream
+	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+//#
+//# ### Output File Stream
+//# 
+class TJsFOut {
+public:
+	PSOut SOut;
+private:
+	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
+	TJsFOut(const TStr& FilePath, const bool& AppendP) : SOut(TFOut::New(FilePath, AppendP)) { }
+	TJsFOut(const TStr& FilePath) : SOut(TZipOut::NewIfZip(FilePath)) { }
+	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) {
+		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP));
+	}
+	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
+		return TJsFOutUtil::New(new TJsFOut(SOut_));
+	}
+
+	static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+	JsDeclareFunction(write);
+	//#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+	JsDeclareFunction(writeLine);
+	//#- `fout = fout.flush()` -- flushes output stream
+	JsDeclareFunction(flush);
+	//#- `fout = fout.close()` -- closes output stream
+	JsDeclareFunction(close);
+};
+
 ///////////////////////////////
 // JavaScript QMiner Base
 //# 
@@ -1083,7 +1225,7 @@ public:
 	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
-	JsDeclareFunction(getStreamAggrNames);
+	JsDeclareFunction(getStreamAggrNames);	
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -1286,22 +1428,25 @@ public:
 class TJsStore {
 private:
 	/// JS script context
-	TWPt<TScript> Js;	
+	TWPt<TScript> Js;
 	TWPt<TStore> Store;
 
 	typedef TJsObjUtil<TJsStore> TJsStoreUtil;
 
-	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
+	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store) : Js(_Js), Store(_Store) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
 		return TJsStoreUtil::New(new TJsStore(Js, Store), Js, "qm.storeProto");
 	}
-	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
 		return TJsStoreUtil::New(new TJsStore(Js, Store)); }*/
 	~TJsStore() { }
 
 	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	static v8::Handle<v8::Value> Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const TRec& Rec, const int FieldId, v8::HandleScope& HandleScope);
+	static v8::Handle<v8::Value> Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const uint64& RecId, const int FieldId, v8::HandleScope& HandleScope);
 
 	//# 
 	//# **Functions and properties:**
@@ -1334,6 +1479,14 @@ public:
     //#- `rec = store.rec(recName)` -- get record named `recName`; 
     //#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
+	//#- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
+	//#  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
+	//#  - `store.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(each);
+	//#- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
+	//#  - `arr = store.map(function (rec) { return JSON.stringify(rec); })`
+	//#  - `arr = store.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	JsDeclareFunction(map);
     //#- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
 	JsDeclareFunction(add);
     //#- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
@@ -1358,6 +1511,13 @@ public:
 	//#- `store.clear()` -- deletes all records
 	//#- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
 	JsDeclareFunction(clear);
+	//#- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
+	//#- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
+	//#- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
+	JsDeclareFunction(cell);
 	//#JSIMPLEMENT:src/qminer/store.js
 
     //# 
@@ -1399,16 +1559,18 @@ private:
 	TWPt<TScript> Js;	
 	TWPt<TStore> Store;
     PStoreIter Iter;
+    // placeholder for last object
+    v8::Persistent<v8::Object> RecObj;
+    TJsRec* JsRec;
 
 	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
 
-	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, 
-        const PStoreIter& _Iter): Js(_Js), Store(_Store), Iter(_Iter) { }	
+	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, const PStoreIter& _Iter);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, 
         const TWPt<TStore>& Store, const PStoreIter& Iter) { 
 		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter)); }
-	~TJsStoreIter() { }
+	~TJsStoreIter() { if (JsRec != NULL) { TJsObjUtil<TJsRec>::MakeWeak(RecObj); } }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
@@ -1417,7 +1579,7 @@ public:
 	//#   
     //#- `store = iter.store` -- get the store
 	JsDeclareProperty(store);
-    //#- `rec = iter.rec` -- get current record
+    //#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	JsDeclareProperty(rec);
     //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
     JsDeclareFunction(next);
@@ -1550,17 +1712,17 @@ public:
 	JsDeclareFunction(filterByField);
 	//#- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
 	JsDeclareFunction(filter);
-	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
    	JsDeclareFunction(split);
     //#- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Returns self. Examples:
+	//#- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
 	//#  - `rs.each(function (rec) { console.log(JSON.stringify(rec)); })`
 	//#  - `rs.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
 	JsDeclareFunction(each);
-	//#- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Examples:
+	//#- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
 	//#  - `arr = rs.map(function (rec) { return JSON.stringify(rec); })`
 	//#  - `arr = rs.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
 	JsDeclareFunction(map);
@@ -1570,6 +1732,10 @@ public:
 	JsDeclareFunction(setunion);
 	//#- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	JsDeclareFunction(setdiff);
+	//#- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
 
 
     //# 
@@ -1605,6 +1771,7 @@ public:
         const int& Fq = 0, const bool& MakeWeakP = true) { 
     		return TJsRecUtil::New(new TJsRec(Js, Rec, Fq), 
                 GetTemplate(Js->Base, Rec.GetStore()), MakeWeakP); }
+    static TJsRec* GetJsRec(const v8::Handle<v8::Value>& Val);
     static TRec GetArgRec(const v8::Arguments& Args, const int& ArgN);
 
 	~TJsRec() { }
@@ -1629,6 +1796,8 @@ public:
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
+    //#- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
+    JsDeclareFunction(clone);
     //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
     //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
@@ -1708,8 +1877,13 @@ public:
 	//#- `intVec = la.newIntVec()` -- generate an empty integer vector
 	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+	//#- `intVec = la.newIntVec(intVec2)` -- clone an int vector `intVec2`
 	JsDeclareFunction(newIntVec);
+	//#- `strVec = la.newStrVec()` -- generate an empty integer vector
+	//#- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+	//#- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
+	JsDeclareFunction(newStrVec);
 	//#- `mat = la.newMat()` -- generates a 0x0 matrix
 	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
@@ -1761,6 +1935,9 @@ public:
 	static double CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->ToNumber()->Value();
 	}
+	static TFlt Parse(const TStr& Str) {
+		return Str.GetFlt();
+	}
 };
 
 class TAuxIntV {
@@ -1774,6 +1951,26 @@ public:
 	}
 	static int CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->ToInt32()->Value();
+	}
+	static TInt Parse(const TStr& Str) {
+		return Str.GetInt();
+	}
+};
+
+class TAuxStrV {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrV"
+	static v8::Handle<v8::Value> GetObjVal(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TStr GetArgVal(const v8::Arguments& Args, const int& ArgN) {
+		return TJsObjUtil<TJsVec<TStr, TAuxStrV> >::GetArgStr(Args, ArgN);
+	}
+	static TStr CastVal(const v8::Local<v8::Value>& Value) {		
+		return TJsObjUtil<TJsVec<TStr, TAuxStrV> >::GetStr(Value->ToString());
+	}
+	static TStr Parse(const TStr& Str) {
+		return Str;
 	}
 };
 
@@ -1838,7 +2035,7 @@ public:
 	JsDeclareFunction(sum);
 	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
 	//#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
-	JsDeclareFunction(getMaxIdx);
+	JsDeclareTemplatedFunction(getMaxIdx);
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
@@ -1877,9 +2074,23 @@ public:
 	//#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
 	//#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
 	JsDeclareTemplatedFunction(toMat);
+	//#- `fout = vec.save(fout)` -- saves to output stream `fout`
+	//#- `fout = intVec.save(fout)` -- saves to output stream `fout`
+	JsDeclareFunction(save);
+	//#- `vec = vec.load(fin)` -- loads from input stream `fin`
+	//#- `intVec = intVec.load(fin)` -- loads from input stream `fin`	
+	JsDeclareFunction(load);
+	//#- `fout = vec.saveascii(fout)` -- saves to output stream `fout`
+	//#- `fout = intVec.saveascii(fout)` -- saves to output stream `fout`
+	JsDeclareFunction(saveascii);
+	//#- `vec = vec.loadascii(fin)` -- loads from input stream `fin`
+	//#- `intVec = intVec.loadascii(fin)` -- loads from input stream `fin`	
+	JsDeclareFunction(loadascii);
+
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
 typedef TJsVec<TInt, TAuxIntV> TJsIntV;
+typedef TJsVec<TStr, TAuxStrV> TJsStrV;
 
 template <class TVal, class TAux>
 v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
@@ -1913,6 +2124,10 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, sparse);
 		JsRegisterFunction(TmpTemp, toMat);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, saveascii);
+		JsRegisterFunction(TmpTemp, loadascii);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
 	}
@@ -2018,31 +2233,14 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::sum(const v8::Arguments& Args) {
 	// currently only float vectors are supported
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	double result = 0.0;
+	TVal result;
 	int Els = JsVec->Vec.Len();
 	if (Els > 0) {
 		for (int ElN = 0; ElN < Els; ElN++) {
 			result += JsVec->Vec[ElN];
 		}
 	}
-	return HandleScope.Close(v8::Number::New(result));
-}
-
-template <class TVal, class TAux>
-v8::Handle<v8::Value> TJsVec<TVal, TAux>::getMaxIdx(const v8::Arguments& Args) {
-	// currently only float vectors are supported
-	v8::HandleScope HandleScope;
-	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	double Val = TFlt::Mn;
-	int Idx = -1;	
-	int Els = JsVec->Vec.Len();
-	for (int ElN = 0; ElN < Els; ElN++) {
-		if (JsVec->Vec[ElN] > Val) {
-			Val = JsVec->Vec[ElN];
-			Idx = ElN;
-		}		
-	}
-	return HandleScope.Close(v8::Int32::New(Idx));
+	return TAux::GetObjVal(result, HandleScope);
 }
 
 template <class TVal, class TAux>
@@ -2087,6 +2285,53 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
 		printf("%s ", JsVec->Vec[ElN].GetStr().CStr());		
 	}
 	printf("\n");	
+	return Args.Holder();
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	JsVec->Vec.Save(*SOut);
+	return HandleScope.Close(Args[0]);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::load (const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	JsVec->Vec.Load(*SIn);
+	return Args.Holder();
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::saveascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	const int Rows = JsVec->Vec.Len();
+	for (int RowId = 0; RowId < Rows; RowId++) {	
+		SOut->PutStr(JsVec->Vec[RowId].GetStr());
+		SOut->PutCh('\n');
+	}
+	return HandleScope.Close(Args[0]);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::loadascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	TStr Line;
+	while (SIn->GetNextLn(Line)) {
+		JsVec->Vec.Add(TAux::Parse(Line));
+	}
 	return Args.Holder();
 }
 
@@ -2196,6 +2441,10 @@ public:
 	JsDeclareFunction(save);
 	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
 	JsDeclareFunction(load);
+	//#- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(saveascii);
+	//#- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(loadascii);
 };
 
 ///////////////////////////////
@@ -2514,6 +2763,8 @@ public:
 	//#     
     //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
+    //#- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+    JsDeclareProperty(dims);    
     //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
@@ -2524,7 +2775,9 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-    //#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
     //#     features from record `rec` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
@@ -2833,7 +3086,7 @@ public:
 };
 
 //#
-//# ## System and I/O
+//# ## System
 //#
 //# ### Process
 //# 
@@ -2933,134 +3186,6 @@ public:
 	//#- `console.print(str)` -- prints a string to standard output
 	JsDeclareFunction(print);
     //#JSIMPLEMENT:src/qminer/console.js    
-};
-
-///////////////////////////////
-// QMiner-JavaScript-Filesystem
-//#
-//# ### File system
-//# 
-class TJsFs {
-public:
-	// directories we're allowed to access 
-	TVec<TJsFPath> AllowedFPathV;
-	
-private:
-	typedef TJsObjUtil<TJsFs> TJsFsUtil;
-
-	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
-public:
-	static v8::Persistent<v8::Object> New(TScript* Js) { 
-		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
-	~TJsFs() { }
-	
-	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    /// Are we allowed to access given path
-	bool CanAccess(const TStr& FPath);
-    /// Are we allowed to access given path
-	static bool CanAccess(const v8::Arguments& Args);
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
-	JsDeclareFunction(openRead);
-    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
-	JsDeclareFunction(openWrite);
-    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-	JsDeclareFunction(openAppend);
-    //#- `bool = fs.exists(fileName)` -- does file exist?
-	JsDeclareFunction(exists);
-    //#- `fs.copy(fromFileName, toFileName)` -- copy file
-	JsDeclareFunction(copy);
-    //#- `fs.move(fromFileName, toFileName)` -- move file
-	JsDeclareFunction(move);
-    //#- `fs.del(fileName)` -- delete file
-	JsDeclareFunction(del);
-    //#- `fs.rename(fromFileName, toFileName)` -- rename file
-	JsDeclareFunction(rename);
-    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
-	JsDeclareFunction(fileInfo);
-    //#- `fs.mkdir(dirName)` -- make folder
-	JsDeclareFunction(mkdir);
-    //#- `fs.rmdir(dirName)` -- delete folder
-	JsDeclareFunction(rmdir);
-    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
-	JsDeclareFunction(listFile);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-//#
-//# ### Input File Stream
-//# 
-class TJsFIn {
-public:
-	PSIn SIn;
-private:
-	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
-	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FNm) {
-		return TJsFInUtil::New(new TJsFIn(FNm)); }
-    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
-
-   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `char = fin.peekCh()` -- peeks a character
-	JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()` -- reads a character
-	JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()` -- reads a line
-	JsDeclareFunction(readLine);
-    //#- `bool = fin.eof` -- end of stream?
-	JsDeclareProperty(eof);
-    //#- `len = fin.length` -- returns the length of input stream
-	JsDeclareProperty(length);
-	//#- `str = fin.readAll()` -- reads the whole file
-	JsDeclareFunction(readAll);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-//#
-//# ### Output File Stream
-//# 
-class TJsFOut {
-public:
-	PSOut SOut;
-private:
-	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
-	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
-	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
-		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
-	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
-		return TJsFOutUtil::New(new TJsFOut(SOut_)); }
-
-    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
-    
-	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-	JsDeclareFunction(write);
-    //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
-	JsDeclareFunction(writeLine);
-    //#- `fout = fout.flush()` -- flushes output stream
-	JsDeclareFunction(flush);
-    //#- `fout = fout.close()` -- closes output stream
-  	JsDeclareFunction(close);
 };
 
 
@@ -3586,7 +3711,7 @@ private:
 
 	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {		
 		return TJsSnapUtil::New(new TJsSnap(Js));
 	}
 
@@ -3609,6 +3734,11 @@ public:
 	JsDeclareFunction(communityEvolution);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
+	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
+	JsDeclareFunction(dagImportance);
+	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
+	JsDeclareFunction(dagImportanceStore);
+	JsDeclareFunction(perfTest);
 };
 
 
@@ -3655,6 +3785,7 @@ public:
 		obj->SetHiddenValue(key, value);
 		return obj;
 	}
+	static TPt<T> GetArgGraph(const v8::Arguments& Args, const int& ArgN);
 
 	/// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
@@ -3748,10 +3879,32 @@ public:
 	JsDeclareProperty(outDeg);
 	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
 	JsDeclareFunction(nbrId);
+	//#- `nid = node.outNbrId(N)` -- return id of Nth out-neighbour
+	JsDeclareFunction(outNbrId);
+	//#- `nid = node.inNbrId(N)` -- return id of Nth in-neighbour
+	JsDeclareFunction(inNbrId);
+	//#- `eid = node.nbrEId(N)` -- return edge id of Nth neighbour
+	JsDeclareFunction(nbrEId);
+	//#- `eid = node.outEId(N)` -- return edge id of Nth out-neighbour
+	JsDeclareFunction(outEId);
+	//#- `eid = node.inEId(N)` -- return edge id of Nth in-neighbour
+	JsDeclareFunction(inEId);
 	//#- `node = node.next()` -- return next node
 	JsDeclareFunction(next);
 	//#- `node = node.prev()` -- return previous node
 	JsDeclareFunction(prev);
+	//#- `node = node.eachNbr(callback)` -- calls the callback function(nodeid) {...} on all neighbors
+	JsDeclareFunction(eachNbr);
+	//#- `node = node.eachOutNbr(callback)` -- calls the callback function(nodeid) {...} on all out-neighbors
+	JsDeclareFunction(eachOutNbr);
+	//#- `node = node.eachInNbr(callback)` -- calls the callback function(nodeid) {...} on all in-neighbors
+	JsDeclareFunction(eachInNbr);
+	//#- `node = node.eachEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in/out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachEdge);
+	//#- `node = node.eachOutEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachOutEdge);
+	//#- `node = node.eachInEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachInEdge);
 };
 
 ///////////////////////////////
@@ -3765,14 +3918,14 @@ class TJsEdge {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
-	T Edge;
+	typename T::TEdgeI Edge;
 
 private:
 	/// Object utility class
 	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
-	explicit TJsEdge(TWPt<TScript> Js_, T edge);
+	explicit TJsEdge(TWPt<TScript> Js_, typename T::TEdgeI edge);
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T edge) {
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, typename T::TEdgeI edge) {
 		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
 	}
 

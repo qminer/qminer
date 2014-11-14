@@ -277,23 +277,23 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
 }
 
 void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {
-
     if((NStart == 1) && (NEnd == 1)) { 
         NgramStrV = TokenStrV;
     }
     
-    TSize Total = TokenStrV.Len();
-    TStr NgramString;
-    TStrV Slice;
-    TStr Ngram;
-
-    for(TSize TokenN = 0; TokenN < Total; TokenN++) { // for each token position, generate ngrams starting at that position
+    const TSize TotalStrLen = TokenStrV.Len();
+    for(TSize TokenStrN = 0; TokenStrN < TotalStrLen; TokenStrN++) { // for each token position, generate ngrams starting at that position
     	// Start with Token Position
     	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
-        for(TSize Pos = TokenN + (NStart - 1); Pos < std::min(Total-1, TokenN + NEnd - 1) + 1; Pos++) {
-            TokenStrV.GetSubValV(TokenN, Pos , Slice);
-            Ngram = TStr::GetStr(Slice, " ");
-            NgramStrV.Add(Ngram);
+       const TSize NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
+        for(TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
+            TChA NgramChA = TokenStrV[TokenStrN];
+            for (int NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
+                NgramChA += " "; NgramChA += TokenStrV[NgramTokenN];
+            }
+//            TokenStrV.GetSubValV(TokenStrN, NgramPos, Slice);
+//            Ngram = TStr::GetStr(Slice, " ");
+            NgramStrV.Add(NgramChA);
         }
     }
 }
@@ -411,8 +411,7 @@ void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
 }
 
 void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV, int& Offset) const {
-	printf("addFtr3\n");
-    // create sparse vector
+	// create sparse vector
     TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
@@ -497,6 +496,91 @@ void TSparseNumeric::AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offse
         SpV.Add(TIntFltKd(Offset + Id, Val));
     }
     Offset += GetVals();
+}
+
+///////////////////////////////////////
+// Date window feature generator
+void TDateWnd::InitWgt() {
+    if (NormalizeP) {
+       Wgt = 1.0 / TMath::Sqrt((double)WndSize); 
+    } else {
+       Wgt = 1.0;
+    }
+}
+
+TDateWnd::TDateWnd(const int& _WndSize, const TTmUnit& _TmUnit, 
+    const bool& _NormalizeP): InitP(false), WndSize(_WndSize), 
+        TmUnit(_TmUnit), NormalizeP(_NormalizeP) {
+    
+    EAssert(WndSize > 0);  
+    // initialize feature vector weight
+    InitWgt();
+}
+
+
+TDateWnd::TDateWnd(const TTm& StartTm, const TTm& EndTm, const int& _WndSize, 
+        const TTmUnit& _TmUnit, const bool& _NormalizeP): InitP(true),
+            WndSize(_WndSize), TmUnit(_TmUnit), NormalizeP(_NormalizeP) {
+
+    EAssert(WndSize > 0);
+    // use borders to construct time boundaries
+    Update(StartTm);
+    Update(EndTm);
+    // initialize feature vector weight
+    InitWgt();
+}
+
+void TDateWnd::Save(TSOut& SOut) const {
+    InitP.Save(SOut);
+    StartUnit.Save(SOut);
+    EndUnit.Save(SOut);
+    WndSize.Save(SOut);
+    SaveEnum<TTmUnit>(SOut, TmUnit);
+    NormalizeP.Save(SOut);
+}
+    
+bool TDateWnd::Update(const TTm& Val) {
+    // if first time, use it to initialize
+    if (!InitP) {
+        StartUnit = TSecTm(Val).GetInUnits(TmUnit);
+        EndUnit = TSecTm(Val).GetInUnits(TmUnit);
+        InitP = true;
+        return true;
+    }
+    // check if we moved start or end boundary
+    const uint ValUnit = TSecTm(Val).GetInUnits(TmUnit);
+    if (StartUnit > ValUnit) {
+        StartUnit = ValUnit; return true;
+    }
+    if (EndUnit < ValUnit) {
+        EndUnit = ValUnit; return true;
+    }
+    // nope, we are fine
+    return false;
+}
+
+int TDateWnd::GetFtr(const TTm& Val) const {
+    EAssert(InitP);
+    const uint ValUnit = TSecTm(Val).GetInUnits(TmUnit);
+    if (ValUnit < StartUnit) { return 0; }
+    if (ValUnit > EndUnit) { return (int)(EndUnit - StartUnit); }
+    return (int)(ValUnit - StartUnit);
+}
+
+void TDateWnd::AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const {
+    const int Ftr = GetFtr(Val);
+    for (int FtrN = 0; FtrN < WndSize; FtrN++) {
+        SpV.Add(TIntFltKd(Offset + Ftr + FtrN, Wgt));
+    }
+    Offset += GetDim();
+}
+
+void TDateWnd::AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const {
+    const int Ftr = GetFtr(Val);
+    for (int FtrN = 0; FtrN < WndSize; FtrN++) {
+        FullV[Offset + Ftr + FtrN] = Wgt;
+    }    
+    Offset += GetDim();
 }
 
 }
