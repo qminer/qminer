@@ -859,65 +859,92 @@ TStr& TStr::FromHex(){
 }
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
-  int StrLen=Len();
-  int BChN=TInt::GetMx(_BChN, 0);
-  int EChN=TInt::GetMn(_EChN, StrLen-1);
-  int Chs=EChN-BChN+1;
-  if (Chs<=0){return TStr();}
-  else if (Chs==StrLen){return *this;}
-  else {
-    char* Bf=new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
-    TStr Str(Bf); delete[] Bf;
-    return Str;
-  }
+    int StrLen = strlen(Ch);
+    // get boundaries and substring length 
+    int BChN=TInt::GetMx(_BChN, 0);
+    int EChN=TInt::GetMn(_EChN, StrLen-1);
+    int Chs=EChN-BChN+1;
+    // initialize accordingly
+    char* Bf = NULL;
+    if (Chs <= 0) { 
+        // create empty string
+        Bf = new char[1]; Bf[0] = 0;
+    } else if (Chs==StrLen){
+        // keep copy of everything
+        Bf = new char[StrLen+1]; strcpy(Bf, Ch);
+    } else {
+        // get copy of a substring
+        Bf = new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
+    }
+    return TStr(Bf, true);
 }
 
-void TStr::InsStr(const int& BChN, const TStr& Str){
-  int ThisLen=Len();
-  IAssert((0<=BChN)&&(BChN<=ThisLen));
-  TStr NewStr;
-  if (BChN==0){
-    NewStr=Str+*this;
-  } else
-  if (BChN==ThisLen){
-    NewStr=*this+Str;
-  } else {
-    NewStr=GetSubStr(0, BChN-1)+Str+GetSubStr(BChN, ThisLen-1);
-  }
-  *this=NewStr;
+TStr TStr::InsStr(const int& BChN, const TStr& Str){
+    const int ThisLen = Len();
+    IAssert((0<=BChN)&&(BChN<=ThisLen));
+    TChA ChA = TChA(ThisLen + Str.Len());
+    if (BChN==0){
+        ChA += Str;
+        ChA += CStr();
+    } else
+    if (BChN==ThisLen){
+        ChA += CStr();
+        ChA += Str;
+    } else {
+        ChA += GetSubStr(0, BChN-1);
+        ChA += Str;
+        ChA += GetSubStr(BChN, ThisLen-1);
+    }
+    return ChA;
 }
 
-void TStr::DelChAll(const char& Ch){
-  TChA ChA(*this);
-  int ChN=ChA.SearchCh(Ch);
-  while (ChN!=-1){
-    ChA.Del(ChN);
-    ChN=ChA.SearchCh(Ch);
-  }
-  *this=ChA;
+TStr TStr::DelChAll(const char& DelCh){
+    const int ThisLen = Len();
+    TChA ChA = TChA(ThisLen);
+    for (int ChN = 0; ChN < ThisLen; ChN++) {
+        const char Ch = GetCh(ChN);
+        if (Ch != DelCh) { ChA += Ch; }
+    }
+    return ChA;
 }
 
-void TStr::DelSubStr(const int& _BChN, const int& _EChN){
-  int BChN=TInt::GetMx(_BChN, 0);
-  int EChN=TInt::GetMn(_EChN, Len()-1);
-  int Chs=Len()-(EChN-BChN+1);
-  if (Chs==0){Clr();}
-  else if (Chs<Len()){
-    char* Bf=new char[Chs+1]; strncpy(Bf, CStr(), BChN);
-    strncpy(Bf+BChN, CStr()+EChN+1, Len()-EChN-1); Bf[Chs]=0;
-    TStr Str(Bf); delete[] Bf;
-    *this=Str;
-  }
+TStr TStr::DelSubStr(const int& _BChN, const int& _EChN){
+    int BChN = TInt::GetMx(_BChN, 0);
+    int EChN = TInt::GetMn(_EChN, Len()-1);
+    int Chs = Len() - (EChN - BChN + 1);
+    if (Chs == 0) { 
+        // nothing left, return empty
+        return TStr(); 
+    } else if (Chs < Len()) {
+        // actual substring
+        char* Bf=new char[Chs+1]; strncpy(Bf, CStr(), BChN);
+        strncpy(Bf+BChN, CStr()+EChN+1, Len()-EChN-1); Bf[Chs]=0;
+        return TStr(Bf, true);
+    } else {
+        // whole string, return a copy
+        return TStr(CStr());
+    }
 }
 
-bool TStr::DelStr(const TStr& Str){
-  int ChN=SearchStr(Str);
-  if (ChN==-1){
-    return false;
-  } else {
-    DelSubStr(ChN, ChN+Str.Len()-1);
-    return true;
-  }
+TStr TStr::DelStr(const TStr& Str){
+    int ChN = SearchStr(Str);
+    if (ChN == -1){
+      return TStr(CStr());
+    } else {
+      return DelSubStr(ChN, ChN+Str.Len()-1);
+    }
+}
+
+TStr TStr::DelStr(const TStr& Str){
+    TStr NewStr = TStr(CStr());
+    while (true) {
+        int ChN = NewStr.SearchStr(Str);
+        if (ChN == -1) {
+            return NewStr;
+        } else {
+            NewStr = NewStr.DelSubStr(ChN, ChN+Str.Len()-1);
+        }
+    }
 }
 
 TStr TStr::LeftOf(const char& SplitCh) const {
