@@ -1794,7 +1794,7 @@ int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   int LBfS=0;
   for (TSize LBfC=0; LBfC<LBfL; LBfC++){
     LBfS+=(((char*)LBf)[LBfC]=Bf[BfC++]);}
-  return LBfS;ß
+  return LBfS;
 }
 
 bool TStrIn::GetNextLnBf(TChA& LnChA){

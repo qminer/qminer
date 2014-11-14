@@ -19,7 +19,6 @@
 
 #include "bd.h"
 
-
 /////////////////////////////////////////////////
 // Forward
 class TILx;
@@ -459,6 +458,8 @@ public:
     return new TRStr(0); }  
     //static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
 };
+
+class TStrPr;
 
 /////////////////////////////////////////////////
 // String
