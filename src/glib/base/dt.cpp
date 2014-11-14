@@ -1264,7 +1264,7 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP) const {
 	if (inner == NULL || SrcStr.Empty()) { return *this; }
 
-	char* Res = Clone();
+	TStr Res(*this);
 
 	const int DstStrLen = DstStr.Len();
 	int Changes = 0 - 1; int BChN = 0 - DstStrLen;
