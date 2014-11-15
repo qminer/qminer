@@ -509,29 +509,20 @@ public:
   /// We only delete when not empty
   ~TStr(){ if (Inner != NULL) delete[] Inner; }
 
-  /// Deserialize TStr from stream, when IsSmall, the string is save as CStr,
-  /// otherwise format is first the length and then the data without last \0
+  /*
+  * Save & Load From File
+  */
+  /// Deserialize TStr from stream, when IsSmall, the string is saved as CStr,
+  /// otherwise the format is first the length and then the data without last \0
   explicit TStr(TSIn& SIn, const bool& IsSmall = false);
   // Left for compatibility reasons, best if we can remove it at some point
   void Load(TSIn& SIn, const bool& IsSmall = false);
-  /// Serialize TStr to stream, when IsSmall, the string is save as CStr,
-  /// otherwise format is first the length and then the data without last \0
-  void Save(TSOut& SOut, const bool& IsSmall = false) const;
-
-    inner = new char[SInLen];
-    SIn->GetBf(inner, SInLen);
-  }
-  ~TStr(){ if (inner != NULL) delete[] inner; } // Destructor
-
-  /*
-   * Save & Load From File
-   */
-  explicit TStr(TSIn& SIn, const bool& IsSmall) { SIn.Load(inner); }
-  void Load(TSIn& SIn, const bool& IsSmall) { *this = TStr(SIn, IsSmall); } // Compatibility
-  void Save(TSOut& SOut) const { SOut.Save(inner); }
-  void Save(TSOut& SOut, const bool& IsSmall) const{ Save(SOut); } // Compatibility
-  // Save & Load From XML File
+  /// Serialize TStr to stream, when IsSmall, the string is saved as CStr,
+  /// otherwise the format is first the length and then the data without last \0
+  void Save(TSOut& SOut, const bool& IsSmall = false) const;  
+   /// Deserialize from XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
+  /// Serialize to XML File
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   /// Assigment operator TStr = TStr
@@ -585,8 +576,8 @@ public:
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Memory used by this String object
-  int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(inner) );}
-  // Get the inner C-String
+  int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(Inner) );}
+  // Get the Inner C-String
   const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
   // Return a COPY of the string as a C String (char array)
   char* CloneCStr() const {
