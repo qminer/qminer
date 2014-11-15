@@ -1342,25 +1342,65 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 	}
 }
 
-TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP) const {
-	if (inner == NULL || SrcStr.Empty()) { return *this; }
+TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
+	if (Inner == NULL || SrcStr.Empty()) { return *this; }
 
-	TStr Res(*this);
+	const int Length = Len();
+	const int SrcLen = SrcStr.Len();
+	const int DstLen = DstStr.Len();
 
-	const int DstStrLen = DstStr.Len();
-	int Changes = 0 - 1; int BChN = 0 - DstStrLen;
-	//do {
-	//	Changes++;
-	//	if (FromStartP){ BChN = 0 - DstStrLen; }
-	//	BChN += DstStrLen;
-	//	
-	//	*this = ChangeStr(SrcStr, DstStr, BChN); //BChN = ChangeStr(SrcStr, DstStr, BChN); // before
-	//} while (BChN != -1);
-	
-	return TStr(Res, true);	
+	const char* DstCStr = DstStr.CStr();
+
+	// find how many times SrcStr appears in this string
+	char* CurrPos = Inner;
+	char* NextHit;
+
+	int NMatches = 0;
+	while ((NextHit = strstr(CurrPos, DstCStr)) != NULL) {
+		NMatches++;
+		CurrPos = NextHit + 1;
+	}
+
+	// create a new string
+	char* ResStr = new char[Length + NMatches*(DstLen - SrcLen) + 1];
+
+	// iterate through the string, instead of copying source copy destination
+	int i = 0;	// index in the source string
+	int j = 0;	// index in the result string
+
+	int SeqLen;
+
+	// find next hit, copy everything between the current position and the hit,
+	// then copy the dest string
+	while ((NextHit = strstr(Inner + i, DstCStr)) != NULL) {
+		SeqLen = NextHit - (Inner + i);
+		// copy the chars in between the hits
+		memcpy(ResStr + j, Inner + i, SeqLen);
+
+		// increase positions
+		i += SeqLen;
+		j += SeqLen;
+
+		// copy the dst string
+		memcpy(ResStr + j, DstCStr, DstLen);
+
+		// increase positions
+		i += SrcLen;
+		j += DstLen;
+	}
+
+	// we need to copy what is after the last match
+	memcpy(ResStr + j, Inner + i, SrcLen - i);
+
+	// finish the result string
+	ResStr[Length + NMatches*(DstLen - SrcLen)] = 0;
+	// return
+	return TStr(ResStr, true);
 }
 
 TStr TStr::Reverse() const {
+	const int Length = Len();
+
 	char* Reversed = new char[Length+1];
 
 	for (int i = 0; i < Length; i++) {
@@ -1865,7 +1905,7 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 	const size_t RightLen = RCStr == NULL ? 0 : strlen(RCStr);
 
 	// check if any of the strings are empty
-	if (LeftLen == 0) return TStr(RCStr);
+	if (LeftLen == 0) return RCStr;
 	else if (RightLen == 0) { return LStr; }
 	else {
 		const char* LCStr = LStr.CStr();
@@ -1899,7 +1939,7 @@ int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   int LBfS=0;
   for (TSize LBfC=0; LBfC<LBfL; LBfC++){
     LBfS+=(((char*)LBf)[LBfC]=Bf[BfC++]);}
-  return LBfS;ß
+  return LBfS;
 }
 
 bool TStrIn::GetNextLnBf(TChA& LnChA){

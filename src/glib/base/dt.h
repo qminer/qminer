@@ -730,8 +730,8 @@ public:
   TStr ChangeChAll(const char& SrcCh, const char& DstCh) const;
   // Return a string with first occurrence of ScrStr string replaced with DstStr string.
   TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN=0) const;
-  // Return a string with all occurrences of ScrStr string replaced with DstStr string - @TODO not sure what FromStartP is - remove?
-  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP = false) const ;
+  // Return a string with all occurrences of ScrStr string replaced with DstStr string
+  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const ;
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
