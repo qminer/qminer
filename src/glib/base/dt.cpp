@@ -768,11 +768,11 @@ int TRStr::GetHashTrick() const {
 // String
 const char TStr::EmptyStr = 0;
 
-TStr::TStr(const char *Ch): inner(NULL) {
+TStr::TStr(const char *Ch): Inner(NULL) {
 	const int Len = strlen(Ch);
 	if (Len > 0) {
-		inner = new char[Len+1];
-		strcpy(inner, Ch);
+		Inner = new char[Len+1];
+		strcpy(Inner, Ch);
 	}
 }
 
@@ -871,7 +871,7 @@ TStr TStr::GetUc() const {
 	char new_array = new char[StrLen];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN] = (char) toupper(inner[ChN]);
+		new_array[ChN] = (char) toupper(Inner[ChN]);
 	}
 	// create new TStr, assign character memory array to it
 	return TStr(new_array, true);
@@ -883,7 +883,7 @@ TStr TStr::GetLc() const {
 	char new_array = new char[StrLen];
 	// copy in lowercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN] = (char) tolower(inner[ChN]);
+		new_array[ChN] = (char) tolower(Inner[ChN]);
 	}
 	// create new TStr, assign character memory array to it
 	return TStr(new_array, true);
@@ -895,10 +895,10 @@ TStr TStr::GetCap() const{
 	// allocate memory
 	char new_array = new char[StrLen];
 	// copy first char in uppercase
-	new_array[0] = (char)toupper(inner[0]);
+	new_array[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
 	for (int ChN = 1; ChN < StrLen; ChN++){
-		new_array[ChN] = (char)tolower(inner[ChN]);
+		new_array[ChN] = (char)tolower(Inner[ChN]);
 	}
 	return TStr(new_array, true);
 }
@@ -1062,7 +1062,7 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
 TStrPr TStr::SplitOnChN(const int& Idx) const {
 	EAssertR(Idx >= 0 && Idx < Len(), "Splitting index should be greater than 0 and less than length!");
 
-	if (inner == NULL) { return TStrPr(); }
+	if (Inner == NULL) { return TStrPr(); }
 
 	const int LeftLen = Idx;
 	const int RightLen = Len() - LeftLen - 1;
@@ -1076,37 +1076,37 @@ TStrPr TStr::SplitOnChN(const int& Idx) const {
 	Right[RightLen] = 0;
 
 	// copy memory
-	memcpy(Left, inner, LeftLen);
-	memcpy(Right, inner + LeftLen + 1, RightLen);
+	memcpy(Left, Inner, LeftLen);
+	memcpy(Right, Inner + LeftLen + 1, RightLen);
 
 	return TStrPr(TStr(Left, true), TStr(Right, true));
 }
 
 TStrPr TStr::SplitOnCh(const char& SplitCh) const {
 	// check if the string is empty
-	if (inner == NULL) { return TStrPr(); }
+	if (Inner == NULL) { return TStrPr(); }
 
 	// find the pointer to the delimiter
-	const char* ChPtr = strchr(inner, SplitCh);
+	const char* ChPtr = strchr(Inner, SplitCh);
 
 	// if the character was not found than return this in the left string
 	if (ChPtr == NULL) { return TStrPr(*this, TStr()); }
 
 	// split
-	return SplitOnChN(ChPtr - inner);
+	return SplitOnChN(ChPtr - Inner);
 }
 
 TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
 	// check if the string is empty
-	if (inner == NULL) { return TStrPr(); }
+	if (Inner == NULL) { return TStrPr(); }
 
 	// find the pointer to the delimiter
-	const char* ChPtr = strrchr(inner, SplitCh);
+	const char* ChPtr = strrchr(Inner, SplitCh);
 
 	// if the character was not found than return this in the right string
 	if (ChPtr == NULL) { return TStrPr(TStr(), *this); }
 
-	return SplitOnChN(ChPtr - inner);
+	return SplitOnChN(ChPtr - Inner);
 }
 
 void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
@@ -1317,7 +1317,7 @@ TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
 }
 
 TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
-	if (inner == NULL || SrcStr.Empty()) { return *this; }
+	if (Inner == NULL || SrcStr.Empty()) { return *this; }
 
 	int ChN = SearchStr(SrcStr, BChN);
 	if (ChN == -1){
@@ -1404,7 +1404,7 @@ TStr TStr::Reverse() const {
 	char* Reversed = new char[Length+1];
 
 	for (int i = 0; i < Length; i++) {
-		Reversed[i] = inner[Length-i-1];
+		Reversed[i] = Inner[Length-i-1];
 	}
 
 	Reversed[Length] = 0;
