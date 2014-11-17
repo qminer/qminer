@@ -605,9 +605,9 @@ public:
   /// Returns a new string converted to uppercase
   TStr GetUc() const;
   /// Case insensitive comparison
-  int CmpI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr());}
+  int CmpI(const TStr& Str) const; // {return TRStr::CmpI(CStr(), Str.CStr()); }
   /// Case insensitive equality
-  bool EqI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr())==0;}
+  bool EqI(const TStr& Str) const; // {return TRStr::CmpI(CStr(), Str.CStr()) == 0; }
   /// Is lower-case?
   bool IsLc() const;
   /// Returns new string converted to lowercase
