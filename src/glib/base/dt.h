@@ -503,6 +503,8 @@ public:
   TStr(const TChA& ChA);
   /// TMem constructor
   TStr(const TMem& Mem);
+  /// TSStr constructor
+  TStr(const TSStr& SStr);
   /// Stream (file) reading constructor
   explicit TStr(const PSIn& SIn);
   

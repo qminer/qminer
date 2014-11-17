@@ -805,6 +805,13 @@ TStr::TStr(const TMem& Mem): Inner(NULL) {
         memcpy(Inner, Mem(), Mem.Len());
     }
 }
+
+TStr::TStr(const TSStr& SStr): Inner(NULL) {
+	if (!SStr.Empty()) {
+		Inner = new char[SStr.Len()+1];
+		strcpy(Inner, SStr.CStr());
+	}
+}
   
 TStr::TStr(const PSIn& SIn) { 
     int SInLen = SIn->Len();
