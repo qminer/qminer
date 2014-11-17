@@ -941,7 +941,7 @@ bool TStr::IsUc() const {
 TStr TStr::GetUc() const {
 	int StrLen = Len();
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char* new_array = new char[StrLen + 1];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) toupper(Inner[ChN]);
@@ -972,7 +972,7 @@ bool TStr::IsLc() const {
 TStr TStr::GetLc() const {
 	int StrLen = Len();
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char* new_array = new char[StrLen + 1];
 	// copy in lowercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) tolower(Inner[ChN]);
@@ -986,7 +986,7 @@ TStr TStr::GetCap() const{
 	int StrLen = Len();
 	if (StrLen == 0) return TStr(); // if empty string, return new empty string
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char* new_array = new char[StrLen + 1];
 	// copy first char in uppercase
 	new_array[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
