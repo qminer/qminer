@@ -865,10 +865,18 @@ TStr& TStr::operator=(const char& Ch) {
     return *this;
 }
   
+bool TStr::IsUc() const {
+	int StrLen = Len();
+	for (int ChN = 0; ChN<StrLen; ChN++){
+		if (('a' <= Inner[ChN]) && (Inner[ChN] <= 'z')){ return false; }
+	}
+	return true;
+}
+
 TStr TStr::GetUc() const {
 	int StrLen = Len();
 	// allocate memory
-	char new_array = new char[StrLen];
+	char* new_array = new char[StrLen];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) toupper(Inner[ChN]);
@@ -877,10 +885,18 @@ TStr TStr::GetUc() const {
 	return TStr(new_array, true);
 }
 
+bool TStr::IsLc() const {
+	int StrLen = Len();
+	for (int ChN = 0; ChN<StrLen; ChN++){
+		if (('A' <= Inner[ChN]) && (Inner[ChN] <= 'Z')){ return false; }
+	}
+	return true;
+}
+
 TStr TStr::GetLc() const {
 	int StrLen = Len();
 	// allocate memory
-	char new_array = new char[StrLen];
+	char* new_array = new char[StrLen];
 	// copy in lowercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) tolower(Inner[ChN]);
@@ -893,7 +909,7 @@ TStr TStr::GetCap() const{
 	int StrLen = Len();
 	if (StrLen == 0) return TStr(); // if empty string, return new empty string
 	// allocate memory
-	char new_array = new char[StrLen];
+	char* new_array = new char[StrLen];
 	// copy first char in uppercase
 	new_array[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
@@ -905,45 +921,43 @@ TStr TStr::GetCap() const{
 
 TStr TStr::GetTrunc() const {
   int ThisLen = Len();
-  char* ThisBf = CStr();
+  
   int BChN = 0;
   int EChN = ThisLen - 1;
 
-  while ((BChN < ThisLen) && TCh::IsWs(ThisBf[BChN])) { BChN++; }
-  while ((EChN>=0) && TCh::IsWs(ThisBf[EChN])){ EChN--; }
+  while ((BChN < ThisLen) && TCh::IsWs(GetCh(BChN))) { BChN++; }
+  while ((EChN >= 0) && TCh::IsWs(GetCh(EChN))){ EChN--; }
 
-  TStr  Truncated = GetSubStr(BChN, EChN);
+  TStr Truncated = GetSubStr(BChN, EChN);
   return Truncated;
 }
 
-TStr& TStr::ToHex(){
+TStr TStr::GetHex() const {
   TChA ChA;
   int StrLen=Len();
   for (int ChN=0; ChN<StrLen; ChN++){
-    uchar Ch=uchar(RStr->Bf[ChN]);
+    uchar Ch=uchar(GetCh(ChN));
     char MshCh=TCh::GetHexCh((Ch/16)%16);
     char LshCh=TCh::GetHexCh(Ch%16);
     ChA+=MshCh; ChA+=LshCh;
   }
-  *this=ChA;
-  return *this;
+  return TStr(ChA);  
 }
 
-TStr& TStr::FromHex(){
+TStr TStr::GetFromHex() const {
   int StrLen=Len(); IAssert(StrLen%2==0);
   TChA ChA; int ChN=0;
   while (ChN<StrLen){
-    char MshCh=RStr->Bf[ChN]; ChN++;
-    char LshCh=RStr->Bf[ChN]; ChN++;
+	char MshCh = GetCh(ChN); ChN++;
+	char LshCh = GetCh(ChN); ChN++;
     uchar Ch=uchar(TCh::GetHex(MshCh)*16+TCh::GetHex(LshCh));
     ChA+=Ch;
   }
-  *this=ChA;
-  return *this;
+  return TStr(ChA);
 }
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
-    int StrLen = strlen(Ch);
+	int StrLen = Len();
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
     int EChN=TInt::GetMn(_EChN, StrLen-1);
@@ -952,10 +966,10 @@ TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
     char* Bf = NULL;
     if (Chs <= 0) { 
         // create empty string
-        Bf = new char[1]; Bf[0] = 0;
+		return TStr();		
     } else if (Chs==StrLen){
         // keep copy of everything
-        Bf = new char[StrLen+1]; strcpy(Bf, Ch);
+		Bf = CloneCStr();//
     } else {
         // get copy of a substring
         Bf = new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
@@ -963,7 +977,7 @@ TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
     return TStr(Bf, true);
 }
 
-TStr TStr::InsStr(const int& BChN, const TStr& Str){
+TStr TStr::InsStr(const int& BChN, const TStr& Str) const {
     const int ThisLen = Len();
     IAssert((0<=BChN)&&(BChN<=ThisLen));
     TChA ChA = TChA(ThisLen + Str.Len());
@@ -982,7 +996,7 @@ TStr TStr::InsStr(const int& BChN, const TStr& Str){
     return ChA;
 }
 
-TStr TStr::DelChAll(const char& DelCh){
+TStr TStr::DelChAll(const char& DelCh) const {
     const int ThisLen = Len();
     TChA ChA = TChA(ThisLen);
     for (int ChN = 0; ChN < ThisLen; ChN++) {
@@ -992,7 +1006,7 @@ TStr TStr::DelChAll(const char& DelCh){
     return ChA;
 }
 
-TStr TStr::DelSubStr(const int& _BChN, const int& _EChN){
+TStr TStr::DelSubStr(const int& _BChN, const int& _EChN) const {
     int BChN = TInt::GetMx(_BChN, 0);
     int EChN = TInt::GetMn(_EChN, Len()-1);
     int Chs = Len() - (EChN - BChN + 1);
@@ -1010,7 +1024,7 @@ TStr TStr::DelSubStr(const int& _BChN, const int& _EChN){
     }
 }
 
-TStr TStr::DelStr(const TStr& Str){
+TStr TStr::DelStr(const TStr& Str) const {
     int ChN = SearchStr(Str);
     if (ChN == -1){
       return TStr(CStr());
@@ -1019,7 +1033,7 @@ TStr TStr::DelStr(const TStr& Str){
     }
 }
 
-TStr TStr::DelStrAll(const TStr& Str){
+TStr TStr::DelStrAll(const TStr& Str) const {
     TStr NewStr = TStr(CStr());
     while (true) {
         int ChN = NewStr.SearchStr(Str);
