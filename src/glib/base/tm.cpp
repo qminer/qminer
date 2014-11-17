@@ -817,7 +817,8 @@ TSecTm TSecTm::GetDtTmFromDmyStr(const TStr& DmyStr){
   int MonthN=MonthStr.GetInt(-1);
   int YearN=YearStr.GetInt(-1);
   if (MonthN == -1){
-    MonthN = TTmInfo::GetMonthN(MonthStr.ToCap()); }
+	  MonthN = TTmInfo::GetMonthN(MonthStr = MonthStr.GetCap());
+  }
   if ((DayN==-1)||(MonthN==-1)||(YearN==-1)){
     return TSecTm();
   } else {
