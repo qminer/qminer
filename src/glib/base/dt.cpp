@@ -848,15 +848,23 @@ TStr& TStr::operator=(const TStr& Str) {
 }
 
 TStr& TStr::operator=(const TChA& ChA) {
-    TStr temp(ChA);
-    std::swap(*this, temp);
+	if (ChA.Empty()) {
+		Clr();
+	} else {
+		TStr temp(ChA);
+		std::swap(*this, temp);
+	}
     return *this;
 }
 
 TStr& TStr::operator=(const char* CStr) {
-    TStr temp(CStr);
-    std::swap(*this, temp);
-    return *this;
+	if (strlen(CStr) == 0) {
+		Clr();
+	} else {
+		TStr temp(CStr);
+		std::swap(*this, temp);
+	}
+	return *this;
 }
 
 TStr& TStr::operator=(const char& Ch) {
@@ -1083,54 +1091,68 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
   return (ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
-TStrPr TStr::SplitOnChN(const int& Idx) const {
-	EAssertR(Idx >= 0 && Idx < Len(), "Splitting index should be greater than 0 and less than length!");
+void TStr::SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const {
+	EAssertR(ChN >= 0 && ChN < Len(), "Splitting index should be greater than 0 and less than length!");
 
-	if (Inner == NULL) { return TStrPr(); }
+	// clear the left and right strings
+	LStr.Clr();
+	RStr.Clr();
 
-	const int LeftLen = Idx;
+	if (Empty()) { return; }
+
+	const int LeftLen = ChN;
 	const int RightLen = Len() - LeftLen - 1;
 
 	// create char arrays for the left and right side
-	char* Left = new char[LeftLen + 1];
-	char* Right = new char[RightLen + 1];
+	LStr.Inner = new char[LeftLen + 1];
+	RStr.Inner = new char[RightLen + 1];
 
 	// insert null characters
-	Left[LeftLen] = 0;
-	Right[RightLen] = 0;
+	LStr.Inner[LeftLen] = 0;
+	RStr.Inner[RightLen] = 0;
 
-	// copy memory
-	memcpy(Left, Inner, LeftLen);
-	memcpy(Right, Inner + LeftLen + 1, RightLen);
-
-	return TStrPr(TStr(Left, true), TStr(Right, true));
+	// copy memory into left and right
+	memcpy(LStr.Inner, Inner, LeftLen);
+	memcpy(RStr.Inner, Inner + LeftLen + 1, RightLen);
 }
 
-TStrPr TStr::SplitOnCh(const char& SplitCh) const {
+void TStr::SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
+	LStr.Clr();
+	RStr.Clr();
+
 	// check if the string is empty
-	if (Inner == NULL) { return TStrPr(); }
+	if (Empty()) { return; }
 
 	// find the pointer to the delimiter
 	const char* ChPtr = strchr(Inner, SplitCh);
 
 	// if the character was not found than return this in the left string
-	if (ChPtr == NULL) { return TStrPr(*this, TStr()); }
+	if (ChPtr == NULL) {
+		LStr = *this;
+		return;
+	}
 
 	// split
-	return SplitOnChN(ChPtr - Inner);
+	SplitOnChN(LStr, ChPtr - Inner, RStr);
 }
 
-TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
+void TStr::SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
+	LStr.Clr();
+	RStr.Clr();
 	// check if the string is empty
-	if (Inner == NULL) { return TStrPr(); }
+	if (Empty()) { return; }
 
 	// find the pointer to the delimiter
 	const char* ChPtr = strrchr(Inner, SplitCh);
 
 	// if the character was not found than return this in the right string
-	if (ChPtr == NULL) { return TStrPr(TStr(), *this); }
+	if (ChPtr == NULL) {
+		RStr = *this;
+		return;
+	}
 
-	return SplitOnChN(ChPtr - Inner);
+	// split
+	SplitOnChN(LStr, ChPtr - Inner, RStr);
 }
 
 void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {

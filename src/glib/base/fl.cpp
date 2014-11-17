@@ -794,7 +794,7 @@ TFRnd::TFRnd(const TStr& _FNm, const TFAccess& FAccess,
 }
 
 TFRnd::~TFRnd(){
-  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm)+"'.");
+  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm.CStr())+"'.");
 }
 
 TStr TFRnd::GetFNm() const {
