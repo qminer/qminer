@@ -1354,7 +1354,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 	int NMatches = 0;
 	while ((NextHit = strstr(CurrPos, DstCStr)) != NULL) {
 		NMatches++;
-		CurrPos = NextHit + 1;
+		CurrPos = NextHit + SrcLen;
 	}
 
 	// create a new string
