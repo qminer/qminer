@@ -253,7 +253,7 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   IpNum(),
   FinalUrlStr(), FinalHostNm(),
   HttpRqStr(){
-  RelUrlStr.ToTrunc();
+  RelUrlStr = RelUrlStr.GetTrunc();
   RelUrlStr.ChangeStrAll(" ", "%20");
   try {
     if (IsAbs(RelUrlStr)){
@@ -322,9 +322,10 @@ void TUrl::ToLcPath(){
   // test if the conversion is needed
   if (!PathStr.IsLc()){
     // convert path strings to lower-case
-    PathStr.ToLc();
+	PathStr = PathStr.GetLc();
     for (int PathSegN=0; PathSegN<PathSegV.Len(); PathSegN++){
-      PathSegV[PathSegN].ToLc();}
+		PathSegV[PathSegN] = PathSegV[PathSegN].GetLc();
+	}
     // recompose url
     TChA UrlChA;
     UrlChA+=SchemeNm; UrlChA+="://";

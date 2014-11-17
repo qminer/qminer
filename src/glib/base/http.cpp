@@ -933,7 +933,7 @@ void THttpResp::GetCookieKeyValDmPathQuV(TStrQuV& CookieKeyValDmPathQuV){
       TStr KeyNm; TStr ValStr; 
       if (KeyValStr.IsChIn('=')){
         KeyValStrV[KeyValStrN].SplitOnCh(KeyNm, '=', ValStr);
-        KeyNm.ToTrunc(); ValStr.ToTrunc();
+		KeyNm = KeyNm.GetTrunc(); ValStr = ValStr.GetTrunc();
       } else {
         KeyNm=KeyValStr.GetTrunc();
       }
