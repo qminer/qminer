@@ -652,8 +652,6 @@ public:
   /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 
-
-
   /* comment preserved for future archaeologists:
   //TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
   //J: as in python or matlab: 1 is 1st character, -1 is last character
