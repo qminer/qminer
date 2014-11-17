@@ -1083,24 +1083,17 @@ TStr TStr::DelSubStr(const int& _BChN, const int& _EChN) const {
 }
 
 TStr TStr::DelStr(const TStr& Str) const {
-    int ChN = SearchStr(Str);
-    if (ChN == -1){
-      return TStr(CStr());
-    } else {
-      return DelSubStr(ChN, ChN+Str.Len()-1);
-    }
+	int ChN = SearchStr(Str);
+	if (ChN == -1){
+		return TStr(CStr());
+	}
+	else {
+		return DelSubStr(ChN, ChN + Str.Len() - 1);
+	}
 }
 
 TStr TStr::DelStrAll(const TStr& Str) const {
-    TStr NewStr = TStr(CStr());
-    while (true) {
-        int ChN = NewStr.SearchStr(Str);
-        if (ChN == -1) {
-            return NewStr;
-        } else {
-            NewStr = NewStr.DelSubStr(ChN, ChN+Str.Len()-1);
-        }
-    }
+	return ChangeStrAll(Str, "");
 }
 
 TStr TStr::LeftOf(const char& SplitCh) const {

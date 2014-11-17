@@ -621,7 +621,7 @@ public:
   TStr DelSubStr(const int& BChN, const int& EChN) const;
   // Return a new string with the first occurrences of substring Str removed
   TStr DelStr(const TStr& Str) const;
-  // Return a new string with the all occurrences of substring Str removed
+  // Return a new string with the all occurrences of substring Str removed (single pass)
   TStr DelStrAll(const TStr& Str) const;
 
   /*

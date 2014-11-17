@@ -239,7 +239,14 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   }}
 
   const char *CurDirStr="/.";
-  while (AbsUrlStr.DelStr(CurDirStr)){}
+  
+  int OldLen;
+  int NewLen;
+  do {
+	  OldLen = AbsUrlStr.Len();
+	  AbsUrlStr = AbsUrlStr.DelStr(CurDirStr);
+	  NewLen = AbsUrlStr.Len();
+  } while (OldLen != NewLen);
 
   GetAbs(AbsUrlStr);
 }
