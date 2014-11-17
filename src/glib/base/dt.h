@@ -548,34 +548,27 @@ public:
   bool operator==(const char* _CStr) const { return Inner == _CStr || strcmp(CStr(), _CStr) == 0; }
   /// Boolean comparison TStr == TStr
   bool operator==(const TStr& Str) const { return operator==(Str.CStr()); }
-
-  /*
-   * != (is not equal comparison)
-   */
   // TStr != TStr
   bool operator!=(const TStr& Str) const { return !operator==(Str); }
   // TStr != C-String
   bool operator!=(const char* CStr) const { return !operator==(CStr); }
-  // < (is less than comparison)
-  /// TStr < TStr
-  bool operator<(const TStr& Str) const { return strcmp(Inner, Str.Inner) < 0; }
+  /// < (is less than comparison) TStr < TStr
+  bool operator<(const TStr& Str) const;
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Memory used by this String object
-  int GetMemUsed() const { return int(sizeof(char*) + sizeof(char) * (1 + strlen(Inner))); }
-  // Get the Inner C-String
-  const char* CStr() const { return Inner == NULL ? &EmptyStr : Inner; }
-  // Get the Inner C-String
-  const char* operator()() const { return CStr(); }
-  // Return a COPY of the string as a C String (char array)
+  int GetMemUsed() const;
+  /// Get the inner C-String
+  const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
+  /// Return a COPY of the string as a C String (char array)
   char* CloneCStr() const;
   /// Get character at position ChN
   char GetCh(const int& ChN) const;
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
-  // Get String Length (null terminator not included)
-  int Len() const { return Inner != NULL ? strlen(Inner) : 0;}
-  // Check if this is an empty string
+  /// Get String Length (null terminator not included)
+  int Len() const { return (Inner != NULL) ? strlen(Inner) : 0;}
+  /// Check if this is an empty string
   bool Empty() const { return Len() == 0;}
   /// returns a reference to this string (used for templating)
   const TStr& GetStr() const { return *this; }

@@ -2171,7 +2171,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& 
     // get ids of interpolated fields 
 	for(int FieldN = 0; FieldN < FieldInterpolatorPrV.Len(); FieldN++) {
         const TStr& FieldNm = FieldInterpolatorPrV[FieldN].Val1;
-        InFieldIdV.Add(InStore->GetFieldId(FieldNm()));
+        InFieldIdV.Add(InStore->GetFieldId(FieldNm));
         const TStr& InterpolatorType = FieldInterpolatorPrV[FieldN].Val2;
         InterpolatorV.Add(TSignalProc::TInterpolator::New(InterpolatorType));
 	}
@@ -2197,7 +2197,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStr
 	for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
         PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);        
         TStr FieldNm = FieldVal->GetObjStr("name");
-        InFieldIdV.Add(InStore->GetFieldId(FieldNm()));
+        InFieldIdV.Add(InStore->GetFieldId(FieldNm));
         TStr InterpolatorType = FieldVal->GetObjStr("interpolator");
         InterpolatorV.Add(TSignalProc::TInterpolator::New(InterpolatorType));
 	}    
