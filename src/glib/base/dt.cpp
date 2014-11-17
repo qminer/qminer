@@ -894,8 +894,8 @@ TStr& TStr::operator=(const char& Ch) {
     return *this;
 }
 
-bool TStr::operator==(const char* _CStr) const { 
-    return (CStr() == _CStr) || (strcmp(CStr(), _CStr) == 0);
+bool TStr::operator==(const char* _CStr) const {
+	return Inner == _CStr || strcmp(CStr(), _CStr) == 0;
 }
 
 bool TStr::operator<(const TStr& Str) const {
