@@ -545,7 +545,7 @@ public:
   TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
   /// Boolean comparison TStr == char*
-  bool operator==(const char* CStr) const;
+  bool operator==(const char* _CStr) const;
   /// Boolean comparison TStr == TStr
   bool operator==(const TStr& Str) const { return operator==(Str.CStr()); }
   // TStr != TStr
@@ -664,7 +664,7 @@ public:
   TStr Left(const int& EChN) const { return EChN>0 ? GetSubStr(0, EChN-1) : GetSubStr(0, Len()+EChN-1);}
   TStr Right(const int& BChN) const {return BChN>=0 ? GetSubStr(BChN, Len()-1) : GetSubStr(Len()+BChN, Len()-1);}
   TStr Slice(int BChN, int EChNP1) const { if(BChN<0){BChN=Len()+BChN;} if(EChNP1<=0){EChNP1=Len()+EChNP1;} return GetSubStr(BChN, EChNP1-1); }
-  TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
+//  TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
   TStr Mid(const int& BChN, const int& Chs) const { return GetSubStr(BChN, BChN+Chs-1); }
   TStr Mid(const int& BChN) const {return GetSubStr(BChN, Len()-1); }
 

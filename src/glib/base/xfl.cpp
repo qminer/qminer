@@ -345,6 +345,7 @@ void TFileLock::Unlock() {
   // check we still have lock file
   EAssertR(TFile::Exists(LockFNm), "Missing lock file");
   // make sure we are deleting our lock file
+  TStr bla = TStr::LoadTxt(LockFNm);
   EAssertR(LockId == TStr::LoadTxt(LockFNm), "Mismatch between lock files");
   // delete the lock file (relasing the lock)
   EAssertR(TFile::Del(LockFNm, false), "Error deleting lock file");
