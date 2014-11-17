@@ -805,6 +805,13 @@ TStr::TStr(const TMem& Mem): Inner(NULL) {
         memcpy(Inner, Mem(), Mem.Len());
     }
 }
+
+TStr::TStr(const TSStr& SStr): Inner(NULL) {
+	if (!SStr.Empty()) {
+		Inner = new char[SStr.Len()+1];
+		strcpy(Inner, SStr.CStr());
+	}
+}
   
 TStr::TStr(const PSIn& SIn) { 
     int SInLen = SIn->Len();
@@ -871,6 +878,17 @@ TStr& TStr::operator=(const char& Ch) {
     TStr temp(Ch);
     std::swap(*this, temp);
     return *this;
+}
+
+char* TStr::CloneCStr() const {
+	char* Bf = new char[Len()+1];
+	strcpy(Bf, Inner);
+	return Bf;
+}
+
+char TStr::GetCh(const int& ChN) const {
+	EAssert((0 <= ChN) && (ChN < Len())); // Assert index not negative, index not >= Length
+	return Inner[ChN];
 }
   
 bool TStr::IsUc() const {
