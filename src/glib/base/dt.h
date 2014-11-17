@@ -543,31 +543,17 @@ public:
   TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
   /// Boolean comparison TStr == TStr
-  bool operator==(const TStr& Str) const {
-	  // self = self
-	  if(this == &Str) return true;
-	  // string comparison
-	  return strcmp(Inner, Str.Inner) == 0;
-  }
+  bool operator==(const TStr& Str) const { return this == &Str || strcmp(Inner, Str.Inner) == 0; }
   /// Boolean comparison TStr == char*
-  bool operator==(const char* CStr) const { 
-    return strcmp(Inner, CStr) == 0;
-  }
+  bool operator==(const char* CStr) const { return Inner == CStr || strcmp(Inner, CStr) == 0; }
 
   /*
    * != (is not equal comparison)
    */
   // TStr != TStr
-  bool operator!=(const TStr& Str) const {
-	  // self = self
-	  if(this == &Str) return false;
-	  // string comparison
-	  return strcmp(Inner, Str.Inner) != 0;
-  }
+  bool operator!=(const TStr& Str) const { return !operator==(Str); }
   // TStr != C-String
-  bool operator!=(const char* CStr) const {
-	  return strcmp(Inner, CStr) != 0;
-  }
+  bool operator!=(const char* CStr) const { return !operator==(CStr); }
   // < (is less than comparison)
   /// TStr < TStr
   bool operator<(const TStr& Str) const {
