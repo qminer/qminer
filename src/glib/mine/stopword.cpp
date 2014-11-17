@@ -562,7 +562,7 @@ void TSwSet::LoadFromFile(const TStr& FNm) {
 
 void TSwSet::LoadSwFile(const TStr& FNm) {
     TStr FileStr = TStr::LoadTxt(FNm);
-    TStr Name = FNm; Name = Name.LeftOfLast('.').RightOfLast('/').ToLc();
+    TStr Name = FNm; Name = Name.LeftOfLast('.').RightOfLast('/').GetLc();
     FileStr.DelChAll('\r');
     TStrV LineV;
     TStrV SwList;
