@@ -872,6 +872,17 @@ TStr& TStr::operator=(const char& Ch) {
     std::swap(*this, temp);
     return *this;
 }
+
+char* TStr::CloneCStr() const {
+	char* Bf = new char[Len()+1];
+	strcpy(Bf, Inner);
+	return Bf;
+}
+
+char TStr::GetCh(const int& ChN) const {
+	EAssert((0 <= ChN) && (ChN < Len())); // Assert index not negative, index not >= Length
+	return Inner[ChN];
+}
   
 bool TStr::IsUc() const {
 	int StrLen = Len();
