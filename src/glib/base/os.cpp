@@ -46,11 +46,11 @@ bool TSysProc::ExeProc(const TStr& ExeFNm, TStr& ParamStr){
   ZeroMemory(&si, sizeof(si));
   si.cb=sizeof(si);
   ZeroMemory(&pi, sizeof(pi));
-
+  char * ParamStrCopy = ParamStr.CloneCStr();
   // Start the child process.
   BOOL Ok=CreateProcess(
    ExeFNm.CStr(),    // module name
-   ParamStr.CStr(),  // patameters
+   ParamStrCopy,  // patameters
    NULL,             // Process handle not inheritable.
    NULL,             // Thread handle not inheritable.
    FALSE,            // Set handle inheritance to FALSE.
@@ -59,6 +59,7 @@ bool TSysProc::ExeProc(const TStr& ExeFNm, TStr& ParamStr){
    NULL,             // Use parent's starting directory.
    &si,              // Pointer to STARTUPINFO structure.
    &pi);             // Pointer to PROCESS_INFORMATION structure.
+  delete[] ParamStrCopy;
   if (Ok){
     // Wait until child process exits.
     WaitForSingleObject( pi.hProcess, INFINITE );
