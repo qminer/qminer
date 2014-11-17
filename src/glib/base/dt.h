@@ -847,14 +847,6 @@ public:
   void SaveTxt(const TStr& FNm) const {
     PSOut SOut=TFOut::New(FNm); SaveTxt(SOut);}
 
-  /*
-   * Static methods for characters
-   */
-
-  // Return const  this... @TODO remove unless there's a reason for it
-  //TStr GetStr() const {return *this;}
-  static TStr& GetChStr(const char& Ch);
-  static TStr& GetDChStr(const char& Ch1, const char& Ch2);
 
   /*
    * Static methods for FmtStr
@@ -901,17 +893,17 @@ private:
 // Input-String
 class TStrIn: public TSIn{
 private:
-  bool OwnP; 
-  char* Bf;
+  const bool OwnP;
+  const char* Bf;
   int BfC, BfL;
 private:
   TStrIn();
   TStrIn(const TStrIn&);
   TStrIn& operator = (const TStrIn&);
 public:
-  TStrIn(const TStr& Str, const bool& _OwnP = true);
-  static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
-  ~TStrIn(){}
+  TStrIn(const TStr& Str, const bool& _OwnP = false);
+  static PSIn New(const TStr& Str, const bool& OwnP = false){return PSIn(new TStrIn(Str, OwnP));}
+  ~TStrIn(){ if (!OwnP) { delete[] Bf; }}
 
   bool Eof(){return BfC==BfL;}
   int Len() const {return BfL-BfC;}

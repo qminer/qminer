@@ -784,7 +784,7 @@ TStr::TStr(const char& Ch): Inner(new char[2]) {
     Inner[0] = Ch; Inner[1] = 0;
 }
 
-TStr::TStr(const TStr& Str): Inner((Str.Inner == NULL) ? NULL, Str.CloneCStr()) { }
+TStr::TStr(const TStr& Str): Inner((Str.Inner == NULL) ? NULL : Str.CloneCStr()) { }
 
 TStr::TStr(TStr&& Str) {
     Inner = Str.Inner;
@@ -1890,34 +1890,6 @@ TStr TStr::GetFNmStr(const TStr& Str, const bool& AlNumOnlyP){
   return FNm;
 }
 
-TStr& TStr::GetChStr(const char& Ch){
-  static char MnCh=char(CHAR_MIN);
-  static char MxCh=char(CHAR_MAX);
-  static int Chs=int(MxCh)-int(MnCh)+1;
-  static TStrV ChStrV;
-  if (ChStrV.Empty()){
-    ChStrV.Gen(Chs);
-    for (int ChN=0; ChN<Chs; ChN++){
-      ChStrV[ChN]=TStr(char(MnCh+ChN), true);}
-  }
-  return ChStrV[int(Ch-MnCh)];
-}
-
-TStr& TStr::GetDChStr(const char& Ch1, const char& Ch2){
-  Fail; // temporary
-  static TStrVV DChStrVV;
-  if (DChStrVV.Empty()){
-    DChStrVV.Gen(TCh::Vals, TCh::Vals);
-    for (int Ch1N=0; Ch1N<TCh::Vals; Ch1N++){
-      for (int Ch2N=0; Ch2N<TCh::Vals; Ch2N++){
-        DChStrVV.At(Ch1N, Ch2N)=
-         TStr(char(TCh::Mn+Ch1N), char(TCh::Mn+Ch2N), true);
-      }
-    }
-  }
-  return DChStrVV.At(int(Ch1-TCh::Mn), int(Ch2-TCh::Mn));
-}
-
 TStr TStr::GetStr(const TStr& Str, const char* FmtStr){
   if (FmtStr==NULL){
     return Str;
@@ -1996,8 +1968,8 @@ TStr operator +(const TStr& LStr, const TStr& RStr) {
 
 /////////////////////////////////////////////////
 // Input-String
-TStrIn::TStrIn(const TStr& _Str):
-  TSBase("Input-String"), TSIn("Input-String"), Str(_Str), Bf(Str.CStr()), BfC(0), BfL(Str.Len()){}
+TStrIn::TStrIn(const TStr& _Str, const bool& _OwnP) :
+  TSBase("Input-String"), TSIn("Input-String"), OwnP(_OwnP), Bf(_OwnP ? _Str.CStr() : _Str.CloneCStr()), BfC(0), BfL(_Str.Len()){}
 
 int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
