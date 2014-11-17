@@ -1413,7 +1413,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 		j += DstLen;
 	}
 
-	// we need to copy what is after the last match
+	// copy what is after the last match
 	memcpy(ResStr + j, Inner + i, SrcLen - i);
 
 	// finish the result string
