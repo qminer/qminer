@@ -889,7 +889,10 @@ TStr& TStr::operator=(const char* CStr) {
 
 TStr& TStr::operator=(const char& Ch) {
 	Clr();
-	Inner = {Ch, 0};
+
+	Inner = new char[2];
+	Inner[0] = Ch; Inner[1] = 0;
+
     return *this;
 }
 
