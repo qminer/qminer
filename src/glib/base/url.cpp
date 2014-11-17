@@ -261,7 +261,7 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   FinalUrlStr(), FinalHostNm(),
   HttpRqStr(){
   RelUrlStr = RelUrlStr.GetTrunc();
-  RelUrlStr.ChangeStrAll(" ", "%20");
+  RelUrlStr = RelUrlStr.ChangeStrAll(" ", "%20");
   try {
     if (IsAbs(RelUrlStr)){
       GetAbs(RelUrlStr);
