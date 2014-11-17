@@ -859,13 +859,6 @@ public:
   static TStr Fmt(const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
 
-
-  /*
-   * Static methods: clone and NullStr
-   */
-  /// Create a clone of a String
-  static TStr MkClone(const TStr& Str){return TStr(Str.CStr());}
-
   /*
    * Concatenation operator +
    */
