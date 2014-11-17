@@ -509,17 +509,20 @@ public:
   /// We only delete when not empty
   ~TStr(){ if (Inner != NULL) delete[] Inner; }
 
-  /// Deserialize TStr from stream, when IsSmall, the string is save as CStr,
-  /// otherwise format is first the length and then the data without last \0
+  /*
+  * Save & Load From File
+  */
+  /// Deserialize TStr from stream, when IsSmall, the string is saved as CStr,
+  /// otherwise the format is first the length and then the data without last \0
   explicit TStr(TSIn& SIn, const bool& IsSmall = false);
   // Left for compatibility reasons, best if we can remove it at some point
   void Load(TSIn& SIn, const bool& IsSmall = false);
-  /// Serialize TStr to stream, when IsSmall, the string is save as CStr,
-  /// otherwise format is first the length and then the data without last \0
-  void Save(TSOut& SOut, const bool& IsSmall = false) const;
-
-  // Save & Load From XML File
+  /// Serialize TStr to stream, when IsSmall, the string is saved as CStr,
+  /// otherwise the format is first the length and then the data without last \0
+  void Save(TSOut& SOut, const bool& IsSmall = false) const;  
+   /// Deserialize from XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
+  /// Serialize to XML File
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   /// Assigment operator TStr = TStr
@@ -531,7 +534,13 @@ public:
   /// Assigment operator TStr = char
   TStr& operator=(const char& Ch);
 
-  // += operators disabled (Immutable)
+  /*
+   * Concatenation Assignment Operator +=
+   */
+  /// Concatenates and assigns
+  TStr operator+=(const TStr& Str) const { return *this + Str; } ;
+  /// Concatenates and assigns
+  TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
   /// Boolean comparison TStr == TStr
   bool operator==(const TStr& Str) const {
@@ -560,15 +569,15 @@ public:
 	  return strcmp(Inner, CStr) != 0;
   }
   // < (is less than comparison)
-  // TStr < TStr
+  /// TStr < TStr
   bool operator<(const TStr& Str) const {
     return strcmp(Inner, Str.Inner)<0;
   }
-  // Indexing operator, returns character at position ChN
+  /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
-  // Memory used by this String object
-  int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(Inner) );}
-  // Get the inner C-String
+  /// Memory used by this String object
+  int GetMemUsed() const { int(sizeof(char*) + sizeof(char) * (1 + strlen(Inner))); }
+  // Get the Inner C-String
   const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
   // Return a COPY of the string as a C String (char array)
   char* CloneCStr() const {
@@ -576,12 +585,12 @@ public:
       strcpy(Bf, Inner);
       return Bf;
   }
-  // Get character at position ChN
+  /// Get character at position ChN
   char GetCh(const int& ChN) const {
 	  Assert( (0 <= ChN) && (ChN < Len()) ); // Assert index not negative, index not >= Length
 	  return Inner[ChN];
   }
-  // Get last character in string (before null terminator)
+  /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   // Get String Length (null terminator not included)
   int Len() const { return Inner != NULL ? strlen(Inner) : 0;}
@@ -591,27 +600,29 @@ public:
   /*
    * Case related methods
    */
-  // Is upper-case?
+  /// Is upper-case?
   bool IsUc() const;
-  // Returns a new string converted to uppercase
+  /// Returns a new string converted to uppercase
   TStr GetUc() const;
-  // Case insensitive comparison
-  int CmpI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr());}
-  // Case insensitive equality
-  bool EqI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr())==0;}
-  // Is lower-case?
+  /// Case insensitive comparison
+  static int CmpI(const char* p, const char* r);
+  /// Case insensitive comparison
+  int CmpI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()); }
+  /// Case insensitive equality
+  bool EqI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()) == 0; }
+  /// Is lower-case?
   bool IsLc() const;
-  // Returns new string converted to lowercase
+  /// Returns new string converted to lowercase
   TStr GetLc() const;
-  // Capitalize
+  /// Capitalize
   TStr GetCap() const;
 
-  // truncate
+  /// Truncate
   TStr GetTrunc() const;
 
-  // get hex
+  /// Get hex
   TStr GetHex() const;
-  // create from hex string
+  /// create from hex string
   TStr GetFromHex() const;
 
   /*
@@ -869,7 +880,7 @@ public:
   /*
    * Static methods: clone and NullStr
    */
-  // Create a clone of a String
+  /// Create a clone of a String
   static TStr MkClone(const TStr& Str){return TStr(Str.CStr());}
 
   /*
