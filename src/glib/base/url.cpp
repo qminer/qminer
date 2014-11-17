@@ -179,8 +179,8 @@ void TUrl::GetAbs(const TStr& AbsUrlStr){
     const char *DbSlashStr="//";
     Str+=Lx.GetStr(DbSlashStr);
     Str+=Lx.GetHostPort(HostNm, PortStr, PortN);
-    if (PortN==-1){PortN=THttp::DfPortN; PortStr.Clr();}
-    else if (PortN==THttp::DfPortN){PortStr.Clr();}
+    if (PortN==-1){PortN=THttp::DfPortN; PortStr = TStr();}
+    else if (PortN==THttp::DfPortN){PortStr = TStr();}
     //**if (!PortStr.Empty()){Str+=':'; Str+=PortStr;}
     if (Lx.PeekCh()=='/'){
       PathStr=Lx.GetCh('/'); PathStr+=Lx.GetHPath(PathSegV); Str+=PathStr;}
@@ -336,7 +336,9 @@ void TUrl::ToLcPath(){
     UrlStr=UrlChA;
     // recompose final-url
     if (IsDefFinalUrl()){
-      FinalUrlStr.Clr(); DefFinalUrl(FinalHostNm);}
+      FinalUrlStr = TStr();
+      DefFinalUrl(FinalHostNm);
+    }
   }
 }
 

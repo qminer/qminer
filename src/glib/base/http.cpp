@@ -798,7 +798,8 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
   if (Lx.Eof()){
     // no content
     MajorVerN=0; MinorVerN=9; StatusCd=204;
-    HdStr.Clr(); BodyMem.Clr();
+    HdStr = TStr();
+    BodyMem = TStr();
   } else {
     if (Lx.IsRespStatusLn()){
       // status-line
@@ -825,7 +826,7 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
     } else {
       // old fashion format
       MajorVerN=0; MinorVerN=9; StatusCd=200;
-      HdStr.Clr();
+      HdStr = TStr();
       Lx.ClrMemSf();
       Lx.GetRest();
       BodyMem=Lx.GetMemSf();

@@ -853,34 +853,44 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 }
 
 TStr& TStr::operator=(const TStr& Str) {
-    TStr temp(Str);
-    std::swap(*this, temp);
+	Clr();
+
+	if (!Str.Empty()) {
+		TStr temp(Str);
+		std::swap(*this, temp);
+	}
+
     return *this;
 }
 
 TStr& TStr::operator=(const TChA& ChA) {
-	if (ChA.Empty()) {
-		Clr();
-	} else {
+	Clr();
+
+	if (!ChA.Empty()) {
 		TStr temp(ChA);
 		std::swap(*this, temp);
 	}
+
     return *this;
 }
 
 TStr& TStr::operator=(const char* CStr) {
-	if (strlen(CStr) == 0) {
-		Clr();
-	} else {
+	Clr();
+
+	if (strlen(CStr) > 0) {
 		TStr temp(CStr);
 		std::swap(*this, temp);
 	}
+
 	return *this;
 }
 
 TStr& TStr::operator=(const char& Ch) {
+	Clr();
+
     TStr temp(Ch);
     std::swap(*this, temp);
+
     return *this;
 }
 
