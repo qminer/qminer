@@ -805,8 +805,10 @@ TStr::TStr(const TChA& ChA): Inner(NULL) {
 
 TStr::TStr(const TMem& Mem): Inner(NULL) {
     if (!Mem.Empty()) {
-        Inner = new char[Mem.Len()];
-        memcpy(Inner, Mem(), Mem.Len());
+		int Len = Mem.Len();
+        Inner = new char[Len + 1];
+        memcpy(Inner, Mem(), Len);
+		Inner[Len] = 0;
     }
 }
 
@@ -819,8 +821,9 @@ TStr::TStr(const TSStr& SStr): Inner(NULL) {
   
 TStr::TStr(const PSIn& SIn) { 
     int SInLen = SIn->Len();
-    Inner = new char[SInLen];
+    Inner = new char[SInLen + 1];
     SIn->GetBf(Inner, SInLen);
+	Inner[SInLen] = 0;
 }
 
 TStr::TStr(TSIn& SIn, const bool& IsSmall) {
@@ -855,9 +858,8 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 TStr& TStr::operator=(const TStr& Str) {
 	Clr();
 
-	if (!Str.Empty()) {
-		TStr temp(Str);
-		std::swap(*this, temp);
+	if (!Str.Empty()) {		
+		Inner = Str.CloneCStr();		
 	}
 
     return *this;
@@ -877,9 +879,11 @@ TStr& TStr::operator=(const TChA& ChA) {
 TStr& TStr::operator=(const char* CStr) {
 	Clr();
 
-	if (strlen(CStr) > 0) {
-		TStr temp(CStr);
-		std::swap(*this, temp);
+	const int StrLen = strlen(CStr);
+
+	if (StrLen > 0) {
+		Inner = new char[StrLen+1];
+		strcpy(Inner, CStr);
 	}
 
 	return *this;
@@ -888,14 +892,14 @@ TStr& TStr::operator=(const char* CStr) {
 TStr& TStr::operator=(const char& Ch) {
 	Clr();
 
-    TStr temp(Ch);
-    std::swap(*this, temp);
+	Inner = new char[2];
+	Inner[0] = Ch; Inner[1] = 0;
 
     return *this;
 }
 
-bool TStr::operator==(const char* _CStr) const {
-	return Inner == _CStr || strcmp(CStr(), _CStr) == 0;
+bool TStr::operator==(const char* _CStr) const { 
+	return (CStr() == _CStr) || (strcmp(CStr(), _CStr) == 0);
 }
 
 bool TStr::operator<(const TStr& Str) const {
@@ -937,11 +941,12 @@ bool TStr::IsUc() const {
 TStr TStr::GetUc() const {
 	int StrLen = Len();
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char* new_array = new char[StrLen + 1];
 	// copy in uppercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) toupper(Inner[ChN]);
 	}
+	new_array[StrLen] = 0;
 	// create new TStr, assign character memory array to it
 	return TStr(new_array, true);
 }
@@ -967,11 +972,12 @@ bool TStr::IsLc() const {
 TStr TStr::GetLc() const {
 	int StrLen = Len();
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char* new_array = new char[StrLen + 1];
 	// copy in lowercase to new char array
 	for (int ChN = 0; ChN < StrLen; ChN++){
 		new_array[ChN] = (char) tolower(Inner[ChN]);
 	}
+	new_array[StrLen] = 0;
 	// create new TStr, assign character memory array to it
 	return TStr(new_array, true);
 }
@@ -980,13 +986,14 @@ TStr TStr::GetCap() const{
 	int StrLen = Len();
 	if (StrLen == 0) return TStr(); // if empty string, return new empty string
 	// allocate memory
-	char* new_array = new char[StrLen];
+	char* new_array = new char[StrLen + 1];
 	// copy first char in uppercase
 	new_array[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
 	for (int ChN = 1; ChN < StrLen; ChN++){
 		new_array[ChN] = (char)tolower(Inner[ChN]);
 	}
+	new_array[StrLen] = 0;
 	return TStr(new_array, true);
 }
 
@@ -1461,13 +1468,14 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 
 	const char* InnerPt = CStr();
 	const char* DstCStr = DstStr.CStr();
+	const char* SrcCStr = SrcStr.CStr();
 
 	// find how many times SrcStr appears in this string
 	const char* CurrPos = Inner;
 	const char* NextHit;
 
 	int NMatches = 0;
-	while ((NextHit = strstr(CurrPos, DstCStr)) != NULL) {
+	while ((NextHit = strstr(CurrPos, SrcCStr)) != NULL) {
 		NMatches++;
 		CurrPos = NextHit + SrcLen;
 	}
@@ -1483,7 +1491,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 
 	// find next hit, copy everything between the current position and the hit,
 	// then copy the dest string
-	while ((NextHit = strstr(InnerPt + i, DstCStr)) != NULL) {
+	while ((NextHit = strstr(InnerPt + i, SrcCStr)) != NULL) {
 		SeqLen = NextHit - (InnerPt + i);
 		// copy the chars in between the hits
 		memcpy(ResStr + j, InnerPt + i, SeqLen);
@@ -1501,9 +1509,9 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 	}
 
 	// copy what is after the last match
-	memcpy(ResStr + j, InnerPt + i, SrcLen - i);
+	memcpy(ResStr + j, InnerPt + i, Length - i);
 
-	// finish the result string
+	// insert null character
 	ResStr[Length + NMatches*(DstLen - SrcLen)] = 0;
 	// return
 	return TStr(ResStr, true);
@@ -1998,7 +2006,7 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 
 		// copy the two strings into the new memory
 		memcpy(ConcatStr, LCStr, LeftLen);
-		memcpy(ConcatStr + LeftLen, LCStr, RightLen);
+		memcpy(ConcatStr + LeftLen, RCStr, RightLen);
 
 		// finish the new string
 		ConcatStr[LeftLen + RightLen] = 0;

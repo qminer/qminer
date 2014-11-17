@@ -545,7 +545,7 @@ public:
   TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
   /// Boolean comparison TStr == char*
-  bool operator==(const char* _CStr) const { return Inner == _CStr || strcmp(CStr(), _CStr) == 0; }
+  bool operator==(const char* _CStr) const;
   /// Boolean comparison TStr == TStr
   bool operator==(const TStr& Str) const { return operator==(Str.CStr()); }
   // TStr != TStr
