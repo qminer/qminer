@@ -437,11 +437,14 @@ la.loadIntVec = function(fin) {
     return la.copyIntArrayToVec(arr);
 }
 
-//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
-//# - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
-la.mean = function (mat, dim) {
+//# - `vec = la.mean(vec)` - returns `vec` containing the mean of vec `input`.
+//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `input`.
+//# - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `input`.
+la.mean = function (input, dim) {
     // if dim is not defined, set it to 1
     var dim = dim == null ? 1 : dim;
+    // check if input is vector. If it is, cast it to matrix.
+    mat = (typeof input.length == "undefined") ? input : input.toMat();
     switch (dim) {
         case 1:
             return mat.multiplyT(la.ones(mat.rows)).multiply(1 / mat.rows);
