@@ -32,7 +32,7 @@ namespace TQm {
 
 ///////////////////////////////
 // QMiner Environment
-TIntTr TEnv::Version = TIntTr(0, 7, 0);
+TIntTr TEnv::Version = TIntTr(0, 8, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
@@ -2727,23 +2727,6 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				QmAssertR(KeyVal->IsObj(), "Query: $not expects object as value");
 				// handle subordinate items
 				ItemV.Add(TQueryItem(oqitNot, TQueryItem(Base, Store, KeyVal)));
-			} else if (KeyNm == "$record") {
-                InfoLog("Warning: $record in query language is deprecated. Used $id or $name instead to refer to record.");
-				uint64 RecId = TUInt64::Mx;
-				if (KeyVal->IsStr()) {
-					TStr RecNm = KeyVal->GetStr();
-					if (Store->IsRecNm(RecNm)) {
-						RecId = Store->GetRecId(RecNm);
-					}
-				} else if (KeyVal->IsNum()) {
-					const uint64 _RecId = (uint64)TFlt::Round(KeyVal->GetNum());
-					if (Store->IsRecId(RecId)) { 
-						RecId = _RecId; 
-					}
-				} else {
-					throw TQmExcept::New("Query: unsupported $record value");
-				}
-				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$id") {
                 QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
                 const uint64 _RecId = (uint64)KeyVal->GetInt();

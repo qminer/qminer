@@ -27,6 +27,21 @@ la.printVec = function (vec, prec) {
 	str += "]\n";
 	console.say(str);
 };
+
+//TODO: I would move this to analytics.js, to avoid linalg depandencies towards analytics (Blaz)
+//#- `la.getSpFeatVecCols(spVec, fsp)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
+la.getSpFeatVecCols = function (spVec, fsp) {
+    
+    // get index and value vectors
+    var valVec = spVec.valVec();
+    var idxVec = spVec.idxVec();
+    var cols = [];
+    for (var elN = 0; elN < idxVec.length; elN++) {
+        cols.push(fsp.getFtr(idxVec[elN]));
+    }
+    return cols;
+}
+
 //#- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
     sortedAsc = typeof sortedAsc !== 'undefined' ? sortedAsc : 0.5;
@@ -257,7 +272,7 @@ la.copyFltArrayToVec = function(arr) {
     return vec;
 };
 
-//#- `arr = la.copyVecToArr(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+//#- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
 la.copyVecToArray = function (vec) {
     var len = vec.length;
     var arr = [];
@@ -522,5 +537,54 @@ la.standardize = function (input, mu, sigma, dim) {
     // If input is vector, cast matrix back to vector.
     return (typeof input.length == "undefined") ? mat2 : mat2.getRow(0);
 }
+
+//# - `mat = la.correlate(m1, m2)` - returns the correlation matrix (Pearson). Each column should be an observation.
+la.correlate = function(m1, m2) {
+  var mu1 = la.mean(m1, 1);
+  var std1 = la.std(m1);
+  var x = la.standardize(m1, mu1, std1);
+
+  var mu2 = la.mean(m2, 1);
+  var std2 = la.std(m2);
+  var y = la.standardize(m2, mu2, std2);
+  var c = x.multiply(y);
+  c = c.multiply(1/c.cols);
+
+  return c;
+}
+
+//# - `mat = la.cat(nestedArrMat)` - concatenates the matrices in nestedArrayMat. E.g. mat = la.cat([[m1, m2], [m3, m4]])
+la.cat = function(nestedArrMat) {
+    var dimx = []; //cell row dimensions
+    var dimy = []; //cell col dimensions
+    var cdimx = []; //cumulative row dims
+    var cdimy = []; //cumulative coldims
+    var rows = nestedArrMat.length;
+    var cols = nestedArrMat[0].length;
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            dimx[row] = nestedArrMat[row][col].rows;
+            dimy[col] = nestedArrMat[row][col].cols;
+        }
+    }
+    cdimx[0] = 0;
+    cdimy[0] = 0;
+    for (var row = 1; row < rows; row++) {
+        cdimx[row] = cdimx[row - 1] + dimx[row - 1];
+    }
+    for (var col = 1; col < cols; col++) {
+        cdimy[col] = cdimy[col - 1] + dimy[col - 1];
+    }
+
+    var res = la.newMat({ rows: (cdimx[rows - 1] + dimx[rows - 1]), cols: (cdimy[cols - 1] + dimy[cols -1])});
+    // copy submatrices
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols; col++) {
+            res.put(cdimx[row], cdimy[col], nestedArrMat[row][col]);
+        }
+    }
+    return res;
+}
+
 
 var linalg = la;

@@ -192,7 +192,14 @@ function printj(obj, prettyPrint) {
     } catch (exception) {
         console.println(JSON.stringify(obj.toJSON()));
     }
-}
+};
+
+//#- `exejs(fnm)` -- executes a javascript in file `fnm` in the global context
+function exejs(fnm) { try { var script = fs.openRead(fnm).readAll(); eval.call(global, script);} catch (e) { console.log('Error: ' +  e); } };
+
+//#- `exejslocal(fnm)` -- executes a javascript in file `fnm` in the local context
+function exejslocal(fnm) { try { var script = fs.openRead(fnm).readAll(); eval(script); } catch (e) { console.log('Error: ' + e); } };
+
 
 //#- `toJSON(rec)` -- converts `rec` to `JSON`.
 //#- `toJSON(rs)` -- converts `rs to `JSON`.

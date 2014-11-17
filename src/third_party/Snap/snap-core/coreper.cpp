@@ -81,8 +81,8 @@ namespace TSnap {
 		}
 
 		double Zbest = 99999900000000000;
-		int kbest = 0;
-		int olddeg=-1;
+		//int kbest;
+		//int olddeg;
 		int br=0;
 		for (int k=0; k<nodes.Len(); k++){
 			if (k<nodes.Len()-1){
@@ -110,9 +110,9 @@ namespace TSnap {
 							if (Z < (Zbest)){ // or <=
 								//if (olddeg>nodes[kind])
 									
-								olddeg = nodes[kind];
+								//olddeg = nodes[kind];
 								Zbest = Z;
-								kbest = br;
+								//kbest = br;
 								int w = nodes[kind];
 								int id = nodesIds[kind];
 								GroupNodes.AddDat(id,w);
@@ -133,9 +133,9 @@ namespace TSnap {
 					if (Z < (Zbest)){ // or <=
 						//if (olddeg>nodes[k])
 							
-						olddeg = nodes[k];
+						//olddeg = nodes[k];
 						Zbest = Z;
-						kbest = br;
+						//kbest = br;
 						int w = nodes[k];
 						int id = nodesIds[k];
 						GroupNodes.AddDat(id,w);
@@ -151,9 +151,9 @@ namespace TSnap {
 				if (Z < Zbest){ // or <=
 					//if (olddeg>nodes[k])
 						
-					olddeg = nodes[k];
+					//olddeg = nodes[k];
 					Zbest = Z;
-					kbest = br;
+					//kbest = br;
 					int w = nodes[k];
 					int id = nodesIds[k];
 					GroupNodes.AddDat(id,w);
@@ -189,12 +189,14 @@ namespace TSnap {
 		for (TUNGraph::TEdgeI EI = Graph->BegEI(); EI < Graph->EndEI(); EI++){ // Calculate and store the degrees of each node.
 			int i = EI.GetSrcNId();
 			int j = EI.GetDstNId();
-			if (type == 1)
-				if (out.GetDat(i)==1 || out.GetDat(j)==1)
+			if (type == 1) {
+				if (out.GetDat(i) == 1 || out.GetDat(j) == 1)
 					sum += 1;
-			else
-				if (out.GetDat(i)==1 && out.GetDat(j)==1)
+			}
+			else {
+				if (out.GetDat(i) == 1 && out.GetDat(j) == 1)
 					sum += 1;
+			}
 		}
 
 		return sum/(((coresize*coresize)-coresize)/2);

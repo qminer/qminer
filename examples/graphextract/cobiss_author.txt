@@ -1,0 +1,854 @@
+mstid	id	firstName	lastName	keyws_en
+3958	4968	Sreèko	Devjak	Operation research, management, information system, statistics.
+4011	4985	Jože	Baliè	Cybernetics, Manufacturing technology, automation, flexible manufacturing, intelligent manufacturing
+4071	5007	Arpad	Koveš	Electrotechnical engineering, automation, cybernetics, energy research, welding
+4078	5011	Boris	Štok	Technical physics, mechanics, heat conduction, electro-magnetics, modelling of technology processes, simulation of technological processes, optimization of technology processes, numerical methods, structural analysis
+4107	5023	Janez	Diaci	Mechatronic and micromechanical systems, laser applications, manufacturing technologies, venture capital financing
+4121	5028	Matija	Tuma	Power plants, gas and steam turbines, industrial energy savings
+4142	5038	Maja	Atanasijeviæ Kunc	Modelling of processes, simulation of systems, control systems, multivariable systems, inteligent control and modelling.
+4159	5045	Zdenko	Kodelja	Philosophy of education, epistemology of educational sciences, ethics and education, justice in education, theory of education.
+4171	5052	Majda	Sfiligoj Smole	textile fibres, technical fibres, structural parameters, fiber properties, analytical methods, x-ray structural analysis, textile chemistry
+4181	5056	Bojana	Korošec	management accounting, insurance business, business insurance
+4293	5087	Janez	Rozman	Functional electrical stimulation, implantable and surface stimulating systems, implantable and surface stimulating electrodes, electrode systems for recording biosignals, sensors, biomechanics, biocompatibility and biomaterials
+4316	5090	Igor	Emri	Polymers, composites, hybrid materials, mechanics of time dependent materials, experimental mechanics, modelling of mechanical properties of polymers, composites and hybrid materials, polymer processing, composite manufacturing and processing, hybrid materials and related technologies, monitoring...
+4317	5091	Janko	Lužnik	Nuclear magnetic resonance,nuclear quadrupole resonance,biomagnetic measuremens,SQUID
+4350	5103	Matjaž	Zorko	Biochemistry, enzymology, kinetics, thermodynamics, signal transduction, neurochemistry, receptions, G - proteins
+4475	5140	Stanislav	Škrabl	civil engineering, geomechanics, geotechnical engineering, soil-structure interaction, geotechnical analysis, geomechanical investigations, laboratory tests
+4487	5142	Milan	Jurše	international marketing, international management, export marketing, international strategic marketing
+4530	5154	Anton	Hamler	Theory of the electrotechnics, numerical methods, force, torque, electrical parameters, modeling of the materials, rotating electromotors, linear electromotors, electromagnetic devices
+4546	5162	Janez	Bešter	Telecommunications systems, telecommunications services, design and management of telecommunications network and services, telecommunications engineering, distance education.
+4566	5170	Bojana	Boh	natural products chemistry,natural dyes,wood decomposing fungi,biodegradation,microencapsulation,scientific and technical informatics,information systems,added-value methods,QSAR,multimedia,chemical-science education
+4570	5171	Jože	Pungerèar	Biochemistry, molecular biology, genetic engineering, protein engineering, molecular genetics, toxins, proteinases, proteinase inhibitors, phospholipases A2, cDNA, gene, molecular cloning, proteins
+4628	5193	Jelka	Geršak	clothing engineering, material, model of treads, fabric mechanic, stady of mechanical and physical properties, fabric model, sewing, simulation, deformations model, objective evaluation, comfort, simu
+4629	5194	Tatjana	Kreže	textile fibres, technical fibres, structural parameters, fibres properties, surface properties, electrokinetical properties, analytical methods, dyeing, textile testing, quality assurance
+4763	5228	Marko	Mikuž	Experimental particle physics, fundamental symmetries, neutral kaons, large hadron collider (LHC), ATLAS spectrometer, particle tracker, semiconductor detectors, radiation damage.
+4799	5236	Peter	Planinšiè	Signal processing, image processing, image coding, communication, circuits and systems
+4810	5238	Saša Aleksej	Glažar	information methods and techiques, chemical education, preschool education, hazardous waste, university-industry cooperation, knowledge essessment, history of chemistry
+4828	5242	Nataša	Zupanèiè-Brouwer	organic chemistry, chemical education
+4965	5280	Karl	Gotlih	mechanics, numerical modelling, robotics, textile materials, mechanisms
+4967	5281	Andrej	Brodnik	Computer science,data structures and algorithms,theoretical computer science,computer communications.
+4997	5290	Janko	Gravner	Probability, cellular automata, interactive particle systems, statistical physics.
+5008	5296	Mojca	Narat	immunology, avian mycoplasma, human mycoplasma, cell cultures, antibodies
+5026	5301	Bogdan	Filipiè	Computer science, intelligent systems, machine learning, heuristic algorithms, evolutionary computation, evalutionary algorithms, genetic algorithms, optimisation, scheduling, dinamic systems control
+5038	5306	Norbert	Jaušovec	neuropsychology, EEG, intelligence, creativity, ERP
+5091	5328	Bojan	Zorko	Veterinary radiology, orthopedics surgery, neurosurgery
+5098	5334	Peter	Dovè	genetics, biotechnology, cell biology, phylogeny, population genetics, cytogenetics, molecular genetics, microbiology, epizootiology, genetic polymorphisms, gene expression
+5166	5353	Milan	Marèiè	thermodynamics, cooling, measurement, instrumentations, diesel engines, fuel injection system
+5168	5354	Vladimir	Gliha	
+5186	5356	Miroslav	Èarman	Fatique life prediction, precision mechanics for heavy climatic-shock-vibration service conditions
+5210	5364	Marko	Starbek	Production systems, production planning and control, logistic of materials and informations flow, work and time measurment
+5221	5367	Anton	Brancelj	ecology, limnology, taxonomy of lower crabs, Copepoda, Cladocera
+5222	5368	Alenka	Gaberšèik	ecosystems, plant ecology, environmental impacts, environment protection
+5229	5372	Maja	Ravnikar	plant physiology, biotechnology, biochemistry, pathology, hormones, tissue cultures, secondary metabolites, root cultures, transformation, molecular biology, viruses, bacteria, electron microscopy, serological methodes, chromatography
+5231	5373	Meta	Virant Doberlet	ethology, neuroethology, neuroendocrinology, communications, entomology, sensory physiology, sound and vibratory communication, pest management, biodiversity, bioacoustics, neurophysiology
+5248	5380	Franc	Pohleven	wood pests, preservation of wood, wood decay, fungicides, insecticides, preservation chemicals, cultivation of mushrooms
+5249	5381	Jadran	Faganeli	marine ecology, biogeochemistry, environmental chemistry
+5329	5408	Ida	Eržen	Skeletal muscle, mysin heavy chain, regeneration, histochemistry, morphometry, stereology, image analysis, immunohistochemistry, capillaries, plasticity
+5379	5423	Bojan	Zalar	Psychopathology, psychotherapy, psychopharmacology, epidemiology, classification of mental disorders, psychodiagnosis, psychophysiology, mental health.
+5474	5450	Jože	Petrišiè	Applied mathematics, numerical methods, fortran, C++
+5478	5452	Mirko	Dobovišek	Operator theory, operator equations, Riccati equation.
+5483	5453	Milan	Brumen	theoretical biophysics, cell biophysics, membrane biophysics, calcium oscillations, mathematical modelling, polymeric asymmetric porous membranes, chemical modification, zeta potential
+5485	5455	Jože	Malešiè	low-dimensional topology, knot theory, selections of multivalued mappings
+5536	5478	Aleš	Hribernik	thermal engineering, heat engines, engineering measurements
+5566	5491	Iztok	Golobiè	Heat and mass transfer, thermodynamics, process engineering
+5567	5492	Gorazd	Hlebanja	Surface interface, rolling - sliding contact, surface wear, surface avaluation, CAD - CAM interface, NC - technology
+5571	5495	Janez	Kušar	Productions systems, production planning and control, logistic of materials and informations flow, project management
+5573	5496	Jožef	Pezdirnik	Power-control hydraulics, transients and hydraulic power and control systems, tribological properties of hydraulic valves, sliding friction and temperatures in microcontacts
+5574	5497	Matjaž	Prek	Ventilation, air condition, cooling, heat transfer
+5624	5509	Mojca	Koman-Rajšp	good, feed, analytical chemistry, gas chromatography, fatty acids, minerals, starch, sugars
+5697	5534	Marjana	Lutman	Building structures, seismic resistance, experimental and analytical research, mathematical modelling, existing buildings, seismic rehabilitation, earthquake disaster mitigation
+5824	5573	Samo	Bobek	business informatics, management information systems, information systems management, business process reengineering, banking information systems
+5935	5606	Nina	Gunde-Cimerman	microbiology, fungi, micology, extremophilles, extracellular enzymes, secondary metabollites, taxonomy, gene bancs, microbiological culture collections, bacteria
+5940	5608	Andrej	Štrukelj	building materials, materials testing, structural testing rebuildings, primary energy incorporated in material and works, thermal conductivity, building accustics
+5949	5612	Sandi	Klavžar	graph theory, combinatorics, theory of algorithms, chemical graph theory
+5953	5615	Peter	Šemrl	Mathematics, functional analysis, operator theory, linear algebra.
+5954	5616	Andreja	Prijatelj	Mathematics, mathematical logic and foundations, ordered algebraic structures, proof theory, model theory, algenraic logic, many-valued logic, set theory, forcing and boolean-valued models.
+5958	5618	Darko	Hanžel	Moessbauer spectroscopy, Auger electron spectroscopy, nitride thin films, XPS, corrosion, Langmuir-Blodgett films, cyclic voltametry
+5974	5625	Mojca	Èepiè	liquid crystals, polar smetics, chirality, new material-didactics
+5991	5630	Lijana	Zaletel-Kragelj	Public health, social medicine, epidemiology
+6003	5634	Darko	Gorièanec	Energetic, rational use of energy, fluid mechanics, heat transfer, proces tehnics
+6005	5636	Zdravko	Kravanja	Process synthesis, process optimization, process dynamics, development of algorithm, modelling and simulation, computer programming, system sinthesis, process flexibility, operational research.
+6008	5639	Andreja	Goršek	Process synthesis, heat integration,batch processes, continuous processes, process design.
+6013	5642	Damjana	Rozman	Cholesterol biosynthesis, cytochrom P450, gene expression and regulation, molecular biology, biochemistry
+6061	5663	Boris	Šket	
+6086	5671	Aleš	Mrhar	Biopharmaceutics and pharmacokinetics, pharmaceutical technology, pharmaceutical informatics, interaction and transport studies in biosystems, modeling and simulation studies in biomedicine
+6095	5676	Sonja	Šostar - Turk	textile fibrus, surface, properties, finishing, printing, textile auxilarys, dyestaff, analytical methods, rheologia, ecologia, colorimetric
+6110	5681	Marin	Beroviè	biotechnology, bioprocess engineering, bioreactor eng. , instrumentation control, reology of fermentation broths
+6127	5690	Darinka	Brodnjak-Vonèina	Analytical chemistry, potentiometry, chromatography, chemometry
+6135	5694	Radovan	Komel	Biochemistry, molecular biology, molecular genetics, gene technology, genetic diseases, mutation analysis,
+6375	5773	Vanja	Penca Habjan	food, milk, milk products, composition, analytical methods
+6385	5778	Bojana	Vonèina	textile and technical fibres, fibres properties, finishing, dyeing, dyestuffs, syntheses of dyes, syntheses of polyfunctional reagents, spectioscopy, chromatography, ecology
+6386	5779	Davorin	Kraèun	economics
+6415	5792	Alojz	Poredoš	Refrigeration, heating, heat transfer, mass transfer, sorption technic, district energetics, heat pumps
+6428	5798	Leopold	Škerget	computational fluid dynamics, transport phenomena
+6599	5847	Vesna	Omladiè	Operation research, stochastic processes, positive matrices, decision theory, social choice.
+6671	5869	Borut	Žalik	Computer graphics, computer animation, geometric modeling, computer modeling and simulation, computer aided geometric design, computational geometry, virtual reality, multimedia
+6673	5871	Bojan	Aèko	production and dimensional measurement, length standards and kalibration, quality assurance, measurement methods and equipements, standardisation
+6676	5873	Miran	Ulbin	contact problems, numerical methods, finite element method, object oriented programming, mechanical parts, gears
+6765	5896	Peter	Butala	Tool systems, NC technology, computer aided process planing, computer integrated manufacturing, flexible automation, mechatronics, rapid prototyping, distributed manufacturing systems, knowledge transfer
+6778	5900	Orest	Jarh	nuclear magnetic resonance, magnetic resonance imaging, medical physics, biophysics, science communication
+6784	5904	Igor	Kuštrin	Energy, thermodynamics cycle, thermodynamics analysis, dimethyl ether, binary mixtures, efficiency, heat, neat exchanger, turbine, boiler, condenser
+6821	5913	Zdravko	Kaèiè	Telecommunication, digital signal processing, man-machine communications, spoken dialogue systems, automatic speech recognition, automatic speech synthesis
+6824	5915	Riko	Šafariè	Robotics, adaptive control, direct-drive robot mechanisms, neural networks, genetic algoritms, fuzzy set theory, telerobot system
+6846	5920	Sonja	Grilc	Cell culture, RT-PCR, immunocytochemistry, second messengers, pituitary cells, patch-clamp, regulated secretion, membrane trafficking, ion channels, amperometry, confocal microscopy, microinjecyion, antisense technology
+6883	5929	Janez	Kopaè	Technologies and design of workpieces planning, machining of steel, cest alloys, wood, plastic, optimizing of technological parameters, machine tools design, sensing of machining processes
+6902	5937	Zdravko	Podlesek	licheniformis, antibiotic resistance, antibiotic synthesis, ABC transporters
+6932	5948	Vinko	Kunc	Microelectronics.
+6960	5953	Ivan	Kos	animal ecology, ecosystems research, environmental protection, conservation biology, biogeography, taxonomy
+6965	5956	Jožef	Vraèko	Biliary tract, cystic duct dilation, laparoscopic-tans-cystic commov bile duct stone extraction
+6969	5959	Martin	Lipiènik	roads, road traffic, traffic safety, roads technology, technical logistics
+6981	5964	Bogdan	Perko	milk, technology, biotechnology
+6994	5969	Peter	Maèek	protein biochemistry, toxin, lipid membrane, liposome, cell membrane, cytotoxicity, enzyme, inhibitor, transmembrane transport, anticholinesterase
+7002	5972	Dušan	Šuput	Magnetic resonance imaging, microspectrofluorimetry, laser scanning confocal microscopy, electrophysiology, pathophysiology, toxinology, magnetic resonance, spectroscopy
+7003	5973	Olivera	Šauperl	finishing of tectiles, dyeing, dyes, colorimetry, analizing methods, textile auxiliary, colour recipe
+7017	5976	Miroslav	Rebernik	business economics, entrepreneurship, theories of the firm, aplication of systems thinking
+7034	5984	Nikola	Jeliæ	Engineering design, computer aided-design, 3D modeling, computation fluid dynamics
+7042	5985	Darja	Žgur-Bertok	microbial genetics, virulence factors, colicins, regulation of gene expression, plasmids
+7082	5994	Gorazd	Lešnjak	Functional analysis, operator theory, linear algebra
+7083	5995	Dušan	Repovš	geometric,topology, cohomological dimension theory, topological manifolds, selections of
+7104	6006	Tone	Kenig	
+7110	6009	Slobodan	Žumer	Physics of soft matter, complex fluids, liquid crystals, polymers, colloids, partially ordered matter, confirmed systems, surfaces, modelling, simulations.
+7115	6012	Vito	Bobek	
+7180	6026	Blaž	Rozman	inflammatory joint diseases, autoimmunity, magnetic resonance imaging, disease modifying antirheumatic drugs
+7182	6027	Alenka	Vizjak	Immunopathology, immunology, nephropathology, autoimmune diseases
+7261	6038	Vesna	Koželj Oblak	
+7264	6039	Sreèko	Koren	microbiology, virology, immunology, cytokines, interferons
+7347	6054	Alenka	Malenšek	veterinary medicine, veterinary drugs, domestic animals, therapy, feed aditives
+7446	6073	Lidija	Zadnik-Stirn	applied mathematics, quantitative methods, operations research, management science, environmental economics, mathematical optimization models in forestry and agriculture, environmental protection
+7476	6083	David Božidar	Vodušek	neurology, neurophysiology, neuropsychology, neurourology, electromyography, evoked potentials, bulbocavernosus reflex
+7525	6101	Andrej	Filipèiè	Physics, elementary particles, experimental, astrophysics
+7545	6106	Vojko	Musil	polymeric materials, polymer blends and alloys, compatibilization, polymeric composites, modification, recycling, ecobalancing
+7599	6126	Stojan	Kravanja	civil engineering, mechanics, structures, steel structures, structural analysis, structural synthesis, optimisation, nonlinear programming (NLP), mixed-integer nonlinear programming (MINLP)
+7642	6140	Vojteh	Leskovšek	Heat treatment and surface engineering, vacuum heat treatment, ion nitriding, heat treatment in fluidised bed, optimization, modelling, microstructural and mechanical properties of tool steels
+7692	6157	Marjan	Golob	Control systems, system modelling, system identification, fuzzy control, fuzzy modelling, sensors and actuators, measurement systems
+7696	6160	Darja	Žuniè-Lojen	clothing engineering, sewing process, sewing thread, thread model, physical and mechanical properties of thread and fabric, fusing process, work and workplace desing, objective evaluation of fabric
+7798	6205	Draga	Štiblar Martinèiè	Cell culture, tumour, histology, cytology, endocrinology, cancerogenesis, apoptosis, poliferation, immunohistochemistry, electron microscopy, radiation, morphometry, densitometry
+7802	6208	Tamara	Lah Turnšek	proteolytic enzymes, proteaze inhibitors, cancer, carcinogenesis, metastasis
+7814	6216	Karin	Stana Kleinschek	colloid chemistry, electrokinetic properties, surface properties, adsorption, kinetics, analytical methods, finishing, enzymes, bleaching, crosslinking of cellulose, polymers
+7849	6222	Borut	Štrukelj	Genetic engineering, pharmaceutical biotechnology, gene analysis, production of recombinant prokins, transgenic organisms, plant physiology, pharmaceutical biology
+7914	6240	Dušan	Benèina	microbiology, imunology, mycoplasmas, antibodies
+7925	6244	Ana	Sepe	
+7931	6248	Branko	Semoliè	Cybernetics, manufacturing, technology, automation, flexible manufacturing, intelligent manufacturing
+8005	6270	Alojz	Suhadolnik	Applied optics, laser technique, applied mathematics, computing and numerical methods, optoelectronics, optical fibres, optical fibre sensors
+8023	6277	Olga	Zorman Rojs	Veterinary medicine, polutry, diagnostic, serology
+8061	6288	Damjan	Zazula	Signal processing, image processing, decomposition of compound signal, cepstral analysis, system software, embedded systems
+8065	6289	Anton	Hauc	strategy, project, strategic management, project management, organisation, project oriented organisation, project information system, management
+8067	6290	Ivan	Rozman	Information systems, software quality, IS modeling, requirement analysis, IS project management
+8082	6295	Matjaž	Mulej	systems theory, innovation theory
+8102	6306	Tanja	Markoviè-Hribernik	finance, public finance (fiscal deficit, public debt, tax policy, public expemditure policy), environmental policy
+8173	6323	Miklavž	Mastinšek	mathematical analysis - differential and partial differential equations, functional analysis, functional dif. equations, identification and estimation of parameters; actuarial mathematics, operations research
+8174	6324	Majda	Bastiè	
+8195	6330	Borivoj	Šuštaršiè	Powder metallurgy, preparation of metalic powders, synthesis and analysis of metal matrix composites magnetic materials, determination of microstructural and mechanical properties of metals and alloys powders
+8274	6349	Vojko	Jazbinšek	Biomagnetism,electrocardiography,computer modelling,numerical simulations,boundary element method,data acquisition,measured data analysis.
+8276	6350	Marjana	Camloh	plant physiology, biotechnology, biochemistry, pathology, hormones, tissue cultures, secondary metabolites, root cultures, transformation, molecular biology, viruses, bacteria, electron microscopy, serological methodes, chromatography
+8280	6353	Marina	Dermastia	plant biochemistry, physiology, anatomy, molecular planet-microbe interactions
+8292	6357	Anton	Zupan	Meurobiology, biomedical technics
+8307	6364	Andrej	Francky	Biochemisty, proteins, recombinant DNA, expression, protein purification, microbiology, cytokines
+8308	6365	Danilo	Zavrtanik	Cosmic-rays, elementary particles, cosmology, standard model, detectors
+8312	6367	Bojana	Beoviè	treatment, bacterial infections, viral infections
+8320	6372	Gorazd	Avguštin	microbial taxonomy, molecular phylogeny in identification , flow cytometry, microbial communication, microbial gastrointestinal ecology, microbial communities
+8333	6376	Franc	Vreèer	pharmaceutical technology, preformulation studies, modified release
+8344	6378	Dijana	Moènik	theory of the firm, entrepreneurship, economics of transaction, costs, asset specificity, capital structure, governance structur, corporate finance, economic of the firm
+8397	6405	Vida	Gavriæ-Lovrec	infertility diagnostics and treatment, assisted reproduction, early pregnancy, ultrasound, color Doppler
+8398	6406	Tomaž	Košir	Multiparameter spectral theory, commuting matrices, commutative algebra, multiplicities, partial differential equations, homological algebra, semigroups of matrices.
+8404	6408	Romana	Marinšek Logar	microbial gastrointestinal ecology, microbial
+8432	6420	Igor	Dobovšek	Mechanics of continuous and discrete media, mathematical modelling of materials
+8451	6426	Božidar	Bajcer	production line design, automation of working operations, information systems
+8456	6429	Andrej	Senegaènik	Energy, heat, power systems, rational use of energy, steam boilers, operating reliability, combustion, fuels
+8475	6437	Jožef	Ritonja	Power systems, control, adaptive control
+8483	6439	Darko	Lovrec	Cibernetics, control system, hydraulics, pneumatics
+8485	6440	Boris	Sluban	colour science, colorimetry, computer color formulation
+8488	6441	Zdravko	Praunseis	HSLA steels, weldability, impact and fracture toughness, light and SEM metallography, critical fault size, fitness for purpose
+8513	6449	Anton	Ogorelc	
+8532	6457	Ervin	Križniè	Elementary particles, electron positron collisions, twophoton interactions, decay products, weak bosons, Higgs bosons
+8584	6469	Jure	Marn	fluid mechanics, heat and
+8593	6473	Zdenka	Pajer-Likozar	Thyroid gland, pituitary gland, tumors, proliferation, apoptosis, immunocytochemistry, stereology, astereology, image analysis, human histology, embryology, cell cultures, cancerogenesis, animal models
+8604	6479	Cvetka	Ribariè Lasnik	forest, biochemistry, plant physiology
+8612	6483	Samo	Kralj	liquid crystals, quasi-crystals, spin-glass, defects, phase transitions, surface phenomena, finite size effects, numerical simulation
+8634	6491	Franc	Èuš	cybernetics, manufacturing technology, automation, flexible manufacturing, intelligent manufacturing
+8719	6515	Nikolaj	Mole	Thermo mechanical analysis, numerical modelling, finite element method
+8721	6516	Matej	Brešar	ring theory, functional analysis, operator theory
+8722	6517	Miran	Èerne	Analysis of holomorphic functions of several complex variables.
+8724	6518	Aleksandar	Jurišiæ	Combinatorics, algebraic combinatorics, association schemes, graph theory, design theory, configurations, finite geometries, strongly-regular graphs, distance-regular graphs, antipodal covers, number theory, algebra, finite fields, cryptography,coding theory,...
+8727	6520	Uroš	Milutinoviæ	topology, dimension, theory, universal spaces, graphs, combinatorial problems
+8728	6521	Pavle	Saksida	Differential geometry, applications of geometry in physics, Hamiltonian systems, integrable systems, gauge theory, moduli spaces of complex, vector bundles, symplectic geometry, finite and infinite dimensional lie groups.
+8761	6535	Irena	Ban	Inorganic chemistry, fluorine chemistry, thermal analysis, x-ray powder diffraction
+8762	6536	Regina	Fuchs-Godec	Corrosion, corrosion processes, stainless steels
+8779	6542	Zoran	Ren	mechanical elements, machines and mechanisms, fracture mechanics, engineering computational simulations, micromechanical material analysis, design with lightweight metal materials
+8782	6544	Edvard	Govekar	Diagnostics optimisation and control of technical processes, empirical modeling of dynamic processes, neural networks, nonlinear and chaotic dynamics, time series analysis
+8790	6548	Anton	Meden	X-ray structure analysis, powder diffraction, structure chemistry
+8824	6559	Janko	Belak	management, strategic management, integral management, company policy, business planning, development company theorie, development company model
+8826	6561	Sebastjan	Strašek	economic policy, economic crisis, exange date, business cycles
+8838	6565	Ernest	Vonèina	environment protection, environmental analysis, analytical chemistry, mass spectrometry, organic analysis
+8857	6571	Irena	Rogelj	dairying, milk, milk products, microbiology, lactic acid bacteria, starter cultures, fermentation, bacteriocins, probiotics
+8919	6582	Drago	Dolinar	Electrical machines, modeling and design of electrical machines, dynamical analysis, control design of electrical machines, electrical power systems, dynamic analysis and control
+8926	6583	Boris	Tovornik	Control system design, elements, SCADA, fuzzy control, intelligent control, modeling, fault detection process automation, buildings automation
+8947	6588	Neža	Mramor-Kosta	Algebraic topology, equivariant topology, topological methods in computer science, constructive geometry, fixed point theory.
+8948	6589	Jadran	Lenarèiè	Robotics, biomechanics
+8957	6593	Margareta	Vrtaènik	organic chemistry,pollutants environmental fate prediction,biodegradation,chemical-science education,scientific concepts and processes visualisation,multimedia,scientific and technical informatics,information methods,QSAR
+8996	6601	Veljko	Vlaisavljeviæ	gynecology, andrology, perinatology, ultrasound, mammography, embryology - laboratory, IVF, micromanipulation, genetics, diagnostics, breast diseases, infertility, endocrinology
+9001	6602	Mirko	Sokoviæ	Metal cutting, cutting tool materials, PVD-hard coatings, quality assurance of processes and products, quality assurance of services
+9002	6603	Peter	Mužiè	
+9006	6606	Mihael	Junkar	Machining process control
+9031	6612	Stane	Srèiè	Pharmaceutical technology, thermal analysis
+9032	6613	Julijana	Kristl	Pharmaceutical technology, cosmetology, hydrocolloids, collidal drug delivery, liposomes, nanoparticles, microemulsions, matrix tablets, biocompatible polymers, skin, mucus, drug diffusion, transport, interface processes, viscoelasticity, electron peramagnetic resonance, PCS, DSC, physical stability
+9055	6617	Majda	Kokotec-Novak	accounting, financial accounting, tax accounting and tax consulting
+9066	6622	Stanislav	Primožiè	Pharmacepidemiology, social pharmacy, pharmacokinetics, bioequavilence of medicinal products, medicinal products regulation, pharmaceutical informatics, pharmaceutical care
+9067	6623	Pavle	Žerovnik	heat treatments, residual stresses, metalographi, inspection by magnetic methods
+9129	6643	Vincenc	Butala	Ventilation, air conditining, cooling, heat transfer
+9169	6655	Jože	Pihler	Power plaints and electroenergetic devices, testing of electroenergetic devices
+9218	6670	Janez	Oman	Energy, heat, energy conservation, steam boilers, power plants, energy management, renewable energy resources, fuels, combustion, cogeneration
+9274	6680	Franc	Steinman	Water management, water science, experimental hydraulics, water law, water administration
+9275	6681	Damjan	Glavaè	Human genetics, biochemistry and molecular biology, molecular oncology, molecular basis of diseases, human genome research, medical molecular genetis, mutation detection in genomes
+9286	6683	Brane	Širok	Fluid mechanics, turbomachinery, computer-aided visualization
+9449	6725	Marjan	Družovec	production and dimensional measurement, lenght standards and calibrations, quality assurance, measurement methods and equipement, standardisation
+9565	6746	Borut	Bohanec	plant breeding, plant biotechnology, tissue cultures, genetics
+9573	6747	Matjaž	Omladiè	Functional analysis, operator theory, group and semigroup representations, ordered vector spaces, linear algebra, associative algebra, commutative algebra, nonassociative algebra.
+9634	6758	Bojan	Orel	Numerical analysis, differential equations, geometric integration.
+9635	6759	Andrej	Umek	Plant chemistry, secundary metabolites, plant drugs, pharmacology of plant active molekuls, isolation of plant metabolites
+9744	6777	Franc	Križaniè	Macroeconomic analysis
+9775	6788	Marjana	Noviè	Chemometrics, modelling, chemical processes, detector signals, chemical structures, nonlinear models, spectroscopy, neural networks, optimization, development of algorithms
+9788	6791	Jelena	Vojvodiè Tuma	New materials, reservoirs, pressure wessels, boilers, non-destructive testing, degradation of metallic materials, fracture mechanics
+9790	6793	Jurij	Fettich	Nuclear medicine, radiation protection, quality assurance
+9794	6796	Rajko	Kenda	Pediatrics, nephrology, dialysis
+9796	6797	Matjaž	Colnariè	Real-time systems, embedded systems, scheduling, real-time programming languages, real-time operating systems, real-time hardware architectures
+9806	6804	Ivan	Prebil	Mechanical engineering, specialising in machine design, large ball bearings, rotational rolling connections, processes of internal combustion in engines, vehicle characteristics and traffic accidents
+9892	6831	Metka	Filipiè	genetic toxicology, mutagenesis, carcinogenesis, antimutagens, cancer, prevention, biomarkers
+9990	6863	Franc	Forstneriè	Mathematics, mathematical analysis, complex analysis.
+10061	6879	Tomi	Trilar	Fleas, siphonaptera, hippoboscidae, streblidae, ticks, ixodidae, ectoparasites of birds and animals, bioacoustics
+10260	6930	Irena	Rejec Brancelj	Environment protection, landscape ecology, agriculture and environment (agriculture ecology), social ecology, environment pollution
+10331	6949	Tatjana	Avšiè-Županc	viral hemorrhagic fevers, tick transsmited microorganisms, ecology, epidemiology, infection, molecular epidemiology, genetic hetterogenity, pathogenesis
+10337	6950	Alojz	Ihan	
+10369	6959	Ivan	Anžel	solidification, microstructure, high temperature, oxidation, reaction in solid state materials, protection coats, materials forming
+10370	6960	Ivan	Okorn	Machine parts, gears, wear of machine elements, machine design
+10371	6961	Bogdan	Blagojeviæ	Calibration, metrology: temperature, pressure, fluid-flow, measurement uncertainity
+10372	6962	Darko	Makovec	Materials science, ceramics, functional ceramics, PTC resistors, ferrites, microscopy, high temperature chemistry, solid state chemistry, electrical properties, grain boundary engineering, phase equilibria, study of microstructure
+10401	6971	Tomaž	Gyergyek	Plasma physics, plasma sources, nonlinear dynamics, Langmuir probe, nucclear fusion, plasma oscillations, chaos.
+10412	6972	Simon	Horvat	genetics, genomics, metabolic diseases, cholesterol homeostasis, biotechnology, animal science, transgenesis, molecular immunology
+10424	6977	Pino	Koc	Technical physics, heat conduction, electro-,agnetics, numerical methods
+10470	6997	Nenad	Gubeljak	machine parts, structural parts, testing of mechanical properties, fracture mechanics, crack, fatigue service life time, spring, spring system, fracture mechanics testing of welded joints, design of s
+10499	7006	Niko	Herakoviè	Hydravlics, pneumatics, mechatronics, piezo technics, hydraulic valves, pneumatics valves, piezo valves, fluid flow, oxial flow force compensation, simulation, experiments, construction, development, agricultural tractors, hydro-mechanical drives
+10504	7010	Polona	Tominc	operational research, statistical methods in the business optimisation
+10511	7013	Roman	Bošnjak	neurosurgery, microsurgery, brachial plexus, peripheral nerve regeneration, FES-functional electrical stimulation, spinal root, electrostimulation biomedical image segurentation
+10555	7022	Samo	Zupan	Mechanical engineering, specialising in construction, rolling rotational connections, rolling bearings, design methods and algorithms, design of machines, mechanics of machines and constructions, geometric dimensioning and tolerancing
+10562	7025	Boštjan	Brank	Shells, plates, composites, mechanics of structures, buckling, structural optimization, nonlinear mechanics, computational mechanics, fracture mechanics, ...
+10571	7028	Zlatka	Cugmas	development psychology, child's self-perception, child's relations with reachers, parent's beliefs about children's development, child-mother attachment
+10575	7030	Simona	Strnad	textile bifres, technical fibres, structural characteristics, fibre properties, surface properties, electrokinetic properties, analytical methods, absorption, diffussion, microscopy image processing,
+10605	7044	Iztok	Ciglariè	Mechanics, dynamic, multibody dynamic, mathematical modeling of the vehicles, road accident reconstruction specialist
+10606	7045	Marko	Kegl	structures, non-linear response, shape optimization, optimization methods
+10642	7054	Marija	Hribernik	
+10644	7055	Erika	Cvetko	Skeletal muscle, regeneration, immunohistochemistry, plasticity, perodontology
+10684	7068	Nika	Goljar	neurology, rehabilitation
+10720	7079	Miran	Lakota	Vibration analysis, mechanical engineering, agriculturale engineering
+10727	7083	Mojca	Slemnik	Corrosion, stainless steel, electrochemical noise, impedance spectroscopy
+10768	7099	Petar	Pavešiæ	Algebraic topology, self-homotopy equivalences, classification of fibrations, stable homotopy theory, associative rings and algebras, local rings, idempotents and decompositions
+10813	7116	Janez	Križan	Process avtomation
+10814	7117	Gorazd	Štumberger	Electrical machines, modeling and design of electrical machines, dynamical analysis, control design of electrical machines, electrical power systems, dynamic analysis and control
+10827	7124	Jurij	Avsec	Thermomechanics, fluid mechanics, stress analyses, statistical thermomechanics, heating and refrigeration processes, air conditioning processes, vibration, micromechanics, nanomechanics, hydrogen technologies, alternative energy technologis, energy technology with renewable resources
+10847	7131	Matjaž	Skrinar	the inverse identification of cracks, stresset and settlements in the hals space
+10863	7141	Tomaž	Rus	Water turbines, Francis turbines, Kaplan turbines, Bulb turbines, Pelton turbines, cavitation, model turbine testing, prototype site testing, current-meter measurements
+10878	7148	Anita	Kovaè-Kralj	Retrofit, complex and energy intensive processes, continuous processes, simultaneous optimization, parameter and structural optimization, simplified superstructure, NLP formulation.
+10897	7156	Matjaž	Žnidaršiè	Laser, EDM, water jet machining, nonconventional machining process, imaging, image analysis, electro
+10903	7161	Milijan	Šiško	ecosystems, dratoms, periphyton, water
+10926	7171	Darja	Horvat	Laser ultrasonics, laser applications, non-contact detection, nondestructive testing, optodynamics
+10978	7184	Roman	Žavbi	Engineering design, computer aided design, software development
+11040	7206	Borut	Kovaèiè	human reproduction, embryology, andrology, cytology, assisted reproduction technics
+11064	7218	Marjan	Herièko	Information systems, IS development methodologies, object technology, case tools, implementation environments, JAVA, component based development, reuse patterns
+11069	7221	Lovrenc	Lipej	marine ecology, zooplankton ecology, biodiversity, conservation biology, ornithology, wetland ornithology, environment impact assessment, raptor ecology
+11073	7224	Vojko	Potoèan	organization, administration, management, business desision-making
+11093	7235	Sreèo Davor	Škapin	Inorganic chemistry, materials, electronic ceramics
+11115	7243	Samo	Ulaga	FE based stress analysis, contact problems, generalised constraints, gear design
+11122	7246	Albin	Kristl	Pharmaceutical technology, biopharmacy, physical pharmacy
+11124	7247	Marija	Bogataj	Biopharmacy, pharmaceutical technology, transport, interactions, microcapsulation, bioadhesion
+11150	7261	Bojana	Bogoviè Matijašiæ	macrobiology, lactic acid bacteria, proteins, inhibitory activity bacteriocins, probiotics, functional food, fermented food, milk, biotechnology, starter cultures
+11167	7267	Matjaž	Hriberšek	computational fluid dynamics, computational heat transfer, heat and mass transfer, fluid mechanics, thermal process engineering, mechanical process engineering
+11191	7274	Marjan	Mernik	Principles, paradigms, design and implementation of programming languages, compilers, formal methods for programming language description
+11243	7299	Štefan	Èelan	Environmental chemistry,aquatic ecology,polymers.
+11244	7300	Gregor	Radonjiè	polymetric materials, recycling, ecobalancing
+11308	7319	Andrej	Coer	Oncology, carcinogenesis, proliferation, apoptosis, tumours, image analysis
+11329	7325	Maja	Soèan	epidemiology, communicable diseases, public health
+11343	7332	Renata	Jecl	numerical modelling, porous media, heat transfer, computational fluid dynamics (CFD)
+11346	7335	Dušica	Pleterski-Rigler	pediatric infectious diseases including microbiology and epidemiology
+11369	7341	Zorka	Novak Pintariè	Optimizaton, mathematical programming, process synthesis, process design, process flexibility, uncertainty, nonlinear programming(NLP), mixed-integer nonlinear programming(MINLP)
+11392	7349	Matjaž	Kaufman	Theoretical computer science, graph theory, discrete optimization, mathematical chemistry.
+11536	7388	Jože	Korelc	Civil structures, mechanics of solids, finite element method, material modeling, plasticity, three dimensional simulations, composite materials, symbolic algebra, symbolic methods, avtomatic code generation, metal forming
+11576	7406	Jože	Mohorko	2D signal processing, pattern recognition, image compression, parameter identification, digital signal processing, automatization, multimedia, coding, measurements, C language, television set
+11622	7424	Mario	Poljak	virology, molecular microbiology, hepatitis, HIV, AIDS, human papillomaviruses, PCR
+11624	7425	Borut	Kosec	two and multi-phase metal materials, composite materials, mechanical testing, modeling, finite element analysis (FEA), continuous casting, thermo-technical measurement, heat and mass transfer, furnace
+11651	7432	Marko	Stabej	Textlinguistics, stylistics, sociolingvistics, language planning, language policy, history of standard language, corpus lingvistics, lexicography
+11654	7433	Rok	Romih	Cell biology, urothelium, differentiation, proliferation, desquamation, apoptosis, cell cycle, cell stress, vasoconstriction-ishemy, membrane compartments, cell membranes, cytoskeleton
+11666	7437	Aleksander	Vesel	computer science, software, computer graphics, algorithms, data structures, graph theory
+11677	7440	Vesna	Èanèer	operation research, quantitative economic analyses, environmental management, optimisation of business processes, product management
+11686	7444	Janez	Mrèun	Foliations, topological grupoids, algebraic topology, differential topology.
+11687	7445	Boris	Zgrabliæ	mathematics, graph theory, group theory, permutation groups, vertex-transitive graphs, adjacency-transitive graphs
+11700	7450	Boštjan	Taljat	Heat treatment of materials, welding engineering, toolmaking, thermal felds
+11709	7455	Roman	Drnovšek	Operator theory, Banach spaces, Banach lattices, collections of operators, semigroups, invariant subspaces, spectral properties of operators.
+11713	7458	Gregor	Zupanèiè	cell physiology, sensory physiology, physiology of endocrine secretion, cell metabolism, whole cell patch clamp, membrane capacitance measurements, microspectrometric methods
+11775	7483	Tomaž	Podobnik	Elementary particles, electron position collisious, two lepton interactions, decay products, weak bosons, Higgs bosons.
+11789	7487	Mirjana	Gašperlin	Dosage forms, drug delivery, physical stability, reology, cosmetics, polymers, surfactants, disperse systems, emulsions, microemulsions, gels, creams, interfaces, modelling, artificial neural networks, drug transport
+11809	7497	Ciril	Arkar	Heat and mass transfer in buildings, experimental methods, renuvable energy sources
+11865	7516	Mojca	Škerget	Tecnical chemistry, separation processes, high pressure technologies, supercritical fluids, extraction, phase equilibria, mass transfer.
+11869	7520	Mojca	Duh	business planning, enterprise's policy, strategic management, developmental management, management of family enterprises
+11905	7530	Aleš	Babnik	Laser ultrasonic, laser applications, non-coctact detection, non-destructive testing, optodynamics, fiber optic sensors
+11922	7538	Mitja	Slavinec	confined liquid crystals, anchoring, defects structure transitions, order parameter
+11945	7548	Dejan	Dinevski	shape optimum design, structural dynamics, finite element method, mechanics, experimental work on dynamics of structures, information systems, information on research activity
+11951	7550	Gorazd	Lojen	metals, metallic composites, semi solid metallic materials, aluminiumalloys, high-pressure die castini, solidification, dissolution in metallic melts
+11974	7562	Bruno	Završnik	purchasing management, product management, marketing channels, promotion management
+12013	7582	Marjana	Regvar	plant physiology, mycorrhiza, hormones, jasmonic acid, pathogenesys
+12031	7586	Samar	Al Sayegh-Petkovšek	Frust ecosystem, fouset site pollution, types of ectomycorrluzae
+12039	7591	Barbara	Vilhar	botany, physiology, anatomy, cytology, genome size
+12054	7600	Drago	Kovaèiè	Polymers, composites, hybrid materials, mechanics of time.dependent materials, experimental mechsnics, modelling of mechanical properties of polymers, composites end hybrid materials, monitoring and optimization of production processes, material characterization
+12090	7617	Danica	Dolnièar	information systems,databases, multimedia teaching materials/units,chemical education,informatics,software/programming,artificial intelligence, environment protection,plant protection
+12092	7619	Boštjan	Golob	Elementary particles, Standard Model, electron positron collisions, electroweak interactions,
+12165	7641	Mladen	Stanojeviæ	
+12183	7645	Jana	Ambrožiè Dolinšek	platycerium bifurcatum, fern, tissue culture, regeneration, organogenesis, growth regulators
+12190	7648	Damjana	Kokol Bukovšek	Algebra, differential algebra, field, semigroup, semigroup homomorphism, operator theory, reducibility.
+12191	7649	Aleksej	Turnšek	Functional analysis, operator theory
+12193	7651	Manica	Mueller Premru	bacteriology, identification of bacteria, responsible for respiratory infections, sepsis and meningitis, antibiotic susceptibility determination, bacterial typing by methods of molecular biology for studying epidemilogy and pathogenesis of bact. infection
+12207	7659	Tomaž	Slivnik	Probabilistic combinatorics, graph theory
+12215	7663	Hermina	Damjan	(re)habilitation of disabled children, disorders of movement, gait analysis, treatment of spasticity
+12260	7681	Andrej	Lebar	Alternative technologies, abrasive water-jet cutting, laser cutting, identification of manufacturing processes, metrology, surface metrology, metrology using image processing
+12266	7683	Marjan	Slak Rupnik	endocrine function,development,exocytosis,endoxytosis,ion channels,pituitary pancreas,glucagon,MSH,endorphin,electrophysiology,confocal microscopy,FRET,FLIMmulti-photon microscopy
+12310	7699	Bogdan	Puèko	HSLA steels, weldability, impact and fracture toughness, light and SEM metallography, internal residual stresses, fitness for purpose
+12313	7700	Igor	Mandiæ	Elementary particles, standard model, Higgs bosons, hadron collider, silicion detectors, radiation-hard electronics, optical links, low-mass conductive tapes, neutral kaons, rare decays, fundamental symmetries
+12417	7733	Marija	Grèman	structure research of organic substances (IR spectroscopy, thermal analysis)
+12481	7750	Blanka	Kores Plesnièar	Psychiatry, psychopharmacology, pharmacoeconomics, specific psychiatric diagnostic
+12496	7752	Miro	Mele	Sugar beet, sugar, molasses, beetnoodles, slime, water, humus, environment
+12508	7756	Domen	Verber	information system, hard real time systems, embedded systems, dependable systems, object oriented design, object oriented programming, compilers, execution time analysis
+12531	7763	Primož	Peterlin	phospholipid membrane, phospholipid vesicle, electric field, membrane permeability, surfactant, electroformation, optical microscopy, image analysis
+12582	7781	Matjaž	Iršiè	marketing, purchasing marketing, marketing research
+12623	7797	Marko	Jesenik	electromagnetics, electromagnetic and electromechanic converters, numerical methods, finite element and boundery element method, optimization methods, energy conversion, magnetic measuring methods and devices
+12624	7798	Amalija	Golobiè	X-ray structure determination, structural chemistry, inorganic chemistry
+12628	7800	Rok	Hren	Computer simulations, electrocardiography,magnetocardiography,venticular anhythmics
+12636	7804	Davorin	Bauman	Organic synthesis, incineration of toxic materials, waste treatment, flue gas cleaning.
+12653	7812	Zoran	Žuniè	turbulent flow, parallel computing, boundary elements, computational fluid dynamics
+12657	7814	Miran	Brezoènik	cybernetics, manufacturing technology, automatization, flexible manufacturing systems, intelligent manufacturing systems
+12659	7815	Marjana	Simoniè	Water, thermal water, water technologie, drinking water.
+12668	7820	Lucija	Èrepinšek Lipuš	water treatment, water dispersion systems, magnetic hydrodynamics, crystallization from natural waters, transmission systems
+12682	7827	Irena	Zdovc	veterinary medicine, veterinary microbiology, micology, bacteriology, dermatology, dermatophytes, microsporum, trichophyton
+12725	7841	Leon	Kos	Computer graphics, programming, rendering techniques, visualization
+12728	7842	Aleš	Podgornik	Biotechnology, bioengineering, monitoring and control of bioprocesses, chromatography, monolithic stationary phases
+12936	7899	Judita	Fedija Širca	controlled drug delivery systems, pellets, gastro-resistant, pharmaceutical forms, tablets, capsules, extrusion, spheronization
+12939	7901	Maja	Rus Makovec	Psyhoactive substance abuse/dependancy, family, suicide, eating disorders, social psychiatry
+12957	7907	Tomaž	Pepelnjak	Design of metal forming tools, laminated forming tools, rapid prototyping and tooling, FEM simulations of forming processes, teilored blanks, modular product set-up, computers aided design(CAD), concurrent engineering
+13023	7930	Tadej	Battelino	endocrinology, diabetology, pediatrics, growth, growth hormone, epidemiology, molecular genetics, metabolic diseases, medical genetics
+13068	7943	Sreèko	Glodež	machine elements, gears, design, fatigue, fracture mechanics, numerical methods
+13088	7949	Viktor	Šajn	Nonlinear mechanics, fluid mechanics, aerodynamics, numerical modeling, fluid-solid interaction
+13159	7968	Marko	Marhl	physics, biophysics, cell signaling, mathematical modelling, calcium oscilltions, transmembrane potentials, mitochondria
+13245	7993	Franc	Mihaliè	DC-DC converters, power factor correction, randomized modulation, signal processing, power spectrum estimation, electromagnetic interference (EMI), electromagnetic compatibility (EMC)
+13250	7997	Marina	Jelen	Charging, melting, melt cleaning, casting, homogenising, heat treating lf aluminium and its alloys
+13296	8008	Eva	Ružiæ-Sabljiæ	medicine, microbiology, immunology, molecular microbiology, serology, Lyme borreliosis, immune resnonse, culture, isolation, identification, antibiograms, ticks
+13297	8009	Franjo	Pikelj	hemoragic fevers, tropical medicie, infections of central nervous system, endocarditis
+13298	8010	Vera	Maraspin-Èarman	lyme borreliosis, infections of central nervous system, infections of lower resp. tract, infections in pregnancy
+13299	8011	Stanka	Lotriè Furlan	ticks, lyme borreliosis, ehrlichiosis, central nervous system infection
+13301	8013	Franc	Strle	lyme borreliosis, tick-borne encephalitis, human granulocytic ehrlichiusis, infections of central nervous system, respiratory infections
+13302	8014	Jože	Cimperman	lyme borreliosis, infections of central nervous system, infections of lower respiratory tract, infections in pregnancy
+13310	8016	Gorazd	Drevenšek	Cardiovascular system, heart, vascular system, calcium channel blockers, isolated organs, ischaemia
+13343	8025	Nadja	Kokalj Vokaè	medical genetics, cytogenetics, chromosom abnormalyties, chromosome structures, DNA methylation, embryogenesis, blood cancer
+13351	8027	Alenka	Lipovec	graphs, combinatorics, discrete mathematics, product graphs, embeddings, coloring
+13355	8030	Nataša	Vaupotiè	liquid crystals, ferroelectric and antiferroelectric smectie C, confined geometries, surfaces, structural transitions, phase transitions, continuum theoretical models, discrete theoretical models, surface stabilised cells, chevron structure, switching
+13400	8050	Leon	Oblak	wood economy, environmental protection problems, ecological company management, optimization, decision support systems, strategic planning
+13409	8054	Nataša	Uršiè Bratina	insulin dependent diabetes mellitus, epidemiology, genetics, pediatric endocrinology
+13429	8062	Jože	Marinèek	Bandwidth, approximation algorithms, parallel algorithms.
+13430	8063	Gregor	Cigler	Matrix groups, reducibility, trianularizability, algebraic groups.
+13432	8065	Mateja	Šajna	graph theory, transitivity in graphs, factorization, matchings, decomposition, cycles
+13469	8076	Marko	Nagode	Development, evaluation, reliability, maintainability, supportability, assurance, availability, durability, prediction
+13470	8077	Niko	Samec	combustion, transport phenomena, numerical modelling, reacting, flow, chemical kinetics, pollutant for nation, air pollutions, emission, imission, enviranmental modelling, waste treatment, incineratro
+13481	8079	Matjaž	Ramšak	computational fluid dynamics, boundary element method, turbulent flow, laminar flow, numerical methods, fluid mechanics, heat transfer
+13568	8115	Zoran	Novak	Tecnical chemistry, separation processes, high pressure technologies, supercritical fliuds, micronisation, aerogels.
+13601	8127	Matija	Tomšiè	autoantibodies, Sojoegrens syndrome, vasculitis, autoimmunity
+13602	8128	Sonja	Praprotnik	autoantibodies, endothelial cells, vasculitis, autoimmunity
+13651	8148	Matjaž	Željko	Low-dimensional topology, Cantor set, wild embeddings.
+13654	8149	Jerneja	Ambrožiè Avguštin	bacteria, horizontal, transfer, resistance, virulence, genetic mechanisms, antibiotics, membranes, transport toxing, plasmids, biosynthesis, transformations, konjugation, evolution, escherichia coli
+13714	8177	Simona	Jevšnik	clothing engineering, materials, thread model, fusing process, study of mechanical properties of fabric and threads, sewing process, fabrice model, artifical intelligence and machine learning, objecti
+14027	8282	Dean	Korošec	Biomedical signals, digital signal processing, time-frequency, methods, electromyography, conceptual learning, system software
+14038	8288	Zlatko	Matjaèiæ	Functional electrical stimulation (FES), analysis and synthesis of posture and gait in people with central nervous system injury
+14063	8298	Leila	Marek Crnjac	fractal, circle paking
+14082	8307	Radojko	Jaæimoviæ	Instrumental neutron activation analysis, k0 - standardization method, nuclear constants, radioecology, biomonitoring, quality assurance, quality control, recovery factors, traceability
+14094	8310	Borut	Macuh	civil engineering, geomechanics, geotechnical engineering, soil-structure interaction, geotechnical analysis, geomechanical investigations, laboratory tests
+14095	8311	Miroslav	Premrov	mechanic, dynamic, static, timber structures, concrete structures
+14113	8321	Igor	But	ovarian cancer, tumor markers, urogynecology, urinary incontinence, pelvic inflammatory disease
+14114	8322	Darja	Arko	oncology gynecologic, lesions precancerous, surgery, chemotherapy, ultrasound
+14335	8367	Rebeka	Rudolf	solidification, microstructure, high temperature oxidation, reaction in solid state materials
+14342	8373	Mihael	Sekavènik	Energy, turbomachinery, heat transfer, power plants, industry thermodynamics
+14345	8375	Boris	Jerman	Load carying structures, welded structures pressure vessels, machines design, evaluation, optimization
+14445	8407	Andreja	Rudolf	clothing engineering, materials, thread model, mechanics of textile materials, study of physical and mechanical properties of fabric and thread, fabric model, sewing process, objective evalvation, clo
+14488	8425	Avrelija	Cenciè	interferons and cytokines, glycobiochemistry, inflamation, animal and human cell cultures - functional cell models, expression of proteins in microbial and animal recombinant systems, host-patogen interactions, foof and health, environment and health, agricultural research for development
+14502	8429	Simon	Podnar	clinical neurophysiology, uroneurophysiology, electromyography
+14556	8452	Mitjan	Kalin	Tribology, materials, design, modeling
+14573	8458	Samo	Staniè	Synchrotron, silicon vertex detector, radiation damage, Higgs bosson, B mesons, CP violation, electron beam acceleration
+14676	8483	Igor	Mekjaviæ	environmental physiology, human thermo-regulation, diving and hyperbaric medicine and physiology, hyperbaric technology, ergonomics
+14738	8502	Bojan	Štumberger	Electromagnetics, electromagnetic and electromechanic converters, numerical methods, finite element and boundary element method, optimization methods, energy conversion, magnetic measuring methods and devices, isolation materials and systems
+14741	8504	Roman	Gumzej	information systems, embedded systems, hard real-time systems, operating systems, multiprocessor systems, co-design, verification and validation, hardware and software architecture
+14762	8513	Marija	Trkov	Microbial taxonomy, molecular phylogeny and identification, microbial gastrointestinal ecology, microbial communities, food microbiology
+14764	8514	Nikola	Jakšiæ	Mechanics, dynamics, dynamics of machines and structures, vibrations, nonlinear oscillations, rotordynamics, machinery noise, higher-order spectra, experimental identification of nonlinearities
+14838	8542	Damijan	Miljavec	Electric machines, artificial neutral networks, genetic algorithms, design of electric machines, magnetic field calculations.
+14912	8577	Gregor	Novljan	Pediatrics, nephrology, dialysis, transplantation, urinary tract infection
+14962	8602	Helena	Burger	Rehabilitation medicine, physical medicine, public health, ageing, quality of life
+15006	8620	Denis	Ðonlagiæ	Sensors, sensor systems, optical sensors, acoustical sensors, optical fibers, waveguides, opto-electronics
+15104	8645	Saša	Baumgartner	Polymers, matrix tablets, drug delivery, hydrodynamical balanced systems, controlled release, nuclear magnetic resonance, hydration, gastric retentive dosage forms, gastric emptying
+15107	8647	Primož	Potoènik	Experimental modeling, model predictive control, neural networoks, genetic algorithms
+15122	8654	Mateja	Germ	amphibian plants, water ecosystems, ecophysiology, biochemistry and morphology of plants, UV-B research (effects of UV-B radiation on plants)
+15125	8657	Andrej	Pristovnik	two phase flow, magnetic water treatment, meat transfer, district meating
+15126	8658	Barbara	Drinovec Drnovšek	Complex analysis,functions of several complex variables,analytic discs,Stein manifolds
+15127	8659	Jakob	Cimpriè	Associative algebra, real algebraic geometry,quadratic forms,semigroup theory
+15136	8662	Bor	Plestenjak	Numerical analysis, multiparameter eigenvalue problems, graph drawing
+15163	8676	Uroš	Stritih	Ventilation, air conditioning, cooling, heat transfer, solar energy
+15189	8688	Vlatko	Bosiljkov	Masonry, walls, units, mortars, modified
+15241	8709	Andreja	Rižner	Separation processes, phase equilibria, natural extracts, antioksidants, supercritical fluids.
+15269	8725	Bojan	Podgornik	Tribology, surface engineering, hard coatings, materials
+15284	8732	Stanislav	Gobec	Medicinal chemistry, drug design, analysis and syntehesis, peptydomimetics, phosphorous analogs of amino acids and peptides
+15312	8748	Nataša	Fidler Mis	dietetics, nutrition
+15322	8756	Vanja	Kokol	polymeric and fiberforming materials, nanomaterials, manufacturing, treatment, bioprocesses, characterization, use, interdisciplinary research
+15328	8759	Kristina	Sepèiæ	isolation, biologicaly active compounds, enzymology, enzyme inhibitors, acetylcholinesterase, pyridinium compounds, marine invertebrates
+15367	8776	Andreja	Ramšak	Phylogeny, microbial ecology, retroviruses, HIV, mussels, pollution, metallothioneims
+15413	8798	Dean	Korošak	solld state physics, semiconductor physics, physics of semiconductor devices
+15456	8820	Jasna	Dolenc Koce	Plants, physiology, anatomy, histological technics, microscopy, plant viruses
+15460	8822	Samo	Kreft	Phytochemistry, seocndary methabolites, analysis, medicinal plants, capillary eletrophoresis
+15477	8832	Mojca	Golja	inflammatory joint diseases, magnetic resonance imaging, disease modifying antirheumatic drugs
+15490	8837	Pegi	Ahlin Grabnar	Solid lipid nanoparticles, dtug carries, electron paramagnetics resonance, photon correlation spectroscopy
+15500	8845	Mejra	Festiæ	monetary economics, monetary systems and policy, banking, macroeconomics, economic policies
+15501	8846	Peter	Krajnc	macromolecular chemistry, polymer supports, combinatorial chemistry, porous polymers, biodegradable polymers
+15518	8849	Riste	Škrekovski	List colorings of graphs, light structures of planar graphs, median graphs and related graph structures, improper and generelized graph colorings.
+15525	8851	Primož	Rodiè	Physical and Mathematical modeling, measurements/monitoring, hydraulics
+15536	8854	Metoda	Lipnik Štangelj	Neurotransmitters, receptors, neurotrophic factors, astrocytes, CNS
+15571	8870	Blaž	Zmazek	Mathematics, graph theory
+15627	8909	Ariana	Barliè	tissue engineering, human cell cultures, chondrocytes, stem cells
+15631	8912	Jani	Beko	international economics, foreign trade, exports, imports and economic growth forgein trade policy, econometrics, price policy
+15641	8919	Marko	Braèko	Elementary paricles, standard model, electron-positron collisions, electro-weak interaction, weak bosons, quark pairs, forward-backward asymmetry, charged kaons, two-photon reactions
+15646	8924	Rok	Petkovšek	Liquid crystal displays, optics, electronics
+15657	8931	Maruša	Debeljak	differential allelic expression for the borine kappa-casein gene
+15666	8938	Marko	Kreft	Exocytosis, membrane capacitance, synaptotagmin, molecular biology, lipofection, GTP-binding proteins, pituitary, cells, patch-clamp, regulated secretion, membrane trafficking, ion channels, amperometry, confocal microscopy, microinjection
+15667	8939	Matjaž	Bunc	neurophysiology, pharmacology, toxinology, functional neural stimulation, cliniral research: neuro-muscular junction, isolated hearts and arteries, sea animal toxins, stimulation of autonomus nerve, adenosin and SVT
+15680	8951	Andrej	Godina	production and dimensional measurement length standards and kalibration, quality assurance, measurement methods and equipements, standardisation
+15682	8953	Tomaž	Vuherer	residual stress, weld joint, repair welded joint,hole drilling method, angular x-ray diffraction, vibration stress reliving, post weld heat treatment, hardness
+15683	8954	Gorazd	Fajdiga	mechanical elements, contact problems, tribology, lubrication, fracture mechanics, computational simulations
+15686	8956	Gregor	Anderluh	biochemistry, molcular biology, toxins, structure-function, membranes
+15696	8966	Tadej	Kosel	Acoustic emission, empirical modeling, wave propagation in solids, sensors PZT, data aqusition, signal processing, acoustic emission source location, blind source separation, independent component analysis
+15698	8967	Boštjan	Cerkvenik	Cooling, absorption, adsorption, thermodynamics
+15711	8978	Milan	Reljiè	gynecology, human reproduction, assisted reproduction, natural cycle, pelvic inflammatory disease, tubo-ovarian abscess, inflammatory parameters
+15747	9007	Andreja	Zagorac	medical genetics, cytogenetics, chromosome abnormalyties, chromosome structure, DNA, methylation, embriogenesis
+15751	9010	Radovan	Hojs	nephrology, atherosclerosis, ultrasound, lipids, dialisis
+15839	9076	Anamarija	Borštnik Braèiè	Liquid crystals, partial ordering, dispersions, colloidal dispersions, surfaces.
+15854	9089	Andrej	Bauer	Pure and applied logic, mathematical foundations of programming languages, constructive analysis and topology
+15858	9092	Zdenka	Mazej Grudnik	macrophyts, lake ecosystem, ecophysiology and biochemistry of plants, UV-B research (influence of UV-B on plants)
+15864	9097	Marjana	Glaser	hematology, bone marrow, coagulation, brain tumors, renal failure, paraneoplastic syndromes, myeloproliferative diseases
+15902	9116	Miroslav	Petrovec	viral hemorrhagic fevers, tick-transsmited microorganisms, ecology, epidemiology, infection, molecular epidemiology, genetic heterogencity, pathogenesis
+15990	9162	Boštjan	Drobniè	Energy heat, fuels, thermodynamics cycles, combustion, thermal power plants
+16012	9172	Katarina Senta	Wissiak Grm	biodegradation, photolysis, chemical education. knowledge assessment, visualisation of processes, multimedia
+16064	9205	Marjanca	Starèiè Erjavec	bacteria, horizontal transfer, resistances, virulenca, genetic mechanisms, antibiotics, membranes, transport, toxins, plasmids, biosynthesis, transformation, conjugation, evolution, Escherichia coli,regulation of gene expression
+16103	9237	Polona	Zalar	Microbial culture collection, fungal taxonomy, black yeasts, molecular biology, phylogeny, physiology
+16114	9242	Katja	Vouk	Polycystic kidney diseases, mutation, linkage analysis, molecular genetics, molecular biology, inherited diseases
+16118	9245	Janez	Brest	Parallel and distributed systems, computer architectures, heterogeneous computing, task scheduling
+16142	9262	Rado	Flajs	Structures, nonlinear mechanics, numerical methods
+16148	9265	Tomaž	Videniè	Nonlinear mechanics, mechanics of shape memory materials
+16170	9280	Matjaž	Šraml	transport technology, logistics, numerical analysis, contact mechanics, rolling contact, wear, fatigue
+16173	9282	Robert	Kunc	Mechanical Engineering, specialising in construction, large bearings, rotational, rolling connections, rolling contact, low
+16185	9290	Leo	Gusel	material forming, plasto-mechanics, forming tools, forming machines, stress determination
+16235	9317	Maja	Arnež	vector-transmitted diseases, infections of central nervous system, paediatric infectious diseases
+16239	9321	Dragica	Smrke	surgery, biomechanics, hip-join, hip endoprosthesis, biomedical engineering, artificial intelligence, machine learning, bone traction methods
+16304	9364	Vili	Podgorelec	Intelligent systems, evolutionary computation, software metrics
+16310	9369	Robert	Volèjak	Operations research, economic modelling, mathematical economics
+16324	9383	Janez	Demšar	Artificial inteligence, machine learning, data mining
+16327	9385	Matjaž	Peterka	CIM supports, protein separation,nucleic acids separation,RNA,DNA,proteins,microbiology,microbial ecology,microbial taxonomy and identification,bacterial genetics
+16334	9392	Jernej	Klemenc	Development, evaluation, reliability, availability, assurance, durability, prediction
+16338	9396	Tjaša	Štrukelj	enterpreneurship politics, strategic management, business planning and analysing, leading, small and midium enterprices, life cycle
+16340	9398	Uroš	Potoènik	molecular genetics, molecular oncology, hereditary diseases
+16352	9408	Boštjan	Jug	Solid state physics, thermoelectricity, superconuctivity, electronic refrigeration.
+16382	9435	Milan	Šernek	wood gluing, adhesives, wood composites, veneer, wooden panels
+16429	9470	Mitja	Kolar	Potentiometry, ion-selective electrodes, chemically treated metal surface, direct potentiometric analysis, potentimetric flow injection analysis.
+16430	9471	Igor	Kern	Water power
+16432	9473	Lucija	Hanžiè	Product model, road, materials, road life-cycle, ISO 10303
+17005	9482	Boštjan	Brešar	Graph, distance, isometric subgraph, median graphs, quasi-median graphs,
+17012	9489	Robert	Pišek	Fluidized bed technology, pellets, granules, agglomeration, coating, direct pelletization
+17041	9514	Klavdij	Logožar	logistics, business logistics, reverse logistics, transportation, material management, information systems, ecology, environment protection, materials handling
+17076	9541	Davorin	Kramar	Alternative technologies, laser technology, abrasive water jet cutting, plasma cutting, wire EDM, optimising technologies
+17100	9561	Kristoffer	Krnel	Inorganic chemistry, materiali science
+17151	9605	Viktor	Gorièan	
+17192	9639	Karin	Širec	theory of the firm, entrepreneurship, resource - based theory, economic of the firm, corporate finance
+17209	9650	Marko	Hrženjak	
+17424	9807	Franc	Kljun	
+17577	9928	Aleš	Doliška	
+17808	10093	Rok	Strašek	enclidron space, cones, symmetric cones, automorphusnus group, Lorentz cones, matrix cones, Lie algebras, Jordan algebras, Hurwitz algebras, evclidion algebras
+17837	10115	Gaj	Vidmar	Biomedical informatics, biostatics, information science, statistical methods, data analysis, visualisation, data mining, knowledge discovery, social science methodology, psychometrics
+17864	10137	Maša	Zorec	microbial cytology, microbial taxonomu, microbial hydrolases, microbial gastrointestinal ecology
+17868	10141	Majda	Hadolin Kolar	Separation processes, phase equilibria, natural extracts.
+17875	10146	Tamara	Miloševiè Berliè	genotyping of microsatellite loci, quantitative genetics, QTL mapping (mapping of quantitative traits), mycoplasma quallisepticum, DNA sequencing
+17876	10147	Milan	Zorman	Artificial intelligence, machine learning, decision trees, neural networks, hybrid approaches to machine learning
+18061	10300	Aleš	Živkoviè	Object technology, project management, JAVA, software development, distributed systems
+18112	10346	Boštjan	Pokorny	Forest, wildlife, ecology, bioindication, heavy metal, biodiversity, roe deer, ornithofarina
+18161	10389	Erik	Pavloviè	Heat and mass transfer, process engineering, numerical methods
+18162	10390	Boštjan	Bremec	Nonlinear mechanics, buckling, optimisation
+18168	10396	Mirjam	Sepesy Mauèec	Speech recognition, language modelling
+18201	10428	Nika	Debeljak	plant physiology, mycorrhiza, tissue culture, orchids
+18203	10430	Petra	Malovrh	biochemistry, molecular biology, toxins, structure, function
+18248	10466	Urška	Florjanèiè	Polymers, mechanics of time-dependent materials, mateial characterization, modeling of mechanical properties of polymers, composites and hybrid materials
+18278	10492	Borut Paul	Kerševan	Elementary particles, standard model, electron-position collisions, decay products, weak bosons, trilinear gange boson conplings
+18327	10536	Drago	Braèun	Laser ultrasonics, laser applications, non-contact detection, non-destructive testing, optodynamics
+18337	10545	Branko Matjaž	Juriè	computer and information science, information systems, object technology, distributed systems, component development, modeling, performance, quality assurance, software development process, Java, CORBA, COM, RMI
+18362	10566	Daniel	Velkavrh	
+18387	10579	Aleš	Mlinariè	Pharmaceutical biology, pharmacognosy, toxicology, secondary metabolites, fungi, enzyme inhibitors
+18388	10580	Vladimir	Kaiser	Organic synthesis, polymers, polymeric asymmetric porous membranes, wet-phase inversion membrane formation mechanisms, chemical modification of polymeric membranes surfaces, biomaterial separation by polymeric membranes.
+18433	10616	Mitja	Leniè	Principles, paradigms, design and implementation of programming languages, compilers, formal methods for programming description
+18460	10638	Matevž	Pogaènik	Software agents, internet, mobile telecommunication services.
+18467	10644	Maruša	Pompe Novak	plant physiology, biotechnology, biochemistry, pathology, tissue cultures, viruses, electron microscopy
+18504	10676	Petra	Žigert Pleteršek	mathematics, chemical graph theory
+18553	10713	Joško	Valentinèiè	Electrical discharge machining, EDM
+18580	10732	Andrej	Kitanovski	District energy systems, district cooling systems, absorption and compressor chillers, coolong systems
+18590	10739	Iztok	Kramberger	Electric circuit design, measurement of electric circuit
+18622	10767	Nataša	Debeljak	Molecular biology, gene technology, spermatogenesis, transcriptional regulation, steroid 14alpha-demethyiase, transgenic mice, conolitioal knock-out technology
+18628	10773	Hubert	Potoènik	animal ecology, ecosystems, environmental protection, wildlife, biogeography, conservation biology, taxonomy, ecological metodology
+18692	10816	Daniela	Zavec Pavliniæ	clothing engineering, materials, thread model, mechanics of textile materials, study of mechanical properties, model of woven fabric, ideal fabric, deformation model, objective evalvation, clothing simulation, modelling
+18698	10822	Boštjan	Polajžer	Modeling and control of electromechanical systems, modeling, control and design of active magnetic bearings, active magnetic bearings (AMB)
+18726	10847	Damjan	Strnad	Computer graphics, computer animation, geometric modeling, computer modeling and simulation, artificial inteligence, computer aided geometric design, virtual reality, multimedia, computational geometry
+18749	10867	Rok	Kostanjšek	microbiology of intestine, general zoology, electron and light microscopy
+18750	10868	Gregor	Dolinar	functional analysis, operator theory, stability problems
+18759	10875	Petra	Marinko	Thrombine inhibitors, synthesis, blood coagulation, medicinal chemistry, analysis of drugs
+18836	10943	Marko	Hoèevar	Fluid mechanics, turbomachinery, computer aided visualization
+18838	10945	Primož	Potoènik	Permutation groups, graphs, symmetry in graphs.
+18848	10952	Boštjan	Brumen	Data bases, data mining, data base modeling
+18866	10969	Alenka	Kavkler	mathemtical economics, exchange economy, Arrow-Debreu model, Riesz dual system, competetive
+18876	10979	Matej	Rojc	Speech dialogue systems, computational linguistic, text-to-speech synthesis
+18882	10984	Evgen	Urlep	
+18893	10994	Bojan	Kuzma	functional analysis, algebra, Banach algebras, socle, perturbations, spectrum, analytic multifunctions, Hilbert spaces, perturbed operators, eigenvalues, eigenvectors, norm, matrices
+18987	11070	Andreja	Sinkoviè	acute myocardial infarction, fibrinolysis
+19035	11110	Damjan	Nemec	Trickle-bed reactor, multyphase systems, hydrodynamics, mass transfer, methanol synthesis, mathematical modelling
+19048	11122	Marjan	Korošec	High speed cutting (modelling), design, injection moulding, sheet metal forming
+19093	11165	Matjaž	Milfelner	cybernetics, manufacturing technology, automation, flexible manufacturing, intelligent manufacturing
+19095	11167	Boštjan	Zafošnik	fracture mechanics, tribology, machine parts
+19106	11178	Miha	Humar	wood preservative, interactions of copper with wood destroying fungi, interactions of copper with wood, fixation of copper in wood
+19107	11179	Romana	Korez-Vide	International economics, economic relations with foreign countries, European integration processes, international dimension of Slovenian economic transition, Slovenian integration into European union
+19108	11180	Timotej	Jagriè	econometrics, economic theorm, business cycles, economic forecasting, business information systems, network economy
+19110	11182	Helena	Vrecl Kojc	civil engineering, geomechanics, geotechnical engineering, soil-structure interaction, geotechnical analysis, geomechanical investigations, laboratory tests
+19238	11304	Boris	Kržan	Technical diagnostics - ferrography, lubrication
+19271	11335	Darja	Peèar	Physical chemistry, chemical thermodynamics.
+19317	11377	Lucija	Peterlin Mašiè	Medicinal chemistry, instrumental pharmaceutical analysis, thrombne inhibitors, combinatorial chemistry, synthesis, blood coagulation
+19430	11474	Nataša	Stritih	ethology, neuroethology, neurophysiology, sensory physiology, communication, sound and vibratory communication, pest management, insect biology, biodiversity, bioacoustics
+19441	11484	Simon	Muhiè	Buildings, indoor environment, ventilation, confort/health, energy research, indoor air quality
+19448	11491	Žan Jan	Oplotnik	Economics, econometrics, international finance, capital flows, capital markets, economic policy, investments, balance of payments, privatization
+19485	11513	Tomaž	Accetto	molecular plylogeny and identification, microbial gastrointestinal ecology, microbial communities, microbial biotechnology
+19511	11538	Janko	Braèiè	Operator theory, Banach algebras, harmonic analysis, spectral synthesis, Banach modules
+19533	11557	Jurij	Planinšec	motor control, motor learning, motor behaviour, motor abilities, motor skills, motor development, kinesiology, didactics of sport, sport education, physical education, learning, cognitive psychology, physical education, learning, cognitive psychology, psychomotor abilities, elementary education,
+19550	11574	Daniel	Eremita	Algebra, ring theory
+19589	11613	Tadeja	Trošt Sedej	Plant ecology, plant physiology, ecosystem
+19600	11624	Marjan	Jerman	Commutative algebra, ordered algebraic structures, linear algebra.
+19613	11637	Lidija	Hauptman	accounting, accounting information, auditing, data basis
+19684	11697	Tomaž	Aljaž	Computer network management, TMN, design LAN and WAN networks, TCP/IP communications.
+19775	11781	Breda	Zakotnik-Vihar	pediatric infections diseases, vaccines, antibiotics
+19859	11855	Vitoslav	Bratuš	technology, forming, sheet steel, annealing, stamping
+19880	11875	Sabina	Fijan	textile fibres, surface properties, finishing, printing textile, auxilirays, dye stuff, analytical methods, rheology, ecology, colorimetric
+20029	11979	Simon	Šilih	Civil engineering, constructions, steel structures, composite structures, optimisation, structural optimisation
+20032	11982	Andrej	Žgank	Telecommunication, digital signal processing, spoken dialogue systems, automatic speech recognition, automatic speech synthesis
+20036	11986	Nataša	Iršiè Bedenik	Process synthesis, process optimization, reactor network synthesis
+20046	11996	Maja	Rotar	Fluid mechanics, Turbomachinen, computer modelling
+20047	11997	Jože	Kutin	Flow metrology, dynamics and modelling of measuring systems, fuil-structure interacitons, Coriolus mass flowmeter, vibrating tube dinsimeter
+20057	12007	Gregor	Edelbaher	Permanent-magnet synchronous machine, control, DSP
+20089	12038	Klavdija	Rižnar	Chemistry of environmental, ecology, waste
+20135	12053	Alenka	Erjavec Škerget	Biology, cytogenetic
+20137	12055	Milojka	Molan-Štiglic	Pediatric surgery, congenital hearth disease, breast feeding
+20166	12080	Marija	Anderluh	Psychiatry, aetiology of mental disorders, eating disorders,
+20180	12094	Imre	Cikajlo	Biomedical engineering, functional electrical stimulation, robotics, rehabilitation enfineering
+20189	12103	Marko	Tkalèiè	
+20199	12113	Matej	Šprogar	Intelligent systems, eolutionary computing, genetic algorithms and programming, classification systems
+20220	12134	Janez	Mulec	Horizontal transfer of plasmids, molecular clonning, polymerase chain reaction-PCR, bacterial identification
+20229	12143	Mihael	Brunèko	Directional solidification, composites, measurements
+20232	12146	Uroš	Župerl	Flexible manufacturing systems, avtomatization, intelligent manufactoring systems
+20234	12148	Ignacijo	Biluš	Experimental and numerical methods, process fluid mechanics, heat machinery and devices, measurements in mechanical engineering
+20235	12149	Primož	Ternik	Heat and mass transfer, numerical methods, process fluid mechanics, pipe systems
+20264	12177	Aleš	Novak	Bussines economics, accounting
+20272	12185	Maja	Fošner	Associative algebra, Jordan and Lie algebra, involution, Jorgan and Lie ideal, associate superalgebra, superinvolution, Jordan and Lie superideal
+20321	12212	Matej	Gomboši	Computational geometry, computer graphys, graphis algorithms, CAD/CAM systems, GIS systems, multimedia, virtual reality, computer programming
+20370	12259	Mojca	Kerec Kos	Biopharmacy, pharmaceutical technology, transport, interactions, microencapsulation, bioadhesion
+20374	12263	Mitja	Kos	Pharmacoepidemiology, social pharmacy, pharmacokinetics, bioequivalence of medical products, medicinal products regulation, pharmaceutical car, pharmaceutical informatics
+20387	12276	Igor	Vreèko	management, project management, strategies, organzations, informatics, informatics sistems
+20410	12299	Miša	Zgonec-Rožej	International law, EU law, international organizations, peaceful settlement of international disputes, law of the sea, international protection of human rights, diplomatic and consular law
+20452	12339	Miralem	Hadžiselimoviæ	Engineering sciences and technologies, electrical devices, electromagnetic transformers
+20653	12533	Uroš	Petroviè	Biochemistry, molecular biology, halophiles, black yeats, salt-stress, stress response
+20834	12706	Izidor	Golob	databases, datawarehousing, data marts, dimensional modeling, data mining, conceptual modeling
+20857	12729	Jurij	Prezelj	Pupms, fans, compressors, characteristics, noise analysis, noise reduction, noise measurement, noise location, noise identification, noise prediction
+20862	12734	Dušan	Gleich	Signal and image processing, decomposition of compound signals, aplications of wavelet transform and time frequency representations, compression of 2D signals, image coding, communication, ...
+20863	12735	Tomaž	Berlec	Production systems, production planning and control, work and control, work and time measurements
+21069	12925	Barbara	Cvenkel	eye, ocular surface, glaucoma, retina, genetic defects, neuromodulators, neurophysiology of the retina, cataract
+21100	12956	Stojan	Potrè	Surgery, abdomen, onkology
+21125	12981	Gregor	Žerovnik	3D modeling, Production management
+21237	13151	Tom	Bajcar	Fluid mechanics, turbomachinery, computer-aided visualization
+21238	13152	Matija	Jezeršek	Laser application, ultrasound, acoustics emission, optoacoustics, optodynamics, laser measurement methods
+21301	13215	Aleš	Holobar	digital signal processing, digital image processing, virtual reality, operating systems, computer system evaluation, system software
+21303	13217	Bojan	Kotnik	telecommunication, digital signal processing, spoken dialogue systems, automatic speech recognition, automatic speech synthesis
+21304	13218	Tomaž	Rotovnik	telecomunications, digital signal processing, spoken dialogue systems, automatic speech recognition, automatic speech synthesis
+21327	13245	Edvard	Cibula	optical sensors, white-light interferometers, pressure measurement, temperature measurement
+21333	13251	Igor	Lipušèek	economics of forest products marketing, environmental economics management
+21351	13268	Miha	Janežiè	development, evaluation, realibility, maintainability, supportability, availability
+21366	13285	Darja	Boršiè	Price level, tranzition, international economics, microeconomics, excange rates, optimal currency area, intra-idnustry international trade
+21375	13294	Mašenka	Mikuž	textile chemistry - textile printing, ink-jet printing, reactive dyes, celullose fibers, collection, quality parameters of printing, ecology
+21376	13295	Primož	Pogorevc	diesel engine, combustion process
+21377	13296	Filip	Kokalj	combustion proceses, incineration environmental technologies
+21379	13297	Tone	Lerher	transport devices, mikro-logistich, logistich of production and inventary
+21381	13299	Miha	Kovaèiè	manufactunng technology, systems, flexible manofacturing sistems, inteligent manufacturing systems
+21382	13300	Jožef	Predan	fracture mechanics, integrity of structure, heterogeneity of materials, elasto-plastic analysis, experimental methods, finite elemente method
+21437	13360	Tadej	Èepeljnik	animal nutrition, microbiology, anaerobic bacteria, Butyrivibro sp., probiotics, biochemistry, xylanases, conjugated linoleic acid
+21454	13377	Viktor	Zaletelj	distributed manufacturing systems, manufacturing systems, computer integrated manufacturing, plexible automation, quality systems
+21457	13380	Tatjana	Mateoviæ-Rojnik	Pharmacy, pharmaceutical technology, drug delivery systems, polymers, interactions, transport
+21460	13382	Mateja	Primožiè	High pressure technologies, bioingeneering, enzymes, dense gases, ester syntheses, hidrolysis, lipases, bioreactor
+10972	13429	Janez	Jazbec	
+15809	13558	Zala	Volèiè	Communication, media education, journalism, citizenship, media literacy, media and violence, civil society
+4917	13784	Zoran-Marij	Arnež	
+6171	13827	Adolf	Lukanoviè	
+8197	13879	Igor-mihael	Ravnik	
+21458	14030	Katja	Štrancar	Pharmaceutical chemistry
+21524	14032	Leon	Gosar	Hydaulics, fluid mechanics, informatics
+21537	14041	Matjaž	Divjak	Digital signal processing, digital image processing, virtual reality, operating systems, computer systems evaluation, system software
+21550	14054	Anita	Prapotnik Brdnik	Standard model at electoweak and strong interaction, D meson mixing, measurements, radioactive correction
+14823	14102	Zdenka	Ženko	business philosophy, education, international comparison, labor. relations, management models, management style, organizational behavior, organizational culture, organizational management innovations, industrial property rights
+21589	14110	Simona	Sternad	Business informatics, management information, system information, system information system management, business process reenginering, banking information system
+21593	14114	Stanislav	Lenart	Building structures, seismic resistance, experimental and analytical research, mathematical modelling, existing buildings, seismic rehabilitation, earthquake disaster mitigation
+21605	14131	Marjan	Skalicky	Internal medicine, endoscopic ultrasound, pancreatobiliary diseases
+21658	14186	Alen	Orbaniæ	Graphs, algorithms, chemical graph, embeddings, topological graph theory
+21214	14340	Albin	Sirc	Motors, components, mechatronic
+21689	14368	Petra	Kotnik	Technical chemistry, separation processes, high pressure technologies, extraction, aerogels, phase equilubrium
+21690	14369	Amra	Perva-Uzunaliæ	Technical chemistry, separation processes, high pressure technologies, extraction, micronisation, phase equilubrium
+7004	14430	Darinka	Fakin	Tekstile fibres, technical fibres, structure of fibres, tekstile industry, finishing of fibres, finishing of yarn, finishing of fabric, testing methods, whitenes degree of fibres, dyeing of tekstiles fibres
+21758	14445	Ratko	Zelenika	Forwarding agent, technology transport, economics transport, logistics, insurance
+5373	14479	Ivan	Eržen	Chronic diseases, risk factors prevalence, adults, health status
+21797	14499	Matjaž	Šubelj	Engineering design, computer aided design, project manager
+21806	14507	Matej	Podbregar	Heart failure, pulmonary embolism, septic shock, intensive care
+21816	14516	Vladimir	Grubelnik	Dynamic modelling, dynamic systems, oscillation, intracellular oscillations
+21818	14518	Ksenija	Jaušovec	
+19753	14584	Lidija	Fras Zemljiè	Textile fibers, textile chemistry, determination of carboxyl groups in fibers, dissociation capaty, PK volue, ionization groups on fiber, adsorption characte of fibers, titration methods, cellulose, PA surface characteristics of fibers
+12752	14611	Boštjan	Podobnik	Lasers and laser systems, new materials for electronics
+21919	14644	Aleksander	Kidriè	Blade, carbon, piezo crystal, dynamics, aerodynamics, strength, mathematics, physics
+21960	14696	Tomaž	Buèar	Development, evaluation, reliability, maintainability, supportability, availability, assurance, durability, prediction
+21984	14720	Nermina	Leber	Crosslinked polymer supports, combinatorial chemistry, emulsion polymerisation, chemical functionalisation of polymers
+21987	14723	Boštjan	Èerne	Ventilation, air conditioning, cooling, heat transfer
+21999	14735	Damjan	Hodžar	Scientific and technological informatics, relational information systems, specialised databases, chemistry, natural products, microencapsulation
+4968	14817	Varužan	Kevorkijan	
+15649	14850	Griša	Moènik	
+18330	14854	Janko	Kersnik	Family medicine, education, public health, quality control
+22213	15021	Dunja	Šajn Gorjanc	Apparel technology, sewing threads, seam puckering, interlinings
+22240	15074	Radovan	Dražumeriè	nonlinear mechanics, bukcling, mechanics of materials, mechanics of shape memory materials
+22241	15075	Lovrenc	Novak	Power plants, steam boiler, gas and steam turbines, industrial engineering savings, cogeneration
+22276	15186	Vlado	Schweiger	Turbines, pumps, CFD
+22407	15418	Alenka	Ojstršek	Dyeing, dyes, ecology
+22419	15430	Suzana	Jus	Dyeing, dies, biological degradation
+22421	15432	Bojan	Vohar	Mechanical design, numerical simulations, finite element analysis, fracture mechanics
+22423	15434	Matejka	Turel	Optical sensors, sol-gel technology, pH, heavy metals, life time
+22430	15441	Silvo	Dajèman	Price mechanisms, economic transtition, banking, financial derivatives
+22433	15444	Uroš	Klanšek	Civil Engineering, mechanics, structures, steel structures, structural analysis, structural synthesis, optimisation, nonlinear programming (NLP), mixed-integrer nonlinear programming (MINLP)
+22437	15448	Aleš	Poliè	Robotics, automatization, mechatronics, microcontrollers, real time systems, DSP
+22439	15449	Petra	Povalej Bržan	Inteligent systems, information systems, software quality, medical informatics
+22440	15450	Mirko	Zadravec	Algorithms, computational geometry, computer graphics, geographic information systems, geometric modelling, multimedia, virtual reality, construction of home pages, CAD/CAM systems
+22455	15465	Gregor	Bobovnik	Mterology, calibration, measurement of temperature, pressure and flow, development of measuring equipment
+22498	15510	Boštjan	Veber	Development, evaluation, reliability, maintaniability, supportability, availability, assusance, durability, prediction
+22594	15609	Maja	Škrinjar	Higr pressure technologies
+22609	15633	Jožica	Grièar	Wood,wood biology,wood anatomy
+22660	15688	Andreja	Kranjc	Pharmaceutical chemistry, medicinal chemistry, peptidomimetics, anzyme inhibitors, chemical synthesis, spectroscopic methods for structure elucidation, stereoselective synthesis
+22672	15705	Sabina	Zebec	Forwarding agent, technology transport, economics transport, logistics
+23000	16108	Helena	Poliènik	Monitoring, biondication, lichens, lichen mapping
+23005	16115	Ajda	Fošner	Functional analysis, algebra
+23009	16119	Aleš	Gorkiè	laser application, ultrasound, acostic emission, optoacoustics, optodynamics, laser measurement methods
+23010	16120	Janko	Slaviè	Mechanicas, dynamics, dynamics of machines and structures, vibrations, nonlinear oscilations, rotor dynamics, machinery noise, higher-order spectra, experimental identification of nonlinearities
+23119	16238	Peter	Kitak	Electromagnetics, electrical devices, electromagnetic and electromechanic converters, numerical methods, finite element and boundary element method, isolation materials and systems
+23190	16297	Benjamin	Dvoršak	Atheroslerosis, arterial hypertension, terminal renal failure
+23191	16298	Robert	Ekart	Atherosclerosis, hypertension,
+23201	16310	Iztok	Baniè	Continuum, inverse sistems and inverse limits
+23288	16413	Janez	Rihtaršiè	Engineering design, computer aided design, product data management
+23340	16481	Janko	Marovt	Complex analysis, functional analysis, selfadjont operators, hilbert's spale effect algebra
+23369	16527	Mitja	Mori	Energy, heat, thermodynamic cycles, thermal power plants, fuels, combustion
+23371	16531	Darko	Hercog	Permanent-magnet synchronous machine, contro, DSP
+23372	16532	Dušan	Heric	Operating systems, object oriented databases, cryptography, distributed systems
+23394	16556	Sašo	Greiner	Computer archictures, programming languages, compilers, parallel processing
+23454	16616	Tomaž	Kosar	Programing languages, domain-specific languages
+23456	16618	Anton	Habjaniè	Theory of the electrotechnics, electromagnetic and electromehanic
+23459	16621	Andrej	Stermecki	Solcing the problems in electromagnetic field using numerical mthods, rotating machines, electromechanic converters
+23461	16623	Simona	Vajnhandl	Organic chemistry, colour, textile, water pollution purification
+23463	16625	Matej	Vesenjak	Structures, design, drive technique, driving gears, gears wheels
+23468	16631	Tomaž	Katrašnik	Internal comustion engines, piston heat engines
+23469	16632	Henri	Orbaniæ	Process identification, modelling, simulation, engineering metrology
+23470	16633	Peter	Krajnik	Design of technologies and products, Manufacturing technologies, Abrasive technologies, Grinding, Sustainable manufacturing
+23471	16634	Matevž	Dular	Fluid mechanics, turbomachinery, compter aided visualization
+23475	16638	Damjan	Krajnc	Modelling, simulation, optimization, energy use minimization
+23479	16642	Maša	Hojnik	High pressure technologies, isolation of natural active ingredients
+23496	16659	Katja	Šnuderl	Physical chemistry, instrumental analysis
+16013	16696	Ciril	Petr	Combinatorics, graph theory, algorithms, coding therory, telecommunications
+23629	16817	Damjan	Hann	
+23778	16981	Tomaž	Kek	
+23834	17044	Boris	Vidrih	
+23838	17050	Darinka	Verdonik	
+23975	17210	Irena	Stanonik	
+24021	17255	Irena	Petriniæ	
+24115	17357	Joško	Raènik	
+15099	17479	Darko	Èerne	
+24224	17480	Tomaž	Pliberšek	
+24243	17503	Alen	Šarlah	
+24244	17504	Robert	Rozman	
+24245	17505	Uroš	Rosa	
+24247	17507	Damjan	Èeliè	
+24248	17508	Tine	Ogorevc	
+24256	17516	Miroslav	Babiæ	
+24296	17558	Darja	Kušar	
+24318	17580	Mojca	Debeljak	
+24331	17593	Jure	Ravnik	
+24333	17595	Boštjan	Križanec	
+24334	17596	Tea	Indest	
+24335	17597	Boštjan	Vaupotiè	
+24347	17611	Janja	Kramer Stajnko	
+24370	17634	Igor	Perko	
+24380	17644	Blaž	Kmetec	
+24384	17648	Dejan	Štefanec	
+24385	17649	Saša	Šabeder	
+24386	17650	Suzana	Štandeker	
+24387	17651	Maša	Islamèeviæ Razboršek	
+24404	17668	Matej	Mertik	
+24408	17672	Rok	Klobuèar	
+24409	17673	Dušan	Prelog	
+24411	17675	Gregor	Štiglic	
+24414	17678	Dejan	Kos	
+24419	17684	Boštjan	Juriševiè	
+24457	17720	Miha	Otrin	
+24473	17775	Andrej	Olenšek	
+24557	17836	Gregor	Zupan	
+24560	17839	Miha	Brojan	
+14429	17913	Roman	Glaser	
+24749	18059	Franc	Majdiè	
+10047	18088	Franc	Ravnik	
+24909	18248	Rebeka	Fijan	
+24994	18340	Bernardka	Juriè	
+25427	18804	Mitja	Truntiè	
+25429	18806	Marko	Kežmah	
+25450	18827	Nikola	Vukašinoviæ	
+25460	18836	Jure	Smrekar	
+25461	18837	Andrej	Pukšiè	
+25462	18838	Marko	Thaler	
+25463	18839	Tomaž	Požar	
+25464	18840	Aleš	Petek	
+25465	18841	Valter	Gruden	
+25467	18843	Tine	Gantar	
+25591	18976	Vojko	Pogaèar	
+25605	18992	Primož	Šlibar	
+25606	18993	Brigita	Tepuš	
+25658	19040	Marcel	Ropotar	
+25661	19042	Marko	Tramšek	
+25662	19043	Rebeka	Kovaèiè Lukman	
+25664	19045	Danijela	Doberšek	
+25704	19085	Jani	Kleindienst	
+25759	19114	Darja	Jaušovec	
+25786	19122	Dunja	Terèiè	
+25790	19126	Mojca	Božiè	
+25798	19167	Gregor	Èepon	
+25799	19168	Matej	Borovinšek	
+25977	19377	Matej	Balažic	
+25992	19392	Tomaž	Skrbinšek	
+26030	19435	Borut	Milfelner	
+26038	19443	Oki	Blatnik	
+26074	19494	Boštjana	Žajdela	
+26076	19496	Peter	Virtiè	
+26082	19511	Marko	Rudolf	
+23982	19552	Borko	Boškoviæ	
+26144	19590	Lidija	Rihar	
+26177	19655	Jure	Petkovšek	
+26217	19705	Miloš	Bogataj	
+26237	19725	Marko	Sedlaèek	
+26257	19752	Tomaž	Graèner	
+26284	19801	Nataša	Soviè	
+26291	19808	Boštjan	Grabner	
+26308	19827	Andrej	Bièek	
+26322	19846	Lucija	Majheniè	
+15356	19852	Igor	Medica	
+26345	19884	David	Eržen	
+26417	19976	Suzana	Arnuš	
+26474	20044	Mitja	Babiè	
+26554	20124	Jure	Bezgovšek	
+26556	20126	Zoran	Bergant	
+26558	20128	Andrej	Žerovnik	
+26559	20129	Franci	Pušavec	
+26560	20130	Blaž	Suhaè	
+26561	20131	Simon	Oman	
+27525	20174	Matjaž	Dolinar	
+27557	20206	Rok	Potoènik	
+27558	20207	Silvo	Hribernik	
+27560	20210	Špela	Korent Urek	
+27562	20212	Matjaž	Linec	
+27586	20236	Jerneja	Jeraj	
+27630	20290	Uroš	Zupanc	
+27637	20299	Mitja	Muhiè	
+27638	20300	Boštjan	Perdan	
+27659	20328	Anže	Jeriè	
+27660	20329	Tadej	Perhavec	
+27661	20330	Matjaž	Eberlinc	
+27669	20338	Gregor	Aliè	
+27776	20477	Roman	Nedela	
+27785	20486	Ana	Petroviæ	
+27814	20520	Borut	Vojinoviæ	
+27817	20523	Jernej	Belak	
+27826	20532	Mihaela	Jurdana	
+28127	20916	Rok	Tomaževiè	
+28211	21022	Nataša	Kos	
+28312	21140	Boris	Marzi	
+28327	21155	Nadja	Romih	
+28421	21265	Jakob	Oblak	
+28422	21266	Zlatko	Nedelko	
+28480	21324	Ita	Junkar	
+28493	21337	David	Bombaè	engineerial materials, materials forming, physical simulations, numerical simulations, atomistic simulations, materials processing technology, forming properties of materials, biomaterials
+28570	21421	Vladimir	Senekoviè	
+28574	21425	Matija	Krkoviè	
+28591	21442	Miran	Bezjak	
+28609	21460	Matej	Pleterski	
+28610	21461	Mitja	Mazej	
+28611	21462	Aljaž	Osterman	
+28612	21463	Jan	Èernetiè	
+28613	21464	Igor	Velkavrh	
+28648	21502	Marko	Vrh	
+28653	21507	Primož	Kržiè	
+28676	21532	Uroš	Leskovšek	
+28677	21533	Vita	Jagriè	
+8609	26769	MARICA	TONKOVIÈ-PRIJANOVIÈ	
+9236	27166	Janez	Prinèiè	
+10447	28002	ANDREJA	KRIŽMAN	
+10660	28116	Andreja	Kresal	
+11660	28665	Aleksandr	Draniškov	
+11716	28693	Neil	Robertson	
+11717	28694	Thomas	Tucker	
+11960	28812	Luzius	Grunenfelder	
+12205	28926	Syvert paul	Norsett	
+13182	29474	Francelj	Trdiè	
+13317	29552	Pavel	Semenov	
+13840	29803	Ivo	Soljaèiè	
+14026	29894	Jure	Skvarè	
+14122	29940	Franc	Cimerman	
+14678	30273	Borut	Eržen	
+14913	30387	Bojan	Imperl	Automatic speech recognition, acoustic modelling, statistical
+15077	30478	Volker	Ribitsch	
+15530	30648	Sergej m.	Ageev	
+15881	30718	Uroš	Grilc	philosophy, structuralism, genesis, identity, language, linguistics
+28949	31506	Matjaž	Kljuèevšek	
+28956	31513	Matej	Mejaè	
+29044	31611	Jure	Èas	
+29190	31773	Gašper	Rak	
+29193	31776	Matjaž	Knez	
+29224	31810	Peter	Gregorèiè	
+29454	32060	Bojan	Rosi	Logistic, Technologcy, Sitems Theory, Tariff Systems, Maintenance, Work Organizing, Traffic Systrems, Traffic organizing, Vehicles, Railway, Infrastructure, Laws and Regulations
+29567	32180	Marko	Samec	
+29582	32195	Ida	Jelenko	
+29619	32232	Andrej	Svete	
+29623	32236	Jurij	Žumer	
+29624	32237	Jaka	Tušek	
+29704	32324	Daniel	Zdolšek	
+29769	32395	Tomaž	Jagriè	
+29799	32426	Ljerka	Ožbolt	
+29811	32438	Vera	Vivod	
+29923	32558	Gašper	Benedik	
+30109	32754	Ganna	Kudryavtseva	
+30908	33602	Jani	Kenda	
+30913	33607	Žiga	Zadnik	
+30914	33608	Rok	Vrabiè	
+31054	33755	Iztok	Fister	
+31244	33957	Sebastijan	Repina	
+31322	34044	Marko	Šimic	
+31601	34340	Irena	Pulko	polymer supports, macromolecular chemistry, organic reactions
+32073	34846	Martin	Èesnik	
+32938	35782	Peter	Ruliæ	
+33442	36321	Anita	Maèek	
+33473	36353	Janez	Urevc	
+33630	36534	Attila	Szolnoki	
+34728	39473	Nataša	Pržulj	
+34767	39536	Nataša	Puziæ	
