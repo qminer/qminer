@@ -637,11 +637,17 @@ public:
   TStr RightOf(const char& SplitCh) const;
   TStr RightOfLast(const char& SplitCh) const;
 
+  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the contents on the right of RightOfChN
+  /// into RStr (exclusive)
+  void SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const;
   /// Split on the index, return Pair of Left/Right strings, omits the target index
   void SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const;
   /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
   /// if the character is not found the whole string is returned as the left side
   void SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
+  /// Splits on the first occurrence of the target string
+  /// if the target string is not found the whole string is returned as the left side
+  void SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const;
   /// Split on last occurrence of SplitCh, return Pair of Left/Right strings
   /// if the character is not found the whole string is returned as the right side
   void SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
