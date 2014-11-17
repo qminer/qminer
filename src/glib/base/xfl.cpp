@@ -202,7 +202,7 @@ bool TFFile::Next(TStr& FNm){
 
         if (S_ISREG(Stat.st_mode)) {
           if ((FBase!=".")&&(FBase!="..")){
-            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt.ToUc(); FBase.ToUc();}
+            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt = FExt.GetUc(); FBase = FBase.GetUc();}
             if (((FExtV.Empty())||(FExtV.SearchForw(FExt)!=-1))&&
              ((FBaseWc.Empty())||(FBase.IsWcMatch(FBaseWc)))){
               CurFNm=FNm; CurFNmN++; return true;}
