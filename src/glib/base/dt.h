@@ -503,23 +503,28 @@ public:
   TStr(const TChA& ChA);
   /// TMem constructor
   TStr(const TMem& Mem);
+  /// TSStr constructor
+  TStr(const TSStr& SStr);
   /// Stream (file) reading constructor
   explicit TStr(const PSIn& SIn);
   
   /// We only delete when not empty
-  ~TStr(){ if (Inner != NULL) delete[] Inner; }
+  ~TStr() { Clr(); }
 
-  /// Deserialize TStr from stream, when IsSmall, the string is save as CStr,
-  /// otherwise format is first the length and then the data without last \0
+  /*
+  * Save & Load From File
+  */
+  /// Deserialize TStr from stream, when IsSmall, the string is saved as CStr,
+  /// otherwise the format is first the length and then the data without last \0
   explicit TStr(TSIn& SIn, const bool& IsSmall = false);
   // Left for compatibility reasons, best if we can remove it at some point
   void Load(TSIn& SIn, const bool& IsSmall = false);
-  /// Serialize TStr to stream, when IsSmall, the string is save as CStr,
-  /// otherwise format is first the length and then the data without last \0
-  void Save(TSOut& SOut, const bool& IsSmall = false) const;
-
-  // Save & Load From XML File
+  /// Serialize TStr to stream, when IsSmall, the string is saved as CStr,
+  /// otherwise the format is first the length and then the data without last \0
+  void Save(TSOut& SOut, const bool& IsSmall = false) const;  
+   /// Deserialize from XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
+  /// Serialize to XML File
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   /// Assigment operator TStr = TStr
@@ -531,16 +536,22 @@ public:
   /// Assigment operator TStr = char
   TStr& operator=(const char& Ch);
 
-  // += operators disabled (Immutable)
+  /*
+   * Concatenation Assignment Operator +=
+   */
+  /// Concatenates and assigns
+  TStr operator+=(const TStr& Str) const { return *this + Str; } ;
+  /// Concatenates and assigns
+  TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
-  /// Boolean comparison TStr == TStr
-  bool operator==(const TStr& Str) const;
   /// Boolean comparison TStr == char*
-  bool operator==(const char* _CStr) const;
-  /// Boolean comparison TStr != TStr
-  bool operator!=(const TStr& Str) const;
-  /// Boolean comparison TStr != C-String
-  bool operator!=(const char* _CStr) const;
+  bool operator==(const char* CStr) const;
+  /// Boolean comparison TStr == TStr
+  bool operator==(const TStr& Str) const { return operator==(Str.CStr()); }
+  // TStr != TStr
+  bool operator!=(const TStr& Str) const { return !operator==(Str); }
+  // TStr != C-String
+  bool operator!=(const char* CStr) const { return !operator==(CStr); }
   /// < (is less than comparison) TStr < TStr
   bool operator<(const TStr& Str) const;
   /// Indexing operator, returns character at position ChN
@@ -563,27 +574,29 @@ public:
   /*
    * Case related methods
    */
-  // Is upper-case?
+  /// Is upper-case?
   bool IsUc() const;
-  // Returns a new string converted to uppercase
+  /// Returns a new string converted to uppercase
   TStr GetUc() const;
-  // Case insensitive comparison
-  int CmpI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr());}
-  // Case insensitive equality
-  bool EqI(const TStr& Str) const {return TRStr::CmpI(CStr(), Str.CStr())==0;}
-  // Is lower-case?
+  /// Case insensitive comparison
+  static int CmpI(const char* p, const char* r);
+  /// Case insensitive comparison
+  int CmpI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()); }
+  /// Case insensitive equality
+  bool EqI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()) == 0; }
+  /// Is lower-case?
   bool IsLc() const;
-  // Returns new string converted to lowercase
+  /// Returns new string converted to lowercase
   TStr GetLc() const;
-  // Capitalize
+  /// Capitalize
   TStr GetCap() const;
 
-  // truncate
+  /// Truncate
   TStr GetTrunc() const;
 
-  // get hex
+  /// Get hex
   TStr GetHex() const;
-  // create from hex string
+  /// create from hex string
   TStr GetFromHex() const;
 
   /*
@@ -601,7 +614,7 @@ public:
   TStr DelSubStr(const int& BChN, const int& EChN) const;
   // Return a new string with the first occurrences of substring Str removed
   TStr DelStr(const TStr& Str) const;
-  // Return a new string with the all occurrences of substring Str removed
+  // Return a new string with the all occurrences of substring Str removed (single pass)
   TStr DelStrAll(const TStr& Str) const;
 
   /*
@@ -612,23 +625,29 @@ public:
   TStr RightOf(const char& SplitCh) const;
   TStr RightOfLast(const char& SplitCh) const;
 
+  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the contents on the right of RightOfChN
+  /// into RStr (exclusive)
+  void SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const;
   /// Split on the index, return Pair of Left/Right strings, omits the target index
-  TStrPr SplitOnChN(const int& ChN) const;
+  void SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const;
   /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
   /// if the character is not found the whole string is returned as the left side
-  TStrPr SplitOnCh(const char& SplitCh) const;
+  void SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
+  /// Splits on the first occurrence of the target string
+  /// if the target string is not found the whole string is returned as the left side
+  void SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const;
   /// Split on last occurrence of SplitCh, return Pair of Left/Right strings
   /// if the character is not found the whole string is returned as the right side
-  TStrPr SplitOnLastCh(const char& SplitCh) const;
+  void SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
   /// Split on all occurrences of SplitCh, write to StrV, optionally don't create empy strings (default true)
   void SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty=true) const;
-  // Split on all occurrences of any char in SplitChStr, optionally don't create empy strings (default true)
+  /// Split on all occurrences of any char in SplitChStr, optionally don't create empy strings (default true)
   void SplitOnAllAnyCh(const TStr& SplitChStr, TStrV& StrV, const bool& SkipEmpty=true) const;
-  // Split on the occurrences of any string in StrV
+  /// Split on the occurrences of any string in StrV
   void SplitOnWs(TStrV& StrV) const;
-  // Split on the occurrences of any non alphanumeric character
+  /// Split on the occurrences of any non alphanumeric character
   void SplitOnNonAlNum(TStrV& StrV) const;
-  // Split on all the occurrences of SplitStr
+  /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 
 
@@ -683,9 +702,9 @@ public:
   // Return a string with all occurrences of SrcCh character replaced with DstCh
   TStr ChangeChAll(const char& SrcCh, const char& DstCh) const;
   // Return a string with first occurrence of ScrStr string replaced with DstStr string.
-  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN=0) const;
-  // Return a string with all occurrences of ScrStr string replaced with DstStr string - @TODO not sure what FromStartP is - remove?
-  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP = false) const ;
+  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
+  // Return a string with all occurrences of ScrStr string replaced with DstStr string
+  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const;
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
@@ -816,14 +835,6 @@ public:
   void SaveTxt(const TStr& FNm) const {
     PSOut SOut=TFOut::New(FNm); SaveTxt(SOut);}
 
-  /*
-   * Static methods for characters
-   */
-
-  // Return const  this... @TODO remove unless there's a reason for it
-  //TStr GetStr() const {return *this;}
-  static TStr& GetChStr(const char& Ch);
-  static TStr& GetDChStr(const char& Ch1, const char& Ch2);
 
   /*
    * Static methods for FmtStr
@@ -836,13 +847,6 @@ public:
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
   static TStr Fmt(const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
-
-
-  /*
-   * Static methods: clone and NullStr
-   */
-  // Create a clone of a String
-  static TStr MkClone(const TStr& Str){return TStr(Str.CStr());}
 
   /*
    * Concatenation operator +
@@ -858,27 +862,26 @@ public:
    */
 private:
   // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
-  TStr(char *Ch, const bool Own) {
-	  if(!Own) { TStr(Ch); } // guard against misuse
-	  Inner = Ch; // straight up pointer assignment
-  }
+  TStr(char *Ch, const bool Own);
+
+  void Clr() { if (Inner != NULL) { delete[] Inner; Inner = NULL; } }
 };
 
 /////////////////////////////////////////////////
 // Input-String
 class TStrIn: public TSIn{
 private:
-  bool OwnP; 
-  char* Bf;
+  const bool OwnP;
+  const char* Bf;
   int BfC, BfL;
 private:
   TStrIn();
   TStrIn(const TStrIn&);
   TStrIn& operator = (const TStrIn&);
 public:
-  TStrIn(const TStr& Str, const bool& _OwnP = true);
-  static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
-  ~TStrIn(){}
+  TStrIn(const TStr& Str, const bool& _OwnP = false);
+  static PSIn New(const TStr& Str, const bool& OwnP = false){return PSIn(new TStrIn(Str, OwnP));}
+  ~TStrIn(){ if (!OwnP) { delete[] Bf; }}
 
   bool Eof(){return BfC==BfL;}
   int Len() const {return BfL-BfC;}

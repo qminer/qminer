@@ -3200,7 +3200,7 @@ PRecSet TQuery::GetLimit(const PRecSet& RecSet) {
 bool TQuery::IsOk(const TWPt<TBase>& Base, TStr& MsgStr) const {
 	try {
 		QueryItem.GetStoreId(Base);
-		MsgStr.Clr(); return true;
+		MsgStr = TStr(); return true;
 	} catch (PExcept Except) {
 		MsgStr = Except->GetMsgStr();
 		return false;
