@@ -123,7 +123,7 @@ bool TFFile::Next(TStr& FNm){
         // return file-name if fits
         if ((FBase!=".")&&(FBase!="..")){
           FNm=FPathV[FPathN]+FBase;
-          TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt.ToUc(); FBase.ToUc();}
+          TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt = FExt.GetUc(); FBase = FBase.GetUc();}
           if (((FExtV.Empty())||(FExtV.SearchForw(FExt)!=-1))&&
            ((FBaseWc.Empty())||(FBase.IsWcMatch(FBaseWc)))){
             CurFNm=FNm; CurFNmN++; return true;}
@@ -155,7 +155,7 @@ bool TFFile::Next(TStr& FNm){
           TStr FBase=FFileDesc->GetFBase();
           if ((FBase!=".")&&(FBase!="..")){
             FNm=FPathV[FPathN]+FBase;
-            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt.ToUc(); FBase.ToUc();}
+            TStr FExt=FNm.GetFExt(); if (!CsImpP){FExt = FExt.GetUc(); FBase = FBase.GetUc();}
             if (((FExtV.Empty())||(FExtV.SearchForw(FExt)!=-1))&&
              ((FBaseWc.Empty())||(FBase.IsWcMatch(FBaseWc)))){
               CurFNm=FNm; CurFNmN++; return true;
