@@ -337,8 +337,9 @@ void TUrl::ToLcPath(){
     UrlStr=UrlChA;
     // recompose final-url
     if (IsDefFinalUrl()){
-		FinalUrlStr = TStr(); DefFinalUrl(FinalHostNm);
-	}
+      FinalUrlStr = TStr();
+      DefFinalUrl(FinalHostNm);
+    }
   }
 }
 
