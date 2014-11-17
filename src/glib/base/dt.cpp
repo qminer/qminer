@@ -1382,12 +1382,11 @@ TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
 	}
 }
 
-TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
+TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) const {
 	if (Inner == NULL || SrcStr.Empty()) { return *this; }
 
 	int ChN = SearchStr(SrcStr, BChN);
-	if (ChN == -1){
-		BChN = ChN;
+	if (ChN == -1){		
 		return *this;
 	}
 	else {
@@ -1402,8 +1401,7 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 		if (OldLen > 0) {
 			strncpy(Res + ChN, DstStr.CStr(), DstLen);
 		}
-		Res[Len] = 0;
-		BChN = ChN;
+		Res[Len] = 0;		
 		return TStr(Res, true);
 	}
 }
