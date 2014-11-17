@@ -183,13 +183,54 @@ function dir(obj, printVals, depth, width, prefix, showProto) {
 }
 
 //#- `printj(obj)` -- prints json (converts obj to json using toJSON if necessary)
-function printj(obj) {
+//#- `printj(obj, prettyPrint)` -- prints json (converts obj to json using toJSON if necessary). Default `prettyPrint` is set to true. Set `prettyPrint` to false for normal print.
+function printj(obj, prettyPrint) {
+    var pp = (prettyPrint == null) ? 1 : prettyPrint;
     try {
-        console.println(JSON.stringify(obj));
+        var jsonData = pp ? JSON.stringify(obj, undefined, 2) : JSON.stringify(obj);
+        console.println(jsonData);
     } catch (exception) {
-        console.println(JSON.stringify(obj.toJSON()))
+        console.println(JSON.stringify(obj.toJSON()));
     }
 }
+
+//#- `toJSON(rec)` -- converts `rec` to `JSON`.
+//#- `toJSON(rs)` -- converts `rs to `JSON`.
+//#- `toJSON(rec, depth)` -- converts `rec` to `JSON`. Second parameter `depth`, defines the number of nested objects, to be included in the json output. Default is 0.
+//#- `toJSON(rs, depth)` -- converts `rs` to `JSON`. Second parameter `depth`, defines the number of nested objects, to be included in the json output. Default is 0.
+function toJSON (obj, depth) {
+    // if input obj is record 
+    if (typeof obj.map === "undefined") {        
+        var rec = obj;
+        // main function that parses rec to JSON
+        depth = (depth == null) ? 0 : depth;
+        if (depth === 0) {
+            return rec.toJSON();
+        } else {
+            var newRec = rec.toJSON();
+            // find all store joins from this rec
+            rec.$store.joins.forEach(function (join) {
+                if (rec[join.name] != null) {
+                    newRec[join.name] = [];
+                    rec[join.name].each(function (inner, i) {
+                        // find and append joined records in their original store
+                        newRec[join.name][i] = toJSON(inner, depth - 1);
+                    });
+                }
+            });
+            return newRec;
+        }
+    }
+    // if input obj is record set
+    else {
+        var newRs = obj.toJSON();
+        newRs.records = obj.map(function (rec) {
+            return toJSON(rec, depth);
+        });
+        return newRs;
+    }
+};
+
 
 ///////////////////////////////////////// DEPRECATED
 qm.addStreamAggr = function (param) {

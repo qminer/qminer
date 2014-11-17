@@ -96,6 +96,61 @@ exports.highchartsConverter = function (fieldsJson, dataJson) {
     return result;
 }
 
+//exports.highchartsConverterPro = function (converterParams, dataJson) {   
+//    // Predefine result structure. Fields has to be dfined in converterParams.fields
+//    var result = [];
+//    converterParams.fields.forEach(function (field, fieldIdx) {
+//        result[fieldIdx] = { "name": field.name, "data": [] };
+//    });
+
+//    dataJson.records.forEach(function (rec) {
+//        var tm = time.parse(rec[converterParams.timeField]);
+//        var longtime = 1000 * tm.timestamp + tm.millisecond;
+
+//        converterParams.fields.forEach(function (field, fieldIdx) {
+//            // Maybe check if someone has accidentelly put timeField also in fields and skip it. 
+//            result[fieldIdx].data.push([longtime, field.get(rec)]);
+//        });
+//    });
+
+//    return result;
+//}
+
+
+exports.highchartsConverterPro = function (converterParams, dataJson) {
+    // Predefine result structure. Fields has to be dfined in converterParams.fields
+    var result = [];
+    converterParams.fields.forEach(function (field, fieldIdx) {
+        result[fieldIdx] = { "name": field.name, "data": [] };
+    });
+
+    dataJson.records.forEach(function (rec) {
+        converterParams.fields.forEach(function (field, fieldIdx) {
+            var tm = time.parse(field.getTm(rec));
+            var longtime = 1000 * tm.timestamp + tm.millisecond;
+            result[fieldIdx].data.push([longtime, field.get(rec)]);
+        });
+    });
+
+    return result;
+}
+
+exports.highchartsConverterColumn = function (converterParams, dataJson) {
+    // Predefine result structure. Fields has to be dfined in converterParams.fields
+    var result = [];
+    converterParams.fields.forEach(function (field, fieldIdx) {
+        result[fieldIdx] = { "name": field.name, "data": [] };
+    });
+
+    dataJson.Predictions.forEach(function (rec) {
+        converterParams.fields.forEach(function (field, fieldIdx) {
+            result[fieldIdx].data.push(field.get(rec));
+        });
+    });
+
+    return result;
+}
+
 exports.highchartsParams = function () {
     return {
         chart: {
@@ -103,9 +158,6 @@ exports.highchartsParams = function () {
         },
         title: {
             text: 'spline chart'
-        },
-        subtitle: {
-            text: 'multiple timeseries, unequally sampled'
         },
         xAxis: {
             type: 'datetime',
@@ -168,6 +220,7 @@ exports.drawHighChartsTimeSeries = function (data, fnm, overrideParams) {
     // read template html. Fill in data, overrideParams, containerName, code and libraries
 
     var template = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts.html").readAll();
+
     // data, plot parameters and libraries to be filled in the template
 
     var libPathArray = [
@@ -177,6 +230,99 @@ exports.drawHighChartsTimeSeries = function (data, fnm, overrideParams) {
     ];
     // TODO mustache :)
     var output = template.replace("{{{data}}}", JSON.stringify(data)).replace("{{{overrideParams}}}", JSON.stringify(overrideParams)).replace("{{{libs}}}", glueFileContents(libPathArray));
+    fs.openWrite(fnm).write(output).close();
+};
+
+//#- `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
+exports.drawHighChartsTimeSeries2 = function (data, fnm, overrideParams) {
+    // read template html. Fill in data, overrideParams, containerName, code and libraries
+    var template = "";
+    if (!fs.exists(fnm)) {
+        //var template = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts.html").readAll();
+        template = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts2.html").readAll();
+        // data, plot parameters and libraries to be filled in the template
+
+        var libPathArray = [
+            process.qminer_home + "gui/js/Highcharts/js/highcharts.js",
+            process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js",
+            process.qminer_home + "lib/visualization.js"
+        ];
+        template = template.replace("{{{libs}}}", glueFileContents(libPathArray));
+    } else {
+        template = fs.openRead(fnm).readAll();
+    }
+    // TODO mustache :)
+    var output = template.replace("{{{data}}}", JSON.stringify(data)).replace("{{{overrideParams}}}", JSON.stringify(overrideParams))
+    fs.openWrite(fnm).write(output).close();
+};
+
+
+//#- `vis.makeHighChartsTemplate(numOfCharts)` -- generates a html file `fnm` (file name) template to be fielled with data` (highcharts JSON) and plot parameters `overrideParam` (JSON) 
+exports.makeHighChartsTemplate = function (fnm, numOfCharts) {
+
+    var makeHeadContent = "$(function () { var data = {{{data}}}; var overrideParams = {{{overrideParams}}}; visualize.highChartsPlot(data, overrideParams, \"{{{graphId}}}\"); });\n";
+
+    // TODO: parameters in this style could be input variables. Imagine if we want to create 2 graphs in the same horizontal line.
+    var makeGraphContent = "<div id=\"{{{graphId}}}\" style=\"min-width: 310px; height: 400px; margin: 0 auto\"></div><br/>\n";
+
+    // Creates head contents with makeHeadContent
+    var createPageHead = function (ids) {
+        var content = "";
+        for (id in ids) {
+            content += makeHeadContent.replace('{{{graphId}}}', ids[id]);
+        }
+        return content;
+    }
+
+    // Creates graph contents with makeGraphContent
+    var createGraphContent = function (ids) {
+        var content = "";
+        for (id in ids) {
+            content += makeGraphContent.replace('{{{graphId}}}', ids[id]);
+        }
+        return content;
+    }
+
+    // Libraries to be filled in the template
+    var libPathArray = [
+        process.qminer_home + "gui/js/Highcharts/js/highcharts.js",
+        process.qminer_home + "gui/js/Highcharts/js/modules/exporting.js",
+        process.qminer_home + "lib/visualization.js"
+    ];
+
+    // Create graph variables
+    var graphVars = [];
+    for (var i = 1; i <= numOfCharts; i++) {
+        var graph = "graph" + i;
+        graphVars.push(graph);
+    }
+
+    // create final template content
+    //var template = mainPageTemplate.replace("{{{head}}}", createPageHead(graphVars)).replace("{{{graph}}}", createGraphContent(graphVars)).replace("{{{libs}}}", glueFileContents(libPathArray));
+    //var template = mainPageTemplate;
+    template = fs.openRead(process.qminer_home + "gui/visualization_templates/highCharts_ts_array.html").readAll();
+    template = template.replace("{{{libs}}}", glueFileContents(libPathArray));
+    template = template.replace("{{{head}}}", createPageHead(graphVars))
+    template = template.replace("{{{graph}}}", createGraphContent(graphVars))
+
+    // create html template file
+    if (fs.exists(fnm)) {
+        fs.del(fnm);
+    }
+    fs.openWrite(fnm).write(template).close();
+}
+
+
+//#- `vis.drawHighChartsTimeSeries(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (highcharts JSON), based on plot parameters `overrideParam` (JSON) 
+exports.drawMultipleHighChartsTimeSeries = function (data, fnm, overrideParams) {
+    // Check if filename exists
+    if (!fs.exists(fnm)) {
+        console.log("Warning", "File" + fnm + " doesent exist. Use exports.makeHighChartsTemplate(fnm, numOfCharts) first.")
+    }
+    // TODO mustache :)
+    // read template html. Fill in data, overrideParams, containerName, code and libraries
+    var template = fs.openRead(fnm).readAll();
+    var output = template.replace("{{{data}}}", JSON.stringify(data)).replace("{{{overrideParams}}}", JSON.stringify(overrideParams))
     fs.openWrite(fnm).write(output).close();
 };
 
@@ -205,7 +351,7 @@ exports.drawCommunityEvolution = function (data, fnm, overrideParams) {
 //#- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 exports.drawGraph = function (graph, fnm, opts) {
     // read template html. Fill in data, overrideParams, containerName, code and libraries
-    var json_out = snap.toJsonGraph(graph, opts);
+    var json_out = snap.trainRecGraph(graph, opts);
 
     var template = fs.openRead(process.qminer_home + "gui/visualization_templates/graphDraw.html").readAll();
     // data, plot parameters and libraries to be filled in the template
@@ -217,7 +363,7 @@ exports.drawGraph = function (graph, fnm, opts) {
 //#- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 exports.drawGraphArray = function (data, fnm, overrideParams) {
     // read template html. Fill in data, overrideParams, containerName, code and libraries
-    var json_out = snap.toJsonGraphArray(data);
+    var json_out = snap.trainRecGraphArray(data);
     var template = fs.openRead(process.qminer_home + "gui/visualization_templates/graphArrayDraw.html").readAll();
     // data, plot parameters and libraries to be filled in the template
     // TODO mustache :)

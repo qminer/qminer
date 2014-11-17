@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Highcharts Example</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <style type="text/css">
+        $ {
+            demo .css;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            var data = {{{data}}};    //inject data
+            var overrideParams = {{{overrideParams}}}; //inject plot parameters
+            visualize.highChartsPlot(data, overrideParams, 'graph1');
+            //visualize.highChartsPlot(data, overrideParams, 'graph2');
+        });
+        $(function () {
+            var data = {{{data}}};    //inject data
+            var overrideParams = {{{overrideParams}}}; //inject plot parameters
+            //visualize.highChartsPlot(data, overrideParams, 'graph1');
+            visualize.highChartsPlot(data, overrideParams, 'graph2');
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div id="graph1" style="min-width: 310px; height: 400px; margin: 0 auto"></div><br/>
+        <div id="graph2" style="min-width: 310px; height: 400px; margin: 0 auto"></div><br/>
+    </div>
+    <script type="text/javascript">
+        {{{libs}}}
+    </script>
+</body>
+</html>

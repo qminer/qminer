@@ -816,7 +816,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     //#   - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
     //#   using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
     this.predict = function (vec) {
-        if (this.X.cols < this.k) { return -1 }
+        if (this.X.cols < this.k) { return -1 };
         var neighbors = this.getNearestNeighbors(vec); //vector of indexes
         var targetVals = this.y.subVec(neighbors.perm);
         var prediction = getAverage(targetVals); // using simple average
