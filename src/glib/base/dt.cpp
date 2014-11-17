@@ -869,8 +869,8 @@ TStr& TStr::operator=(const TChA& ChA) {
 	Clr();
 
 	if (!ChA.Empty()) {
-		TStr temp(ChA);
-		std::swap(*this, temp);
+		Inner = new char[ChA.Len() + 1];
+		strcpy(Inner, ChA.CStr());
 	}
 
     return *this;
