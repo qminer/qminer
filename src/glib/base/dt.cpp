@@ -885,6 +885,16 @@ TStr TStr::GetUc() const {
 	return TStr(new_array, true);
 }
 
+int TStr::CmpI(const char* p, const char* r) {
+	if (!p){ return r ? (*r ? -1 : 0) : 0; }
+	if (!r){ return (*p ? 1 : 0); }
+	while (*p && *r){
+		int i = int(toupper(*p++)) - int(toupper(*r++));
+		if (i != 0){ return i; }
+	}
+	return int(toupper(*p++)) - int(toupper(*r++));
+}
+
 bool TStr::IsLc() const {
 	int StrLen = Len();
 	for (int ChN = 0; ChN<StrLen; ChN++){
@@ -1258,7 +1268,7 @@ int TStr::SearchCh(const char& Ch, const int& BChN) const {
 
 int TStr::SearchChBack(const char& Ch, int BChN) const {
   const int StrLen = Len();
-  if(ThisLen == 0) { return 0; }
+  if (StrLen == 0) { return 0; }
   const char* ThisBf = CStr();
 
   if (BChN < 0 || BChN >= StrLen) { BChN = StrLen - 1; }
@@ -1300,7 +1310,7 @@ bool TStr::IsSuffix(const char *Str) const {
 		return false;
 	} else {
 		// move to the point in the buffer where we would expect the suffix to be
-		const char *ending = RStr->Bf + thisLen - len;
+		const char *ending = CStr() + thisLen - len;
 		int cmp = strncmp(Str, ending, len);
 		return cmp == 0;
 	}
