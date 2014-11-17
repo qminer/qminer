@@ -289,7 +289,9 @@ double TEnv::GetIfArgPrefixFlt(
 }
 
 void TEnv::PutVarVal(const TStr& VarNm, const TStr& VarVal) {
-  const int RetVal = putenv(TStr::Fmt("%s=%s", VarNm.CStr(), VarVal.CStr()).CStr());
+  char* EnvStr = TStr::Fmt("%s=%s", VarNm.CStr(), VarVal.CStr()).CloneCStr();
+  const int RetVal = putenv(EnvStr);
+  delete[] EnvStr;
   IAssert(RetVal==0);
 }
 
