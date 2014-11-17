@@ -507,7 +507,7 @@ public:
   explicit TStr(const PSIn& SIn);
   
   /// We only delete when not empty
-  ~TStr(){ Clr(); }
+  ~TStr() { Clr(); }
 
   /*
   * Save & Load From File
@@ -556,9 +556,7 @@ public:
   bool operator!=(const char* CStr) const { return !operator==(CStr); }
   // < (is less than comparison)
   /// TStr < TStr
-  bool operator<(const TStr& Str) const {
-    return strcmp(Inner, Str.Inner)<0;
-  }
+  bool operator<(const TStr& Str) const { return strcmp(Inner, Str.Inner) < 0; }
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Memory used by this String object
@@ -566,16 +564,9 @@ public:
   // Get the Inner C-String
   const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
   // Return a COPY of the string as a C String (char array)
-  char* CloneCStr() const {
-      char* Bf = new char[Len()+1];
-      strcpy(Bf, Inner);
-      return Bf;
-  }
+  char* CloneCStr() const;
   /// Get character at position ChN
-  char GetCh(const int& ChN) const {
-	  Assert( (0 <= ChN) && (ChN < Len()) ); // Assert index not negative, index not >= Length
-	  return Inner[ChN];
-  }
+  char GetCh(const int& ChN) const;
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   // Get String Length (null terminator not included)
@@ -716,7 +707,7 @@ public:
   // Return a string with first occurrence of ScrStr string replaced with DstStr string.
   TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
   // Return a string with all occurrences of ScrStr string replaced with DstStr string
-  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const ;
+  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const;
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
@@ -859,13 +850,6 @@ public:
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
   static TStr Fmt(const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
-
-
-  /*
-   * Static methods: clone and NullStr
-   */
-  /// Create a clone of a String
-  static TStr MkClone(const TStr& Str){return TStr(Str.CStr());}
 
   /*
    * Concatenation operator +
