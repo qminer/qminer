@@ -958,7 +958,7 @@ void TUniChDb::LoadTxt_ProcessDecomposition(TUniChInfo& ci, TStr s)
 	if (s[0] == '<') {
 		int i = s.SearchCh('>'); IAssert(i > 0);
 		ci.flags |= ucfCompatibilityDecomposition;
-		s = s.GetSubStr(i + 1, s.Len() - 1); s.ToTrunc(); }
+		s = s.GetSubStr(i + 1, s.Len() - 1); s =  s.GetTrunc(); }
 	TIntV dec; TUcdFileReader::ParseCodePointList(s, dec);
 	IAssert(dec.Len() > 0);
 	ci.decompOffset = decompositions.Len();
@@ -1251,7 +1251,7 @@ void TUniChDb::InitSpecialCasing(const TStr& basePath)
 		// Skip conditional mappings -- they will be hardcoded in the GetCaseConverted method.
 		TStr conditions = "";
 		if (fields.Len() == 6) conditions = fields[4];
-		conditions.ToTrunc(); if (! conditions.Empty()) continue;
+		conditions = conditions.GetTrunc(); if (!conditions.Empty()) continue;
 		// Keep the other mappings.
 		const int cp = reader.ParseCodePoint(fields[0]);
 		TIntV v; reader.ParseCodePointList(fields[1], v);

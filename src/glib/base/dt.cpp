@@ -784,9 +784,13 @@ TStr::TStr(const char& Ch): Inner(new char[2]) {
     Inner[0] = Ch; Inner[1] = 0;
 }
 
-TStr::TStr(const TStr& Str): Inner((Str.Inner == NULL) ? NULL : Str.CloneCStr()) { }
+TStr::TStr(const TStr& Str): Inner(NULL) {
+	if (!Str.Empty()) {
+		Inner = Str.CloneCStr();
+	}
+}
 
-TStr::TStr(TStr&& Str) {
+TStr::TStr(TStr&& Str): Inner(NULL) {
     Inner = Str.Inner;
     // reset other
     Str.Inner=nullptr;
@@ -849,40 +853,58 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 }
 
 TStr& TStr::operator=(const TStr& Str) {
-    TStr temp(Str);
-    std::swap(*this, temp);
+	Clr();
+
+	if (!Str.Empty()) {
+		TStr temp(Str);
+		std::swap(*this, temp);
+	}
+
     return *this;
 }
 
 TStr& TStr::operator=(const TChA& ChA) {
-	if (ChA.Empty()) {
-		Clr();
-	} else {
+	Clr();
+
+	if (!ChA.Empty()) {
 		TStr temp(ChA);
 		std::swap(*this, temp);
 	}
+
     return *this;
 }
 
 TStr& TStr::operator=(const char* CStr) {
-	if (strlen(CStr) == 0) {
-		Clr();
-	} else {
+	Clr();
+
+	if (strlen(CStr) > 0) {
 		TStr temp(CStr);
 		std::swap(*this, temp);
 	}
+
 	return *this;
 }
 
 TStr& TStr::operator=(const char& Ch) {
+	Clr();
+
     TStr temp(Ch);
     std::swap(*this, temp);
+
     return *this;
 }
 
 char* TStr::CloneCStr() const {
-	char* Bf = new char[Len()+1];
-	strcpy(Bf, Inner);
+	const int Length = Len();
+
+	char* Bf = new char[Length+1];
+
+	if (Length > 0) {
+		strcpy(Bf, Inner);
+	} else {
+		Bf[0] = 0;
+	}
+
 	return Bf;
 }
 
@@ -1061,24 +1083,17 @@ TStr TStr::DelSubStr(const int& _BChN, const int& _EChN) const {
 }
 
 TStr TStr::DelStr(const TStr& Str) const {
-    int ChN = SearchStr(Str);
-    if (ChN == -1){
-      return TStr(CStr());
-    } else {
-      return DelSubStr(ChN, ChN+Str.Len()-1);
-    }
+	int ChN = SearchStr(Str);
+	if (ChN == -1){
+		return TStr(CStr());
+	}
+	else {
+		return DelSubStr(ChN, ChN + Str.Len() - 1);
+	}
 }
 
 TStr TStr::DelStrAll(const TStr& Str) const {
-    TStr NewStr = TStr(CStr());
-    while (true) {
-        int ChN = NewStr.SearchStr(Str);
-        if (ChN == -1) {
-            return NewStr;
-        } else {
-            NewStr = NewStr.DelSubStr(ChN, ChN+Str.Len()-1);
-        }
-    }
+	return ChangeStrAll(Str, "");
 }
 
 TStr TStr::LeftOf(const char& SplitCh) const {
@@ -1982,6 +1997,11 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 
 TStr operator +(const TStr& LStr, const TStr& RStr) {
 	return operator +(LStr, RStr.CStr());
+}
+
+TStr::TStr(char *Ch, const bool Own): Inner(NULL) {
+	if (!Own) { TStr(Ch); } // guard against misuse
+	if (strlen(Ch) > 0) { Inner = Ch; }
 }
 
 /////////////////////////////////////////////////

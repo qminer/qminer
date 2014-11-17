@@ -1710,10 +1710,12 @@ protected:
 			dest.Clr();
 			while (true) {
 				if (! ReadNextLine()) return false;
-				TStr line = buf; line.ToTrunc();
+				TStr line = buf; line = line.GetTrunc();
 				if (line.Len() <= 0) continue;
 				line.SplitOnAllCh(';', dest, false);
-				for (int i = 0; i < dest.Len(); i++) dest[i].ToTrunc();
+				for (int i = 0; i < dest.Len(); i++) {
+					dest[i] = dest[i].GetTrunc();
+				}
 				return true; }}
 		static int ParseCodePoint(const TStr& s) {
 			int c; bool ok = s.IsHexInt(true, 0, 0x10ffff, c); IAssertR(ok, s); return c; }

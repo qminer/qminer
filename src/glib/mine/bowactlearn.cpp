@@ -114,7 +114,7 @@ bool TBowAL::GenQueryDIdV(const bool& GenStatP){
                 KeyWdStr = BowDocBs->GetWordStr(WIdWgtV[0].Key);
                 for (int WIdN = 1; WIdN < WIdWgtV.Len(); WIdN++) {
                     KeyWdStr += ", " + BowDocBs->GetWordStr(WIdWgtV[WIdN].Key); }
-                KeyWdStr.ToLc(); KeyWdStr.ChangeChAll('_', ' ');
+				KeyWdStr = KeyWdStr.GetLc(); KeyWdStr = KeyWdStr.ChangeChAll('_', ' ');
             } else {
                 KeyWdStr = "";
             }

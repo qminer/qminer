@@ -179,8 +179,8 @@ void TUrl::GetAbs(const TStr& AbsUrlStr){
     const char *DbSlashStr="//";
     Str+=Lx.GetStr(DbSlashStr);
     Str+=Lx.GetHostPort(HostNm, PortStr, PortN);
-    if (PortN==-1){PortN=THttp::DfPortN; PortStr.Clr();}
-    else if (PortN==THttp::DfPortN){PortStr.Clr();}
+    if (PortN==-1){PortN=THttp::DfPortN; PortStr = TStr();}
+    else if (PortN==THttp::DfPortN){PortStr = TStr();}
     //**if (!PortStr.Empty()){Str+=':'; Str+=PortStr;}
     if (Lx.PeekCh()=='/'){
       PathStr=Lx.GetCh('/'); PathStr+=Lx.GetHPath(PathSegV); Str+=PathStr;}
@@ -239,7 +239,14 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   }}
 
   const char *CurDirStr="/.";
-  while (AbsUrlStr.DelStr(CurDirStr)){}
+  
+  int OldLen;
+  int NewLen;
+  do {
+	  OldLen = AbsUrlStr.Len();
+	  AbsUrlStr = AbsUrlStr.DelStr(CurDirStr);
+	  NewLen = AbsUrlStr.Len();
+  } while (OldLen != NewLen);
 
   GetAbs(AbsUrlStr);
 }
@@ -253,7 +260,7 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   IpNum(),
   FinalUrlStr(), FinalHostNm(),
   HttpRqStr(){
-  RelUrlStr.ToTrunc();
+  RelUrlStr = RelUrlStr.GetTrunc();
   RelUrlStr.ChangeStrAll(" ", "%20");
   try {
     if (IsAbs(RelUrlStr)){
@@ -322,9 +329,10 @@ void TUrl::ToLcPath(){
   // test if the conversion is needed
   if (!PathStr.IsLc()){
     // convert path strings to lower-case
-    PathStr.ToLc();
+	PathStr = PathStr.GetLc();
     for (int PathSegN=0; PathSegN<PathSegV.Len(); PathSegN++){
-      PathSegV[PathSegN].ToLc();}
+		PathSegV[PathSegN] = PathSegV[PathSegN].GetLc();
+	}
     // recompose url
     TChA UrlChA;
     UrlChA+=SchemeNm; UrlChA+="://";
@@ -336,7 +344,9 @@ void TUrl::ToLcPath(){
     UrlStr=UrlChA;
     // recompose final-url
     if (IsDefFinalUrl()){
-      FinalUrlStr.Clr(); DefFinalUrl(FinalHostNm);}
+      FinalUrlStr = TStr();
+      DefFinalUrl(FinalHostNm);
+    }
   }
 }
 
