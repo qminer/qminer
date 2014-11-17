@@ -855,9 +855,8 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 TStr& TStr::operator=(const TStr& Str) {
 	Clr();
 
-	if (!Str.Empty()) {
-		TStr temp(Str);
-		std::swap(*this, temp);
+	if (!Str.Empty()) {		
+		Inner = Str.CloneCStr();		
 	}
 
     return *this;
