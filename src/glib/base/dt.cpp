@@ -876,9 +876,11 @@ TStr& TStr::operator=(const TChA& ChA) {
 TStr& TStr::operator=(const char* CStr) {
 	Clr();
 
-	if (strlen(CStr) > 0) {
-		TStr temp(CStr);
-		std::swap(*this, temp);
+	const int StrLen = strlen(CStr);
+
+	if (StrLen > 0) {
+		Inner = new char[StrLen+1];
+		strcpy(Inner, CStr);
 	}
 
 	return *this;
@@ -887,8 +889,8 @@ TStr& TStr::operator=(const char* CStr) {
 TStr& TStr::operator=(const char& Ch) {
 	Clr();
 
-    TStr temp(Ch);
-    std::swap(*this, temp);
+	Inner = new char[2];
+	Inner[0] = Ch; Inner[1] = 0;
 
     return *this;
 }
