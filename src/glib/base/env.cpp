@@ -290,7 +290,7 @@ double TEnv::GetIfArgPrefixFlt(
 
 void TEnv::PutVarVal(const TStr& VarNm, const TStr& VarVal) {
 #ifdef GLib_WIN
-
+	const int ErrCd = _putenv(TStr::Fmt("%s=%s", VarNm.CStr(), VarVal.CStr()).CStr());
 #else
   const int ErrCd = setenv(VarNm.CStr(), VarVal.CStr(), 1);
 #endif
