@@ -391,7 +391,7 @@ public:
     if (GetSecs() < 60) { sprintf(TmStr, "%.2fs", GetSecs()); }
     else if (GetSecs() < 3600) { sprintf(TmStr, "%02dm%02ds", int(GetSecs())/60, int(GetSecs())%60); }
     else { sprintf(TmStr, "%02dh%02dm", int(GetSecs())/3600, (int(GetSecs())%3600)/60); }  return TmStr; }
-  static char* GetCurTm(){ static TStr TmStr; TmStr=TSecTm::GetCurTm().GetTmStr(); return TmStr.CStr(); }
+  static const char* GetCurTm(){ static TStr TmStr; TmStr=TSecTm::GetCurTm().GetTmStr(); return TmStr.CStr(); }
 };
 
 /////////////////////////////////////////////////
