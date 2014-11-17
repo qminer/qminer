@@ -784,9 +784,13 @@ TStr::TStr(const char& Ch): Inner(new char[2]) {
     Inner[0] = Ch; Inner[1] = 0;
 }
 
-TStr::TStr(const TStr& Str): Inner((Str.Inner == NULL) ? NULL : Str.CloneCStr()) { }
+TStr::TStr(const TStr& Str): Inner(NULL) {
+	if (!Str.Empty()) {
+		Inner = Str.CloneCStr();
+	}
+}
 
-TStr::TStr(TStr&& Str) {
+TStr::TStr(TStr&& Str): Inner(NULL) {
     Inner = Str.Inner;
     // reset other
     Str.Inner=nullptr;
@@ -881,8 +885,16 @@ TStr& TStr::operator=(const char& Ch) {
 }
 
 char* TStr::CloneCStr() const {
-	char* Bf = new char[Len()+1];
-	strcpy(Bf, Inner);
+	const int Length = Len();
+
+	char* Bf = new char[Length+1];
+
+	if (Length > 0) {
+		strcpy(Bf, Inner);
+	} else {
+		Bf[0] = 0;
+	}
+
 	return Bf;
 }
 
@@ -1982,6 +1994,11 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 
 TStr operator +(const TStr& LStr, const TStr& RStr) {
 	return operator +(LStr, RStr.CStr());
+}
+
+TStr::TStr(char *Ch, const bool Own): Inner(NULL) {
+	if (!Own) { TStr(Ch); } // guard against misuse
+	if (strlen(Ch) > 0) { Inner = Ch; }
 }
 
 /////////////////////////////////////////////////
