@@ -576,7 +576,7 @@ public:
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Memory used by this String object
-  int GetMemUsed() const { return int( sizeof(TRStr*) +  strlen(Inner) );}
+  int GetMemUsed() const { int(sizeof(char*) + sizeof(char) * (1 + strlen(Inner))); }
   // Get the Inner C-String
   const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
   // Return a COPY of the string as a C String (char array)
@@ -605,9 +605,11 @@ public:
   /// Returns a new string converted to uppercase
   TStr GetUc() const;
   /// Case insensitive comparison
-  int CmpI(const TStr& Str) const; // {return TRStr::CmpI(CStr(), Str.CStr()); }
+  static int CmpI(const char* p, const char* r);
+  /// Case insensitive comparison
+  int CmpI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()); }
   /// Case insensitive equality
-  bool EqI(const TStr& Str) const; // {return TRStr::CmpI(CStr(), Str.CStr()) == 0; }
+  bool EqI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()) == 0; }
   /// Is lower-case?
   bool IsLc() const;
   /// Returns new string converted to lowercase
