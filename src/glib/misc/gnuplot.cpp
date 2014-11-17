@@ -169,7 +169,7 @@ int TGnuPlot::AddPlot(const TStr& DataFNm, const int& ColX, const int& ColY,
   TGpSeries Plot;
   Plot.SeriesTy = SeriesTy;
   Plot.Label = Label;
-  Plot.DataFNm = DataFNm;  Plot.DataFNm.ChangeStrAll("\\", "\\\\");
+  Plot.DataFNm = DataFNm;  Plot.DataFNm = Plot.DataFNm.ChangeStrAll("\\", "\\\\");
   Plot.XCol = ColX;  Plot.YCol = ColY;  Plot.ZCol = 0;
   Plot.WithStyle = Style;
   SeriesV.Add(Plot);
@@ -820,7 +820,7 @@ void TGnuPlot::CreatePlotFile(const TStr& Comment) {
   FILE *F = fopen(PlotFNm.CStr(), "wt");
   EAssertR(F != 0, TStr("Can not open plot file ")+PlotFNm);
   TStr CurDir = TDir::GetCurDir();
-  CurDir.ChangeStrAll("\\", "\\\\");
+  CurDir = CurDir.ChangeStrAll("\\", "\\\\");
   fprintf(F, "#\n");
   fprintf(F, "# %s (%s)\n", Comment.CStr(), TimeStr);
   fprintf(F, "#\n\n");
