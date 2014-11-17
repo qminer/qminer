@@ -98,6 +98,14 @@ fs.writeCsvLine = function (fout, arr) {
     return fout;
 }
 
+//#- `fout = fs.writeCsv(fout, arr)` -- calls `fs.writeCsvLine` for each element of `arr`
+fs.writeCsv = function (fout, arr) {
+    for (var i = 0; i < arr.length; i++) {
+        writeCsvLine(fout, arr[i]);
+    }
+    return fout;
+}
+
 //#- `json = fs.readJson(fileName)` - read file as a string and parse it top JSON
 fs.readJson = function (fileName) {
     return JSON.parse(fs.readFile(fileName));
