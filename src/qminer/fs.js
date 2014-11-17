@@ -86,22 +86,22 @@ fs.writeCsvLine = function (fout, arr) {
     for (var i = 0; i < arr.length; i++) {
         if (i > 0) { line += ','; }
         // secape quotes
-        var val = arr[i].replace(/"/g, '""');
+        var val = (arr[i] + '').replace(/"/g, '""');
         // if we have comma inside, put whole field in quotes
         if (val.search(/("|,|\n)/g) >= 0) {
             line += '"' + val + '"';
         } else {
             line += val;
         }
-        fout.writeLine(line);
     }
+    fout.writeLine(line);
     return fout;
 }
 
 //#- `fout = fs.writeCsv(fout, arr)` -- calls `fs.writeCsvLine` for each element of `arr`
 fs.writeCsv = function (fout, arr) {
     for (var i = 0; i < arr.length; i++) {
-        writeCsvLine(fout, arr[i]);
+        fs.writeCsvLine(fout, arr[i]);
     }
     return fout;
 }

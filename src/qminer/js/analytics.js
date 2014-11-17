@@ -303,6 +303,134 @@ exports.classifcationScore = function (cats) {
 	};
 }
 
+//#- `result = exports.rocScore(sample)` -- used for computing ROC curve and 
+//#     other related measures such as AUC; the result is a results object
+//#     with the following API:
+
+//#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
+//#       `all()`, `precision()`, `recall()`, `accuracy()`.
+//#     - `result.confusion` -- confusion matrix between categories
+//#     - `result.report()` -- prints basic report on to the console
+//#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
+exports.rocScore = function () {
+	// count of all the positive and negative examples
+	this.allPositives = 0;
+	this.allNegatives = 0;
+	// store of predictions and ground truths
+	this.grounds = la.newVec();
+	this.predictions = la.newVec();
+	
+	//#     - `result.push(ground, predicT)` -- add new measurement with ground score (1 or -1) and predicted value
+	this.push = function (ground, predict) {
+		// remember the scores
+		this.grounds.push(ground)
+		this.predictions.push(predict);
+		// update counts
+		if (ground > 0) { 
+			this.allPositives++; 
+		} else {
+			this.allNegatives++;
+		}
+	}
+	
+	//#     - `roc_arr = result.curve(sample)` -- get ROC parametrization as array of sample points
+	this.curve = function (sample) {
+		// default sample size is 10
+		sample = sample || 10;
+		// sort according to predictions
+		var perm = this.predictions.sortPerm(false);
+		// maintaining the results as we go along
+		var TP = 0, FP = 0, ROC = [[0, 0]];
+		// for figuring out when to dump a new ROC sample
+		var next = Math.floor(perm.perm.length / sample);
+		// go over the sorted results
+		for (var i = 0; i < perm.perm.length; i++) {
+			// get the ground
+			var ground = this.grounds[perm.perm[i]];
+			// update TP/FP counts according to the ground
+			if (ground > 0) { TP++ } else { FP++; }
+			// see if time to do next save
+			next = next - 1;		
+			if (next <= 0) {
+				// add new datapoint to the curve 
+				ROC.push([FP/this.allNegatives, TP/this.allPositives]);
+				// setup next timer 
+				next = Math.floor(perm.perm.length / sample);
+			}
+		}
+		// add the last point
+		ROC.push([1,1]);
+		// return ROC
+		return ROC;
+	}
+    
+	//#     - `num = result.auc(sample)` -- get AUC of the current curve
+	this.auc = function (sample) {
+		// default sample size is 10
+		sample = sample || 10;
+        // get the curve
+        var curve = this.curve(sample);
+        // compute the area
+        var result = 0;
+        for (var i = 1; i < curve.length; i++) {
+            // get edge points
+            var left = curve[i-1];
+            var right = curve[i];
+            // first the rectangle bellow
+            result = result + (right[0] - left[0]) * left[1];
+            // an then the triangle above 
+            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+        }
+        return result;
+    }
+    
+    //#     - `num = result.breakEvenPoint(sample)` -- get break-even point, which is number where precision and recall intersect
+    this.breakEvenPoint = function () {
+		// sort according to predictions
+		var perm = this.predictions.sortPerm(false);
+		// maintaining the results as we go along
+		var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+        var minDiff = 1.0, bep = 0.0;
+		// go over the sorted results
+		for (var i = 0; i < perm.perm.length; i++) {
+			// get the ground
+			var ground = this.grounds[perm.perm[i]];
+			// update TP/FP counts according to the ground
+			if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+			// compute current precision and recall
+			var precision = (FP === 0) ? 1 : (TP / (TP + FP));
+            var recall = TP / (TP + FN);
+            // see if we need to update current bep
+            var diff = Math.abs(precision - recall);
+            if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+		}        
+        return bep;
+    }
+	    
+	//#     - `result.report(sample)` -- output to screen
+	this.report = function (sample) {
+		// default sample size is 10
+		sample = sample || 10;
+		// get the curve
+		var curve = this.curve(sample);
+		// print to console
+        console.log("FPR - TPR");
+		for (var i = 0; i < curve.length; i++) {
+		 	console.log(curve[i][0] + " - " + curve[i][1]);
+        }        
+	}
+	
+	//#     - `result.report(fnm, sample)` -- save as CSV to file `fnm`
+	this.reportCSV = function (fnm, sample) {
+		// default sample size is 10
+		sample = sample || 10;
+		// get the curve
+		var curve = this.curve(sample);
+		// save
+		fs.writeCsv(fs.openWrite(fnm), curve).close();
+	}
+}
+
 //#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
 //#     model for records from record set `rs` using `features; `target` is the
 //#     target field and is assumed discrete; the result is a results object
