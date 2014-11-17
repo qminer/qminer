@@ -542,10 +542,10 @@ public:
   /// Concatenates and assigns
   TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
-  /// Boolean comparison TStr == TStr
-  bool operator==(const TStr& Str) const { return this == &Str || strcmp(Inner, Str.Inner) == 0; }
   /// Boolean comparison TStr == char*
   bool operator==(const char* CStr) const { return Inner == CStr || strcmp(Inner, CStr) == 0; }
+  /// Boolean comparison TStr == TStr
+  bool operator==(const TStr& Str) const { return operator==(Str.CStr()); }
 
   /*
    * != (is not equal comparison)
