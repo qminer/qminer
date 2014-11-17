@@ -507,7 +507,7 @@ public:
   explicit TStr(const PSIn& SIn);
   
   /// We only delete when not empty
-  ~TStr(){ if (Inner != NULL) delete[] Inner; }
+  ~TStr(){ Clr(); }
 
   /*
   * Save & Load From File
@@ -542,32 +542,18 @@ public:
   /// Concatenates and assigns
   TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
-  /// Boolean comparison TStr == TStr
-  bool operator==(const TStr& Str) const {
-	  // self = self
-	  if(this == &Str) return true;
-	  // string comparison
-	  return strcmp(Inner, Str.Inner) == 0;
-  }
   /// Boolean comparison TStr == char*
-  bool operator==(const char* CStr) const { 
-    return strcmp(Inner, CStr) == 0;
-  }
+  bool operator==(const char* CStr) const { return Inner == CStr || strcmp(Inner, CStr) == 0; }
+  /// Boolean comparison TStr == TStr
+  bool operator==(const TStr& Str) const { return operator==(Str.CStr()); }
 
   /*
    * != (is not equal comparison)
    */
   // TStr != TStr
-  bool operator!=(const TStr& Str) const {
-	  // self = self
-	  if(this == &Str) return false;
-	  // string comparison
-	  return strcmp(Inner, Str.Inner) != 0;
-  }
+  bool operator!=(const TStr& Str) const { return !operator==(Str); }
   // TStr != C-String
-  bool operator!=(const char* CStr) const {
-	  return strcmp(Inner, CStr) != 0;
-  }
+  bool operator!=(const char* CStr) const { return !operator==(CStr); }
   // < (is less than comparison)
   /// TStr < TStr
   bool operator<(const TStr& Str) const {
@@ -576,7 +562,7 @@ public:
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Memory used by this String object
-  int GetMemUsed() const { int(sizeof(char*) + sizeof(char) * (1 + strlen(Inner))); }
+  int GetMemUsed() const { return int(sizeof(char*) + sizeof(char) * (1 + strlen(Inner))); }
   // Get the Inner C-String
   const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
   // Return a COPY of the string as a C String (char array)
@@ -651,23 +637,29 @@ public:
   TStr RightOf(const char& SplitCh) const;
   TStr RightOfLast(const char& SplitCh) const;
 
+  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the contents on the right of RightOfChN
+  /// into RStr (exclusive)
+  void SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const;
   /// Split on the index, return Pair of Left/Right strings, omits the target index
-  TStrPr SplitOnChN(const int& ChN) const;
+  void SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const;
   /// Split on first occurrence of SplitCh, return Pair of Left/Right strings, omits the target character
   /// if the character is not found the whole string is returned as the left side
-  TStrPr SplitOnCh(const char& SplitCh) const;
+  void SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
+  /// Splits on the first occurrence of the target string
+  /// if the target string is not found the whole string is returned as the left side
+  void SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const;
   /// Split on last occurrence of SplitCh, return Pair of Left/Right strings
   /// if the character is not found the whole string is returned as the right side
-  TStrPr SplitOnLastCh(const char& SplitCh) const;
+  void SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
   /// Split on all occurrences of SplitCh, write to StrV, optionally don't create empy strings (default true)
   void SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty=true) const;
-  // Split on all occurrences of any char in SplitChStr, optionally don't create empy strings (default true)
+  /// Split on all occurrences of any char in SplitChStr, optionally don't create empy strings (default true)
   void SplitOnAllAnyCh(const TStr& SplitChStr, TStrV& StrV, const bool& SkipEmpty=true) const;
-  // Split on the occurrences of any string in StrV
+  /// Split on the occurrences of any string in StrV
   void SplitOnWs(TStrV& StrV) const;
-  // Split on the occurrences of any non alphanumeric character
+  /// Split on the occurrences of any non alphanumeric character
   void SplitOnNonAlNum(TStrV& StrV) const;
-  // Split on all the occurrences of SplitStr
+  /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 
 
@@ -901,6 +893,8 @@ private:
 	  if(!Own) { TStr(Ch); } // guard against misuse
 	  Inner = Ch; // straight up pointer assignment
   }
+
+  void Clr() { if (Inner != NULL) { delete[] Inner; Inner = NULL; } }
 };
 
 /////////////////////////////////////////////////

@@ -848,15 +848,23 @@ TStr& TStr::operator=(const TStr& Str) {
 }
 
 TStr& TStr::operator=(const TChA& ChA) {
-    TStr temp(ChA);
-    std::swap(*this, temp);
+	if (ChA.Empty()) {
+		Clr();
+	} else {
+		TStr temp(ChA);
+		std::swap(*this, temp);
+	}
     return *this;
 }
 
 TStr& TStr::operator=(const char* CStr) {
-    TStr temp(CStr);
-    std::swap(*this, temp);
-    return *this;
+	if (strlen(CStr) == 0) {
+		Clr();
+	} else {
+		TStr temp(CStr);
+		std::swap(*this, temp);
+	}
+	return *this;
 }
 
 TStr& TStr::operator=(const char& Ch) {
@@ -1083,54 +1091,98 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
   return (ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
-TStrPr TStr::SplitOnChN(const int& Idx) const {
-	EAssertR(Idx >= 0 && Idx < Len(), "Splitting index should be greater than 0 and less than length!");
+void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const {
+	EAssertR(LeftOfChN >= 0 && RightOfChN < Len() && LeftOfChN <= RightOfChN, "Splitting index should be greater than 0 and less than length!");
 
-	if (Inner == NULL) { return TStrPr(); }
+	// clear the left and right strings
+	LStr.Clr();
+	RStr.Clr();
 
-	const int LeftLen = Idx;
-	const int RightLen = Len() - LeftLen - 1;
+	if (Empty()) { return; }
+
+	const char* InnerPt = CStr();
+
+	const int LeftLen = LeftOfChN;
+	const int RightLen = Len() - RightOfChN;
 
 	// create char arrays for the left and right side
-	char* Left = new char[LeftLen + 1];
-	char* Right = new char[RightLen + 1];
+	LStr.Inner = new char[LeftLen + 1];
+	RStr.Inner = new char[RightLen + 1];
 
 	// insert null characters
-	Left[LeftLen] = 0;
-	Right[RightLen] = 0;
+	LStr.Inner[LeftLen] = 0;
+	RStr.Inner[RightLen] = 0;
 
-	// copy memory
-	memcpy(Left, Inner, LeftLen);
-	memcpy(Right, Inner + LeftLen + 1, RightLen);
-
-	return TStrPr(TStr(Left, true), TStr(Right, true));
+	memcpy(LStr.Inner, InnerPt, LeftLen);
+	memcpy(RStr.Inner, InnerPt + RightOfChN + 1, RightLen);
 }
 
-TStrPr TStr::SplitOnCh(const char& SplitCh) const {
+void TStr::SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const {
+	SplitLeftOfRightOf(LStr, ChN, ChN, RStr);
+}
+
+void TStr::SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
+	LStr.Clr();
+	RStr.Clr();
+
 	// check if the string is empty
-	if (Inner == NULL) { return TStrPr(); }
+	if (Empty()) { return; }
+
+	const char* InnerPt = CStr();
 
 	// find the pointer to the delimiter
-	const char* ChPtr = strchr(Inner, SplitCh);
+	const char* ChPtr = strchr(InnerPt, SplitCh);
 
 	// if the character was not found than return this in the left string
-	if (ChPtr == NULL) { return TStrPr(*this, TStr()); }
+	if (ChPtr == NULL) {
+		LStr = *this;
+		return;
+	}
 
 	// split
-	return SplitOnChN(ChPtr - Inner);
+	SplitOnChN(LStr, ChPtr - InnerPt, RStr);
 }
 
-TStrPr TStr::SplitOnLastCh(const char& SplitCh) const {
+void TStr::SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const {
+	LStr.Clr();
+	RStr.Clr();
+
 	// check if the string is empty
-	if (Inner == NULL) { return TStrPr(); }
+	if (Empty()) { return; }
+
+	const char* InnerPt = CStr();
+
+	const char* MatchPt = strstr(InnerPt, SplitStr.Inner);
+
+	if (MatchPt == NULL) {
+		LStr = *this;
+		return;
+	}
+
+	const int MatchIdx = MatchPt - InnerPt;
+
+	SplitLeftOfRightOf(LStr, MatchIdx, MatchIdx + SplitStr.Len() - 1, RStr);
+}
+
+void TStr::SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
+	LStr.Clr();
+	RStr.Clr();
+	// check if the string is empty
+	if (Empty()) { return; }
+
+	const char* InnerPt = CStr();
 
 	// find the pointer to the delimiter
-	const char* ChPtr = strrchr(Inner, SplitCh);
+	const char* ChPtr = strrchr(InnerPt, SplitCh);
 
 	// if the character was not found than return this in the right string
-	if (ChPtr == NULL) { return TStrPr(TStr(), *this); }
+	if (ChPtr == NULL) {
+		RStr = *this;
+		return;
+	}
 
-	return SplitOnChN(ChPtr - Inner);
+	// split
+	SplitOnChN(LStr, ChPtr - InnerPt, RStr);
 }
 
 void TStr::SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty) const {
@@ -1227,16 +1279,6 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
   // add last string
   TStr LastSubStr=GetSubStr(PrevChN, Len()-1);
   StrV.Add(LastSubStr);
-}
-
-void TStr::SplitOnStr(TStr& LeftStr, const TStr& MidStr, TStr& RightStr) const {
-  const int ChN=SearchStr(MidStr);
-  if (ChN==-1){
-    LeftStr=*this; RightStr=TStr();
-  } else {
-    LeftStr=GetSubStr(0, ChN-1);
-    RightStr=GetSubStr(ChN+MidStr.Len(), Len()-1);
-  }
 }
 
 int TStr::CountCh(const char& Ch, const unsigned int& BChN) const {
@@ -1366,22 +1408,23 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 }
 
 TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
-	if (Inner == NULL || SrcStr.Empty()) { return *this; }
+	if (Empty() || SrcStr.Empty()) { return *this; }
 
 	const int Length = Len();
 	const int SrcLen = SrcStr.Len();
 	const int DstLen = DstStr.Len();
 
+	const char* InnerPt = CStr();
 	const char* DstCStr = DstStr.CStr();
 
 	// find how many times SrcStr appears in this string
-	char* CurrPos = Inner;
-	char* NextHit;
+	const char* CurrPos = Inner;
+	const char* NextHit;
 
 	int NMatches = 0;
 	while ((NextHit = strstr(CurrPos, DstCStr)) != NULL) {
 		NMatches++;
-		CurrPos = NextHit + 1;
+		CurrPos = NextHit + SrcLen;
 	}
 
 	// create a new string
@@ -1395,10 +1438,10 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 
 	// find next hit, copy everything between the current position and the hit,
 	// then copy the dest string
-	while ((NextHit = strstr(Inner + i, DstCStr)) != NULL) {
-		SeqLen = NextHit - (Inner + i);
+	while ((NextHit = strstr(InnerPt + i, DstCStr)) != NULL) {
+		SeqLen = NextHit - (InnerPt + i);
 		// copy the chars in between the hits
-		memcpy(ResStr + j, Inner + i, SeqLen);
+		memcpy(ResStr + j, InnerPt + i, SeqLen);
 
 		// increase positions
 		i += SeqLen;
@@ -1412,8 +1455,8 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 		j += DstLen;
 	}
 
-	// we need to copy what is after the last match
-	memcpy(ResStr + j, Inner + i, SrcLen - i);
+	// copy what is after the last match
+	memcpy(ResStr + j, InnerPt + i, SrcLen - i);
 
 	// finish the result string
 	ResStr[Length + NMatches*(DstLen - SrcLen)] = 0;
