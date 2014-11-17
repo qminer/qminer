@@ -390,20 +390,23 @@ exports.rocScore = function () {
 		var perm = this.predictions.sortPerm(false);
 		// maintaining the results as we go along
 		var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
-        var minDiff = 1.0, bep = 0.0;
+        var minDiff = 1.0, bep = -1.0;
 		// go over the sorted results
 		for (var i = 0; i < perm.perm.length; i++) {
 			// get the ground
 			var ground = this.grounds[perm.perm[i]];
 			// update TP/FP counts according to the ground
 			if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
-			// compute current precision and recall
-			var precision = (FP === 0) ? 1 : (TP / (TP + FP));
-            var recall = TP / (TP + FN);
-            // see if we need to update current bep
-            var diff = Math.abs(precision - recall);
-            if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
-		}        
+            // do the update
+            if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+                // compute current precision and recall
+                var precision = TP / (TP + FP);
+                var recall = TP / (TP + FN);
+                // see if we need to update current bep
+                var diff = Math.abs(precision - recall);
+                if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+            }
+        }        
         return bep;
     }
 	    
