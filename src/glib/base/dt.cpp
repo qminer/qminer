@@ -1360,8 +1360,7 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, int& BChN) const {
 		if (OldLen > 0) {
 			strncpy(Res + ChN, DstStr.CStr(), DstLen);
 		}
-		Res[Len] = 0;
-		BChN = ChN;
+		Res[Len] = 0;		
 		return TStr(Res, true);
 	}
 }
