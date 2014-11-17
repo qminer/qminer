@@ -564,7 +564,9 @@ public:
   /// Memory used by this String object
   int GetMemUsed() const { return int(sizeof(char*) + sizeof(char) * (1 + strlen(Inner))); }
   // Get the Inner C-String
-  const char* CStr() const {return Inner == NULL ? &EmptyStr : Inner;}
+  const char* CStr() const { return Inner == NULL ? &EmptyStr : Inner; }
+  // Get the Inner C-String
+  const char* operator()() const { return CStr(); }
   // Return a COPY of the string as a C String (char array)
   char* CloneCStr() const;
   /// Get character at position ChN
@@ -867,10 +869,7 @@ public:
    */
 private:
   // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
-  TStr(char *Ch, const bool Own) {
-	  if(!Own) { TStr(Ch); } // guard against misuse
-	  Inner = Ch; // straight up pointer assignment
-  }
+  TStr(char *Ch, const bool Own);
 
   void Clr() { if (Inner != NULL) { delete[] Inner; Inner = NULL; } }
 };
