@@ -570,6 +570,8 @@ public:
   int Len() const { return (Inner != NULL) ? strlen(Inner) : 0;}
   /// Check if this is an empty string
   bool Empty() const { return Len() == 0;}
+  /// returns a reference to this string (used for templating)
+  const TStr& GetStr() const { return *this; }
 
   /*
    * Case related methods

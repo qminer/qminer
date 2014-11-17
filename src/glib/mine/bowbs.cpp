@@ -250,7 +250,8 @@ TStr TBowSpV::GetStr(const PBowDocBs& BowDocBs,
   for (int WordN=0; WordN<WordStrWgtPrV.Len(); WordN++){
     TStr WordStr=WordStrWgtPrV[WordN].Val1;
     if (!KeepUndelineP){
-      WordStr.ChangeChAll('_', ' ');}
+		WordStr = WordStr.ChangeChAll('_', ' ');
+	}
     double WordWgt=WordStrWgtPrV[WordN].Val2;
 	if (!ShowWeightsP) WordStr = WordStr.GetLc();
     if (!ChA.Empty()){ChA+=SepStr;}

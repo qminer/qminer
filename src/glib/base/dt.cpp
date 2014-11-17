@@ -1868,8 +1868,8 @@ TStr TStr::GetNrAbsFPath(const TStr& FPath, const TStr& BaseFPath){
   } else {
     NrAbsFPath=GetNrFPath(NrBaseFPath+NrFPath);
   }
-  NrAbsFPath.ChangeStrAll("/./", "/");
-  NrAbsFPath.ChangeStrAll("\\.\\", "\\");
+  NrAbsFPath = NrAbsFPath.ChangeStrAll("/./", "/");
+  NrAbsFPath = NrAbsFPath.ChangeStrAll("\\.\\", "\\");
   return NrAbsFPath;
 }
 
