@@ -1160,20 +1160,18 @@ void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& Right
 	const int LeftLen = LeftOfChN;
 	const int RightLen = Len() - RightOfChN;
 
-	// create char arrays for the left and right side
-	LStr.Inner = new char[LeftLen + 1];
-	RStr.Inner = new char[RightLen + 1];
-
-	// insert null characters
-	LStr.Inner[LeftLen] = 0;
-	RStr.Inner[RightLen] = 0;
-
-	memcpy(LStr.Inner, InnerPt, LeftLen);
-	memcpy(RStr.Inner, InnerPt + RightOfChN + 1, RightLen);
-
-	// if any of the strings are empty, clear them
-	if (LStr.Empty()) { LStr.Clr(); }
-	if (RStr.Empty()) { RStr.Clr(); }
+	// copy into left and right
+	// if the length of any of the strings is 0 than leave it empty
+	if (LeftLen > 0) {
+		LStr.Inner = new char[LeftLen + 1];
+		memcpy(LStr.Inner, InnerPt, LeftLen);
+		LStr.Inner[LeftLen] = 0;
+	}
+	if (RightLen > 0) {
+		RStr.Inner = new char[RightLen + 1];
+		memcpy(RStr.Inner, InnerPt + RightOfChN + 1, RightLen);
+		RStr.Inner[RightLen] = 0;
+	}
 }
 
 void TStr::SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const {
@@ -1473,8 +1471,8 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 	const int DstLen = DstStr.Len();
 
 	const char* InnerPt = CStr();
-	const char* DstCStr = DstStr.CStr();
 	const char* SrcCStr = SrcStr.CStr();
+	const char* DstCStr = DstStr.CStr();
 
 	// find how many times SrcStr appears in this string
 	const char* CurrPos = Inner;
