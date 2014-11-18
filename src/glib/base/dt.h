@@ -529,6 +529,8 @@ public:
 
   /// Assigment operator TStr = TStr
   TStr& operator=(const TStr& Str);
+  /// Move assigment operator TStr = TStr
+  TStr& operator=(TStr&& Str);
   /// Assigment operator TStr = TChA
   TStr& operator=(const TChA& ChA);
   /// Assigment operator TStr = char* (C-String)

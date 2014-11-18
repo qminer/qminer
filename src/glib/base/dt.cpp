@@ -875,6 +875,14 @@ TStr& TStr::operator=(const TStr& Str) {
     return *this;
 }
 
+TStr& TStr::operator=(TStr&& Str) {
+	if (this != &Str) {
+		std::swap(Inner, Str.Inner);
+		Str.Clr();
+	}
+    return *this;
+}
+
 TStr& TStr::operator=(const TChA& ChA) {
 	Clr();
 
