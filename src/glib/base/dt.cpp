@@ -819,11 +819,13 @@ TStr::TStr(const TSStr& SStr): Inner(NULL) {
 	}
 }
   
-TStr::TStr(const PSIn& SIn) { 
-    int SInLen = SIn->Len();
-    Inner = new char[SInLen + 1];
-    SIn->GetBf(Inner, SInLen);
-	Inner[SInLen] = 0;
+TStr::TStr(const PSIn& SIn): Inner(NULL) { 
+	int SInLen = SIn->Len();
+	if (SInLen > 0) {
+		Inner = new char[SInLen + 1];
+		SIn->GetBf(Inner, SInLen);
+		Inner[SInLen] = 0;
+	}
 }
 
 TStr::TStr(TSIn& SIn, const bool& IsSmall) {
@@ -2026,7 +2028,7 @@ TStr::TStr(char *Ch, const bool Own): Inner(NULL) {
 	if (!Own) { *this = TStr(Ch); } // guard against misuse
 	else {
 		Inner = Ch;
-		if (Empty()) {
+		if (Inner != NULL && Inner[0] == 0) {
 			Clr();
 		}
 	}	
