@@ -1158,6 +1158,7 @@ void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& Right
 	const int LeftLen = LeftOfChN;
 	const int RightLen = Len() - RightOfChN;
 
+	// copy into left and right
 	// if the length of any of the strings is 0 than leave it empty
 	if (LeftLen > 0) {
 		LStr.Inner = new char[LeftLen + 1];
