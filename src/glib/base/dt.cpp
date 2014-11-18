@@ -1467,8 +1467,8 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 	const int DstLen = DstStr.Len();
 
 	const char* InnerPt = CStr();
-	const char* DstCStr = DstStr.CStr();
 	const char* SrcCStr = SrcStr.CStr();
+	const char* DstCStr = DstStr.CStr();
 
 	// find how many times SrcStr appears in this string
 	const char* CurrPos = Inner;
