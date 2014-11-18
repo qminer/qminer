@@ -805,7 +805,8 @@ TStr::TStr(const TChA& ChA): Inner(NULL) {
 
 TStr::TStr(const TMem& Mem): Inner(NULL) {
     if (!Mem.Empty()) {
-		int Len = Mem.Len();
+		const int Len = Mem.Len();
+
         Inner = new char[Len + 1];
         memcpy(Inner, Mem(), Len);
 		Inner[Len] = 0;
@@ -820,7 +821,7 @@ TStr::TStr(const TSStr& SStr): Inner(NULL) {
 }
   
 TStr::TStr(const PSIn& SIn): Inner(NULL) { 
-	int SInLen = SIn->Len();
+	const int SInLen = SIn->Len();
 	if (SInLen > 0) {
 		Inner = new char[SInLen + 1];
 		SIn->GetBf(Inner, SInLen);
