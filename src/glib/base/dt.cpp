@@ -1168,6 +1168,10 @@ void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& Right
 
 	memcpy(LStr.Inner, InnerPt, LeftLen);
 	memcpy(RStr.Inner, InnerPt + RightOfChN + 1, RightLen);
+
+	// if any of the strings are empty, clear them
+	if (LStr.Empty()) { LStr.Clr(); }
+	if (RStr.Empty()) { RStr.Clr(); }
 }
 
 void TStr::SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const {
@@ -2021,8 +2025,13 @@ TStr operator +(const TStr& LStr, const TStr& RStr) {
 }
 
 TStr::TStr(char *Ch, const bool Own): Inner(NULL) {
-	if (!Own) { TStr(Ch); } // guard against misuse
-	if (strlen(Ch) > 0) { Inner = Ch; }
+	if (!Own) { *this = TStr(Ch); } // guard against misuse
+	else {
+		Inner = Ch;
+		if (Empty()) {
+			Clr();
+		}
+	}	
 }
 
 /////////////////////////////////////////////////
