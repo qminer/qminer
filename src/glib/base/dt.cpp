@@ -829,12 +829,19 @@ TStr::TStr(const PSIn& SIn): Inner(NULL) {
 	}
 }
 
-TStr::TStr(TSIn& SIn, const bool& IsSmall) {
-    if (IsSmall){ 
-        SIn.Load(Inner); 
-    } else { 
-        int BfL; SIn.Load(BfL); SIn.Load(Inner, BfL, BfL); 
-    }
+TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(NULL) {
+	if (IsSmall) {
+		if (SIn.PeekCh() == 0) { EAssert(SIn.GetCh() == 0); }
+		else {
+			SIn.Load(Inner);
+		}
+	} else {
+		int BfL;	SIn.Load(BfL);
+		if (BfL == 0) { EAssert(SIn.GetCh() == 0); }
+		else {
+			SIn.Load(Inner, BfL, BfL);
+		}
+	}
 }
 
 void TStr::Load(TSIn& SIn, const bool& IsSmall) {
@@ -861,7 +868,7 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 TStr& TStr::operator=(const TStr& Str) {
 	Clr();
 
-	if (!Str.Empty()) {		
+	if (!Str.Empty()) {
 		Inner = Str.CloneCStr();		
 	}
 
