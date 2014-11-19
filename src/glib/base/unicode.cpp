@@ -769,7 +769,7 @@ void TUniChDb::TestComposition(const TStr& basePath)
 	{
 		nLines += 1;
 		if (fields.Len() == 1) {
-			IAssert(fields[0].IsPrefix("@Part"));
+			IAssert(fields[0].StartsWith("@Part"));
 			inPart1 = (fields[0] == "@Part1"); continue; }
 		IAssert(fields.Len() == 6);
 		IAssert(fields[5].Len() == 0);

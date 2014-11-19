@@ -527,6 +527,35 @@ public:
   /// Serialize to XML File
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
+  /*
+   *
+   * Be careful when using assignment operators outside of function scopes
+   * in multithreaded environments as they are not thread safe.
+   *
+   * Consider the following example:
+   *
+   * class T {
+   * 	TStr a;
+   * 	void InfiniteAppend() {
+   * 		while (true) a = a + "abcde";
+   * 	}
+   * 	TStr SomeCpyOp() {
+   * 		TStr LStr, RStr;
+   * 		return a.SplitOnAllCh(LStr, 'a', RStr);
+   * 	}
+   * }
+   *
+   * Thread A:
+   * T.InfiniteAppend();
+   *
+   * Thread B:
+   * T.SomeCpyOp();
+   *
+   *
+   * The result in LStr is in this case undefined and calling SplitOnAllCh can
+   * even lead to accessing invalid memory.
+   *
+   */
   /// Assigment operator TStr = TStr
   TStr& operator=(const TStr& Str);
   /// Move assigment operator TStr = TStr
@@ -537,14 +566,6 @@ public:
   TStr& operator=(const char* CStr);
   /// Assigment operator TStr = char
   TStr& operator=(const char& Ch);
-
-  /*
-   * Concatenation Assignment Operator +=
-   */
-  /// Concatenates and assigns
-  TStr operator+=(const TStr& Str) const { return *this + Str; } ;
-  /// Concatenates and assigns
-  TStr operator+=(const char* CStr) const { return *this + CStr; } ;
 
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
@@ -688,15 +709,15 @@ public:
   /// Returns true if (sub)string occurs in string
   bool IsStrIn(const TStr& Str) const {return SearchStr(Str)!=-1;}
   /// Returns true if this string starts with the prefix c-string
-  bool IsPrefix(const char *Str) const;
+  bool StartsWith(const char *Str) const;
   /// Returns true if this string starts with the prefix string
-  bool IsPrefix(const TStr& Str) const {
-    return IsPrefix(Str.CStr());}
+  bool StartsWith(const TStr& Str) const {
+    return StartsWith(Str.CStr());}
   /// Returns true if this string ends with the sufix c-string
-  bool IsSuffix(const char *Str) const;
+  bool EndsWith(const char *Str) const;
   /// Returns true if this string ends with the sufix string
-  bool IsSuffix(const TStr& Str) const {
-    return IsSuffix(Str.CStr());}
+  bool EndsWith(const TStr& Str) const {
+    return EndsWith(Str.CStr());}
 
   /*
    * Change chars & Substrings

@@ -204,7 +204,7 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   EAssertR(IsAbs(BaseUrlStr), "");
   TStr AbsUrlStr=BaseUrlStr;
   TStr NrRelUrlStr=RelUrlStr;
-  if (NrRelUrlStr.GetLc().IsPrefix(UrlHttpPrefixStr)){
+  if (NrRelUrlStr.GetLc().StartsWith(UrlHttpPrefixStr)){
     NrRelUrlStr.DelSubStr(0, UrlHttpPrefixStr.Len()-1);}
   if (NrRelUrlStr.Len()>0){
     if (NrRelUrlStr[0]=='/'){
@@ -351,8 +351,8 @@ void TUrl::ToLcPath(){
 }
 
 bool TUrl::IsAbs(const TStr& UrlStr){
-  if (UrlStr.GetLc().IsPrefix(UrlHttpPrefixStr)){
-    return UrlStr.GetLc().IsPrefix(UrlHttpAbsPrefixStr);
+  if (UrlStr.GetLc().StartsWith(UrlHttpPrefixStr)){
+    return UrlStr.GetLc().StartsWith(UrlHttpAbsPrefixStr);
   } else {
     int ColonChN=UrlStr.SearchCh(':'); int SlashChN=UrlStr.SearchCh('/');
     return (ColonChN!=-1)&&((SlashChN==-1)||((SlashChN!=-1)&&(ColonChN<SlashChN)));
