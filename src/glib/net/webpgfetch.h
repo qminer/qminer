@@ -35,11 +35,11 @@ private:
   void OpenConn(const int& FId, const PUrl& Url);
   void CloseConn(const int& FId);
   void ConnUrl(const int& FId = -1, const PUrl& Url = NULL, const bool& QueueAtEnd = true);
-  void DisconnUrl(const int& FId);
   UndefCopyAssign(TWebPgFetch);
 protected:
   TIdUrlPrL WaitFIdUrlPrL;
   THash<TInt, PSockEvent> ConnFIdToEventH;
+  void DisconnUrl(const int& FId);
 public:
   TWebPgFetch():
     TimeOutMSecs(30*1000), MxConns(-1), MxContLen(-1), MxRetries(1), LastFId(0),
@@ -198,7 +198,7 @@ public:
 
 // if RepeatFailedRequests == true then the failed requests will be again requeued
 // useful for calling web services that often timeout
-
+// 
 ClassTPE(TWebPgFetchPersist, PWebPgFetchPersist, TWebPgFetch)//{
 protected:
 	TInt SuccessCount;
