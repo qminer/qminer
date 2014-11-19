@@ -32,7 +32,7 @@ TEnv::TEnv(const TStr& _ArgStr, const PNotify& _Notify):
 
 TStr TEnv::GetExeFNm() const {
   TStr ExeFNm=GetArg(0);
-  if (ExeFNm.IsPrefix("//?")){ // observed on Win64 CGI
+  if (ExeFNm.StartsWith("//?")){ // observed on Win64 CGI
     ExeFNm=ExeFNm.GetSubStr(3, ExeFNm.Len());
   }
   return ExeFNm;
