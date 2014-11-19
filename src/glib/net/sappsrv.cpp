@@ -311,17 +311,9 @@ void TSAppSrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq) {
 			TExcept::Throw("Unknown function '" + FunNm + "'!");
 		}
         // extract parameters
-        TStrKdV FldNmValPrV;
         PUrlEnv HttpRqUrlEnv = HttpRq->GetUrlEnv();
-        const int Keys = HttpRqUrlEnv->GetKeys();
-        for (int KeyN = 0; KeyN < Keys; KeyN++) {
-            TStr KeyNm = HttpRqUrlEnv->GetKeyNm(KeyN);
-            const int Vals = HttpRqUrlEnv->GetVals(KeyN);
-            for (int ValN = 0; ValN < Vals; ValN++) {
-                TStr Val = HttpRqUrlEnv->GetVal(KeyN, ValN);
-                FldNmValPrV.Add(TStrKd(KeyNm, Val));
-            }
-        }
+		TStrKdV FldNmValPrV; HttpRqUrlEnv->GetKeyValPrV(FldNmValPrV);
+        
 		// report call
 		if (ShowParamP) {  GetNotify()->OnStatus(" " + HttpRq->GetUrl()->GetUrlStr()); }
 		// request parsed well, from now on it's internal error
@@ -389,6 +381,11 @@ TReplaySrv::TReplaySrv(const int& PortN, const TSAppSrvFunV& SrvFunV, const PNot
 {
 }
 
+TReplaySrv::~TReplaySrv()
+{
+	StopLogging();
+}
+
 // open the log file and replay all the requests that we can find in it
 bool TReplaySrv::ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify)
 {
@@ -401,10 +398,12 @@ bool TReplaySrv::ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify)
 				ReplayHttpRq(HttpRq);
 			}
 			catch (PExcept E) {
-				ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. Exception while loading next request: %s", E->GetMsgStr().CStr());
+				if (!ErrorNotify.Empty())
+					ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. Exception while loading next request: %s", E->GetMsgStr().CStr());
 			}
 			catch (...) {
-				ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. General exception while loading next request.");
+				if (!ErrorNotify.Empty())
+					ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. General exception while loading next request.");
 			}
 		}
 		return true;
@@ -442,14 +441,12 @@ void TReplaySrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq)
 	if (!SOut.Empty()) {
 		PUrl HttpRqUrl = HttpRq->GetUrl();
 		TStr FunNm = HttpRqUrl->GetPathSeg(0);
-		if (FunNm == "favicon.ico")
-			return;
-		if (LoggingFunNmH.Len() > 0 && !LoggingFunNmH.IsKey(FunNm))
-			return;
-		HttpReqSerInfo ReqInfo(HttpRq);
-		ReqInfo.Save(*SOut);
-		if (FlushEachRequest)
-			SOut->Flush();
+		if (LoggingFunNmH.IsKey(FunNm)) {
+			HttpReqSerInfo ReqInfo(HttpRq);
+			ReqInfo.Save(*SOut);
+			if (FlushEachRequest)
+				SOut->Flush();
+		}
 	}
 
 	// only after we've logged the request we also execute it - otherwise we could process the request and crash before saving the data

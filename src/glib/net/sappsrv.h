@@ -185,6 +185,7 @@ public:
 		const bool& ShowParamP = false, const bool& ListFunP = true) {
 		return new TReplaySrv(PortN, SrvFunV, Notify, ShowParamP, ListFunP);
 	}
+	~TReplaySrv();
 
 	// which functions should be logged - if empty, log all functions
 	void AddLoggingFunNm(const TStr& FunNm) { LoggingFunNmH.AddKey(FunNm); }
