@@ -185,6 +185,7 @@ public:
 
   // full-url-string
   TStr GetFullUrlStr() const;
+  void GetKeyValPrV(TStrKdV& FldNmValPrV) const;
 
   static PUrlEnv MkClone(const PUrlEnv& UrlEnv);
 };

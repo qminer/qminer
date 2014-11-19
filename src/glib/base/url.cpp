@@ -295,28 +295,41 @@ TUrl::TUrl(TSIn& SIn) :
   FinalUrlStr(), FinalHostNm(),
   HttpRqStr()
 {
-  RelUrlStr = TStr(SIn);
-  BaseUrlStr = TStr(SIn);
+	bool IsHttpRq = TBool(SIn);
+	if (IsHttpRq) {
+		HttpRqStr = TStr(SIn);
+	}
+	else {
+	  RelUrlStr = TStr(SIn);
+	  BaseUrlStr = TStr(SIn);
 
-  RelUrlStr.ToTrunc();
-  RelUrlStr.ChangeStrAll(" ", "%20");
-  try {
-    if (IsAbs(RelUrlStr)){
-      GetAbs(RelUrlStr);
-    } else
-    if (IsAbs(BaseUrlStr)){
-      GetAbsFromBase(RelUrlStr, BaseUrlStr);
-    } else {
-      Scheme=usUndef;
-    }
-  }
-  catch (PExcept&){Scheme=usUndef;}
+	  RelUrlStr.ToTrunc();
+	  RelUrlStr.ChangeStrAll(" ", "%20");
+	  try {
+		if (IsAbs(RelUrlStr)){
+		  GetAbs(RelUrlStr);
+		} else
+		if (IsAbs(BaseUrlStr)){
+		  GetAbsFromBase(RelUrlStr, BaseUrlStr);
+		} else {
+		  Scheme=usUndef;
+		}
+	  }
+	  catch (PExcept&){Scheme=usUndef;}
+	}
 }
 
 void TUrl::Save(TSOut& SOut)
 {
-	RelUrlStr.Save(SOut);
-	BaseUrlStr.Save(SOut);
+	TBool IsHttpRq = IsHttpRqStr();
+	IsHttpRq.Save(SOut);
+	if (IsHttpRq) {
+		HttpRqStr.Save(SOut);
+	}
+	else {
+		RelUrlStr.Save(SOut);
+		BaseUrlStr.Save(SOut);
+	}
 }
 
 TStr TUrl::GetDmNm(const int& MxDmSegs) const {
@@ -521,3 +534,16 @@ PUrlEnv TUrlEnv::MkClone(const PUrlEnv& UrlEnv){
   return CloneUrlEnv;
 }
 
+void TUrlEnv::GetKeyValPrV(TStrKdV& FldNmValPrV) const
+{
+	FldNmValPrV.Clr();
+	const int Keys = GetKeys();
+	for (int KeyN = 0; KeyN < Keys; KeyN++) {
+		TStr KeyNm = GetKeyNm(KeyN);
+		const int Vals = GetVals(KeyN);
+		for (int ValN = 0; ValN < Vals; ValN++) {
+			TStr Val = GetVal(KeyN, ValN);
+			FldNmValPrV.Add(TStrKd(KeyNm, Val));
+		}
+	}
+}
