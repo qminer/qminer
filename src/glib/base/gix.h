@@ -25,7 +25,6 @@
 /////////////////////////////////////////////////
 // Forward-declarations
 template <class TKey, class TItem> class TGix;
-template <class TKey, class TItem> class TGixStorageLayer;
 
 /////////////////////////////////////////////////
 // General-Inverted-Index-Merger
@@ -148,7 +147,7 @@ private:
 
 	/// The key of this itemset
 	TKey ItemSetKey;
-	/// "Working buffer" of items of this itemset - could be only part of them, other can be stored in child vectors
+	/// "Working buffer" of items of this itemset - could be only part of them, others can be stored in child vectors
 	TVec<TItem> ItemV;
 	/// List of indeces with "deleted" items
 	TVec<int> ItemVDel;
@@ -165,19 +164,19 @@ private:
 	TBool MergedP;
 	// pointer to merger that will merge this itemset
 	const PGixMerger Merger;
-	// pointer to gix - the storage-layer (serialization of self, loading children, notifying about chnages...)
+	// pointer to gix - as the storage-layer (serialization of self, loading children, notifying about changes...)
 	const TGix<TKey, TItem> *Gix;
 
 
 	/// Load single child vector into memory if not present already
 	void LoadChildVector(int i) const {
-		//if (Children[i].Len != ChildrenData[i].Len()) {
 		if (!Children[i].Loaded) {
 			Gix->GetChildVector(Children[i].Pt, ChildrenData[i]);
 			Children[i].Loaded = true;
 			Children[i].Dirty = false;
 		}
 	}
+
 	/// Load all child vectors into memory and get pointers to them
 	void LoadChildVectors() const {
 		for (int i = 0; i < Children.Len(); i++) {
@@ -237,7 +236,7 @@ public:
 		return new TGixItemSet(SIn, Merger, Gix);
 	}
 	/// Saves this itemset to output stream
-	void Save(TSOut& SOut);
+	void Save(TMOut& SOut);
 
 	// functions used by TCache
 	int GetMemUsed() const {
@@ -325,7 +324,7 @@ const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 }
 
 template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
+void TGixItemSet<TKey, TItem>::Save(TMOut& SOut) {
 
 	// make sure all is merged before saving
 	Def();
@@ -338,7 +337,7 @@ void TGixItemSet<TKey, TItem>::Save(TSOut& SOut) {
 	}
 	// save item key and set
 	ItemSetKey.Save(SOut);
-	ItemV.Save(SOut);
+	ItemV.SaveMemCpy(SOut);
 	Children.Save(SOut);
 }
 
@@ -355,9 +354,9 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	// push work-buffer into children array
 	TGixItemSetChildInfo child_info(ItemV[0], ItemV.Last(), ItemV.Len(), Gix->EnlistChildVector(ItemV), MergedP);
 	Children.Add(child_info);
-	ChildrenData.Add(TVec<TItem>()); // TODO here we add empty child, should we add the existing contents? it has just been saved to disk...
-	child_info.Loaded = false;       // see above
-	child_info.Dirty = false;        // see above
+	ChildrenData.Add(TVec<TItem>());
+	child_info.Loaded = false;
+	child_info.Dirty = false;
 	ItemV.Clr();
 }
 
@@ -417,10 +416,10 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 		// collect data from child itemsets
 		LoadChildVectors();
 		for (int i = 0; i < Children.Len(); i++) {
-			_ItemV.AddV(ChildrenData[i]);
+			_ItemV.AddVMemCpy(ChildrenData[i]);
 		}
 	}
-	_ItemV.AddV(ItemV);
+	_ItemV.AddVMemCpy(ItemV);
 }
 
 template <class TKey, class TItem>
@@ -591,7 +590,6 @@ class TGix {
 private:
 	TCRef CRef;
 	typedef TPt<TGix<TKey, TItem> > PGix;
-	//typedef TPt<TGixStorageLayer<TKey, TItem> > PGixStorageLayer;
 	typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
 	typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
 	typedef TGixDefMerger<TKey, TItem> _TGixDefMerger;
@@ -771,7 +769,6 @@ TGix<TKey, TItem>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Acce
 		// load ItemSets from GixBlobFNm
 		ItemSetBlobBs = TMBlobBs::New(GixBlobFNm, Access);
 	}
-	//GixSL = TGixStorageLayer<TKey, TItem>::New(GixBlobFNm, Access, 1000000, Merger);
 
 	CacheResetThreshold = int64(0.1 * double(CacheSize));
 	NewCacheSizeInc = 0;
@@ -828,7 +825,6 @@ TBlobPt TGix<TKey, TItem>::EnlistItemSet(const PGixItemSet& ItemSet) const {
 	TMOut MOut;
 	ItemSet->Save(MOut);
 	TBlobPt res = ItemSetBlobBs->PutBlob(MOut.GetSIn());
-	//printf("enlisted new itemset to storage: %d %d \n", res.Addr, res.Seg);
 	return res;
 }
 
@@ -924,7 +920,7 @@ TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const 
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
-	Data.Save(MOut);
+	Data.SaveMemCpy(MOut);
 	return ItemSetBlobBs->PutBlob(ExistingKeyId, MOut.GetSIn());
 }
 

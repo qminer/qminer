@@ -478,8 +478,16 @@ public:
     MxVals(-1), Vals(_Vals), ValT(_ValT){}
   ~TVec(){if ((ValT!=NULL) && (MxVals!=-1)){delete[] ValT;}}
   explicit TVec(TSIn& SIn): MxVals(0), Vals(0), ValT(NULL){Load(SIn);}
+  // For fast deserialization
+  explicit TVec(TMIn& MemIn) : MxVals(0), Vals(0), ValT(NULL) { LoadMemCpy(MemIn); }
+
   void Load(TSIn& SIn);
-  void Save(TSOut& SOut) const;
+  // optimized deserialization from stream, uses memcpy
+  void LoadMemCpy(TMIn& SIn);
+  void Save(TSOut& SOut) const;  
+  // optimized serialization to stream, uses memcpy
+  void SaveMemCpy(TMOut& SOut) const;
+
   /// Sends the vector contents via a socket \c fd.
   int Send(int sd);
   /// Writes \c nbytes bytes starting at \c ptr to a file/socket descriptor \c fd.
@@ -583,6 +591,8 @@ public:
     if (Vals==MxVals){Resize(MxVals+ResizeLen);} ValT[Vals]=Val; return Vals++;}
   /// Adds the elements of the vector \c ValV to the to end of the vector.
   TSizeTy AddV(const TVec<TVal, TSizeTy>& ValV);
+  /// Adds the elements of the vector \c ValV to the to end of the vector using memcpy.
+  TSizeTy AddVMemCpy(const TVec<TVal, TSizeTy>& ValV);
   /// Adds element \c Val to a sorted vector. ##TVec::AddSorted
   TSizeTy AddSorted(const TVal& Val, const bool& Asc=true, const TSizeTy& _MxVals=-1);
   /// Adds element \c Val to a sorted vector. ##TVec::AddBackSorted
@@ -773,6 +783,39 @@ public:
   static TVec<TVal, TSizeTy> GetV(const TVal& Val1, const TVal& Val2, const TVal& Val3, const TVal& Val4, const TVal& Val5, const TVal& Val6, const TVal& Val7, const TVal& Val8, const TVal& Val9){
     TVec<TVal, TSizeTy> V(9, 0); V.Add(Val1); V.Add(Val2); V.Add(Val3); V.Add(Val4); V.Add(Val5); V.Add(Val6); V.Add(Val7); V.Add(Val8); V.Add(Val9); return V;}
 };
+
+// add new vector of data to current vector, use memcpy for performance
+template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::AddVMemCpy(const TVec<TVal, TSizeTy>& ValV) {
+	if (ValV.Len() == 0)
+		return 0;
+	Resize(Vals + ValV.Len());
+	memcpy(ValT + Vals, ValV.ValT, ValV.Len());
+	return ValV.Len();
+}
+
+// optimized deserialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::LoadMemCpy(TMIn& SIn) {
+	if ((ValT != NULL) && (MxVals != -1)) { delete[] ValT; }
+	SIn.Load(MxVals);
+	SIn.Load(Vals);
+	MxVals = Vals;
+	if (MxVals == 0) {
+		ValT = NULL;
+	} else {
+		ValT = new TVal[MxVals];
+		SIn.GetBfMemCpy(ValT, Vals);
+	}
+}
+// optimized serialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::SaveMemCpy(TMOut& SOut) const {
+	SOut.Save(MxVals);
+	SOut.Save(Vals);
+	if (MxVals > 0)
+		SOut.AppendBf(ValT, Vals*sizeof(TVal));
+}
 
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){

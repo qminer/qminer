@@ -13,8 +13,6 @@
 typedef  TGixDefMerger < TIntUInt64Pr, TUInt64 > TMyMerger;
 typedef TPt<TGixMerger<TIntUInt64Pr, TUInt64> > PGixMerger;
 
-typedef  TGixStorageLayer < TIntUInt64Pr, TUInt64 > TMyStorageLayer;
-
 typedef  TGixItemSet < TIntUInt64Pr, TUInt64 > TMyItemSet;
 typedef  TPt < TMyItemSet > PMyItemSet;
 
