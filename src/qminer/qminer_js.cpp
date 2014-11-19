@@ -4064,6 +4064,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, newSpMat);
 		JsRegisterFunction(TmpTemp, svd);
 		JsRegisterFunction(TmpTemp, qr);
+		JsRegisterFunction(TmpTemp, mean);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4385,6 +4386,34 @@ v8::Handle<v8::Value> TJsLinAlg::qr(const v8::Arguments& Args) {
 	JsObj->Set(v8::Handle<v8::String>(v8::String::New("Q")), TJsFltVV::New(JsLinAlg->Js, Q));
 	JsObj->Set(v8::Handle<v8::String>(v8::String::New("R")), TJsFltVV::New(JsLinAlg->Js, R));
 	return HandleScope.Close(JsObj);
+
+}
+
+v8::Handle<v8::Value> TJsLinAlg::mean(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	// Dim parameter
+	double Dim = TJsLinAlgUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
+
+	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
+		// If input argument is vec
+		TFlt Mean;
+		TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+		TLAMisc::Mean(JsVec->Vec, Mean);		
+		return HandleScope.Close(v8::Number::New(Mean)); // Is this ok?
+	}
+	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+		// If input argument is matrix
+		TFltV Vec;
+		TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+		TLAMisc::Mean(JsMat->Mat, Vec, Dim);
+		return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Vec));
+	}
+	// TODO: Can I use some Assert here, to warn if argument is not TFltV or TFltVV
+	QmAssertR((TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) || (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")), 
+		"Error in  TJsLinAlg::mean: Invalid type of first argument.");
+	// TODO: Or is this better?
+	//return HandleScope.Close(v8::Undefined());	// Is this ok?
 }
 
 ///////////////////////////////

@@ -440,22 +440,22 @@ la.loadIntVec = function(fin) {
 //# - `vec = la.mean(vec)` - returns `vec` containing the mean of vec `input`.
 //# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `input`.
 //# - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `input`.
-la.mean = function (input, dim) {
-    // if dim is not defined, set it to 1
-    var dim = dim == null ? 1 : dim;
-    // check if input is vector. If it is, cast it to matrix.
-    mat = (typeof input.length == "undefined") ? input : input.toMat();
-    switch (dim) {
-        case 1:
-            return mat.multiplyT(la.ones(mat.rows)).multiply(1 / mat.rows);
-            break;
-        case 2:
-            return mat.multiply(la.ones(mat.cols)).multiply(1 / mat.cols);
-            break;
-        default:
-            console.log('Warning', 'Invalid value of parameter dim')
-    }
-}
+//la.mean = function (input, dim) {
+//    // if dim is not defined, set it to 1
+//    var dim = dim == null ? 1 : dim;
+//    // check if input is vector. If it is, cast it to matrix.
+//    mat = (typeof input.length == "undefined") ? input : input.toMat();
+//    switch (dim) {
+//        case 1:
+//            return mat.multiplyT(la.ones(mat.rows)).multiply(1 / mat.rows);
+//            break;
+//        case 2:
+//            return mat.multiply(la.ones(mat.cols)).multiply(1 / mat.cols);
+//            break;
+//        default:
+//            console.log('Warning', 'Invalid value of parameter dim')
+//    }
+//}
 
 //# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
 //# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.

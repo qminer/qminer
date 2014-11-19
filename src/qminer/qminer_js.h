@@ -1904,6 +1904,9 @@ public:
 	JsDeclareFunction(svd);
 	//#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 	JsDeclareFunction(qr);
+	//# - `num = la.mean(vec)` - returns mean `num` of vector `vec`.
+	//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
+	JsDeclareFunction(mean);
     //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
     //JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js

@@ -808,6 +808,10 @@ public:
 	static int GetMaxDimIdx(const TIntFltKdV& SpVec);
 	// gets the maximal row index of a sparse column matrix
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);	
+	// returns the mean value of Vec.
+	static void Mean(const TFltV& Vec, TFlt& Mean);
+	// returns the mean value along the dimension (Dim) of Mat.
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim);
 };
 
 //////////////////////////////////////////////////////////////////////

@@ -920,6 +920,7 @@ void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltV& y) {
 }
 #else
 void TLinAlg::Multiply(const TFltVV& A, const TFltV& x, TFltV& y) {
+	if (y.Empty()) y.Gen(A.GetRows());
     Assert(A.GetCols() == x.Len() && A.GetRows() == y.Len());
     int n = A.GetRows(), m = A.GetCols();
     for (int i = 0; i < n; i++) {
@@ -3017,7 +3018,29 @@ void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
 	 }
 	 return MaxDim;
  }
- 
+
+ void TLAMisc::Mean(const TFltV& Vec, TFlt& Res) {
+	 // TODO: Asserts: Should I check if Vec is actually vector?
+	 Res = (double)TLinAlg::SumVec(Vec)/(double)Vec.Len();
+ }
+
+ void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
+	 EAssertR(Dim == 1 || Dim == 2, "Error in  TLAMisc::Mean: Invalid value of 'Dim' argument. "
+									"Supported 'Dim' arguments are 1 (row mean), or 2 (col mean).");	 
+	 if (Dim == 1) {
+		 int Rows = Mat.GetRows();
+		 TFltV Vec(Rows);
+		 Vec.PutAll(1.0/(double)Rows);
+		 TLinAlg::MultiplyT(Mat, Vec, Res);
+	 } else if (Dim == 2) {
+		 int Cols = Mat.GetCols();
+		 TFltV Vec(Cols);
+		 Vec.PutAll(1.0/(double)Cols);
+		 TLinAlg::Multiply(Mat, Vec, Res);
+	 }/* else {
+		 EAssertR(Dim == 1 && Dim == 2, "Error in  TLAMisc::Mean: Invalid 'Dim' argument. supported 'Dim' arguments are 1 (row mean), or 2 (col mean)");
+	 }*/
+ }
 ///////////////////////////////////////////////////////////////////////
 // TVector
 TVector::TVector(const TVector& Vector) {
