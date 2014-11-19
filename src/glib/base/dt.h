@@ -567,14 +567,6 @@ public:
   /// Assigment operator TStr = char
   TStr& operator=(const char& Ch);
 
-  /*
-   * Concatenation Assignment Operator +=
-   */
-  /// Concatenates and assigns
-  TStr operator+=(const TStr& Str) const { return *this + Str; } ;
-  /// Concatenates and assigns
-  TStr operator+=(const char* CStr) const { return *this + CStr; } ;
-
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
   /// Boolean comparison TStr == TStr
@@ -717,15 +709,15 @@ public:
   /// Returns true if (sub)string occurs in string
   bool IsStrIn(const TStr& Str) const {return SearchStr(Str)!=-1;}
   /// Returns true if this string starts with the prefix c-string
-  bool IsPrefix(const char *Str) const;
+  bool StartsWith(const char *Str) const;
   /// Returns true if this string starts with the prefix string
-  bool IsPrefix(const TStr& Str) const {
-    return IsPrefix(Str.CStr());}
+  bool StartsWith(const TStr& Str) const {
+    return StartsWith(Str.CStr());}
   /// Returns true if this string ends with the sufix c-string
-  bool IsSuffix(const char *Str) const;
+  bool EndsWith(const char *Str) const;
   /// Returns true if this string ends with the sufix string
-  bool IsSuffix(const TStr& Str) const {
-    return IsSuffix(Str.CStr());}
+  bool EndsWith(const TStr& Str) const {
+    return EndsWith(Str.CStr());}
 
   /*
    * Change chars & Substrings
