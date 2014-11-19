@@ -489,7 +489,7 @@ public:
     // feature extractor type name 
     static TStr GetType() { return "text"; }   
     
-    static PStemmer ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP = false);
+    //static PStemmer ParseStemmer(const PJsonVal& ParamVal, const bool& RealWordP = false);
 };
 
 ///////////////////////////////////////////////
