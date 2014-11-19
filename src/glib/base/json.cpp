@@ -55,6 +55,17 @@ void TJsonVal::AddToObj(const PJsonVal& Val) {
 	}
 }
 
+// extend/update the object with values from Val
+// this and Val should be an Object and not an array or something else
+void TJsonVal::UpdateObj(const PJsonVal& Val) {
+	if (!Val->IsObj() || !IsObj())
+		return;
+	for (int N = 0; N < Val->GetObjKeys(); N++) {
+		const TStr Key = Val->GetObjKey(N);
+		AddToObj(Key, Val->GetObjKey(Key));
+	}
+}
+
 PJsonVal TJsonVal::NewArr(const TJsonValV& ValV) {
 	PJsonVal Val = TJsonVal::NewArr();
 	for (int ValN = 0; ValN < ValV.Len(); ValN++) {
