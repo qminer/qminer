@@ -4,30 +4,27 @@
 #include "gtest/gtest.h"
 
 TEST(TStr, OperatorPlusEquals) {
-	TStr E; TStr A;
-
-	// += string
-
-	// empyt+= full
-	E = ""; A = "abc";
-	E += A;
-	EXPECT_EQ(E, "abc");
+	TStr Str = "abc";
+	TStr Empty;
+	// empyt+= full	
+	Empty += Str;
+	EXPECT_EQ(Empty, "abc");
 	// self+= self
-	A += A;
-	EXPECT_EQ(A, "abcabc");
-	// full+= empty
-	E = "";
-	A += E;
-	EXPECT_EQ(A, "abcabc");
-
-	// += char *
-
+	Str += Str;
+	EXPECT_EQ(Str, "abcabc");
+	Str += TStr();	
+	EXPECT_EQ(Str, "abcabc");
+	
 	// empyt+= full
-	E = "";
-	E += "abc";
-	EXPECT_EQ(E, "abc");
+	Empty = TStr();
+	Empty += "abc";
+	EXPECT_EQ(Empty, "abc");
 	// full+= empty
-	A = "abc";
-	A += "";
-	EXPECT_EQ(A, "abc");
+	Str = "abc";
+	Str += "";
+	EXPECT_EQ(Str, "abc");
+
+	Str = "abc";
+	Str += nullptr;
+	EXPECT_EQ(Str, "abc");
 }
