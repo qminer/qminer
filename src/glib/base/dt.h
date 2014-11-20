@@ -539,16 +539,16 @@ public:
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
-  /// TODO Insert a string Str into this string starting position BchN, return the new string
+  /// Insert a string Str into this string starting position BchN
   void InsStr(const int& BChN, const TStr& Str);
-  /// TODO Return a new string with all the occurrences of char Ch replaced
+  /// Delete all the occurrences of char Ch
   void DelChAll(const char& Ch);
-  /// TODO Return a new string with the substring from BChN to EChN removed
+  /// Delete substring from BChN to EChN
   void DelSubStr(const int& BChN, const int& EChN);
-  /// TODO Return a new string with the first occurrences of substring Str removed
+  /// Delete first occurrences of substring Str
   bool DelStr(const TStr& Str);
-  /// TODO Return a new string with the all occurrences of substring Str removed (single pass)
-  bool DelStrAll(const TStr& Str);
+  /// Delete all occurrences of substring Str (single pass)
+  int DelStrAll(const TStr& Str);
 
   /// Get substring from beginning till the character before first occurrence of SplitCh
   TStr LeftOf(const char& SplitCh) const;
@@ -621,15 +621,15 @@ public:
   /// Returns true if this string ends with the sufix string
   bool EndsWith(const TStr& Str) const { return EndsWith(Str.CStr()); }
 
-  /// TODO Return a string with first occurrence of SrcCh character replaced with DstCh. Start search at BChN
+  /// Replaces first occurrence of SrcCh character with DstCh. Start search at BChN.
   int ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN=0);
-  /// TODO Return a string with all occurrences of SrcCh character replaced with DstCh
+  /// Replaces all occurrences of SrcCh character with DstCh
   int ChangeChAll(const char& SrcCh, const char& DstCh);
-  /// TODO Return a string with first occurrence of ScrStr string replaced with DstStr string.
+  /// Replace first occurrence of ScrStr string with DstStr string. Start search at BChN.
   int ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0);
-  /// TODO Return a string with all occurrences of ScrStr string replaced with DstStr string
-  int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr, const bool& FromStartP=false);
-  /// TODO Returns a String with the order of the characters in this String Reversed
+  /// Replace all occurrences of ScrStr string with DstStr string
+  int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr);
+  /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
   int GetPrimHashCd() const;
