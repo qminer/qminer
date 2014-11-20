@@ -743,12 +743,11 @@ TStr::TStr(const char* _CStr): Inner(nullptr) {
 	}
 }
 
-TStr::TStr(const char& Ch): Inner(new char[2]) {
-    Inner[0] = Ch; Inner[1] = 0;
-}
-
-TStr::TStr(const char& Ch1, const char& Ch2, bool): Inner(new char[3]) {
-    Inner[0] = Ch1; Inner[1] = Ch2; Inner[2] = 0;
+TStr::TStr(const char& Ch): Inner(nullptr) {
+    if (Ch != 0) {
+        Inner = new char[2];
+        Inner[0] = Ch; Inner[1] = 0;
+    }
 }
 
 TStr::TStr(const TStr& Str): Inner(nullptr) {

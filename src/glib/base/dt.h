@@ -415,8 +415,6 @@ public:
   TStr(const char* CStr);
   /// 1 char constructor
   explicit TStr(const char& Ch);
-  /// 2 char constructor
-  TStr(const char& Ch1, const char& Ch2, bool);
   /// copy constructor
   TStr(const TStr& Str);
   /// move constructor
