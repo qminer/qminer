@@ -768,6 +768,23 @@ int TRStr::GetHashTrick() const {
 // String
 const char TStr::EmptyStr = 0;
 
+void TStr::Clr() {
+	if (Inner != nullptr) {
+		delete[] Inner;
+		Inner = nullptr;
+	}
+}
+
+TStr TStr::WrapCStr(char* CStr) {
+	TStr NewStr;
+
+	if (CStr != nullptr && CStr[0] != 0) {
+		NewStr.Inner = CStr;
+	}
+
+	return NewStr;
+}
+
 TStr::TStr(const char *Ch): Inner(nullptr) {
 	const int Len = strlen(Ch);
 	if (Len > 0) {
@@ -2014,7 +2031,7 @@ TStr TStr::GetSpaceStr(const int& Spaces){
   }
 }
 
-TStr operator +(const TStr& LStr, const char* RCStr) {
+TStr operator+(const TStr& LStr, const char* RCStr) {
 	const size_t LeftLen = LStr.Len();
 	const size_t RightLen = RCStr == nullptr ? 0 : strlen(RCStr);
 
@@ -2039,35 +2056,8 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 	}
 }
 
-TStr operator +(const TStr& LStr, const TStr& RStr) {
+TStr operator+(const TStr& LStr, const TStr& RStr) {
 	return operator +(LStr, RStr.CStr());
-}
-
-//TStr::TStr(char *Ch, const bool Own): Inner(nullptr) {
-//	if (!Own) { *this = TStr(Ch); } // guard against misuse
-//	else {
-//		Inner = Ch;
-//		if (Inner != nullptr && Inner[0] == 0) {
-//			Clr();
-//		}
-//	}
-//}
-
-void TStr::Clr() {
-	if (Inner != nullptr) {
-		delete[] Inner;
-		Inner = nullptr;
-	}
-}
-
-TStr TStr::WrapCStr(char* CStr) {
-	TStr NewStr;
-
-	if (CStr != nullptr && CStr[0] != 0) {
-		NewStr.Inner = CStr;
-	}
-
-	return NewStr;
 }
 
 /////////////////////////////////////////////////
