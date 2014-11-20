@@ -936,6 +936,12 @@ char TStr::GetCh(const int& ChN) const {
     return Inner[ChN];
 }
 
+char& TStr::GetCh(const int& ChN) {
+    // Assert index not negative, index not >= Length
+    Assert( (0 <= ChN) && (ChN < Len()) );
+    return Inner[ChN];
+}
+
 char* TStr::CloneCStr() const {
 	const int Length = Len();
 

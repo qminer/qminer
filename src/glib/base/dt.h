@@ -550,6 +550,7 @@ public:
   bool operator<(const TStr& Str) const;
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
+  char& operator[](const int& ChN) { return GetCh(ChN); }
   /// Memory used by this String object
   int GetMemUsed() const;
   /// Get the inner C-String
@@ -558,6 +559,7 @@ public:
   char* CloneCStr() const;
   /// Get character at position ChN
   char GetCh(const int& ChN) const;
+  char& GetCh(const int& ChN);
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   /// Get String Length (null terminator not included)
@@ -645,14 +647,6 @@ public:
   void SplitOnNonAlNum(TStrV& StrV) const;
   /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
-
-
-
-  /* comment preserved for future archaeologists:
-  //TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
-  //J: as in python or matlab: 1 is 1st character, -1 is last character
-  // TODO ROK, ask Jure about this comment
-   */
 
   /*
    * Slicing methods
