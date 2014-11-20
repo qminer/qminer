@@ -878,6 +878,7 @@ TStr& TStr::operator=(const char* CStr) {
 }
 
 bool TStr::operator==(const char* _CStr) const { 
+	if (_CStr == nullptr) { return false; }
 	return (CStr() == _CStr) || (strcmp(CStr(), _CStr) == 0);
 }
 
