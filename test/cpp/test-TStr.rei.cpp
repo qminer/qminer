@@ -49,10 +49,10 @@ TEST_F(StringTest, GetLc_Test) {
 TEST_F(StringTest, CmpI_Test) {
 	TStr input = "bbbb";
     TStr big = "ZZZZZZZZZZZZZZZZZZ";
-	TStr small = "aaaa";
+	TStr Small = "aaaa";
     bool testEq = input.CmpI(input) == 0;
     bool testBig = input.CmpI(big) < 0;
-    bool testSmall = input.CmpI(small) > 0;
+    bool testSmall = input.CmpI(Small) > 0;
 	EXPECT_EQ(true, testEq);
 	EXPECT_EQ(true, testBig);
 	EXPECT_EQ(true, testSmall);

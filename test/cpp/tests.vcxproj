@@ -53,6 +53,7 @@
     <ClCompile Include="..\..\src\glib\base\base.cpp" />
     <ClCompile Include="run-all-tests.cpp" />
     <ClCompile Include="test-TStr.cpp" />
+    <ClCompile Include="test-TStr.rei.cpp" />
     <ClCompile Include="test-TStr_Jan.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
