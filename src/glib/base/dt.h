@@ -488,7 +488,7 @@ private:
   
 public:
   /// Empty String Constructor
-  TStr(): Inner(NULL) {}
+  TStr(): Inner(nullptr) {}
   /// C-String constructor
   TStr(const char *Ch);
   /// 2 char constructor
@@ -527,35 +527,6 @@ public:
   /// Serialize to XML File
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
-  /*
-   *
-   * Be careful when using assignment operators outside of function scopes
-   * in multithreaded environments as they are not thread safe.
-   *
-   * Consider the following example:
-   *
-   * class T {
-   * 	TStr a;
-   * 	void InfiniteAppend() {
-   * 		while (true) a = a + "abcde";
-   * 	}
-   * 	TStr SomeCpyOp() {
-   * 		TStr LStr, RStr;
-   * 		return a.SplitOnAllCh(LStr, 'a', RStr);
-   * 	}
-   * }
-   *
-   * Thread A:
-   * T.InfiniteAppend();
-   *
-   * Thread B:
-   * T.SomeCpyOp();
-   *
-   *
-   * The result in LStr is in this case undefined and calling SplitOnAllCh can
-   * even lead to accessing invalid memory.
-   *
-   */
   /// Assigment operator TStr = TStr
   TStr& operator=(const TStr& Str);
   /// Move assigment operator TStr = TStr
@@ -615,6 +586,7 @@ public:
   TStr GetLc() const;
   /// Capitalize
   TStr GetCap() const;
+  TStr& ToCap();
 
   /// Truncate
   TStr GetTrunc() const;
@@ -887,9 +859,15 @@ public:
    */
 private:
   // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
-  TStr(char *Ch, const bool Own);
+//  TStr(char *Ch, const bool Own);
 
-  void Clr() { if (Inner != NULL) { delete[] Inner; Inner = NULL; } }
+  /// deletes the char pointer if it is not NULL
+  void Clr();
+
+  /// wraps the char pointer with a new string. the char pointer
+  /// is NOT copied and the new string becomes responsible for
+  /// deleting it
+  static TStr WrapCStr(char* CStr);
 };
 
 /////////////////////////////////////////////////
