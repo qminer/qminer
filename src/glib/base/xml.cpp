@@ -1074,12 +1074,12 @@ TStr TXmlLx::GetPlainStrFromXmlStr(const TStr& XmlStr){
 
 TStr TXmlLx::GetUsAsciiStrFromXmlStr(const TStr& XmlStr){
   TStr UsAsciiStr=XmlStr;  
-  UsAsciiStr = UsAsciiStr.ChangeStrAll("&#232;", "c");
-  UsAsciiStr = UsAsciiStr.ChangeStrAll("&#200;", "C");
-  UsAsciiStr = UsAsciiStr.ChangeStrAll("&#154;", "s");
-  UsAsciiStr = UsAsciiStr.ChangeStrAll("&#138;", "S");
-  UsAsciiStr = UsAsciiStr.ChangeStrAll("&#158;", "z");
-  UsAsciiStr = UsAsciiStr.ChangeStrAll("&#142;", "Z");
+  UsAsciiStr.ChangeStrAll("&#232;", "c");
+  UsAsciiStr.ChangeStrAll("&#200;", "C");
+  UsAsciiStr.ChangeStrAll("&#154;", "s");
+  UsAsciiStr.ChangeStrAll("&#138;", "S");
+  UsAsciiStr.ChangeStrAll("&#158;", "z");
+  UsAsciiStr.ChangeStrAll("&#142;", "Z");
   TChA UsAsciiChA=TXmlLx::GetPlainStrFromXmlStr(UsAsciiStr);
   for (int ChN=0; ChN<UsAsciiChA.Len(); ChN++){
     char Ch=UsAsciiChA[ChN];
@@ -1090,16 +1090,16 @@ TStr TXmlLx::GetUsAsciiStrFromXmlStr(const TStr& XmlStr){
 
 TStr TXmlLx::GetChRefFromYuEntRef(const TStr& YuEntRefStr){
   TStr ChRefStr=YuEntRefStr;
-  ChRefStr = ChRefStr.ChangeStrAll("&ch;", "&#232;");
-  ChRefStr = ChRefStr.ChangeStrAll("&Ch;", "&#200;");
-  ChRefStr = ChRefStr.ChangeStrAll("&sh;", "&#154;");
-  ChRefStr = ChRefStr.ChangeStrAll("&Sh;", "&#138;");
-  ChRefStr = ChRefStr.ChangeStrAll("&zh;", "&#158;");
-  ChRefStr = ChRefStr.ChangeStrAll("&Zh;", "&#142;");
-  ChRefStr = ChRefStr.ChangeStrAll("&cs", "c");
-  ChRefStr = ChRefStr.ChangeStrAll("&Cs;", "C");
-  ChRefStr = ChRefStr.ChangeStrAll("&dz;", "dz");
-  ChRefStr = ChRefStr.ChangeStrAll("&Dz;", "Dz");
+  ChRefStr.ChangeStrAll("&ch;", "&#232;");
+  ChRefStr.ChangeStrAll("&Ch;", "&#200;");
+  ChRefStr.ChangeStrAll("&sh;", "&#154;");
+  ChRefStr.ChangeStrAll("&Sh;", "&#138;");
+  ChRefStr.ChangeStrAll("&zh;", "&#158;");
+  ChRefStr.ChangeStrAll("&Zh;", "&#142;");
+  ChRefStr.ChangeStrAll("&cs", "c");
+  ChRefStr.ChangeStrAll("&Cs;", "C");
+  ChRefStr.ChangeStrAll("&dz;", "dz");
+  ChRefStr.ChangeStrAll("&Dz;", "Dz");
   return ChRefStr;
 }
 

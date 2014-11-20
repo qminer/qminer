@@ -415,8 +415,6 @@ public:
   TStr(const char* CStr);
   /// 1 char constructor
   explicit TStr(const char& Ch);
-  /// 2 char constructor
-  TStr(const char& Ch1, const char& Ch2, bool);
   /// copy constructor
   TStr(const TStr& Str);
   /// move constructor
@@ -454,9 +452,7 @@ public:
   TStr& operator=(const TChA& ChA);
   /// Assigment operator TStr = char* (C-String)
   TStr& operator=(const char* CStr);
-  /// Assigment operator TStr = char
-  TStr& operator=(const char& Ch);
-  
+
   /// Concatenates and assigns
   TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
   /// Concatenates and assigns

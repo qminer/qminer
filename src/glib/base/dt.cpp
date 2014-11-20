@@ -743,12 +743,11 @@ TStr::TStr(const char* _CStr): Inner(nullptr) {
 	}
 }
 
-TStr::TStr(const char& Ch): Inner(new char[2]) {
-    Inner[0] = Ch; Inner[1] = 0;
-}
-
-TStr::TStr(const char& Ch1, const char& Ch2, bool): Inner(new char[3]) {
-    Inner[0] = Ch1; Inner[1] = Ch2; Inner[2] = 0;
+TStr::TStr(const char& Ch): Inner(nullptr) {
+    if (Ch != 0) {
+        Inner = new char[2];
+        Inner[0] = Ch; Inner[1] = 0;
+    }
 }
 
 TStr::TStr(const TStr& Str): Inner(nullptr) {
@@ -811,6 +810,11 @@ TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(nullptr) {
 			SIn.Load(Inner, BfL, BfL);
 		}
 	}
+    // delete buffer and replace with null in case it's ""
+    if (Inner != nullptr && Inner[0] == 0) {
+		delete[] Inner;
+        Inner = nullptr;
+    }
 }
 
 void TStr::Load(TSIn& SIn, const bool& IsSmall) {
@@ -869,13 +873,6 @@ TStr& TStr::operator=(const char* CStr) {
 		strcpy(Inner, CStr);
 	}
 	return *this;
-}
-
-TStr& TStr::operator=(const char& Ch) {
-	Clr();
-	Inner = new char[2];
-	Inner[0] = Ch; Inner[1] = 0;
-    return *this;
 }
 
 bool TStr::operator==(const char* _CStr) const { 
@@ -1500,7 +1497,7 @@ int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) {
 	// insert null character
 	ResStr[Length + NMatches*(DstLen - SrcLen)] = 0;
 	// replace with the new string
-	*this = WrapCStr(ResStr);
+	*this = WrapCStr(ResStr);   
     // return number of changes
     return NMatches;
 }
@@ -1864,8 +1861,8 @@ TStr TStr::GetNrAbsFPath(const TStr& FPath, const TStr& BaseFPath){
   } else {
     NrAbsFPath=GetNrFPath(NrBaseFPath+NrFPath);
   }
-  NrAbsFPath = NrAbsFPath.ChangeStrAll("/./", "/");
-  NrAbsFPath = NrAbsFPath.ChangeStrAll("\\.\\", "\\");
+  NrAbsFPath.ChangeStrAll("/./", "/");
+  NrAbsFPath.ChangeStrAll("\\.\\", "\\");
   return NrAbsFPath;
 }
 

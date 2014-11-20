@@ -1894,8 +1894,8 @@ protected:
 	THash<TStr, PCodecBase> codecs;
 	static inline TStr NormalizeCodecName(const TStr& name) {
 		TStr s = name.GetLc();		
-		s = s.ChangeStrAll("_", "");
-		s = s.ChangeStrAll("-", "");
+		s.ChangeStrAll("_", "");
+		s.ChangeStrAll("-", "");
 		return s; }
 public:
 	void RegisterCodec(const TStr& nameList, const PCodecBase& codec) {

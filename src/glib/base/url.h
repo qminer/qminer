@@ -92,7 +92,7 @@ public:
   TStr GetHttpRqStr() const {return HttpRqStr;}
   bool IsHttpRqStr() const {return !HttpRqStr.Empty();}
   void ChangeHttpRqStr(const TStr& SrcStr, const TStr& DstStr){
-	  HttpRqStr = HttpRqStr.ChangeStr(SrcStr, DstStr);
+	  HttpRqStr.ChangeStr(SrcStr, DstStr);
   }
 
   bool IsInHost(const TStr& _HostNm) const {

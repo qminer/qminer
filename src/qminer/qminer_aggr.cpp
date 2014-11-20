@@ -1642,7 +1642,7 @@ TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm,
     InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     InFieldId = Base->GetStoreByStoreNm(InStoreNm)->GetFieldId(InFieldNm);
     // generating name of field
-	OutFieldNm = "Mer" + TGuid::GenGuid(); OutFieldNm = OutFieldNm.ChangeChAll('-', '_');
+	OutFieldNm = "Mer" + TGuid::GenGuid(); OutFieldNm.ChangeChAll('-', '_');
     Interpolator = Interpolator_;    
 }
 
