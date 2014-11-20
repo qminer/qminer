@@ -911,7 +911,7 @@ bool THttpResp::IsFldVal(const TStr& FldNm, const TStr& FldVal) const {
 void THttpResp::AddFldVal(const TStr& FldNm, const TStr& FldVal){
   TStr NrFldNm=THttpLx::GetNrStr(FldNm);
   FldNmToValVH.AddDat(NrFldNm).Add(FldVal);
-  if (HdStr.IsSuffix("\r\n\r\n")){
+  if (HdStr.EndsWith("\r\n\r\n")){
     TChA HdChA=HdStr;
     HdChA.Pop(); HdChA.Pop(); 
     HdChA+=NrFldNm; HdChA+=": "; HdChA+=FldVal;

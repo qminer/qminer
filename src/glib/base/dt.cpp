@@ -768,7 +768,7 @@ int TRStr::GetHashTrick() const {
 // String
 const char TStr::EmptyStr = 0;
 
-TStr::TStr(const char *Ch): Inner(NULL) {
+TStr::TStr(const char *Ch): Inner(nullptr) {
 	const int Len = strlen(Ch);
 	if (Len > 0) {
 		Inner = new char[Len+1];
@@ -784,26 +784,26 @@ TStr::TStr(const char& Ch): Inner(new char[2]) {
     Inner[0] = Ch; Inner[1] = 0;
 }
 
-TStr::TStr(const TStr& Str): Inner(NULL) {
+TStr::TStr(const TStr& Str): Inner(nullptr) {
 	if (!Str.Empty()) {
 		Inner = Str.CloneCStr();
 	}
 }
 
-TStr::TStr(TStr&& Str): Inner(NULL) {
+TStr::TStr(TStr&& Str): Inner(nullptr) {
     Inner = Str.Inner;
     // reset other
     Str.Inner=nullptr;
 }
 
-TStr::TStr(const TChA& ChA): Inner(NULL) {
+TStr::TStr(const TChA& ChA): Inner(nullptr) {
     if (!ChA.Empty()) {
         Inner = new char[ChA.Len()+1];
         strcpy(Inner, ChA.CStr());        
     }
 }
 
-TStr::TStr(const TMem& Mem): Inner(NULL) {
+TStr::TStr(const TMem& Mem): Inner(nullptr) {
     if (!Mem.Empty()) {
 		const int Len = Mem.Len();
 
@@ -813,14 +813,14 @@ TStr::TStr(const TMem& Mem): Inner(NULL) {
     }
 }
 
-TStr::TStr(const TSStr& SStr): Inner(NULL) {
+TStr::TStr(const TSStr& SStr): Inner(nullptr) {
 	if (!SStr.Empty()) {
 		Inner = new char[SStr.Len()+1];
 		strcpy(Inner, SStr.CStr());
 	}
 }
   
-TStr::TStr(const PSIn& SIn): Inner(NULL) { 
+TStr::TStr(const PSIn& SIn): Inner(nullptr) {
 	const int SInLen = SIn->Len();
 	if (SInLen > 0) {
 		Inner = new char[SInLen + 1];
@@ -829,7 +829,7 @@ TStr::TStr(const PSIn& SIn): Inner(NULL) {
 	}
 }
 
-TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(NULL) {
+TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(nullptr) {
 	if (IsSmall) {
 		if (SIn.PeekCh() == 0) { EAssert(SIn.GetCh() == 0); }
 		else {
@@ -866,12 +866,22 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 }
 
 TStr& TStr::operator=(const TStr& Str) {
-	Clr();
+	if (this != &Str) {
+		Clr();
 
-	if (!Str.Empty()) {
-		Inner = Str.CloneCStr();		
+		if (!Str.Empty()) {
+			Inner = Str.CloneCStr();
+		}
 	}
 
+    return *this;
+}
+
+TStr& TStr::operator=(TStr&& Str) {
+	if (this != &Str) {
+		std::swap(Inner, Str.Inner);
+		Str.Clr();
+	}
     return *this;
 }
 
@@ -917,7 +927,7 @@ bool TStr::operator<(const TStr& Str) const {
 }
   
 int TStr::GetMemUsed() const { 
-    return int(sizeof(TStr*) + ((Inner != NULL) ? (strlen(Inner)+1) : 0));
+    return int(sizeof(TStr*) + ((Inner != nullptr) ? (strlen(Inner)+1) : 0));
 }
 
 char TStr::GetCh(const int& ChN) const {
@@ -1051,7 +1061,7 @@ TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
     int EChN=TInt::GetMn(_EChN, StrLen-1);
     int Chs=EChN-BChN+1;
     // initialize accordingly
-    char* Bf = NULL;
+    char* Bf = nullptr;
     if (Chs <= 0) { 
         // create empty string
 		return TStr();		
@@ -1199,7 +1209,7 @@ void TStr::SplitOnCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
 	const char* ChPtr = strchr(InnerPt, SplitCh);
 
 	// if the character was not found than return this in the left string
-	if (ChPtr == NULL) {
+	if (ChPtr == nullptr) {
 		LStr = *this;
 		return;
 	}
@@ -1219,7 +1229,7 @@ void TStr::SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const {
 
 	const char* MatchPt = strstr(InnerPt, SplitStr.Inner);
 
-	if (MatchPt == NULL) {
+	if (MatchPt == nullptr) {
 		LStr = *this;
 		return;
 	}
@@ -1241,7 +1251,7 @@ void TStr::SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const {
 	const char* ChPtr = strrchr(InnerPt, SplitCh);
 
 	// if the character was not found than return this in the right string
-	if (ChPtr == NULL) {
+	if (ChPtr == nullptr) {
 		RStr = *this;
 		return;
 	}
@@ -1396,11 +1406,11 @@ int TStr::SearchStr(const TStr& Str, const int& BChN) const {
   if(NrBChN > ThisLen) { return -1; }
 
   const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
-  if (StrPt == NULL) { return -1; }
+  if (StrPt == nullptr) { return -1; }
   return int(StrPt - CStr());
 }
 
-bool TStr::IsPrefix(const char *Str) const {
+bool TStr::StartsWith(const char *Str) const {
 	int OtherLen = strlen(Str);
 	int ThisLen = Len();
 	if (OtherLen > ThisLen || ThisLen == 0) { return false; }
@@ -1409,7 +1419,7 @@ bool TStr::IsPrefix(const char *Str) const {
 	return Cmp == 0;
 }
 
-bool TStr::IsSuffix(const char *Str) const {
+bool TStr::EndsWith(const char *Str) const {
 	size_t len = strlen(Str);
 	size_t thisLen = Len();
 	if (len > thisLen) {
@@ -1448,7 +1458,7 @@ TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
 }
 
 TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) const {
-	if (Inner == NULL || SrcStr.Empty()) { return *this; }
+	if (Empty() || SrcStr.Empty()) { return *this; }
 
 	int ChN = SearchStr(SrcStr, BChN);
 	if (ChN == -1){		
@@ -1487,7 +1497,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 	const char* NextHit;
 
 	int NMatches = 0;
-	while ((NextHit = strstr(CurrPos, SrcCStr)) != NULL) {
+	while ((NextHit = strstr(CurrPos, SrcCStr)) != nullptr) {
 		NMatches++;
 		CurrPos = NextHit + SrcLen;
 	}
@@ -1503,7 +1513,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 
 	// find next hit, copy everything between the current position and the hit,
 	// then copy the dest string
-	while ((NextHit = strstr(InnerPt + i, SrcCStr)) != NULL) {
+	while ((NextHit = strstr(InnerPt + i, SrcCStr)) != nullptr) {
 		SeqLen = NextHit - (InnerPt + i);
 		// copy the chars in between the hits
 		memcpy(ResStr + j, InnerPt + i, SeqLen);
@@ -1957,7 +1967,7 @@ TStr TStr::GetFNmStr(const TStr& Str, const bool& AlNumOnlyP){
 }
 
 TStr TStr::GetStr(const TStr& Str, const char* FmtStr){
-  if (FmtStr==NULL){
+  if (FmtStr==nullptr){
     return Str;
   } else {
     char Bf[1000];
@@ -2005,7 +2015,7 @@ TStr TStr::GetSpaceStr(const int& Spaces){
 
 TStr operator +(const TStr& LStr, const char* RCStr) {
 	const size_t LeftLen = LStr.Len();
-	const size_t RightLen = RCStr == NULL ? 0 : strlen(RCStr);
+	const size_t RightLen = RCStr == nullptr ? 0 : strlen(RCStr);
 
 	// check if any of the strings are empty
 	if (LeftLen == 0) return RCStr;
@@ -2032,11 +2042,11 @@ TStr operator +(const TStr& LStr, const TStr& RStr) {
 	return operator +(LStr, RStr.CStr());
 }
 
-TStr::TStr(char *Ch, const bool Own): Inner(NULL) {
+TStr::TStr(char *Ch, const bool Own): Inner(nullptr) {
 	if (!Own) { *this = TStr(Ch); } // guard against misuse
 	else {
 		Inner = Ch;
-		if (Inner != NULL && Inner[0] == 0) {
+		if (Inner != nullptr && Inner[0] == 0) {
 			Clr();
 		}
 	}	
