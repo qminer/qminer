@@ -3,7 +3,7 @@
 int main(int argc, char* argv[]) {
 	::testing::InitGoogleTest(&argc, argv);
 	int output = RUN_ALL_TESTS();
-	system("pause");
+	//system("pause");
 	return output;
 }
 
