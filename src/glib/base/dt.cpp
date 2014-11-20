@@ -1423,6 +1423,7 @@ int TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) {
 }
 
 int TStr::ChangeChAll(const char& SrcCh, const char& DstCh) {
+	if (Empty()) { return 0; }
 	int FirstChN = SearchCh(SrcCh);
 	if (FirstChN == -1){
 		return 0;
