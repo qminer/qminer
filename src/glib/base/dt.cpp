@@ -2053,9 +2053,9 @@ TStr operator +(const TStr& LStr, const TStr& RStr) {
 //}
 
 void TStr::Clr() {
-	if (Inner != NULL) {
+	if (Inner != nullptr) {
 		delete[] Inner;
-		Inner = NULL;
+		Inner = nullptr;
 	}
 }
 
