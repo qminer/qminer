@@ -736,6 +736,8 @@ TStr TStr::WrapCStr(char* _CStr) {
 }
 
 TStr::TStr(const char* _CStr): Inner(nullptr) {
+	if (_CStr == nullptr) { return; }
+
 	const int Len = strlen(_CStr);
 	if (Len > 0) {
 		Inner = new char[Len+1];
