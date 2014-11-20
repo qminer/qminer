@@ -2063,7 +2063,9 @@ void TStr::Clr() {
 TStr TStr::WrapCStr(char* CStr) {
 	TStr NewStr;
 
-	if (CStr != nullptr && CStr[0] != 0) {
+	if (CStr != nullptr && CStr[0] == 0) {
+		delete[] CStr;
+	} else if (CStr != nullptr) {
 		NewStr.Inner = CStr;
 	}
 
