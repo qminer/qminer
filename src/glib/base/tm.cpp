@@ -1366,7 +1366,7 @@ void TTmProfiler::PrintReport(const TStr& ProfileNm) const {
 	while (GetTimerIdFNext(TimerId)) {
         // get timer name
         TStr TimerNm = GetTimerNm(TimerId);
-        TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+        TimerNm = TStr::GetSpaceStr(TInt::GetMx(0, TimerNm.Len() - MxNmLen)) + TimerNm;
         // get timer time and precentage
         if (TimerSumSec > 0.0) {
             const double TimerSec = GetTimerSec(TimerId);
@@ -1387,7 +1387,7 @@ void TTmProfiler::PrintReport(const PNotify& Notify, const TStr& ProfileNm) cons
 	while (GetTimerIdFNext(TimerId)) {
 		// get timer name
 		TStr TimerNm = GetTimerNm(TimerId);
-		TimerNm = TStr::GetSpaceStr(TimerNm.Len() - MxNmLen) + TimerNm;
+		TimerNm = TStr::GetSpaceStr(TInt::GetMx(0, TimerNm.Len() - MxNmLen)) + TimerNm;
 		// get timer time and precentage
 		if (TimerSumSec > 0.0) {
 			const double TimerSec = GetTimerSec(TimerId);
