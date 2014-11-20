@@ -567,8 +567,6 @@ public:
   char* CloneCStr() const;
   /// Get character at position ChN
   char GetCh(const int& ChN) const;
-  /// Get character at position ChN by reference
-  char& GetCh(const int& ChN);
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   /// Get String Length (null terminator not included)

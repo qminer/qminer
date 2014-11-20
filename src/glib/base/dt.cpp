@@ -945,15 +945,14 @@ bool TStr::operator<(const TStr& Str) const {
     return strcmp(CStr(), Str.CStr()) < 0;
 }
 
+char& TStr::operator[](const int& ChN) {
+	Assert( (0 <= ChN) && (ChN < Len()) );
+	return Inner[ChN];
+}
+
 char TStr::GetCh(const int& ChN) const {
     // Assert index not negative, index not >= Length
     Assert( (0 <= ChN) && (ChN < Len()) ); 
-    return Inner[ChN];
-}
-
-char& TStr::GetCh(const int& ChN) {
-    // Assert index not negative, index not >= Length
-    Assert( (0 <= ChN) && (ChN < Len()) );
     return Inner[ChN];
 }
 
