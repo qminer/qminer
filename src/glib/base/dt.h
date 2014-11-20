@@ -380,87 +380,6 @@ public:
 };
 
 /////////////////////////////////////////////////
-// Ref-String
-class TRStr{
-public:
-  char* Bf;
-  int Refs;
-  //mutable std::atomic<unsigned> Refs;
-
-public:
-  TRStr(){Refs=1; Bf=new char[0+1]; Bf[0]=0;}
-  TRStr(const int& Len){
-    IAssert(Len>=0); Refs=0; Bf=new char[Len+1]; Bf[Len]=0;}
-  TRStr(const char* CStr){
-    Refs=0; Bf=new char[strlen(CStr)+1]; strcpy(Bf, CStr);}
-  TRStr(const char* CStr, const int& MxLen){
-    Refs=0; Bf=new char[MxLen+1]; strncpy(Bf, CStr, MxLen); Bf[MxLen]=0;}
-  TRStr(const char* CStr1, const char* CStr2){
-    Refs=0; int CStr1Len=int(strlen(CStr1)); Bf=new char[CStr1Len+int(strlen(CStr2))+1];
-    strcpy(Bf, CStr1); strcpy(Bf+CStr1Len, CStr2);}
-  TRStr(const char& Ch){
-    Refs=0; Bf=new char[1+1]; Bf[0]=Ch; Bf[1]=0;}
-  TRStr(const char& Ch1, const char& Ch2){
-    Refs=0; Bf=new char[2+1]; Bf[0]=Ch1; Bf[1]=Ch2; Bf[2]=0;}
-  ~TRStr(){
-    Assert(Refs==0);
-    //Assert(((this!=GetNullRStr())&&(Refs==0))||((this==GetNullRStr())&&(Refs==1)));
-    delete[] Bf;}
-  explicit TRStr(TSIn& SIn, const bool& IsSmall){
-    if (IsSmall){Refs=0; SIn.Load(Bf);}
-    else {Refs=0; int BfL; SIn.Load(BfL); SIn.Load(Bf, BfL, BfL);}}
-  void Save(TSOut& SOut, const bool& IsSmall) const {
-    if (IsSmall){SOut.Save(Bf);}
-    else {int BfL=int(strlen(Bf)); SOut.Save(BfL); SOut.Save(Bf, BfL);}}
-
-  TRStr& operator=(const TRStr&){Fail; return *this;}
-  int GetMemUsed() const {return int(sizeof(int))+int(strlen(Bf));}
-
-  //void MkRef(){Refs++;}
-  void MkRef(){
-        //std::atomic_fetch_add_explicit(&Refs, 1u, std::memory_order_relaxed);
-        Refs++;
-    }
-
-  //void UnRef(){Assert(Refs>0); if (--Refs==0){delete this;}}
-  void UnRef() {
-        /*if (std::atomic_fetch_sub_explicit (&Refs, 1u, std::memory_order_release) == 1) {
-             std::atomic_thread_fence(std::memory_order_acquire);
-             delete this;
-        }*/
-        Assert(Refs>0);
-        if (--Refs==0) {
-            delete this;
-        }
-    }
-
-  const char* CStr() const {return Bf;}
-  char* CStr() {return Bf;}
-  bool Empty() const {return Bf[0]==0;}
-  int Len() const {return int(strlen(Bf));}
-
-  void PutCh(const int& ChN, const char& Ch){
-    Assert((0<=ChN)&&(ChN<Len())); Bf[ChN]=Ch;}
-  char GetCh(const int& ChN) const {
-    Assert((0<=ChN)&&(ChN<Len())); return Bf[ChN];}
-
-  bool IsUc() const;
-  void ToUc();
-  bool IsLc() const;
-  void ToLc();
-  void ToCap();
-  static int CmpI(const char* CStr1, const char* CStr2);
-
-  int GetPrimHashCd() const;
-  int GetSecHashCd() const;
-  int GetHashTrick() const;
-
-  static TRStr* GetNullRStr(){
-    return new TRStr(0); }  
-    //static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
-};
-
-/////////////////////////////////////////////////
 /// String.
 ///
 /// Small example:
@@ -485,8 +404,6 @@ private:
   /// String
   char* Inner;
   
-  /// Deletes the char pointer if it is not NULL.
-  void Clr();
   /// Wraps the char pointer with a new string. The char pointer is NOT 
   /// copied and the new string becomes responsible for deleting it.
   static TStr WrapCStr(char* CStr); 
@@ -495,11 +412,11 @@ public:
   /// Empty String Constructor
   TStr(): Inner(nullptr) {}
   /// C-String constructor
-  TStr(const char *Ch);
-  /// 2 char constructor
-  TStr(const char& Ch1, const char& Ch2, bool);
+  TStr(const char* CStr);
   /// 1 char constructor
   explicit TStr(const char& Ch);
+  /// 2 char constructor
+  TStr(const char& Ch1, const char& Ch2, bool);
   /// copy constructor
   TStr(const TStr& Str);
   /// move constructor
@@ -509,7 +426,7 @@ public:
   /// TMem constructor
   TStr(const TMem& Mem);
   /// TSStr constructor
-  TStr(const TSStr& SStr);
+  TStr(const TSStr& SStr); // KILL
   /// Stream (file) reading constructor
   explicit TStr(const PSIn& SIn);
   
@@ -517,12 +434,12 @@ public:
   ~TStr() { Clr(); }
 
   /// Deserialize TStr from stream, when IsSmall, the string is saved as CStr,
-  /// otherwise the format is first the length and then the data without last \0
+  /// otherwise the format is first the length and then the data including last \0
   explicit TStr(TSIn& SIn, const bool& IsSmall = false);
   // Left for compatibility reasons, best if we can remove it at some point
   void Load(TSIn& SIn, const bool& IsSmall = false);
   /// Serialize TStr to stream, when IsSmall, the string is saved as CStr,
-  /// otherwise the format is first the length and then the data without last \0
+  /// otherwise the format is first the length and then the data including last \0
   void Save(TSOut& SOut, const bool& IsSmall = false) const;  
    /// Deserialize from XML File
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -563,6 +480,8 @@ public:
   const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
   /// Return a COPY of the string as a C String (char array)
   char* CloneCStr() const;
+  /// Set character to given value
+  void PutCh(const int& ChN, const char& Ch);
   /// Get character at position ChN
   char GetCh(const int& ChN) const;
   /// Get last character in string (before null terminator)
@@ -571,51 +490,63 @@ public:
   int Len() const { return (Inner != NULL) ? strlen(Inner) : 0;}
   /// Check if this is an empty string
   bool Empty() const { IAssertR(Inner == NULL || Inner[0] != 0, "TStr::Empty string is not NULL. Fix immediately!");  return  Inner == NULL; }
-  /// returns a reference to this string (used for templating)
+  /// Deletes the char pointer if it is not NULL.
+  void Clr();
+  /// returns a reference to this string
   const TStr& GetStr() const { return *this; }
   /// Memory used by this String object
   int GetMemUsed() const;
   
-  /// Is upper-case?
-  bool IsUc() const;
-  /// Returns a new string converted to uppercase
-  TStr GetUc() const;
   /// Case insensitive comparison
   static int CmpI(const char* p, const char* r);
   /// Case insensitive comparison
   int CmpI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()); }
   /// Case insensitive equality
   bool EqI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()) == 0; }
+  /// Is upper-case?
+  bool IsUc() const;
+  /// Converts this string to all uppercase
+  TStr& ToUc();
+  /// Returns a new string converted to uppercase
+  TStr GetUc() const;
   /// Is lower-case?
   bool IsLc() const;
+  /// Converts this string to all uppercase
+  TStr& ToLc();
   /// Returns new string converted to lowercase
   TStr GetLc() const;
-  /// Capitalize
-  TStr GetCap() const;
+  /// Converts this string to capitalized (first char is uppercase, rest lowercase)
   TStr& ToCap();
-
-  /// Truncate
+  /// Returns string as capitalized (first char is uppercase, rest lowercase)
+  TStr GetCap() const;
+  
+  /// Replaces string with truncated (remove whitespace at start and end)
+  TStr& ToTrunc();
+  /// Returns truncated string (remove whitespace at start and end)
   TStr GetTrunc() const;
-
-  /// Get hex
+  /// Replaces each char with two chars with its hex-code
+  TStr& ToHex();
+  /// Get string with each char replaced with two chars with its hex-code
   TStr GetHex() const;
-  /// create from hex string
+  /// Does inverse of ToHex
+  TStr& FromHex();
+  /// Does inverse of GetHex
   TStr GetFromHex() const;
 
   /// Get substring from BchN to EchN
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
-  /// Insert a string Str into this string starting position BchN, return the new string
-  TStr InsStr(const int& BChN, const TStr& Str) const;
-  /// Return a new string with all the occurrences of char Ch replaced
-  TStr DelChAll(const char& Ch) const;
-  /// Return a new string with the substring from BChN to EChN removed
-  TStr DelSubStr(const int& BChN, const int& EChN) const;
-  /// Return a new string with the first occurrences of substring Str removed
-  TStr DelStr(const TStr& Str) const;
-  /// Return a new string with the all occurrences of substring Str removed (single pass)
-  TStr DelStrAll(const TStr& Str) const;
+  /// Insert a string Str into this string starting position BchN
+  void InsStr(const int& BChN, const TStr& Str);
+  /// Delete all the occurrences of char Ch
+  void DelChAll(const char& Ch);
+  /// Delete substring from BChN to EChN
+  void DelSubStr(const int& BChN, const int& EChN);
+  /// Delete first occurrences of substring Str
+  bool DelStr(const TStr& Str);
+  /// Delete all occurrences of substring Str (single pass)
+  int DelStrAll(const TStr& Str);
 
   /// Get substring from beginning till the character before first occurrence of SplitCh
   TStr LeftOf(const char& SplitCh) const;
@@ -673,11 +604,8 @@ public:
   /// Get substring from character positioned at BChN till the end.
   TStr Mid(const int& BChN) const {return GetSubStr(BChN, Len()-1); }
 
-  /*
-   * Count, Search, Exists in, Prefix, Suffix
-   */
   /// Counts occurrences of a character between [BChN, end]
-  int CountCh(const char& Ch, const unsigned int& BChN=0) const;
+  int CountCh(const char& Ch, const int& BChN=0) const;
   /// Returns the position of the first occurrence of a character between [BChN, end]
   int SearchCh(const char& Ch, const int& BChN=0) const;
   /// Returns the position of the last occurrence of a character between [BChN, end]
@@ -691,40 +619,28 @@ public:
   /// Returns true if this string starts with the prefix c-string
   bool StartsWith(const char *Str) const;
   /// Returns true if this string starts with the prefix string
-  bool StartsWith(const TStr& Str) const {
-    return StartsWith(Str.CStr());}
+  bool StartsWith(const TStr& Str) const { return StartsWith(Str.CStr()); }
   /// Returns true if this string ends with the sufix c-string
   bool EndsWith(const char *Str) const;
   /// Returns true if this string ends with the sufix string
-  bool EndsWith(const TStr& Str) const {
-    return EndsWith(Str.CStr());}
+  bool EndsWith(const TStr& Str) const { return EndsWith(Str.CStr()); }
 
-  /*
-   * Change chars & Substrings
-   */
-  // Return a string with first occurrence of SrcCh character replaced with DstCh. Start search at BChN
-  TStr ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN=0) const;
-  // Return a string with all occurrences of SrcCh character replaced with DstCh
-  TStr ChangeChAll(const char& SrcCh, const char& DstCh) const;
-  // Return a string with first occurrence of ScrStr string replaced with DstStr string.
-  TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
-  // Return a string with all occurrences of ScrStr string replaced with DstStr string
-  TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const;
+  /// Replaces first occurrence of SrcCh character with DstCh. Start search at BChN.
+  int ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN=0);
+  /// Replaces all occurrences of SrcCh character with DstCh
+  int ChangeChAll(const char& SrcCh, const char& DstCh);
+  /// Replace first occurrence of ScrStr string with DstStr string. Start search at BChN.
+  int ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0);
+  /// Replace all occurrences of ScrStr string with DstStr string
+  int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr);
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
 
-  /*
-   * Hashing
-   */
   int GetPrimHashCd() const;
   int GetSecHashCd() const;
   int GetHashTrick() const; // @TODO change this to uint32_t
 
-  /*
-   * Check if string contains a valid representation of another type
-   * Convert to other type
-   */
-  // Return true if string is 'T' or 'F'. Return true or false accordingly in Val
+  /// Return true if string is 'T' or 'F'. Return true or false accordingly in Val
   bool IsBool(bool& Val) const;
 
   bool IsInt(const bool& Check, const int& MnVal, const int& MxVal, int& Val) const;
@@ -846,9 +762,7 @@ public:
    */
 
   static TStr GetStr(const TStr& Str, const char* FmtStr);
-  static TStr GetStr(const TStr& Str, const TStr& FmtStr){
-    return GetStr(Str, FmtStr.CStr());
-  }
+  static TStr GetStr(const TStr& Str, const TStr& FmtStr) { return GetStr(Str, FmtStr.CStr()); }
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
   static TStr Fmt(const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
