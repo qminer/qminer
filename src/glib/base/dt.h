@@ -471,6 +471,8 @@ public:
   
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
+  /// Indexing operator, returns character at position ChN by reference
+  char& operator[](const int& ChN);
 
   /// Get the inner C-String
   const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
@@ -577,12 +579,6 @@ public:
   void SplitOnNonAlNum(TStrV& StrV) const;
   /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
-
-  /* comment preserved for future archaeologists:
-  //TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
-  //J: as in python or matlab: 1 is 1st character, -1 is last character
-  // TODO ROK, ask Jure about this comment
-   */
 
   /// Get substring from beginning till including character positioned at EChN.
   /// In case EChN is negative, it counts from the back of the string.

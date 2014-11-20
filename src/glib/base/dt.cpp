@@ -736,6 +736,8 @@ TStr TStr::WrapCStr(char* _CStr) {
 }
 
 TStr::TStr(const char* _CStr): Inner(nullptr) {
+	if (_CStr == nullptr) { return; }
+
 	const int Len = strlen(_CStr);
 	if (Len > 0) {
 		Inner = new char[Len+1];
@@ -881,6 +883,11 @@ bool TStr::operator==(const char* _CStr) const {
 
 bool TStr::operator<(const TStr& Str) const {
     return strcmp(CStr(), Str.CStr()) < 0;
+}
+
+char& TStr::operator[](const int& ChN) {
+	Assert( (0 <= ChN) && (ChN < Len()) );
+	return Inner[ChN];
 }
 
 void TStr::PutCh(const int& ChN, const char& Ch) {
