@@ -1965,22 +1965,11 @@ TStr TStr::Fmt(const char *FmtStr, ...){
   return RetVal!=-1 ? TStr(Bf) : TStr();
 }
 
-TStr TStr::GetSpaceStr(const int& Spaces){
-  static TStrV SpaceStrV;
-  if (SpaceStrV.Len()==0){
-    for (int SpaceStrN=0; SpaceStrN<10; SpaceStrN++){
-      TChA SpaceChA;
-      for (int ChN=0; ChN<SpaceStrN; ChN++){SpaceChA+=' ';}
-      SpaceStrV.Add(SpaceChA);
-    }
-  }
-  if ((0<=Spaces)&&(Spaces<SpaceStrV.Len())){
-    return SpaceStrV[Spaces];
-  } else {
-    TChA SpaceChA;
-    for (int ChN=0; ChN<Spaces; ChN++){SpaceChA+=' ';}
-    return SpaceChA;
-  }
+TStr TStr::GetSpaceStr(const int& Spaces) {
+	char *p = new char[Spaces + 1];
+	for (int i = 0; i < Spaces; i++) { p[i] = ' '; }
+	p[Spaces] = 0; 
+	return WrapCStr(p);
 }
 
 TStr operator+(const TStr& LStr, const char* RCStr) {
