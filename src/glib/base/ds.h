@@ -466,8 +466,6 @@ public:
   TVec(const TVec<TVal, TSizeTy>& Vec);
   // Move constructor
   TVec(TVec<TVal, TSizeTy>&& Vec);
-  // Move assignment
-  TVec<TVal, TSizeTy>& operator=(TVec<TVal, TSizeTy>&& Vec);
   /// Constructs a vector (an array) of length \c _Vals.
   explicit TVec(const TSizeTy& _Vals){
     IAssert(0<=_Vals); MxVals=Vals=_Vals;
@@ -492,6 +490,8 @@ public:
   
   /// Assigns new contents to the vector, replacing its current content.
   TVec<TVal, TSizeTy>& operator=(const TVec<TVal, TSizeTy>& Vec);
+  // Move assignment
+  TVec<TVal, TSizeTy>& operator=(TVec<TVal, TSizeTy>&& Vec);
   /// Appends value \c Val to the vector.
   TVec<TVal, TSizeTy>& operator+(const TVal& Val){Add(Val); return *this;}
   /// Checks that the two vectors have the same contents.
@@ -617,8 +617,14 @@ public:
   /// Sets all elements of the vector to value \c Val.
   void PutAll(const TVal& Val);
   
+  /// Move element from position \c ValN1 to \c ValN2
+  void Move(const TSizeTy& FromValN, const TSizeTy& ToValN){
+    ValT[ToValN] = std::move(ValT[FromValN]); } // C++11
+    //ValT[ValN2] = ValT[ValN1]; } // C++98
   /// Swaps elements at positions \c ValN1 and \c ValN2.
-  void Swap(const TSizeTy& ValN1, const TSizeTy& ValN2){ const TVal Val=ValT[ValN1]; ValT[ValN1]=ValT[ValN2]; ValT[ValN2]=Val;}
+  void Swap(const TSizeTy& ValN1, const TSizeTy& ValN2){ 
+    std::swap(ValT[ValN1], ValT[ValN2]); } // C++11
+    // const TVal Val=ValT[ValN1]; ValT[ValN1]=ValT[ValN2]; ValT[ValN2]=Val;} // C++98
   /// Swaps the elements that iterators \c LVal and \c RVal point to.
   static void SwapI(TIter LVal, TIter RVal){ const TVal Val=*LVal; *LVal=*RVal; *RVal=Val;}
   
@@ -798,7 +804,8 @@ void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
         Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
     IAssert(NewValT!=NULL);
-    for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];}
+    for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
+    //for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
     delete[] ValT; ValT=NewValT;
   }
 }
@@ -831,20 +838,6 @@ TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT(
 	Vec.MxVals = 0;
 	Vec.Vals = 0;
 	Vec.ValT = NULL;
-}
-
-template <class TVal, class TSizeTy>
-TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
-	if (this != &Vec) {
-		delete ValT;
-		MxVals = std::move(Vec.MxVals);
-		Vals = std::move(Vec.Vals);		
-		ValT = Vec.ValT;
-		Vec.MxVals = 0;
-		Vec.Vals = 0;
-		Vec.ValT = NULL;
-	}
-	return *this;
 }
 
 template <class TVal, class TSizeTy>
@@ -910,6 +903,20 @@ TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(const TVec<TVal, TSizeTy>& V
     for (TSizeTy ValN=0; ValN<Vec.Vals; ValN++){ValT[ValN]=Vec.ValT[ValN];}
   }
   return *this;
+}
+
+template <class TVal, class TSizeTy>
+TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
+	if (this != &Vec) {
+		delete ValT;
+		MxVals = std::move(Vec.MxVals);
+		Vals = std::move(Vec.Vals);		
+		ValT = Vec.ValT;
+		Vec.MxVals = 0;
+		Vec.Vals = 0;
+		Vec.ValT = NULL;
+	}
+	return *this;
 }
 
 template <class TVal, class TSizeTy>
@@ -981,7 +988,8 @@ void TVec<TVal, TSizeTy>::Trunc(const TSizeTy& _Vals){
       }
       TVal* NewValT=new TVal[MxVals];
       IAssert(NewValT!=NULL);
-      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];}
+      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
+      // for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
       delete[] ValT; ValT=NewValT;
     }
 }
@@ -996,7 +1004,8 @@ void TVec<TVal, TSizeTy>::Pack(){
       MxVals=Vals;
       TVal* NewValT=new TVal[MxVals];
       IAssert(NewValT!=NULL);
-      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];}
+      for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
+      // for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
       delete[] ValT; ValT=NewValT;
     }
 }
@@ -1047,7 +1056,8 @@ TSizeTy TVec<TVal, TSizeTy>::AddBackSorted(const TVal& Val, const bool& Asc){
   Add();
   TSizeTy ValN=Vals-2;
   while ((ValN>=0)&&((Asc&&(Val<ValT[ValN]))||(!Asc&&(Val>ValT[ValN])))){
-    ValT[ValN+1]=ValT[ValN]; ValN--;}
+    Move(ValN, ValN+1); }
+    //ValT[ValN+1]=ValT[ValN]; ValN--;}
   ValT[ValN+1]=Val;
   return ValN+1;
 }
@@ -1089,7 +1099,8 @@ template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Ins(const TSizeTy& ValN, const TVal& Val){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
   Add();  Assert((0<=ValN)&&(ValN<Vals));
-  for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){ValT[MValN+1]=ValT[MValN];}
+  for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){Move(MValN, MValN+1);}
+  //for (TSizeTy MValN=Vals-2; MValN>=ValN; MValN--){ValT[MValN+1]=ValT[MValN];}
   ValT[ValN]=Val;
 }
 
@@ -1097,8 +1108,8 @@ template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& ValN){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
   Assert((0<=ValN)&&(ValN<Vals));
-  for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){
-    ValT[MValN-1]=ValT[MValN];}
+  for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){Move(MValN, MValN-1);}
+  //for (TSizeTy MValN=ValN+1; MValN<Vals; MValN++){ValT[MValN-1]=ValT[MValN];}
   ValT[--Vals]=TVal();
 }
 
@@ -1108,7 +1119,8 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   Assert((0<=MnValN)&&(MnValN<Vals)&&(0<=MxValN)&&(MxValN<Vals));
   Assert(MnValN<=MxValN);
   for (TSizeTy ValN=MxValN+1; ValN<Vals; ValN++){
-    ValT[MnValN+ValN-MxValN-1]=ValT[ValN];}
+    Move(ValN, MnValN+ValN-MxValN-1);}
+    //ValT[MnValN+ValN-MxValN-1]=ValT[ValN];}
   for (TSizeTy ValN=Vals-MxValN+MnValN-1; ValN<Vals; ValN++){
     ValT[ValN]=TVal();}
   Vals-=MxValN-MnValN+1;
@@ -1154,10 +1166,12 @@ void TVec<TVal, TSizeTy>::ISort(const TSizeTy& MnLValN, const TSizeTy& MxRValN, 
       TVal Val=ValT[ValN1]; TSizeTy ValN2=ValN1;
       if (Asc){
         while ((ValN2>MnLValN)&&(ValT[ValN2-1]>Val)){
-          ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
+          Move(ValN2-1, ValN2); ValN2--;}
+          //ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
       } else {
         while ((ValN2>MnLValN)&&(ValT[ValN2-1]<Val)){
-          ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
+          Move(ValN2-1, ValN2); ValN2--;}
+          //ValT[ValN2]=ValT[ValN2-1]; ValN2--;}
       }
       ValT[ValN2]=Val;
     }
