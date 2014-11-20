@@ -2708,7 +2708,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 		TStr KeyNm; PJsonVal KeyVal;
 		JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
 		// check type
-		if (KeyNm.IsPrefix("$")) {
+		if (KeyNm.StartsWith("$")) {
 			// special values
 			if (KeyNm == "$or") {
 				if (!IgnoreOrP) {

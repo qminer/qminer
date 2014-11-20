@@ -461,19 +461,18 @@ public:
 };
 
 /////////////////////////////////////////////////
-// String
-// Small example that 
-//int main() {
-//	TStr Str0("abc"); // char* constructor
-//	TStr Str1("def"); // char* constructor
-//	TStr Str2 = Str1; // copy constructor
-//	Str2 = Str0;      // copy assignment
-//	TStr& Str3 = Str2; // no copying
-//
-//	// Str0, Str and Str2 call destructors, Str3 doesnt call destructor (that's as it should be)
-//	return 0;
-//}
-
+/// String.
+///
+/// Small example:
+///     int main() {
+///         TStr Str0("abc"); // char* constructor
+///         Str Str1("def"); // char* constructor
+///         TStr Str2 = Str1; // copy constructor
+///         Str2 = Str0;      // copy assignment
+///         TStr& Str3 = Str2; // no copying
+///         Str0, Str and Str2 call destructors, Str3 doesnt call destructor (that's as it should be)
+///         return 0;
+///     }
 
 class TStr;
 template <class TVal, class TSizeTy> class TVec;
@@ -485,6 +484,12 @@ private:
   const static char EmptyStr;
   /// String
   char* Inner;
+  
+  /// Deletes the char pointer if it is not NULL.
+  void Clr();
+  /// Wraps the char pointer with a new string. The char pointer is NOT 
+  /// copied and the new string becomes responsible for deleting it.
+  static TStr WrapCStr(char* CStr); 
   
 public:
   /// Empty String Constructor
@@ -511,9 +516,6 @@ public:
   /// We only delete when not empty
   ~TStr() { Clr(); }
 
-  /*
-  * Save & Load From File
-  */
   /// Deserialize TStr from stream, when IsSmall, the string is saved as CStr,
   /// otherwise the format is first the length and then the data without last \0
   explicit TStr(TSIn& SIn, const bool& IsSmall = false);
@@ -537,6 +539,11 @@ public:
   TStr& operator=(const char* CStr);
   /// Assigment operator TStr = char
   TStr& operator=(const char& Ch);
+  
+  /// Concatenates and assigns
+  TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
+  /// Concatenates and assigns
+  TStr& operator+=(const char* _CStr) { *this = (*this + _CStr); return *this; } ;
 
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
@@ -548,10 +555,10 @@ public:
   bool operator!=(const char* CStr) const { return !operator==(CStr); }
   /// < (is less than comparison) TStr < TStr
   bool operator<(const TStr& Str) const;
+  
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
-  /// Memory used by this String object
-  int GetMemUsed() const;
+
   /// Get the inner C-String
   const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
   /// Return a COPY of the string as a C String (char array)
@@ -566,10 +573,9 @@ public:
   bool Empty() const { IAssertR(Inner == NULL || Inner[0] != 0, "TStr::Empty string is not NULL. Fix immediately!");  return  Inner == NULL; }
   /// returns a reference to this string (used for templating)
   const TStr& GetStr() const { return *this; }
-
-  /*
-   * Case related methods
-   */
+  /// Memory used by this String object
+  int GetMemUsed() const;
+  
   /// Is upper-case?
   bool IsUc() const;
   /// Returns a new string converted to uppercase
@@ -596,34 +602,32 @@ public:
   /// create from hex string
   TStr GetFromHex() const;
 
-  /*
-   * Substring methods
-   */
-  // Get substring from BchN to EchN
+  /// Get substring from BchN to EchN
   TStr GetSubStr(const int& BChN, const int& EChN) const;
-  // Get substring from BchN to the end of the string
+  /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
-  // Insert a string Str into this string starting position BchN, return the new string
+  /// Insert a string Str into this string starting position BchN, return the new string
   TStr InsStr(const int& BChN, const TStr& Str) const;
-  // Return a new string with all the occurrences of char Ch replaced
+  /// Return a new string with all the occurrences of char Ch replaced
   TStr DelChAll(const char& Ch) const;
-  // Return a new string with the substring from BChN to EChN removed
+  /// Return a new string with the substring from BChN to EChN removed
   TStr DelSubStr(const int& BChN, const int& EChN) const;
-  // Return a new string with the first occurrences of substring Str removed
+  /// Return a new string with the first occurrences of substring Str removed
   TStr DelStr(const TStr& Str) const;
-  // Return a new string with the all occurrences of substring Str removed (single pass)
+  /// Return a new string with the all occurrences of substring Str removed (single pass)
   TStr DelStrAll(const TStr& Str) const;
 
-  /*
-   * Split methods
-   */
+  /// Get substring from beginning till the character before first occurrence of SplitCh
   TStr LeftOf(const char& SplitCh) const;
+  /// Get substring from beginning till the character before last occurrence of SplitCh
   TStr LeftOfLast(const char& SplitCh) const;
+  /// Get substring from the character after first occurrence of SplitCh till the end
   TStr RightOf(const char& SplitCh) const;
+  /// Get substring from the character after last occurrence of SplitCh till the end
   TStr RightOfLast(const char& SplitCh) const;
 
-  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the contents on the right of RightOfChN
-  /// into RStr (exclusive)
+  /// Puts the contents to the left of LeftOfChN (exclusive) into LStr and the 
+  /// contents on the right of RightOfChN into RStr (exclusive)
   void SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const;
   /// Split on the index, return Pair of Left/Right strings, omits the target index
   void SplitOnChN(TStr& LStr, const int& ChN, TStr& RStr) const;
@@ -647,22 +651,26 @@ public:
   /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 
-
-
   /* comment preserved for future archaeologists:
   //TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
   //J: as in python or matlab: 1 is 1st character, -1 is last character
   // TODO ROK, ask Jure about this comment
    */
 
-  /*
-   * Slicing methods
-   */
+  /// Get substring from beginning till including character positioned at EChN.
+  /// In case EChN is negative, it counts from the back of the string.
   TStr Left(const int& EChN) const { return EChN>0 ? GetSubStr(0, EChN-1) : GetSubStr(0, Len()+EChN-1);}
+  /// Get substring from character positioned at BChN till the end.
+  /// In case BChN is negative, it counts from the back of the string.
   TStr Right(const int& BChN) const {return BChN>=0 ? GetSubStr(BChN, Len()-1) : GetSubStr(Len()+BChN, Len()-1);}
+  /// Get substring from character positioned at BChN till including character 
+  /// positioned at EChN. In case either is negative, it counts from the oposite
+  /// end of the string.
   TStr Slice(int BChN, int EChNP1) const { if(BChN<0){BChN=Len()+BChN;} if(EChNP1<=0){EChNP1=Len()+EChNP1;} return GetSubStr(BChN, EChNP1-1); }
-//  TStr operator()(const int& BChN, const int& EChNP1) const {return Slice(BChN, EChNP1);}
+  /// Get substring of length Chs from including character positioned at BChN.
+  /// In case EChN is negative, it counts from the back of the string.
   TStr Mid(const int& BChN, const int& Chs) const { return GetSubStr(BChN, BChN+Chs-1); }
+  /// Get substring from character positioned at BChN till the end.
   TStr Mid(const int& BChN) const {return GetSubStr(BChN, Len()-1); }
 
   /*
@@ -852,22 +860,6 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
-
-
-  /*
-   * Private methods
-   */
-private:
-  // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
-//  TStr(char *Ch, const bool Own);
-
-  /// deletes the char pointer if it is not NULL
-  void Clr();
-
-  /// wraps the char pointer with a new string. the char pointer
-  /// is NOT copied and the new string becomes responsible for
-  /// deleting it
-  static TStr WrapCStr(char* CStr);
 };
 
 /////////////////////////////////////////////////
