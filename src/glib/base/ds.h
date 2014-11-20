@@ -609,6 +609,9 @@ public:
   TVal& GetVal(const TSizeTy& ValN){return operator[](ValN);}
   /// Returns a vector on elements at positions <tt>BValN...EValN</tt>.
   void GetSubValV(const TSizeTy& BValN, const TSizeTy& EValN, TVec<TVal, TSizeTy>& ValV) const;
+  /// Returns a vector on elements at positions <tt>BValN...EValN</tt> using memcpy.
+  void GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const;
+
   /// Inserts new element \c Val before the element at position \c ValN.
   void Ins(const TSizeTy& ValN, const TVal& Val);
   /// Removes the element at position \c ValN.
@@ -790,7 +793,8 @@ TSizeTy TVec<TVal, TSizeTy>::AddVMemCpy(const TVec<TVal, TSizeTy>& ValV) {
 	if (ValV.Len() == 0)
 		return 0;
 	Resize(Vals + ValV.Len());
-	memcpy(ValT + Vals, ValV.ValT, ValV.Len());
+	memcpy(ValT + Vals, ValV.ValT, ValV.Len() * sizeof(TVal));
+	Vals += ValV.Len();
 	return ValV.Len();
 }
 
@@ -1123,6 +1127,16 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
   SubValV.Gen(SubVals, 0);
   for (TSizeTy ValN=BValN; ValN<=EValN; ValN++){
     SubValV.Add(GetVal(ValN));}
+}
+
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+	const TSizeTy BValN = TInt::GetInRng(_BValN, 0, Len() - 1);
+	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
+	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
+	SubValV.Gen(SubVals, 0);
+	memcpy(SubValV.ValT, ValT + BValN * sizeof(TVal), SubVals * sizeof(TVal));
+	SubValV.Vals += SubVals;
 }
 
 template <class TVal, class TSizeTy>

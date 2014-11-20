@@ -191,10 +191,10 @@ private:
 			TotalCnt += Children[i].Len;
 	}
 
-	/// Check if there are any dirty child vectors => "change the diapers"
+	/// Check if there are any dirty child vectors with size outside the tolerance
 	int FirstDirtyChild() {
 		for (int i = 0; i < Children.Len(); i++) {
-			if (Children[i].Dirty)
+			if (Children[i].Dirty && (Children[i].Len < Gix->GetSplitLenMin() || Children[i].Len > Gix->GetSplitLenMax()))
 				return i;
 		}
 		return -1;
@@ -352,12 +352,17 @@ void TGixItemSet<TKey, TItem>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	// push work-buffer into children array
-	TGixItemSetChildInfo child_info(ItemV[0], ItemV.Last(), ItemV.Len(), Gix->EnlistChildVector(ItemV), MergedP);
-	Children.Add(child_info);
-	ChildrenData.Add(TVec<TItem>());
-	child_info.Loaded = false;
-	child_info.Dirty = false;
-	ItemV.Clr();
+	int split_len = Gix->GetSplitLen();
+	while (ItemV.Len() >= split_len) {
+		TVec<TItem> tmp;
+		ItemV.GetSubValVMemCpy(0, split_len - 1, tmp);
+		TGixItemSetChildInfo child_info(ItemV[0], ItemV[split_len - 1], split_len, Gix->EnlistChildVector(tmp), MergedP);
+		child_info.Loaded = false;
+		child_info.Dirty = false;
+		Children.Add(child_info);
+		ChildrenData.Add(TVec<TItem>());
+		ItemV.Del(0, split_len - 1);
+	}
 }
 
 template <class TKey, class TItem>
@@ -486,7 +491,7 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 
 		ItemV.Clr();
 		ItemVDel.Clr();
-		ItemV.AddV(ItemVNew);
+		ItemV.AddVMemCpy(ItemVNew);
 	}
 }
 
@@ -495,23 +500,67 @@ void TGixItemSet<TKey, TItem>::Def() {
 	// call merger to pack items, if not merged yet 
 	if (!MergedP) {
 
-		ProcessDeletes();
+		ProcessDeletes(); // "execute" deletes, possibly leaving some child vectors too short
+	
+		// first do local merge of work-buffer
+		Merger->Merge(ItemV); 
 
-		Merger->Merge(ItemV); // first local merge
+		// inject data into child vectors
+		if (Children.Len() > 0 && ItemV.Len() > 0) {
+			int i = 0;
+			int j = 0;
+			while (i < ItemV.Len()) {
+				TItem val = ItemV[i++];
+				while (j < Children.Len() && Merger->IsLt(Children[j].MaxVal, val)) {
+					j++;
+				}
+				if (j < Children.Len()) { // ok, insert into j-th child
+					LoadChildVector(j);
+					ChildrenData[j].Add(val);
+					Children[j].Len = ChildrenData[j].Len();
+					Children[j].Dirty = true;
+					Children[j].MergedP = false;
+					//if (Children[j].Len > Gix->GetSplitLenMax())
+					//	break; // this child has overflowed - stop inserting and proceed to merge
+				} else {
+					i--;
+					break; // all remaining values in input buffer will not be inserted into child vectors 
+				}
+			}
+			if (i < ItemV.Len()) {
+				if (i > 0)
+					ItemV.Del(0, i - 1);
+			} else {
+				ItemV.Clr();
+			}
+			// merge dirty un-merged children
+			for (int j = 0; j < Children.Len(); j++) {
+				if (!Children[j].MergedP) {
+					Merger->Merge(ChildrenData[j]);
+					Children[j].Len = ChildrenData[j].Len();
+					Children[j].MergedP = true;
+					Children[j].Dirty = true;
+					Children[j].MinVal = ChildrenData[j][0];
+					Children[j].MaxVal = ChildrenData[j].Last();
+				}
+			}
+		}
+
 		int first_dirty_child = FirstDirtyChild();
 		if (first_dirty_child >= 0 || Children.Len() > 0 && ItemV.Len() > 0) {
-			// detect the first child that needs to be merged
-			int first_child_to_merge = Children.Len();
-			if (ItemV.Len() > 0) {
-				TItem ItemVMin = ItemV[0];
-				first_child_to_merge = Children.Len() - 1;
-				while (first_child_to_merge >= 0 && Merger->IsLt(ItemVMin, Children[first_child_to_merge].MaxVal)) {
-					first_child_to_merge--;
-				}
-				first_child_to_merge++;
-			}
-			if (first_child_to_merge > first_dirty_child && first_dirty_child >= 0)
-				first_child_to_merge = first_dirty_child;
+			//// detect the first child that needs to be merged
+			//int first_child_to_merge = Children.Len();
+			//if (ItemV.Len() > 0) {
+			//	TItem ItemVMin = ItemV[0];
+			//	first_child_to_merge = Children.Len() - 1;
+			//	while (first_child_to_merge >= 0 && Merger->IsLt(ItemVMin, Children[first_child_to_merge].MaxVal)) {
+			//		first_child_to_merge--;
+			//	}
+			//	first_child_to_merge++;
+			//}
+			//if (first_child_to_merge > first_dirty_child && first_dirty_child >= 0)
+			//	first_child_to_merge = first_dirty_child;
+			int first_child_to_merge = (first_dirty_child >= 0 ? first_dirty_child : Children.Len());
 
 			// collect all data from subsequent child vectors and work-buffer
 			TVec<TItem> MergedItems;
@@ -529,7 +578,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 			while (curr_index < MergedItems.Len()) {
 				if (child_index < Children.Len() && remaining > Gix->GetSplitLen()) {
 					ChildrenData[child_index].Clr();
-					MergedItems.GetSubValV(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
+					MergedItems.GetSubValVMemCpy(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
 					Children[child_index].Len = ChildrenData[child_index].Len();
 					Children[child_index].MinVal = ChildrenData[child_index][0];
 					Children[child_index].MaxVal = ChildrenData[child_index].Last();
@@ -540,7 +589,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 				} else {
 					// the remaining data fits into work-buffer
 					ItemV.Clr();
-					MergedItems.GetSubValV(curr_index, curr_index + remaining - 1, ItemV);
+					MergedItems.GetSubValVMemCpy(curr_index, curr_index + remaining - 1, ItemV);
 					break;
 				}
 			}
@@ -554,6 +603,9 @@ void TGixItemSet<TKey, TItem>::Def() {
 				Children.Del(first_empty_child, Children.Len() - 1);
 				ChildrenData.Del(first_empty_child, ChildrenData.Len() - 1);
 			}
+						
+			PushWorkBufferToChildren(); // it could happen that data in work buffer is still to large
+
 		} else if (Children.Len() > 0 && ItemV.Len() == 0) {
 			// nothing, children should already be merged and work-buffer is empty
 		} else {
@@ -641,6 +693,10 @@ private:
 	TBlobPt EnlistChildVector(const TVec<TItem>& Data) const;
 	/// Size of work-buffer
 	int SplitLen;
+	/// Minimal length for child vectors
+	int SplitLenMin;
+	/// Maximal length for child vectors
+	int SplitLenMax;
 
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
@@ -661,8 +717,9 @@ public:
 	bool IsCacheFullP() const { return CacheFullP; }
 	TStr GetFPath() const { return GixFNm.GetFPath(); }
 	int64 GetMxCacheSize() const { return GetMxMemUsed(); }
-	int GetSplitLen()const { return SplitLen; };
-
+	int GetSplitLen() const { return SplitLen; };
+	int GetSplitLenMax() const { return SplitLenMax; };
+	int GetSplitLenMin() const { return SplitLenMin; };
 
 	/// do we have Key in the index?
 	bool IsKey(const TKey& Key) const { return KeyIdH.IsKey(Key); }
@@ -773,6 +830,9 @@ TGix<TKey, TItem>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Acce
 	CacheResetThreshold = int64(0.1 * double(CacheSize));
 	NewCacheSizeInc = 0;
 	CacheFullP = false;
+	int Tolerance = SplitLen / 10;
+	SplitLenMax = SplitLen + Tolerance;
+	SplitLenMin = SplitLen - Tolerance;
 }
 
 template <class TKey, class TItem>

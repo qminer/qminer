@@ -89,7 +89,8 @@ public:
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
-			gix.AddItem(x, (i * 15485867) % 16381); // pseudo-random numbers
+			int item = (i * 15485867) % 16381;
+			gix.AddItem(x, item); // pseudo-random numbers
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -496,33 +497,33 @@ public:
 
 	void PerformTests() {
 
-		Test_Simple_1();
-		Test_Simple_220();
+		//Test_Simple_1();
+		//Test_Simple_220();
 		Test_Simple_220_Unsorted();
-		Test_Merge_220_Into_50();
-		Test_Merge_220_Into_120();
-		Test_Merge_22000_Into_50();
+		//Test_Merge_220_Into_50();
+		//Test_Merge_220_Into_120();
+		//Test_Merge_22000_Into_50();
 
-		Test_Delete_1();
-		Test_Delete_20();
-		Test_Delete_20And1();
-		Test_Delete_120();
-		Test_Delete_120And1();
-		Test_Delete_120And110();
-		Test_Delete_22000And1000();
+		//Test_Delete_1();
+		//Test_Delete_20();
+		//Test_Delete_20And1();
+		//Test_Delete_120();
+		//Test_Delete_120And1();
+		//Test_Delete_120And110();
+		//Test_Delete_22000And1000();
 
-		// this will split only big itemsets
-		WarnNotifyI(TStr("Split only big itemsets\n"));
-		Test_Feed(50*1024*1025, 1000);
+		//// this will split only big itemsets
+		//WarnNotifyI(TStr("Split only big itemsets\n"));
+		//Test_Feed(50*1024*1025, 1000);
 
-		// this will split probably all itemsets
-		WarnNotifyI(TStr("Split all itemsets\n"));
-		Test_Feed(50 * 1024 * 1025, 100);
+		//// this will split probably all itemsets
+		//WarnNotifyI(TStr("Split all itemsets\n"));
+		//Test_Feed(50 * 1024 * 1025, 100);
 
-		// this will split probably all itemsets
-		// it will also limit cache to less than 10% of the itemsets
-		WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		Test_Feed(1 * 1024 * 1025, 1000);
+		//// this will split probably all itemsets
+		//// it will also limit cache to less than 10% of the itemsets
+		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		//Test_Feed(1 * 1024 * 1025, 1000);
 	}
 };
 
