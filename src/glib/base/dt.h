@@ -586,6 +586,7 @@ public:
   TStr GetLc() const;
   /// Capitalize
   TStr GetCap() const;
+  TStr& ToCap();
 
   /// Truncate
   TStr GetTrunc() const;
