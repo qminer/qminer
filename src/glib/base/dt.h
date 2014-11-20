@@ -476,7 +476,7 @@ public:
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
   /// Indexing operator, returns character at position ChN by reference
-  char& operator[](const int& ChN) { return GetCh(ChN); }
+  char& operator[](const int& ChN);
 
   /// Get the inner C-String
   const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
