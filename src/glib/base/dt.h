@@ -580,6 +580,8 @@ public:
   bool IsUc() const;
   /// Returns a new string converted to uppercase
   TStr GetUc() const;
+  /// Converts string to uppercase
+  TStr& ToUc() ;
   /// Case insensitive comparison
   static int CmpI(const char* p, const char* r);
   /// Case insensitive comparison
@@ -590,8 +592,11 @@ public:
   bool IsLc() const;
   /// Returns new string converted to lowercase
   TStr GetLc() const;
-  /// Capitalize
+  /// Converts to lowercase
+  TStr& ToLc();  
+  /// Returns new, capitalized string
   TStr GetCap() const;
+  /// Converts to capitalized string
   TStr& ToCap();
 
   /// Truncate
@@ -702,13 +707,17 @@ public:
   /*
    * Change chars & Substrings
    */
-  // Return a string with first occurrence of SrcCh character replaced with DstCh. Start search at BChN
+  /// Return a string with first occurrence of SrcCh character replaced with DstCh. Start search at BChN
   TStr ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN=0) const;
-  // Return a string with all occurrences of SrcCh character replaced with DstCh
+  /// Replace the first occurrence of SrcCh character with DstCh. Start search at BChN
+  TStr& ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN = 0);
+  /// Return a string with all occurrences of SrcCh character replaced with DstCh
   TStr ChangeChAll(const char& SrcCh, const char& DstCh) const;
+  /// Replace all occurrences of SrcCh character with DstCh
+  TStr& ChangeChAll(const char& SrcCh, const char& DstCh);
   // Return a string with first occurrence of ScrStr string replaced with DstStr string.
   TStr ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0) const;
-  // Return a string with all occurrences of ScrStr string replaced with DstStr string
+  /// Return a string with all occurrences of ScrStr string replaced with DstStr string
   TStr ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const;
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;

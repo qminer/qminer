@@ -978,16 +978,17 @@ bool TStr::IsUc() const {
 }
 
 TStr TStr::GetUc() const {
+	return TStr(*this).ToUc();
+}
+
+TStr& TStr::ToUc() {
+	if (Empty()) { return *this; }
 	int StrLen = Len();
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
-	// copy in uppercase to new char array
+	// copy all other chars in lowercase
 	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN] = (char) toupper(Inner[ChN]);
+		Inner[ChN] = (char)toupper(Inner[ChN]);
 	}
-	new_array[StrLen] = 0;
-	// create new TStr, assign character memory array to it
-	return WrapCStr(new_array);
+	return *this;
 }
 
 int TStr::CmpI(const char* p, const char* r) {
@@ -1008,17 +1009,19 @@ bool TStr::IsLc() const {
 	return true;
 }
 
-TStr TStr::GetLc() const {
-	int StrLen = Len();
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
-	// copy in lowercase to new char array
+
+TStr TStr::GetLc() const {	
+	return TStr(*this).ToLc();
+}
+
+TStr& TStr::ToLc() {	
+	if (Empty()) { return *this; }
+	int StrLen = Len();	
+	// copy all other chars in lowercase
 	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN] = (char) tolower(Inner[ChN]);
+		Inner[ChN] = (char)tolower(Inner[ChN]);
 	}
-	new_array[StrLen] = 0;
-	// create new TStr, assign character memory array to it
-	return WrapCStr(new_array);
+	return *this;
 }
 
 TStr TStr::GetCap() const{
@@ -1453,27 +1456,35 @@ bool TStr::EndsWith(const char *Str) const {
 	}
 }
 
-TStr TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) const {
-	int ChN = SearchCh(SrcCh, BChN);
-	char* Res = CloneCStr();
+TStr TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) const {	
+	return TStr(*this).ChangeCh(SrcCh, DstCh, BChN);
+}
+
+TStr& TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) {
+	if (Empty()) { return *this; }
+	int ChN = SearchCh(SrcCh, BChN);	
 	if (ChN != -1){
-		Res[ChN] = DstCh;
+		Inner[ChN] = DstCh;
 	}
-	return WrapCStr(Res);
+	return *this;
 }
 
 TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
+	return TStr(*this).ChangeChAll(SrcCh, DstCh);
+}
+
+TStr& TStr::ChangeChAll(const char& SrcCh, const char& DstCh) {
+	if (Empty()) { return *this; }
 	int FirstChN = SearchCh(SrcCh);
 	if (FirstChN == -1){
 		return *this;
 	}
-	else {
-		char* Res = CloneCStr();
+	else {		
 		int StrLen = Len();
 		for (int ChN = FirstChN; ChN < StrLen; ChN++){
-			if (Res[ChN] == SrcCh){ Res[ChN] = DstCh; }
+			if (Inner[ChN] == SrcCh){ Inner[ChN] = DstCh; }
 		}
-		return WrapCStr(Res);
+		return *this;
 	}
 }
 
