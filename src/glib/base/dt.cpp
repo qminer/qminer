@@ -968,7 +968,7 @@ TStr TStr::GetUc() const {
 	}
 	new_array[StrLen] = 0;
 	// create new TStr, assign character memory array to it
-	return TStr(new_array, true);
+	return WrapCStr(new_array);
 }
 
 int TStr::CmpI(const char* p, const char* r) {
@@ -999,22 +999,23 @@ TStr TStr::GetLc() const {
 	}
 	new_array[StrLen] = 0;
 	// create new TStr, assign character memory array to it
-	return TStr(new_array, true);
+	return WrapCStr(new_array);
 }
 
 TStr TStr::GetCap() const{
-	int StrLen = Len();
-	if (StrLen == 0) return TStr(); // if empty string, return new empty string
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
+	return TStr(*this).ToCap();	
+}
+
+TStr& TStr::ToCap() {
+	if (Empty()) { return *this; }
+	int StrLen = Len();	
 	// copy first char in uppercase
-	new_array[0] = (char)toupper(Inner[0]);
+	Inner[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
 	for (int ChN = 1; ChN < StrLen; ChN++){
-		new_array[ChN] = (char)tolower(Inner[ChN]);
+		Inner[ChN] = (char)tolower(Inner[ChN]);
 	}
-	new_array[StrLen] = 0;
-	return TStr(new_array, true);
+	return *this;
 }
 
 TStr TStr::GetTrunc() const {
@@ -1072,7 +1073,7 @@ TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
         // get copy of a substring
         Bf = new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
     }
-    return TStr(Bf, true);
+    return WrapCStr(Bf);
 }
 
 TStr TStr::InsStr(const int& BChN, const TStr& Str) const {
@@ -1115,7 +1116,7 @@ TStr TStr::DelSubStr(const int& _BChN, const int& _EChN) const {
         // actual substring
         char* Bf=new char[Chs+1]; strncpy(Bf, CStr(), BChN);
         strncpy(Bf+BChN, CStr()+EChN+1, Len()-EChN-1); Bf[Chs]=0;
-        return TStr(Bf, true);
+        return WrapCStr(Bf);
     } else {
         // whole string, return a copy
         return TStr(CStr());
@@ -1439,7 +1440,7 @@ TStr TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) const
 	if (ChN != -1){
 		Res[ChN] = DstCh;
 	}
-	return TStr(Res, true);
+	return WrapCStr(Res);
 }
 
 TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
@@ -1453,7 +1454,7 @@ TStr TStr::ChangeChAll(const char& SrcCh, const char& DstCh) const {
 		for (int ChN = FirstChN; ChN < StrLen; ChN++){
 			if (Res[ChN] == SrcCh){ Res[ChN] = DstCh; }
 		}
-		return TStr(Res, true);
+		return WrapCStr(Res);
 	}
 }
 
@@ -1477,7 +1478,7 @@ TStr TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) co
 			strncpy(Res + ChN, DstStr.CStr(), DstLen);
 		}
 		Res[Len] = 0;		
-		return TStr(Res, true);
+		return WrapCStr(Res);
 	}
 }
 
@@ -1536,7 +1537,7 @@ TStr TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) const {
 	// insert null character
 	ResStr[Length + NMatches*(DstLen - SrcLen)] = 0;
 	// return
-	return TStr(ResStr, true);
+	return WrapCStr(ResStr);
 }
 
 TStr TStr::Reverse() const {
@@ -1550,7 +1551,7 @@ TStr TStr::Reverse() const {
 
 	Reversed[Length] = 0;
 
-	return TStr(Reversed, true);
+	return WrapCStr(Reversed);
 }
 
 int TStr::GetPrimHashCd() const {
@@ -2034,7 +2035,7 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 		ConcatStr[LeftLen + RightLen] = 0;
 
 		// return
-		return TStr(ConcatStr, true);
+		return TStr::WrapCStr(ConcatStr);
 	}
 }
 
@@ -2042,14 +2043,31 @@ TStr operator +(const TStr& LStr, const TStr& RStr) {
 	return operator +(LStr, RStr.CStr());
 }
 
-TStr::TStr(char *Ch, const bool Own): Inner(nullptr) {
-	if (!Own) { *this = TStr(Ch); } // guard against misuse
-	else {
-		Inner = Ch;
-		if (Inner != nullptr && Inner[0] == 0) {
-			Clr();
-		}
-	}	
+//TStr::TStr(char *Ch, const bool Own): Inner(nullptr) {
+//	if (!Own) { *this = TStr(Ch); } // guard against misuse
+//	else {
+//		Inner = Ch;
+//		if (Inner != nullptr && Inner[0] == 0) {
+//			Clr();
+//		}
+//	}
+//}
+
+void TStr::Clr() {
+	if (Inner != nullptr) {
+		delete[] Inner;
+		Inner = nullptr;
+	}
+}
+
+TStr TStr::WrapCStr(char* CStr) {
+	TStr NewStr;
+
+	if (CStr != nullptr && CStr[0] != 0) {
+		NewStr.Inner = CStr;
+	}
+
+	return NewStr;
 }
 
 /////////////////////////////////////////////////
