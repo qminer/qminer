@@ -527,35 +527,6 @@ public:
   /// Serialize to XML File
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
-  /*
-   *
-   * Be careful when using assignment operators outside of function scopes
-   * in multithreaded environments as they are not thread safe.
-   *
-   * Consider the following example:
-   *
-   * class T {
-   * 	TStr a;
-   * 	void InfiniteAppend() {
-   * 		while (true) a = a + "abcde";
-   * 	}
-   * 	TStr SomeCpyOp() {
-   * 		TStr LStr, RStr;
-   * 		return a.SplitOnAllCh(LStr, 'a', RStr);
-   * 	}
-   * }
-   *
-   * Thread A:
-   * T.InfiniteAppend();
-   *
-   * Thread B:
-   * T.SomeCpyOp();
-   *
-   *
-   * The result in LStr is in this case undefined and calling SplitOnAllCh can
-   * even lead to accessing invalid memory.
-   *
-   */
   /// Assigment operator TStr = TStr
   TStr& operator=(const TStr& Str);
   /// Move assigment operator TStr = TStr
