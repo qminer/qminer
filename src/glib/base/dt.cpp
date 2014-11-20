@@ -768,6 +768,25 @@ int TRStr::GetHashTrick() const {
 // String
 const char TStr::EmptyStr = 0;
 
+void TStr::Clr() {
+	if (Inner != nullptr) {
+		delete[] Inner;
+		Inner = nullptr;
+	}
+}
+
+TStr TStr::WrapCStr(char* CStr) {
+	TStr NewStr;
+
+	if (CStr != nullptr && CStr[0] == 0) {
+		delete[] CStr;
+	} else if (CStr != nullptr) {
+		NewStr.Inner = CStr;
+	}
+
+	return NewStr;
+}
+
 TStr::TStr(const char *Ch): Inner(nullptr) {
 	const int Len = strlen(Ch);
 	if (Len > 0) {
@@ -925,10 +944,6 @@ bool TStr::operator==(const char* _CStr) const {
 bool TStr::operator<(const TStr& Str) const {
     return strcmp(CStr(), Str.CStr()) < 0;
 }
-  
-int TStr::GetMemUsed() const { 
-    return int(sizeof(TStr*) + ((Inner != nullptr) ? (strlen(Inner)+1) : 0));
-}
 
 char TStr::GetCh(const int& ChN) const {
     // Assert index not negative, index not >= Length
@@ -954,6 +969,10 @@ char* TStr::CloneCStr() const {
 	}
 
 	return Bf;
+}
+
+int TStr::GetMemUsed() const { 
+    return int(sizeof(TStr) + (Empty() ? 0 : (Len() + 1)));
 }
 
 bool TStr::IsUc() const {
@@ -1009,18 +1028,19 @@ TStr TStr::GetLc() const {
 }
 
 TStr TStr::GetCap() const{
-	int StrLen = Len();
-	if (StrLen == 0) return TStr(); // if empty string, return new empty string
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
+	return TStr(*this).ToCap();	
+}
+
+TStr& TStr::ToCap() {
+	if (Empty()) { return *this; }
+	int StrLen = Len();	
 	// copy first char in uppercase
-	new_array[0] = (char)toupper(Inner[0]);
+	Inner[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
 	for (int ChN = 1; ChN < StrLen; ChN++){
-		new_array[ChN] = (char)tolower(Inner[ChN]);
+		Inner[ChN] = (char)tolower(Inner[ChN]);
 	}
-	new_array[StrLen] = 0;
-	return WrapCStr(new_array);
+	return *this;
 }
 
 TStr TStr::GetTrunc() const {
@@ -2019,7 +2039,7 @@ TStr TStr::GetSpaceStr(const int& Spaces){
   }
 }
 
-TStr operator +(const TStr& LStr, const char* RCStr) {
+TStr operator+(const TStr& LStr, const char* RCStr) {
 	const size_t LeftLen = LStr.Len();
 	const size_t RightLen = RCStr == nullptr ? 0 : strlen(RCStr);
 
@@ -2044,37 +2064,8 @@ TStr operator +(const TStr& LStr, const char* RCStr) {
 	}
 }
 
-TStr operator +(const TStr& LStr, const TStr& RStr) {
+TStr operator+(const TStr& LStr, const TStr& RStr) {
 	return operator +(LStr, RStr.CStr());
-}
-
-//TStr::TStr(char *Ch, const bool Own): Inner(nullptr) {
-//	if (!Own) { *this = TStr(Ch); } // guard against misuse
-//	else {
-//		Inner = Ch;
-//		if (Inner != nullptr && Inner[0] == 0) {
-//			Clr();
-//		}
-//	}
-//}
-
-void TStr::Clr() {
-	if (Inner != nullptr) {
-		delete[] Inner;
-		Inner = nullptr;
-	}
-}
-
-TStr TStr::WrapCStr(char* CStr) {
-	TStr NewStr;
-
-	if (CStr != nullptr && CStr[0] == 0) {
-		delete[] CStr;
-	} else if (CStr != nullptr) {
-		NewStr.Inner = CStr;
-	}
-
-	return NewStr;
 }
 
 /////////////////////////////////////////////////
