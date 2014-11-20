@@ -181,18 +181,17 @@ void TUrl::GetAbs(const TStr& AbsUrlStr){
     Str+=Lx.GetHostPort(HostNm, PortStr, PortN);
     if (PortN==-1){PortN=THttp::DfPortN; PortStr = TStr();}
     else if (PortN==THttp::DfPortN){PortStr = TStr();}
-    //**if (!PortStr.Empty()){Str+=':'; Str+=PortStr;}
     if (Lx.PeekCh()=='/'){
-      PathStr=Lx.GetCh('/'); PathStr+=Lx.GetHPath(PathSegV); Str+=PathStr;}
+      PathStr=TStr(Lx.GetCh('/')); PathStr+=Lx.GetHPath(PathSegV); Str+=PathStr;}
     if (PathStr.Empty()){PathStr="/"; Str+=PathStr;}
     if (Lx.PeekCh()=='?'){
-      SearchStr=Lx.GetCh('?'); SearchStr+=Lx.GetSearch(); Str+=SearchStr;}
+      SearchStr=TStr(Lx.GetCh('?')); SearchStr+=Lx.GetSearch(); Str+=SearchStr;}
   } else {
     Scheme=usOther; Str+=Lx.GetToCh();
   }
   while (Lx.PeekCh()==' '){Lx.GetCh();}
   if (Lx.PeekCh()=='#'){
-    FragIdStr=Lx.GetCh('#'); FragIdStr+=Lx.GetToCh();
+    FragIdStr=TStr(Lx.GetCh('#')); FragIdStr+=Lx.GetToCh();
   }
   EAssertR(Lx.Eof(), "");
   UrlStr=Str;
@@ -244,7 +243,7 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   int NewLen;
   do {
 	  OldLen = AbsUrlStr.Len();
-	  AbsUrlStr = AbsUrlStr.DelStr(CurDirStr);
+	  AbsUrlStr.DelStr(CurDirStr);
 	  NewLen = AbsUrlStr.Len();
   } while (OldLen != NewLen);
 
@@ -261,7 +260,7 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   FinalUrlStr(), FinalHostNm(),
   HttpRqStr(){
   RelUrlStr = RelUrlStr.GetTrunc();
-  RelUrlStr = RelUrlStr.ChangeStrAll(" ", "%20");
+  RelUrlStr.ChangeStrAll(" ", "%20");
   try {
     if (IsAbs(RelUrlStr)){
       GetAbs(RelUrlStr);

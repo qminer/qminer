@@ -1091,7 +1091,7 @@ TStr TFile::GetUniqueFNm(const TStr& FNm){
   }
   forever{
     NewFNm=TmpFNm;
-	NewFNm = NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
+	NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
     if (!TFile::Exists(NewFNm)){break;}
   }
   return NewFNm;

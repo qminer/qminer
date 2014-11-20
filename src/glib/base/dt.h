@@ -454,9 +454,7 @@ public:
   TStr& operator=(const TChA& ChA);
   /// Assigment operator TStr = char* (C-String)
   TStr& operator=(const char* CStr);
-  /// Assigment operator TStr = char
-  TStr& operator=(const char& Ch);
-  
+
   /// Concatenates and assigns
   TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
   /// Concatenates and assigns
