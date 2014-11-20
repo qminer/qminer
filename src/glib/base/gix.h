@@ -356,7 +356,7 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	while (ItemV.Len() >= split_len) {
 		TVec<TItem> tmp;
 		ItemV.GetSubValVMemCpy(0, split_len - 1, tmp);
-		TGixItemSetChildInfo child_info(ItemV[0], ItemV[split_len - 1], split_len, Gix->EnlistChildVector(tmp), MergedP);
+		TGixItemSetChildInfo child_info(ItemV[0], ItemV[split_len - 1], split_len, Gix->EnlistChildVector(tmp), true);
 		child_info.Loaded = false;
 		child_info.Dirty = false;
 		Children.Add(child_info);
@@ -536,12 +536,14 @@ void TGixItemSet<TKey, TItem>::Def() {
 			// merge dirty un-merged children
 			for (int j = 0; j < Children.Len(); j++) {
 				if (!Children[j].MergedP) {
-					Merger->Merge(ChildrenData[j]);
-					Children[j].Len = ChildrenData[j].Len();
+					LoadChildVector(j);
+					TVec<TItem>& cd = ChildrenData[j];
+					Merger->Merge(cd);
+					Children[j].Len = cd.Len();
 					Children[j].MergedP = true;
 					Children[j].Dirty = true;
-					Children[j].MinVal = ChildrenData[j][0];
-					Children[j].MaxVal = ChildrenData[j].Last();
+					Children[j].MinVal = cd[0];
+					Children[j].MaxVal = cd.Last();
 				}
 			}
 		}
@@ -583,6 +585,8 @@ void TGixItemSet<TKey, TItem>::Def() {
 					Children[child_index].MinVal = ChildrenData[child_index][0];
 					Children[child_index].MaxVal = ChildrenData[child_index].Last();
 					Children[child_index].Dirty = true;
+					Children[child_index].Loaded = true;
+					Children[child_index].MergedP = true;
 					curr_index += Children[child_index].Len;
 					remaining = MergedItems.Len() - curr_index;
 					child_index++;

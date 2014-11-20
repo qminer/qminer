@@ -809,7 +809,7 @@ void TVec<TVal, TSizeTy>::LoadMemCpy(TMIn& SIn) {
 		ValT = NULL;
 	} else {
 		ValT = new TVal[MxVals];
-		SIn.GetBfMemCpy(ValT, Vals);
+		SIn.GetBfMemCpy(ValT, Vals*sizeof(TVal));
 	}
 }
 // optimized serialization from stream, uses memcpy
@@ -1135,7 +1135,7 @@ void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy&
 	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
 	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
 	SubValV.Gen(SubVals, 0);
-	memcpy(SubValV.ValT, ValT + BValN * sizeof(TVal), SubVals * sizeof(TVal));
+	memcpy(SubValV.ValT, ValT + BValN, SubVals * sizeof(TVal));
 	SubValV.Vals += SubVals;
 }
 
