@@ -488,7 +488,7 @@ private:
   
 public:
   /// Empty String Constructor
-  TStr(): Inner(NULL) {}
+  TStr(): Inner(nullptr) {}
   /// C-String constructor
   TStr(const char *Ch);
   /// 2 char constructor
