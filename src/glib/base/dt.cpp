@@ -942,10 +942,6 @@ bool TStr::operator==(const char* _CStr) const {
 bool TStr::operator<(const TStr& Str) const {
     return strcmp(CStr(), Str.CStr()) < 0;
 }
-  
-int TStr::GetMemUsed() const { 
-    return int(sizeof(TStr*) + ((Inner != nullptr) ? (strlen(Inner)+1) : 0));
-}
 
 char TStr::GetCh(const int& ChN) const {
     // Assert index not negative, index not >= Length
@@ -965,6 +961,10 @@ char* TStr::CloneCStr() const {
 	}
 
 	return Bf;
+}
+
+int TStr::GetMemUsed() const { 
+    return int(sizeof(TStr) + (Empty() ? 0 : (Len() + 1)));
 }
 
 bool TStr::IsUc() const {

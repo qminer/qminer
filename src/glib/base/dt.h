@@ -539,6 +539,11 @@ public:
   TStr& operator=(const char* CStr);
   /// Assigment operator TStr = char
   TStr& operator=(const char& Ch);
+  
+  /// Concatenates and assigns
+  TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
+  /// Concatenates and assigns
+  TStr& operator+=(const char* _CStr) { *this = (*this + _CStr); return *this; } ;
 
   /// Boolean comparison TStr == char*
   bool operator==(const char* _CStr) const;
@@ -550,10 +555,10 @@ public:
   bool operator!=(const char* CStr) const { return !operator==(CStr); }
   /// < (is less than comparison) TStr < TStr
   bool operator<(const TStr& Str) const;
+  
   /// Indexing operator, returns character at position ChN
   char operator[](const int& ChN) const { return GetCh(ChN); }
-  /// Memory used by this String object
-  int GetMemUsed() const;
+
   /// Get the inner C-String
   const char* CStr() const { return (Inner == NULL) ? &EmptyStr : Inner;}
   /// Return a COPY of the string as a C String (char array)
@@ -568,7 +573,9 @@ public:
   bool Empty() const { IAssertR(Inner == NULL || Inner[0] != 0, "TStr::Empty string is not NULL. Fix immediately!");  return  Inner == NULL; }
   /// returns a reference to this string (used for templating)
   const TStr& GetStr() const { return *this; }
-
+  /// Memory used by this String object
+  int GetMemUsed() const;
+  
   /// Is upper-case?
   bool IsUc() const;
   /// Returns a new string converted to uppercase
