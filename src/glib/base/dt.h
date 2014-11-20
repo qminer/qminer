@@ -887,9 +887,15 @@ public:
    */
 private:
   // Alternative C-String constructor: designed for when owning memory passed is the intended effect, dangerous function, use with care
-  TStr(char *Ch, const bool Own);
+//  TStr(char *Ch, const bool Own);
 
-  void Clr() { if (Inner != NULL) { delete[] Inner; Inner = NULL; } }
+  /// deletes the char pointer if it is not NULL
+  void Clr();
+
+  /// wraps the char pointer with a new string. the char pointer
+  /// is NOT copied and the new string becomes responsible for
+  /// deleting it
+  static TStr WrapCStr(char* CStr);
 };
 
 /////////////////////////////////////////////////
