@@ -1966,18 +1966,23 @@ TStr TStr::Fmt(const char *FmtStr, ...){
 }
 
 TStr TStr::GetSpaceStr(const int& Spaces) {
-	char *p = new char[Spaces + 1];
-	for (int i = 0; i < Spaces; i++) { p[i] = ' '; }
-	p[Spaces] = 0; 
-	return WrapCStr(p);
+    EAssert(Spaces >= 0);
+    if (Spaces == 0) { return TStr(); }
+    // we have more, go for it
+	char *NewBf = new char[Spaces + 1];
+	for (int SpaceN = 0; SpaceN < Spaces; SpaceN++) { 
+        NewBf[SpaceN] = ' ';
+    }
+	NewBf[Spaces] = 0; 
+	return WrapCStr(NewBf);
 }
 
 TStr operator+(const TStr& LStr, const char* RCStr) {
 	const size_t LeftLen = LStr.Len();
-	const size_t RightLen = RCStr == nullptr ? 0 : strlen(RCStr);
+	const size_t RightLen = ((RCStr == nullptr) ? 0 : strlen(RCStr));
 
 	// check if any of the strings are empty
-	if (LeftLen == 0) return RCStr;
+	if (LeftLen == 0) { return TStr(RCStr); }
 	else if (RightLen == 0) { return LStr; }
 	else {
 		const char* LCStr = LStr.CStr();
@@ -1998,7 +2003,7 @@ TStr operator+(const TStr& LStr, const char* RCStr) {
 }
 
 TStr operator+(const TStr& LStr, const TStr& RStr) {
-	return operator +(LStr, RStr.CStr());
+	return operator+(LStr, RStr.CStr());
 }
 
 /////////////////////////////////////////////////

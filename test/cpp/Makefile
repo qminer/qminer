@@ -19,7 +19,8 @@ GLIB_BASE = $(GLIB)/base
 MAIN = run-all-tests
 
 TEST_SRCS = \
-	test-TStr.cpp
+	test-TStr.cpp \
+	test-THash.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
 
