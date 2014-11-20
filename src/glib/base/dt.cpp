@@ -1003,18 +1003,19 @@ TStr TStr::GetLc() const {
 }
 
 TStr TStr::GetCap() const{
-	int StrLen = Len();
-	if (StrLen == 0) return TStr(); // if empty string, return new empty string
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
+	return TStr(*this).ToCap();	
+}
+
+TStr& TStr::ToCap() {
+	if (Empty()) { return *this; }
+	int StrLen = Len();	
 	// copy first char in uppercase
-	new_array[0] = (char)toupper(Inner[0]);
+	Inner[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
 	for (int ChN = 1; ChN < StrLen; ChN++){
-		new_array[ChN] = (char)tolower(Inner[ChN]);
+		Inner[ChN] = (char)tolower(Inner[ChN]);
 	}
-	new_array[StrLen] = 0;
-	return TStr(new_array, true);
+	return *this;
 }
 
 TStr TStr::GetTrunc() const {
