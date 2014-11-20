@@ -709,98 +709,46 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
 
 /////////////////////////////////////////////////
 // Ref-String
-bool TRStr::IsUc() const {
-  int StrLen=Len();
-  for (int ChN=0; ChN<StrLen; ChN++){
-    if (('a'<=Bf[ChN])&&(Bf[ChN]<='z')){return false;}}
-  return true;
-}
-
-void TRStr::ToUc(){
-  int StrLen=Len();
-  for (int ChN=0; ChN<StrLen; ChN++){
-    Bf[ChN]=(char)toupper(Bf[ChN]);}}
-
-bool TRStr::IsLc() const {
-  int StrLen=Len();
-  for (int ChN=0; ChN<StrLen; ChN++){
-    if (('A'<=Bf[ChN])&&(Bf[ChN]<='Z')){return false;}}
-  return true;
-}
-
-void TRStr::ToLc(){
-  int StrLen=Len();
-  for (int ChN=0; ChN<StrLen; ChN++){
-    Bf[ChN]=(char)tolower(Bf[ChN]);}
-}
-
-void TRStr::ToCap(){
-  int StrLen=Len();
-  if (StrLen>0){
-    Bf[0]=(char)toupper(Bf[0]);}
-  for (int ChN=1; ChN<StrLen; ChN++){
-    Bf[ChN]=(char)tolower(Bf[ChN]);}
-}
-
-int TRStr::CmpI(const char* p, const char* r){
-  if (!p){return r ? (*r ? -1 : 0) : 0;}
-  if (!r){return (*p ? 1 : 0);}
-  while (*p && *r){
-    int i=int(toupper(*p++))-int(toupper(*r++));
-    if (i!=0){return i;}
-  }
-  return int(toupper(*p++))-int(toupper(*r++));
-}
-
-int TRStr::GetPrimHashCd() const {
-  return TStrHashF_DJB::GetPrimHashCd(Bf);
-}
-
-int TRStr::GetSecHashCd() const {
-  return TStrHashF_DJB::GetSecHashCd(Bf);
-}
-
-int TRStr::GetHashTrick() const {
-  return TStrHashF_Murmur3::GetPrimHashCd(Bf);
-}
+//int TRStr::CmpI(const char* p, const char* r){
+//  if (!p){return r ? (*r ? -1 : 0) : 0;}
+//  if (!r){return (*p ? 1 : 0);}
+//  while (*p && *r){
+//    int i=int(toupper(*p++))-int(toupper(*r++));
+//    if (i!=0){return i;}
+//  }
+//  return int(toupper(*p++))-int(toupper(*r++));
+//}
 
 /////////////////////////////////////////////////
 // String
 const char TStr::EmptyStr = 0;
 
-void TStr::Clr() {
-	if (Inner != nullptr) {
-		delete[] Inner;
-		Inner = nullptr;
-	}
-}
-
-TStr TStr::WrapCStr(char* CStr) {
+TStr TStr::WrapCStr(char* _CStr) {
 	TStr NewStr;
 
-	if (CStr != nullptr && CStr[0] == 0) {
-		delete[] CStr;
-	} else if (CStr != nullptr) {
-		NewStr.Inner = CStr;
+	if (_CStr != nullptr && _CStr[0] == 0) {
+		delete[] _CStr;
+	} else if (_CStr != nullptr) {
+		NewStr.Inner = _CStr;
 	}
 
 	return NewStr;
 }
 
-TStr::TStr(const char *Ch): Inner(nullptr) {
-	const int Len = strlen(Ch);
+TStr::TStr(const char* _CStr): Inner(nullptr) {
+	const int Len = strlen(_CStr);
 	if (Len > 0) {
 		Inner = new char[Len+1];
-		strcpy(Inner, Ch);
+		strcpy(Inner, _CStr);
 	}
-}
-
-TStr::TStr(const char& Ch1, const char& Ch2, bool): Inner(new char[3]) {
-    Inner[0] = Ch1; Inner[1] = Ch2; Inner[2] = 0;
 }
 
 TStr::TStr(const char& Ch): Inner(new char[2]) {
     Inner[0] = Ch; Inner[1] = 0;
+}
+
+TStr::TStr(const char& Ch1, const char& Ch2, bool): Inner(new char[3]) {
+    Inner[0] = Ch1; Inner[1] = Ch2; Inner[2] = 0;
 }
 
 TStr::TStr(const TStr& Str): Inner(nullptr) {
@@ -850,14 +798,16 @@ TStr::TStr(const PSIn& SIn): Inner(nullptr) {
 
 TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(nullptr) {
 	if (IsSmall) {
-		if (SIn.PeekCh() == 0) { EAssert(SIn.GetCh() == 0); }
-		else {
+		if (SIn.PeekCh() == 0) {
+            EAssert(SIn.GetCh() == 0);
+        } else {
 			SIn.Load(Inner);
 		}
 	} else {
-		int BfL;	SIn.Load(BfL);
-		if (BfL == 0) { EAssert(SIn.GetCh() == 0); }
-		else {
+		int BfL; SIn.Load(BfL);
+		if (BfL == 0) { 
+            EAssert(SIn.GetCh() == 0); 
+        } else {
 			SIn.Load(Inner, BfL, BfL);
 		}
 	}
@@ -887,12 +837,10 @@ void TStr::SaveXml(TSOut& SOut, const TStr& Nm) const {
 TStr& TStr::operator=(const TStr& Str) {
 	if (this != &Str) {
 		Clr();
-
 		if (!Str.Empty()) {
 			Inner = Str.CloneCStr();
 		}
 	}
-
     return *this;
 }
 
@@ -906,34 +854,27 @@ TStr& TStr::operator=(TStr&& Str) {
 
 TStr& TStr::operator=(const TChA& ChA) {
 	Clr();
-
 	if (!ChA.Empty()) {
 		Inner = new char[ChA.Len() + 1];
 		strcpy(Inner, ChA.CStr());
 	}
-
     return *this;
 }
 
 TStr& TStr::operator=(const char* CStr) {
 	Clr();
-
 	const int StrLen = strlen(CStr);
-
 	if (StrLen > 0) {
 		Inner = new char[StrLen+1];
 		strcpy(Inner, CStr);
 	}
-
 	return *this;
 }
 
 TStr& TStr::operator=(const char& Ch) {
 	Clr();
-
 	Inner = new char[2];
 	Inner[0] = Ch; Inner[1] = 0;
-
     return *this;
 }
 
@@ -950,6 +891,11 @@ char& TStr::operator[](const int& ChN) {
 	return Inner[ChN];
 }
 
+void TStr::PutCh(const int& ChN, const char& Ch) {
+    Assert((0<=ChN)&&(ChN<Len()));
+    Inner[ChN] = Ch;
+}
+
 char TStr::GetCh(const int& ChN) const {
     // Assert index not negative, index not >= Length
     Assert( (0 <= ChN) && (ChN < Len()) ); 
@@ -958,41 +904,24 @@ char TStr::GetCh(const int& ChN) const {
 
 char* TStr::CloneCStr() const {
 	const int Length = Len();
-
 	char* Bf = new char[Length+1];
-
 	if (Length > 0) {
 		strcpy(Bf, Inner);
 	} else {
 		Bf[0] = 0;
 	}
-
 	return Bf;
+}
+
+void TStr::Clr() {
+	if (Inner != nullptr) {
+		delete[] Inner;
+		Inner = nullptr;
+	}
 }
 
 int TStr::GetMemUsed() const { 
     return int(sizeof(TStr) + (Empty() ? 0 : (Len() + 1)));
-}
-
-bool TStr::IsUc() const {
-	int StrLen = Len();
-	for (int ChN = 0; ChN<StrLen; ChN++){
-		if (('a' <= Inner[ChN]) && (Inner[ChN] <= 'z')){ return false; }
-	}
-	return true;
-}
-
-TStr TStr::GetUc() const {
-	int StrLen = Len();
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
-	// copy in uppercase to new char array
-	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN] = (char) toupper(Inner[ChN]);
-	}
-	new_array[StrLen] = 0;
-	// create new TStr, assign character memory array to it
-	return WrapCStr(new_array);
 }
 
 int TStr::CmpI(const char* p, const char* r) {
@@ -1005,34 +934,49 @@ int TStr::CmpI(const char* p, const char* r) {
 	return int(toupper(*p++)) - int(toupper(*r++));
 }
 
+bool TStr::IsUc() const {
+	const int StrLen = Len();
+	for (int ChN = 0; ChN<StrLen; ChN++){
+		if (('a' <= Inner[ChN]) && (Inner[ChN] <= 'z')){ return false; }
+	}
+	return true;
+}
+
+TStr& TStr::ToUc() {
+	const int StrLen = Len();
+	for (int ChN = 0; ChN<StrLen; ChN++){
+        Inner[ChN] = toupper(Inner[ChN]);
+	}
+	return *this;
+}
+
+TStr TStr::GetUc() const {
+    return TStr(*this).ToUc();
+}
+
 bool TStr::IsLc() const {
-	int StrLen = Len();
+	const int StrLen = Len();
 	for (int ChN = 0; ChN<StrLen; ChN++){
 		if (('A' <= Inner[ChN]) && (Inner[ChN] <= 'Z')){ return false; }
 	}
 	return true;
 }
 
-TStr TStr::GetLc() const {
-	int StrLen = Len();
-	// allocate memory
-	char* new_array = new char[StrLen + 1];
-	// copy in lowercase to new char array
-	for (int ChN = 0; ChN < StrLen; ChN++){
-		new_array[ChN] = (char) tolower(Inner[ChN]);
+TStr& TStr::ToLc() {
+	const int StrLen = Len();
+	for (int ChN = 0; ChN<StrLen; ChN++){
+        Inner[ChN] = tolower(Inner[ChN]);
 	}
-	new_array[StrLen] = 0;
-	// create new TStr, assign character memory array to it
-	return WrapCStr(new_array);
+	return *this;
 }
 
-TStr TStr::GetCap() const{
-	return TStr(*this).ToCap();	
+TStr TStr::GetLc() const {
+    return TStr(*this).ToLc();	
 }
 
 TStr& TStr::ToCap() {
 	if (Empty()) { return *this; }
-	int StrLen = Len();	
+	const int StrLen = Len();	
 	// copy first char in uppercase
 	Inner[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
@@ -1040,6 +984,15 @@ TStr& TStr::ToCap() {
 		Inner[ChN] = (char)tolower(Inner[ChN]);
 	}
 	return *this;
+}
+
+TStr TStr::GetCap() const{
+	return TStr(*this).ToCap();	
+}
+
+TStr& TStr::ToTrunc() {
+    *this = GetTrunc();
+    return *this;
 }
 
 TStr TStr::GetTrunc() const {
@@ -1051,8 +1004,12 @@ TStr TStr::GetTrunc() const {
   while ((BChN < ThisLen) && TCh::IsWs(GetCh(BChN))) { BChN++; }
   while ((EChN >= 0) && TCh::IsWs(GetCh(EChN))){ EChN--; }
 
-  TStr Truncated = GetSubStr(BChN, EChN);
-  return Truncated;
+  return GetSubStr(BChN, EChN);;
+}
+
+TStr& TStr::ToHex() {
+    *this = GetHex();
+    return *this;
 }
 
 TStr TStr::GetHex() const {
@@ -1065,6 +1022,12 @@ TStr TStr::GetHex() const {
     ChA+=MshCh; ChA+=LshCh;
   }
   return TStr(ChA);  
+}
+
+
+TStr& TStr::FromHex() {
+    *this = GetFromHex();
+    return *this;
 }
 
 TStr TStr::GetFromHex() const {
