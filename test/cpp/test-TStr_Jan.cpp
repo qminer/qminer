@@ -105,6 +105,89 @@ TEST(TStr, OperatorIndex) {
 	EXPECT_EQ(Str.Len(), 3);	
 }
 
+TEST(TStr, Search) {
+	TStr Str = "abcdaaba";
+	int Len = Str.Len();
+	EXPECT_EQ(Str.CountCh('a'), 4);
+	EXPECT_EQ(Str.CountCh('b'), 2);
+	EXPECT_EQ(Str.CountCh('e'), 0);
+
+	EXPECT_TRUE(Str.IsChIn('a'));
+	EXPECT_TRUE(Str.IsChIn('b'));
+	EXPECT_FALSE(Str.IsChIn('e'));	
+
+	EXPECT_TRUE(Str.IsStrIn(Str));
+	EXPECT_TRUE(Str.IsStrIn(""));
+	EXPECT_TRUE(Str.IsStrIn("bcd"));
+	EXPECT_TRUE(Str.IsStrIn("ab"));
+	EXPECT_FALSE(Str.IsStrIn("eba"));
+
+
+	EXPECT_EQ(Str.CountCh('a', 1), 3);
+	EXPECT_EQ(Str.CountCh('a', 10), 0);
+	EXPECT_EQ(Str.CountCh('b', 2), 1);
+	EXPECT_EQ(Str.CountCh('e', 1), 0);
+
+	EXPECT_EQ(Str.SearchCh('a'), 0);
+	EXPECT_EQ(Str.SearchCh('b'), 1);
+	EXPECT_EQ(Str.SearchCh('e'), -1);
+
+	EXPECT_EQ(Str.SearchCh('a', 1), 4);
+	EXPECT_EQ(Str.SearchCh('b', 2), 6);
+	EXPECT_EQ(Str.SearchCh('e', 1), -1);
+
+	EXPECT_EQ(Str.SearchChBack('a'), Len - 1);
+	EXPECT_EQ(Str.SearchChBack('b'), Len - 2);
+	EXPECT_EQ(Str.SearchChBack('e'), -1);
+
+	EXPECT_EQ(Str.SearchChBack('a', Len - 2), Len - 3);
+	EXPECT_EQ(Str.SearchChBack('b', Len - 3), 1);;
+	EXPECT_EQ(Str.SearchChBack('e', 3), -1);	
+
+	EXPECT_EQ(Str.SearchStr("a"), 0);
+	EXPECT_EQ(Str.SearchStr("b"), 1);
+	EXPECT_EQ(Str.SearchStr("e"), -1);
+	EXPECT_EQ(Str.SearchStr(""), 0); // TODO: check if this is OK
+
+	EXPECT_EQ(Str.SearchStr("a", 1), 4);
+	EXPECT_EQ(Str.SearchStr("b", 2), 6);
+	EXPECT_EQ(Str.SearchStr("e", 1), -1);
+}
+
+TEST(TStr, StartsWith) {
+	TStr Str = "abcdef";
+	EXPECT_TRUE(Str.StartsWith("abc"));
+	EXPECT_TRUE(Str.StartsWith(TStr("abc")));
+
+	EXPECT_FALSE(Str.StartsWith("bbc"));
+	EXPECT_FALSE(Str.StartsWith(TStr("bbc")));
+
+	// Empty string is a prefix of every string
+	EXPECT_TRUE(Str.StartsWith("")); // starts with empty strin
+	EXPECT_TRUE(Str.StartsWith(TStr()));
+
+	EXPECT_FALSE(Str.StartsWith("abcdefg"));
+	EXPECT_FALSE(Str.StartsWith("AB"));
+	EXPECT_FALSE(Str.StartsWith("abcdef "));
+}
+
+TEST(TStr, EndsWith) {
+	TStr Str = "abcdef";
+	EXPECT_TRUE(Str.EndsWith("def"));
+	EXPECT_TRUE(Str.EndsWith(TStr("def")));
+
+	EXPECT_FALSE(Str.EndsWith("ddf"));
+	EXPECT_FALSE(Str.EndsWith(TStr("ddf")));
+
+	// Empty string is a suffix of every string
+	EXPECT_TRUE(Str.EndsWith("")); // ends with empty string
+	EXPECT_TRUE(Str.EndsWith(TStr())); // ends with empty string
+
+	EXPECT_FALSE(Str.EndsWith("aabcdef"));
+	EXPECT_FALSE(Str.EndsWith("EF"));
+	EXPECT_FALSE(Str.EndsWith(" abcdef"));
+}
+
 TEST(TStr, OperatorPlus) {
 	TStr Str = "abc";
 	TStr Empty;
@@ -117,23 +200,3 @@ TEST(TStr, OperatorPlus) {
 }
 
 
-///// Counts occurrences of a character between [BChN, end]
-//int CountCh(const char& Ch, const int& BChN = 0) const;
-///// Returns the position of the first occurrence of a character between [BChN, end]
-//int SearchCh(const char& Ch, const int& BChN = 0) const;
-///// Returns the position of the last occurrence of a character between [BChN, end]
-//int SearchChBack(const char& Ch, int BChN = -1) const;
-///// Returns the position of the first occurrence of a (sub)string between [BChN, end]
-//int SearchStr(const TStr& Str, const int& BChN = 0) const;
-///// Returns true if character occurs in string
-//bool IsChIn(const char& Ch) const { return SearchCh(Ch) != -1; }
-///// Returns true if (sub)string occurs in string
-//bool IsStrIn(const TStr& Str) const { return SearchStr(Str) != -1; }
-///// Returns true if this string starts with the prefix c-string
-//bool StartsWith(const char *Str) const;
-///// Returns true if this string starts with the prefix string
-//bool StartsWith(const TStr& Str) const { return StartsWith(Str.CStr()); }
-///// Returns true if this string ends with the sufix c-string
-//bool EndsWith(const char *Str) const;
-///// Returns true if this string ends with the sufix string
-//bool EndsWith(const TStr& Str) const { return EndsWith(Str.CStr()); }
