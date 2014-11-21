@@ -18,7 +18,7 @@ TEST(TStr, Constructors) {
 	TStr Move(TStr("abc"));
 	TStr ChA(TChA("abc"));
 	TStr SStr(TSStr("abc"));
-
+	
 	EXPECT_EQ(Default, "");
 	EXPECT_EQ(CStr, "abc");
 	EXPECT_EQ(OneChar, "a");
@@ -27,7 +27,6 @@ TEST(TStr, Constructors) {
 	EXPECT_EQ(ChA, "abc");
 	EXPECT_EQ(SStr, "abc");
 }
-
 
 TEST(TStr, OperatorPlusEquals) {
 	TStr Str = "abc";
@@ -193,6 +192,48 @@ TEST(TStr, EndsWith) {
 	EXPECT_FALSE(Str.EndsWith("aabcdef"));
 	EXPECT_FALSE(Str.EndsWith("EF"));
 	EXPECT_FALSE(Str.EndsWith(" abcdef"));
+}
+
+TEST(TStr, ParseBool) {
+	TStr StrTrue = "T";
+	TStr StrFalse = "F";
+	TStr Empty = "";
+	TStr Str = "abc";
+	bool val;
+
+	EXPECT_TRUE(StrTrue.IsBool(val));
+	EXPECT_TRUE(val);
+	EXPECT_FALSE(Str.IsBool(val));
+	EXPECT_TRUE(val); // val was not changed, it is still set to true	
+	EXPECT_TRUE(StrFalse.IsBool(val));
+	EXPECT_FALSE(val);	
+	EXPECT_FALSE(Empty.IsBool(val));
+	EXPECT_FALSE(val); // val was not changed, it is still set to false
+}
+
+TEST(TStr, ParseInt) {	
+	int Num = 0;
+	EXPECT_TRUE(TStr("1234").IsInt());
+	EXPECT_TRUE(TStr("2147483647").IsInt());
+	EXPECT_TRUE(TStr("-2147483648").IsInt());
+	EXPECT_FALSE(TStr("-21648.0").IsInt());
+	
+	EXPECT_TRUE(TStr("1234").IsInt(Num));
+	EXPECT_EQ(1234, Num);
+	EXPECT_TRUE(TStr("2147483647").IsInt(Num));
+	EXPECT_EQ(2147483647, Num);
+	EXPECT_TRUE(Num > 0);
+	EXPECT_TRUE(TStr("-2147483648").IsInt(Num));
+	EXPECT_TRUE(Num < 0);
+	EXPECT_EQ(-2147483647 - 1, Num);
+
+	EXPECT_TRUE(TStr("21474836470").IsInt());
+	EXPECT_TRUE(TStr("-21474836480").IsInt());
+
+	int sum = atoi("2147483647");
+	int sum2 = atoi("21474836480");
+	printf("%d %d\n", sum, sum2);
+	//EXPECT_FALSE(TStr("-2147483649").IsInt(true, TInt::Mn, TInt::Mx, Num));		
 }
 
 TEST(TStr, OperatorPlus) {
