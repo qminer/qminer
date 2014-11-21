@@ -429,6 +429,7 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
+	const int OldSize = GetMemUsed();
 	if (IsFull()) {
 		Def();
 		if (IsFull()) {
@@ -440,6 +441,8 @@ void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
 	ItemV.Add(Item);
 	MergedP = false;
 	TotalCnt++;
+
+	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
 
 template <class TKey, class TItem>
@@ -550,18 +553,6 @@ void TGixItemSet<TKey, TItem>::Def() {
 
 		int first_dirty_child = FirstDirtyChild();
 		if (first_dirty_child >= 0 || Children.Len() > 0 && ItemV.Len() > 0) {
-			//// detect the first child that needs to be merged
-			//int first_child_to_merge = Children.Len();
-			//if (ItemV.Len() > 0) {
-			//	TItem ItemVMin = ItemV[0];
-			//	first_child_to_merge = Children.Len() - 1;
-			//	while (first_child_to_merge >= 0 && Merger->IsLt(ItemVMin, Children[first_child_to_merge].MaxVal)) {
-			//		first_child_to_merge--;
-			//	}
-			//	first_child_to_merge++;
-			//}
-			//if (first_child_to_merge > first_dirty_child && first_dirty_child >= 0)
-			//	first_child_to_merge = first_dirty_child;
 			int first_child_to_merge = (first_dirty_child >= 0 ? first_dirty_child : Children.Len());
 
 			// collect all data from subsequent child vectors and work-buffer
