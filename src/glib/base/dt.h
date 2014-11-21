@@ -475,7 +475,7 @@ public:
   char& operator[](const int& ChN);
 
   /// Get the inner C-String
-  const char* CStr() const { return (Inner == nullptr) ? &EmptyStr : Inner; }
+  const char* CStr() const { return Empty() ? &EmptyStr : Inner; }
   /// Return a COPY of the string as a C String (char array)
   char* CloneCStr() const;
   /// Set character to given value
@@ -485,7 +485,7 @@ public:
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   /// Get String Length (null terminator not included)
-  int Len() const { return (Inner != nullptr) ? strlen(Inner) : 0; }
+  int Len() const { return Empty() ? 0 : strlen(Inner); }
   /// Check if this is an empty string
   bool Empty() const { IAssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");  return  Inner == nullptr; }
   /// Deletes the char pointer if it is not nullptr.
