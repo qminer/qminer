@@ -885,6 +885,10 @@ void TJsSrvFun::Exec(const TStrKdV& FldNmValKdV, const PSAppSrvRqEnv& RqEnv) {
         // send response
        	RqEnv->GetWebSrv()->SendHttpResp(RqEnv->GetSockId(), HttpResp);
     } else {
+#ifdef V8_DEBUG
+    	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    	v8::Locker Locker(Isolate);
+#endif
         // prepare response object
     	v8::HandleScope HandleScope;
     	v8::Context::Scope ContextScope(Js->Context);
@@ -1371,6 +1375,7 @@ v8::Handle<v8::ObjectTemplate> TJsBase::GetTemplate() {
 		JsRegisterFunction(TmpTemp, newStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
+		JsRegisterFunction(TmpTemp, newProcessStateAggr);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template =  v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -1595,6 +1600,22 @@ v8::Handle<v8::Value> TJsBase::getStreamAggrNames(const v8::Arguments& Args) {
 		Counter++;
 	}
 	return HandleScope.Close(Arr);	
+}
+
+
+v8::Handle<v8::Value> TJsBase::newProcessStateAggr(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		// parse arguments
+		TJsBase* JsBase = TJsBaseUtil::GetSelf(Args);
+		PJsonVal ParamVal = TJsBaseUtil::GetArgJson(Args, 0);
+
+		return TJsProcessStateModel::New(JsBase->Js, JsBase->Base, ParamVal);
+	} catch (const PExcept& Except) {
+		InfoLog("[except] Failed to create a new state process aggregate: " + Except->GetMsgStr());
+	}
+	return v8::Undefined();
 }
 
 ///////////////////////////////
@@ -2189,6 +2210,7 @@ v8::Handle<v8::ObjectTemplate> TJsStore::GetTemplate() {
 		JsRegisterFunction(TmpTemp, field);        
 		JsRegisterFunction(TmpTemp, key);
 		JsRegisterFunction(TmpTemp, addTrigger);
+        //JsRegisterFunction(TmpTemp, addStreamAggr);
         JsRegisterFunction(TmpTemp, getStreamAggr);
 		JsRegisterFunction(TmpTemp, getStreamAggrNames);
 		JsRegisterFunction(TmpTemp, toJSON);
@@ -2641,6 +2663,15 @@ v8::Handle<v8::Value> TJsStore::addTrigger(const v8::Arguments& Args) {
 	JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
 	return HandleScope.Close(v8::Null());
 }
+
+//v8::Handle<v8::Value> TJsStore::addStreamAggr(const v8::Arguments& Args) {
+//	v8::HandleScope HandleScope;
+//    TJsStore* JsStore = TJsStoreUtil::GetSelf(Args);
+//	Args.Length
+//	v8::Handle<v8::Value> Result = TJsBase::newStreamAggr(Args);
+//	return HandleScope.Close(Result);
+//	
+//}
 
 v8::Handle<v8::Value> TJsStore::getStreamAggr(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -5824,6 +5855,7 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
 		JsRegisterFunction(TmpTemp, trainKMeans);						
         JsRegisterFunction(TmpTemp, newTokenizer);
         JsRegisterFunction(TmpTemp, getLanguageOptions);
+        JsRegisterFunction(TmpTemp, newCtmc);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6213,6 +6245,15 @@ v8::Handle<v8::Value> TJsAnalytics::getLanguageOptions(const v8::Arguments& Args
     PJsonVal ArrStopword = TJsonVal::NewArr(SwSetTypeNmV);
 	LangOpts->AddToObj("stopwords", ArrStopword);
 	return HandleScope.Close(TJsUtil::ParseJson(LangOpts));
+}
+
+v8::Handle<v8::Value> TJsAnalytics::newCtmc(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+
+	PJsonVal ArgsJson = TJsAnalyticsUtil::GetArgJson(Args, 0);
+	PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 1);
+	return TJsHierCtmc::New(JsAnalytics->Js, ArgsJson, FtrSpace);
 }
 
 ///////////////////////////////
@@ -6700,6 +6741,161 @@ v8::Handle<v8::Value> TJsRecLinRegModel::dim(v8::Local<v8::String> Properties, c
 	return HandleScope.Close(v8::Integer::New(JsRecLinRegModel->Model->GetDim()));
 }
 
+TJsProcessStateModel::TJsProcessStateModel(TWPt<TScript> _Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+		Js(_Js),
+		Model(TStreamAggr::New(Base, ParamVal->GetObjStr("type"), ParamVal)) {
+
+	Base->AddStreamAggr(Base->GetStoreByStoreNm(ParamVal->GetObjStr("source"))->GetStoreId(), Model);
+}
+
+v8::Handle<v8::ObjectTemplate> TJsProcessStateModel::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+
+		JsRegisterFunction(TmpTemp, toJSON);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsProcessStateModel::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsProcessStateModel* Model = TJsProcessStateModelUtil::GetSelf(Args);
+
+	TStreamAggrs::THierchCtmc* CtmcModel = dynamic_cast<TStreamAggrs::THierchCtmc*>(Model->Model());
+
+	PJsonVal ModelJson = CtmcModel->SaveJson(TInt::Mx);
+	const TStr JsonStr = TJsonVal::GetStrFromVal(ModelJson);
+
+	printf("%s\n", JsonStr.CStr());
+
+	return HandleScope.Close(TJsUtil::ParseJson(JsonStr));
+}
+
+///////////////////////////////
+// QMiner-JavaScript-Hierarchical Markov Chain
+TJsHierCtmc::TJsHierCtmc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpace& _FtrSpace):
+		Js(_Js),
+		FtrSpace(_FtrSpace) {
+
+	const TStr InStoreNm = ParamVal->GetObjStr("source");
+	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
+	const TStr TimeUnitStr = ParamVal->GetObjStr("timeUnit");
+	const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
+	const PJsonVal FldsJson = ParamVal->GetObjKey("fields");
+
+	// store
+//	InStore = Base->GetStoreByStoreNm(InStoreNm);
+//	TimeFldId = InStore->GetFieldId(TimeFldNm);
+
+	// field IDs
+//	if (FldsJson->IsStr()) {
+//		QmAssertR(FldsJson->GetStr() == "all", "Invalid parameter fields: " + FldsJson->GetStr());
+//		FldIdV = InStore->GetFieldIdV(TFieldType::oftFlt);
+//	} else {
+//		TStrV FldNmV;	FldsJson->GetArrStrV(FldNmV);
+//		for (int FldIdx = 0; FldIdx < FldNmV.Len(); FldIdx++) {
+//			FldIdV.Add(InStore->GetFieldId(FldNmV[FldIdx]));
+//		}
+//	}
+
+	// time unit
+	uint64 TimeUnit;
+	if (TimeUnitStr == "second") {
+		TimeUnit = TCtmc::TCtMChain::TU_SECOND;
+	} else if (TimeUnitStr == "minute") {
+		TimeUnit = TCtmc::TCtMChain::TU_MINUTE;
+	} else if (TimeUnitStr == "hour") {
+		TimeUnit = TCtmc::TCtMChain::TU_HOUR;
+	} else if (TimeUnitStr == "day") {
+		TimeUnit = TCtmc::TCtMChain::TU_DAY;
+	} else {
+		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
+	}
+
+	// clustering
+	TCtmc::PClust Clust = NULL;
+
+	const TStr ClustAlg = ClustJson->GetObjStr("type");
+	if (ClustAlg == "dpmeans") {
+		const double Lambda = ClustJson->GetObjNum("lambda");
+		const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
+		const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
+		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
+		Clust = new TCtmc::TDpMeans(Lambda, MinClusts, MxClusts, TRnd(RndSeed));
+	} else if (ClustAlg == "kmeans") {
+		const int K = ClustJson->GetObjInt("k");
+		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
+		Clust = new TCtmc::TFullKMeans(K, TRnd(RndSeed));
+	} else {
+		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+	}
+
+	// create the model
+	TCtmc::PCtMChain MChain = new TCtmc::TCtMChain(TimeUnit);
+	TCtmc::PAggClust AggClust = new TCtmc::TAggClust();
+
+	McModel = new TCtmc::THierarchCtmc(Clust, MChain, AggClust);
+}
+
+
+v8::Handle<v8::ObjectTemplate> TJsHierCtmc::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+
+		JsRegisterFunction(TmpTemp, init);
+
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsHierCtmc::init(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		TJsHierCtmc* Model = TJsHierCtmcUtil::GetSelf(Args);
+
+		PRecSet InRecSet = TJsRecSet::GetArgRecSet(Args, 0);
+		Model->Init(InRecSet);
+	} catch (const PExcept& Except) {
+		printf("Failed to generate hierarchical MC model: %s\n", Except->GetMsgStr().CStr());
+	}
+
+	return HandleScope.Close(v8::Undefined());
+}
+
+void TJsHierCtmc::Init(const PRecSet& RecSet) {
+	// generate an instance matrix
+	TFullMatrix X;
+	FtrSpace->GetFullVV(RecSet, X.GetMat());
+
+	// generate a time vector
+	const int NRecs = RecSet->GetRecs();
+	TUInt64V RecTmV(NRecs,0);
+
+	for (int i = 0; i < NRecs; i++) {
+		RecTmV.Add(GetRecTm(RecSet->GetRec(i)));
+	}
+
+	// initialize the model
+	McModel->Init(X, RecTmV);
+}
+
+uint64 TJsHierCtmc::GetRecTm(const TRec& Rec) const {
+	return Rec.GetFieldTmMSecs(Rec.GetStore()->GetFieldIdV(TFieldType::oftTm)[0]);
+}
+
+
 ///////////////////////////////
 // QMiner-JavaScript-Tokenizer
 v8::Handle<v8::ObjectTemplate> TJsTokenizer::GetTemplate() {
@@ -7091,7 +7287,6 @@ const TStr TAuxStrStrH::ClassId = "TStrStrH";
 const TStr TAuxIntIntH::ClassId = "TIntIntH";
 const TStr TAuxIntFltH::ClassId = "TIntFltH";
 const TStr TAuxIntStrH::ClassId = "TIntStrH";
-
 
 
 

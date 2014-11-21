@@ -58,6 +58,9 @@
 #include "kmpp.h"
 #include "hac.h"
 
+// Markov Chains
+#include "ctmc.h"
+
 // Signal-Processing
 #include "signalproc.h"
 

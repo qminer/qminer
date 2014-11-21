@@ -4006,6 +4006,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TCorr>();
     Register<TStreamAggrs::TStMerger>();
     Register<TStreamAggrs::TResampler>();
+    Register<TStreamAggrs::THierchCtmc>();
 }
 
 TStreamAggr::TStreamAggr(const TWPt<TBase>& _Base, const TStr& _AggrNm): 

@@ -23,6 +23,7 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
+#include <thread.h>
 #include <v8.h>
 #include <typeinfo>
 
@@ -1225,7 +1226,18 @@ public:
 	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
-	JsDeclareFunction(getStreamAggrNames);	
+	JsDeclareFunction(getStreamAggrNames);
+
+
+	//#- `aggr = analytics.newProcessStateAggr(opts)` -- new stream aggregate that describes a process as a state machine.
+	//#		the aggregate uses hierarchical clustering to compute states and substates of the process and computes transition intensities between states on each level
+	//#		`opts` is a javascript object which must contain the following fields:
+	//#		- source: name of the input store
+	//#		- name: name of the stream aggregate
+	//#		- minRecs: the minimum number of records in a state, before the state expands (substates are created)
+	//#		- timestamp: name of the time field
+	JsDeclareFunction(newProcessStateAggr);
+
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -2727,7 +2739,11 @@ public:
     //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-	JsDeclareFunction(getLanguageOptions);     
+	JsDeclareFunction(getLanguageOptions);
+
+	//#- `model = analytics.newCtmc(opts)` creates a new hierarchical continous time Markov chain model
+	JsDeclareFunction(newCtmc);
+
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -2901,6 +2917,56 @@ public:
 	JsDeclareProperty(dim);
 	//#- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
+};
+
+class TJsProcessStateModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	// model
+	PStreamAggr Model;
+
+private:
+	typedef TJsObjUtil<TJsProcessStateModel> TJsProcessStateModelUtil;
+	TJsProcessStateModel(TWPt<TScript> Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TWPt<TBase>& Base, PJsonVal& ParamVal) {
+		return TJsProcessStateModelUtil::New(new TJsProcessStateModel(Js, Base, ParamVal)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(toJSON);
+};
+
+class TJsHierCtmc {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	TCtmc::PHierarchCtmc McModel;
+	PFtrSpace FtrSpace;
+
+	// QMiner stuff
+//	TWPt<TStore> InStore;
+//	TIntV FldIdV;
+//	TInt TimeFldId;
+
+//	TWPt<TBase> Base;
+
+private:
+	typedef TJsObjUtil<TJsHierCtmc> TJsHierCtmcUtil;
+	TJsHierCtmc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace) {
+		return TJsHierCtmcUtil::New(new TJsHierCtmc(Js, ParamVal, FtrSpace)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(init);
+
+private:
+	void Init(const PRecSet& RecSet);
+	uint64 GetRecTm(const TRec& Rec) const;
 };
 
 ///////////////////////////////
@@ -4041,6 +4107,10 @@ public:
 	bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV");
+	}
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;

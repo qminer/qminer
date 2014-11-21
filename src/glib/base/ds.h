@@ -1791,6 +1791,99 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
   }
 }
 
+///////////////////////////////
+// Linked queue
+template <class TVal, class TSizeTy = TUInt64>
+class TLinkedQueue {
+private:
+	class Node {
+	public:
+		Node* Next;
+		const TVal Val;
+
+		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+	};
+
+private:
+	Node* First;
+	Node* Last;
+	TSizeTy Size;
+
+public:
+	TLinkedQueue();
+	TLinkedQueue(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	~TLinkedQueue();
+
+	void Push(const TVal& Val);
+	TVal Pop();
+	const TVal& Peek();
+	void DelFirst();
+
+	bool Empty() const { return Len() == 0; };
+	TSizeTy Len() const { return Size; };
+};
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	Node* Curr = First;
+	while (Curr != NULL) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::~TLinkedQueue() {
+	while (!Empty()) { DelFirst(); }
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
+	TLinkedQueue<TVal, TSizeTy>::Node* Node = new TLinkedQueue<TVal, TSizeTy>::Node(NULL, Val);
+
+	if (Size++ == 0) {
+		First = Node;
+		Last = Node;
+	} else {
+		Last->Next = Node;
+		Last = Node;
+	}
+}
+
+template <class TVal, class TSizeTy>
+TVal TLinkedQueue<TVal, TSizeTy>::Pop() {
+	TVal Result = Peek();
+	DelFirst();
+	return Result;
+}
+
+template <class TVal, class TSizeTy>
+const TVal& TLinkedQueue<TVal, TSizeTy>::Peek() {
+	IAssertR(!Empty(), "Cannot peek when the queue is empty!");
+	return First->Val;
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
+	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
+
+	Node* Temp = First;
+
+	if (--Size == 0) {
+		First = NULL;
+		Last = NULL;
+	} else {
+		First = First->Next;
+	}
+
+	delete Temp;
+}
+
 namespace TGLib_OLD {
 /////////////////////////////////////////////////
 // Vector Pool
@@ -2158,7 +2251,7 @@ public:
 
   void CopyFrom(const TVVec<TVal, TSizeTy>& VVec);
   void AddXDim();
-  void AddYDim();
+  void AddYDim(const TSizeTy& NDims=1);
   void DelX(const TSizeTy& X);
   void DelY(const TSizeTy& Y);
 
@@ -2243,8 +2336,8 @@ void TVVec<TVal, TSizeTy>::AddXDim(){
 }
 
 template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::AddYDim(){
-  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+1);
+void TVVec<TVal, TSizeTy>::AddYDim(const TSizeTy& NDims){
+  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+NDims);
   NewVVec.CopyFrom(*this);
   *this=NewVVec;
 }

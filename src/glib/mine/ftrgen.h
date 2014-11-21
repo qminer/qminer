@@ -47,6 +47,8 @@ public:
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
     
+    double InvFtr(const TFltV& FullV, int& Offset) const;
+
     int GetDim() const { return 1; }
 };
 
