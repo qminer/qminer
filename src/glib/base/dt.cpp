@@ -719,6 +719,16 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
 //  return int(toupper(*p++))-int(toupper(*r++));
 //}
 
+//
+// this section overloads the new operator for debug purposes (tracking memory leaks)
+//
+#ifdef WIN32
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+#endif
+
 /////////////////////////////////////////////////
 // String
 const char TStr::EmptyStr = 0;
@@ -878,6 +888,7 @@ TStr& TStr::operator=(const char* CStr) {
 }
 
 bool TStr::operator==(const char* _CStr) const { 
+	if (_CStr == nullptr) { return false; }
 	return (CStr() == _CStr) || (strcmp(CStr(), _CStr) == 0);
 }
 
@@ -1542,20 +1553,30 @@ bool TStr::IsBool(bool& Val) const {
 }
 
 bool TStr::IsInt(
- const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
-  // parsing format {ws} [+/-] +{ddd}
-  int _Val=0;
-  bool Minus=false;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Minus=false; Ch.GetCh();}
-  if (Ch()=='-'){Minus=true; Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Minus){_Val=-_Val;}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+	const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
+	// parsing format {ws} [+/-] +{ddd}
+	int _Val = 0;
+	bool Minus = false;
+	TChRet Ch(TStrIn::New(*this, false));
+	while (TCh::IsWs(Ch.GetCh())){}
+	if (Ch() == '+'){ Minus = false; Ch.GetCh(); }
+	if (Ch() == '-'){ Minus = true; Ch.GetCh(); }
+	if (!TCh::IsNum(Ch())){ return false; }
+	_Val = TCh::GetNum(Ch());
+	int NumDigits = 1;
+	while (TCh::IsNum(Ch.GetCh())){
+		int ChNum = TCh::GetNum(Ch());
+		_Val = 10 * _Val + ChNum; NumDigits++;
+	}
+	if (Minus){ _Val = -_Val; }	
+	if (Check) {
+		if ((_Val<MnVal) || (_Val>MxVal)) return false;		
+	}
+	if (NumDigits >= 10) {
+		if (atoi(CStr()) != _Val) return false;
+	}
+	if (Ch.Eof()){ Val = _Val; return true; }
+	else { return false; }
 }
 
 bool TStr::IsUInt(
@@ -2025,6 +2046,16 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   FailR(TStr::Fmt("TStrIn::GetNextLnBf: not implemented").CStr());
   return false;
 }
+
+//
+// this section disables the overloaded new operator so it doesn't clash with the rest of the library (tracking memory leaks)
+//
+#ifdef WIN32
+#ifdef _DEBUG
+#undef DEBUG_NEW
+#undef new 
+#endif
+#endif
 
 /////////////////////////////////////////////////
 // String-Pool
