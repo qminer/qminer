@@ -460,27 +460,27 @@ la.loadIntVec = function(fin) {
 //# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
 //# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 //# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`
-la.std = function (mat, flag, dim) {
-    // if flag is not defined, set it to 0
-    var flag = flag == null ? 0 : flag;
-    var dim = dim == null ? 1 : dim;
+//la.std = function (mat, flag, dim) {
+//    // if flag is not defined, set it to 0
+//    var flag = flag == null ? 0 : flag;
+//    var dim = dim == null ? 1 : dim;
 
-    if (dim == 1) {
-        var std = mat.minus(la.repvec(la.mean(mat), 1, mat.rows).transpose()).colNorms();
-        if (flag == 0) {
-            return std.multiply(Math.sqrt(1 / (mat.rows - 1)));
-        } else if (flag == 1) {
-            return std.multiply(Math.sqrt(1 / (mat.rows)));
-        } else console.log('Warning', 'Invalid value of parameter flag')
-    } else if (dim == 2) {
-        var std = mat.minus(la.repvec(la.mean(mat, 2), 1, mat.cols)).rowNorms();
-        if (flag == 0) {
-            return std.multiply(Math.sqrt(1 / (mat.cols - 1)));
-        } else if (flag == 1) {
-            return std.multiply(Math.sqrt(1 / (mat.cols)));
-        } else console.log('Warning', 'Invalid value of parameter flag')
-    } else console.log('Warning', 'Invalid value of parameter dim');
-}
+//    if (dim == 1) {
+//        var std = mat.minus(la.repvec(la.mean(mat), 1, mat.rows).transpose()).colNorms();
+//        if (flag == 0) {
+//            return std.multiply(Math.sqrt(1 / (mat.rows - 1)));
+//        } else if (flag == 1) {
+//            return std.multiply(Math.sqrt(1 / (mat.rows)));
+//        } else console.log('Warning', 'Invalid value of parameter flag')
+//    } else if (dim == 2) {
+//        var std = mat.minus(la.repvec(la.mean(mat, 2), 1, mat.cols)).rowNorms();
+//        if (flag == 0) {
+//            return std.multiply(Math.sqrt(1 / (mat.cols - 1)));
+//        } else if (flag == 1) {
+//            return std.multiply(Math.sqrt(1 / (mat.cols)));
+//        } else console.log('Warning', 'Invalid value of parameter flag')
+//    } else console.log('Warning', 'Invalid value of parameter dim');
+//}
 
 //# - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
 //# - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.

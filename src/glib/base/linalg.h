@@ -287,9 +287,12 @@ public:
 	// Z := p * X + q * Y
     static void LinComb(const double& p, const TFltVV& X,
         const double& q, const TFltVV& Y, TFltVV& Z);
-	// TODO z := p * X(:,ColId) + q * y
-    static void LinComb(const double& p, const TFltVV& X, int ColId,
-        const double& q, const TFltV& y, TFltV& z);
+	// z := p * X(:,ColId) + q * y
+    //static void LinComb(const double& p, const TFltVV& X, int ColId,
+    //    const double& q, const TFltV& y, TFltV& z);
+	// if (Dim == 1) {z := p * X(:,ColId) + q * y} else if (Dim == 2) {z := p * X(:,RowId) + q * y}
+    static void LinComb(const double& p, const TFltVV& X, int DimId,
+        const double& q, const TFltV& y, TFltV& z, int Dim = 1);
 	// z = p * x + q * y
     static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);	  
     // z := p * x + (1 - p) * y

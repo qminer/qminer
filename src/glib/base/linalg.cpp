@@ -344,16 +344,39 @@ void TLinAlg::LinComb(const double& p, const TFltV& x,
         z[i] = p * x[i] + q * y[i]; }
 }
 
-void TLinAlg::LinComb(const double& p, const TFltVV& X, int ColId,
-        const double& q, const TFltV& y, TFltV& z) {
+//void TLinAlg::LinComb(const double& p, const TFltVV& X, int ColId,
+//        const double& q, const TFltV& y, TFltV& z) {
+//
+//	if (z.Empty()) z.Gen(X.GetRows());
+//	EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
+//	
+//	const int len = z.Len();
+//    for (int i = 0; i < len; i++) {
+//        z[i] = p * X(i, ColId) + q * y[i];
+//    }
+//}
 
-	if (z.Empty()) z.Gen(X.GetRows());
-	EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
+void TLinAlg::LinComb(const double& p, const TFltVV& X, int DimId,
+        const double& q, const TFltV& y, TFltV& z, int Dim) {
 	
-	const int len = z.Len();
-    for (int i = 0; i < len; i++) {
-        z[i] = p * X(i, ColId) + q * y[i];
-    }
+	EAssertR(Dim == 1 || Dim == 2, "TLinAlg::LinComb: Invalid value of argument Dim.");
+	if (Dim == 1) {
+		if (z.Empty()) z.Gen(X.GetRows());
+		EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
+	
+		const int len = z.Len();
+		for (int i = 0; i < len; i++) {
+			z[i] = p * X(i, DimId) + q * y[i];
+		}
+	} else if (Dim == 2) {
+		if (z.Empty()) z.Gen(X.GetCols());
+		EAssert(X.GetCols() == y.Len() && y.Len() == z.Len());
+	
+		const int len = z.Len();
+		for (int i = 0; i < len; i++) {
+			z[i] = p * X(DimId, i) + q * y[i];
+		}
+	}
 }
 
 void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z) {
@@ -3039,7 +3062,7 @@ double TLAMisc::Mean(const TFltV& Vec) {
 
 void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
 	EAssertR(Dim == 1 || Dim == 2, "TLAMisc::Mean: Invalid value of 'Dim' argument. "
-								"Supported 'Dim' arguments are 1 (row mean), or 2 (col mean).");	 
+								"Supported 'Dim' arguments are 1 (col mean), or 2 (row mean).");	 
 	if (Dim == 1) {
 		int Rows = Mat.GetRows();
 		TFltV Vec(Rows);
@@ -3054,26 +3077,51 @@ void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
 }
 
 void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const int& Dim) {
+	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+	EAssertR(Dim == 1 || Dim == 2, "TLAMisc::Std: Invalid value of 'Dim' argument. "
+							"Supported 'Dim' arguments are 1 (col std), or 2 (row std).");
 
 	int Cols = Mat.GetCols();
 	int Rows = Mat.GetRows();
 
-	// if Dim == 1
-	if(Res.Empty()) Res.Gen(Cols);
-	EAssert(Cols == Res.Len());	
+	if (Dim == 1) {
+		if(Res.Empty()) Res.Gen(Cols);
+		EAssertR(Cols == Res.Len(), "TLAMisc::Std");	
 
-	TFltV MeanVec;
-	TLAMisc::Mean(Mat, MeanVec);
-	double Scalar = TMath::Sqrt(1.0/(Rows-1));
+		TFltV MeanVec;
+		TLAMisc::Mean(Mat, MeanVec);
+		EAssertR(Cols == MeanVec.Len(), "TLAMisc::Std");
 
-	TFltV TempRes(Rows);
-	TFltV Ones(Rows);
-	Ones.PutAll(1.0);
+		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Rows)) : TMath::Sqrt(1.0/(Rows-1));
 
-	for (int ColN = 0; ColN < Cols; ColN++) {		
-		TLinAlg::LinComb(-1, Mat, ColN, MeanVec[ColN], Ones, TempRes);
-		Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
-	}	
+		TFltV TempRes(Rows);
+		TFltV Ones(Rows);
+		Ones.PutAll(1.0);
+
+		for (int ColN = 0; ColN < Cols; ColN++) {		
+			TLinAlg::LinComb(-1, Mat, ColN, MeanVec[ColN], Ones, TempRes);
+			Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
+		}
+	} else if (Dim == 2) {
+		if(Res.Empty()) Res.Gen(Rows);
+		EAssertR(Rows == Res.Len(), "TLAMisc::Std");	
+
+		TFltV MeanVec;
+		TLAMisc::Mean(Mat, MeanVec, 2);
+		EAssertR(Rows == MeanVec.Len(), "TLAMisc::Std");
+
+		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Cols)) : TMath::Sqrt(1.0/(Cols-1));
+
+		TFltV TempRes(Cols);
+		TFltV Ones(Cols);
+		Ones.PutAll(1.0);
+
+		for (int RowN = 0; RowN < Rows; RowN++) {
+			TLinAlg::LinComb(-1, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
+			Res[RowN] = Scalar * TLinAlg::Norm(TempRes);
+		}
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////

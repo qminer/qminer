@@ -4065,7 +4065,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, svd);
 		JsRegisterFunction(TmpTemp, qr);
 		JsRegisterFunction(TmpTemp, mean);
-		JsRegisterFunction(TmpTemp, test);
+		JsRegisterFunction(TmpTemp, std);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4411,12 +4411,16 @@ v8::Handle<v8::Value> TJsLinAlg::mean(const v8::Arguments& Args) {
 	throw TQmExcept::New("la.mean() can take only matrix, or vector as first input argument.");
 }
 
-v8::Handle<v8::Value> TJsLinAlg::test(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsLinAlg::std(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	// Dim parameter
+	double Flag = TJsLinAlgUtil::GetArgFlt(Args, 1, 0);
+	double Dim = TJsLinAlgUtil::GetArgFlt(Args, 2, 1);
+
 	TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
 	TFltV Res;
-	TLAMisc::Std(JsMat->Mat, Res);
+	TLAMisc::Std(JsMat->Mat, Res, Flag, Dim);
 	return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Res));
 }
 

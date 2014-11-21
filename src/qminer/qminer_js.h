@@ -1905,10 +1905,12 @@ public:
 	//#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 	JsDeclareFunction(qr);
 	//# - `num = la.mean(vec)` - returns mean `num` of vector `vec`.
-	//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
+	//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`. 1 is col mean, 2 is row mean.
 	JsDeclareFunction(mean);
-    //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-    JsDeclareFunction(test);
+    //# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+	//# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
+    JsDeclareFunction(std);
 	//JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
