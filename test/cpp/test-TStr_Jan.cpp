@@ -1,4 +1,4 @@
-#include "base.h"
+﻿#include "base.h"
 ///////////////////////////////////////////////////////////////////////////////
 // Google Test
 #include "gtest/gtest.h"
@@ -226,14 +226,18 @@ TEST(TStr, ParseInt) {
 	EXPECT_TRUE(TStr("-2147483648").IsInt(Num));
 	EXPECT_TRUE(Num < 0);
 	EXPECT_EQ(-2147483647 - 1, Num);
+		
+	EXPECT_TRUE(TStr("-2147483648").IsInt(true, TInt::Mn, TInt::Mx, Num));
+	EXPECT_FALSE(TStr("-2147483649").IsInt(true, TInt::Mn, TInt::Mx, Num));		
 
-	EXPECT_TRUE(TStr("21474836470").IsInt());
-	EXPECT_TRUE(TStr("-21474836480").IsInt());
+	EXPECT_FALSE(TStr("salad2147483649").IsInt());
+	EXPECT_FALSE(TStr("2147483649fingers").IsInt());
 
-	int sum = atoi("2147483647");
-	int sum2 = atoi("21474836480");
-	printf("%d %d\n", sum, sum2);
-	//EXPECT_FALSE(TStr("-2147483649").IsInt(true, TInt::Mn, TInt::Mx, Num));		
+	EXPECT_EQ(TStr("2147483647").GetInt(), 2147483647);
+	EXPECT_EQ(TStr("2147483648").GetInt(123), 123);
+	EXPECT_EQ(TStr("2147483648").GetInt(123), 123);
+	EXPECT_EQ(TStr("000000000000123").GetInt(), 123);
+	EXPECT_EQ(TStr("2147483647foo").GetInt(123), 123);
 }
 
 TEST(TStr, OperatorPlus) {

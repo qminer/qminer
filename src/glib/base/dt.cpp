@@ -1553,20 +1553,30 @@ bool TStr::IsBool(bool& Val) const {
 }
 
 bool TStr::IsInt(
- const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
-  // parsing format {ws} [+/-] +{ddd}
-  int _Val=0;
-  bool Minus=false;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Minus=false; Ch.GetCh();}
-  if (Ch()=='-'){Minus=true; Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Minus){_Val=-_Val;}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+	const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
+	// parsing format {ws} [+/-] +{ddd}
+	int _Val = 0;
+	bool Minus = false;
+	TChRet Ch(TStrIn::New(*this, false));
+	while (TCh::IsWs(Ch.GetCh())){}
+	if (Ch() == '+'){ Minus = false; Ch.GetCh(); }
+	if (Ch() == '-'){ Minus = true; Ch.GetCh(); }
+	if (!TCh::IsNum(Ch())){ return false; }
+	_Val = TCh::GetNum(Ch());
+	int NumDigits = 1;
+	while (TCh::IsNum(Ch.GetCh())){
+		int ChNum = TCh::GetNum(Ch());
+		_Val = 10 * _Val + ChNum; NumDigits++;
+	}
+	if (Minus){ _Val = -_Val; }	
+	if (Check) {
+		if ((_Val<MnVal) || (_Val>MxVal)) return false;		
+	}
+	if (NumDigits >= 10) {
+		if (atoi(CStr()) != _Val) return false;
+	}
+	if (Ch.Eof()){ Val = _Val; return true; }
+	else { return false; }
 }
 
 bool TStr::IsUInt(
