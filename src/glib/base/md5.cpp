@@ -261,7 +261,7 @@ TMd5Sig::TMd5Sig(const PSIn& SIn){
 }
 
 TMd5Sig::TMd5Sig(const TStr& Str){
-  PMd5 Md5=TMd5::New(TStrIn::New(Str));
+  PMd5 Md5=TMd5::New(TStrIn::New(Str, false));
   memcpy(CdT, Md5->Sig, 16);
 }
 

@@ -1009,7 +1009,7 @@ TStr TXmlLx::GetXmlStrFromPlainStr(const TChA& PlainChA){
 
 TStr TXmlLx::GetPlainStrFromXmlStr(const TStr& XmlStr){
   TChA PlainChA;
-  TChRet Ch(TStrIn::New(XmlStr));
+  TChRet Ch(TStrIn::New(XmlStr, false));
   Ch.GetCh();
   while (!Ch.Eof()){
     if (Ch()!='&'){
@@ -1460,7 +1460,7 @@ void TXmlDoc::LoadTxt(
 }
 
 PXmlDoc TXmlDoc::LoadStr(const TStr& Str){
-  PSIn SIn=TStrIn::New(Str);
+  PSIn SIn=TStrIn::New(Str, false);
   return LoadTxt(SIn);
 }
 

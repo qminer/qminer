@@ -278,12 +278,12 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn){
 }
 
 PJsonVal TJsonVal::GetValFromStr(const TStr& JsonStr, bool& Ok, TStr& MsgStr){
-  PSIn SIn=TStrIn::New(JsonStr);
+  PSIn SIn=TStrIn::New(JsonStr, false);
   return GetValFromSIn(SIn, Ok, MsgStr);
 }
 
 PJsonVal TJsonVal::GetValFromStr(const TStr& JsonStr){
-  PSIn SIn=TStrIn::New(JsonStr);
+  PSIn SIn=TStrIn::New(JsonStr, false);
   return GetValFromSIn(SIn);
 }
 
