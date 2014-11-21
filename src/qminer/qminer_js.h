@@ -1908,7 +1908,8 @@ public:
 	//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
 	JsDeclareFunction(mean);
     //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-    //JsDeclareFunction(loadIntVec);
+    JsDeclareFunction(test);
+	//JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 

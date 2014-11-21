@@ -287,6 +287,9 @@ public:
 	// Z := p * X + q * Y
     static void LinComb(const double& p, const TFltVV& X,
         const double& q, const TFltVV& Y, TFltVV& Z);
+	// TODO z := p * X(:,ColId) + q * y
+    static void LinComb(const double& p, const TFltVV& X, int ColId,
+        const double& q, const TFltV& y, TFltV& z);
 	// z = p * x + q * y
     static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);	  
     // z := p * x + (1 - p) * y
@@ -809,9 +812,12 @@ public:
 	// gets the maximal row index of a sparse column matrix
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);	
 	// returns the mean value of Vec.
-	static void Mean(const TFltV& Vec, TFlt& Mean);
+	static double Mean(const TFltV& Vec);
 	// returns the mean value along the dimension (Dim) of Mat.
-	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim);
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
+	// TODO
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
+	//static void Std(const TFltVV& Mat, TFltV& Vec);
 };
 
 //////////////////////////////////////////////////////////////////////

@@ -4065,6 +4065,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, svd);
 		JsRegisterFunction(TmpTemp, qr);
 		JsRegisterFunction(TmpTemp, mean);
+		JsRegisterFunction(TmpTemp, test);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4397,10 +4398,8 @@ v8::Handle<v8::Value> TJsLinAlg::mean(const v8::Arguments& Args) {
 
 	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
 		// If input argument is vec
-		TFlt Mean;
 		TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-		TLAMisc::Mean(JsVec->Vec, Mean);		
-		return HandleScope.Close(v8::Number::New(Mean)); // Is this ok?
+		return HandleScope.Close(v8::Number::New(TLAMisc::Mean(JsVec->Vec)));
 	}
 	if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
 		// If input argument is matrix
@@ -4409,11 +4408,16 @@ v8::Handle<v8::Value> TJsLinAlg::mean(const v8::Arguments& Args) {
 		TLAMisc::Mean(JsMat->Mat, Vec, Dim);
 		return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Vec));
 	}
-	// TODO: Can I use some Assert here, to warn if argument is not TFltV or TFltVV
-	QmAssertR((TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) || (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")), 
-		"Error in  TJsLinAlg::mean: Invalid type of first argument.");
-	// TODO: Or is this better?
-	//return HandleScope.Close(v8::Undefined());	// Is this ok?
+	throw TQmExcept::New("la.mean() can take only matrix, or vector as first input argument.");
+}
+
+v8::Handle<v8::Value> TJsLinAlg::test(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+	TFltV Res;
+	TLAMisc::Std(JsMat->Mat, Res);
+	return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Res));
 }
 
 ///////////////////////////////

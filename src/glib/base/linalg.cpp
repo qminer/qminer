@@ -344,8 +344,21 @@ void TLinAlg::LinComb(const double& p, const TFltV& x,
         z[i] = p * x[i] + q * y[i]; }
 }
 
+void TLinAlg::LinComb(const double& p, const TFltVV& X, int ColId,
+        const double& q, const TFltV& y, TFltV& z) {
+
+	if (z.Empty()) z.Gen(X.GetRows());
+	EAssert(X.GetRows() == y.Len() && y.Len() == z.Len());
+	
+	const int len = z.Len();
+    for (int i = 0; i < len; i++) {
+        z[i] = p * X(i, ColId) + q * y[i];
+    }
+}
+
 void TLinAlg::LinComb(const double& p, const TFltVV& X, const double& q, const TFltVV& Y, TFltVV& Z) {
-	Assert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
+	if (Z.Empty()) Z.Gen(X.GetRows(), X.GetCols());
+	EAssert(X.GetRows() == Y.GetRows() && X.GetCols() == Y.GetCols() && X.GetRows() == Z.GetRows() && X.GetCols() == Z.GetCols());
 	int Rows = X.GetRows();
 	int Cols = X.GetCols();
 	for (int RowN = 0; RowN < Rows; RowN++) {
@@ -2988,59 +3001,81 @@ void TLAMisc::ToVec(const TIntFltKdV& SpVec, TFltV& Vec, const int& VecLen) {
     }
 }
 
- void TLAMisc::Diag(const TFltV& Vec, TFltVV& Mat) {
-	 Mat.Gen(Vec.Len(), Vec.Len());
-	 Mat.PutAll(0.0);
-	 for (int ElN = 0; ElN < Vec.Len(); ElN++) {
-		 Mat.At(ElN, ElN) = Vec[ElN];
-	 }
- }
+void TLAMisc::Diag(const TFltV& Vec, TFltVV& Mat) {
+	Mat.Gen(Vec.Len(), Vec.Len());
+	Mat.PutAll(0.0);
+	for (int ElN = 0; ElN < Vec.Len(); ElN++) {
+		Mat.At(ElN, ElN) = Vec[ElN];
+	}
+}
 
- void TLAMisc::Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat) {
-	 int Len = Vec.Len();
-	 Mat.Gen(Len);
-	 for (int ColN = 0; ColN < Len; ColN++) {
-		 Mat[ColN].Add(TIntFltKd(ColN, Vec[ColN]));
-	 }	 
- }
+void TLAMisc::Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat) {
+	int Len = Vec.Len();
+	Mat.Gen(Len);
+	for (int ColN = 0; ColN < Len; ColN++) {
+		Mat[ColN].Add(TIntFltKd(ColN, Vec[ColN]));
+	}	 
+}
 
- int TLAMisc::GetMaxDimIdx(const TIntFltKdV& SpVec) {
-	 int MaxDim = SpVec.Last().Key.Val;	 
-	 return MaxDim;
- }
+int TLAMisc::GetMaxDimIdx(const TIntFltKdV& SpVec) {
+	int MaxDim = SpVec.Last().Key.Val;	 
+	return MaxDim;
+}
 
- int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
-	 int MaxDim = 0;
-	 for (int ColN = 0; ColN < SpMat.Len(); ColN++) {
-          if(!SpMat[ColN].Empty()) {
-             MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
-          }
-	 }
-	 return MaxDim;
- }
+int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
+	int MaxDim = 0;
+	for (int ColN = 0; ColN < SpMat.Len(); ColN++) {
+        if(!SpMat[ColN].Empty()) {
+            MaxDim = MAX(MaxDim, SpMat[ColN].Last().Key.Val);
+        }
+	}
+	return MaxDim;
+}
+ 
+double TLAMisc::Mean(const TFltV& Vec) {
+	EAssertR(Vec.Len() != 0, "TLAMisc::Mean: Vector length should not be zero");
+	return TLinAlg::SumVec(Vec)/Vec.Len();
+}
 
- void TLAMisc::Mean(const TFltV& Vec, TFlt& Res) {
-	 // TODO: Asserts: Should I check if Vec is actually vector?
-	 Res = (double)TLinAlg::SumVec(Vec)/(double)Vec.Len();
- }
+void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
+	EAssertR(Dim == 1 || Dim == 2, "TLAMisc::Mean: Invalid value of 'Dim' argument. "
+								"Supported 'Dim' arguments are 1 (row mean), or 2 (col mean).");	 
+	if (Dim == 1) {
+		int Rows = Mat.GetRows();
+		TFltV Vec(Rows);
+		Vec.PutAll(1.0/Rows);
+		TLinAlg::MultiplyT(Mat, Vec, Res);
+	} else if (Dim == 2) {
+		int Cols = Mat.GetCols();
+		TFltV Vec(Cols);
+		Vec.PutAll(1.0/Cols);
+		TLinAlg::Multiply(Mat, Vec, Res);
+	}
+}
 
- void TLAMisc::Mean(const TFltVV& Mat, TFltV& Res, const int& Dim) {
-	 EAssertR(Dim == 1 || Dim == 2, "Error in  TLAMisc::Mean: Invalid value of 'Dim' argument. "
-									"Supported 'Dim' arguments are 1 (row mean), or 2 (col mean).");	 
-	 if (Dim == 1) {
-		 int Rows = Mat.GetRows();
-		 TFltV Vec(Rows);
-		 Vec.PutAll(1.0/(double)Rows);
-		 TLinAlg::MultiplyT(Mat, Vec, Res);
-	 } else if (Dim == 2) {
-		 int Cols = Mat.GetCols();
-		 TFltV Vec(Cols);
-		 Vec.PutAll(1.0/(double)Cols);
-		 TLinAlg::Multiply(Mat, Vec, Res);
-	 }/* else {
-		 EAssertR(Dim == 1 && Dim == 2, "Error in  TLAMisc::Mean: Invalid 'Dim' argument. supported 'Dim' arguments are 1 (row mean), or 2 (col mean)");
-	 }*/
- }
+void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const int& Dim) {
+
+	int Cols = Mat.GetCols();
+	int Rows = Mat.GetRows();
+
+	// if Dim == 1
+	if(Res.Empty()) Res.Gen(Cols);
+	EAssert(Cols == Res.Len());	
+
+	TFltV MeanVec;
+	TLAMisc::Mean(Mat, MeanVec);
+	double Scalar = TMath::Sqrt(1.0/(Rows-1));
+
+	TFltV TempRes(Rows);
+	TFltV Ones(Rows);
+	Ones.PutAll(1.0);
+
+	for (int ColN = 0; ColN < Cols; ColN++) {		
+		TLinAlg::LinComb(-1, Mat, ColN, MeanVec[ColN], Ones, TempRes);
+		Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
+	}	
+}
+
 ///////////////////////////////////////////////////////////////////////
 // TVector
 TVector::TVector(const TVector& Vector) {
