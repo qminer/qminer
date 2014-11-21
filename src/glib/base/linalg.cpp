@@ -3235,7 +3235,7 @@ TFullMatrix TVector::operator *(const TVector& y) const {
 	} else {
 		// outer product
 		TFullMatrix Res(Len(), y.Len());
-		TLinAlg::OuterProduct(Vec, y.Vec, Res.Mat);
+		TLinAlg::OuterProduct(Vec, y.Vec, *Res.Mat);
 		return Res;
 	}
 }
@@ -3272,7 +3272,7 @@ TVector TVector::MulT(const TFullMatrix& B) const {
 	EAssertR(Len() == B.GetRows(), "TVector::MulT: Dimension should equal the number of rows in B!");
 
 	TVector Res(B.GetCols(), false);
-	TLinAlg::MultiplyT(B.Mat, Vec, Res.Vec);
+	TLinAlg::MultiplyT(*B.Mat, Vec, Res.Vec);
 
 	return Res;
 }
@@ -3377,43 +3377,81 @@ int TVector::GetMinIdx() const {
 // Full-Matrix
 TFullMatrix::TFullMatrix():
 		TMatrix(),
-		Mat(0,0) {}
+		IsWrapper(false),
+		Mat(new TFltVV(0,0)) {}
 
-TFullMatrix::TFullMatrix(const int& _Rows, const int& _Cols):
-		TMatrix(),
-		Mat(_Rows, _Cols) {}
+TFullMatrix::TFullMatrix(const int& Rows, const int& Cols):
+	 	TMatrix(),
+	 	IsWrapper(false),
+	 	Mat(new TFltVV(Rows, Cols)) {}
 
-TFullMatrix::TFullMatrix(const TFltVV& _Mat):
+TFullMatrix::TFullMatrix(TFltVV& _Mat, const bool _IsWrapper):
 		TMatrix(),
-		Mat(_Mat) {}
+		IsWrapper(_IsWrapper),
+		Mat(_IsWrapper ? &_Mat : new TFltVV(_Mat)) {}
 
 TFullMatrix::TFullMatrix(const TVector& Vec):
 		TMatrix(),
-		Mat(Vec.IsColVec() ? Vec.Len() : 1, Vec.IsRowVec() ? Vec.Len() : 1) {
+		IsWrapper(false),
+		Mat(new TFltVV(Vec.IsColVec() ? Vec.Len() : 1, Vec.IsRowVec() ? Vec.Len() : 1)) {
+
 	if (Vec.IsColVec()) {
 		for (int i = 0; i < Vec.Len(); i++) {
-			Mat(i,0) = Vec[i];
+			Mat->PutXY(i,0,Vec[i]);
 		}
 	} else {
 		for (int i = 0; i < Vec.Len(); i++) {
-			Mat(0,i) = Vec[i];
+			Mat->PutXY(0,i,Vec[i]);
 		}
 	}
 }
 
-TFullMatrix& TFullMatrix::operator =(TFullMatrix _Mat) {
-	std::swap(Mat, _Mat.Mat);
+TFullMatrix::TFullMatrix(const TFullMatrix& _Mat):
+		TMatrix(_Mat),
+		IsWrapper(_Mat.IsWrapper),
+		Mat(_Mat.IsWrapper ? _Mat.Mat : new TFltVV(*_Mat.Mat)) {}
+
+TFullMatrix::TFullMatrix(TFullMatrix&& _Mat):
+		TMatrix(std::move(_Mat)),
+		IsWrapper(std::move(_Mat.IsWrapper)),
+		Mat(_Mat.Mat) {
+	_Mat.Mat = nullptr;
+}
+
+TFullMatrix::~TFullMatrix() {
+	Clr();
+}
+
+TFullMatrix& TFullMatrix::operator =(const TFullMatrix& _Mat) {
+	TMatrix::operator =(_Mat);
+
+	Clr();
+	IsWrapper = _Mat.IsWrapper;
+	Mat = IsWrapper ? _Mat.Mat : new TFltVV(*_Mat.Mat);
+
+	return *this;
+}
+
+TFullMatrix& TFullMatrix::operator =(TFullMatrix&& _Mat) {
+	TMatrix::operator =(_Mat);
+
+	if (this != &_Mat) {
+		std::swap(IsWrapper, _Mat.IsWrapper);
+		std::swap(Mat, _Mat.Mat);
+		_Mat.Clr();
+	}
+
 	return *this;
 }
 
 TFullMatrix TFullMatrix::Identity(const int& Dim) {
-	TFltVV Mat(Dim, Dim);
+	TFullMatrix Mat(Dim, Dim);
 
-	for (int i = 0; i < Dim; i++) {
-		Mat(i,i) = 1;
-	}
+    for (int i = 0; i < Dim; i++) {
+        Mat->PutXY(i,i,1);
+    }
 
-	return TFullMatrix(Mat);
+    return Mat;
 }
 
 TFullMatrix TFullMatrix::RowMatrix(const TVec<TFltV>& Mat) {
@@ -3426,7 +3464,7 @@ TFullMatrix TFullMatrix::RowMatrix(const TVec<TFltV>& Mat) {
 	TFullMatrix Res(Rows, Cols);
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
 		for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
-			Res.Mat.PutXY(RowIdx, ColIdx, Mat[RowIdx][ColIdx]);
+			Res.Mat->PutXY(RowIdx, ColIdx, Mat[RowIdx][ColIdx]);
 		}
 	}
 
@@ -3443,7 +3481,7 @@ TFullMatrix TFullMatrix::ColMatrix(const TVec<TFltV>& Mat) {
 	TFullMatrix Res(Rows, Cols);
 	for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
 		for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
-			Res.Mat.PutXY(RowIdx, ColIdx, Mat[ColIdx][RowIdx]);
+			Res.Mat->PutXY(RowIdx, ColIdx, Mat[ColIdx][RowIdx]);
 		}
 	}
 
@@ -3451,15 +3489,15 @@ TFullMatrix TFullMatrix::ColMatrix(const TVec<TFltV>& Mat) {
 }
 
 void TFullMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
-	TLinAlg::Multiply(Mat, B, ColId, Result);
+	TLinAlg::Multiply(*Mat, B, ColId, Result);
 }
 
 void TFullMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {
-	TLinAlg::Multiply(Mat, Vec, Result);
+	TLinAlg::Multiply(*Mat, Vec, Result);
 }
 
 void TFullMatrix::PMultiply(const TFltVV& B, TFltVV& Result) const {
-	TLinAlg::Multiply(Mat, B, Result);
+	TLinAlg::Multiply(*Mat, B, Result);
 }
 
 void TFullMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
@@ -3467,15 +3505,15 @@ void TFullMatrix::PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const {
 }
 
 void TFullMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) const {
-	TLinAlg::MultiplyT(Mat, Vec, Result);
+	TLinAlg::MultiplyT(*Mat, Vec, Result);
 }
 
 void TFullMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) const {
-	TLinAlg::MultiplyT(Mat, B, Result);
+	TLinAlg::MultiplyT(*Mat, B, Result);
 }
 
 void TFullMatrix::Transpose() {
-	Mat.Transpose();
+	Mat->Transpose();
 }
 
 TFullMatrix TFullMatrix::GetT() const {
@@ -3490,9 +3528,9 @@ TFullMatrix& TFullMatrix::AddCol(const TVector& Col) {
 
 	EAssertR(Col.Len() == Rows, "TFullMatrix::AddCol: dimension mismatch!");
 
-	Mat.AddYDim();
+	Mat->AddYDim();
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
-		Mat(RowIdx, LastColIdx) = Col[RowIdx];
+		Mat->PutXY(RowIdx, LastColIdx, Col[RowIdx]);
 	}
 
 	return *this;
@@ -3505,10 +3543,10 @@ TFullMatrix& TFullMatrix::AddCols(const TFullMatrix& ColMat) {
 	const int Cols = GetCols();
 	const int NNewCols = ColMat.GetCols();
 
-	Mat.AddYDim(NNewCols);
+	Mat->AddYDim(NNewCols);
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
 		for (int ColIdx = 0; ColIdx < NNewCols; ColIdx++) {
-			Mat(RowIdx, Cols + ColIdx) = ColMat(RowIdx, ColIdx);
+			Mat->PutXY(RowIdx, Cols + ColIdx, ColMat(RowIdx, ColIdx));
 		}
 	}
 
@@ -3518,13 +3556,13 @@ TFullMatrix& TFullMatrix::AddCols(const TFullMatrix& ColMat) {
 TFullMatrix& TFullMatrix::operator -=(const TFullMatrix& B) {
 	EAssert(GetCols() == B.GetCols() && GetRows() == B.GetRows());
 
-	TLinAlg::LinComb(1.0, Mat, -1.0, B.GetMat(), Mat);
+	TLinAlg::LinComb(1.0, *Mat, -1.0, B.GetMat(), *Mat);
 	return *this;
 }
 
 TFullMatrix& TFullMatrix::operator +=(const TFullMatrix& B) {
 	EAssert(GetCols() == B.GetCols() && GetRows() == B.GetRows());
-	TLinAlg::LinComb(1.0, Mat, 1.0, B.GetMat(), Mat);
+	TLinAlg::LinComb(1.0, *Mat, 1.0, B.GetMat(), *Mat);
 	return *this;
 }
 
@@ -3532,7 +3570,7 @@ TFullMatrix TFullMatrix::operator +(const TFullMatrix& B) const {
 	EAssert(GetCols() == B.GetCols() && GetRows() == B.GetRows());
 
 	TFullMatrix Result(GetRows(), GetCols());
-	TLinAlg::LinComb(1.0, Mat, 1.0, B.GetMat(), Result.Mat);
+	TLinAlg::LinComb(1.0, *Mat, 1.0, B.GetMat(), *Result.Mat);
 
 	return Result;
 }
@@ -3541,7 +3579,7 @@ TFullMatrix TFullMatrix::operator -(const TFullMatrix& B) const {
 	EAssert(GetCols() == B.GetCols() && GetRows() == B.GetRows());
 
 	TFullMatrix Result(GetRows(), GetCols());
-	TLinAlg::LinComb(1.0, Mat, -1.0, B.GetMat(), Result.Mat);
+	TLinAlg::LinComb(1.0, *Mat, -1.0, B.GetMat(), *Result.Mat);
 
 	return Result;
 }
@@ -3550,7 +3588,7 @@ TFullMatrix TFullMatrix::operator *(const TFullMatrix& B) const {
 	EAssert(GetCols() == B.GetRows());
 
 	TFullMatrix Result(GetRows(), B.GetCols());
-	Multiply(B.Mat, Result.Mat);
+	Multiply(*B.Mat, *Result.Mat);
 
  	return Result;
 }
@@ -3559,7 +3597,7 @@ TFullMatrix TFullMatrix::operator *(const TSparseColMatrix& B) const {
 	EAssert(GetCols() == B.GetRows());
 
 	TFullMatrix Result(GetRows(), B.GetCols());
-	TLinAlg::Multiply(Mat, B.ColSpVV, Result.Mat);
+	TLinAlg::Multiply(*Mat, B.ColSpVV, *Result.Mat);
 
 	return Result;
 }
@@ -3569,14 +3607,14 @@ TFullMatrix TFullMatrix::MulT(const TFullMatrix& B) const {
 	EAssert(GetRows() == B.GetRows());
 
 	TFullMatrix Result(GetCols(), B.GetCols());
-	MultiplyT(B.Mat, Result.Mat);
+	MultiplyT(*B.Mat, *Result.Mat);
 
 	return Result;
 }
 
 TVector TFullMatrix::operator *(const TVector& x) const {
 	EAssertR(x.IsColVec(), "x must be a column vector!");
-	return this->operator *(x.Vec);
+	return operator *(x.Vec);
 }
 
 TVector TFullMatrix::operator *(const TFltV& y) const {
@@ -3587,7 +3625,7 @@ TVector TFullMatrix::operator *(const TFltV& y) const {
 
 TFullMatrix TFullMatrix::operator *(const double& Lambda) const {
 	TFullMatrix Res(GetRows(), GetCols());
-	TLinAlg::MultiplyScalar(Lambda, Mat, Res.Mat);
+	TLinAlg::MultiplyScalar(Lambda, *Mat, *Res.Mat);
 
 	return Res;
 }
@@ -3603,7 +3641,7 @@ TVector TFullMatrix::GetRow(const int& RowIdx) const {
 
 	TVector Res(Cols, false);
 	for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
-		Res[ColIdx] = Mat(RowIdx, ColIdx);
+		Res[ColIdx] = Mat->At(RowIdx, ColIdx);
 	}
 
 	return Res;
@@ -3616,7 +3654,7 @@ TVector TFullMatrix::GetCol(const int& ColIdx) const {
 
 	TVector Res(Rows, true);
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
-		Res[RowIdx] = Mat(RowIdx, ColIdx);
+		Res[RowIdx] = Mat->At(RowIdx, ColIdx);
 	}
 
 	return Res;
@@ -3629,7 +3667,7 @@ void TFullMatrix::SetRow(const int& RowIdx, const TVector& RowV) {
 	const int Cols = GetCols();
 
 	for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
-		Mat(RowIdx, ColIdx) = RowV[ColIdx];
+		Mat->At(RowIdx, ColIdx) = RowV[ColIdx];
 	}
 }
 
@@ -3640,12 +3678,12 @@ void TFullMatrix::SetCol(const int& ColIdx, const TVector& ColV) {
 	const int Rows = GetRows();
 
 	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
-		Mat(RowIdx, ColIdx) = ColV[RowIdx];
+		Mat->At(RowIdx, ColIdx) = ColV[RowIdx];
 	}
 }
 
 double TFullMatrix::ColNorm(const int& ColIdx) const {
-	return TLinAlg::Norm(Mat, ColIdx);
+	return TLinAlg::Norm(*Mat, ColIdx);
 }
 
 double TFullMatrix::ColNorm2(const int& ColIdx) const {
@@ -3682,7 +3720,7 @@ double TFullMatrix::RowSum(const int& RowIdx) const {
 	double Sum = 0;
 
 	for (int i = 0; i < NCols; i++) {
-		Sum += Mat(RowIdx, i);
+		Sum += Mat->At(RowIdx, i);
 	}
 
 	return Sum;
@@ -3700,18 +3738,31 @@ TVector TFullMatrix::RowSumV() const {
 }
 
 TVector TFullMatrix::GetColMinV() const {
-	TVector Result;	TLinAlg::GetColMinV(Mat, Result.Vec);
+	TVector Result;	TLinAlg::GetColMinV(*Mat, Result.Vec);
 	return Result;
 }
 
 TVector TFullMatrix::GetColMaxIdxV() const {
-	TIntV IdxV;	TLinAlg::GetColMaxIdxV(Mat, IdxV);
+	TIntV IdxV;	TLinAlg::GetColMaxIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
 }
 
 TVector TFullMatrix::GetColMinIdxV() const {
-	TIntV IdxV;	TLinAlg::GetColMinIdxV(Mat, IdxV);
+	TIntV IdxV;	TLinAlg::GetColMinIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
+}
+
+void TFullMatrix::Save(TSOut& SOut) const {
+	EAssertR(!IsWrapper, "TFullMatrix::Save: Cannot save a wrapper!");
+	TMatrix::Save(SOut);
+	Mat->Save(SOut);
+}
+
+void TFullMatrix::Load(TSIn& SIn) {
+	EAssertR(!IsWrapper, "TFullMatrix::Load: Cannot load a wrapper!");
+	TMatrix::Load(SIn);
+	Mat->Load(SIn);
+	IsWrapper = false;
 }
 
  

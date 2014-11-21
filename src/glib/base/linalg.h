@@ -1056,7 +1056,8 @@ TVector TVector::Find(const TFunc& Func) const {
 //// Full-Matrix
 class TFullMatrix: public TMatrix { friend class TVector;
 private:
-    TFltVV Mat;
+	bool IsWrapper;
+	TFltVV* Mat;
     
 public:
     // constructors/destructors
@@ -1065,18 +1066,20 @@ public:
     // zero matrix with the specified number of rows and cols
     TFullMatrix(const int& Rows, const int& Cols);
     // matrix from TFltVV
-    TFullMatrix(const TFltVV& Mat);
+    TFullMatrix(TFltVV& Mat, const bool IsWrapper=false);
     // matrix from vector
     TFullMatrix(const TVector& Vec);
     // copy constructor
-	TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) {} // { printf("Matrix copied\n"); }
+    TFullMatrix(const TFullMatrix& Mat);
 	// move constructor
-	TFullMatrix(const TFullMatrix&& _Mat): Mat(std::move(_Mat.Mat)) {} // { printf("Matrix moved\n"); }
+    TFullMatrix(TFullMatrix&& Mat);
     // destructor
-	virtual ~TFullMatrix() {}
+    virtual ~TFullMatrix();
 
-    // the move and copy assignment operator merged into one
-    TFullMatrix& operator =(TFullMatrix _Mat);
+    // copy constructor
+	TFullMatrix& operator =(const TFullMatrix& Mat);
+	// move constructor
+	TFullMatrix& operator =(TFullMatrix&& _Mat);
     
     // identity matrix
     static TFullMatrix Identity(const int& Dim);
@@ -1084,6 +1087,9 @@ public:
     static TFullMatrix RowMatrix(const TVec<TFltV>& Mat);
     // matrix from TVec<TFltV>, each element from the list goes into one column
     static TFullMatrix ColMatrix(const TVec<TFltV>& Mat);
+
+private:
+    void Clr() { if (!IsWrapper) { delete Mat; } };
 
 protected:
     virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const;
@@ -1094,24 +1100,24 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const;
 
     // getters
-    virtual int PGetRows() const { return Mat.GetRows(); }
-    virtual int PGetCols() const { return Mat.GetCols(); }
+    virtual int PGetRows() const { return Mat->GetRows(); }
+    virtual int PGetCols() const { return Mat->GetCols(); }
 public:
     // returns the underlying TFltVV
-    const  TFltVV& GetMat() const { return Mat; }
+    const TFltVV& GetMat() const { return *Mat; }
     // returns the underlying TFltVV
-    TFltVV& GetMat() { return Mat; }
+    TFltVV& GetMat() { return *Mat; }
     // transposed
     virtual void Transpose();
     // returns the transpose of this matrix
     TFullMatrix GetT() const;
     // returns the value at position (i,j)
-    TFlt& At(const int& i, const int& j) { return Mat(i,j); }
-    const TFlt& At(const int& i, const int& j) const { return Mat(i,j); }
+    TFlt& At(const int& i, const int& j) { return Mat->operator ()(i,j); }
+    const TFlt& At(const int& i, const int& j) const { return Mat->operator ()(i,j); }
     // sets the value at position (i,j)
-    void Set(const double& Val, const int& i, const int& j) { Mat(i,j) = Val; }
+    void Set(const double& Val, const int& i, const int& j) { Mat->operator ()(i,j) = Val; }
     // returns true if the matrix is empty
-    bool Empty() const { return Mat.Empty(); }
+    bool Empty() const { return Mat->Empty(); }
     
     TFullMatrix& AddCol(const TVector& Col);
     TFullMatrix& AddCols(const TFullMatrix& Cols);
@@ -1187,8 +1193,8 @@ public:
 	TVector GetColMinIdxV() const;
 
 public:
-    void Save(TSOut& SOut) const { TMatrix::Save(SOut); Mat.Save(SOut); }
-    void Load(TSIn& SIn) { TMatrix::Load(SIn); Mat.Load(SIn); }
+    void Save(TSOut& SOut) const;
+    void Load(TSIn& SIn);
 };
 
 template <class TIdxV1, class TIdxV2>
@@ -1201,8 +1207,8 @@ TFullMatrix TFullMatrix::operator ()(const TIdxV1& RowV, const TIdxV2& ColV) con
 		for (int j = 0; j < Cols; j++) {
 			const int Idx1 = RowV[i];
 			const int Idx2 = ColV[j];
-			const TFlt Val = Mat(Idx1, Idx2);
-			Result.Mat.PutXY(i, j, Val);
+			const TFlt Val = Mat->At(Idx1, Idx2);
+			Result.Mat->PutXY(i, j, Val);
 		}
 	}
 
@@ -1230,7 +1236,7 @@ TFullMatrix& TFullMatrix::Map(const TFunc& Func) {
 
 	for (int i = 0; i < Rows; i++) {
 		for (int j = 0; j < Cols; j++) {
-			Mat(i,j) = Func(Mat(i,j));
+			Mat->At(i,j) = Func(Mat->At(i,j));
 		}
 	}
 
