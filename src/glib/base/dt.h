@@ -748,20 +748,15 @@ public:
   void SaveTxt(const TStr& FNm) const {
     PSOut SOut=TFOut::New(FNm); SaveTxt(SOut);}
 
-
   /*
    * Static methods for FmtStr
    */
-
   static TStr GetStr(const TStr& Str, const char* FmtStr);
   static TStr GetStr(const TStr& Str, const TStr& FmtStr) { return GetStr(Str, FmtStr.CStr()); }
   static TStr GetStr(const TStrV& StrV, const TStr& DelimiterStr);
   static TStr Fmt(const char *FmtStr, ...);
   static TStr GetSpaceStr(const int& Spaces);
 
-  /*
-   * Concatenation operator +
-   */
   /// Concatenates the first string parameter with the char array
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
@@ -778,11 +773,11 @@ private:
 private:
   TStrIn();
   TStrIn(const TStrIn&);
-  TStrIn& operator = (const TStrIn&);
+  TStrIn& operator=(const TStrIn&);
 public:
-  TStrIn(const TStr& Str, const bool& _OwnP = false);
-  static PSIn New(const TStr& Str, const bool& OwnP = false){return PSIn(new TStrIn(Str, OwnP));}
-  ~TStrIn(){ if (!OwnP) { delete[] Bf; }}
+  TStrIn(const TStr& Str, const bool& _OwnP = true);
+  static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
+  ~TStrIn(){ if (OwnP) { delete[] Bf; }}
 
   bool Eof(){return BfC==BfL;}
   int Len() const {return BfL-BfC;}

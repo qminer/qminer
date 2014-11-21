@@ -487,7 +487,7 @@ public:
 /////////////////////////////////////////////////
 // Http-Request
 void THttpRq::ParseSearch(const TStr& SearchStr){
-  PSIn SIn=TStrIn::New(SearchStr);
+  PSIn SIn=TStrIn::New(SearchStr, false);
   THttpChRet ChRet(SIn, heBadSearchStr);
   try {
   // check empty search string
