@@ -242,7 +242,8 @@ public:
 	int GetMemUsed() const {
 		return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
-			+ sizeof(TBool) + sizeof(int) + sizeof(PGixMerger);
+			+ sizeof(TBool) + sizeof(int)
+			+ sizeof(PGixMerger) + sizeof(TGix<TKey, TItem>*);
 	}
 	void OnDelFromCache(const TBlobPt& BlobPt, void* Gix);
 
@@ -337,7 +338,8 @@ void TGixItemSet<TKey, TItem>::Save(TMOut& SOut) {
 	}
 	// save item key and set
 	ItemSetKey.Save(SOut);
-	ItemV.SaveMemCpy(SOut);
+	//ItemV.SaveMemCpy(SOut);
+	ItemV.Save(SOut);
 	Children.Save(SOut);
 }
 
@@ -355,7 +357,8 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	int split_len = Gix->GetSplitLen();
 	while (ItemV.Len() >= split_len) {
 		TVec<TItem> tmp;
-		ItemV.GetSubValVMemCpy(0, split_len - 1, tmp);
+		//ItemV.GetSubValVMemCpy(0, split_len - 1, tmp);
+		ItemV.GetSubValV(0, split_len - 1, tmp);
 		TGixItemSetChildInfo child_info(ItemV[0], ItemV[split_len - 1], split_len, Gix->EnlistChildVector(tmp), true);
 		child_info.Loaded = false;
 		child_info.Dirty = false;
@@ -421,10 +424,12 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 		// collect data from child itemsets
 		LoadChildVectors();
 		for (int i = 0; i < Children.Len(); i++) {
-			_ItemV.AddVMemCpy(ChildrenData[i]);
+			//_ItemV.AddVMemCpy(ChildrenData[i]);
+			_ItemV.AddV(ChildrenData[i]);
 		}
 	}
-	_ItemV.AddVMemCpy(ItemV);
+	//_ItemV.AddVMemCpy(ItemV);
+	_ItemV.AddV(ItemV);
 }
 
 template <class TKey, class TItem>
@@ -494,7 +499,8 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 
 		ItemV.Clr();
 		ItemVDel.Clr();
-		ItemV.AddVMemCpy(ItemVNew);
+		//ItemV.AddVMemCpy(ItemVNew);
+		ItemV.AddV(ItemVNew);
 	}
 }
 
@@ -571,7 +577,8 @@ void TGixItemSet<TKey, TItem>::Def() {
 			while (curr_index < MergedItems.Len()) {
 				if (child_index < Children.Len() && remaining > Gix->GetSplitLen()) {
 					ChildrenData[child_index].Clr();
-					MergedItems.GetSubValVMemCpy(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
+					//MergedItems.GetSubValVMemCpy(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
+					MergedItems.GetSubValV(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
 					Children[child_index].Len = ChildrenData[child_index].Len();
 					Children[child_index].MinVal = ChildrenData[child_index][0];
 					Children[child_index].MaxVal = ChildrenData[child_index].Last();
@@ -584,7 +591,8 @@ void TGixItemSet<TKey, TItem>::Def() {
 				} else {
 					// the remaining data fits into work-buffer
 					ItemV.Clr();
-					MergedItems.GetSubValVMemCpy(curr_index, curr_index + remaining - 1, ItemV);
+					//MergedItems.GetSubValVMemCpy(curr_index, curr_index + remaining - 1, ItemV);
+					MergedItems.GetSubValV(curr_index, curr_index + remaining - 1, ItemV);
 					break;
 				}
 			}
@@ -975,7 +983,8 @@ TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const 
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
-	Data.SaveMemCpy(MOut);
+	//Data.SaveMemCpy(MOut);
+	Data.Save(MOut);
 	return ItemSetBlobBs->PutBlob(ExistingKeyId, MOut.GetSIn());
 }
 
