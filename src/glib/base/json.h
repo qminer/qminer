@@ -123,7 +123,7 @@ public:
   bool GetBool() const {EAssert(IsBool()); return Bool;}
   double GetNum() const {EAssert(IsNum()); return Num;}
   int GetInt() const {EAssert(IsNum()); return TFlt::Round(Num);}
-  TStr GetStr() const {EAssert(IsStr()); return Str;}
+  const TStr& GetStr() const {EAssert(IsStr()); return Str;}
   int GetArrVals() const {EAssert(IsArr()); return ValV.Len();}
   PJsonVal GetArrVal(const int& ValN) const {return ValV[ValN];}
   void GetArrNumV(TFltV& FltV) const;
@@ -143,8 +143,8 @@ public:
   double GetObjNum(const char *Key) const { return GetObjKey(Key)->GetNum(); }
   int GetObjInt(const TStr& Key) const { return GetObjKey(Key)->GetInt(); }
   int GetObjInt(const char *Key) const { return GetObjKey(Key)->GetInt(); }
-  TStr GetObjStr(const TStr& Key) const { return GetObjKey(Key)->GetStr(); }
-  TStr GetObjStr(const char *Key) const { return GetObjKey(Key)->GetStr(); }
+  const TStr& GetObjStr(const TStr& Key) const { return GetObjKey(Key)->GetStr(); }
+  const TStr& GetObjStr(const char *Key) const { return GetObjKey(Key)->GetStr(); }
   bool GetObjBool(const TStr& Key, const bool& DefBool) const;
   bool GetObjBool(const char *Key, const bool& DefBool) const;
   double GetObjNum(const TStr& Key, const double& DefNum) const;
@@ -152,8 +152,8 @@ public:
   int GetObjInt(const TStr& Key, const int& DefNum) const;
   int GetObjInt(const char *Key, const int& DefNum) const;
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
-  TStr GetObjStr(const TStr& Key, const TStr& DefStr) const;
-  TStr GetObjStr(const char *Key, const TStr& DefStr) const;
+  const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
+  const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;
   void GetObjStrV(const char *Key, TStrV& StrV) const;
 

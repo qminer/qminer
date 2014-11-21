@@ -1546,7 +1546,7 @@ bool TStr::IsInt(
   // parsing format {ws} [+/-] +{ddd}
   int _Val=0;
   bool Minus=false;
-  TChRet Ch(TStrIn::New(*this));
+  TChRet Ch(TStrIn::New(*this, false));
   while (TCh::IsWs(Ch.GetCh())){}
   if (Ch()=='+'){Minus=false; Ch.GetCh();}
   if (Ch()=='-'){Minus=true; Ch.GetCh();}
@@ -2009,7 +2009,8 @@ TStr operator+(const TStr& LStr, const TStr& RStr) {
 /////////////////////////////////////////////////
 // Input-String
 TStrIn::TStrIn(const TStr& _Str, const bool& _OwnP) :
-  TSBase("Input-String"), TSIn("Input-String"), OwnP(_OwnP), Bf(_OwnP ? _Str.CStr() : _Str.CloneCStr()), BfC(0), BfL(_Str.Len()){}
+  TSBase("Input-String"), TSIn("Input-String"), OwnP(_OwnP), 
+  Bf(_OwnP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
 
 int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
