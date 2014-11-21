@@ -337,6 +337,8 @@ int main(int argc, char* argv[]) {
 	_setmaxstdio(2048);
 #endif
 
+    // start stopwatch to keep track of runtime
+    TTmStopWatch RunTmSw(true);    
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
@@ -565,5 +567,8 @@ int main(int argc, char* argv[]) {
 		TQm::ErrorLog("Unknown error");
 		return 1;
 	}
+    // report on runtime
+    RunTmSw.DispTime("Total execution time");
+    // done
 	return TQm::TEnv::ReturnCode.Val;
 }

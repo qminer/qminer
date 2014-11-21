@@ -1274,7 +1274,7 @@ void TBowDocBs::GetWordStrVFromHtml(const TStr& HtmlStr, TStrV& WordStrV) const 
     NGramBs->GetNGramStrV(HtmlStr, WordStrV);
   } else {
     // create html lexical
-    PSIn HtmlSIn=TStrIn::New(HtmlStr);
+    PSIn HtmlSIn=TStrIn::New(HtmlStr, false);
     THtmlLx HtmlLx(HtmlSIn);
     // traverse html string symbols
     while (HtmlLx.Sym!=hsyEof){
