@@ -69,10 +69,8 @@ void TThreadExecutor::TExecutorThread::Run() {
 		try {
 			// get a task
 			PRunnable Runnable = Executor->WaitForTask();
-
 			// check if the executor was terminated
 			if (Runnable.Empty()) { break; }
-
 			// run the task
 			Runnable->Run();
 		} catch (const PExcept& Except) {
@@ -139,7 +137,7 @@ TThreadExecutor::PRunnable TThreadExecutor::WaitForTask() {
 		Lock.WaitForSignal();
 	}
 
-	if (IsFinished) { return NULL; }
+	if (IsFinished) { return nullptr; }
 
 	PRunnable Runnable = TaskQ.Pop();
 
