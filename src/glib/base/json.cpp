@@ -189,12 +189,12 @@ void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
     GetObjKey(Key)->GetArrIntV(IntV);
 }
 
-TStr TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
+const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
 
-TStr TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const { 
+const TStr& TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const { 
   EAssert(IsObj());
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
@@ -225,7 +225,7 @@ PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
   } else if (Lx.Sym==syQStr){
     Val->PutStr(Lx.Str); Lx.GetSym();
   } else if (Lx.Sym==syLBracket){
-    Val->PutArr(); Lx.GetSym(ValExpect); // added ValExpect to correctyl parse arrays of floats
+    Val->PutArr(); Lx.GetSym(ValExpect); // added ValExpect to correctly parse arrays of floats
     if (Lx.Sym!=syRBracket){
       forever{
         PJsonVal SubVal=TJsonVal::GetValFromLx(Lx);
@@ -263,7 +263,7 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
   try {
     Lx.GetSym(TFSet()|syLBracket|syLBrace);
     Val=GetValFromLx(Lx);
-	Ok=true; TStr MsgStr="Ok";
+	Ok=true; MsgStr="Ok";
   }
   catch (PExcept Except){
     Val=TJsonVal::New();
@@ -273,7 +273,7 @@ PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
 }
 
 PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn){
-  bool Ok = true; TStr MsgStr = "";
+  bool Ok = true; TStr MsgStr;
   return GetValFromSIn(SIn, Ok, MsgStr);
 }
 
@@ -333,7 +333,7 @@ void TJsonVal::AddEscapeChAFromStr(const TStr& Str, TChA& ChA){
 					default : ChA.AddCh(Ch);
 				}
 			} else {
-                printf("Warning: no TUnicodeDef, possible erros when enscaping unicode characters!");                        
+                printf("Warning: no TUnicodeDef, possible errors when escaping unicode characters!");                        
 				// escape
 				ChA += "\\u";
 				ChA += TStr::Fmt("%02x", (int)Ch);
