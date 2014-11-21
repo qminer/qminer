@@ -719,6 +719,16 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
 //  return int(toupper(*p++))-int(toupper(*r++));
 //}
 
+//
+// this section overloads the new operator for debug purposes (tracking memory leaks)
+//
+#ifdef WIN32
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+#endif
+
 /////////////////////////////////////////////////
 // String
 const char TStr::EmptyStr = 0;
@@ -2025,6 +2035,16 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   FailR(TStr::Fmt("TStrIn::GetNextLnBf: not implemented").CStr());
   return false;
 }
+
+//
+// this section disables the overloaded new operator so it doesn't clash with the rest of the library (tracking memory leaks)
+//
+#ifdef WIN32
+#ifdef _DEBUG
+#undef DEBUG_NEW
+#undef new 
+#endif
+#endif
 
 /////////////////////////////////////////////////
 // String-Pool

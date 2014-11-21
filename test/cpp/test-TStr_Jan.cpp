@@ -3,6 +3,13 @@
 // Google Test
 #include "gtest/gtest.h"
 
+#ifdef WIN32
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+#endif
+
 TEST(TStr, Constructors) {
 	TStr Default;
 	TStr CStr("abc");	
