@@ -2008,9 +2008,13 @@ TStr operator+(const TStr& LStr, const TStr& RStr) {
 
 /////////////////////////////////////////////////
 // Input-String
-TStrIn::TStrIn(const TStr& _Str, const bool& _OwnP) :
-  TSBase("Input-String"), TSIn("Input-String"), OwnP(_OwnP), 
-  Bf(_OwnP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
+TStrIn::TStrIn(const TStr& _Str, const bool& MakeCopyP) :
+  TSBase("Input-String"), TSIn("Input-String"), OwnP(MakeCopyP), 
+  Bf(MakeCopyP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
+
+PSIn TStrIn::New(const TStr& Str, const bool& MakeCopyP){
+  return PSIn(new TStrIn(Str, MakeCopyP));
+}
 
 int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
