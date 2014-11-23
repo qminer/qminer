@@ -485,34 +485,34 @@ la.loadIntVec = function(fin) {
 //# - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
 //# - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
 //# - `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
-la.zscore = function (mat, flag, dim) {
-    var result = {};
-    var flag = flag == null ? 0 : flag;
-    var dim = dim == null ? 1 : dim;
-    var mean = la.mean(mat, dim);
-    if (dim == 1) {
-        var mat2 = mat.minus(la.repmat(mean.toMat().transpose(), mat.rows, 1));
-    } else {
-        var mat2 = mat.minus(la.repvec(mean, 1, mat.cols));
-    }
-    var sigma = la.std(mat, flag, dim);
-    var invsigma = la.newVec(sigma);
-    for (var i = 0; i < invsigma.length; i++) {
-        if (invsigma[i] > 0) {
-            invsigma[i] = 1.0 / invsigma[i];
-        }
-    }
-    if (dim == 1) {
-        mat2 = mat2.multiply(invsigma.spDiag());
-    } else {
-        mat2 = invsigma.spDiag().multiply(mat2);
-    }
+//la.zscore = function (mat, flag, dim) {
+//    var result = {};
+//    var flag = flag == null ? 0 : flag;
+//    var dim = dim == null ? 1 : dim;
+//    var mean = la.mean(mat, dim);
+//    if (dim == 1) {
+//        var mat2 = mat.minus(la.repmat(mean.toMat().transpose(), mat.rows, 1));
+//    } else {
+//        var mat2 = mat.minus(la.repvec(mean, 1, mat.cols));
+//    }
+//    var sigma = la.std(mat, flag, dim);
+//    var invsigma = la.newVec(sigma);
+//    for (var i = 0; i < invsigma.length; i++) {
+//        if (invsigma[i] > 0) {
+//            invsigma[i] = 1.0 / invsigma[i];
+//        }
+//    }
+//    if (dim == 1) {
+//        mat2 = mat2.multiply(invsigma.spDiag());
+//    } else {
+//        mat2 = invsigma.spDiag().multiply(mat2);
+//    }
 
-    result.Z = mat2;
-    result.mu = mean;
-    result.sigma = sigma;
-    return result;
-}
+//    result.Z = mat2;
+//    result.mu = mean;
+//    result.sigma = sigma;
+//    return result;
+//}
 
 //# - `vec = la.standardize(vec, mu, sigma)` - returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.
 //# - `mat = la.standardize(mat, mu, sigma)` - returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.

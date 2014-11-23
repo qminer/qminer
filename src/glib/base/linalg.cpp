@@ -3084,45 +3084,83 @@ void TLAMisc::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const int& Dim
 
 	int Cols = Mat.GetCols();
 	int Rows = Mat.GetRows();
+	TFltV MeanVec;
+	TLAMisc::Mean(Mat, MeanVec, Dim);
+	EAssertR(Cols == MeanVec.Len() || Rows == MeanVec.Len(), "TLAMisc::Std");
 
 	if (Dim == 1) {
 		if(Res.Empty()) Res.Gen(Cols);
 		EAssertR(Cols == Res.Len(), "TLAMisc::Std");	
 
-		TFltV MeanVec;
-		TLAMisc::Mean(Mat, MeanVec);
-		EAssertR(Cols == MeanVec.Len(), "TLAMisc::Std");
-
 		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Rows)) : TMath::Sqrt(1.0/(Rows-1));
-
 		TFltV TempRes(Rows);
 		TFltV Ones(Rows);
 		Ones.PutAll(1.0);
 
 		for (int ColN = 0; ColN < Cols; ColN++) {		
-			TLinAlg::LinComb(-1, Mat, ColN, MeanVec[ColN], Ones, TempRes);
+			TLinAlg::LinComb(-1.0, Mat, ColN, MeanVec[ColN], Ones, TempRes);
 			Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
 		}
 	} else if (Dim == 2) {
 		if(Res.Empty()) Res.Gen(Rows);
 		EAssertR(Rows == Res.Len(), "TLAMisc::Std");	
 
-		TFltV MeanVec;
-		TLAMisc::Mean(Mat, MeanVec, 2);
-		EAssertR(Rows == MeanVec.Len(), "TLAMisc::Std");
-
 		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Cols)) : TMath::Sqrt(1.0/(Cols-1));
-
 		TFltV TempRes(Cols);
 		TFltV Ones(Cols);
 		Ones.PutAll(1.0);
 
 		for (int RowN = 0; RowN < Rows; RowN++) {
-			TLinAlg::LinComb(-1, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
+			TLinAlg::LinComb(-1.0, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
 			Res[RowN] = Scalar * TLinAlg::Norm(TempRes);
 		}
 	}
 }
+
+void TLAMisc::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const int& Dim) {
+	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::ZScore: Invalid value of 'Flag' argument. "
+							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+	EAssertR(Dim == 1 || Dim == 2, "TLAMisc::ZScore: Invalid value of 'Dim' argument. "
+							"Supported 'Dim' arguments are 1 (col std), or 2 (row std).");
+
+	int Cols = Mat.GetCols();
+	int Rows = Mat.GetRows();
+
+	if (Res.Empty()) Res.Gen(Rows, Cols);
+
+	TFltV MeanVec;
+	TLAMisc::Mean(Mat, MeanVec, Dim);
+	TFltV StdVec;
+	TLAMisc::Std(Mat, StdVec, Flag, Dim);
+
+	if (Dim == 1) {
+		
+		TFltV TempRes(Rows);
+		TFltV Ones(Rows);
+		Ones.PutAll(1.0);
+
+		for (int ColN = 0; ColN < Cols; ColN++) {		
+			TLinAlg::LinComb(1.0/StdVec[ColN], Mat, ColN, -1.0 * MeanVec[ColN]/StdVec[ColN], Ones, TempRes);	
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Res.At(RowN, ColN) = TempRes[RowN];
+			}
+		}
+	} else if (Dim == 2) {
+
+		TFltV TempRes(Cols);
+		TFltV Ones(Cols);
+		Ones.PutAll(1.0);
+
+		for (int RowN = 0; RowN < Rows; RowN++) {		
+			TLinAlg::LinComb(1.0/StdVec[RowN], Mat, RowN, -1.0 * MeanVec[RowN]/StdVec[RowN], Ones, TempRes, 2);	
+			for (int ColN = 0; ColN < Cols; ColN++) {
+				Res.At(RowN, ColN) = TempRes[ColN];
+			}
+		}
+	}
+
+}
+
 
 ///////////////////////////////////////////////////////////////////////
 // TVector

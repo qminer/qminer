@@ -816,11 +816,12 @@ public:
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);	
 	// returns the mean value of Vec.
 	static double Mean(const TFltV& Vec);
-	// returns the mean value along the dimension (Dim) of Mat.
+	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
 	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
-	// TODO
+	// returns standard deviation. See Matlab documentation - std().
 	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
-	//static void Std(const TFltVV& Mat, TFltV& Vec);
+	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const int& Dim = 1);
 };
 
 //////////////////////////////////////////////////////////////////////

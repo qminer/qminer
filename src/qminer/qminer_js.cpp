@@ -4066,6 +4066,7 @@ v8::Handle<v8::ObjectTemplate> TJsLinAlg::GetTemplate() {
 		JsRegisterFunction(TmpTemp, qr);
 		JsRegisterFunction(TmpTemp, mean);
 		JsRegisterFunction(TmpTemp, std);
+		JsRegisterFunction(TmpTemp, zscore);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
 	}
@@ -4422,6 +4423,30 @@ v8::Handle<v8::Value> TJsLinAlg::std(const v8::Arguments& Args) {
 	TFltV Res;
 	TLAMisc::Std(JsMat->Mat, Res, Flag, Dim);
 	return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Res));
+}
+
+v8::Handle<v8::Value> TJsLinAlg::zscore(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsLinAlg* JsLinAlg = TJsLinAlgUtil::GetSelf(Args);
+	// Dim parameter
+	double Flag = TJsLinAlgUtil::GetArgFlt(Args, 1, 0);
+	double Dim = TJsLinAlgUtil::GetArgFlt(Args, 2, 1);
+
+	TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+	v8::Handle<v8::Object> JsObj = v8::Object::New();
+	// algorithm outputs
+	TFltVV Z;
+	TFltV mu;
+	TFltV sigma;
+
+	TLAMisc::ZScore(JsMat->Mat, Z, Flag, Dim);
+	TLAMisc::Mean(JsMat->Mat, mu, Dim);
+	TLAMisc::Std(JsMat->Mat, sigma, Flag, Dim);
+
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("Z")), TJsFltVV::New(JsLinAlg->Js, Z));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("mu")), TJsFltV::New(JsLinAlg->Js, mu));
+	JsObj->Set(v8::Handle<v8::String>(v8::String::New("sigma")), TJsFltV::New(JsLinAlg->Js, sigma));
+	return HandleScope.Close(JsObj);
 }
 
 ///////////////////////////////
