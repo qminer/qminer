@@ -5,6 +5,7 @@ var la = require('./build/Release/la.node');
 la.newVector = function(args) { return new la.vector(args); }
 la.newIntVector = function(args) { return new la.vector(args); }
 la.newMatrix = function(args) { return new la.matrix(args); }
+la.newSparseVector = function(args) { return new la.sparseVector(args); }
 
 var vec = la.newVector([1, 2, 3, 4, 5]);
 var v2 = la.newVector(vec);
@@ -41,7 +42,7 @@ console.log("||v||_2 = " + v.norm());
 // Vector: A very simple example 
 console.log("Creating a new vector");
 
-var w1 = la.newVector([1, 1, 1]);
+var w1 = la.newIntVector([1, 1, 1]);
 var w2 = la.newVector([2, 2, 2]);
 
 var w = w1.plus(w2);
@@ -61,8 +62,13 @@ try {
 console.log("== Trying out subVec function ==");
 
 var x = la.newVector([6, 54, 32, 13, 100]);
-var z = x.subVec(w1);
-console.log("z.len = " + z.length);
+try {
+   var z = x.subVec(w1);
+} catch (e) {
+   console.log("Oops: " + e);
+}
+
+// console.log("z.len = " + z.length);
 var y = x.subVec([1, 2, 2, 3, 3, 3, 4, 4, 4, 4]);
 console.log("y.len = " + y.length);
 console.log("x.len = " + x.length);
@@ -74,15 +80,80 @@ for (var i = 0; i < y.length; ++i) { console.log('y[' + i  + '] = ' + y.at(i)); 
 console.log(" ---------------- ");
 console.log(" ---------------- ");
 console.log(" == Matrix multiply ==");
-var X = la.newMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
-var x1 = X.multiply(la.newVector([1,2,3]));
+// var X = la.newMatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+// var x1 = X.multiply(la.newVector([1, 2, 3]));
 
-console.log("x1.length = " + x1.length);
-for (var i = 0; i < x1.length; ++i) { console.log(x1.at(i)); } 
+// console.log("x1.length = " + x1.length);
+// for (var i = 0; i < x1.length; ++i) { console.log(x1.at(i)); } 
 
 ///////////////////////////
 // Vector: Sorting 
 var t = x.sort();
 for (var i = 0; i < x.length; ++i) { console.log('x['+i+'] = '+x.at(i)); }
 for (var i = 0; i < t.length; ++i) { console.log('t['+i+'] = '+t.at(i)); }
+
+///////////////////////////
+// Matrix: Sum
+console.log(" == Other matrix operations ==");
+var M = la.newMatrix([[1,2,3],[4,5,6],[7,8,9]]);
+var N = la.newMatrix([[9,8,7],[6,5,4],[3,2,1]]);
+
+var W = N.plus(M);
+
+// console.log(" || W * [3,3,3] || = " + W.multiply(la.newVector([3, 3, 3])).norm());
+
+W.setRow(2, la.newVector([1, 1, 1]));
+
+for (var rowN = 0; rowN < W.rows; ++rowN) {
+   for(var colN = 0; colN < W.cols; ++colN) {
+      console.log("W["+rowN+","+colN+"] = "+W.at(rowN, colN))
+   }
+   console.log("\n");
+}
+
+console.log("Norm of second column of W: " + W.getCol(2).norm());
+console.log(Math.sqrt(201));
+
+var d = W.diag()
+for (var i = 0; i < d.length; ++i) { console.log(d.at(i)); }
+
+console.log("W = [\n"+W.toString()+"]");
+
+///////////////////////////
+// Sparse vector
+console.log(" == Sparse vector ==");
+
+var spVec = la.newSparseVector([[0, 1], [2, 3]]);
+console.log(spVec.at(0));
+
+spVec.put(4, 10);
+console.log(spVec.at(0));
+
+console.log("dim = " + spVec.dim);
+
+var spWec = la.newSparseVector([[1, 3], [2, 5]]);
+console.log(spWec.inner(spVec));
+
+///////////////////////////
+// Outer product 
+var x1 = la.newVector([1, 2, 3]);
+var x2 = la.newVector([1, 2, 3]);
+
+var M12 = x1.outer(x2);
+console.log(M12.toString());
+
+x1.pushV(x2); // appends x2 to x1 
+
+var s1 = x1.sortPerm();
+
+console.log(s1.perm.length);
+console.log(s1.vec.length);
+
+console.log(s1.vec.toString());
+
+console.log(s1.vec.diag().toString());
+
+var spVecS1 = s1.vec.sparse();
+
+console.log(x2.toMat().toString());
 
