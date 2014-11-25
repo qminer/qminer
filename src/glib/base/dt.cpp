@@ -1013,7 +1013,7 @@ TStr TStr::GetTrunc() const {
 
   while ((BChN < ThisLen) && TCh::IsWs(GetCh(BChN))) { BChN++; }
   while ((EChN >= 0) && TCh::IsWs(GetCh(EChN))){ EChN--; }
-
+  if (BChN > EChN) { return TStr(); }
   return GetSubStr(BChN, EChN);
 }
 
@@ -1054,6 +1054,9 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
 	int StrLen = Len();
+	if (!(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen)) {
+		printf("IOB bug\n");
+	}
 	EAssert(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen);
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
@@ -1440,6 +1443,7 @@ bool TStr::EndsWith(const char *Str) const {
 }
 
 int TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) {
+	AssertR(SrcCh != '\0' && DstCh != '\0', "TStr::ChangeCh: source and destination character should not be the terminator char!");
 	int ChN = SearchCh(SrcCh, BChN);
 	if (ChN != -1) { PutCh(ChN, DstCh); }
 	return ChN;
@@ -1811,7 +1815,7 @@ TStr TStr::GetFBase() const {
   const int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
-  return GetSubStr(ChN+1, ThisLen);
+  return GetSubStr(ChN+1, ThisLen - 1);
 }
 
 TStr TStr::GetFMid() const {
@@ -1827,7 +1831,7 @@ TStr TStr::GetFMid() const {
       while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
       return GetSubStr(ChN+1, EChN);
     } else {
-      return GetSubStr(ChN+1, ThisLen);
+      return GetSubStr(ChN+1, ThisLen - 1);
     }
   }
 }
@@ -1837,7 +1841,7 @@ TStr TStr::GetFExt() const {
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')&&
    (ThisBf[ChN]!='.')){ChN--;}
-  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len());}
+  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len()-1);}
   else {return TStr();}
 }
 

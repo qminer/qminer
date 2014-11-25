@@ -94,6 +94,7 @@
     <ClCompile Include="test-TStr.cpp" />
     <ClCompile Include="test-TStr.rei.cpp" />
     <ClCompile Include="test-TStr_Jan.cpp" />
+    <ClCompile Include="tstr-lstopar.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
