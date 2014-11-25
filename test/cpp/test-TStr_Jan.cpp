@@ -210,10 +210,14 @@ TEST(TStr, GetMemUsed) {
 TEST(TStr, Trunc) {
 	TStr Str = "   abcdef    ";
 	TStr Str2 = "    ";
+	TStr Str3 = "abcdef    ";
+	TStr Str4 = "    abcdef";
 	EXPECT_EQ(Str.GetTrunc(), "abcdef");
 	EXPECT_EQ(Str2.GetTrunc(), TStr());	
 	EXPECT_EQ(Str.ToTrunc(), "abcdef");
-	EXPECT_EQ(Str2.ToTrunc(), TStr());	
+	EXPECT_EQ(Str2.ToTrunc(), TStr());
+	EXPECT_EQ(Str3.ToTrunc(), "abcdef");
+	EXPECT_EQ(Str4.ToTrunc(), "abcdef");
 }
 
 TEST(TStr, Hex) {
@@ -231,8 +235,8 @@ TEST(TStr, SubString) {
 	EXPECT_EQ(Str.GetSubStr(3), "da");
 	EXPECT_EQ(Str.GetSubStr(3,3), "d");
 
-	EXPECT_EQ(Str.GetSubStr(-1, -1), "");
-	EXPECT_EQ(Str.GetSubStr(-1, 100), "abcda");
+	EXPECT_ANY_THROW(Str.GetSubStr(-1, -1));
+	EXPECT_ANY_THROW(Str.GetSubStr(-1, 100));
 
 	Str.InsStr(2, "xk");
 	EXPECT_EQ(Str, "abxkcda");

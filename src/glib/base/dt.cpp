@@ -1013,7 +1013,7 @@ TStr TStr::GetTrunc() const {
 
   while ((BChN < ThisLen) && TCh::IsWs(GetCh(BChN))) { BChN++; }
   while ((EChN >= 0) && TCh::IsWs(GetCh(EChN))){ EChN--; }
-
+  if (BChN > EChN) { return TStr(); }
   return GetSubStr(BChN, EChN);
 }
 
