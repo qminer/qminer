@@ -567,6 +567,10 @@ int main(int argc, char* argv[]) {
 						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
 					}
 				}
+				{
+					//TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+					//store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
+				}
 				// save base
 				TQm::TStorage::SaveBase(Base);
 			}

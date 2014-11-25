@@ -552,8 +552,10 @@ void TGixItemSet<TKey, TItem>::Def() {
 					Children[j].Len = cd.Len();
 					//Children[j].MergedP = true;
 					Children[j].Dirty = true;
-					Children[j].MinVal = cd[0];
-					Children[j].MaxVal = cd.Last();
+					if (cd.Len() > 0) {
+						Children[j].MinVal = cd[0];
+						Children[j].MaxVal = cd.Last();
+					}
 				}
 			}
 

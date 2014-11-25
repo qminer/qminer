@@ -3375,18 +3375,18 @@ void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV) const {
 	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
 	// merge counts
 	int LastItemN = 0; bool ZeroP = false;
-    for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
+	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
 		//const TQmGixItem& LastItem = ItemV[LastItemN];
 		//const TQmGixItem& Item = ItemV[ItemN];
-        if (ItemV[ItemN] != ItemV[ItemN-1])  {
-            LastItemN++;
-            ItemV[LastItemN] = ItemV[ItemN];
-        } else {
-            ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
-        }
+		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
+			LastItemN++;
+			ItemV[LastItemN] = ItemV[ItemN];
+		} else {
+			ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
+		}
 		ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
-    }
-    ItemV.Reserve(ItemV.Reserved(), LastItemN+1);
+	}
+	ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
 	// remove items with zero count
 	if (ZeroP) {
 		LastItemN = 0;

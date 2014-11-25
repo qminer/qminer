@@ -38,6 +38,102 @@ void WarnNotifyW(TStr& const s) {
 #define TAssert(Cond, MsgCStr) \
   ((Cond) ? static_cast<void>(0) : WarnNotifyW( TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) +": "+ MsgCStr))
 
+
+/////////////////////////////////////////////////////////////////////////
+
+class TMyGixDefMerger : public TGixMerger<TIntUInt64Pr, TIntUInt64Pr> {
+public:
+	static PGixMerger New() { return new TMyGixDefMerger(); }
+
+	void Union(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const;
+	void Intrs(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const;
+	void Minus(const TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV, TVec<TIntUInt64Pr>& ResV) const;
+	void Merge(TVec<TIntUInt64Pr>& ItemV) const;
+	void Def(const TIntUInt64Pr& Key, TVec<TIntUInt64Pr>& MainV) const {}
+	bool IsLt(const TIntUInt64Pr& Item1, const TIntUInt64Pr& Item2) const { return Item1.Val1 < Item2.Val1; }
+	bool IsLtE(const TIntUInt64Pr& Item1, const TIntUInt64Pr& Item2) const { return Item1.Val1 <= Item2.Val1; }
+};
+
+void TMyGixDefMerger::Union(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const {
+	TVec<TIntUInt64Pr> ResV; int ValN1 = 0; int ValN2 = 0;
+	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+		const TIntUInt64Pr& Val1 = MainV.GetVal(ValN1);
+		const TIntUInt64Pr& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) { ResV.Add(Val1); ValN1++; }
+		else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; }
+		else { ResV.Add(TIntUInt64Pr(Val1.Val1, Val1.Val2 + Val2.Val2)); ValN1++; ValN2++; }
+	}
+	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++){
+		ResV.Add(MainV.GetVal(RestValN1));
+	}
+	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++){
+		ResV.Add(JoinV.GetVal(RestValN2));
+	}
+	MainV = ResV;
+}
+
+void TMyGixDefMerger::Intrs(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const {
+	TVec<TIntUInt64Pr> ResV; int ValN1 = 0; int ValN2 = 0;
+	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+		const TIntUInt64Pr& Val1 = MainV.GetVal(ValN1);
+		const TIntUInt64Pr& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) { ValN1++; }
+		else if (Val1 > Val2) { ValN2++; }
+		else { ResV.Add(TIntUInt64Pr(Val1.Val1, Val1.Val2 + Val2.Val2)); ValN1++; ValN2++; }
+	}
+	MainV = ResV;
+}
+
+void TMyGixDefMerger::Minus(const TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV, TVec<TIntUInt64Pr>& ResV) const {
+	MainV.Diff(JoinV, ResV);
+}
+
+void TMyGixDefMerger::Merge(TVec<TIntUInt64Pr>& ItemV) const {
+	//printf("============================================\n");
+	//for (int i = 0; i < ItemV.Len(); i++) {
+	//	printf("   (%d) %d %d\n", i, ItemV[i].Val1, ItemV[i].Val2);
+	//}
+	if (ItemV.Empty()) { return; } // nothing to do in this case
+	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
+
+	//printf("============================================\n");
+	//for (int i = 0; i < ItemV.Len(); i++) {
+	//	printf("   (%d) %d %d\n", i, ItemV[i].Val1, ItemV[i].Val2);
+	//}
+
+	// merge counts
+	int LastItemN = 0; bool ZeroP = false;
+	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
+		if (ItemV[ItemN].Val1 != ItemV[ItemN - 1].Val1)  {
+			LastItemN++;
+			ItemV[LastItemN] = ItemV[ItemN];
+		}
+		else {
+			ItemV[LastItemN].Val2 += ItemV[ItemN].Val2;
+		}
+		ZeroP = (ItemV[LastItemN].Val2 <= 0) || ZeroP;
+	}
+	ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
+	// remove items with zero count
+	if (ZeroP) {
+		LastItemN = 0;
+		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+			const TIntUInt64Pr& Item = ItemV[ItemN];
+			if (Item.Val2 > 0) {
+				ItemV[LastItemN] = Item;
+				LastItemN++;
+			}
+			else if (Item.Val2 < 0) {
+				printf("Warning: negative item count %d:%d!\n", (int)Item.Val1, (int)Item.Val2);
+			}
+		}
+		ItemV.Reserve(ItemV.Reserved(), LastItemN);
+	}
+	//printf("============================================\n");
+	//for (int i = 0; i < ItemV.Len(); i++) {
+	//	printf("   (%d) %d %d\n", i, ItemV[i].Val1, ItemV[i].Val2);
+	//}
+}
 ////////////////////////////////////////////////////////////////////////
 
 class XTest {
@@ -498,6 +594,74 @@ public:
 		}
 	}
 
+	void Test_QuasiDelete_120And20() {
+		TGix<TIntUInt64Pr, TIntUInt64Pr> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		int xx = 122;
+		int all = 120;
+		int to_delete = 20;
+		TIntUInt64Pr x(xx, xx);
+		// fill all
+		for (int i = 0; i < all; i++) {
+			gix.AddItem(x, TIntUInt64Pr(i, 1));
+		}
+		// now quasi-delete data from the front - give negative frequencies and merger will remove the item
+		for (int i = 0; i < to_delete; i++) {
+			gix.AddItem(x, TIntUInt64Pr(i, -1));
+		}
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+
+		auto itemset = gix.GetItemSet(x);
+		TAssert(itemset->GetKey() == x, "Invalid itemset key");
+		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
+		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
+		TAssert(itemset->TotalCnt == all + to_delete, "Invalid itemset TotalCnt");
+		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
+		
+		itemset->Def();
+
+		TAssert(itemset->MergedP, "Itemset should be merged");
+		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
+		for (int i = to_delete; i < all; i++) {
+			TAssert(itemset->GetItem(i - to_delete).Val1 == i, "Invalid item at specific index");
+		}
+	}
+
+	void Test_QuasiDelete_22000And1000() {
+		TGix<TIntUInt64Pr, TIntUInt64Pr> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		int xx = 122;
+		int all = 22000;
+		int to_delete = 980;
+		TIntUInt64Pr x(xx, xx);
+		// fill all
+		for (int i = 0; i < all; i++) {
+			gix.AddItem(x, TIntUInt64Pr(i, 1));
+		}
+		// now quasi-delete data from the front - give negative frequencies and merger will remove the item
+		for (int i = 0; i < to_delete; i++) {
+			gix.AddItem(x, TIntUInt64Pr(i, -1));
+		}
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+
+		auto itemset = gix.GetItemSet(x);
+		TAssert(itemset->GetKey() == x, "Invalid itemset key");
+		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
+		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
+		TAssert(itemset->TotalCnt == all + to_delete, "Invalid itemset TotalCnt");
+		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
+
+		itemset->Def();
+
+		TAssert(itemset->MergedP, "Itemset should be merged");
+		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
+		for (int i = to_delete; i < all; i++) {
+			TAssert(itemset->GetItem(i - to_delete).Val1 == i, "Invalid item at specific index");
+		}
+	}
+
 	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 100000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
@@ -589,6 +753,9 @@ public:
 		Test_Delete_120And1();
 		Test_Delete_120And110();
 		Test_Delete_22000And1000();
+
+		Test_QuasiDelete_120And20();
+		Test_QuasiDelete_22000And1000();
 
 		// this will split only big itemsets
 		WarnNotifyI(TStr("Split only big itemsets\n"));
