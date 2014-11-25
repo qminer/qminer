@@ -110,22 +110,22 @@ private:
 		TItem MaxVal;
 		TInt Len;
 		TBlobPt Pt;
-		TBool MergedP;
+		//TBool MergedP;
 		bool Loaded;
 		bool Dirty;
 
 		/// default constructor
 		TGixItemSetChildInfo()
-			: Len(0), MergedP(true), Loaded(false), Dirty(false) {}
+			: Len(0), /*MergedP(true),*/ Loaded(false), Dirty(false) {}
 
 		/// constructor with values
 		TGixItemSetChildInfo(const TItem& _MinVal, const TItem& _MaxVal,
 			const TInt& _Len, const TBlobPt& _Pt, const TBool& _MergedP)
-			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), MergedP(_MergedP), Loaded(false), Dirty(false) {}
+			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), /*MergedP(_MergedP),*/ Loaded(false), Dirty(false) {}
 
 		/// constructor for serialization
 		TGixItemSetChildInfo(TSIn& SIn) :
-			MinVal(SIn), MaxVal(SIn), Len(SIn), Pt(SIn), MergedP(SIn), Loaded(false), Dirty(false) {}
+			MinVal(SIn), MaxVal(SIn), Len(SIn), Pt(SIn), /*MergedP(SIn),*/ Loaded(false), Dirty(false) {}
 
 		/// deserialize from stream
 		void Load(TSIn& SIn) {
@@ -133,7 +133,7 @@ private:
 			MaxVal.Load(SIn);
 			Len.Load(SIn);
 			Pt.Load(SIn);
-			MergedP.Load(SIn);
+			//MergedP.Load(SIn);
 		}
 		/// serialize to stream
 		void Save(TSOut& SOut) const {
@@ -141,7 +141,7 @@ private:
 			MaxVal.Save(SOut);
 			Len.Save(SOut);
 			Pt.Save(SOut);
-			MergedP.Save(SOut);
+			//MergedP.Save(SOut);
 		}
 	};
 
@@ -195,6 +195,7 @@ private:
 	int FirstDirtyChild() {
 		for (int i = 0; i < Children.Len(); i++) {
 			if (Children[i].Dirty && (Children[i].Len < Gix->GetSplitLenMin() || Children[i].Len > Gix->GetSplitLenMax()))
+			//if (Children[i].Dirty)
 				return i;
 		}
 		return -1;
@@ -326,10 +327,8 @@ const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::Save(TMOut& SOut) {
-
 	// make sure all is merged before saving
 	Def();
-
 	// save child vectors separately
 	for (int i = 0; i < Children.Len(); i++) {
 		if (Children[i].Dirty && Children[i].Loaded) {
@@ -359,7 +358,7 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 		TVec<TItem> tmp;
 		//ItemV.GetSubValVMemCpy(0, split_len - 1, tmp);
 		ItemV.GetSubValV(0, split_len - 1, tmp);
-		TGixItemSetChildInfo child_info(ItemV[0], ItemV[split_len - 1], split_len, Gix->EnlistChildVector(tmp), true);
+		TGixItemSetChildInfo child_info(tmp[0], tmp.Last(), split_len, Gix->EnlistChildVector(tmp), true);
 		child_info.Loaded = false;
 		child_info.Dirty = false;
 		Children.Add(child_info);
@@ -375,6 +374,7 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 		Def();
 		if (IsFull()) {
 			PushWorkBufferToChildren();
+			//printf("*");
 		}
 		RecalcTotalCnt(); // work buffer might have been merged
 	}
@@ -383,11 +383,11 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 		// if itemset is merged and the newly added item is bigger than the last one
 		// the itemset remains merged
 		if (ItemV.Len() == 0 && Children.Len() == 0) {
-			MergedP = true;
+			MergedP = true; // the first item in whole itemset
 		} else if (ItemV.Len() == 0 && Children.Len() != 0) {
-			MergedP = Merger->IsLt(Children.Last().MaxVal, NewItem);
+			MergedP = Merger->IsLt(Children.Last().MaxVal, NewItem); // compare with the last item of the last child
 		} else {
-			MergedP = Merger->IsLt(ItemV.Last(), NewItem);
+			MergedP = Merger->IsLt(ItemV.Last(), NewItem); // compare to the last item in the work buffer
 		}
 	}
 	ItemV.Add(NewItem);
@@ -528,7 +528,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 					ChildrenData[j].Add(val);
 					Children[j].Len = ChildrenData[j].Len();
 					Children[j].Dirty = true;
-					Children[j].MergedP = false;
+					//Children[j].MergedP = false;
 					//if (Children[j].Len > Gix->GetSplitLenMax())
 					//	break; // this child has overflowed - stop inserting and proceed to merge
 				} else {
@@ -544,17 +544,39 @@ void TGixItemSet<TKey, TItem>::Def() {
 			}
 			// merge dirty un-merged children
 			for (int j = 0; j < Children.Len(); j++) {
-				if (!Children[j].MergedP) {
+				//if (!Children[j].MergedP) {
+				if (Children[j].Dirty) {
 					LoadChildVector(j);
 					TVec<TItem>& cd = ChildrenData[j];
 					Merger->Merge(cd);
 					Children[j].Len = cd.Len();
-					Children[j].MergedP = true;
+					//Children[j].MergedP = true;
 					Children[j].Dirty = true;
 					Children[j].MinVal = cd[0];
 					Children[j].MaxVal = cd.Last();
 				}
 			}
+
+			//// inject the first item (it is also the smallest) from the work-buffer into the proper child
+			//TItem val = ItemV[0];
+			//int j = 0;
+			//while (j < Children.Len() && Merger->IsLt(Children[j].MaxVal, val)) {
+			//	j++;
+			//}
+			//if (j < Children.Len()) { // ok, insert into j-th child
+			//	LoadChildVector(j);
+			//	ChildrenData[j].Add(val);
+			//	Merger->Merge(ChildrenData[j]);
+			//	Children[j].Len = ChildrenData[j].Len();
+			//	Children[j].Dirty = true;
+			//	//Children[j].MergedP = true;
+			//}
+			//
+			//if (ItemV.Len() > 0) {
+			//	ItemV.Del(0, 0);
+			//} else {
+			//	ItemV.Clr();
+			//}
 		}
 
 		int first_dirty_child = FirstDirtyChild();
@@ -584,7 +606,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 					Children[child_index].MaxVal = ChildrenData[child_index].Last();
 					Children[child_index].Dirty = true;
 					Children[child_index].Loaded = true;
-					Children[child_index].MergedP = true;
+					//Children[child_index].MergedP = true;
 					curr_index += Children[child_index].Len;
 					remaining = MergedItems.Len() - curr_index;
 					child_index++;
@@ -705,11 +727,11 @@ public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
 		const PGixMerger& _Merger = _TGixDefMerger::New(),
-		int _SplitLen = 1000000);
+		int _SplitLen = 5);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
 		const PGixMerger& Merger = _TGixDefMerger::New(),
-		int _SplitLen = 1000000) {
+		int _SplitLen = 5) {
 		return new TGix(Nm, FPath, Access, CacheSize, Merger, _SplitLen);
 	}
 
@@ -771,7 +793,7 @@ public:
 			int64(KeyIdH.GetMemUsed()) + int64(ItemSetCache.GetMemUsed());
 	}
 	int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
-	int GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
+	int64 GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
 	int64 GetMxMemUsed() const { return ItemSetCache.GetMxMemUsed(); }
 	bool IsCacheFull() const { return CacheFullP; }
 	void RefreshMemUsed();
