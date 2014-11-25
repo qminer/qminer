@@ -1054,6 +1054,7 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
 	int StrLen = Len();
+	EAssert(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen);
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
     int EChN=TInt::GetMn(_EChN, StrLen-1);
@@ -1163,7 +1164,9 @@ TStr TStr::RightOfLast(const char& SplitCh) const {
 }
 
 void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const {
-	EAssertR(LeftOfChN >= 0 && RightOfChN < Len() && LeftOfChN <= RightOfChN, "Splitting index should be greater than 0 and less than length!");
+	const int StrLen = Len();
+
+	EAssertR(LeftOfChN >= 0 && LeftOfChN <= RightOfChN && RightOfChN < StrLen, "Splitting index should be greater than 0 and less than length!");
 
 	// clear the left and right strings
 	LStr.Clr();
@@ -1174,7 +1177,7 @@ void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& Right
 	const char* InnerPt = CStr();
 
 	const int LeftLen = LeftOfChN;
-	const int RightLen = Len() - RightOfChN;
+	const int RightLen = StrLen - RightOfChN - 1;
 
 	// copy into left and right
 	// if the length of any of the strings is 0 than leave it empty
@@ -1352,6 +1355,11 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
   // add last string
   TStr LastSubStr=GetSubStr(PrevChN, Len()-1);
   StrV.Add(LastSubStr);
+}
+
+TStr TStr::Left(const int& EChN) const {
+	if (EChN == 0) { return ""; }
+	return EChN>=0 ? GetSubStr(0, EChN-1) : GetSubStr(0, Len()+EChN-1);
 }
 
 int TStr::CountCh(const char& Ch, const int& BChN) const {
