@@ -1054,6 +1054,9 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
 	int StrLen = Len();
+	if (!(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen)) {
+		printf("IOB bug\n");
+	}
 	EAssert(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen);
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
@@ -1812,7 +1815,7 @@ TStr TStr::GetFBase() const {
   const int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
-  return GetSubStr(ChN+1, ThisLen);
+  return GetSubStr(ChN+1, ThisLen - 1);
 }
 
 TStr TStr::GetFMid() const {
@@ -1828,7 +1831,7 @@ TStr TStr::GetFMid() const {
       while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
       return GetSubStr(ChN+1, EChN);
     } else {
-      return GetSubStr(ChN+1, ThisLen);
+      return GetSubStr(ChN+1, ThisLen - 1);
     }
   }
 }
@@ -1838,7 +1841,7 @@ TStr TStr::GetFExt() const {
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')&&
    (ThisBf[ChN]!='.')){ChN--;}
-  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len());}
+  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len()-1);}
   else {return TStr();}
 }
 
