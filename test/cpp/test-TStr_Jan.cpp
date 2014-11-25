@@ -111,6 +111,102 @@ TEST(TStr, OperatorIndex) {
 	EXPECT_EQ(Str.Len(), 3);	
 }
 
+TEST(TStr, CStr) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	const char* StrCStr = Str.CStr();
+	const char* EmptyCStr = Empty.CStr();
+	EXPECT_EQ(StrCStr[0], 'a');
+	EXPECT_EQ(StrCStr[6], '\0');
+	EXPECT_EQ(EmptyCStr[0], '\0');
+}
+
+TEST(TStr, CloneCStr) {
+	const TStr Str = "abcdef";
+	const TStr Empty = "";
+	char* StrClone = Str.CloneCStr();
+	char* EmptyClone = Empty.CloneCStr();
+	EXPECT_EQ(Str, StrClone);
+	EXPECT_EQ(Empty, EmptyClone);
+}
+
+TEST(TStr, PutCh) {
+	TStr Str = "abcdef";
+	TStr Empty = "";	
+	Str.PutCh(0, 'k');
+	Str.PutCh(5, 'k');
+	EXPECT_EQ(Str[0], 'k');
+	EXPECT_EQ(Str[5], 'k');
+#ifndef NDEBUG
+	dup2(2, 1); // redirect stdout to stderr (Assert emits a printf to stdout)
+	EXPECT_DEATH(Str.PutCh(-1, 'a'), "");
+	EXPECT_DEATH(Empty.PutCh(0, 'a'), "");
+#endif	
+}
+
+TEST(TStr, GetCh) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	EXPECT_EQ(Str.GetCh(0), 'a');
+	EXPECT_EQ(Str.GetCh(5), 'f');
+#ifndef NDEBUG		
+	dup2(2, 1);	
+	EXPECT_DEATH(Str.GetCh(-1), "");
+	EXPECT_DEATH(Empty.GetCh(0), "");	
+#endif	
+}
+
+TEST(TStr, LastCh) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	EXPECT_EQ(Str.LastCh(), 'f');
+#ifndef NDEBUG
+	dup2(2, 1);
+	EXPECT_DEATH(Empty.LastCh(), "");
+#endif	
+}
+
+TEST(TStr, Len) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	EXPECT_EQ(Str.Len(), 6);
+	EXPECT_EQ(Empty.Len(), 0);
+}
+
+TEST(TStr, Empty) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	EXPECT_FALSE(Str.Empty());
+	EXPECT_TRUE(Empty.Empty());
+}
+
+TEST(TStr, Clr) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	Str.Clr();
+	Empty.Clr();
+	EXPECT_EQ(Str, "");
+	EXPECT_EQ(Empty, "");
+}
+
+TEST(TStr, GetStr) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	const TStr& Ref = Str.GetStr();
+	Str[0] = 'x';
+	EXPECT_EQ(Ref[0], 'x');
+	EXPECT_EQ(Ref[1], 'b');
+	const TStr& RefEmpty = Empty.GetStr();
+	EXPECT_EQ(RefEmpty, "");
+}
+
+TEST(TStr, GetMemUsed) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	EXPECT_EQ(Str.GetMemUsed(), 8 + 7);
+	EXPECT_EQ(Empty.GetMemUsed(), 8);
+}
+
 TEST(TStr, Search) {
 	TStr Str = "abcdaaba";
 	int Len = Str.Len();
@@ -210,9 +306,11 @@ TEST(TStr, ChangeCh) {
 	ChN = Str.ChangeCh('a', 'c', 10);
 	EXPECT_EQ(Str, "caabbcaac");
 	EXPECT_EQ(ChN, -1);
-	//Str = "ab";
-	//ChN = Str.ChangeCh('a', '\0');
-	//EXPECT_TRUE(Str.Empty());
+
+#ifndef NDEBUG
+	dup2(2, 1);
+	EXPECT_DEATH(Str.ChangeCh('a', '\0'), "");
+#endif
 }
 
 TEST(TStr, ChangeChAll) {
