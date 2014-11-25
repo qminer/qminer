@@ -1432,6 +1432,7 @@ bool TStr::EndsWith(const char *Str) const {
 }
 
 int TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) {
+	AssertR(SrcCh != '\0' && DstCh != '\0', "TStr::ChangeCh: source and destination character should not be the terminator char!");
 	int ChN = SearchCh(SrcCh, BChN);
 	if (ChN != -1) { PutCh(ChN, DstCh); }
 	return ChN;

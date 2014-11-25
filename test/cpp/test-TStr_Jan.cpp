@@ -194,6 +194,84 @@ TEST(TStr, EndsWith) {
 	EXPECT_FALSE(Str.EndsWith(" abcdef"));
 }
 
+TEST(TStr, ChangeCh) {
+	TStr Str = "aaabbaaac";
+	TStr Empty;
+	int ChN = 0;
+	ChN = Empty.ChangeCh('a', 'c');
+	EXPECT_EQ(Empty, "");
+	EXPECT_EQ(ChN, -1);
+	ChN = Str.ChangeCh('a', 'c');
+	EXPECT_EQ(Str, "caabbaaac");
+	EXPECT_EQ(ChN, 0);
+	ChN = Str.ChangeCh('a', 'c', 3);
+	EXPECT_EQ(Str, "caabbcaac");
+	EXPECT_EQ(ChN, 5);
+	ChN = Str.ChangeCh('a', 'c', 10);
+	EXPECT_EQ(Str, "caabbcaac");
+	EXPECT_EQ(ChN, -1);
+	//Str = "ab";
+	//ChN = Str.ChangeCh('a', '\0');
+	//EXPECT_TRUE(Str.Empty());
+}
+
+TEST(TStr, ChangeChAll) {
+	TStr Str = "abac";
+	TStr Empty;
+	int Changes = 0;
+	Changes = Empty.ChangeChAll('a', 'c');
+	EXPECT_EQ(Empty, "");
+	EXPECT_EQ(Changes, 0);
+	Changes = Str.ChangeChAll('a', 'c');
+	EXPECT_EQ(Str, "cbcc");
+	EXPECT_EQ(Changes, 2);
+}
+
+TEST(TStr, ChangeStr) {
+	TStr Str = "abac";
+	TStr Empty;
+	int ChangeN = 0;
+	ChangeN = Empty.ChangeStr("ab", "ac");
+	EXPECT_EQ(Empty, "");
+	EXPECT_EQ(ChangeN, -1);
+	ChangeN = Str.ChangeStr("ab", "abab");
+	EXPECT_EQ(Str, "ababac");
+	EXPECT_EQ(ChangeN, 0);
+}
+
+TEST(TStr, ChangeStrAll) {
+	TStr Str = "abac";
+	TStr Empty;
+	int Changes = 0;
+	Changes = Empty.ChangeStrAll("ab", "ac");
+	EXPECT_EQ(Empty, "");
+	EXPECT_EQ(Changes, 0);
+	Changes = Str.ChangeStrAll("", "a"); // replacing and empty string should do nothing
+	EXPECT_EQ(Str, "abac");
+	EXPECT_EQ(Changes, 0);
+	Changes = Str.ChangeStrAll("ab", "abab");
+	EXPECT_EQ(Str, "ababac");
+	EXPECT_EQ(Changes, 1);
+	Changes = Str.ChangeStrAll("ab", "abab");
+	EXPECT_EQ(Str, "ababababac");
+	EXPECT_EQ(Changes, 2);
+	Changes = Str.ChangeStrAll("ababababac", "");
+	EXPECT_EQ(Str, "");
+	EXPECT_EQ(Changes, 1);
+	Changes = Str.ChangeStrAll("", "a"); // replacing and empty string should do nothing
+	EXPECT_EQ(Str, "");
+	EXPECT_EQ(Changes, 0);
+}
+
+TEST(TStr, Reverse) {
+	TStr Str = "abac";
+	TStr Empty;
+	int Changes = 0;	
+	EXPECT_EQ(Empty.Reverse(), "");	
+	EXPECT_EQ(Str.Reverse(), "caba");
+	EXPECT_EQ(Str.Reverse().Reverse(), Str);	
+}
+
 TEST(TStr, ParseBool) {
 	TStr StrTrue = "T";
 	TStr StrFalse = "F";
