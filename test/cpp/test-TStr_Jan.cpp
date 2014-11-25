@@ -150,7 +150,7 @@ TEST(TStr, GetCh) {
 	EXPECT_EQ(Str.GetCh(0), 'a');
 	EXPECT_EQ(Str.GetCh(5), 'f');
 #ifndef NDEBUG		
-	dup2(2, 1);	
+	dup2(2, 1);	// redirect stdout to stderr (Assert emits a printf to stdout)
 	EXPECT_DEATH(Str.GetCh(-1), "");
 	EXPECT_DEATH(Empty.GetCh(0), "");	
 #endif	
@@ -161,7 +161,7 @@ TEST(TStr, LastCh) {
 	TStr Empty = "";
 	EXPECT_EQ(Str.LastCh(), 'f');
 #ifndef NDEBUG
-	dup2(2, 1);
+	dup2(2, 1); // redirect stdout to stderr (Assert emits a printf to stdout)
 	EXPECT_DEATH(Empty.LastCh(), "");
 #endif	
 }
@@ -207,6 +207,86 @@ TEST(TStr, GetMemUsed) {
 	EXPECT_EQ(Empty.GetMemUsed(), 8);
 }
 
+TEST(TStr, Trunc) {
+	TStr Str = "   abcdef    ";
+	TStr Str2 = "    ";
+	EXPECT_EQ(Str.GetTrunc(), "abcdef");
+	EXPECT_EQ(Str2.GetTrunc(), TStr());	
+	EXPECT_EQ(Str.ToTrunc(), "abcdef");
+	EXPECT_EQ(Str2.ToTrunc(), TStr());	
+}
+
+TEST(TStr, Hex) {
+	TStr Str = ".a";	
+	EXPECT_EQ(Str.GetHex(), "2E61");
+	EXPECT_EQ(Str.GetHex().GetFromHex(), Str);
+	EXPECT_EQ(Str.ToHex(), "2E61");
+	EXPECT_EQ(Str.FromHex(), ".a");	
+}
+
+TEST(TStr, SubString) {
+	TStr Str = "abcda";
+	TStr Empty = "";
+	
+	EXPECT_EQ(Str.GetSubStr(3), "da");
+	EXPECT_EQ(Str.GetSubStr(3,3), "d");
+
+	EXPECT_EQ(Str.GetSubStr(-1, -1), "");
+	EXPECT_EQ(Str.GetSubStr(-1, 100), "abcda");
+
+	Str.InsStr(2, "xk");
+	EXPECT_EQ(Str, "abxkcda");
+	Str.InsStr(2, "");
+	EXPECT_EQ(Str, "abxkcda");
+}
+
+TEST(TStr, Del) {
+	TStr Str = "aabbaabb";
+	TStr Empty = "";
+	
+	TStr Test = Str;
+	Test.DelChAll('a');
+	EXPECT_EQ(Test, "bbbb");
+	Test.DelChAll('c');
+	EXPECT_EQ(Test, "bbbb");
+	
+	Test = Str;
+	Test.DelSubStr(2, 3);
+	EXPECT_EQ(Test, "aaaabb");
+	Test.DelSubStr(-1, 1);
+	EXPECT_EQ(Test, "aabb");
+	Test.DelSubStr(2, 5);
+	EXPECT_EQ(Test, "aa");
+	Test.DelSubStr(-1, 5);
+	EXPECT_EQ(Test, "");
+	Test.DelSubStr(-1, 5);
+	EXPECT_EQ(Test, "");
+
+	Test = Str;
+	EXPECT_TRUE(Test.DelStr("ab"));
+	EXPECT_EQ(Test, "abaabb");
+	EXPECT_FALSE(Test.DelStr("fs"));
+	EXPECT_EQ(Test, "abaabb");
+
+	Test = Str;
+	EXPECT_EQ(2, Test.DelStrAll("ab"));
+	EXPECT_EQ(Test, "abab");
+}
+
+TEST(TStr, LeftOfRightOf) {
+	TStr Str = "abcdef";
+	TStr Empty = "";
+	EXPECT_EQ(Str.LeftOf('d'), "abc");
+	EXPECT_EQ(Str.RightOf('c'), "def");
+	EXPECT_EQ(Empty.LeftOf('d'), "");
+	EXPECT_EQ(Empty.RightOf('c'), "");
+	TStr Str2 = "abcdefabcdef";
+	EXPECT_EQ(Str2.LeftOfLast('d'), "abcdefabc");
+	EXPECT_EQ(Str2.RightOfLast('c'), "def");
+	EXPECT_EQ(Empty.LeftOfLast('d'), "");
+	EXPECT_EQ(Empty.RightOfLast('c'), "");
+}
+
 TEST(TStr, Search) {
 	TStr Str = "abcdaaba";
 	int Len = Str.Len();
@@ -249,7 +329,7 @@ TEST(TStr, Search) {
 	EXPECT_EQ(Str.SearchStr("a"), 0);
 	EXPECT_EQ(Str.SearchStr("b"), 1);
 	EXPECT_EQ(Str.SearchStr("e"), -1);
-	EXPECT_EQ(Str.SearchStr(""), 0); // TODO: check if this is OK
+	EXPECT_EQ(Str.SearchStr(""), 0);
 
 	EXPECT_EQ(Str.SearchStr("a", 1), 4);
 	EXPECT_EQ(Str.SearchStr("b", 2), 6);
@@ -308,7 +388,7 @@ TEST(TStr, ChangeCh) {
 	EXPECT_EQ(ChN, -1);
 
 #ifndef NDEBUG
-	dup2(2, 1);
+	dup2(2, 1); // redirect stdout to stderr (Assert emits a printf to stdout)
 	EXPECT_DEATH(Str.ChangeCh('a', '\0'), "");
 #endif
 }
