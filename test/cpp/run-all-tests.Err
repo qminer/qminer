@@ -1,0 +1,10 @@
+--------
+/home/lstopar/workspace/JSI/qminer-port/qminer/test/cpp/run-all-tests.Err
+Tue Nov 25 15:09:07 2014
+Execution stopped: Inner == nullptr || Inner[0] != 0 [Reason:'TStr::Empty string is not nullptr. Fix immediately!'], file ../../src/glib/base/dt.h, line 490
+--------
+--------
+/home/lstopar/workspace/JSI/qminer-port/qminer/test/cpp/run-all-tests.Err
+Tue Nov 25 15:18:42 2014
+Execution stopped: Inner == nullptr || Inner[0] != 0 [Reason:'TStr::Empty string is not nullptr. Fix immediately!'], file ../../src/glib/base/dt.h, line 490
+--------
