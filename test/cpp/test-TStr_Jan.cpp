@@ -226,6 +226,8 @@ TEST(TStr, Hex) {
 	EXPECT_EQ(Str.GetHex().GetFromHex(), Str);
 	EXPECT_EQ(Str.ToHex(), "2E61");
 	EXPECT_EQ(Str.FromHex(), ".a");	
+	EXPECT_EQ(TStr().GetHex(), "");
+	EXPECT_EQ(TStr().GetFromHex(), "");
 }
 
 TEST(TStr, SubString) {
@@ -236,12 +238,20 @@ TEST(TStr, SubString) {
 	EXPECT_EQ(Str.GetSubStr(3,3), "d");
 
 	EXPECT_ANY_THROW(Str.GetSubStr(-1, -1));
+	EXPECT_ANY_THROW(Str.GetSubStr(2, 1));
 	EXPECT_ANY_THROW(Str.GetSubStr(-1, 100));
 
 	Str.InsStr(2, "xk");
 	EXPECT_EQ(Str, "abxkcda");
 	Str.InsStr(2, "");
 	EXPECT_EQ(Str, "abxkcda");
+	Str.InsStr(0, "f");
+	EXPECT_EQ(Str, "fabxkcda");
+	Str.InsStr(8, "f");
+	EXPECT_EQ(Str, "fabxkcdaf");
+	dup2(2, 1); // redirect stdout to stderr (Assert emits a printf to stdout)
+	EXPECT_DEATH(Str.InsStr(100, "kek"), "");
+	EXPECT_DEATH(Str.InsStr(-100, "kek"), "");
 }
 
 TEST(TStr, Del) {
@@ -265,6 +275,10 @@ TEST(TStr, Del) {
 	EXPECT_EQ(Test, "");
 	Test.DelSubStr(-1, 5);
 	EXPECT_EQ(Test, "");
+	Test = Str;
+	Test.DelSubStr(0, 0);
+	EXPECT_EQ(Test, "abbaabb");
+	
 
 	Test = Str;
 	EXPECT_TRUE(Test.DelStr("ab"));
