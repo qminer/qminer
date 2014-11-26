@@ -479,7 +479,7 @@ TEST(TStr, ParseBool) {
 	EXPECT_FALSE(val); // val was not changed, it is still set to false
 }
 
-TEST(TStr, ParseInt) {	
+TEST(TStr, ParseInt) {
 	int Num = 0;
 	EXPECT_TRUE(TStr("1234").IsInt());
 	EXPECT_TRUE(TStr("2147483647").IsInt());

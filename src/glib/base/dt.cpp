@@ -1561,45 +1561,16 @@ bool TStr::IsBool(bool& Val) const {
   else {return false;}
 }
 
-bool TStr::IsInt(
-	const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
-	// parsing format {ws} [+/-] +{ddd}
-	int _Val = 0;
-	bool Minus = false;
-	TChRet Ch(TStrIn::New(*this, false));
-	while (TCh::IsWs(Ch.GetCh())){}
-	if (Ch() == '+'){ Minus = false; Ch.GetCh(); }
-	if (Ch() == '-'){ Minus = true; Ch.GetCh(); }
-	if (!TCh::IsNum(Ch())){ return false; }
-	_Val = TCh::GetNum(Ch());
-	int NumDigits = 1;
-	while (TCh::IsNum(Ch.GetCh())){
-		int ChNum = TCh::GetNum(Ch());
-		_Val = 10 * _Val + ChNum; NumDigits++;
-	}
-	if (Minus){ _Val = -_Val; }	
-	if (Check) {
-		if ((_Val<MnVal) || (_Val>MxVal)) return false;		
-	}
-	if (NumDigits >= 10) {
-		if (atoi(CStr()) != _Val) return false;
-	}
-	if (Ch.Eof()){ Val = _Val; return true; }
-	else { return false; }
+bool TStr::IsInt(const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
+	int64 _Val;
+	// assign and check for overflow
+	return IsInt64(Check, MnVal, MxVal, _Val) && (Val = _Val) == _Val;
 }
 
-bool TStr::IsUInt(
- const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const {
-  // parsing format {ws} [+]{ddd}
-  uint _Val=0;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsUInt(const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const {
+	TChRet Ch(TStrIn::New(*this, false));
+	Ch.GetCh();
+	return IsUInt(Ch, Check, MnVal, MxVal, Val);
 }
 
 bool TStr::IsHexInt( const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
@@ -1624,35 +1595,37 @@ bool TStr::IsHexInt( const bool& Check, const int& MnVal, const int& MxVal, int&
   if (Ch.Eof()){Val=_Val; return true;} else {return false;}
 }
 
-bool TStr::IsInt64(
- const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const {
-  // parsing format {ws} [+/-] +{ddd}
-  int64 _Val=0;
-  bool Minus=false;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Minus=false; Ch.GetCh();}
-  if (Ch()=='-'){Minus=true; Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Minus){_Val=-_Val;}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsInt64(const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const {
+	EAssert(!Check || (Check && MnVal <= MxVal));
+	// parsing format {ws} [+/-] +{ddd}
+	TChRet Ch(TStrIn::New(*this, false));
+
+	while (TCh::IsWs(Ch.GetCh())) {}
+
+	bool IsInt;
+	uint64 UIntVal;
+
+	if (Ch() == '-') {
+		Ch.GetCh();
+		IsInt = IsUInt64(Ch, true, 0, 9223372036854775808ul, UIntVal);
+		Val = -UIntVal;
+	} else {
+		if (Ch() == '+') { Ch.GetCh(); }
+		IsInt = IsUInt64(Ch, true, 0, 9223372036854775807ul, UIntVal);
+		Val = UIntVal;
+	}
+
+	// check
+	if (!IsInt) { return false; }
+	if (Check && (Val < MnVal || Val > MxVal)) { return false; }
+
+	return true;
 }
 
-bool TStr::IsUInt64(
- const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const {
-  // parsing format {ws} [+]{ddd}
-  uint64 _Val=0;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsUInt64(const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const {
+	TChRet Ch(TStrIn::New(*this, false));
+	Ch.GetCh();
+	return IsUInt64(Ch, Check, MnVal, MxVal, Val);
 }
 
 bool TStr::IsHexInt64(
@@ -2034,6 +2007,44 @@ TStr operator+(const TStr& LStr, const char* RCStr) {
 
 TStr operator+(const TStr& LStr, const TStr& RStr) {
 	return operator+(LStr, RStr.CStr());
+}
+
+bool TStr::IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) {
+	uint64 _Val;
+	// assign and check for overflow
+	return IsUInt64(Ch, Check, MnVal, MxVal, _Val) && (Val = _Val) == _Val;
+}
+
+bool TStr::IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) {
+	EAssert(!Check || (Check && MnVal <= MxVal));
+
+	uint64 _Val=0;
+	while (TCh::IsWs(Ch())) {
+		Ch.GetCh();
+	}
+
+	if (Ch()=='+'){Ch.GetCh();}
+	if (!TCh::IsNum(Ch())){return false;}
+	_Val=TCh::GetNum(Ch());
+
+	const uint64 MxBy10 = Check ? MxVal / 10 : TUInt64::Mx / 10;
+	const uint64 MxBy10Rem = Check ? MxVal % 10 : TUInt64::Mx % 10;
+
+	uint ChNum;
+	while (TCh::IsNum(Ch.GetCh())) {
+		ChNum = TCh::GetNum(Ch());
+
+		// check for overflow
+		if (_Val > MxBy10 || (_Val == MxBy10 && ChNum > MxBy10Rem)) {
+			return false;
+		}
+
+		// increase the sum
+		_Val = 10*_Val + ChNum;
+	}
+
+	if (Check && _Val < MnVal){return false;}
+	if (Ch.Eof()){Val=_Val; return true;} else {return false;}
 }
 
 /////////////////////////////////////////////////

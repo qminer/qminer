@@ -626,6 +626,7 @@ public:
   /// Return true if string is 'T' or 'F'. Return true or false accordingly in Val
   bool IsBool(bool& Val) const;
 
+  // integer
   bool IsInt(const bool& Check, const int& MnVal, const int& MxVal, int& Val) const;
   bool IsInt(int& Val) const {return IsInt(false, 0, 0, Val);}
   bool IsInt() const {int Val; return IsInt(false, 0, 0, Val);}
@@ -633,16 +634,16 @@ public:
   int GetInt(const int& DfVal) const {
     int Val; if (IsInt(false, 0, 0, Val)){return Val;} else {return DfVal;}}
 
-  bool IsUInt(
-   const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const;
+  // unsigned integer
+  bool IsUInt(const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const;
   bool IsUInt(uint& Val) const {return IsUInt(false, 0, 0, Val);}
   bool IsUInt() const {uint Val; return IsUInt(false, 0, 0, Val);}
   uint GetUInt() const {uint Val; IAssert(IsUInt(false, 0, 0, Val)); return Val;}
   uint GetUInt(const uint& DfVal) const {
     uint Val; if (IsUInt(false, 0, 0, Val)){return Val;} else {return DfVal;}}
 
-  bool IsInt64(
-   const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const;
+  // 64-bit integer
+  bool IsInt64(const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const;
   bool IsInt64(int64& Val) const {return IsInt64(false, 0, 0, Val);}
   bool IsInt64() const {int64 Val; return IsInt64(false, 0, 0, Val);}
   int64 GetInt64() const {
@@ -650,8 +651,8 @@ public:
   int64 GetInt64(const int64& DfVal) const {
     int64 Val; if (IsInt64(false, 0, 0, Val)){return Val;} else {return DfVal;}}
 
-  bool IsUInt64(
-   const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const;
+  // unsigned 64-bit integer
+  bool IsUInt64(const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const;
   bool IsUInt64(uint64& Val) const {return IsUInt64(false, 0, 0, Val);}
   bool IsUInt64() const {uint64 Val; return IsUInt64(false, 0, 0, Val);}
   uint64 GetUInt64() const {
@@ -752,6 +753,14 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
+
+private:
+  /// internal method used to check if the string stored in TChRet is an unsigned integer
+  /// IMPORTANT: TChRet must be initialized (GetCh() must be called at least once)
+  static bool IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val);
+  /// internal method used to check if the string stored in TChRet is a 64-bit unsigned integer
+  /// IMPORTANT: TChRet must be initialized (GetCh() must be called at least once)
+  static bool IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val);
 };
 
 /////////////////////////////////////////////////
