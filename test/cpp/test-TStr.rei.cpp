@@ -3,76 +3,70 @@
 // Google Test
 #include "gtest/gtest.h"
 
-/////////////////////////////////////////////////////////////////////
-// Google Test Class
-class StringTest : public ::testing::Test {
-
-protected:
-	// constructor for class
-	StringTest() {
-		mixedcase = "AbCd";
-		lowercase = "abcd";
-		capitalized = "Abcd";
-		uppercase = "ABCD";
-        empty = "";
-	}
-
-	// you can define new objects and new typedefs here
-	TStr mixedcase, lowercase, uppercase, empty, capitalized;
-};
-
-/////////////////////////////////////////////////////////////////////
-// Google Test functions
-
-TEST_F(StringTest, GetUc_Test) {
-	EXPECT_EQ(uppercase, mixedcase.GetUc());
-	EXPECT_EQ(empty, empty.GetUc());
+TEST(TStr, GetUc_Test) {
+	TStr Mixedcase = "AbCd";
+	TStr Uppercase = "ABCD";
+	TStr Empty = "";
+	EXPECT_EQ(Uppercase, Mixedcase.GetUc());
+	EXPECT_EQ(Empty, Empty.GetUc());
 }
-TEST_F(StringTest, ToUc_Test) {
-    TStr empty2;
-    mixedcase.ToUc();
-    empty.ToUc();
-	EXPECT_EQ(mixedcase, uppercase);
-	EXPECT_EQ(empty, empty2);
+TEST(TStr, ToUc_Test) {
+	TStr Mixedcase = "AbCd";	
+	TStr Uppercase = "ABCD";
+	TStr Empty = "";
+	TStr Empty2;
+    Mixedcase.ToUc();
+    Empty.ToUc();
+	EXPECT_EQ(Mixedcase, Uppercase);
+	EXPECT_EQ(Empty, Empty2);
 }
-TEST_F(StringTest, ToLc_Test) {
-    TStr empty2;
-    empty.ToLc();
-    mixedcase.ToLc();
-	EXPECT_EQ(mixedcase, lowercase);
-	EXPECT_EQ(empty, empty2);
+TEST(TStr, ToLc_Test) {
+	TStr Mixedcase = "AbCd";
+	TStr Lowercase = "abcd";	
+	TStr Empty = "";
+    TStr Empty2;
+    Empty.ToLc();
+    Mixedcase.ToLc();
+	EXPECT_EQ(Mixedcase, Lowercase);
+	EXPECT_EQ(Empty, Empty2);
 }
-TEST_F(StringTest, GetLc_Test) {
-	EXPECT_EQ(lowercase, mixedcase.GetLc());
-	EXPECT_EQ(empty, empty.GetLc());
+TEST(TStr, GetLc_Test) {
+	TStr Mixedcase = "AbCd";
+	TStr Lowercase = "abcd";	
+	TStr Empty = "";
+	EXPECT_EQ(Lowercase, Mixedcase.GetLc());
+	EXPECT_EQ(Empty, Empty.GetLc());
 }
-TEST_F(StringTest, CmpI_Test) {
-	TStr input = "bbbb";
-    TStr big = "ZZZZZZZZZZZZZZZZZZ";
-	TStr Small = "aaaa";
-    bool testEq = input.CmpI(input) == 0;
-    bool testBig = input.CmpI(big) < 0;
-    bool testSmall = input.CmpI(Small) > 0;
-	EXPECT_EQ(true, testEq);
-	EXPECT_EQ(true, testBig);
-	EXPECT_EQ(true, testSmall);
-	EXPECT_EQ(true, empty.CmpI(empty) == 0);
+TEST(TStr, CmpI_Test) {
+	TStr Empty = "";
+	TStr Input = "bbbb";
+    TStr Big = "ZZZZZZZZZZZZZZZZZZ";
+	TStr Small = "aaaa";    
+	EXPECT_TRUE(Input.CmpI(Input) == 0);
+	EXPECT_TRUE(Input.CmpI(Big) < 0);
+	EXPECT_TRUE(Input.CmpI(Small) > 0);
+	EXPECT_TRUE(Empty.CmpI(Empty) == 0);
 }
-TEST_F(StringTest, EqI_Test) {
-    bool testEq;
-    testEq = mixedcase.EqI(mixedcase.GetUc());
-	EXPECT_EQ(true, testEq);
-    testEq = empty.EqI(empty);
-	EXPECT_EQ(true, testEq);
+TEST(TStr, EqI_Test) {    
+	TStr Mixedcase = "AbCd";
+	TStr Empty = "";
+	EXPECT_TRUE(Mixedcase.EqI(Mixedcase.GetUc()));    
+	EXPECT_TRUE(Empty.EqI(Empty));
 }
-TEST_F(StringTest, GetCap_Test) {
-	EXPECT_EQ(capitalized, lowercase.GetCap());
-	EXPECT_EQ(empty, empty.GetCap());
+TEST(TStr, GetCap) {
+	TStr Lowercase = "abcd";
+	TStr Capitalized = "Abcd";
+	TStr Empty = "";
+	EXPECT_EQ(Capitalized, Lowercase.GetCap());
+	EXPECT_EQ(Empty, Empty.GetCap());
 }
-TEST_F(StringTest, ToCap_Test) {
-    TStr empty2;
-    lowercase.ToCap();
-	EXPECT_EQ(capitalized, lowercase);
-    empty.ToCap();
-	EXPECT_EQ(empty2, empty);
+TEST(TStr, ToCap) {
+	TStr Lowercase = "abcd";
+	TStr Capitalized = "Abcd";	
+	TStr Empty = "";
+	TStr Empty2;
+    Lowercase.ToCap();
+	EXPECT_EQ(Capitalized, Lowercase);
+    Empty.ToCap();
+	EXPECT_EQ(Empty2, Empty);
 }
