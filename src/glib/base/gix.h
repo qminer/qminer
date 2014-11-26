@@ -104,7 +104,7 @@ private:
 private:
 
 	/// This struct contans statistics about child vector
-	class TGixItemSetChildInfo {
+	struct TGixItemSetChildInfo {
 	public:
 		TItem MinVal;
 		TItem MaxVal;
@@ -124,16 +124,18 @@ private:
 			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), /*MergedP(_MergedP),*/ Loaded(false), Dirty(false) {}
 
 		/// constructor for serialization
-		TGixItemSetChildInfo(TSIn& SIn) :
-			MinVal(SIn), MaxVal(SIn), Len(SIn), Pt(SIn), /*MergedP(SIn),*/ Loaded(false), Dirty(false) {}
+		TGixItemSetChildInfo(TSIn& SIn)  {
+			Load(SIn);
+			Loaded = false;
+			Dirty = false;
+		}
 
 		/// deserialize from stream
 		void Load(TSIn& SIn) {
-			MinVal.Load(SIn);
-			MaxVal.Load(SIn);
+			MinVal = TItem(SIn);
+			MaxVal = TItem(SIn);
 			Len.Load(SIn);
-			Pt.Load(SIn);
-			//MergedP.Load(SIn);
+			Pt = TBlobPt(SIn);
 		}
 		/// serialize to stream
 		void Save(TSOut& SOut) const {
@@ -141,7 +143,6 @@ private:
 			MaxVal.Save(SOut);
 			Len.Save(SOut);
 			Pt.Save(SOut);
-			//MergedP.Save(SOut);
 		}
 	};
 
@@ -363,6 +364,7 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 		child_info.Dirty = false;
 		Children.Add(child_info);
 		ChildrenData.Add(TVec<TItem>());
+		//ItemV.DelMemCpy(0, split_len - 1);
 		ItemV.Del(0, split_len - 1);
 	}
 }
@@ -528,16 +530,15 @@ void TGixItemSet<TKey, TItem>::Def() {
 					ChildrenData[j].Add(val);
 					Children[j].Len = ChildrenData[j].Len();
 					Children[j].Dirty = true;
-					//Children[j].MergedP = false;
-					//if (Children[j].Len > Gix->GetSplitLenMax())
-					//	break; // this child has overflowed - stop inserting and proceed to merge
 				} else {
 					i--;
 					break; // all remaining values in input buffer will not be inserted into child vectors 
 				}
 			}
+			// delete items from work-buffer that have been inserted into child vectors
 			if (i < ItemV.Len()) {
 				if (i > 0)
+					//ItemV.DelMemCpy(0, i - 1);
 					ItemV.Del(0, i - 1);
 			} else {
 				ItemV.Clr();
@@ -550,7 +551,6 @@ void TGixItemSet<TKey, TItem>::Def() {
 					TVec<TItem>& cd = ChildrenData[j];
 					Merger->Merge(cd);
 					Children[j].Len = cd.Len();
-					//Children[j].MergedP = true;
 					Children[j].Dirty = true;
 					if (cd.Len() > 0) {
 						Children[j].MinVal = cd[0];
@@ -589,8 +589,10 @@ void TGixItemSet<TKey, TItem>::Def() {
 			TVec<TItem> MergedItems;
 			for (int i = first_child_to_merge; i < Children.Len(); i++) {
 				LoadChildVector(i);
+				//MergedItems.AddVMemCpy(ChildrenData[i]);
 				MergedItems.AddV(ChildrenData[i]);
 			}
+			//MergedItems.AddVMemCpy(ItemV);
 			MergedItems.AddV(ItemV);
 			Merger->Merge(MergedItems);
 
@@ -647,7 +649,7 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DefLocal() {
 	// call merger to pack items in work buffer, if not merged yet 
 	if (!MergedP) {
-		if (ItemVDel.Len() == 0) { // deletes are not trated as local - merger would get confused
+		if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
 			Merger->Merge(ItemV); // perform local merge
 			if (Children.Len() > 0 && ItemV.Len() > 0) {
 				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
@@ -729,11 +731,11 @@ public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
 		const PGixMerger& _Merger = _TGixDefMerger::New(),
-		int _SplitLen = 5);
+		int _SplitLen = 100000);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
 		const PGixMerger& Merger = _TGixDefMerger::New(),
-		int _SplitLen = 5) {
+		int _SplitLen = 100000) {
 		return new TGix(Nm, FPath, Access, CacheSize, Merger, _SplitLen);
 	}
 

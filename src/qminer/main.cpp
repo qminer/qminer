@@ -538,17 +538,17 @@ int main(int argc, char* argv[]) {
 				// load base
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
-				//{
-				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
-				//	{
-				//		PSIn fin = TFIn::New(ImportFNm);
-				//		TStr s;
-				//		while (fin->GetNextLn(s)) {
-				//			PJsonVal json = TJsonVal::GetValFromStr(s);
-				//			store->AddRec(json);
-				//		}
-				//	}
-				//}
+				{
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
+					{
+						PSIn fin = TFIn::New(ImportFNm);
+						TStr s;
+						while (fin->GetNextLn(s)) {
+							PJsonVal json = TJsonVal::GetValFromStr(s);
+							store->AddRec(json);
+						}
+					}
+				}
 				{
 					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
 					TQm::TRec rec = store->GetRec(1);

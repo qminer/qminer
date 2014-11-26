@@ -616,8 +616,12 @@ public:
   void Ins(const TSizeTy& ValN, const TVal& Val);
   /// Removes the element at position \c ValN.
   void Del(const TSizeTy& ValN);
+  /// Removes the element at position \c ValN using memcpy
+  void DelMemCpy(const TSizeTy& ValN);
   /// Removes the elements at positions <tt>MnValN...MxValN</tt>.
   void Del(const TSizeTy& MnValN, const TSizeTy& MxValN);
+  /// Removes the elements at positions <tt>MnValN...MxValN</tt> using memcpy
+  void DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN);
   /// Removes the last element of the vector.
   void DelLast(){Del(Len()-1);}
   /// Removes the first occurrence of element \c Val.
@@ -1157,6 +1161,16 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& ValN){
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& ValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= ValN) && (ValN<Vals));
+	if (ValN < Vals - 1) {
+		memmove(ValT + ValN, ValT + ValN + 1, sizeof(TVal) * (Vals - ValN - 1)); // overlapping buffers, use memmove instead of memcpy
+	}
+	ValT[--Vals] = TVal();
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
   Assert((0<=MnValN)&&(MnValN<Vals)&&(0<=MxValN)&&(MxValN<Vals));
@@ -1166,6 +1180,17 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   for (TSizeTy ValN=Vals-MxValN+MnValN-1; ValN<Vals; ValN++){
     ValT[ValN]=TVal();}
   Vals-=MxValN-MnValN+1;
+}
+
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= MnValN) && (MnValN<Vals) && (0 <= MxValN) && (MxValN<Vals));
+	Assert(MnValN <= MxValN);
+	if (MxValN < Vals - 1) {
+		memmove(ValT + MnValN, ValT + MxValN + 1, sizeof(TVal) * (Vals - MxValN - 1)); // overlapping buffers, use memmove instead of memcpy	
+	}
+	Vals -= MxValN - MnValN + 1;
 }
 
 template <class TVal, class TSizeTy>

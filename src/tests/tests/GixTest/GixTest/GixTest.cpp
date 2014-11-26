@@ -675,7 +675,7 @@ public:
 		}
 	}
 
-	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 100000) {
+	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
 		int total = 300 * 1000;
@@ -776,10 +776,10 @@ public:
 		WarnNotifyI(TStr("Split all itemsets\n"));
 		Test_Feed(50 * 1024 * 1025, 100);
 
-		//// this will split probably all itemsets
-		//// it will also limit cache to less than 10% of the itemsets
-		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		//Test_Feed(5 * 1024 * 1025, 1000);
+		// this will split probably all itemsets
+		// it will also limit cache to less than 10% of the itemsets
+		WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		Test_Feed(5 * 1024 * 1025, 1000);
 	}
 };
 
