@@ -224,44 +224,68 @@ TEST(TStr, SaveLoad) {
 	Empty1 = Alphabet;
 	Empty1.Load(*TFIn::New(FNm)(), false);
 	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), false));
 	EXPECT_EQ(0, Empty1.Len());
 
 	Empty.Save(*TFOut::New(FNm, false)(), false);
 	Empty1 = Empty;
 	Empty1.Load(*TFIn::New(FNm)(), false);
 	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), false));
 	EXPECT_EQ(0, Empty1.Len());
 
 	Alphabet.Save(*TFOut::New(FNm, false)(), false);
 	Alphabet1 = Alphabet;
 	Alphabet1.Load(*TFIn::New(FNm)(), false);
 	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), false));
 
 	Alphabet.Save(*TFOut::New(FNm, false)(), false);
 	Alphabet1 = Empty;
 	Alphabet1.Load(*TFIn::New(FNm)(), false);
 	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), false));
 
 	// is small
 	Empty.Save(*TFOut::New(FNm, false)(), true);
 	Empty1 = Alphabet;
 	Empty1.Load(*TFIn::New(FNm)(), true);
 	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), true));
 	EXPECT_EQ(0, Empty1.Len());
 
 	Empty.Save(*TFOut::New(FNm, false)(), true);
 	Empty1 = Empty;
 	Empty1.Load(*TFIn::New(FNm)(), true);
 	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), true));
 	EXPECT_EQ(0, Empty1.Len());
 
 	Alphabet.Save(*TFOut::New(FNm, false)(), true);
 	Alphabet1 = Alphabet;
 	Alphabet1.Load(*TFIn::New(FNm)(), true);
 	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), true));
 
 	Alphabet.Save(*TFOut::New(FNm, false)(), true);
 	Alphabet1 = Empty;
 	Alphabet1.Load(*TFIn::New(FNm)(), true);
 	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), true));
+
+	// normal constructor
+	{
+		TFOut FOut(FNm, false);
+		FOut.PutStr(Empty);
+	}
+
+	EXPECT_EQ(Empty, TStr(TFIn::New(FNm)));
+	EXPECT_EQ(0, TStr(TFIn::New(FNm)).Len());
+
+	{
+		TFOut FOut(FNm, false);
+		FOut.PutStr(Alphabet);
+	}
+
+	EXPECT_EQ(Alphabet, TStr(TFIn::New(FNm)));
 }
