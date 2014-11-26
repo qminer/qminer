@@ -1054,10 +1054,7 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
 	int StrLen = Len();
-	if (!(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen)) {
-		printf("IOB bug\n");
-	}
-	EAssert(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen);
+	EAssertR(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen, "TStr::GetSubStr index out of bounds");
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
     int EChN=TInt::GetMn(_EChN, StrLen-1);
@@ -1142,7 +1139,7 @@ TStr TStr::LeftOf(const char& SplitCh) const {
   int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=0;
   while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  return (ChN==ThisLen) ? "" : GetSubStr(0, ChN-1);
+  return (ChN == 0 || ChN==ThisLen) ? "" : GetSubStr(0, ChN-1);
 }
 
 TStr TStr::LeftOfLast(const char& SplitCh) const {
@@ -1156,7 +1153,7 @@ TStr TStr::RightOf(const char& SplitCh) const {
   int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=0;
   while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  return (ChN==ThisLen) ? "" : GetSubStr(ChN+1, ThisLen-1);
+  return (ChN>=ThisLen - 1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
 TStr TStr::RightOfLast(const char& SplitCh) const {
