@@ -1054,9 +1054,7 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
 	int StrLen = Len();
-	if (!(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen)) {
-		printf("IOB bug\n");
-	}
+	IAssertR((0 <= _BChN && _BChN <= _EChN && _EChN < StrLen), "GetSubStr IOB!"); //temporary	
 	EAssert(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen);
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
