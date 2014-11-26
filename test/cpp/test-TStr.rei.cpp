@@ -3,14 +3,14 @@
 // Google Test
 #include "gtest/gtest.h"
 
-TEST(TStr, GetUc_Test) {
+TEST(TStr, GetUc) {
 	TStr Mixedcase = "AbCd";
 	TStr Uppercase = "ABCD";
 	TStr Empty = "";
 	EXPECT_EQ(Uppercase, Mixedcase.GetUc());
 	EXPECT_EQ(Empty, Empty.GetUc());
 }
-TEST(TStr, ToUc_Test) {
+TEST(TStr, ToUc) {
 	TStr Mixedcase = "AbCd";	
 	TStr Uppercase = "ABCD";
 	TStr Empty = "";
@@ -20,7 +20,7 @@ TEST(TStr, ToUc_Test) {
 	EXPECT_EQ(Mixedcase, Uppercase);
 	EXPECT_EQ(Empty, Empty2);
 }
-TEST(TStr, ToLc_Test) {
+TEST(TStr, ToLc) {
 	TStr Mixedcase = "AbCd";
 	TStr Lowercase = "abcd";	
 	TStr Empty = "";
@@ -30,14 +30,14 @@ TEST(TStr, ToLc_Test) {
 	EXPECT_EQ(Mixedcase, Lowercase);
 	EXPECT_EQ(Empty, Empty2);
 }
-TEST(TStr, GetLc_Test) {
+TEST(TStr, GetLc) {
 	TStr Mixedcase = "AbCd";
 	TStr Lowercase = "abcd";	
 	TStr Empty = "";
 	EXPECT_EQ(Lowercase, Mixedcase.GetLc());
 	EXPECT_EQ(Empty, Empty.GetLc());
 }
-TEST(TStr, CmpI_Test) {
+TEST(TStr, CmpI) {
 	TStr Empty = "";
 	TStr Input = "bbbb";
     TStr Big = "ZZZZZZZZZZZZZZZZZZ";
@@ -47,7 +47,7 @@ TEST(TStr, CmpI_Test) {
 	EXPECT_TRUE(Input.CmpI(Small) > 0);
 	EXPECT_TRUE(Empty.CmpI(Empty) == 0);
 }
-TEST(TStr, EqI_Test) {    
+TEST(TStr, EqI) {    
 	TStr Mixedcase = "AbCd";
 	TStr Empty = "";
 	EXPECT_TRUE(Mixedcase.EqI(Mixedcase.GetUc()));    

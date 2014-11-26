@@ -283,7 +283,9 @@ TEST(TStr, LeftOfRightOf) {
 	EXPECT_EQ(Str.LeftOf('d'), "abc");
 	EXPECT_EQ(Str.RightOf('c'), "def");
 	EXPECT_EQ(Empty.LeftOf('d'), "");
+	EXPECT_EQ(Str.LeftOf('a'), "");
 	EXPECT_EQ(Empty.RightOf('c'), "");
+
 	TStr Str2 = "abcdefabcdef";
 	EXPECT_EQ(Str2.LeftOfLast('d'), "abcdefabc");
 	EXPECT_EQ(Str2.RightOfLast('c'), "def");
