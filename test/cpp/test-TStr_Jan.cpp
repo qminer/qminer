@@ -500,6 +500,9 @@ TEST(TStr, ParseInt) {
 	EXPECT_TRUE(TStr("-2147483648").IsInt());
 	EXPECT_FALSE(TStr("-21648.0").IsInt());
 	
+	EXPECT_EQ(TStr("2147483647").GetInt(), 2147483647);
+	EXPECT_EQ(TStr("-2147483648").GetInt(), TInt::Mn);	
+
 	EXPECT_TRUE(TStr("1234").IsInt(Num));
 	EXPECT_EQ(1234, Num);
 	EXPECT_TRUE(TStr("2147483647").IsInt(Num));
