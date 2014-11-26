@@ -116,9 +116,80 @@ TEST(TStr, IsUInt) {
 
 	uint Val;
 
+	// normal
 	ASSERT_TRUE(NormalCase.IsUInt(Val));
+	ASSERT_EQ(Val, 22);
+
 	ASSERT_FALSE(NegativeCase.IsUInt(Val));
+
 	ASSERT_TRUE(Zero.IsUInt(Val));
+	ASSERT_EQ(Val, 0);
+
 	ASSERT_TRUE(MxVal.IsUInt(Val));
+	ASSERT_EQ(Val, 4294967295);
+
 	ASSERT_FALSE(Overflow.IsUInt(Val));
+
+	// bounds
+	ASSERT_TRUE(NormalCase.IsUInt(true, 22, 22, Val));
+	ASSERT_EQ(Val, 22);
+
+	ASSERT_FALSE(NormalCase.IsUInt(true, 20, 21, Val));
+	ASSERT_ANY_THROW(NormalCase.IsUInt(true, 22, 21, Val));
+}
+
+TEST(TStr, IsUInt64) {
+	const TStr NormalCase = "22";
+	const TStr NegativeCase = "-22";
+	const TStr Zero = "0";
+	const TStr MxVal = "18446744073709551615";
+	const TStr Overflow = "18446744073709551616";
+
+	uint64 Val;
+
+	// normal
+	ASSERT_TRUE(NormalCase.IsUInt64(Val));
+	ASSERT_EQ(Val, 22);
+
+	ASSERT_FALSE(NegativeCase.IsUInt64(Val));
+
+	ASSERT_TRUE(Zero.IsUInt64(Val));
+	ASSERT_EQ(Val, 0);
+
+	ASSERT_TRUE(MxVal.IsUInt64(Val));
+	ASSERT_EQ(Val, 18446744073709551615);
+
+	ASSERT_FALSE(Overflow.IsUInt64(Val));
+
+	// bounds
+	ASSERT_TRUE(NormalCase.IsUInt64(true, 22, 22, Val));
+	ASSERT_EQ(Val, 22);
+
+	ASSERT_FALSE(NormalCase.IsUInt64(true, 20, 21, Val));
+	ASSERT_ANY_THROW(NormalCase.IsUInt64(true, 22, 21, Val));
+}
+
+TEST(TStr, IsInt64) {
+	int64 Num = 0;
+	// normal
+	EXPECT_TRUE(TStr("1234").IsInt64());
+	EXPECT_TRUE(TStr("9223372036854775807").IsInt64());
+	EXPECT_TRUE(TStr("-9223372036854775808").IsInt64());
+
+	EXPECT_TRUE(TStr("1234").IsInt64(Num));
+	EXPECT_EQ(1234, Num);
+
+	EXPECT_TRUE(TStr("2147483647").IsInt64(Num));
+	EXPECT_EQ(2147483647, Num);
+
+	EXPECT_TRUE(TStr("-2147483648").IsInt64(Num));
+	EXPECT_EQ(-2147483647 - 1, Num);
+
+	// overflow
+	EXPECT_FALSE(TStr("9223372036854775808").IsInt64());
+	EXPECT_FALSE(TStr("-9223372036854775809").IsInt64());
+
+	// characters
+	EXPECT_FALSE(TStr("salad2147483649").IsInt64());
+	EXPECT_FALSE(TStr("2147483649fingers").IsInt64());
 }
