@@ -1153,7 +1153,7 @@ TStr TStr::RightOf(const char& SplitCh) const {
   int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=0;
   while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  return (ChN==ThisLen) ? "" : GetSubStr(ChN+1, ThisLen-1);
+  return (ChN>=ThisLen - 1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
 TStr TStr::RightOfLast(const char& SplitCh) const {
