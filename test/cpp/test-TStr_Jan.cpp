@@ -26,6 +26,8 @@ TEST(TStr, Constructors) {
 	EXPECT_EQ(Move, "abc");
 	EXPECT_EQ(ChA, "abc");
 	EXPECT_EQ(SStr, "abc");
+	
+	EXPECT_EQ(TStr(nullptr), "");
 }
 
 TEST(TStr, OperatorPlusEquals) {
