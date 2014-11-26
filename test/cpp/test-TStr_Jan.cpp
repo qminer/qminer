@@ -281,17 +281,22 @@ TEST(TStr, LeftOfRightOf) {
 	TStr Str = "abcdef";
 	TStr Empty = "";
 	EXPECT_EQ(Str.LeftOf('d'), "abc");
-	EXPECT_EQ(Str.RightOf('c'), "def");
-	EXPECT_EQ(Str.RightOf('f'), "");
-	EXPECT_EQ(Empty.LeftOf('d'), "");
+	EXPECT_EQ(Str.RightOf('c'), "def");	
 	EXPECT_EQ(Str.LeftOf('a'), "");
 	EXPECT_EQ(Empty.RightOf('c'), "");
+	// edge cases
+	EXPECT_EQ(Str.RightOf('f'), "");
+	EXPECT_EQ(Empty.LeftOf('d'), "");
 
 	TStr Str2 = "abcdefabcdef";
 	EXPECT_EQ(Str2.LeftOfLast('d'), "abcdefabc");
 	EXPECT_EQ(Str2.RightOfLast('c'), "def");
 	EXPECT_EQ(Empty.LeftOfLast('d'), "");
 	EXPECT_EQ(Empty.RightOfLast('c'), "");
+	// edge cases
+	Str2 = "xabcdefabcdef";
+	EXPECT_EQ(Str2.LeftOfLast('x'), "");
+	EXPECT_EQ(Str2.RightOfLast('f'), "");
 }
 
 TEST(TStr, Search) {
