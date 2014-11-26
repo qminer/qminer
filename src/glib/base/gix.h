@@ -647,7 +647,7 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::DefLocal() {
 	// call merger to pack items in work buffer, if not merged yet 
 	if (!MergedP) {
-		if (ItemVDel.Len() == 0) { // deletes are probably not local			
+		if (ItemVDel.Len() == 0) { // deletes are not trated as local - merger would get confused
 			Merger->Merge(ItemV); // perform local merge
 			if (Children.Len() > 0 && ItemV.Len() > 0) {
 				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {

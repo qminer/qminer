@@ -646,6 +646,9 @@ public:
 	TStr GetRecNm(const uint64& RecId) const;
 	uint64 GetRecId(const TStr& RecNm) const;
 	uint64 GetRecs() const;
+	uint64 GetFirstRecId() const { return DataMem.GetFirstValId(); }
+	uint64 GetLastRecId() const { return DataMem.GetLastValId(); }
+
 	PStoreIter GetIter() const;
     
     /// Gets the first record in the store (order defined by store implementation)

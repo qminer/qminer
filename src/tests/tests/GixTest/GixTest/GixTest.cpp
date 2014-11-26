@@ -10,14 +10,16 @@
 ////////////////////////////////////////////////////////////////////////
 // typedefs
 
-typedef  TGixDefMerger < TIntUInt64Pr, TUInt64 > TMyMerger;
-typedef TPt<TGixMerger<TIntUInt64Pr, TUInt64> > PGixMerger;
+//typedef  TGixDefMerger < TIntUInt64Pr, TUInt64 > TMyMerger;
+//typedef TPt<TGixMerger<TIntUInt64Pr, TUInt64> > PGixMerger;
 
-typedef  TGixItemSet < TIntUInt64Pr, TUInt64 > TMyItemSet;
+typedef TIntUInt64Pr TMyKey;
+typedef TKeyDat<TUInt64, TInt> TMyItem;
+typedef  TGixItemSet < TMyKey, TMyItem > TMyItemSet;
 typedef  TPt < TMyItemSet > PMyItemSet;
 
-typedef TGix<TIntUInt64Pr, TUInt64> TMyGix;
-typedef TPt<TGix<TIntUInt64Pr, TUInt64> > PMyGix;
+typedef TGix<TMyKey, TMyItem> TMyGix;
+typedef TPt<TGix<TMyKey, TMyItem> > PMyGix;
 
 ///////////////////////////////////////////////////////////////////////
 // for nice outputs
@@ -41,109 +43,120 @@ void WarnNotifyW(TStr& const s) {
 
 /////////////////////////////////////////////////////////////////////////
 
-class TMyGixDefMerger : public TGixMerger<TIntUInt64Pr, TIntUInt64Pr> {
+class TMyGixDefMerger : public TGixMerger < TMyKey, TMyItem > {
 public:
 	static PGixMerger New() { return new TMyGixDefMerger(); }
 
-	void Union(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const;
-	void Intrs(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const;
-	void Minus(const TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV, TVec<TIntUInt64Pr>& ResV) const;
-	void Merge(TVec<TIntUInt64Pr>& ItemV) const;
-	void Def(const TIntUInt64Pr& Key, TVec<TIntUInt64Pr>& MainV) const {}
-	bool IsLt(const TIntUInt64Pr& Item1, const TIntUInt64Pr& Item2) const { return Item1.Val1 < Item2.Val1; }
-	bool IsLtE(const TIntUInt64Pr& Item1, const TIntUInt64Pr& Item2) const { return Item1.Val1 <= Item2.Val1; }
+	void Union(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
+	void Intrs(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
+	void Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV, TVec<TMyItem>& ResV) const;
+	void Merge(TVec<TMyItem>& ItemV) const;
+	void Def(const TMyKey& Key, TVec<TMyItem>& MainV) const {}
+	bool IsLt(const TMyItem& Item1, const TMyItem& Item2) const { return Item1 < Item2; }
+	bool IsLtE(const TMyItem& Item1, const TMyItem& Item2) const { return Item1 <= Item2; }
 };
 
-void TMyGixDefMerger::Union(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const {
-	TVec<TIntUInt64Pr> ResV; int ValN1 = 0; int ValN2 = 0;
+void TMyGixDefMerger::Union(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const {
+	TVec<TMyItem> ResV; int ValN1 = 0; int ValN2 = 0;
 	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-		const TIntUInt64Pr& Val1 = MainV.GetVal(ValN1);
-		const TIntUInt64Pr& Val2 = JoinV.GetVal(ValN2);
-		if (Val1 < Val2) { ResV.Add(Val1); ValN1++; }
-		else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; }
-		else { ResV.Add(TIntUInt64Pr(Val1.Val1, Val1.Val2 + Val2.Val2)); ValN1++; ValN2++; }
+		const TMyItem& Val1 = MainV.GetVal(ValN1);
+		const TMyItem& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) {
+			ResV.Add(Val1); ValN1++;
+		} else if (Val1 > Val2) {
+			ResV.Add(Val2); ValN2++;
+		} else {
+			ResV.Add(TMyItem(Val1.Key, Val1.Dat + Val2.Dat));
+			ValN1++;
+			ValN2++;
+		}
 	}
-	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++){
+	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
 		ResV.Add(MainV.GetVal(RestValN1));
 	}
-	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++){
+	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
 		ResV.Add(JoinV.GetVal(RestValN2));
 	}
 	MainV = ResV;
 }
 
-void TMyGixDefMerger::Intrs(TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV) const {
-	TVec<TIntUInt64Pr> ResV; int ValN1 = 0; int ValN2 = 0;
+void TMyGixDefMerger::Intrs(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const {
+	TVec<TMyItem> ResV; int ValN1 = 0; int ValN2 = 0;
 	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
-		const TIntUInt64Pr& Val1 = MainV.GetVal(ValN1);
-		const TIntUInt64Pr& Val2 = JoinV.GetVal(ValN2);
-		if (Val1 < Val2) { ValN1++; }
-		else if (Val1 > Val2) { ValN2++; }
-		else { ResV.Add(TIntUInt64Pr(Val1.Val1, Val1.Val2 + Val2.Val2)); ValN1++; ValN2++; }
+		const TMyItem& Val1 = MainV.GetVal(ValN1);
+		const TMyItem& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) {
+			ValN1++;
+		} else if (Val1 > Val2) {
+			ValN2++;
+		} else {
+			ResV.Add(TMyItem(Val1.Key, Val1.Dat + Val2.Dat));
+			ValN1++;
+			ValN2++;
+		}
 	}
 	MainV = ResV;
 }
 
-void TMyGixDefMerger::Minus(const TVec<TIntUInt64Pr>& MainV, const TVec<TIntUInt64Pr>& JoinV, TVec<TIntUInt64Pr>& ResV) const {
+void TMyGixDefMerger::Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV, TVec<TMyItem>& ResV) const {
 	MainV.Diff(JoinV, ResV);
 }
 
-void TMyGixDefMerger::Merge(TVec<TIntUInt64Pr>& ItemV) const {
+void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV) const {
 	//printf("============================================\n");
 	//for (int i = 0; i < ItemV.Len(); i++) {
-	//	printf("   (%d) %d %d\n", i, ItemV[i].Val1, ItemV[i].Val2);
+	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
 	//}
 	if (ItemV.Empty()) { return; } // nothing to do in this case
 	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
 
 	//printf("============================================\n");
 	//for (int i = 0; i < ItemV.Len(); i++) {
-	//	printf("   (%d) %d %d\n", i, ItemV[i].Val1, ItemV[i].Val2);
+	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
 	//}
 
 	// merge counts
 	int LastItemN = 0; bool ZeroP = false;
 	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-		if (ItemV[ItemN].Val1 != ItemV[ItemN - 1].Val1)  {
+		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
 			LastItemN++;
 			ItemV[LastItemN] = ItemV[ItemN];
+		} else {
+			ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
 		}
-		else {
-			ItemV[LastItemN].Val2 += ItemV[ItemN].Val2;
-		}
-		ZeroP = (ItemV[LastItemN].Val2 <= 0) || ZeroP;
+		ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
 	}
 	ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
 	// remove items with zero count
 	if (ZeroP) {
 		LastItemN = 0;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
-			const TIntUInt64Pr& Item = ItemV[ItemN];
-			if (Item.Val2 > 0) {
+			const TMyItem& Item = ItemV[ItemN];
+			if (Item.Dat != 0) {
 				ItemV[LastItemN] = Item;
 				LastItemN++;
-			}
-			else if (Item.Val2 < 0) {
-				printf("Warning: negative item count %d:%d!\n", (int)Item.Val1, (int)Item.Val2);
+			} else if (Item.Dat < 0) {
+				printf("Warning: negative item count %d:%d!\n", (int)Item.Key, (int)Item.Dat);
 			}
 		}
 		ItemV.Reserve(ItemV.Reserved(), LastItemN);
 	}
 	//printf("============================================\n");
 	//for (int i = 0; i < ItemV.Len(); i++) {
-	//	printf("   (%d) %d %d\n", i, ItemV[i].Val1, ItemV[i].Val2);
+	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
 	//}
 }
+
 ////////////////////////////////////////////////////////////////////////
 
 class XTest {
 public:
 
 	void Test_Simple_1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
-		gix.AddItem(x, 7234);
+		gix.AddItem(x, TMyItem(7234, 1));
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
@@ -157,11 +170,11 @@ public:
 	}
 
 	void Test_Simple_220() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
-			gix.AddItem(x, i);
+			gix.AddItem(x, TMyItem(i, 1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -184,12 +197,12 @@ public:
 	}
 
 	void Test_Simple_220_Unsorted() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
 			int item = (i * 15485867) % 16381;
-			gix.AddItem(x, item); // pseudo-random numbers
+			gix.AddItem(x, TMyItem(item, 1)); // pseudo-random numbers
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -220,11 +233,11 @@ public:
 	}
 
 	void Test_Merge_220_Into_50() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
-			gix.AddItem(x, i % 50);
+			gix.AddItem(x, TMyItem(i % 50, 1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -248,11 +261,11 @@ public:
 	}
 
 	void Test_Merge_220_Into_120() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 100000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
-			gix.AddItem(x, i % 120);
+			gix.AddItem(x, TMyItem(i % 120, 1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -280,11 +293,11 @@ public:
 	}
 
 	void Test_Merge_22000_Into_50() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 22000; i++) {
-			gix.AddItem(x, i % 50);
+			gix.AddItem(x, TMyItem(i % 50, 1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -314,7 +327,7 @@ public:
 		counter.GetDat(i)++;
 	}
 
-	void CheckCounts(THash<TInt, TInt>& counts, TGix<TIntUInt64Pr, TUInt64>& gix) {
+	void CheckCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
 		printf("Checking counts...\n");
 		for (auto &key : counts) {
 			auto itemset = gix.GetItemSet(TIntUInt64Pr(key.Key, (int)key.Key));
@@ -324,7 +337,7 @@ public:
 		}
 		printf("Checking counts done.\n");
 	}
-	void OverwriteCounts(THash<TInt, TInt>& counts, TGix<TIntUInt64Pr, TUInt64>& gix) {
+	void OverwriteCounts(THash<TInt, TInt>& counts, TMyGix& gix) {
 		printf("Overwritting counts...\n");
 		for (auto &key : counts) {
 			auto itemset = gix.GetItemSet(TIntUInt64Pr(key.Key, (int)key.Key));
@@ -343,12 +356,12 @@ public:
 		{
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
-			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faCreate, cache_size, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), split_len);
+			TMyGix gix(Nm, FName, faCreate, cache_size, TMyGixDefMerger::New(), split_len);
 			TRnd rnd(1);
 			for (int j = 0; j < total; j++) {
 				// every doc containes the same 5 words
 				for (int i = 1; i <= 5; i++) {
-					gix.AddItem(TIntUInt64Pr(i, i), j);
+					gix.AddItem(TIntUInt64Pr(i, i), TMyItem(j, 1));
 				}
 				// each document contains 50 random words
 				TVec<int> vals;
@@ -361,8 +374,8 @@ public:
 					}
 					vals.Add(w);
 
-					auto key = TIntUInt64Pr(w, w);
-					gix.AddItem(key, j);
+					auto key = TMyKey(w, w);
+					gix.AddItem(key, TMyItem(j, 1));
 					AddToCounter(counts, w);
 				}
 			}
@@ -389,7 +402,7 @@ public:
 		}
 		{
 			// reload data - in read-only mode
-			TGix<TIntUInt64Pr, TUInt64> gix(Nm, FName, faRdOnly, 50 * 1024 * 1024);
+			TMyGix gix(Nm, FName, faRdOnly, 50 * 1024 * 1024);
 
 			TAssert(gix.GetKeys() == keys, "Invalid key count");
 
@@ -398,11 +411,11 @@ public:
 	}
 
 	void Test_Delete_1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
-		gix.AddItem(x, 7234);
-		gix.DelItem(x, 7234);
+		gix.AddItem(x, TMyItem(7234, 1));
+		gix.DelItem(x, TMyItem(7234, 1));
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
@@ -422,14 +435,14 @@ public:
 	}
 
 	void Test_Delete_20() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 20; i++) {
-			gix.AddItem(x, 7234);
-			gix.AddItem(x, 321);
+			gix.AddItem(x, TMyItem(7234, 1));
+			gix.AddItem(x, TMyItem(321, 1));
 		}
-		gix.DelItem(x, 7234);
+		gix.DelItem(x, TMyItem(7234, 1));
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
@@ -449,15 +462,15 @@ public:
 	}
 
 	void Test_Delete_20And1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 20; i++) {
-			gix.AddItem(x, 7234);
-			gix.AddItem(x, 321);
+			gix.AddItem(x, TMyItem(7234, 1));
+			gix.AddItem(x, TMyItem(321, 1));
 		}
-		gix.DelItem(x, 7234);
-		gix.AddItem(x, 7234);
+		gix.DelItem(x, TMyItem(7234, 1));
+		gix.AddItem(x, TMyItem(7234, 1));
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
@@ -477,14 +490,14 @@ public:
 	}
 
 	void Test_Delete_120() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
-			gix.AddItem(x, 7234);
-			gix.AddItem(x, i);
+			gix.AddItem(x, TMyItem(7234, 1));
+			gix.AddItem(x, TMyItem(i, 1));
 		}
-		gix.DelItem(x, 7234);
+		gix.DelItem(x, TMyItem(7234, 120));
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
@@ -504,15 +517,15 @@ public:
 	}
 
 	void Test_Delete_120And1() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
-			gix.AddItem(x, 7234);
-			gix.AddItem(x, i);
+			gix.AddItem(x, TMyItem(7234, 1));
+			gix.AddItem(x, TMyItem(i, 1));
 		}
-		gix.DelItem(x, 7234);
-		gix.AddItem(x, 7234);
+		gix.DelItem(x, TMyItem(7234, 1));
+		gix.AddItem(x, TMyItem(7234, 1));
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
 		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
@@ -532,14 +545,14 @@ public:
 	}
 
 	void Test_Delete_120And110() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 10000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
-			gix.AddItem(x, i);
+			gix.AddItem(x, TMyItem(i, 1));
 		}
 		for (int i = 0; i < 110; i++) {
-			gix.DelItem(x, i);
+			gix.DelItem(x, TMyItem(i, 1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -560,18 +573,18 @@ public:
 	}
 
 	void Test_Delete_22000And1000() {
-		TGix<TIntUInt64Pr, TUInt64> gix("Test1", "data", faCreate, 1000000, TGixDefMerger<TIntUInt64Pr, TUInt64>::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
 		int xx = 122;
 		int all = 22000;
 		int to_delete = 980;
 		TIntUInt64Pr x(xx, xx);
 		// fill all
 		for (int i = 0; i < all; i++) {
-			gix.AddItem(x, i);
+			gix.AddItem(x, TMyItem(i, 1));
 		}
 		// now delete data from the front
 		for (int i = 0; i < to_delete; i++) {
-			gix.DelItem(x, i);
+			gix.DelItem(x, TMyItem(i, 1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -590,23 +603,23 @@ public:
 		TAssert(itemset->MergedP, "Itemset should be merged");
 		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
 		for (int i = to_delete; i < all; i++) {
-			TAssert(itemset->GetItem(i - to_delete) == i, "Invalid item at specific index");
+			TAssert(itemset->GetItem(i - to_delete).Key == i, "Invalid item at specific index");
 		}
 	}
 
 	void Test_QuasiDelete_120And20() {
-		TGix<TIntUInt64Pr, TIntUInt64Pr> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
 		int xx = 122;
 		int all = 120;
 		int to_delete = 20;
 		TIntUInt64Pr x(xx, xx);
 		// fill all
 		for (int i = 0; i < all; i++) {
-			gix.AddItem(x, TIntUInt64Pr(i, 1));
+			gix.AddItem(x, TMyItem(i, 1));
 		}
 		// now quasi-delete data from the front - give negative frequencies and merger will remove the item
 		for (int i = 0; i < to_delete; i++) {
-			gix.AddItem(x, TIntUInt64Pr(i, -1));
+			gix.AddItem(x, TMyItem(i, -1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -618,29 +631,29 @@ public:
 		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
 		TAssert(itemset->TotalCnt == all + to_delete, "Invalid itemset TotalCnt");
 		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
-		
+
 		itemset->Def();
 
 		TAssert(itemset->MergedP, "Itemset should be merged");
 		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
 		for (int i = to_delete; i < all; i++) {
-			TAssert(itemset->GetItem(i - to_delete).Val1 == i, "Invalid item at specific index");
+			TAssert(itemset->GetItem(i - to_delete).Key == i, "Invalid item at specific index");
 		}
 	}
 
 	void Test_QuasiDelete_22000And1000() {
-		TGix<TIntUInt64Pr, TIntUInt64Pr> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 100000000, TMyGixDefMerger::New(), 100);
 		int xx = 122;
 		int all = 22000;
 		int to_delete = 980;
 		TIntUInt64Pr x(xx, xx);
 		// fill all
 		for (int i = 0; i < all; i++) {
-			gix.AddItem(x, TIntUInt64Pr(i, 1));
+			gix.AddItem(x, TMyItem(i, 1));
 		}
 		// now quasi-delete data from the front - give negative frequencies and merger will remove the item
 		for (int i = 0; i < to_delete; i++) {
-			gix.AddItem(x, TIntUInt64Pr(i, -1));
+			gix.AddItem(x, TMyItem(i, -1));
 		}
 
 		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
@@ -650,7 +663,7 @@ public:
 		TAssert(itemset->GetKey() == x, "Invalid itemset key");
 		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
 		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
-		TAssert(itemset->TotalCnt == all + to_delete, "Invalid itemset TotalCnt");
+		TAssert(itemset->TotalCnt == all - to_delete + 2 * (to_delete % 100), "Invalid itemset TotalCnt");
 		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
 
 		itemset->Def();
@@ -658,7 +671,7 @@ public:
 		TAssert(itemset->MergedP, "Itemset should be merged");
 		TAssert(itemset->TotalCnt == all - to_delete, "Invalid itemset TotalCnt");
 		for (int i = to_delete; i < all; i++) {
-			TAssert(itemset->GetItem(i - to_delete).Val1 == i, "Invalid item at specific index");
+			TAssert(itemset->GetItem(i - to_delete).Key == i, "Invalid item at specific index");
 		}
 	}
 
@@ -673,13 +686,13 @@ public:
 		{
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
-			auto gix = TMyGix::New(Nm, FName, faCreate, cache_size, TMyMerger::New(), split_len);
+			auto gix = TMyGix::New(Nm, FName, faCreate, cache_size, TMyGixDefMerger::New(), split_len);
 			//TMyGix gix(Nm, FName, faCreate, cache_size, TMyMerger::New(), split_len);
 			TRnd rnd(1);
 			for (int j = 0; j < total; j++) {
 				// every doc contains the same 5 words
 				for (int i = 1; i <= 5; i++) {
-					gix->AddItem(TIntUInt64Pr(i, i), j);
+					gix->AddItem(TIntUInt64Pr(i, i), TMyItem(j, 1));
 				}
 				// each document contains 100 random words
 				TVec<int> vals;
@@ -693,7 +706,7 @@ public:
 					vals.Add(w);
 
 					auto key = TIntUInt64Pr(w, w);
-					gix->AddItem(key, j);
+					gix->AddItem(key, TMyItem(j, 1));
 					AddToCounter(counts, w);
 				}
 				if (j % 10000 == 0) {
@@ -713,7 +726,7 @@ public:
 		}
 		{
 			// reload data - in read-only mode
-			auto gix = TMyGix::New(Nm, FName, faRdOnly, cache_size, TMyMerger::New(), split_len);
+			auto gix = TMyGix::New(Nm, FName, faRdOnly, cache_size, TMyGixDefMerger::New(), split_len);
 			TAssert(gix->GetKeys() == keys, "Invalid key count");
 			printf("== %d %d\n", gix->GetKeys(), keys);
 			CheckCounts(counts, *gix);
@@ -725,7 +738,7 @@ public:
 				auto itemset = gix->GetItemSet(key);
 				//printf("//// %d %d \n", i, itemset->GetItems());
 
-				TVec<TUInt64> v;
+				TVec<TMyItem> v;
 				itemset->GetItemV(v);
 				//printf("//// %d %d \n", i, v.Len());
 				TAssert(itemset->GetItems() == v.Len(), "Invalid itemset len");
@@ -734,8 +747,6 @@ public:
 	}
 
 	void PerformTests() {
-
-
 
 		Test_Simple_1();
 		Test_Simple_220();
@@ -759,7 +770,7 @@ public:
 
 		// this will split only big itemsets
 		WarnNotifyI(TStr("Split only big itemsets\n"));
-		Test_Feed(50*1024*1025, 1000);
+		Test_Feed(50 * 1024 * 1025, 1000);
 
 		// this will split probably all itemsets
 		WarnNotifyI(TStr("Split all itemsets\n"));

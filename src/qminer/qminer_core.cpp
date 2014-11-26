@@ -579,6 +579,10 @@ void TStore::AddJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
     }
 }
 
+void TStore::AddJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
+	AddJoin(GetJoinId(JoinNm), RecId, JoinRecId, JoinFq);
+}
+
 void TStore::DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
     const TJoinDesc& JoinDesc = GetJoinDesc(JoinId);
     // different handling for field and index joins
@@ -602,6 +606,23 @@ void TStore::DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
             JoinStore->SetFieldInt(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), 0);
         }
     }
+}
+
+void TStore::DelJoin(const TStr& JoinNm, const uint64& RecId, const uint64 JoinRecId, const int& JoinFq) {
+	DelJoin(GetJoinId(JoinNm), RecId, JoinRecId, JoinFq);
+}
+
+void TStore::DelJoins(const int& JoinId, const uint64& RecId)
+{
+	PRecSet RecSet = GetRec(RecId).DoJoin(Base, JoinId);
+	int Recs = RecSet->GetRecs();
+	for (int N = 0; N < Recs; N++)
+		DelJoin(JoinId, RecId, RecSet->GetRecId(N));
+}
+
+void TStore::DelJoins(const TStr& JoinNm, const uint64& RecId)
+{
+	DelJoins(GetJoinId(JoinNm), RecId);
 }
 
 int TStore::GetFieldInt(const uint64& RecId, const int& FieldId) const { 
@@ -1057,12 +1078,13 @@ void TStore::PrintRecSet(const TWPt<TBase>& Base, const PRecSet& RecSet, const T
 	TFOut FOut(FNm); PrintRecSet(Base, RecSet, FOut);
 }
 
-void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut) const {
+void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut, const bool& IncludingJoins) {
 	// print headers
 	PrintTypes(Base, SOut);
 	// print records
 	SOut.PutStrLn("Records:");
     const int Fields = GetFields();
+	const int Joins = GetJoins();
 	PStoreIter Iter = GetIter();
 	while (Iter->Next()) {
 		const uint64 RecId = Iter->GetRecId();
@@ -1098,11 +1120,24 @@ void TStore::PrintAll(const TWPt<TBase>& Base, TSOut& SOut) const {
                 SOut.PutStrFmtLn("  %s: %s", Desc.GetFieldNm().CStr(), FieldStr.CStr());
             }
         }
+		if (IncludingJoins) {
+			for (int JoinId = 0; JoinId < Joins; JoinId++) {
+				const TJoinDesc& Desc = GetJoinDesc(JoinId);
+				if (Desc.IsFieldJoin())
+					continue;  // field joins are already printed with fields
+				SOut.PutStrFmt("  %s: [", Desc.GetJoinNm().CStr());
+				PRecSet JoinRecSet = GetRec(RecId).DoJoin(Base, Desc.GetJoinNm());
+				for (int N = 0; N < JoinRecSet->GetRecs(); N++) {
+					SOut.PutStrFmt("%s%I64u:%d", N > 0 ? ", " : "", JoinRecSet->GetRecId(N), JoinRecSet->GetRecFq(N));
+				}
+				SOut.PutStrLn("]");
+			}
+		}
     }
 }
 
-void TStore::PrintAll(const TWPt<TBase>& Base, const TStr& FNm) const {
-	TFOut FOut(FNm); PrintAll(Base, FOut);
+void TStore::PrintAll(const TWPt<TBase>& Base, const TStr& FNm, const bool& IncludingJoins) {
+	TFOut FOut(FNm); PrintAll(Base, FOut, IncludingJoins);
 }
 
 void TStore::PrintTypes(const TWPt<TBase>& Base, TSOut& SOut) const {
@@ -2045,6 +2080,15 @@ PRecSet TRecSet::GetMerge(const PRecSet& RecSet) const {
 	PRecSet CloneRecSet = Clone();
 	CloneRecSet->Merge(RecSet);
 	return CloneRecSet;
+}
+
+PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
+	if (RecSetV.Len() == 0)
+		return TRecSet::New();
+	PRecSet RecSet = RecSetV[0]->Clone();
+	for (int N = 1; N < RecSetV.Len(); N++)
+		RecSet->Merge(RecSetV[N]);
+	return RecSet;
 }
 
 void TRecSet::Merge(const PRecSet& RecSet) {
@@ -3803,7 +3847,9 @@ void TIndex::Delete(const int& KeyId, const uint64& WordId,  const uint64& RecId
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// delete from index (add item with negative count, merger will delete item if necessary)
-	Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+	//Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+
+	Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
 }
 
 void TIndex::Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
