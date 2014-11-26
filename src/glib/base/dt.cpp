@@ -1597,7 +1597,18 @@ bool TStr::IsUInt(
   if (Ch()=='+'){Ch.GetCh();}
   if (!TCh::IsNum(Ch())){return false;}
   _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
+
+  const uint MxBy10 = TUInt::Mx / 10;
+  const uint MxBy10Rem = TUInt::Mx % 10;
+
+  uint ChNum;
+  while (TCh::IsNum(Ch.GetCh())) {
+	  ChNum = TCh::GetNum(Ch());
+
+	  if (_Val > MxBy10 || (_Val == MxBy10 && ChNum > MxBy10Rem)) { return false; }
+	  _Val = 10*_Val + ChNum;
+  }
+
   if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
   if (Ch.Eof()){Val=_Val; return true;} else {return false;}
 }

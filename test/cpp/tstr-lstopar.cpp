@@ -106,3 +106,19 @@ TEST(TStr, SplitOnCh) {
 	ASSERT_EQ(LStr, "");
 	ASSERT_EQ(RStr, "");
 }
+
+TEST(TStr, IsUInt) {
+	const TStr NormalCase = "22";
+	const TStr NegativeCase = "-22";
+	const TStr Zero = "0";
+	const TStr MxVal = "4294967295";
+	const TStr Overflow = "4294967296";
+
+	uint Val;
+
+	ASSERT_TRUE(NormalCase.IsUInt(Val));
+	ASSERT_FALSE(NegativeCase.IsUInt(Val));
+	ASSERT_TRUE(Zero.IsUInt(Val));
+	ASSERT_TRUE(MxVal.IsUInt(Val));
+	ASSERT_FALSE(Overflow.IsUInt(Val));
+}
