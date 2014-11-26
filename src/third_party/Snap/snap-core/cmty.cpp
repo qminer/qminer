@@ -1282,7 +1282,7 @@ namespace TSnap {
 						int smaller = ids0.Len();
 						if (ids1.Len() < smaller)
 							smaller = ids1.Len();
-						int len = ids0.IntrsLen(ids1);
+
 						if (TSnapDetail::vectorIntersect(ids0, ids1) == smaller || (smaller > 2 && TSnapDetail::vectorIntersect(ids0, ids1) == (smaller -1 ))) {
 							if (!gFinal->IsNode(cms0[i])) {
 								gFinal->AddNode(cms0[i]);
