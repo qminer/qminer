@@ -1031,15 +1031,8 @@ public:
   static int GetNum(const char& Ch){Assert(IsNum(Ch)); return Ch-'0';}
   static bool IsHex(const char& Ch){return
     (('0'<=Ch)&&(Ch<='9'))||(('A'<=Ch)&&(Ch<='F'))||(('a'<=Ch)&&(Ch<='f'));}
-  static int GetHex(const char& Ch){
-    if (('0'<=Ch)&&(Ch<='9')){return Ch-'0';}
-    else if (('A'<=Ch)&&(Ch<='F')){return Ch-'A'+10;}
-    else if (('a'<=Ch)&&(Ch<='f')){return Ch-'a'+10;}
-    else Fail; return 0;}
-  static char GetHexCh(const int& Val){
-    if ((0<=Val)&&(Val<=9)){return char('0'+char(Val));}
-    else if ((10<=Val)&&(Val<=15)){return char('A'+char(Val-10));}
-    else Fail; return 0;}
+  static int GetHex(const char& Ch);
+  static char GetHexCh(const int& Val);
   static char IsUc(const char& Ch){
     return ('A'<=Ch)&&(Ch<='Z');}
   static char GetUc(const char& Ch){

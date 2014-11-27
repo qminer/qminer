@@ -1974,6 +1974,18 @@ char TCh::GetUsFromYuAscii(const char& Ch){
   }
 }
 
+int TCh::GetHex(const char& Ch){
+	if (('0' <= Ch) && (Ch <= '9')) { return Ch - '0'; }
+	else if (('A' <= Ch) && (Ch <= 'F')) { return Ch - 'A' + 10; }
+	else if (('a' <= Ch) && (Ch <= 'f')) { return Ch - 'a' + 10; }
+	else EFailR(TStr::Fmt("Unexpected value received when expecting a hex-convertable value")); return 0;
+}
+char TCh::GetHexCh(const int& Val){
+	if ((0 <= Val) && (Val <= 9)) { return char('0' + char(Val)); }
+	else if ((10 <= Val) && (Val <= 15)) { return char('A' + char(Val - 10)); }
+	else EFailR(TStr::Fmt("Unexpected value received when expecting a hex-convertable value")); return 0;
+}
+
 /////////////////////////////////////////////////
 // Unsigned-Char
 const uchar TUCh::Mn=0;
