@@ -549,7 +549,6 @@ TWebPgFetchPersist::~TWebPgFetchPersist() {
 	}
 }
 
-
 void TWebPgFetchPersist::Load(TSIn& SIn)
 {
 	// load PUrls and call FetchUrl on each of them
