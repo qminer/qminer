@@ -219,10 +219,14 @@ function toJSON (obj, depth) {
             rec.$store.joins.forEach(function (join) {
                 if (rec[join.name] != null) {
                     newRec[join.name] = [];
-                    rec[join.name].each(function (inner, i) {
-                        // find and append joined records in their original store
-                        newRec[join.name][i] = toJSON(inner, depth - 1);
-                    });
+                    if (rec[join.name].hasOwnProperty("each")) {
+                        rec[join.name].each(function (inner, i) {
+                            // find and append joined records in their original store
+                            newRec[join.name][i] = toJSON(inner, depth - 1);
+                        });
+                    } else {
+                        newRec[join.name] = toJSON(rec[join.name], depth - 1);
+                    }
                 }
             });
             return newRec;
