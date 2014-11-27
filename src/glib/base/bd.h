@@ -68,6 +68,8 @@ typedef ptrdiff_t ssize_t;
 #else
   #define _finite(x) finite(x)
 #endif
+void signalHandler(int sig);
+void terminateHandler();
 #endif
 
 #if defined(GLib_WIN)
@@ -242,8 +244,9 @@ private: \
 /////////////////////////////////////////////////
 // Assertions
 class TOnExeStop{
-private:
+public:
   typedef bool (*TOnExeStopF)(char* MsgCStr);
+private:
   static TOnExeStopF OnExeStopF;
 public:
   static bool IsOnExeStopF(){return OnExeStopF!=NULL;}
