@@ -33,8 +33,8 @@ public:
 	TVec<PNotify> NotifyInstV;
 
 	// (In/De)creaseSpaces methods allow one to have indented content in the logs. can be used to get tree-like view of function calls
-	void IncreaseSpaces(const int& ForVal = 2) { StartingSpaces = min(StartingSpaces + ForVal, 100); }
-	void DecreaseSpaces(const int& ForVal = 2) { StartingSpaces = max(StartingSpaces - ForVal, 0); }
+	void IncreaseSpaces(const int& ForVal = 2) { StartingSpaces = MIN(StartingSpaces + ForVal, 100); }
+	void DecreaseSpaces(const int& ForVal = 2) { StartingSpaces = MAX(StartingSpaces - ForVal, 0); }
 
 	// when calling NotifyVerbose, only VerbosityLevel >= _VerbosityLevel will be used
 	void SetVerbosityLevel(const int _VerbosityLevel) { VerbosityLevel = _VerbosityLevel; }
@@ -51,7 +51,9 @@ public:
 	}
 
 	void NotifyVerbose(const int& VerbosityLevel, const char *Str);
+	void NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, const char *Str);
 	void NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...);
+	void NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Type, const char *FmtStr, ...);
 	
 	void NotifyInfo(const char *FmtStr, ...);
 	void NotifyWarn(const char *FmtStr, ...);

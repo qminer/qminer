@@ -6,11 +6,25 @@ void TLogger::NotifyVerbose(const int& VerbosityLevel, const char *Str)
 		Notify(ntInfo, Str);
 }
 
+void TLogger::NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, const char *Str)
+{
+	if (this->VerbosityLevel >= VerbosityLevel)
+		Notify(Type, Str);
+}
+
 void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...) 
 {
 	if (this->VerbosityLevel >= VerbosityLevel) {
 		va_list valist; va_start(valist, FmtStr);	
 		Notify(ntInfo, FmtStr, valist); va_end(valist); 
+	}
+}
+
+void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Type, const char *FmtStr, ...)
+{
+	if (this->VerbosityLevel >= VerbosityLevel) {
+		va_list valist; va_start(valist, FmtStr);
+		Notify(Type, FmtStr, valist); va_end(valist);
 	}
 }
 
