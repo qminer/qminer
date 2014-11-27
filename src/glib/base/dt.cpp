@@ -1608,7 +1608,7 @@ bool TStr::IsInt64(const bool& Check, const int64& MnVal, const int64& MxVal, in
 	if (Ch() == '-') {
 		Ch.GetCh();
 		IsInt = IsUInt64(Ch, true, 0, 9223372036854775808ul, UIntVal);
-		Val = -UIntVal;
+		Val = -1l * UIntVal;
 	} else {
 		if (Ch() == '+') { Ch.GetCh(); }
 		IsInt = IsUInt64(Ch, true, 0, 9223372036854775807ul, UIntVal);

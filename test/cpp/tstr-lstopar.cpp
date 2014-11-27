@@ -157,7 +157,7 @@ TEST(TStr, IsUInt64) {
 	ASSERT_EQ(Val, 0);
 
 	ASSERT_TRUE(MxVal.IsUInt64(Val));
-	ASSERT_EQ(Val, 18446744073709551615);
+	ASSERT_EQ(Val, 18446744073709551615ul);
 
 	ASSERT_FALSE(Overflow.IsUInt64(Val));
 
@@ -179,11 +179,13 @@ TEST(TStr, IsInt64) {
 	EXPECT_TRUE(TStr("1234").IsInt64(Num));
 	EXPECT_EQ(1234, Num);
 
-	EXPECT_TRUE(TStr("2147483647").IsInt64(Num));
-	EXPECT_EQ(2147483647, Num);
+	EXPECT_TRUE(TStr("9223372036854775807").IsInt64(Num));
+	EXPECT_EQ(9223372036854775807l, Num);
 
-	EXPECT_TRUE(TStr("-2147483648").IsInt64(Num));
-	EXPECT_EQ(-2147483647 - 1, Num);
+	EXPECT_TRUE(TStr("-9223372036854775808").IsInt64(Num));
+	EXPECT_EQ(-9223372036854775808l, Num);
+
+	printf("%ld\n", Num);
 
 	// overflow
 	EXPECT_FALSE(TStr("9223372036854775808").IsInt64());
@@ -192,4 +194,98 @@ TEST(TStr, IsInt64) {
 	// characters
 	EXPECT_FALSE(TStr("salad2147483649").IsInt64());
 	EXPECT_FALSE(TStr("2147483649fingers").IsInt64());
+}
+
+TEST(TStr, SaveLoadTxt) {
+	const TStr FNm = "test.txt";
+
+	const TStr Empty;
+	const TStr Alphabet = "abcdefghijklmnoprstuvz";
+
+	Empty.SaveTxt(FNm);
+	EXPECT_EQ(Empty, TStr::LoadTxt(FNm));
+
+	Alphabet.SaveTxt(FNm);
+	EXPECT_EQ(Alphabet, TStr::LoadTxt(FNm));
+
+	Empty.SaveTxt(FNm);
+	EXPECT_EQ(Empty, TStr::LoadTxt(FNm));
+}
+
+TEST(TStr, SaveLoad) {
+	const TStr FNm = "test1.txt";
+
+	const TStr Empty;
+	const TStr Alphabet = "abcdefghijklmnoprstuvz";
+	TStr Empty1, Alphabet1;
+
+	// is big
+	Empty.Save(*TFOut::New(FNm, false)(), false);
+	Empty1 = Alphabet;
+	Empty1.Load(*TFIn::New(FNm)(), false);
+	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), false));
+	EXPECT_EQ(0, Empty1.Len());
+
+	Empty.Save(*TFOut::New(FNm, false)(), false);
+	Empty1 = Empty;
+	Empty1.Load(*TFIn::New(FNm)(), false);
+	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), false));
+	EXPECT_EQ(0, Empty1.Len());
+
+	Alphabet.Save(*TFOut::New(FNm, false)(), false);
+	Alphabet1 = Alphabet;
+	Alphabet1.Load(*TFIn::New(FNm)(), false);
+	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), false));
+
+	Alphabet.Save(*TFOut::New(FNm, false)(), false);
+	Alphabet1 = Empty;
+	Alphabet1.Load(*TFIn::New(FNm)(), false);
+	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), false));
+
+	// is small
+	Empty.Save(*TFOut::New(FNm, false)(), true);
+	Empty1 = Alphabet;
+	Empty1.Load(*TFIn::New(FNm)(), true);
+	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), true));
+	EXPECT_EQ(0, Empty1.Len());
+
+	Empty.Save(*TFOut::New(FNm, false)(), true);
+	Empty1 = Empty;
+	Empty1.Load(*TFIn::New(FNm)(), true);
+	EXPECT_EQ(Empty, Empty1);
+	EXPECT_EQ(Empty, TStr(*TFIn::New(FNm)(), true));
+	EXPECT_EQ(0, Empty1.Len());
+
+	Alphabet.Save(*TFOut::New(FNm, false)(), true);
+	Alphabet1 = Alphabet;
+	Alphabet1.Load(*TFIn::New(FNm)(), true);
+	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), true));
+
+	Alphabet.Save(*TFOut::New(FNm, false)(), true);
+	Alphabet1 = Empty;
+	Alphabet1.Load(*TFIn::New(FNm)(), true);
+	EXPECT_EQ(Alphabet, Alphabet1);
+	EXPECT_EQ(Alphabet, TStr(*TFIn::New(FNm)(), true));
+
+	// normal constructor
+	{
+		TFOut FOut(FNm, false);
+		FOut.PutStr(Empty);
+	}
+
+	EXPECT_EQ(Empty, TStr(TFIn::New(FNm)));
+	EXPECT_EQ(0, TStr(TFIn::New(FNm)).Len());
+
+	{
+		TFOut FOut(FNm, false);
+		FOut.PutStr(Alphabet);
+	}
+
+	EXPECT_EQ(Alphabet, TStr(TFIn::New(FNm)));
 }
