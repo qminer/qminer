@@ -1660,7 +1660,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 	if (Store->IsJoinNm(JoinNm)) {
 		return DoJoin(Base, Store->GetJoinId(JoinNm));
 	} else {
-		return TRecSet::New();
+        throw TQmExcept::New("Unknown join " + JoinNm);
 	}
 }
 
@@ -1820,10 +1820,6 @@ TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
     Store = TStore::LoadById(Base, SIn);
 	WgtP.Load(SIn);
 	RecIdFqV.Load(SIn);	
-}
-
-PRecSet TRecSet::New() { 
-	return new TRecSet(); 
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store) { 
@@ -2119,9 +2115,8 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm,
 
 	if (Store->IsJoinNm(JoinNm)) {
 		return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
-	} else {
-		return TRecSet::New();
 	}
+    throw TQmExcept::New("Unknown join " + JoinNm);
 }
 
 PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const {

@@ -2591,7 +2591,7 @@ v8::Handle<v8::Value> TJsStore::newRecSet(const v8::Arguments& Args) {
 		PRecSet ResultSet = TRecSet::New(JsStore->Store, JsVec->Vec);
 		return TJsRecSet::New(JsStore->Js, ResultSet);
 	}
-	return TJsRecSet::New(JsStore->Js, TRecSet::New());
+	return TJsRecSet::New(JsStore->Js, TRecSet::New(JsStore->Store));
 }
 
 v8::Handle<v8::Value> TJsStore::sample(const v8::Arguments& Args) {
@@ -3422,7 +3422,7 @@ v8::Handle<v8::Value> TJsRecSet::setunion(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
-	QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setunion: the record sets do not point to the same store!");
+    QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setunion: the record sets do not point to the same store!");
 	// GetMerge sorts the argument!
 	PRecSet RecSet1Clone = RecSet1->Clone();
 	PRecSet RecSet2 = JsRecSet->RecSet->GetMerge(RecSet1Clone);
