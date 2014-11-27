@@ -306,12 +306,6 @@ exports.classifcationScore = function (cats) {
 //#- `result = exports.rocScore(sample)` -- used for computing ROC curve and 
 //#     other related measures such as AUC; the result is a results object
 //#     with the following API:
-
-//#       counts as members of these keys: `count`, `TP`, `TN`, `FP`, `FN`,
-//#       `all()`, `precision()`, `recall()`, `accuracy()`.
-//#     - `result.confusion` -- confusion matrix between categories
-//#     - `result.report()` -- prints basic report on to the console
-//#     - `result.reportCSV(fout)` -- prints CSV output to the `fout` output stream
 exports.rocScore = function () {
 	// count of all the positive and negative examples
 	this.allPositives = 0;
@@ -320,7 +314,7 @@ exports.rocScore = function () {
 	this.grounds = la.newVec();
 	this.predictions = la.newVec();
 	
-	//#     - `result.push(ground, predicT)` -- add new measurement with ground score (1 or -1) and predicted value
+	//#     - `result.push(ground, predict)` -- add new measurement with ground score (1 or -1) and predicted value
 	this.push = function (ground, predict) {
 		// remember the scores
 		this.grounds.push(ground)
@@ -384,7 +378,7 @@ exports.rocScore = function () {
         return result;
     }
     
-    //#     - `num = result.breakEvenPoint(sample)` -- get break-even point, which is number where precision and recall intersect
+    //#     - `num = result.breakEvenPoint()` -- get break-even point, which is number where precision and recall intersect
     this.breakEvenPoint = function () {
 		// sort according to predictions
 		var perm = this.predictions.sortPerm(false);
@@ -409,6 +403,32 @@ exports.rocScore = function () {
         }        
         return bep;
     }
+    
+    //#     - `num = result.bestF1()` -- gets threshold for prediction score, which results in the highest F1
+    this.bestF1 = function () {
+		// sort according to predictions
+		var perm = this.predictions.sortPerm(false);
+		// maintaining the results as we go along
+		var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+        var maxF1 = 0.0, prediction = -1.0;
+		// go over the sorted results
+		for (var i = 0; i < perm.perm.length; i++) {
+			// get the ground
+			var ground = this.grounds[perm.perm[i]];
+			// update TP/FP counts according to the ground
+			if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+            // do the update
+            if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+                // compute current precision, recall and F1
+                var precision = TP / (TP + FP);
+                var recall = TP / (TP + FN);
+                var f1 = 2 * precision * recall / (precision + recall);
+                // see if we need to update max F1
+                if (f1 > maxF1) { maxF1 = f1; prediction = perm.vec[i]; }
+            }
+        }        
+        return prediction;
+    }
 	    
 	//#     - `result.report(sample)` -- output to screen
 	this.report = function (sample) {
@@ -423,7 +443,7 @@ exports.rocScore = function () {
         }        
 	}
 	
-	//#     - `result.report(fnm, sample)` -- save as CSV to file `fnm`
+	//#     - `result.reportCSV(fnm, sample)` -- save as CSV to file `fnm`
 	this.reportCSV = function (fnm, sample) {
 		// default sample size is 10
 		sample = sample || 10;
