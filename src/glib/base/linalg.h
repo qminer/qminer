@@ -1054,6 +1054,9 @@ TVector TVector::Find(const TFunc& Func) const {
 
 /////////////////////////////////////////////////////////////////////////
 //// Full-Matrix
+typedef TTriple<TFullMatrix, TFullMatrix, TFullMatrix> TFullMatrixTr;
+typedef TTriple<TFullMatrix, TVector, TFullMatrix> TMatVecMatTr;
+
 class TFullMatrix: public TMatrix { friend class TVector;
 private:
 	bool IsWrapper;
@@ -1087,9 +1090,11 @@ public:
     static TFullMatrix RowMatrix(const TVec<TFltV>& Mat);
     // matrix from TVec<TFltV>, each element from the list goes into one column
     static TFullMatrix ColMatrix(const TVec<TFltV>& Mat);
+    // get a matrix with the values from the vector are diagonal elements
+    static TFullMatrix Diag(const TVector& Diag);
 
 private:
-    void Clr() { if (!IsWrapper) { delete Mat; } };
+    void Clr();
 
 protected:
     virtual void PMultiply(const TFltVV& B, int ColId, TFltV& Result) const;
@@ -1191,6 +1196,19 @@ public:
     TVector GetColMaxIdxV() const;
     // returns the index of the minimum element in each column in a row vector
 	TVector GetColMinIdxV() const;
+
+	// transforms the rows of the matrix to have mean 0
+	TFullMatrix& CenterRows();
+	// returns a matrix which has rows centered around zero (check CenterRows)
+	TFullMatrix GetCenteredRows() const;
+
+	// computes the singular value decomposition if this matrix X = U*S*V'
+	// returns a triple where U is stored in the first value, S is stored as a vector
+	// in the second value and V is stored in the third value
+	// k represents the number of singular values that are computed
+	TMatVecMatTr Svd(const int& k) const;
+	TMatVecMatTr Svd() const { return Svd(TMath::Mn(GetRows(), GetCols())); }
+
 
 public:
     void Save(TSOut& SOut) const;

@@ -2946,13 +2946,6 @@ private:
 	TCtmc::PHierarchCtmc McModel;
 	PFtrSpace FtrSpace;
 
-	// QMiner stuff
-//	TWPt<TStore> InStore;
-//	TIntV FldIdV;
-//	TInt TimeFldId;
-
-//	TWPt<TBase> Base;
-
 private:
 	typedef TJsObjUtil<TJsHierCtmc> TJsHierCtmcUtil;
 	TJsHierCtmc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
@@ -2962,7 +2955,16 @@ public:
 		return TJsHierCtmcUtil::New(new TJsHierCtmc(Js, ParamVal, FtrSpace)); }
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
+	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
 	JsDeclareFunction(init);
+	//#- `hctmc.toJSON()` -- Returns a JSON representation of the model
+	JsDeclareFunction(toJSON);
+
+	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
+	JsDeclareFunction(save);
+	//#- `hctmc.load(fin)` -- Loads the models from the input stream
+	JsDeclareFunction(load);
+
 
 private:
 	void Init(const PRecSet& RecSet);

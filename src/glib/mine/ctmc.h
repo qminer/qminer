@@ -44,6 +44,11 @@ public:
 	TClust(const TRnd& Rnd=TRnd(0));
 	virtual ~TClust() {}
 
+	// saves the model to the output stream
+	virtual void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	virtual void Load(TSIn& SIn);
+
 	// Applies the algorithm. Instances should be in the columns of X.
 	virtual TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000) = 0;
 
@@ -90,6 +95,11 @@ private:
 public:
 	TFullKMeans(const int& K, const TRnd& Rnd=TRnd(0));
 
+	// saves the model to the output stream
+	void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	void Load(TSIn& SIn);
+
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
 	TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000);
@@ -104,20 +114,82 @@ private:
 public:
 	TDpMeans(const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0));
 
+	// saves the model to the output stream
+	void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	void Load(TSIn& SIn);
+
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
 	TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000);
 };
 
-class TAggClust;
-typedef TPt<TAggClust> PAggClust;
+class TEuclMds {
+public:
+	static TFullMatrix Project(const TFullMatrix& InstanceMat, const int& Dims=2);
+};
+
 class TAggClust {
+public:
+	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV);
+};
+
+class THierarch;
+typedef TPt<THierarch> PHierarch;
+class THierarch {
 private:
 	TCRef CRef;
 public:
-	friend class TPt<TAggClust>;
+	friend class TPt<THierarch>;
+private:
+    // a vector which describes the hierarchy. each state has its own index
+    // and the value at index i is the index of i-ths parent
+    TIntV HierarchV;
+
+    // state heights in the hierarchy
+    TFltV StateHeightV;
+    TFlt MxHeight;
+
+    TFltPrV StateCoordV;
+    // number of leaf states, these are stored in the first part of the hierarchy vector
+    int NLeafs;
+
 public:
-	void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV);
+    THierarch();
+
+	// saves the model to the output stream
+	void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	void Load(TSIn& SIn);
+
+	void Init(const TFullMatrix& CentroidMat);
+
+	int GetStates() const { return HierarchV.Len(); }
+
+	// returns the index of the state with the lowest height
+	// states with flag set to true are ignored
+	int GetLowestHeightIdx(const TBoolV& IgnoreV) const;
+	// returns all the states on the specified height
+	void GetStatesAtHeight(const double& Height, TIntSet& StateIdxV) const;
+	int GetAncestorAtHeight(const int& LeafIdx, const double& Height) const;
+	// returns the height of the state
+	double GetStateHeight(const int& StateIdx) const { return StateHeightV[StateIdx]; }
+
+	void GetStateLeafHAtHeight(const double& Height, TIntIntVH& StateSubStateH) const;
+
+	const TFltPr& GetStateCoords(const int& StateIdx) const { return StateCoordV[StateIdx]; }
+	const TFlt& GetMxStateHeight() const { return MxHeight; }
+
+private:
+	// returns the index of the oldest ancestor of the state
+	// this method is only used when initially building the hierarchy
+	int GetOldestAncestIdx(const int& StateIdx) const;
+
+
+	// for each state returns the number of leafs it's subtree has
+	void GetSuccesorCountV(TIntV& SuccesorCountV) const;
+	// computes the coordinates (in 2D) of each state
+	void ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NStates);
 };
 
 /////////////////////////////////////////////////////////////////
@@ -136,16 +208,9 @@ public:
 	const static uint64 TU_DAY;
 
 private:
-//	TFullMatrix StateCentMat;
 	TVec<TUInt64FltPrV> QMatStats;
 
-//	// holds pairs <n,sum> where n is the number of points in state i
-//	// and sum is the sum of distances to the centroid
-//	TVec<TUInt64FltPr> StateStatV;
-
-//	PClust Clust;
-
-	const uint64 TimeUnit;
+	uint64 TimeUnit;
 	int NStates;
 
 	int CurrStateIdx;
@@ -154,15 +219,20 @@ private:
 public:
 	TCtMChain(const uint64 TimeUnit);
 
-	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV);
-//	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+    // saves the model to the output stream
+	void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	void Load(TSIn& SIn);
 
+	// initializes the markov chain
+	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV);
+	// updates the current state of the markov chain
 	void OnAddRec(const int& StateIdx, const uint64& RecTm);
 
 	// returns the total number of stats in the system
 	int GetStates() const { return NStates; }
-	// returns the dimension of the points
-//	int GetDim() const { return StateCentMat.GetRows(); }
+	// returns the index of the current state
+	int GetCurrStateIdx() const { return CurrStateIdx; }
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
@@ -170,25 +240,21 @@ public:
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
 	// which state it will jump with which probability
-	static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
+	TFullMatrix GetJumpMatrix(const TFullMatrix& QMat) const;
 	// returns a vector of holding times
 	// a holding time is the expected time that the process will stay in state i
 	// it is an exponential random variable of parameter -q_ii, so its expected value
 	// is -1/q_ii
-	static TVector GetHoldingTimeV(const TFullMatrix& QMat);
+	TVector GetHoldingTimeV(const TFullMatrix& QMat) const;
+
+	// returns the intensity matrix (Q-matrix)
+	TFullMatrix GetQMatrix() const;
+	// returns a Q matrix for the joined states
+	TFullMatrix GetQMatrix(const TVec<TIntV>& JoinedStateVV) const;
 
 private:
-	// init functions
-//	void InitStateStats(const TFullMatrix& X);
-//	void InitIntensities(const TFullMatrix& X, const TUInt64V& RecTmV, const TIntV& AssignV);
-
 	// update functions
 	void UpdateIntensities(const uint64 RecTm, const int& RecState);
-//	void UpdateStatistics(const TVector& Rec, const int& RecState);
-
-	// clustering stuff
-//	double GetMeanPtCentroidDist(const int& StateIdx) const;
-//	uint64 GetStateSize(const int& StateIdx) const;
 };
 
 class THierarchCtmc;
@@ -201,26 +267,23 @@ public:
 private:
 	PClust Clust;
     PCtMChain MChain;
-    PAggClust AggClust;
-
-    // a vector which describes the hierarchy. each state has its own index
-    // and the value at index i is the index of i-ths parent
-    TIntV HierarchV;
-    TIntV StateHeightV;
+    PHierarch Hierarch;
 
 public:
-    THierarchCtmc(const PClust& _Clust, const PCtMChain& _MChain, const PAggClust& _AggClust);
+    THierarchCtmc(const PClust& Clust, const PCtMChain& MChain, const PHierarch& Hierarch);
 
-    // initializes the model
-	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+    // saves the model to the output stream
+	void Save(TSOut& SOut) const;
+	// loads the model from the output stream
+	void Load(TSIn& SIn);
 
 	// saves this models as JSON
 	PJsonVal SaveJson() const;
 
-private:
-	// returns the index of the oldest ancestor of the state
-	// this method is only used when initially building the hierarchy
-	int GetOldestAncestIdx(const int& StateIdx) const;
+	// initializes the model
+	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+
+    int GetStates() const { return Hierarch->GetStates(); }
 };
 
 }

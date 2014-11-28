@@ -6789,21 +6789,6 @@ TJsHierCtmc::TJsHierCtmc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtr
 	const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
 	const PJsonVal FldsJson = ParamVal->GetObjKey("fields");
 
-	// store
-//	InStore = Base->GetStoreByStoreNm(InStoreNm);
-//	TimeFldId = InStore->GetFieldId(TimeFldNm);
-
-	// field IDs
-//	if (FldsJson->IsStr()) {
-//		QmAssertR(FldsJson->GetStr() == "all", "Invalid parameter fields: " + FldsJson->GetStr());
-//		FldIdV = InStore->GetFieldIdV(TFieldType::oftFlt);
-//	} else {
-//		TStrV FldNmV;	FldsJson->GetArrStrV(FldNmV);
-//		for (int FldIdx = 0; FldIdx < FldNmV.Len(); FldIdx++) {
-//			FldIdV.Add(InStore->GetFieldId(FldNmV[FldIdx]));
-//		}
-//	}
-
 	// time unit
 	uint64 TimeUnit;
 	if (TimeUnitStr == "second") {
@@ -6838,7 +6823,7 @@ TJsHierCtmc::TJsHierCtmc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtr
 
 	// create the model
 	TCtmc::PCtMChain MChain = new TCtmc::TCtMChain(TimeUnit);
-	TCtmc::PAggClust AggClust = new TCtmc::TAggClust();
+	TCtmc::PHierarch AggClust = new TCtmc::THierarch();
 
 	McModel = new TCtmc::THierarchCtmc(Clust, MChain, AggClust);
 }
@@ -6851,6 +6836,10 @@ v8::Handle<v8::ObjectTemplate> TJsHierCtmc::GetTemplate() {
 		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
 
 		JsRegisterFunction(TmpTemp, init);
+		JsRegisterFunction(TmpTemp, toJSON);
+
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
 
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -6874,10 +6863,50 @@ v8::Handle<v8::Value> TJsHierCtmc::init(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());
 }
 
+v8::Handle<v8::Value> TJsHierCtmc::toJSON(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		TJsHierCtmc* Model = TJsHierCtmcUtil::GetSelf(Args);
+		return HandleScope.Close(TJsUtil::ParseJson(Model->McModel->SaveJson()));
+	} catch (const PExcept& Except) {
+		printf("TJsHierCtmc::toJSON: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
+	}
+
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHierCtmc::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		TJsHierCtmc* JsModel = TJsHierCtmcUtil::GetSelf(Args);
+		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+		JsModel->McModel->Save(*SOut);
+	} catch (const PExcept& Except) {
+		printf("TJsHierCtmc::toJSON: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
+	}
+
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHierCtmc::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		TJsHierCtmc* JsModel = TJsHierCtmcUtil::GetSelf(Args);
+		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+		JsModel->McModel->Load(*SIn);
+	} catch (const PExcept& Except) {
+		printf("TJsHierCtmc::toJSON: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
+	}
+
+	return HandleScope.Close(v8::Undefined());
+}
+
 void TJsHierCtmc::Init(const PRecSet& RecSet) {
 	// generate an instance matrix
-	TFullMatrix X;
-	FtrSpace->GetFullVV(RecSet, X.GetMat());
+	TFullMatrix X;	FtrSpace->GetFullVV(RecSet, X.GetMat());
 
 	// generate a time vector
 	const int NRecs = RecSet->GetRecs();

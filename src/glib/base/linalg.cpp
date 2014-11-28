@@ -3406,39 +3406,39 @@ TFullMatrix::TFullMatrix(const TVector& Vec):
 	}
 }
 
-TFullMatrix::TFullMatrix(const TFullMatrix& _Mat):
-		TMatrix(_Mat),
-		IsWrapper(_Mat.IsWrapper),
-		Mat(_Mat.IsWrapper ? _Mat.Mat : new TFltVV(*_Mat.Mat)) {}
+TFullMatrix::TFullMatrix(const TFullMatrix& Other):
+		TMatrix(Other),
+		IsWrapper(Other.IsWrapper),
+		Mat(Other.IsWrapper ? Other.Mat : new TFltVV(*Other.Mat)) {}
 
-TFullMatrix::TFullMatrix(TFullMatrix&& _Mat):
-		TMatrix(std::move(_Mat)),
-		IsWrapper(std::move(_Mat.IsWrapper)),
-		Mat(_Mat.Mat) {
-	_Mat.Mat = nullptr;
+TFullMatrix::TFullMatrix(TFullMatrix&& Other):
+		TMatrix(Other),
+		IsWrapper(std::move(Other.IsWrapper)),
+		Mat(Other.Mat) {
+	Other.Mat = nullptr;
 }
 
 TFullMatrix::~TFullMatrix() {
 	Clr();
 }
 
-TFullMatrix& TFullMatrix::operator =(const TFullMatrix& _Mat) {
-	TMatrix::operator =(_Mat);
+TFullMatrix& TFullMatrix::operator =(const TFullMatrix& Other) {
+	TMatrix::operator =(Other);
 
 	Clr();
-	IsWrapper = _Mat.IsWrapper;
-	Mat = IsWrapper ? _Mat.Mat : new TFltVV(*_Mat.Mat);
+	IsWrapper = Other.IsWrapper;
+	Mat = IsWrapper ? Other.Mat : new TFltVV(*Other.Mat);
 
 	return *this;
 }
 
-TFullMatrix& TFullMatrix::operator =(TFullMatrix&& _Mat) {
-	TMatrix::operator =(_Mat);
+TFullMatrix& TFullMatrix::operator =(TFullMatrix&& Other) {
+	TMatrix::operator =(Other);
 
-	if (this != &_Mat) {
-		std::swap(IsWrapper, _Mat.IsWrapper);
-		std::swap(Mat, _Mat.Mat);
-		_Mat.Clr();
+	if (this != &Other) {
+		std::swap(IsWrapper, Other.IsWrapper);
+		std::swap(Mat, Other.Mat);
+		Other.Clr();
 	}
 
 	return *this;
@@ -3448,7 +3448,7 @@ TFullMatrix TFullMatrix::Identity(const int& Dim) {
 	TFullMatrix Mat(Dim, Dim);
 
     for (int i = 0; i < Dim; i++) {
-        Mat->PutXY(i,i,1);
+    	Mat(i,i) = 1;
     }
 
     return Mat;
@@ -3486,6 +3486,24 @@ TFullMatrix TFullMatrix::ColMatrix(const TVec<TFltV>& Mat) {
 	}
 
 	return Res;
+}
+
+TFullMatrix TFullMatrix::Diag(const TVector& Diag) {
+	const int Dim = Diag.Len();
+
+	TFullMatrix Result(Dim,Dim);
+	for (int i = 0; i < Dim; i++) {
+		Result(i,i) = Diag[i];
+	}
+
+	return Result;
+}
+
+void TFullMatrix::Clr() {
+	if (!IsWrapper && Mat != nullptr) {
+		delete Mat;
+		Mat = nullptr;
+	}
 }
 
 void TFullMatrix::PMultiply(const TFltVV& B, int ColId, TFltV& Result) const {
@@ -3750,6 +3768,37 @@ TVector TFullMatrix::GetColMaxIdxV() const {
 TVector TFullMatrix::GetColMinIdxV() const {
 	TIntV IdxV;	TLinAlg::GetColMinIdxV(*Mat, IdxV);
 	return TVector(IdxV, false);
+}
+
+TFullMatrix& TFullMatrix::CenterRows() {
+	const int Rows = GetRows();
+	const int Cols = GetCols();
+
+	#pragma omp parallel for
+	for (int RowIdx = 0; RowIdx < Rows; RowIdx++) {
+		double RowMean = 0;
+		for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
+			RowMean += At(RowIdx, ColIdx);
+		}
+		RowMean /= Cols;
+		for (int ColIdx = 0; ColIdx < Cols; ColIdx++) {
+			At(RowIdx, ColIdx) -= RowMean;
+		}
+	}
+
+	return *this;
+}
+
+TFullMatrix TFullMatrix::GetCenteredRows() const {
+	return TFullMatrix(*this).CenterRows();
+}
+
+TTriple<TFullMatrix, TVector, TFullMatrix> TFullMatrix::Svd(const int& k) const {
+	TTriple<TFullMatrix, TVector, TFullMatrix> Result;
+
+	TLinAlg::ComputeThinSVD(*this, k, Result.Val1.GetMat(), Result.Val2.Vec, Result.Val3.GetMat());
+
+	return Result;
 }
 
 void TFullMatrix::Save(TSOut& SOut) const {

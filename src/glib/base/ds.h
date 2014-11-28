@@ -153,6 +153,8 @@ public:
   TTriple(): Val1(), Val2(), Val3(){}
   TTriple(const TTriple& Triple):
     Val1(Triple.Val1), Val2(Triple.Val2), Val3(Triple.Val3){}
+  TTriple(TTriple&& Triple):
+  	Val1(std::move(Triple.Val1)), Val2(std::move(Triple.Val2)), Val3(std::move(Triple.Val3)) {}
   TTriple(const TVal1& _Val1, const TVal2& _Val2, const TVal3& _Val3):
     Val1(_Val1), Val2(_Val2), Val3(_Val3){}
   explicit TTriple(TSIn& SIn): Val1(SIn), Val2(SIn), Val3(SIn){}
@@ -165,6 +167,14 @@ public:
   TTriple& operator=(const TTriple& Triple){
     if (this!=&Triple){Val1=Triple.Val1; Val2=Triple.Val2; Val3=Triple.Val3;}
     return *this;}
+  TTriple& operator=(TTriple&& Triple) {
+	  if (this != &Triple) {
+		std::swap(Val1, Triple.Val1);
+		std::swap(Val2, Triple.Val2);
+		std::swap(Val3, Triple.Val3);
+	  }
+	  return *this;
+  }
   bool operator==(const TTriple& Triple) const {
     return (Val1==Triple.Val1)&&(Val2==Triple.Val2)&&(Val3==Triple.Val3);}
   bool operator<(const TTriple& Triple) const {
