@@ -342,12 +342,22 @@ int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
 
 int TFtrSpace::GetMnFtrN(const int& FtrExtN) const {
     QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
-    return (FtrExtN == 0) ? 0 : DimV[FtrExtN - 1].Val;
+    int MnFtrN = 0, _FtrExtN = 0;
+    while (_FtrExtN < FtrExtN) { 
+        MnFtrN += DimV[_FtrExtN];
+        _FtrExtN++;
+    }
+    return MnFtrN;
 }
 
 int TFtrSpace::GetMxFtrN(const int& FtrExtN) const {
     QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
-    return DimV[FtrExtN];
+    int MxFtrN = 0, _FtrExtN = 0;
+    while (_FtrExtN <= FtrExtN) { 
+        MxFtrN += DimV[_FtrExtN];
+        _FtrExtN++;
+    }
+    return MxFtrN;
 }
 
 void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
@@ -1078,7 +1088,8 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         // default is unicode html
         Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     } else {
-        Tokenizer = TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtNone, false));
+        Tokenizer = TTokenizers::THtmlUnicode::New(
+            TSwSet::New(swstEn523), TStemmer::New(stmtNone, false));
     }
 
     // hashing dimension
@@ -1671,7 +1682,7 @@ TDateWnd::TDateWnd(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     else if (UnitStr == "10minutes") { TmUnit = tmu10Min; }
     else if (UnitStr == "minute") { TmUnit = tmu1Min; }
     else if (UnitStr == "second") { TmUnit = tmu1Sec; }
-    QmAssert(TmUnit != tmuUndef);
+    QmAssert(TmUnit != tmuUndef);no    
     // rest of parameters
     const int WndSize = ParamVal->GetObjInt("window", 1);
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
