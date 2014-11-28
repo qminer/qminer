@@ -3414,14 +3414,12 @@ void TIndex::TQmGixDefMerger::Minus(const TQmGixItemV& MainV,
 	MainV.Diff(JoinV, ResV);
 }
 
-void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV) const {
+void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
 	if (ItemV.Empty()) { return; } // nothing to do in this case
 	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
 	// merge counts
 	int LastItemN = 0; bool ZeroP = false;
 	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-		//const TQmGixItem& LastItem = ItemV[LastItemN];
-		//const TQmGixItem& Item = ItemV[ItemN];
 		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
 			LastItemN++;
 			ItemV[LastItemN] = ItemV[ItemN];
@@ -3436,7 +3434,7 @@ void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV) const {
 		LastItemN = 0;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
 			const TQmGixItem& Item = ItemV[ItemN];
-			if (Item.Dat > 0) {
+			if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
 				ItemV[LastItemN] = Item;
 				LastItemN++;
 			} else if (Item.Dat < 0) {
@@ -3841,15 +3839,18 @@ void TIndex::DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
 	Delete(Store->GetJoinKeyId(JoinNm), RecId, JoinRecId, JoinFq);	
 }
 
-void TIndex::Delete(const int& KeyId, const uint64& WordId,  const uint64& RecId, const int& RecFq) {
+void TIndex::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
 	// -1 should never come to here 
 	Assert(KeyId != -1);
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-	// delete from index (add item with negative count, merger will delete item if necessary)
-	//Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
-
-	Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
+	if (RecFq == TInt::Mx) {
+		// full delete from index
+		Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
+	} else {
+		// add item with negative count, merger will delete item if necessary
+		Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+	}		
 }
 
 void TIndex::Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {

@@ -2116,8 +2116,11 @@ public:
 		void Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Minus(const TQmGixItemV& MainV, const TQmGixItemV& JoinV, TQmGixItemV& ResV) const;
-		void Merge(TQmGixItemV& ItemV) const;
+		
+		void Merge(TQmGixItemV& ItemV, bool Local) const;
 		void Def(const TQmGixKey& Key, TQmGixItemV& MainV) const {}
+		
+		void Delete(const TQmGixItem& Item, TVec<TQmGixItem>& MainV) const { return MainV.DelAll(Item); }
 		bool IsLt(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 < Item2; }
 		bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
 	};

@@ -50,8 +50,10 @@ public:
 	void Union(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
 	void Intrs(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
 	void Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV, TVec<TMyItem>& ResV) const;
-	void Merge(TVec<TMyItem>& ItemV) const;
+	void Merge(TVec<TMyItem>& ItemV, bool Local) const;
 	void Def(const TMyKey& Key, TVec<TMyItem>& MainV) const {}
+
+	void Delete(const TMyItem& Item, TVec<TMyItem>& MainV) const { return MainV.DelAll(Item); }
 	bool IsLt(const TMyItem& Item1, const TMyItem& Item2) const { return Item1 < Item2; }
 	bool IsLtE(const TMyItem& Item1, const TMyItem& Item2) const { return Item1 <= Item2; }
 };
@@ -102,7 +104,7 @@ void TMyGixDefMerger::Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& Joi
 	MainV.Diff(JoinV, ResV);
 }
 
-void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV) const {
+void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool Local) const {
 	//printf("============================================\n");
 	//for (int i = 0; i < ItemV.Len(); i++) {
 	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
@@ -132,7 +134,7 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV) const {
 		LastItemN = 0;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
 			const TMyItem& Item = ItemV[ItemN];
-			if (Item.Dat != 0) {
+			if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
 				ItemV[LastItemN] = Item;
 				LastItemN++;
 			} else if (Item.Dat < 0) {
@@ -607,6 +609,51 @@ public:
 		}
 	}
 
+	void Test_QuasiDelete_120And1And2() {
+		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		int xx = 126;
+		int all = 120;
+		int to_delete = 5;
+		TIntUInt64Pr x(xx, xx);
+		// fill all
+		for (int i = 0; i < all; i++) {
+			gix.AddItem(x, TMyItem(i, 1));
+		}
+
+		// item "to_delete" was added and is already inside child vector
+		// add it again, then delete it twice
+		// it should reach frequency 0 and be removed without warning
+		gix.AddItem(x, TMyItem(to_delete, +1));
+		gix.AddItem(x, TMyItem(to_delete, -1));
+		gix.AddItem(x, TMyItem(to_delete, -1));
+
+		TAssert(!gix.IsCacheFull(), "Cache cannot be full");
+		TAssert(gix.KeyIdH.Len() == 1, "Mapping should contain 1 item");
+
+		auto itemset = gix.GetItemSet(x);
+		TAssert(itemset->GetKey() == x, "Invalid itemset key");
+		TAssert(!itemset->IsFull(), "Itemset should NOT be full");
+		TAssert(!itemset->MergedP, "Itemset should NOT be merged");
+		TAssert(itemset->TotalCnt == all + 3, "Invalid itemset TotalCnt");
+		TAssert(itemset->ItemVDel.Len() == 0, "Invalid list of deletes");
+
+		itemset->Def();
+
+		TAssert(itemset->MergedP, "Itemset should be merged");
+		TAssert(itemset->TotalCnt == all - 1, "Invalid itemset TotalCnt");
+		TAssert(itemset->ItemV.Len() == all - 100, "Invalid work-buffer length");
+		TAssert(itemset->Children[0].Len == 99, "Invalid first-child length");
+		for (int i = 0; i < all; i++) {
+			if (i == to_delete) {
+				continue;
+			} else if (i < to_delete) {
+				TAssert(itemset->GetItem(i).Key == i, "Invalid item at specific index");
+			} else if (i > to_delete) {
+				TAssert(itemset->GetItem(i - 1).Key == i, "Invalid item at specific index");
+			}
+		}
+	}
+
 	void Test_QuasiDelete_120And20() {
 		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
 		int xx = 122;
@@ -675,7 +722,7 @@ public:
 		}
 	}
 
-	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
+	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 10000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
 		int total = 300 * 1000;
@@ -765,6 +812,7 @@ public:
 		Test_Delete_120And110();
 		Test_Delete_22000And1000();
 
+		Test_QuasiDelete_120And1And2();
 		Test_QuasiDelete_120And20();
 		Test_QuasiDelete_22000And1000();
 
@@ -776,10 +824,10 @@ public:
 		WarnNotifyI(TStr("Split all itemsets\n"));
 		Test_Feed(50 * 1024 * 1025, 100);
 
-		// this will split probably all itemsets
-		// it will also limit cache to less than 10% of the itemsets
-		WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		Test_Feed(5 * 1024 * 1025, 1000);
+		//// this will split probably all itemsets
+		//// it will also limit cache to less than 10% of the itemsets
+		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		//Test_Feed(5 * 1024 * 1025, 1000);
 	}
 };
 

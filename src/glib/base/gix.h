@@ -41,8 +41,10 @@ public:
 	virtual void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
 	virtual void Minus(const TVec<TItem>& MainV,
 		const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
-	virtual void Merge(TVec<TItem>& ItemV) const = 0;
+	virtual void Merge(TVec<TItem>& ItemV, bool Local = false) const = 0;
 	virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
+	
+	virtual void Delete(const TItem& Item, TVec<TItem>& MainV) const = 0;
 	virtual bool IsLt(const TItem& Item1, const TItem& Item2) const = 0;
 	virtual bool IsLtE(const TItem& Item1, const TItem& Item2) const = 0;
 
@@ -65,8 +67,10 @@ public:
 		TVec<TItem>& ResV) const {
 		MainV.Diff(JoinV, ResV);
 	}
-	void Merge(TVec<TItem>& ItemV) const { ItemV.Merge(); }
+	void Merge(TVec<TItem>& ItemV, bool Local) const { ItemV.Merge(); }
 	void Def(const TKey& Key, TVec<TItem>& MainV) const {}
+
+	void Delete(const TItem& Item, TVec<TItem>& MainV) const { return MainV.DelAll(Item); }
 	bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
 	bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
 };
@@ -124,7 +128,7 @@ private:
 			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), /*MergedP(_MergedP),*/ Loaded(false), Dirty(false) {}
 
 		/// constructor for serialization
-		TGixItemSetChildInfo(TSIn& SIn)  {
+		TGixItemSetChildInfo(TSIn& SIn) {
 			Load(SIn);
 			Loaded = false;
 			Dirty = false;
@@ -196,7 +200,7 @@ private:
 	int FirstDirtyChild() {
 		for (int i = 0; i < Children.Len(); i++) {
 			if (Children[i].Dirty && (Children[i].Len < Gix->GetSplitLenMin() || Children[i].Len > Gix->GetSplitLenMax()))
-			//if (Children[i].Dirty)
+				//if (Children[i].Dirty)
 				return i;
 		}
 		return -1;
@@ -482,7 +486,7 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 			while (j >= 0 && Merger->IsLtE(val, Children[j].MaxVal)) {
 				if (Merger->IsLtE(Children[j].MinVal, val)) {
 					LoadChildVector(j);
-					ChildrenData[j].DelAll(val);
+					Merger->Delete(val, ChildrenData[j]);
 					Children[j].Len = ChildrenData[j].Len();
 					Children[j].Dirty = true;
 					// we don't update stats (min & max), because they are still usable.
@@ -493,7 +497,7 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 			while (ItemVNewI <= ItemVDel[i]) {
 				ItemVNew.Add(ItemV[ItemVNewI++]);
 			}
-			ItemVNew.DelAll(val);
+			Merger->Delete(val, ItemVNew);			
 		}
 		while (ItemVNewI < ItemV.Len()) {
 			ItemVNew.Add(ItemV[ItemVNewI++]);
@@ -512,9 +516,9 @@ void TGixItemSet<TKey, TItem>::Def() {
 	if (!MergedP) {
 
 		ProcessDeletes(); // "execute" deletes, possibly leaving some child vectors too short
-	
+
 		// first do local merge of work-buffer
-		Merger->Merge(ItemV); 
+		Merger->Merge(ItemV, true);
 
 		// inject data into child vectors
 		if (Children.Len() > 0 && ItemV.Len() > 0) {
@@ -547,7 +551,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 			for (int j = 0; j < Children.Len(); j++) {
 				//if (!Children[j].MergedP) {
 				if (Children[j].Dirty) {
-					LoadChildVector(j);
+					LoadChildVector(j); // just in case - they should be in memory at this point anyway
 					TVec<TItem>& cd = ChildrenData[j];
 					Merger->Merge(cd);
 					Children[j].Len = cd.Len();
@@ -558,27 +562,6 @@ void TGixItemSet<TKey, TItem>::Def() {
 					}
 				}
 			}
-
-			//// inject the first item (it is also the smallest) from the work-buffer into the proper child
-			//TItem val = ItemV[0];
-			//int j = 0;
-			//while (j < Children.Len() && Merger->IsLt(Children[j].MaxVal, val)) {
-			//	j++;
-			//}
-			//if (j < Children.Len()) { // ok, insert into j-th child
-			//	LoadChildVector(j);
-			//	ChildrenData[j].Add(val);
-			//	Merger->Merge(ChildrenData[j]);
-			//	Children[j].Len = ChildrenData[j].Len();
-			//	Children[j].Dirty = true;
-			//	//Children[j].MergedP = true;
-			//}
-			//
-			//if (ItemV.Len() > 0) {
-			//	ItemV.Del(0, 0);
-			//} else {
-			//	ItemV.Clr();
-			//}
 		}
 
 		int first_dirty_child = FirstDirtyChild();
@@ -602,6 +585,10 @@ void TGixItemSet<TKey, TItem>::Def() {
 			int child_index = first_child_to_merge;
 			while (curr_index < MergedItems.Len()) {
 				if (child_index < Children.Len() && remaining > Gix->GetSplitLen()) {
+					if (child_index >= ChildrenData.Len()) {
+						ChildrenData.Add(); 
+						Children.Add();
+					}
 					ChildrenData[child_index].Clr();
 					//MergedItems.GetSubValVMemCpy(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
 					MergedItems.GetSubValV(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildrenData[child_index]);
@@ -632,7 +619,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 				Children.Del(first_empty_child, Children.Len() - 1);
 				ChildrenData.Del(first_empty_child, ChildrenData.Len() - 1);
 			}
-						
+
 			PushWorkBufferToChildren(); // it could happen that data in work buffer is still to large
 
 		} else if (Children.Len() > 0 && ItemV.Len() == 0) {
@@ -650,7 +637,7 @@ void TGixItemSet<TKey, TItem>::DefLocal() {
 	// call merger to pack items in work buffer, if not merged yet 
 	if (!MergedP) {
 		if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
-			Merger->Merge(ItemV); // perform local merge
+			Merger->Merge(ItemV, true); // perform local merge
 			if (Children.Len() > 0 && ItemV.Len() > 0) {
 				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
 					// local merge achieved global merge
