@@ -39,11 +39,11 @@ public:
 
 	virtual void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
 	virtual void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
-	virtual void Minus(const TVec<TItem>& MainV,
-		const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
-	virtual void Merge(TVec<TItem>& ItemV, bool Local = false) const = 0;
+	virtual void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
+	
 	virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
 	
+	virtual void Merge(TVec<TItem>& ItemV, bool Local = false) const = 0;
 	virtual void Delete(const TItem& Item, TVec<TItem>& MainV) const = 0;
 	virtual bool IsLt(const TItem& Item1, const TItem& Item2) const = 0;
 	virtual bool IsLtE(const TItem& Item1, const TItem& Item2) const = 0;
