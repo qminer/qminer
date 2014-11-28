@@ -6,6 +6,7 @@ la.newVector = function(args) { return new la.vector(args); }
 la.newIntVector = function(args) { return new la.vector(args); }
 la.newMatrix = function(args) { return new la.matrix(args); }
 la.newSparseVector = function(args) { return new la.sparseVector(args); }
+la.newSparseMatrix = function(args) { return new la.sparseMatrix(agrs); }
 
 var vec = la.newVector([1, 2, 3, 4, 5]);
 var v2 = la.newVector(vec);
@@ -137,23 +138,22 @@ console.log(spWec.inner(spVec));
 ///////////////////////////
 // Outer product 
 var x1 = la.newVector([1, 2, 3]);
-var x2 = la.newVector([1, 2, 3]);
+var x2 = la.newVector([4, 5, 6]);
 
 var M12 = x1.outer(x2);
 console.log(M12.toString());
 
+console.log(M12.transpose().toString());
+console.log(" *** ");
+console.log(M12.toString());
+
 x1.pushV(x2); // appends x2 to x1 
+console.log("xx:" + x1.toString());
 
-var s1 = x1.sortPerm();
+///////////////////////////
+// Sparse matrix 
+var spMatrix = x1.spDiag();
+spMatrix.print();
 
-console.log(s1.perm.length);
-console.log(s1.vec.length);
-
-console.log(s1.vec.toString());
-
-console.log(s1.vec.diag().toString());
-
-var spVecS1 = s1.vec.sparse();
-
-console.log(x2.toMat().toString());
+console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
 

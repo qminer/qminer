@@ -134,15 +134,15 @@ public:
 	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 	//#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-	JsDeclareFunction(newMat);
+//	JsDeclareFunction(newMat);
 	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
 	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-	JsDeclareFunction(newSpVec);
+//	JsDeclareFunction(newSpVec);
 	//#- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
 	//#- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
 	//#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-	JsDeclareFunction(newSpMat);
+//	JsDeclareFunction(newSpMat);
 	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	JsDeclareFunction(svd);	
@@ -195,7 +195,7 @@ public: // So we can register the class
    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
    TNodeJsVec() { }
-   TNodeJsVec(const TFltV& FltV) : Vec(FltV) { }
+   TNodeJsVec(const TVec<TVal>& ValV) : Vec(ValV) { }
 public:
    JsDeclareFunction(newIntVec);
    JsDeclareFunction(New);
@@ -252,12 +252,11 @@ private:
    JsDeclareProperty(length);
    //#- `vec = vec.print()` -- print vector in console. Returns self.
    //#- `intVec = intVec.print()` -- print integer vector in console. Returns self.
-   // TODO: Serialize vector as JSON 
    JsDeclareFunction(toString);
    //#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
    JsDeclareFunction(diag);
    //#- `spMat = vec.spDiag()` -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
-   // JsDeclareFunction(spDiag); 
+   JsDeclareFunction(spDiag); 
    //#- `num = vec.norm()` -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.
    JsDeclareFunction(norm);
    //#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
@@ -266,7 +265,7 @@ private:
    //#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
 	JsDeclareFunction(toMat);
 public:
-   TFltV Vec;
+   TVec<TVal> Vec;
 private:
    static v8::Persistent<v8::Function> constructor;
 };
