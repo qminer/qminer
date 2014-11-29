@@ -2099,27 +2099,20 @@ public:
 	typedef TKeyWord TQmGixKey; // (KeyId, WordId)
 	typedef TKeyDat<TUInt64, TInt> TQmGixItem; // [RecId, Freq]
 	typedef TVec<TQmGixItem> TQmGixItemV;
-	typedef TPt<TGixMerger<TQmGixKey, TQmGixItem> > PQmGixMerger;
+	typedef TPt<TGixExpMerger<TQmGixKey, TQmGixItem> > PQmGixExpMerger;
 	typedef TPt<TGixKeyStr<TQmGixKey> > PQmGixKeyStr;
-	typedef TGixItemSet<TQmGixKey, TQmGixItem> TQmGixItemSet;
-	typedef TPt<TQmGixItemSet> PQmGixItemSet;
-	typedef TGix<TQmGixKey, TQmGixItem> TQmGix;
-	typedef TPt<TQmGix> PQmGix;
-	typedef TGixExpItem<TQmGixKey, TQmGixItem> TQmGixExpItem;
-	typedef TPt<TQmGixExpItem> PQmGixExpItem;
 
     /// Merger which sums up the frequencies
-	class TQmGixDefMerger : public TGixMerger<TQmGixKey, TQmGixItem> {
+	class TQmGixDefMerger : public TGixExpMerger<TQmGixKey, TQmGixItem> {
 	public:
-		static PGixMerger New() { return new TQmGixDefMerger(); }
+		static PGixExpMerger New() { return new TQmGixDefMerger(); }
 
 		void Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Minus(const TQmGixItemV& MainV, const TQmGixItemV& JoinV, TQmGixItemV& ResV) const;
-		
-		void Merge(TQmGixItemV& ItemV, bool Local) const;
 		void Def(const TQmGixKey& Key, TQmGixItemV& MainV) const {}
 		
+		void Merge(TQmGixItemV& ItemV, bool Local) const;
 		void Delete(const TQmGixItem& Item, TVec<TQmGixItem>& MainV) const { return MainV.DelAll(Item); }
 		bool IsLt(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 < Item2; }
 		bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
@@ -2128,7 +2121,7 @@ public:
 	/// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
 	class TQmGixRmDupMerger : public TQmGixDefMerger {
 	public:
-		static PGixMerger New() { return new TQmGixRmDupMerger(); }
+		static PGixExpMerger New() { return new TQmGixRmDupMerger(); }
 
 		void Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
@@ -2148,6 +2141,14 @@ public:
 		TStr GetKeyNm(const TQmGixKey& Key) const;
 	};
 
+	// more typedefs
+	typedef TGixItemSet<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGixItemSet;
+	typedef TPt<TQmGixItemSet> PQmGixItemSet;
+	typedef TGix<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGix;
+	typedef TPt<TQmGix> PQmGix;
+	typedef TGixExpItem<TQmGixKey, TQmGixItem, TQmGixDefMerger> TQmGixExpItem;
+	typedef TPt<TQmGixExpItem> PQmGixExpItem;
+
 private:    
 	/// Remember index location
     TStr IndexFPath;
@@ -2160,12 +2161,12 @@ private:
     /// Index Vocabulary
     PIndexVoc IndexVoc;
 	/// Inverted Index Default Merger
-	PQmGixMerger DefMerger;
+	PQmGixExpMerger DefMerger;
 
     /// Converts query item tree to GIX query expression
 	PQmGixExpItem ToExpItem(const TQueryItem& QueryItem) const;
     /// Executes GIX query expression against the index
-    bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixMerger& Merger, 
+    bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
 		TQmGixItemV& RecIdFqV) const;
 
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
@@ -2189,7 +2190,7 @@ public:
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
-	PQmGixMerger GetDefMerger() const { return DefMerger; }
+	PQmGixExpMerger GetDefMerger() const { return DefMerger; }
 
     /// Index RecId under (Key, Word)
     void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
@@ -2281,7 +2282,7 @@ public:
 	/// Do flat OR search, given the vector of inverted index queries
 	void SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
 	/// Search with special Merger (does not handle joins)
-	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixMerger& Merger) const;
+	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger) const;
 	/// Do geo-location range (in meters) search
 	PRecSet SearchRange(const TWPt<TBase>& Base, const int& KeyId, 
         const TFltPr& Loc, const double& Radius, const int& Limit) const;
@@ -2670,8 +2671,8 @@ private:
     void LoadStreamAggrBaseV(TSIn& SIn);
     
 	// searching
-	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixMerger& Merger);
-	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixMerger& Merger);
+	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
+	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger);
 
 public:
 	static PBase New(const TStr& FPath, const int64& IndexCacheSize) { 

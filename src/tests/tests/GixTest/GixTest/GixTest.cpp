@@ -15,11 +15,19 @@
 
 typedef TIntUInt64Pr TMyKey;
 typedef TKeyDat<TUInt64, TInt> TMyItem;
-typedef  TGixItemSet < TMyKey, TMyItem > TMyItemSet;
+
+// forward defs
+
+class TMyGixDefMerger;
+
+////////////////////////////////////////////////////////////////////////
+// more typedefs
+typedef  TGixItemSet < TMyKey, TMyItem, TMyGixDefMerger > TMyItemSet;
 typedef  TPt < TMyItemSet > PMyItemSet;
 
-typedef TGix<TMyKey, TMyItem> TMyGix;
-typedef TPt<TGix<TMyKey, TMyItem> > PMyGix;
+typedef TGix<TMyKey, TMyItem, TMyGixDefMerger> TMyGix;
+typedef TPt<TGix<TMyKey, TMyItem, TMyGixDefMerger> > PMyGix;
+
 
 ///////////////////////////////////////////////////////////////////////
 // for nice outputs
@@ -43,14 +51,14 @@ void WarnNotifyW(TStr& const s) {
 
 /////////////////////////////////////////////////////////////////////////
 
-class TMyGixDefMerger : public TGixMerger < TMyKey, TMyItem > {
+class TMyGixDefMerger : public TGixExpMerger < TMyKey, TMyItem > {
 public:
-	static PGixMerger New() { return new TMyGixDefMerger(); }
+	static PGixExpMerger New() { return new TMyGixDefMerger(); }
 
 	void Union(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
 	void Intrs(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
 	void Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV, TVec<TMyItem>& ResV) const;
-	void Merge(TVec<TMyItem>& ItemV, bool Local) const;
+	void Merge(TVec<TMyItem>& ItemV, bool Local = false) const;
 	void Def(const TMyKey& Key, TVec<TMyItem>& MainV) const {}
 
 	void Delete(const TMyItem& Item, TVec<TMyItem>& MainV) const { return MainV.DelAll(Item); }
@@ -155,7 +163,7 @@ class XTest {
 public:
 
 	void Test_Simple_1() {
-		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		gix.AddItem(x, TMyItem(7234, 1));
@@ -172,7 +180,7 @@ public:
 	}
 
 	void Test_Simple_220() {
-		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -199,7 +207,7 @@ public:
 	}
 
 	void Test_Simple_220_Unsorted() {
-		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -235,7 +243,7 @@ public:
 	}
 
 	void Test_Merge_220_Into_50() {
-		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -263,7 +271,7 @@ public:
 	}
 
 	void Test_Merge_220_Into_120() {
-		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 220; i++) {
@@ -295,7 +303,7 @@ public:
 	}
 
 	void Test_Merge_22000_Into_50() {
-		TMyGix gix("Test1", "data", faCreate, 10000000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 22000; i++) {
@@ -358,7 +366,7 @@ public:
 		{
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
-			TMyGix gix(Nm, FName, faCreate, cache_size, TMyGixDefMerger::New(), split_len);
+			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
 			TRnd rnd(1);
 			for (int j = 0; j < total; j++) {
 				// every doc containes the same 5 words
@@ -413,7 +421,7 @@ public:
 	}
 
 	void Test_Delete_1() {
-		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		gix.AddItem(x, TMyItem(7234, 1));
@@ -437,7 +445,7 @@ public:
 	}
 
 	void Test_Delete_20() {
-		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 20; i++) {
@@ -464,7 +472,7 @@ public:
 	}
 
 	void Test_Delete_20And1() {
-		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 20; i++) {
@@ -492,7 +500,7 @@ public:
 	}
 
 	void Test_Delete_120() {
-		TMyGix gix("Test1", "data", faCreate, 100000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
@@ -519,7 +527,7 @@ public:
 	}
 
 	void Test_Delete_120And1() {
-		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
@@ -547,7 +555,7 @@ public:
 	}
 
 	void Test_Delete_120And110() {
-		TMyGix gix("Test1", "data", faCreate, 10000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
 		TIntUInt64Pr x(i, i);
 		for (int i = 0; i < 120; i++) {
@@ -575,7 +583,7 @@ public:
 	}
 
 	void Test_Delete_22000And1000() {
-		TMyGix gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 1000000, 100);
 		int xx = 122;
 		int all = 22000;
 		int to_delete = 980;
@@ -610,7 +618,7 @@ public:
 	}
 
 	void Test_QuasiDelete_120And1And2() {
-		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 1000000, 100);
 		int xx = 126;
 		int all = 120;
 		int to_delete = 5;
@@ -655,7 +663,7 @@ public:
 	}
 
 	void Test_QuasiDelete_120And20() {
-		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 1000000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 1000000, 100);
 		int xx = 122;
 		int all = 120;
 		int to_delete = 20;
@@ -689,7 +697,7 @@ public:
 	}
 
 	void Test_QuasiDelete_22000And1000() {
-		TGix<TMyKey, TMyItem> gix("Test1", "data", faCreate, 100000000, TMyGixDefMerger::New(), 100);
+		TMyGix gix("Test1", "data", faCreate, 100000000, 100);
 		int xx = 122;
 		int all = 22000;
 		int to_delete = 980;
@@ -733,7 +741,7 @@ public:
 		{
 			// simmulate news feed
 			// many articles, containing 50 random words + everyone containing words 1-5
-			auto gix = TMyGix::New(Nm, FName, faCreate, cache_size, TMyGixDefMerger::New(), split_len);
+			auto gix = TMyGix::New(Nm, FName, faCreate, cache_size, split_len);
 			//TMyGix gix(Nm, FName, faCreate, cache_size, TMyMerger::New(), split_len);
 			TRnd rnd(1);
 			for (int j = 0; j < total; j++) {
@@ -773,7 +781,7 @@ public:
 		}
 		{
 			// reload data - in read-only mode
-			auto gix = TMyGix::New(Nm, FName, faRdOnly, cache_size, TMyGixDefMerger::New(), split_len);
+			auto gix = TMyGix::New(Nm, FName, faRdOnly, cache_size, split_len);
 			TAssert(gix->GetKeys() == keys, "Invalid key count");
 			printf("== %d %d\n", gix->GetKeys(), keys);
 			CheckCounts(counts, *gix);
@@ -802,7 +810,7 @@ public:
 		Test_Merge_220_Into_120();
 		Test_Merge_22000_Into_50();
 
-		//Test_BigInserts();
+		Test_BigInserts();
 
 		Test_Delete_1();
 		Test_Delete_20();

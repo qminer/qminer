@@ -3578,7 +3578,7 @@ TIndex::PQmGixExpItem TIndex::ToExpItem(const TQueryItem& QueryItem) const {
 }
 
 bool TIndex::DoQuery(const TIndex::PQmGixExpItem& ExpItem, 
-        const PQmGixMerger& Merger, TQmGixItemV& ResIdFqV) const {
+        const PQmGixExpMerger& Merger, TQmGixItemV& ResIdFqV) const {
 
 	// clean if there is anything on the input
 	ResIdFqV.Clr(); 
@@ -3593,7 +3593,7 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
     Access = _Access;
     // initialize invered index
 	DefMerger = TQmGixDefMerger::New();
-    Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize, DefMerger);
+    Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize/*, DefMerger*/);
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -3912,7 +3912,7 @@ void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFq
 }
 
 TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base,
-		const TQueryItem& QueryItem, const PQmGixMerger& Merger) const {
+		const TQueryItem& QueryItem, const PQmGixExpMerger& Merger) const {
 
 	// get query result store
 	TWPt<TStore> Store = QueryItem.GetStore(Base);
@@ -4282,7 +4282,7 @@ void TBase::LoadStreamAggrBaseV(TSIn& SIn) {
     }    
 }
 
-PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixMerger& Merger) {
+PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger) {
 	// prepare sorted list of all records from the store
 	TIndex::TQmGixItemV AllResIdV;
 	const TWPt<TStore>& Store = RecSet->GetStore();
@@ -4298,7 +4298,7 @@ PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixMerger& Merger)
 	return TRecSet::New(Store, ResIdFqV, false);
 }
 
-TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixMerger& Merger) {
+TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger) {
 	if (QueryItem.IsLeafGix()) {
 		// return empty, when can be handled by index
 		return TPair<TBool, PRecSet>(false, NULL);
@@ -4658,7 +4658,7 @@ uint64 TBase::AddRec(const uint& StoreId, const PJsonVal& RecVal) {
 
 PRecSet TBase::Search(const PQuery& Query) {
 	// do the search
-	TIndex::PQmGixMerger Merger = Index->GetDefMerger();
+	TIndex::PQmGixExpMerger Merger = Index->GetDefMerger();
 	TPair<TBool, PRecSet> NotRecSet = Search(Query->GetQueryItem(), Merger);
 	// when empty, then query can be completly covered by index
 	if (NotRecSet.Val2.Empty()) { 

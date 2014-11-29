@@ -24,52 +24,50 @@
 
 /////////////////////////////////////////////////
 // Forward-declarations
-template <class TKey, class TItem> class TGix;
+template <class TKey, class TItem, class TGixMerger> class TGix;
 
 /////////////////////////////////////////////////
-// General-Inverted-Index-Merger
+// General-Inverted-Index-Merger - used for evaluating queries
 template <class TKey, class TItem>
-class TGixMerger {
+class TGixExpMerger {
 protected:
 	TCRef CRef;
-	typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
+	typedef TPt<TGixExpMerger<TKey, TItem> > PGixExpMerger;
 
 public:
-	virtual ~TGixMerger() {}
+	virtual ~TGixExpMerger() {}
 
 	virtual void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
 	virtual void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
 	virtual void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
-	
-	virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
-	
-	virtual void Merge(TVec<TItem>& ItemV, bool Local = false) const = 0;
-	virtual void Delete(const TItem& Item, TVec<TItem>& MainV) const = 0;
-	virtual bool IsLt(const TItem& Item1, const TItem& Item2) const = 0;
-	virtual bool IsLtE(const TItem& Item1, const TItem& Item2) const = 0;
 
-	friend class TPt < TGixMerger<TKey, TItem> > ;
+	virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
+
+	//virtual void Merge(TVec<TItem>& ItemV, bool Local = false) const = 0;
+	//virtual void Delete(const TItem& Item, TVec<TItem>& MainV) const = 0;
+	//virtual bool IsLt(const TItem& Item1, const TItem& Item2) const = 0;
+	//virtual bool IsLtE(const TItem& Item1, const TItem& Item2) const = 0;
+
+	friend class TPt < TGixExpMerger<TKey, TItem> > ;
 };
 
 /////////////////////////////////////////////////
 // General-Inverted-Index-Default-Merger
 template <class TKey, class TItem>
-class TGixDefMerger : public TGixMerger < TKey, TItem > {
+class TGixDefMerger : public TGixExpMerger < TKey, TItem > {
 private:
-	typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
+	typedef TPt<TGixExpMerger<TKey, TItem> > PGixMerger;
 
 public:
+
 	static PGixMerger New() { return new TGixDefMerger<TKey, TItem>(); }
 
 	void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Union(JoinV); }
 	void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Intrs(JoinV); }
-	void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV,
-		TVec<TItem>& ResV) const {
-		MainV.Diff(JoinV, ResV);
-	}
-	void Merge(TVec<TItem>& ItemV, bool Local) const { ItemV.Merge(); }
+	void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const { MainV.Diff(JoinV, ResV); }
 	void Def(const TKey& Key, TVec<TItem>& MainV) const {}
 
+	void Merge(TVec<TItem>& ItemV, bool Local = false) const { ItemV.Merge(); }
 	void Delete(const TItem& Item, TVec<TItem>& MainV) const { return MainV.DelAll(Item); }
 	bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
 	bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
@@ -99,12 +97,11 @@ public:
 // Supports splitting of data into child vectors.
 // Assumes child vectors are individually and globaly merged
 
-template <class TKey, class TItem>
+template <class TKey, class TItem, class TGixMerger>
 class TGixItemSet {
 private:
 	TCRef CRef;
-	typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
-	typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
+	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
 private:
 
 	/// This struct contans statistics about child vector
@@ -114,18 +111,18 @@ private:
 		TItem MaxVal;
 		TInt Len;
 		TBlobPt Pt;
-		//TBool MergedP;
 		bool Loaded;
 		bool Dirty;
 
 		/// default constructor
 		TGixItemSetChildInfo()
-			: Len(0), /*MergedP(true),*/ Loaded(false), Dirty(false) {}
+			: Len(0), Loaded(false), Dirty(false) {}
 
 		/// constructor with values
 		TGixItemSetChildInfo(const TItem& _MinVal, const TItem& _MaxVal,
 			const TInt& _Len, const TBlobPt& _Pt, const TBool& _MergedP)
-			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt), /*MergedP(_MergedP),*/ Loaded(false), Dirty(false) {}
+			: MinVal(_MinVal), MaxVal(_MaxVal), Len(_Len), Pt(_Pt),
+			Loaded(false), Dirty(false) {}
 
 		/// constructor for serialization
 		TGixItemSetChildInfo(TSIn& SIn) {
@@ -165,12 +162,12 @@ private:
 	// optional list of child vector contents - will be populated only for frequent keys
 	mutable TVec<TVec<TItem>> ChildrenData;
 
-	// for keeping the ItemV unique and sorted
+	// for keeping the items unique and sorted
 	TBool MergedP;
 	// pointer to merger that will merge this itemset
-	const PGixMerger Merger;
+	const TGixMerger *Merger;
 	// pointer to gix - as the storage-layer (serialization of self, loading children, notifying about changes...)
-	const TGix<TKey, TItem> *Gix;
+	const TGix<TKey, TItem, TGixMerger> *Gix;
 
 
 	/// Load single child vector into memory if not present already
@@ -222,15 +219,15 @@ private:
 
 public:
 	/// Standard constructor
-	TGixItemSet(const TKey& _ItemSetKey, const PGixMerger& _Merger, const TGix<TKey, TItem>* _Gix) :
+	TGixItemSet(const TKey& _ItemSetKey, const TGixMerger *_Merger, const TGix<TKey, TItem, TGixMerger>* _Gix) :
 		ItemSetKey(_ItemSetKey), MergedP(true), Merger(_Merger), Gix(_Gix), TotalCnt(0) {}
 	/// Standard factory method
-	static PGixItemSet New(const TKey& ItemSetKey, const PGixMerger& Merger, const TGix<TKey, TItem>* Gix) {
+	static PGixItemSet New(const TKey& ItemSetKey, const TGixMerger* Merger, const TGix<TKey, TItem, TGixMerger>* Gix) {
 		return new TGixItemSet(ItemSetKey, Merger, Gix);
 	}
 
 	/// Constructor for deserialization
-	TGixItemSet(TSIn& SIn, const PGixMerger& _Merger, const TGix<TKey, TItem>* _Gix) :
+	TGixItemSet(TSIn& SIn, const TGixMerger* _Merger, const TGix<TKey, TItem, TGixMerger>* _Gix) :
 		ItemSetKey(SIn), ItemV(SIn), Children(SIn), MergedP(true), Merger(_Merger), Gix(_Gix) {
 		for (int i = 0; i < Children.Len(); i++) {
 			ChildrenData.Add(TVec<TItem>());
@@ -238,7 +235,7 @@ public:
 		RecalcTotalCnt();
 	}
 	/// Standard factory method for deserialization
-	static PGixItemSet Load(TSIn& SIn, const PGixMerger& Merger, const TGix<TKey, TItem>* Gix) {
+	static PGixItemSet Load(TSIn& SIn, const TGixMerger* Merger, const TGix<TKey, TItem, TGixMerger>* Gix) {
 		return new TGixItemSet(SIn, Merger, Gix);
 	}
 	/// Saves this itemset to output stream
@@ -249,7 +246,7 @@ public:
 		return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
 			+ sizeof(TBool) + sizeof(int)
-			+ sizeof(PGixMerger) + sizeof(TGix<TKey, TItem>*);
+			+ sizeof(TGixMerger*) + sizeof(TGix<TKey, TItem, TGixMerger>*);
 	}
 	void OnDelFromCache(const TBlobPt& BlobPt, void* Gix);
 
@@ -289,8 +286,8 @@ public:
 
 #ifdef GIX_TEST
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::Print() const {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::Print() const {
 	LoadChildVectors();
 	printf("TotalCnt=%d\n", TotalCnt);
 	printf("len=%d\n", ItemV.Len());
@@ -315,8 +312,8 @@ void TGixItemSet<TKey, TItem>::Print() const {
 
 #endif
 
-template <class TKey, class TItem>
-const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
+template <class TKey, class TItem, class TGixMerger>
+const TItem& TGixItemSet<TKey, TItem, TGixMerger>::GetItem(const int& ItemN) const {
 	AssertR(ItemN >= 0 && ItemN < TotalCnt, TStr() + "Index: " + TInt::GetStr(ItemN) + ", TotalCnt: " + TInt::GetStr(TotalCnt));
 	int index = ItemN;
 	for (int i = 0; i < Children.Len(); i++) {
@@ -330,8 +327,8 @@ const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 	return ItemV[index];
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::Save(TMOut& SOut) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::Save(TMOut& SOut) {
 	// make sure all is merged before saving
 	Def();
 	// save child vectors separately
@@ -348,15 +345,15 @@ void TGixItemSet<TKey, TItem>::Save(TMOut& SOut) {
 }
 
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) {
-	if (!((TGix<TKey, TItem>*)Gix)->IsReadOnly()) {
-		((TGix<TKey, TItem>*)Gix)->StoreItemSet(BlobPt);
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) {
+	if (!((TGix<TKey, TItem, TGixMerger>*)Gix)->IsReadOnly()) {
+		((TGix<TKey, TItem, TGixMerger>*)Gix)->StoreItemSet(BlobPt);
 	}
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::PushWorkBufferToChildren() {
 	// push work-buffer into children array
 	int split_len = Gix->GetSplitLen();
 	while (ItemV.Len() >= split_len) {
@@ -373,8 +370,8 @@ void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
 	}
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem) {
 	const int OldSize = GetMemUsed();
 	if (IsFull()) {
 		Def();
@@ -403,15 +400,15 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem) {
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::AddItemV(const TVec<TItem>& NewItemV) {
 	for (int i = 0; i < NewItemV.Len(); i++) {
 		AddItem(NewItemV[i]);
 	}
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::AppendItemSet(const TPt<TGixItemSet>& Src) {
 	Src->LoadChildVectors();
 	// first, process children if present
 	if (Src->Children.Len() > 0) {
@@ -424,8 +421,8 @@ void TGixItemSet<TKey, TItem>::AppendItemSet(const TPt<TGixItemSet>& Src) {
 	AddItemV(Src->ItemV);
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::GetItemV(TVec<TItem>& _ItemV) {
 	if (Children.Len() > 0) {
 		// collect data from child itemsets
 		LoadChildVectors();
@@ -438,8 +435,8 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
 	_ItemV.AddV(ItemV);
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::DelItem(const TItem& Item) {
 	const int OldSize = GetMemUsed();
 	if (IsFull()) {
 		Def();
@@ -456,8 +453,8 @@ void TGixItemSet<TKey, TItem>::DelItem(const TItem& Item) {
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::Clr() {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::Clr() {
 	const int OldSize = GetMemUsed();
 	if (Children.Len() > 0) {
 		for (int i = 0; i < Children.Len(); i++) {
@@ -473,8 +470,8 @@ void TGixItemSet<TKey, TItem>::Clr() {
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::ProcessDeletes() {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::ProcessDeletes() {
 	if (ItemVDel.Len() > 0) {
 		TVec<TItem> ItemVNew;
 		int ItemVNewI = 0;
@@ -497,7 +494,7 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 			while (ItemVNewI <= ItemVDel[i]) {
 				ItemVNew.Add(ItemV[ItemVNewI++]);
 			}
-			Merger->Delete(val, ItemVNew);			
+			Merger->Delete(val, ItemVNew);
 		}
 		while (ItemVNewI < ItemV.Len()) {
 			ItemVNew.Add(ItemV[ItemVNewI++]);
@@ -510,8 +507,8 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
 	}
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::Def() {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
 	// call merger to pack items, if not merged yet 
 	if (!MergedP) {
 
@@ -553,7 +550,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 				if (Children[j].Dirty) {
 					LoadChildVector(j); // just in case - they should be in memory at this point anyway
 					TVec<TItem>& cd = ChildrenData[j];
-					Merger->Merge(cd);
+					Merger->Merge(cd, false);
 					Children[j].Len = cd.Len();
 					Children[j].Dirty = true;
 					if (cd.Len() > 0) {
@@ -577,7 +574,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 			}
 			//MergedItems.AddVMemCpy(ItemV);
 			MergedItems.AddV(ItemV);
-			Merger->Merge(MergedItems);
+			Merger->Merge(MergedItems, false);
 
 			// now save them back
 			int curr_index = 0;
@@ -586,7 +583,7 @@ void TGixItemSet<TKey, TItem>::Def() {
 			while (curr_index < MergedItems.Len()) {
 				if (child_index < Children.Len() && remaining > Gix->GetSplitLen()) {
 					if (child_index >= ChildrenData.Len()) {
-						ChildrenData.Add(); 
+						ChildrenData.Add();
 						Children.Add();
 					}
 					ChildrenData[child_index].Clr();
@@ -632,8 +629,8 @@ void TGixItemSet<TKey, TItem>::Def() {
 	}
 }
 
-template <class TKey, class TItem>
-void TGixItemSet<TKey, TItem>::DefLocal() {
+template <class TKey, class TItem, class TGixMerger>
+void TGixItemSet<TKey, TItem, TGixMerger>::DefLocal() {
 	// call merger to pack items in work buffer, if not merged yet 
 	if (!MergedP) {
 		if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
@@ -653,13 +650,13 @@ void TGixItemSet<TKey, TItem>::DefLocal() {
 
 /////////////////////////////////////////////////
 // General-Inverted-Index
-template <class TKey, class TItem>
+template <class TKey, class TItem, class TGixMerger /*= TGixDefMerger<TKey, TItem>*/>
 class TGix {
 private:
 	TCRef CRef;
-	typedef TPt<TGix<TKey, TItem> > PGix;
-	typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
-	typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
+	typedef TPt<TGix<TKey, TItem, TGixMerger> > PGix;
+	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
+	//typedef TPt<TGixMerger<TKey, TItem> > PGixMerger;
 	typedef TGixDefMerger<TKey, TItem> _TGixDefMerger;
 	typedef TPt<TGixKeyStr<TKey> > PGixKeyStr;
 private:
@@ -673,7 +670,8 @@ private:
 	THash<TKey, TBlobPt> KeyIdH;
 
 	/// record merger, used for packing data vectors
-	PGixMerger Merger;
+	//PGixMerger Merger;
+	TGixMerger Merger;
 
 	/// cache for BLOB data, mapping between pointers and data
 	mutable TCache<TBlobPt, PGixItemSet> ItemSetCache;
@@ -717,13 +715,11 @@ private:
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		const PGixMerger& _Merger = _TGixDefMerger::New(),
 		int _SplitLen = 100000);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		const PGixMerger& Merger = _TGixDefMerger::New(),
 		int _SplitLen = 100000) {
-		return new TGix(Nm, FPath, Access, CacheSize, Merger, _SplitLen);
+		return new TGix(Nm, FPath, Access, CacheSize, _SplitLen);
 	}
 
 	~TGix();
@@ -795,36 +791,34 @@ public:
 	void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
 
 	friend class TPt < TGix > ;
-	friend class TGixItemSet < TKey, TItem > ;
+	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
 #ifdef GIX_TEST
 	friend class XTest;
 #endif
 };
 
-template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::AddKeyId(const TKey& Key) {
+template <class TKey, class TItem, class TGixMerger>
+TBlobPt TGix<TKey, TItem, TGixMerger>::AddKeyId(const TKey& Key) {
 	if (IsKey(Key)) { return KeyIdH.GetDat(Key); }
 	// we don't have this key, create an empty item set and return pointer to it
 	AssertReadOnly(); // check if we are allowed to write
-	PGixItemSet ItemSet = TGixItemSet<TKey, TItem>::New(Key, Merger, this);
+	PGixItemSet ItemSet = TGixItemSet<TKey, TItem, TGixMerger>::New(Key, &Merger, this);
 	TBlobPt KeyId = EnlistItemSet(ItemSet);
 	KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
 	return KeyId;
 }
 
-template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::GetKeyId(const TKey& Key) const {
+template <class TKey, class TItem, class TGixMerger>
+TBlobPt TGix<TKey, TItem, TGixMerger>::GetKeyId(const TKey& Key) const {
 	if (IsKey(Key)) { return KeyIdH.GetDat(Key); }
 	// we don't have this key, return empty pointer
 	return TBlobPt();
 }
 
-template <class TKey, class TItem>
-TGix<TKey, TItem>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-	const int64& CacheSize, const TPt<TGixMerger<TKey, TItem> >& _Merger,
-	int _SplitLen) : Access(_Access),
-	ItemSetCache(CacheSize, 1000000, GetVoidThis()),
-	Merger(_Merger), SplitLen(_SplitLen) {
+template <class TKey, class TItem, class TGixMerger>
+TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
+	const int64& CacheSize, int _SplitLen) : Access(_Access),
+	ItemSetCache(CacheSize, 1000000, GetVoidThis()), SplitLen(_SplitLen) {
 
 	// filenames of the GIX datastore
 	GixFNm = TStr::GetNrFPath(FPath) + Nm.GetFBase() + ".Gix";
@@ -851,8 +845,8 @@ TGix<TKey, TItem>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Acce
 	SplitLenMin = SplitLen - Tolerance;
 }
 
-template <class TKey, class TItem>
-TGix<TKey, TItem>::~TGix() {
+template <class TKey, class TItem, class TGixMerger>
+TGix<TKey, TItem, TGixMerger>::~TGix() {
 	if ((Access == faCreate) || (Access == faUpdate)) {
 		// flush all the latest changes in cache to the disk
 		ItemSetCache.Flush();
@@ -862,27 +856,27 @@ TGix<TKey, TItem>::~TGix() {
 	}
 }
 
-template <class TKey, class TItem>
-TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TKey& Key) const {
+template <class TKey, class TItem, class TGixMerger>
+TPt<TGixItemSet<TKey, TItem, TGixMerger> > TGix<TKey, TItem, TGixMerger>::GetItemSet(const TKey& Key) const {
 	TBlobPt KeyId = GetKeyId(Key);
 	return GetItemSet(KeyId);
 }
-template <class TKey, class TItem>
-TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TBlobPt& KeyId) const {
+template <class TKey, class TItem, class TGixMerger>
+TPt<TGixItemSet<TKey, TItem, TGixMerger> > TGix<TKey, TItem, TGixMerger>::GetItemSet(const TBlobPt& KeyId) const {
 	if (KeyId.Empty()) { return NULL; }
 	PGixItemSet ItemSet;
 	if (!ItemSetCache.Get(KeyId, ItemSet)) {
 		// have to load it from the hard drive...
 		PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
-		ItemSet = TGixItemSet<TKey, TItem>::Load(*ItemSetSIn, Merger, this);
+		ItemSet = TGixItemSet<TKey, TItem, TGixMerger>::Load(*ItemSetSIn, &Merger, this);
 	}
 	// bring the itemset to the top of the cache
 	ItemSetCache.Put(KeyId, ItemSet);
 	return ItemSet;
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::StoreItemSet(const TBlobPt& KeyId) {
 	AssertReadOnly(); // check if we are allowed to write
 	// get the pointer to the item set
 	PGixItemSet ItemSet;
@@ -895,8 +889,8 @@ void TGix<TKey, TItem>::StoreItemSet(const TBlobPt& KeyId) {
 	KeyIdH.GetDat(ItemSet->GetKey()) = NewKeyId;
 }
 
-template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::EnlistItemSet(const PGixItemSet& ItemSet) const {
+template <class TKey, class TItem, class TGixMerger>
+TBlobPt TGix<TKey, TItem, TGixMerger>::EnlistItemSet(const PGixItemSet& ItemSet) const {
 	AssertReadOnly(); // check if we are allowed to write
 	TMOut MOut;
 	ItemSet->Save(MOut);
@@ -904,8 +898,8 @@ TBlobPt TGix<TKey, TItem>::EnlistItemSet(const PGixItemSet& ItemSet) const {
 	return res;
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::AddItem(const TKey& Key, const TItem& Item) {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) {
 	AssertReadOnly(); // check if we are allowed to write
 	// get the key handle
 	TBlobPt KeyId = AddKeyId(Key);
@@ -916,8 +910,8 @@ void TGix<TKey, TItem>::AddItem(const TKey& Key, const TItem& Item) {
 	RefreshMemUsed();
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
 	AssertReadOnly(); // check if we are allowed to write
 	// get the key handle
 	TBlobPt KeyId = AddKeyId(Key);
@@ -929,8 +923,8 @@ void TGix<TKey, TItem>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
 	RefreshMemUsed();
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::DelItem(const TKey& Key, const TItem& Item) {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::DelItem(const TKey& Key, const TItem& Item) {
 	AssertReadOnly(); // check if we are allowed to write
 	if (IsKey(Key)) { // check if this key exists
 		// load the current item set
@@ -940,8 +934,8 @@ void TGix<TKey, TItem>::DelItem(const TKey& Key, const TItem& Item) {
 	}
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::Clr(const TKey& Key) {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::Clr(const TKey& Key) {
 	AssertReadOnly(); // check if we are allowed to write
 	if (IsKey(Key)) { // check if this key exists
 		// load the current item set
@@ -951,8 +945,8 @@ void TGix<TKey, TItem>::Clr(const TKey& Key) {
 	}
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::MergeIndex(const TPt<TGix<TKey, TItem> >& TmpGix) {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::MergeIndex(const TPt<TGix<TKey, TItem, TGixMerger> >& TmpGix) {
 	// merge itemsets
 	const int TmpKeys = TmpGix->GetKeys();
 	int TmpKeyId = TmpGix->FFirstKeyId();
@@ -968,8 +962,8 @@ void TGix<TKey, TItem>::MergeIndex(const TPt<TGix<TKey, TItem> >& TmpGix) {
 	}
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
 	TFOut FOut(FNm);
 	// iterate over all the keys
 	printf("Starting Gix SaveTxt\n");
@@ -991,8 +985,8 @@ void TGix<TKey, TItem>::SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const
 }
 
 /// for storing vectors to blob
-template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const {
+template <class TKey, class TItem, class TGixMerger>
+TBlobPt TGix<TKey, TItem, TGixMerger>::StoreChildVector(const TBlobPt& ExistingKeyId, const TVec<TItem>& Data) const {
 	AssertReadOnly(); // check if we are allowed to write
 	// store the current version to the blob
 	TMOut MOut;
@@ -1002,15 +996,15 @@ TBlobPt TGix<TKey, TItem>::StoreChildVector(const TBlobPt& ExistingKeyId, const 
 }
 
 /// for deleting child vector from blob
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::DeleteChildVector(const TBlobPt& KeyId) const {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::DeleteChildVector(const TBlobPt& KeyId) const {
 	AssertReadOnly(); // check if we are allowed to write
 	ItemSetBlobBs->DelBlob(KeyId);  // free space in BLOB
 }
 
 /// For enlisting new child vectors into blob
-template <class TKey, class TItem>
-TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
+template <class TKey, class TItem, class TGixMerger>
+TBlobPt TGix<TKey, TItem, TGixMerger>::EnlistChildVector(const TVec<TItem>& Data) const {
 	AssertReadOnly(); // check if we are allowed to write
 	TMOut MOut;
 	Data.Save(MOut);
@@ -1018,15 +1012,15 @@ TBlobPt TGix<TKey, TItem>::EnlistChildVector(const TVec<TItem>& Data) const {
 	return res;
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::GetChildVector(const TBlobPt& KeyId, TVec<TItem>& Dest) const {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::GetChildVector(const TBlobPt& KeyId, TVec<TItem>& Dest) const {
 	if (KeyId.Empty()) { return; }
 	PSIn ItemSetSIn = ItemSetBlobBs->GetBlob(KeyId);
 	Dest.Load(*ItemSetSIn);
 }
 
-template <class TKey, class TItem>
-void TGix<TKey, TItem>::RefreshMemUsed() {
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
 		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
@@ -1049,14 +1043,14 @@ void TGix<TKey, TItem>::RefreshMemUsed() {
 // General-Inverted-Index Expression-Item
 typedef enum { getUndef, getEmpty, getOr, getAnd, getNot, getKey } TGixExpType;
 
-template <class TKey, class TItem>
+template <class TKey, class TItem, class TGixMerger>
 class TGixExpItem {
 private:
 	TCRef CRef;
-	typedef TPt<TGixExpItem<TKey, TItem> > PGixExpItem;
-	typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
-	typedef TPt<TGix<TKey, TItem> > PGix;
-	typedef TGixDefMerger<TKey, TItem> _TGixDefMerger;
+	typedef TPt<TGixExpItem<TKey, TItem, TGixMerger> > PGixExpItem;
+	typedef TPt<TGixItemSet<TKey, TItem, TGixMerger> > PGixItemSet;
+	typedef TPt<TGix<TKey, TItem, TGixMerger> > PGix;
+	//typedef TGixDefMerger<TKey, TItem> _TGixDefMerger;
 private:
 	TGixExpType ExpType;
 	PGixExpItem LeftExpItem;
@@ -1102,49 +1096,48 @@ public:
 	TGixExpType GetExpType() const { return ExpType; }
 	TKey GetKey() const { return Key; }
 	PGixExpItem Clone() const { return new TGixExpItem(*this); }
-	bool Eval(const PGix& Gix, TVec<TItem>& ResItemV,
-		const TPt<TGixMerger<TKey, TItem> >& Merger = _TGixDefMerger::New());
+	bool Eval(const PGix& Gix, TVec<TItem>& ResItemV, const TPt<TGixExpMerger<TKey, TItem>>& Merger /*= _TGixDefMerger::New() */);
 
 	friend class TPt < TGixExpItem > ;
 };
 
-template <class TKey, class TItem>
-void TGixExpItem<TKey, TItem>::PutAnd(const TPt<TGixExpItem<TKey, TItem> >& _LeftExpItem,
-	const TPt<TGixExpItem<TKey, TItem> >& _RightExpItem) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixExpItem<TKey, TItem, TGixMerger>::PutAnd(const TPt<TGixExpItem<TKey, TItem, TGixMerger> >& _LeftExpItem,
+	const TPt<TGixExpItem<TKey, TItem, TGixMerger> >& _RightExpItem) {
 
 	ExpType = getAnd;
 	LeftExpItem = _LeftExpItem;
 	RightExpItem = _RightExpItem;
 }
 
-template <class TKey, class TItem>
-void TGixExpItem<TKey, TItem>::PutOr(const TPt<TGixExpItem<TKey, TItem> >& _LeftExpItem,
-	const TPt<TGixExpItem<TKey, TItem> >& _RightExpItem) {
+template <class TKey, class TItem, class TGixMerger>
+void TGixExpItem<TKey, TItem, TGixMerger>::PutOr(const TPt<TGixExpItem<TKey, TItem, TGixMerger> >& _LeftExpItem,
+	const TPt<TGixExpItem<TKey, TItem, TGixMerger> >& _RightExpItem) {
 
 	ExpType = getOr;
 	LeftExpItem = _LeftExpItem;
 	RightExpItem = _RightExpItem;
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewAndV(
-	const TVec<TPt<TGixExpItem<TKey, TItem> > >& ExpItemV) {
+template <class TKey, class TItem, class TGixMerger>
+TPt<TGixExpItem<TKey, TItem, TGixMerger> > TGixExpItem<TKey, TItem, TGixMerger>::NewAndV(
+	const TVec<TPt<TGixExpItem<TKey, TItem, TGixMerger> > >& ExpItemV) {
 
 	// return empty item if no key is given
-	if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem>::NewEmpty(); }
+	if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem, TGixMerger>::NewEmpty(); }
 	// otherwise we start with the first key
-	TPt<TGixExpItem<TKey, TItem> > TopExpItem = ExpItemV[0];
+	TPt<TGixExpItem<TKey, TItem, TGixMerger> > TopExpItem = ExpItemV[0];
 	// prepare a queue, which points to the next item (left) to be expanded to tree (and left right)
-	TQQueue<TPt<TGixExpItem<TKey, TItem> > > NextExpItemQ;
+	TQQueue<TPt<TGixExpItem<TKey, TItem, TGixMerger> > > NextExpItemQ;
 	// we start with the top
 	NextExpItemQ.Push(TopExpItem);
 	// add the rest of the items to the expresion tree
 	for (int ExpItemN = 1; ExpItemN < ExpItemV.Len(); ExpItemN++) {
-		const TPt<TGixExpItem<TKey, TItem> >& RightExpItem = ExpItemV[ExpItemN];
+		const TPt<TGixExpItem<TKey, TItem, TGixMerger> >& RightExpItem = ExpItemV[ExpItemN];
 		// which item should we expand
-		TPt<TGixExpItem<TKey, TItem> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
+		TPt<TGixExpItem<TKey, TItem, TGixMerger> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
 		// clone the item to be expanded
-		TPt<TGixExpItem<TKey, TItem> > LeftExpItem = ExpItem->Clone();
+		TPt<TGixExpItem<TKey, TItem, TGixMerger> > LeftExpItem = ExpItem->Clone();
 		// and make a new subtree
 		ExpItem->PutAnd(LeftExpItem, RightExpItem);
 		// update the queue
@@ -1154,25 +1147,25 @@ TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewAndV(
 	return TopExpItem;
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewOrV(
-	const TVec<TPt<TGixExpItem<TKey, TItem> > >& ExpItemV) {
+template <class TKey, class TItem, class TGixMerger>
+TPt<TGixExpItem<TKey, TItem, TGixMerger> > TGixExpItem<TKey, TItem, TGixMerger>::NewOrV(
+	const TVec<TPt<TGixExpItem<TKey, TItem, TGixMerger> > >& ExpItemV) {
 
 	// return empty item if no key is given
-	if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem>::NewEmpty(); }
+	if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem, TGixMerger>::NewEmpty(); }
 	// otherwise we start with the first key
-	TPt<TGixExpItem<TKey, TItem> > TopExpItem = ExpItemV[0];
+	TPt<TGixExpItem<TKey, TItem, TGixMerger> > TopExpItem = ExpItemV[0];
 	// prepare a queue, which points to the next item (left) to be expanded to tree (and left right)
-	TQQueue<TPt<TGixExpItem<TKey, TItem> > > NextExpItemQ;
+	TQQueue<TPt<TGixExpItem<TKey, TItem, TGixMerger> > > NextExpItemQ;
 	// we start with the top
 	NextExpItemQ.Push(TopExpItem);
 	// add the rest of the items to the expresion tree
 	for (int ExpItemN = 1; ExpItemN < ExpItemV.Len(); ExpItemN++) {
-		const TPt<TGixExpItem<TKey, TItem> >& RightExpItem = ExpItemV[ExpItemN];
+		const TPt<TGixExpItem<TKey, TItem, TGixMerger> >& RightExpItem = ExpItemV[ExpItemN];
 		// which item should we expand
-		TPt<TGixExpItem<TKey, TItem> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
+		TPt<TGixExpItem<TKey, TItem, TGixMerger> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
 		// clone the item to be expanded
-		TPt<TGixExpItem<TKey, TItem> > LeftExpItem = ExpItem->Clone();
+		TPt<TGixExpItem<TKey, TItem, TGixMerger> > LeftExpItem = ExpItem->Clone();
 		// and make a new subtree
 		ExpItem->PutOr(LeftExpItem, RightExpItem);
 		// update the queue
@@ -1182,27 +1175,27 @@ TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewOrV(
 	return TopExpItem;
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewAndV(const TVec<TKey>& KeyV) {
-	TVec<TPt<TGixExpItem<TKey, TItem> > > ExpItemV(KeyV.Len(), 0);
+template <class TKey, class TItem, class TGixMerger>
+TPt<TGixExpItem<TKey, TItem, TGixMerger> > TGixExpItem<TKey, TItem, TGixMerger>::NewAndV(const TVec<TKey>& KeyV) {
+	TVec<TPt<TGixExpItem<TKey, TItem, TGixMerger> > > ExpItemV(KeyV.Len(), 0);
 	for (int KeyN = 0; KeyN < KeyV.Len(); KeyN++) {
-		ExpItemV.Add(TGixExpItem<TKey, TItem>::NewItem(KeyV[KeyN]));
+		ExpItemV.Add(TGixExpItem<TKey, TItem, TGixMerger>::NewItem(KeyV[KeyN]));
 	}
 	return NewAndV(ExpItemV);
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewOrV(const TVec<TKey>& KeyV) {
-	TVec<TPt<TGixExpItem<TKey, TItem> > > ExpItemV(KeyV.Len(), 0);
+template <class TKey, class TItem, class TGixMerger>
+TPt<TGixExpItem<TKey, TItem, TGixMerger> > TGixExpItem<TKey, TItem, TGixMerger>::NewOrV(const TVec<TKey>& KeyV) {
+	TVec<TPt<TGixExpItem<TKey, TItem, TGixMerger> > > ExpItemV(KeyV.Len(), 0);
 	for (int KeyN = 0; KeyN < KeyV.Len(); KeyN++) {
-		ExpItemV.Add(TGixExpItem<TKey, TItem>::NewItem(KeyV[KeyN]));
+		ExpItemV.Add(TGixExpItem<TKey, TItem, TGixMerger>::NewItem(KeyV[KeyN]));
 	}
 	return NewOrV(ExpItemV);
 }
 
-template <class TKey, class TItem>
-bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
-	TVec<TItem>& ResItemV, const TPt<TGixMerger<TKey, TItem> >& Merger) {
+template <class TKey, class TItem, class TGixMerger>
+bool TGixExpItem<TKey, TItem, TGixMerger>::Eval(const TPt<TGix<TKey, TItem, TGixMerger> >& Gix,
+	TVec<TItem>& ResItemV, const TPt<TGixExpMerger<TKey, TItem>>& Merger) {
 
 	// prepare place for result
 	ResItemV.Clr();
@@ -1252,11 +1245,11 @@ bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
 	return true;
 }
 
-typedef TGixItemSet<TInt, TInt> TIntGixItemSet;
-typedef TPt<TIntGixItemSet> PIntGixItemSet;
-typedef TGix<TInt, TIntGixItemSet> TIntGix;
-typedef TPt<TIntGix> PIntGix;
-typedef TGixExpItem<TInt, TInt> TIntGixExpItem;
-typedef TPt<TIntGixExpItem> PIntGixExpItem;
+//typedef TGixItemSet<TInt, TInt> TIntGixItemSet;
+//typedef TPt<TIntGixItemSet> PIntGixItemSet;
+//typedef TGix<TInt, TIntGixItemSet> TIntGix;
+//typedef TPt<TIntGix> PIntGix;
+//typedef TGixExpItem<TInt, TInt> TIntGixExpItem;
+//typedef TPt<TIntGixExpItem> PIntGixExpItem;
 
 #endif
