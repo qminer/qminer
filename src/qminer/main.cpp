@@ -539,7 +539,7 @@ int main(int argc, char* argv[]) {
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 				{
-					/*TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
 					{
 						PSIn fin = TFIn::New(ImportFNm);
 						TStr s;
@@ -547,30 +547,45 @@ int main(int argc, char* argv[]) {
 							PJsonVal json = TJsonVal::GetValFromStr(s);
 							store->AddRec(json);
 						}
-					}*/
-				}
-				{
-					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
-					TQm::TRec rec = store->GetRec(1);
-					TQm::PRecSet res = rec.DoJoin(Base, "Actor");
-					for (int i = 0; i < res->GetRecs(); i++) {
-						auto rr = res->GetRec(i);
-						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
 					}
 				}
-				{
-					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-					TQm::TRec rec = store->GetRec(1);
-					TQm::PRecSet res = rec.DoJoin(Base, "ActedIn");
-					for (int i = 0; i < res->GetRecs(); i++) {
-						auto rr = res->GetRec(i);
-						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
-					}
-				}
-				/*{
-					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-					store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
-				}*/
+
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
+				//	TQm::TRec rec = store->GetRec(1);
+				//	TQm::PRecSet res = rec.DoJoin(Base, "Actor");
+				//	for (int i = 0; i < res->GetRecs(); i++) {
+				//		auto rr = res->GetRec(i);
+				//		printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+				//	}
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	TQm::TRec rec = store->GetRec(1);
+				//	TQm::PRecSet res = rec.DoJoin(Base, "ActedIn");
+				//	for (int i = 0; i < res->GetRecs(); i++) {
+				//		auto rr = res->GetRec(i);
+				//		printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+				//	}
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	store->DeleteFirstNRecs(10);
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	auto res = store->GetAllRecs();
+				//	for (int i = 0; i < 20 /*res->GetRecs()*/; i++) {
+				//		auto rec = res->GetRec(i);
+				//		printf("*    %s\n", rec.GetRecNm().CStr());
+				//	}
+
+				//	//store->de
+				//}
 				// save base
 				TQm::TStorage::SaveBase(Base);
 			}

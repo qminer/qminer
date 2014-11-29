@@ -55,12 +55,14 @@ class TMyGixDefMerger : public TGixExpMerger < TMyKey, TMyItem > {
 public:
 	static PGixExpMerger New() { return new TMyGixDefMerger(); }
 
+	// overridde abstract methods
 	void Union(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
 	void Intrs(TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV) const;
 	void Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& JoinV, TVec<TMyItem>& ResV) const;
-	void Merge(TVec<TMyItem>& ItemV, bool Local = false) const;
 	void Def(const TMyKey& Key, TVec<TMyItem>& MainV) const {}
 
+	// methods needed for usage in template
+	void Merge(TVec<TMyItem>& ItemV, bool IsLocal = false) const;
 	void Delete(const TMyItem& Item, TVec<TMyItem>& MainV) const { return MainV.DelAll(Item); }
 	bool IsLt(const TMyItem& Item1, const TMyItem& Item2) const { return Item1 < Item2; }
 	bool IsLtE(const TMyItem& Item1, const TMyItem& Item2) const { return Item1 <= Item2; }
@@ -112,7 +114,7 @@ void TMyGixDefMerger::Minus(const TVec<TMyItem>& MainV, const TVec<TMyItem>& Joi
 	MainV.Diff(JoinV, ResV);
 }
 
-void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool Local) const {
+void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool IsLocal) const {
 	//printf("============================================\n");
 	//for (int i = 0; i < ItemV.Len(); i++) {
 	//	printf("   (%d) %d %d\n", i, ItemV[i].Key, (int)ItemV[i].Dat);
@@ -142,7 +144,7 @@ void TMyGixDefMerger::Merge(TVec<TMyItem>& ItemV, bool Local) const {
 		LastItemN = 0;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
 			const TMyItem& Item = ItemV[ItemN];
-			if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
+			if (Item.Dat > 0 || (IsLocal && Item.Dat < 0)) {
 				ItemV[LastItemN] = Item;
 				LastItemN++;
 			} else if (Item.Dat < 0) {
