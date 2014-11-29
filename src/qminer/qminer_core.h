@@ -63,6 +63,8 @@ public:
     
 	/// Path to QMiner
 	static TStr QMinerFPath;
+	/// Path to 
+	static TStr RootFPath;
 	/// Default QMiner notification facility
 	static PNotify Error;
 	static PNotify Logger;	
@@ -580,7 +582,9 @@ public:
 	TRec GetRec(const TStr& RecNm);
 	/// Get number of records in the store
 	virtual uint64 GetRecs() const = 0; 
+	/// Get ID of the first record
 	virtual uint64 GetFirstRecId() const = 0;
+	/// Get ID of the last record
 	virtual uint64 GetLastRecId() const = 0;
 	/// Get iterator to go over all records in the store
 	virtual PStoreIter GetIter() const = 0;
@@ -618,6 +622,8 @@ public:
     
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
 	virtual void GarbageCollect() { }
+	/// Delete the first DelRecs records (the records that were inserted first)
+	virtual void DeleteFirstNRecs(int DelRecs) { };
     
     /// Check if the value of given field for a given record is NULL
 	virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
@@ -924,6 +930,25 @@ public:
 };
 
 ///////////////////////////////
+/// Record Comparator by Frequency. If same, sort by ID
+class TRecCmpByFq {
+private:
+    TBool Asc;
+public:
+    TRecCmpByFq(const bool& _Asc) : Asc(_Asc) { }
+
+    bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+        if (Asc) {
+            return (RecIdWgt1.Dat == RecIdWgt2.Dat) ?
+                (RecIdWgt1.Key < RecIdWgt2.Key) : (RecIdWgt1.Dat < RecIdWgt2.Dat);
+        } else {
+            return (RecIdWgt2.Dat == RecIdWgt1.Dat) ?
+                (RecIdWgt2.Key < RecIdWgt1.Key) : (RecIdWgt2.Dat < RecIdWgt1.Dat);
+        }
+    }
+};
+
+///////////////////////////////
 /// Record Comparator by Integer Field. 
 class TRecCmpByFieldInt {
 private:
@@ -935,7 +960,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldInt(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const int RecVal1 = Store->GetFieldInt(RecIdWgt1.Key, FieldId);
@@ -956,7 +981,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldFlt(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const double RecVal1 = Store->GetFieldFlt(RecIdWgt1.Key, FieldId);
@@ -977,7 +1002,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldStr(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const TStr RecVal1 = Store->GetFieldStr(RecIdWgt1.Key, FieldId);
@@ -998,7 +1023,7 @@ private:
     TBool Asc;
 public:
     TRecCmpByFieldTm(const TWPt<TStore>& _Store, const int& _FieldId,
-        const bool& _Asc=true): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
+        const bool& _Asc): Store(_Store), FieldId(_FieldId), Asc(_Asc) { }
     
     bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
         const uint64 RecVal1 = Store->GetFieldTmMSecs(RecIdWgt1.Key, FieldId);
@@ -1288,6 +1313,8 @@ public:
 	uint64 GetLastRecId() const { return RecIdFqV.Last().Key; }
 	/// Get reference to complete vector of pairs (record id, weight)
     const TUInt64IntKdV& GetRecIdFqV() const { return RecIdFqV; }
+    /// Get direct reference to elements of vecotr
+    const TUInt64IntKd& GetRecIdFq(const int& RecN) const { return RecIdFqV[RecN]; }
 
 	/// Load record ids into the provided vector
     void GetRecIdV(TUInt64V& RecIdV) const;
@@ -1318,7 +1345,7 @@ public:
 	/// @param Asc True for sorting in increasing order
 	void SortByField(const bool& Asc, const int& SortFieldId);
 	/// Sort records according to given comparator
-	template <class TCmp> void SortCmp(const TCmp& Cmp) { TInt::SetRndSeed(1); RecIdFqV.SortCmp(Cmp); }
+	template <class TCmp> void SortCmp(const TCmp& Cmp) { RecIdFqV.SortCmp(Cmp); }
 
 	/// Filter records to keep only the ones which actually exist
 	void FilterByExists();
@@ -2097,7 +2124,9 @@ public:
 		void Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const;
 		void Minus(const TQmGixItemV& MainV, const TQmGixItemV& JoinV, TQmGixItemV& ResV) const;
 		void Merge(TQmGixItemV& ItemV) const;
-		void Def(const TQmGixKey& Key, TQmGixItemV& MainV) const  { }
+		void Def(const TQmGixKey& Key, TQmGixItemV& MainV) const {}
+		bool IsLt(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 < Item2; }
+		bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
 	};
 
 	/// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
@@ -2444,8 +2473,12 @@ public:
     
 	/// Load stream aggregate from stream
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	virtual void _Load(TSIn& SIn) { throw TQmExcept::New("TStreamAggr::_Load not implemented:" + GetAggrNm()); };
 	/// Save basic class of stream aggregate to stream
 	virtual void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	virtual void _Save(TSOut& SOut) const { throw TQmExcept::New("TStreamAggr::_Save not implemented:" + GetAggrNm()); };
 
 	/// Get aggregate name
 	const TStr& GetAggrNm() const { return AggrNm; }
@@ -2468,7 +2501,9 @@ public:
 	virtual PJsonVal SaveJson(const int& Limit) const = 0;
     
 	/// Unique ID of the stream aggregate
-	const TStr& GetGuid() const { return Guid; }    
+	const TStr& GetGuid() const { return Guid; }  
+
+	virtual TStr Type() const = 0;
 };
 
 ///////////////////////////////
@@ -2510,6 +2545,14 @@ namespace TStreamAggrOut {
 		virtual int GetFltLen() const = 0;
 		virtual double GetFlt(const TInt& ElN) const = 0;
 		virtual void GetFltV(TFltV& ValV) const = 0;
+	};
+
+	class ITmVec {
+	public:
+		// retrieving vector of timestamps from the aggregate
+		virtual int GetTmLen() const = 0;
+		virtual uint64 GetTm(const TInt& ElN) const = 0;
+		virtual void GetTmV(TUInt64V& MSecsV) const = 0;
 	};
 
 	class IFltVecTm : public IFltVec, public ITm { };

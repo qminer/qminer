@@ -336,7 +336,8 @@ void TStoreSchema::ValidateSchema(const TWPt<TBase>& Base, TStoreSchemaV& Schema
 		TStoreSchema& Schema = SchemaV[SchemaN];
 		// unique store names
 		TStr StoreName = Schema.StoreName;
-        QmAssertR(!StoreNameH.IsKey(StoreName), "Duplicate store name " + StoreName);
+        QmAssertR(!Base->IsStoreNm(StoreName), "Store already exists: " + StoreName);
+        QmAssertR(!StoreNameH.IsKey(StoreName), "Duplicate store name: " + StoreName);
 		StoreNameH.AddDat(StoreName, 0);
 		// check unique store ids
 		if (SchemaV[SchemaN].HasStoreIdP) {
@@ -833,8 +834,12 @@ void TRecSerializator::SetVarJsonVal(TMem& RecMem, TMOut& SOut,
         }
 		case oftBowSpV:
             throw TQmExcept::New("Parsing of BowSpV from JSon not yet implemented");
-		case oftNumSpV:
-            throw TQmExcept::New("Parsing of NumSpV from JSon not yet implemented");
+		case oftNumSpV: {
+			QmAssertR(JsonVal->IsArr(), "Provided JSon data field " + FieldDesc.GetFieldNm() + " is not array.");
+			TIntFltKdV NumSpV; JsonVal->GetArrNumSpV(NumSpV);
+			SetFieldNumSpV(RecMem, SOut, FieldSerialDesc, NumSpV);
+			break;
+		}
         default:
             throw TQmExcept::New("Unsupported JSon data type for DB storage (variable part) - " + FieldDesc.GetFieldTypeStr());
 	}
@@ -1942,7 +1947,7 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal) {
         // parse out record id, if referred directly
         {
             const uint64 RecId = TStore::GetRecId(RecVal);
-            if (RecId != TUInt64::Mx) {
+			if (IsRecId(RecId)) {
                 // check if we have anything more than record identifier, which would require calling UpdateRec
                 if (RecVal->GetObjKeys() > 1) { UpdateRec(RecId, RecVal); }
                 // return named record
@@ -2137,43 +2142,79 @@ void TStoreImpl::GarbageCollect() {
         }
 	}
     TEnv::Logger->OnStatusFmt("  purging %d records", DelRecIdV.Len());
+	TStoreImpl::DeleteRecs(DelRecIdV, false);    
+}
 
-    // delete records from index
-    for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
-        // report progress
+void TStoreImpl::DeleteFirstNRecs(int DelRecs)  {
+	// if no records, nothing to do here
+	if (Empty()) { return; }
+	// report on activity
+	TEnv::Logger->OnStatusFmt("Deleting %d records in %s", DelRecs, GetStoreNm().CStr());
+	TEnv::Logger->OnStatusFmt("  %s records at start", TUInt64::GetStr(GetRecs()).CStr());
+
+	// prepare list of records that need to be deleted
+	TUInt64V DelRecIdV;
+	// iterate from the start until we hit the time window
+	PStoreIter Iter = GetIter();
+	while (Iter->Next() && DelRecs > 0) {
+		// mark record for deletion
+		DelRecIdV.Add(Iter->GetRecId());
+		// track progress
+		DelRecs--;
+	}
+	TStoreImpl::DeleteRecs(DelRecIdV, false);
+}
+
+void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
+	if (AssertOK) {
+		// assert that DelRecIdV is valid, without gaps and that deleting will not create gaps
+		PStoreIter Iter = GetIter();
+		int Counter = 0;
+		QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs incorrect record id sequence. The length is greater than the total number of records.");
+		while (Iter->Next()) {
+			QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStoreImpl::DeleteRecs: incorrect record id sequence. The sequence should start at the first store records, should contain only record ids and should not contain gaps");
+			Counter++;
+		}
+	}
+	// delete records from index
+	for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
+		// report progress
 		if (DelRecN % 100 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
-        // what are we deleting now
+		// what are we deleting now
 		const uint64 DelRecId = DelRecIdV[DelRecN];
 		// executed triggers before deletion
 		OnDelete(DelRecId);
-        // delete record from name-id map
-        if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
+		// delete record from name-id map
+		if (IsPrimaryField()) { DelPrimaryField(DelRecId); }
 		// delete record from indexes
-    	TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
-        RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
-    	TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
-        RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+		if (DataCacheP) {
+			TMem CacheRecMem; DataCache.GetVal(DelRecId, CacheRecMem);
+			RecIndexer.DeindexRec(CacheRecMem, DelRecId, SerializatorCache);
+		}
+		if (DataMemP) {
+			TMem MemRecMem; DataMem.GetVal(DelRecId, MemRecMem);
+			RecIndexer.DeindexRec(MemRecMem, DelRecId, SerializatorMem);
+		}
 		// delete record from joins
-        TRec Rec(this, DelRecId);
+		TRec Rec(this, DelRecId);
 		for (int JoinN = 0; JoinN < GetJoins(); JoinN++) {
 			TJoinDesc JoinDesc = GetJoinDesc(JoinN);
-            // execute the join
-            PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());            
-            for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
-                // remove joins with all matched records, one by one
-                const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
-                const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
-                DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
-            }
+			// execute the join
+			PRecSet JoinRecSet = Rec.DoJoin(GetBase(), JoinDesc.GetJoinId());
+			for (int JoinRecN = 0; JoinRecN < JoinRecSet->GetRecs(); JoinRecN++) {
+				// remove joins with all matched records, one by one
+				const uint64 JoinRecId = JoinRecSet->GetRecId(JoinRecN);
+				const int JoinFq = JoinRecSet->GetRecFq(JoinRecN);
+				DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId, JoinFq);
+			}
 		}
-
 	}
-    // delete records from disk
-	DataCache.DelVals(DelRecIdV.Len());
-    // delete records from in-memory store
-	DataMem.DelVals(DelRecIdV.Len());
-    
-    // report success :-)
+	// delete records from disk
+	if (DataCacheP) { DataCache.DelVals(DelRecIdV.Len()); }
+	// delete records from in-memory store
+	if (DataMemP) { DataMem.DelVals(DelRecIdV.Len()); }
+
+	// report success :-)
 	TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
 }
 

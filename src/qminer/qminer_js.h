@@ -17,6 +17,8 @@
  * 
  */
 
+#ifdef USE_JS
+
 #ifndef QMINER_JS_H
 #define QMINER_JS_H
 
@@ -37,6 +39,10 @@ namespace TQm {
 // available on QMiner wiki page https://github.com/qminer/qminer/wiki/JavaScript
 // every so often.
     
+// code to generate table of contents:
+//    cat jsdocfinal.txt | grep '##' | sed 's/###/\/\/#  -/' | sed 's/##/\/\/# -/' | sed 's/- \(.*\)/- [\1](\1)/'    
+// required post-edit example: (#System and I/O) =>(system-and-io)
+    
 //# QMiner functionality is accessible through a JavaScript API. The JavaScript environment
 //# is similar to Node.js, but omits any functionality not necessary for QMiner's core tasks.
 //# The API includes a simple HTTP server with RESTful web-service support for defining
@@ -51,7 +57,49 @@ namespace TQm {
 //# Tools / Options / Text Editor / JavaScript / IntelliSense / References, and selecting "Implicit(Web)" reference group and adding qminer.intellisense.js and qminer.js (located in QMINER_HOME/src/qminer/)
 //# 
 //# JavaScript API requires [initialized work environment](Quick-Start).
-//# 
+//#
+//# ## Table of contents
+//#
+//# - [Libraries](#libraries)
+//# - [File system, I/O](#file-system-and-io)
+//#  - [File system](#file-system)
+//#  - [Input File Stream](#input-file-stream)
+//#  - [Output File Stream](#output-file-stream)
+//# - [Core QMiner objects](#core-qminer-objects)
+//#  - [QMiner](#qminer)
+//#  - [Stream Aggregate](#stream-aggregate)
+//#  - [Store](#store)
+//#  - [Store iterator](#store-iterator)
+//#  - [Record set](#record-set)
+//#  - [Record](#record)
+//#  - [Index key](#index-key)
+//# - [Linear Algebra](#linear-algebra)
+//#  - [Vector](#vector)
+//#  - [Matrix (dense matrix)](#matrix-dense-matrix)
+//#  - [SpVector (sparse vector)](#spvector-sparse-vector)
+//#  - [SpMatrix (sparse column matrix)](#spmatrix-sparse-column-matrix)
+//# - [analytics.js (use require)](#analyticsjs-use-require)
+//#  - [Feature Space](#feature-space)
+//#  - [Support Vector Machine model](#support-vector-machine-model)
+//#  - [Neural network model](#neural-network-model)
+//#  - [Recursive Linear Regression model](#recursive-linear-regression-model)
+//#  - [Hoeffding Tree model](#hoeffding-tree-model)
+//# - [System](#system)
+//#  - [Process](#process)
+//#  - [assert.js (use require)](#assertjs-use-require)
+//#  - [Console](#console)
+//#  - [utilities.js (use require)](#utilitiesjs-use-require)
+//#  - [utilities.map (use require)](#hash-map)
+//#  - [HTTP](#http)
+//#  - [HTTP Response](#http-response)
+//#  - [Date-Time](#date-time)
+//# - [snap.js (use require)](#snap-graph-library)
+//#  - [Graph](#graph)
+//#  - [Node](#node)
+//#  - [Edge](#edge)
+//# - [Other libraries](#other-libraries)
+//#  - [twitter.js (use require)](#twitterjs-use-require)
+//#   
 //# ## Libraries
 //# 
 //# Scripts can load external libraries or modules in the same way as Node.js.
@@ -242,9 +290,12 @@ namespace TQm {
 // Forward declarations 
 class TScript; typedef TPt<TScript> PScript;
 class TJsBase; typedef TPt<TJsBase> PJsBase;
+class TJsRec;
 class TJsFetch;
 class TJsFetchRq;
 class TJsHttpResp;
+class TJsFOut;
+class TJsFIn;
 
 ///////////////////////////////
 /// JavaScript Utility Function
@@ -404,12 +455,20 @@ public:
 	void Execute(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal, v8::Handle<v8::Object>& V8Obj);
 	/// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Object>& Arg2);
+	/// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
+    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
+    v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, const PJsonVal& JsonVal);
 	/// Execute JavaScript callback in this script's context, return double
 	double ExecuteFlt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
+	/// Execute JavaScript callback in this script's context, return double
+	int ExecuteInt(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg);
 	/// Execute JavaScript callback in this script's context, write result to vector
 	void ExecuteFltVec(v8::Handle<v8::Function> Fun, const v8::Handle<v8::Value>& Arg, TFltV& Vec);
 	/// Execute JavaScript callback in this script's context
@@ -502,21 +561,26 @@ public:
 	}
 	
 	/// Creates new JavaScript object around TJsObj, using supplied template
-	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const v8::Handle<v8::ObjectTemplate>& Template) {
+	static v8::Persistent<v8::Object> New(TJsObj* JsObj, const v8::Handle<v8::ObjectTemplate>& Template, const bool& MakeWeakP = true) {
 		v8::HandleScope HandleScope;
 		v8::Persistent<v8::Object> Object = v8::Persistent<v8::Object>::New(Template->NewInstance());
 		Object->SetInternalField(0, v8::External::New(JsObj));
-		Object.MakeWeak(NULL, &Clean);
+		if (MakeWeakP) { Object.MakeWeak(NULL, &Clean); }
 		TJsUtil::AddObj(GetTypeNm<TJsObj>(*JsObj));
 		return Object;
 	}
+    
+    /// Mark object destructible by GC
+    static void MakeWeak(v8::Persistent<v8::Object>& Obj) {
+        Obj.MakeWeak(NULL, &Clean);
+    }
 
 	/// Destructor of JavaScript object, calls TJsObj destructor
 	static void Clean(v8::Persistent<v8::Value> Handle, void* Id) {
 		v8::HandleScope HandleScope;
 		v8::Handle<v8::Object> Object = v8::Handle<v8::Object>::Cast(Handle);
 		v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(Object->GetInternalField(0));
-                TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
+        TJsUtil::DelObj(GetTypeNm<TJsObj>(*static_cast<TJsObj*>(WrappedObject->Value())));
 		delete static_cast<TJsObj*>(WrappedObject->Value());
 		Handle.Dispose();
 		Handle.Clear();
@@ -555,6 +619,12 @@ public:
 		if (EmptyP) { return ""; }
 		v8::String::Utf8Value Utf8(ClassNm);
 		return TStr(*Utf8);		
+	}
+
+	// checks if the class name of the underlying glib object matches the given string. the name is stored in an hidden variable "class"
+	static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) {
+		TStr ObjClassStr = GetClass(Obj);		
+		return ObjClassStr == ClassNm;
 	}
 
 	/// Transform V8 string to TStr
@@ -906,38 +976,6 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Stream Aggregator
-class TJsStreamAggr : public TStreamAggr {
-private:
-	/// JS script context
-	TWPt<TScript> Js;
-	// callbacks
-	v8::Persistent<v8::Function> OnAddFun;
-	v8::Persistent<v8::Function> OnUpdateFun;
-	v8::Persistent<v8::Function> OnDeleteFun;
-	v8::Persistent<v8::Function> SaveJsonFun;
-
-public:
-	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
-	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(Js, _AggrNm, TriggerVal); }
-    
-	void OnAddRec(const TRec& Rec);
-	void OnUpdateRec(const TRec& Rec);
-	void OnDeleteRec(const TRec& Rec);
-	PJsonVal SaveJson(const int& Limit) const {
-		if (!SaveJsonFun.IsEmpty()) {
-			PJsonVal Res = Js->ExecuteJson(SaveJsonFun, Limit);
-			QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
-			return Res;
-		}
-		else {
-			return TJsonVal::NewObj();
-		}
-	}
-};
-
-///////////////////////////////
 // JavaScript WebPgFetch Request
 class TJsFetchRq {
 private:
@@ -994,6 +1032,142 @@ public:
 	void Fetch(const TJsFetchRq& Rq);
 };
 
+//#
+//# ## File System and I/O
+//#
+///////////////////////////////
+// QMiner-JavaScript-Filesystem
+//#
+//# ### File system
+//# 
+class TJsFs {
+public:
+	// directories we're allowed to access 
+	TVec<TJsFPath> AllowedFPathV;
+
+private:
+	typedef TJsObjUtil<TJsFs> TJsFsUtil;
+
+	TJsFs(const TVec<TJsFPath>& AllowedDirV_) : AllowedFPathV(AllowedDirV_) { }
+public:
+	static v8::Persistent<v8::Object> New(TScript* Js) {
+		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV));
+	}
+	~TJsFs() { }
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	/// Are we allowed to access given path
+	bool CanAccess(const TStr& FPath);
+	/// Are we allowed to access given path
+	static bool CanAccess(const v8::Arguments& Args);
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
+	JsDeclareFunction(openRead);
+	//#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+	JsDeclareFunction(openWrite);
+	//#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
+	JsDeclareFunction(openAppend);
+	//#- `bool = fs.exists(fileName)` -- does file exist?
+	JsDeclareFunction(exists);
+	//#- `fs.copy(fromFileName, toFileName)` -- copy file
+	JsDeclareFunction(copy);
+	//#- `fs.move(fromFileName, toFileName)` -- move file
+	JsDeclareFunction(move);
+	//#- `fs.del(fileName)` -- delete file
+	JsDeclareFunction(del);
+	//#- `fs.rename(fromFileName, toFileName)` -- rename file
+	JsDeclareFunction(rename);
+	//#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+	JsDeclareFunction(fileInfo);
+	//#- `fs.mkdir(dirName)` -- make folder
+	JsDeclareFunction(mkdir);
+	//#- `fs.rmdir(dirName)` -- delete folder
+	JsDeclareFunction(rmdir);
+    //#- `strArr = fs.listFile(dirName)` -- returns list of files in directory
+	//#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
+	//#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+	JsDeclareFunction(listFile);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FIn
+//#
+//# ### Input File Stream
+//# 
+class TJsFIn {
+public:
+	PSIn SIn;
+private:
+	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
+	TJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FNm) {
+		return TJsFInUtil::New(new TJsFIn(FNm));
+	}
+	static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `char = fin.peekCh()` -- peeks a character
+	JsDeclareFunction(peekCh);
+	//#- `char = fin.getCh()` -- reads a character
+	JsDeclareFunction(getCh);
+	//#- `line = fin.readLine()` -- reads a line
+	JsDeclareFunction(readLine);
+	//#- `bool = fin.eof` -- end of stream?
+	JsDeclareProperty(eof);
+	//#- `len = fin.length` -- returns the length of input stream
+	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-FOut
+//#
+//# ### Output File Stream
+//# 
+class TJsFOut {
+public:
+	PSOut SOut;
+private:
+	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
+	TJsFOut(const TStr& FilePath, const bool& AppendP) : SOut(TFOut::New(FilePath, AppendP)) { }
+	TJsFOut(const TStr& FilePath) : SOut(TZipOut::NewIfZip(FilePath)) { }
+	TJsFOut(PSOut& SOut_) : SOut(SOut_) { }
+public:
+	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) {
+		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP));
+	}
+	static v8::Persistent<v8::Object> New(PSOut& SOut_) {
+		return TJsFOutUtil::New(new TJsFOut(SOut_));
+	}
+
+	static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
+
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
+	JsDeclareFunction(write);
+	//#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+	JsDeclareFunction(writeLine);
+	//#- `fout = fout.flush()` -- flushes output stream
+	JsDeclareFunction(flush);
+	//#- `fout = fout.close()` -- closes output stream
+	JsDeclareFunction(close);
+};
+
 ///////////////////////////////
 // JavaScript QMiner Base
 //# 
@@ -1023,7 +1197,6 @@ public:
     static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
     // temporary stuff
-	JsDeclareProperty(analytics); // deprecated    
 	JsDeclareFunction(op); // soon to be deprecated, functionality moved to TJsRecSet
 
 	//# 
@@ -1054,7 +1227,7 @@ public:
 	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
-	JsDeclareFunction(getStreamAggrNames);
+	JsDeclareFunction(getStreamAggrNames);	
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -1097,9 +1270,151 @@ public:
 	JsDeclareFunction(onDelete);
 	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
 	JsDeclareFunction(saveJson);
+	//#- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
+	JsDeclareFunction(save);
+	//#- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
+	JsDeclareFunction(load);
 	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
 	JsDeclareProperty(val);
+	// IInt
+	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+	JsDeclareFunction(getInt);
+	// IFlt
+	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+	JsDeclareFunction(getFlt);
+	// ITm
+	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+	JsDeclareFunction(getTm);
+	// IFltVec
+	//#- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltLen);
+	//#- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltAt);
+	//#- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltV);
+	// ITmVec
+	//#- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmLen);
+	//#- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmAt);
+	//#- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmV);
+	// IFltTmIO
+	//#- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInFlt);
+	//#- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInTm);
+	//#- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutFltV);
+	//#- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutTmV);
+	//#- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getN);
+
 };
+
+///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr :
+	public TStreamAggr,
+	public TStreamAggrOut::IInt,
+	//public TStreamAggrOut::IFlt,	
+	//public TStreamAggrOut::ITm,
+	public TStreamAggrOut::IFltTmIO,
+	public TStreamAggrOut::IFltVec,
+	public TStreamAggrOut::ITmVec,
+	public TStreamAggrOut::INmFlt,
+	public TStreamAggrOut::INmInt,
+	// combinations
+	public TStreamAggrOut::IFltTm
+	//public TStreamAggrOut::IFltVecTm
+{
+private:
+	/// JS script context
+	TWPt<TScript> Js;
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
+
+	v8::Persistent<v8::Function> GetIntFun;
+	// IFlt 
+	v8::Persistent<v8::Function> GetFltFun;
+	// ITm 
+	v8::Persistent<v8::Function> GetTmMSecsFun;
+	// IFltTmIO 
+	v8::Persistent<v8::Function> GetInFltFun;
+	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetOutFltVFun;
+	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
+	v8::Persistent<v8::Function> GetNFun;
+	// IFltVec
+	v8::Persistent<v8::Function> GetFltLenFun;
+	v8::Persistent<v8::Function> GetFltAtFun;
+	v8::Persistent<v8::Function> GetFltVFun;
+	// ITmVec
+	v8::Persistent<v8::Function> GetTmLenFun;
+	v8::Persistent<v8::Function> GetTmAtFun;
+	v8::Persistent<v8::Function> GetTmVFun;
+	// INmFlt 
+	v8::Persistent<v8::Function> IsNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltVFun;
+	// INmInt
+	v8::Persistent<v8::Function> IsNmFun;
+	v8::Persistent<v8::Function> GetNmIntFun;
+	v8::Persistent<v8::Function> GetNmIntVFun;
+
+public:
+	TJsStreamAggr(TWPt<TScript> _Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static PStreamAggr New(TWPt<TScript> Js, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(Js, _AggrNm, TriggerVal);
+	}
+
+	void OnAddRec(const TRec& Rec);
+	void OnUpdateRec(const TRec& Rec);
+	void OnDeleteRec(const TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "javaScript"; }
+	TStr Type() const { return GetType(); }
+	void _Save(TSOut& SOut) const;
+	v8::Persistent<v8::Function> SaveFun;
+	void _Load(TSIn& SIn);
+	v8::Persistent<v8::Function> LoadFun;
+
+	// IInt
+	int GetInt() const;
+	// IFlt 
+	double GetFlt() const;
+	// ITm 
+	uint64 GetTmMSecs() const;
+	// IFltTmIO 
+	double GetInFlt() const;
+	uint64 GetInTmMSecs() const;
+	void GetOutFltV(TFltV& ValV) const;
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	int GetN() const;
+	// IFltVec
+	int GetFltLen() const;
+	double GetFlt(const TInt& ElN) const; // GetFltAtFun
+	void GetFltV(TFltV& ValV) const;
+	// ITmVec
+	int GetTmLen() const;
+	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+	void GetTmV(TUInt64V& TmMSecsV) const;
+	// INmFlt 
+	bool IsNmFlt(const TStr& Nm) const;
+	double GetNmFlt(const TStr& Nm) const;
+	void GetNmFltV(TStrFltPrV& NmFltV) const;
+	// INmInt
+	bool IsNm(const TStr& Nm) const;
+	double GetNmInt(const TStr& Nm) const;
+	void GetNmIntV(TStrIntPrV& NmIntV) const;
+};
+
 
 ///////////////////////////////
 // QMiner-JavaScript-Store
@@ -1115,22 +1430,25 @@ public:
 class TJsStore {
 private:
 	/// JS script context
-	TWPt<TScript> Js;	
+	TWPt<TScript> Js;
 	TWPt<TStore> Store;
 
 	typedef TJsObjUtil<TJsStore> TJsStoreUtil;
 
-	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store): Js(_Js), Store(_Store) { }
+	TJsStore(TWPt<TScript> _Js, TWPt<TStore> _Store) : Js(_Js), Store(_Store) { }
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
 		return TJsStoreUtil::New(new TJsStore(Js, Store), Js, "qm.storeProto");
 	}
-	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) { 
+	/*static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TWPt<TStore> Store) {
 		return TJsStoreUtil::New(new TJsStore(Js, Store)); }*/
 	~TJsStore() { }
 
 	// template
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	static v8::Handle<v8::Value> Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const TRec& Rec, const int FieldId, v8::HandleScope& HandleScope);
+	static v8::Handle<v8::Value> Field(TWPt<TScript> _Js, const TWPt<TStore>& Store, const uint64& RecId, const int FieldId, v8::HandleScope& HandleScope);
 
 	//# 
 	//# **Functions and properties:**
@@ -1163,6 +1481,14 @@ public:
     //#- `rec = store.rec(recName)` -- get record named `recName`; 
     //#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
+	//#- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
+	//#  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
+	//#  - `store.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(each);
+	//#- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
+	//#  - `arr = store.map(function (rec) { return JSON.stringify(rec); })`
+	//#  - `arr = store.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	JsDeclareFunction(map);
     //#- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
 	JsDeclareFunction(add);
     //#- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
@@ -1182,6 +1508,18 @@ public:
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
 	JsDeclareFunction(getStreamAggrNames);
+	//#- `objJSON = store.toJSON()` -- returns the store as a JSON
+	JsDeclareFunction(toJSON);
+	//#- `store.clear()` -- deletes all records
+	//#- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+	JsDeclareFunction(clear);
+	//#- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
+	//#- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
+	//#- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
+	JsDeclareFunction(cell);
 	//#JSIMPLEMENT:src/qminer/store.js
 
     //# 
@@ -1206,11 +1544,9 @@ public:
     //# });
     //# 
     //# // iterating over records
-    //# var rs = qm.store("People");
-    //# for (var i = 0; i < rs.length; i++) {
-    //#   var rec = rs[i];
+    //# qm.store("People").each(function (rec) {
     //#   console.log(rec.Name + " (" + rec.Gender + ")");
-    //# }
+    //# });
     //# ```    
 };
     
@@ -1225,16 +1561,18 @@ private:
 	TWPt<TScript> Js;	
 	TWPt<TStore> Store;
     PStoreIter Iter;
+    // placeholder for last object
+    v8::Persistent<v8::Object> RecObj;
+    TJsRec* JsRec;
 
 	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
 
-	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, 
-        const PStoreIter& _Iter): Js(_Js), Store(_Store), Iter(_Iter) { }	
+	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, const PStoreIter& _Iter);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, 
         const TWPt<TStore>& Store, const PStoreIter& Iter) { 
 		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter)); }
-	~TJsStoreIter() { }
+	~TJsStoreIter() { if (JsRec != NULL) { TJsObjUtil<TJsRec>::MakeWeak(RecObj); } }
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
@@ -1243,7 +1581,7 @@ public:
 	//#   
     //#- `store = iter.store` -- get the store
 	JsDeclareProperty(store);
-    //#- `rec = iter.rec` -- get current record
+    //#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	JsDeclareProperty(rec);
     //#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
     JsDeclareFunction(next);
@@ -1286,7 +1624,7 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Record Comparator
+// JavaScript Record Splitter
 class TJsRecSplitter {
 private:
 	/// JS script context
@@ -1349,7 +1687,8 @@ public:
 	//#- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
 	//#- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
 	JsDeclareFunction(aggr);
-	//#- `rs = rs.trunc(num)` -- truncate to first `num` record and return self.
+	//#- `rs = rs.trunc(limit_num)` -- truncate to first `limit_num` record and return self.
+	//#- `rs = rs.trunc(limit_num, offset_num)` -- truncate to `limit_num` record starting with `offset_num` and return self.
 	JsDeclareFunction(trunc);
 	//#- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
 	JsDeclareFunction(sample);
@@ -1375,14 +1714,19 @@ public:
 	JsDeclareFunction(filterByField);
 	//#- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
 	JsDeclareFunction(filter);
-	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more then 10. Result is an array of record sets. 
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
    	JsDeclareFunction(split);
     //#- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
 	JsDeclareFunction(deleteRecs);
     //#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
 	JsDeclareFunction(toJSON);
-	//#- `rs = rs.map(mapCallback)` -- iterates through the record set and executes the callback function `mapCallback` on each element. Returns self. Example:
-	//#   `rs.map(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	//#- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
+	//#  - `rs.each(function (rec) { console.log(JSON.stringify(rec)); })`
+	//#  - `rs.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(each);
+	//#- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
+	//#  - `arr = rs.map(function (rec) { return JSON.stringify(rec); })`
+	//#  - `arr = rs.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
 	JsDeclareFunction(map);
 	//#- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
 	JsDeclareFunction(setintersect);
@@ -1390,6 +1734,10 @@ public:
 	JsDeclareFunction(setunion);
 	//#- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
 	JsDeclareFunction(setdiff);
+	//#- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
 
 
     //# 
@@ -1421,8 +1769,11 @@ private:
 	TJsRec(TWPt<TScript> _Js, const TRec& _Rec, const int& _Fq): 
 		Js(_Js), Store(_Rec.GetStore()), Rec(_Rec), Fq(_Fq) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TRec& Rec, const int& Fq = 0) { 
-		return TJsRecUtil::New(new TJsRec(Js, Rec, Fq), GetTemplate(Js->Base, Rec.GetStore())); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TRec& Rec, 
+        const int& Fq = 0, const bool& MakeWeakP = true) { 
+    		return TJsRecUtil::New(new TJsRec(Js, Rec, Fq), 
+                GetTemplate(Js->Base, Rec.GetStore()), MakeWeakP); }
+    static TJsRec* GetJsRec(const v8::Handle<v8::Value>& Val);
     static TRec GetArgRec(const v8::Arguments& Args, const int& ArgN);
 
 	~TJsRec() { }
@@ -1447,6 +1798,8 @@ public:
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
 	JsDeclareProperty(sjoin);
+    //#- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
+    JsDeclareFunction(clone);
     //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
     //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
     JsDeclareFunction(addJoin);
@@ -1523,11 +1876,16 @@ public:
 	//#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
 	//#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
 	JsDeclareFunction(newVec);
-	//#- `intVec = la.newIntVec()` -- generate an empty float vector
+	//#- `intVec = la.newIntVec()` -- generate an empty integer vector
 	//#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
 	//#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-	//#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+	//#- `intVec = la.newIntVec(intVec2)` -- clone an int vector `intVec2`
 	JsDeclareFunction(newIntVec);
+	//#- `strVec = la.newStrVec()` -- generate an empty integer vector
+	//#- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	//#- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+	//#- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
+	JsDeclareFunction(newStrVec);
 	//#- `mat = la.newMat()` -- generates a 0x0 matrix
 	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
@@ -1541,9 +1899,13 @@ public:
 	//#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(newSpMat);
-	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 2) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-	JsDeclareFunction(svd);	
+	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	JsDeclareFunction(svd);
+	//#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
+	JsDeclareFunction(qr);
+    //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
+    //JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 
@@ -1575,6 +1937,9 @@ public:
 	static double CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->ToNumber()->Value();
 	}
+	static TFlt Parse(const TStr& Str) {
+		return Str.GetFlt();
+	}
 };
 
 class TAuxIntV {
@@ -1588,6 +1953,26 @@ public:
 	}
 	static int CastVal(const v8::Local<v8::Value>& Value) {
 		return Value->ToInt32()->Value();
+	}
+	static TInt Parse(const TStr& Str) {
+		return Str.GetInt();
+	}
+};
+
+class TAuxStrV {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrV"
+	static v8::Handle<v8::Value> GetObjVal(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TStr GetArgVal(const v8::Arguments& Args, const int& ArgN) {
+		return TJsObjUtil<TJsVec<TStr, TAuxStrV> >::GetArgStr(Args, ArgN);
+	}
+	static TStr CastVal(const v8::Local<v8::Value>& Value) {		
+		return TJsObjUtil<TJsVec<TStr, TAuxStrV> >::GetStr(Value->ToString());
+	}
+	static TStr Parse(const TStr& Str) {
+		return Str;
 	}
 };
 
@@ -1652,12 +2037,16 @@ public:
 	JsDeclareFunction(sum);
 	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
 	//#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
-	JsDeclareFunction(getMaxIdx);
+	JsDeclareTemplatedFunction(getMaxIdx);
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
 	//#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
 	JsDeclareTemplatedFunction(sortPerm);	
+	//#- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
+	JsDeclareFunction(shuffle);
+	//#- `vec = vec.trunc(num)` -- truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.
+	JsDeclareFunction(trunc);
 	//#- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
 	JsDeclareTemplatedFunction(outer);
 	//#- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
@@ -1687,9 +2076,23 @@ public:
 	//#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
 	//#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
 	JsDeclareTemplatedFunction(toMat);
+	//#- `fout = vec.save(fout)` -- saves to output stream `fout`
+	//#- `fout = intVec.save(fout)` -- saves to output stream `fout`
+	JsDeclareFunction(save);
+	//#- `vec = vec.load(fin)` -- loads from input stream `fin`
+	//#- `intVec = intVec.load(fin)` -- loads from input stream `fin`	
+	JsDeclareFunction(load);
+	//#- `fout = vec.saveascii(fout)` -- saves to output stream `fout`
+	//#- `fout = intVec.saveascii(fout)` -- saves to output stream `fout`
+	JsDeclareFunction(saveascii);
+	//#- `vec = vec.loadascii(fin)` -- loads from input stream `fin`
+	//#- `intVec = intVec.loadascii(fin)` -- loads from input stream `fin`	
+	JsDeclareFunction(loadascii);
+
 };
 typedef TJsVec<TFlt, TAuxFltV> TJsFltV;
 typedef TJsVec<TInt, TAuxIntV> TJsIntV;
+typedef TJsVec<TStr, TAuxStrV> TJsStrV;
 
 template <class TVal, class TAux>
 v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
@@ -1708,6 +2111,8 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getMaxIdx);
 		JsRegisterFunction(TmpTemp, sort);
 		JsRegisterFunction(TmpTemp, sortPerm);
+		JsRegisterFunction(TmpTemp, shuffle);
+		JsRegisterFunction(TmpTemp, trunc);
 		JsRegisterFunction(TmpTemp, outer);
 		JsRegisterFunction(TmpTemp, inner);
 		JsRegisterFunction(TmpTemp, plus);
@@ -1721,6 +2126,10 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, norm);
 		JsRegisterFunction(TmpTemp, sparse);
 		JsRegisterFunction(TmpTemp, toMat);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
+		JsRegisterFunction(TmpTemp, saveascii);
+		JsRegisterFunction(TmpTemp, loadascii);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);		
 	}
@@ -1749,8 +2158,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
 			for (int ElN = 0; ElN < Len; ElN++) {
 				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
 			}
-			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
-			return HandleScope.Close(JsRes);
+			return TJsVec<TVal, TAux>::New(JsVec->Js, Res);
 		}
 		else if (Args[0]->IsArray()) {
 			v8::Handle<v8::Value> V8IdxV = TJsLinAlg::newIntVec(Args);
@@ -1762,8 +2170,7 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::subVec(const v8::Arguments& Args) {
 			for (int ElN = 0; ElN < Len; ElN++) {
 				Res[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
 			}
-			v8::Persistent<v8::Object> JsRes = TJsVec<TVal, TAux>::New(JsVec->Js, Res);
-			return HandleScope.Close(JsRes);
+			return TJsVec<TVal, TAux>::New(JsVec->Js, Res);
 		}		
 	}
 	return HandleScope.Close(v8::Undefined());
@@ -1819,7 +2226,6 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::unshift(const v8::Arguments& Args) {
 	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
 	// assume number
 	TVal Val = TAux::GetArgVal(Args, 0);
-
 	JsVec->Vec.Ins(0, Val);
 	return HandleScope.Close(v8::Integer::New(JsVec->Vec.Len()));
 }
@@ -1829,47 +2235,41 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::sum(const v8::Arguments& Args) {
 	// currently only float vectors are supported
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	double result = 0.0;
+	TVal result;
 	int Els = JsVec->Vec.Len();
 	if (Els > 0) {
 		for (int ElN = 0; ElN < Els; ElN++) {
 			result += JsVec->Vec[ElN];
 		}
 	}
-	return HandleScope.Close(v8::Number::New(result));
-}
-
-template <class TVal, class TAux>
-v8::Handle<v8::Value> TJsVec<TVal, TAux>::getMaxIdx(const v8::Arguments& Args) {
-	// currently only float vectors are supported
-	v8::HandleScope HandleScope;
-	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	double Val = TFlt::Mn;
-	int Idx = -1;	
-	int Els = JsVec->Vec.Len();
-	for (int ElN = 0; ElN < Els; ElN++) {
-		if (JsVec->Vec[ElN] > Val) {
-			Val = JsVec->Vec[ElN];
-			Idx = ElN;
-		}		
-	}
-	return HandleScope.Close(v8::Int32::New(Idx));
+	return TAux::GetObjVal(result, HandleScope);
 }
 
 template <class TVal, class TAux>
 v8::Handle<v8::Value> TJsVec<TVal, TAux>::sort(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
-	bool Asc = true;
-	if (Args.Length() > 0) {
-		if (Args[0]->IsBoolean()) {
-			Asc = Args[0]->BooleanValue();
-		}
-	}
-	v8::Persistent<v8::Object> JsResult = TJsVec<TVal,TAux>::New(JsVec->Js);
-	TVec<TVal>& Result = JsVec->Vec;
+	bool Asc = TJsObjUtil<TJsVec>::GetArgBool(Args, 0 , true);
+	TVec<TVal> Result = JsVec->Vec;
 	Result.Sort(Asc);
-	return HandleScope.Close(JsResult);
+	return TJsVec<TVal, TAux>::New(JsVec->Js, Result);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::shuffle(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+    static TRnd Rnd; JsVec->Vec.Shuffle(Rnd);
+	return Args.Holder();
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::trunc(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsObjUtil<TJsVec>::GetSelf(Args);
+    const int NewLen = TJsObjUtil<TJsVec>::GetArgInt32(Args, 0);
+    JsVec->Vec.Trunc(NewLen);
+	return Args.Holder();
 }
 
 template <class TVal, class TAux>
@@ -1887,6 +2287,53 @@ v8::Handle<v8::Value> TJsVec<TVal, TAux>::print(const v8::Arguments& Args) {
 		printf("%s ", JsVec->Vec[ElN].GetStr().CStr());		
 	}
 	printf("\n");	
+	return Args.Holder();
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	JsVec->Vec.Save(*SOut);
+	return HandleScope.Close(Args[0]);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::load (const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	JsVec->Vec.Load(*SIn);
+	return Args.Holder();
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::saveascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+	// save to stream
+	const int Rows = JsVec->Vec.Len();
+	for (int RowId = 0; RowId < Rows; RowId++) {	
+		SOut->PutStr(JsVec->Vec[RowId].GetStr());
+		SOut->PutCh('\n');
+	}
+	return HandleScope.Close(Args[0]);
+}
+
+template <class TVal, class TAux>
+v8::Handle<v8::Value> TJsVec<TVal, TAux>::loadascii(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsVec* JsVec = TJsVecUtil::GetSelf(Args);
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+	// load from stream
+	TStr Line;
+	while (SIn->GetNextLn(Line)) {
+		JsVec->Vec.Add(TAux::Parse(Line));
+	}
 	return Args.Holder();
 }
 
@@ -1992,6 +2439,14 @@ public:
 	JsDeclareFunction(setRow);
 	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
 	JsDeclareFunction(diag);
+	//#- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(save);
+	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(load);
+	//#- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(saveascii);
+	//#- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(loadascii);
 };
 
 ///////////////////////////////
@@ -2059,6 +2514,8 @@ public:
 	//#- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
 	//#- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
 	JsDeclareFunction(inner);	
+    //#- `spVec = spVec.plus(spVec2)` -- adds `spVec2` to `spVec`, result is stored in `spVec. Return self.
+	JsDeclareFunction(plus);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
 	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
@@ -2184,10 +2641,12 @@ public:
 	JsDeclareProperty(cols);
 	//#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
 	JsDeclareFunction(print);
-	//#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
+	//#- `fout = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
 	JsDeclareFunction(load);
+	//#- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
+	JsDeclareFunction(sign);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 };
 
@@ -2225,25 +2684,21 @@ public:
     JsDeclareFunction(newFeatureSpace);
     //#- `fsp = analytics.loadFeatureSpace(fin)` -- load serialized feature 
     //#     space from `fin` stream
-    JsDeclareFunction(loadFeatureSpace);
-    
+    JsDeclareFunction(loadFeatureSpace);    
     //#- `svmModel = analytics.trainSvmClassify(mat, vec, svmParameters)` -- trains binary
-    //#     classification model using columns from `mat` as training data and vector
-    //#     `vec` as target variable (must be of values either 1 or -1); optional
-    //#     training `svmParameters` are a JSon with parameter `c` (SVM cost parameter,
-    //#     default = 1.0) and `j` (factor to multiply SVM cost parameter for positive 
-    //#     examples with (default is 1.0)); result is a linear model
+    //#     classification model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector
+    //#     `vec` represents the training targets (must be of values either 1 or -1); optional
+    //#     training parameters with their default values are a JSON object: `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+    //#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 	JsDeclareFunction(trainSvmClassify);
     //#- `svmModel = analytics.trainSvmRegression(mat, vec, svmRegParameters)` -- trains 
-    //#     regression model using columns from `mat` as training data and vector `vec` as 
-    //#     target variable; optional training `svmRegParameters` are a JSon with parameter `c` 
-    //#     (SVM cost parameter, default = 1.0) and `eps` (ignore threshold defining
-    //#     epsilon size tunnel around the model, default is 1.0)); result is a linear model
+    //#     regression model using stochastic subgradient descent, where the columns from `mat` represent training feature vectors and vector `vec` represents the training targets;
+    //#     optional training parameters with their default values are a JSON object: `svmRegParameters = {c : 1.0, eps : 1.0, batchSize : 10000, maxIterations : 10000, maxTime : 600, minDiff : 1e-6, varbose : false}`.
+	//#     The parameter `c` is the SVM cost parameter, `eps` controls the epsilon-insensitive L1 loss, `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model.
     JsDeclareFunction(trainSvmRegression);
     //#- `svmModel = analytics.loadSvmModel(fin)` -- load serialized linear model 
     //#     from `fin` stream
-	JsDeclareFunction(loadSvmModel);
-    
+	JsDeclareFunction(loadSvmModel);    
     //#- `nnModel = analytics.newNN(nnParameters)` -- create new neural network
     //#     model; constructing `nnParameters` are a JSON object with properties: `nnParameters.layout` (javascript array of integers, where every integer represents number of neurons in a layer
     //#     ), `nnParameters.learnRate` (number learn rate, default is 0.1), `nnParameters.momentum` (number momentum, default is 0.1),
@@ -2310,7 +2765,9 @@ public:
 	//#     
     //#- `num = fsp.dim` -- dimensionality of feature space
     JsDeclareProperty(dim);    
-    //#- `fsp = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns self.
+    //#- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+    JsDeclareProperty(dims);    
+    //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
@@ -2320,8 +2777,9 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-    JsDeclareFunction(finishUpdate); // deprecated
-    //#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
     //#     features from record `rec` (e.g. words from string fields); results are returned
     //#     as a string array
     JsDeclareFunction(extractStrings);
@@ -2337,6 +2795,8 @@ public:
     //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    JsDeclareFunction(filter);
 };
 
 ///////////////////////////////
@@ -2373,7 +2833,7 @@ public:
 	JsDeclareFunction(predict);
     //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);   
-    //#- `svmModel = svmModel.save(fout)` -- saves model to output stream `fout`. Returns self.
+    //#- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 };
 
@@ -2405,6 +2865,8 @@ public:
 	JsDeclareFunction(learn);
     //#- `vec2 = nnModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a vector `vec2`
 	JsDeclareFunction(predict);
+    //#- `nnModel.setLearnRate(float)` -- sets learning rate of the network
+	JsDeclareFunction(setLearnRate);
 };
 
 ///////////////////////////////
@@ -2439,7 +2901,7 @@ public:
 	JsDeclareProperty(weights);
     //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
-	//#- `recLinRegModel = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns self.
+	//#- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
 };
 
@@ -2452,21 +2914,20 @@ public:
 //# and algorithm parameters. When describing the data stream, we have to specify the order of
 //# attributes in a stream example and describe each attribute. For each attribute, we specifty
 //# its type and --- in case of discrete attributes --- enumerate all possible values of the attribute.
-//# See `titanicConfig` below. 
 //#
 //# The HoeffdingTree algorithm comes with many parameters:
 //#
-//#- `gracePeriod` -- Denotes ``recomputation period''; if gracePeriod=200, the algorithm
-//#	    will recompute information gains (or Gini indices) every 200 examples. Recomputation
+//#- `gracePeriod` -- Denotes ``recomputation period''; if `gracePeriod=200`, the algorithm
+//#	    will recompute information gains (or Gini indices) every `200` examples. Recomputation
 //#	    is the most expensive operation in the algorithm, because we have to recompute gains at each
-//#	    leaf of the tree for each attribute. (If ConceptDriftP=true, we have to recompute gains in each
+//#	    leaf of the tree for each attribute. (If `ConceptDriftP=true`, we have to recompute gains in each
 //#       node of the tree.)
 //#- `splitConfidence` -- The probability of making a mistake when splitting a leaf. Let `A1` and `A2`
 //#	    be attributes with the highest information gains `G(A1)` and `G(A2)`. The algorithm
 //#	    uses [Hoeffding inequality](http://en.wikipedia.org/wiki/Hoeffding's_inequality#General_case)
 //#	    to ensure that the attribute with the highest estimate (estimate is computed form the sample
 //#	    of the stream examples that are currently in the leaf) is truly the best (assuming the process
-//#	    generating the data is stationary). So `A1` is truly best with probability at least 1-`splitConfidence`.
+//#	    generating the data is stationary). So `A1` is truly best with probability at least `1-splitConfidence`.
 //#- `tieBreaking` -- If two attributes are equally good --- or almost equally good --- the algorithm will
 //#	    will never split the leaf. We address this with the `tieBreaking` parameter and consider two attributes
 //#	    equally good whenever `G(A1)-G(A2) <= tieBreaking`, i.e., when they have similar gains. (Intuition: If
@@ -2474,12 +2935,42 @@ public:
 //#- `conceptDriftP` -- Denotes whether the algorithm adapts to potential changes in the data. If set to `true`,
 //#	    we use a variant of [CVFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd01b.pdf );
 //#      if set to `false`, we use a variant of [VFDT learner](http://homes.cs.washington.edu/~pedrod/papers/kdd00.pdf).
-//#- `driftCheck` -- If `DriftCheckP=true` (this is one of the algorithm parameters), the algorithm sets nodes into
-//#       self-evaluation mode every `driftCheck` examples. If one of the alternate trees performs better than the ``main''
+//#- `driftCheck` -- If `DriftCheckP=N` (this is one of the algorithm parameters), the algorithm sets nodes into
+//#       self-evaluation mode every `N` examples. If one of the alternate trees performs better than the ``main''
 //#       tree, the algorithm swaps the best-performing alternate tree in place of the main one. 
 //#- `windowSize` -- The algorithm keeps a sliding window of the last `windowSize` stream examples. It makes sure
 //#	    the model reflects the concept represented by the examples from the sliding window. It needs to keep
 //#	    the window in order to ``forget'' the example when it becomes too old. 
+//#- `maxNodes` -- The algorithm stops growing the tree if the tree contains more than (or equal to) `maxNodes` nodes.
+//#       Alternate tree contributions are also counted. This parameter must be nonnegative integer. NOTE: If `maxNodes=0`,
+//#       then the algorithm let's the tree grow arbitrarily.
+//#- `attrDiscretization` -- Attribute discretization technique. Possible values are `histogram` and `bst`. See
+//#       [this paper](http://dl.acm.org/citation.cfm?id=1786604) and [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
+//#       for description. Note that `histogram` is cheap and uses up constant amount of memory, independent of the stream, but
+//#       its inicialization depends on the order of stream elements. The `bst` is essentially batch technique and uses up
+//#       lots of memory. 
+//#- `clsAttrHeuristic` -- This tells the algorithm what attribute heurstic measure to use. Possible values are `infoGain`, for
+//#       [information gain](http://en.wikipedia.org/wiki/Information_gain_in_decision_trees), and `giniGain`, for
+//#       [gini index](http://en.wikipedia.org/wiki/Decision_tree_learning#Gini_impurity). For classification only; regression
+//#       trees only support [standard deviation reduction](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf).
+//#- `clsLeafModel` -- This tells the algorithm what model to fit in the leaves of the classification tree. Options are `majority`,
+//#       which means majority classifier (predict the most frequent label in the leaf) and `naiveBayes`, which means
+//#       [Naive Bayes classifier](http://en.wikipedia.org/wiki/Naive_Bayes_classifier).
+//#- `regLeafModel` -- This tells the algorithm what model to fit in the leaves of the regression tree. Options are `mean`, which
+//#       means the algorithm predicts the average value of the examples in the leaf, and `linear`, which means the algorithm fits
+//#       [perceptron](http://en.wikipedia.org/wiki/Perceptron). (See [this paper](http://kt.ijs.si/elena_ikonomovska/DAMI10.pdf)
+//#       for details.)
+//#- `sdrTreshold` -- Stopping criterion for regression tree learner. The algorithm will not split the leaf unless the standard
+//#       deviation reduction `sdr(A)` for the best attribute `A` is at least `sdtrTreshold`. Make sure that `sdrTreshold >= 0`.
+//#- `phAlpha` -- Correction parameter for the [Page-Hinkley test](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf):
+//#       It is the minimal absolute amplitude of change that we wish to detect. Should be adjusted according to the expected
+//#       standard deviation of the signal. (See Elena Ikonomovska's [thesis](http://kt.ijs.si/elena_ikonomovska/00-disertation.pdf)
+//#       for details.) Default is `phAlpha=0.005`.
+//#- `phLambda` -- This is the threshold that corresponds to the admissible false alarm rate. Default is `phLambda=50.0`.
+//#- `phInit` -- This threshold tells the algorithm when to start using Page-Hinkley test. The idea is to wait for `phInit` examples
+//#       to accumulate in the nodes, so we have "more stable" estimates of mean. Default is `phInit=100`.
+//#
+
 class TJsHoeffdingTree {
 public:
 	/// JS script context
@@ -2489,9 +2980,10 @@ public:
 private:
 	typedef TJsObjUtil<TJsHoeffdingTree> TJsHoeffdingTreeUtil;
 	static v8::Persistent<v8::ObjectTemplate> Template;
-
-	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig)
-		: Js(Js_), HoeffdingTree(THoeffding::THoeffdingTree::New(StreamConfig, JsonConfig)) { }
+	
+	THoeffding::TTaskType JsTaskType;
+	
+	TJsHoeffdingTree(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig);
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js_, PJsonVal StreamConfig, PJsonVal JsonConfig) { 
 		return TJsHoeffdingTreeUtil::New(new TJsHoeffdingTree(Js_, StreamConfig, JsonConfig)); }
@@ -2508,6 +3000,9 @@ public:
 	//#- `labelStr = htModel.classify(strArr, numArr)` -- classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.
 	//#- `labelStr = htModel.classify(line)` -- classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.
 	JsDeclareFunction(classify);
+	//#-  `htModel.predict(strArr, numArr` -- predicts numerical value that belongs to the example; `strArr` is an array of discrete values (strings); `numArr` is an array of numeric attribute values (numbers); returns a number.
+	//#   
+	JsDeclareFunction(predict);
 	//#- `htModel = htModel.exportModel(htOutParams)` -- writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.
 	//#   here, `htOutParams = { file: filePath, type: exportType }` where `file` is the file path and `type` is the export type (currently only `DOT` and `XML` are supported).
 	JsDeclareFunction(exportModel);
@@ -2545,6 +3040,7 @@ public:
 	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
+
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -2592,7 +3088,7 @@ public:
 };
 
 //#
-//# ## System and I/O
+//# ## System
 //#
 //# ### Process
 //# 
@@ -2637,14 +3133,14 @@ public:
 	JsDeclareFunction(exitScript);
     //#- `process.returnCode` -- current code to be returned by QMiner process
   	JsDeclareSetProperty(getReturnCode, setReturnCode);
+	//#- `str = process.qminer_home` -- returns the path to QMINER_HOME
+	JsDeclareProperty(qminer_home);
+	//#- `str = process.project_home` -- returns the path to project folder
+	JsDeclareProperty(project_home);
     //#JSIMPLEMENT:src/qminer/process.js
 };
 
 
-//#
-//# ### utilities.js (use require)
-//# 
-//#JSIMPLEMENT:src/qminer/js/utilities.js    
 
 //#
 //# ### assert.js (use require)
@@ -2694,128 +3190,336 @@ public:
     //#JSIMPLEMENT:src/qminer/console.js    
 };
 
-///////////////////////////////
-// QMiner-JavaScript-Filesystem
-//#
-//# ### File system
-//# 
-class TJsFs {
-public:
-	// directories we're allowed to access 
-	TVec<TJsFPath> AllowedFPathV;
-	
-private:
-	typedef TJsObjUtil<TJsFs> TJsFsUtil;
 
-	TJsFs(const TVec<TJsFPath>& AllowedDirV_): AllowedFPathV(AllowedDirV_) { }
+//#
+//# ### utilities.js (use require)
+//# 
+class TJsUtilities {
 public:
-	static v8::Persistent<v8::Object> New(TScript* Js) { 
-		return TJsFsUtil::New(new TJsFs(Js->AllowedFPathV)); }
-	~TJsFs() { }
-	
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsUtilities> TJsUtilitiesUtil;
+	explicit TJsUtilities(TWPt<TScript> _Js) : Js(_Js) { }
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		return TJsUtilitiesUtil::New(new TJsUtilities(Js));
+	}
+
 	/// template
-    static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    /// Are we allowed to access given path
-	bool CanAccess(const TStr& FPath);
-    /// Are we allowed to access given path
-	static bool CanAccess(const v8::Arguments& Args);
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `fin = fs.openRead(fileName)` -- open file in read mode and return file input stream `fin`
-	JsDeclareFunction(openRead);
-    //#- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
-	JsDeclareFunction(openWrite);
-    //#- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-	JsDeclareFunction(openAppend);
-    //#- `bool = fs.exists(fileName)` -- does file exist?
-	JsDeclareFunction(exists);
-    //#- `fs.copy(fromFileName, toFileName)` -- copy file
-	JsDeclareFunction(copy);
-    //#- `fs.move(fromFileName, toFileName)` -- move file
-	JsDeclareFunction(move);
-    //#- `fs.del(fileName)` -- delete file
-	JsDeclareFunction(del);
-    //#- `fs.rename(fromFileName, toFileName)` -- rename file
-	JsDeclareFunction(rename);
-    //#- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
-	JsDeclareFunction(fileInfo);
-    //#- `fs.mkdir(dirName)` -- make folder
-	JsDeclareFunction(mkdir);
-    //#- `fs.rmdir(dirName)` -- delete folder
-	JsDeclareFunction(rmdir);
-    //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-    //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
-	JsDeclareFunction(listFile);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FIn
-//#
-//# ### Input File Stream
-//# 
-class TJsFIn {
-public:
-	PSIn SIn;
-private:
-	typedef TJsObjUtil<TJsFIn> TJsFInUtil;
-	TJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FNm) {
-		return TJsFInUtil::New(new TJsFIn(FNm)); }
-    static PSIn GetArgFIn(const v8::Arguments& Args, const int& ArgN);
-
-   	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-
-    //# 
-	//# **Functions and properties:**
-	//#     
-    //#- `char = fin.peekCh()` -- peeks a character
-	JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()` -- reads a character
-	JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()` -- reads a line
-	JsDeclareFunction(readLine);
-    //#- `bool = fin.eof` -- end of stream?
-	JsDeclareProperty(eof);
-    //#- `len = fin.length` -- returns the length of input stream
-	JsDeclareProperty(length);
-};
-
-///////////////////////////////
-// QMiner-JavaScript-FOut
-//#
-//# ### Output File Stream
-//# 
-class TJsFOut {
-public:
-	PSOut SOut;
-private:
-	typedef TJsObjUtil<TJsFOut> TJsFOutUtil;
-	TJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
-	TJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-
-public:
-	static v8::Persistent<v8::Object> New(const TStr& FilePath, const bool& AppendP = false) { 
-		return TJsFOutUtil::New(new TJsFOut(FilePath, AppendP)); }
-    static PSOut GetArgFOut(const v8::Arguments& Args, const int& ArgN);
-    
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
-    //# 
+	//#
 	//# **Functions and properties:**
-	//#     
-    //#- `fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-	JsDeclareFunction(write);
-    //#- `fout.writeLine(data)` -- writes data to output stream and adds newline
-	JsDeclareFunction(writeLine);
-    //#- `fout.flush()` -- flushes output stream
-	JsDeclareFunction(flush);
-    //#- `fout.close()` -- closes output stream
-  	JsDeclareFunction(close);
+	//#
+	//#- `map = utilities.newStrIntH()` -- New string-int hashmap
+	JsDeclareFunction(newStrIntH);
+	//#- `map = utilities.newStrFltH()` -- New string-double hashmap
+	JsDeclareFunction(newStrFltH);
+	//#- `map = utilities.newStrStrH()` -- New string-string hashmap
+	JsDeclareFunction(newStrStrH);
+	//#- `map = utilities.newIntIntH()` -- New int-int hashmap
+	JsDeclareFunction(newIntIntH);
+	//#- `map = utilities.newIntFltH()` -- New int-double hashmap
+	JsDeclareFunction(newIntFltH);
+	//#- `map = utilities.newIntStrH()` -- New int-string hashmap
+	JsDeclareFunction(newIntStrH);
 };
+//#JSIMPLEMENT:src/qminer/js/utilities.js    
+
+///////////////////////////////
+// QMiner-Hash-Map
+//# 
+//# ### Hash Map
+//# 
+//# Several implementations of hash-map can be constructed. Use require('utilities.js').
+
+class TAuxStrIntH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrIntH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+};
+
+class TAuxStrFltH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrFltH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TFlt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgFlt(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+};
+
+class TAuxStrStrH {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrStrH"
+	static TStr GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+	static TStr GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+};
+
+class TAuxIntIntH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntIntH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TInt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const int& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+};
+
+class TAuxIntFltH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntFltH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TFlt GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgFlt(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const double& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Number::New(Val));
+	}
+};
+
+class TAuxIntStrH {
+public:
+	static const TStr ClassId; //ClassId is set to "TIntStrH"
+	static TInt GetArgKey(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgInt32(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapKey(const TInt& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::Int32::New(Val));
+	}
+	static TStr GetArgDat(const v8::Arguments& Args, const int& ArgN) {
+		// TJsBase is arbitrary here
+		return TJsObjUtil<TJsBase>::GetArgStr(Args, ArgN);
+	}
+	static v8::Handle<v8::Value> WrapDat(const TStr& Val, v8::HandleScope& Handlescope) {
+		return Handlescope.Close(v8::String::New(Val.CStr()));
+	}
+};
+
+template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
+class TJsHash {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	typedef THash<TKey, TDat> HT;
+	HT Map;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsHash<TKey, TDat, TAux> > TJsHashUtil;
+	explicit TJsHash(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+		v8::Persistent<v8::Object> obj = TJsHashUtil::New(new TJsHash(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(TAux::ClassId.CStr());
+		obj->SetHiddenValue(key, value);
+		return  obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const HT& _Map) {
+		v8::Persistent<v8::Object> obj = New(Js);
+		TJsHash::SetMap(obj, _Map);
+		return  obj;
+	}
+	static HT& GetMap(const v8::Handle<v8::Object> Obj) {
+		return TJsHashUtil::GetSelf(Obj)->Map;
+	}
+	static void SetMap(const v8::Handle<v8::Object> Obj, const HT& _Map) {
+		TJsHashUtil::GetSelf(Obj)->Map = _Map;
+	}
+
+	/// template	
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `dat = map.get(key)` -- return data given on key
+	JsDeclareFunction(get);
+	//#- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
+	JsDeclareFunction(put);
+	//#- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+	JsDeclareFunction(hasKey);
+	//#- `num = map.length` -- returns the number of keys
+	JsDeclareProperty(length);
+	//#- `key = map.key(idx)` -- returns the `idx`-th key
+	JsDeclareFunction(key);
+	//#- `dat = map.dat(idx)` -- returns the `idx`-th dat
+	JsDeclareFunction(dat);
+	//#- `map = map.load(fin)` -- loads the hashtable from input stream `fin`
+	JsDeclareFunction(load);
+	//#- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
+	JsDeclareFunction(save);
+};
+
+typedef TJsHash<TStr, TInt, TAuxStrIntH> TJsStrIntH;
+typedef TJsHash<TStr, TFlt, TAuxStrFltH> TJsStrFltH;
+typedef TJsHash<TStr, TStr, TAuxStrStrH> TJsStrStrH;
+typedef TJsHash<TInt, TInt, TAuxIntIntH> TJsIntIntH;
+typedef TJsHash<TInt, TFlt, TAuxIntFltH> TJsIntFltH;
+typedef TJsHash<TInt, TStr, TAuxIntStrH> TJsIntStrH;
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::ObjectTemplate> TJsHash<TKey, TDat, TAux>::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, get);
+		JsRegisterFunction(TmpTemp, put);
+		JsRegisterFunction(TmpTemp, hasKey);
+		JsRegisterProperty(TmpTemp, length);
+		JsRegisterFunction(TmpTemp, key);
+		JsRegisterFunction(TmpTemp, dat);
+		JsRegisterFunction(TmpTemp, save);
+		JsRegisterFunction(TmpTemp, load);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::get(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	TDat Dat;
+	if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
+		return TAux::WrapDat(Dat, HandleScope);
+	}
+	else { return v8::Undefined(); }
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::put(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	TDat Dat = TAux::GetArgDat(Args, 1);
+	JsMap->Map.AddDat(Key, Dat);
+	return Args.Holder();
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::hasKey(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	TKey Key = TAux::GetArgKey(Args, 0);
+	return HandleScope.Close(v8::Boolean::New(JsMap->Map.IsKey(Key)));
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::length(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Info);
+	return HandleScope.Close(v8::Integer::New(JsMap->Map.Len()));
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::key(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
+	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::key Incorrect KeyId:%d", Idx));
+	return TAux::WrapKey(JsMap->Map.GetKey(Idx), HandleScope);
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::dat(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	// assume number
+	int Idx = TJsHashUtil::GetArgInt32(Args, 0);
+	QmAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("JsHash::dat Incorrect KeyId:%d", Idx));
+	TKey Key;
+	TDat Dat;
+	JsMap->Map.GetKeyDat(Idx, Key, Dat);
+	return TAux::WrapDat(Dat, HandleScope);
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+		JsMap->Map.Save(*SOut);
+		return HandleScope.Close(Args[0]);
+	}
+	else {
+		return v8::Undefined();
+	}
+}
+
+template <class TKey, class TDat, class TAux>
+v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::load(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsHash* JsMap = TJsHashUtil::GetSelf(Args);
+	if (Args.Length() > 0) {
+		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+		JsMap->Map.Load(*SIn);
+	}
+	return Args.Holder();
+
+}
 
 ///////////////////////////////
 // JavaScript Http
@@ -2930,6 +3634,7 @@ public:
 		return TJsTmUtil::New(new TJsTm(TTm::GetCurUniTm())); }
 	static v8::Persistent<v8::Object> New(const TTm& Tm) { 
 		return TJsTmUtil::New(new TJsTm(Tm)); }
+    static TTm& GetArgTm(const v8::Arguments& Args, const int& ArgN);
 
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
@@ -2948,38 +3653,308 @@ public:
     JsDeclareProperty(month);
     //#- `num = tm.day` -- day (number)
     JsDeclareProperty(day);
-    //#- `str = tm.dayOfWeek` -- day of week (string)
+	//#- `str = tm.dayOfWeek` -- day of week (string)	
     JsDeclareProperty(dayOfWeek);
+    //#- `num = tm.dayOfWeekNum` -- day of week (number)
+    JsDeclareProperty(dayOfWeekNum);
     //#- `num = tm.hour` -- hour (number)
     JsDeclareProperty(hour);
     //#- `num = tm.minute` -- minute (number)
     JsDeclareProperty(minute);
     //#- `num = tm.second` -- second (number)
     JsDeclareProperty(second);
-    //#- `num = tm.milisecond` -- millisecond (number)
-    JsDeclareProperty(milisecond);
+    //#- `num = tm.millisecond` -- millisecond (number)
+    JsDeclareProperty(millisecond);
     //#- `tm2 = tm.now` -- returns new time object representing current local time
     JsDeclareProperty(now);
     //#- `tm2 = tm.nowUTC` -- returns new time object represented current UTC time
     JsDeclareProperty(nowUTC);    
-    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit 
-    //#     of `val`, options are `second` (default), `minute`, `hour`, and `day`.
+    //#- `tm = tm.add(val)` -- adds `val` seconds to the time and returns self
+    //#- `tm = tm.add(val, unit)` -- adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.
     JsDeclareFunction(add);
-    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defintes the unit of `val`. options are `second` (default), `minute`, `hour`, and `day`.
+    //#- `tm = tm.sub(val)` -- subtracts `val` secodns from the time and returns self
+    //#- `tm = tm.sub(val, unit)` -- subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
     JsDeclareFunction(sub); 
+    //#- `diff_json = tm.diff(tm2)` -- computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)
+    //#- `diff_num = tm.diff(tm2, unit)` -- computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.
+    JsDeclareFunction(diff); 
     //#- `tmJSON = tm.toJSON()` -- returns json representation of time    
     JsDeclareFunction(toJSON);
     //#- `tm2 = tm.parse(str)` -- parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).
     //#     as Date-Time object
 	JsDeclareFunction(parse);
+	//#- `tm2 = tm.fromWindowsTimestamp(num)` -- constructs date time from a windows timestamp (milliseconds since 1601).
+	JsDeclareFunction(fromWindowsTimestamp);
+	//#- `tm2 = tm.fromUnixTimestamp(num)` -- constructs date time from a UNIX timestamp (seconds since 1970).
+	JsDeclareFunction(fromUnixTimestamp);
 	//#- `tm2 = tm.clone()` -- clones `tm` to `tm2`
 	JsDeclareFunction(clone);
+	//#- `num = tm.windowsTimestamp` -- returns windows system time in milliseconds from 1/1/1601
+	JsDeclareProperty(windowsTimestamp);
 };
+
+
+///////////////////////////////
+// QMiner-Snap
+//# 
+//# ## Snap graph library
+//# 
+//# A global object `snap` is used to construct graphs
+//# it is available in any script. The object includes
+//# several functions from snap library.
+class TJsSnap {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsSnap> TJsSnapUtil;
+
+	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {		
+		return TJsSnapUtil::New(new TJsSnap(Js));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
+	JsDeclareFunction(newUGraph);
+	//#- `graph = snap.newDGraph()` -- generate an empty directed graph
+	JsDeclareFunction(newDGraph);
+	//#- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
+	JsDeclareFunction(newDMGraph);
+	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
+	JsDeclareFunction(degreeCentrality);
+	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	JsDeclareFunction(communityDetection);
+	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
+	JsDeclareFunction(communityEvolution);
+	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(corePeriphery);
+	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
+	JsDeclareFunction(dagImportance);
+	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
+	JsDeclareFunction(dagImportanceStore);
+	JsDeclareFunction(perfTest);
+};
+
+
+///////////////////////////////
+// QMiner-Graph
+//# 
+//# ### Graph
+//# 
+//# TUNGraph: undirected graph(single edge between an unordered pair of nodes)
+//# TNGraph : directed graph(single directed edge between an ordered pair of nodes)
+//# TNEGraph : directed multi - graph(multiple directed edges between a pair of nodes)
+
+template <class T>
+class TJsGraph {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	TPt<T> Graph;
+	TStr InFNm;
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsGraph> TJsGraphUtil;
+
+	TJsGraph(TWPt<TScript> _Js) : Js(_Js) {
+		Graph = T::New();
+	};
+
+	TJsGraph(TWPt<TScript> _Js, TStr path) : Js(_Js), InFNm(path) {
+		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
+	};
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static TPt<T> GetArgGraph(const v8::Arguments& Args, const int& ArgN);
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `idx = graph.addNode()` -- add a node to graph and return its ID `idx`
+	//#- `idx = graph.addNode(idx)` -- add a node with ID `idx`, returns node ID
+	JsDeclareFunction(addNode);
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2)` -- add an edge 
+	//#- `edgeIdx = graph.addEdge(nodeIdx1, nodeIdx2, edgeId)` -- add an edge when `graph` is of the type `snap.newDMGraph()` 
+	JsDeclareFunction(addEdge);
+	//#- `idx = graph.delNode(idx)` -- delete a node with ID `idx`
+	JsDeclareFunction(delNode);
+	//#- `idx = graph.delEdge(idx1, idx2)` -- delete an edge
+	JsDeclareFunction(delEdge);
+	//#- `isNode = graph.isNode(idx)` -- check if a node with ID `idx` exists in the graph
+	JsDeclareFunction(isNode);
+	//#- `isEdge = graph.isEdge(idx1, idx2)` -- check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph
+	JsDeclareFunction(isEdge);
+	//#- `nodes = graph.nodes` -- gets number of nodes in the graph
+	JsDeclareProperty(nodes);
+	//#- `edges = graph.edges` -- gets number of edges in the graph
+	JsDeclareProperty(edges);
+	//#- `node = graph.node(idx)` -- gets node with ID `idx`
+	JsDeclareFunction(node);
+	//#- `node = graph.firstNode` -- gets first node
+	JsDeclareProperty(firstNode);
+	//#- `node = graph.lastNode` -- gets last node
+	JsDeclareProperty(lastNode);
+	//#- `edge = graph.firstEdge` -- gets first edge
+	JsDeclareProperty(firstEdge);
+	//#- `graph = graph.dump(fNm)` -- dumps a graph to file named `fNm`
+	JsDeclareFunction(dump);
+	//#- `graph = graph.eachNode(callback)` -- iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:
+	//#  - `graph.eachNode(function (node) { console.log(node.id); })`
+	JsDeclareFunction(eachNode);
+	//#- `graph = graph.eachEdge(callback)` -- iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:
+	//#  - `graph.eachEdge(function (edge) { console.log(edge.srcId+" "+edge.dstId); })`
+	JsDeclareFunction(eachEdge);
+	//#- `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
+	JsDeclareFunction(adjMat);
+	//#- `fout = graph.save(fout)` -- saves graph to output stream `fout`
+	JsDeclareFunction(save);
+	//#- `graph = graph.load(fin)` -- loads graph from input stream `fin`
+	JsDeclareFunction(load);
+};
+
+///////////////////////////////
+// QMiner-Node
+//# 
+//# ### Node
+//# 
+//# Node
+
+template <class T>
+class TJsNode {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	T Node;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsNode> TJsNodeUtil;
+	TJsNode(TWPt<TScript> Js_, T a);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, T a) {
+		v8::Persistent<v8::Object> obj = TJsNodeUtil::New(new TJsNode(Js, a));
+		/*
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New("Graph");
+		obj->SetHiddenValue(key, value);
+		*/
+		return obj;
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = node.id` -- return id of the node
+	JsDeclareProperty(id);
+	//#- `deg = node.deg` -- return degree of the node
+	JsDeclareProperty(deg);
+	//#- `indeg = node.inDeg` -- return in-degree of the node
+	JsDeclareProperty(inDeg);
+	//#- `outdeg = node.outDeg` -- return out-degree of the node
+	JsDeclareProperty(outDeg);
+	//#- `nid = node.nbrId(N)` -- return id of Nth neighbour
+	JsDeclareFunction(nbrId);
+	//#- `nid = node.outNbrId(N)` -- return id of Nth out-neighbour
+	JsDeclareFunction(outNbrId);
+	//#- `nid = node.inNbrId(N)` -- return id of Nth in-neighbour
+	JsDeclareFunction(inNbrId);
+	//#- `eid = node.nbrEId(N)` -- return edge id of Nth neighbour
+	JsDeclareFunction(nbrEId);
+	//#- `eid = node.outEId(N)` -- return edge id of Nth out-neighbour
+	JsDeclareFunction(outEId);
+	//#- `eid = node.inEId(N)` -- return edge id of Nth in-neighbour
+	JsDeclareFunction(inEId);
+	//#- `node = node.next()` -- return next node
+	JsDeclareFunction(next);
+	//#- `node = node.prev()` -- return previous node
+	JsDeclareFunction(prev);
+	//#- `node = node.eachNbr(callback)` -- calls the callback function(nodeid) {...} on all neighbors
+	JsDeclareFunction(eachNbr);
+	//#- `node = node.eachOutNbr(callback)` -- calls the callback function(nodeid) {...} on all out-neighbors
+	JsDeclareFunction(eachOutNbr);
+	//#- `node = node.eachInNbr(callback)` -- calls the callback function(nodeid) {...} on all in-neighbors
+	JsDeclareFunction(eachInNbr);
+	//#- `node = node.eachEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in/out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachEdge);
+	//#- `node = node.eachOutEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's out-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachOutEdge);
+	//#- `node = node.eachInEdge(callback)` -- calls the callback function(edgeid) {...} on the ids of all of node's in-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.
+	JsDeclareFunction(eachInEdge);
+};
+
+///////////////////////////////
+// QMiner-Edge
+//# 
+//# ### Edge
+//# 
+//# Edge
+template <class T>
+class TJsEdge {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	typename T::TEdgeI Edge;
+
+private:
+	/// Object utility class
+	typedef TJsObjUtil<TJsEdge> TJsEdgeUtil;
+	explicit TJsEdge(TWPt<TScript> Js_, typename T::TEdgeI edge);
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, typename T::TEdgeI edge) {
+		return TJsEdgeUtil::New(new TJsEdge(Js, edge));
+	}
+
+	/// template
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `id = edge.id` -- return id of the edge
+	JsDeclareProperty(id);
+	//#- `id = edge.srcId` -- return id of source node
+	JsDeclareProperty(srcId);
+	//#- `id = edge.dstId` -- return id of destination node
+	JsDeclareProperty(dstId);
+	//#- `edge = edge.next()` -- return next edge
+	JsDeclareFunction(next);
+};
+
+
+
 //#
 //# ## Other libraries
 //#
 //#JSIMPLEMENT:src/qminer/js/twitter.js 
-
+//#JSIMPLEMENT:src/qminer/js/xml.js 
+//#JSIMPLEMENT:src/qminer/js/visualization.js 
 
 ///////////////////////////////////////////////
 /// Javscript Function Feature Extractor.
@@ -3062,7 +4037,7 @@ public:
 
 	TStr GetNm() const { return Name; }
 	int GetDim() const { return Dim; }
-	TStr GetFtr(const int& FtrN) const { return GetNm(); }
+	TStr GetFtr(const int& FtrN) const { return TStr::Fmt("%s[%d]", GetNm().CStr(), FtrN) ; }
 
 	void Clr() { };
 	bool Update(const TRec& Rec) { return false; }
@@ -3078,5 +4053,7 @@ public:
 
 
 }
+
+#endif
 
 #endif

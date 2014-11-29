@@ -19,10 +19,30 @@
 
 //#- `data = fs.readFile(fileName)` - read file and return it as string
 fs.readFile = function (fileName) {
-    var fin = fs.openRead(fileName);
-    var out = ""; 
-    while (!fin.eof) { 
-        out = out + fin.getNextLn() + "\n"; 
-    }
-    return out;
+    return fs.openRead(fileName).readAll();
 };
+
+//#- `json = fs.readJson(fileName)` - read file as a string and parse it top JSON
+fs.readJson = function (fileName) {
+    return JSON.parse(fs.readFile(fileName));
+}
+
+//#- `fs.writeJson(fileName, json)` - stringify `json` object and save it to file
+fs.writeJson = function(fileName, json) {
+    fs.openWrite(fileName).writeLine(JSON.stringify(json)).close();
+}
+
+//#- `fs.readJsonLines(fileName, callback)` - raed file line by line as string,
+//#     parse each line to JSON and callback with JSON as only parameter
+fs.readJsonLines = function(fileName, callback) {
+    var fin = fs.openRead(fileName);
+    while (!fin.eof) {
+        try {
+            var line = fin.readLine();
+            var json = JSON.parse(line);
+            callback(json);
+        } catch (err) {
+            console.log(err);
+        }
+    }
+}

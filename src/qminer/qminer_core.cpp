@@ -32,10 +32,11 @@ namespace TQm {
 
 ///////////////////////////////
 // QMiner Environment
-TIntTr TEnv::Version = TIntTr(0, 5, 1);
+TIntTr TEnv::Version = TIntTr(0, 8, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
+TStr TEnv::RootFPath;
 PNotify TEnv::Error;
 PNotify TEnv::Logger;
 PNotify TEnv::Debug;
@@ -51,6 +52,7 @@ void TEnv::Init() {
     Debug = TNullNotify::New();
 	// read environment variable indicating QMiner folder, uses current dir if not available
 	QMinerFPath = TStr::GetNrAbsFPath(::TEnv::GetVarVal("QMINER_HOME"));
+	RootFPath = TStr::GetNrFPath(TDir::GetCurDir());
     // initialize aggregators constructor router
     TAggr::Init();
     // initialize stream aggregators constructor router
@@ -1933,8 +1935,7 @@ void TRecSet::SortById(const bool& Asc) {
 }
 
 void TRecSet::SortByFq(const bool& Asc) {
-	TInt::SetRndSeed(1); // HACK to be consistent
-	RecIdFqV.SortCmp(TCmpKeyDatByDat<TUInt64, TInt>(Asc));
+	RecIdFqV.SortCmp(TRecCmpByFq(Asc));
 }
 
 void TRecSet::SortByField(const bool& Asc, const int& SortFieldId) {
@@ -2058,7 +2059,7 @@ PRecSet TRecSet::GetSampleRecSet(const int& SampleSize, const bool& SortedP) con
 
 PRecSet TRecSet::GetLimit(const int& Limit, const int& Offset) const {
 	if (Offset >= GetRecs()) {
-		// offset past number of recordes, return empty
+		// offset past number of records, return empty
 		return TRecSet::New(Store);
 	} else {
 		TUInt64IntKdV LimitRecIdFqV;
@@ -2770,23 +2771,6 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				QmAssertR(KeyVal->IsObj(), "Query: $not expects object as value");
 				// handle subordinate items
 				ItemV.Add(TQueryItem(oqitNot, TQueryItem(Base, Store, KeyVal)));
-			} else if (KeyNm == "$record") {
-                InfoLog("Warning: $record in query language is deprecated. Used $id or $name instead to refer to record.");
-				uint64 RecId = TUInt64::Mx;
-				if (KeyVal->IsStr()) {
-					TStr RecNm = KeyVal->GetStr();
-					if (Store->IsRecNm(RecNm)) {
-						RecId = Store->GetRecId(RecNm);
-					}
-				} else if (KeyVal->IsNum()) {
-					const uint64 _RecId = (uint64)TFlt::Round(KeyVal->GetNum());
-					if (Store->IsRecId(RecId)) { 
-						RecId = _RecId; 
-					}
-				} else {
-					throw TQmExcept::New("Query: unsupported $record value");
-				}
-				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$id") {
                 QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
                 const uint64 _RecId = (uint64)KeyVal->GetInt();
@@ -3435,18 +3419,18 @@ void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV) const {
 	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
 	// merge counts
 	int LastItemN = 0; bool ZeroP = false;
-    for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
+	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
 		//const TQmGixItem& LastItem = ItemV[LastItemN];
 		//const TQmGixItem& Item = ItemV[ItemN];
-        if (ItemV[ItemN] != ItemV[ItemN-1])  {
-            LastItemN++;
-            ItemV[LastItemN] = ItemV[ItemN];
-        } else {
-            ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
-        }
+		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
+			LastItemN++;
+			ItemV[LastItemN] = ItemV[ItemN];
+		} else {
+			ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
+		}
 		ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
-    }
-    ItemV.Reserve(ItemV.Reserved(), LastItemN+1);
+	}
+	ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
 	// remove items with zero count
 	if (ZeroP) {
 		LastItemN = 0;
@@ -3863,11 +3847,9 @@ void TIndex::Delete(const int& KeyId, const uint64& WordId,  const uint64& RecId
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
 	// delete from index (add item with negative count, merger will delete item if necessary)
-	if (RecFq == TInt::Mx)
-		Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
-	else
-		// delete from index (add item with negative count, merger will delete item if necessary)
-		Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+	//Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+
+	Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
 }
 
 void TIndex::Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
@@ -4263,11 +4245,7 @@ TBase::~TBase() {
 	if (FAccess != faRdOnly) {
 		TEnv::Logger->OnStatus("Saving index vocabulary ... ");
 		TFOut IndexVocFOut(FPath + "IndexVoc.dat");
-		IndexVoc->Save(IndexVocFOut);
-		TEnv::Logger->OnStatus("Saving stream aggregates ...");
-		TFOut StreamAggrFOut(FPath + "StreamAggr.dat");
-        SaveStreamAggrBaseV(StreamAggrFOut);
-		StreamAggrDefaultBase->Save(StreamAggrFOut);		
+		IndexVoc->Save(IndexVocFOut);		
 	} else {
 		TEnv::Logger->OnStatus("No saving of qminer base neccessary!");
 	}
@@ -4486,14 +4464,7 @@ bool TBase::Exists(const TStr& FPath) {
 		TFile::Exists(FPath + "StreamAggr.dat");
 }
 
-void TBase::Init() {
-	if (FAccess != faCreate) {
-		// load stream aggregates
-		TFIn StreamAggrBaseFIn(FPath + "StreamAggr.dat");
-        LoadStreamAggrBaseV(StreamAggrBaseFIn);
-		StreamAggrDefaultBase = TStreamAggrBase::Load(this, StreamAggrBaseFIn);
-	}
-	// done
+void TBase::Init() {	
 	InitP = true;
 }
 
@@ -4556,7 +4527,7 @@ const PStreamAggr& TBase::GetStreamAggr(const uint& StoreId, const TStr& StreamA
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StoreNm, const TStr& StreamAggrNm) const {
-	return GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
+	return StoreNm.Empty() ? GetStreamAggr(StreamAggrNm) :  GetStreamAggrBase(GetStoreByStoreNm(StoreNm)->GetStoreId())->GetStreamAggr(StreamAggrNm);
 }
 
 const PStreamAggr& TBase::GetStreamAggr(const TStr& StreamAggrNm) const {

@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Highcharts Example</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        
+    <script type="text/javascript" src="http://localhost:8080/admin/js/visualization.js"></script>
+    <style type="text/css">
+        $ {
+            demo .css;
+        }
+    </style>
+    
+    <script type="text/javascript">        
+    	// setup override params
+    	var overrideParams = { title: { text: "js(t) = sin(t) + noise, ema(t) = EMA(js(t))" } };
+    	// get data and plot
+    	$.getJSON( "http://localhost:8080/tsplot/data", function (data) {        
+    	    visualize.highChartsPlot(data, overrideParams, 'container');
+    	});
+    </script>
+</head>
+<body>    
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+</body>
+</html>

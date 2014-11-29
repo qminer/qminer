@@ -26,7 +26,7 @@ console.start = function () {
         try {
             console.log("" + eval(ead1042dc6554fcc8d47d1070268184f));
         } catch (err) {
-            console.log("Error: " + err.message);
+            console.log("Error: " + err);
         }
     }
 }
@@ -51,4 +51,6 @@ console.startx = function (x) {
 console.pause = function() {console.getln()};
 
 //#- `console.println(str)` -- `print(str); print("\n")`
-console.println = function(a) {console.print(a); console.print("\n");}
+console.println = function (a) { console.print(a); console.print("\n"); }
+
+breakpoint = '(' + console.start.toString() + ')()';

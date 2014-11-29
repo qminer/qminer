@@ -97,7 +97,7 @@ typedef TPair<TUCh, TUInt64> TUChUInt64Pr;
 typedef TPair<TUCh, TStr> TUChStrPr;
 typedef TPair<TInt, TBool> TIntBoolPr;
 typedef TPair<TInt, TCh> TIntChPr;
-typedef TPair<TInt, TInt> TIntPr;
+typedef TPair<TInt, TInt> TIntPr;	
 typedef TPair<TInt, TUInt64> TIntUInt64Pr;
 typedef TPair<TInt, TIntPr> TIntIntPrPr;
 typedef TPair<TInt, TVec<TInt, int> > TIntIntVPr;
@@ -371,7 +371,7 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   TKeyDat& operator=(const TKeyDat& KeyDat){
-    if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
+  if (this!=&KeyDat){Key=KeyDat.Key; Dat=KeyDat.Dat;} return *this;}
   bool operator==(const TKeyDat& KeyDat) const {return Key==KeyDat.Key;}
   bool operator<(const TKeyDat& KeyDat) const {return Key<KeyDat.Key;}
 
@@ -478,15 +478,23 @@ public:
     if (_Vals==0){ValT=NULL;} else {ValT=new TVal[_Vals];}}
   /// Constructs a vector (an array) of length \c _Vals, while reserving enough memory to store \c _MxVals elements.
   TVec(const TSizeTy& _MxVals, const TSizeTy& _Vals){
-    IAssert((0<=_Vals)&&(_Vals<=_MxVals)); MxVals=_MxVals; Vals=_Vals;
-    if (_MxVals==0){ValT=NULL;} else {ValT=new TVal[_MxVals];}}
+	  IAssert((0 <= _Vals) && (_Vals <= _MxVals)); MxVals = _MxVals; Vals = _Vals;
+	  if (_MxVals == 0){ ValT = NULL; } else { ValT = new TVal[_MxVals]; }}
   /// Constructs a vector of \c _Vals elements of memory array \c _ValT. ##TVec::TVec
   explicit TVec(TVal *_ValT, const TSizeTy& _Vals):
     MxVals(-1), Vals(_Vals), ValT(_ValT){}
   ~TVec(){if ((ValT!=NULL) && (MxVals!=-1)){delete[] ValT;}}
   explicit TVec(TSIn& SIn): MxVals(0), Vals(0), ValT(NULL){Load(SIn);}
+  // For fast deserialization
+  explicit TVec(TMIn& MemIn) : MxVals(0), Vals(0), ValT(NULL) { LoadMemCpy(MemIn); }
+
   void Load(TSIn& SIn);
-  void Save(TSOut& SOut) const;
+  // optimized deserialization from stream, uses memcpy
+  void LoadMemCpy(TMIn& SIn);
+  void Save(TSOut& SOut) const;  
+  // optimized serialization to stream, uses memcpy
+  void SaveMemCpy(TMOut& SOut) const;
+
   /// Sends the vector contents via a socket \c fd.
   int Send(int sd);
   /// Writes \c nbytes bytes starting at \c ptr to a file/socket descriptor \c fd.
@@ -590,6 +598,8 @@ public:
     if (Vals==MxVals){Resize(MxVals+ResizeLen);} ValT[Vals]=Val; return Vals++;}
   /// Adds the elements of the vector \c ValV to the to end of the vector.
   TSizeTy AddV(const TVec<TVal, TSizeTy>& ValV);
+  /// Adds the elements of the vector \c ValV to the to end of the vector using memcpy.
+  TSizeTy AddVMemCpy(const TVec<TVal, TSizeTy>& ValV);
   /// Adds element \c Val to a sorted vector. ##TVec::AddSorted
   TSizeTy AddSorted(const TVal& Val, const bool& Asc=true, const TSizeTy& _MxVals=-1);
   /// Adds element \c Val to a sorted vector. ##TVec::AddBackSorted
@@ -606,12 +616,19 @@ public:
   TVal& GetVal(const TSizeTy& ValN){return operator[](ValN);}
   /// Returns a vector on elements at positions <tt>BValN...EValN</tt>.
   void GetSubValV(const TSizeTy& BValN, const TSizeTy& EValN, TVec<TVal, TSizeTy>& ValV) const;
+  /// Returns a vector on elements at positions <tt>BValN...EValN</tt> using memcpy.
+  void GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const;
+
   /// Inserts new element \c Val before the element at position \c ValN.
   void Ins(const TSizeTy& ValN, const TVal& Val);
   /// Removes the element at position \c ValN.
   void Del(const TSizeTy& ValN);
+  /// Removes the element at position \c ValN using memcpy
+  void DelMemCpy(const TSizeTy& ValN);
   /// Removes the elements at positions <tt>MnValN...MxValN</tt>.
   void Del(const TSizeTy& MnValN, const TSizeTy& MxValN);
+  /// Removes the elements at positions <tt>MnValN...MxValN</tt> using memcpy
+  void DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN);
   /// Removes the last element of the vector.
   void DelLast(){Del(Len()-1);}
   /// Removes the first occurrence of element \c Val.
@@ -647,7 +664,7 @@ public:
   /// Sorts the elements of the vector. ##TVec::Sort
   void Sort(const bool& Asc=true);
   /// Sorts the elements of the vector in a new copy and returns the permutation. ##TVec::SortGetPerm
-  static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc = true);
+  static void SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TInt, TSizeTy>& PermV, bool Asc = true);
   /// Checks whether the vector is sorted in ascending (if \c Asc=true) or descending (if \c Asc=false) order.
   bool IsSorted(const bool& Asc=true) const;
   /// Randomly shuffles the elements of the vector.
@@ -785,6 +802,40 @@ public:
     TVec<TVal, TSizeTy> V(9, 0); V.Add(Val1); V.Add(Val2); V.Add(Val3); V.Add(Val4); V.Add(Val5); V.Add(Val6); V.Add(Val7); V.Add(Val8); V.Add(Val9); return V;}
 };
 
+// add new vector of data to current vector, use memcpy for performance
+template <class TVal, class TSizeTy>
+TSizeTy TVec<TVal, TSizeTy>::AddVMemCpy(const TVec<TVal, TSizeTy>& ValV) {
+	if (ValV.Len() == 0)
+		return 0;
+	Resize(Vals + ValV.Len());
+	memcpy(ValT + Vals, ValV.ValT, ValV.Len() * sizeof(TVal));
+	Vals += ValV.Len();
+	return ValV.Len();
+}
+
+// optimized deserialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::LoadMemCpy(TMIn& SIn) {
+	if ((ValT != NULL) && (MxVals != -1)) { delete[] ValT; }
+	SIn.Load(MxVals);
+	SIn.Load(Vals);
+	MxVals = Vals;
+	if (MxVals == 0) {
+		ValT = NULL;
+	} else {
+		ValT = new TVal[MxVals];
+		SIn.GetBfMemCpy(ValT, Vals*sizeof(TVal));
+	}
+}
+// optimized serialization from stream, uses memcpy
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::SaveMemCpy(TMOut& SOut) const {
+	SOut.Save(MxVals);
+	SOut.Save(Vals);
+	if (MxVals > 0)
+		SOut.AppendBf(ValT, Vals*sizeof(TVal));
+}
+
 template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
   IAssertR(MxVals!=-1, TStr::Fmt("Can not increase the capacity of the vector. %s. [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]", GetTypeNm(*this).CStr()).CStr());
@@ -833,6 +884,7 @@ TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT(
 	//TSizeTy MxVals; //!< Vector capacity. Capacity is the size of allocated storage. If <tt>MxVals==-1</tt>, then \c ValT is not owned by the vector, and it won't free it at destruction.
 	//TSizeTy Vals;   //!< Vector length. Length is the number of elements stored in the vector.
     //TVal* ValT;     //!< Pointer to the memory where the elements of the vector are stored.
+	delete ValT;
 	MxVals = std::move(Vec.MxVals);
 	Vals = std::move(Vec.Vals);
 	ValT = Vec.ValT;
@@ -844,8 +896,9 @@ TVec<TVal, TSizeTy>::TVec(TVec<TVal, TSizeTy>&& Vec) : MxVals(0), Vals(0), ValT(
 template <class TVal, class TSizeTy>
 TVec<TVal, TSizeTy>& TVec<TVal, TSizeTy>::operator=(TVec<TVal, TSizeTy>&& Vec) {
 	if (this != &Vec) {
+		delete ValT;
 		MxVals = std::move(Vec.MxVals);
-		Vals = std::move(Vec.Vals);
+		Vals = std::move(Vec.Vals);		
 		ValT = Vec.ValT;
 		Vec.MxVals = 0;
 		Vec.Vals = 0;
@@ -1098,6 +1151,16 @@ void TVec<TVal, TSizeTy>::GetSubValV(const TSizeTy& _BValN, const TSizeTy& _EVal
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::GetSubValVMemCpy(const TSizeTy& _BValN, const TSizeTy& _EValN, TVec<TVal, TSizeTy>& SubValV) const {
+	const TSizeTy BValN = TInt::GetInRng(_BValN, 0, Len() - 1);
+	const TSizeTy EValN = TInt::GetInRng(_EValN, 0, Len() - 1);
+	const TSizeTy SubVals = TInt::GetMx(0, EValN - BValN + 1);
+	SubValV.Gen(SubVals, 0);
+	memcpy(SubValV.ValT, ValT + BValN, SubVals * sizeof(TVal));
+	SubValV.Vals += SubVals;
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Ins(const TSizeTy& ValN, const TVal& Val){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
   Add();  Assert((0<=ValN)&&(ValN<Vals));
@@ -1115,6 +1178,16 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& ValN){
 }
 
 template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& ValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= ValN) && (ValN<Vals));
+	if (ValN < Vals - 1) {
+		memmove(ValT + ValN, ValT + ValN + 1, sizeof(TVal) * (Vals - ValN - 1)); // overlapping buffers, use memmove instead of memcpy
+	}
+	ValT[--Vals] = TVal();
+}
+
+template <class TVal, class TSizeTy>
 void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   AssertR(MxVals!=-1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
   Assert((0<=MnValN)&&(MnValN<Vals)&&(0<=MxValN)&&(MxValN<Vals));
@@ -1124,6 +1197,17 @@ void TVec<TVal, TSizeTy>::Del(const TSizeTy& MnValN, const TSizeTy& MxValN){
   for (TSizeTy ValN=Vals-MxValN+MnValN-1; ValN<Vals; ValN++){
     ValT[ValN]=TVal();}
   Vals-=MxValN-MnValN+1;
+}
+
+template <class TVal, class TSizeTy>
+void TVec<TVal, TSizeTy>::DelMemCpy(const TSizeTy& MnValN, const TSizeTy& MxValN) {
+	AssertR(MxVals != -1, "This vector was obtained from TVecPool. Such vectors cannot change its size!");
+	Assert((0 <= MnValN) && (MnValN<Vals) && (0 <= MxValN) && (MxValN<Vals));
+	Assert(MnValN <= MxValN);
+	if (MxValN < Vals - 1) {
+		memmove(ValT + MnValN, ValT + MxValN + 1, sizeof(TVal) * (Vals - MxValN - 1)); // overlapping buffers, use memmove instead of memcpy	
+	}
+	Vals -= MxValN - MnValN + 1;
 }
 
 template <class TVal, class TSizeTy>
@@ -1240,11 +1324,11 @@ void TVec<TVal, TSizeTy>::Sort(const bool& Asc){
 }
 
 template <class TVal, class TSizeTy>
-void TVec<TVal, TSizeTy>::SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TSizeTy, TSizeTy>& PermV, bool Asc) {
+void TVec<TVal, TSizeTy>::SortGetPerm(const TVec<TVal, TSizeTy>& Vec, TVec<TVal, TSizeTy>& SortedVec, TVec<TInt, TSizeTy>& PermV, bool Asc) {
 	TSizeTy Len = Vec.Len();
-	TVec<TPair<TVal, TSizeTy> > PairV; PairV.Gen(Len, 0);
+	TVec<TPair<TVal, TInt> > PairV; PairV.Gen(Len, 0);
 	for (TSizeTy ElN = 0; ElN < Len; ElN++) {
-		PairV.Add(TPair<TVal, TSizeTy>(Vec[ElN], ElN));
+		PairV.Add(TPair<TVal, TInt>(Vec[ElN], ElN));
 	}
 	PairV.Sort(Asc);
 	SortedVec.Gen(Len, 0);

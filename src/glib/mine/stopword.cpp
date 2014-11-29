@@ -472,14 +472,17 @@ void TSwSet::AddSi(){
    "CIGAVIMI.CIGAVO.CIM.CIMER.CIMERKOLI.");
 }
 
+void TSwSet::AddEn8(){
+      MultiAdd("AND.AN.BY.FROM.OF.THE.WITH.");
+}
+
 TSwSet::TSwSet(
  const TSwSetType& _SwSetType, const int& _MnWordLen):
   SwSetType(_SwSetType), SwStrH(), MnWordLen(_MnWordLen){
   switch (SwSetType){
     case swstNone: break;
     case swstEn: AddEn523(); break;
-    case swstEn8:
-      MultiAdd("AND.AN.BY.FROM.OF.THE.WITH."); break;
+    case swstEn8: AddEn8(); break;
     case swstEn425: AddEn425(); break;
     case swstEn523: AddEn523(); break;
     case swstEs: AddEs(); break;
@@ -487,6 +490,45 @@ TSwSet::TSwSet(
     case swstSi: AddSi(); break;
     default: Fail;
   }
+}
+
+THash<TStr, TStrV> TSwSet::StopWordFiles;
+
+bool TSwSet::IsValidList(const TStr SwListNm) {
+    TSwSetType SwSetType= GetSwSetType(SwListNm);
+    
+    if (SwSetType == swstUndef && !StopWordFiles.IsKey(SwListNm)) {
+        return false;
+    }
+    return true;
+}
+
+void TSwSet::AddByName(const TStr& _SwListNm) {
+  TStr SwListNm = _SwListNm.GetLc();  // all names are lowercase
+  if (!IsValidList(SwListNm)) {
+      throw TExcept::New("Unknown stop-word definition '" + SwListNm + "'");                
+  }
+  // Predefined Stopword Collections
+  if (SwListNm=="none"){return;}
+  else if (SwListNm=="en"){ AddEn523(); }
+  else if (SwListNm=="en8"){ AddEn8(); }
+  else if (SwListNm=="en425"){ AddEn425(); }
+  else if (SwListNm=="en523"){ AddEn523(); }
+  else if (SwListNm=="es"){ AddEs(); }
+  else if (SwListNm=="de"){ AddGe(); }
+  else if (SwListNm=="si"){ AddSi(); }
+  // File Stopword Collections
+  else if (StopWordFiles.IsKey(SwListNm)) {
+    TStrV SwV = StopWordFiles.GetDat(SwListNm);
+    for (int SwN = 0; SwN < SwV.Len(); SwN++) {
+      AddWord(SwV[SwN]);
+    }
+  }
+}
+
+TSwSet::TSwSet(const TStr& SwListNm, const int& _MnWordLen) {
+  MnWordLen = _MnWordLen;
+  AddByName(SwListNm);
 }
 
 bool TSwSet::IsIn(const TStr& WordStr, const bool& UcWordStrP) const {
@@ -518,6 +560,36 @@ void TSwSet::LoadFromFile(const TStr& FNm) {
     }
 }
 
+void TSwSet::LoadSwFile(const TStr& FNm) {
+    TStr FileStr = TStr::LoadTxt(FNm);
+    TStr Name = FNm; Name = Name.LeftOfLast('.').RightOfLast('/').ToLc();
+    FileStr.DelChAll('\r');
+    TStrV LineV;
+    TStrV SwList;
+    FileStr.SplitOnAllCh('\n', LineV);
+
+    for (int LineN = 0; LineN < LineV.Len(); LineN++) {
+        TStr LineStr = LineV[LineN];
+        if (LineStr.IsChIn('|')) {
+            LineStr = LineStr.LeftOf('|');
+        }
+        LineStr = LineStr.GetTrunc().GetUc();
+        if(!LineStr.Empty()) {
+            SwList.AddUnique(LineStr);
+        }
+    }
+    StopWordFiles.AddDat(Name, SwList);
+}
+
+void TSwSet::LoadSwDir(const TStr& DPath) {
+  TStrV FNmV;
+  TStr FExt = TStr("txt");
+  TFFile::GetFNmV(DPath, TStrV::GetV(FExt), false, FNmV);
+  for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
+	LoadSwFile(FNmV.GetVal(FldN));
+  }
+}
+
 void TSwSet::GetSwSetTypeNmV(TStrV& SwSetTypeNmV, TStrV& SwSetTypeDNmV){
   SwSetTypeNmV.Clr(); SwSetTypeDNmV.Clr();
   SwSetTypeNmV.Add("none"); SwSetTypeDNmV.Add("None");
@@ -528,6 +600,12 @@ void TSwSet::GetSwSetTypeNmV(TStrV& SwSetTypeNmV, TStrV& SwSetTypeDNmV){
   SwSetTypeNmV.Add("es"); SwSetTypeDNmV.Add("Spanish");
   SwSetTypeNmV.Add("de"); SwSetTypeDNmV.Add("German");
   SwSetTypeNmV.Add("si"); SwSetTypeDNmV.Add("Slovene");
+  // Add file stopwords
+  TStrV KeyV;
+  StopWordFiles.GetKeyV(KeyV);
+  for(int KeyN = 0; KeyN < KeyV.Len(); KeyN++) {
+    SwSetTypeNmV.Add(KeyV[KeyN]); SwSetTypeDNmV.Add(KeyV[KeyN]);
+  }
 }
 
 TStr TSwSet::GetSwSetTypeNmVStr(){
@@ -568,11 +646,16 @@ PSwSet TSwSet::GetSwSet(const TSwSetType& SwSetType){
   return SwSet;
 }
 
+
+
 PSwSet TSwSet::ParseJson(const PJsonVal& SwVal) {
+    TStr SwListNm;
 	PSwSet SwSet = TSwSet::New(swstNone);
-    if (SwVal->IsStr()) {
-        SwSet = GetSwSet(SwVal->GetStr());
-    } else if (SwVal->IsArr()) {
+
+    if (SwVal->IsStr()) { // string param => load predefined SW List
+        SwListNm = SwVal->GetStr();
+        SwSet = TSwSet::New(SwListNm);
+    } else if (SwVal->IsArr()) { // user provided an array of stopwords
         for (int WordN = 0; WordN < SwVal->GetArrVals(); WordN++) {
             PJsonVal WordVal = SwVal->GetArrVal(WordN);
             EAssert(WordVal->IsStr());
@@ -583,12 +666,8 @@ PSwSet TSwSet::ParseJson(const PJsonVal& SwVal) {
         if (SwVal->IsObjKey("language")) {
             PJsonVal SwTypeVal = SwVal->GetObjKey("language");
             EAssert(SwTypeVal->IsStr());
-            const TSwSetType SwSetType = GetSwSetType(SwTypeVal->GetStr());
-            if (SwSetType != swstUndef) {
-                SwSet = TSwSet::New(SwSetType);
-            } else {
-                throw TExcept::New("Unknown stop-word definition '" + SwVal->SaveStr() + "'");                
-            }
+            SwListNm = SwTypeVal->GetStr();
+            SwSet = TSwSet::New(SwListNm);
         }
         // add any additional words
         if (SwVal->IsObjKey("words")) {

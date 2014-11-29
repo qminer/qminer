@@ -618,6 +618,12 @@ int TMIn::GetBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
+void TMIn::GetBfMemCpy(void* LBf, const TSize& LBfL) {
+	EAssertR(TSize(BfC + LBfL) <= TSize(BfL), "Reading beyond the end of stream.");
+	memcpy(LBf, Bf, LBfL);
+	BfC += LBfL;
+}
+
 bool TMIn::GetNextLnBf(TChA& LnChA){
   // not implemented
   FailR(TStr::Fmt("TMIn::GetNextLnBf: not implemented").CStr());

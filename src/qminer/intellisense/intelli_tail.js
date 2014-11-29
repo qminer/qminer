@@ -7,3 +7,4 @@ _spMat[0] = _spVec; // spMat is indexed and returns sparse column vectors
 _rs[0] = _rec; // record set at index returns a record
 _store[0] = _rec; // store index operator returns a record
 _addIntellisenseVar("_rsArr", "[_rs]");
+_addIntellisenseVar("_zscoreResult", "{Z: _mat, mu: _vec, sigma: _vec}");

@@ -172,10 +172,16 @@ public:
 // General-Blob-Base
 class TGBlobBs: public TBlobBs{
 private:
+  /// Random-access file - BLOB storage
   PFRnd FBlobBs;
+  /// access mode for file
   TFAccess Access;
+  /// maximal length of segment - of BLOB file
   int MxSegLen;
+  /// list of precomputed block lengths - each BLOB falls into one of them, 
+  /// so that allocations happen in just several possible chuncks
   TIntV BlockLenV;
+  /// list of free blob pointers (their content was deleted, so blobs are free)
   TBlobPtV FFreeBlobPtV;
   TBlobPt FirstBlobPt;
   static TStr GetNrBlobBsFNm(const TStr& BlobBsFNm);

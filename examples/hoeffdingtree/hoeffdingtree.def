@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Test", 
+    "fields": [ 
+      { "name": "f1", "type": "float" },
+      { "name": "f2", "type": "float" },
+      { "name": "f3", "type": "float" }
+    ],
+    "joins": [ ],
+    "keys": [ ]
+  }
+]
+

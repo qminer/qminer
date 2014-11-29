@@ -427,6 +427,7 @@ public:
   char GetCh();
   char PeekCh();
   int GetBf(const void* LBf, const TSize& LBfL);
+  void GetBfMemCpy(void* LBf, const TSize& LBfL);
   void Reset(){Cs=TCs(); BfC=0;}
   bool GetNextLnBf(TChA& LnChA);
 

@@ -1,0 +1,91 @@
+[
+    {
+        "name": "Publications",
+        "fields": [
+            {
+                "name": "cobissId",
+                "type": "string",
+                "primary": true
+            },
+            {
+                "name": "title",
+                "type": "string",
+                "primary": false
+            },
+            {
+                "name": "description",
+                "type": "string",
+                "primary": false
+            },
+            {
+                "name": "year",
+                "type": "datetime",
+                "primary": false
+            }
+        ],
+        
+        "joins": [
+            {
+                "name": "authors",
+                "type": "index",
+                "store": "Authors",
+                "inverse": "publications"
+            }
+        ],
+        "keys": [
+            { "field":  "cobissId", "name": "cobisskey", "type": "value" },
+            { "field":  "title", "name": "titlekey", "type": "text" },
+            { "field":  "description", "name": "desckey", "type": "text" }
+        ]
+    },
+    {
+        "name": "Authors",
+        "fields": [
+            {
+                "name": "mstid",
+                "type": "string",
+                "primary": true
+            },
+            {
+                "name": "izumid",
+                "type": "string",
+                "primary": false
+            }
+        ],
+        "joins": [
+            {
+                "name": "publications",
+                "type": "index",
+                "store": "Publications",
+                "inverse": "authors"
+            },
+            {
+                "name": "science",
+                "type": "index",
+                "store": "Science",
+                "inverse": "authors"
+            }
+        ],
+        "keys": [
+            { "field":  "mstid", "name": "mstidkey", "type": "value" }
+        ]
+    },
+    {
+        "name": "Science",
+        "fields": [
+            {
+                "name": "code",
+                "type": "int",
+                "primary": true
+            }
+        ],
+        "joins": [
+            {
+                "name": "authors",
+                "type": "index",
+                "store": "Authors",
+                "inverse": "science"
+            }
+        ]
+    }
+]

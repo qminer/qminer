@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-
+#include <cstdint>
 #ifndef bd_h
 #define bd_h
 
@@ -267,6 +267,13 @@ void ExeStop(
 #define EFail TExcept::ThrowFull("", TStr("[")+ TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + "]")
 
 #define EFailR(Reason) TExcept::ThrowFull(Reason, TStr("[")+TStr(__FILE__)+" line "+TInt::GetStr(__LINE__)+"]")
+
+#ifdef NDEBUG
+#define DebugCode(Code)
+#else
+#define DebugCode(Code) \
+  Code
+#endif
 
 #ifdef NDEBUG
 #define Assert(Cond)

@@ -436,6 +436,7 @@ public:
 
   int GetPrimHashCd() const;
   int GetSecHashCd() const;
+  int GetHashTrick() const;
 
   static TRStr* GetNullRStr(){
     return new TRStr(0); }  
@@ -468,6 +469,7 @@ public:
   TStr(const TChA& ChA){RStr=GetRStr(ChA.CStr()); RStr->MkRef();}
   TStr(const TSStr& SStr){RStr=GetRStr(SStr.CStr()); RStr->MkRef();}
   TStr(const char* CStr){RStr=GetRStr(CStr); RStr->MkRef();}
+
   explicit TStr(const char& Ch){RStr=GetChStr(Ch).RStr; RStr->MkRef();}
   TStr(const TMem& Mem){
     RStr=new TRStr(Mem.Len()); RStr->MkRef();
@@ -614,6 +616,7 @@ public:
 
   int GetPrimHashCd() const {return RStr->GetPrimHashCd();}
   int GetSecHashCd() const {return RStr->GetSecHashCd();}
+  int GetHashTrick() const {return RStr->GetHashTrick();}
 
   bool IsBool(bool& Val) const;
 

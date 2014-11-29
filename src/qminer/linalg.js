@@ -18,14 +18,29 @@
 /////// PRINTING
 //#- `la.printVec(vecec)` -- print the vector `vec` in the console
 //#- `la.printVec(intVec)` -- print the int vector `intVec` in the console
-la.printVec = function(vec) {
+la.printVec = function (vec, prec) {
+    if (typeof prec == 'undefined') prec = 2;
 	var str = "\n[\n";
 	for (var rowN = 0; rowN < vec.length; rowN++) {
-		str += vec.at(rowN).toFixed(2) + "\n";
+	    str += vec.at(rowN).toFixed(prec) + "\n";
 	}
 	str += "]\n";
 	console.say(str);
 };
+
+//TODO: I would move this to analytics.js, to avoid linalg depandencies towards analytics (Blaz)
+//#- `la.getSpFeatVecCols(spVec, fsp)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
+la.getSpFeatVecCols = function (spVec, fsp) {
+    
+    // get index and value vectors
+    var valVec = spVec.valVec();
+    var idxVec = spVec.idxVec();
+    var cols = [];
+    for (var elN = 0; elN < idxVec.length; elN++) {
+        cols.push(fsp.getFtr(idxVec[elN]));
+    }
+    return cols;
+}
 
 //#- `la.printSpFeatVec(spVec, fsp, asc)` -- Print a sparse feature vector `spVec` along with feature names based on feature space `fsp`. If third parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.
 la.printSpFeatVec = function (spVec, fsp, sortedAsc) {
@@ -183,9 +198,6 @@ la.zeros = function (rows, cols) {
     return mat;
 };
 
-
-
-
 // generate a C++ vector of ones
 //#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 la.ones = function(k) {
@@ -258,6 +270,16 @@ la.copyFltArrayToVec = function(arr) {
         vec[elN] = arr[elN];
     }
     return vec;
+};
+
+//#- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+la.copyVecToArray = function (vec) {
+    var len = vec.length;
+    var arr = [];
+    for (var elN = 0; elN < len; elN++) {
+        arr[elN] = vec[elN];
+    }
+    return arr;
 };
 
 ////// SERIALIZATION: use fs instead of fname
@@ -399,6 +421,136 @@ la.elementByElement = function (a, b, callback) {
         }
     }
     return result = isVec ? mat3.getCol(0) : mat3;
+}
+
+//# - `fout = la.saveIntVec(vec, fout)` - saves `vec` to output stream `fout` as a JSON string, and returns `fout`.
+la.saveIntVec = function(vec, fout) {
+    var arr = la.copyVecToArray(vec);
+    fout.writeLine(JSON.stringify(arr));
+    return fout;
+}
+
+//# - `intVec = la.loadIntVec(fin)` -- loads JSON string from `fin` and casts to JavaScript array and then to integer vector.
+la.loadIntVec = function(fin) {
+    var line = fin.readLine();
+    var arr = JSON.parse(line);
+    return la.copyIntArrayToVec(arr);
+}
+
+//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`.
+//# - `vec = la.mean(mat, dim)` - returns the mean along dimension `dim`. For example, `mean(mat,2)` returns a `vec` containing the mean of each row from matrix `mat`.
+la.mean = function (mat, dim) {
+    // if dim is not defined, set it to 1
+    var dim = dim == null ? 1 : dim;
+    switch (dim) {
+        case 1:
+            return mat.multiplyT(la.ones(mat.rows)).multiply(1 / mat.rows);
+            break;
+        case 2:
+            return mat.multiply(la.ones(mat.cols)).multiply(1 / mat.cols);
+            break;
+        default:
+            console.log('Warning', 'Invalid value of parameter dim')
+    }
+}
+
+//# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+//# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`
+la.std = function (mat, flag, dim) {
+    // if flag is not defined, set it to 0
+    var flag = flag == null ? 0 : flag;
+    var dim = dim == null ? 1 : dim;
+
+    if (dim == 1) {
+        var std = mat.minus(la.repvec(la.mean(mat), 1, mat.rows).transpose()).colNorms();
+        if (flag == 0) {
+            return std.multiply(Math.sqrt(1 / (mat.rows - 1)));
+        } else if (flag == 1) {
+            return std.multiply(Math.sqrt(1 / (mat.rows)));
+        } else console.log('Warning', 'Invalid value of parameter flag')
+    } else if (dim == 2) {
+        var std = mat.minus(la.repvec(la.mean(mat, 2), 1, mat.cols)).rowNorms();
+        if (flag == 0) {
+            return std.multiply(Math.sqrt(1 / (mat.cols - 1)));
+        } else if (flag == 1) {
+            return std.multiply(Math.sqrt(1 / (mat.cols)));
+        } else console.log('Warning', 'Invalid value of parameter flag')
+    } else console.log('Warning', 'Invalid value of parameter dim');
+}
+
+//# - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
+//# - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+//# - `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+la.zscore = function (mat, flag, dim) {
+    var result = {};
+    var flag = flag == null ? 0 : flag;
+    var dim = dim == null ? 1 : dim;
+    var mean = la.mean(mat, dim);
+    if (dim == 1) {
+        var mat2 = mat.minus(la.repmat(mean.toMat().transpose(), mat.rows, 1));
+    } else {
+        var mat2 = mat.minus(la.repvec(mean, 1, mat.cols));
+    }
+    var sigma = la.std(mat, flag, dim);
+    var invsigma = la.newVec(sigma);
+    for (var i = 0; i < invsigma.length; i++) {
+        if (invsigma[i] > 0) {
+            invsigma[i] = 1.0 / invsigma[i];
+        }
+    }
+    if (dim == 1) {
+        mat2 = mat2.multiply(invsigma.spDiag());
+    } else {
+        mat2 = invsigma.spDiag().multiply(mat2);
+    }
+
+    result.Z = mat2;
+    result.mu = mean;
+    result.sigma = sigma;
+    return result;
+}
+
+//# - `vec = la.standardize(vec, mu, sigma)` - returns standardized vector `vec`, using mean value `mu` and standard deviation `sigma`.
+//# - `mat = la.standardize(mat, mu, sigma)` - returns standardized column wise matrix `mat`, using mean vector `mu` and standard deviation `sigma`.
+//# - `mat = la.standardize(mat, mu, sigma, dim)` - returns standardized matrix `mat` along the dimension of `mat` specified by parameter `dim`, using mean vector `mu` and standard deviation `sigma`.
+la.standardize = function (input, mu, sigma, dim) {
+    var dim = dim == null ? 1 : dim;
+    // check if input is vector. If it is, cast it to matrix.
+    mat = (typeof input.length == "undefined") ? input : input.toMat().transpose();
+    if (dim == 1) {
+        var mat2 = mat.minus(la.repmat(mu.toMat().transpose(), mat.rows, 1));
+    } else {
+        var mat2 = mat.minus(la.repvec(mu, 1, mat.cols));
+    }
+    var invsigma = la.newVec(sigma);
+    for (var i = 0; i < invsigma.length; i++) {
+        if (invsigma[i] > 0) {
+            invsigma[i] = 1.0 / invsigma[i];
+        }
+    }
+    if (dim == 1) {
+        mat2 = mat2.multiply(invsigma.spDiag());
+    } else {
+        mat2 = invsigma.spDiag().multiply(mat2);
+    }
+    // If input is vector, cast matrix back to vector.
+    return (typeof input.length == "undefined") ? mat2 : mat2.getRow(0);
+}
+
+//# - `mat = la.correlate(m1, m2)` - returns the correlation matrix (Pearson). Each column should be an observation.
+la.correlate = function(m1, m2) {
+  var mu1 = la.mean(m1, 1);
+  var std1 = la.std(m1);
+  var x = la.standardize(m1, mu1, std1);
+
+  var mu2 = la.mean(m2, 1);
+  var std2 = la.std(m2);
+  var y = la.standardize(m2, mu2, std2);
+  var c = x.multiply(y);
+  c = c.multiply(1/c.cols);
+
+  return c;
 }
 
 var linalg = la;

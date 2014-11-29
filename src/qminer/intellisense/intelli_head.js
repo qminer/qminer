@@ -111,7 +111,6 @@ _addIntellisenseVar("_httpRequest", "{host:_str, connection:_str, cache-control:
 
 
 
-
 //// globals like `la` and `qm` C++ (without _): do nothing here, add them to procintelli.py
 // special case
 _addIntellisenseVar("_addIntellisenseVar", "_addIntellisenseVar"); // eval doesn't change _addIntellisenseVar, we just add the variable "_addIntellisenseVar" to ignore list
@@ -176,6 +175,8 @@ require = function (libName) {
     if (libName === 'assert.js') return _assert;
     if (libName === 'twitter.js') return _twitter;
     if (libName === 'time.js') return _tm;
+    if (libName === 'visualization.js') return _vis;
+    if (libName === 'snap.js') return _snap;
 };
 
 intellisenseIgnore["_analytics"] = "{}";

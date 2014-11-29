@@ -219,6 +219,7 @@ public:
     
     // stream aggregator type name 
     static TStr GetType() { return "recordBuffer"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -254,8 +255,12 @@ protected:
 	/// Load time stream aggregate from stream
 	TTimeStreamAggr(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
 public:
-	/// Save time stream aggregate to streams
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	/// For handling callbacks on new records added to the store
 	void OnAddRec(const TRec& Rec);
@@ -297,7 +302,12 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// get aggregate value
 	int GetInt() const { return Count; }
@@ -308,6 +318,7 @@ public:
     
     // stream aggregator type name 
     static TStr GetType() { return "count"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -337,7 +348,12 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);       
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
@@ -350,14 +366,15 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "timeSeriesTick"; }        
+    static TStr GetType() { return "timeSeriesTick"; }   
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
 // Time series window buffer.
 // Wrapper for exposing a window in a time series to signal processing aggregates 
 // TODO; use circular buffer
-class TTimeSeriesWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO {
+class TTimeSeriesWinBuf : public TStreamAggr, public TStreamAggrOut::IFltTmIO, public TStreamAggrOut::IFltVec, public TStreamAggrOut::ITmVec {
 private:
     TInt TimeFieldId;
     TInt TickValFieldId;
@@ -386,7 +403,12 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);       
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return InitP; }
@@ -394,16 +416,26 @@ public:
 	// most recent values
 	double GetInFlt() const { return InVal; }
 	uint64 GetInTmMSecs() const { return InTmMSecs; }
-        // oldest values
+    // oldest values
 	void GetOutFltV(TFltV& ValV) const { ValV = OutValV; }
 	void GetOutTmMSecsV(TUInt64V& MSecsV) const { MSecsV = OutTmMSecsV; }  
     int GetN() const { return AllValV.Len(); }
+
+	// IFltVec
+	int GetFltLen() const {	return AllValV.Len(); }
+	double GetFlt(const TInt& ElN) const { return AllValV[ElN].Val1; }
+	void GetFltV(TFltV& ValV) const;
+	// ITmVec 
+	int GetTmLen() const { return AllValV.Len(); }
+	uint64 GetTm(const TInt& ElN) const { return AllValV[ElN].Val2; }
+	void GetTmV(TUInt64V& MSecsV) const;
 
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "timeSeriesWinBuf"; }        
+    static TStr GetType() { return "timeSeriesWinBuf"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -431,7 +463,12 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn) { } // no internal state
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const { }; // no interna state
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -444,6 +481,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufCount"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -471,7 +509,12 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -484,6 +527,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufSum"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -511,7 +555,12 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -524,6 +573,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufMin"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -551,7 +601,12 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -564,6 +619,7 @@ public:
 
 	// stream aggregator type name 
 	static TStr GetType() { return "winBufMax"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -592,7 +648,12 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -604,7 +665,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "ma"; }    
+    static TStr GetType() { return "ma"; }  
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -614,7 +676,6 @@ private:
 	// input
 	TWPt<TStreamAggr> InAggr;
 	TWPt<TStreamAggrOut::IFltTm> InAggrVal;
-	TInt InTypeId;
 	// indicator
 	TSignalProc::TEma Ema;
 
@@ -644,7 +705,12 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return Ema.IsInit(); }
@@ -656,7 +722,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "ema"; }    
+    static TStr GetType() { return "ema"; }  
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -685,7 +752,12 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);   	
 	// serialization
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn);
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -697,7 +769,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "variance"; }    
+    static TStr GetType() { return "variance"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -736,7 +809,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "covariance"; }    
+    static TStr GetType() { return "covariance"; } 
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -775,7 +849,12 @@ public:
     /// Load stream aggregate from stream
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) { return new TCorr(Base, SABase, SIn); }
     /// Save stream aggregate to stream
-    void Save(TSOut& SOut) const;
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
+	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
     
 	// did we finish initialization
 	bool IsInit() const { return true; }
@@ -788,7 +867,8 @@ public:
 	PJsonVal SaveJson(const int& Limit) const;
     
     // stream aggregator type name 
-    static TStr GetType() { return "correlation"; }    
+    static TStr GetType() { return "correlation"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -814,9 +894,7 @@ public:
     uint GetInStoreId() const { return InStoreId; }
     int GetInFieldId() const { return InFieldId; }
     TStr GetOutFieldNm() const { return OutFieldNm; }
-   // void Save(TSOut& SOut) const;
-   // static PStreamAggr Load(const TWPt<TBase>& Base, TSIn& SIn) { return new TMergerFieldMap(Base, SIn); }
-	const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
+   	const TSignalProc::PInterpolator& GetInterpolator() const { return Interpolator; }
 };
 
 class TStMergerFieldMap {
@@ -891,9 +969,15 @@ public:
 	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	PJsonVal SaveJson(const int& Limit) const;
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) { return new TStMerger(Base, SABase, SIn); }
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
 	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
 
 	static TStr GetType() { return "stmerger"; }
+	TStr Type() const { return GetType(); }
 
 private:
 	void InitFld(const TWPt<TQm::TBase> Base, const TStMergerFieldMap& FieldMap,
@@ -948,6 +1032,9 @@ private:
     TUInt64 IntervalMSecs;
     // Timestamp of last inserted record
 	TUInt64 InterpPointMSecs;
+
+	// berfore first update
+	TBool UpdatedP;
 	
 protected:	
 	void OnAddRec(const TRec& Rec);
@@ -974,12 +1061,17 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
 	static PStreamAggr Load(const TWPt<TBase>& Base, const TWPt<TStreamAggrBase> SABase, TSIn& SIn) { return new TResampler(Base, SABase, SIn); }
 
-    // Save basic class of stream aggregate to stream
-    void Save(TSOut& SOut) const;
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
+	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
     PJsonVal SaveJson(const int& Limit) const;
 
 	// stream aggregator type name 
     static TStr GetType() { return "resampler"; }
+	TStr Type() const { return GetType(); }
 };
 
 ///////////////////////////////
@@ -1005,8 +1097,16 @@ public:
 	// serialization to JSon
 	PJsonVal SaveJson(const int& Limit) const;
 
+	/// Load stream aggregate state from stream
+	void _Load(TSIn& SIn);
+	/// Save stream aggregate to stream
+	void Save(TSOut& SOut) const;
+	/// Save state of stream aggregate to stream
+	void _Save(TSOut& SOut) const;
+
 	// stream aggregator type name 
 	static TStr GetType() { return "ftrext"; }
+	TStr Type() const { return GetType(); }
 };
 
 //////////////////////////////////////////////
@@ -1020,7 +1120,7 @@ public:
 	static void Register(const TWPt<TBase>& Base, const TStr& TypeNm, const PJsonVal& ParamVal);
     
 	// Creates and connects IterN Ema aggregates and returns the vector of their names. Result[0] corresponds to the aggregate that is connected to the InAggrNm
-	static TStrV ItEma(const TWPt<TQm::TBase>& Base, const TStr& InStoreNm, 
+	static TStrV ItEma(const TWPt<TQm::TBase>& Base, 
         const int& Order, const double& TmInterval, const TSignalProc::TEmaType& Type,
 		const uint64& InitMinMSecs, const TStr& InAggrNm, const TStr& Prefix,
 		TWPt<TQm::TStreamAggrBase>& SABase);

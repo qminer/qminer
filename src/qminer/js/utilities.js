@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+module.exports = require("__utilities__");
+exports = module.exports; // re-establish link
+
 //////////////////////////////////////////
 //#- `utilities = require('utilities.js')` -- imports utilities library to variable `utilities`
 //#- `bool = utilities.isObject(arg)` -- is parameter an object?
@@ -51,6 +54,14 @@ exports.isInArray = function (array, value) {
     return array.indexOf(value) != -1;
 }
 
+//#- `bool = utilities.isNaNInArray(array)` -- returns `true` if one of elements in array is NaN?
+exports.isNaNInArray = function (array) {
+    for (var i = 0; i < array.length; i++) {
+        if (isNaN(array[i])) { return true; }
+    }
+    return false;
+}
+
 //////////////////////////////////////////
 //#- `bool = utilities.isNumber(n)` -- is `n` a number?
 exports.isNumber = function (n) {
@@ -74,6 +85,7 @@ exports.ifNull = function (val, defVal) {
 //////////////////////////////////////////
 //#- `hashTable = utilities.newHashTable()` -- creates a hash table
 exports.newHashTable = function () {
+    console.log("exports.hashTable is deprecated -- 4.11.2014"); 
     return new exports.hashTable();
 }
 exports.hashTable = function () {
@@ -165,7 +177,6 @@ exports.clsStopwatch = function () {
     };
 };
 
-// checks if two JS arrays are identical
 //#- `bool = utilities.arraysIdentical(arr, arr2)` -- `bool` is true if array `arr` is identical to array `arr2`
 exports.arraysIdentical = function(a, b) {
     var len = a.length;

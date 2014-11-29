@@ -23,7 +23,10 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
+
+#ifdef USE_JS
 #include <qminer_js.h>
+#endif
 
 class TQmParam {
 public:
@@ -168,6 +171,10 @@ public:
 		TStr UnicodeFNm = ConfigVal->GetObjStr("unicode", TQm::TEnv::QMinerFPath + "./UnicodeDef.Bin");
 		if (!TUnicodeDef::IsDef()) { TUnicodeDef::Load(UnicodeFNm); }
 
+        // Load Stopword Files
+		TStr StopWordsPath = ConfigVal->GetObjStr("stopwords", TQm::TEnv::QMinerFPath + "resources/stopwords/");
+        TSwSet::LoadSwDir(StopWordsPath);
+
 		// parse cache
 		if (ConfigVal->IsObjKey("cache")) { 
 			PJsonVal CacheVal = ConfigVal->GetObjKey("cache");
@@ -257,6 +264,7 @@ void DispatchDebugMessages() {
 }
 #endif
 
+#ifdef USE_JS
 // initialize javascript
 void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScriptNm, TVec<TQm::PScript>& ScriptV) {
     if (!OnlyScriptNm.Empty()) {
@@ -311,6 +319,8 @@ void InitJs(const TQmParam& Param, const TQm::PBase& Base, const TStr& OnlyScrip
 	}
 }
 
+#endif
+
 void ExecUrl(const TStr& UrlStr, const TStr& OkMsgStr, const TStr& ErrMsgStr) {
 	// execute request
 	bool Ok; TStr MsgStr; PWebPg WebPg;
@@ -336,7 +346,6 @@ int main(int argc, char* argv[]) {
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
-
 		// create app environment
 		Env = TEnv(argc, argv, TNotify::StdNotify);
 		Env.SetNoLine(); // making output prettier
@@ -348,15 +357,16 @@ int main(int argc, char* argv[]) {
 		const bool StartP = Env.IsArgStr("start");
 		const bool StopP = Env.IsArgStr("stop");
 		//const bool ReloadP = Env.IsArgStr("reload");
+		const bool ImportP = Env.IsArgStr("import");
 		const bool DebugP = Env.IsArgStr("debug");
 		// stop if no action given
-		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP);
+		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP || ImportP);
 		// provide basic instruction when no action given
 		if (!ActionP) {
 			printf("\n");
 			printf("Usage: qm ACTION [OPTION]...\n");
 			printf("\n");
-			printf("Actions: config, create, start, stop, reload, debug\n");			
+			printf("Actions: config, create, start, stop, reload, debug, import\n");			
 		} else {
 			Env.SetSilent();
 		}
@@ -378,6 +388,10 @@ int main(int argc, char* argv[]) {
 		// read stop-specific parameters
 		if (!Env.IsSilent()) { printf("\nStop parameters:\n"); }
 		const int ReturnCode = Env.GetIfArgPrefixInt("-return=", 0, "Return code");
+		// read import-specific parameters
+		if (!Env.IsSilent()) { printf("\nImport parameters:\n"); }
+		const TStr ImportFNm = Env.GetIfArgPrefixStr("-file=", "", "JSON file");
+		const TStr ImportStoreNm = Env.GetIfArgPrefixStr("-store=", "", "Store to receive the data");
 		// read reload-specific parameters
 		//if (!Env.IsSilent()) { printf("\nReload parameters:\n"); }
 		//TStrV ReloadNmV = Env.GetIfArgPrefixStrV("-name=", "Script name");
@@ -433,6 +447,7 @@ int main(int argc, char* argv[]) {
 			if (!TFile::Exists("sandbox")) { TDir::GenDir("sandbox"); }			
 		}
 
+		
 		// parse configuration file
 		TQmParam Param(ConfFNm);
 		// prepare lock
@@ -466,9 +481,12 @@ int main(int argc, char* argv[]) {
 				// load base
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess, 
                     Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+
+#ifdef USE_JS
 				// initialize javascript contexts
                 TQm::TJsUtil::SetObjStatRate(JsStatRate);
 				TVec<TQm::PScript> ScriptV; InitJs(Param, Base, OnlyScriptNm, ScriptV);
+#endif
 				// start server
 				if (!NoLoopP) {
                     // prepare server functions 
@@ -484,6 +502,8 @@ int main(int argc, char* argv[]) {
                         TQm::TEnv::Logger->OnStatusFmt("Registering '%s' at '/%s/'", FPath.CStr(), UrlPath.CStr());
                         SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
                     }
+
+#ifdef USE_JS
                     // register admin services
                     SrvFunV.Add(TQm::TJsAdminSrvFun::New(ScriptV, "qm_status"));
 					// register javascript contexts
@@ -491,6 +511,7 @@ int main(int argc, char* argv[]) {
 						// register server function
 						ScriptV[ScriptN]->RegSrvFun(SrvFunV);
 					}
+#endif
 					// start server
 					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
 					// report we started
@@ -500,6 +521,58 @@ int main(int argc, char* argv[]) {
 				}
                 // save base
                 TQm::TStorage::SaveBase(Base);
+
+			}
+			// remove lock
+			Lock.Unlock();
+		}
+
+		// Run QMiner engine to import file
+		if (ImportP) {
+			// do not mess with folders with running qminer instance
+			Lock.Lock();
+			// load database and start the server
+			{
+				// resolve access type
+				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
+				// load base
+				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+				{
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
+					{
+						PSIn fin = TFIn::New(ImportFNm);
+						TStr s;
+						while (fin->GetNextLn(s)) {
+							PJsonVal json = TJsonVal::GetValFromStr(s);
+							store->AddRec(json);
+						}
+					}
+				}
+				{
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
+					TQm::TRec rec = store->GetRec(1);
+					TQm::PRecSet res = rec.DoJoin(Base, "Actor");
+					for (int i = 0; i < res->GetRecs(); i++) {
+						auto rr = res->GetRec(i);
+						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+					}
+				}
+				{
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+					TQm::TRec rec = store->GetRec(1);
+					TQm::PRecSet res = rec.DoJoin(Base, "ActedIn");
+					for (int i = 0; i < res->GetRecs(); i++) {
+						auto rr = res->GetRec(i);
+						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+					}
+				}
+				/*{
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+					store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
+				}*/
+				// save base
+				TQm::TStorage::SaveBase(Base);
 			}
 			// remove lock
 			Lock.Unlock();
