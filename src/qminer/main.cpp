@@ -358,15 +358,16 @@ int main(int argc, char* argv[]) {
 		const bool StopP = Env.IsArgStr("stop");
 		//const bool ReloadP = Env.IsArgStr("reload");
 		const bool ImportP = Env.IsArgStr("import");
+		const bool TestP = Env.IsArgStr("test");
 		const bool DebugP = Env.IsArgStr("debug");
 		// stop if no action given
-		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP || ImportP);
+		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP || ImportP || TestP);
 		// provide basic instruction when no action given
 		if (!ActionP) {
 			printf("\n");
 			printf("Usage: qm ACTION [OPTION]...\n");
 			printf("\n");
-			printf("Actions: config, create, start, stop, reload, debug, import\n");			
+			printf("Actions: config, create, start, stop, reload, debug, import, test\n");
 		} else {
 			Env.SetSilent();
 		}
@@ -529,13 +530,9 @@ int main(int argc, char* argv[]) {
 
 		// Run QMiner engine to import file
 		if (ImportP) {
-			// do not mess with folders with running qminer instance
 			Lock.Lock();
-			// load database and start the server
 			{
-				// resolve access type
 				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
-				// load base
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 				{
@@ -549,7 +546,70 @@ int main(int argc, char* argv[]) {
 						}
 					}
 				}
+				// save base
+				TQm::TStorage::SaveBase(Base);
+			}
+			// remove lock
+			Lock.Unlock();
+		}
 
+		// Run QMiner engine in test mode - execute custom code
+		if (TestP) {
+			Lock.Lock();
+			{
+				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
+				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+
+
+				{
+					// this demo assumes movies database was initialized and populated with initial data
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+					TRnd rnd(1212);
+					for (int i = 0; i < 1000*1000; i++) {
+						int r = rnd.GetUniDevInt(100);
+						if (r < 10) {
+							// perform insert of 10 new records, obtained by transforming existing records
+							for (int j = 0; j < 10; j++) {
+								auto recs = store->GetRndRecs(i + 1);
+								auto rec = recs->GetRec(recs->GetRecs() - 1);
+								auto json = rec.GetJson(Base);
+
+								if (json->IsObjKey("Title")) {
+									TStr s = TStr::Fmt("Dummy movie %d %d", i, j);
+									printf("  adding=%s \n", s.CStr());
+									json->GetObjKey("Title")->PutStr(s);									
+								}
+								if (json->IsObjKey("$id")) {
+									json->DelObjKey("$id");
+								}
+								store->AddRec(json);
+							}
+						} else if (r < 11) {
+							// perform delete of the front 3 records
+							if (store->GetRecs() > 5) {
+								store->DeleteFirstNRecs(3);
+							}
+						} else if (r < 15) {
+							//// delete random record
+							//uint64 rec_id;
+							//{
+							//	auto recs = store->GetRndRecs(rnd.GetUniDevInt(200));
+							//	auto rec = recs->GetRec(recs->GetRecs() - 1); // the last record
+							//	rec_id = rec.GetRecId();
+							//}
+							////store->remo(5);
+						} else {
+							// retrieve random movie and its actors
+							auto recs = store->GetRndRecs(i % 1000 + 1);
+							auto rec = recs->GetRec(recs->GetRecs() - 1);
+
+							auto actors = rec.DoJoin(Base, "Actor");
+							int actors_cnt = actors->GetRecs();
+							printf("  actors=%d, id=%d \n", actors_cnt, rec.GetRecId());
+						}
+					}
+				}
 				//{
 				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
 				//	TQm::TRec rec = store->GetRec(1);
