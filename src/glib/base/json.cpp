@@ -344,7 +344,7 @@ void TJsonVal::AddEscapeChAFromStr(const TStr& Str, TChA& ChA){
 					default : ChA.AddCh(Ch);
 				}
 			} else {
-                //printf("Warning: no TUnicodeDef, possible erros when enscaping unicode characters!");                        
+                printf("Warning: no TUnicodeDef, possible erros when enscaping unicode characters!");                        
 				// escape
 				ChA += "\\u";
 				ChA += TStr::Fmt("%02x", (int)Ch);
