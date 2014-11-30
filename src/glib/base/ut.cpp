@@ -132,8 +132,8 @@ void TLogNotify::OnStatus(const TStr& MsgStr) {
 
 //////////////////////////////////////
 // File-Notify
-TFileNotify::TFileNotify(const TStr& _FileName, bool _AddTimeStamp, bool _SeparateFilesForEachDay) 
-	: FileName(_FileName), AddTimeStamp(_AddTimeStamp), SeparateFilesForEachDay(_SeparateFilesForEachDay) { 
+TFileNotify::TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp, const bool& _SeparateFilesForEachDay, const bool& _FlushEachWrite)
+	: FileName(_FileName), AddTimeStamp(_AddTimeStamp), SeparateFilesForEachDay(_SeparateFilesForEachDay), FlushEachWrite(_FlushEachWrite) {
 	if (! SeparateFilesForEachDay)
 		File = TFOut::New(_FileName, true);
 	LastLogDate = "";
@@ -193,7 +193,8 @@ void TFileNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 	}
 	else 
 		File->PutStrFmt("%s: %s\n", TypeStr.CStr(), MsgStr.CStr());
-	File->Flush();
+	if (FlushEachWrite)
+		File->Flush();
 }
 
 void TStrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr)

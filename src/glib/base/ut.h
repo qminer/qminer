@@ -304,11 +304,12 @@ private:
 	bool AddTimeStamp;
 	
 	bool SeparateFilesForEachDay;
+	bool FlushEachWrite;
 	TStr LastLogDate;
 public:
-  TFileNotify(const TStr& _FileName, bool _AddTimeStamp = true, bool _SeparateFilesForEachDay = false);
-  static PNotify New(const TStr& FileName, bool AddTimeStamp = true, bool SeparateFilesForEachDay = false)	{
-	  return PNotify(new TFileNotify(FileName, AddTimeStamp, SeparateFilesForEachDay));
+  TFileNotify(const TStr& _FileName, const bool& _AddTimeStamp = true, const bool& _SeparateFilesForEachDay = false, const bool& _FlushEachWrite = false);
+  static PNotify New(const TStr& FileName, const bool& AddTimeStamp = true, const bool& SeparateFilesForEachDay = false, const bool& FlushEachWrite = false)	{
+	  return PNotify(new TFileNotify(FileName, AddTimeStamp, SeparateFilesForEachDay, FlushEachWrite));
   }
   void OpenNewFileForDate();
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
