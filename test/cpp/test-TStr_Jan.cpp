@@ -188,7 +188,9 @@ TEST(TStr, Clr) {
 	Str.Clr();
 	Empty.Clr();
 	EXPECT_EQ(Str, "");
+	EXPECT_EQ(Str.Len(), 0);
 	EXPECT_EQ(Empty, "");
+	EXPECT_EQ(Empty.Len(), 0);
 }
 
 TEST(TStr, GetStr) {
@@ -232,16 +234,20 @@ TEST(TStr, Hex) {
 	EXPECT_EQ(TStr().GetFromHex(), "");
 }
 
-TEST(TStr, SubString) {
+TEST(TStr, GetSubStr) {
 	TStr Str = "abcda";
 	TStr Empty = "";
-	
+
 	EXPECT_EQ(Str.GetSubStr(3), "da");
-	EXPECT_EQ(Str.GetSubStr(3,3), "d");
+	EXPECT_EQ(Str.GetSubStr(3, 3), "d");
 
 	EXPECT_ANY_THROW(Str.GetSubStr(-1, -1));
 	EXPECT_ANY_THROW(Str.GetSubStr(2, 1));
 	EXPECT_ANY_THROW(Str.GetSubStr(-1, 100));
+}
+TEST(TStr, InsStr) {
+	TStr Str = "abcda";
+	TStr Empty = "";
 
 	Str.InsStr(2, "xk");
 	EXPECT_EQ(Str, "abxkcda");
@@ -269,13 +275,15 @@ TEST(TStr, Del) {
 	Test = Str;
 	Test.DelSubStr(2, 3);
 	EXPECT_EQ(Test, "aaaabb");
-	Test.DelSubStr(-1, 1);
+	
+	Test.DelSubStr(0, 1);
 	EXPECT_EQ(Test, "aabb");
-	Test.DelSubStr(2, 5);
+	Test.DelSubStr(2, 3);
 	EXPECT_EQ(Test, "aa");
-	Test.DelSubStr(-1, 5);
-	EXPECT_EQ(Test, "");
-	Test.DelSubStr(-1, 5);
+	
+	EXPECT_ANY_THROW(Test.DelSubStr(-1, 5));
+	
+	Test.DelSubStr(0, 1);
 	EXPECT_EQ(Test, "");
 	Test = Str;
 	Test.DelSubStr(0, 0);
@@ -315,6 +323,190 @@ TEST(TStr, LeftOfRightOf) {
 	EXPECT_EQ(Str2.RightOfLast('f'), "");
 }
 
+
+///// Splits on the first occurrence of the target string
+///// if the target string is not found the whole string is returned as the left side
+//void SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const;
+TEST(TStr, SplitOnStr) {
+	const TStr Str = "abcd";
+	const TStr EmptyStr = "";
+	TStr LStr, RStr;
+	
+	// left empty
+	Str.SplitOnStr(LStr, "ab", RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "cd");
+	
+	// both nonempty
+	Str.SplitOnStr(LStr, "bc", RStr);
+	EXPECT_EQ(LStr, "a");
+	EXPECT_EQ(RStr, "d");
+	
+	// right empty
+	Str.SplitOnStr(LStr, "cd", RStr);
+	EXPECT_EQ(LStr, "ab");
+	EXPECT_EQ(RStr, "");
+	
+	// both empty
+	Str.SplitOnStr(LStr, "abcd", RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "");
+	
+	// no-match
+	Str.SplitOnStr(LStr, "fg", RStr);
+	EXPECT_EQ(LStr, Str);
+	EXPECT_EQ(RStr, "");
+	Str.SplitOnStr(LStr, "abcde", RStr);
+	EXPECT_EQ(LStr, Str);
+	EXPECT_EQ(RStr, "");
+	Str.SplitOnStr(LStr, "", RStr);
+	EXPECT_EQ(LStr, Str);
+	EXPECT_EQ(RStr, "");
+	
+	// empty
+	EmptyStr.SplitOnStr(LStr, "aa", RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "");
+	EmptyStr.SplitOnStr(LStr, "", RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "");
+}
+
+///// Split on last occurrence of SplitCh, return Pair of Left/Right strings
+///// if the character is not found the whole string is returned as the right side
+//void SplitOnLastCh(TStr& LStr, const char& SplitCh, TStr& RStr) const;
+TEST(TStr, SplitOnLastCh) {
+	const TStr Str = "abcd";
+	const TStr Str2 = "a";
+	const TStr EmptyStr = "";
+	TStr LStr, RStr;
+
+	// left empty
+	Str.SplitOnLastCh(LStr, 'a', RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "bcd");
+
+	// right empty
+	Str.SplitOnLastCh(LStr, 'd', RStr);
+	EXPECT_EQ(LStr, "abc");
+	EXPECT_EQ(RStr, "");
+
+	// both
+	Str2.SplitOnLastCh(LStr, 'a', RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "");
+
+	// both nonempty
+	Str.SplitOnLastCh(LStr, 'b', RStr);
+	EXPECT_EQ(LStr, "a");
+	EXPECT_EQ(RStr, "cd");
+
+	// no-match
+	Str.SplitOnLastCh(LStr, 'x', RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, Str);
+
+	// empty
+	EmptyStr.SplitOnLastCh(LStr, 'a', RStr);
+	EXPECT_EQ(LStr, "");
+	EXPECT_EQ(RStr, "");
+}
+
+///// Split on all occurrences of SplitCh, write to StrV, optionally don't create empy strings (default true)
+//void SplitOnAllCh(const char& SplitCh, TStrV& StrV, const bool& SkipEmpty = true) const;
+TEST(TStr, SplitOnAllCh) {
+	TStr Str = "abcabca";
+	TStrV StrV;	
+	Str.SplitOnAllCh('a', StrV, true);
+	EXPECT_EQ(2, StrV.Len());
+	EXPECT_EQ(TStr("bc"), StrV[0]);
+	EXPECT_EQ(TStr("bc"), StrV[1]);
+	Str.SplitOnAllCh('a', StrV, false);
+	EXPECT_EQ(4, StrV.Len());
+	EXPECT_EQ(TStr(), StrV[0]);
+	EXPECT_EQ(TStr("bc"), StrV[1]);
+	EXPECT_EQ(TStr("bc"), StrV[2]);
+	EXPECT_EQ(TStr(), StrV[3]);
+	// edge cases
+	Str = "a";
+	Str.SplitOnAllCh('a', StrV, true);
+	EXPECT_EQ(0, StrV.Len());
+	Str.SplitOnAllCh('a', StrV, false);
+	EXPECT_EQ(2, StrV.Len());
+	Str = "aa";
+	Str.SplitOnAllCh('a', StrV, true);
+	EXPECT_EQ(0, StrV.Len());
+	Str.SplitOnAllCh('a', StrV, false);
+	EXPECT_EQ(3, StrV.Len());
+	Str = "";
+	Str.SplitOnAllCh('a', StrV, true);
+	EXPECT_EQ(0, StrV.Len());
+	Str.SplitOnAllCh('a', StrV, false);
+	EXPECT_EQ(1, StrV.Len());
+	// non match
+	Str = "abc";
+	Str.SplitOnAllCh('x', StrV, true);
+	EXPECT_EQ(1, StrV.Len());
+	Str.SplitOnAllCh('x', StrV, false);
+	EXPECT_EQ(1, StrV.Len());
+}
+
+///// Split on all occurrences of any char in SplitChStr, optionally don't create empy strings (default true)
+//void SplitOnAllAnyCh(const TStr& SplitChStr, TStrV& StrV, const bool& SkipEmpty = true) const;
+TEST(TStr, SplitOnAllAnyCh) {
+
+}
+
+///// Split on the occurrences of any string in StrV
+//void SplitOnWs(TStrV& StrV) const;
+TEST(TStr, SplitOnWs) {
+
+}
+
+///// Split on the occurrences of any non alphanumeric character
+//void SplitOnNonAlNum(TStrV& StrV) const;
+TEST(TStr, SplitOnNonAlNum) {
+
+}
+
+///// Split on all the occurrences of SplitStr
+//void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
+TEST(TStr, SplitOnStr_VectorOutput) {
+	TStr Str = "xyfjefxybcxybcxy";
+	TStrV StrV;
+	Str.SplitOnStr("xy", StrV);
+	for (int i = 0; i < StrV.Len(); i++) {
+		printf("%s\n", StrV[i]);
+	}
+	//EXPECT_EQ(2, StrV.Len());
+	//EXPECT_EQ(TStr("bc"), StrV[0]);
+	//EXPECT_EQ(TStr("bc"), StrV[1]);
+	
+	//
+	//// edge cases
+	//Str = "a";
+	//Str.SplitOnAllCh('a', StrV, true);
+	//EXPECT_EQ(0, StrV.Len());
+	//Str.SplitOnAllCh('a', StrV, false);
+	//EXPECT_EQ(2, StrV.Len());
+	//Str = "aa";
+	//Str.SplitOnAllCh('a', StrV, true);
+	//EXPECT_EQ(0, StrV.Len());
+	//Str.SplitOnAllCh('a', StrV, false);
+	//EXPECT_EQ(3, StrV.Len());
+	//Str = "";
+	//Str.SplitOnAllCh('a', StrV, true);
+	//EXPECT_EQ(0, StrV.Len());
+	//Str.SplitOnAllCh('a', StrV, false);
+	//EXPECT_EQ(1, StrV.Len());
+	//// non match
+	//Str = "abc";
+	//Str.SplitOnAllCh('x', StrV, true);
+	//EXPECT_EQ(1, StrV.Len());
+	//Str.SplitOnAllCh('x', StrV, false);
+	//EXPECT_EQ(1, StrV.Len());
+}
+
 TEST(TStr, Search) {
 	TStr Str = "abcdaaba";
 	int Len = Str.Len();
@@ -334,7 +526,7 @@ TEST(TStr, Search) {
 
 
 	EXPECT_EQ(Str.CountCh('a', 1), 3);
-	EXPECT_EQ(Str.CountCh('a', 10), 0);
+	EXPECT_ANY_THROW(Str.CountCh('a', 10));
 	EXPECT_EQ(Str.CountCh('b', 2), 1);
 	EXPECT_EQ(Str.CountCh('e', 1), 0);
 
@@ -411,9 +603,8 @@ TEST(TStr, ChangeCh) {
 	ChN = Str.ChangeCh('a', 'c', 3);
 	EXPECT_EQ(Str, "caabbcaac");
 	EXPECT_EQ(ChN, 5);
-	ChN = Str.ChangeCh('a', 'c', 10);
-	EXPECT_EQ(Str, "caabbcaac");
-	EXPECT_EQ(ChN, -1);
+
+	EXPECT_ANY_THROW(ChN = Str.ChangeCh('a', 'c', 10));	
 
 #ifndef NDEBUG
 	dup2(2, 1); // redirect stdout to stderr (Assert emits a printf to stdout)
@@ -537,5 +728,4 @@ TEST(TStr, OperatorPlus) {
 	EXPECT_EQ(Str + "", "abc");	
 	EXPECT_EQ(Str + nullptr, "abc");
 }
-
 
