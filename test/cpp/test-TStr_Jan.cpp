@@ -472,12 +472,13 @@ TEST(TStr, SplitOnNonAlNum) {
 ///// Split on all the occurrences of SplitStr
 //void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 TEST(TStr, SplitOnStr_VectorOutput) {
-	TStr Str = "xyfjefxybcxybcxy";
+	TStr Str = "xybcxybcxy";
 	TStrV StrV;
 	Str.SplitOnStr("xy", StrV);
+	/*
 	for (int i = 0; i < StrV.Len(); i++) {
 		printf("%s\n", StrV[i]);
-	}
+	}*/
 	//EXPECT_EQ(2, StrV.Len());
 	//EXPECT_EQ(TStr("bc"), StrV[0]);
 	//EXPECT_EQ(TStr("bc"), StrV[1]);
