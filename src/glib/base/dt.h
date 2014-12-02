@@ -475,7 +475,7 @@ public:
   char& operator[](const int& ChN);
 
   /// Get the inner C-String
-  const char* CStr() const { return (Inner == nullptr) ? &EmptyStr : Inner; }
+  const char* CStr() const { return Empty() ? &EmptyStr : Inner; }
   /// Return a COPY of the string as a C String (char array)
   char* CloneCStr() const;
   /// Set character to given value
@@ -485,7 +485,7 @@ public:
   /// Get last character in string (before null terminator)
   char LastCh() const {return GetCh(Len()-1);}
   /// Get String Length (null terminator not included)
-  int Len() const { return (Inner != nullptr) ? strlen(Inner) : 0; }
+  int Len() const { return Empty() ? 0 : strlen(Inner); }
   /// Check if this is an empty string
   bool Empty() const { IAssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");  return  Inner == nullptr; }
   /// Deletes the char pointer if it is not nullptr.
@@ -580,21 +580,12 @@ public:
   /// Split on all the occurrences of SplitStr
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 
-  /// Get substring from beginning till including character positioned at EChN.
+  /// Get substring from beginning till character positioned at EChN (exclusive).
   /// In case EChN is negative, it counts from the back of the string.
-  TStr Left(const int& EChN) const { return EChN>0 ? GetSubStr(0, EChN-1) : GetSubStr(0, Len()+EChN-1);}
-  /// Get substring from character positioned at BChN till the end.
+  TStr Left(const int& EChN) const;
+  /// Get substring from character positioned at BChN (inclusive) till the end.
   /// In case BChN is negative, it counts from the back of the string.
   TStr Right(const int& BChN) const {return BChN>=0 ? GetSubStr(BChN, Len()-1) : GetSubStr(Len()+BChN, Len()-1);}
-  /// Get substring from character positioned at BChN till including character 
-  /// positioned at EChN. In case either is negative, it counts from the oposite
-  /// end of the string.
-  TStr Slice(int BChN, int EChNP1) const { if(BChN<0){BChN=Len()+BChN;} if(EChNP1<=0){EChNP1=Len()+EChNP1;} return GetSubStr(BChN, EChNP1-1); }
-  /// Get substring of length Chs from including character positioned at BChN.
-  /// In case EChN is negative, it counts from the back of the string.
-  TStr Mid(const int& BChN, const int& Chs) const { return GetSubStr(BChN, BChN+Chs-1); }
-  /// Get substring from character positioned at BChN till the end.
-  TStr Mid(const int& BChN) const {return GetSubStr(BChN, Len()-1); }
 
   /// Counts occurrences of a character between [BChN, end]
   int CountCh(const char& Ch, const int& BChN=0) const;
@@ -635,6 +626,7 @@ public:
   /// Return true if string is 'T' or 'F'. Return true or false accordingly in Val
   bool IsBool(bool& Val) const;
 
+  // integer
   bool IsInt(const bool& Check, const int& MnVal, const int& MxVal, int& Val) const;
   bool IsInt(int& Val) const {return IsInt(false, 0, 0, Val);}
   bool IsInt() const {int Val; return IsInt(false, 0, 0, Val);}
@@ -642,16 +634,16 @@ public:
   int GetInt(const int& DfVal) const {
     int Val; if (IsInt(false, 0, 0, Val)){return Val;} else {return DfVal;}}
 
-  bool IsUInt(
-   const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const;
+  // unsigned integer
+  bool IsUInt(const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const;
   bool IsUInt(uint& Val) const {return IsUInt(false, 0, 0, Val);}
   bool IsUInt() const {uint Val; return IsUInt(false, 0, 0, Val);}
   uint GetUInt() const {uint Val; IAssert(IsUInt(false, 0, 0, Val)); return Val;}
   uint GetUInt(const uint& DfVal) const {
     uint Val; if (IsUInt(false, 0, 0, Val)){return Val;} else {return DfVal;}}
 
-  bool IsInt64(
-   const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const;
+  // 64-bit integer
+  bool IsInt64(const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const;
   bool IsInt64(int64& Val) const {return IsInt64(false, 0, 0, Val);}
   bool IsInt64() const {int64 Val; return IsInt64(false, 0, 0, Val);}
   int64 GetInt64() const {
@@ -659,8 +651,8 @@ public:
   int64 GetInt64(const int64& DfVal) const {
     int64 Val; if (IsInt64(false, 0, 0, Val)){return Val;} else {return DfVal;}}
 
-  bool IsUInt64(
-   const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const;
+  // unsigned 64-bit integer
+  bool IsUInt64(const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const;
   bool IsUInt64(uint64& Val) const {return IsUInt64(false, 0, 0, Val);}
   bool IsUInt64() const {uint64 Val; return IsUInt64(false, 0, 0, Val);}
   uint64 GetUInt64() const {
@@ -761,6 +753,14 @@ public:
   friend TStr operator+(const TStr& LStr, const char* RCStr);
   /// Concatenates the two strings
   friend TStr operator+(const TStr& LStr, const TStr& RStr);
+
+private:
+  /// internal method used to check if the string stored in TChRet is an unsigned integer
+  /// IMPORTANT: TChRet must be initialized (GetCh() must be called at least once)
+  static bool IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val);
+  /// internal method used to check if the string stored in TChRet is a 64-bit unsigned integer
+  /// IMPORTANT: TChRet must be initialized (GetCh() must be called at least once)
+  static bool IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val);
 };
 
 /////////////////////////////////////////////////

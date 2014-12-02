@@ -67,7 +67,7 @@ public:
   TPair& operator=(const TPair& Pair){
     if (this!=&Pair){Val1=Pair.Val1; Val2=Pair.Val2;} return *this;}
   TPair& operator=(TPair&& Pair) {
-	  std::swap(Val1, Pair.Val1); std::swap(Val2, Pair.Val2); return *this;}
+	  if (this != &Pair) {std::swap(Val1, Pair.Val1); std::swap(Val2, Pair.Val2);} return *this;}
   bool operator==(const TPair& Pair) const {
     return (Val1==Pair.Val1)&&(Val2==Pair.Val2);}
   bool operator<(const TPair& Pair) const {

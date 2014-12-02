@@ -719,6 +719,16 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
 //  return int(toupper(*p++))-int(toupper(*r++));
 //}
 
+//
+// this section overloads the new operator for debug purposes (tracking memory leaks)
+//
+#ifdef WIN32
+#ifdef _DEBUG
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#define new DEBUG_NEW
+#endif
+#endif
+
 /////////////////////////////////////////////////
 // String
 const char TStr::EmptyStr = 0;
@@ -878,6 +888,7 @@ TStr& TStr::operator=(const char* CStr) {
 }
 
 bool TStr::operator==(const char* _CStr) const { 
+	if (_CStr == nullptr) { return false; }
 	return (CStr() == _CStr) || (strcmp(CStr(), _CStr) == 0);
 }
 
@@ -1002,8 +1013,8 @@ TStr TStr::GetTrunc() const {
 
   while ((BChN < ThisLen) && TCh::IsWs(GetCh(BChN))) { BChN++; }
   while ((EChN >= 0) && TCh::IsWs(GetCh(EChN))){ EChN--; }
-
-  return GetSubStr(BChN, EChN);;
+  if (BChN > EChN) { return TStr(); }
+  return GetSubStr(BChN, EChN);
 }
 
 TStr& TStr::ToHex() {
@@ -1043,6 +1054,7 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
 	int StrLen = Len();
+	EAssertR(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen, "TStr::GetSubStr index out of bounds");
     // get boundaries and substring length 
     int BChN=TInt::GetMx(_BChN, 0);
     int EChN=TInt::GetMn(_EChN, StrLen-1);
@@ -1127,32 +1139,34 @@ TStr TStr::LeftOf(const char& SplitCh) const {
   int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=0;
   while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  return (ChN==ThisLen) ? "" : GetSubStr(0, ChN-1);
+  return (ChN == 0 || ChN==ThisLen) ? "" : GetSubStr(0, ChN-1);
 }
 
 TStr TStr::LeftOfLast(const char& SplitCh) const {
   const char* ThisBf=CStr();
   int ChN=Len()-1;
   while ((ChN>=0)&&(ThisBf[ChN]!=SplitCh)){ChN--;}
-  return (ChN==-1) ? "" : GetSubStr(0, ChN-1);
+  return (ChN == 0 || ChN == -1) ? "" : GetSubStr(0, ChN - 1);
 }
 
 TStr TStr::RightOf(const char& SplitCh) const {
   int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=0;
   while ((ChN<ThisLen)&&(ThisBf[ChN]!=SplitCh)){ChN++;}
-  return (ChN==ThisLen) ? "" : GetSubStr(ChN+1, ThisLen-1);
+  return (ChN>=ThisLen - 1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
 TStr TStr::RightOfLast(const char& SplitCh) const {
   int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=Len()-1;
   while ((ChN>=0)&&(ThisBf[ChN]!=SplitCh)){ChN--;}
-  return (ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
+  return (ChN == ThisLen -1 || ChN==-1) ? "" : GetSubStr(ChN+1, ThisLen-1);
 }
 
 void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& RightOfChN, TStr& RStr) const {
-	EAssertR(LeftOfChN >= 0 && RightOfChN < Len() && LeftOfChN <= RightOfChN, "Splitting index should be greater than 0 and less than length!");
+	const int StrLen = Len();
+
+	EAssertR(LeftOfChN >= 0 && LeftOfChN <= RightOfChN && RightOfChN < StrLen, "Splitting index should be greater than 0 and less than length!");
 
 	// clear the left and right strings
 	LStr.Clr();
@@ -1163,7 +1177,7 @@ void TStr::SplitLeftOfRightOf(TStr& LStr, const int& LeftOfChN, const int& Right
 	const char* InnerPt = CStr();
 
 	const int LeftLen = LeftOfChN;
-	const int RightLen = Len() - RightOfChN;
+	const int RightLen = StrLen - RightOfChN - 1;
 
 	// copy into left and right
 	// if the length of any of the strings is 0 than leave it empty
@@ -1343,6 +1357,11 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
   StrV.Add(LastSubStr);
 }
 
+TStr TStr::Left(const int& EChN) const {
+	if (EChN == 0) { return ""; }
+	return EChN>=0 ? GetSubStr(0, EChN-1) : GetSubStr(0, Len()+EChN-1);
+}
+
 int TStr::CountCh(const char& Ch, const int& BChN) const {
 	const int ThisLen = Len();
 	if(ThisLen == 0) { return 0; }
@@ -1421,6 +1440,7 @@ bool TStr::EndsWith(const char *Str) const {
 }
 
 int TStr::ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN) {
+	AssertR(SrcCh != '\0' && DstCh != '\0', "TStr::ChangeCh: source and destination character should not be the terminator char!");
 	int ChN = SearchCh(SrcCh, BChN);
 	if (ChN != -1) { PutCh(ChN, DstCh); }
 	return ChN;
@@ -1541,35 +1561,16 @@ bool TStr::IsBool(bool& Val) const {
   else {return false;}
 }
 
-bool TStr::IsInt(
- const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
-  // parsing format {ws} [+/-] +{ddd}
-  int _Val=0;
-  bool Minus=false;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Minus=false; Ch.GetCh();}
-  if (Ch()=='-'){Minus=true; Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Minus){_Val=-_Val;}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsInt(const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
+	int64 _Val;
+	// assign and check for overflow
+	return IsInt64(Check, MnVal, MxVal, _Val) && (Val = _Val) == _Val;
 }
 
-bool TStr::IsUInt(
- const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const {
-  // parsing format {ws} [+]{ddd}
-  uint _Val=0;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsUInt(const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) const {
+	TChRet Ch(TStrIn::New(*this, false));
+	Ch.GetCh();
+	return IsUInt(Ch, Check, MnVal, MxVal, Val);
 }
 
 bool TStr::IsHexInt( const bool& Check, const int& MnVal, const int& MxVal, int& Val) const {
@@ -1594,35 +1595,37 @@ bool TStr::IsHexInt( const bool& Check, const int& MnVal, const int& MxVal, int&
   if (Ch.Eof()){Val=_Val; return true;} else {return false;}
 }
 
-bool TStr::IsInt64(
- const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const {
-  // parsing format {ws} [+/-] +{ddd}
-  int64 _Val=0;
-  bool Minus=false;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Minus=false; Ch.GetCh();}
-  if (Ch()=='-'){Minus=true; Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Minus){_Val=-_Val;}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsInt64(const bool& Check, const int64& MnVal, const int64& MxVal, int64& Val) const {
+	EAssert(!Check || (Check && MnVal <= MxVal));
+	// parsing format {ws} [+/-] +{ddd}
+	TChRet Ch(TStrIn::New(*this, false));
+
+	while (TCh::IsWs(Ch.GetCh())) {}
+
+	bool IsInt;
+	uint64 UIntVal;
+
+	if (Ch() == '-') {
+		Ch.GetCh();
+		IsInt = IsUInt64(Ch, true, 0, 9223372036854775808ul, UIntVal);
+		Val = -1l * UIntVal;
+	} else {
+		if (Ch() == '+') { Ch.GetCh(); }
+		IsInt = IsUInt64(Ch, true, 0, 9223372036854775807ul, UIntVal);
+		Val = UIntVal;
+	}
+
+	// check
+	if (!IsInt) { return false; }
+	if (Check && (Val < MnVal || Val > MxVal)) { return false; }
+
+	return true;
 }
 
-bool TStr::IsUInt64(
- const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const {
-  // parsing format {ws} [+]{ddd}
-  uint64 _Val=0;
-  TChRet Ch(TStrIn::New(*this, false));
-  while (TCh::IsWs(Ch.GetCh())){}
-  if (Ch()=='+'){Ch.GetCh();}
-  if (!TCh::IsNum(Ch())){return false;}
-  _Val=TCh::GetNum(Ch());
-  while (TCh::IsNum(Ch.GetCh())){_Val=10*_Val+TCh::GetNum(Ch());}
-  if (Check&&((_Val<MnVal)||(_Val>MxVal))){return false;}
-  if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+bool TStr::IsUInt64(const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) const {
+	TChRet Ch(TStrIn::New(*this, false));
+	Ch.GetCh();
+	return IsUInt64(Ch, Check, MnVal, MxVal, Val);
 }
 
 bool TStr::IsHexInt64(
@@ -1782,7 +1785,7 @@ TStr TStr::GetFBase() const {
   const int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
-  return GetSubStr(ChN+1, ThisLen);
+  return GetSubStr(ChN+1, ThisLen - 1);
 }
 
 TStr TStr::GetFMid() const {
@@ -1798,7 +1801,7 @@ TStr TStr::GetFMid() const {
       while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
       return GetSubStr(ChN+1, EChN);
     } else {
-      return GetSubStr(ChN+1, ThisLen);
+      return GetSubStr(ChN+1, ThisLen - 1);
     }
   }
 }
@@ -1808,7 +1811,7 @@ TStr TStr::GetFExt() const {
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')&&
    (ThisBf[ChN]!='.')){ChN--;}
-  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len());}
+  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len()-1);}
   else {return TStr();}
 }
 
@@ -2006,6 +2009,44 @@ TStr operator+(const TStr& LStr, const TStr& RStr) {
 	return operator+(LStr, RStr.CStr());
 }
 
+bool TStr::IsUInt(TChRet& Ch, const bool& Check, const uint& MnVal, const uint& MxVal, uint& Val) {
+	uint64 _Val;
+	// assign and check for overflow
+	return IsUInt64(Ch, Check, MnVal, MxVal, _Val) && (Val = _Val) == _Val;
+}
+
+bool TStr::IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const uint64& MxVal, uint64& Val) {
+	EAssert(!Check || (Check && MnVal <= MxVal));
+
+	uint64 _Val=0;
+	while (TCh::IsWs(Ch())) {
+		Ch.GetCh();
+	}
+
+	if (Ch()=='+'){Ch.GetCh();}
+	if (!TCh::IsNum(Ch())){return false;}
+	_Val=TCh::GetNum(Ch());
+
+	const uint64 MxBy10 = Check ? MxVal / 10 : TUInt64::Mx / 10;
+	const uint64 MxBy10Rem = Check ? MxVal % 10 : TUInt64::Mx % 10;
+
+	uint ChNum;
+	while (TCh::IsNum(Ch.GetCh())) {
+		ChNum = TCh::GetNum(Ch());
+
+		// check for overflow
+		if (_Val > MxBy10 || (_Val == MxBy10 && ChNum > MxBy10Rem)) {
+			return false;
+		}
+
+		// increase the sum
+		_Val = 10*_Val + ChNum;
+	}
+
+	if (Check && _Val < MnVal){return false;}
+	if (Ch.Eof()){Val=_Val; return true;} else {return false;}
+}
+
 /////////////////////////////////////////////////
 // Input-String
 TStrIn::TStrIn(const TStr& _Str, const bool& MakeCopyP) :
@@ -2029,6 +2070,16 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   FailR(TStr::Fmt("TStrIn::GetNextLnBf: not implemented").CStr());
   return false;
 }
+
+//
+// this section disables the overloaded new operator so it doesn't clash with the rest of the library (tracking memory leaks)
+//
+#ifdef WIN32
+#ifdef _DEBUG
+#undef DEBUG_NEW
+#undef new 
+#endif
+#endif
 
 /////////////////////////////////////////////////
 // String-Pool
