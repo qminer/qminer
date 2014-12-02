@@ -281,6 +281,14 @@ _store.getStreamAggr = function () {
 	/// </signature>
 };
 
+_store.getMat = function () {
+	/// <signature>
+	/// <summary> gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
 _store.newRec = function () {
 	/// <signature>
 	/// <summary> creates new record `rec` by (JSON) value `recordJson` (not added to the store)</summary>
@@ -301,6 +309,14 @@ _store.toJSON = function () {
 
 /// <field name = "backwardIter" value = "_iter"> returns iterator for iterating over the store from end to start</field>
 _store.backwardIter = _iter;
+
+_store.getVec = function () {
+	/// <signature>
+	/// <summary> gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
 
 _store.tail = function () {
 	/// <signature>
@@ -364,7 +380,7 @@ _store.empty = _bool;
 
 _store.map = function () {
 	/// <signature>
-	/// <summary> call `callback` on each element of the store and store result to `arr`</summary>
+	/// <summary> iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:</summary>
 	/// <param name="_callback" value="_callback">param</param>
 	/// <returns value ="_arr"/>
 	/// </signature>
@@ -434,22 +450,14 @@ _store.clear = function () {
 	/// </signature>
 };
 
-_store.getCol = function () {
-	/// <signature>
-	/// <summary> gets the `fieldName` column</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
 /// <field name = "length" value = "_len"> number of records in the store</field>
 _store.length = _len;
 
 _store.each = function () {
 	/// <signature>
-	/// <summary> call `callback` on each element of the store</summary>
+	/// <summary> iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:</summary>
 	/// <param name="_callback" value="_callback">param</param>
-	/// <returns value =""/>
+	/// <returns value ="_store"/>
 	/// </signature>
 };
 
@@ -1161,7 +1169,14 @@ _rec.toJSON = function () {
 	/// </signature>
 };
 
-/// <field name = "rec" value = "_rec"> get current record</field>
+_rec.$clone = function () {
+	/// <signature>
+	/// <summary> create a clone of JavaScript wrapper with same record inside</summary>
+	/// <returns value ="_rec"/>
+	/// </signature>
+};
+
+/// <field name = "rec" value = "_rec"> get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.</field>
 _iter.rec = _rec;
 
 /// <field name = "store" value = "_store"> get the store</field>
@@ -1440,12 +1455,14 @@ la.randIntVec = function () {
 	/// </signature>
 };
 
-la.rangeVec = function () {
+la.printFeatVec = function () {
 	/// <signature>
-	/// <summary> `intVec` is an integer vector: `[num, num + 1, ..., num2].</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <param name="_num2" value="_num2">param</param>
-	/// <returns value ="_intVec"/>
+	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_fsp" value="_fsp">param</param>
+	/// <param name="_limit" value="_limit">param</param>
+	/// <param name="_asc" value="_asc">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -1529,6 +1546,15 @@ la.printVec = function () {
 	/// <summary> print the int vector `intVec` in the console</summary>
 	/// <param name="_intVec" value="_intVec">param</param>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+la.rangeVec = function () {
+	/// <signature>
+	/// <summary> `intVec` is an integer vector: `[num, num + 1, ..., num2].</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <param name="_num2" value="_num2">param</param>
+	/// <returns value ="_intVec"/>
 	/// </signature>
 };
 
@@ -1680,15 +1706,6 @@ la.genRandomPerm = function () {
 	/// </signature>
 };
 
-la.correlate = function () {
-	/// <signature>
-	/// <summary> returns the correlation matrix (Pearson). Each column should be an observation.</summary>
-	/// <param name="_m1" value="_m1">param</param>
-	/// <param name="_m2" value="_m2">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-};
-
 la.conjgrad = function () {
 	/// <signature>
 	/// <summary> solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors</summary>
@@ -1703,6 +1720,15 @@ la.conjgrad = function () {
 	/// <param name="_vec" value="_vec">param</param>
 	/// <param name="_vec2" value="_vec2">param</param>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+la.correlate = function () {
+	/// <signature>
+	/// <summary> returns the correlation matrix (Pearson). Each column should be an observation.</summary>
+	/// <param name="_m1" value="_m1">param</param>
+	/// <param name="_m2" value="_m2">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -1740,14 +1766,11 @@ la.genRandom = function () {
 	/// </signature>
 };
 
-la.printFeatVec = function () {
+la.cat = function () {
 	/// <signature>
-	/// <summary> Print a feature vector `vec` along with feature names based on feature space `fsp`. The parameter `limit` (integer) is optional and limits the number of rows printed (prints all values by default). If the fourth parameter is ommited, the elements are sorted by dimension number. If boolean parameter `asc` is used, then the rows are sorted by (non-zero) vector values. Use `asc=true` for sorting in ascending order and `asc=false` for sorting in descending order.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_fsp" value="_fsp">param</param>
-	/// <param name="_limit" value="_limit">param</param>
-	/// <param name="_asc" value="_asc">param</param>
-	/// <returns value =""/>
+	/// <summary> concatenates the matrices in nestedArrayMat. E.g. mat = la.cat([[m1, m2], [m3, m4]])</summary>
+	/// <param name="_nestedArrMat" value="_nestedArrMat">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
 
@@ -2274,6 +2297,13 @@ _utilities.isInArray = function () {
 	/// </signature>
 };
 
+_utilities.newIntFltH = function () {
+	/// <signature>
+	/// <summary> New int-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
 _utilities.ifNull = function () {
 	/// <signature>
 	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
@@ -2311,10 +2341,11 @@ _utilities.newStrIntH = function () {
 	/// </signature>
 };
 
-_utilities.newIntFltH = function () {
+_utilities.isNaNInArray = function () {
 	/// <signature>
-	/// <summary> New int-double hashmap</summary>
-	/// <returns value ="_map"/>
+	/// <summary> returns `true` if one of elements in array is NaN?</summary>
+	/// <param name="_array" value="_array">param</param>
+	/// <returns value ="_bool"/>
 	/// </signature>
 };
 
@@ -2405,6 +2436,14 @@ _rs.sample = function () {
 	/// </signature>
 };
 
+_rs.getMat = function () {
+	/// <signature>
+	/// <summary> gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
 _rs.sortByField = function () {
 	/// <signature>
 	/// <summary> sort records according to value of field `fieldName`; if `asc &gt; 0` sorted in ascending order. Returns self.</summary>
@@ -2434,6 +2473,14 @@ _rs.deleteRecs = function () {
 	/// <summary> delete from `rs` records that are also in `rs2`. Returns self.</summary>
 	/// <param name="_rs2" value="_rs2">param</param>
 	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
+_rs.getVec = function () {
+	/// <signature>
+	/// <summary> gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...</summary>
+	/// <param name="_fieldName" value="_fieldName">param</param>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -2514,7 +2561,7 @@ _rs.sort = function () {
 
 _rs.map = function () {
 	/// <signature>
-	/// <summary> iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Examples:</summary>
+	/// <summary> iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:</summary>
 	/// <param name="_callback" value="_callback">param</param>
 	/// <returns value ="_arr"/>
 	/// </signature>
@@ -2537,7 +2584,7 @@ _rs.clone = function () {
 
 _rs.each = function () {
 	/// <signature>
-	/// <summary> iterates through the record set and executes the callback function `callback` on each element. Returns self. Examples:</summary>
+	/// <summary> iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:</summary>
 	/// <param name="_callback" value="_callback">param</param>
 	/// <returns value ="_rs"/>
 	/// </signature>
@@ -2584,14 +2631,6 @@ _rs.reverse = function () {
 	/// <signature>
 	/// <summary> reverse record order. Returns self.</summary>
 	/// <returns value ="_rs"/>
-	/// </signature>
-};
-
-_rs.getCol = function () {
-	/// <signature>
-	/// <summary> gets the `fieldName` column</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -2801,28 +2840,11 @@ _analytics.newRecLinReg = function () {
 	/// </signature>
 };
 
-_analytics.newNN = function () {
-	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
-	/// </signature>
-};
-
 _analytics.loadRecLinRegModel = function () {
 	/// <signature>
 	/// <summary> load serialized linear model</summary>
 	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-};
-
-_analytics.newHoeffdingTree = function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_jsonStream" value="_jsonStream">param</param>
-	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
-	/// <returns value ="_htModel"/>
 	/// </signature>
 };
 
@@ -2832,15 +2854,8 @@ _analytics.crossValidation = function () {
 	/// <param name="_rs" value="_rs">param</param>
 	/// <param name="_features" value="_features">param</param>
 	/// <param name="_target" value="_target">param</param>
+	/// <param name="_folds" value="_folds">param</param>
 	/// <returns value ="_result"/>
-	/// </signature>
-};
-
-_analytics.loadSvmModel = function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_svmModel"/>
 	/// </signature>
 };
 
@@ -2848,16 +2863,6 @@ _analytics.getLanguageOptions = function () {
 	/// <signature>
 	/// <summary> get options for text parsing</summary>
 	/// <returns value ="_langOptionsJson"/>
-	/// </signature>
-};
-
-_analytics.newKalmanFilter = function () {
-	/// <signature>
-	/// <summary> the Kalman filter initialization procedure</summary>
-	/// <param name="_dynamParams" value="_dynamParams">param</param>
-	/// <param name="_measureParams" value="_measureParams">param</param>
-	/// <param name="_controlParams" value="_controlParams">param</param>
-	/// <returns value ="_kf"/>
 	/// </signature>
 };
 
@@ -2886,21 +2891,12 @@ _analytics.kmeans = function () {
 	/// </signature>
 };
 
-_analytics.newFeatureSpace = function () {
+_analytics.newLloyd = function () {
 	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-};
-
-_analytics.newKNearestNeighbors = function () {
-	/// <signature>
-	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
+	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
+	/// <param name="_dim" value="_dim">param</param>
 	/// <param name="_k" value="_k">param</param>
-	/// <param name="_buffer" value="_buffer">param</param>
-	/// <param name="_power" value="_power">param</param>
-	/// <returns value ="_kNearestNeighbors"/>
+	/// <returns value ="_lloydModel"/>
 	/// </signature>
 };
 
@@ -2913,23 +2909,6 @@ _analytics.newActiveLearner = function () {
 	/// <param name="_ftrSpace" value="_ftrSpace">param</param>
 	/// <param name="_settings" value="_settings">param</param>
 	/// <returns value ="_alModel"/>
-	/// </signature>
-};
-
-_analytics.loadBatchModel = function () {
-	/// <signature>
-	/// <summary> loads batch model frm input stream `fin`</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_batchModel"/>
-	/// </signature>
-};
-
-_analytics.newPerceptron = function () {
-	/// <signature>
-	/// <summary> the perceptron learning algorithm initialization requires</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_use_bias" value="_use_bias">param</param>
-	/// <returns value ="_perceptronModel"/>
 	/// </signature>
 };
 
@@ -2953,12 +2932,38 @@ _analytics.newExtendedKalmanFilter = function () {
 	/// </signature>
 };
 
-_analytics.trainSvmRegression = function () {
+_analytics.newKNearestNeighbors = function () {
 	/// <signature>
-	/// <summary> trains</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <param name="_power" value="_power">param</param>
+	/// <returns value ="_kNearestNeighbors"/>
+	/// </signature>
+};
+
+_analytics.newPerceptron = function () {
+	/// <signature>
+	/// <summary> the perceptron learning algorithm initialization requires</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_use_bias" value="_use_bias">param</param>
+	/// <returns value ="_perceptronModel"/>
+	/// </signature>
+};
+
+_analytics.newRocchio = function () {
+	/// <signature>
+	/// <summary> train Rocchio model</summary>
+	/// <param name="_trainMat" value="_trainMat">param</param>
+	/// <param name="_targetVec" value="_targetVec">param</param>
+	/// <returns value ="_model"/>
+	/// </signature>
+};
+
+_analytics.loadSvmModel = function () {
+	/// <signature>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value ="_svmModel"/>
 	/// </signature>
 };
@@ -2973,12 +2978,56 @@ _analytics.newRidgeRegression = function () {
 	/// </signature>
 };
 
-_analytics.newLloyd = function () {
+_analytics.newHoeffdingTree = function () {
 	/// <signature>
-	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_lloydModel"/>
+	/// <summary> create new</summary>
+	/// <param name="_jsonStream" value="_jsonStream">param</param>
+	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
+	/// <returns value ="_htModel"/>
+	/// </signature>
+};
+
+_analytics.newKalmanFilter = function () {
+	/// <signature>
+	/// <summary> the Kalman filter initialization procedure</summary>
+	/// <param name="_dynamParams" value="_dynamParams">param</param>
+	/// <param name="_measureParams" value="_measureParams">param</param>
+	/// <param name="_controlParams" value="_controlParams">param</param>
+	/// <returns value ="_kf"/>
+	/// </signature>
+};
+
+_analytics.newNN = function () {
+	/// <signature>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
+	/// </signature>
+};
+
+_analytics.newFeatureSpace = function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+};
+
+_analytics.trainSvmRegression = function () {
+	/// <signature>
+	/// <summary> trains</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <returns value ="_svmModel"/>
+	/// </signature>
+};
+
+_analytics.loadBatchModel = function () {
+	/// <signature>
+	/// <summary> loads batch model frm input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_batchModel"/>
 	/// </signature>
 };
 
@@ -3268,6 +3317,15 @@ _tokenizer.getSentences = function () {
 	/// </signature>
 };
 
+_snap.reebSimplify = function () {
+	/// <signature>
+	/// <summary> return communities alg = `lip`</summary>
+	/// <param name="_DGraph" value="_DGraph">param</param>
+	/// <param name="_alg" value="_alg">param</param>
+	/// <returns value ="_jsonstring"/>
+	/// </signature>
+};
+
 _snap.newUGraph = function () {
 	/// <signature>
 	/// <summary> generate an empty undirected graph</summary>
@@ -3311,7 +3369,16 @@ _snap.communityDetection = function () {
 	/// <summary> returns communities of graph (alg = `gn`, `imap` or `cnm`)</summary>
 	/// <param name="_UGraph" value="_UGraph">param</param>
 	/// <param name="_alg" value="_alg">param</param>
-	/// <returns value ="_spVec"/>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+};
+
+_snap.reebRefine = function () {
+	/// <signature>
+	/// <summary> return communities alg = `lip`</summary>
+	/// <param name="_DGraph" value="_DGraph">param</param>
+	/// <param name="_alg" value="_alg">param</param>
+	/// <returns value ="_jsonstring"/>
 	/// </signature>
 };
 
@@ -3335,6 +3402,14 @@ _graph.adjMat = function () {
 	/// <signature>
 	/// <summary> returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities</summary>
 	/// <returns value ="_spMat"/>
+	/// </signature>
+};
+
+_graph.connectedComponents = function () {
+	/// <signature>
+	/// <summary> computes the weakly connected components if weak=true or strongly connected components otherwise</summary>
+	/// <param name="_weak" value="_weak">param</param>
+	/// <returns value ="_intVec"/>
 	/// </signature>
 };
 
@@ -3708,15 +3783,42 @@ _mat.load = function () {
 	/// </signature>
 };
 
+_mat.setCol = function () {
+	/// <signature>
+	/// <summary> Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.</summary>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
 /// <field name = "cols" value = "_num"> integer `num` corresponds to the number of columns of `mat`</field>
 _mat.cols = _num;
 
-_mat.put = function () {
+_mat.multiply = function () {
 	/// <signature>
-	/// <summary> Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.</summary>
-	/// <param name="_rowIdx" value="_rowIdx">param</param>
-	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <summary> Matrix multiplication: `num` is a number, `mat2` is a matrix</summary>
 	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> Matrix multiplication: `vec` is a vector, `vec2` is a vector</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector</summary>
+	/// <param name="_spVec" value="_spVec">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix</summary>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix</summary>
+	/// <param name="_spMat" value="_spMat">param</param>
 	/// <returns value ="_mat"/>
 	/// </signature>
 };
@@ -3788,34 +3890,6 @@ _mat.printStr = function () {
 	/// </signature>
 };
 
-_mat.multiply = function () {
-	/// <signature>
-	/// <summary> Matrix multiplication: `num` is a number, `mat2` is a matrix</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> Matrix multiplication: `vec` is a vector, `vec2` is a vector</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector</summary>
-	/// <param name="_spVec" value="_spVec">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix</summary>
-	/// <param name="_mat2" value="_mat2">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix</summary>
-	/// <param name="_spMat" value="_spMat">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-};
-
 _mat.print = function () {
 	/// <signature>
 	/// <summary> print matrix `mat` to console. Returns self.</summary>
@@ -3846,6 +3920,14 @@ _mat.colNorms = function () {
 	/// </signature>
 };
 
+_mat.saveascii = function () {
+	/// <signature>
+	/// <summary> save `mat` (full matrix) to output stream `fout`. Returns `fout`.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+};
+
 _mat.transpose = function () {
 	/// <signature>
 	/// <summary> matrix `mat2` is matrix `mat` transposed</summary>
@@ -3853,11 +3935,27 @@ _mat.transpose = function () {
 	/// </signature>
 };
 
-_mat.setCol = function () {
+_mat.put = function () {
 	/// <signature>
-	/// <summary> Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.</summary>
+	/// <summary> Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
-	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> Inserts `mat2` into `mat`, where mat2.at(0,0) gets copied to mat.at(rowIdx, colIdx)</summary>
+	/// <param name="_rowIdx" value="_rowIdx">param</param>
+	/// <param name="_colIdx" value="_colIdx">param</param>
+	/// <param name="_mat2" value="_mat2">param</param>
+	/// <returns value ="_mat"/>
+	/// </signature>
+};
+
+_mat.loadascii = function () {
+	/// <signature>
+	/// <summary> replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.</summary>
+	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value ="_mat"/>
 	/// </signature>
 };
@@ -4011,6 +4109,13 @@ qm.search = function () {
 	/// <summary> execute `query` (Json) specified in [QMiner Query Language](Query Language)</summary>
 	/// <param name="_query" value="_query">param</param>
 	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
+qm.v8gc = function () {
+	/// <signature>
+	/// <summary> start v8 garbage collection</summary>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -4310,6 +4415,11 @@ fs.mkdir = function () {
 
 fs.listFile = function () {
 	/// <signature>
+	/// <summary> returns list of files in directory</summary>
+	/// <param name="_dirName" value="_dirName">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+	/// <signature>
 	/// <summary> returns list of files in directory given file extension</summary>
 	/// <param name="_dirName" value="_dirName">param</param>
 	/// <param name="_fileExtension" value="_fileExtension">param</param>
@@ -4403,13 +4513,16 @@ _fsp.ftrSpColMat = function () {
 	/// </signature>
 };
 
-_fsp.extractStrings = function () {
+_fsp.ftrColMat = function () {
 	/// <signature>
-	/// <summary> use feature extractors to extract string</summary>
-	/// <param name="_rec" value="_rec">param</param>
-	/// <returns value ="_strArr"/>
+	/// <summary> extracts feature vectors from</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <returns value ="_mat"/>
 	/// </signature>
 };
+
+/// <field name = "dims" value = "_num_array"> dimensionality of feature space for each of the internal feature extarctors</field>
+_fsp.dims = _num_array;
 
 _fsp.getFtr = function () {
 	/// <signature>
@@ -4444,11 +4557,19 @@ _fsp.filter = function () {
 	/// </signature>
 };
 
-_fsp.ftrColMat = function () {
+_fsp.extractStrings = function () {
 	/// <signature>
-	/// <summary> extracts feature vectors from</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <returns value ="_mat"/>
+	/// <summary> use feature extractors to extract string</summary>
+	/// <param name="_rec" value="_rec">param</param>
+	/// <returns value ="_strArr"/>
+	/// </signature>
+};
+
+_fsp.add = function () {
+	/// <signature>
+	/// <summary> add a feature extractor parametrized by `objJson`</summary>
+	/// <param name="_objJson" value="_objJson">param</param>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 };
 
