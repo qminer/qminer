@@ -577,7 +577,7 @@ public:
   void SplitOnWs(TStrV& StrV) const;
   /// Split on the occurrences of any non alphanumeric character
   void SplitOnNonAlNum(TStrV& StrV) const;
-  /// Split on all the occurrences of SplitStr
+  /// Split on all the occurrences of SplitStr, doesn't remove the split string (splitting aabbaacc on aa results in aa, bbaa, cc
   void SplitOnStr(const TStr& SplitStr, TStrV& StrV) const;
 
   /// Get substring from beginning till character positioned at EChN (exclusive).
