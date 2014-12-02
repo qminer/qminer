@@ -1073,7 +1073,7 @@ TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 
 void TStr::InsStr(const int& BChN, const TStr& Str) {
     const int ThisLen = Len();
-    IAssert((0<=BChN)&&(BChN<=ThisLen));
+    EAssert((0<=BChN)&&(BChN<=ThisLen));
     TChA ChA = TChA(ThisLen + Str.Len());
     if (BChN==0){
         ChA += Str;

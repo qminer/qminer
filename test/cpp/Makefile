@@ -20,12 +20,12 @@ MAIN = run-all-tests
 
 TEST_SRCS = \
 	test-TStr.cpp \
-	test-THash.cpp \
-#	test-TStr_Jan.cpp \
-	test-TStr.rei.cpp \
-	tstr-lstopar.cpp
+	test-THash.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
+
+# we test in release	
+CXXFLAGS += -O3 -DNDEBUG
 
 all: $(MAIN)
 run: test
@@ -38,7 +38,7 @@ $(MAIN): $(MAIN).o $(TEST_OBJS) $(GLIB)/glib.a
 	$(CC) $(CXXFLAGS) -o $(MAIN) $^ -I$(GLIB_BASE) $(LDFLAGS) $(LIBS)
 
 $(GLIB)/glib.a:
-	$(MAKE) -C $(GLIB) debug
+	$(MAKE) -C $(GLIB) release
 
 test: $(MAIN)
 	./$(MAIN)
