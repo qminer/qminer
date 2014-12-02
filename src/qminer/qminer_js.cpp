@@ -249,7 +249,7 @@ bool TJsFPath::Equals(const TJsFPath& JsFPath) const {
 }
 
 bool TJsFPath::IsSubdir(const TJsFPath& JsFPath) const {
-	return CanonicalFPath.IsPrefix(JsFPath.GetFPath());
+	return CanonicalFPath.StartsWith(JsFPath.GetFPath());
 }
 
 void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {

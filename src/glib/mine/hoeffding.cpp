@@ -2449,7 +2449,7 @@ namespace THoeffding {
             }
             TStr TmpValueNm = ValueNm;
             // Make sure DOT doesn't crash later beacuse of illegal labels 
-            TmpValueNm.ChangeCh('-', 'D');
+			TmpValueNm.ChangeCh('-', 'D');
             if (TmpNode->ChildrenV.Empty()) {
                EAssertR(TaskType == ttCLASSIFICATION || TaskType == ttREGRESSION,
                   "Invalid task type.");

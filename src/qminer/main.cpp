@@ -545,7 +545,7 @@ int main(int argc, char* argv[]) {
                         Base->PrintIndexVoc(DebugFNm + "indexvoc.txt");
                     } else if (Task == "stores") {
                         Base->PrintStores(DebugFNm + "stores.txt");
-                    } else if (Task.IsPrefix("_ALL")) {
+                    } else if (Task.StartsWith("_ALL")) {
                         TStr StoreNm = Task.LeftOfLast('_');
                         Base->GetStoreByStoreNm(StoreNm)->PrintAll(Base, DebugFNm + Task + ".txt");
                     } else if (Base->IsStoreNm(Task)) {

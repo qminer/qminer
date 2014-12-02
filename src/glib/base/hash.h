@@ -713,14 +713,14 @@ public:
   int AddStr(const TStr& Str) { return AddStr(Str.CStr(), Str.Len() + 1); }
 
   TStr GetStr(const int& StrId) const { Assert(StrId < GetStrs());
-    if (StrId == 0) return TStr::GetNullStr(); else return TStr(Bf + (TSize)IdOffV[StrId]); }
+    if (StrId == 0) return TStr(); else return TStr(Bf + (TSize)IdOffV[StrId]); }
   const char *GetCStr(const int& StrId) const { Assert(StrId < GetStrs());
-    if (StrId == 0) return TStr::GetNullStr().CStr(); else return (Bf + (TSize)IdOffV[StrId]); }
+    if (StrId == 0) return TStr().CStr(); else return (Bf + (TSize)IdOffV[StrId]); }
   
   TStr GetStrFromOffset(const TSize& Offset) const { Assert(Offset < BfL);
-    if (Offset == 0) return TStr::GetNullStr(); else return TStr(Bf + Offset); }
+    if (Offset == 0) return TStr(); else return TStr(Bf + Offset); }
   const char *GetCStrFromOffset(const TSize& Offset) const { Assert(Offset < BfL);
-    if (Offset == 0) return TStr::GetNullStr().CStr(); else return Bf + Offset; }
+    if (Offset == 0) return TStr().CStr(); else return Bf + Offset; }
 
   void Clr(bool DoDel = false) { BfL = 0; if (DoDel && Bf) { free(Bf); Bf = 0; MxBfL = 0; } }
   int Cmp(const int& StrId, const char *Str) const { Assert(StrId < GetStrs());
