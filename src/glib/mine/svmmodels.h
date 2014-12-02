@@ -570,9 +570,11 @@ public:
     // access to the parameters of the model
     double GetMargin() const;
     void GetAlphaV(TFltV& _AlphaV) const { _AlphaV = AlphaV; }
+    const TFltV& GetAlphaV() const { return AlphaV; }
     double GetThresh() const { return Thresh; }
     bool IsLinear() const { return Linear; }
     void GetWgtV(TFltV& _WgtV) const { IAssert(IsLinear()); _WgtV = WgtV; }
+    const TFltV& GetWgtV() const { IAssert(IsLinear()); return WgtV; }
     PSVMTrainSet GetSupVecs() const { IAssert(!IsLinear()); return SupVecs; }
     PKernel GetKernel() const { IAssert(!IsLinear()); return Kernel; }
     TSigmoid GetSigmoid() const { IAssert(IsProb()); return Sigmoid; }

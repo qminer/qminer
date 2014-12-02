@@ -1253,8 +1253,6 @@ private:
 	TRecSet(const TWPt<TBase>& Base, TSIn& SIn);
 
 public:
-	/// Create empty set
-	static PRecSet New();
 	/// Create empty set for a given store
 	static PRecSet New(const TWPt<TStore>& Store);
 	/// Create record set with one record

@@ -70,7 +70,7 @@ void TNGramBs::GetNGramIdV(
   }
   bool AllWIdQClrP=true;
   // extract words from text-string
-  PSIn HtmlSIn=TStrIn::New(HtmlStr);
+  PSIn HtmlSIn=TStrIn::New(HtmlStr, false);
   THtmlLx HtmlLx(HtmlSIn);
   while (HtmlLx.Sym!=hsyEof){
     if ((HtmlLx.Sym==hsyStr)||(HtmlLx.Sym==hsyNum)){
@@ -310,7 +310,7 @@ void TNGramBs::_UpdateNGramBsFromHtmlStr(
  const PNGramBs& NGramBs, const TStr& HtmlStr,
  const PSwSet& SwSet, const PStemmer& Stemmer){
   // prepare html parsing
-  PSIn HtmlSIn=TStrIn::New(HtmlStr);
+  PSIn HtmlSIn=TStrIn::New(HtmlStr, false);
   PHtmlDoc HtmlDoc=THtmlDoc::New(HtmlSIn, hdtAll, false);
   PHtmlTok Tok; THtmlLxSym Sym; TStr Str;
   PHtmlLxChDef ChDef=THtmlLxChDef::GetChDef();
@@ -613,7 +613,7 @@ void TStreamNGramBs::AddDocHtmlStr(
  const TStr& DocHtmlStr, const int& MnOutputNGramFq, TNGramDescV& OutputNGramDescV){
   BreakTokStream(); OutputNGramDescV.Clr();
   // prepare html parsing
-  PSIn HtmlSIn=TStrIn::New(DocHtmlStr);
+  PSIn HtmlSIn=TStrIn::New(DocHtmlStr, false);
   PHtmlDoc HtmlDoc=THtmlDoc::New(HtmlSIn, hdtAll, true);
   PHtmlTok Tok; THtmlLxSym TokSym; TStr TokStr;
   bool InScript=false;

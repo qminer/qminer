@@ -32,8 +32,8 @@ TEnv::TEnv(const TStr& _ArgStr, const PNotify& _Notify):
 
 TStr TEnv::GetExeFNm() const {
   TStr ExeFNm=GetArg(0);
-  if (ExeFNm.IsPrefix("//?")){ // observed on Win64 CGI
-    ExeFNm=ExeFNm.GetSubStr(3, ExeFNm.Len());
+  if (ExeFNm.StartsWith("//?")){ // observed on Win64 CGI
+	  ExeFNm.DelStr("//?");
   }
   return ExeFNm;
 }
@@ -49,17 +49,18 @@ TStr TEnv::GetCmLn(const int& FromArgN) const {
 
 int TEnv::GetPrefixArgN(const TStr& PrefixStr) const {
   int ArgN=0;
-  while (ArgN<GetArgs()){
-    if (GetArg(ArgN).GetSubStr(0, PrefixStr.Len()-1)==PrefixStr){return ArgN;}
-    ArgN++;
+  while (ArgN < GetArgs()){
+	  if (GetArg(ArgN).StartsWith(PrefixStr)){ return ArgN; }
+	  ArgN++;
   }
   return -1;
 }
 
 TStr TEnv::GetArgPostfix(const TStr& PrefixStr) const {
-  int ArgN=GetPrefixArgN(PrefixStr); IAssert(ArgN!=-1);
-  TStr ArgStr=GetArg(ArgN);
-  return ArgStr.GetSubStr(PrefixStr.Len(), ArgStr.Len());
+	int ArgN = GetPrefixArgN(PrefixStr); IAssert(ArgN != -1);
+	TStr ArgStr = GetArg(ArgN);
+	ArgStr.DelStr(PrefixStr);
+	return ArgStr;
 }
 
 void TEnv::PrepArgs(const TStr& _HdStr, const int& _MnArgs, const bool& _SilentP){
@@ -172,10 +173,10 @@ TStrV TEnv::GetIfArgPrefixStrV(
     for (int ArgN=0; ArgN<GetArgs(); ArgN++){
       // get argument string
       TStr ArgStr=GetArg(ArgN);
-      if (ArgStr.GetSubStr(0, PrefixStr.Len()-1)==PrefixStr){
+      if (ArgStr.StartsWith(PrefixStr)) {
         // extract & add argument value
-        TStr ArgVal=ArgStr.GetSubStr(PrefixStr.Len(), ArgStr.Len());
-        ArgValV.Add(ArgVal);
+		  ArgStr.DelStr(PrefixStr);		  
+		  ArgValV.Add(ArgStr);
         // add to message string
         if (ArgValV.Len()>1){ArgValVChA+=", ";}
         ArgValVChA+=ArgValV.Last();
@@ -289,8 +290,12 @@ double TEnv::GetIfArgPrefixFlt(
 }
 
 void TEnv::PutVarVal(const TStr& VarNm, const TStr& VarVal) {
-  const int RetVal = putenv(TStr::Fmt("%s=%s", VarNm.CStr(), VarVal.CStr()).CStr());
-  IAssert(RetVal==0);
+#ifdef GLib_WIN
+  const int ErrCd = _putenv(TStr::Fmt("%s=%s", VarNm.CStr(), VarVal.CStr()).CStr());
+#else
+  const int ErrCd = setenv(VarNm.CStr(), VarVal.CStr(), 1);
+#endif
+  IAssert(ErrCd == 0);
 }
 
 TStr TEnv::GetVarVal(const TStr& VarNm) {

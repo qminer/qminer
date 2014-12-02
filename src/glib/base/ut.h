@@ -39,7 +39,7 @@ public:
       free(DemangleTypeCStr);
       return DemangleTypeStr;
     #else
-      if (TypeNm.IsPrefix("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
+      if (TypeNm.StartsWith("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
       else {return TypeNm;}
     #endif    
   }

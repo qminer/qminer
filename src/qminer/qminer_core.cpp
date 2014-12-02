@@ -1660,7 +1660,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 	if (Store->IsJoinNm(JoinNm)) {
 		return DoJoin(Base, Store->GetJoinId(JoinNm));
 	} else {
-		return TRecSet::New();
+        throw TQmExcept::New("Unknown join " + JoinNm);
 	}
 }
 
@@ -1820,10 +1820,6 @@ TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
     Store = TStore::LoadById(Base, SIn);
 	WgtP.Load(SIn);
 	RecIdFqV.Load(SIn);	
-}
-
-PRecSet TRecSet::New() { 
-	return new TRecSet(); 
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store) { 
@@ -2119,9 +2115,8 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm,
 
 	if (Store->IsJoinNm(JoinNm)) {
 		return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
-	} else {
-		return TRecSet::New();
 	}
+    throw TQmExcept::New("Unknown join " + JoinNm);
 }
 
 PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const {
@@ -2708,7 +2703,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 		TStr KeyNm; PJsonVal KeyVal;
 		JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
 		// check type
-		if (KeyNm.IsPrefix("$")) {
+		if (KeyNm.StartsWith("$")) {
 			// special values
 			if (KeyNm == "$or") {
 				if (!IgnoreOrP) {
@@ -3200,7 +3195,7 @@ PRecSet TQuery::GetLimit(const PRecSet& RecSet) {
 bool TQuery::IsOk(const TWPt<TBase>& Base, TStr& MsgStr) const {
 	try {
 		QueryItem.GetStoreId(Base);
-		MsgStr.Clr(); return true;
+		MsgStr = TStr(); return true;
 	} catch (PExcept Except) {
 		MsgStr = Except->GetMsgStr();
 		return false;

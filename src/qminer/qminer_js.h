@@ -1090,6 +1090,7 @@ public:
 	//#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
 	//#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 	JsDeclareFunction(listFile);
+    //#JSIMPLEMENT:src/qminer/fs.js
 };
 
 ///////////////////////////////
@@ -2519,7 +2520,7 @@ public:
 	JsDeclareFunction(plus);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (in-place operation). Returns self.
 	JsDeclareFunction(normalize);
 	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 	JsDeclareProperty(nnz);	
@@ -2529,6 +2530,8 @@ public:
 	JsDeclareFunction(print);
 	//#- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
 	JsDeclareFunction(norm);
+	//#- `vec = spVec.sort()` -- sort by values and return permutation integer vector.
+	JsDeclareFunction(sort);
 	//#- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
 	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.

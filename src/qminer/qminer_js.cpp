@@ -249,7 +249,7 @@ bool TJsFPath::Equals(const TJsFPath& JsFPath) const {
 }
 
 bool TJsFPath::IsSubdir(const TJsFPath& JsFPath) const {
-	return CanonicalFPath.IsPrefix(JsFPath.GetFPath());
+	return CanonicalFPath.StartsWith(JsFPath.GetFPath());
 }
 
 void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {
@@ -2591,7 +2591,7 @@ v8::Handle<v8::Value> TJsStore::newRecSet(const v8::Arguments& Args) {
 		PRecSet ResultSet = TRecSet::New(JsStore->Store, JsVec->Vec);
 		return TJsRecSet::New(JsStore->Js, ResultSet);
 	}
-	return TJsRecSet::New(JsStore->Js, TRecSet::New());
+	return TJsRecSet::New(JsStore->Js, TRecSet::New(JsStore->Store));
 }
 
 v8::Handle<v8::Value> TJsStore::sample(const v8::Arguments& Args) {
@@ -3422,7 +3422,7 @@ v8::Handle<v8::Value> TJsRecSet::setunion(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
 	PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
-	QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setunion: the record sets do not point to the same store!");
+    QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setunion: the record sets do not point to the same store!");
 	// GetMerge sorts the argument!
 	PRecSet RecSet1Clone = RecSet1->Clone();
 	PRecSet RecSet2 = JsRecSet->RecSet->GetMerge(RecSet1Clone);
@@ -5172,6 +5172,7 @@ v8::Handle<v8::ObjectTemplate> TJsSpV::GetTemplate() {
 		JsRegisterProperty(TmpTemp, dim);
 		JsRegisterFunction(TmpTemp, print);
 		JsRegisterFunction(TmpTemp, norm);
+		JsRegisterFunction(TmpTemp, sort);
 		JsRegisterFunction(TmpTemp, full);
 		JsRegisterFunction(TmpTemp, valVec);
 		JsRegisterFunction(TmpTemp, idxVec);
@@ -5199,23 +5200,21 @@ v8::Handle<v8::Value> TJsSpV::at(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsSpV::put(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+    TIntFltKdV& Vec = JsSpV->Vec;
 	if (Args.Length() == 2) {
 		QmAssertR(Args[0]->IsInt32(), "the first argument should be an integer");
 		QmAssertR(Args[1]->IsNumber(), "the second argument should be a number");				
-		TInt Index = TJsSpVUtil::GetArgInt32(Args, 0);	
-		TFlt Val = TJsSpVUtil::GetArgFlt(Args, 1);	
-		bool Found = false;
-		for (int ElN = 0; ElN < JsSpV->Vec.Len(); ElN++) {
-			if (JsSpV->Vec[ElN].Key == Index) {
-				JsSpV->Vec[ElN].Dat = Val;
-				Found = true;
-				break;
-			}
-		}
-		if (!Found) {
-			JsSpV->Vec.Add(TIntFltKd(Index, Val));
-			JsSpV->Vec.Sort();
-		}		
+		const int Index = TJsSpVUtil::GetArgInt32(Args, 0);	
+		const double Val = TJsSpVUtil::GetArgFlt(Args, 1);
+        // check we have the index already
+		const int Existing = Vec.SearchBin(TIntFltKd(Index, Val));
+        if (Existing == -1) {
+            // new value
+            Vec.AddSorted(TIntFltKd(Index, Val));
+        } else {
+            // update existing value
+            Vec[Existing].Dat = Val;
+        }
 		// update dimension
 		if (JsSpV->Dim != -1) {
 			if (Index >= JsSpV->Dim) {
@@ -5320,6 +5319,25 @@ v8::Handle<v8::Value> TJsSpV::norm(const v8::Arguments& Args) {
 	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
 	double Result = TLinAlg::Norm(JsSpV->Vec);
 	return HandleScope.Close(v8::Number::New(Result));
+}
+
+v8::Handle<v8::Value> TJsSpV::sort(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+    bool AscP = TJsSpVUtil::GetArgBool(Args, 0, true);
+	TJsSpV* JsSpV = TJsSpVUtil::GetSelf(Args);
+    const TIntFltKdV& SpV = JsSpV->Vec;
+    // create value vector and sort it 
+    TFltIntPrV SortV(SpV.Len(), 0);
+    for (int SpN = 0; SpN < SpV.Len(); SpN++) {
+        SortV.Add(TFltIntPr(SpV[SpN].Dat, SpN));
+    }
+    SortV.Sort(AscP);
+    // get out idx
+    TIntV PermV(SortV.Len());
+    for (int SortN = 0; SortN < SortV.Len(); SortN++) {
+        PermV[SortN] = SortV[SortN].Val2;
+    }
+	return TJsIntV::New(JsSpV->Js, PermV);
 }
 
 v8::Handle<v8::Value> TJsSpV::full(const v8::Arguments& Args) {
@@ -5948,41 +5966,58 @@ v8::Handle<v8::Value> TJsAnalytics::trainSvmClassify(const v8::Arguments& Args) 
     // parse SVM parameters
     PJsonVal SvmParamVal = TJsonVal::NewObj();
     if (Args.Length() > 2 && TJsAnalyticsUtil::IsArgJson(Args, 2)) {
-        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); }
+        SvmParamVal = TJsAnalyticsUtil::GetArgJson(Args, 2); 
+    }
+     // default algorithm is stochastic gradient descent
+    const TStr Algorithm = SvmParamVal->GetObjStr("algorithm", "SGD");
     const double SvmCost = SvmParamVal->GetObjNum("c", 1.0);
     const double SvmUnbalance = SvmParamVal->GetObjNum("j", 1.0);
     const int SampleSize = (int)SvmParamVal->GetObjNum("batchSize", 1000);
     const int MxIter = SvmParamVal->GetObjInt("maxIterations", 10000);
 	const int MxTime = (int)(1000 * SvmParamVal->GetObjNum("maxTime", 600));
     const double MnDiff = SvmParamVal->GetObjNum("minDiff", 1e-6);
-	PNotify Notify = TEnv::Logger;
 	const bool Verbose = SvmParamVal->GetObjBool("verbose", false);
-	if (!Verbose) {
-		Notify = TNotify::NullNotify;
-	}
+	PNotify Notify = Verbose ? TEnv::Logger : TNotify::NullNotify;
+    // make sure we know of the type
+    QmAssertR(Algorithm == "SGD" || Algorithm == "PR_LOQO",
+        "trainSvmClassify: unknown algorithm " + Algorithm);
     // check what kind of input data we got and train and return the model
     try {
         if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
             // we have sparse matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
             TVec<TIntFltKdV>& VecV = TJsSpMat::GetSpMat(Args[0]->ToObject());
-            return TJsSvmModel::New(JsAnalytics->Js, 
-                TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
-                    TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
-                    SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, 
-                    Notify));
+            if (Algorithm == "SGD") {
+                return TJsSvmModel::New(JsAnalytics->Js, 
+                    TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, 
+                        TLAMisc::GetMaxDimIdx(VecV) + 1, VecV.Len(), ClsV, SvmCost, 
+                        SvmUnbalance, MxTime, MxIter, MnDiff, SampleSize, Notify));
+            } else if (Algorithm == "PR_LOQO") {
+                PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
+                PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, SvmCost, SvmUnbalance, 
+                    TIntV(), TSVMLearnParam::Lin(MxTime, Verbose ? 2 : 0));
+                return TJsSvmModel::New(JsAnalytics->Js,
+                        TSvm::TLinModel(Model->GetWgtV(), Model->GetThresh()));
+            }
         } else if (TJsAnalyticsUtil::IsArgClass(Args, 0, "TFltVV")) {
             // we have dense matrix on the input
             QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
             TFltVV& VecV = TJsFltVV::GetFltVV(Args[0]->ToObject());
-            return TJsSvmModel::New(JsAnalytics->Js, 
-                TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
-					MxIter, MnDiff, SampleSize, Notify));
-        } else {
-            // TODO support JavaScript array of TJsFltV or TJsSpV
-            throw TQmExcept::New("unsupported type of the first argument");
-        }
+            if (Algorithm == "SGD") {
+                return TJsSvmModel::New(JsAnalytics->Js, 
+                    TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
+                        VecV.GetCols(), ClsV, SvmCost, SvmUnbalance, MxTime, 
+                        MxIter, MnDiff, SampleSize, Notify));
+            } else if (Algorithm == "PR_LOQO") {
+                PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
+                PSVMModel Model = TSVMModel::NewClsLinear(TrainSet, SvmCost, SvmUnbalance, 
+                    TIntV(), TSVMLearnParam::Lin(MxTime, Verbose ? 2 : 0));
+                return TJsSvmModel::New(JsAnalytics->Js,
+                        TSvm::TLinModel(Model->GetWgtV(), Model->GetThresh()));
+            }
+        } 
+        // TODO support JavaScript array of TJsFltV or TJsSpV
+        throw TQmExcept::New("unsupported type of the first argument");
     } catch (const PExcept& Except) {
         InfoLog("[except] trainSvmClassify: " + Except->GetMsgStr());
     }    
@@ -6464,6 +6499,7 @@ v8::Handle<v8::Value> TJsFtrSpace::filter(const v8::Arguments& Args) {
     QmAssertR(Args[0]->IsObject(), "fsp.filter: Expecting vector as parameter");
     const TIntFltKdV& SpV = TJsSpV::GetSpV(Args[0]->ToObject());
     const int FtrExtN = TJsFtrSpaceUtil::GetArgInt32(Args, 1);
+    const bool KeepOffsetP = TJsFtrSpaceUtil::GetArgBool(Args, 2, true);
     // get dimension border
     const int MnFtrN = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
     const int MxFtrN = JsFtrSpace->FtrSpace->GetMxFtrN(FtrExtN);
@@ -6473,6 +6509,11 @@ v8::Handle<v8::Value> TJsFtrSpace::filter(const v8::Arguments& Args) {
         const TIntFltKd& Ftr = SpV[FtrN];
         if (MnFtrN <= Ftr.Key && Ftr.Key < MxFtrN) {
             NewSpV.Add(Ftr);
+        }
+    }
+    if (!KeepOffsetP) { 
+        for (int NewSpN = 0; NewSpN < NewSpV.Len(); NewSpN++) {
+            NewSpV[NewSpN].Key -= MnFtrN; 
         }
     }
 	// return
@@ -7635,8 +7676,8 @@ v8::Handle<v8::Value> TJsSnap::degreeCentrality(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
-	int Dim = -1;
-	TIntFltKdV Vec;
+//	int Dim = -1;
+//	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
 	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
@@ -7736,7 +7777,7 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+//	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 
 	TIntIntH coreperiphery;
@@ -7747,7 +7788,7 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 	PNGraph inGraph;
 	TIntH inT;
 	int e = 2;
-	int step;
+//	int step;
 	bool collapse;
 
 	if (ArgsLen == 6) {
@@ -7770,7 +7811,7 @@ v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
 		collapse = TJsSnapUtil::GetArgBool(Args, 5);
 
 		TSnap::ReebSimplify(inGraph, inT, e, outGraph, outT, collapse);
-		int lllen = outT.Len();
+//		int lllen = outT.Len();
 	}
 	else {
 		throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
@@ -7783,7 +7824,7 @@ v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
 	TIntFltKdV Vec;
 
 	v8::HandleScope HandleScope;
-	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
+//	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
 	int ArgsLen = Args.Length();
 
 	TIntIntH coreperiphery;
@@ -7794,7 +7835,7 @@ v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
 	PNGraph inGraph;
 	TIntH inT;
 	int e = 2;
-	int step;
+//	int step;
 	bool collapse;
 
 	if (ArgsLen == 6) {
@@ -7817,7 +7858,7 @@ v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
 		collapse = TJsSnapUtil::GetArgBool(Args, 5);
 
 		TSnap::ReebRefine(inGraph, inT, e, outGraph, outT, collapse);
-		int lllen = outT.Len();
+//		int lllen = outT.Len();
 	}
 	else {
 		throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
