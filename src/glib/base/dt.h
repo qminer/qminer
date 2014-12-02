@@ -775,8 +775,8 @@ private:
   TStrIn(const TStrIn&);
   TStrIn& operator=(const TStrIn&);
 public:
-  TStrIn(const TStr& Str, const bool& _OwnP = true);
-  static PSIn New(const TStr& Str, const bool& OwnP = true){return PSIn(new TStrIn(Str, OwnP));}
+  TStrIn(const TStr& Str, const bool& MakeCopyP = true);
+  static PSIn New(const TStr& Str, const bool& MakeCopyP = true);
   ~TStrIn(){ if (OwnP) { delete[] Bf; }}
 
   bool Eof(){return BfC==BfL;}

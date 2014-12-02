@@ -1073,7 +1073,7 @@ TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 
 void TStr::InsStr(const int& BChN, const TStr& Str) {
     const int ThisLen = Len();
-    IAssert((0<=BChN)&&(BChN<=ThisLen));
+    EAssert((0<=BChN)&&(BChN<=ThisLen));
     TChA ChA = TChA(ThisLen + Str.Len());
     if (BChN==0){
         ChA += Str;
@@ -2055,9 +2055,13 @@ bool TStr::IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const ui
 
 /////////////////////////////////////////////////
 // Input-String
-TStrIn::TStrIn(const TStr& _Str, const bool& _OwnP) :
-  TSBase("Input-String"), TSIn("Input-String"), OwnP(_OwnP), 
-  Bf(_OwnP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
+TStrIn::TStrIn(const TStr& _Str, const bool& MakeCopyP) :
+  TSBase("Input-String"), TSIn("Input-String"), OwnP(MakeCopyP), 
+  Bf(MakeCopyP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
+
+PSIn TStrIn::New(const TStr& Str, const bool& MakeCopyP){
+  return PSIn(new TStrIn(Str, MakeCopyP));
+}
 
 int TStrIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
