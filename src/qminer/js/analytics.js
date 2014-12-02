@@ -200,6 +200,9 @@ exports.loadBatchModel = function (sin) {
     return new createBatchModel(featureSpace, models);    
 };
 
+//#- `cs = new analytics.classificaitonScore(cats)` -- for evaluating 
+//#     provided categories. Returns an object, which can track classification
+//#     statistics (precision, recall, F1).
 exports.classifcationScore = function (cats) {
 	this.target = { };
     
@@ -217,8 +220,10 @@ exports.classifcationScore = function (cats) {
 		this.targetList.push(cats[i]);		
 	}
 	
-	this.confusion = la.newMat({ rows: this.targetList.length, cols: this.targetList.length }); 
-	   
+    //#    - `cs.count(correct, predicted)` -- adds prediction to the current
+    //#         statistics. `correct` corresponds to the correct label(s), `predicted`
+    //#         correspond to predicted lable(s). Labels can be either string
+    //#         or string array (when there are zero or more then one lables).
 	this.count = function (correct, predicted) {
         // wrapt classes in arrays if not already
         if (util.isString(correct)) { this.count([correct], predicted); return; }
@@ -249,6 +254,7 @@ exports.classifcationScore = function (cats) {
         }
 	};
 
+    //#    - `cs.report()` -- prints current statisitcs for each category
 	this.report = function () { 
 		for (var cat in this.target) {
 			console.log(cat + 
@@ -261,6 +267,7 @@ exports.classifcationScore = function (cats) {
 		}
 	};
     
+    //#    - `cs.reportAvg()` -- prints current statisitcs averaged over all cagtegories
     this.reportAvg = function () {
         var count = 0, precision = 0, recall = 0, f1 = 0, accuracy = 0; 
         for (var cat in this.target) {
@@ -277,6 +284,7 @@ exports.classifcationScore = function (cats) {
             ", Accuracy " + (accuracy / count).toFixed(2));        
     }
 
+    //#    - `cs.reportCSV(fout)` -- current statisitcs for each category to fout as CSV 
 	this.reportCSV = function (fout) { 
 		// precison recall
 		fout.writeLine("category,count,precision,recall,f1,accuracy");
@@ -291,19 +299,22 @@ exports.classifcationScore = function (cats) {
         return fout;
 	};
 	
+    //#    - `res = cs.results()` -- get current statistics; `res` is an array
+    //#         of object with members `precision`, `recall`, `f1` and `accuracy`
 	this.results = function () {
 		var res = { };
 		for (var cat in this.target) {
 			res[cat] = {
 				precision : this.target[cat].precision(),
 				recall    : this.target[cat].recall(),
+				f1        : this.target[cat].f1(),
 				accuracy  : this.target[cat].accuracy(),
 			};
 		}
 	};
 }
 
-//#- `result = exports.rocScore(sample)` -- used for computing ROC curve and 
+//#- `result = new exports.rocScore(sample)` -- used for computing ROC curve and 
 //#     other related measures such as AUC; the result is a results object
 //#     with the following API:
 exports.rocScore = function () {
@@ -452,6 +463,70 @@ exports.rocScore = function () {
 		// save
 		fs.writeCsv(fs.openWrite(fnm), curve).close();
 	}
+}
+//#- `cf = new analytics.confusionMatrix(cats)` -- for tracking confusion between label classification
+exports.confusionMatrix = function (cats) {
+    //#     - `cf.cats` -- categories we are tracking
+    this.cats = cats;
+    //#     - `cf.matrix` -- confusion matrix
+    this.matrix = la.newMat({rows: cats.length, cols: cats.length});
+    
+    // get category name to id
+    this.getCatId = function (cat) {
+        for (var i = 0; i < cats.length; i++) {
+            if (cats[i] === cat) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+    //#     - `cf.count(correct, predicted)` -- update matrix with new prediction
+    this.count = function(correct, predicted) {
+        var row = this.getCatId(correct);
+        if (row == -1) { console.log("Unknown category '" + correct + "'"); }
+        var col = this.getCatId(predicted);
+        if (col == -1) { console.log("Unknown category '" + predicted + "'"); }
+        this.matrix.put(row, col, this.matrix.at(row, col) + 1);
+    }    
+    
+    //#     - `cf.report()` -- report on the current status
+    this.report = function() {
+        // get column width
+        var max = 0;
+        // first lable name
+        for (var i = 0; i < this.cats.length; i++) {
+            if (cats[i].length > max) { max = cats[i].length; }
+        }
+        // then max number
+        for (var i = 0; i < this.cats.length; i++) {
+            for (var j = 0; j < this.cats.length; j++) {
+                var digits = Math.ceil(Math.log(this.matrix.at(i, j)) / Math.LN10) + 2;
+                if (digits > max) { max = digits; }
+            }
+        }
+        // for prittyfying strings
+        function addSpace(str, len) { 
+            while (str.length < len) { 
+                str = " " + str; 
+            }
+            return str;
+        }
+        // print header
+        var header = addSpace("", max);
+        for (var i = 0; i < this.cats.length; i++) {
+            header = header + addSpace(this.cats[i], digits);
+        }
+        console.log(header);
+        // print elements
+        for (var i = 0; i < this.cats.length; i++) {
+            var line = addSpace(this.cats[i], max);
+            for (var j = 0; j < this.cats.length; j++) {
+                line = line + addSpace("" + Math.round(this.matrix.at(i, j)), max);
+            }
+            console.log(line);
+        }
+    }
 }
 
 //#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch

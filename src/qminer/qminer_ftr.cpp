@@ -1682,7 +1682,7 @@ TDateWnd::TDateWnd(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     else if (UnitStr == "10minutes") { TmUnit = tmu10Min; }
     else if (UnitStr == "minute") { TmUnit = tmu1Min; }
     else if (UnitStr == "second") { TmUnit = tmu1Sec; }
-    QmAssert(TmUnit != tmuUndef);no    
+    QmAssert(TmUnit != tmuUndef);    
     // rest of parameters
     const int WndSize = ParamVal->GetObjInt("window", 1);
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
