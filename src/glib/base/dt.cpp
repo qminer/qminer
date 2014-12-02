@@ -1052,12 +1052,9 @@ TStr TStr::GetFromHex() const {
   return TStr(ChA);
 }
 
-TStr TStr::GetSubStr(const int& _BChN, const int& _EChN) const {
+TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
-	EAssertR(0 <= _BChN && _BChN <= _EChN && _EChN < StrLen, "TStr::GetSubStr index out of bounds");
-    // get boundaries and substring length 
-    int BChN=TInt::GetMx(_BChN, 0);
-    int EChN=TInt::GetMn(_EChN, StrLen-1);
+	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");    
     int Chs=EChN-BChN+1;
     // initialize accordingly
     char* Bf = nullptr;
@@ -1102,9 +1099,10 @@ void TStr::DelChAll(const char& DelCh) {
     *this = ChA;
 }
 
-void TStr::DelSubStr(const int& _BChN, const int& _EChN) {
-    int BChN = TInt::GetMx(_BChN, 0);
-    int EChN = TInt::GetMn(_EChN, Len()-1);
+void TStr::DelSubStr(const int& BChN, const int& EChN) {
+	int StrLen = Len();
+	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::DelSubStr index out of bounds");
+	
     int Chs = Len() - (EChN - BChN + 1);
     if (Chs == 0) { 
         // nothing left after delete, clear it all
@@ -1228,9 +1226,9 @@ void TStr::SplitOnStr(TStr& LStr, const TStr& SplitStr, TStr& RStr) const {
 
 	const char* InnerPt = CStr();
 
-	const char* MatchPt = strstr(InnerPt, SplitStr.Inner);
+	const char* MatchPt = strstr(InnerPt, SplitStr.CStr());
 
-	if (MatchPt == nullptr) {
+	if (MatchPt == nullptr || SplitStr.Empty()) {
 		LStr = *this;
 		return;
 	}
@@ -1346,14 +1344,18 @@ void TStr::SplitOnStr(const TStr& SplitStr, TStrV& StrV) const {
   StrV.Clr();
   int SplitStrLen=SplitStr.Len();
   int PrevChN=0; int ChN=0;
-  while ((ChN=SearchStr(SplitStr, ChN))!=-1){
+  int StrLen = Len();
+  while (ChN < StrLen && (ChN = SearchStr(SplitStr, ChN)) != -1){
     // extract & add string
-    TStr SubStr=GetSubStr(PrevChN, ChN-1);
-    StrV.Add(SubStr);
-    PrevChN=ChN=ChN+SplitStrLen;
+	  if (ChN - 1 >= 0 && ChN - 1 < StrLen) {
+		  TStr SubStr = GetSubStr(PrevChN, ChN - 1);
+		  StrV.Add(SubStr);
+	  }
+	PrevChN = ChN;
+	ChN += SplitStrLen;
   }
   // add last string
-  TStr LastSubStr=GetSubStr(PrevChN, Len()-1);
+  TStr LastSubStr=GetSubStr(PrevChN, StrLen-1);
   StrV.Add(LastSubStr);
 }
 
@@ -1363,13 +1365,14 @@ TStr TStr::Left(const int& EChN) const {
 }
 
 int TStr::CountCh(const char& Ch, const int& BChN) const {
-	const int ThisLen = Len();
+	const int ThisLen = Len();	
 	if(ThisLen == 0) { return 0; }
+	EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::CountCh index BChN out of bounds!");
 
 	const char* ThisBf = CStr();
 	int Chs = 0;
 
-	for (int ChN = TInt::GetMx(BChN, 0); ChN<ThisLen; ChN++) {
+	for (int ChN = BChN; ChN<ThisLen; ChN++) {
     if (ThisBf[ChN]==Ch) { Chs++; }
   }
   return Chs;
@@ -1378,9 +1381,10 @@ int TStr::CountCh(const char& Ch, const int& BChN) const {
 int TStr::SearchCh(const char& Ch, const int& BChN) const {
   int ThisLen = Len();
   if(ThisLen == 0) { return -1; }
+  EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::SearchCh index BChN out of bounds!");
 
   const char* ThisBf = CStr();
-  int ChN = TInt::GetMx(BChN, 0);
+  int ChN = BChN;
 
   while (ChN < ThisLen){
     if (ThisBf[ChN] == Ch){ return ChN; }
@@ -1406,10 +1410,11 @@ int TStr::SearchChBack(const char& Ch, int BChN) const {
 }
 
 int TStr::SearchStr(const TStr& Str, const int& BChN) const {
-  int NrBChN = TInt::GetMx(BChN, 0);
   int ThisLen = Len();
-  if(ThisLen == 0) { return -1; }
-  if(NrBChN > ThisLen) { return -1; }
+  EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::SearchStr: index BChN out of bounds!");
+  int NrBChN = BChN; // TInt::GetMx(BChN, 0);
+  //if(ThisLen == 0) { return -1; }
+  //if(NrBChN > ThisLen) { return -1; }
 
   const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
   if (StrPt == nullptr) { return -1; }
@@ -1461,6 +1466,7 @@ int TStr::ChangeChAll(const char& SrcCh, const char& DstCh) {
 }
 
 int TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) {
+	if (Empty() && BChN == 0) { return -1; }
 	const int ChN = SearchStr(SrcStr, BChN);
 	if (ChN != -1){		
         DelSubStr(ChN, ChN + SrcStr.Len() - 1);
