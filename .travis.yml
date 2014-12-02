@@ -7,6 +7,7 @@ install:
   - make lib
 script: 
   - make
+  - make test
   - ./test/javascript/test.sh
 os: linux
 notifications:
