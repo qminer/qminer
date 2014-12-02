@@ -21,6 +21,8 @@ MAIN = run-all-tests
 TEST_SRCS = \
 	test-TStr.cpp \
 	test-THash.cpp \
+#	test-TStr_Jan.cpp \
+	test-TStr.rei.cpp \
 	tstr-lstopar.cpp
 
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
