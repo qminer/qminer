@@ -8089,6 +8089,7 @@ v8::Handle<v8::ObjectTemplate> TJsGraph<T>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
 		JsRegisterFunction(TmpTemp, connectedComponents);
+		JsRegisterFunction(TmpTemp, subgraph);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -8443,10 +8444,70 @@ v8::Handle<v8::Value> TJsGraph<T>::connectedComponents(const v8::Arguments& Args
 		TSnap::GetSccs(JsGraph->Graph, CnComV);
 	}
 
+	TVec<TIntFltKdV> Mat(CnComV.Len());
+	for (int i = 0; i < CnComV.Len(); i++) {
+		Mat[i].Gen(CnComV[i].Len());
+		for (int j = 0; j < CnComV[i].Len(); j++) {
+			int id = CnComV[i][j];
+			Mat[i][j].Key = id;
+			Mat[i][j].Dat = 1;
+		}
+	}
 
-	
-	return Args.Holder();
+	return HandleScope.Close(TJsSpMat::New(JsGraph->Js, Mat));
 }
+
+template <>
+v8::Handle<v8::Value> TJsGraph<TNEGraph>::subgraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	if (Args.Length() == 4) {
+			TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+			TJsGraph<TNGraph>* JsGraph1 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
+			TJsGraph<TNGraph>* JsGraph2 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 1);
+			int from = TJsGraphUtil::GetArgInt32(Args, 2);
+			int to = TJsGraphUtil::GetArgInt32(Args, 3);
+			TSnap::GetSubGraph(JsGraph->Graph, JsGraph1->Graph, JsGraph2->Graph, from, to);
+			TStr graph_class;
+			return HandleScope.Close(Args.Holder());
+		}
+}
+
+template <>
+v8::Handle<v8::Value> TJsGraph<TNGraph>::subgraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	if (Args.Length() == 4) {
+			TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+			TJsGraph<TNGraph>* JsGraph1 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
+			TJsGraph<TNGraph>* JsGraph2 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 1);
+			int from = TJsGraphUtil::GetArgInt32(Args, 2);
+			int to = TJsGraphUtil::GetArgInt32(Args, 3);
+			TSnap::GetSubGraph(JsGraph->Graph, JsGraph1->Graph, JsGraph2->Graph, from, to);
+			TStr graph_class;
+			graph_class = "TNGraph";
+			return HandleScope.Close(Args.Holder());
+		}
+	else if (Args.Length() == 1) {
+		TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+		TJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+		PNGraph subgraph = TSnap::GetSubGraph(JsGraph->Graph, JsVec->Vec, false);
+		TStr graph_class;
+		graph_class = "TNGraph";
+		return HandleScope.Close(TJsGraph<TNGraph>::New(JsGraph->Js, subgraph, graph_class));
+	}
+	else {}
+}
+
+template <>
+v8::Handle<v8::Value> TJsGraph<TUNGraph>::subgraph(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
+	TJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+	PUNGraph subgraph = TSnap::GetSubGraph(JsGraph->Graph, JsVec->Vec, false);
+	TStr graph_class;
+	graph_class = "TUNGraph";
+	return HandleScope.Close(TJsGraph<TUNGraph>::New(JsGraph->Js, subgraph, graph_class));
+}
+
 
 ///////////////////////////////
 // QMiner-Node

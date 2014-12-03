@@ -3858,7 +3858,9 @@ public:
 	//#- `graph = graph.load(fin)` -- loads graph from input stream `fin`
 	JsDeclareFunction(load);
 	//#- `intVec = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
-	JsDeclareFunction(connectedComponents)
+	JsDeclareFunction(connectedComponents);
+	//# - get subgraph
+	JsDeclareFunction(subgraph);
 };
 
 ///////////////////////////////
