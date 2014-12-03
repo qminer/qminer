@@ -3,10 +3,12 @@ compiler: gcc
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq uuid-dev
+ - ./test/cpp/install.sh
 install:
   - make lib
 script: 
   - make
+  - make test
   - ./test/javascript/test.sh
 os: linux
 notifications:

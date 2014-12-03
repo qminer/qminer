@@ -200,6 +200,9 @@ exports.loadBatchModel = function (sin) {
     return new createBatchModel(featureSpace, models);    
 };
 
+//#- `cs = new analytics.classificaitonScore(cats)` -- for evaluating 
+//#     provided categories. Returns an object, which can track classification
+//#     statistics (precision, recall, F1).
 exports.classifcationScore = function (cats) {
 	this.target = { };
     
@@ -217,8 +220,10 @@ exports.classifcationScore = function (cats) {
 		this.targetList.push(cats[i]);		
 	}
 	
-	this.confusion = la.newMat({ rows: this.targetList.length, cols: this.targetList.length }); 
-	   
+    //#    - `cs.count(correct, predicted)` -- adds prediction to the current
+    //#         statistics. `correct` corresponds to the correct label(s), `predicted`
+    //#         correspond to predicted lable(s). Labels can be either string
+    //#         or string array (when there are zero or more then one lables).
 	this.count = function (correct, predicted) {
         // wrapt classes in arrays if not already
         if (util.isString(correct)) { this.count([correct], predicted); return; }
@@ -249,6 +254,7 @@ exports.classifcationScore = function (cats) {
         }
 	};
 
+    //#    - `cs.report()` -- prints current statisitcs for each category
 	this.report = function () { 
 		for (var cat in this.target) {
 			console.log(cat + 
@@ -261,6 +267,7 @@ exports.classifcationScore = function (cats) {
 		}
 	};
     
+    //#    - `cs.reportAvg()` -- prints current statisitcs averaged over all cagtegories
     this.reportAvg = function () {
         var count = 0, precision = 0, recall = 0, f1 = 0, accuracy = 0; 
         for (var cat in this.target) {
@@ -277,6 +284,7 @@ exports.classifcationScore = function (cats) {
             ", Accuracy " + (accuracy / count).toFixed(2));        
     }
 
+    //#    - `cs.reportCSV(fout)` -- current statisitcs for each category to fout as CSV 
 	this.reportCSV = function (fout) { 
 		// precison recall
 		fout.writeLine("category,count,precision,recall,f1,accuracy");
@@ -288,19 +296,237 @@ exports.classifcationScore = function (cats) {
 				"," + this.target[cat].f1().toFixed(2) +
 				"," + this.target[cat].accuracy().toFixed(2));
 		}
-        return fout;r
+        return fout;
 	};
 	
+    //#    - `res = cs.results()` -- get current statistics; `res` is an array
+    //#         of object with members `precision`, `recall`, `f1` and `accuracy`
 	this.results = function () {
 		var res = { };
 		for (var cat in this.target) {
 			res[cat] = {
 				precision : this.target[cat].precision(),
 				recall    : this.target[cat].recall(),
+				f1        : this.target[cat].f1(),
 				accuracy  : this.target[cat].accuracy(),
 			};
 		}
 	};
+}
+
+//#- `result = new exports.rocScore(sample)` -- used for computing ROC curve and 
+//#     other related measures such as AUC; the result is a results object
+//#     with the following API:
+exports.rocScore = function () {
+	// count of all the positive and negative examples
+	this.allPositives = 0;
+	this.allNegatives = 0;
+	// store of predictions and ground truths
+	this.grounds = la.newVec();
+	this.predictions = la.newVec();
+	
+	//#     - `result.push(ground, predict)` -- add new measurement with ground score (1 or -1) and predicted value
+	this.push = function (ground, predict) {
+		// remember the scores
+		this.grounds.push(ground)
+		this.predictions.push(predict);
+		// update counts
+		if (ground > 0) { 
+			this.allPositives++; 
+		} else {
+			this.allNegatives++;
+		}
+	}
+	
+	//#     - `roc_arr = result.curve(sample)` -- get ROC parametrization as array of sample points
+	this.curve = function (sample) {
+		// default sample size is 10
+		sample = sample || 10;
+		// sort according to predictions
+		var perm = this.predictions.sortPerm(false);
+		// maintaining the results as we go along
+		var TP = 0, FP = 0, ROC = [[0, 0]];
+		// for figuring out when to dump a new ROC sample
+		var next = Math.floor(perm.perm.length / sample);
+		// go over the sorted results
+		for (var i = 0; i < perm.perm.length; i++) {
+			// get the ground
+			var ground = this.grounds[perm.perm[i]];
+			// update TP/FP counts according to the ground
+			if (ground > 0) { TP++ } else { FP++; }
+			// see if time to do next save
+			next = next - 1;		
+			if (next <= 0) {
+				// add new datapoint to the curve 
+				ROC.push([FP/this.allNegatives, TP/this.allPositives]);
+				// setup next timer 
+				next = Math.floor(perm.perm.length / sample);
+			}
+		}
+		// add the last point
+		ROC.push([1,1]);
+		// return ROC
+		return ROC;
+	}
+    
+	//#     - `num = result.auc(sample)` -- get AUC of the current curve
+	this.auc = function (sample) {
+		// default sample size is 10
+		sample = sample || 10;
+        // get the curve
+        var curve = this.curve(sample);
+        // compute the area
+        var result = 0;
+        for (var i = 1; i < curve.length; i++) {
+            // get edge points
+            var left = curve[i-1];
+            var right = curve[i];
+            // first the rectangle bellow
+            result = result + (right[0] - left[0]) * left[1];
+            // an then the triangle above 
+            result = result + (right[0] - left[0]) * (right[1] - left[1]) / 2;
+        }
+        return result;
+    }
+    
+    //#     - `num = result.breakEvenPoint()` -- get break-even point, which is number where precision and recall intersect
+    this.breakEvenPoint = function () {
+		// sort according to predictions
+		var perm = this.predictions.sortPerm(false);
+		// maintaining the results as we go along
+		var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+        var minDiff = 1.0, bep = -1.0;
+		// go over the sorted results
+		for (var i = 0; i < perm.perm.length; i++) {
+			// get the ground
+			var ground = this.grounds[perm.perm[i]];
+			// update TP/FP counts according to the ground
+			if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+            // do the update
+            if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+                // compute current precision and recall
+                var precision = TP / (TP + FP);
+                var recall = TP / (TP + FN);
+                // see if we need to update current bep
+                var diff = Math.abs(precision - recall);
+                if (diff < minDiff) { minDiff = diff; bep = (precision + recall) / 2; }
+            }
+        }        
+        return bep;
+    }
+    
+    //#     - `num = result.bestF1()` -- gets threshold for prediction score, which results in the highest F1
+    this.bestF1 = function () {
+		// sort according to predictions
+		var perm = this.predictions.sortPerm(false);
+		// maintaining the results as we go along
+		var TP = 0, FP = 0, TN = this.allNegatives, FN = this.allPositives;
+        var maxF1 = 0.0, prediction = -1.0;
+		// go over the sorted results
+		for (var i = 0; i < perm.perm.length; i++) {
+			// get the ground
+			var ground = this.grounds[perm.perm[i]];
+			// update TP/FP counts according to the ground
+			if (ground > 0) { TP++; FN--; } else { FP++; TN--; }
+            // do the update
+            if ((TP + FP) > 0 && (TP + FN) > 0 && TP > 0) {
+                // compute current precision, recall and F1
+                var precision = TP / (TP + FP);
+                var recall = TP / (TP + FN);
+                var f1 = 2 * precision * recall / (precision + recall);
+                // see if we need to update max F1
+                if (f1 > maxF1) { maxF1 = f1; prediction = perm.vec[i]; }
+            }
+        }        
+        return prediction;
+    }
+	    
+	//#     - `result.report(sample)` -- output to screen
+	this.report = function (sample) {
+		// default sample size is 10
+		sample = sample || 10;
+		// get the curve
+		var curve = this.curve(sample);
+		// print to console
+        console.log("FPR - TPR");
+		for (var i = 0; i < curve.length; i++) {
+		 	console.log(curve[i][0] + " - " + curve[i][1]);
+        }        
+	}
+	
+	//#     - `result.reportCSV(fnm, sample)` -- save as CSV to file `fnm`
+	this.reportCSV = function (fnm, sample) {
+		// default sample size is 10
+		sample = sample || 10;
+		// get the curve
+		var curve = this.curve(sample);
+		// save
+		fs.writeCsv(fs.openWrite(fnm), curve).close();
+	}
+}
+//#- `cf = new analytics.confusionMatrix(cats)` -- for tracking confusion between label classification
+exports.confusionMatrix = function (cats) {
+    //#     - `cf.cats` -- categories we are tracking
+    this.cats = cats;
+    //#     - `cf.matrix` -- confusion matrix
+    this.matrix = la.newMat({rows: cats.length, cols: cats.length});
+    
+    // get category name to id
+    this.getCatId = function (cat) {
+        for (var i = 0; i < cats.length; i++) {
+            if (cats[i] === cat) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    
+    //#     - `cf.count(correct, predicted)` -- update matrix with new prediction
+    this.count = function(correct, predicted) {
+        var row = this.getCatId(correct);
+        if (row == -1) { console.log("Unknown category '" + correct + "'"); }
+        var col = this.getCatId(predicted);
+        if (col == -1) { console.log("Unknown category '" + predicted + "'"); }
+        this.matrix.put(row, col, this.matrix.at(row, col) + 1);
+    }    
+    
+    //#     - `cf.report()` -- report on the current status
+    this.report = function() {
+        // get column width
+        var max = 0;
+        // first lable name
+        for (var i = 0; i < this.cats.length; i++) {
+            if (cats[i].length > max) { max = cats[i].length; }
+        }
+        // then max number
+        for (var i = 0; i < this.cats.length; i++) {
+            for (var j = 0; j < this.cats.length; j++) {
+                var digits = Math.ceil(Math.log(this.matrix.at(i, j)) / Math.LN10) + 2;
+                if (digits > max) { max = digits; }
+            }
+        }
+        // for prittyfying strings
+        function addSpace(str, len) { 
+            while (str.length < len) { 
+                str = " " + str; 
+            }
+            return str;
+        }
+        // print header
+        var header = addSpace("", max);
+        for (var i = 0; i < this.cats.length; i++) {
+            header = header + addSpace(this.cats[i], digits);
+        }
+        console.log(header);
+        // print elements
+        for (var i = 0; i < this.cats.length; i++) {
+            var line = addSpace(this.cats[i], max);
+            for (var j = 0; j < this.cats.length; j++) {
+                line = line + addSpace("" + Math.round(this.matrix.at(i, j)), max);
+            }
+            console.log(line);
+        }
+    }
 }
 
 //#- `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
@@ -345,7 +571,7 @@ exports.crossValidation = function (records, features, target, folds, limitCateg
 		// create model for the fold
 		var model = exports.newBatchModel(trainRecs, features, target, limitCategories);
 		// prepare test counts for each target
-		if (!cfyRes) { cfyRes = new classifcationScore(model.target); }
+		if (!cfyRes) { cfyRes = new exports.classifcationScore(model.target); }
 		// evaluate predictions
 		for (var i = 0; i < testRecs.length; i++) {
 			var correct = testRecs[i][target.name];
@@ -374,41 +600,62 @@ exports.newActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     return new analytics.activeLearner(query, qRecSet, fRecSet, ftrSpace, stts);
 }
 
-exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
-    var settings = stts || {};
-    settings.nPos = stts.nPos || 2;
-    settings.nNeg = stts.nNeg || 2;
-    settings.textField = stts.textField || "Text";
-    settings.querySampleSize = stts.querySampleSize || 1000;
-    settings.randomSampleSize = stts.randomSampleSize || 0;
-    settings.c = stts.c || 1.0;
-    settings.j = stts.j || 1.0;
-    settings.batchSize = stts.batchSize || 100;
-    settings.maxIterations = stts.maxIterations || 100000;
-    settings.maxTime = stts.maxTime || 1;
-    settings.minDiff = stts.minDiff || 1e-6;
-    settings.verbose = stts.verbose || false;
+function defarg(arg, defaultval) {
+    return arg == null ? defaultval : arg;
+}
 
-    var store = qRecSet.store;
-    var X = la.newSpMat();
-    var y = la.newVec();
+
+exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
+    var settings = defarg(stts, {});
+    settings.nPos = defarg(stts.nPos, 2);
+    settings.nNeg = defarg(stts.nNeg, 2);
+    settings.textField = defarg(stts.textField, "Text");
+    settings.querySampleSize = defarg(stts.querySampleSize, 1000);
+    settings.randomSampleSize = defarg(stts.randomSampleSize, 0);
+    settings.c = defarg(stts.c, 1.0);
+    settings.j = defarg(stts.j, 1.0);
+    settings.batchSize = defarg(stts.batchSize, 100);
+    settings.maxIterations = defarg(stts.maxIterations, 100000);
+    settings.maxTime = defarg(stts.maxTime, 1);
+    settings.minDiff = defarg(stts.minDiff, 1e-6);
+    settings.verbose = defarg(stts.verbose, false);
+    
+    // compute features or provide them    
+    settings.extractFeatures = defarg(stts.extractFeatures, true);
+    
+    if (!settings.extractFeatures) {
+        if (stts.uMat == null) { throw exception('settings uMat not provided, extractFeatures = false'); }
+        if (stts.uRecSet == null) { throw exception('settings uRecSet not provided, extractFeatures = false'); }
+        if (stts.querySpVec == null) { throw exception('settings querySpVec not provided, extractFeatures = false'); }
+    }
+        
     // QUERY MODE
     var queryMode = true;
     // bow similarity between query and training set
-    var temp = {}; temp[settings.textField] = query;
-    var queryRec = store.newRec(temp); // record
-    var querySpVec = ftrSpace.ftrSpVec(queryRec); // query sparse vector
+
+    var querySpVec;
+    var uRecSet;
+    var uMat;
+
+    if (settings.extractFeatures) {
+        var temp = {}; temp[settings.textField] = query;
+        var queryRec = qRecSet.store.newRec(temp); // record
+        querySpVec = ftrSpace.ftrSpVec(queryRec);
+        uRecSet = qRecSet.sample(settings.querySampleSize).setunion(fRecSet.sample(settings.randomSampleSize));
+        uMat = ftrSpace.ftrSpColMat(uRecSet);
+
+    } else {
+        querySpVec = stts.querySpVec;
+        uRecSet = stts.uRecSet;
+        uMat = stts.uMat;
+    }
+
+
     querySpVec.normalize();
+    uMat.normalizeCols();
 
-    var rRecSet = store.sample(settings.randomSampleSize);
-
-    // query index sample, random sample
-    var uRecSet = qRecSet.sample(settings.querySampleSize).setunion(rRecSet);
-
-    //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
-    this.getRecSet = function () { return uRecSet };
-
-    var uMat = ftrSpace.ftrSpColMat(uRecSet); uMat.normalizeCols();
+    var X = la.newSpMat();
+    var y = la.newVec();
 
     var simV = uMat.multiplyT(querySpVec); //similarities (q, recSet)
     var sortedSimV = simV.sortPerm(); //ascending sort
@@ -417,9 +664,7 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
     //// counters for questions in query mode
     var nPosQ = 0; //for traversing simVp from the end
     var nNegQ = 0; //for traversing simVp from the start
-
-    //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
-    this.selectedQuestionIdx = -1;
+        
 
     // SVM MODE
     var svm;
@@ -431,6 +676,13 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
 
     var classVec = la.newVec({ "vals": uRecSet.length }); //svm scores for record set
     var resultVec = la.newVec({ "vals": uRecSet.length }); // non-absolute svm scores for record set
+
+
+    //#   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
+    this.getRecSet = function () { return uRecSet };
+
+    //#   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
+    this.selectedQuestionIdx = -1;
 
     //#   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
     this.getQueryMode = function() { return queryMode; };
@@ -533,12 +785,14 @@ exports.activeLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
         if (ALanswer === "y") {
             posIdxV.push(recSetIdx);
             posRecIdV.push(uRecSet[recSetIdx].$id);
-            X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            X.push(uMat[recSetIdx]);
             y.push(1.0);
         } else {
             negIdxV.push(recSetIdx);
             negRecIdV.push(uRecSet[recSetIdx].$id);
-            X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            //X.push(ftrSpace.ftrSpVec(uRecSet[recSetIdx]));
+            X.push(uMat[recSetIdx]);
             y.push(-1.0);
         }
         // +k query // rank unlabeled according to query, ask for k most similar

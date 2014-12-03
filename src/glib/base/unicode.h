@@ -415,8 +415,12 @@ public:
 		return impl.FromUnicode(src, srcIdx, srcCount, dest, clrDest); }
 	virtual size_t FromUnicode(const TIntV& src, size_t srcIdx, const size_t srcCount, TStr& dest, const bool clrDest = true) const {
 		TChA buf; size_t retVal = impl.FromUnicode(src, srcIdx, srcCount, buf, false);
-		if (clrDest) dest += buf.CStr(); else dest = buf.CStr();
-		return retVal; }
+		if (clrDest)
+			dest += buf.CStr();
+		else
+			dest = buf.CStr();
+		return retVal;
+	}
 };
 
 template<class TCodecImpl>
@@ -1706,10 +1710,12 @@ protected:
 			dest.Clr();
 			while (true) {
 				if (! ReadNextLine()) return false;
-				TStr line = buf; line.ToTrunc();
+				TStr line = buf; line = line.GetTrunc();
 				if (line.Len() <= 0) continue;
 				line.SplitOnAllCh(';', dest, false);
-				for (int i = 0; i < dest.Len(); i++) dest[i].ToTrunc();
+				for (int i = 0; i < dest.Len(); i++) {
+					dest[i] = dest[i].GetTrunc();
+				}
 				return true; }}
 		static int ParseCodePoint(const TStr& s) {
 			int c; bool ok = s.IsHexInt(true, 0, 0x10ffff, c); IAssertR(ok, s); return c; }
@@ -1887,7 +1893,10 @@ public:
 protected:
 	THash<TStr, PCodecBase> codecs;
 	static inline TStr NormalizeCodecName(const TStr& name) {
-		TStr s = name.GetLc(); s.ChangeStrAll("_", ""); s.ChangeStrAll("-", ""); return s; }
+		TStr s = name.GetLc();		
+		s.ChangeStrAll("_", "");
+		s.ChangeStrAll("-", "");
+		return s; }
 public:
 	void RegisterCodec(const TStr& nameList, const PCodecBase& codec) {
 		TStrV names; nameList.SplitOnWs(names);
