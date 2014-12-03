@@ -209,7 +209,7 @@ protected:
 	TStr ReportPrefix;
 	PNotify Notify;
 
-	TWebPgFetchPersist(const TStr& _SaveFName = "", const bool& _RepeatFailedRequests = true, const bool& _ReportState = false, const TStr& _ReportPrefix = "", const PNotify& _Notify = NULL);
+	TWebPgFetchPersist(const TStr& _SaveFName = "", const bool& _RepeatFailedRequests = true, const bool& _ReportState = false, const TStr& _ReportPrefix = "", const PNotify& _Notify = TNotify::NullNotify);
 	
 	void Load(TSIn& SIn);
 	void Save(TSOut& SOut) const;

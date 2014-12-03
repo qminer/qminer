@@ -538,7 +538,12 @@ SaveFName(_SaveFName), RepeatFailedRequests(_RepeatFailedRequests), ReportState(
 	PutTimeOutMSecs(30 * 1000);
 	if (SaveFName != "" && TFile::Exists(SaveFName)) {
 		TFIn FIn(SaveFName);
+		uint64 FileLen = TFile::GetSize(SaveFName);
+		if (FileLen > 0)
+			TNotify::StdNotify->OnStatusFmt("Loading %.2f MB of pending web requests...", FileLen / (double) TInt::Mega);
 		Load(FIn);
+		if (FileLen > 0)
+			TNotify::StdNotify->OnStatus("Loading finished.");
 	}
 }
 
@@ -552,33 +557,40 @@ TWebPgFetchPersist::~TWebPgFetchPersist() {
 void TWebPgFetchPersist::Load(TSIn& SIn)
 {
 	// load PUrls and call FetchUrl on each of them
-	TVec<PUrl> UrlV = TVec<PUrl>(SIn);
-	int Len = UrlV.Len();
-	for (int N = 0; N < Len; N++) {
-		FetchUrl(UrlV[N]);
+	int Count = 0;
+	while (!SIn.Eof()) {
+		try {
+			PUrl Url = TUrl::Load(SIn);
+			FetchUrl(Url);
+			Count++;
+		}
+		catch (PExcept ex) {
+			Notify->OnStatusFmt("TWebPgFetchPersist.Load. Exception while loading url: %s", ex->GetMsgStr().CStr());
+		}
+		catch (...) {
+			Notify->OnStatus("TWebPgFetchPersist.Load. Unrecognized exception while loading a url.");
+		}
 	}
-	if (!Notify.Empty() && Len > 0)
-		Notify->OnStatusFmt("TWebPgFetchPersist.Load. Loaded %d requests from the disk", Len);
 }
 
 void TWebPgFetchPersist::Save(TSOut& SOut) const
 {
-	// serialize requests in the queue + requests that are currently in progress
-	TVec<PUrl> UrlV;
+	if (ConnFIdToEventH.Len() > 0)
+		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saving %d pending web requests to disk...", ConnFIdToEventH.Len());
+	// serialize requests in the queue
 	for (int KeyId = ConnFIdToEventH.FFirstKeyId(); ConnFIdToEventH.FNextKeyId(KeyId);) {
 		const int FId = ConnFIdToEventH.GetKey(KeyId);
 		PUrl Url = GetConnUrl(FId);
-		UrlV.Add(Url);
+		Url->Save(SOut);
 	}
-	
+	// serialize requests that are currently in progress
 	TLstNd<TIdUrlPr>* Item = WaitFIdUrlPrL.First();
 	while (Item != NULL) {
-		UrlV.Add(Item->Val.Val2);
+		Item->Val.Val2->Save(SOut);;
 		Item = Item->Next();
 	}
-	UrlV.Save(SOut);
-	if (!Notify.Empty() && UrlV.Len() > 0)
-		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saving %d requests to the disk", UrlV.Len());
+	if (ConnFIdToEventH.Len() > 0)
+		Notify->OnStatusFmt("TWebPgFetchPersist.Save. Saved %d requests to the disk.", ConnFIdToEventH.Len());
 }
 
 void TWebPgFetchPersist::ReportError(const TStr& MsgStr) 
