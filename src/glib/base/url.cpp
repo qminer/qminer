@@ -297,8 +297,9 @@ TUrl::TUrl(TSIn& SIn) :
 {
 	RelUrlStr = TStr(SIn);
 	BaseUrlStr = TStr(SIn);
-	RelUrlStr.ToTrunc();
-	RelUrlStr.ChangeStrAll(" ", "%20");
+	// we have already serialized the properly formatted content so no need to do it again
+	//RelUrlStr.ToTrunc();
+	//RelUrlStr.ChangeStrAll(" ", "%20");
 	try {
 		if (IsAbs(RelUrlStr)) {
 			GetAbs(RelUrlStr);
