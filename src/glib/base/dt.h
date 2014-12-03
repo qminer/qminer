@@ -622,7 +622,6 @@ public:
   int GetPrimHashCd() const;
   int GetSecHashCd() const;
   int GetHashTrick() const; // @TODO change this to uint32_t
-  int GetHashTrick() const {return RStr->GetHashTrick();}
 
   /// Return true if string is 'T' or 'F'. Return true or false accordingly in Val
   bool IsBool(bool& Val) const;
