@@ -26,6 +26,11 @@
 #pragma warning(disable: 4512)		// assignment operator could not be generated
 
 #define CPP11
+
+// if you use glib in multithreaded environment uncomment the next define
+// it avoids definition of some static variables that causes problems when using multiple threads
+//#define MULTITHREADED
+
 /////////////////////////////////////////////////
 // Environment defines
 #if defined (_WIN32)
