@@ -26,11 +26,15 @@ PJsonVal TBackupLogInfo::GetJson() const
 //
 // TBackupProfile
 // 
-TBackupProfile::TBackupProfile(const PJsonVal& SettingsJson)
+TBackupProfile::TBackupProfile(const PJsonVal& SettingsJson, const TStr& Destination_, const TStr& ProfileName_)
 {
-	Destination = SettingsJson->GetObjStr("destination");
+	Destination = Destination_;
 	if (Destination.Len() > 0 && (Destination.LastCh() != '\\' || Destination.LastCh() != '/'))
 		Destination += "/";
+	ProfileName = ProfileName_;
+	if (!TDir::Exists(Destination))
+		TDir::GenDir(Destination);
+	
 	VersionsToKeep = SettingsJson->GetObjInt("versionsToKeep", 1);
 	PJsonVal FoldersJson = SettingsJson->GetObjKey("folders");
 	EAssertR(FoldersJson->IsArr(), "Expected to get an array of folders");
@@ -47,6 +51,18 @@ TBackupProfile::TBackupProfile(const PJsonVal& SettingsJson)
 			FolderJson->GetObjStrV("skipIfContaining", FolderInfo.SkipIfContainingV);
 		FolderV.Add(FolderInfo);
 	}
+	
+	// load logs of the previous backups
+	ProfileLogFile = Destination + ProfileName + "/backupInfo.json";
+	if (TFile::Exists(ProfileLogFile)) {
+		PJsonVal LogJson = TJsonVal::GetValFromStr(TStr::LoadTxt(ProfileLogFile));
+		if (LogJson->IsArr()) {
+			for (int N = 0; N < LogJson->GetArrVals(); N++) {
+				PJsonVal Log = LogJson->GetArrVal(N);
+				LogV.Add(TBackupLogInfo(Log));
+			}
+		}
+	}
 }
 
 TStr TBackupProfile::GetFolderNameForCurrentTime() const
@@ -56,15 +72,15 @@ TStr TBackupProfile::GetFolderNameForCurrentTime() const
 }
 
 // create the actual backup of a given profile
+// additionally also check if we already have too many backups and remove the oldest one
 TBackupLogInfo TBackupProfile::CreateBackup()
 {
 	try {
-		// create base destination folder if necessary
-		if (!TDir::Exists(Destination))
-			TDir::GenDir(Destination);
 		// create folder for the current backup
+		if (!TDir::Exists(Destination + ProfileName))
+			TDir::GenDir(Destination + ProfileName);
 		const TStr DateFolderName = GetFolderNameForCurrentTime();
-		const TStr FullDateFolder = Destination + DateFolderName + "/";
+		const TStr FullDateFolder = Destination + ProfileName + "/" + DateFolderName + "/";
 		if (!TDir::Exists(FullDateFolder))
 			TDir::GenDir(FullDateFolder);
 
@@ -80,7 +96,23 @@ TBackupLogInfo TBackupProfile::CreateBackup()
 		}
 		const double Sec = StopWatch.GetSec();
 		TStr OutText = ErrMsgs.Len() > 0 ? ErrMsgs : "Backup finished successfully.";
-		return TBackupLogInfo(DateFolderName, Sec, OutText);
+		
+		// add a new log
+		TBackupLogInfo BackupLogInfo(DateFolderName, Sec, OutText);
+		LogV.Add(BackupLogInfo);
+
+		// if we have too many backups of the profile, delete the oldest one
+		while (LogV.Len() > 1 && LogV.Len() > GetVersionsToKeep()) {
+			const TStr FolderToDelete = Destination + ProfileName + "/" + LogV[0].GetFolderName();
+			if (TDir::Exists(FolderToDelete))
+				TDir::DelNonEmptyDir(FolderToDelete);
+			LogV.Del(0);	// remove the first log item
+		}
+		
+		// save the logs
+		SaveLogs();
+
+		return BackupLogInfo;
 	}
 	catch (PExcept E) {
 		return TBackupLogInfo("", 0, E->GetMsgStr());
@@ -147,6 +179,45 @@ void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& Source
 	}
 }
 
+
+void TBackupProfile::Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode) const
+{
+	for (int N = 0; N < LogV.Len(); N++) {
+		// find the folder that matches the BackupFolderName
+		if (LogV[N].GetFolderName() == BackupFolderName) {
+			const TVec<TBackupFolderInfo> Folders = GetFolders();
+			for (int N = 0; N < Folders.Len(); N++) {
+				const TStr TargetFolder = Folders[N].Folder;
+				TStrV PartV; TFile::SplitPath(TargetFolder, PartV);
+				const TStr LastFolderNamePart = PartV[PartV.Len() - 1];
+
+				// do we want to first remove any existing data in the target folder?
+				if (RestoringMode == RemoveExistingFirst)
+					TDir::DelNonEmptyDir(TargetFolder);
+
+				// copy data from backup to the destination folder
+				const TStr SourceFolder = Destination + ProfileName + "/" + BackupFolderName + "/" + LastFolderNamePart;
+				if (TDir::Exists(SourceFolder))
+					TDir::CopyDir(SourceFolder, TargetFolder, RestoringMode == OverwriteIfExisting);
+				else
+					TNotify::StdNotify->OnStatusFmt("WARNING: Unable to create a restore of the folder %s. The folder does not exist.", SourceFolder.CStr());
+			}
+		}
+	}
+}
+
+// save the logs of the backups to the log file
+void TBackupProfile::SaveLogs() const
+{
+	TJsonValV ArrV;
+	for (int N = 0; N < LogV.Len(); N++)
+		ArrV.Add(LogV[N].GetJson());
+	PJsonVal JsonArr = TJsonVal::NewArr(ArrV);
+	TStr JsonStr = JsonArr->SaveStr();
+	JsonStr.SaveTxt(ProfileLogFile);
+}
+
+
 //
 // TFolderBackup
 //
@@ -169,7 +240,7 @@ TFolderBackup::TFolderBackup(const PJsonVal& SettingsJson)
 void TFolderBackup::ParseSettings(const PJsonVal& SettingsJson)
 {
 	// name of the file that holds all backups
-	ProfileLogFile = SettingsJson->GetObjStr("backupLogFile");
+	DestinationDirNm = SettingsJson->GetObjStr("destination");
 	
 	// load profiles for which we wish to make backups
 	PJsonVal ProfilesJson = SettingsJson->GetObjKey("profiles");
@@ -179,27 +250,7 @@ void TFolderBackup::ParseSettings(const PJsonVal& SettingsJson)
 	}
 	for (int N = 0; N < ProfilesJson->GetObjKeys(); N++) {
 		const TStr ProfileName = ProfilesJson->GetObjKey(N);
-		ProfileH.AddDat(ProfileName, TBackupProfile(ProfilesJson->GetObjKey(ProfileName)));
-	}
-
-	// load logs of the previous backups
-	if (TFile::Exists(ProfileLogFile)) {
-		PJsonVal LogJson = TJsonVal::GetValFromStr(TStr::LoadTxt(ProfileLogFile));
-		if (LogJson->IsObj()) {
-			for (int ProfileN = 0; ProfileN < LogJson->GetObjKeys(); ProfileN++) {
-				const TStr ProfileName = LogJson->GetObjKey(ProfileN);
-				PJsonVal ProfileLog = LogJson->GetObjKey(ProfileName);
-				if (!ProfileLog->IsArr()) {
-					TNotify::StdNotify->OnStatusFmt("Profile log for %s did not contain an array", ProfileName.CStr());
-					continue;
-				}
-				TVec<TBackupLogInfo>& LogV = ProfileToLogVH.AddDat(ProfileName);
-				for (int N = 0; N < ProfileLog->GetArrVals(); N++) {
-					PJsonVal Log = ProfileLog->GetArrVal(N);
-					LogV.Add(TBackupLogInfo(Log));
-				}
-			}
-		}
+		ProfileH.AddDat(ProfileName, TBackupProfile(ProfilesJson->GetObjKey(ProfileName), DestinationDirNm, ProfileName));
 	}
 }
 
@@ -210,23 +261,6 @@ TBackupLogInfo TFolderBackup::CreateBackup(const TStr& ProfileName)
 		// execute the backup
 		TBackupProfile Profile = ProfileH.GetDat(ProfileName);
 		TBackupLogInfo Info = Profile.CreateBackup();
-		
-		// store the log info
-		ProfileToLogVH.AddDat(ProfileName).Add(Info);
-
-		// if we have too many backups of the profile, delete the oldest one
-		TVec<TBackupLogInfo>& LogV = ProfileToLogVH.GetDat(ProfileName);
-		while (LogV.Len() > 1 && LogV.Len() > Profile.GetVersionsToKeep()) {
-			const TStr FolderToDelete = Profile.GetDestination() + LogV[0].GetFolderName();
-			if (TDir::Exists(FolderToDelete))
-				TDir::DelNonEmptyDir(FolderToDelete);
-			LogV.Del(0);	// remove the first log item
-		}
-
-		// save the file with the logs
-		SaveLogs();
-
-		// return
 		return Info;
 	}
 	else
@@ -243,65 +277,45 @@ void TFolderBackup::CreateBackup(TVec<TBackupLogInfo>& BackupLogInfo)
 	}
 }
 
-// save the logs of the backups to the log file
-void TFolderBackup::SaveLogs() const
-{
-	PJsonVal LogsJson =	TJsonVal::NewObj();
-	for (int KeyId = ProfileH.FFirstKeyId(); ProfileH.FNextKeyId(KeyId);) {
-		const TStr ProfileName = ProfileH.GetKey(KeyId);
-		const TVec<TBackupLogInfo>& LogV = ProfileToLogVH.GetDat(ProfileName);
-		TJsonValV ArrV;
-		for (int N = 0; N < LogV.Len(); N++)
-			ArrV.Add(LogV[N].GetJson());
-		LogsJson->AddToObj(ProfileName, ArrV);
-	}
-	TStr JsonStr = LogsJson->SaveStr();
-	JsonStr.SaveTxt(ProfileLogFile);
-}
-
 // return the list of folders containing backups for a given profile name
 // folders are sorted from the oldest to the newest
 void TFolderBackup::GetBackupFolders(const TStr& ProfileName, TStrV& FolderNmV) const
 {
 	FolderNmV.Clr();
-	if (ProfileToLogVH.IsKey(ProfileName) && ProfileH.IsKey(ProfileName)) {
-		const TVec<TBackupLogInfo>& LogV = ProfileToLogVH.GetDat(ProfileName);
+	if (ProfileH.IsKey(ProfileName)) {
 		TBackupProfile Profile = ProfileH.GetDat(ProfileName);
+		const TVec<TBackupLogInfo>& LogV = Profile.GetLogs();
 		for (int N = 0; N < LogV.Len(); N++)
 			FolderNmV.Add(LogV[N].GetFolderName());
 	}
 }
 
+int TFolderBackup::GetBackupCount(const TStr& ProfileName) const
+{
+	if (ProfileH.IsKey(ProfileName)) {
+		TBackupProfile Profile = ProfileH.GetDat(ProfileName);
+		return Profile.GetLogs().Len();
+	}
+	return 0;
+}
+
 // restore a previous backup
 // backup folder name is the timestamp of the backed up folder (YYYY-MM-DD HH-MM-SS)
 // you can get the folder by calling the GetBackupFolders() method
-void TFolderBackup::Restore(const TStr& ProfileName, const TStr& BackupFolderName, const ERestoringMode& RestoringMode) const
+void TFolderBackup::Restore(const TStr& ProfileName, const TStr& BackupFolderName, const TBackupProfile::ERestoringMode& RestoringMode) const
 {
-	if (ProfileToLogVH.IsKey(ProfileName) && ProfileH.IsKey(ProfileName)) {
-		const TVec<TBackupLogInfo>& LogV = ProfileToLogVH.GetDat(ProfileName);
-		TBackupProfile Profile = ProfileH.GetDat(ProfileName);
-		for (int N = 0; N < LogV.Len(); N++) {
-			// find the folder that matches the BackupFolderName
-			if (LogV[N].GetFolderName() == BackupFolderName) {
-				const TVec<TBackupFolderInfo> Folders = Profile.GetFolders();
-				for (int N = 0; N < Folders.Len(); N++) {
-					const TStr TargetFolder = Folders[N].Folder;
-					TStrV PartV; TFile::SplitPath(TargetFolder, PartV);
-					const TStr LastFolderNamePart = PartV[PartV.Len() - 1];
+	if (ProfileH.IsKey(ProfileName))
+		ProfileH.GetDat(ProfileName).Restore(BackupFolderName, RestoringMode);
+}
 
-					// do we want to first remove any existing data in the target folder?
-					if (RestoringMode == RemoveExistingFirst) {
-						TDir::DelNonEmptyDir(TargetFolder);
-					}
-
-					// copy data from backup to the destination folder
-					const TStr SourceFolder = Profile.GetDestination() + BackupFolderName + "/" + LastFolderNamePart;
-					if (TDir::Exists(SourceFolder))
-						TDir::CopyDir(SourceFolder, TargetFolder, RestoringMode == OverwriteIfExisting);
-					else
-						TNotify::StdNotify->OnStatusFmt("WARNING: Unable to create a restore of the folder %s. The folder does not exist.", SourceFolder.CStr());
-				}
-			}
+bool TFolderBackup::RestoreLatest(const TStr& ProfileName, const TBackupProfile::ERestoringMode& RestoringMode) const
+{
+	if (ProfileH.IsKey(ProfileName)) {
+		TStrV FolderV; GetBackupFolders(ProfileName, FolderV);
+		if (FolderV.Len() > 0) {
+			ProfileH.GetDat(ProfileName).Restore(FolderV[FolderV.Len()-1], RestoringMode);
+			return true;
 		}
 	}
+	return false;
 }

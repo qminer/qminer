@@ -68,19 +68,30 @@ class TBackupProfile
 {
 private:
 	TStr Destination;
+	TStr ProfileName;
+	TStr ProfileLogFile;
 	TInt VersionsToKeep;
 	TVec<TBackupFolderInfo> FolderV;
+	TVec<TBackupLogInfo> LogV;
 
 	TStr GetFolderNameForCurrentTime() const;
 	void CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, TStr& ErrMsg);
 	
+	void SaveLogs() const;
+
 public:
+
+	enum ERestoringMode { RemoveExistingFirst, SkipIfExisting, OverwriteIfExisting };
+
 	TBackupProfile() {}
-	TBackupProfile(const PJsonVal& SettingsJson);
+	TBackupProfile(const PJsonVal& SettingsJson, const TStr& DestinationDirNm, const TStr& ProfileName);
 	TBackupLogInfo CreateBackup();
+	void Restore(const TStr& BackupFolderName, const ERestoringMode& RestoringMode) const;
+
 	int GetVersionsToKeep() const { return VersionsToKeep; }
 	TStr GetDestination() const { return Destination; }
 	const TVec<TBackupFolderInfo> GetFolders() const { return FolderV; }
+	const TVec<TBackupLogInfo> GetLogs() const { return LogV; }
 };
 
 
@@ -91,16 +102,14 @@ public:
 class TFolderBackup
 {
 private:
-	TStr ProfileLogFile;
+	TStr DestinationDirNm;
 
 	THash<TStr, TBackupProfile> ProfileH;
-	THash<TStr, TVec<TBackupLogInfo> > ProfileToLogVH;
-
+	
 	void ParseSettings(const PJsonVal& SettingsJson);
-	void SaveLogs() const;
 
 public:
-	enum ERestoringMode { RemoveExistingFirst, SkipIfExisting, OverwriteIfExisting };
+	
 
 	TFolderBackup(const TStr& SettingsFNm);
 	TFolderBackup(const PJsonVal& SettingsJson);
@@ -111,30 +120,50 @@ public:
 	void CreateBackup(TVec<TBackupLogInfo>& BackupLogInfo);
 	
 	void GetBackupFolders(const TStr& ProfileName, TStrV& FolderNmV) const;
-	void Restore(const TStr& ProfileName, const TStr& BackupFolderName, const ERestoringMode& RestoringMode = RemoveExistingFirst) const;
+	int GetBackupCount(const TStr& ProfileName) const;
+	void Restore(const TStr& ProfileName, const TStr& BackupFolderName, const TBackupProfile::ERestoringMode& RestoringMode = TBackupProfile::RemoveExistingFirst) const;
+	bool RestoreLatest(const TStr& ProfileName, const TBackupProfile::ERestoringMode& RestoringMode = TBackupProfile::RemoveExistingFirst) const;
+	bool IsProfileName(const TStr& ProfileName) const { return ProfileH.IsKey(ProfileName); }
 };
 
 /*
 example of a json file containing the settings to be used when initializing the TFolderBackup instance:
 
 {
-	"backupLogFile": "E:\\data\\NewsMiner\\_AutoBackups\\backups.json",
+	"destination": "./_AutoBackups",
 	"profiles" : {
-		"er" : {
-			"destination": "E:\\data\\NewsMiner\\_AutoBackups",
-				"versionsToKeep" : 3,
-				"folders" : [
-			{
-				"folder": "E:\\data\\NewsMiner\\IndexArticles",
-					"extensions" : ["*"],
+		"Articles1" : {
+			"versionsToKeep": 3,
+			"folders": [
+				{ 
+					"folder": "./IndexArticles", 
+					"extensions": ["*"],
 					"skipIfContaining" : ["ArticlesWebRqLog.bin"],
-					"includeSubfolders" : true
-			},
-			{
-				"folder": "E:\\data\\NewsMiner\\IndexGeo",
-				"includeSubfolders" : true
-			}
-				]
+					"includeSubfolders": true
+				}
+			]
+		},
+		"ClusteringEng" : {
+			"versionsToKeep": 3,
+			"folders": [
+				{ 
+					"folder": "./IndexClustersEng", 
+					"extensions": [".bin"],
+					"skipIfContaining" : ["IncomingWebRqLog"],
+					"includeSubfolders": true
+				}
+			]
+		},
+		"ClusteringDefault" : {
+			"versionsToKeep": 3,
+			"folders": [
+				{ 
+					"folder": "./IndexClustersDefault", 
+					"extensions": [".bin"],
+					"skipIfContaining" : ["IncomingWebRqLog"],
+					"includeSubfolders": true
+				}
+			]
 		}
 	}
 }
