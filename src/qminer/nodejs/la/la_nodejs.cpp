@@ -82,10 +82,8 @@ v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::EscapableHandleScope HandleScope(Isolate);
    
-   const int Argc = 0;
-   v8::Local<v8::Value> Argv[Argc] = { };
    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-   v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+   v8::Local<v8::Object> Instance = cons->NewInstance();
    
    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
@@ -98,15 +96,38 @@ v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
 
 // template <typename TVal, typename TAux>
 template <>
+v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& FltV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+	Instance->SetHiddenValue(Key, Value);
+
+	int Len = FltV.Len();
+	TFltV Vec(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		Vec[ElN] = FltV[ElN];
+	}
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(Vec);
+	JsVec->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
+
+// template <typename TVal, typename TAux>
+template <>
 v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::EscapableHandleScope HandleScope(Isolate);
    
-   const int Argc = 0;
-   v8::Local<v8::Value> Argv[Argc] = { };
    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
    
-   v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+   v8::Local<v8::Object> Instance = cons->NewInstance();
    
    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
@@ -680,10 +701,8 @@ v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::EscapableHandleScope HandleScope(Isolate);
    
-   const int Argc = 0;
-   v8::Local<v8::Value> Argv[Argc] = { };
    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-   v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+   v8::Local<v8::Object> Instance = cons->NewInstance();
    
    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
@@ -1218,10 +1237,8 @@ v8::Local<v8::Object> TNodeJsSpVec::New(const TIntFltKdV& IntFltKdV) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::EscapableHandleScope HandleScope(Isolate);
    
-   const int Argc = 0;
-   v8::Local<v8::Value> Argv[Argc] = { };
    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-   v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+   v8::Local<v8::Object> Instance = cons->NewInstance();
    
    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntFltKdV");
@@ -1558,10 +1575,8 @@ v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& 
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::EscapableHandleScope HandleScope(Isolate);
    
-   const int Argc = 0;
-   v8::Local<v8::Value> Argv[Argc] = { };
    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-   v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+   v8::Local<v8::Object> Instance = cons->NewInstance();
    
    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TVec<TIntFltKdV>");
