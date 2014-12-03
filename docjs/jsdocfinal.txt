@@ -111,6 +111,20 @@ The QMiner system comes with the following libraries:
 - `strArr = fs.listFile(dirName)` -- returns list of files in directory
 - `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
 - `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+- `data = fs.readFile(fileName)` - read file and return it as string
+- `fs.readLines(fileName, callback)` - raed file line by line as string and 
+     calls the given callback with line as the only parameter
+- `fs.readLines(fileName, callback)` - raed file line by line as string, parses
+    it into array and calls the given callback with array as the only parameter.
+    Code is taken from http://stackoverflow.com/a/1293163
+- `fout = fs.writeCsvLine(fout, arr)` -- escape fields from array `arr` into CSV line and 
+    write is to `fout` as string; returns fout. Not the most efficient thing in the world.
+    NOT YET TESTED!
+- `fout = fs.writeCsv(fout, arr)` -- calls `fs.writeCsvLine` for each element of `arr`
+- `json = fs.readJson(fileName)` - read file as a string and parse it top JSON
+- `fs.writeJson(fileName, json)` - stringify `json` object and save it to file
+- `fs.readJsonLines(fileName, callback)` - raed file line by line as string,
+    parse each line to JSON and callback with JSON as the only parameter
 
 ### Input File Stream
 
@@ -598,11 +612,12 @@ var spVec = la.newSpVec(); //empty vector
 - `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
 - `spVec = spVec.plus(spVec2)` -- adds `spVec2` to `spVec`, result is stored in `spVec. Return self.
 - `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
-- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
+- `spVec = spVec.normalize()` -- normalizes the vector spVec (in-place operation). Returns self.
 - `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 - `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
 - `spVec = spVec.print()` -- prints the vector to console. Return self.
 - `num = spVec.norm()` -- returns `num` - the norm of `spVec`
+- `vec = spVec.sort()` -- sort by values and return permutation integer vector.
 - `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
 - `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
 - `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
@@ -710,6 +725,33 @@ To start using it must be loaded using `var analytics = require('analytics.js');
     sends it through the model and returns the top ranked label `labelStr`.
   - `batchModel.save(fout)` -- saves the model to `fout` output stream
 - `batchModel = analytics.loadBatchModel(fin)` -- loads batch model frm input stream `fin`
+- `cs = new analytics.classificaitonScore(cats)` -- for evaluating 
+    provided categories. Returns an object, which can track classification
+    statistics (precision, recall, F1).
+   - `cs.count(correct, predicted)` -- adds prediction to the current
+        statistics. `correct` corresponds to the correct label(s), `predicted`
+        correspond to predicted lable(s). Labels can be either string
+        or string array (when there are zero or more then one lables).
+   - `cs.report()` -- prints current statisitcs for each category
+   - `cs.reportAvg()` -- prints current statisitcs averaged over all cagtegories
+   - `cs.reportCSV(fout)` -- current statisitcs for each category to fout as CSV 
+   - `res = cs.results()` -- get current statistics; `res` is an array
+        of object with members `precision`, `recall`, `f1` and `accuracy`
+- `result = new exports.rocScore(sample)` -- used for computing ROC curve and 
+    other related measures such as AUC; the result is a results object
+    with the following API:
+    - `result.push(ground, predict)` -- add new measurement with ground score (1 or -1) and predicted value
+    - `roc_arr = result.curve(sample)` -- get ROC parametrization as array of sample points
+    - `num = result.auc(sample)` -- get AUC of the current curve
+    - `num = result.breakEvenPoint()` -- get break-even point, which is number where precision and recall intersect
+    - `num = result.bestF1()` -- gets threshold for prediction score, which results in the highest F1
+    - `result.report(sample)` -- output to screen
+    - `result.reportCSV(fnm, sample)` -- save as CSV to file `fnm`
+- `cf = new analytics.confusionMatrix(cats)` -- for tracking confusion between label classification
+    - `cf.cats` -- categories we are tracking
+    - `cf.matrix` -- confusion matrix
+    - `cf.count(correct, predicted)` -- update matrix with new prediction
+    - `cf.report()` -- report on the current status
 - `result = analytics.crossValidation(rs, features, target, folds)` -- creates a batch
     model for records from record set `rs` using `features; `target` is the
     target field and is assumed discrete; the result is a results object
@@ -1213,7 +1255,7 @@ TNEGraph : directed multi - graph(multiple directed edges between a pair of node
 - `spMat = graph.adjMat()` -- returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities
 - `fout = graph.save(fout)` -- saves graph to output stream `fout`
 - `graph = graph.load(fin)` -- loads graph from input stream `fin`
-- `intVec = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
+- `spMat = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
 
 ### Node
 
