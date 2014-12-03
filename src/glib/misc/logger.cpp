@@ -62,12 +62,20 @@ void TLogger::Notify(const TNotifyType& Type, const char *FmtStr, va_list argptr
 
 void TLogger::Notify(const TNotifyType& Type, const char *Str) 
 {
-	TChA FullStr;
-	// prepend spaces if necessary
-	FullStr.AddChTo(' ', StartingSpaces);
-	FullStr += Str;	
-	for (int N=0; N < NotifyInstV.Len(); N++) {
-		if (! NotifyInstV[N].Empty())
-			NotifyInstV[N]->OnNotify(Type, FullStr); 
+	try {
+		TChA FullStr;
+		// prepend spaces if necessary
+		FullStr.AddChTo(' ', StartingSpaces);
+		FullStr += Str;
+		for (int N = 0; N < NotifyInstV.Len(); N++) {
+			if (!NotifyInstV[N].Empty())
+				NotifyInstV[N]->OnNotify(Type, FullStr);
+		}
+	}
+	catch (PExcept ex) {
+		TNotify::StdNotify->OnNotifyFmt(ntErr, "Notify error: %s", ex->GetMsgStr().CStr());
+	}
+	catch (...) {
+		TNotify::StdNotify->OnNotify(ntErr, "Notify error.");
 	}
 }
