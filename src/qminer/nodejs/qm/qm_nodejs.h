@@ -21,6 +21,8 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
+	//#- `qm.create(schemaJson)` -- TODO
+	JsDeclareFunction(create);
 	//#- `store = qm.store(open)` -- TODO
 	JsDeclareFunction(open);
 	//#- `store = qm.store(close)` -- TODO

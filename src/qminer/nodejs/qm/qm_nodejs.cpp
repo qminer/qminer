@@ -1,6 +1,6 @@
 #include "qm_nodejs.h"
+#include "qm_param.h"
 
-using namespace TQm;
 
 ///////////////////////////////
 // NodeJs-Qminer-Base
@@ -25,11 +25,33 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 }
 
-void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsBase::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+	// get schema and conf
+	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 0);
+	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 1, "qm.conf");
+
+
+	// parse configuration file
+	TQmParam Param(ConfFNm);
+	// prepare lock
+	TFileLock Lock(Param.LockFNm);
+
+	Lock.Lock();
+	{
+		// parse schema (if no given, create an empty array)
+		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
+			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
+		// initialize base
+		TQm::PBase Base = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
+		// save base
+		TQm::TStorage::SaveBase(Base);
+	}
+	// remove lock
+	Lock.Unlock();
+}
 }
 
 void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
