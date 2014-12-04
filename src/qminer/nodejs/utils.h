@@ -3,7 +3,6 @@
 
 #include <node.h>
 #include "base.h"
-#include "qminer.h"
 
 #define JsDeclareProperty(Function) \
 	static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -15,7 +14,7 @@
 	   } catch (const PExcept& Except) { \
 	      /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); \
+               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
          /* } else { \
             throw Except; \
          } */ \
@@ -42,7 +41,7 @@
 			SetFunction(Args); \
 		} catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); \
+               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
 		} \
 	}
 
@@ -56,29 +55,19 @@
       } catch (const PExcept& Except) { \
          /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); \
+               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
          /* } else { \
             throw Except; \
          } */ \
       } \
    }
 
-#define QmAssert(Cond) \
-	((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
-
-#define QmAssertR(Cond, MsgStr) \
-	((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
-
-#define QmFailR(MsgStr) \
-   Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, TStr(MsgStr).CStr())))); return;
-
 
 //////////////////////////////////////////////////////
 // Node - Utilities
 class TNodeJsUtil {
 public:
-   /// Extract argument ArgN property as bool
+	/// Extract argument ArgN property as bool
 	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const bool& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
@@ -92,7 +81,7 @@ public:
 		}
 		return DefVal;
 	}
-   static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 		if (Args.Length() > ArgN) {
@@ -106,44 +95,47 @@ public:
 		return DefVal;
 	}
 
-   /// Extract argument ArgN as TStr
-   static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	   v8::HandleScope HandleScope(Isolate);
-	   QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
-	   v8::Handle<v8::Value> Val = Args[ArgN];
-	   QmAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
-	   v8::String::Utf8Value Utf8(Val);
-	   return TStr(*Utf8);
+	/// Extract argument ArgN as TStr
+	static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
+		v8::String::Utf8Value Utf8(Val);
+		return TStr(*Utf8);
    }
 
-   /// Extract argument ArgN as TStr, and use DefVal in case when not present
-   static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& DefVal) {
-	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	   v8::HandleScope HandleScope(Isolate);
-	   if (Args.Length() > ArgN) {
-		   v8::Handle<v8::Value> Val = Args[ArgN];
-		   QmAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
-		   v8::String::Utf8Value Utf8(Val);
-		   return TStr(*Utf8);
-	   }
-	   return DefVal;
-   }
+	/// Extract argument ArgN as TStr, and use DefVal in case when not present
+	static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& DefVal) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		if (Args.Length() > ArgN) {
+			v8::Handle<v8::Value> Val = Args[ArgN];
+			EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
+			v8::String::Utf8Value Utf8(Val);
+			return TStr(*Utf8);
+		}
+		return DefVal;
+	}
 
-   /// Extract argument ArgN property as string
-   static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal) {
-	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	   v8::HandleScope HandleScope(Isolate);
-	   if (Args.Length() > ArgN) {
-		   if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-			   v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
-			   QmAssertR(Val->IsString(), TStr::Fmt("Argument %d, property %s expected to be string", ArgN, Property.CStr()));
-			   v8::String::Utf8Value Utf8(Val);
-			   return TStr(*Utf8);
-		   }
-	   }
-	   return DefVal;
-   }
+	/// Extract argument ArgN property as string
+	static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		if (Args.Length() > ArgN) {
+			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
+				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+				EAssertR(Val->IsString(), TStr::Fmt("Argument %d, property %s expected to be string", ArgN, Property.CStr()));
+				v8::String::Utf8Value Utf8(Val);
+				return TStr(*Utf8);
+			}
+		}
+		return DefVal;
+	}
+
+	static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
+	static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
 	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
 	static TStr GetClass(const v8::Handle<v8::Object> Obj) {
