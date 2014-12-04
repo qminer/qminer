@@ -106,6 +106,18 @@ public:
 		return DefVal;
 	}
 
+   /// Extract argument ArgN as double
+   static TStr GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& DefVal) {
+	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	   v8::HandleScope HandleScope(Isolate);
+	   if (Args.Length() > ArgN) {
+		   v8::Handle<v8::Value> Val = Args[ArgN];
+		   EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be double", ArgN));
+		   return static_cast<double>(Val->NumberValue());
+	   }
+	   return DefVal;
+   }
+
    /// Extract argument ArgN as TStr
    static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();

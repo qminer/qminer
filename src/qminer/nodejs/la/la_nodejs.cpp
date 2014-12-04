@@ -2104,7 +2104,7 @@ void TNodeJsLinAlg::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//TNodeJsLinAlg* JsLinAlg = TNodeJsUtil::GetArgStr TJsLinAlgUtil::GetSelf(Args);
+	//TNodeJsLinAlg* JsLinAlg = Utils::GetArgFtr(Args, 1, 1);
 	//// Dim parameter
 	//double Dim = TJsLinAlgUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
 

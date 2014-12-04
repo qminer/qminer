@@ -6,6 +6,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
+#include <utils.h>
 
 // NOTE: This is *not* the same as in QMiner JS. 
 #define JsDeclareProperty(Function) \
