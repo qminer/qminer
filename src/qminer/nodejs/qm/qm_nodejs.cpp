@@ -179,14 +179,43 @@ void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+	try {
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+
+		const TStr RecNm = TNodeJsUtil::GetArgStr(Args, 0);
+		if (JsStore->Store->IsRecNm(RecNm)) {
+			Args.GetReturnValue().Set(TNodeJsRec::New(Store->GetRec(RecNm)));
+		} else {
+			Args.GetReturnValue().Set(v8::Undefined(Isolate));
+		}
+	} catch (const PExcept& Except) {
+		printf("Failed to fetch record: %s\n", Except->GetMsgStr().CStr());
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	}
 }
 
 void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+	QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
+	Args.GetReturnValue().Set(Args.Holder());
+
+	Local<Function> Callback = Local<Function>::Cast(Args[0]);
+
+	if (!Store->Empty()) {
+		PStoreIter Iter = Store->ForwardIter();
+
+		const unsigned Argc = 1;
+
+		uint64 Count = 0;
+		while (Iter->Next()) {
+			const uint64 RecId = Iter->GetRecId();
+
+			Local<Value> ArgV[Argc] = { Local<Number>::New(v8::Integer::New(Count++)) };
+			Callback->Call(Context::GetCurrent()->Global(), Argc, ArgV);
+		}
+	}
 }
 
 void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
