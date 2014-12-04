@@ -129,6 +129,10 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
+	//#- `store = qm.store(open)` -- TODO
+	JsDeclareFunction(open);
+	//#- `store = qm.store(close)` -- TODO
+	JsDeclareFunction(close);
     //#- `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
     //#- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
@@ -157,5 +161,95 @@ public:
 	JsDeclareFunction(getStreamAggrNames);	
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
+
+///////////////////////////////
+// NodeJs-Qminer-Store
+class TNodeJsStore : public node::ObjectWrap {
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	//static v8::Local<v8::Object> New(const TFltVV& FltVV);	
+public:
+	TNodeJsStore() { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
+public:
+	JsDeclareFunction(New);
+private:
+	//# 
+	//# **Functions and properties:**
+	//#     
+	//#- `str = store.name` -- name of the store
+	JsDeclareProperty(name);
+	//#- `bool = store.empty` -- `bool = true` when store is empty
+	JsDeclareProperty(empty);
+	//#- `len = store.length` -- number of records in the store
+	JsDeclareProperty(length);
+	//#- `rs = store.recs` -- create a record set containing all the records from the store
+	JsDeclareProperty(recs);
+	//#- `objArr = store.fields` -- array of all the field descriptor JSON objects
+	JsDeclareProperty(fields);
+	//#- `objArr = store.joins` -- array of all the join names
+	JsDeclareProperty(joins);
+	//#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+	JsDeclareProperty(keys);
+	//#- `rec = store.first` -- first record from the store
+	JsDeclareProperty(first);
+	//#- `rec = store.last` -- last record from the store
+	JsDeclareProperty(last);
+	//#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+	JsDeclareProperty(forwardIter);
+	//#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+	JsDeclareProperty(backwardIter);
+	//#- `rec = store[recId]` -- get record with ID `recId`; 
+	//#     returns `null` when no such record exists
+	//JsDeclIndexedProperty(indexId); TODO
+	//#- `rec = store.rec(recName)` -- get record named `recName`; 
+	//#     returns `null` when no such record exists
+	JsDeclareFunction(rec);
+	//#- `store = store.each(callback)` -- iterates through the store and executes the callback function `callback` on each record. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
+	//#  - `store.each(function (rec) { console.log(JSON.stringify(rec)); })`
+	//#  - `store.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(each);
+	//#- `arr = store.map(callback)` -- iterates through the store, applies callback function `callback` to each record and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
+	//#  - `arr = store.map(function (rec) { return JSON.stringify(rec); })`
+	//#  - `arr = store.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	JsDeclareFunction(map);
+	//#- `recId = store.add(rec)` -- add record `rec` to the store and return its ID `recId`
+	JsDeclareFunction(add);
+	//#- `rec = store.newRec(recordJson)` -- creates new record `rec` by (JSON) value `recordJson` (not added to the store)
+	JsDeclareFunction(newRec);
+	//#- `rs = store.newRecSet(idVec)` -- creates new record set from an integer vector record IDs `idVec` (type la.newIntVec);
+	JsDeclareFunction(newRecSet);
+	//#- `rs = store.sample(sampleSize)` -- create a record set containing a random 
+	//#     sample of `sampleSize` records
+	JsDeclareFunction(sample);
+	//#- `field = store.field(fieldName)` -- get details of field named `fieldName`
+	JsDeclareFunction(field);
+	//#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
+	JsDeclareFunction(key);
+	//#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+	JsDeclareFunction(addTrigger);
+	//#- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
+	JsDeclareFunction(getStreamAggr);
+	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
+	JsDeclareFunction(getStreamAggrNames);
+	//#- `objJSON = store.toJSON()` -- returns the store as a JSON
+	JsDeclareFunction(toJSON);
+	//#- `store.clear()` -- deletes all records
+	//#- `len = store.clear(num)` -- deletes the first `num` records and returns new length `len`
+	JsDeclareFunction(clear);
+	//#- `vec = store.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `mat = store.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
+	//#- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
+	//#- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
+	JsDeclareFunction(cell);
+	//#JSIMPLEMENT:src/qminer/store.js
+public:
+	TWPt<TQm::TStore> Store;
+private:
+	static v8::Persistent<v8::Function> constructor;
+};
+
 
 #endif
