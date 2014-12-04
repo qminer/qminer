@@ -1,4 +1,6 @@
 #include "qm_nodejs.h"
+#include "qm_param.h"
+
 
 ///////////////////////////////
 // NodeJs-Qminer-Base
@@ -9,6 +11,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    v8::HandleScope HandleScope(Isolate);
    
    // Add all methods, getters and setters here.
+   NODE_SET_METHOD(exports, "create", create);
    NODE_SET_METHOD(exports, "open", open);
    NODE_SET_METHOD(exports, "close", close);
    NODE_SET_METHOD(exports, "store", store);
@@ -20,6 +23,35 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    NODE_SET_METHOD(exports, "getStreamAggr", getStreamAggr);
    NODE_SET_METHOD(exports, "getStreamAggrNames", getStreamAggrNames);
 
+}
+
+void TNodeJsBase::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// get schema and conf
+	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 0);
+	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 1, "qm.conf");
+
+
+	// parse configuration file
+	TQmParam Param(ConfFNm);
+	// prepare lock
+	TFileLock Lock(Param.LockFNm);
+
+	Lock.Lock();
+	{
+		// parse schema (if no given, create an empty array)
+		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
+			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
+		// initialize base
+		TQm::PBase Base = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
+		// save base
+		TQm::TStorage::SaveBase(Base);
+	}
+	// remove lock
+	Lock.Unlock();
+}
 }
 
 void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -184,7 +216,7 @@ void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		const TStr RecNm = TNodeJsUtil::GetArgStr(Args, 0);
 		if (JsStore->Store->IsRecNm(RecNm)) {
-			Args.GetReturnValue().Set(TNodeJsRec::New(Store->GetRec(RecNm)));
+			Args.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(RecNm)));
 		} else {
 			Args.GetReturnValue().Set(v8::Undefined(Isolate));
 		}
@@ -201,12 +233,17 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 	Args.GetReturnValue().Set(Args.Holder());
 
-	Local<Function> Callback = Local<Function>::Cast(Args[0]);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
+
+	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+	const TWPt<TQm::TStore> Store = JsStore->Store;
 
 	if (!Store->Empty()) {
-		PStoreIter Iter = Store->ForwardIter();
+		TQm::PStoreIter Iter = Store->ForwardIter();
 
 		const unsigned Argc = 1;
+
+		TJsRec Rec
 
 		uint64 Count = 0;
 		while (Iter->Next()) {
