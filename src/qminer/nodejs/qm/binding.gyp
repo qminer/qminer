@@ -3,9 +3,13 @@
       {
          'target_name': 'qm',
          'sources': [
+            '../utils.h', #not necessary for build, but useful for visual studio solution
+            '../utils.cpp',
+            'qm_nodejs.h', #not necessary for build, but useful for visual studio solution
             'qm_nodejs.cpp'
          ],
          'include_dirs': [
+            '../',
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/',
