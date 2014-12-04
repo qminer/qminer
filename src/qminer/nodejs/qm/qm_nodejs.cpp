@@ -184,7 +184,7 @@ void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		const TStr RecNm = TNodeJsUtil::GetArgStr(Args, 0);
 		if (JsStore->Store->IsRecNm(RecNm)) {
-			Args.GetReturnValue().Set(TNodeJsRec::New(Store->GetRec(RecNm)));
+			Args.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(RecNm)));
 		} else {
 			Args.GetReturnValue().Set(v8::Undefined(Isolate));
 		}

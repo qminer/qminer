@@ -1,4 +1,7 @@
+NODE = /home/lstopar/workspace/JSI/projects/ProaSense/code/qminer-node/node-0.11.14
+
 MAINOBJS = utils.o
+INCLUDE = -I$(NODE)/src -I$(NODE)/deps/uv/include -I$(NODE)/deps/v8/include
 
 all: release
 
