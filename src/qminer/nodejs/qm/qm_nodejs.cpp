@@ -32,8 +32,7 @@ void TNodeJsBase::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// get schema and conf
 	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 0);
 	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 1, "qm.conf");
-
-
+	
 	// parse configuration file
 	TQmParam Param(ConfFNm);
 	// prepare lock
@@ -58,6 +57,15 @@ void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	// get conf
+	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
+	TBool RdOnly = TNodeJsUtil::GetArgBool(Args, 1, false);
+
+	// parse configuration file
+	TQmParam Param(ConfFNm);
+	// prepare lock
+	TFileLock Lock(Param.LockFNm);
+	
 	Lock.Lock();
 	// load database and start the server
 	{
@@ -66,40 +74,8 @@ void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// load base
 		TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 			Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
-		// initialize javascript contexts
-		TQm::TJsUtil::SetObjStatRate(JsStatRate);
-		TVec<TQm::PScript> ScriptV; InitJs(Param, Base, OnlyScriptNm, ScriptV);
-		// start server
-		if (!NoLoopP) {
-			// prepare server functions 
-			TSAppSrvFunV SrvFunV;
-			// used to stop the server
-			SrvFunV.Add(TSASFunExit::New());
-			// admin webservices
-			TQm::TSrvFun::RegDefFun(Base, SrvFunV);
-			// initialize static content serving thingies
-			for (int WwwRootN = 0; WwwRootN < Param.WwwRootV.Len(); WwwRootN++) {
-				const TStrPr& WwwRoot = Param.WwwRootV[WwwRootN];
-				const TStr& UrlPath = WwwRoot.Val1, FPath = WwwRoot.Val2;
-				TQm::TEnv::Logger->OnStatusFmt("Registering '%s' at '/%s/'", FPath.CStr(), UrlPath.CStr());
-				SrvFunV.Add(TSASFunFPath::New(UrlPath, FPath));
-			}
-			// register admin services
-			SrvFunV.Add(TQm::TJsAdminSrvFun::New(ScriptV, "qm_status"));
-			// register javascript contexts
-			for (int ScriptN = 0; ScriptN < ScriptV.Len(); ScriptN++) {
-				// register server function
-				ScriptV[ScriptN]->RegSrvFun(SrvFunV);
-			}
-			// start server
-			PWebSrv WebSrv = TSAppSrv::New(Env.IsArgPrefix("-port=") ? PortN : Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
-			// report we started
-			TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Env.IsArgPrefix("-port=") ? PortN : Param.PortN);
-			// wait for the end
-			TLoop::Run();
-		}
-		// save base
-		TQm::TStorage::SaveBase(Base);
+		
+		
 
 	}
 	// remove lock
@@ -110,6 +86,8 @@ void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	// save base
+	TQm::TStorage::SaveBase(Base);	
 	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 }
 

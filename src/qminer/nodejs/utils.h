@@ -78,6 +78,30 @@
 // Node - Utilities
 class TNodeJsUtil {
 public:
+	/// Extract argument ArgN property as bool
+	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& DefVal) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		if (Val->IsBoolean()) {
+			return static_cast<bool>(Val->BooleanValue());
+		}
+		else {
+			return DefVal;
+		}
+	}
+	/// Extract argument ArgN property as bool
+	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		QmAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
+		return static_cast<bool>(Val->BooleanValue());		
+	}
    /// Extract argument ArgN property as bool
 	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const bool& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
