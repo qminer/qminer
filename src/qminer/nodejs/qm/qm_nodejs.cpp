@@ -264,6 +264,18 @@ void TNodeJsRec::Init(v8::Handle<v8::Object> exports) {
 	// TODO
 }
 
+v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	TNodeJsRec* JsRec = new TNodeJsRec(Rec);
+	JsRec->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
 TNodeJsRec* TNodeJsRec::GetJsRec(v8::Local<v8::Object> RecObj) {
 	QmAssertR(RecObj->IsObject(), "Argument is not an object!");
 	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RecObj->GetInternalField(0));
