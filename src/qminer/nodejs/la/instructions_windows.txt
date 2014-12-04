@@ -40,9 +40,9 @@ NODE_ROOT folder with node source code
 HOW TO - Running Mocha with Chai, unit test files and examples
 
 Install Testing Framework:
-1. Install mocha: "sudo npm install -g mocha"
-2. If you want to use Chai assertion library install chai: "sudo npm install -g chai"
-3. For running tests, use a file named test.js - download one of the files below and rename it.
+1. Install mocha: "npm install -g mocha"
+2. If you want to use Chai assertion library install chai: "npm install -g chai"
+3. For running tests, use a file named test.js
  
 NOTE: test-assert.js uses standard Node.js assertion library with fewer testing 
 capabilities (Shown below only as an example) Recommended is the use of Chai library with test-chai.js file.
