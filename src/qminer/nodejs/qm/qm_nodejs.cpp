@@ -1,5 +1,7 @@
 #include "qm_nodejs.h"
 
+using namespace TQm;
+
 ///////////////////////////////
 // NodeJs-Qminer-Base
 TWPt<TQm::TBase> TNodeJsBase::Base = nullptr;
@@ -201,12 +203,17 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 	Args.GetReturnValue().Set(Args.Holder());
 
-	Local<Function> Callback = Local<Function>::Cast(Args[0]);
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
+
+	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+	const TWPt<TQm::TStore> Store = JsStore->Store;
 
 	if (!Store->Empty()) {
-		PStoreIter Iter = Store->ForwardIter();
+		TQm::PStoreIter Iter = Store->ForwardIter();
 
 		const unsigned Argc = 1;
+
+		TJsRec Rec
 
 		uint64 Count = 0;
 		while (Iter->Next()) {

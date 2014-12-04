@@ -22,6 +22,30 @@
 	   } \
 	}
 
+#define JsDeclareSetProperty(GetFunction, SetFunction) \
+	static void GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
+	static void _ ## GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			GetFunction(Args); \
+		} catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
+      } \
+	} \
+	static void SetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
+	static void _ ## SetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			SetFunction(Args); \
+		} catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+               v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); \
+		} \
+	}
+
 #define JsDeclareFunction(Function) \
    static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args); \
    static void _ ## Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
@@ -147,6 +171,16 @@ public:
 	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
 		TStr ClassStr = GetClass(Data);
 		return ClassStr.EqI(ClassNm);
+	}
+
+	static bool IsArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing function argument %d", ArgN).CStr());
+
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		return Val->IsFunction();
 	}
 };
 
