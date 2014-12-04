@@ -183,7 +183,6 @@ public:
 		return DefVal;
 	}
 
-	static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
 	static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
 	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
@@ -223,6 +222,9 @@ public:
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		return Val->IsFunction();
 	}
+
+private:
+	static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
 };
 
 #endif
