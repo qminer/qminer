@@ -302,7 +302,7 @@ uint64 TZipIn::GetFLen(const TStr& ZipFNm) {
   TStr Str(Bf);  delete [] Bf;
   TStrV StrV; Str.SplitOnWs(StrV);
   int n = StrV.Len()-1;
-  while (n > 0 && ! StrV[n].IsPrefix("-----")) { n--; }
+  while (n > 0 && ! StrV[n].StartsWith("-----")) { n--; }
   if (n-7 <= 0) {
     WrNotify(TStr::Fmt("Corrupt file %s: MESSAGE:\n", ZipFNm.CStr()).CStr(), Str.CStr());
     SaveToErrLog(TStr::Fmt("Corrupt file %s. Message:\n:%s\n", ZipFNm.CStr(), Str.CStr()).CStr());

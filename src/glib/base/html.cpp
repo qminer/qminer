@@ -612,7 +612,7 @@ TStr THtmlLx::GetAsciiStr(const TChA& ChA, const char& GenericCh){
 }
 
 void THtmlLx::GetTokStrV(const TStr& Str, TStrV& TokStrV){
-  PSIn SIn=TStrIn::New(Str);
+  PSIn SIn=TStrIn::New(Str, false);
   THtmlLx Lx(SIn);
   Lx.GetSym();
   TokStrV.Clr();
@@ -623,7 +623,7 @@ void THtmlLx::GetTokStrV(const TStr& Str, TStrV& TokStrV){
 }
 
 TStr THtmlLx::GetNoTag(const TStr& Str) {
-  PSIn SIn=TStrIn::New(Str);
+  PSIn SIn=TStrIn::New(Str, false);
   THtmlLx Lx(SIn);
   Lx.GetSym();
   TChA ChA;
