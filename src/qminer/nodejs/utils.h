@@ -1,5 +1,6 @@
 #ifndef QMINER_NODEJS_UTILS
 #define QMINER_NODEJS_UTILS
+#include <node.h>
 
 #define JsDeclareProperty(Function) \
 	static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
