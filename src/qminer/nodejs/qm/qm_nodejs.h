@@ -6,7 +6,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
-#include <utils.h>
+#include "utils.h"
 
 
 ///////////////////////////////
@@ -59,15 +59,19 @@ public:
 ///////////////////////////////
 // NodeJs-Qminer-Rec
 class TNodeJsRec: public node::ObjectWrap {
-private:
+public:
 	TQm::TRec Rec;
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New(const TQm::TRec& Rec);
 public:
+	TNodeJsRec(): Rec() {}
 	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
+
+	static TNodeJsRec* GetJsRec(v8::Local<v8::Object> RecObj);
 private:
+
 	//#
 	//# **Functions and properties:**
 	//#
@@ -96,6 +100,17 @@ private:
     JsDeclareFunction(delJoin);
     //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
     JsDeclareFunction(toJSON);
+
+private:
+	static v8::Persistent<v8::Function> constructor;
+};
+
+///////////////////////////////
+// NodeJs-Qminer-Record set
+class TNodeJsRecSet: public node::ObjectWrap {
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
 };
 
 ///////////////////////////////

@@ -43,19 +43,19 @@
       } \
    }
 
-// XXX: The macro expects that variables Args and Isolate exist. 
+// XXX: The macro expects that variables Args and Isolate exist.
 #define QmAssert(Cond) \
    if (!(Cond)) { \
       Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
          v8::String::NewFromUtf8(Isolate, "[la addon] Exception")))); return; }
 
-// XXX: The macro expects that variable Args and Isolate exist. 
+// XXX: The macro expects that variable Args and Isolate exist.
 #define QmAssertR(Cond, MsgStr) \
   if (!(Cond)) { \
    Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
          v8::String::NewFromUtf8(Isolate, MsgStr)))); return; }
 
-// XXX: The macro expects that variables Args and Isolate exist. 
+// XXX: The macro expects that variables Args and Isolate exist.
 #define QmFailR(MsgStr) \
    Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
          v8::String::NewFromUtf8(Isolate, MsgStr)))); return;

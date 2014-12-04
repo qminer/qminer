@@ -125,10 +125,10 @@ public:
 };
 
 #define QmAssert(Cond) \
-  ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
+  ((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
 
 #define QmAssertR(Cond, MsgStr) \
-  ((Cond) ? static_cast<void>(0) : throw TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
+  ((Cond) ? static_cast<void>(0) : throw TQm::TQmExcept::New(MsgStr, TStr(__FILE__) + " line " + TInt::GetStr(__LINE__) + ": " + TStr(#Cond)))
 
 ///////////////////////////////
 /// Join Types
