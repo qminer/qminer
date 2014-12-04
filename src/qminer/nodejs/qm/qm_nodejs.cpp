@@ -9,6 +9,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    v8::HandleScope HandleScope(Isolate);
    
    // Add all methods, getters and setters here.
+   NODE_SET_METHOD(exports, "create", create);
    NODE_SET_METHOD(exports, "open", open);
    NODE_SET_METHOD(exports, "close", close);
    NODE_SET_METHOD(exports, "store", store);
@@ -20,6 +21,13 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    NODE_SET_METHOD(exports, "getStreamAggr", getStreamAggr);
    NODE_SET_METHOD(exports, "getStreamAggrNames", getStreamAggrNames);
 
+}
+
+void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 }
 
 void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
