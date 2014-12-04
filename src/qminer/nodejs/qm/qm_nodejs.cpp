@@ -146,12 +146,33 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
+v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();	
+
+	TNodeJsStore* JsStore = new TNodeJsStore(_Store);
+	JsStore->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
 
 void TNodeJsStore::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	
+	if (Args.Length() > 0) {
+		TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+		if (TNodeJsBase::Base->IsStoreNm(StoreNm)) {
+			TWPt<TQm::TStore> Store = TNodeJsBase::Base->GetStoreByStoreNm(StoreNm);
+			Args.GetReturnValue().Set(TNodeJsStore::New(Store));
+			return;
+		}
+	}
+	else {
+		 Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	}	
 }
 
 void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
