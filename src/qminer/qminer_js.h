@@ -25,6 +25,7 @@
 #include <qminer_gs.h>
 #include <v8.h>
 #include <typeinfo>
+#include <Snap.h>
 
 #ifdef V8_DEBUG
     // include v8 debug headers

@@ -22,7 +22,7 @@
 
 #include <string>
 #include <qminer.h>
-#include <Snap.h>
+
 
 namespace TQm {
 	namespace TAggrs {
