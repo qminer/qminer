@@ -2,7 +2,7 @@
 
 ///////////////////////////////
 // NodeJs-Qminer-Base
-TWPt<TBase> TNodeJsBase::Base = new TBase();
+TWPt<TQm::TBase> TNodeJsBase::Base = nullptr;
 
 void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -28,6 +28,13 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+}
+
+void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    

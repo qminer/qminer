@@ -116,7 +116,8 @@
             '../../qminer_gs.cpp',
             '../../qminer_ftr.cpp',
             '../../qminer_aggr.cpp',
-            '../../qminer_snap.cpp'
+            '../../qminer_snap.cpp',
+            '../../qminer_op.cpp'
          ]
       }
    ]

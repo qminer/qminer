@@ -122,7 +122,7 @@ public:
 // 
 class TNodeJsBase : public node::ObjectWrap {
 private:
-   static TWPt<TBase> Base;
+	static TWPt<TQm::TBase> Base;
 public:
    static void Init(v8::Handle<v8::Object> exports);
 public:
