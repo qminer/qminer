@@ -3,9 +3,13 @@
       {
          'target_name': 'qm',
          'sources': [
+            '../utils.h', #not necessary for build, but useful for visual studio solution
+            '../utils.cpp',
+            'qm_nodejs.h', #not necessary for build, but useful for visual studio solution
             'qm_nodejs.cpp'
          ],
          'include_dirs': [
+            '../',
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/',
@@ -80,7 +84,6 @@
          'type': 'static_library',
          'include_dirs': [
             '.',
-            '../',
             '../../',
             '../../../glib/base/',
             '../../../glib/mine/',
@@ -113,7 +116,6 @@
             }]
          ],
          'sources': [
-            '../utils.cpp',
             '../../qminer_core.cpp',
             '../../qminer_gs.cpp',
             '../../qminer_ftr.cpp',
