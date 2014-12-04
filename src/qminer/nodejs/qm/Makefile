@@ -5,13 +5,12 @@ NODE_UTILS = ../
 QMINER = ../..
 GLIB = $(QMINER)/../glib
 GLIB_BASE = $(GLIB)/base
-GLIB_NET = $(GLIB)/net
 GLIB_MINE = $(GLIB)/mine
 GLIB_MISC = $(GLIB)/misc
 
 MAINOBJS = qm_nodejs.o
 #INCLUDE = -I$(NODE)
-INCLUDE = -I. -I$(NODE_UTILS) -I$(GLIB_BASE) -I$(GLIB_NET) -I$(GLIB_MINE) -I$(GLIB_MISC) -I$(QMINER) \
+INCLUDE = -I. -I$(NODE_UTILS) -I$(GLIB_BASE) -I$(GLIB_MINE) -I$(GLIB_MISC) -I$(QMINER) \
 		  -I$(NODE)/src -I$(NODE)/deps/uv/include -I$(NODE)/deps/v8/include
 
 # default make target
