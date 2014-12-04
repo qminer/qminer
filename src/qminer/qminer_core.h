@@ -2645,8 +2645,9 @@ private:
 private:
     TBase(const TStr& _FPath, const int64& IndexCacheSize);
     TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize);
+public:
 	~TBase();
-
+private:
     // serialization
     void SaveStreamAggrBaseV(TSOut& SOut);
     void LoadStreamAggrBaseV(TSIn& SIn);

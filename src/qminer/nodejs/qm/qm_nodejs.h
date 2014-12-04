@@ -8,52 +8,73 @@
 #include "qminer.h"
 #include "utils.h"
 
+///////////////////////////////
+// NodeJs-Qminer
+// A factory of base objects
+class TNodeJsQm : public node::ObjectWrap {
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+public:
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `base = qm.create(schemaPath, confPath)` -- TODO
+	JsDeclareFunction(create);
+	//#- `base = qm.open(confPath)` -- TODO
+	JsDeclareFunction(open);	
+};
 
 ///////////////////////////////
 // NodeJs-Qminer-Base
 // 
 class TNodeJsBase : public node::ObjectWrap {
 public:
-	static TWPt<TQm::TBase> Base;
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(TWPt<TQm::TBase> _Base);
 public:
-   static void Init(v8::Handle<v8::Object> exports);
+	TNodeJsBase() { }
+	TNodeJsBase(TWPt<TQm::TBase> _Base) : Base(_Base) { }
+public:
+	TWPt<TQm::TBase> Base;
+public:
+	JsDeclareFunction(New);
 public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `qm.create(schemaJson)` -- TODO
-	JsDeclareFunction(create);
-	//#- `store = qm.store(open)` -- TODO
-	JsDeclareFunction(open);
-	//#- `store = qm.store(close)` -- TODO
+	//#- `store = base.store(close)` -- TODO
 	JsDeclareFunction(close);
-    //#- `store = qm.store(storeName)` -- store with name `storeName`; `store = null` when no such store
+    //#- `store = base.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `strArr = qm.getStoreList()` -- an array of strings listing all existing stores
+    //#- `strArr = base.getStoreList()` -- an array of strings listing all existing stores
 	JsDeclareFunction(getStoreList);
-    //#- `qm.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
-    //#- `qm.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+    //#- `base.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
+    //#- `base.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
 	JsDeclareFunction(createStore);
-    //#- `rs = qm.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
+    //#- `rs = base.search(query)` -- execute `query` (Json) specified in [QMiner Query Language](Query Language) 
     //#   and returns a record set `rs` with results
 	JsDeclareFunction(search);   
-    //#- `qm.gc()` -- start garbage collection to remove records outside time windows
+    //#- `base.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
-	//#- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//#- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	//#- `sa = qm.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-	//#- `sa = qm.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//#- `sa = qm.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	//#- `sa = qm.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-	//#- `sa = qm.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//#- `sa = qm.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = base.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+	//#- `sa = base.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = base.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = base.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `sa = base.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = base.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = base.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+	//#- `sa = base.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = base.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
 	JsDeclareFunction(newStreamAggr);
-	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
+	//#- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
-	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
+	//#- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
 	JsDeclareFunction(getStreamAggrNames);	
 	//#JSIMPLEMENT:src/qminer/qminer.js    
+
+private:
+	static v8::Persistent<v8::Function> constructor;
+
 };
 
 ///////////////////////////////
@@ -118,10 +139,10 @@ public:
 class TNodeJsStore : public node::ObjectWrap {
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
+	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base);
 public:
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Store(_Store), Base(_Base) { }
 public:
 	JsDeclareFunction(New);
 private:
@@ -197,6 +218,7 @@ private:
 	JsDeclareFunction(cell);
 	//#JSIMPLEMENT:src/qminer/store.js
 public:
+	TWPt<TQm::TBase> Base;
 	TWPt<TQm::TStore> Store;
 private:
 	static v8::Persistent<v8::Function> constructor;

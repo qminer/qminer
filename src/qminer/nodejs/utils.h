@@ -73,9 +73,9 @@ public:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
-		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
-		QmAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
+		EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
 		return static_cast<bool>(Val->BooleanValue());		
 	}
 	/// Extract argument ArgN property as bool, and use DefVal in case when not present
@@ -83,7 +83,7 @@ public:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
-		QmAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		if (Val->IsBoolean()) {
 			return static_cast<bool>(Val->BooleanValue());
@@ -112,9 +112,9 @@ public:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
-		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
-		QmAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
 		return static_cast<bool>(Val->Int32Value());		
 	}
 	/// Extract argument ArgN as int, and use DefVal in case when not present
@@ -122,7 +122,7 @@ public:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
-		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		if (Val->IsInt32()) {
 			return static_cast<bool>(Val->Int32Value());
@@ -207,7 +207,7 @@ public:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()).CStr());
-      EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!").CStr());
+        EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!").CStr());
 		v8::Handle<v8::Value> Val = Args[ArgN];
 	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
 		TStr ClassStr = GetClass(Data);
