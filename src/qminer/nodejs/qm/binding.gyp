@@ -80,6 +80,7 @@
          'type': 'static_library',
          'include_dirs': [
             '.',
+            '../',
             '../../',
             '../../../glib/base/',
             '../../../glib/mine/',
@@ -112,6 +113,7 @@
             }]
          ],
          'sources': [
+            '../utils.cpp',
             '../../qminer_core.cpp',
             '../../qminer_gs.cpp',
             '../../qminer_ftr.cpp',
