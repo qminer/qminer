@@ -9,6 +9,7 @@
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/',
+            '../../../glib/misc/',
             '../../'
          ],
          'dependencies': [
