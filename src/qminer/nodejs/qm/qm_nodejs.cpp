@@ -44,9 +44,9 @@ void TNodeJsBase::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
 			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
 		// initialize base
-		TQm::PBase Base = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
+		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
 		// save base
-		TQm::TStorage::SaveBase(Base);
+		TQm::TStorage::SaveBase(Base_);
 	}
 	// remove lock
 	Lock.Unlock();
@@ -59,7 +59,7 @@ void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	// get conf
 	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
-	TBool RdOnly = TNodeJsUtil::GetArgBool(Args, 1, false);
+	TBool RdOnlyP = TNodeJsUtil::GetArgBool(Args, 1, false);
 
 	// parse configuration file
 	TQmParam Param(ConfFNm);
@@ -72,10 +72,8 @@ void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// resolve access type
 		TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 		// load base
-		TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+		Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 			Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
-		
-		
 
 	}
 	// remove lock
@@ -85,31 +83,66 @@ void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
 	// save base
-	TQm::TStorage::SaveBase(Base);	
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+	if (!Base.Empty()) {
+		TQm::TStorage::SaveBase(Base);		
+		Base.Del();
+		Base.Clr();
+	}
 }
 
 void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+   if (Base->IsStoreNm(StoreNm)) {
+	   Args.GetReturnValue().Set(TNodeJsStore::New(Base->GetStoreByStoreNm(StoreNm)));
+   }
+   else {
+	   Args.GetReturnValue().Set(v8::Null(Isolate));
+   }   
 }
 
 void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+	TJsonValV StoreValV;
+	const int Stores = Base->GetStores();
+	for (int StoreN = 0; StoreN < Stores; StoreN++) {
+		TWPt<TQm::TStore> Store = Base->GetStoreByStoreN(StoreN);
+		StoreValV.Add(Base->GetStoreJson(Store));
+	}
+	PJsonVal JsonVal = TJsonVal::NewArr(StoreValV);
+	//Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(JsonVal)));
+	
 }
 
 void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   //QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
+   //// parse arguments
+   //PJsonVal SchemaVal = TNodeJsUtil::GetArgJson(Args, 0);
+   //uint64 DefStoreSize = (uint64)TNodeJsUtil::GetArgInt32(Args, 1, 1024);
+   //DefStoreSize = DefStoreSize * TInt::Mega;
+   //// create new stores
+   //TVec<TWPt<TQm::TStore> > NewStoreV = TQm::TStorage::CreateStoresFromSchema(
+	  // Base, SchemaVal, DefStoreSize);
+   //// return store (if only one) or array of stores (if more)
+   //if (NewStoreV.Len() == 1) {
+	  // Args.GetReturnValue().Set(TNodeJsStore::New(NewStoreV[0]));
+   //}
+   //else if (NewStoreV.Len() > 1) {
+	  // v8::Local<v8::Array> JsNewStoreV = v8::Array::New(Isolate, NewStoreV.Len());
+	  // for (int NewStoreN = 0; NewStoreN < NewStoreV.Len(); NewStoreN++) {
+		 //  JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
+			//   TNodeJsStore::New(NewStoreV[NewStoreN]));
+	  // }
+   //}
+   //Args.GetReturnValue().Set(v8::Null(Isolate));
 }
 
 void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {

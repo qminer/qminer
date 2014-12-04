@@ -116,6 +116,32 @@ public:
 		}
 		return DefVal;
 	}
+
+	/// Extract argument ArgN property as int
+	static bool GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		QmAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+		return static_cast<bool>(Val->Int32Value());		
+	}
+
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		QmAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
+		v8::Handle<v8::Value> Val = Args[ArgN];
+		if (Val->IsInt32()) {
+			return static_cast<bool>(Val->Int32Value());
+		}
+		else {
+			return DefVal;
+		}
+	}
+
    static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
