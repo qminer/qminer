@@ -157,3 +157,17 @@ spMatrix.print();
 
 console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
 
+
+///////////////////////////
+// TESTING la.mean() 
+
+
+console.log("== Testing la.mean() functionality ==\n")
+
+var testMat = la.newMat([[1, 2, 3], [2, 3, 4]])
+
+console.log("testing la.mean(testMat)");
+la.mean(testMat).print();
+
+console.log("testing la.mean(testMat,2)");
+la.mean(testMat, 2).print();

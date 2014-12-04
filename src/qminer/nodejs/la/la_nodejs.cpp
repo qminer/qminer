@@ -2088,12 +2088,63 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 ///////////////////////////////
+// QMiner-LinAlg
+void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	// Add all methods, getters and setters here.
+	//NODE_SET_METHOD(exports, "svd", svd);
+	NODE_SET_METHOD(exports, "mean", mean);
+	NODE_SET_METHOD(exports, "std", std);
+	NODE_SET_METHOD(exports, "zscore", zscore);
+}
+
+void TNodeJsLinAlg::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	//TNodeJsLinAlg* JsLinAlg = TNodeJsUtil::GetArgStr TJsLinAlgUtil::GetSelf(Args);
+	//// Dim parameter
+	//double Dim = TJsLinAlgUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
+
+	//if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
+	//	// If input argument is vec
+	//	TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
+	//	return HandleScope.Close(v8::Number::New(TLAMisc::Mean(JsVec->Vec)));
+	//}
+	//if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
+	//	// If input argument is matrix
+	//	TFltV Vec;
+	//	TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
+	//	TLAMisc::Mean(JsMat->Mat, Vec, Dim);
+	//	return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Vec));
+	//}
+	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+}
+
+void TNodeJsLinAlg::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+}
+
+void TNodeJsLinAlg::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+}
+
+///////////////////////////////
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);
+   TNodeJsLinAlg::Init(exports);
 }
 
 NODE_MODULE(la, init)
