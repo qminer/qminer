@@ -1,4 +1,4 @@
-var la = require('./build/Release/la.node');
+var la = require('./build/Debug/la.node');
 
 ///////////////////////////
 // Return a new vector or a new matrix 
@@ -164,10 +164,30 @@ console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
 
 console.log("== Testing la.mean() functionality ==\n")
 
-var testMat = la.newMat([[1, 2, 3], [2, 3, 4]])
+var testMat = la.newMatrix([[1, 2, 3], [2, 3, 4]])
+console.log(testMat.toString());
 
-console.log("testing la.mean(testMat)");
-la.mean(testMat).print();
+try {
+    console.log("testing la.mean(testMat)");
+    console.log(la.mean(testMat).toString());
+} catch (e) {
+    console.log("FEFE" + e);
+}
 
-console.log("testing la.mean(testMat,2)");
-la.mean(testMat, 2).print();
+console.log("testing la.mean(testVec)");
+var testVec = la.newVector([1, 2, 3]);
+console.log(testVec.toString());
+try {
+    console.log(la.mean(testVec).toString());
+} catch (e) { console.log(e) }
+
+console.log("testing error")
+var testNum = 2;
+try {
+    console.log(la.mean(testNum).toString());
+} catch (e) {
+    console.log("FEFE" + e);
+}
+
+//console.log("testing la.mean(testMat,2)");
+//la.mean(testMat, 2).print();

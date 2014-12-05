@@ -2095,32 +2095,39 @@ void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	//NODE_SET_METHOD(exports, "svd", svd);
-	NODE_SET_METHOD(exports, "mean", mean);
-	NODE_SET_METHOD(exports, "std", std);
-	NODE_SET_METHOD(exports, "zscore", zscore);
+	NODE_SET_METHOD(exports, "mean", _mean);
+	NODE_SET_METHOD(exports, "std", _std);
+	NODE_SET_METHOD(exports, "zscore", _zscore);
 }
 
 void TNodeJsLinAlg::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	// Dim parameter
+	double Dim = TNodeJsUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
 
-	//TNodeJsLinAlg* JsLinAlg = Utils::GetArgFtr(Args, 1, 1);
-	//// Dim parameter
-	//double Dim = TJsLinAlgUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
+	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+		printf("Im in TFltV!!");
+		EAssertR(Args[0]->IsObject() && TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltV"), "TNodeJsStore constructor expecting store name and base object as arguments");
+		// If input argument is vec
+		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args.Holder()); // Doesent work
+		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Args[0]->ToObject());
+		
+		return Args.GetReturnValue().Set(v8::Number::New(Isolate, TLAMisc::Mean(JsVec->Vec)));
+	}
+	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
+		printf("Im in TFltVV!!");
+		EAssertR(Args[0]->IsObject() && TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltVV"), "TNodeJsStore constructor expecting store name and base object as arguments");
+		 //If input argument is matrix
+		TFltV Vec;
+		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+		TLAMisc::Mean(JsMat->Mat, Vec, Dim);
 
-	//if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltV")) {
-	//	// If input argument is vec
-	//	TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-	//	return HandleScope.Close(v8::Number::New(TLAMisc::Mean(JsVec->Vec)));
-	//}
-	//if (TJsLinAlgUtil::IsArgClass(Args, 0, "TFltVV")) {
-	//	// If input argument is matrix
-	//	TFltV Vec;
-	//	TJsFltVV* JsMat = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-	//	TLAMisc::Mean(JsMat->Mat, Vec, Dim);
-	//	return HandleScope.Close(TJsFltV::New(JsLinAlg->Js, Vec));
-	//}
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+		return Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
+	}
+	printf("Im at the end!!");
+	//throw TExcept::New("la.mean() can take only matrix, or vector as first input argument.");
+	EAssertR(false, "la.mean() can take only matrix, or vector as first input argument.");
 }
 
 void TNodeJsLinAlg::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
