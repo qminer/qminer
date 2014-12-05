@@ -127,11 +127,20 @@ private:
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Record set
+// NodeJs-Qminer-Record-Set
 class TNodeJsRecSet: public node::ObjectWrap {
 public:
+	TQm::PRecSet RecSet;
+public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
+	static v8::Local<v8::Object> New(const TQm::PRecSet& Rec);
+public:
+	TNodeJsRecSet(const TQm::PRecSet& _RecSet) : RecSet(_RecSet) {}
+	static TNodeJsRecSet* GetJsRecSet(v8::Local<v8::Object> RecObj);
+
+
+private:
+	static v8::Persistent<v8::Function> constructor;
 };
 
 ///////////////////////////////

@@ -35,8 +35,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
 		// save base
 		TQm::TStorage::SaveBase(Base_);
-
-		// TODO return new base
+		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
 	}
 	// remove lock
 	Lock.Unlock();
@@ -63,11 +62,9 @@ void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// resolve access type
 		TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 		// load base
-		TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+		TQm::PBase Base_ = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 			Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
-
-		// TODO return base
-
+		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
 	}
 	// remove lock
 	Lock.Unlock();
@@ -220,7 +217,20 @@ void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TWPt<TQm::TBase> Base = JsBase->Base;
+   try {
+	   TStr QueryStr = "";// TNodeJsUtil::GetArgJsonStr(Args, 0);
+	   // execute the query
+	   TQm::PRecSet RecSet = JsBase->Base->Search(QueryStr);
+	   // return results
+	   //return TNodeJsRecSet::New(JsBase->Js, RecSet);
+   }
+   catch (const PExcept& Except) {
+	   TQm::InfoLog("[except] " + Except->GetMsgStr());
+   }
+   Args.GetReturnValue().Set(v8::Null(Isolate));
 }
 
 void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
