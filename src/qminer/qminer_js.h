@@ -3045,7 +3045,6 @@ public:
 	JsDeclareFunction(getParagraphs);
 };
 
-
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
 class TJsGeoIp {
