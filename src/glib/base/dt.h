@@ -439,11 +439,11 @@ public:
   int GetHashTrick() const;
 
   static TRStr* GetNullRStr(){
-#ifdef MULTITHREADED
-    return new TRStr(0); }
-#else
+//#ifdef MULTITHREADED
+//    return new TRStr(0); }
+//#else
     static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
-#endif
+//#endif
 };
 
 /////////////////////////////////////////////////

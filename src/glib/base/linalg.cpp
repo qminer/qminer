@@ -3034,11 +3034,13 @@ TVector::TVector(const TVector& Vector) {
 	Vec = Vector.Vec;
 }
 
+#ifdef CPP11
 // move constructor
 TVector::TVector(const TVector&& Vector) {
 	IsColVector = Vector.IsColVector;
 	Vec = std::move(Vector.Vec);
 }
+#endif 
 
 TVector& TVector::operator=(TVector Vector) {
 	std::swap(IsColVector, Vector.IsColVector);

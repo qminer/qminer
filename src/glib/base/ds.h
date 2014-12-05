@@ -2191,8 +2191,10 @@ public:
   TVVec(): XDim(), YDim(), ValV(){}
   TVVec(const TVVec& Vec):
     XDim(Vec.XDim), YDim(Vec.YDim), ValV(Vec.ValV){}
+#ifdef CPP11
   TVVec(const TVVec&& Vec):
     XDim(std::move(Vec.XDim)), YDim(std::move(Vec.YDim)), ValV(std::move(Vec.ValV)) { }
+#endif
   TVVec(const TSizeTy& _XDim, const TSizeTy& _YDim):
     XDim(), YDim(), ValV(){Gen(_XDim, _YDim);}
   explicit TVVec(const TVec<TVal, TSizeTy>& _ValV, const TSizeTy& _XDim, const TSizeTy& _YDim):

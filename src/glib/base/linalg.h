@@ -882,8 +882,10 @@ public:
     TVector(const TFltV& Vect, const bool _IsColVector=true): IsColVector(_IsColVector), Vec(Vect) {}
     // copy constructor
     TVector(const TVector& Vector);
+#ifdef CPP11
     // Move constructor
     TVector(const TVector&& Vector);
+#endif
     // Move assignment
     TVector& operator=(TVector Vector);
 
@@ -943,8 +945,10 @@ public:
 
     // copy constructor
 	TFullMatrix(const TFullMatrix& _Mat): Mat(_Mat.Mat) {} // { printf("Matrix copied\n"); }
+#ifdef CPP11
 	// move constructor
 	TFullMatrix(const TFullMatrix&& _Mat): Mat(std::move(_Mat.Mat)) {} // { printf("Matrix moved\n"); }
+#endif
     // destructor
 	virtual ~TFullMatrix() {}
 
