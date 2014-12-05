@@ -1,38 +1,26 @@
 #include "qm_nodejs.h"
 #include "qm_param.h"
 
-
 ///////////////////////////////
-// NodeJs-Qminer-Base
-TWPt<TQm::TBase> TNodeJsBase::Base = nullptr;
+// NodeJs-Qminer
 
-void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
-   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-   v8::HandleScope HandleScope(Isolate);
-   
-   // Add all methods, getters and setters here.
-   NODE_SET_METHOD(exports, "create", create);
-   NODE_SET_METHOD(exports, "open", open);
-   NODE_SET_METHOD(exports, "close", close);
-   NODE_SET_METHOD(exports, "store", store);
-   NODE_SET_METHOD(exports, "getStoreList", getStoreList);
-   NODE_SET_METHOD(exports, "createStore", createStore);
-   NODE_SET_METHOD(exports, "search", search);
-   NODE_SET_METHOD(exports, "gc", gc);
-   NODE_SET_METHOD(exports, "newStreamAggr", newStreamAggr);
-   NODE_SET_METHOD(exports, "getStreamAggr", getStreamAggr);
-   NODE_SET_METHOD(exports, "getStreamAggrNames", getStreamAggrNames);
+void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
+	// Add all methods, getters and setters here.
+	NODE_SET_METHOD(exports, "create", create);
+	NODE_SET_METHOD(exports, "open", open);
 }
 
-void TNodeJsBase::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	// get schema and conf
 	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 0);
 	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 1, "qm.conf");
-	
+
 	// parse configuration file
 	TQmParam Param(ConfFNm);
 	// prepare lock
@@ -47,13 +35,15 @@ void TNodeJsBase::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
 		// save base
 		TQm::TStorage::SaveBase(Base_);
+
+		// TODO return new base
 	}
 	// remove lock
 	Lock.Unlock();
 }
 
 
-void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
@@ -65,27 +55,101 @@ void TNodeJsBase::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TQmParam Param(ConfFNm);
 	// prepare lock
 	TFileLock Lock(Param.LockFNm);
-	
+
+
 	Lock.Lock();
 	// load database and start the server
 	{
 		// resolve access type
 		TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 		// load base
-		Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+		TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 			Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+
+		// TODO return base
 
 	}
 	// remove lock
-	Lock.Unlock();	
+	Lock.Unlock();
 }
+
+///////////////////////////////
+// NodeJs-Qminer-Base
+
+v8::Persistent<v8::Function> TNodeJsBase::constructor;
+
+void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+
+   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+   tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "base"));
+   // ObjectWrap uses the first internal field to store the wrapped pointer.
+   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+   // Add all methods, getters and setters here.   
+   NODE_SET_METHOD(exports, "close", close);
+   NODE_SET_METHOD(exports, "store", store);
+   NODE_SET_METHOD(exports, "getStoreList", getStoreList);
+   NODE_SET_METHOD(exports, "createStore", createStore);
+   NODE_SET_METHOD(exports, "search", search);
+   NODE_SET_METHOD(exports, "gc", gc);
+   NODE_SET_METHOD(exports, "newStreamAggr", newStreamAggr);
+   NODE_SET_METHOD(exports, "getStreamAggr", getStreamAggr);
+   NODE_SET_METHOD(exports, "getStreamAggrNames", getStreamAggrNames);
+   
+   // This has to be last, otherwise the properties won't show up on the
+   // object in JavaScript.
+   constructor.Reset(Isolate, tpl->GetFunction());
+   exports->Set(v8::String::NewFromUtf8(Isolate, "base"),
+	   tpl->GetFunction());
+
+}
+
+v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TBase");
+	Instance->SetHiddenValue(Key, Value);
+
+	TNodeJsBase* JsBase = new TNodeJsBase(_Base);
+	JsBase->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
+void TNodeJsBase::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() > 0) {
+
+		/*TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+		if (TNodeJsBase::Base->IsStoreNm(StoreNm)) {
+			TWPt<TQm::TStore> Store = TNodeJsBase::Base->GetStoreByStoreNm(StoreNm);
+			Args.GetReturnValue().Set(TNodeJsStore::New(Store));
+			return;
+		}*/
+	}
+	else {
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	}
+}
+
 
 void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	// save base
+	// unwrap
+	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
 	if (!Base.Empty()) {
-		TQm::TStorage::SaveBase(Base);		
+		// save base
+		TQm::TStorage::SaveBase(Base);
 		Base.Del();
 		Base.Clr();
 	}
@@ -95,9 +159,13 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TWPt<TQm::TBase> Base = JsBase->Base;
+
    const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
    if (Base->IsStoreNm(StoreNm)) {
-	   Args.GetReturnValue().Set(TNodeJsStore::New(Base->GetStoreByStoreNm(StoreNm)));
+	   Args.GetReturnValue().Set(TNodeJsStore::New(Base->GetStoreByStoreNm(StoreNm), Base));
    }
    else {
 	   Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -107,6 +175,9 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+	TWPt<TQm::TBase> Base = JsBase->Base;
 
 	TJsonValV StoreValV;
 	const int Stores = Base->GetStores();
@@ -155,6 +226,10 @@ void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TWPt<TQm::TBase> Base = JsBase->Base;
+
    Base->GarbageCollect();   
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -187,6 +262,18 @@ v8::Persistent<v8::Function> TNodeJsRec::constructor;
 
 void TNodeJsRec::Init(v8::Handle<v8::Object> exports) {
 	// TODO
+}
+
+v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	TNodeJsRec* JsRec = new TNodeJsRec(Rec);
+	JsRec->Wrap(Instance);
+	return HandleScope.Escape(Instance);
 }
 
 TNodeJsRec* TNodeJsRec::GetJsRec(v8::Local<v8::Object> RecObj) {
@@ -247,14 +334,14 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
-v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
+v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();	
 
-	TNodeJsStore* JsStore = new TNodeJsStore(_Store);
+	TNodeJsStore* JsStore = new TNodeJsStore(_Store, _Base);
 	JsStore->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
@@ -263,15 +350,16 @@ void TNodeJsStore::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	if (Args.Length() > 0) {
-		TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
-		if (TNodeJsBase::Base->IsStoreNm(StoreNm)) {
-			TWPt<TQm::TStore> Store = TNodeJsBase::Base->GetStoreByStoreNm(StoreNm);
-			Args.GetReturnValue().Set(TNodeJsStore::New(Store));
-			return;
-		}
-	}
-	else {
+	// store is constructed using a base object and a store name
+	QmAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsObject() && TNodeJsUtil::IsClass(Args[1]->ToObject(), "TBase"), "TNodeJsStore constructor expecting store name and base object as arguments");
+	TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[1]->ToObject());
+	
+	if (JsBase->Base->IsStoreNm(StoreNm)) {
+		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(StoreNm);
+		Args.GetReturnValue().Set(TNodeJsStore::New(Store, JsBase->Base));
+		return;
+	} else {
 		 Args.GetReturnValue().Set(v8::Undefined(Isolate));
 	}	
 }
@@ -393,9 +481,10 @@ void TNodeJsStore::add(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
 		TWPt<TQm::TStore> Store = JsStore->Store;
+		TWPt<TQm::TBase> Base = JsStore->Base;
 
 		// check we can write
-		QmAssertR(!Store->GetBase()->IsRdOnly(), "Base opened as read-only");
+		QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
 
 		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
 		const uint64 RecId = Store->AddRec(RecVal);
@@ -438,8 +527,9 @@ void TNodeJsStore::sample(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
 		TWPt<TQm::TStore> Store = JsStore->Store;
+		TWPt<TQm::TBase> Base = JsStore->Base;
 
-		Args.GetReturnValue().Set(TNodeJsRecSet::New(JsStore->Store->GetRndRecs(SampleSize)));
+		// TODO Args.GetReturnValue().Set(TNodeJsRecSet::New(JsStore->Store->GetRndRecs(SampleSize)));
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
 	}
@@ -628,6 +718,7 @@ void TNodeJsStore::backwardIter(v8::Local<v8::String> Name, const v8::PropertyCa
 ///////////////////////////////
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
+   TNodeJsQm::Init(exports);
    TNodeJsBase::Init(exports);   
    TNodeJsStore::Init(exports);
 }

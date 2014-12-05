@@ -847,7 +847,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
       TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, ResMat);
       Args.GetReturnValue().Set(New(ResMat));
    } else if (Args[0]->IsObject()) { // IF vector, then u = A *v 
-      if (TNodeJsUtil::IsArgClass(Args, 0, "FltV")) {
+      if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
          TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
          QmAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
          TFltV Result(JsMat->Mat.GetRows());
