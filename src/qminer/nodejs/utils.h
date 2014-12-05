@@ -184,6 +184,7 @@ public:
 	}
 
 	static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+	static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
 
 	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
 	static TStr GetClass(const v8::Handle<v8::Object> Obj) {
