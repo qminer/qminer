@@ -85,15 +85,15 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
    // Add all methods, getters and setters here.   
-   NODE_SET_METHOD(exports, "close", close);
-   NODE_SET_METHOD(exports, "store", store);
-   NODE_SET_METHOD(exports, "getStoreList", getStoreList);
-   NODE_SET_METHOD(exports, "createStore", createStore);
-   NODE_SET_METHOD(exports, "search", search);
-   NODE_SET_METHOD(exports, "gc", gc);
-   NODE_SET_METHOD(exports, "newStreamAggr", newStreamAggr);
-   NODE_SET_METHOD(exports, "getStreamAggr", getStreamAggr);
-   NODE_SET_METHOD(exports, "getStreamAggrNames", getStreamAggrNames);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "close", close);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "store", store);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", getStoreList);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", createStore);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "search", search);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "gc", gc);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "newStreamAggr", newStreamAggr);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", getStreamAggr);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", getStreamAggrNames);
    
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
@@ -272,6 +272,7 @@ v8::Persistent<v8::Function> TNodeJsRec::constructor;
 
 void TNodeJsRec::Init(v8::Handle<v8::Object> exports) {
 	// TODO
+
 }
 
 v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec) {
@@ -359,19 +360,30 @@ v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store, TWPt<TQm::TBas
 void TNodeJsStore::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	if (Args.IsConstructCall()) {
+		// store is constructed using a base object and a store name
+		QmAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsObject() && TNodeJsUtil::IsClass(Args[1]->ToObject(), "TBase"), "TNodeJsStore constructor expecting store name and base object as arguments");
+		
+		TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
+		TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[1]->ToObject());
 
-	// store is constructed using a base object and a store name
-	QmAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsObject() && TNodeJsUtil::IsClass(Args[1]->ToObject(), "TBase"), "TNodeJsStore constructor expecting store name and base object as arguments");
-	TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
-	TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[1]->ToObject());
-	
-	if (JsBase->Base->IsStoreNm(StoreNm)) {
-		TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(StoreNm);
-		Args.GetReturnValue().Set(TNodeJsStore::New(Store, JsBase->Base));
-		return;
-	} else {
-		 Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	}	
+		if (JsBase->Base->IsStoreNm(StoreNm)) {
+			TWPt<TQm::TStore> Store = JsBase->Base->GetStoreByStoreNm(StoreNm);
+			Args.GetReturnValue().Set(TNodeJsStore::New(Store, JsBase->Base));
+			return;
+		}
+		else {
+			Args.GetReturnValue().Set(v8::Undefined(Isolate));
+		}
+	}
+	else {
+		const int Argc = 1;
+		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+		v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+
+		Args.GetReturnValue().Set(Instance);
+	}
 }
 
 void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
