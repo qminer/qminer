@@ -53,14 +53,16 @@
       try { \
          Function(Args); \
       } catch (const PExcept& Except) { \
-         /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
-            Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
-         /* } else { \
-            throw Except; \
-         } */ \
-      } \
+	     /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
+	     Isolate->ThrowException(v8::Exception::TypeError(\
+		 v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+	     /* } else { \
+	     throw Except; \
+	     } */ \
+	  } \
    }
+
+
 
 
 //////////////////////////////////////////////////////
@@ -82,7 +84,7 @@ public:
 	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-
+		
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		if (Val->IsBoolean()) {
@@ -205,8 +207,8 @@ public:
 	static bool IsArgClass(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()).CStr());
-        EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!").CStr());
+		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()));		
+		EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!"));		
 		v8::Handle<v8::Value> Val = Args[ArgN];
 	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
 		TStr ClassStr = GetClass(Data);

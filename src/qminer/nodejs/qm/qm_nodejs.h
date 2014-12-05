@@ -18,9 +18,11 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `base = qm.create(schemaPath, confPath)` -- TODO
+	//#- `qm.config(configPath, overwrite, portN, cahceSize)` -- create directory structure with basic qm.conf file. Optional parameters: `configPath` (='qm.conf'), `overwrite (= false)`, `portN` (=8080), `cacheSize` (=1024).
+	JsDeclareFunction(config);
+	//#- `base = qm.create(configPath, schemaPath)` -- creates an empty base using the configuration in `configPath` and schema described in `schemaPath` (optional)
 	JsDeclareFunction(create);
-	//#- `base = qm.open(confPath)` -- TODO
+	//#- `base = qm.open(configPath, readOnly)` -- opens a base using the configuration in `configPath` using `readOnly` (boolean) parameter
 	JsDeclareFunction(open);	
 };
 

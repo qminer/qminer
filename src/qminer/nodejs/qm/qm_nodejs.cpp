@@ -9,8 +9,39 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 
 	// Add all methods, getters and setters here.
-	NODE_SET_METHOD(exports, "create", create);
-	NODE_SET_METHOD(exports, "open", open);
+	NODE_SET_METHOD(exports, "config", _config);
+	NODE_SET_METHOD(exports, "create", _create);
+	NODE_SET_METHOD(exports, "open", _open);
+	
+	TQm::TEnv::Init();		
+}
+
+void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);	
+	// get schema and conf
+	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
+	bool OverwriteP = TNodeJsUtil::GetArgBool(Args, 1, false);
+	int PortN = TNodeJsUtil::GetArgInt32(Args, 2, 8080);
+	int CacheSizeMB = TNodeJsUtil::GetArgInt32(Args, 3, 1024);
+	
+	// check so we don't overwrite any existing configuration file
+	QmAssertR(!(TFile::Exists(ConfFNm) && !OverwriteP), "Configuration file already exists (" + ConfFNm + "). Use overwrite!");
+	
+	// create configuration file
+	PJsonVal ConfigVal = TJsonVal::NewObj();
+	ConfigVal->AddToObj("port", PortN);
+	PJsonVal CacheVal = TJsonVal::NewObj();
+	CacheVal->AddToObj("index", CacheSizeMB);
+	CacheVal->AddToObj("store", CacheSizeMB);
+	ConfigVal->AddToObj("cache", CacheVal);
+	// save configuration file
+	ConfigVal->SaveStr().SaveTxt(ConfFNm);
+	// make folders if needed
+	if (!TFile::Exists("db")) { TDir::GenDir("db"); }
+	if (!TFile::Exists("src")) { TDir::GenDir("src"); }
+	if (!TFile::Exists("src/lib")) { TDir::GenDir("src/lib"); }
+	//if (!TFile::Exists("sandbox")) { TDir::GenDir("sandbox"); }
 }
 
 void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -18,8 +49,9 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	// get schema and conf
-	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 0);
-	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 1, "qm.conf");
+	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
+	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 1, "");
+	
 
 	// parse configuration file
 	TQmParam Param(ConfFNm);
@@ -31,11 +63,11 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// parse schema (if no given, create an empty array)
 		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
 			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
-		// initialize base
+		// initialize base		
 		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
-		// save base
+		// save base		
 		TQm::TStorage::SaveBase(Base_);
-		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
+		//Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
 	}
 	// remove lock
 	Lock.Unlock();
