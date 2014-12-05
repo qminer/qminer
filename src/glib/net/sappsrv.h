@@ -140,7 +140,7 @@ public:
 // Http Request Serialization Info
 // info that we serialize for each http request
 // this info can later be used to do the replay
-class HttpReqSerInfo
+class THttpReqSerInfo
 {
 	TStr UrlRel;
 	TStr UrlBase;
@@ -148,9 +148,9 @@ class HttpReqSerInfo
 	TMem Body;
 
 public:
-	HttpReqSerInfo(const TStr& UrlRel, const TStr& UrlBase, const THttpRqMethod& ReqMethod, const TMem& Body);
-	HttpReqSerInfo(const PHttpRq& HttpRq);
-	HttpReqSerInfo(TSIn& SIn);
+	THttpReqSerInfo(const TStr& UrlRel, const TStr& UrlBase, const THttpRqMethod& ReqMethod, const TMem& Body);
+	THttpReqSerInfo(const PHttpRq& HttpRq);
+	THttpReqSerInfo(TSIn& SIn);
 	void Save(TSOut& SOut);
 
 	PHttpRq GetHttpRq();
@@ -193,6 +193,8 @@ public:
 	void ClearLoggingFunNms() { LoggingFunNmH.Clr(); }
 
 	bool ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify);
+	bool ReplayStream(const PSIn& SIn, const PNotify& ErrorNotify);
+
 	void StartLogging(const TStr& LogFNm, const bool& _FlushEachRequest = false, const bool& Append = true);
 	void StopLogging();
 	static bool RemoveLogData(const TStr& LogFNm);

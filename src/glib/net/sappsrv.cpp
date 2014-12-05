@@ -237,12 +237,12 @@ void TSAppSrvFun::LogReqRes(const TStrKdV& FldNmValPrV, const PHttpResp& HttpRes
 
 //////////////////////////////////////
 // Http Request Serialization Info
-HttpReqSerInfo::HttpReqSerInfo(const TStr& _UrlRel, const TStr& _UrlBase, const THttpRqMethod& _ReqMethod, const TMem& _Body) :
+THttpReqSerInfo::THttpReqSerInfo(const TStr& _UrlRel, const TStr& _UrlBase, const THttpRqMethod& _ReqMethod, const TMem& _Body) :
 UrlRel(_UrlRel), UrlBase(_UrlBase), ReqMethod((THttpRqMethod) _ReqMethod), Body(_Body)
 {
 }
 
-HttpReqSerInfo::HttpReqSerInfo(const PHttpRq& HttpRq)
+THttpReqSerInfo::THttpReqSerInfo(const PHttpRq& HttpRq)
 {
 	UrlRel = HttpRq->GetUrl()->GetRelUrlStr();
 	UrlBase = HttpRq->GetUrl()->GetBaseUrlStr();
@@ -250,11 +250,11 @@ HttpReqSerInfo::HttpReqSerInfo(const PHttpRq& HttpRq)
 	HttpRq->GetBodyAsMem(Body);
 }
 
-HttpReqSerInfo::HttpReqSerInfo(TSIn& SIn) : UrlRel(SIn), UrlBase(SIn), ReqMethod(SIn), Body(SIn)
+THttpReqSerInfo::THttpReqSerInfo(TSIn& SIn) : UrlRel(SIn), UrlBase(SIn), ReqMethod(SIn), Body(SIn)
 {
 }
 
-void HttpReqSerInfo::Save(TSOut& SOut)
+void THttpReqSerInfo::Save(TSOut& SOut)
 {
 	UrlRel.Save(SOut);
 	UrlBase.Save(SOut);
@@ -262,7 +262,7 @@ void HttpReqSerInfo::Save(TSOut& SOut)
 	Body.Save(SOut);
 }
 
-PHttpRq HttpReqSerInfo::GetHttpRq() 
+PHttpRq THttpReqSerInfo::GetHttpRq()
 {
 	PUrl Url = TUrl::New(UrlRel, UrlBase);
 	if ((THttpRqMethod) ReqMethod.Val == hrmGet)
@@ -390,26 +390,29 @@ TReplaySrv::~TReplaySrv()
 bool TReplaySrv::ReplayLog(const TStr& LogFNm, const PNotify& ErrorNotify)
 {
 	if (TFile::Exists(LogFNm)) {
-		TFIn FIn(LogFNm);
-		while (!FIn.Eof()) {
-			try {
-				HttpReqSerInfo ReqInfo(FIn);
-				PHttpRq HttpRq = ReqInfo.GetHttpRq();
-				ReplayHttpRq(HttpRq);
-			}
-			catch (PExcept E) {
-				if (!ErrorNotify.Empty())
-					ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. Exception while loading next request: %s", E->GetMsgStr().CStr());
-			}
-			catch (...) {
-				if (!ErrorNotify.Empty())
-					ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayLog. General exception while loading next request.");
-			}
-		}
-		return true;
+		PSIn SIn = TFIn::New(LogFNm);
+		return ReplayStream(SIn, ErrorNotify);
 	}
-	else
-		return false;
+	return false;
+}
+
+bool TReplaySrv::ReplayStream(const PSIn& SIn, const PNotify& ErrorNotify)
+{
+
+	while (!SIn->Eof()) {
+		try {
+			THttpReqSerInfo ReqInfo(*SIn);
+			PHttpRq HttpRq = ReqInfo.GetHttpRq();
+			ReplayHttpRq(HttpRq);
+		}
+		catch (PExcept E) {
+			ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayStream. Exception while loading next request: %s", E->GetMsgStr().CStr());
+		}
+		catch (...) {
+			ErrorNotify->OnNotifyFmt(ntErr, "TReplaySrv::ReplayStream. General exception while loading next request.");
+		}
+	}
+	return true;
 }
 
 // open the log file. depending on the needs you can flush the log file after each request
@@ -442,7 +445,7 @@ void TReplaySrv::OnHttpRq(const uint64& SockId, const PHttpRq& HttpRq)
 		PUrl HttpRqUrl = HttpRq->GetUrl();
 		TStr FunNm = HttpRqUrl->GetPathSeg(0);
 		if (LoggingFunNmH.IsKey(FunNm)) {
-			HttpReqSerInfo ReqInfo(HttpRq);
+			THttpReqSerInfo ReqInfo(HttpRq);
 			ReqInfo.Save(*SOut);
 			if (FlushEachRequest)
 				SOut->Flush();
