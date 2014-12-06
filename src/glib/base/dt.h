@@ -440,9 +440,9 @@ public:
 
   static TRStr* GetNullRStr(){
 //#ifdef MULTITHREADED
-//    return new TRStr(0); }
+    return new TRStr(0); }
 //#else
-    static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
+    //static TRStr NullRStr; Assert(NullRStr.Bf!=NULL); return &NullRStr;}
 //#endif
 };
 
