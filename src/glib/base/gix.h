@@ -158,6 +158,8 @@ private:
 
 	// for keeping the items unique and sorted
 	TBool MergedP;
+	// should this itemset be stored to disk?
+	TBool Dirty;
 	// pointer to merger that will merge this itemset
 	const TGixMerger *Merger;
 	// pointer to gix - as the storage-layer (serialization of self, loading children, notifying about changes...)
@@ -191,7 +193,6 @@ private:
 	int FirstDirtyChild() {
 		for (int i = 0; i < Children.Len(); i++) {
 			if (Children[i].Dirty && (Children[i].Len < Gix->GetSplitLenMin() || Children[i].Len > Gix->GetSplitLenMax()))
-				//if (Children[i].Dirty)
 				return i;
 		}
 		return -1;
@@ -220,7 +221,7 @@ private:
 public:
 	/// Standard constructor
 	TGixItemSet(const TKey& _ItemSetKey, const TGixMerger *_Merger, const TGix<TKey, TItem, TGixMerger>* _Gix) :
-		ItemSetKey(_ItemSetKey), MergedP(true), Merger(_Merger), Gix(_Gix), TotalCnt(0) {}
+		ItemSetKey(_ItemSetKey), MergedP(true), Dirty(true), Merger(_Merger), Gix(_Gix), TotalCnt(0) {}
 	/// Standard factory method
 	static PGixItemSet New(const TKey& ItemSetKey, const TGixMerger* Merger, const TGix<TKey, TItem, TGixMerger>* Gix) {
 		return new TGixItemSet(ItemSetKey, Merger, Gix);
@@ -228,7 +229,7 @@ public:
 
 	/// Constructor for deserialization
 	TGixItemSet(TSIn& SIn, const TGixMerger* _Merger, const TGix<TKey, TItem, TGixMerger>* _Gix) :
-		ItemSetKey(SIn), ItemV(SIn), Children(SIn), MergedP(true), Merger(_Merger), Gix(_Gix) {
+		ItemSetKey(SIn), ItemV(SIn), Children(SIn), MergedP(true), Dirty(false), Merger(_Merger), Gix(_Gix) {
 		for (int i = 0; i < Children.Len(); i++) {
 			ChildrenData.Add(TVec<TItem>());
 		};
@@ -245,7 +246,7 @@ public:
 	int GetMemUsed() const {
 		return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
-			+ sizeof(TBool) + sizeof(int)
+			+ 2 * sizeof(TBool) + sizeof(int)
 			+ sizeof(TGixMerger*) + sizeof(TGix<TKey, TItem, TGixMerger>*);
 	}
 	void OnDelFromCache(const TBlobPt& BlobPt, void* Gix);
@@ -335,19 +336,22 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Save(TMOut& SOut) {
 	for (int i = 0; i < Children.Len(); i++) {
 		if (Children[i].Dirty && Children[i].Loaded) {
 			Children[i].Pt = Gix->StoreChildVector(Children[i].Pt, ChildrenData[i]);
+			Children[i].Dirty = false;
 		}
 	}
+
 	// save item key and set
 	ItemSetKey.Save(SOut);
 	//ItemV.SaveMemCpy(SOut);
 	ItemV.Save(SOut);
 	Children.Save(SOut);
+	Dirty = false;
 }
 
 
 template <class TKey, class TItem, class TGixMerger>
 void TGixItemSet<TKey, TItem, TGixMerger>::OnDelFromCache(const TBlobPt& BlobPt, void* Gix) {
-	if (!((TGix<TKey, TItem, TGixMerger>*)Gix)->IsReadOnly()) {
+	if (!((TGix<TKey, TItem, TGixMerger>*)Gix)->IsReadOnly() && Dirty) {
 		((TGix<TKey, TItem, TGixMerger>*)Gix)->StoreItemSet(BlobPt);
 	}
 }
@@ -367,6 +371,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushWorkBufferToChildren() {
 		ChildrenData.Add(TVec<TItem>());
 		//ItemV.DelMemCpy(0, split_len - 1);
 		ItemV.Del(0, split_len - 1);
+		Dirty = true;
 	}
 }
 
@@ -392,11 +397,14 @@ void TGixItemSet<TKey, TItem, TGixMerger>::InjectWorkBufferToChildren() {
 		}
 		// delete items from work-buffer that have been inserted into child vectors
 		if (i < ItemV.Len()) {
-			if (i > 0)
+			if (i > 0) {
 				//ItemV.DelMemCpy(0, i - 1);
 				ItemV.Del(0, i - 1);
+				Dirty = true;
+			}
 		} else {
 			ItemV.Clr();
+			Dirty = true;
 		}
 		// merge dirty un-merged children
 		for (int j = 0; j < Children.Len(); j++) {
@@ -451,6 +459,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::PushMergedDataBackToChildren(int firs
 		Children.Del(first_empty_child, Children.Len() - 1);
 		ChildrenData.Del(first_empty_child, ChildrenData.Len() - 1);
 	}
+	Dirty = true;
 }
 
 
@@ -461,7 +470,6 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem) {
 		Def();
 		if (IsFull()) {
 			PushWorkBufferToChildren();
-			//printf("*");
 		}
 		RecalcTotalCnt(); // work buffer might have been merged
 	}
@@ -478,6 +486,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::AddItem(const TItem& NewItem) {
 		}
 	}
 	ItemV.Add(NewItem);
+	Dirty = true;
 	TotalCnt++;
 
 	// notify cache that this item grew
@@ -532,6 +541,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::DelItem(const TItem& Item) {
 	ItemVDel.Add(ItemV.Len());
 	ItemV.Add(Item);
 	MergedP = false;
+	Dirty = true;
 	TotalCnt++;
 
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
@@ -550,6 +560,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Clr() {
 	ItemV.Clr();
 	ItemVDel.Clr();
 	MergedP = true;
+	Dirty = true;
 	TotalCnt = 0;
 	Gix->AddToNewCacheSizeInc(GetMemUsed() - OldSize);
 }
@@ -588,6 +599,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::ProcessDeletes() {
 		ItemVDel.Clr();
 		//ItemV.AddVMemCpy(ItemVNew);
 		ItemV.AddV(ItemVNew);
+		Dirty = true;
 	}
 }
 
@@ -597,6 +609,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::Def() {
 	if (!MergedP) {
 		ProcessDeletes(); // "execute" deletes, possibly leaving some child vectors too short
 		Merger->Merge(ItemV, true); // first do local merge of work-buffer
+		Dirty = true;
 		InjectWorkBufferToChildren(); // inject data into child vectors
 
 		int first_dirty_child = FirstDirtyChild();
@@ -633,6 +646,7 @@ void TGixItemSet<TKey, TItem, TGixMerger>::DefLocal() {
 	if (!MergedP) {
 		if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
 			Merger->Merge(ItemV, true); // perform local merge
+			Dirty = true;
 			if (Children.Len() > 0 && ItemV.Len() > 0) {
 				if (Merger->IsLt(Children.Last().MaxVal, ItemV[0])) {
 					MergedP = true; // local merge achieved global merge

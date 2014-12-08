@@ -181,7 +181,7 @@ public:
 			// parse out index and default store cache sizes
 			IndexCacheSize = int64(CacheVal->GetObjNum("index", 1024)) * int64(TInt::Mega);
 			DefStoreCacheSize = int64(CacheVal->GetObjNum("store", 1024)) * int64(TInt::Mega);
-			// prase out store specific sizes, when available
+			// parse out store specific sizes, when available
 			if (CacheVal->IsObjKey("stores")) {
 				PJsonVal StoreCacheVals = CacheVal->GetObjKey("stores");
 				for (int StoreN = 0; StoreN < StoreCacheVals->GetArrVals(); StoreN++) {
@@ -561,64 +561,123 @@ int main(int argc, char* argv[]) {
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 
+				//{
+				//	// this demo assumes movies database was initialized. it can contain existing data.
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+				//	TRnd rnd(1212);
+				//	for (int i = 0; i < 1000 * 1000; i++) {
+				//		if (i % 1000 == 0) printf("== %d\n", i);
+				//		// perform insert of new record
+				//		auto json = TJsonVal::NewObj();
+				//		json->AddToObj("Title", TStr::Fmt("Title %d", i));
+				//		json->AddToObj("Plot", TStr::Fmt("Plot %d", i));
+				//		json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
+				//		json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
+
+				//		auto json_a = TJsonVal::NewArr();
+				//		json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
+				//		json->AddToObj("Genres", json_a);
+
+				//		auto json_p = TJsonVal::NewObj();
+				//		json_p->AddToObj("Name", TStr::Fmt("Director %d", (13 * i) % 100000));
+				//		json_p->AddToObj("Gender", "Male");
+				//		json->AddToObj("Director", json_p);
+
+				//		json_a = TJsonVal::NewArr();
+				//		int actors = rnd.GetUniDevInt(8) + 5;
+				//		for (int k = 0; k < actors; k++) {
+				//			json_p = TJsonVal::NewObj();
+				//			json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(100000)));
+				//			json_p->AddToObj("Gender", "Male");
+				//			json_a->AddToArr(json_p);
+				//		}
+				//		json->AddToObj("Actor", json_a);
+
+				//		store->AddRec(json);
+				//	}
+				//}
 
 				{
 					// this demo assumes movies database was initialized and populated with initial data
 					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
 					TRnd rnd(1212);
-					for (int i = 0; i < 1000*1000; i++) {
+					TQQueue<uint64> added_ids;
+					for (int i = 0; i < 1 * 1000; i++) {
 						int r = rnd.GetUniDevInt(100);
-						if (r < 10) {
-							// perform insert of 10 new records, obtained by transforming existing records
-							for (int j = 0; j < 10; j++) {
-								auto recs = store->GetRndRecs(i + 1);
-								auto rec = recs->GetRec(recs->GetRecs() - 1);
-								auto json = rec.GetJson(Base);
+						if (i % 10 == 0) printf("==================== %d\n", i);
+						if (r < 50) {
+							// perform insert of a new record
+							int z = 2000000 + i * 7;
+							auto json = TJsonVal::NewObj();
+							json->AddToObj("Title", TStr::Fmt("Title %d", z));
+							json->AddToObj("Plot", TStr::Fmt("Plot %d", z));
+							json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
+							json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
 
-								if (json->IsObjKey("Title")) {
-									TStr s = TStr::Fmt("Dummy movie %d %d", i, j);
-									printf("  adding=%s \n", s.CStr());
-									json->GetObjKey("Title")->PutStr(s);									
-								}
-								if (json->IsObjKey("$id")) {
-									json->DelObjKey("$id");
-								}
-								store->AddRec(json);
+							auto json_a = TJsonVal::NewArr();
+							json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
+							json->AddToObj("Genres", json_a);
+
+							auto json_p = TJsonVal::NewObj();
+							json_p->AddToObj("Name", TStr::Fmt("Director %d", z % 100000));
+							json_p->AddToObj("Gender", "Male");
+							json->AddToObj("Director", json_p);
+
+							json_a = TJsonVal::NewArr();
+							int actors = rnd.GetUniDevInt(8) + 5;
+							for (int k = 0; k < actors; k++) {
+								json_p = TJsonVal::NewObj();
+								json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(10000)));
+								json_p->AddToObj("Gender", "Male");
+								json_a->AddToArr(json_p);
 							}
+							json->AddToObj("Actor", json_a);
+
+							auto id = store->AddRec(json);
+							added_ids.Push(id);
+							//printf("     added record\n");
+
 						} else if (r < 11) {
-							// perform delete of the front 3 records
+							// perform delete of the front 5 records
 							if (store->GetRecs() > 5) {
-								store->DeleteFirstNRecs(3);
+								store->DeleteFirstNRecs(5);
 							}
-						} else if (r < 15) {
-							//// delete random record
-							//uint64 rec_id;
-							//{
-							//	auto recs = store->GetRndRecs(rnd.GetUniDevInt(200));
-							//	auto rec = recs->GetRec(recs->GetRecs() - 1); // the last record
-							//	rec_id = rec.GetRecId();
-							//}
-							////store->remo(5);
+							//printf("     deleted 5 records\n");						
 						} else {
 							// retrieve random movie and its actors
-							auto recs = store->GetRndRecs(i % 1000 + 1);
-							auto rec = recs->GetRec(recs->GetRecs() - 1);
+							if (store->GetRecs() > 0) {
+								auto id = rnd.GetUniDevInt64(store->LastRecId());
+								while (!store->IsRecId(id)) {
+									id = rnd.GetUniDevInt64(store->LastRecId());
+								}
+								auto rec = store->GetRec(id);
 
-							auto actors = rec.DoJoin(Base, "Actor");
-							int actors_cnt = actors->GetRecs();
-							printf("  actors=%d, id=%d \n", actors_cnt, rec.GetRecId());
+								auto actors = rec.DoJoin(Base, "Actor");
+								int actors_cnt = actors->GetRecs();
+								//printf("  actors=%d, id=%d \n", actors_cnt, rec.GetRecId());
+							}
 						}
 					}
 				}
+
 				//{
-				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
-				//	TQm::TRec rec = store->GetRec(1);
-				//	TQm::PRecSet res = rec.DoJoin(Base, "Actor");
-				//	for (int i = 0; i < res->GetRecs(); i++) {
-				//		auto rr = res->GetRec(i);
-				//		printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+				//	auto store = Base->GetStoreByStoreNm("Movies");
+				//	auto recs = store->GetRecs();
+				//	uint64 cnt = 0;
+				//	for (int j = 0; j < recs; j++) {
+				//		if (j%1000==0)
+				//			printf("     j=%d, cnt=%d\n", j, cnt);
+				//		auto rec = store->GetRec(j);
+				//		auto res = rec.DoJoin(Base, "Actor");
+				//		for (int i = 0; i < res->GetRecs(); i++) {
+				//			auto rr = res->GetRec(i);
+				//			//printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+				//			cnt++;
+				//		}
 				//	}
+				//	printf("cnt=%d\n", cnt);
 				//}
+
 				//{
 				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
 				//	TQm::TRec rec = store->GetRec(1);
@@ -692,7 +751,7 @@ int main(int argc, char* argv[]) {
                     } else if (Base->IsStoreNm(Task)) {
                         Base->GetStoreByStoreNm(Task)->PrintTypes(Base, DebugFNm + Task + ".txt");
                     } else {
-                        TQm::InfoLog("Unkown debug task '" + Task + "'");
+                        TQm::InfoLog("Unknown debug task '" + Task + "'");
                     }
                 }
             }
