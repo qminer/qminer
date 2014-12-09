@@ -1,5 +1,6 @@
 var la = require('./build/Release/la.node');
 
+console.log("process version: "+process.versions);
 ///////////////////////////
 // Return a new vector or a new matrix 
 la.newVector = function(args) { return new la.vector(args); }

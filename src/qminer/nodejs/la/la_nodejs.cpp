@@ -86,7 +86,7 @@ v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
    v8::Local<v8::Object> Instance = cons->NewInstance();
    
    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+   v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
    Instance->SetHiddenValue(Key, Value);
    
    TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(FltV);
