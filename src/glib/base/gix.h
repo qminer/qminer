@@ -934,11 +934,26 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::EnlistItemSet(const PGixItemSet& ItemSet)
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) {
 	AssertReadOnly(); // check if we are allowed to write
-	// get the key handle
-	TBlobPt KeyId = AddKeyId(Key);
-	// load the current item set
-	PGixItemSet ItemSet = GetItemSet(Key);
-	ItemSet->AddItem(Item);
+	if (IsKey(Key)) { 		
+		// get the key handle
+		TBlobPt KeyId = KeyIdH.GetDat(Key);
+		// load the current item set
+		PGixItemSet ItemSet = GetItemSet(Key);
+		ItemSet->AddItem(Item);
+	} else {
+		// we don't have this key, create a new itemset and add new item immidiatelly
+		PGixItemSet ItemSet = TGixItemSet<TKey, TItem, TGixMerger>::New(Key, &Merger, this);
+		ItemSet->AddItem(Item);
+		TBlobPt KeyId = EnlistItemSet(ItemSet); // now store this itemset to disk
+		KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
+	}
+
+	//// get the key handle
+	//TBlobPt KeyId = AddKeyId(Key);
+	//// load the current item set
+	//PGixItemSet ItemSet = GetItemSet(Key);
+	//ItemSet->AddItem(Item);
+	
 	// check if we have to drop anything from the cache
 	RefreshMemUsed();
 }
@@ -946,12 +961,26 @@ void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) 
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::AddItemV(const TKey& Key, const TVec<TItem>& ItemV) {
 	AssertReadOnly(); // check if we are allowed to write
-	// get the key handle
-	TBlobPt KeyId = AddKeyId(Key);
-	// load the current item set
-	PGixItemSet ItemSet = GetItemSet(Key);
-	// add the new items to the set and update the size of new items
-	ItemSet->AddItemV(ItemV);
+	if (IsKey(Key)) {
+		// get the key handle
+		TBlobPt KeyId = KeyIdH.GetDat(Key);
+		// load the current item set
+		PGixItemSet ItemSet = GetItemSet(Key);
+		ItemSet->AddItemV(ItemV);
+	} else {
+		// we don't have this key, create a new itemset and add new item immidiatelly
+		PGixItemSet ItemSet = TGixItemSet<TKey, TItem, TGixMerger>::New(Key, &Merger, this);
+		ItemSet->AddItemV(ItemV);
+		TBlobPt KeyId = EnlistItemSet(ItemSet); // now store this itemset to disk
+		KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
+	}
+	//// get the key handle
+	//TBlobPt KeyId = AddKeyId(Key);
+	//// load the current item set
+	//PGixItemSet ItemSet = GetItemSet(Key);
+	//// add the new items to the set and update the size of new items
+	//ItemSet->AddItemV(ItemV);
+
 	// check if we have to drop anything from the cache
 	RefreshMemUsed();
 }
