@@ -85,19 +85,16 @@ public:
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 		
-		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
+		if (ArgN >= Args.Length()) { return DefVal; }		
 		v8::Handle<v8::Value> Val = Args[ArgN];
-		if (Val->IsBoolean()) {
-			return static_cast<bool>(Val->BooleanValue());
-		}
-		else {
-			return DefVal;
-		}
+		EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
+		return static_cast<bool>(Val->BooleanValue());		
 	}
    /// Extract argument ArgN property as bool
 	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const bool& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
+		
 		if (Args.Length() > ArgN) {
 			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
 				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
@@ -117,26 +114,23 @@ public:
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-		return static_cast<bool>(Val->Int32Value());		
+		return static_cast<int>(Val->Int32Value());
 	}
 	/// Extract argument ArgN as int, and use DefVal in case when not present
 	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
-		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
+		if (ArgN >= Args.Length()) { return DefVal; }
 		v8::Handle<v8::Value> Val = Args[ArgN];
-		if (Val->IsInt32()) {
-			return static_cast<bool>(Val->Int32Value());
-		}
-		else {
-			return DefVal;
-		}
+		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+		return static_cast<int>(Val->Int32Value());		
 	}
 	/// Extract argument ArgN property as int
    static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
+		
 		if (Args.Length() > ArgN) {
 			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
 				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
@@ -152,6 +146,7 @@ public:
    static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	   v8::HandleScope HandleScope(Isolate);
+	   
 	   EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
 	   v8::Handle<v8::Value> Val = Args[ArgN];
 	   EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
@@ -161,14 +156,13 @@ public:
    /// Extract argument ArgN as TStr, and use DefVal in case when not present
    static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& DefVal) {
 	   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		if (Args.Length() > ArgN) {
-			v8::Handle<v8::Value> Val = Args[ArgN];
-			EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
-			v8::String::Utf8Value Utf8(Val);
-			return TStr(*Utf8);
-		}
-		return DefVal;
+	   v8::HandleScope HandleScope(Isolate);
+
+	   if (ArgN >= Args.Length()) { return DefVal; }	   
+	   v8::Handle<v8::Value> Val = Args[ArgN];
+	   EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
+	   v8::String::Utf8Value Utf8(Val);
+	   return TStr(*Utf8);	
 	}
 	/// Extract argument ArgN property as string
 	static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal) {
