@@ -21,12 +21,11 @@ void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);	
 	// get schema and conf
 	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
-	bool OverwriteP = TNodeJsUtil::GetArgBool(Args, 1, false);
+	bool OverWriteP = TNodeJsUtil::GetArgBool(Args, 1, false);
 	int PortN = TNodeJsUtil::GetArgInt32(Args, 2, 8080);
 	int CacheSizeMB = TNodeJsUtil::GetArgInt32(Args, 3, 1024);
-	
 	// check so we don't overwrite any existing configuration file
-	QmAssertR(!(TFile::Exists(ConfFNm) && !OverwriteP), "Configuration file already exists (" + ConfFNm + "). Use overwrite!");
+	QmAssertR(!(TFile::Exists(ConfFNm) && !OverWriteP), "Configuration file already exists (" + ConfFNm + "). Use overwrite!");
 	
 	// create configuration file
 	PJsonVal ConfigVal = TJsonVal::NewObj();
@@ -67,7 +66,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
 		// save base		
 		TQm::TStorage::SaveBase(Base_);
-		//Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
+		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
 	}
 	// remove lock
 	Lock.Unlock();
@@ -117,15 +116,15 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
    // Add all methods, getters and setters here.   
-   NODE_SET_PROTOTYPE_METHOD(tpl, "close", close);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "store", store);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", getStoreList);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", createStore);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "search", search);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "gc", gc);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "newStreamAggr", newStreamAggr);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", getStreamAggr);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", getStreamAggrNames);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "store", _store);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getStoreList", _getStoreList);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "gc", _gc);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "newStreamAggr", _newStreamAggr);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
    
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
@@ -135,7 +134,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 }
 
-v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
+v8::Local<v8::Object> TNodeJsBase::New(TQm::PBase _Base) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
@@ -153,20 +152,30 @@ v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
 
 void TNodeJsBase::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
+	v8::HandleScope HandleScope(Isolate);	
+	if (Args.IsConstructCall()) {
+		const int Argc = 1;
+		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+		v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+		TODO
+		Args.GetReturnValue().Set(Instance);
 
-	if (Args.Length() > 0) {
-
-		/*TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
-		if (TNodeJsBase::Base->IsStoreNm(StoreNm)) {
-			TWPt<TQm::TStore> Store = TNodeJsBase::Base->GetStoreByStoreNm(StoreNm);
-			Args.GetReturnValue().Set(TNodeJsStore::New(Store));
-			return;
-		}*/
+		/*printf("loollllz\n");
+		TStr FPath = TNodeJsUtil::GetArgStr(Args, 0);
+		int CacheSize = TNodeJsUtil::GetArgInt32(Args, 1);
+		TQm::PBase Base_ = TQm::TBase::New(FPath, CacheSize);		
+		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));		*/
 	}
 	else {
-		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+		const int Argc = 1;
+		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+		v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+
+		Args.GetReturnValue().Set(Instance);
 	}
+	
 }
 
 
@@ -954,8 +963,7 @@ void TNodeJsStore::name(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
-
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsStore->Store->GetStoreNm().CStr()));
 }
 
 void TNodeJsStore::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

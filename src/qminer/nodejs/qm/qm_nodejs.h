@@ -32,12 +32,12 @@ public:
 class TNodeJsBase : public node::ObjectWrap {
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(TWPt<TQm::TBase> _Base);
+	static v8::Local<v8::Object> New(TQm::PBase _Base);
 public:
 	TNodeJsBase() { }
-	TNodeJsBase(TWPt<TQm::TBase> _Base) : Base(_Base) { }
+	TNodeJsBase(TQm::PBase _Base) : Base(_Base) { }
 public:
-	TWPt<TQm::TBase> Base;
+	TQm::PBase Base;
 public:
 	JsDeclareFunction(New);
 public:
