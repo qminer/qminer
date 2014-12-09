@@ -602,15 +602,18 @@ int main(int argc, char* argv[]) {
 					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
 					TRnd rnd(1212);
 					TQQueue<uint64> added_ids;
-					for (int i = 0; i < 1 * 1000; i++) {
+					for (int i = 0; i < 2 * 1000; i++) {
 						int r = rnd.GetUniDevInt(100);
 						if (i % 10 == 0) printf("==================== %d\n", i);
-						if (r < 50) {
+						if (i > 1000)
+							r = 100;
+						if (r < 10) {
 							// perform insert of a new record
 							int z = 2000000 + i * 7;
+							int word1 = round(rnd.GetPoissonDev(100));
 							auto json = TJsonVal::NewObj();
-							json->AddToObj("Title", TStr::Fmt("Title %d", z));
-							json->AddToObj("Plot", TStr::Fmt("Plot %d", z));
+							json->AddToObj("Title", TStr::Fmt("Title word%d", z));
+							json->AddToObj("Plot", TStr::Fmt("Plot word%d", word1));
 							json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
 							json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
 

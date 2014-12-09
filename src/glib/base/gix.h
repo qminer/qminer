@@ -279,6 +279,8 @@ public:
 	}
 
 	friend class TPt < TGixItemSet > ;
+	friend class TGix<TKey, TItem, TGixMerger>;
+
 #ifdef GIX_TEST
 	friend class XTest;
 	void Print() const;
@@ -723,6 +725,23 @@ private:
 	/// Maximal length for child vectors
 	int SplitLenMax;
 
+#ifdef _DEBUG
+	/// print simple statistics for cache
+	void PrintStats() {
+		int all = 0;
+		int dirty = 0;
+		TBlobPt BlobPt;
+		PGixItemSet ItemSet;
+		void* KeyDatP = ItemSetCache.FFirstKeyDat();
+		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) {
+			all++;
+			if (ItemSet->Dirty)
+				dirty++;
+		}
+		printf(".... gix cache unload - all=%d dirty=%d \n", all, dirty);
+	}
+#endif
+
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
@@ -859,6 +878,9 @@ TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFA
 template <class TKey, class TItem, class TGixMerger>
 TGix<TKey, TItem, TGixMerger>::~TGix() {
 	if ((Access == faCreate) || (Access == faUpdate)) {
+#ifdef _DEBUG
+		this->PrintStats();
+#endif
 		// flush all the latest changes in cache to the disk
 		ItemSetCache.Flush();
 		// save the rest to GixFNm
