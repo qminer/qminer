@@ -30,16 +30,24 @@ public:
 // NodeJs-Qminer-Base
 // 
 class TNodeJsBase : public node::ObjectWrap {
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
 public:
+	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
+	// Wrapping C++ object
 	static v8::Local<v8::Object> New(TQm::PBase _Base);
 public:
+	// C++ constructors
 	TNodeJsBase() { }
 	TNodeJsBase(TQm::PBase _Base) : Base(_Base) { }
 public:
-	TQm::PBase Base;
-public:
+	// Node framework (constructor method)
 	JsDeclareFunction(New);
+public:
+	// C++ internal data
+	TQm::PBase Base;
 public:
 	//# 
 	//# **Functions and properties:**
@@ -73,118 +81,33 @@ public:
 	//#- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
 	JsDeclareFunction(getStreamAggrNames);	
 	//#JSIMPLEMENT:src/qminer/qminer.js    
-
-private:
-	static v8::Persistent<v8::Function> constructor;
-
 };
 
-///////////////////////////////
-// NodeJs-Qminer-Rec
-class TNodeJsRec: public node::ObjectWrap {
-public:
-	TQm::TRec Rec;
-
-public:
-	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(const TQm::TRec& Rec);
-public:
-	TNodeJsRec(): Rec() {}
-	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
-
-	static TNodeJsRec* GetJsRec(v8::Local<v8::Object> RecObj);
-private:
-
-	//#
-	//# **Functions and properties:**
-	//#
-    //#- `recId = rec.$id` -- returns record ID
-    JsDeclareProperty(id);
-    //#- `recName = rec.$name` -- returns record name
-    JsDeclareProperty(name);
-    //#- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
-	JsDeclareProperty(fq);
-	//#- `recStore = rec.$store` -- returns record store
-	JsDeclareProperty(store);
-    //#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
-	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
-	JsDeclareSetProperty(getField, setField);
-    //#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
-	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
-	JsDeclareProperty(join);
-	JsDeclareProperty(sjoin);
-    //#- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
-    JsDeclareFunction(clone);
-    //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
-    //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
-    JsDeclareFunction(addJoin);
-    //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
-    //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
-    JsDeclareFunction(delJoin);
-    //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
-    JsDeclareFunction(toJSON);
-
-private:
-	static v8::Persistent<v8::Function> constructor;
-};
-
-///////////////////////////////
-// NodeJs-Qminer-Record-Set
-class TNodeJsRecSet: public node::ObjectWrap {
-public:
-	TQm::PRecSet RecSet;
-public:
-	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(const TQm::PRecSet& Rec);
-public:
-	TNodeJsRecSet(const TQm::PRecSet& _RecSet) : RecSet(_RecSet) {}
-	static TNodeJsRecSet* GetJsRecSet(v8::Local<v8::Object> RecObj);
-
-
-private:
-	static v8::Persistent<v8::Function> constructor;
-};
 
 ///////////////////////////////
 // NodeJs-Qminer-Store
 class TNodeJsStore : public node::ObjectWrap {
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
 public:
+	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
-	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base);
-public:
+	// Wrapping C++ object
+	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
+	// C++ constructors
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Store(_Store), Base(_Base) { }
-public:
+	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
+	// Node framework (constructor method)
 	JsDeclareFunction(New);
+public:
+	// C++ internal data
+	TWPt<TQm::TStore> Store;
+
 private:
 	//# 
 	//# **Functions and properties:**
-	//#     
-	//#- `str = store.name` -- name of the store
-	JsDeclareProperty(name);
-	//#- `bool = store.empty` -- `bool = true` when store is empty
-	JsDeclareProperty(empty);
-	//#- `len = store.length` -- number of records in the store
-	JsDeclareProperty(length);
-	//#- `rs = store.recs` -- create a record set containing all the records from the store
-	JsDeclareProperty(recs);
-	//#- `objArr = store.fields` -- array of all the field descriptor JSON objects
-	JsDeclareProperty(fields);
-	//#- `objArr = store.joins` -- array of all the join names
-	JsDeclareProperty(joins);
-	//#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
-	JsDeclareProperty(keys);
-	//#- `rec = store.first` -- first record from the store
-	JsDeclareProperty(first);
-	//#- `rec = store.last` -- last record from the store
-	JsDeclareProperty(last);
-	//#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
-	JsDeclareProperty(forwardIter);
-	//#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
-	JsDeclareProperty(backwardIter);
-	//#- `rec = store[recId]` -- get record with ID `recId`; 
-	//#     returns `null` when no such record exists
-	//JsDeclIndexedProperty(indexId); TODO
+	//#
 	//#- `rec = store.rec(recName)` -- get record named `recName`; 
 	//#     returns `null` when no such record exists
 	JsDeclareFunction(rec);
@@ -227,10 +150,104 @@ private:
 	//#- `val = store.cell(recId, fieldId)` -- if fieldId (int) corresponds to fieldName, this is equivalent to store[recId][fieldName]
 	//#- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
 	JsDeclareFunction(cell);
+
+	//#- `str = store.name` -- name of the store
+	JsDeclareProperty(name);
+	//#- `bool = store.empty` -- `bool = true` when store is empty
+	JsDeclareProperty(empty);
+	//#- `len = store.length` -- number of records in the store
+	JsDeclareProperty(length);
+	//#- `rs = store.recs` -- create a record set containing all the records from the store
+	JsDeclareProperty(recs);
+	//#- `objArr = store.fields` -- array of all the field descriptor JSON objects
+	JsDeclareProperty(fields);
+	//#- `objArr = store.joins` -- array of all the join names
+	JsDeclareProperty(joins);
+	//#- `objArr = store.keys` -- array of all the [index keys](#index-key) objects    
+	JsDeclareProperty(keys);
+	//#- `rec = store.first` -- first record from the store
+	JsDeclareProperty(first);
+	//#- `rec = store.last` -- last record from the store
+	JsDeclareProperty(last);
+	//#- `iter = store.forwardIter` -- returns iterator for iterating over the store from start to end
+	JsDeclareProperty(forwardIter);
+	//#- `iter = store.backwardIter` -- returns iterator for iterating over the store from end to start
+	JsDeclareProperty(backwardIter);
+	//#- `rec = store[recId]` -- get record with ID `recId`; 
+	//#     returns `null` when no such record exists
+	//JsDeclIndexedProperty(indexId); TODO	
 	//#JSIMPLEMENT:src/qminer/store.js
+};
+
+
+
+///////////////////////////////
+// NodeJs-Qminer-Rec
+class TNodeJsRec: public node::ObjectWrap {
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
 public:
-	TWPt<TQm::TBase> Base;
-	TWPt<TQm::TStore> Store;
+	// Node framework 
+	static void Init(v8::Handle<v8::Object> exports);
+	// Wrapping C++ object	
+	static v8::Local<v8::Object> New(const TQm::TRec& Rec);
+	// C++ constructors
+	TNodeJsRec(): Rec() {}
+	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
+	// Node framework (constructor method)
+	JsDeclareFunction(New);
+	// Unwrapping C++ object
+	static TNodeJsRec* GetJsRec(v8::Local<v8::Object> RecObj);
+public:
+	// C++ internal data
+	TQm::TRec Rec;	
+
+private:
+	//#
+	//# **Functions and properties:**
+	//#
+    //#- `rec2 = rec.$clone()` -- create a clone of JavaScript wrapper with same record inside
+    JsDeclareFunction(clone);
+    //#- `rec = rec.addJoin(joinName, joinRecord)` -- adds a join record `joinRecord` to join `jonName` (string). Returns self.
+    //#- `rec = rec.addJoin(joinName, joinRecord, joinFrequency)` -- adds a join record `joinRecord` to join `jonName` (string) with join frequency `joinFrequency`. Returns self.
+    JsDeclareFunction(addJoin);
+    //#- `rec = rec.delJoin(joinName, joinRecord)` -- deletes join record `joinRecord` from join `joinName` (string). Returns self.
+    //#- `rec = rec.delJoin(joinName, joinRecord, joinFrequency)` -- deletes join record `joinRecord` from join `joinName` (string) with join frequency `joinFrequency`. Return self.
+    JsDeclareFunction(delJoin);
+    //#- `objJSON = rec.toJSON()` -- provide json version of record, useful when calling JSON.stringify
+    JsDeclareFunction(toJSON);
+
+	//#- `recId = rec.$id` -- returns record ID
+	JsDeclareProperty(id);
+	//#- `recName = rec.$name` -- returns record name
+	JsDeclareProperty(name);
+	//#- `recFq = rec.$fq` -- returns record frequency (used for randomized joins)
+	JsDeclareProperty(fq);
+	//#- `recStore = rec.$store` -- returns record store
+	JsDeclareProperty(store);
+	//#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
+	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
+	//JsDeclareSetProperty(getField, setField);
+	//#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
+	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
+	JsDeclareProperty(join);
+	JsDeclareProperty(sjoin);
+};
+
+///////////////////////////////
+// NodeJs-Qminer-Record-Set
+class TNodeJsRecSet: public node::ObjectWrap {
+public:
+	TQm::PRecSet RecSet;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(const TQm::PRecSet& Rec);
+public:
+	TNodeJsRecSet(const TQm::PRecSet& _RecSet) : RecSet(_RecSet) {}
+	static TNodeJsRecSet* GetJsRecSet(v8::Local<v8::Object> RecObj);
+
+
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
