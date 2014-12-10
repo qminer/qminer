@@ -582,14 +582,16 @@ void TNodeJsStore::newRecSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+	TWPt<TQm::TStore> Store = JsStore->Store;
+
 	if (Args.Length() > 0) {
 		// argument 0 = TJsIntV of record ids
 		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, "TIntV"),
 			"Store.getRecSetByIdV: The first argument must be a TIntV (js linalg full int vector)");
-		//TNodeJsVec<TInt, TAuxIntV>* JsVecArg
-		//TNodeJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
-		//PRecSet ResultSet = TRecSet::New(JsStore->Store, JsVec->Vec);
-		//return TJsRecSet::New(JsStore->Js, ResultSet);
+		TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]); 
+		TQm::PRecSet ResultSet = TQm::TRecSet::New(Store, JsVecArg->Vec);
+		Args.GetReturnValue().Set(TNodeJsRecSet::New(ResultSet));
 		return;
 	}
 	Args.GetReturnValue().Set(TNodeJsRecSet::New());	
