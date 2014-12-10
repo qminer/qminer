@@ -1730,7 +1730,7 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-#ifndef QMINER_NODE_MODULE
+#ifndef MODULE_INCLUDE_LA
 ///////////////////////////////
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {

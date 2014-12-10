@@ -12,7 +12,7 @@
             '../la/la_nodejs.cpp'
          ],
 	 'defines': [
-          'QMINER_NODE_MODULE'
+          'MODULE_INCLUDE_LA'
         ],
          'include_dirs': [
             '../',
