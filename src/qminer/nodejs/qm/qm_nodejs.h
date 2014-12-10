@@ -191,10 +191,11 @@ public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object	
-	static v8::Local<v8::Object> New(const TQm::TRec& Rec);
+	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
 	// C++ constructors
 	TNodeJsRec(): Rec() {}
 	TNodeJsRec(const TQm::TRec& _Rec): Rec(_Rec) {}
+	TNodeJsRec(const TQm::TRec& _Rec, const TInt& _Fq) : Rec(_Rec), Fq(_Fq) {}
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Unwrapping C++ object
@@ -202,6 +203,7 @@ public:
 public:
 	// C++ wrapped object
 	TQm::TRec Rec;	
+	TInt Fq;
 
 private:
 	//#
@@ -334,6 +336,144 @@ private:
 	////#- `rec = rs[n]` -- return n-th record from the record set
 	//JsDeclIndexedProperty(indexId);
 };
+
+
+
+
+
+///////////////////////////////
+// JavaScript Store Iterator
+//# 
+//# ### Store iterator
+//# 
+class TJsStoreIter {
+private:
+//	/// JS script context
+//	TWPt<TScript> Js;
+//	TWPt<TStore> Store;
+//	PStoreIter Iter;
+//	// placeholder for last object
+//	v8::Persistent<v8::Object> RecObj;
+//	TJsRec* JsRec;
+//
+//	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
+//
+//	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, const PStoreIter& _Iter);
+//public:
+//	static v8::Persistent<v8::Object> New(TWPt<TScript> Js,
+//		const TWPt<TStore>& Store, const PStoreIter& Iter) {
+//		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter));
+//	}
+//	~TJsStoreIter() { if (JsRec != NULL) { TJsObjUtil<TJsRec>::MakeWeak(RecObj); } }
+//
+//	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+//
+//	//# 
+//	//# **Functions and properties:**
+//	//#   
+//	//#- `store = iter.store` -- get the store
+//	JsDeclareProperty(store);
+//	//#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
+//	JsDeclareProperty(rec);
+//	//#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+//	JsDeclareFunction(next);
+};
+
+///////////////////////////////
+// JavaScript Record Comparator
+class TNodeJsRecCmp {
+private:
+	/// JS script context
+	TWPt<TQm::TStore> Store;
+	// callbacks
+	v8::Persistent<v8::Function> CmpFun;
+
+public:
+	~TNodeJsRecCmp(){
+		CmpFun.Reset();
+	}
+	TNodeJsRecCmp(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _CmpFun) : Store(_Store) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		// set persistent object
+		CmpFun.Reset(Isolate, _CmpFun);
+	}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+};
+
+///////////////////////////////
+// JavaScript Record Filter
+class TJsRecFilter {
+private:
+//	/// JS script context
+//	TWPt<TScript> Js;
+//	TWPt<TStore> Store;
+//	// callbacks
+//	v8::Persistent<v8::Function> FilterFun;
+//
+//public:
+//	TJsRecFilter(TWPt<TScript> _Js, TWPt<TStore> _Store,
+//		const v8::Persistent<v8::Function>& _FilterFun) :
+//		Js(_Js), Store(_Store), FilterFun(_FilterFun) { }
+//
+//	bool operator()(const TUInt64IntKd& RecIdWgt) const;
+};
+
+///////////////////////////////
+// JavaScript Record Splitter
+class TJsRecSplitter {
+private:
+//	/// JS script context
+//	TWPt<TScript> Js;
+//	TWPt<TStore> Store;
+//	// callbacks
+//	v8::Persistent<v8::Function> SplitterFun;
+//
+//public:
+//	TJsRecSplitter(TWPt<TScript> _Js, TWPt<TStore> _Store,
+//		const v8::Persistent<v8::Function>& _SplitterFun) :
+//		Js(_Js), Store(_Store), SplitterFun(_SplitterFun) { }
+//
+//	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+};
+
+///////////////////////////////
+// QMiner-JavaScript-IndexKey
+//# 
+//# ### Index key
+//# 
+class TJsIndexKey {
+private:
+//	/// JS script context
+//	TWPt<TScript> Js;
+//	TIndexKey IndexKey;
+//
+//	typedef TJsObjUtil<TJsIndexKey> TJsIndexKeyUtil;
+//
+//	TJsIndexKey(TWPt<TScript> _Js, const TIndexKey& _IndexKey) :
+//		Js(_Js), IndexKey(_IndexKey) { }
+//public:
+//	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIndexKey& IndexKey) {
+//		return TJsIndexKeyUtil::New(new TJsIndexKey(Js, IndexKey));
+//	}
+//	~TJsIndexKey() { }
+//
+//	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+//
+//	//# 
+//	//# **Functions and properties:**
+//	//#   
+//	//#- `storeName = key.store` -- gets the store name `storeName`
+//	JsDeclareProperty(store);
+//	//#- `keyName = key.name` -- gets the key name
+//	JsDeclareProperty(name);
+//	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
+//	JsDeclareProperty(voc);
+//	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
+//	JsDeclareProperty(fq);
+};
+
 
 
 #endif

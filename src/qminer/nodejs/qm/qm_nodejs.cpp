@@ -308,21 +308,21 @@ void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsBase::newStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-      
+   // TODO
    //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 }
 
 void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   
+   // TODO
    //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 }
 
 void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   
+   // TODO
    //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 }
 
@@ -589,7 +589,7 @@ void TNodeJsStore::newRecSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// argument 0 = TJsIntV of record ids
 		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, "TIntV"),
 			"Store.getRecSetByIdV: The first argument must be a TIntV (js linalg full int vector)");
-		TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]); 
+		TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject()); 
 		TQm::PRecSet ResultSet = TQm::TRecSet::New(Store, JsVecArg->Vec);
 		Args.GetReturnValue().Set(TNodeJsRecSet::New(ResultSet));
 		return;
@@ -659,7 +659,8 @@ void TNodeJsStore::key(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		if (IndexVoc->IsKeyNm(JsStore->Store->GetStoreId(), KeyNm)) {
 			TQm::TIndexKey Key = IndexVoc->GetKey(IndexVoc->GetKeyId(JsStore->Store->GetStoreId(), KeyNm));
-			//	TODO		Args.GetReturnValue().Set(TJsIndexKey::New(Key));
+			// TODO
+			// Args.GetReturnValue().Set(TJsIndexKey::New(Key));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -682,7 +683,7 @@ void TNodeJsStore::addTrigger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
 
 		TWPt<TQm::TStore>& Store = JsStore->Store;
-		//TODO
+		// TODO
 		//TQm::PStoreTrigger Trigger = TJsStoreTrigger::New(TriggerVal->ToObject());
 
 		//Store->AddTrigger(Trigger);
@@ -709,7 +710,8 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			//	TODO		Args.GetReturnValue().Set(TJsSA::New(StreamAggr));
+			//	TODO
+			// Args.GetReturnValue().Set(TJsSA::New(StreamAggr));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -756,6 +758,7 @@ void TNodeJsStore::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal StoreJson = JsStore->Store->GetStoreJson(JsStore->Store->GetBase());
 
 		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, StoreJson));
+		return;
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -772,6 +775,7 @@ void TNodeJsStore::clear(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		JsStore->Store->DeleteFirstNRecs(DelRecs);
 		Args.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
+		return;
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -1096,6 +1100,7 @@ void TNodeJsStore::backwardIter(v8::Local<v8::String> Name, const v8::PropertyCa
 
 
 
+
 ///////////////////////////////
 // NodeJs-Qminer-Record
 v8::Persistent<v8::Function> TNodeJsRec::constructor;
@@ -1130,14 +1135,14 @@ void TNodeJsRec::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
-v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec) {
+v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	TNodeJsRec* JsRec = new TNodeJsRec(Rec);
+	TNodeJsRec* JsRec = new TNodeJsRec(Rec, _Fq);
 	JsRec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
@@ -1522,15 +1527,17 @@ void TNodeJsRecSet::sortByField(const v8::FunctionCallbackInfo<v8::Value>& Args)
 }
 
 void TNodeJsRecSet::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	//v8::HandleScope HandleScope;
-	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
-	//QmAssertR(Args.Length() == 1, "sort(..) expects one argument.");
-	//v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);
-	//for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
-	//	JsRecSet->RecSet->PutRecFq(i, i);
-	//}
-	//JsRecSet->RecSet->SortCmp(TJsRecCmp(JsRecSet->Js, JsRecSet->Store, CmpFun));
-	//return Args.Holder();
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args.Holder());
+
+	QmAssertR(Args.Length() == 1 && Args[0]->IsFunction(), "sort(..) expects one argument, which is a function.");	
+	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);	
+	for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
+		JsRecSet->RecSet->PutRecFq(i, i);
+	}
+	JsRecSet->RecSet->SortCmp(TNodeJsRecCmp(JsRecSet->RecSet->GetStore(), Callback));
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRecSet::filterById(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1935,6 +1942,28 @@ void TNodeJsRecSet::weighted(v8::Local<v8::String> Name, const v8::PropertyCallb
 //		return HandleScope.Close(v8::Null());
 //	}
 //}
+
+
+///////////////////////////////
+// JavaScript Record Comparator
+bool TNodeJsRecCmp::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// prepare record objects - since they are local, they are safe from GC
+	v8::Local<v8::Object> JsRec1 = TNodeJsRec::New(TQm::TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat);
+	v8::Local<v8::Object> JsRec2 = TNodeJsRec::New(TQm::TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat);
+	
+	v8::Local<v8::Function> Callback =  v8::Local<v8::Function>::New(Isolate, CmpFun);
+    v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+	const unsigned Argc = 2;
+	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
+	v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
+	
+	QmAssertR(ReturnVal->IsBoolean(), "Comparator callback must return a boolean!");
+	return ReturnVal->BooleanValue();
+}
+
+
 
 ///////////////////////////////
 // Register functions, etc.  
