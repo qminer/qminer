@@ -122,23 +122,25 @@ private:
 	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
 	//#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
-	JsDeclareFunction(sortPerm);	
+	JsDeclareSpecializedFunction(sortPerm);	
 	//#- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
+	//#- `intVec = intVec.shuffle()` -- shuffels the vector `intVec` (inplace operation). Returns self.
 	JsDeclareFunction(shuffle);
 	//#- `vec = vec.trunc(num)` -- truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.
+	//#- `intVec = intVec.trunc(num)` -- truncates the vector `intVec` to lenght 'num' (inplace operation). Returns self.
 	JsDeclareFunction(trunc);
 	//#- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
-	JsDeclareFunction(outer);
+	JsDeclareSpecializedFunction(outer);
 	//#- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
-	JsDeclareFunction(inner);
+	JsDeclareSpecializedFunction(inner);
 	//#- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
-	JsDeclareFunction(plus);
+	JsDeclareSpecializedFunction(plus);
 	//#- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
-	JsDeclareFunction(minus);
+	JsDeclareSpecializedFunction(minus);
 	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
-	JsDeclareFunction(multiply);
+	JsDeclareSpecializedFunction(multiply);
 	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
-   JsDeclareFunction(normalize);
+	JsDeclareSpecializedFunction(normalize);
    //#- `len = vec.length` -- integer `len` is the length of vector `vec`
    //#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
    JsDeclareProperty(length);
@@ -146,16 +148,15 @@ private:
    //#- `intVec = intVec.print()` -- print integer vector in console. Returns self.
    JsDeclareFunction(toString);
    //#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
-   JsDeclareFunction(diag);
+   JsDeclareSpecializedFunction(diag);
    //#- `spMat = vec.spDiag()` -- `spMat` is a diagonal sparse matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
-   JsDeclareFunction(spDiag); 
+   JsDeclareSpecializedFunction(spDiag);
    //#- `num = vec.norm()` -- `num` is the Euclidean norm of `vec`. Implemented for dense float vectors only.
-   JsDeclareFunction(norm);
+   JsDeclareSpecializedFunction(norm);
    //#- `spVec = vec.sparse()` -- `spVec` is a sparse vector representation of dense vector `vec`. Implemented for dense float vectors only.
-   JsDeclareFunction(sparse);
+   JsDeclareSpecializedFunction(sparse);
    //#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
-   //#- `mat = intVec.toMat()` -- `mat` is a matrix with a single column that is equal to dense integer vector `intVec`.
-	JsDeclareFunction(toMat);
+   JsDeclareSpecializedFunction(toMat);
 public:
    TVec<TVal> Vec;
 private:
@@ -668,7 +669,7 @@ void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& 
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
 	// assume number
-	TFlt Val = Args[0]->ToNumber()->Value();
+	TVal Val = Args[0]->ToNumber()->Value();
 	JsVec->Vec.Ins(0, Val);
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 }
@@ -687,25 +688,6 @@ void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	JsVec->Vec.AddV(OthVec->Vec);
 
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
-}
-
-template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::sortPerm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	const bool Asc =
-		Args.Length() == 1 && Args[0]->IsBoolean() && Args[0]->BooleanValue();
-
-	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-
-	TFltV SortedV;
-	TIntV PermV;
-	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
-	v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
-	Obj->Set(v8::String::NewFromUtf8(Isolate, "vec"), New(SortedV));
-	Obj->Set(v8::String::NewFromUtf8(Isolate, "perm"), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
-	Args.GetReturnValue().Set(Obj);
 }
 
 // Returns i = arg max_i v[i] for a vector v 
@@ -735,10 +717,9 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 	const bool Asc = Args.Length() > 0 && Args[0]->BooleanValue();
 
-	TFltV ResV(JsVec->Vec);
-	ResV.Sort(Asc);
-
-	Args.GetReturnValue().Set(New(ResV));
+	TVec<TVal> Result = JsVec->Vec;
+	Result.Sort(Asc);
+	Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(Result));	
 }
 
 template <typename TVal, typename TAux>
@@ -770,115 +751,6 @@ void TNodeJsVec<TVal, TAux>::trunc(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
-template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::outer(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux>>(Args.Holder());
-
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
-		"Expected a vector on the input");
-
-	TFltVV ResMat;
-	TNodeJsVec<TVal, TAux>* JsArgVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux>>(Args[0]->ToObject());
-	ResMat.Gen(JsVec->Vec.Len(), JsArgVec->Vec.Len());
-
-	TLinAlg::OuterProduct(JsVec->Vec, JsArgVec->Vec, ResMat);
-
-	Args.GetReturnValue().Set(TNodeJsFltVV::New(ResMat));
-}
-
-template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux>>(Args.Holder());
-	double Result = 0.0;
-	if (Args[0]->IsObject()) {
-		TNodeJsVec<TVal, TAux>* OthVec =
-			ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
-		Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
-	}
-
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
-}
-
-template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
-		"Expected an TNodeJsVec object (a vector)");
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-	TNodeJsVec<TVal, TAux>* OthVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
-	TFltV Result(JsVec->Vec.Len());
-	TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
-
-	Args.GetReturnValue().Set(New(Result));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
-		"Expected an TNodeJsVec object (a vector)");
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-	TNodeJsVec<TVal, TAux>* OthVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
-	TFltV Result; Result.Gen(JsVec->Vec.Len());
-	TLinAlg::LinComb(1.0, JsVec->Vec, -1.0, OthVec->Vec, Result);
-
-	Args.GetReturnValue().Set(New(Result));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() == 1 && Args[0]->IsNumber(),
-		"Expected number");
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-	const double Scalar = Args[0]->NumberValue();
-
-	TFltV Result;
-	Result.Gen(JsVec->Vec.Len());
-	TLinAlg::MultiplyScalar(Scalar, JsVec->Vec, Result);
-
-	Args.GetReturnValue().Set(New(Result));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-
-	EAssertR(JsVec->Vec.Len() > 0, "Can't normalize vector of length 0.");
-	if (JsVec->Vec.Len() > 0) {
-		TLinAlg::Normalize(JsVec->Vec);
-	}
-
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
-}
-
 template<typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -894,73 +766,6 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
 	Str += TFlt::GetStr(JsVec->Vec.Last()) + "]";
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::diag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-
-	TFltVV Result;
-	// computation
-	TLAMisc::Diag(JsVec->Vec, Result);
-
-	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::spDiag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-
-	TVec<TIntFltKdV> Result;
-	// computation
-	TLAMisc::Diag(JsVec->Vec, Result);
-
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
-	const double Result = TLinAlg::Norm(JsVec->Vec);
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
-}
-
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
-
-	TIntFltKdV Res;
-	TLAMisc::ToSpVec(JsVec->Vec, Res);
-
-	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res));
-}
-template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::toMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	TNodeJsVec<TVal, TAux>* JsVec =
-		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
-
-	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
-
-	Args.GetReturnValue().Set(TNodeJsFltVV::New(Res));
 }
 
 // Returns the size of the vector 

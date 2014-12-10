@@ -58,6 +58,21 @@
 	  } \
    }; 
 
+#define JsDeclareSpecializedFunction(Function) \
+   static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { throw TExcept::New("Not implemented!"); } \
+   static void _ ## Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+      v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+      v8::HandleScope HandleScope(Isolate); \
+      try { \
+         Function(Args); \
+      } catch (const PExcept& Except) { \
+	     Isolate->ThrowException(v8::Exception::TypeError(\
+		 v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+	  } \
+   }; 
+
+
+
    
 
 

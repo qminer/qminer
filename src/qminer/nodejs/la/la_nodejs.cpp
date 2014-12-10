@@ -31,7 +31,30 @@ v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
 
 // template <typename TVal, typename TAux>
 template <>
-v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& FltV) {
+v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+	Instance->SetHiddenValue(Key, Value);
+
+	int Len = IntV.Len();
+	TFltV Vec(Len);
+	for (int ElN = 0; ElN < Len; ElN++) {
+		Vec[ElN] = IntV[ElN];
+	}
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(Vec);
+	JsVec->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
+template <>
+v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
@@ -43,12 +66,12 @@ v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& FltV) {
 	Instance->SetHiddenValue(Key, Value);
 
 	int Len = FltV.Len();
-	TFltV Vec(Len);
+	TIntV Vec(Len);
 	for (int ElN = 0; ElN < Len; ElN++) {
-		Vec[ElN] = FltV[ElN];
+		Vec[ElN] = (int)FltV[ElN];
 	}
 
-	TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(Vec);
+	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(Vec);
 	JsVec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
@@ -70,6 +93,205 @@ v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
 	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(IntV);
 	JsVec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
+}
+
+
+template <>
+void TNodeJsVec<TFlt, TAuxFltV>::sortPerm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	const bool Asc =
+		Args.Length() == 1 && Args[0]->IsBoolean() && Args[0]->BooleanValue();
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	TFltV SortedV;
+	TIntV PermV;
+	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
+	v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
+	Obj->Set(v8::String::NewFromUtf8(Isolate, "vec"), New(SortedV));
+	Obj->Set(v8::String::NewFromUtf8(Isolate, "perm"), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
+	Args.GetReturnValue().Set(Obj);
+}
+
+template <>
+void TNodeJsVec<TFlt, TAuxFltV>::outer(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args.Holder());
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected a vector on the input");
+
+	TFltVV ResMat;
+	TNodeJsVec<TFlt, TAuxFltV>* JsArgVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
+	ResMat.Gen(JsVec->Vec.Len(), JsArgVec->Vec.Len());
+
+	TLinAlg::OuterProduct(JsVec->Vec, JsArgVec->Vec, ResMat);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(ResMat));
+}
+
+template <>
+void TNodeJsVec<TFlt, TAuxFltV>::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args.Holder());
+	double Result = 0.0;
+	if (Args[0]->IsObject()) {
+		TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+			ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+		Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
+	}
+
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+template <>
+void TNodeJsVec<TFlt, TAuxFltV>::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected an TNodeJsVec object (a vector)");
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+	TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+	TFltV Result(JsVec->Vec.Len());
+	TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected an TNodeJsVec object (a vector)");
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+	TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+	TFltV Result; Result.Gen(JsVec->Vec.Len());
+	TLinAlg::LinComb(1.0, JsVec->Vec, -1.0, OthVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsNumber(),
+		"Expected number");
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+	const double Scalar = Args[0]->NumberValue();
+
+	TFltV Result;
+	Result.Gen(JsVec->Vec.Len());
+	TLinAlg::MultiplyScalar(Scalar, JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	EAssertR(JsVec->Vec.Len() > 0, "Can't normalize vector of length 0.");
+	if (JsVec->Vec.Len() > 0) {
+		TLinAlg::Normalize(JsVec->Vec);
+	}
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::diag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	TFltVV Result;
+	// computation
+	TLAMisc::Diag(JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	TVec<TIntFltKdV> Result;
+	// computation
+	TLAMisc::Diag(JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
+}
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
+	const double Result = TLinAlg::Norm(JsVec->Vec);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
+
+	TIntFltKdV Res;
+	TLAMisc::ToSpVec(JsVec->Vec, Res);
+
+	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res));
+}
+
+template<>
+void TNodeJsVec<TFlt, TAuxFltV>::toMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
+
+	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Res));
 }
 
 ///////////////////////////////

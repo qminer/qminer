@@ -1944,6 +1944,7 @@ void init(v8::Handle<v8::Object> exports) {
    TNodeJsRecSet::Init(exports);
    // LA
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);
