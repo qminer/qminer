@@ -245,6 +245,7 @@ public:
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object	
+	static v8::Local<v8::Object> New();
 	static v8::Local<v8::Object> New(const TQm::PRecSet& Rec);
 	// C++ constructors
 	TNodeJsRecSet() {}

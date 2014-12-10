@@ -6,116 +6,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
-
-// NOTE: This is *not* the same as in QMiner JS. 
-#define JsDeclareProperty(Function) \
-	static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-	static void _ ## Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
-	   v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
-	   v8::HandleScope HandleScope(Isolate); \
-	   try { \
-	      Function(Name, Info); \
-	   } catch (const PExcept& Except) { \
-	      /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
-            Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); \
-         /* } else { \
-            throw Except; \
-         } */ \
-	   } \
-	}
-
-#define JsDeclareFunction(Function) \
-   static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args); \
-   static void _ ## Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
-      v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
-      v8::HandleScope HandleScope(Isolate); \
-      try { \
-         Function(Args); \
-      } catch (const PExcept& Except) { \
-         /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
-            Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[la addon] Exception"))); \
-         /* } else { \
-            throw Except; \
-         } */ \
-      } \
-   }
-
-// XXX: The macro expects that variables Args and Isolate exist.
-#define QmAssert(Cond) \
-   if (!(Cond)) { \
-      Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, "[la addon] Exception")))); return; }
-
-// XXX: The macro expects that variable Args and Isolate exist.
-#define QmAssertR(Cond, MsgStr) \
-  if (!(Cond)) { \
-   Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, MsgStr)))); return; }
-
-// XXX: The macro expects that variables Args and Isolate exist.
-#define QmFailR(MsgStr) \
-   Args.GetReturnValue().Set(Isolate->ThrowException(v8::Exception::TypeError( \
-         v8::String::NewFromUtf8(Isolate, MsgStr)))); return;
-
-class TNodeJsUtil {
-public:
-   /// Extract argument ArgN property as bool
-	static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const bool& DefVal) {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		if (Args.Length() > ArgN) {
-			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
-				 EAssertR(Val->IsBoolean(),
-				   TStr::Fmt("Argument %d, property %s expected to be boolean", ArgN, Property.CStr()).CStr());
-				 return static_cast<bool>(Val->BooleanValue());
-			}
-		}
-		return DefVal;
-	}
-   static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		if (Args.Length() > ArgN) {			
-			if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-				v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
-				 EAssertR(Val->IsInt32(),
-				   TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-				 return Val->ToNumber()->Int32Value();
-			}
-		}
-		return DefVal;
-	}
-	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
-	static TStr GetClass(const v8::Handle<v8::Object> Obj) {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::NewFromUtf8(Isolate, "class"));
-		const bool EmptyP = ClassNm.IsEmpty();
-		if (EmptyP) { return ""; }
-		v8::String::Utf8Value Utf8(ClassNm);
-		return TStr(*Utf8);		
-	}
-
-	// checks if the class name of the underlying glib object matches the given string. the name is stored in an hidden variable "class"
-	static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) {
-		TStr ObjClassStr = GetClass(Obj);		
-		return ObjClassStr == ClassNm;
-	}
-	/// Check if argument ArgN belongs to a given class
-	static bool IsArgClass(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm) {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d of class %s", ArgN, ClassNm.CStr()).CStr());
-      EAssertR(Args[ArgN]->IsObject(), TStr("Argument expected to be '" + ClassNm + "' but is not even an object!").CStr());
-		v8::Handle<v8::Value> Val = Args[ArgN];
-	 	v8::Handle<v8::Object> Data = v8::Handle<v8::Object>::Cast(Val);
-		TStr ClassStr = GetClass(Data);
-		return ClassStr.EqI(ClassNm);
-	}
-};
+#include "utils.h"
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
@@ -152,6 +43,7 @@ public:
 private:
    // 
 };
+
 
 class TAuxFltV {
 public:	
@@ -269,6 +161,7 @@ public:
 private:
    static v8::Persistent<v8::Function> constructor;
 };
+
 
 ///////////////////////////////
 // NodeJs-Qminer-FltVV
@@ -493,6 +386,595 @@ private:
 private:
    static v8::Persistent<v8::Function> constructor;
 };
+
+
+
+///////////////////////////////
+// NodeJs-GLib-TVec Implementations
+template <typename TVal, typename TAux>
+v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "vector"));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all prototype methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "newIntVec", newIntVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", subVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "push", push);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", unshift);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "pushV", pushV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortPerm", sortPerm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sum", sum);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxIdx", getMaxIdx);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", shuffle);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", trunc);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "outer", outer);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "inner", inner);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "plus", plus);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "minus", minus);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", multiply);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", normalize);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toString", toString);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "diag", diag);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "spDiag", spDiag);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "norm", norm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", sparse);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toMat", toMat);
+	// NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
+	// NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
+
+	// Properties 
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), length);
+
+	// This has to be last, otherwise the properties won't show up on the
+	// object in JavaScript.
+	constructor.Reset(Isolate, tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "vector"),
+		tpl->GetFunction());
+}
+
+// Creates a new instance of the object -- esentially does the job of Javascript new operator 
+template <typename TVal, typename TAux>
+v8::Handle<v8::Value> TNodeJsVec<TVal, TAux>::NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	const unsigned Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { Args[0] };
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = Cons->NewInstance(Argc, Argv);
+
+	return Args.GetReturnValue().Set(Instance);
+}
+
+template <typename TVal, typename TAux>
+v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(v8::Local<v8::Array> Arr) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	const int Argc = 1;
+	v8::Handle<v8::Value> Argv[Argc] = { Arr };
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	return HandleScope.Escape(Cons->NewInstance(Argc, Argv));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.IsConstructCall()) {
+		TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>();
+
+		v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+		v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+		v8::Local<v8::Object> Instance = Args.This();
+
+		// If we got Javascript array on the input: vector.new([1,2,3]) 
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
+			const int Len = Arr->Length();
+			for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(Arr->Get(ElN)->NumberValue()); }
+		}
+		else if (Args[0]->IsObject()) {
+			if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+				TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+				Args.GetReturnValue().Set(New(JsVecArg->Vec));
+				return;
+			}
+			else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
+				TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
+				Args.GetReturnValue().Set(New(JsVecArg->Vec));
+				return;
+			}
+			else {
+				// We have object with parameters, parse them out
+				const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
+				const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
+				if (MxVals >= 0) {
+					JsVec->Vec.Gen(MxVals, Vals);
+				}
+				else { JsVec->Vec.Gen(Vals); }
+			}
+		} // else return an empty vector 
+
+		Instance->SetHiddenValue(Key, Value);
+		JsVec->Wrap(Instance);
+		Args.GetReturnValue().Set(Instance);
+	}
+	else {
+		const int Argc = 1;
+		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+		v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+
+		v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+		v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+		Instance->Set(Key, Value);
+
+		Args.GetReturnValue().Set(Instance);
+	}
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::newIntVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	const int Argc = 1;
+	v8::Local<v8::Value> Argv[Argc] = { Args[0] };
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = Cons->NewInstance(Argc, Argv);
+
+	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+	Instance->SetHiddenValue(Key, Value);
+
+	Args.GetReturnValue().Set(Instance);
+}
+
+// Returns an element at index idx=Args[0]; assert 0 <= idx < v.length() 
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	EAssertR(Args.Length() >= 1 && Args[0]->IsInt32(), "Expected integer.");
+	const int Idx = Args[0]->IntegerValue();
+
+	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.GetVal(Idx).Val));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec>(Args.This());
+	if (Args.Length() > 0) {
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+			const int Len = Array->Length();
+			v8::Handle<v8::Array> OutArr = v8::Array::New(Isolate, Len);
+			for (int ElN = 0; ElN < Len; ++ElN) {
+				EAssertR(Array->Get(ElN)->IsInt32(),
+					"Expected array to contain integers only.");
+				const int Idx = Array->Get(ElN)->Int32Value();
+				EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(),
+					"One of the indices from the index vector is out of bounds");
+				OutArr->Set(v8::Number::New(Isolate, ElN), v8::Number::New(Isolate, JsVec->Vec[Idx]));
+			}
+			Args.GetReturnValue().Set(New(OutArr));
+		}
+		else if (Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
+			TNodeJsVec<TVal, TAux>* IdxV = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject());
+			const int Len = IdxV->Vec.Len();
+			v8::Handle<v8::Array> OutArr = v8::Array::New(Isolate, Len);
+			for (int ElN = 0; ElN < Len; ElN++) {
+				EAssertR(IdxV->Vec[ElN] >= 0 && IdxV->Vec[ElN] < JsVec->Vec.Len(),
+					"One of the indices from the index vector is out of bounds");
+				OutArr->Set(v8::Number::New(Isolate, ElN), v8::Number::New(Isolate, IdxV->Vec[ElN]));
+			}
+			Args.GetReturnValue().Set(New(OutArr));
+		}
+		else {
+			Args.GetReturnValue().Set(v8::Undefined(Isolate));
+			throw TExcept::New("Expected array or vector of indices.");
+		}
+	}
+	else {
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+		throw TExcept::New("No arguments.");
+	}
+}
+
+// Returns the sum of the vectors elements (only make sense for numeric values) 
+template <class TVal, class TAux>
+void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	TFlt Sum = 0.0;
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
+		Sum += JsVec->Vec.GetVal(ElN);
+	}
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+}
+
+// put(idx, num) sets v[idx] := num 
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= 2, "Expected two arguments.");
+	EAssertR(Args[0]->IsInt32(),
+		"First argument should be an integer.");
+	EAssertR(Args[1]->IsNumber(),
+		"Second argument should be a number.");
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	const int Idx = Args[0]->IntegerValue();
+
+	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds");
+
+	JsVec->Vec[Idx] = Args[1]->NumberValue();
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+// Appends an element to the vector 
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	if (Args.Length() < 1) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+			v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
+	}
+	else if (!Args[0]->IsNumber()) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+			v8::String::NewFromUtf8(Isolate, "Expected number")));
+	}
+	else {
+		const double Val = Args[0]->ToNumber()->Value();
+		JsVec->Vec.Add(Val);
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+	}
+}
+
+// Inserts a number `num` at the beginning of the vector `v`: `v.ins(0, num)` 
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	// assume number
+	TFlt Val = Args[0]->ToNumber()->Value();
+	JsVec->Vec.Ins(0, Val);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected a vector on the input");
+
+	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	TNodeJsVec<TVal, TAux>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
+
+	JsVec->Vec.AddV(OthVec->Vec);
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::sortPerm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	const bool Asc =
+		Args.Length() == 1 && Args[0]->IsBoolean() && Args[0]->BooleanValue();
+
+	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	TFltV SortedV;
+	TIntV PermV;
+	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
+	v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
+	Obj->Set(v8::String::NewFromUtf8(Isolate, "vec"), New(SortedV));
+	Obj->Set(v8::String::NewFromUtf8(Isolate, "perm"), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
+	Args.GetReturnValue().Set(Obj);
+}
+
+// Returns i = arg max_i v[i] for a vector v 
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	double MxVal = JsVec->Vec.GetVal(0);
+	int MxIdx = 0;
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
+		const double CrrVal = JsVec->Vec.GetVal(ElN);
+		if (CrrVal > MxVal) { MxIdx = ElN; MxVal = CrrVal; }
+	}
+
+	Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	const bool Asc = Args.Length() > 0 && Args[0]->BooleanValue();
+
+	TFltV ResV(JsVec->Vec);
+	ResV.Sort(Asc);
+
+	Args.GetReturnValue().Set(New(ResV));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::shuffle(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	static TRnd Rnd;
+	JsVec->Vec.Shuffle(Rnd);
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::trunc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() >= 1 && Args[0]->IsInt32() &&
+		Args[0]->IntegerValue() >= 0, "Expected a nonnegative integer");
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	const int NewLen = Args[0]->IntegerValue();
+	JsVec->Vec.Trunc(NewLen);
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::outer(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux>>(Args.Holder());
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected a vector on the input");
+
+	TFltVV ResMat;
+	TNodeJsVec<TVal, TAux>* JsArgVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux>>(Args[0]->ToObject());
+	ResMat.Gen(JsVec->Vec.Len(), JsArgVec->Vec.Len());
+
+	TLinAlg::OuterProduct(JsVec->Vec, JsArgVec->Vec, ResMat);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(ResMat));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux>>(Args.Holder());
+	double Result = 0.0;
+	if (Args[0]->IsObject()) {
+		TNodeJsVec<TVal, TAux>* OthVec =
+			ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
+		Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
+	}
+
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected an TNodeJsVec object (a vector)");
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	TNodeJsVec<TVal, TAux>* OthVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
+	TFltV Result(JsVec->Vec.Len());
+	TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected an TNodeJsVec object (a vector)");
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	TNodeJsVec<TVal, TAux>* OthVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
+	TFltV Result; Result.Gen(JsVec->Vec.Len());
+	TLinAlg::LinComb(1.0, JsVec->Vec, -1.0, OthVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsNumber(),
+		"Expected number");
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	const double Scalar = Args[0]->NumberValue();
+
+	TFltV Result;
+	Result.Gen(JsVec->Vec.Len());
+	TLinAlg::MultiplyScalar(Scalar, JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	EAssertR(JsVec->Vec.Len() > 0, "Can't normalize vector of length 0.");
+	if (JsVec->Vec.Len() > 0) {
+		TLinAlg::Normalize(JsVec->Vec);
+	}
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	TStr Str = "[";
+	for (int ElN = 0; ElN < JsVec->Vec.Len() - 1; ++ElN) {
+		Str += TFlt::GetStr(JsVec->Vec[ElN]) + ", ";
+	}
+	Str += TFlt::GetStr(JsVec->Vec.Last()) + "]";
+
+	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::diag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	TFltVV Result;
+	// computation
+	TLAMisc::Diag(JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::spDiag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+
+	TVec<TIntFltKdV> Result;
+	// computation
+	TLAMisc::Diag(JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
+	const double Result = TLinAlg::Norm(JsVec->Vec);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
+
+	TIntFltKdV Res;
+	TLAMisc::ToSpVec(JsVec->Vec, Res);
+
+	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res));
+}
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::toMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.This());
+
+	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Res));
+}
+
+// Returns the size of the vector 
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsVec<TVal, TAux>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Self);
+
+	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsVec->Vec.Len()));
+}
 
 #endif
 

@@ -1,5 +1,6 @@
 #include "qm_nodejs.h"
 #include "qm_param.h"
+#include "../la/la_nodejs.h"
 
 ///////////////////////////////
 // NodeJs-Qminer
@@ -219,9 +220,11 @@ void TNodeJsBase::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    const TStr StoreNm = TNodeJsUtil::GetArgStr(Args, 0);
    if (Base->IsStoreNm(StoreNm)) {
 	   Args.GetReturnValue().Set(TNodeJsStore::New(Base->GetStoreByStoreNm(StoreNm)));
+	   return;
    }
    else {
 	   Args.GetReturnValue().Set(v8::Null(Isolate));
+	   return;
    }   
 }
 
@@ -239,34 +242,35 @@ void TNodeJsBase::getStoreList(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 		StoreValV.Add(Base->GetStoreJson(Store));
 	}
 	PJsonVal JsonVal = TJsonVal::NewArr(StoreValV);
-	//Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(JsonVal)));
-	
+	Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsonVal));
 }
 
 void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   
-   //QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
-   //// parse arguments
-   //PJsonVal SchemaVal = TNodeJsUtil::GetArgJson(Args, 0);
-   //uint64 DefStoreSize = (uint64)TNodeJsUtil::GetArgInt32(Args, 1, 1024);
-   //DefStoreSize = DefStoreSize * TInt::Mega;
-   //// create new stores
-   //TVec<TWPt<TQm::TStore> > NewStoreV = TQm::TStorage::CreateStoresFromSchema(
-	  // Base, SchemaVal, DefStoreSize);
-   //// return store (if only one) or array of stores (if more)
-   //if (NewStoreV.Len() == 1) {
-	  // Args.GetReturnValue().Set(TNodeJsStore::New(NewStoreV[0]));
-   //}
-   //else if (NewStoreV.Len() > 1) {
-	  // v8::Local<v8::Array> JsNewStoreV = v8::Array::New(Isolate, NewStoreV.Len());
-	  // for (int NewStoreN = 0; NewStoreN < NewStoreV.Len(); NewStoreN++) {
-		 //  JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
-			//   TNodeJsStore::New(NewStoreV[NewStoreN]));
-	  // }
-   //}
-   //Args.GetReturnValue().Set(v8::Null(Isolate));
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TWPt<TQm::TBase> Base = JsBase->Base;
+   QmAssertR(!Base->IsRdOnly(), "Base opened as read-only");
+   // parse arguments
+   PJsonVal SchemaVal = TNodeJsUtil::GetArgJson(Args, 0);
+   uint64 DefStoreSize = (uint64)TNodeJsUtil::GetArgInt32(Args, 1, 1024);
+   DefStoreSize = DefStoreSize * TInt::Mega;
+   // create new stores
+   TVec<TWPt<TQm::TStore> > NewStoreV = TQm::TStorage::CreateStoresFromSchema(
+	   Base, SchemaVal, DefStoreSize);
+   // return store (if only one) or array of stores (if more)
+   if (NewStoreV.Len() == 1) {
+	   Args.GetReturnValue().Set(TNodeJsStore::New(NewStoreV[0]));
+   }
+   else if (NewStoreV.Len() > 1) {
+	   v8::Local<v8::Array> JsNewStoreV = v8::Array::New(Isolate, NewStoreV.Len());
+	   for (int NewStoreN = 0; NewStoreN < NewStoreV.Len(); NewStoreN++) {
+		   JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
+			   TNodeJsStore::New(NewStoreV[NewStoreN]));
+	   }
+   }
+   Args.GetReturnValue().Set(v8::Null(Isolate));
 }
 
 void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -281,7 +285,8 @@ void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	   // execute the query
 	   TQm::PRecSet RecSet = JsBase->Base->Search(QueryStr);
 	   // return results
-	   //return TNodeJsRecSet::New(JsBase->Js, RecSet);
+	   Args.GetReturnValue().Set(TNodeJsRecSet::New(RecSet));
+	   return;
    }
    catch (const PExcept& Except) {
 	   TQm::InfoLog("[except] " + Except->GetMsgStr());
@@ -577,7 +582,17 @@ void TNodeJsStore::newRecSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+	if (Args.Length() > 0) {
+		// argument 0 = TJsIntV of record ids
+		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, "TIntV"),
+			"Store.getRecSetByIdV: The first argument must be a TIntV (js linalg full int vector)");
+		//TNodeJsVec<TInt, TAuxIntV>* JsVecArg
+		//TNodeJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
+		//PRecSet ResultSet = TRecSet::New(JsStore->Store, JsVec->Vec);
+		//return TJsRecSet::New(JsStore->Js, ResultSet);
+		return;
+	}
+	Args.GetReturnValue().Set(TNodeJsRecSet::New());	
 }
 
 void TNodeJsStore::sample(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1326,6 +1341,18 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 }
 
+v8::Local<v8::Object> TNodeJsRecSet::New() {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	TNodeJsRecSet* JsRecSet = new TNodeJsRecSet();
+	JsRecSet->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
 v8::Local<v8::Object> TNodeJsRecSet::New(const TQm::PRecSet& RecSet) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
@@ -1915,6 +1942,11 @@ void init(v8::Handle<v8::Object> exports) {
    TNodeJsStore::Init(exports);
    TNodeJsRec::Init(exports);
    TNodeJsRecSet::Init(exports);
+   // LA
+   TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+   TNodeJsFltVV::Init(exports);
+   TNodeJsSpVec::Init(exports);
+   TNodeJsSpMat::Init(exports);
 }
 
 NODE_MODULE(qm, init)

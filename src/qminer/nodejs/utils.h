@@ -19,7 +19,7 @@
             throw Except; \
          } */ \
 	   } \
-	}
+	};
 
 #define JsDeclareSetProperty(GetFunction, SetFunction) \
 	static void GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
@@ -43,7 +43,7 @@
             Isolate->ThrowException(v8::Exception::TypeError( \
                v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
 		} \
-	}
+	};
 
 #define JsDeclareFunction(Function) \
    static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args); \
@@ -53,14 +53,12 @@
       try { \
          Function(Args); \
       } catch (const PExcept& Except) { \
-	     /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
 	     Isolate->ThrowException(v8::Exception::TypeError(\
 		 v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
-	     /* } else { \
-	     throw Except; \
-	     } */ \
 	  } \
-   }
+   }; 
+
+   
 
 
 
