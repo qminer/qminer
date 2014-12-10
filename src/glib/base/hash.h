@@ -1013,6 +1013,7 @@ public:
   void Put(const TKey& Key, const TDat& Dat);
   bool Get(const TKey& Key, TDat& Dat);
   void Del(const TKey& Key, const bool& DoEventCall=true);
+  int Len() const { return KeyDatH.Len(); }
   void Flush();
   void FlushAndClr();
   void* FFirstKeyDat();

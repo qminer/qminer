@@ -2296,6 +2296,8 @@ public:
 
 	/// Save debug statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
+	/// Save debug statistics to a file - index cache
+	void SaveCacheTxt(const TWPt<TBase>& Base, const TStr& FNm);
 };
 
 ///////////////////////////////
@@ -2799,6 +2801,7 @@ public:
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);
 	void PrintIndex(const TStr& FNm, const bool& SortP);
+	void PrintIndexCache(const TStr& FNm);
 };
 
 } // namespace

@@ -279,7 +279,7 @@ public:
 	}
 
 	friend class TPt < TGixItemSet > ;
-	friend class TGix<TKey, TItem, TGixMerger>;
+	friend class TGix < TKey, TItem, TGixMerger > ;
 
 #ifdef GIX_TEST
 	friend class XTest;
@@ -725,23 +725,6 @@ private:
 	/// Maximal length for child vectors
 	int SplitLenMax;
 
-#ifdef _DEBUG
-	/// print simple statistics for cache
-	void PrintStats() {
-		int all = 0;
-		int dirty = 0;
-		TBlobPt BlobPt;
-		PGixItemSet ItemSet;
-		void* KeyDatP = ItemSetCache.FFirstKeyDat();
-		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) {
-			all++;
-			if (ItemSet->Dirty)
-				dirty++;
-		}
-		printf(".... gix cache unload - all=%d dirty=%d \n", all, dirty);
-	}
-#endif
-
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
@@ -819,6 +802,12 @@ public:
 
 	/// print statistics for index keys
 	void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
+#ifdef _DEBUG
+	/// export cache
+	void SaveCacheTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
+	/// print simple statistics for cache
+	void PrintStats();
+#endif
 
 	friend class TPt < TGix > ;
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
@@ -934,7 +923,7 @@ TBlobPt TGix<TKey, TItem, TGixMerger>::EnlistItemSet(const PGixItemSet& ItemSet)
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) {
 	AssertReadOnly(); // check if we are allowed to write
-	if (IsKey(Key)) { 		
+	if (IsKey(Key)) {
 		// get the key handle
 		TBlobPt KeyId = KeyIdH.GetDat(Key);
 		// load the current item set
@@ -953,7 +942,7 @@ void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) 
 	//// load the current item set
 	//PGixItemSet ItemSet = GetItemSet(Key);
 	//ItemSet->AddItem(Item);
-	
+
 	// check if we have to drop anything from the cache
 	RefreshMemUsed();
 }
@@ -1045,6 +1034,49 @@ void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& K
 	}
 	printf("Done: %d / %d\n", Keys, Keys);
 }
+
+#ifdef _DEBUG
+
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::SaveCacheTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
+	TFOut FOut(FNm);
+	// iterate over all the keys
+	printf("Starting Gix cache save\n");
+
+	int KeyN = 0;
+	int Keys = ItemSetCache.Len();
+	TBlobPt BlobPt;
+	PGixItemSet ItemSet;
+	void* KeyDatP = ItemSetCache.FFirstKeyDat();
+	while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) {
+		if (KeyN % 1000 == 0) { printf("%d / %d\r", KeyN, Keys); } KeyN++;
+		// get statistics
+		TStr KeyNm = KeyStr->GetKeyNm(ItemSet->GetKey());
+		const int Items = ItemSet->GetItems();
+		const int MemUsed = ItemSet->GetMemUsed();
+		// output statistics
+		FOut.PutStrFmtLn("%s\t%d\t%d\t%s", KeyNm.CStr(), Items, MemUsed, (ItemSet->Dirty ? "dirty" : "clean"));
+	}
+	printf("Done: %d / %d\n", KeyN, Keys);
+}
+
+/// print simple statistics for cache
+template <class TKey, class TItem, class TGixMerger>
+void TGix<TKey, TItem, TGixMerger>::PrintStats() {
+	int all = 0;
+	int dirty = 0;
+	TBlobPt BlobPt;
+	PGixItemSet ItemSet;
+	void* KeyDatP = ItemSetCache.FFirstKeyDat();
+	while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) {
+		all++;
+		if (ItemSet->Dirty)
+			dirty++;
+	}
+	printf(".... gix cache unload - all=%d dirty=%d \n", all, dirty);
+}
+
+#endif
 
 /// for storing vectors to blob
 template <class TKey, class TItem, class TGixMerger>

@@ -3961,6 +3961,10 @@ void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
 	Gix->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
 }
 
+void TIndex::SaveCacheTxt(const TWPt<TBase>& Base, const TStr& FNm) {
+	Gix->SaveCacheTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
+}
+
 ///////////////////////////////
 // QMiner-Temporary-Index
 void TTempIndex::NewIndex(const PIndexVoc& IndexVoc) {
@@ -4926,6 +4930,10 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 			FOut.PutStrLn(StrPool->GetStr(StrId));
 		}
 	}
+}
+
+void TBase::PrintIndexCache(const TStr& FNm) {
+	Index->SaveCacheTxt(this, FNm);
 }
 
 }
