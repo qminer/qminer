@@ -1278,8 +1278,52 @@ void TNodeJsRec::sjoin(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 v8::Persistent<v8::Function> TNodeJsRecSet::constructor;
 
 void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
-	// TODO
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "rs"));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all prototype methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clone", _clone);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "join", _join);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "aggr", _aggr);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", _trunc);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sample", _sample);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", _shuffle);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "revers", _reverse);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortById", _sortById);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByFq", _sortByFq);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByField", _sortByField);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "filterById", _filterById);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByFq", _filterByFq);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "filterByField", _filterByField);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "filter", _filter);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "split", _split);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "deleteRecs", _deleteRecs);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "each", _each);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "map", _map);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setintersect", _setintersect);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setunion", _setunion);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setdiff", _setdiff);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getVec", _getVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getMat", _getMat);
+
+	// Properties 
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "empty"), _empty);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weighted"), _weighted);
+	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "indexId"), _indexId);
+
+	// This has to be last, otherwise the properties won't show up on the
+	// object in JavaScript.
+	constructor.Reset(Isolate, tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "rs"),
+		tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsRecSet::New(const TQm::PRecSet& RecSet) {
@@ -1294,12 +1338,574 @@ v8::Local<v8::Object> TNodeJsRecSet::New(const TQm::PRecSet& RecSet) {
 	return HandleScope.Escape(Instance);
 }
 
+void TNodeJsRecSet::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	if (Args.IsConstructCall()) {
+		TNodeJsRecSet* JsRecSet = new TNodeJsRecSet();
+		v8::Local<v8::Object> Instance = Args.This();
+		JsRecSet->Wrap(Instance);
+		Args.GetReturnValue().Set(Instance);
+		return;
+	}
+	else {
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+		v8::Local<v8::Object> Instance = cons->NewInstance();
+		Args.GetReturnValue().Set(Instance);
+		return;
+	}
+}
+
 TNodeJsRecSet* TNodeJsRecSet::GetJsRecSet(v8::Local<v8::Object> RecSetObj) {
 	QmAssertR(RecSetObj->IsObject(), "Argument is not an object!");
 	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RecSetObj->GetInternalField(0));
 	return static_cast<TNodeJsRecSet*>(WrappedObject->Value());
 }
 
+void TNodeJsRecSet::clone(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet = JsRecSet->RecSet->Clone();
+	//return TJsRecSet::New(JsRecSet->Js, RecSet);
+}
+
+void TNodeJsRecSet::join(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//TStr JoinNm = TJsRecSetUtil::GetArgStr(Args, 0);
+	//const int SampleSize = TJsRecSetUtil::GetArgInt32(Args, 1, -1);
+	//PRecSet RecSet = JsRecSet->RecSet->DoJoin(JsRecSet->Js->Base, JoinNm, SampleSize);
+	//return TJsRecSet::New(JsRecSet->Js, RecSet);
+}
+void TNodeJsRecSet::aggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//if (Args.Length() == 0) {
+	//	// asking for existing aggregates
+	//	PJsonVal AggrVal = JsRecSet->RecSet->GetAggrJson();
+	//	return HandleScope.Close(TJsUtil::ParseJson(AggrVal));
+	//}
+	//else {
+	//	// parameters for computing new aggregate
+	//	PRecSet RecSet = JsRecSet->RecSet;
+	//	PJsonVal AggrVal = TJsRecSetUtil::GetArgJson(Args, 0);
+	//	const TWPt<TBase>& Base = JsRecSet->Js->Base;
+	//	const TWPt<TStore>& Store = JsRecSet->RecSet->GetStore();
+	//	TQueryAggrV QueryAggrV; TQueryAggr::LoadJson(Base, Store, AggrVal, QueryAggrV);
+	//	// if recset empty, not much to do
+	//	if (RecSet->Empty()) { HandleScope.Close(v8::Null()); }
+	//	// compute new aggregates
+	//	v8::Local<v8::Array> AggrValV = v8::Array::New(QueryAggrV.Len());
+	//	for (int QueryAggrN = 0; QueryAggrN < QueryAggrV.Len(); QueryAggrN++) {
+	//		const TQueryAggr& QueryAggr = QueryAggrV[QueryAggrN];
+	//		// compute aggregate
+	//		PAggr Aggr = TAggr::New(Base, RecSet, QueryAggr);
+	//		// serialize to json
+	//		AggrValV->Set(QueryAggrN, TJsUtil::ParseJson(Aggr->SaveJson()));
+	//	}
+	//	// return aggregates
+	//	if (AggrValV->Length() == 1) {
+	//		// if only one, return as object
+	//		if (AggrValV->Get(0)->IsObject()) {
+	//			return AggrValV->Get(0);
+	//		}
+	//		else {
+	//			return HandleScope.Close(v8::Null());
+	//		}
+	//	}
+	//	else {
+	//		// otherwise return as array
+	//		if (AggrValV->IsArray()) {
+	//			return HandleScope.Close(AggrValV);
+	//		}
+	//		else {
+	//			return HandleScope.Close(v8::Null());
+	//		}
+	//	}
+	//}
+}
+
+void TNodeJsRecSet::trunc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//if (Args.Length() == 1) {
+	//	const int Recs = TJsRecSetUtil::GetArgInt32(Args, 0);
+	//	JsRecSet->RecSet->Trunc(Recs);
+	//}
+	//else if (Args.Length() == 2) {
+	//	const int Limit = TJsRecSetUtil::GetArgInt32(Args, 0);
+	//	const int Offset = TJsRecSetUtil::GetArgInt32(Args, 1);
+	//	JsRecSet->RecSet = JsRecSet->RecSet->GetLimit(Limit, Offset);
+	//}
+	//else {
+	//	throw TQmExcept::New("Unsupported number of arguments to RecSet.trunc()");
+	//}
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::sample(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const int SampleSize = TJsRecSetUtil::GetArgInt32(Args, 0);
+	//PRecSet ResultSet = JsRecSet->RecSet->GetSampleRecSet(SampleSize, JsRecSet->RecSet->IsWgt());
+	//return New(JsRecSet->Js, ResultSet);
+}
+
+void TNodeJsRecSet::shuffle(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const int RndSeed = TJsRecSetUtil::GetArgInt32(Args, 0, 0);
+	//TRnd Rnd(RndSeed);
+	//JsRecSet->RecSet->Shuffle(Rnd);
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::reverse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//JsRecSet->RecSet->Reverse();
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::sortById(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 0, 0) > 0);
+	//JsRecSet->RecSet->SortById(Asc);
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::sortByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 0, 0) > 0);
+	//JsRecSet->RecSet->SortByFq(Asc);
+	//return Args.Holder();
+}
+void TNodeJsRecSet::sortByField(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const TStr SortFieldNm = TJsRecSetUtil::GetArgStr(Args, 0);
+	//const int SortFieldId = JsRecSet->Store->GetFieldId(SortFieldNm);
+	//const bool Asc = (TJsRecSetUtil::GetArgInt32(Args, 1, 0) > 0);
+	//JsRecSet->RecSet->SortByField(Asc, SortFieldId);
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//QmAssertR(Args.Length() == 1, "sort(..) expects one argument.");
+	//v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);
+	//for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
+	//	JsRecSet->RecSet->PutRecFq(i, i);
+	//}
+	//JsRecSet->RecSet->SortCmp(TJsRecCmp(JsRecSet->Js, JsRecSet->Store, CmpFun));
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::filterById(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//if (Args.Length() == 1) {
+	//	// we expect an array of IDs which we filter out
+	//	PJsonVal ParamVal = TJsRecSetUtil::GetArgJson(Args, 0);
+	//	if (!ParamVal->IsArr()) {
+	//		throw TQmExcept::New("Expected Array.");
+	//	}
+	//	TUInt64Set RecIdSet;
+	//	for (int ArrValN = 0; ArrValN < ParamVal->GetArrVals(); ArrValN++) {
+	//		PJsonVal Val = ParamVal->GetArrVal(ArrValN);
+	//		uint64 RecId = (uint64)Val->GetNum();
+	//		RecIdSet.AddKey(RecId);
+	//	}
+	//	JsRecSet->RecSet->FilterByRecIdSet(RecIdSet);
+	//}
+	//else if (Args.Length() == 2) {
+	//	// we expect min and max ID
+	//	const int MnRecId = TJsRecSetUtil::GetArgInt32(Args, 0);
+	//	const int MxRecId = TJsRecSetUtil::GetArgInt32(Args, 1);
+	//	JsRecSet->RecSet->FilterByRecId((uint64)MnRecId, (uint64)MxRecId);
+	//}
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const int MnFq = TJsRecSetUtil::GetArgInt32(Args, 0);
+	//const int MxFq = TJsRecSetUtil::GetArgInt32(Args, 1);
+	//JsRecSet->RecSet->FilterByFq(MnFq, MxFq);
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//// get field
+	//const TStr FieldNm = TJsRecSetUtil::GetArgStr(Args, 0);
+	//const int FieldId = JsRecSet->Store->GetFieldId(FieldNm);
+	//const TFieldDesc& Desc = JsRecSet->Store->GetFieldDesc(FieldId);
+	//// parse filter according to field type
+	//if (Desc.IsInt()) {
+	//	const int MnVal = TJsRecSetUtil::GetArgInt32(Args, 1);
+	//	const int MxVal = TJsRecSetUtil::GetArgInt32(Args, 2);
+	//	JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
+	//}
+	//else if (Desc.IsStr() && TJsRecSetUtil::IsArgStr(Args, 1)) {
+	//	TStr StrVal = TJsRecSetUtil::GetArgStr(Args, 1);
+	//	JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
+	//}
+	//else if (Desc.IsFlt()) {
+	//	const double MnVal = TJsRecSetUtil::GetArgFlt(Args, 1);
+	//	const double MxVal = TJsRecSetUtil::GetArgFlt(Args, 2);
+	//	JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
+	//}
+	//else if (Desc.IsTm()) {
+	//	const TStr MnTmStr = TJsRecSetUtil::GetArgStr(Args, 1);
+	//	const uint64 MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
+	//	if (TJsRecSetUtil::IsArg(Args, 2)) {
+	//		// we have upper limit
+	//		const TStr MxTmStr = TJsRecSetUtil::GetArgStr(Args, 2);
+	//		const uint64 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
+	//		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
+	//	}
+	//	else {
+	//		// we do not have upper limit
+	//		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, TUInt64::Mx);
+	//	}
+	//}
+	//else {
+	//	throw TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
+	//}
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//QmAssertR(Args.Length() == 1, "filter(..) expects one argument.");
+	//v8::Persistent<v8::Function> FilterFun = TJsRecSetUtil::GetArgFunPer(Args, 0);
+	//JsRecSet->RecSet->FilterBy(TJsRecFilter(JsRecSet->Js, JsRecSet->Store, FilterFun));
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::split(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//QmAssertR(Args.Length() == 1, "split(..) expects one argument.");
+	//v8::Persistent<v8::Function> SplitterFun = TJsRecSetUtil::GetArgFunPer(Args, 0);
+	//TRecSetV RecSetV = JsRecSet->RecSet->SplitBy(TJsRecSplitter(JsRecSet->Js, JsRecSet->Store, SplitterFun));
+	//// prepare result array
+	//v8::Local<v8::Array> JsRecSetV = v8::Array::New(RecSetV.Len());
+	//for (int RecSetN = 0; RecSetN < RecSetV.Len(); RecSetN++) {
+	//	JsRecSetV->Set(RecSetN, TJsRecSet::New(JsRecSet->Js, RecSetV[RecSetN]));
+	//}
+	//return HandleScope.Close(JsRecSetV);
+}
+
+void TNodeJsRecSet::deleteRecs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet = TJsRecSet::GetArgRecSet(Args, 0);
+	//TUInt64Set RecIdSet; RecSet->GetRecIdSet(RecIdSet);
+	//JsRecSet->RecSet->RemoveRecIdSet(RecIdSet);
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//const int MxHits = -1;
+	//const int Offset = 0;
+	//const bool JoinRecsP = TJsRecSetUtil::IsArg(Args, 0) ?
+	//	(TJsRecSetUtil::IsArgBool(Args, 0) ? TJsRecSetUtil::GetArgBool(Args, 0, false) : false) : false;
+	//const bool JoinRecFieldsP = TJsRecSetUtil::IsArg(Args, 1) ?
+	//	(TJsRecSetUtil::IsArgBool(Args, 1) ? TJsRecSetUtil::GetArgBool(Args, 1, false) : false) : false;
+	//const bool FieldsP = true;
+	//const bool AggrsP = false;
+	//const bool StoreInfoP = false;
+	//PJsonVal JsObj = JsRecSet->RecSet->GetJson(JsRecSet->Js->Base,
+	//	MxHits, Offset, FieldsP, AggrsP, StoreInfoP, JoinRecsP, JoinRecFieldsP);
+	//return HandleScope.Close(TJsUtil::ParseJson(JsObj));
+}
+void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet = JsRecSet->RecSet;
+	//QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "each: Argument 0 is not a function!");
+	//v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
+	//// iterate through the recset
+	//const int Recs = RecSet->GetRecs();
+	//if (Recs > 0) {
+	//	// prepare record placeholder
+	//	v8::Persistent<v8::Object> RecArg = TJsRec::New(JsRecSet->Js,
+	//		RecSet->GetRec(0), RecSet->GetRecFq(0), false);
+	//	TJsRec* JsRec = TJsRec::GetJsRec(RecArg);
+	//	// go over the record set
+	//	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+	//		JsRec->Rec = RecSet->GetRec(RecIdN);
+	//		JsRec->Fq = RecSet->GetRecFq(RecIdN);
+	//		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
+	//		// execute callback
+	//		JsRecSet->Js->Execute(CallbackFun, RecArg, IdxArg);
+	//	}
+	//	TJsObjUtil<TJsRec>::MakeWeak(RecArg);
+	//}
+	//return Args.Holder();
+}
+
+void TNodeJsRecSet::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet = JsRecSet->RecSet;
+	//QmAssertR(TJsRecSetUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
+	//v8::Handle<v8::Function> CallbackFun = TJsRecSetUtil::GetArgFun(Args, 0);
+	//// create a new array for storing the results
+	//const int Recs = RecSet->GetRecs();
+	//v8::Handle<v8::Array> ResultV = v8::Array::New(Recs);
+	//if (Recs > 0) {
+	//	// prepare record placeholder
+	//	v8::Persistent<v8::Object> RecArg = TJsRec::New(JsRecSet->Js,
+	//		RecSet->GetRec(0), RecSet->GetRecFq(0), false);
+	//	TJsRec* JsRec = TJsRec::GetJsRec(RecArg);
+	//	// iterate through the recset
+	//	for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+	//		JsRec->Rec = RecSet->GetRec(RecIdN);
+	//		JsRec->Fq = RecSet->GetRecFq(RecIdN);
+	//		v8::Handle<v8::Value> IdxArg = v8::Integer::New(RecIdN);
+	//		// execute callback
+	//		v8::Handle<v8::Value> Result = JsRecSet->Js->ExecuteV8(CallbackFun, RecArg, IdxArg);
+	//		// store in the new array
+	//		ResultV->Set(RecIdN, Result);
+	//	}
+	//	TJsObjUtil<TJsRec>::MakeWeak(RecArg);
+	//}
+	//return ResultV;
+}
+
+void TNodeJsRecSet::setintersect(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
+	//QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setintersect: the record sets do not point to the same store!");
+	//// Coputation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
+	//PRecSet RecSet2 = JsRecSet->RecSet->Clone();
+	//TUInt64Set RecIdSet;
+	//RecSet1->GetRecIdSet(RecIdSet);
+	////second parameter in filter is false -> keep only records in RecIdSet
+	//TRecFilterByRecIdSet Filter(RecIdSet, true);
+	//RecSet2->FilterBy(Filter);
+	//return HandleScope.Close(TJsRecSet::New(JsRecSet->Js, RecSet2));
+}
+
+void TNodeJsRecSet::setunion(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
+	//QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setunion: the record sets do not point to the same store!");
+	//// GetMerge sorts the argument!
+	//PRecSet RecSet1Clone = RecSet1->Clone();
+	//PRecSet RecSet2 = JsRecSet->RecSet->GetMerge(RecSet1Clone);
+	//return HandleScope.Close(TJsRecSet::New(JsRecSet->Js, RecSet2));
+}
+
+void TNodeJsRecSet::setdiff(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet1 = TJsRecSet::GetArgRecSet(Args, 0);
+	//QmAssertR(JsRecSet->Store->GetStoreId() == RecSet1->GetStoreId(), "recset.setdiff: the record sets do not point to the same store!");
+	//// Computation: clone RecSet, get RecIdSet of RecSet1 and filter by it's complement
+	//PRecSet RecSet2 = JsRecSet->RecSet->Clone();
+	//TUInt64Set RecIdSet;
+	//RecSet1->GetRecIdSet(RecIdSet);
+	////second parameter in filter is false -> keep only records NOT in RecIdSet
+	//RecSet2->FilterBy(TRecFilterByRecIdSet(RecIdSet, false));
+	//return HandleScope.Close(TJsRecSet::New(JsRecSet->Js, RecSet2));
+}
+
+void TNodeJsRecSet::getVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet = JsRecSet->RecSet;
+	//TWPt<TStore> Store = RecSet->GetStore();
+	//const TStr FieldNm = TJsRecSetUtil::GetArgStr(Args, 0);
+	//const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
+	//int Recs = (int)JsRecSet->RecSet->GetRecs();
+	//const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+
+	//if (Desc.IsInt()) {
+	//	TIntV ColV(Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV[RecN] = Store->GetFieldInt(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsIntV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsUInt64()) {
+	//	TFltV ColV(Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV[RecN] = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	//}
+
+	//else if (Desc.IsStr()) {
+	//	TStrV ColV(Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV[RecN] = Store->GetFieldStr(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsStrV::New(JsRecSet->Js, ColV));
+	//}
+
+	//else if (Desc.IsBool()) {
+	//	TIntV ColV(Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV[RecN] = (int)Store->GetFieldBool(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsIntV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsFlt()) {
+	//	TFltV ColV(Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV[RecN] = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsTm()) {
+	//	TFltV ColV(Recs);
+	//	TTm Tm;
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
+	//		ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+	//	}
+	//	return HandleScope.Close(TJsFltV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsFltV()) {
+	//	throw TQmExcept::New("rs.getVec does not support type float_v - use store.getMat instead");
+	//}
+	//else if (Desc.IsNumSpV()) {
+	//	throw TQmExcept::New("rs.getVec does not support type num_sp_v - use store.getMat instead");
+	//}
+	//throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+}
+
+void TNodeJsRecSet::getMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+	//PRecSet RecSet = JsRecSet->RecSet;
+	//TWPt<TStore> Store = RecSet->GetStore();
+	//const TStr FieldNm = TJsRecSetUtil::GetArgStr(Args, 0);
+	//const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
+	//int Recs = (int)JsRecSet->RecSet->GetRecs();
+	//const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+
+	//if (Desc.IsInt()) {
+	//	TFltVV ColV(1, Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV(0, RecN) = (double)Store->GetFieldInt(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsUInt64()) {
+	//	TFltVV ColV(1, Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV(0, RecN) = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsBool()) {
+	//	TFltVV ColV(1, Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV(0, RecN) = (double)Store->GetFieldBool(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsFlt()) {
+	//	TFltVV ColV(1, Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		ColV(0, RecN) = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+	//	}
+	//	return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsTm()) {
+	//	TFltVV ColV(1, Recs);
+	//	TTm Tm;
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
+	//		ColV(0, RecN) = (double)TTm::GetMSecsFromTm(Tm);
+	//	}
+	//	return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsFltV()) {
+	//	TFltV Vec;
+	//	Store->GetFieldFltV(RecSet()->GetRecId(0), FieldId, Vec);
+	//	TFltVV ColV(Vec.Len(), Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		Store->GetFieldFltV(RecSet()->GetRecId(RecN), FieldId, Vec);
+	//		QmAssertR(Vec.Len() == ColV.GetRows(), TStr::Fmt("store.getCol for field type fltvec: dimensions are not consistent! %d expected, %d found in row %d", ColV.GetRows(), Vec.Len(), RecN));
+	//		ColV.SetCol(RecN, Vec);
+	//	}
+	//	return HandleScope.Close(TJsFltVV::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsNumSpV()) {
+	//	TVec<TIntFltKdV> ColV(Recs);
+	//	for (int RecN = 0; RecN < Recs; RecN++) {
+	//		Store->GetFieldNumSpV(RecSet()->GetRecId(RecN), FieldId, ColV[RecN]);
+	//	}
+	//	return HandleScope.Close(TJsSpMat::New(JsRecSet->Js, ColV));
+	//}
+	//else if (Desc.IsStr()) {
+	//	throw TQmExcept::New("store.getMat does not support type string - use store.getVec instead");
+	//}
+	//throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+}
+
+void TNodeJsRecSet::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
+	//const TWPt<TStore>& Store = JsRecSet->RecSet->GetStore();
+	//return HandleScope.Close(TJsStore::New(JsRecSet->Js, Store));
+}
+
+void TNodeJsRecSet::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
+	//v8::Local<v8::Integer> Recs = v8::Integer::New(JsRecSet->RecSet->GetRecs());
+	//return HandleScope.Close(Recs);
+}
+
+void TNodeJsRecSet::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
+	//v8::Handle<v8::Boolean> IsEmpty = v8::Boolean::New(JsRecSet->RecSet->Empty());
+	//return HandleScope.Close(IsEmpty);
+}
+
+void TNodeJsRecSet::weighted(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	//v8::HandleScope HandleScope;
+	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
+	//v8::Handle<v8::Boolean> IsWgt = v8::Boolean::New(JsRecSet->RecSet->IsWgt());
+	//return HandleScope.Close(IsWgt);
+}
+
+// TODO figure out the indexed properties
+//void TNodeJsRecSet::indexId(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+//	v8::HandleScope HandleScope;
+//	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
+//	const int RecN = Index;
+//	if (0 <= RecN && RecN < JsRecSet->RecSet->GetRecs()) {
+//		const uint64 RecId = JsRecSet->RecSet->GetRecId(RecN);
+//		if (JsRecSet->Store->IsRecId(RecId)) {
+//			return TJsRec::New(JsRecSet->Js, JsRecSet->RecSet->GetRec(RecN), JsRecSet->RecSet->GetRecFq(RecN));
+//		}
+//		else {
+//			return HandleScope.Close(v8::Null());
+//		}
+//	}
+//	else {
+//		return HandleScope.Close(v8::Null());
+//	}
+//}
 
 ///////////////////////////////
 // Register functions, etc.  
@@ -1308,6 +1914,7 @@ void init(v8::Handle<v8::Object> exports) {
    TNodeJsBase::Init(exports);   
    TNodeJsStore::Init(exports);
    TNodeJsRec::Init(exports);
+   TNodeJsRecSet::Init(exports);
 }
 
 NODE_MODULE(qm, init)

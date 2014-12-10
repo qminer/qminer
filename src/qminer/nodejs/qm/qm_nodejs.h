@@ -11,10 +11,13 @@
 ///////////////////////////////
 // NodeJs-Qminer
 // A factory of base objects
+// The only part of node framework: Init
 class TNodeJsQm : public node::ObjectWrap {
 public:
+	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
-public:
+
+private:
 	//# 
 	//# **Functions and properties:**
 	//# 
@@ -38,17 +41,16 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object
 	static v8::Local<v8::Object> New(TQm::PBase _Base);
-public:
 	// C++ constructors
 	TNodeJsBase() { }
 	TNodeJsBase(TQm::PBase _Base) : Base(_Base) { }
-public:
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 public:
-	// C++ internal data
+	// C++ wrapped object
 	TQm::PBase Base;
-public:
+
+private:
 	//# 
 	//# **Functions and properties:**
 	//# 
@@ -101,7 +103,7 @@ public:
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 public:
-	// C++ internal data
+	// C++ wrapped object
 	TWPt<TQm::TStore> Store;
 
 private:
@@ -179,8 +181,6 @@ private:
 	//#JSIMPLEMENT:src/qminer/store.js
 };
 
-
-
 ///////////////////////////////
 // NodeJs-Qminer-Rec
 class TNodeJsRec: public node::ObjectWrap {
@@ -200,7 +200,7 @@ public:
 	// Unwrapping C++ object
 	static TNodeJsRec* GetJsRec(v8::Local<v8::Object> RecObj);
 public:
-	// C++ internal data
+	// C++ wrapped object
 	TQm::TRec Rec;	
 
 private:
@@ -238,18 +238,100 @@ private:
 ///////////////////////////////
 // NodeJs-Qminer-Record-Set
 class TNodeJsRecSet: public node::ObjectWrap {
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
 public:
-	TQm::PRecSet RecSet;
-public:
+	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
+	// Wrapping C++ object	
 	static v8::Local<v8::Object> New(const TQm::PRecSet& Rec);
-public:
+	// C++ constructors
+	TNodeJsRecSet() {}
 	TNodeJsRecSet(const TQm::PRecSet& _RecSet) : RecSet(_RecSet) {}
+	// Node framework (constructor method)
+	JsDeclareFunction(New);
+	// Unwrapping C++ object
 	static TNodeJsRecSet* GetJsRecSet(v8::Local<v8::Object> RecObj);
-
+public:
+	// C++ wrapped object
+	TQm::PRecSet RecSet;
 
 private:
-	static v8::Persistent<v8::Function> constructor;
+	//# 
+	//# **Functions and properties:**
+	//#   
+	//#- `rs2 = rs.clone()` -- creates new instance of record set
+	JsDeclareFunction(clone);
+	//#- `rs2 = rs.join(joinName)` -- executes a join `joinName` on the records in the set, result is another record set `rs2`.
+	//#- `rs2 = rs.join(joinName, sampleSize)` -- executes a join `joinName` on a sample of `sampleSize` records in the set, result is another record set `rs2`.
+	JsDeclareFunction(join);
+	//#- `aggrsJSON = rs.aggr()` -- returns an object where keys are aggregate names and values are JSON serialized aggregate values of all the aggregates contained in the records set
+	//#- `aggr = rs.aggr(aggrQueryJSON)` -- computes the aggregates based on the `aggrQueryJSON` parameter JSON object. If only one aggregate is involved and an array of JSON objects when more than one are returned.
+	JsDeclareFunction(aggr);
+	//#- `rs = rs.trunc(limit_num)` -- truncate to first `limit_num` record and return self.
+	//#- `rs = rs.trunc(limit_num, offset_num)` -- truncate to `limit_num` record starting with `offset_num` and return self.
+	JsDeclareFunction(trunc);
+	//#- `rs2 = rs.sample(num)` -- create new record set by randomly sampling `num` records.
+	JsDeclareFunction(sample);
+	//#- `rs = rs.shuffle(seed)` -- shuffle order using random integer seed `seed`. Returns self.
+	JsDeclareFunction(shuffle);
+	//#- `rs = rs.reverse()` -- reverse record order. Returns self.
+	JsDeclareFunction(reverse);
+	//#- `rs = rs.sortById(asc)` -- sort records according to record id; if `asc > 0` sorted in ascending order. Returns self.
+	JsDeclareFunction(sortById);
+	//#- `rs = rs.sortByFq(asc)` -- sort records according to weight; if `asc > 0` sorted in ascending order. Returns self.
+	JsDeclareFunction(sortByFq);
+	//#- `rs = rs.sortByField(fieldName, asc)` -- sort records according to value of field `fieldName`; if `asc > 0` sorted in ascending order. Returns self.
+	JsDeclareFunction(sortByField);
+	//#- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
+	JsDeclareFunction(sort);
+	//#- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
+	JsDeclareFunction(filterById);
+	//#- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
+	JsDeclareFunction(filterByFq);
+	//#- `rs = rs.filterByField(fieldName, minVal, maxVal)` -- keeps only records with numeric value of field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, minTm, maxTm)` -- keeps only records with value of time field `fieldName` between `minVal` and `maxVal`. Returns self.
+	//#- `rs = rs.filterByField(fieldName, str)` -- keeps only records with string value of field `fieldName` equal to `str`. Returns self.
+	JsDeclareFunction(filterByField);
+	//#- `rs = rs.filter(filterCallback)` -- keeps only records that pass `filterCallback` function. Returns self.
+	JsDeclareFunction(filter);
+	//#- `rsArr = rs.split(splitterCallback)` -- split records according to `splitter` callback. Example: rs.split(function(rec,rec2) {return (rec2.Val - rec2.Val) > 10;} ) splits rs in whenever the value of field Val increases for more than 10. Result is an array of record sets. 
+	JsDeclareFunction(split);
+	//#- `rs = rs.deleteRecs(rs2)` -- delete from `rs` records that are also in `rs2`. Returns self.
+	JsDeclareFunction(deleteRecs);
+	//#- `objsJSON = rs.toJSON()` -- provide json version of record set, useful when calling JSON.stringify
+	JsDeclareFunction(toJSON);
+	//#- `rs = rs.each(callback)` -- iterates through the record set and executes the callback function `callback` on each element. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Returns self. Examples:
+	//#  - `rs.each(function (rec) { console.log(JSON.stringify(rec)); })`
+	//#  - `rs.each(function (rec, idx) { console.log(JSON.stringify(rec) + ', ' + idx); })`
+	JsDeclareFunction(each);
+	//#- `arr = rs.map(callback)` -- iterates through the record set, applies callback function `callback` to each element and returns new array with the callback outputs. Same record JavaScript wrapper is used for all callback; to save record, make a clone (`rec.$clone()`). Examples:
+	//#  - `arr = rs.map(function (rec) { return JSON.stringify(rec); })`
+	//#  - `arr = rs.map(function (rec, idx) {  return JSON.stringify(rec) + ', ' + idx; })`
+	JsDeclareFunction(map);
+	//#- `rs3 = rs.setintersect(rs2)` -- returns the intersection (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	JsDeclareFunction(setintersect);
+	//#- `rs3 = rs.setunion(rs2)` -- returns the union (record set) `rs3` between two record sets `rs` and `rs2`, which should point to the same store.
+	JsDeclareFunction(setunion);
+	//#- `rs3 = rs.setdiff(rs2)` -- returns the set difference (record set) `rs3`=`rs`\`rs2`  between two record sets `rs` and `rs1`, which should point to the same store.
+	JsDeclareFunction(setdiff);
+	//#- `vec = rs.getVec(fieldName)` -- gets the `fieldName` vector - the corresponding field type must be one-dimensional, e.g. float, int, string,...
+	JsDeclareFunction(getVec);
+	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
+	JsDeclareFunction(getMat);
+
+	//#- `storeName = rs.store` -- store of the records
+	JsDeclareProperty(store);
+	//#- `len = rs.length` -- number of records in the set
+	JsDeclareProperty(length);
+	//#- `bool = rs.empty` -- `bool = true` when record set is empty
+	JsDeclareProperty(empty);
+	//#- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
+	JsDeclareProperty(weighted);
+	// TODO figure out the indexed properties
+	////#- `rec = rs[n]` -- return n-th record from the record set
+	//JsDeclIndexedProperty(indexId);
 };
 
 
