@@ -3,16 +3,25 @@
       {
          'target_name': 'snap',
          'sources': [
+			'../utils.h', #not necessary for build, but useful for visual studio solution
+			'../utils.cpp',
             'snap_nodejs.cpp',
-			'snap_nodejs.h' #not necessary for build, but useful for visual studio solution
+			'snap_nodejs.h', #not necessary for build, but useful for visual studio solution
+			'../la/la_nodejs.h', #not necessary for build, but useful for visual studio solution
+			'../la/la_nodejs.cpp'
          ],
+		 'defines': [
+			'MODULE_INCLUDE_LA'
+		],
          'include_dirs': [
 			'../../../glib/base/',
 			'../../../glib/mine/',
 			'../../../glib/misc/',
 			'../../../third_party/snap/snap-core',
 			'../../../third_party/snap/snap-adv',
-			'../../../third_party/snap/snap-exp'
+			'../../../third_party/snap/snap-exp',
+			'../../',
+			'../'
          ],
          'cflags_cc!': [
             '-fno-rtti',

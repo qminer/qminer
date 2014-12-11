@@ -1,4 +1,5 @@
 var snap = require('./build/Release/snap.node');
+//var snap = require('./build/Release/la.node');
 console.log('hello');
 snap.newDGraph = function() { return new snap.dgraph(); }
 var g1 = new snap.ugraph();
@@ -42,8 +43,8 @@ g3.addEdge(3, 4);
 g3.addEdge(4, 1);
 g3.addEdge(4, 2);
 
-g1.delNode(1);
-g2.delEdge(2,3);
+//g1.delNode(1);
+//g2.delEdge(2,3);
 
 console.log('nodes: '+g1+" "+g1.nodes);
 console.log('edges: '+g1+" "+ g1.edges);
@@ -65,15 +66,18 @@ console.log('degree of the node is: '+n.deg);
 for (var i=0; i<n.deg; i++) {
 	console.log('nbr ' + (i+1) +'. is ' +n.nbrId(i));
 }
-
-/*
-console.log('created g1 and g2');
-console.log('nodes: '+ g2.nodes());
-g1.addNode(1);
-g2.addNode(1);
-g3.addNode(1);
-console.log(g1);
-console.log('b');
-console.log('a');
-*/
-//console.log(g);
+var br=0;
+g1.eachEdge(function(E){ console.log(E.srcId+' - '+E.dstId);});
+g1.addNode(7);
+g1.addNode(8);
+g1.addEdge(7,8);
+var c = g1.components();
+n.eachNbr(function(id){console.log(id)});
+n = g2.node(1);
+n.eachInNbr(function(id){console.log(id)});
+n.eachOutNbr(function(id){console.log(id)});
+n.eachNbr(function(id){console.log(id)});
+n = g3.node(1);
+n.eachEdge(function(id){console.log(id)});
+n.eachInEdge(function(id){console.log(id)});
+n.eachOutEdge(function(id){console.log(id)});

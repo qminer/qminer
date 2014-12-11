@@ -8505,7 +8505,6 @@ namespace TQm {
 	template <class T>
 	v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
 		v8::HandleScope HandleScope;
-
 		TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
 
 		QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
