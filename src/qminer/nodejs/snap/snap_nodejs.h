@@ -120,6 +120,8 @@ public:
 	JsDeclareProperty(srcId);
 	//#- `id = edge.dstId` -- return id of destination node
 	JsDeclareProperty(dstId);
+	//#- `edge = edge.next()` -- return next edge
+	JsDeclareFunction(next);
 
 private:
 

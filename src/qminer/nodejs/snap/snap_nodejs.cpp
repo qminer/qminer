@@ -802,6 +802,7 @@ void TNodeJsEdge<T>::Init(v8::Handle<v8::Object> exports) {
 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "srcId"), _srcId);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dstId"), _dstId);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
 	exports->Set(v8::String::NewFromUtf8(Isolate, "edge"),
@@ -847,6 +848,15 @@ void TNodeJsEdge<T>::dstId(v8::Local<v8::String> Name, const v8::PropertyCallbac
 	TNodeJsEdge* JsEdge = ObjectWrap::Unwrap<TNodeJsEdge>(Info.Holder());
 	int id = JsEdge->Edge.GetDstNId();
 	Info.GetReturnValue().Set(v8::Number::New(Isolate, id));
+}
+
+template <class T>
+void TNodeJsEdge<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsEdge* JsEdge = ObjectWrap::Unwrap<TNodeJsEdge>(Args.Holder());
+	JsEdge->Edge++;
+	Args.GetReturnValue().Set(JsEdge);
 }
 
 ///////////////////////////////
