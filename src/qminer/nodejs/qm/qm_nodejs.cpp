@@ -1538,7 +1538,7 @@ void TNodeJsRecSet::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
 		JsRecSet->RecSet->PutRecFq(i, i);
 	}
-	JsRecSet->RecSet->SortCmp(TNodeJsRecCmp(JsRecSet->RecSet->GetStore(), Callback));
+	JsRecSet->RecSet->SortCmp(TJsRecPairFilter(JsRecSet->RecSet->GetStore(), Callback));
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
@@ -1971,26 +1971,140 @@ void TNodeJsRecSet::weighted(v8::Local<v8::String> Name, const v8::PropertyCallb
 //	}
 //}
 
+///////////////////////////////
+// TJsRecFilter
+bool TJsRecFilter::operator()(const TUInt64IntKd& RecIdWgt) const {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// prepare record objects - since they are local, they are safe from GC
+	v8::Local<v8::Object> JsRec = TNodeJsRec::New(TQm::TRec(Store, RecIdWgt.Key), RecIdWgt.Dat);
+
+	v8::Local<v8::Function> Callbck = v8::Local<v8::Function>::New(Isolate, Callback);
+	v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+	const unsigned Argc = 1;
+	v8::Local<v8::Value> ArgV[Argc] = { JsRec};
+	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
+
+	QmAssertR(ReturnVal->IsBoolean(), "Filter callback must return a boolean!");
+	return ReturnVal->BooleanValue();
+}
 
 ///////////////////////////////
-// JavaScript Record Comparator
-bool TNodeJsRecCmp::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
+// NodeJs-Qminer-Store-Iterator
+v8::Persistent<v8::Function> TNodeJsStoreIter::constructor;
+
+void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "storeIter"));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all prototype methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
+	
+	// Properties 
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rec"), _rec);
+	
+	// This has to be last, otherwise the properties won't show up on the
+	// object in JavaScript.
+	constructor.Reset(Isolate, tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "storeIter"),
+		tpl->GetFunction());
+}
+
+v8::Local<v8::Object> TNodeJsStoreIter::New(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	TNodeJsStoreIter* JsStoreIter = new TNodeJsStoreIter(_Store, _Iter);
+	JsStoreIter->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
+void TNodeJsStoreIter::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	if (Args.IsConstructCall()) {
+		TNodeJsStoreIter* JsStoreIter = new TNodeJsStoreIter();
+		v8::Local<v8::Object> Instance = Args.This();
+		JsStoreIter->Wrap(Instance);
+		Args.GetReturnValue().Set(Instance);
+		return;
+	}
+	else {
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+		v8::Local<v8::Object> Instance = cons->NewInstance();
+		Args.GetReturnValue().Set(Instance);
+		return;
+	}
+}
+
+void TNodeJsStoreIter::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// unwrap
+	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Args.Holder());
+	
+	const bool NextP = JsStoreIter->Iter->Next();
+	if (JsStoreIter->JsRec == NULL && NextP) {
+		// first time, create placeholder
+		const uint64 RecId = JsStoreIter->Iter->GetRecId();
+		v8::Local<v8::Object> _RecObj = TNodeJsRec::New(JsStoreIter->Store->GetRec(RecId), 1);
+		JsStoreIter->RecObj.Reset(Isolate, _RecObj);
+		JsStoreIter->JsRec = ObjectWrap::Unwrap<TNodeJsRec>(_RecObj);
+	}
+	else if (NextP) {
+		// not first time, just update the placeholder
+		const uint64 RecId = JsStoreIter->Iter->GetRecId();
+		JsStoreIter->JsRec->Rec = JsStoreIter->Store->GetRec(RecId);
+	}	
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, NextP));
+}
+
+void TNodeJsStoreIter::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Self);
+
+	Info.GetReturnValue().Set(TNodeJsStore::New(JsStoreIter->Store));
+}
+
+void TNodeJsStoreIter::rec(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Self);
+
+	Info.GetReturnValue().Set(JsStoreIter->RecObj);	
+}
+
+///////////////////////////////
+// TJsRecPairFilter
+bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	// prepare record objects - since they are local, they are safe from GC
 	v8::Local<v8::Object> JsRec1 = TNodeJsRec::New(TQm::TRec(Store, RecIdWgt1.Key), RecIdWgt1.Dat);
 	v8::Local<v8::Object> JsRec2 = TNodeJsRec::New(TQm::TRec(Store, RecIdWgt2.Key), RecIdWgt2.Dat);
-	
-	v8::Local<v8::Function> Callback =  v8::Local<v8::Function>::New(Isolate, CmpFun);
-    v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+	v8::Local<v8::Function> Callbck = v8::Local<v8::Function>::New(Isolate, Callback);
+	v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 	const unsigned Argc = 2;
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
-	v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
-	
+	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
+
 	QmAssertR(ReturnVal->IsBoolean(), "Comparator callback must return a boolean!");
 	return ReturnVal->BooleanValue();
 }
-
 
 
 ///////////////////////////////

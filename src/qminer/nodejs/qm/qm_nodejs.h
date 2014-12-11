@@ -348,96 +348,86 @@ private:
 //# 
 //# ### Store iterator
 //# 
-class TJsStoreIter {
+class TNodeJsStoreIter: public node::ObjectWrap {
 private:
-//	/// JS script context
-//	TWPt<TScript> Js;
-//	TWPt<TStore> Store;
-//	PStoreIter Iter;
-//	// placeholder for last object
-//	v8::Persistent<v8::Object> RecObj;
-//	TJsRec* JsRec;
-//
-//	typedef TJsObjUtil<TJsStoreIter> TJsStoreIterUtil;
-//
-//	TJsStoreIter(TWPt<TScript> _Js, const TWPt<TStore>& _Store, const PStoreIter& _Iter);
-//public:
-//	static v8::Persistent<v8::Object> New(TWPt<TScript> Js,
-//		const TWPt<TStore>& Store, const PStoreIter& Iter) {
-//		return TJsStoreIterUtil::New(new TJsStoreIter(Js, Store, Iter));
-//	}
-//	~TJsStoreIter() { if (JsRec != NULL) { TJsObjUtil<TJsRec>::MakeWeak(RecObj); } }
-//
-//	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-//
-//	//# 
-//	//# **Functions and properties:**
-//	//#   
-//	//#- `store = iter.store` -- get the store
-//	JsDeclareProperty(store);
-//	//#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
-//	JsDeclareProperty(rec);
-//	//#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
-//	JsDeclareFunction(next);
-};
-
-///////////////////////////////
-// JavaScript Record Comparator
-class TNodeJsRecCmp {
-private:
-	/// JS script context
-	TWPt<TQm::TStore> Store;
-	// callbacks
-	v8::Persistent<v8::Function> CmpFun;
-
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
 public:
-	~TNodeJsRecCmp(){
-		CmpFun.Reset();
+	// Node framework 
+	static void Init(v8::Handle<v8::Object> exports);
+	// Wrapping C++ object	
+	static v8::Local<v8::Object> New();
+	static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& Store, const TQm::PStoreIter& Iter);
+	// C++ constructors
+	TNodeJsStoreIter() {}
+	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) : Store(_Store), Iter(_Iter) {}
+	// Node framework (constructor method)
+	JsDeclareFunction(New);
+	
+public:
+	// C++ wrapped object
+	TWPt<TQm::TStore> Store;
+	TQm::PStoreIter Iter;
+    // placeholder for last object
+	v8::Persistent<v8::Object> RecObj;
+	TNodeJsRec* JsRec;
+	~TNodeJsStoreIter() { 
+		RecObj.Reset();
 	}
-	TNodeJsRecCmp(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _CmpFun) : Store(_Store) {
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope HandleScope(Isolate);
-		// set persistent object
-		CmpFun.Reset(Isolate, _CmpFun);
-	}
-
-	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+	//# 
+	//# **Functions and properties:**
+	//#   
+	//#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
+	JsDeclareFunction(next);
+	//#- `store = iter.store` -- get the store
+	JsDeclareProperty(store);
+	//#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
+	JsDeclareProperty(rec);
+	
 };
+
 
 ///////////////////////////////
 // JavaScript Record Filter
 class TJsRecFilter {
 private:
-//	/// JS script context
-//	TWPt<TScript> Js;
-//	TWPt<TStore> Store;
-//	// callbacks
-//	v8::Persistent<v8::Function> FilterFun;
-//
-//public:
-//	TJsRecFilter(TWPt<TScript> _Js, TWPt<TStore> _Store,
-//		const v8::Persistent<v8::Function>& _FilterFun) :
-//		Js(_Js), Store(_Store), FilterFun(_FilterFun) { }
-//
-//	bool operator()(const TUInt64IntKd& RecIdWgt) const;
+	TWPt<TQm::TStore> Store;
+	// Callbacks
+	v8::Persistent<v8::Function> Callback;
+
+public:
+	~TJsRecFilter(){
+		Callback.Reset();
+	}
+	TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback) : Store(_Store) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		// set persistent object
+		Callback.Reset(Isolate, _Callback);
+	}
+	
+	bool operator()(const TUInt64IntKd& RecIdWgt) const;
 };
 
 ///////////////////////////////
-// JavaScript Record Splitter
-class TJsRecSplitter {
+// JavaScript Record Pair Filter (record splitter, record comparator)
+class TJsRecPairFilter {
 private:
-//	/// JS script context
-//	TWPt<TScript> Js;
-//	TWPt<TStore> Store;
-//	// callbacks
-//	v8::Persistent<v8::Function> SplitterFun;
-//
-//public:
-//	TJsRecSplitter(TWPt<TScript> _Js, TWPt<TStore> _Store,
-//		const v8::Persistent<v8::Function>& _SplitterFun) :
-//		Js(_Js), Store(_Store), SplitterFun(_SplitterFun) { }
-//
-//	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
+	TWPt<TQm::TStore> Store;
+	
+	v8::Persistent<v8::Function> Callback;
+public:
+	~TJsRecPairFilter(){
+		Callback.Reset();
+	}
+	TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback) : Store(_Store) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		// set persistent object
+		Callback.Reset(Isolate, _Callback);
+	}
+
+	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
 };
 
 ///////////////////////////////
@@ -445,7 +435,7 @@ private:
 //# 
 //# ### Index key
 //# 
-class TJsIndexKey {
+class TNodeJsIndexKey {
 private:
 //	/// JS script context
 //	TWPt<TScript> Js;
