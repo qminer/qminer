@@ -1025,7 +1025,8 @@ void TNodeJsStore::recs(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	TQm::PRecSet ResultSet = JsStore->Store->GetAllRecs();
+	Info.GetReturnValue().Set(TNodeJsRecSet::New(ResultSet));
 }
 
 void TNodeJsStore::fields(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1333,6 +1334,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setdiff", _setdiff);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getVec", _getVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getMat", _getMat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
 
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
@@ -1896,6 +1898,29 @@ void TNodeJsRecSet::getMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	//throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
 }
 
+void TNodeJsRecSet::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args.Holder());
+	int RecN = TNodeJsUtil::GetArgInt32(Args, 0);
+	if (0 <= RecN && RecN < JsRecSet->RecSet->GetRecs()) {
+		const uint64 RecId = JsRecSet->RecSet->GetRecId(RecN);
+		printf("recid %d\n", RecN);
+		if (JsRecSet->RecSet->GetStore()->IsRecId(RecId)) {
+			Args.GetReturnValue().Set(TNodeJsRec::New(JsRecSet->RecSet->GetRec(RecN)));
+			return;
+		}
+		else {
+			Args.GetReturnValue().Set(v8::Null(Isolate));
+			return;
+		}
+	}
+	else {
+		Args.GetReturnValue().Set(v8::Null(Isolate));
+		return;
+	}
+}
+
 void TNodeJsRecSet::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	//v8::HandleScope HandleScope;
 	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
@@ -1904,10 +1929,13 @@ void TNodeJsRecSet::store(v8::Local<v8::String> Name, const v8::PropertyCallback
 }
 
 void TNodeJsRecSet::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-	//v8::HandleScope HandleScope;
-	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Info);
-	//v8::Local<v8::Integer> Recs = v8::Integer::New(JsRecSet->RecSet->GetRecs());
-	//return HandleScope.Close(Recs);
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Self);
+
+	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRecSet->RecSet->GetRecs()));
 }
 
 void TNodeJsRecSet::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

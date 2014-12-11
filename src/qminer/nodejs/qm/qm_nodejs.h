@@ -323,6 +323,8 @@ private:
 	JsDeclareFunction(getVec);
 	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
+	//#- `rec =  rs.at(idx)` -- returns the record at index (0-based) `idx`
+	JsDeclareFunction(at);
 
 	//#- `storeName = rs.store` -- store of the records
 	JsDeclareProperty(store);
