@@ -677,7 +677,7 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
 	}
-	else if (!Args[0]->IsNumber()) {
+	else if (!Args[0]->IsNumber() && !Args[0]->IsString()) {
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
@@ -687,7 +687,6 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	}
 }
 
-// Inserts a number `num` at the beginning of the vector `v`: `v.ins(0, num)` 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -696,7 +695,7 @@ void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& 
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
 	// assume number
-	TVal Val = Args[0]->ToNumber()->Value();
+	TVal Val = TAux::CastVal(Args[0]);
 	JsVec->Vec.Ins(0, Val);
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 }
