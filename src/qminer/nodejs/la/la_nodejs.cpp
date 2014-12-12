@@ -63,7 +63,7 @@ v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) {
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
 	Instance->SetHiddenValue(Key, Value);
 
 	int Len = FltV.Len();
@@ -1809,8 +1809,8 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-   TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+   //TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+   //TNodeJsVec<TStr, TAuxStrV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);
