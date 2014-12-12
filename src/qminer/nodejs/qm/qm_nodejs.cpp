@@ -660,7 +660,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			const unsigned Argc = 2;
 
 			v8::Local<v8::Object> RecObj = TNodeJsRec::New(Store->GetRec(RecId));
-			TNodeJsRec* JsRec = TNodeJsRec::GetJsRec(RecObj);
+			TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(RecObj);
 
 			do {
 				JsRec->Rec = Store->GetRec(Iter->GetRecId());
@@ -706,7 +706,7 @@ void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			const unsigned Argc = 2;
 
 			v8::Local<v8::Object> RecObj = TNodeJsRec::New(Store->GetRec(RecId));
-			TNodeJsRec* JsRec = TNodeJsRec::GetJsRec(RecObj);
+			TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(RecObj);
 
 			do {
 				JsRec->Rec = Store->GetRec(Iter->GetRecId());
@@ -1442,12 +1442,6 @@ void TNodeJsRec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-TNodeJsRec* TNodeJsRec::GetJsRec(v8::Local<v8::Object> RecObj) {
-	QmAssertR(RecObj->IsObject(), "Argument is not an object!");
-	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RecObj->GetInternalField(0));
-	return static_cast<TNodeJsRec*>(WrappedObject->Value());
-}
-
 void TNodeJsRec::clone(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -1683,12 +1677,6 @@ void TNodeJsRecSet::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Args.GetReturnValue().Set(Instance);
 		return;
 	}
-}
-
-TNodeJsRecSet* TNodeJsRecSet::GetJsRecSet(v8::Local<v8::Object> RecSetObj) {
-	QmAssertR(RecSetObj->IsObject(), "Argument is not an object!");
-	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RecSetObj->GetInternalField(0));
-	return static_cast<TNodeJsRecSet*>(WrappedObject->Value());
 }
 
 void TNodeJsRecSet::clone(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2034,9 +2022,10 @@ void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const unsigned Argc = 2;
 
 		v8::Local<v8::Object> RecObj = TNodeJsRec::New(RecSet->GetRec(0));
-		TNodeJsRec* JsRec = TNodeJsRec::GetJsRec(RecObj);
+		TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(RecObj);
 
 		for (int RecIdN = 0; RecIdN < Recs; RecIdN++) {
+			printf("%d heh\n", RecIdN);
 			JsRec->Rec = RecSet->GetRec(RecIdN);
 			JsRec->Fq = RecSet->GetRecFq(RecIdN);
 

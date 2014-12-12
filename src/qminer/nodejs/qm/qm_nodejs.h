@@ -204,8 +204,6 @@ public:
 	TNodeJsRec(const TQm::TRec& _Rec, const TInt& _Fq) : Rec(_Rec), Fq(_Fq) {}
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
-	// Unwrapping C++ object - TODO: remove, use NODE Unwrap
-	static TNodeJsRec* GetJsRec(v8::Local<v8::Object> RecObj);
 public:
 	// C++ wrapped object
 	TQm::TRec Rec;	
@@ -260,8 +258,6 @@ public:
 	TNodeJsRecSet(const TQm::PRecSet& _RecSet) : RecSet(_RecSet) {}
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
-	// Unwrapping C++ object
-	static TNodeJsRecSet* GetJsRecSet(v8::Local<v8::Object> RecObj);
 public:
 	// C++ wrapped object
 	TQm::PRecSet RecSet;
