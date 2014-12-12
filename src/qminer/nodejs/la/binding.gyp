@@ -3,9 +3,13 @@
       {
          'target_name': 'la',
          'sources': [
+            '../utils.h', #not necessary for build, but useful for visual studio solution
+            '../utils.cpp',
+            'la_nodejs.h', #not necessary for build, but useful for visual studio solution
             'la_nodejs.cpp'
          ],
          'include_dirs': [
+            '../',
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/'
@@ -77,4 +81,3 @@
       }
    ]
 }
-
