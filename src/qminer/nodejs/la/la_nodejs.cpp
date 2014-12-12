@@ -82,17 +82,19 @@ template <>
 v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	printf("hej-1\n");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-
+	printf("hej0\n");
+	v8::Local<v8::Object> Instance = cons->NewInstance(); // crash
+	printf("hej1\n");
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
 	Instance->SetHiddenValue(Key, Value);
-
+	printf("hej2\n");
 	TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(IntV);
+	printf("hej3\n");
 	JsVec->Wrap(Instance);
+	printf("hej4\n");
 	return HandleScope.Escape(Instance);
 }
 
@@ -175,8 +177,7 @@ void TNodeJsVec<TFlt, TAuxFltV>::sortPerm(const v8::FunctionCallbackInfo<v8::Val
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	const bool Asc =
-		Args.Length() == 1 && Args[0]->IsBoolean() && Args[0]->BooleanValue();
+	const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 
 	TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
 
@@ -185,7 +186,9 @@ void TNodeJsVec<TFlt, TAuxFltV>::sortPerm(const v8::FunctionCallbackInfo<v8::Val
 	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
 	v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
 	Obj->Set(v8::String::NewFromUtf8(Isolate, "vec"), New(SortedV));
+	printf("hey \n");
 	Obj->Set(v8::String::NewFromUtf8(Isolate, "perm"), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
+	printf("you \n");
 	Args.GetReturnValue().Set(Obj);
 }
 
@@ -1809,8 +1812,8 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-   //TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-   //TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+   TNodeJsVec<TStr, TAuxStrV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);

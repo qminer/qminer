@@ -419,14 +419,17 @@ v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	
+	TStr Name = "vector";
+	if (TAux::ClassId == "TIntV") Name = "intVector";
+	if (TAux::ClassId == "TStrV") Name = "strVector";
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "vector"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all prototype methods, getters and setters here.
-	NODE_SET_PROTOTYPE_METHOD(tpl, "newIntVec", newIntVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", subVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
@@ -460,33 +463,9 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "vector"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
 		tpl->GetFunction());
 }
-
-//// Creates a new instance of the object -- esentially does the job of Javascript new operator 
-//template <typename TVal, typename TAux>
-//v8::Handle<v8::Value> TNodeJsVec<TVal, TAux>::NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//	const unsigned Argc = 1;
-//	v8::Handle<v8::Value> Argv[Argc] = { Args[0] };
-//	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
-//	v8::Local<v8::Object> Instance = Cons->NewInstance(Argc, Argv);
-//
-//	return Args.GetReturnValue().Set(Instance);
-//}
-
-//template <typename TVal, typename TAux>
-//v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(v8::Local<v8::Array> Arr) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::EscapableHandleScope HandleScope(Isolate);
-//
-//	const int Argc = 1;
-//	v8::Handle<v8::Value> Argv[Argc] = { Arr };
-//	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
-//	return HandleScope.Escape(Cons->NewInstance(Argc, Argv));
-//}
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -503,20 +482,20 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		// If we got Javascript array on the input: vector.new([1,2,3]) 
 		if (Args[0]->IsArray()) {
-			//printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
+			printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
 			v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
 			const int Len = Arr->Length();
 			for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Arr->Get(ElN))); }
 		}
 		else if (Args[0]->IsObject()) {
 			if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
-				//printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
+				printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
-				//printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
+				printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
@@ -528,6 +507,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 				return;
 			}
 			else {
+				printf("construct call, else branch, class = %s\n", TAux::ClassId.CStr());
 				// We have object with parameters, parse them out
 				const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
 				const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
@@ -543,7 +523,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 		Args.GetReturnValue().Set(Instance);
 	}
 	else {
-		//printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
+		printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
 		const int Argc = 1;
 		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
 		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
@@ -555,24 +535,6 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		Args.GetReturnValue().Set(Instance);
 	}
-}
-
-template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::newIntVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	/*if (Args[0]->IsArray()) {
-		printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
-		v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
-		const int Len = Arr->Length();
-		TIntV ValV(Len, 0);
-		for (int ElN = 0; ElN < Len; ++ElN) { ValV.Add(TAuxIntV::CastVal(Arr->Get(ElN))); }
-		auto Vec = TNodeJsVec<TInt, TAuxIntV>::New(ValV);
-		printf("vector built\n");
-
-		Args.GetReturnValue().Set(Vec);
-	}*/
 }
 
 // Returns an element at index idx=Args[0]; assert 0 <= idx < v.length() 
