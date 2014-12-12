@@ -110,8 +110,7 @@ public:
    TNodeJsVec() { }
    TNodeJsVec(const TVec<TVal>& ValV) : Vec(ValV) { }
 public:
-   JsDeclareFunction(newIntVec);
-   JsDeclareFunction(New);
+    JsDeclareFunction(New);
 private:
    //#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
@@ -430,35 +429,35 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all prototype methods, getters and setters here.
-	NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", subVec);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "push", push);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", unshift);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "pushV", pushV);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sortPerm", sortPerm);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sum", sum);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxIdx", getMaxIdx);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", sort);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", shuffle);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", trunc);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "outer", outer);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "inner", inner);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "plus", plus);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "minus", minus);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", multiply);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", normalize);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "toString", toString);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "diag", diag);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "spDiag", spDiag);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "norm", norm);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", sparse);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "toMat", toMat);
-	// NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
-	// NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", _subVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", _unshift);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "pushV", _pushV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortPerm", _sortPerm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sum", _sum);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxIdx", _getMaxIdx);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", _sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", _shuffle);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", _trunc);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "outer", _outer);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "inner", _inner);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", _normalize);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "diag", _diag);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "spDiag", _spDiag);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "norm", _norm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", _sparse);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toMat", _toMat);
+	// NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	// NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
 
 	// Properties 
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), length);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
