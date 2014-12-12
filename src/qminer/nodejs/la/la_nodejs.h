@@ -48,9 +48,11 @@ private:
 class TAuxFltV {
 public:	
 	static const TStr ClassId; //ClassId is set to "TFltV"
-	//static v8::Handle<v8::Value> GetObjVal(const double& Val, v8::HandleScope& Handlescope) {
-	//	return Handlescope.Close(v8::Number::New(Val));
-	//}
+	static v8::Handle<v8::Value> GetObjVal(const double& Val) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::EscapableHandleScope HandleScope(Isolate);
+		return HandleScope.Escape(v8::Number::New(Isolate, Val));
+	}
 	//static double GetArgVal(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	//	return TJsObjUtil<TJsVec<TFlt, TAuxFltV> >::GetArgFlt(Args, ArgN);
 	//}
@@ -62,9 +64,11 @@ public:
 class TAuxIntV {
 public:	
 	static const TStr ClassId; //ClassId is set to "TIntV"
-	// static v8::Handle<v8::Value> GetObjVal(const int& Val, v8::HandleScope& Handlescope) {
-	//	return Handlescope.Close(v8::Integer::New(Val));
-	//}
+	static v8::Handle<v8::Value> GetObjVal(const int& Val) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::EscapableHandleScope HandleScope(Isolate);
+		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
+	}
 	//static int GetArgVal(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	//	return TJsObjUtil<TJsVec<TInt, TAuxIntV> >::GetArgInt32(Args, ArgN);
 	// }
@@ -72,6 +76,22 @@ public:
 		return Value->ToInt32()->Value();
 	}
 };
+
+
+class TAuxStrV {
+public:
+	static const TStr ClassId; //ClassId is set to "TStrV"
+	static v8::Handle<v8::Value> GetObjVal(const TStr& Val) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::EscapableHandleScope HandleScope(Isolate);
+		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+	}
+	static TStr CastVal(const v8::Local<v8::Value>& Value) {
+		v8::String::Utf8Value Utf8(Value);
+		return TStr(*Utf8);
+	}
+};
+
 
 ///////////////////////////////
 // NodeJs-GLib-TVec
@@ -84,6 +104,7 @@ public: // So we can register the class
    static v8::Handle<v8::Value> NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args);
    static v8::Local<v8::Object> New(const TFltV& FltV);
    static v8::Local<v8::Object> New(const TIntV& IntV);
+   static v8::Local<v8::Object> New(const TStrV& StrV);
    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
    TNodeJsVec() { }
@@ -117,7 +138,7 @@ private:
 	JsDeclareFunction(sum);
 	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
 	//#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
-	JsDeclareFunction(getMaxIdx);
+	JsDeclareSpecializedFunction(getMaxIdx);
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
@@ -483,7 +504,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 		if (Args[0]->IsArray()) {
 			v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
 			const int Len = Arr->Length();
-			for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(Arr->Get(ElN)->NumberValue()); }
+			for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Arr->Get(ElN))); }
 		}
 		else if (Args[0]->IsObject()) {
 			if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
@@ -493,6 +514,11 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 			}
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
 				TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
+				Args.GetReturnValue().Set(New(JsVecArg->Vec));
+				return;
+			}
+			else if (TNodeJsUtil::IsArgClass(Args, 0, "TStrV")) {
+				TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
@@ -554,7 +580,7 @@ void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const int Idx = Args[0]->IntegerValue();
 
 	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.GetVal(Idx).Val));
+	Args.GetReturnValue().Set(TAux::GetObjVal(JsVec->Vec[Idx]));
 }
 
 template <typename TVal, typename TAux>
@@ -566,27 +592,29 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 		if (Args[0]->IsArray()) {
 			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 			const int Len = Array->Length();
-			v8::Handle<v8::Array> OutArr = v8::Array::New(Isolate, Len);
+			TVec<TVal> ResultVec(Len);
 			for (int ElN = 0; ElN < Len; ++ElN) {
 				EAssertR(Array->Get(ElN)->IsInt32(),
 					"Expected array to contain integers only.");
 				const int Idx = Array->Get(ElN)->Int32Value();
 				EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(),
 					"One of the indices from the index vector is out of bounds");
-				OutArr->Set(v8::Number::New(Isolate, ElN), v8::Number::New(Isolate, JsVec->Vec[Idx]));
+				ResultVec[ElN] = JsVec->Vec[Idx];
 			}
-			Args.GetReturnValue().Set(New(OutArr));
+			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
+			return;
 		}
 		else if (Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
-			TNodeJsVec<TVal, TAux>* IdxV = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject());
+			TNodeJsVec<TInt, TAuxIntV>* IdxV = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 			const int Len = IdxV->Vec.Len();
-			v8::Handle<v8::Array> OutArr = v8::Array::New(Isolate, Len);
+			TVec<TVal> ResultVec(Len);
 			for (int ElN = 0; ElN < Len; ElN++) {
 				EAssertR(IdxV->Vec[ElN] >= 0 && IdxV->Vec[ElN] < JsVec->Vec.Len(),
 					"One of the indices from the index vector is out of bounds");
-				OutArr->Set(v8::Number::New(Isolate, ElN), v8::Number::New(Isolate, IdxV->Vec[ElN]));
+				ResultVec[ElN] = JsVec->Vec[IdxV->Vec[ElN]];
 			}
-			Args.GetReturnValue().Set(New(OutArr));
+			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
+			return;
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -605,11 +633,11 @@ void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-	TFlt Sum = 0.0;
+	TVal Sum;
 	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
-		Sum += JsVec->Vec.GetVal(ElN);
+		Sum += JsVec->Vec[ElN];
 	}
-	Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+	Args.GetReturnValue().Set(TAux::GetObjVal(Sum));
 }
 
 // put(idx, num) sets v[idx] := num 
@@ -631,7 +659,7 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds");
 
-	JsVec->Vec[Idx] = Args[1]->NumberValue();
+	JsVec->Vec[Idx] = TAux::CastVal(Args[1]);
 
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
@@ -654,8 +682,7 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
 	else {
-		const double Val = Args[0]->ToNumber()->Value();
-		JsVec->Vec.Add(Val);
+		JsVec->Vec.Add(TAux::CastVal(Args[0]));
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 	}
 }
@@ -690,22 +717,7 @@ void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
-// Returns i = arg max_i v[i] for a vector v 
-template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-	double MxVal = JsVec->Vec.GetVal(0);
-	int MxIdx = 0;
-	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
-		const double CrrVal = JsVec->Vec.GetVal(ElN);
-		if (CrrVal > MxVal) { MxIdx = ElN; MxVal = CrrVal; }
-	}
-
-	Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
-}
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -761,9 +773,9 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
 
 	TStr Str = "[";
 	for (int ElN = 0; ElN < JsVec->Vec.Len() - 1; ++ElN) {
-		Str += TFlt::GetStr(JsVec->Vec[ElN]) + ", ";
+		Str += JsVec->Vec[ElN].GetStr() + ", ";
 	}
-	Str += TFlt::GetStr(JsVec->Vec.Last()) + "]";
+	Str += JsVec->Vec.Last().GetStr() + "]";
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }

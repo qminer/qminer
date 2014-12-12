@@ -9,6 +9,7 @@
 
 const TStr TAuxFltV::ClassId = "TFltV";
 const TStr TAuxIntV::ClassId = "TIntV";
+const TStr TAuxStrV::ClassId = "TStrV";
 
 
 // template <typename TVal, typename TAux>
@@ -94,6 +95,79 @@ v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
 	JsVec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
+
+
+// template <typename TVal, typename TAux>
+template <>
+v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TStrV");
+	Instance->SetHiddenValue(Key, Value);
+
+	TNodeJsVec<TStr, TAuxStrV>* JsVec = new TNodeJsVec<TStr, TAuxStrV>(StrV);
+	JsVec->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
+// template <typename TVal, typename TAux>
+template <>
+v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TStrV& StrV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TStrV& StrV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TFltV& FltV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV) {
+	throw TExcept::New("Not implemented");
+}
+
+// Returns i = arg max_i v[i] for a vector v 
+template <>
+void TNodeJsVec<TFlt, TAuxFltV>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	double MxVal = JsVec->Vec[0];
+	int MxIdx = 0;
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
+		const double CrrVal = JsVec->Vec[ElN];
+		if (CrrVal > MxVal) { MxIdx = ElN; MxVal = CrrVal; }
+	}
+	Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
+template <>
+void TNodeJsVec<TInt, TAuxIntV>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TInt, TAuxIntV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args.Holder());
+
+	double MxVal = JsVec->Vec[0];
+	int MxIdx = 0;
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
+		const double CrrVal = JsVec->Vec[ElN];
+		if (CrrVal > MxVal) { MxIdx = ElN; MxVal = CrrVal; }
+	}
+	Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
 
 
 template <>
@@ -1736,6 +1810,7 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+   TNodeJsVec<TStr, TAuxStrV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);

@@ -102,6 +102,10 @@ public:
 	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
+	// Field accessors
+	static void Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static void Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 public:
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;
@@ -198,7 +202,7 @@ public:
 	TNodeJsRec(const TQm::TRec& _Rec, const TInt& _Fq) : Rec(_Rec), Fq(_Fq) {}
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
-	// Unwrapping C++ object
+	// Unwrapping C++ object - TODO: remove, use NODE Unwrap
 	static TNodeJsRec* GetJsRec(v8::Local<v8::Object> RecObj);
 public:
 	// C++ wrapped object
@@ -429,42 +433,42 @@ public:
 
 	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
 };
-
-///////////////////////////////
-// QMiner-JavaScript-IndexKey
-//# 
-//# ### Index key
-//# 
-class TNodeJsIndexKey {
-private:
-//	/// JS script context
-//	TWPt<TScript> Js;
-//	TIndexKey IndexKey;
 //
-//	typedef TJsObjUtil<TJsIndexKey> TJsIndexKeyUtil;
-//
-//	TJsIndexKey(TWPt<TScript> _Js, const TIndexKey& _IndexKey) :
-//		Js(_Js), IndexKey(_IndexKey) { }
-//public:
-//	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIndexKey& IndexKey) {
-//		return TJsIndexKeyUtil::New(new TJsIndexKey(Js, IndexKey));
-//	}
-//	~TJsIndexKey() { }
-//
-//	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-//
-//	//# 
-//	//# **Functions and properties:**
-//	//#   
-//	//#- `storeName = key.store` -- gets the store name `storeName`
-//	JsDeclareProperty(store);
-//	//#- `keyName = key.name` -- gets the key name
-//	JsDeclareProperty(name);
-//	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
-//	JsDeclareProperty(voc);
-//	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
-//	JsDeclareProperty(fq);
-};
+/////////////////////////////////
+//// QMiner-JavaScript-IndexKey
+////# 
+////# ### Index key
+////# 
+//class TNodeJsIndexKey {
+//private:
+////	/// JS script context
+////	TWPt<TScript> Js;
+////	TIndexKey IndexKey;
+////
+////	typedef TJsObjUtil<TJsIndexKey> TJsIndexKeyUtil;
+////
+////	TJsIndexKey(TWPt<TScript> _Js, const TIndexKey& _IndexKey) :
+////		Js(_Js), IndexKey(_IndexKey) { }
+////public:
+////	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIndexKey& IndexKey) {
+////		return TJsIndexKeyUtil::New(new TJsIndexKey(Js, IndexKey));
+////	}
+////	~TJsIndexKey() { }
+////
+////	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+////
+////	//# 
+////	//# **Functions and properties:**
+////	//#   
+////	//#- `storeName = key.store` -- gets the store name `storeName`
+////	JsDeclareProperty(store);
+////	//#- `keyName = key.name` -- gets the key name
+////	JsDeclareProperty(name);
+////	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
+////	JsDeclareProperty(voc);
+////	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
+////	JsDeclareProperty(fq);
+////};
 
 
 

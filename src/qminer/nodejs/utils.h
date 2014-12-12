@@ -233,6 +233,14 @@ public:
 		return Val->IsFunction();
 	}
 
+	/// Transform V8 string to TStr
+	static TStr GetStr(const v8::Local<v8::String>& V8Str) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		v8::String::Utf8Value Utf8(V8Str);
+		return TStr(*Utf8);
+	}
+
 private:
 	static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
 };

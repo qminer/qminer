@@ -322,8 +322,21 @@ void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+   TWPt<TQm::TBase> Base = JsBase->Base;
+
+   TQm::PStreamAggrBase SABase = JsBase->Base->GetStreamAggrBase();
+   int AggrId = SABase->GetFirstStreamAggrId();
+   v8::Local<v8::Array> Arr = v8::Array::New(Isolate);
+   uint32 Counter = 0;
+   while (SABase->GetNextStreamAggrId(AggrId)) {
+	   v8::Local<v8::String> AggrNm = v8::String::NewFromUtf8(Isolate, SABase->GetStreamAggr(AggrId)->GetAggrNm().CStr());
+	   Arr->Set(Counter, AggrNm);
+	   Counter++;
+   }
+   Args.GetReturnValue().Set(Arr);
 }
 
 
@@ -424,6 +437,167 @@ void TNodeJsStore::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		return;
 	}
 }
+
+
+void TNodeJsStore::Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	//// check if null
+	//if (Rec.IsFieldNull(FieldId)) { return HandleScope.Close(v8::Null()); }
+	//// not null, get value
+	//const TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	//if (Desc.IsInt()) {
+	//	const int Val = Rec.GetFieldInt(FieldId);
+	//	return HandleScope.Close(v8::Integer::New(Val));
+	//}
+	//else if (Desc.IsIntV()) {
+	//	TIntV IntV; Rec.GetFieldIntV(FieldId, IntV);
+	//	return TJsIntV::New(_Js, IntV);
+	//}
+	//else if (Desc.IsUInt64()) {
+	//	const uint64 Val = Rec.GetFieldUInt64(FieldId);
+	//	return HandleScope.Close(v8::Integer::New((int)Val));
+	//}
+	//else if (Desc.IsStr()) {
+	//	const TStr Val = Rec.GetFieldStr(FieldId);
+	//	return HandleScope.Close(v8::String::New(Val.CStr()));
+	//}
+	//else if (Desc.IsStrV()) {
+	//	TStrV StrV; Rec.GetFieldStrV(FieldId, StrV);
+	//	v8::Handle<v8::Array> JsStrV = v8::Array::New(StrV.Len());
+	//	for (int StrN = 0; StrN < StrV.Len(); StrN++) {
+	//		JsStrV->Set(StrN, v8::String::New(StrV[StrN].CStr()));
+	//	}
+	//	return HandleScope.Close(JsStrV);
+	//}
+	//else if (Desc.IsBool()) {
+	//	const bool Val = Rec.GetFieldBool(FieldId);
+	//	return HandleScope.Close(v8::Boolean::New(Val));
+	//}
+	//else if (Desc.IsFlt()) {
+	//	const double Val = Rec.GetFieldFlt(FieldId);
+	//	return HandleScope.Close(v8::Number::New(Val));
+	//}
+	//else if (Desc.IsFltPr()) {
+	//	const TFltPr FltPr = Rec.GetFieldFltPr(FieldId);
+	//	v8::Handle<v8::Array> JsFltPr = v8::Array::New(2);
+	//	JsFltPr->Set(0, v8::Number::New(FltPr.Val1));
+	//	JsFltPr->Set(1, v8::Number::New(FltPr.Val2));
+	//	return HandleScope.Close(JsFltPr);
+	//}
+	//else if (Desc.IsFltV()) {
+	//	TFltV FltV; Rec.GetFieldFltV(FieldId, FltV);
+	//	return TJsFltV::New(_Js, FltV);
+	//}
+	//else if (Desc.IsTm()) {
+	//	TTm FieldTm; Rec.GetFieldTm(FieldId, FieldTm);
+	//	if (FieldTm.IsDef()) {
+	//		return TJsTm::New(FieldTm);
+	//	}
+	//	else {
+	//		return HandleScope.Close(v8::Null());
+	//	}
+	//}
+	//else if (Desc.IsNumSpV()) {
+	//	TIntFltKdV SpV; Rec.GetFieldNumSpV(FieldId, SpV);
+	//	return TJsSpV::New(_Js, SpV);
+	//}
+	//else if (Desc.IsBowSpV()) {
+	//	return HandleScope.Close(v8::Null()); //TODO
+	//}
+	//throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+}
+
+void TNodeJsStore::Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+
+	if (!Store->IsRecId(RecId)) {
+		Args.GetReturnValue().Set(v8::Null(Isolate));
+		return;
+	}
+	
+	if (Store->IsFieldNull(RecId, FieldId)) {
+		Args.GetReturnValue().Set(v8::Null(Isolate));
+		return;
+	}
+	// check if null
+	v8::HandleScope HandleScope(Isolate);
+
+	// not null, get value
+	const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+	if (Desc.IsInt()) {
+		const int Val = Store->GetFieldInt(RecId, FieldId);
+		Args.GetReturnValue().Set(v8::Integer::New(Isolate, Val));
+		return;
+	}
+	else if (Desc.IsIntV()) {
+		TIntV IntV; Store->GetFieldIntV(RecId, FieldId, IntV);
+		Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(IntV));
+		return;		
+	}
+	else if (Desc.IsUInt64()) {
+		const uint64 Val = Store->GetFieldUInt64(RecId, FieldId);
+		Args.GetReturnValue().Set(v8::Integer::New(Isolate, (int)Val));
+		return;
+	}
+	else if (Desc.IsStr()) {
+		const TStr Val = Store->GetFieldStr(RecId, FieldId);
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+		return;
+	}
+	else if (Desc.IsStrV()) {
+		TStrV StrV; Store->GetFieldStrV(RecId, FieldId, StrV);
+		v8::Handle<v8::Array> JsStrV = v8::Array::New(Isolate, StrV.Len());
+		for (int StrN = 0; StrN < StrV.Len(); StrN++) {
+			JsStrV->Set(StrN, v8::String::NewFromUtf8(Isolate, StrV[StrN].CStr()));
+		}
+		Args.GetReturnValue().Set(TNodeJsVec<TStr, TAuxStrV>::New(StrV));
+		return;
+	}
+	else if (Desc.IsBool()) {
+		const bool Val = Store->GetFieldBool(RecId, FieldId);
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Val));
+		return;
+	}
+	else if (Desc.IsFlt()) {
+		const double Val = Store->GetFieldFlt(RecId, FieldId);
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+		return;
+	}
+	else if (Desc.IsFltPr()) {
+		const TFltPr FltPr = Store->GetFieldFltPr(RecId, FieldId);
+		v8::Handle<v8::Array> JsFltPr = v8::Array::New(Isolate, 2);
+		JsFltPr->Set(0, v8::Number::New(Isolate, FltPr.Val1));
+		JsFltPr->Set(1, v8::Number::New(Isolate, FltPr.Val2));
+		Args.GetReturnValue().Set(JsFltPr);
+		return;
+	}
+	else if (Desc.IsFltV()) {
+		TFltV FltV; Store->GetFieldFltV(RecId, FieldId, FltV);
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltV));
+		return;
+	}
+	else if (Desc.IsTm()) {
+		TTm FieldTm; Store->GetFieldTm(RecId, FieldId, FieldTm);
+		if (FieldTm.IsDef()) {
+			throw TQm::TQmExcept::New("TODO: implement TJsTm and the method Store::Field");
+			//return TJsTm::New(FieldTm);
+		}
+		else {
+			Args.GetReturnValue().Set(v8::Null(Isolate));
+			return;
+		}
+	}
+	else if (Desc.IsNumSpV()) {
+		TIntFltKdV SpV; Store->GetFieldNumSpV(RecId, FieldId, SpV);
+		Args.GetReturnValue().Set(TNodeJsSpVec::New(SpV));
+		return;
+	}
+	else if (Desc.IsBowSpV()) {
+		throw TQm::TQmExcept::New("Store::Field BowSpV not implemented");
+
+	}
+	throw TQm::TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+}
+
 
 void TNodeJsStore::rec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -804,68 +978,68 @@ void TNodeJsStore::getVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (Desc.IsInt()) {
 			TIntV ColV(Recs);
 
-			//TODO			PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
-				// TODO				ColV[RecN] = JsStore->Store->GetFieldInt(Iter->GetRecId(), FieldId);
-				// TODO				Iter->Next();
+				ColV[RecN] = JsStore->Store->GetFieldInt(Iter->GetRecId(), FieldId);
+				Iter->Next();
 			}
 
-			// TODO			Args.GetReturnValue().Set(TJsIntV::New(JsStore->Js, ColV));
+			Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
 			return;
 		}
 		else if (Desc.IsUInt64()) {
 			TFltV ColV(Recs);
-			//TODO			//PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-			//for (int RecN = 0; RecN < Recs; RecN++) {
-			//	ColV[RecN] = (double)JsStore->Store->GetFieldUInt64(Iter->GetRecId(), FieldId);
-			//	Iter->Next();
-			//}
-			//Args.GetReturnValue().Set(TJsFltV::New(JsStore->Js, ColV));
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = (double)JsStore->Store->GetFieldUInt64(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
 			return;
 		}
 
 		else if (Desc.IsStr()) {
 			TStrV ColV(Recs);
-			// TODO			PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-			/*for (int RecN = 0; RecN < Recs; RecN++) {
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
 			ColV[RecN] = JsStore->Store->GetFieldStr(Iter->GetRecId(), FieldId);
 			Iter->Next();
 			}
-			Args.GetReturnValue().Set(TJsStrV::New(JsStore->Js, ColV));
-			return;*/
+			Args.GetReturnValue().Set(TNodeJsVec<TStr, TAuxStrV>::New(ColV));
+			return;
 		}
 
 		else if (Desc.IsBool()) {
 			TIntV ColV(Recs);
-			/*	PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
 			for (int RecN = 0; RecN < Recs; RecN++) {
-			ColV[RecN] = (int)JsStore->Store->GetFieldBool(Iter->GetRecId(), FieldId);
-			Iter->Next();
+				ColV[RecN] = (int)JsStore->Store->GetFieldBool(Iter->GetRecId(), FieldId);
+				Iter->Next();
 			}
-			Args.GetReturnValue().Set(TJsIntV::New(JsStore->Js, ColV));
-			return;*/
+			Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
+			return;
 		}
 		else if (Desc.IsFlt()) {
 			TFltV ColV(Recs);
-			//PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-			//for (int RecN = 0; RecN < Recs; RecN++) {
-			//	ColV[RecN] = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
-			//	Iter->Next();
-			//}
-			//Args.GetReturnValue().Set(TJsFltV::New(JsStore->Js, ColV));
-			//return;
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV[RecN] = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
 		}
 		else if (Desc.IsTm()) {
 			TFltV ColV(Recs);
-			//PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-			//TTm Tm;
-			//for (int RecN = 0; RecN < Recs; RecN++) {
-			//	Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
-			//	ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
-			//	Iter->Next();
-			//}
-			//Args.GetReturnValue().Set(TJsFltV::New(JsStore->Js, ColV));
-			//return;
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			TTm Tm;
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
+				ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
+			return;
 		}
 		else if (Desc.IsFltV()) {
 			throw TQm::TQmExcept::New("store.getVec does not support type float_v - use store.getMat instead");
@@ -884,109 +1058,128 @@ void TNodeJsStore::getMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//try {
-	//	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+	try {
+		const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
 
-	//	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
-	//	TWPt<TQm::TStore> Store = JsStore->Store;
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore> Store = JsStore->Store;
 
-	//	if (!Store->IsFieldNm(FieldNm)) {
-	//		throw TQm::TQmExcept::New("store.getMat: fieldName not found: " + FieldNm);
-	//	}
-	//	const int FieldId = JsStore->Store->GetFieldId(FieldNm);
-	//	int Recs = (int)JsStore->Store->GetRecs();
-	//	const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
+		if (!Store->IsFieldNm(FieldNm)) {
+			throw TQm::TQmExcept::New("store.getMat: fieldName not found: " + FieldNm);
+		}
+		const int FieldId = JsStore->Store->GetFieldId(FieldNm);
+		int Recs = (int)JsStore->Store->GetRecs();
+		const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 
-	//	if (Desc.IsInt()) {
-	//		TFltVV ColV(1, Recs);
-	//		//PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		//for (int RecN = 0; RecN < Recs; RecN++) {
-	//		//	ColV.At(0, RecN) = (double)JsStore->Store->GetFieldInt(Iter->GetRecId(), FieldId);
-	//		//	Iter->Next();
-	//		//}
-	//		//Args.GetReturnValue().Set(TJsFltVV::New(JsStore->Js, ColV));
-	//		//return;
-	//	}
-	//	else if (Desc.IsUInt64()) {
-	//		TFltVV ColV(1, Recs);
-	//		/*PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		for (int RecN = 0; RecN < Recs; RecN++) {
-	//			ColV.At(0, RecN) = (double)JsStore->Store->GetFieldUInt64(Iter->GetRecId(), FieldId);
-	//			Iter->Next();
-	//		}
-	//		Args.GetReturnValue().Set(TJsFltVV::New(JsStore->Js, ColV));
-	//		return;*/
-	//	}
-	//	else if (Desc.IsBool()) {
-	//		TFltVV ColV(1, Recs);
-	//		//PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		//for (int RecN = 0; RecN < Recs; RecN++) {
-	//		//	ColV.At(0, RecN) = (double)JsStore->Store->GetFieldBool(Iter->GetRecId(), FieldId);
-	//		//	Iter->Next();
-	//		//}
-	//		//return HandleScope.Close(TJsFltVV::New(JsStore->Js, ColV));
-	//	}
-	//	else if (Desc.IsFlt()) {
-	//		TFltVV ColV(1, Recs);
-	//		//PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		//for (int RecN = 0; RecN < Recs; RecN++) {
-	//		//	ColV.At(0, RecN) = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
-	//		//	Iter->Next();
-	//		//}
-	//		//Args.GetReturnValue().Set(TJsFltVV::New(JsStore->Js, ColV));
-	//		//return;
-	//	}
-	//	else if (Desc.IsTm()) {
-	//		TFltVV ColV(1, Recs);
-	//		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		TTm Tm;
-	//		for (int RecN = 0; RecN < Recs; RecN++) {
-	//			Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
-	//			ColV.At(0, RecN) = (double)TTm::GetMSecsFromTm(Tm);
-	//			Iter->Next();
-	//		}
-	//		Args.GetReturnValue().Set(TJsFltVV::New(JsStore->Js, ColV));
-	//		return;
-	//	}
-	//	else if (Desc.IsFltV()) {
-	//		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		TFltV Vec;
-	//		JsStore->Store->GetFieldFltV(Iter->GetRecId(), FieldId, Vec);
-	//		TFltVV ColV(Vec.Len(), Recs);
-	//		for (int RecN = 0; RecN < Recs; RecN++) {
-	//			JsStore->Store->GetFieldFltV(Iter->GetRecId(), FieldId, Vec);
-	//			QmAssertR(Vec.Len() == ColV.GetRows(), TStr::Fmt("store.getCol for field type fltvec: dimensions are not consistent! %d expected, %d found in row %d", ColV.GetRows(), Vec.Len(), RecN));
-	//			// copy row
-	//			ColV.SetCol(RecN, Vec);
-	//			Iter->Next();
-	//		}
-	//		Args.GetReturnValue().Set(TJsFltVV::New(JsStore->Js, ColV));
-	//		return;
-	//	}
-	//	else if (Desc.IsNumSpV()) {
-	//		PStoreIter Iter = Store->ForwardIter(); Iter->Next();
-	//		TVec<TIntFltKdV> ColV(Recs);
-	//		for (int RecN = 0; RecN < Recs; RecN++) {
-	//			JsStore->Store->GetFieldNumSpV(Iter->GetRecId(), FieldId, ColV[RecN]);
-	//			Iter->Next();
-	//		}
-	//		Args.GetReturnValue().Set(TJsSpMat::New(JsStore->Js, ColV));
-	//		return;
-	//	}
-	//	else if (Desc.IsStr()) {
-	//		throw TQmExcept::New("store.getMat does not support type string - use store.getVec instead");
-	//	}
-	//	throw TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
-	//} catch (const PExcept& Except) {
-	//	throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
-	//}
+		if (Desc.IsInt()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldInt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		}
+		else if (Desc.IsUInt64()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldUInt64(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		}
+		else if (Desc.IsBool()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = (double)JsStore->Store->GetFieldBool(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		}
+		else if (Desc.IsFlt()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				ColV.At(0, RecN) = JsStore->Store->GetFieldFlt(Iter->GetRecId(), FieldId);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		}
+		else if (Desc.IsTm()) {
+			TFltVV ColV(1, Recs);
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			TTm Tm;
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
+				ColV.At(0, RecN) = (double)TTm::GetMSecsFromTm(Tm);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		}
+		else if (Desc.IsFltV()) {
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			TFltV Vec;
+			JsStore->Store->GetFieldFltV(Iter->GetRecId(), FieldId, Vec);
+			TFltVV ColV(Vec.Len(), Recs);
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				JsStore->Store->GetFieldFltV(Iter->GetRecId(), FieldId, Vec);
+				QmAssertR(Vec.Len() == ColV.GetRows(), TStr::Fmt("store.getCol for field type fltvec: dimensions are not consistent! %d expected, %d found in row %d", ColV.GetRows(), Vec.Len(), RecN));
+				// copy row
+				ColV.SetCol(RecN, Vec);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(ColV));
+			return;
+		}
+		else if (Desc.IsNumSpV()) {
+			TQm::PStoreIter Iter = Store->ForwardIter(); Iter->Next();
+			TVec<TIntFltKdV> ColV(Recs);
+			for (int RecN = 0; RecN < Recs; RecN++) {
+				JsStore->Store->GetFieldNumSpV(Iter->GetRecId(), FieldId, ColV[RecN]);
+				Iter->Next();
+			}
+			Args.GetReturnValue().Set(TNodeJsSpMat::New(ColV));
+			return;
+		}
+		else if (Desc.IsStr()) {
+			throw TQm::TQmExcept::New("store.getMat does not support type string - use store.getVec instead");
+		}
+		throw TQm::TQmExcept::New("Unknown field type " + Desc.GetFieldTypeStr());
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
 }
 
 void TNodeJsStore::cell(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
+	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+	TWPt<TQm::TStore> Store = JsStore->Store;
+
+	TInt RecId = TNodeJsUtil::GetArgInt32(Args, 0);
+	TInt FieldId = -1;
+	if (Args.Length() == 2 && Args[1]->IsInt32()) {
+		FieldId = TNodeJsUtil::GetArgInt32(Args, 1);
+	}
+	else if (Args.Length() == 2 && Args[1]->IsString()) {
+		TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 1);
+		if (JsStore->Store->IsFieldNm(FieldNm)) {
+			FieldId = JsStore->Store->GetFieldId(FieldNm);
+		}
+	}
+	else {
+		throw TQm::TQmExcept::New("store.cell: Args[1] expected to be an int (fieldId) or a string (fieldName)");
+	}
+	
+	TNodeJsStore::Field(JsStore->Store, RecId, FieldId, Args);
 }
 
 void TNodeJsStore::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1005,7 +1198,7 @@ void TNodeJsStore::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStore->Store->Empty()));
 }
 
 void TNodeJsStore::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1015,7 +1208,7 @@ void TNodeJsStore::length(v8::Local<v8::String> Name, const v8::PropertyCallback
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsStore->Store->GetRecs()));
 }
 
 void TNodeJsStore::recs(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1036,7 +1229,19 @@ void TNodeJsStore::fields(v8::Local<v8::String> Name, const v8::PropertyCallback
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	v8::Local<v8::Array> FieldV = v8::Array::New(Isolate, JsStore->Store->GetFields());
+	for (int FieldId = 0; FieldId < JsStore->Store->GetFields(); FieldId++) {
+		const TQm::TFieldDesc& FieldDesc = JsStore->Store->GetFieldDesc(FieldId);
+		v8::Local<v8::Object> Field = v8::Object::New(Isolate);
+		Field->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Int32::New(Isolate, FieldDesc.GetFieldId()));
+		Field->Set(v8::String::NewFromUtf8(Isolate, "name"), v8::String::NewFromUtf8(Isolate, FieldDesc.GetFieldNm().CStr()));
+		Field->Set(v8::String::NewFromUtf8(Isolate, "type"), v8::String::NewFromUtf8(Isolate, FieldDesc.GetFieldTypeStr().CStr()));
+		Field->Set(v8::String::NewFromUtf8(Isolate, "nullable"), v8::Boolean::New(Isolate, FieldDesc.IsNullable()));
+		Field->Set(v8::String::NewFromUtf8(Isolate, "internal"), v8::Boolean::New(Isolate, FieldDesc.IsInternal()));
+		Field->Set(v8::String::NewFromUtf8(Isolate, "primary"), v8::Boolean::New(Isolate, FieldDesc.IsPrimary()));
+		FieldV->Set(v8::Number::New(Isolate, FieldId), Field);
+	}
+	Info.GetReturnValue().Set(FieldV);
 }
 
 void TNodeJsStore::joins(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1046,7 +1251,31 @@ void TNodeJsStore::joins(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	v8::Local<v8::Array> JoinV = v8::Array::New(Isolate,JsStore->Store->GetJoins());
+	for (int JoinId = 0; JoinId < JsStore->Store->GetJoins(); JoinId++) {
+		const TQm::TJoinDesc& JoinDesc = JsStore->Store->GetJoinDesc(JoinId);
+		TWPt<TQm::TStore> JoinStore = JoinDesc.GetJoinStore(JsStore->Store->GetBase());
+		v8::Local<v8::Object> Join = v8::Object::New(Isolate);
+		Join->Set(v8::String::NewFromUtf8(Isolate,"id"), v8::Int32::New(Isolate, JoinDesc.GetJoinId()));
+		Join->Set(v8::String::NewFromUtf8(Isolate,"name"), v8::String::NewFromUtf8(Isolate,JoinDesc.GetJoinNm().CStr()));
+		Join->Set(v8::String::NewFromUtf8(Isolate,"store"), v8::String::NewFromUtf8(Isolate,JoinStore->GetStoreNm().CStr()));
+		if (JoinDesc.IsInverseJoinId()) {
+			Join->Set(v8::String::NewFromUtf8(Isolate,"inverse"), v8::String::NewFromUtf8(Isolate,JoinStore->GetJoinNm(JoinDesc.GetInverseJoinId()).CStr()));
+		}
+		if (JoinDesc.IsFieldJoin()) {
+			Join->Set(v8::String::NewFromUtf8(Isolate,"type"), v8::String::NewFromUtf8(Isolate,"field"));
+			Join->Set(v8::String::NewFromUtf8(Isolate,"recordField"), v8::String::NewFromUtf8(Isolate,JsStore->Store->GetFieldNm(JoinDesc.GetJoinRecFieldId()).CStr()));
+			Join->Set(v8::String::NewFromUtf8(Isolate,"weightField"), v8::String::NewFromUtf8(Isolate,JsStore->Store->GetFieldNm(JoinDesc.GetJoinFqFieldId()).CStr()));
+		}
+		else if (JoinDesc.IsIndexJoin()) {
+			Join->Set(v8::String::NewFromUtf8(Isolate,"type"), v8::String::NewFromUtf8(Isolate,"index"));
+			TWPt<TQm::TIndexVoc> IndexVoc = JsStore->Store->GetBase()->GetIndexVoc();
+			//TODO 
+			//Join->Set(v8::String::NewFromUtf8(Isolate,"key"), TJsIndexKey::New(JsStore->Js, IndexVoc->GetKey(JoinDesc.GetJoinKeyId())));;
+		}
+		JoinV->Set(v8::Number::New(Isolate, JoinId), Join);
+	}
+	Info.GetReturnValue().Set(JoinV);
 }
 
 void TNodeJsStore::keys(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1056,7 +1285,16 @@ void TNodeJsStore::keys(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	TWPt<TQm::TIndexVoc> IndexVoc = JsStore->Store->GetBase()->GetIndexVoc();
+	TIntSet KeySet = IndexVoc->GetStoreKeys(JsStore->Store->GetStoreId());
+	v8::Local<v8::Array> KeyNmV = v8::Array::New(Isolate, KeySet.Len());
+	int KeySetId = KeySet.FFirstKeyId(), KeyN = 0;
+	while (KeySet.FNextKeyId(KeySetId)){
+		// TODO
+		//KeyNmV->Set(v8::Number::New(KeyN), TJsIndexKey::New(JsStore->Js, IndexVoc->GetKey(KeyN)));
+		KeyN++;
+	}
+	Info.GetReturnValue().Set(KeyNmV);
 }
 
 void TNodeJsStore::first(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1066,7 +1304,12 @@ void TNodeJsStore::first(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	const uint64 FirstRecId = JsStore->Store->FirstRecId();
+	if (FirstRecId == TUInt64::Mx) { 
+		Info.GetReturnValue().Set(v8::Null(Isolate));
+		return;
+	}
+	Info.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(FirstRecId)));
 }
 
 void TNodeJsStore::last(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1076,7 +1319,12 @@ void TNodeJsStore::last(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	const uint64 LastRecId = JsStore->Store->LastRecId();
+	if (LastRecId == TUInt64::Mx) {
+		Info.GetReturnValue().Set(v8::Null(Isolate));
+		return;
+	}
+	Info.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(LastRecId)));
 }
 
 void TNodeJsStore::forwardIter(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1086,7 +1334,8 @@ void TNodeJsStore::forwardIter(v8::Local<v8::String> Name, const v8::PropertyCal
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	Info.GetReturnValue().Set(TNodeJsStoreIter::New(
+		JsStore->Store, JsStore->Store->ForwardIter()));
 }
 
 void TNodeJsStore::backwardIter(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1096,11 +1345,9 @@ void TNodeJsStore::backwardIter(v8::Local<v8::String> Name, const v8::PropertyCa
 	v8::Local<v8::Object> Self = Info.Holder();
 	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
 
-	//Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
+	Info.GetReturnValue().Set(TNodeJsStoreIter::New(
+		JsStore->Store, JsStore->Store->BackwardIter()));
 }
-
-
-
 
 ///////////////////////////////
 // NodeJs-Qminer-Record
@@ -1126,8 +1373,8 @@ void TNodeJsRec::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "$fq"), _fq);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "store"), _store);
 	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, getField, setField
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "join"), _join);
-	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "sjoin"), _sjoin);
+	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "join"), _join);
+	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "sjoin"), _sjoin);
 
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
@@ -1187,43 +1434,57 @@ TNodeJsRec* TNodeJsRec::GetJsRec(v8::Local<v8::Object> RecObj) {
 void TNodeJsRec::clone(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	//TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
 
-	//	const TStr RecNm = TNodeJsUtil::GetArgStr(Args, 0);
-	//	if (JsStore->Store->IsRecNm(RecNm)) {
-	//		Args.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(RecNm)));
-	//	}
-	//	else {
-	//		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	//	}
+	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args.Holder());
+	Args.GetReturnValue().Set(TNodeJsRec::New(JsRec->Rec, JsRec->Fq));
 }
 
 void TNodeJsRec::addJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	//TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
 
-	//	const TStr RecNm = TNodeJsUtil::GetArgStr(Args, 0);
-	//	if (JsStore->Store->IsRecNm(RecNm)) {
-	//		Args.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(RecNm)));
-	//	}
-	//	else {
-	//		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	//	}
+	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args.Holder());
+
+	// read argument as record
+	QmAssertR(Args.Length() >= 2 && Args[1]->IsObject(), "rec.addJoin needs at least 2 args: JoinNm, rec and fq (optional)");
+	TStr JoinNm = TNodeJsUtil::GetArgStr(Args, 0);
+	// Check ?
+	TNodeJsRec* JsJoinRec = ObjectWrap::Unwrap<TNodeJsRec>(Args[1]->ToObject());
+	const int JoinFq = TNodeJsUtil::GetArgInt32(Args, 2, 1);
+	// check parameters fine
+	QmAssertR(JsRec->Rec.GetStore()->IsJoinNm(JoinNm), "[addJoin] Unknown join " + JsRec->Rec.GetStore()->GetStoreNm() + "." + JoinNm);
+	QmAssertR(JoinFq > 0, "[addJoin] Join frequency must be positive: " + TInt::GetStr(JoinFq));
+	// get generic store
+	TWPt<TQm::TStore> Store = JsRec->Rec.GetStore();
+	const int JoinId = Store->GetJoinId(JoinNm);
+	// add join
+	Store->AddJoin(JoinId, JsRec->Rec.GetRecId(), JsJoinRec->Rec.GetRecId(), JoinFq);
+	// return
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRec::delJoin(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	//TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args.Holder());
 
-	//	const TStr RecNm = TNodeJsUtil::GetArgStr(Args, 0);
-	//	if (JsStore->Store->IsRecNm(RecNm)) {
-	//		Args.GetReturnValue().Set(TNodeJsRec::New(JsStore->Store->GetRec(RecNm)));
-	//	}
-	//	else {
-	//		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	//	}
+
+	// read argument as record
+	QmAssertR(Args.Length() >= 2 && Args[1]->IsObject(), "rec.addJoin needs at least 2 args: JoinNm, rec and fq (optional)");
+	TStr JoinNm = TNodeJsUtil::GetArgStr(Args, 0);
+	// Check ?
+	TNodeJsRec* JsJoinRec = ObjectWrap::Unwrap<TNodeJsRec>(Args[1]->ToObject());
+	const int JoinFq = TNodeJsUtil::GetArgInt32(Args, 2, 1);
+	// check parameters fine
+	QmAssertR(JsRec->Rec.GetStore()->IsJoinNm(JoinNm), "[delJoin] Unknown join " + JsRec->Rec.GetStore()->GetStoreNm() + "." + JoinNm);
+	QmAssertR(JoinFq > 0, "[delJoin] Join frequency must be positive: " + TInt::GetStr(JoinFq));
+	// get generic store
+	TWPt<TQm::TStore> Store = JsRec->Rec.GetStore();
+	const int JoinId = Store->GetJoinId(JoinNm);
+	// add join
+	Store->DelJoin(JoinId, JsRec->Rec.GetRecId(), JsJoinRec->Rec.GetRecId(), JoinFq);
+	// return
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsRec::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1264,9 +1525,10 @@ void TNodeJsRec::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	/*v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
-	Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsStore->Store->GetStoreNm().CStr()));*/
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Self);
+
+	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRec->Fq));
 }
 
 void TNodeJsRec::store(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -1282,18 +1544,32 @@ void TNodeJsRec::join(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	/*v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
-	Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsStore->Store->GetStoreNm().CStr()));*/
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Self);
+
+	TStr JoinNm = TNodeJsUtil::GetStr(Name);
+	TQm::PRecSet RecSet = JsRec->Rec.DoJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
+	Info.GetReturnValue().Set(TNodeJsRecSet::New(RecSet));
 }
 
 void TNodeJsRec::sjoin(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	/*v8::Local<v8::Object> Self = Info.Holder();
-	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
-	Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsStore->Store->GetStoreNm().CStr()));*/
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Self);
+
+	TStr JoinNm = TNodeJsUtil::GetStr(Name);
+	TQm::TRec JoinRec = JsRec->Rec.DoSingleJoin(JsRec->Rec.GetStore()->GetBase(), JoinNm);
+	TWPt<TQm::TStore> JoinStore = JoinRec.GetStore();
+	if (JoinRec.IsDef() && JoinStore->IsRecId(JoinRec.GetRecId())) {
+		Info.GetReturnValue().Set(TNodeJsRec::New(JoinRec));
+		return;
+	}
+	else {
+		Info.GetReturnValue().Set(v8::Null(Isolate));
+		return;
+	}
 }
 
 ///////////////////////////////
@@ -2118,6 +2394,7 @@ void init(v8::Handle<v8::Object> exports) {
    // LA
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+   TNodeJsVec<TStr, TAuxStrV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);
