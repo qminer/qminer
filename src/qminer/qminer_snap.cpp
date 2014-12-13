@@ -18,7 +18,6 @@
  */
 
 #include <qminer_snap.h>
-#include <qminer_js.h>
 
 namespace TQm {
 	namespace TAggrs {
