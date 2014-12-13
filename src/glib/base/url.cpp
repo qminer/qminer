@@ -212,7 +212,7 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
         SlashChN++; SlashStr+="/";}
       int ChN=0; bool Found=false;
       while ((!Found)&&((ChN=AbsUrlStr.SearchStr(SlashStr, ChN))!=-1)){
-        TStr Str=AbsUrlStr.GetSubStr(ChN-1, ChN+SlashStr.Len()-1+1);
+        TStr Str=AbsUrlStr.GetSubStr(ChN-1, MIN(AbsUrlStr.Len()-1, ChN+SlashStr.Len()-1+1));
         Found=((ChN==0)||(Str[0]!='/'))&&
          ((ChN+SlashStr.Len()-1==AbsUrlStr.Len()-1)||(Str[Str.Len()-1]!='/'));
         if (!Found){ChN++;}
