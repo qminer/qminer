@@ -147,11 +147,14 @@ private:
 // NodeJs-Qminer-Store
 class TNodeJsStore : public node::ObjectWrap {
 public:
+	TWPt<TQm::TBase> Base;
+	TWPt<TQm::TStore> Store;
+
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base);
 public:
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Store(_Store), Base(_Base) { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Base(_Base), Store(_Store) { }
 public:
 	JsDeclareFunction(New);
 private:
@@ -226,9 +229,7 @@ private:
 	//#- `val = store.cell(recId, fieldName)` -- equivalent to store[recId][fieldName]
 	JsDeclareFunction(cell);
 	//#JSIMPLEMENT:src/qminer/store.js
-public:
-	TWPt<TQm::TBase> Base;
-	TWPt<TQm::TStore> Store;
+
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
