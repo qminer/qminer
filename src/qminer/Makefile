@@ -25,7 +25,7 @@ all: release
 release: CXXFLAGS += -O3 -DNDEBUG
 release: TARGET=release
 release: $(MAINOBJS)
-release: node_modules
+#release: node_modules
 
 
 # debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
@@ -33,17 +33,17 @@ debug: CXXFLAGS += -g
 debug: LDFLAGS += -rdynamic
 debug: TARGET=debug
 debug: $(MAINOBJS)
-debug: node_modules
+#debug: node_modules
 
 
 %.o: %.cpp
 	$(CC) -c $(CXXFLAGS) $< $(INCLUDE) $(LIBS)
 	
-node_modules:
-	# compile node modules
-	make -C ./nodejs $(TARGET)
+#node_modules:
+#	# compile node modules
+#	make -C ./nodejs $(TARGET)
 	
 clean:
 	rm -f *.o *.gch *.a
-	make -C ./nodejs clean
+#	make -C ./nodejs clean
 
