@@ -21,9 +21,9 @@ public:
   // Result = A' * Vec
   void PMultiplyT(const TFltV& Vec, TFltV& Result) const;
   // Result = A * B
-  virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+  //virtual void PMultiply(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
   // Result = A' * B
-  virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
+  //virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const {FailR("Not implemented yet");} // TODO
 };
 
 //#//////////////////////////////////////////////
