@@ -16,11 +16,13 @@
 
 class TNodeJsSnap : public node::ObjectWrap {
 public:
+	static void Init(v8::Handle<v8::Object> exports);
 	//# 
 	//# **Functions and properties:**
 	//# 
 	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
 private:
+	JsDeclareFunction(cmtyEvolution);
 	//static v8::Persistent<v8::Function> constructor;
 };
 
@@ -33,8 +35,13 @@ public:
 	TPt<T> Graph;
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New();
+	static v8::Local<v8::Object> New(TStr path);
+	static v8::Local<v8::Object> New(TPt<T> _graph);
+	
 public:
-	TNodeJsGraph() { Graph = T::New(); }
+	TNodeJsGraph() { Graph = T::New(); };
+	TNodeJsGraph(TStr path) { Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm) };
+	TNodeJsGraph(TPt<T> _graph) { Graph = _graph; };
 public:
 	//# 
 	//# **Functions and properties:**
@@ -56,6 +63,7 @@ private:
 	JsDeclareFunction(adjMat);
 	JsDeclareFunction(dump);
 	JsDeclareFunction(components);
+	JsDeclareFunction(degreeCentrality);
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
