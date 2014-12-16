@@ -12,38 +12,73 @@
 	   try { \
 	      Function(Name, Info); \
 	   } catch (const PExcept& Except) { \
-	      /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
-         /* } else { \
-            throw Except; \
-         } */ \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
 	   } \
-	}
+	};
 
-#define JsDeclareSetProperty(GetFunction, SetFunction) \
-	static void GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
-	static void _ ## GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
-		v8::HandleScope HandleScope(Isolate); \
+#define JsDeclIndexedProperty(Function) \
+	static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+	   v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+	   v8::HandleScope HandleScope(Isolate); \
 		try { \
-			GetFunction(Args); \
-		} catch (const PExcept& Except) { \
-            Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
-      } \
-	} \
-	static void SetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
-	static void _ ## SetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
-		v8::HandleScope HandleScope(Isolate); \
-		try { \
-			SetFunction(Args); \
-		} catch (const PExcept& Except) { \
-            Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
+			Function(Index, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
 		} \
 	}
+
+#define JsDeclareSetIndexedProperty(FunctionGetter, FunctionSetter) \
+	static void FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+	    v8::HandleScope HandleScope(Isolate); \
+		try { \
+			FunctionGetter(Index, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	} \
+	static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+	static void _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			FunctionSetter(Index, Value, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	}
+
+
+
+#define JsDeclareSetProperty(GetFunction, SetFunction) \
+	static void GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			GetFunction(Name, Info); \
+		} catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+      } \
+	} \
+	static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+	static void _ ## SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			SetFunction(Name, Value, Info); \
+		} catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	};
 
 #define JsDeclareFunction(Function) \
    static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args); \
@@ -53,16 +88,23 @@
       try { \
          Function(Args); \
       } catch (const PExcept& Except) { \
-	     /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
 	     Isolate->ThrowException(v8::Exception::TypeError(\
 		 v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
-	     /* } else { \
-	     throw Except; \
-	     } */ \
 	  } \
-   }
+   }; 
 
-
+#define JsDeclareSpecializedFunction(Function) \
+   static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { throw TExcept::New("Not implemented!"); } \
+   static void _ ## Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+      v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+      v8::HandleScope HandleScope(Isolate); \
+      try { \
+         Function(Args); \
+      } catch (const PExcept& Except) { \
+	     Isolate->ThrowException(v8::Exception::TypeError(\
+		 v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+	  } \
+   }; 
 
 
 //////////////////////////////////////////////////////
@@ -107,14 +149,14 @@ public:
 	}
 
 	/// Extract argument ArgN as int
-	static bool GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-		return static_cast<int>(Val->Int32Value());
+		return Val->Int32Value();
 	}
 	/// Extract argument ArgN as int, and use DefVal in case when not present
 	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
@@ -124,7 +166,7 @@ public:
 		if (ArgN >= Args.Length()) { return DefVal; }
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-		return static_cast<int>(Val->Int32Value());		
+		return Val->Int32Value();		
 	}
 	/// Extract argument ArgN property as int
    static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
@@ -180,6 +222,7 @@ public:
 	}
 
 	static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+	static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
 
 	// gets the class name of the underlying glib object. the name is stored in an hidden variable "class"
 	static TStr GetClass(const v8::Handle<v8::Object> Obj) {
@@ -217,6 +260,14 @@ public:
 
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		return Val->IsFunction();
+	}
+
+	/// Transform V8 string to TStr
+	static TStr GetStr(const v8::Local<v8::String>& V8Str) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		v8::String::Utf8Value Utf8(V8Str);
+		return TStr(*Utf8);
 	}
 
 private:
