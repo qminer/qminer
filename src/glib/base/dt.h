@@ -324,7 +324,7 @@ public:
   int SearchStr(const TChA& Str, const int& BChN=0) const;
   int SearchStr(const TStr& Str, const int& BChN=0) const;
   int SearchStr(const char* CStr, const int& BChN=0) const;
-  bool IsStrIn(const TStr& Str) const {return SearchStr(Str)!=-1;}
+  bool IsStrIn(const TStr& Str) const { return Empty() ? false : SearchStr(Str) != -1; }
   bool IsPrefix(const char* CStr, const int& BChN=0) const;
   bool IsPrefix(const TStr& Str) const;
   bool IsPrefix(const TChA& Str) const;
@@ -596,9 +596,9 @@ public:
   /// Returns the position of the first occurrence of a (sub)string between [BChN, end]
   int SearchStr(const TStr& Str, const int& BChN=0) const;
   /// Returns true if character occurs in string
-  bool IsChIn(const char& Ch) const {return SearchCh(Ch)!=-1;}
+  bool IsChIn(const char& Ch) const { return Empty() ? false : SearchCh(Ch) != -1; }
   /// Returns true if (sub)string occurs in string
-  bool IsStrIn(const TStr& Str) const {return SearchStr(Str)!=-1;}
+  bool IsStrIn(const TStr& Str) const {return Empty() ? false : SearchStr(Str)!=-1;}
   /// Returns true if this string starts with the prefix c-string
   bool StartsWith(const char *Str) const;
   /// Returns true if this string starts with the prefix string
