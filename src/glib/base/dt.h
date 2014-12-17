@@ -382,6 +382,14 @@ public:
 /////////////////////////////////////////////////
 /// String.
 ///
+/// Multithreaded operation.
+///
+/// Operations that modify string content are not thread safe. If multiple
+/// threads might write to the same string, access needs to be serialized
+/// via locks. A single writer and multiple readers also require locking.
+/// There is no need to lock multiple read operations in multithreaded
+/// environments.
+///
 /// Small example:
 ///     int main() {
 ///         TStr Str0("abc"); // char* constructor
@@ -453,9 +461,9 @@ public:
   /// Assigment operator TStr = char* (C-String)
   TStr& operator=(const char* CStr);
 
-  /// Concatenates and assigns
+  /// Concatenates and assigns (not thread safe)
   TStr& operator+=(const TStr& Str) { *this = (*this + Str); return *this; } ;
-  /// Concatenates and assigns
+  /// Concatenates and assigns (not thread safe)
   TStr& operator+=(const char* _CStr) { *this = (*this + _CStr); return *this; } ;
 
   /// Boolean comparison TStr == char*
@@ -478,7 +486,7 @@ public:
   const char* CStr() const { return Empty() ? &EmptyStr : Inner; }
   /// Return a COPY of the string as a C String (char array)
   char* CloneCStr() const;
-  /// Set character to given value
+  /// Set character to given value (not thread safe)
   void PutCh(const int& ChN, const char& Ch);
   /// Get character at position ChN
   char GetCh(const int& ChN) const;
@@ -488,7 +496,7 @@ public:
   int Len() const { return Empty() ? 0 : strlen(Inner); }
   /// Check if this is an empty string
   bool Empty() const { IAssertR(Inner == nullptr || Inner[0] != 0, "TStr::Empty string is not nullptr. Fix immediately!");  return  Inner == nullptr; }
-  /// Deletes the char pointer if it is not nullptr.
+  /// Deletes the char pointer if it is not nullptr. (not thread safe)
   void Clr();
   /// returns a reference to this string
   const TStr& GetStr() const { return *this; }
@@ -503,30 +511,30 @@ public:
   bool EqI(const TStr& Str) const {return CmpI(CStr(), Str.CStr()) == 0; }
   /// Is upper-case?
   bool IsUc() const;
-  /// Converts this string to all uppercase
+  /// Converts this string to all uppercase (not thread safe)
   TStr& ToUc();
   /// Returns a new string converted to uppercase
   TStr GetUc() const;
   /// Is lower-case?
   bool IsLc() const;
-  /// Converts this string to all uppercase
+  /// Converts this string to all lowercase (not thread safe)
   TStr& ToLc();
   /// Returns new string converted to lowercase
   TStr GetLc() const;
-  /// Converts this string to capitalized (first char is uppercase, rest lowercase)
+  /// Converts this string to capitalized (first char is uppercase, rest lowercase) (not thread safe)
   TStr& ToCap();
   /// Returns string as capitalized (first char is uppercase, rest lowercase)
   TStr GetCap() const;
   
-  /// Replaces string with truncated (remove whitespace at start and end)
+  /// Replaces string with truncated (remove whitespace at start and end) (not thread safe)
   TStr& ToTrunc();
   /// Returns truncated string (remove whitespace at start and end)
   TStr GetTrunc() const;
-  /// Replaces each char with two chars with its hex-code
+  /// Replaces each char with two chars with its hex-code (not thread safe)
   TStr& ToHex();
   /// Get string with each char replaced with two chars with its hex-code
   TStr GetHex() const;
-  /// Does inverse of ToHex
+  /// Does inverse of ToHex (not thread safe)
   TStr& FromHex();
   /// Does inverse of GetHex
   TStr GetFromHex() const;
@@ -535,15 +543,15 @@ public:
   TStr GetSubStr(const int& BChN, const int& EChN) const;
   /// Get substring from BchN to the end of the string
   TStr GetSubStr(const int& BChN) const { return GetSubStr(BChN, Len()-1); }
-  /// Insert a string Str into this string starting position BchN
+  /// Insert a string Str into this string starting position BchN (not thread safe)
   void InsStr(const int& BChN, const TStr& Str);
-  /// Delete all the occurrences of char Ch
+  /// Delete all the occurrences of char Ch (not thread safe)
   void DelChAll(const char& Ch);
-  /// Delete substring from BChN to EChN
+  /// Delete substring from BChN to EChN (not thread safe)
   void DelSubStr(const int& BChN, const int& EChN);
-  /// Delete first occurrences of substring Str
+  /// Delete first occurrences of substring Str (not thread safe)
   bool DelStr(const TStr& Str);
-  /// Delete all occurrences of substring Str (single pass)
+  /// Delete all occurrences of substring Str (single pass) (not thread safe)
   int DelStrAll(const TStr& Str);
 
   /// Get substring from beginning till the character before first occurrence of SplitCh
@@ -608,13 +616,13 @@ public:
   /// Returns true if this string ends with the sufix string
   bool EndsWith(const TStr& Str) const { return EndsWith(Str.CStr()); }
 
-  /// Replaces first occurrence of SrcCh character with DstCh. Start search at BChN.
+  /// Replaces first occurrence of SrcCh character with DstCh. Start search at BChN. (not thread safe)
   int ChangeCh(const char& SrcCh, const char& DstCh, const int& BChN=0);
-  /// Replaces all occurrences of SrcCh character with DstCh
+  /// Replaces all occurrences of SrcCh character with DstCh (not thread safe)
   int ChangeChAll(const char& SrcCh, const char& DstCh);
-  /// Replace first occurrence of ScrStr string with DstStr string. Start search at BChN.
+  /// Replace first occurrence of ScrStr string with DstStr string. Start search at BChN. (not thread safe)
   int ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN=0);
-  /// Replace all occurrences of ScrStr string with DstStr string
+  /// Replace all occurrences of ScrStr string with DstStr string (not thread safe)
   int ChangeStrAll(const TStr& SrcStr, const TStr& DstStr);
   /// Returns a String with the order of the characters in this String Reversed
   TStr Reverse() const;
