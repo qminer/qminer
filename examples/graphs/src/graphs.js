@@ -82,13 +82,12 @@ for (var i = 0; i < graphs.length; i++) {
     communities.push(snap.communityDetection(graphs[i], "gn"));
 }
 
-///
-/// END - BASIC OPERATIONS
+
+// END - BASIC OPERATIONS
 
 
-///
-/// COMMUNITY EVOLUTION
-///
+// COMMUNITY EVOLUTION
+
 
 // creating hash tables for community evolultion
 var t = utilities.newIntIntH(); // time
@@ -100,9 +99,11 @@ var graph = snap.newDGraph(); // directed graph of evolution
 
 var gs = new Array();
 
+
 // community evolution algorithm
 snap.communityEvolution(gs, 0.5, 0.5, graph, t, c, s, e, m, "./data/evo/"); //
 
+eval(breakpoint);
 
 // hash table for evolution nodes (communities) text
 var txtHash = utilities.newIntStrH();

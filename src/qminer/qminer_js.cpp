@@ -7709,8 +7709,6 @@ namespace TQm {
 			JsRegisterFunction(TmpTemp, communityEvolution);
 			JsRegisterFunction(TmpTemp, evolutionJson);
 			JsRegisterFunction(TmpTemp, corePeriphery);
-			JsRegisterFunction(TmpTemp, reebSimplify);
-			JsRegisterFunction(TmpTemp, reebRefine);
 			JsRegisterFunction(TmpTemp, dagImportance);
 			JsRegisterFunction(TmpTemp, dagImportanceStore);
 			JsRegisterFunction(TmpTemp, perfTest);
@@ -8026,99 +8024,6 @@ namespace TQm {
 		}
 
 		return HandleScope.Close(TJsSpV::New(JsSnap->Js, Vec, Dim));
-	}
-	v8::Handle<v8::Value> TJsSnap::reebSimplify(const v8::Arguments& Args) {
-		TIntFltKdV Vec;
-
-		v8::HandleScope HandleScope;
-		//	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-		int ArgsLen = Args.Length();
-
-		TIntIntH coreperiphery;
-		TIntV ReturnP;
-		TIntV ReturnC;
-		TCnCom SnapReturnCP;
-
-		PNGraph inGraph;
-		TIntH inT;
-		int e = 2;
-		//	int step;
-		bool collapse;
-
-		if (ArgsLen == 6) {
-			QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
-			TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
-			inGraph = JsInGraph->Graph();
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* JsInT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
-			inT = JsInT->Map;
-
-			e = TJsSnapUtil::GetArgInt32(Args, 2);
-
-			QmAssertR(TJsSnapUtil::IsArgClass(Args, 3, "TNGraph"), "TJsSnap::DegreeCentrality: Args[4] expected directed graph!");
-			TJsGraph<TNGraph>* JsOutGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 3);
-			PNGraph outGraph = JsOutGraph->Graph();
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* JsOutT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 4);
-			TIntH &outT = JsOutT->Map;
-
-			collapse = TJsSnapUtil::GetArgBool(Args, 5);
-
-			TSnap::ReebSimplify(inGraph, inT, e, outGraph, outT, collapse);
-			//		int lllen = outT.Len();
-		}
-		else {
-			throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
-		}
-
-		return HandleScope.Close(Args.Holder());
-	}
-
-	v8::Handle<v8::Value> TJsSnap::reebRefine(const v8::Arguments& Args) {
-		TIntFltKdV Vec;
-
-		v8::HandleScope HandleScope;
-		//	TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-		int ArgsLen = Args.Length();
-
-		TIntIntH coreperiphery;
-		TIntV ReturnP;
-		TIntV ReturnC;
-		TCnCom SnapReturnCP;
-
-		PNGraph inGraph;
-		TIntH inT;
-		int e = 2;
-		//	int step;
-		bool collapse;
-
-		if (ArgsLen == 6) {
-			QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
-			TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
-			inGraph = JsInGraph->Graph();
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* JsInT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
-			inT = JsInT->Map;
-
-			e = TJsSnapUtil::GetArgInt32(Args, 2);
-
-			QmAssertR(TJsSnapUtil::IsArgClass(Args, 3, "TNGraph"), "TJsSnap::DegreeCentrality: Args[4] expected directed graph!");
-			TJsGraph<TNGraph>* JsOutGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 3);
-			PNGraph outGraph = JsOutGraph->Graph();
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* JsOutT = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 4);
-			TIntH &outT = JsOutT->Map;
-
-			collapse = TJsSnapUtil::GetArgBool(Args, 5);
-
-			TSnap::ReebRefine(inGraph, inT, e, outGraph, outT, collapse);
-			//		int lllen = outT.Len();
-		}
-		else {
-			throw TQmExcept::New("TJsSnap::reebSimplify: six or seven input arguments expected!");
-		}
-
-		return HandleScope.Close(Args.Holder());
 	}
 
 	v8::Handle<v8::Value> TJsSnap::dagImportance(const v8::Arguments& Args) {

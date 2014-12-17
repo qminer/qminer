@@ -9,8 +9,8 @@ namespace TSnap {
 	/// The function runs much faster if the number of edges in graph G is given (GEdges parameter).
 	template<typename PGraph> double GetModularity(const PGraph& G, const TCnComV& CmtyV, int GEdges = -1);
 	/// Returns the number of edges between the nodes NIdV and the edges pointing outside the set NIdV.
-	/// @param EdgesIn Number of edges between the nodes NIdV.
-	/// @param EdgesOut Number of edges between the nodes in NIdV and the rest of the graph.
+	/// @param EdgesInX Number of edges between the nodes NIdV.
+	/// @param EdgesOutX Number of edges between the nodes in NIdV and the rest of the graph.
 	template<typename PGraph> void GetEdgesInOut(const PGraph& Graph, const TIntV& NIdV, int& EdgesInX, int& EdgesOutX);
 
 	/// Girvan-Newman community detection algorithm based on Betweenness centrality.
@@ -23,21 +23,17 @@ namespace TSnap {
 	double CommunityCNM(const PUNGraph& Graph, TCnComV& CmtyV);
 
 	/// Rosvall-Bergstrom community detection algorithm based on information theoretic approach.
-	/// See: Rosvall M., Bergstrom C. T., Maps of random walks on complex networks reveal community structure, Proc. Natl. Acad. Sci. USA 105, 1118–1123 (2008)
+	/// See: Rosvall M., Bergstrom C. T., Maps of random walks on complex networks reveal community structure, Proc. Natl. Acad. Sci. USA 105, 1118-1123 (2008)
 	double Infomap(PUNGraph& Graph, TCnComV& CmtyV);
 
-	double InfomapOnline(PUNGraph& Graph, int n1, int n2, TIntFltH& PAlpha, double& SumPAlphaLogPAlpha, TIntFltH& Qi, TIntH& Module, int& Br, TCnComV& CmtyV);
-
-	void CmtyEvolutionFileBatch(TStr InFNm, TIntIntHH& sizesCont, TIntIntHH& cCont, TIntIntVH& edges, double alpha, double beta, int CmtyAlg);
-	void CmtyEvolutionFileBatch(TStr InFNm, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges, double alpha, double beta, int CmtyAlg);
-	void CmtyEvolutionJson(TStr& Json, TIntIntVH& sizesContV, TIntIntVH& cContV, TIntIntVH& edges);
-	TStr CmtyEvolutionGraphToJson(PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntStrH txt);
-	void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs);
-	void GraphVAt(TStr InFNm, PUNGraph& Graph, int at);
+	// Create community evolution directed graph
 	void CmtyEvolutionBatchGraph(TVec<PUNGraph, TSize>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg);
-	TStr CmtyTest(TStr t, int CmtyAlg);
-	void ReebSimplify(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse);
-	void ReebRefine(PNGraph& Graph, TIntH& t, int e, PNGraph& gFinal, TIntH& tFinal, bool collapse);
+
+	// Create evolution graph JSON object
+	TStr CmtyEvolutionGraphToJson(PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntStrH txt);
+
+	// Create vector of undirected graphs
+	void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs);
 
 	namespace TSnapDetail {
 		/// A single step of Girvan-Newman clustering procedure.
