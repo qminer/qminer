@@ -2594,15 +2594,15 @@ void TUniChDb::FindWordBoundaries(const TSrcVec& src, const size_t srcIdx, const
 	dest[TVecIdx(position - srcIdx)] = true;
 	while (position < srcIdx + srcCount)
 	{
-		DebugCode(size_t oldPos = position);
-		FindNextWordBoundary(src, srcIdx, srcCount, position);
-    if (oldPos >= position) {
-		  Assert(oldPos < position);
-    }
-    Assert(position <= srcIdx + srcCount);
+	  size_t oldPos = position;
+	  FindNextWordBoundary(src, srcIdx, srcCount, position);
+	  if (oldPos >= position) {
+		Assert(oldPos < position);
+	  }
+	  Assert(position <= srcIdx + srcCount);
 		dest[TVecIdx(position - srcIdx)] = true;
-	}
-	Assert(dest[TVecIdx(srcCount)]);
+	  }
+	  Assert(dest[TVecIdx(srcCount)]);
 }
 
 //-----------------------------------------------------------------------------
