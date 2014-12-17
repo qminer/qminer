@@ -165,7 +165,7 @@
 
 // for backtrace dump in G++, change SW_TRACE to 1
 #if defined(GLib_UNIX)
-#define SW_TRACE 0
+#define SW_TRACE 1
 #endif
 
 // for Snap.py, switch 'no abort' is defined and NDEBUG is turned off

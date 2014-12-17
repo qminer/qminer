@@ -3233,6 +3233,7 @@ v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
 	TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
     QmAssertR(Args.Length() == 1, "sort(..) expects one argument.");
     v8::Persistent<v8::Function> CmpFun = TJsRecSetUtil::GetArgFunPer(Args, 0);
+    // hack that stores original position as Fq parameter
     for (int i = 0; i < JsRecSet->RecSet->GetRecs(); i++) {
         JsRecSet->RecSet->PutRecFq(i, i);
     }
@@ -3241,20 +3242,23 @@ v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
 }
 
 v8::Handle<v8::Value> TJsRecSet::permute(const v8::Arguments& Args) {
-  v8::HandleScope HandleScope;
-  TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
-  QmAssertR(Args.Length() == 1, "permute(..) expects one argument.");
-  QmAssert(TJsObjUtil<TJsRecSet>::IsArgClass(Args, 0, "TIntV"));
-  TJsIntV* IdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
-  QmAssert(IdxV->Vec.Len() == JsRecSet->RecSet->GetRecs());
-  int Len = IdxV->Vec.Len();
-  TIntV RecIdV(Len);
-  for (int RecN = 0; RecN < Len; RecN++) {
-	RecIdV[RecN] = JsRecSet->RecSet->GetRec(RecN).GetRecId();
-  }
-  PRecSet Permuted = TRecSet::New(JsRecSet->RecSet->GetStore(), RecIdV);
-  JsRecSet->RecSet = Permuted;
-  return Args.Holder();
+    v8::HandleScope HandleScope;
+    // get parameters
+    TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+    PRecSet RecSet = JsRecSet->RecSet;
+    QmAssertR(Args.Length() == 1, "permute(..) expects one argument.");
+    QmAssert(TJsObjUtil<TJsRecSet>::IsArgClass(Args, 0, "TIntV"));
+    TJsIntV* IdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
+    QmAssert(IdxV->Vec.Len() == RecSet->GetRecs());
+    const int Len = IdxV->Vec.Len();
+    TUInt64IntKdV RecIdFqV(Len);
+    for (int RecN = 0; RecN < Len; RecN++) {
+        const int PermutRecN = RecN;
+        RecIdFqV[PermutRecN].Key = RecSet->GetRecId(RecN);
+        RecIdFqV[PermutRecN].Dat = RecSet->GetRecFq(RecN);
+    }
+    JsRecSet->RecSet = TRecSet::New(JsRecSet->RecSet->GetStore(), RecIdFqV, RecSet->IsWgt());
+    return Args.Holder();
 }
 
 
@@ -7769,9 +7773,10 @@ v8::Handle<v8::Value> TJsTm::fromUnixTimestamp(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	// read timestamp
 	uint Timestamp = 0;
-	if (TJsTmUtil::IsArgFlt(Args, 0)) { Timestamp = (uint)TJsTmUtil::GetArgFlt(Args, 0); }
-	else {
-	  Timestamp = (uint)TJsTmUtil::GetArgInt32(Args, 0);
+	if (TJsTmUtil::IsArgFlt(Args, 0)) { 
+        Timestamp = (uint)TJsTmUtil::GetArgFlt(Args, 0); 
+    } else {
+        Timestamp = (uint)TJsTmUtil::GetArgInt32(Args, 0);
 	}
 	// prepare response object
 	TTm Tm = TTm::GetTmFromDateTimeInt(Timestamp);

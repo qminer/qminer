@@ -137,7 +137,7 @@ void ExeStop(
   SaveToErrLog(FullMsgCStr);
 
 #if defined(SW_NOABORT)
-  TExcept::Throw(FullMsgCStr);
+  throw TExcept::New(FullMsgCStr);
 #endif
 
   // report to screen & stop execution
