@@ -218,23 +218,26 @@ var _batchModel = new function () { }
 var _httpResponse = new function () { }
 var _svmModel = new function () { }
 var _node = new function () { }
-var _utilities = new function () { }
+var _cf = new function () { }
 var _fout = new function () { }
 var _rs = new function () { }
+var _utilities = new function () { }
 var _spVec = new function () { }
 var _lloydModel = new function () { }
 var _analytics = new function () { }
 var _recLinRegModel = new function () { }
 var _kf = new function () { }
 var _sa = new function () { }
+var _cs = new function () { }
 var _tokenizer = new function () { }
+var _new analytics = new function () { }
 var _snap = new function () { }
-var _graph = new function () { }
+var _mat = new function () { }
 var _tm = new function () { }
 var _htModel = new function () { }
 var _alModel = new function () { }
 var _model = new function () { }
-var _mat = new function () { }
+var _graph = new function () { }
 var _map = new function () { }
 var _key = new function () { }
 var qm = new function () { }
@@ -242,12 +245,41 @@ var _ekf = new function () { }
 var fs = new function () { }
 var _perceptronModel = new function () { }
 var _fsp = new function () { }
+var _sw = new function () { }
 var _nnModel = new function () { }
 var _intVec = new function () { }
 var _twitter = new function () { }
-var _sw = new function () { }
+var _new exports = new function () { }
+
+_result.auc = function () {
+	/// <signature>
+	/// <summary> get AUC of the current curve</summary>
+	/// <param name="_sample" value="_sample">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_result.curve = function () {
+	/// <signature>
+	/// <summary> get ROC parametrization as array of sample points</summary>
+	/// <param name="_sample" value="_sample">param</param>
+	/// <returns value ="_roc_arr"/>
+	/// </signature>
+};
+
+_result.breakEvenPoint = function () {
+	/// <signature>
+	/// <summary> get break-even point, which is number where precision and recall intersect</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
 
 _result.report = function () {
+	/// <signature>
+	/// <summary> output to screen</summary>
+	/// <param name="_sample" value="_sample">param</param>
+	/// <returns value =""/>
+	/// </signature>
 	/// <signature>
 	/// <summary> prints basic report on to the console</summary>
 	/// <returns value =""/>
@@ -256,9 +288,31 @@ _result.report = function () {
 
 _result.reportCSV = function () {
 	/// <signature>
+	/// <summary> save as CSV to file `fnm`</summary>
+	/// <param name="_fnm" value="_fnm">param</param>
+	/// <param name="_sample" value="_sample">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
 	/// <summary> prints CSV output to the `fout` output stream</summary>
 	/// <param name="_fout" value="_fout">param</param>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+_result.push = function () {
+	/// <signature>
+	/// <summary> add new measurement with ground score (1 or -1) and predicted value</summary>
+	/// <param name="_ground" value="_ground">param</param>
+	/// <param name="_predict" value="_predict">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_result.bestF1 = function () {
+	/// <signature>
+	/// <summary> gets threshold for prediction score, which results in the highest F1</summary>
+	/// <returns value ="_num"/>
 	/// </signature>
 };
 
@@ -2256,134 +2310,19 @@ _node.inDeg = _indeg;
 /// <field name = "deg" value = "_deg"> return degree of the node</field>
 _node.deg = _deg;
 
-_utilities.isArray = function () {
+_cf.count = function () {
 	/// <signature>
-	/// <summary> is parameter an array?</summary>
-	/// <param name="_arg" value="_arg">param</param>
-	/// <returns value ="_bool"/>
+	/// <summary> update matrix with new prediction</summary>
+	/// <param name="_correct" value="_correct">param</param>
+	/// <param name="_predicted" value="_predicted">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
-_utilities.newIntIntH = function () {
+_cf.report = function () {
 	/// <signature>
-	/// <summary> New int-int hashmap</summary>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_utilities.isString = function () {
-	/// <signature>
-	/// <summary> is `s` a string?</summary>
-	/// <param name="_s" value="_s">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_utilities.arraysIdentical = function () {
-	/// <signature>
-	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
-	/// <param name="_arr" value="_arr">param</param>
-	/// <param name="_arr2" value="_arr2">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_utilities.isInArray = function () {
-	/// <signature>
-	/// <summary> is element in an array?</summary>
-	/// <param name="_array" value="_array">param</param>
-	/// <param name="_value" value="_value">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_utilities.newIntFltH = function () {
-	/// <signature>
-	/// <summary> New int-double hashmap</summary>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_utilities.ifNull = function () {
-	/// <signature>
-	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_defVal" value="_defVal">param</param>
-	/// <returns value ="_returnVal"/>
-	/// </signature>
-};
-
-_utilities.newStopWatch = function () {
-	/// <signature>
-	/// <summary> creates a stop watch object `sw`</summary>
-	/// <returns value ="_sw"/>
-	/// </signature>
-};
-
-_utilities.newHashTable = function () {
-	/// <signature>
-	/// <summary> creates a hash table</summary>
-	/// <returns value ="_hashTable"/>
-	/// </signature>
-};
-
-_utilities.newStrFltH = function () {
-	/// <signature>
-	/// <summary> New string-double hashmap</summary>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_utilities.newStrIntH = function () {
-	/// <signature>
-	/// <summary> New string-int hashmap</summary>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_utilities.isNaNInArray = function () {
-	/// <signature>
-	/// <summary> returns `true` if one of elements in array is NaN?</summary>
-	/// <param name="_array" value="_array">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_utilities.newIntStrH = function () {
-	/// <signature>
-	/// <summary> New int-string hashmap</summary>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_utilities.newStrStrH = function () {
-	/// <signature>
-	/// <summary> New string-string hashmap</summary>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_utilities.isNumber = function () {
-	/// <signature>
-	/// <summary> is `n` a number?</summary>
-	/// <param name="_n" value="_n">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_utilities.isObject = function () {
-	/// <signature>
-	/// <summary> is parameter an object?</summary>
-	/// <param name="_arg" value="_arg">param</param>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_utilities.numberWithCommas = function () {
-	/// <signature>
-	/// <summary> format number 1234 to 1,234</summary>
-	/// <param name="_number" value="_number">param</param>
-	/// <returns value ="_string"/>
+	/// <summary> report on the current status</summary>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -2660,9 +2599,140 @@ _rs.aggr = function () {
 	/// </signature>
 };
 
+_utilities.isArray = function () {
+	/// <signature>
+	/// <summary> is parameter an array?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.newIntIntH = function () {
+	/// <signature>
+	/// <summary> New int-int hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.isString = function () {
+	/// <signature>
+	/// <summary> is `s` a string?</summary>
+	/// <param name="_s" value="_s">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.arraysIdentical = function () {
+	/// <signature>
+	/// <summary> `bool` is true if array `arr` is identical to array `arr2`</summary>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <param name="_arr2" value="_arr2">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.isInArray = function () {
+	/// <signature>
+	/// <summary> is element in an array?</summary>
+	/// <param name="_array" value="_array">param</param>
+	/// <param name="_value" value="_value">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.newIntFltH = function () {
+	/// <signature>
+	/// <summary> New int-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.ifNull = function () {
+	/// <signature>
+	/// <summary> checks if `val` is null and returns default value `defVal`</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_defVal" value="_defVal">param</param>
+	/// <returns value ="_returnVal"/>
+	/// </signature>
+};
+
+_utilities.newStopWatch = function () {
+	/// <signature>
+	/// <summary> creates a stop watch object `sw`</summary>
+	/// <returns value ="_sw"/>
+	/// </signature>
+};
+
+_utilities.newHashTable = function () {
+	/// <signature>
+	/// <summary> creates a hash table</summary>
+	/// <returns value ="_hashTable"/>
+	/// </signature>
+};
+
+_utilities.newStrFltH = function () {
+	/// <signature>
+	/// <summary> New string-double hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newStrIntH = function () {
+	/// <signature>
+	/// <summary> New string-int hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.isNaNInArray = function () {
+	/// <signature>
+	/// <summary> returns `true` if one of elements in array is NaN?</summary>
+	/// <param name="_array" value="_array">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.newIntStrH = function () {
+	/// <signature>
+	/// <summary> New int-string hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.newStrStrH = function () {
+	/// <signature>
+	/// <summary> New string-string hashmap</summary>
+	/// <returns value ="_map"/>
+	/// </signature>
+};
+
+_utilities.isNumber = function () {
+	/// <signature>
+	/// <summary> is `n` a number?</summary>
+	/// <param name="_n" value="_n">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.isObject = function () {
+	/// <signature>
+	/// <summary> is parameter an object?</summary>
+	/// <param name="_arg" value="_arg">param</param>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_utilities.numberWithCommas = function () {
+	/// <signature>
+	/// <summary> format number 1234 to 1,234</summary>
+	/// <param name="_number" value="_number">param</param>
+	/// <returns value ="_string"/>
+	/// </signature>
+};
+
 _spVec.normalize = function () {
 	/// <signature>
-	/// <summary> normalizes the vector spVec (inplace operation). Returns self.</summary>
+	/// <summary> normalizes the vector spVec (in-place operation). Returns self.</summary>
 	/// <returns value ="_spVec"/>
 	/// </signature>
 };
@@ -2697,6 +2767,13 @@ _spVec.idxVec = function () {
 	/// <signature>
 	/// <summary>  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.</summary>
 	/// <returns value ="_idxVec"/>
+	/// </signature>
+};
+
+_spVec.sort = function () {
+	/// <signature>
+	/// <summary> sort by values and return permutation integer vector.</summary>
+	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -3293,6 +3370,44 @@ _sa.getTmV = function () {
 	/// </signature>
 };
 
+_cs.count = function () {
+	/// <signature>
+	/// <summary> adds prediction to the current</summary>
+	/// <param name="_correct" value="_correct">param</param>
+	/// <param name="_predicted" value="_predicted">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_cs.report = function () {
+	/// <signature>
+	/// <summary> prints current statisitcs for each category</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_cs.reportAvg = function () {
+	/// <signature>
+	/// <summary> prints current statisitcs averaged over all cagtegories</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_cs.results = function () {
+	/// <signature>
+	/// <summary> get current statistics; `res` is an array</summary>
+	/// <returns value ="_res"/>
+	/// </signature>
+};
+
+_cs.reportCSV = function () {
+	/// <signature>
+	/// <summary> current statisitcs for each category to fout as CSV</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
 _tokenizer.getTokens = function () {
 	/// <signature>
 	/// <summary> tokenizes given strings and returns it as an array of strings.</summary>
@@ -3314,6 +3429,22 @@ _tokenizer.getSentences = function () {
 	/// <summary> breaks text into sentence and returns them as an array of strings.</summary>
 	/// <param name="_string" value="_string">param</param>
 	/// <returns value ="_arr"/>
+	/// </signature>
+};
+
+_new analytics.confusionMatrix = function () {
+	/// <signature>
+	/// <summary> for tracking confusion between label classification</summary>
+	/// <param name="_cats" value="_cats">param</param>
+	/// <returns value ="_cf"/>
+	/// </signature>
+};
+
+_new analytics.classificaitonScore = function () {
+	/// <signature>
+	/// <summary> for evaluating</summary>
+	/// <param name="_cats" value="_cats">param</param>
+	/// <returns value ="_cs"/>
 	/// </signature>
 };
 
@@ -3387,391 +3518,6 @@ _snap.communityEvolution = function () {
 	/// <summary> return communities alg = `gn`, `imap` or `cnm`</summary>
 	/// <param name="_path" value="_path">param</param>
 	/// <returns value ="_objJSON"/>
-	/// </signature>
-};
-
-_graph.load = function () {
-	/// <signature>
-	/// <summary> loads graph from input stream `fin`</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_graph"/>
-	/// </signature>
-};
-
-_graph.adjMat = function () {
-	/// <signature>
-	/// <summary> returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities</summary>
-	/// <returns value ="_spMat"/>
-	/// </signature>
-};
-
-_graph.connectedComponents = function () {
-	/// <signature>
-	/// <summary> computes the weakly connected components if weak=true or strongly connected components otherwise</summary>
-	/// <param name="_weak" value="_weak">param</param>
-	/// <returns value ="_intVec"/>
-	/// </signature>
-};
-
-_graph.delEdge = function () {
-	/// <signature>
-	/// <summary> delete an edge</summary>
-	/// <param name="_idx1" value="_idx1">param</param>
-	/// <param name="_idx2" value="_idx2">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
-};
-
-_graph.node = function () {
-	/// <signature>
-	/// <summary> gets node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_node"/>
-	/// </signature>
-};
-
-_graph.dump = function () {
-	/// <signature>
-	/// <summary> dumps a graph to file named `fNm`</summary>
-	/// <param name="_fNm" value="_fNm">param</param>
-	/// <returns value ="_graph"/>
-	/// </signature>
-};
-
-_graph.addNode = function () {
-	/// <signature>
-	/// <summary> add a node to graph and return its ID `idx`</summary>
-	/// <returns value ="_idx"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> add a node with ID `idx`, returns node ID</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
-};
-
-_graph.delNode = function () {
-	/// <signature>
-	/// <summary> delete a node with ID `idx`</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_idx"/>
-	/// </signature>
-};
-
-_graph.isNode = function () {
-	/// <signature>
-	/// <summary> check if a node with ID `idx` exists in the graph</summary>
-	/// <param name="_idx" value="_idx">param</param>
-	/// <returns value ="_isNode"/>
-	/// </signature>
-};
-
-/// <field name = "lastNode" value = "_node"> gets last node</field>
-_graph.lastNode = _node;
-
-/// <field name = "edges" value = "_edges"> gets number of edges in the graph</field>
-_graph.edges = _edges;
-
-_graph.dagImportance = function () {
-	/// <signature>
-	/// <summary> return the node imporance vector.</summary>
-	/// <param name="_dmgraph" value="_dmgraph">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
-_graph.eachEdge = function () {
-	/// <signature>
-	/// <summary> iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:</summary>
-	/// <param name="_callback" value="_callback">param</param>
-	/// <returns value ="_graph"/>
-	/// </signature>
-};
-
-_graph.eachNode = function () {
-	/// <signature>
-	/// <summary> iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:</summary>
-	/// <param name="_callback" value="_callback">param</param>
-	/// <returns value ="_graph"/>
-	/// </signature>
-};
-
-/// <field name = "firstEdge" value = "_edge"> gets first edge</field>
-_graph.firstEdge = _edge;
-
-/// <field name = "firstNode" value = "_node"> gets first node</field>
-_graph.firstNode = _node;
-
-_graph.isEdge = function () {
-	/// <signature>
-	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
-	/// <param name="_idx1" value="_idx1">param</param>
-	/// <param name="_idx2" value="_idx2">param</param>
-	/// <returns value ="_isEdge"/>
-	/// </signature>
-};
-
-/// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
-_graph.nodes = _nodes;
-
-_graph.save = function () {
-	/// <signature>
-	/// <summary> saves graph to output stream `fout`</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_fout"/>
-	/// </signature>
-};
-
-_graph.addEdge = function () {
-	/// <signature>
-	/// <summary> add an edge</summary>
-	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
-	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
-	/// <returns value ="_edgeIdx"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> add an edge when `graph` is of the type `snap.newDMGraph()`</summary>
-	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
-	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
-	/// <param name="_edgeId" value="_edgeId">param</param>
-	/// <returns value ="_edgeIdx"/>
-	/// </signature>
-};
-
-/// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
-_tm.nowUTC = _tm;
-
-/// <field name = "dateString" value = "_str"> string representation of date (e.g. 2014-05-29)</field>
-_tm.dateString = _str;
-
-/// <field name = "month" value = "_num"> month (number)</field>
-_tm.month = _num;
-
-_tm.parse = function () {
-	/// <signature>
-	/// <summary> parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).</summary>
-	/// <param name="_str" value="_str">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "second" value = "_num"> second (number)</field>
-_tm.second = _num;
-
-/// <field name = "year" value = "_num"> year (number)</field>
-_tm.year = _num;
-
-_tm.diff = function () {
-	/// <signature>
-	/// <summary> computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)</summary>
-	/// <param name="_tm2" value="_tm2">param</param>
-	/// <returns value ="_diff_json"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
-	/// <param name="_tm2" value="_tm2">param</param>
-	/// <param name="_unit" value="_unit">param</param>
-	/// <returns value ="_diff_num"/>
-	/// </signature>
-};
-
-_tm.toJSON = function () {
-	/// <signature>
-	/// <summary> returns json representation of time</summary>
-	/// <returns value ="_tmJSON"/>
-	/// </signature>
-};
-
-/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
-_tm.millisecond = _num;
-
-_tm.sub = function () {
-	/// <signature>
-	/// <summary> subtracts `val` secodns from the time and returns self</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_unit" value="_unit">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "windowsTimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
-_tm.windowsTimestamp = _num;
-
-_tm.add = function () {
-	/// <signature>
-	/// <summary> adds `val` seconds to the time and returns self</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
-	/// <param name="_val" value="_val">param</param>
-	/// <param name="_unit" value="_unit">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
-_tm.dayOfWeekNum = _num;
-
-/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
-_tm.dayOfWeek = _str;
-
-/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
-_tm.string = _str;
-
-/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
-_tm.timestamp = _num;
-
-_tm.clone = function () {
-	/// <signature>
-	/// <summary> clones `tm` to `tm2`</summary>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "now" value = "_tm"> returns new time object representing current local time</field>
-_tm.now = _tm;
-
-/// <field name = "day" value = "_num"> day (number)</field>
-_tm.day = _num;
-
-/// <field name = "minute" value = "_num"> minute (number)</field>
-_tm.minute = _num;
-
-_tm.fromUnixTimestamp = function () {
-	/// <signature>
-	/// <summary> constructs date time from a UNIX timestamp (seconds since 1970).</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-/// <field name = "hour" value = "_num"> hour (number)</field>
-_tm.hour = _num;
-
-_tm.fromWindowsTimestamp = function () {
-	/// <signature>
-	/// <summary> constructs date time from a windows timestamp (milliseconds since 1601).</summary>
-	/// <param name="_num" value="_num">param</param>
-	/// <returns value ="_tm"/>
-	/// </signature>
-};
-
-_htModel.process = function () {
-	/// <signature>
-	/// <summary> processes the stream example; `strArr` is an array of discrete attribute values (strings);</summary>
-	/// <param name="_strArr" value="_strArr">param</param>
-	/// <param name="_numArr" value="_numArr">param</param>
-	/// <param name="_labelStr" value="_labelStr">param</param>
-	/// <returns value ="_htModel"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.</summary>
-	/// <param name="_line" value="_line">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_htModel.exportModel = function () {
-	/// <signature>
-	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.</summary>
-	/// <param name="_htOutParams" value="_htOutParams">param</param>
-	/// <returns value ="_htModel"/>
-	/// </signature>
-};
-
-_htModel.classify = function () {
-	/// <signature>
-	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.</summary>
-	/// <param name="_strArr" value="_strArr">param</param>
-	/// <param name="_numArr" value="_numArr">param</param>
-	/// <returns value ="_labelStr"/>
-	/// </signature>
-	/// <signature>
-	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.</summary>
-	/// <param name="_line" value="_line">param</param>
-	/// <returns value ="_labelStr"/>
-	/// </signature>
-};
-
-_alModel.selectQuestion = function () {
-	/// <signature>
-	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
-	/// <returns value ="_recSetIdx"/>
-	/// </signature>
-};
-
-_alModel.getAnswer = function () {
-	/// <signature>
-	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
-	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
-	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.getPos = function () {
-	/// <signature>
-	/// <summary> given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.</summary>
-	/// <param name="_thresh" value="_thresh">param</param>
-	/// <returns value ="_numArr"/>
-	/// </signature>
-};
-
-_alModel.getRecSet = function () {
-	/// <signature>
-	/// <summary> returns the record set that is being used (result of sampling)</summary>
-	/// <returns value ="_rs"/>
-	/// </signature>
-};
-
-_alModel.selectedQuestionIdx = function () {
-	/// <signature>
-	/// <summary> returns the index of the last selected question in alModel.getRecSet()</summary>
-	/// <returns value ="_idx"/>
-	/// </signature>
-};
-
-_alModel.getSettings = function () {
-	/// <signature>
-	/// <summary> returns the settings object</summary>
-	/// <returns value ="_objJSON"/>
-	/// </signature>
-};
-
-_alModel.saveSvmModel = function () {
-	/// <signature>
-	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_alModel.getQueryMode = function () {
-	/// <signature>
-	/// <summary> returns true if in query mode, false otherwise (SVM mode)</summary>
-	/// <returns value ="_bool"/>
-	/// </signature>
-};
-
-_alModel.startLoop = function () {
-	/// <signature>
-	/// <summary> starts the active learning loop in console</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_model.predict = function () {
-	/// <signature>
-	/// <summary> predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.</summary>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <returns value ="_num"/>
 	/// </signature>
 };
 
@@ -4029,6 +3775,391 @@ _mat.at = function () {
 	/// <param name="_rowIdx" value="_rowIdx">param</param>
 	/// <param name="_colIdx" value="_colIdx">param</param>
 	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+/// <field name = "nowUTC" value = "_tm"> returns new time object represented current UTC time</field>
+_tm.nowUTC = _tm;
+
+/// <field name = "dateString" value = "_str"> string representation of date (e.g. 2014-05-29)</field>
+_tm.dateString = _str;
+
+/// <field name = "month" value = "_num"> month (number)</field>
+_tm.month = _num;
+
+_tm.parse = function () {
+	/// <signature>
+	/// <summary> parses string `str` in weblog format (example: `2014-05-29T10:09:12`)  and returns a date time object. Weblog format uses `T` to separate date and time, uses `-` for date units separation and `:` for time units separation (`YYYY-MM-DDThh-mm-ss`).</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "second" value = "_num"> second (number)</field>
+_tm.second = _num;
+
+/// <field name = "year" value = "_num"> year (number)</field>
+_tm.year = _num;
+
+_tm.diff = function () {
+	/// <signature>
+	/// <summary> computes the difference in seconds between `tm` and `tm2`, returns a json containing difference broken down to days, hours, minutes, secodns and milliseconds (e.g. `{days:1, hours:23, minutes:34, seconds:45, milliseconds:567}`)</summary>
+	/// <param name="_tm2" value="_tm2">param</param>
+	/// <returns value ="_diff_json"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> computes the difference in seconds between `tm` and `tm2`; `unit` defines the unit of `diff_num`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
+	/// <param name="_tm2" value="_tm2">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_diff_num"/>
+	/// </signature>
+};
+
+_tm.toJSON = function () {
+	/// <signature>
+	/// <summary> returns json representation of time</summary>
+	/// <returns value ="_tmJSON"/>
+	/// </signature>
+};
+
+/// <field name = "millisecond" value = "_num"> millisecond (number)</field>
+_tm.millisecond = _num;
+
+_tm.sub = function () {
+	/// <signature>
+	/// <summary> subtracts `val` secodns from the time and returns self</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> subtracts `val` from the time and returns self; `unit` defines the unit of `val`. options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "windowsTimestamp" value = "_num"> returns windows system time in milliseconds from 1/1/1601</field>
+_tm.windowsTimestamp = _num;
+
+_tm.add = function () {
+	/// <signature>
+	/// <summary> adds `val` seconds to the time and returns self</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> adds `val` to the time and returns self; `unit` defines the unit of `val`, options are `millisecond`, `second`, `minute`, `hour`, and `day`.</summary>
+	/// <param name="_val" value="_val">param</param>
+	/// <param name="_unit" value="_unit">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "dayOfWeekNum" value = "_num"> day of week (number)</field>
+_tm.dayOfWeekNum = _num;
+
+/// <field name = "dayOfWeek" value = "_str"> day of week (string)</field>
+_tm.dayOfWeek = _str;
+
+/// <field name = "string" value = "_str"> string representation of time (e.g. 2014-05-29T10:09:12)</field>
+_tm.string = _str;
+
+/// <field name = "timestamp" value = "_num"> unix timestamp representation of time (seconds since 1970)</field>
+_tm.timestamp = _num;
+
+_tm.clone = function () {
+	/// <signature>
+	/// <summary> clones `tm` to `tm2`</summary>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "now" value = "_tm"> returns new time object representing current local time</field>
+_tm.now = _tm;
+
+/// <field name = "day" value = "_num"> day (number)</field>
+_tm.day = _num;
+
+/// <field name = "minute" value = "_num"> minute (number)</field>
+_tm.minute = _num;
+
+_tm.fromUnixTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a UNIX timestamp (seconds since 1970).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+/// <field name = "hour" value = "_num"> hour (number)</field>
+_tm.hour = _num;
+
+_tm.fromWindowsTimestamp = function () {
+	/// <signature>
+	/// <summary> constructs date time from a windows timestamp (milliseconds since 1601).</summary>
+	/// <param name="_num" value="_num">param</param>
+	/// <returns value ="_tm"/>
+	/// </signature>
+};
+
+_htModel.process = function () {
+	/// <signature>
+	/// <summary> processes the stream example; `strArr` is an array of discrete attribute values (strings);</summary>
+	/// <param name="_strArr" value="_strArr">param</param>
+	/// <param name="_numArr" value="_numArr">param</param>
+	/// <param name="_labelStr" value="_labelStr">param</param>
+	/// <returns value ="_htModel"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> processes the stream example; `line` is comma-separated string of attribute values (for example `"a1,a2,c"`, where `c` is the class label); the function returns nothing.</summary>
+	/// <param name="_line" value="_line">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_htModel.exportModel = function () {
+	/// <signature>
+	/// <summary> writes the current model into file `htOutParams.file` in format `htOutParams.type`. Returns self.</summary>
+	/// <param name="_htOutParams" value="_htOutParams">param</param>
+	/// <returns value ="_htModel"/>
+	/// </signature>
+};
+
+_htModel.classify = function () {
+	/// <signature>
+	/// <summary> classifies the stream example; `strArr` is an array of discrete attribute values (strings); `numArr` is an array of numeric attribute values (numbers); returns the class label `labelStr`.</summary>
+	/// <param name="_strArr" value="_strArr">param</param>
+	/// <param name="_numArr" value="_numArr">param</param>
+	/// <returns value ="_labelStr"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> classifies the stream example; `line` is comma-separated string of attribute values; returns the class label `labelStr`.</summary>
+	/// <param name="_line" value="_line">param</param>
+	/// <returns value ="_labelStr"/>
+	/// </signature>
+};
+
+_alModel.selectQuestion = function () {
+	/// <signature>
+	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
+	/// <returns value ="_recSetIdx"/>
+	/// </signature>
+};
+
+_alModel.getAnswer = function () {
+	/// <signature>
+	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
+	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
+	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_alModel.getPos = function () {
+	/// <signature>
+	/// <summary> given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.</summary>
+	/// <param name="_thresh" value="_thresh">param</param>
+	/// <returns value ="_numArr"/>
+	/// </signature>
+};
+
+_alModel.getRecSet = function () {
+	/// <signature>
+	/// <summary> returns the record set that is being used (result of sampling)</summary>
+	/// <returns value ="_rs"/>
+	/// </signature>
+};
+
+_alModel.selectedQuestionIdx = function () {
+	/// <signature>
+	/// <summary> returns the index of the last selected question in alModel.getRecSet()</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_alModel.getSettings = function () {
+	/// <signature>
+	/// <summary> returns the settings object</summary>
+	/// <returns value ="_objJSON"/>
+	/// </signature>
+};
+
+_alModel.saveSvmModel = function () {
+	/// <signature>
+	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_alModel.getQueryMode = function () {
+	/// <signature>
+	/// <summary> returns true if in query mode, false otherwise (SVM mode)</summary>
+	/// <returns value ="_bool"/>
+	/// </signature>
+};
+
+_alModel.startLoop = function () {
+	/// <signature>
+	/// <summary> starts the active learning loop in console</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_model.predict = function () {
+	/// <signature>
+	/// <summary> predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.</summary>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_graph.load = function () {
+	/// <signature>
+	/// <summary> loads graph from input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.adjMat = function () {
+	/// <signature>
+	/// <summary> returns the graph adjacency matrix, where columns are sparse vectors corresponding to node outgoing edge ids and their multiplicities</summary>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+};
+
+_graph.connectedComponents = function () {
+	/// <signature>
+	/// <summary> computes the weakly connected components if weak=true or strongly connected components otherwise</summary>
+	/// <param name="_weak" value="_weak">param</param>
+	/// <returns value ="_spMat"/>
+	/// </signature>
+};
+
+_graph.delEdge = function () {
+	/// <signature>
+	/// <summary> delete an edge</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.node = function () {
+	/// <signature>
+	/// <summary> gets node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_node"/>
+	/// </signature>
+};
+
+_graph.dump = function () {
+	/// <signature>
+	/// <summary> dumps a graph to file named `fNm`</summary>
+	/// <param name="_fNm" value="_fNm">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.addNode = function () {
+	/// <signature>
+	/// <summary> add a node to graph and return its ID `idx`</summary>
+	/// <returns value ="_idx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add a node with ID `idx`, returns node ID</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.delNode = function () {
+	/// <signature>
+	/// <summary> delete a node with ID `idx`</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_idx"/>
+	/// </signature>
+};
+
+_graph.isNode = function () {
+	/// <signature>
+	/// <summary> check if a node with ID `idx` exists in the graph</summary>
+	/// <param name="_idx" value="_idx">param</param>
+	/// <returns value ="_isNode"/>
+	/// </signature>
+};
+
+/// <field name = "lastNode" value = "_node"> gets last node</field>
+_graph.lastNode = _node;
+
+/// <field name = "edges" value = "_edges"> gets number of edges in the graph</field>
+_graph.edges = _edges;
+
+_graph.dagImportance = function () {
+	/// <signature>
+	/// <summary> return the node imporance vector.</summary>
+	/// <param name="_dmgraph" value="_dmgraph">param</param>
+	/// <returns value ="_vec"/>
+	/// </signature>
+};
+
+_graph.eachEdge = function () {
+	/// <signature>
+	/// <summary> iterates through the edges and executes the callback function `callback` on each edge. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+_graph.eachNode = function () {
+	/// <signature>
+	/// <summary> iterates through the nodes and executes the callback function `callback` on each node. Returns self. Examples:</summary>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value ="_graph"/>
+	/// </signature>
+};
+
+/// <field name = "firstEdge" value = "_edge"> gets first edge</field>
+_graph.firstEdge = _edge;
+
+/// <field name = "firstNode" value = "_node"> gets first node</field>
+_graph.firstNode = _node;
+
+_graph.isEdge = function () {
+	/// <signature>
+	/// <summary> check if an edge connecting nodes with IDs `idx1` and `idx2` exists in the graph</summary>
+	/// <param name="_idx1" value="_idx1">param</param>
+	/// <param name="_idx2" value="_idx2">param</param>
+	/// <returns value ="_isEdge"/>
+	/// </signature>
+};
+
+/// <field name = "nodes" value = "_nodes"> gets number of nodes in the graph</field>
+_graph.nodes = _nodes;
+
+_graph.save = function () {
+	/// <signature>
+	/// <summary> saves graph to output stream `fout`</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+};
+
+_graph.addEdge = function () {
+	/// <signature>
+	/// <summary> add an edge</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <returns value ="_edgeIdx"/>
+	/// </signature>
+	/// <signature>
+	/// <summary> add an edge when `graph` is of the type `snap.newDMGraph()`</summary>
+	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
+	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
+	/// <param name="_edgeId" value="_edgeId">param</param>
+	/// <returns value ="_edgeIdx"/>
 	/// </signature>
 };
 
@@ -4364,11 +4495,29 @@ fs.rename = function () {
 	/// </signature>
 };
 
+fs.writeCsv = function () {
+	/// <signature>
+	/// <summary> calls `fs.writeCsvLine` for each element of `arr`</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+};
+
 fs.openWrite = function () {
 	/// <signature>
 	/// <summary> open file in write mode and return file output stream `fout`</summary>
 	/// <param name="_fileName" value="_fileName">param</param>
 	/// <returns value ="_fout"/>
+	/// </signature>
+};
+
+fs.writeJson = function () {
+	/// <signature>
+	/// <summary> stringify `json` object and save it to file</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <param name="_json" value="_json">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -4409,6 +4558,47 @@ fs.mkdir = function () {
 	/// <signature>
 	/// <summary> make folder</summary>
 	/// <param name="_dirName" value="_dirName">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+fs.readJsonLines = function () {
+	/// <signature>
+	/// <summary> raed file line by line as string,</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+fs.readFile = function () {
+	/// <signature>
+	/// <summary> read file and return it as string</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_data"/>
+	/// </signature>
+};
+
+fs.writeCsvLine = function () {
+	/// <signature>
+	/// <summary> escape fields from array `arr` into CSV line and</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <param name="_arr" value="_arr">param</param>
+	/// <returns value ="_fout"/>
+	/// </signature>
+};
+
+fs.readLines = function () {
+	/// <signature>
+	/// <summary> raed file line by line as string and</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <param name="_callback" value="_callback">param</param>
+	/// <returns value =""/>
+	/// </signature>
+	/// <signature>
+	/// <summary> raed file line by line as string, parses</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <param name="_callback" value="_callback">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
@@ -4464,6 +4654,14 @@ fs.copy = function () {
 	/// <param name="_fromFileName" value="_fromFileName">param</param>
 	/// <param name="_toFileName" value="_toFileName">param</param>
 	/// <returns value =""/>
+	/// </signature>
+};
+
+fs.readJson = function () {
+	/// <signature>
+	/// <summary> read file as a string and parse it top JSON</summary>
+	/// <param name="_fileName" value="_fileName">param</param>
+	/// <returns value ="_json"/>
 	/// </signature>
 };
 
@@ -4594,6 +4792,57 @@ _fsp.updateRecords = function () {
 	/// <summary> update feature space definitions and extractors</summary>
 	/// <param name="_rs" value="_rs">param</param>
 	/// <returns value ="_fsp"/>
+	/// </signature>
+};
+
+_sw.reset = function () {
+	/// <signature>
+	/// <summary> resets</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_sw.saytime = function () {
+	/// <signature>
+	/// <summary> displays elpased time from tic</summary>
+	/// <param name="_message" value="_message">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_sw.stop = function () {
+	/// <signature>
+	/// <summary> stops the stopwatch</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_sw.start = function () {
+	/// <signature>
+	/// <summary> starts the stopwatch</summary>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_sw.time = function () {
+	/// <signature>
+	/// <summary> returns unix epoch time in milliseconds</summary>
+	/// <returns value ="_num"/>
+	/// </signature>
+};
+
+_sw.toc = function () {
+	/// <signature>
+	/// <summary> displays time from tic and message `str`</summary>
+	/// <param name="_str" value="_str">param</param>
+	/// <returns value =""/>
+	/// </signature>
+};
+
+_sw.tic = function () {
+	/// <signature>
+	/// <summary> resets and starts the stop watch</summary>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -4765,54 +5014,11 @@ _twitter.RawToStore = function () {
 	/// </signature>
 };
 
-_sw.reset = function () {
+_new exports.rocScore = function () {
 	/// <signature>
-	/// <summary> resets</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_sw.saytime = function () {
-	/// <signature>
-	/// <summary> displays elpased time from tic</summary>
-	/// <param name="_message" value="_message">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_sw.stop = function () {
-	/// <signature>
-	/// <summary> stops the stopwatch</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_sw.start = function () {
-	/// <signature>
-	/// <summary> starts the stopwatch</summary>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_sw.time = function () {
-	/// <signature>
-	/// <summary> returns unix epoch time in milliseconds</summary>
-	/// <returns value ="_num"/>
-	/// </signature>
-};
-
-_sw.toc = function () {
-	/// <signature>
-	/// <summary> displays time from tic and message `str`</summary>
-	/// <param name="_str" value="_str">param</param>
-	/// <returns value =""/>
-	/// </signature>
-};
-
-_sw.tic = function () {
-	/// <signature>
-	/// <summary> resets and starts the stop watch</summary>
-	/// <returns value =""/>
+	/// <summary> used for computing ROC curve and</summary>
+	/// <param name="_sample" value="_sample">param</param>
+	/// <returns value ="_result"/>
 	/// </signature>
 };
 
