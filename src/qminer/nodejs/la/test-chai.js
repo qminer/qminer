@@ -81,6 +81,7 @@ describe('Functions Tests', function(){
     })
   })
 
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a09896
   describe('Shuffle Test', function(){
     //tests shuffling elemnts inside a vector
@@ -107,6 +108,8 @@ describe('Functions Tests', function(){
     })
   })
 =======
+=======
+>>>>>>> .merge_file_a01448
 //describe('Shuffle Test', function(){
 //	//tests shuffling elemnts inside a vector
 //
@@ -131,7 +134,10 @@ describe('Functions Tests', function(){
 //		//}
 //	})
 //})
+<<<<<<< .merge_file_a01560
 >>>>>>> .merge_file_a09212
+=======
+>>>>>>> .merge_file_a01448
   
   describe('Trunc Test', function(){
     //tests vector truncating
@@ -211,6 +217,7 @@ describe('Functions Tests', function(){
 
     describe('Ascending sort test', function() {
       it('should return vector sorted by descending values', function() {
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a09896
         sortVector.sort(true)
         for (var i = 0; i < sortVector.length-1; i++) {
@@ -220,11 +227,17 @@ describe('Functions Tests', function(){
         for (var i = 0; i < sortVector.length-1; i++) {
           expect(res.at(i)).to.be.at.most(res.at(i+1));
 >>>>>>> .merge_file_a09212
+=======
+        var res = sortVector.sort(true)
+        for (var i = 0; i < sortVector.length-1; i++) {
+          expect(res.at(i)).to.be.at.most(res.at(i+1));
+>>>>>>> .merge_file_a01448
         }
       })
     })
     describe('Descending sort test', function() {
       it('should return vector sorted by ascending values', function() {
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a09896
         sortVector.sort(false)
         for (var i = 0; i < sortVector.length-1; i++) {
@@ -234,6 +247,11 @@ describe('Functions Tests', function(){
         for (var i = 0; i < sortVector.length-1; i++) {
           expect(res.at(i)).to.be.at.least(res.at(i+1));
 >>>>>>> .merge_file_a09212
+=======
+        var res = sortVector.sort(false)
+        for (var i = 0; i < sortVector.length-1; i++) {
+          expect(res.at(i)).to.be.at.least(res.at(i+1));
+>>>>>>> .merge_file_a01448
         }
       })
     }) 

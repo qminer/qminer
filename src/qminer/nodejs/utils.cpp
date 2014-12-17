@@ -10,11 +10,16 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 }
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
+<<<<<<< .merge_file_a03964
 <<<<<<< .merge_file_a00460
 =======
 	
 	v8::EscapableHandleScope HandleScope(Isolate);
 >>>>>>> .merge_file_a09272
+=======
+	
+	v8::EscapableHandleScope HandleScope(Isolate);
+>>>>>>> .merge_file_a11148
 	if (!JsonVal->IsDef()) {
 		return v8::Undefined(Isolate);
 	}
@@ -25,17 +30,23 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 		return v8::Null(Isolate);
 	}
 	else if (JsonVal->IsNum()) {
+<<<<<<< .merge_file_a03964
 <<<<<<< .merge_file_a00460
 		return v8::Number::New(Isolate, JsonVal->GetNum());
 	}
 	else if (JsonVal->IsStr()) {
 		return v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr());
 =======
+=======
+>>>>>>> .merge_file_a11148
 		return HandleScope.Escape(v8::Number::New(Isolate, JsonVal->GetNum()));
 	}
 	else if (JsonVal->IsStr()) {
 		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr()));
+<<<<<<< .merge_file_a03964
 >>>>>>> .merge_file_a09272
+=======
+>>>>>>> .merge_file_a11148
 	}
 	else if (JsonVal->IsArr()) {
 		const uint Len = JsonVal->GetArrVals();
@@ -45,16 +56,22 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 		for (uint i = 0; i < Len; i++) {
 			ResArr->Set(i, ParseJson(Isolate, JsonVal->GetArrVal(i)));
 		}
+<<<<<<< .merge_file_a03964
 <<<<<<< .merge_file_a00460
 
 		return ResArr;
 	} else if (JsonVal->IsObj()) {
 =======
+=======
+>>>>>>> .merge_file_a11148
 		
 		return HandleScope.Escape(ResArr);
 	}
 	else if (JsonVal->IsObj()) {
+<<<<<<< .merge_file_a03964
 >>>>>>> .merge_file_a09272
+=======
+>>>>>>> .merge_file_a11148
 		v8::Local<v8::Object> ResObj = v8::Object::New(Isolate);
 
 		const int NKeys = JsonVal->GetObjKeys();
@@ -66,6 +83,7 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 			ResObj->Set(v8::String::NewFromUtf8(Isolate, Key.CStr()), ParseJson(Isolate, Val));
 		}
 
+<<<<<<< .merge_file_a03964
 <<<<<<< .merge_file_a00460
 		return ResObj;
 	} else {
@@ -74,14 +92,23 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 	}
 	else {
 >>>>>>> .merge_file_a09272
+=======
+		return HandleScope.Escape(ResObj);
+	}
+	else {
+>>>>>>> .merge_file_a11148
 		throw TExcept::New("Invalid JSON!", "TNodeJsUtil::ParseJson");
 	}
 }
 
+<<<<<<< .merge_file_a03964
 <<<<<<< .merge_file_a00460
 =======
 
 >>>>>>> .merge_file_a09272
+=======
+
+>>>>>>> .merge_file_a11148
 PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
 	EAssertR(Obj->IsObject(), "TNodeJsUtil::GetObjJson: Cannot parse non-object types!");
 	EAssertR(!Obj->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
@@ -123,8 +150,12 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
 
 		return JsonVal;
 	}
+<<<<<<< .merge_file_a03964
 <<<<<<< .merge_file_a00460
 }
 =======
 }
 >>>>>>> .merge_file_a09272
+=======
+}
+>>>>>>> .merge_file_a11148

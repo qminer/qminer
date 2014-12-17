@@ -97,4 +97,6 @@ out
 /test/cpp/run-all-tests
 /test/cpp/test1.txt
 /test/cpp/test.txt
-chai
+cha
+
+.DC_Store

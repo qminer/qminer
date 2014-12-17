@@ -198,7 +198,7 @@ bool TFFile::Next(TStr& FNm){
 
         struct stat Stat;
         int ErrCd = stat(FNm.CStr(), &Stat);
-        EAssert(ErrCd==0);
+        if (ErrCd != 0) { EAssert(ErrCd==0); }
 
         if (S_ISREG(Stat.st_mode)) {
           if ((FBase!=".")&&(FBase!="..")){
@@ -221,7 +221,7 @@ bool TFFile::Next(TStr& FNm){
         FFileDesc->DirEnt = NULL;
         int ErrCd = closedir(FFileDesc->FDesc);
         FFileDesc->FDesc = NULL;
-        EAssert(ErrCd==0);
+        if (ErrCd != 0) { EAssert(ErrCd==0); }
         break;
       }
     }

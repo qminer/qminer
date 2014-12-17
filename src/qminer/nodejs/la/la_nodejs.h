@@ -13,11 +13,15 @@
 // XXX: Current implementation doesn't support all documented properties! 
 class TNodeJsLinAlg : public node::ObjectWrap {
 public:
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	//# 
 =======
    //# 
 >>>>>>> .merge_file_a09100
+=======
+   //# 
+>>>>>>> .merge_file_a05780
 	//# **Functions and properties:**
 	//# 
 	//#- `intVec = la.newIntVec()` -- generate an empty integer vector
@@ -29,21 +33,28 @@ public:
 	//#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
 	//#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
 	//#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	//	JsDeclareFunction(newMat);
 	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
 	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
 	//	JsDeclareFunction(newSpVec);
 =======
+=======
+>>>>>>> .merge_file_a05780
 //	JsDeclareFunction(newMat);
 	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
 	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
 //	JsDeclareFunction(newSpVec);
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	//#- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
 	//#- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
 	//#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
 	//#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	//	JsDeclareFunction(newSpMat);
 	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
@@ -55,6 +66,8 @@ public:
 private:
 	// 
 =======
+=======
+>>>>>>> .merge_file_a05780
 //	JsDeclareFunction(newSpMat);
 	//#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
 	//#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
@@ -64,11 +77,15 @@ private:
 	//#JSIMPLEMENT:src/qminer/linalg.js
 private:
    // 
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 };
 
 
 class TAuxFltV {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 public:
 	static const TStr ClassId; //ClassId is set to "TFltV"
@@ -76,6 +93,8 @@ public:
 	//	return Handlescope.Close(v8::Number::New(Val));
 	//}
 =======
+=======
+>>>>>>> .merge_file_a05780
 public:	
 	static const TStr ClassId; //ClassId is set to "TFltV"
 	static v8::Handle<v8::Value> GetObjVal(const double& Val) {
@@ -83,7 +102,10 @@ public:
 		v8::EscapableHandleScope HandleScope(Isolate);
 		return HandleScope.Escape(v8::Number::New(Isolate, Val));
 	}
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	//static double GetArgVal(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	//	return TJsObjUtil<TJsVec<TFlt, TAuxFltV> >::GetArgFlt(Args, ArgN);
 	//}
@@ -93,6 +115,7 @@ public:
 };
 
 class TAuxIntV {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 public:
 	static const TStr ClassId; //ClassId is set to "TIntV"
@@ -100,6 +123,8 @@ public:
 	//	return Handlescope.Close(v8::Integer::New(Val));
 	//}
 =======
+=======
+>>>>>>> .merge_file_a05780
 public:	
 	static const TStr ClassId; //ClassId is set to "TIntV"
 	static v8::Handle<v8::Value> GetObjVal(const int& Val) {
@@ -107,7 +132,10 @@ public:
 		v8::EscapableHandleScope HandleScope(Isolate);
 		return HandleScope.Escape(v8::Integer::New(Isolate, Val));
 	}
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	//static int GetArgVal(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 	//	return TJsObjUtil<TJsVec<TInt, TAuxIntV> >::GetArgInt32(Args, ArgN);
 	// }
@@ -116,8 +144,11 @@ public:
 	}
 };
 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 =======
+=======
+>>>>>>> .merge_file_a05780
 
 class TAuxStrV {
 public:
@@ -134,11 +165,15 @@ public:
 };
 
 
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 ///////////////////////////////
 // NodeJs-GLib-TVec
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	friend class TNodeJsFltVV;
 public: // So we can register the class 
@@ -157,6 +192,8 @@ public:
 private:
 	//#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 =======
+=======
+>>>>>>> .merge_file_a05780
    friend class TNodeJsFltVV;
 public: // So we can register the class 
    static void Init(v8::Handle<v8::Object> exports);
@@ -173,7 +210,10 @@ public:
     JsDeclareFunction(New);
 private:
    //#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	//#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
 	JsDeclareFunction(at);
 	//#- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
@@ -183,11 +223,15 @@ private:
 	//// JsDeclGetSetIndexedProperty(indexGet, indexSet);
 	//#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
 	//#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	JsDeclareFunction(put);
 =======
 	JsDeclareFunction(put);	
 >>>>>>> .merge_file_a09100
+=======
+	JsDeclareFunction(put);	
+>>>>>>> .merge_file_a05780
 	//#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
 	//#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
 	JsDeclareFunction(push);
@@ -202,20 +246,28 @@ private:
 	JsDeclareFunction(sum);
 	//#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
 	//#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	JsDeclareFunction(getMaxIdx);
 =======
 	JsDeclareSpecializedFunction(getMaxIdx);
 >>>>>>> .merge_file_a09100
+=======
+	JsDeclareSpecializedFunction(getMaxIdx);
+>>>>>>> .merge_file_a05780
 	//#- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	//#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	JsDeclareFunction(sort);
 	//#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	JsDeclareSpecializedFunction(sortPerm);
 =======
 	JsDeclareSpecializedFunction(sortPerm);	
 >>>>>>> .merge_file_a09100
+=======
+	JsDeclareSpecializedFunction(sortPerm);	
+>>>>>>> .merge_file_a05780
 	//#- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
 	//#- `intVec = intVec.shuffle()` -- shuffels the vector `intVec` (inplace operation). Returns self.
 	JsDeclareFunction(shuffle);
@@ -234,6 +286,7 @@ private:
 	JsDeclareSpecializedFunction(multiply);
 	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareSpecializedFunction(normalize);
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
 	//#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
@@ -256,6 +309,8 @@ public:
 private:
 	static v8::Persistent<v8::Function> constructor;
 =======
+=======
+>>>>>>> .merge_file_a05780
    //#- `len = vec.length` -- integer `len` is the length of vector `vec`
    //#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
    JsDeclareProperty(length);
@@ -276,7 +331,10 @@ public:
    TVec<TVal> Vec;
 private:
    static v8::Persistent<v8::Function> constructor;
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 };
 
 
@@ -284,6 +342,7 @@ private:
 // NodeJs-Qminer-FltVV
 class TNodeJsFltVV : public node::ObjectWrap {
 public:
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New(const TFltVV& FltVV);
@@ -300,6 +359,8 @@ private:
 	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
 =======
+=======
+>>>>>>> .merge_file_a05780
    static void Init(v8::Handle<v8::Object> exports);
    static v8::Local<v8::Object> New(const TFltVV& FltVV);
    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
@@ -314,11 +375,15 @@ private:
 	//# 
 	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
 	JsDeclareFunction(put);
 	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
 	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	//#- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
 	//#- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
@@ -358,6 +423,8 @@ private:
 	JsDeclareFunction(rowMaxIdx);
 	//#- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
 =======
+=======
+>>>>>>> .merge_file_a05780
    //#- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
    //#- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
    //#- `mat2 = mat.multiply(spMat)` -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
@@ -395,12 +462,16 @@ private:
    //#- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
    JsDeclareFunction(rowMaxIdx);
    //#- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	JsDeclareFunction(colMaxIdx);
 	//#- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
 	JsDeclareFunction(getCol);
 	//#- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
 	JsDeclareFunction(setCol);
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	//#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
 	JsDeclareFunction(getRow);
@@ -417,6 +488,8 @@ public:
 private:
 	static v8::Persistent<v8::Function> constructor;
 =======
+=======
+>>>>>>> .merge_file_a05780
    //#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
    JsDeclareFunction(getRow);
    //#- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
@@ -431,7 +504,10 @@ public:
    TFltVV Mat;
 private:
    static v8::Persistent<v8::Function> constructor;
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 };
 
 ///////////////////////////////
@@ -449,6 +525,7 @@ private:
 //# 
 class TNodeJsSpVec : public node::ObjectWrap {
 public:
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	TNodeJsSpVec() { }
 	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
@@ -499,6 +576,8 @@ public:
 private:
 	static v8::Persistent<v8::Function> constructor;
 =======
+=======
+>>>>>>> .merge_file_a05780
    TNodeJsSpVec() { }
    TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
       : Vec(IntFltKdV), Dim(Dim)
@@ -547,7 +626,10 @@ public:
 	int Dim;
 private:
    static v8::Persistent<v8::Function> constructor;
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 };
 
 ///////////////////////////////
@@ -565,6 +647,7 @@ private:
 //# 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	TNodeJsSpMat() { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
@@ -576,6 +659,8 @@ public:
 public:
 	//# 
 =======
+=======
+>>>>>>> .merge_file_a05780
    TNodeJsSpMat() { }
    TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
       : Mat(_Mat), Rows(_Rows) { }
@@ -585,7 +670,10 @@ public:
    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
    //# 
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	//# **Functions and properties:**
 	//# 
 	JsDeclareFunction(New);
@@ -614,11 +702,15 @@ public:
 	//#- `spMat3 = spMat.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
 	JsDeclareFunction(minus);
 	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	JsDeclareFunction(transpose);
 =======
 	JsDeclareFunction(transpose);	
 >>>>>>> .merge_file_a09100
+=======
+	JsDeclareFunction(transpose);	
+>>>>>>> .merge_file_a05780
 	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
 	JsDeclareFunction(colNorms);
 	//#- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
@@ -639,17 +731,23 @@ public:
 	JsDeclareFunction(load);
 	//#JSIMPLEMENT:src/qminer/spMat.js
 private:
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	TVec<TIntFltKdV> Mat;
 	TInt Rows;
 private:
 	static v8::Persistent<v8::Function> constructor;
 =======
+=======
+>>>>>>> .merge_file_a05780
    TVec<TIntFltKdV> Mat;
    TInt Rows;
 private:
    static v8::Persistent<v8::Function> constructor;
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 };
 
 
@@ -662,11 +760,14 @@ v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "vector"));
 =======
+=======
+>>>>>>> .merge_file_a05780
 	
 	TStr Name = "vector";
 	if (TAux::ClassId == "TIntV") Name = "intVector";
@@ -674,11 +775,15 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// Add all prototype methods, getters and setters here.
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	NODE_SET_PROTOTYPE_METHOD(tpl, "newIntVec", newIntVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
@@ -711,6 +816,8 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), length);
 =======
+=======
+>>>>>>> .merge_file_a05780
 	NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", _subVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
@@ -740,11 +847,15 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 
 	// Properties 
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	exports->Set(v8::String::NewFromUtf8(Isolate, "vector"),
 		tpl->GetFunction());
@@ -775,21 +886,30 @@ v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(v8::Local<v8::Array> Arr) {
 }
 
 =======
+=======
+>>>>>>> .merge_file_a05780
 	exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
 		tpl->GetFunction());
 }
 
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	if (Args.IsConstructCall()) {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 =======
 		//printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
 >>>>>>> .merge_file_a09100
+=======
+		//printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
+>>>>>>> .merge_file_a05780
 		TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>();
 
 		v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
@@ -798,6 +918,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		// If we got Javascript array on the input: vector.new([1,2,3]) 
 		if (Args[0]->IsArray()) {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 			v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
 			const int Len = Arr->Length();
@@ -806,6 +927,8 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 		else if (Args[0]->IsObject()) {
 			if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
 =======
+=======
+>>>>>>> .merge_file_a05780
 			//printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
 			v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
 			const int Len = Arr->Length();
@@ -814,23 +937,33 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 		else if (Args[0]->IsObject()) {
 			if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
 				//printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 				TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 =======
 				//printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
 >>>>>>> .merge_file_a09100
+=======
+				//printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
+>>>>>>> .merge_file_a05780
 				TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
 				Args.GetReturnValue().Set(New(JsVecArg->Vec));
 				return;
 			}
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 			else {
 =======
+=======
+>>>>>>> .merge_file_a05780
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TStrV")) {
 				//printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
 				TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
@@ -839,7 +972,10 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 			}
 			else {
 				//printf("construct call, else branch, class = %s\n", TAux::ClassId.CStr());
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 				// We have object with parameters, parse them out
 				const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
 				const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
@@ -855,10 +991,14 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 		Args.GetReturnValue().Set(Instance);
 	}
 	else {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 =======
 		//printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
 >>>>>>> .merge_file_a09100
+=======
+		//printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
+>>>>>>> .merge_file_a05780
 		const int Argc = 1;
 		v8::Local<v8::Value> Argv[Argc] = { Args[0] };
 		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
@@ -872,6 +1012,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
 	}
 }
 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::newIntVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -892,6 +1033,8 @@ void TNodeJsVec<TVal, TAux>::newIntVec(const v8::FunctionCallbackInfo<v8::Value>
 
 =======
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 // Returns an element at index idx=Args[0]; assert 0 <= idx < v.length() 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -904,11 +1047,15 @@ void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	const int Idx = Args[0]->IntegerValue();
 
 	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.GetVal(Idx).Val));
 =======
 	Args.GetReturnValue().Set(TAux::GetObjVal(JsVec->Vec[Idx]));
 >>>>>>> .merge_file_a09100
+=======
+	Args.GetReturnValue().Set(TAux::GetObjVal(JsVec->Vec[Idx]));
+>>>>>>> .merge_file_a05780
 }
 
 template <typename TVal, typename TAux>
@@ -920,17 +1067,22 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 		if (Args[0]->IsArray()) {
 			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
 			const int Len = Array->Length();
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 			v8::Handle<v8::Array> OutArr = v8::Array::New(Isolate, Len);
 =======
 			TVec<TVal> ResultVec(Len);
 >>>>>>> .merge_file_a09100
+=======
+			TVec<TVal> ResultVec(Len);
+>>>>>>> .merge_file_a05780
 			for (int ElN = 0; ElN < Len; ++ElN) {
 				EAssertR(Array->Get(ElN)->IsInt32(),
 					"Expected array to contain integers only.");
 				const int Idx = Array->Get(ElN)->Int32Value();
 				EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(),
 					"One of the indices from the index vector is out of bounds");
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 				OutArr->Set(v8::Number::New(Isolate, ElN), v8::Number::New(Isolate, JsVec->Vec[Idx]));
 			}
@@ -947,6 +1099,8 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 			}
 			Args.GetReturnValue().Set(New(OutArr));
 =======
+=======
+>>>>>>> .merge_file_a05780
 				ResultVec[ElN] = JsVec->Vec[Idx];
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
@@ -963,7 +1117,10 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(ResultVec));
 			return;
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -982,6 +1139,7 @@ void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	TFlt Sum = 0.0;
 	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
@@ -989,12 +1147,17 @@ void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args
 	}
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 =======
+=======
+>>>>>>> .merge_file_a05780
 	TVal Sum;
 	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
 		Sum += JsVec->Vec[ElN];
 	}
 	Args.GetReturnValue().Set(TAux::GetObjVal(Sum));
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 }
 
 // put(idx, num) sets v[idx] := num 
@@ -1016,11 +1179,15 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 	EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds");
 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	JsVec->Vec[Idx] = Args[1]->NumberValue();
 =======
 	JsVec->Vec[Idx] = TAux::CastVal(Args[1]);
 >>>>>>> .merge_file_a09100
+=======
+	JsVec->Vec[Idx] = TAux::CastVal(Args[1]);
+>>>>>>> .merge_file_a05780
 
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
@@ -1038,29 +1205,40 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
 	}
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	else if (!Args[0]->IsNumber()) {
 =======
 	else if (!Args[0]->IsNumber() && !Args[0]->IsString()) {
 >>>>>>> .merge_file_a09100
+=======
+	else if (!Args[0]->IsNumber() && !Args[0]->IsString()) {
+>>>>>>> .merge_file_a05780
 		Isolate->ThrowException(v8::Exception::TypeError(
 			v8::String::NewFromUtf8(Isolate, "Expected number")));
 	}
 	else {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 		const double Val = Args[0]->ToNumber()->Value();
 		JsVec->Vec.Add(Val);
 =======
 		JsVec->Vec.Add(TAux::CastVal(Args[0]));
 >>>>>>> .merge_file_a09100
+=======
+		JsVec->Vec.Add(TAux::CastVal(Args[0]));
+>>>>>>> .merge_file_a05780
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 	}
 }
 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 // Inserts a number `num` at the beginning of the vector `v`: `v.ins(0, num)` 
 =======
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1069,11 +1247,15 @@ void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& 
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
 	// assume number
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	TVal Val = Args[0]->ToNumber()->Value();
 =======
 	TVal Val = TAux::CastVal(Args[0]);
 >>>>>>> .merge_file_a09100
+=======
+	TVal Val = TAux::CastVal(Args[0]);
+>>>>>>> .merge_file_a05780
 	JsVec->Vec.Ins(0, Val);
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 }
@@ -1094,6 +1276,7 @@ void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Ar
 	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 // Returns i = arg max_i v[i] for a vector v 
 template <typename TVal, typename TAux>
@@ -1114,6 +1297,9 @@ void TNodeJsVec<TVal, TAux>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>
 =======
 
 >>>>>>> .merge_file_a09100
+=======
+
+>>>>>>> .merge_file_a05780
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1123,6 +1309,7 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	TNodeJsVec<TVal, TAux>* JsVec =
 		ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 	const bool Asc = Args.Length() > 0 && Args[0]->BooleanValue();
 
@@ -1130,12 +1317,17 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	Result.Sort(Asc);
 	Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(Result));
 =======
+=======
+>>>>>>> .merge_file_a05780
 	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 	
 	TVec<TVal> Result = JsVec->Vec;
 	Result.Sort(Asc);
 	Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(Result));	
+<<<<<<< .merge_file_a07020
 >>>>>>> .merge_file_a09100
+=======
+>>>>>>> .merge_file_a05780
 }
 
 template <typename TVal, typename TAux>
@@ -1177,6 +1369,7 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
 
 	TStr Str = "[";
 	for (int ElN = 0; ElN < JsVec->Vec.Len() - 1; ++ElN) {
+<<<<<<< .merge_file_a07020
 <<<<<<< .merge_file_a05508
 		Str += TFlt::GetStr(JsVec->Vec[ElN]) + ", ";
 	}
@@ -1186,6 +1379,11 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
 	}
 	Str += JsVec->Vec.Last().GetStr() + "]";
 >>>>>>> .merge_file_a09100
+=======
+		Str += JsVec->Vec[ElN].GetStr() + ", ";
+	}
+	Str += JsVec->Vec.Last().GetStr() + "]";
+>>>>>>> .merge_file_a05780
 
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }

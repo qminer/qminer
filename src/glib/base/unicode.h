@@ -1051,17 +1051,19 @@ public:
 	ushort lineBreak; // from LineBreak.txt
 
 	// Converts a 2-letter linebreak code into a 16-bit integer.
-	static inline ushort GetLineBreakCode(char c1, char c2) { return ((ushort(uchar(c1)) & 0xff) << 8) | ((ushort(uchar(c2)) & 0xff)); }
+  static inline ushort GetLineBreakCode(char c1, char c2) { return ((static_cast<ushort>(static_cast<uchar>(c1)) & 0xff) << 8) | ((static_cast<ushort>(static_cast<uchar>(c2)) & 0xff)); }
 	static const ushort LineBreak_Unknown, LineBreak_ComplexContext, LineBreak_Numeric, LineBreak_InfixNumeric, LineBreak_Quotation;
 
 public:
 	void InitAfterLoad() {
 		cat = (TUniChCategory) chCat;
-		subCat = (TUniChSubCategory) (((int(uchar(chCat)) & 0xff) << 8) | (int(uchar(chSubCat)) & 0xff)); }
+        subCat = (TUniChSubCategory) (((static_cast<int>(static_cast<uchar>(chCat)) & 0xff) << 8) | (static_cast<int>(static_cast<uchar>(chSubCat)) & 0xff)); 
+    }
 	void SetCatAndSubCat(const TUniChSubCategory catAndSubCat) {
 		cat = (TUniChCategory) ((int(catAndSubCat) >> 8) & 0xff);
 		subCat = catAndSubCat;
-		chCat = (char) cat; chSubCat = (char) (int(subCat) & 0xff); }
+		chCat = (char) cat; chSubCat = (char) (int(subCat) & 0xff); 
+    }
 	friend class TUniChDb;
 
 	// Inexplicably missing from TSIn/TSOut...
@@ -2588,18 +2590,18 @@ bool TUniChDb::FindNextWordBoundary(const TSrcVec& src, const size_t srcIdx, con
 template<typename TSrcVec>
 void TUniChDb::FindWordBoundaries(const TSrcVec& src, const size_t srcIdx, const size_t srcCount, TBoolV& dest) const
 {
-	if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
-	dest.PutAll(false);
-	size_t position = srcIdx;
+  if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
+  dest.PutAll(false);
+  size_t position = srcIdx, oldPos = srcIdx;
+  dest[TVecIdx(position - srcIdx)] = true;
+  while (position < srcIdx + srcCount) {
+    oldPos = position;
+	FindNextWordBoundary(src, srcIdx, srcCount, position);
+	if (oldPos >= position) { Assert(oldPos < position); }
+	Assert(position <= srcIdx + srcCount);
 	dest[TVecIdx(position - srcIdx)] = true;
-	while (position < srcIdx + srcCount)
-	{
-		DebugCode(size_t oldPos = position);
-		FindNextWordBoundary(src, srcIdx, srcCount, position);
-		Assert(oldPos < position); Assert(position <= srcIdx + srcCount);
-		dest[TVecIdx(position - srcIdx)] = true;
-	}
-	Assert(dest[TVecIdx(srcCount)]);
+  }
+  Assert(dest[TVecIdx(srcCount)]);
 }
 
 //-----------------------------------------------------------------------------
@@ -2817,18 +2819,18 @@ bool TUniChDb::FindNextSentenceBoundary(const TSrcVec& src, const size_t srcIdx,
 template<typename TSrcVec>
 void TUniChDb::FindSentenceBoundaries(const TSrcVec& src, const size_t srcIdx, const size_t srcCount, TBoolV& dest) const
 {
-	if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
-	dest.PutAll(false);
-	size_t position = srcIdx;
-	dest[TVecIdx(position - srcIdx)] = true;
-	while (position < srcIdx + srcCount)
-	{
-		DebugCode(size_t oldPos = position);
-		FindNextSentenceBoundary(src, srcIdx, srcCount, position);
-		Assert(oldPos < position); Assert(position <= srcIdx + srcCount);
-		dest[TVecIdx(position - srcIdx)] = true;
-	}
-	Assert(dest[TVecIdx(srcCount)]);
+  if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
+  dest.PutAll(false);
+  size_t position = srcIdx, oldPos = srcIdx;
+  dest[TVecIdx(position - srcIdx)] = true;
+  while (position < srcIdx + srcCount) {
+    oldPos = position;
+    FindNextSentenceBoundary(src, srcIdx, srcCount, position);
+    if (oldPos >= position) { Assert(oldPos < position); }
+    Assert(position <= srcIdx + srcCount);
+    dest[TVecIdx(position - srcIdx)] = true;
+  }
+  Assert(dest[TVecIdx(srcCount)]);
 }
 
 //-----------------------------------------------------------------------------

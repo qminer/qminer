@@ -12,6 +12,7 @@
 	   try { \
 	      Function(Name, Info); \
 	   } catch (const PExcept& Except) { \
+<<<<<<< .merge_file_a01560
 	      /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
             Isolate->ThrowException(v8::Exception::TypeError( \
                v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
@@ -42,6 +43,73 @@
 		} catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
                v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
+=======
+            Isolate->ThrowException(v8::Exception::TypeError( \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+	   } \
+	};
+
+#define JsDeclIndexedProperty(Function) \
+	static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+	   v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+	   v8::HandleScope HandleScope(Isolate); \
+		try { \
+			Function(Index, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	}
+
+#define JsDeclareSetIndexedProperty(FunctionGetter, FunctionSetter) \
+	static void FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+	    v8::HandleScope HandleScope(Isolate); \
+		try { \
+			FunctionGetter(Index, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	} \
+	static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+	static void _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			FunctionSetter(Index, Value, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	}
+
+
+
+#define JsDeclareSetProperty(GetFunction, SetFunction) \
+	static void GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			GetFunction(Name, Info); \
+		} catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+      } \
+	} \
+	static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+	static void _ ## SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			SetFunction(Name, Value, Info); \
+		} catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+>>>>>>> .merge_file_a03756
 		} \
 	};
 
@@ -72,6 +140,7 @@
    }; 
 
 
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a10048
 
    
@@ -81,6 +150,8 @@
 
 =======
 >>>>>>> .merge_file_a10676
+=======
+>>>>>>> .merge_file_a03756
 //////////////////////////////////////////////////////
 // Node - Utilities
 class TNodeJsUtil {
@@ -123,22 +194,30 @@ public:
 	}
 
 	/// Extract argument ArgN as int
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a10048
 	static bool GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 =======
 	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
 >>>>>>> .merge_file_a10676
+=======
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+>>>>>>> .merge_file_a03756
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a10048
 		return static_cast<int>(Val->Int32Value());
 =======
 		return Val->Int32Value();
 >>>>>>> .merge_file_a10676
+=======
+		return Val->Int32Value();
+>>>>>>> .merge_file_a03756
 	}
 	/// Extract argument ArgN as int, and use DefVal in case when not present
 	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
@@ -148,11 +227,15 @@ public:
 		if (ArgN >= Args.Length()) { return DefVal; }
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a10048
 		return static_cast<int>(Val->Int32Value());		
 =======
 		return Val->Int32Value();		
 >>>>>>> .merge_file_a10676
+=======
+		return Val->Int32Value();		
+>>>>>>> .merge_file_a03756
 	}
 	/// Extract argument ArgN property as int
    static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
@@ -248,8 +331,11 @@ public:
 		return Val->IsFunction();
 	}
 
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a10048
 =======
+=======
+>>>>>>> .merge_file_a03756
 	/// Transform V8 string to TStr
 	static TStr GetStr(const v8::Local<v8::String>& V8Str) {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -258,13 +344,20 @@ public:
 		return TStr(*Utf8);
 	}
 
+<<<<<<< .merge_file_a01560
 >>>>>>> .merge_file_a10676
+=======
+>>>>>>> .merge_file_a03756
 private:
 	static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
 };
 
+<<<<<<< .merge_file_a01560
 <<<<<<< .merge_file_a10048
 #endif
 =======
 #endif
 >>>>>>> .merge_file_a10676
+=======
+#endif
+>>>>>>> .merge_file_a03756

@@ -2972,29 +2972,10 @@ _analytics.newRecLinReg = function () {
 	/// </signature>
 };
 
-_analytics.crossValidation = function () {
-	/// <signature>
-	/// <summary> creates a batch</summary>
-	/// <param name="_rs" value="_rs">param</param>
-	/// <param name="_features" value="_features">param</param>
-	/// <param name="_target" value="_target">param</param>
-	/// <param name="_folds" value="_folds">param</param>
-	/// <returns value ="_result"/>
-	/// </signature>
-};
-
 _analytics.getLanguageOptions = function () {
 	/// <signature>
 	/// <summary> get options for text parsing</summary>
 	/// <returns value ="_langOptionsJson"/>
-	/// </signature>
-};
-
-_analytics.loadFeatureSpace = function () {
-	/// <signature>
-	/// <summary> load serialized feature</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_fsp"/>
 	/// </signature>
 };
 
@@ -3009,14 +2990,6 @@ _analytics.newLloyd = function () {
 	/// </signature>
 };
 
-_analytics.trainSvmClassify = function () {
-	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
-	/// </signature>
-};
-
 _analytics.newKNearestNeighbors = function () {
 	/// <signature>
 	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
@@ -3024,6 +2997,15 @@ _analytics.newKNearestNeighbors = function () {
 	/// <param name="_buffer" value="_buffer">param</param>
 	/// <param name="_power" value="_power">param</param>
 	/// <returns value ="_kNearestNeighbors"/>
+	/// </signature>
+};
+
+_analytics.newLloyd = function () {
+	/// <signature>
+	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_k" value="_k">param</param>
+	/// <returns value ="_lloydModel"/>
 	/// </signature>
 };
 
@@ -3067,11 +3049,11 @@ _analytics.newActiveLearner = function () {
 
 _analytics.trainSvmClassify = function () {
 	/// <signature>
-	/// <summary> trains</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <summary> the Extended Kalman filter</summary>
+	/// <param name="_dynamParams" value="_dynamParams">param</param>
+	/// <param name="_measureParams" value="_measureParams">param</param>
+	/// <param name="_controlParams" value="_controlParams">param</param>
+	/// <returns value ="_ekf"/>
 	/// </signature>
 };
 
@@ -3095,11 +3077,11 @@ _analytics.newKNearestNeighbors = function () {
 	/// </signature>
 };
 
-_analytics.newNN = function () {
+_analytics.loadSvmModel = function () {
 	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 };
 
@@ -3120,11 +3102,19 @@ _analytics.loadSvmModel = function () {
 	/// </signature>
 };
 
-_analytics.loadBatchModel = function () {
+_analytics.newNN = function () {
 	/// <signature>
-	/// <summary> loads batch model frm input stream `fin`</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_batchModel"/>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
+	/// </signature>
+};
+
+_analytics.newFeatureSpace = function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 };
 

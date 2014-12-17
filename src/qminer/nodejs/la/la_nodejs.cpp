@@ -9,10 +9,14 @@
 
 const TStr TAuxFltV::ClassId = "TFltV";
 const TStr TAuxIntV::ClassId = "TIntV";
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 =======
 const TStr TAuxStrV::ClassId = "TStrV";
 >>>>>>> .merge_file_a05160
+=======
+const TStr TAuxStrV::ClassId = "TStrV";
+>>>>>>> .merge_file_a04276
 
 
 // template <typename TVal, typename TAux>
@@ -66,11 +70,15 @@ v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) {
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
 =======
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
 >>>>>>> .merge_file_a05160
+=======
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
+>>>>>>> .merge_file_a04276
 	Instance->SetHiddenValue(Key, Value);
 
 	int Len = FltV.Len();
@@ -104,8 +112,11 @@ v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
 }
 
 
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 =======
+=======
+>>>>>>> .merge_file_a04276
 // template <typename TVal, typename TAux>
 template <>
 v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) {
@@ -179,18 +190,25 @@ void TNodeJsVec<TInt, TAuxIntV>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Va
 
 
 
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 template <>
 void TNodeJsVec<TFlt, TAuxFltV>::sortPerm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	const bool Asc =
 		Args.Length() == 1 && Args[0]->IsBoolean() && Args[0]->BooleanValue();
 =======
 	const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 >>>>>>> .merge_file_a05160
+=======
+	const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+>>>>>>> .merge_file_a04276
 
 	TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
 
@@ -387,6 +405,7 @@ void TNodeJsVec<TFlt, TAuxFltV>::toMat(const v8::FunctionCallbackInfo<v8::Value>
 v8::Persistent<v8::Function> TNodeJsFltVV::constructor;
 
 void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -599,6 +618,8 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			TFltVV Result;
 =======
+=======
+>>>>>>> .merge_file_a04276
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -802,11 +823,15 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		} else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
          TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
          TFltVV Result;
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 			// computation
 			Result.Gen(JsMat->Mat.GetRows(), FltVV->Mat.GetCols());
 			TLinAlg::Multiply(JsMat->Mat, FltVV->Mat, Result);
 			Args.GetReturnValue().Set(New(Result));
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 		}
 	}
@@ -970,6 +995,8 @@ void TNodeJsFltVV::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TLAMisc::PrintTFltVVToStr(JsMat->Mat, Out);
 
 =======
+=======
+>>>>>>> .merge_file_a04276
       }
    } else {	   
 	   throw TExcept::New("Unsupported type");      
@@ -1129,11 +1156,15 @@ void TNodeJsFltVV::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    TStr Out = "";
 	TLAMisc::PrintTFltVVToStr(JsMat->Mat, Out);
 	
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 	Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Out.CStr()));
 }
 
 void TNodeJsFltVV::rowMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -1376,6 +1407,80 @@ void TNodeJsFltVV::setCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
+=======
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+   
+   EAssertR(Args.Length() == 1 && Args[0]->Int32Value(),
+      "Expected nonnegative integer");
+   
+   TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+   const int RowN = Args[0]->Int32Value();
+   
+   EAssertR(0 <= RowN && RowN < JsMat->Mat.GetRows(),
+      "Index out of bounds.");
+   
+   const int MxIdx = TLinAlg::GetRowMaxIdx(JsMat->Mat, RowN);
+   
+   Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
+void TNodeJsFltVV::colMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+   
+   EAssertR(Args.Length() == 1 && Args[0]->IsInt32() &&
+      Args[0]->Int32Value() >= 0, "Expected nonnegative integer");
+   
+   TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+   const int ColN = Args[0]->Int32Value();
+   
+   EAssertR(0 <= ColN && ColN < JsMat->Mat.GetRows(),
+      "Index out of bounds.");
+   
+   const int MxIdx = TLinAlg::GetColMaxIdx(JsMat->Mat, ColN);
+   
+   Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
+void TNodeJsFltVV::getCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+   
+   EAssertR(Args.Length() == 1 && Args[0]->IsInt32() &&
+      Args[0]->Int32Value() >= 0, "Expected nonnegative integer");
+   
+   const int ColIdx = Args[0]->Int32Value();
+   TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+   
+   TFltV Result;
+   JsMat->Mat.GetCol(ColIdx, Result);
+   Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
+}
+
+void TNodeJsFltVV::setCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+   
+   EAssertR(Args.Length() == 2 && Args[1]->IsObject() && Args[0]->IsInt32(),
+      "Expected vector on the input");
+   
+   TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+   TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+      ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[1]->ToObject());
+   
+   const int ColN = Args[0]->Int32Value();
+   
+   EAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len(),
+      "Number of rows of the matrix should equals the size of the vector");
+   
+   for (int RowN = 0; RowN < JsMat->Mat.GetRows(); ++RowN) {
+      JsMat->Mat.At(RowN, ColN) = JsVec->Vec[RowN];
+   }
+   
+   Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+>>>>>>> .merge_file_a04276
 
 void TNodeJsFltVV::getRow(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1472,7 +1577,10 @@ void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
    TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Self);
    
    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetRows()));
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 }
 
 ///////////////////////////////
@@ -1481,6 +1589,7 @@ void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 v8::Persistent<v8::Function> TNodeJsSpVec::constructor;
 
 void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -1684,6 +1793,8 @@ void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// Args.GetReturnValue().Set(v8::Undefined::New(Isolate));
 	// }
 =======
+=======
+>>>>>>> .merge_file_a04276
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -1878,6 +1989,7 @@ void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
          Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
       } else {
          EFailR("Uknown type.");
+<<<<<<< .merge_file_a06916
       }
    } // else {
       // Args.GetReturnValue().Set(v8::Undefined::New(Isolate));
@@ -2030,6 +2142,35 @@ void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 
 	Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsSpVec->Dim));
 =======
+=======
+      }
+   } // else {
+      // Args.GetReturnValue().Set(v8::Undefined::New(Isolate));
+   // }
+}
+
+
+void TNodeJsSpVec::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+   v8::HandleScope HandleScope(Isolate);
+   
+   EAssertR(Args.Length() == 1 && Args[0]->IsNumber(), "Expected a scalar.");
+   
+   TNodeJsSpVec* JsSpVec =
+      ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
+   
+   double Scalar = Args[0]->NumberValue();
+	// get the internal glib vector
+	TIntFltKdV Result;
+	// computation
+	Result.Gen(JsSpVec->Vec.Len());
+	TLinAlg::MultiplyScalar(Scalar, JsSpVec->Vec, Result);
+	
+	Args.GetReturnValue().Set(New(Result));
+}
+
+void TNodeJsSpVec::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+>>>>>>> .merge_file_a04276
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
    
@@ -2136,7 +2277,10 @@ void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
    TNodeJsSpVec* JsSpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Self);
    
    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsSpVec->Dim));
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 }
 
 ///////////////////////////////
@@ -2144,6 +2288,7 @@ void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 v8::Persistent<v8::Function> TNodeJsSpMat::constructor;
 
 void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -2441,6 +2586,8 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (Args.Length() > 0) {
 		if (Args[0]->IsNumber()) {
 =======
+=======
+>>>>>>> .merge_file_a04276
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    
    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -2730,7 +2877,10 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    TNodeJsSpMat* JsMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
    if (Args.Length() > 0) {
       if (Args[0]->IsNumber()) {
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 			double Scalar = Args[0]->NumberValue();
 			TVec<TIntFltKdV> Result;
 			// computation
@@ -2745,6 +2895,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (Args[0]->IsObject()) {
 			if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
 				TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 					ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 				EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(),
@@ -2756,6 +2907,8 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				// computation				
 				int Cols = JsMat->Mat.Len();
 =======
+=======
+>>>>>>> .merge_file_a04276
 				   ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
 				EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsVec->Vec.Len(),
 				   "sparse_col_matrix' * vector: dimensions mismatch");
@@ -2765,12 +2918,16 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				}
 				// computation				
 				int Cols = JsMat->Mat.Len();				
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 				TFltVV Result(Cols, 1);
 				// Copy could be omitted if we implemented SparseColMat * TFltV
 				TLinAlg::MultiplyT(JsMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result);
 				// create JS result with the Result vector	
 				Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 			}
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
@@ -2779,6 +2936,10 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			} else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {			
 				TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());				
 >>>>>>> .merge_file_a05160
+=======
+			} else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {			
+				TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());				
+>>>>>>> .merge_file_a04276
 				EAssertR(JsMat->Rows == -1 || JsMat->Rows == JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
 				if (JsMat->Rows == -1) {
 					EAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < JsMat2->Mat.GetRows(), "sparse_col_matrix' * matrix: dimensions mismatch");
@@ -2789,12 +2950,16 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				Result.Gen(Cols, JsMat2->Mat.GetCols());
 				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
 				Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 			}
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
 =======
 			} else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
 >>>>>>> .merge_file_a05160
+=======
+			} else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+>>>>>>> .merge_file_a04276
 				TNodeJsSpVec* JsVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
 				EAssertR(JsMat->Rows == -1 || JsVec->Dim == -1 || JsMat->Rows == JsVec->Dim, "sparse_col_matrix' * sparse_vector: dimensions mismatch");
 				// computation				
@@ -2802,6 +2967,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				TFltVV Result(Cols, 1);
 				// Copy could be omitted if we implemented SparseColMat * SparseVec
 				TVec<TIntFltKdV> TempSpMat(1);
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 				TempSpMat[0] = JsVec->Vec;
 				TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
@@ -2810,26 +2976,36 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			}
 			else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
 =======
+=======
+>>>>>>> .merge_file_a04276
 				TempSpMat[0] = JsVec->Vec;				
 				TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
 				// create JS result with the Result vector
 				Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
 			} else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 				TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
 				EAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
 				// computation				
 				int Cols = JsMat->Mat.Len();
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 				TFltVV Result(Cols, JsMat2->Mat.Len());
 =======
 				TFltVV Result(Cols, JsMat2->Mat.Len());					
 >>>>>>> .merge_file_a05160
+=======
+				TFltVV Result(Cols, JsMat2->Mat.Len());					
+>>>>>>> .merge_file_a04276
 				TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
 				// create JS result with the Result vector	
 				Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 			}
 		}
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 	}
 }
@@ -2847,6 +3023,8 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			JsSpMat->Rows == JsSpMat2->Rows,
 			"matrix - matrix: dimensions mismatch");
 =======
+=======
+>>>>>>> .merge_file_a04276
    }
 }
 
@@ -2862,7 +3040,10 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
       EAssertR(JsSpMat->Rows == -1 || JsSpMat2->Rows == -1 ||
          JsSpMat->Rows == JsSpMat2->Rows,
          "matrix - matrix: dimensions mismatch");
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 		// create JS result and get the internal data
 		TVec<TIntFltKdV> Result;
 		// computation				
@@ -2884,6 +3065,7 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		int Rows = -1;
 		if (JsSpMat->Rows == -1 && JsSpMat2->Rows == -1) {
 			Rows = TLAMisc::GetMaxDimIdx(Result) + 1;
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 		}
 		else {
@@ -2909,6 +3091,8 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			JsSpMat->Rows == JsSpMat2->Rows,
 			"matrix - matrix: dimensions mismatch");
 =======
+=======
+>>>>>>> .merge_file_a04276
 		} else {
 			Rows = MAX(JsSpMat->Rows, JsSpMat2->Rows);
 		}
@@ -2930,7 +3114,10 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
       EAssertR(JsSpMat->Rows == -1 || JsSpMat2->Rows == -1 ||
          JsSpMat->Rows == JsSpMat2->Rows,
          "matrix - matrix: dimensions mismatch");
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 		// create JS result and get the internal data
 		TVec<TIntFltKdV> Result;
 		// computation				
@@ -2953,6 +3140,7 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		int Rows = -1;
 		if (JsSpMat->Rows == -1 && JsSpMat2->Rows == -1) {
 			Rows = TLAMisc::GetMaxDimIdx(Result) + 1;
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 		}
 		else {
@@ -3075,6 +3263,8 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// TODO: Make Node.js compatible  
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 =======
+=======
+>>>>>>> .merge_file_a04276
 		} else {
 			Rows = MAX(JsSpMat->Rows, JsSpMat2->Rows);
 		}
@@ -3193,11 +3383,15 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::HandleScope HandleScope(Isolate);
    // TODO: Make Node.js compatible  
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 }
 
 #ifndef MODULE_INCLUDE_LA
 ///////////////////////////////
+<<<<<<< .merge_file_a06916
 <<<<<<< .merge_file_a02200
 // Register functions, etc.
 void init(v8::Handle<v8::Object> exports) {
@@ -3208,6 +3402,8 @@ void init(v8::Handle<v8::Object> exports) {
 	TNodeJsSpMat::Init(exports);
 }
 =======
+=======
+>>>>>>> .merge_file_a04276
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
@@ -3218,7 +3414,10 @@ void init(v8::Handle<v8::Object> exports) {
    TNodeJsSpMat::Init(exports);
 }
 
+<<<<<<< .merge_file_a06916
 >>>>>>> .merge_file_a05160
+=======
+>>>>>>> .merge_file_a04276
 NODE_MODULE(la, init)
 
 #endif

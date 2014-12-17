@@ -1,6 +1,5 @@
 /////////////////////////////////////////////////
 // SNAP library
-#include "stdafx.h"
 #include "Snap.h"
 
 //#include "base.cpp"

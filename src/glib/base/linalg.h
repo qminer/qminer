@@ -47,8 +47,8 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const = 0;
     virtual void PMultiply(const TFltV& Vec, TFltV& Result) const = 0;
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const = 0;
-	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const = 0;	
-	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const = 0;
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const { FailR("TMatrix PMultiply(const TFltVV& B, TFltVV& Result) not implemented");}
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const { FailR("TMatrix PMultiplyT(const TFltVV& B, TFltVV& Result) not implemented"); }
 
     virtual int PGetRows() const = 0;
     virtual int PGetCols() const = 0;
