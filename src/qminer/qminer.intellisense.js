@@ -2250,17 +2250,9 @@ _node.eachInNbr = function () {
 	/// </signature>
 };
 
-_node.nbrEId = function () {
+_node.prev = function () {
 	/// <signature>
-	/// <summary> return edge id of Nth neighbour</summary>
-	/// <param name="_N" value="_N">param</param>
-	/// <returns value ="_eid"/>
-	/// </signature>
-};
-
-_node.eachInEdge = function () {
-	/// <signature>
-	/// <summary> calls the callback function(edgeid) {...} on the ids of all of node's in-edges. Note that edge id always equals -1 for ugraph and dgraphs, so the function only applies to dmgraphs.</summary>
+	/// <summary> calls the callback function(nodeid) {...} on all in-neighbors</summary>
 	/// <param name="_callback" value="_callback">param</param>
 	/// <returns value ="_node"/>
 	/// </signature>
@@ -2980,14 +2972,6 @@ _analytics.newRecLinReg = function () {
 	/// </signature>
 };
 
-_analytics.loadRecLinRegModel = function () {
-	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_recLinRegModel"/>
-	/// </signature>
-};
-
 _analytics.crossValidation = function () {
 	/// <signature>
 	/// <summary> creates a batch</summary>
@@ -3011,6 +2995,35 @@ _analytics.loadFeatureSpace = function () {
 	/// <summary> load serialized feature</summary>
 	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value ="_fsp"/>
+	/// </signature>
+};
+
+_analytics.newLloyd = function () {
+	/// <signature>
+	/// <summary> creates a batch</summary>
+	/// <param name="_rs" value="_rs">param</param>
+	/// <param name="_features" value="_features">param</param>
+	/// <param name="_target" value="_target">param</param>
+	/// <param name="_folds" value="_folds">param</param>
+	/// <returns value ="_result"/>
+	/// </signature>
+};
+
+_analytics.trainSvmClassify = function () {
+	/// <signature>
+	/// <summary> create new</summary>
+	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
+	/// <returns value ="_fsp"/>
+	/// </signature>
+};
+
+_analytics.newKNearestNeighbors = function () {
+	/// <signature>
+	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
+	/// <param name="_k" value="_k">param</param>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <param name="_power" value="_power">param</param>
+	/// <returns value ="_kNearestNeighbors"/>
 	/// </signature>
 };
 
@@ -3054,9 +3067,11 @@ _analytics.newActiveLearner = function () {
 
 _analytics.trainSvmClassify = function () {
 	/// <signature>
-	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
+	/// <summary> trains</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 };
 
@@ -3072,20 +3087,19 @@ _analytics.newExtendedKalmanFilter = function () {
 
 _analytics.newKNearestNeighbors = function () {
 	/// <signature>
-	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
-	/// <param name="_k" value="_k">param</param>
+	/// <summary> solves a regularized ridge</summary>
+	/// <param name="_kappa" value="_kappa">param</param>
+	/// <param name="_dim" value="_dim">param</param>
 	/// <param name="_buffer" value="_buffer">param</param>
-	/// <param name="_power" value="_power">param</param>
-	/// <returns value ="_kNearestNeighbors"/>
+	/// <returns value ="_ridgeRegressionModel"/>
 	/// </signature>
 };
 
-_analytics.newPerceptron = function () {
+_analytics.newNN = function () {
 	/// <signature>
-	/// <summary> the perceptron learning algorithm initialization requires</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_use_bias" value="_use_bias">param</param>
-	/// <returns value ="_perceptronModel"/>
+	/// <summary> create new neural network</summary>
+	/// <param name="_nnParameters" value="_nnParameters">param</param>
+	/// <returns value ="_nnModel"/>
 	/// </signature>
 };
 
@@ -3106,32 +3120,11 @@ _analytics.loadSvmModel = function () {
 	/// </signature>
 };
 
-_analytics.trainSvmRegression = function () {
+_analytics.loadBatchModel = function () {
 	/// <signature>
-	/// <summary> trains</summary>
-	/// <param name="_mat" value="_mat">param</param>
-	/// <param name="_vec" value="_vec">param</param>
-	/// <param name="_svmRegParameters" value="_svmRegParameters">param</param>
-	/// <returns value ="_svmModel"/>
-	/// </signature>
-};
-
-_analytics.newRidgeRegression = function () {
-	/// <signature>
-	/// <summary> solves a regularized ridge</summary>
-	/// <param name="_kappa" value="_kappa">param</param>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_buffer" value="_buffer">param</param>
-	/// <returns value ="_ridgeRegressionModel"/>
-	/// </signature>
-};
-
-_analytics.newLloyd = function () {
-	/// <signature>
-	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_lloydModel"/>
+	/// <summary> loads batch model frm input stream `fin`</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_batchModel"/>
 	/// </signature>
 };
 
@@ -3775,13 +3768,6 @@ _mat.loadascii = function () {
 	/// <param name="_fin" value="_fin">param</param>
 	/// <returns value ="_mat"/>
 	/// </signature>
-	/// <signature>
-	/// <summary> add an edge when `graph` is of the type `snap.newDMGraph()`</summary>
-	/// <param name="_nodeIdx1" value="_nodeIdx1">param</param>
-	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
-	/// <param name="_edgeId" value="_edgeId">param</param>
-	/// <returns value ="_edgeIdx"/>
-	/// </signature>
 };
 
 _mat.colMaxIdx = function () {
@@ -4020,15 +4006,16 @@ _htModel.classify = function () {
 
 _alModel.selectQuestion = function () {
 	/// <signature>
-	/// <summary> returns the record set that is being used (result of sampling)</summary>
-	/// <returns value ="_rs"/>
+	/// <summary> returns the settings object</summary>
+	/// <returns value ="_objJSON"/>
 	/// </signature>
 };
 
 _alModel.getAnswer = function () {
 	/// <signature>
-	/// <summary> returns the index of the last selected question in alModel.getRecSet()</summary>
-	/// <returns value ="_idx"/>
+	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
+	/// <param name="_fout" value="_fout">param</param>
+	/// <returns value =""/>
 	/// </signature>
 };
 
@@ -4236,22 +4223,6 @@ _graph.addEdge = function () {
 	/// <param name="_nodeIdx2" value="_nodeIdx2">param</param>
 	/// <param name="_edgeId" value="_edgeId">param</param>
 	/// <returns value ="_edgeIdx"/>
-	/// </signature>
-};
-
-_map.load = function () {
-	/// <signature>
-	/// <summary> loads the hashtable from input stream `fin`</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_map"/>
-	/// </signature>
-};
-
-_map.save = function () {
-	/// <signature>
-	/// <summary> saves the hashtable to output stream `fout`</summary>
-	/// <param name="_fout" value="_fout">param</param>
-	/// <returns value ="_fout"/>
 	/// </signature>
 };
 

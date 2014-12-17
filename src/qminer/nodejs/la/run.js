@@ -1,6 +1,9 @@
 var la = require('./build/Release/la.node');
 
+<<<<<<< .merge_file_a02452
 console.log("process version: "+process.versions);
+=======
+>>>>>>> .merge_file_a08264
 ///////////////////////////
 // Return a new vector or a new matrix 
 la.newVector = function(args) { return new la.vector(args); }

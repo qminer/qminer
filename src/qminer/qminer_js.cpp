@@ -4937,7 +4937,7 @@ namespace TQm {
 			if (Args[0]->IsObject()) {
 				if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {
 					TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-					QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "TJsFltVV::plus: matrix - matrix: dimensions mismatch");
+					QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix - matrix: dimensions mismatch");
 					TFltVV Result;
 					// computation
 					Result.Gen(JsMat->Mat.GetRows(), JsMat2->Mat.GetCols());
@@ -4956,7 +4956,7 @@ namespace TQm {
 			if (Args[0]->IsObject()) {
 				if (TJsFltVVUtil::IsArgClass(Args, 0, "TFltVV")) {
 					TJsFltVV* JsMat2 = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-					QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "TJsFltVV::minus: matrix - matrix: dimensions mismatch");
+					QmAssertR(JsMat->Mat.GetCols() == JsMat2->Mat.GetCols() && JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix - matrix: dimensions mismatch");
 					TFltVV Result;
 					// computation
 					Result.Gen(JsMat->Mat.GetRows(), JsMat2->Mat.GetCols());
@@ -5782,7 +5782,7 @@ namespace TQm {
 			if (Args[0]->IsObject()) {
 				if (TJsSpMatUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
 					TJsSpMat* JsMat2 = TJsObjUtil<TQm::TJsSpMat>::GetArgObj(Args, 0);
-					QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "TJsSpMat::minus: matrix - matrix: dimensions mismatch");
+					QmAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "matrix - matrix: dimensions mismatch");
 					TVec<TIntFltKdV> Result;
 					// computation				
 					Result.Gen(MAX(JsMat->Mat.Len(), JsMat2->Mat.Len()));
@@ -7702,12 +7702,9 @@ namespace TQm {
 			JsRegisterFunction(TmpTemp, newUGraph);
 			JsRegisterFunction(TmpTemp, newDGraph);
 			JsRegisterFunction(TmpTemp, newDMGraph);
-			JsRegisterFunction(TmpTemp, newUGraphArray);
 			JsRegisterFunction(TmpTemp, degreeCentrality);
-			JsRegisterFunction(TmpTemp, degreeCentralization);
 			JsRegisterFunction(TmpTemp, communityDetection);
 			JsRegisterFunction(TmpTemp, communityEvolution);
-			JsRegisterFunction(TmpTemp, evolutionJson);
 			JsRegisterFunction(TmpTemp, corePeriphery);
 			JsRegisterFunction(TmpTemp, dagImportance);
 			JsRegisterFunction(TmpTemp, dagImportanceStore);
@@ -7768,37 +7765,6 @@ namespace TQm {
 			throw TQmExcept::New("TJsDGraph::addNode: one or zero input argument expected!");
 	}
 
-	v8::Handle<v8::Value> TJsSnap::newUGraphArray(const v8::Arguments& Args) {
-		v8::HandleScope HandleScope;
-		TJsSnap* JsSnap = TJsSnapUtil::GetSelf(Args);
-		int ArgsLen = Args.Length();
-		TVec<PUNGraph, TSize> gs;
-
-		if (ArgsLen == 2) {
-			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[1]);
-
-			if (TJsSnapUtil::IsArgStr(Args, 0)) {
-				TStr path = TJsSnapUtil::GetArgStr(Args, 0);
-				TSnap::LoadGraphArray(path, gs);
-			}
-			else if (TJsSnapUtil::IsArgInt32(Args, 0)) {
-				int br = TJsSnapUtil::GetArgInt32(Args, 0);
-				PUNGraph g = TUNGraph::New();
-				for (int i = 0; i < br; i++) {
-					PUNGraph g = TUNGraph::New();
-					gs.Add(g);
-				}
-			}
-			else {}
-
-			for (int i = 0; i < gs.Len(); i++) {
-				Array->Set(i, TJsGraph<TUNGraph>::New(JsSnap->Js, gs[i], "TUNGraph"));
-			}
-		}
-
-		return HandleScope.Close(Args.Holder());
-	}
-
 	v8::Handle<v8::Value> TJsSnap::degreeCentrality(const v8::Arguments& Args) {
 		v8::HandleScope HandleScope;
 		int ArgsLen = Args.Length();
@@ -7821,26 +7787,6 @@ namespace TQm {
 		return HandleScope.Close(v8::Number::New(ReturnCentrality));
 	}
 
-	v8::Handle<v8::Value> TJsSnap::degreeCentralization(const v8::Arguments& Args) {
-		v8::HandleScope HandleScope;
-		int ArgsLen = Args.Length();
-
-		double ReturnCentralization = 0;
-
-		if (ArgsLen == 1) {
-			QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::degreeCentralization: Args[0] expected undirected graph!");
-			// graph class name can be checked with: JsGraph->Graph_class
-			TJsGraph<TUNGraph>* JsGraph = TJsObjUtil<TJsGraph<TUNGraph>>::GetArgObj(Args, 0);
-			PUNGraph graph = JsGraph->Graph();
-			ReturnCentralization = TSnap::GetDegreeCentralization(graph);
-		}
-		else {
-			throw TQmExcept::New("TJsUGraph::degreeCentralization: one input arguments expected!");
-		}
-
-		return HandleScope.Close(v8::Number::New(ReturnCentralization));
-	}
-
 	v8::Handle<v8::Value> TJsSnap::communityDetection(const v8::Arguments& Args) {
 		//	int Dim = -1;
 		//	TIntFltKdV Vec;
@@ -7854,6 +7800,7 @@ namespace TQm {
 		TCnCom SnapReturnCommunities;
 
 		PUNGraph graph;
+
 
 		if (ArgsLen == 2) {
 			QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TUNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected undirected graph!");
@@ -7955,38 +7902,6 @@ namespace TQm {
 		}
 		else
 			throw TQmExcept::New("TJsSnap::CommunityEvolution: 9 or 10 input arguments expected!");
-	}
-
-	v8::Handle<v8::Value> TJsSnap::evolutionJson(const v8::Arguments& Args) {
-		v8::HandleScope HandleScope;
-		int ArgsLen = Args.Length();
-		if (ArgsLen == 6){
-
-			QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::evolutionJson: Args[0] expected directed graph!");
-			TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
-			PNGraph inGraph = JsInGraph->Graph();
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* timeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
-			TIntH& t = timeHash->Map;
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* commHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 2);
-			TIntH& c = commHash->Map;
-
-			TJsHash<TInt, TInt, TAuxIntIntH>* sizeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 3);
-			TIntH& s = sizeHash->Map;
-
-			TJsIntV* edgeSize = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 4);
-			TIntV& e = edgeSize->Vec;
-
-			TJsHash<TInt, TStr, TAuxIntIntH>* txtHash = TJsObjUtil<TJsHash<TInt, TStr, TAuxIntIntH>>::GetArgObj(Args, 5);
-			TIntStrH& txt = txtHash->Map;
-
-			TStr out = TSnap::CmtyEvolutionGraphToJson(inGraph, t, c, s, e, txt);
-
-			return HandleScope.Close(v8::String::New(out.CStr()));
-		}
-		else
-			throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
 	}
 
 	v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {
@@ -8155,7 +8070,6 @@ namespace TQm {
 			JsRegisterFunction(TmpTemp, save);
 			JsRegisterFunction(TmpTemp, load);
 			JsRegisterFunction(TmpTemp, connectedComponents);
-			JsRegisterFunction(TmpTemp, subgraph);
 			TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 			TmpTemp->SetInternalFieldCount(1);
 			Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -8310,7 +8224,6 @@ namespace TQm {
 	v8::Handle<v8::Value> TJsGraph<T>::nodes(v8::Local<v8::String> Properties, const v8::AccessorInfo& Info) {
 		v8::HandleScope HandleScope;
 		TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Info);
-		JsGraph->Graph->GetNodes();
 		return HandleScope.Close(v8::Number::New(JsGraph->Graph->GetNodes()));
 	}
 
@@ -8327,7 +8240,6 @@ namespace TQm {
 		TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
 		int ArgsLen = Args.Length();
 		typename T::TNodeI ReturnNode;
-
 		if (ArgsLen == 1) {
 			QmAssertR(TJsGraphUtil::IsArgInt32(Args, 0), "TJsGraph::getNode: Args[0] expected to be an integer!");
 			int NodeId = TJsGraphUtil::GetArgInt32(Args, 0);
@@ -8410,6 +8322,7 @@ namespace TQm {
 	template <class T>
 	v8::Handle<v8::Value> TJsGraph<T>::eachEdge(const v8::Arguments& Args) {
 		v8::HandleScope HandleScope;
+
 		TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
 
 		QmAssertR(TJsGraphUtil::IsArgFun(Args, 0), "map: Argument 0 is not a function!");
@@ -8511,6 +8424,7 @@ namespace TQm {
 			TSnap::GetSccs(JsGraph->Graph, CnComV);
 		}
 
+
 		TVec<TIntFltKdV> Mat(CnComV.Len());
 		for (int i = 0; i < CnComV.Len(); i++) {
 			Mat[i].Gen(CnComV[i].Len());
@@ -8523,58 +8437,6 @@ namespace TQm {
 
 		return HandleScope.Close(TJsSpMat::New(JsGraph->Js, Mat));
 	}
-
-	template <>
-	v8::Handle<v8::Value> TJsGraph<TNEGraph>::subgraph(const v8::Arguments& Args) {
-		v8::HandleScope HandleScope;
-		if (Args.Length() == 4) {
-			TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-			TJsGraph<TNGraph>* JsGraph1 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
-			TJsGraph<TNGraph>* JsGraph2 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 1);
-			int from = TJsGraphUtil::GetArgInt32(Args, 2);
-			int to = TJsGraphUtil::GetArgInt32(Args, 3);
-			TSnap::GetSubGraph(JsGraph->Graph, JsGraph1->Graph, JsGraph2->Graph, from, to);
-			TStr graph_class;
-			return HandleScope.Close(Args.Holder());
-		}
-	}
-
-	template <>
-	v8::Handle<v8::Value> TJsGraph<TNGraph>::subgraph(const v8::Arguments& Args) {
-		v8::HandleScope HandleScope;
-		if (Args.Length() == 4) {
-			TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-			TJsGraph<TNGraph>* JsGraph1 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
-			TJsGraph<TNGraph>* JsGraph2 = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 1);
-			int from = TJsGraphUtil::GetArgInt32(Args, 2);
-			int to = TJsGraphUtil::GetArgInt32(Args, 3);
-			TSnap::GetSubGraph(JsGraph->Graph, JsGraph1->Graph, JsGraph2->Graph, from, to);
-			TStr graph_class;
-			graph_class = "TNGraph";
-			return HandleScope.Close(Args.Holder());
-		}
-		else if (Args.Length() == 1) {
-			TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-			TJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
-			PNGraph subgraph = TSnap::GetSubGraph(JsGraph->Graph, JsVec->Vec, false);
-			TStr graph_class;
-			graph_class = "TNGraph";
-			return HandleScope.Close(TJsGraph<TNGraph>::New(JsGraph->Js, subgraph, graph_class));
-		}
-		else {}
-	}
-
-	template <>
-	v8::Handle<v8::Value> TJsGraph<TUNGraph>::subgraph(const v8::Arguments& Args) {
-		v8::HandleScope HandleScope;
-		TJsGraph* JsGraph = TJsGraphUtil::GetSelf(Args);
-		TJsIntV* JsVec = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 0);
-		PUNGraph subgraph = TSnap::GetSubGraph(JsGraph->Graph, JsVec->Vec, false);
-		TStr graph_class;
-		graph_class = "TUNGraph";
-		return HandleScope.Close(TJsGraph<TUNGraph>::New(JsGraph->Js, subgraph, graph_class));
-	}
-
 
 	///////////////////////////////
 	// QMiner-Node

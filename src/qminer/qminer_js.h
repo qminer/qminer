@@ -25,6 +25,7 @@
 #include <qminer_gs.h>
 #include <v8.h>
 #include <typeinfo>
+#include <Snap.h>
 
 #ifdef V8_DEBUG
 // include v8 debug headers
@@ -3061,6 +3062,7 @@ namespace TQm {
 		JsDeclareFunction(getParagraphs);
 	};
 
+
 	///////////////////////////////
 	// QMiner-JavaScript-GeoIP
 	class TJsGeoIp {
@@ -3753,18 +3755,12 @@ namespace TQm {
 		JsDeclareFunction(newDGraph);
 		//#- `graph = snap.newDMGraph()` -- generate an empty directed multi-graph
 		JsDeclareFunction(newDMGraph);
-		//#- `graphArray = snap.newUGraphArray(path)` -- generate an array of undirected graphs. Path can be a directory with one or more graphs, or a file with multiple delimited graphs
-		JsDeclareFunction(newUGraphArray);
 		//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 		JsDeclareFunction(degreeCentrality);
-		//#- `number = snap.degreeCentralization(UGraph)` -- returns degree centralization of a graph
-		JsDeclareFunction(degreeCentralization);
-		//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+		//#- `spMat = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 		JsDeclareFunction(communityDetection);
-		//#- `objJSON = snap.communityEvolution(UGraphArray, alpha, beta, DGraph, timeHashMap, cmtyHashMap, sizesHashMap, edgesIntVec, membersSpMap, path))` -- returns community evolution DGraph with HashMap for communities, sizes and sizes, edges intVec and original graph id members spMat. Optional parameter path is used for creating an array of graphs used for community evolution. If last parameter `path` is used, `UGraphArray` can be empty.
+		//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 		JsDeclareFunction(communityEvolution);
-		//#- `objJSON = snap.evolutionJson(path)` -- return communities alg = `gn`, `imap` or `cnm`
-		JsDeclareFunction(evolutionJson);
 		//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 		JsDeclareFunction(corePeriphery);
 		//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
@@ -3829,6 +3825,7 @@ namespace TQm {
 			obj->SetHiddenValue(key, value);
 			return obj;
 		}
+
 		static TPt<T> GetArgGraph(const v8::Arguments& Args, const int& ArgN);
 
 		/// template
@@ -3876,10 +3873,8 @@ namespace TQm {
 		JsDeclareFunction(save);
 		//#- `graph = graph.load(fin)` -- loads graph from input stream `fin`
 		JsDeclareFunction(load);
-		//#- `intVec = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
-		JsDeclareFunction(connectedComponents);
-		//# - get subgraph
-		JsDeclareFunction(subgraph);
+		//#- `spMat = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
+		JsDeclareFunction(connectedComponents)
 	};
 
 	///////////////////////////////

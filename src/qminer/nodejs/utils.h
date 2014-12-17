@@ -72,12 +72,15 @@
    }; 
 
 
+<<<<<<< .merge_file_a10048
 
    
 
 
 
 
+=======
+>>>>>>> .merge_file_a10676
 //////////////////////////////////////////////////////
 // Node - Utilities
 class TNodeJsUtil {
@@ -120,14 +123,22 @@ public:
 	}
 
 	/// Extract argument ArgN as int
+<<<<<<< .merge_file_a10048
 	static bool GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+=======
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+>>>>>>> .merge_file_a10676
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
 		EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgInt32: Missing argument %d", ArgN));
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+<<<<<<< .merge_file_a10048
 		return static_cast<int>(Val->Int32Value());
+=======
+		return Val->Int32Value();
+>>>>>>> .merge_file_a10676
 	}
 	/// Extract argument ArgN as int, and use DefVal in case when not present
 	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
@@ -137,7 +148,11 @@ public:
 		if (ArgN >= Args.Length()) { return DefVal; }
 		v8::Handle<v8::Value> Val = Args[ArgN];
 		EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
+<<<<<<< .merge_file_a10048
 		return static_cast<int>(Val->Int32Value());		
+=======
+		return Val->Int32Value();		
+>>>>>>> .merge_file_a10676
 	}
 	/// Extract argument ArgN property as int
    static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
@@ -233,8 +248,23 @@ public:
 		return Val->IsFunction();
 	}
 
+<<<<<<< .merge_file_a10048
+=======
+	/// Transform V8 string to TStr
+	static TStr GetStr(const v8::Local<v8::String>& V8Str) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		v8::String::Utf8Value Utf8(V8Str);
+		return TStr(*Utf8);
+	}
+
+>>>>>>> .merge_file_a10676
 private:
 	static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
 };
 
+<<<<<<< .merge_file_a10048
 #endif
+=======
+#endif
+>>>>>>> .merge_file_a10676
