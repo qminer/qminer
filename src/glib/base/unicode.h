@@ -2819,21 +2819,20 @@ bool TUniChDb::FindNextSentenceBoundary(const TSrcVec& src, const size_t srcIdx,
 template<typename TSrcVec>
 void TUniChDb::FindSentenceBoundaries(const TSrcVec& src, const size_t srcIdx, const size_t srcCount, TBoolV& dest) const
 {
-	if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
-	dest.PutAll(false);
-	size_t position = srcIdx;
-	dest[TVecIdx(position - srcIdx)] = true;
-	while (position < srcIdx + srcCount)
-	{
-		DebugCode(size_t oldPos = position);
-		FindNextSentenceBoundary(src, srcIdx, srcCount, position);
+  if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
+  dest.PutAll(false);
+  size_t position = srcIdx;
+  dest[TVecIdx(position - srcIdx)] = true;
+  while (position < srcIdx + srcCount) {
+    size_t oldPos = position;
+    FindNextSentenceBoundary(src, srcIdx, srcCount, position);
     if (oldPos >= position) {
-		  Assert(oldPos < position);
+      Assert(oldPos < position);
     }
     Assert(position <= srcIdx + srcCount);
-		dest[TVecIdx(position - srcIdx)] = true;
-	}
-	Assert(dest[TVecIdx(srcCount)]);
+    dest[TVecIdx(position - srcIdx)] = true;
+  }
+  Assert(dest[TVecIdx(srcCount)]);
 }
 
 //-----------------------------------------------------------------------------
