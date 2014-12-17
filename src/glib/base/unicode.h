@@ -2588,21 +2588,20 @@ bool TUniChDb::FindNextWordBoundary(const TSrcVec& src, const size_t srcIdx, con
 template<typename TSrcVec>
 void TUniChDb::FindWordBoundaries(const TSrcVec& src, const size_t srcIdx, const size_t srcCount, TBoolV& dest) const
 {
-	if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
-	dest.PutAll(false);
-	size_t position = srcIdx;
+  if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
+  dest.PutAll(false);
+  size_t position = srcIdx;
+  dest[TVecIdx(position - srcIdx)] = true;
+  while (position < srcIdx + srcCount) {
+    size_t oldPos = position;
+	FindNextWordBoundary(src, srcIdx, srcCount, position);
+	if (oldPos >= position) {
+	  Assert(oldPos < position);
+	}
+	Assert(position <= srcIdx + srcCount);
 	dest[TVecIdx(position - srcIdx)] = true;
-	while (position < srcIdx + srcCount)
-	{
-	  size_t oldPos = position;
-	  FindNextWordBoundary(src, srcIdx, srcCount, position);
-	  if (oldPos >= position) {
-		Assert(oldPos < position);
-	  }
-	  Assert(position <= srcIdx + srcCount);
-		dest[TVecIdx(position - srcIdx)] = true;
-	  }
-	  Assert(dest[TVecIdx(srcCount)]);
+  }
+  Assert(dest[TVecIdx(srcCount)]);
 }
 
 //-----------------------------------------------------------------------------
