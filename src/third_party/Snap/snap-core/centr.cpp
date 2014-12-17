@@ -210,7 +210,7 @@ namespace TSnap {
 				break;
 			}
 		}
-  }
+	}
 
 	// Group centrality measures
 
@@ -250,8 +250,6 @@ namespace TSnap {
 
 		return br;
 	}
-  printf("%i,",br);
-  }
 
 	int Intersect(TUNGraph::TNodeI Node, int *NNodes, int NNodes_br){
 		int br = 0;
@@ -315,8 +313,6 @@ namespace TSnap {
 		}
 		return (double)NN.Len();
 	}
-  printf("%i,",br);
-  }
 
 	double GetGroupDegreeCentr0(const PUNGraph& Graph, const TIntH& GroupNodes) {
 		int deg;
@@ -350,8 +346,6 @@ namespace TSnap {
 
 		return (double)NN.Len();
 	}
-  printf("%i,",br);
-  }
 
 	double GetGroupFarnessCentr(const PUNGraph& Graph, const TIntH& GroupNodes) {
 		TIntH* NDistH = new TIntH[GroupNodes.Len()];
