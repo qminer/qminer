@@ -16,7 +16,7 @@ class TNodeJsQm : public node::ObjectWrap {
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
-
+	static THash<TStr, TUInt> BaseFPathToId;
 private:
 	//# 
 	//# **Functions and properties:**
@@ -56,7 +56,7 @@ private:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `store = base.store(close)` -- TODO
+	//#- `base.close()` -- closes the base
 	JsDeclareFunction(close);
     //#- `store = base.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
@@ -105,8 +105,8 @@ public:
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Field accessors
-	static void Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
-	static void Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
+	//static v8::Local<v8::Object> Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId);
+	static v8::Local<v8::Value> Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId);
 
 public:
 	// C++ wrapped object
@@ -183,7 +183,7 @@ private:
 	JsDeclareProperty(backwardIter);
 	//#- `rec = store[recId]` -- get record with ID `recId`; 
 	//#     returns `null` when no such record exists
-	//JsDeclIndexedProperty(indexId); TODO	
+	JsDeclIndexedProperty(indexId);	
 	//#JSIMPLEMENT:src/qminer/store.js
 };
 
@@ -191,11 +191,11 @@ private:
 // NodeJs-Qminer-Rec
 class TNodeJsRec: public node::ObjectWrap {
 private:
-	// Node framework
-	static v8::Persistent<v8::Function> constructor;
+	// Modified node framework: one record template per each base,storeId combination 
+	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
-	static void Init(v8::Handle<v8::Object> exports);
+	static void Init(const TWPt<TQm::TStore>& Store);
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
 	// C++ constructors
@@ -234,7 +234,7 @@ private:
 	JsDeclareProperty(store);
 	//#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
-	//JsDeclareSetProperty(getField, setField);
+	JsDeclareSetProperty(getField, setField);
 	//#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
@@ -325,9 +325,7 @@ private:
 	JsDeclareFunction(getVec);
 	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
-	//#- `rec =  rs.at(idx)` -- returns the record at index (0-based) `idx`
-	JsDeclareFunction(at);
-
+	
 	//#- `storeName = rs.store` -- store of the records
 	JsDeclareProperty(store);
 	//#- `len = rs.length` -- number of records in the set
@@ -336,9 +334,8 @@ private:
 	JsDeclareProperty(empty);
 	//#- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	JsDeclareProperty(weighted);
-	// TODO figure out the indexed properties
-	////#- `rec = rs[n]` -- return n-th record from the record set
-	//JsDeclIndexedProperty(indexId);
+	//#- `rec = rs[n]` -- return n-th record from the record set
+	JsDeclIndexedProperty(indexId);
 };
 
 ///////////////////////////////

@@ -12,36 +12,71 @@
 	   try { \
 	      Function(Name, Info); \
 	   } catch (const PExcept& Except) { \
-	      /* if(typeid(Except) == typeid(TQmExcept::New(""))) { */ \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
-         /* } else { \
-            throw Except; \
-         } */ \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
 	   } \
 	};
 
-#define JsDeclareSetProperty(GetFunction, SetFunction) \
-	static void GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
-	static void _ ## GetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+#define JsDeclIndexedProperty(Function) \
+	static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+	   v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+	   v8::HandleScope HandleScope(Isolate); \
+		try { \
+			Function(Index, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	}
+
+#define JsDeclareSetIndexedProperty(FunctionGetter, FunctionSetter) \
+	static void FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+	    v8::HandleScope HandleScope(Isolate); \
+		try { \
+			FunctionGetter(Index, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	} \
+	static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+	static void _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
 		v8::HandleScope HandleScope(Isolate); \
 		try { \
-			GetFunction(Args); \
+			FunctionSetter(Index, Value, Info); \
+		} catch(const PExcept& Except) { \
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		} \
+	}
+
+
+
+#define JsDeclareSetProperty(GetFunction, SetFunction) \
+	static void GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+	static void _ ## GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		try { \
+			GetFunction(Name, Info); \
 		} catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
       } \
 	} \
-	static void SetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args); \
-	static void _ ## SetFunction(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
+	static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+	static void _ ## SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
 		v8::HandleScope HandleScope(Isolate); \
 		try { \
-			SetFunction(Args); \
+			SetFunction(Name, Value, Info); \
 		} catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-               v8::String::NewFromUtf8(Isolate, "[addon] Exception"))); \
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
 		} \
 	};
 
