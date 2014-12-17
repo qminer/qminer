@@ -175,6 +175,7 @@ public:
     return *this;}
   bool operator==(const THash& Hash) const; //J: zdaj tak kot je treba
   bool operator < (const THash& Hash) const { Fail; return true; }
+  /// The [] operator takes KeyId, use GetDat() if you need value access via the key.
   const TDat& operator[](const int& KeyId) const {return GetHashKeyDat(KeyId).Dat;}
   TDat& operator[](const int& KeyId){return GetHashKeyDat(KeyId).Dat;}
   TDat& operator()(const TKey& Key){return AddDat(Key);}
@@ -390,8 +391,8 @@ void THash<TKey, TDat, THashFunc>::DelKey(const TKey& Key){
    !((KeyDatV[KeyId].HashCd==HashCd) && (KeyDatV[KeyId].Key==Key))){
     PrevKeyId=KeyId; KeyId=KeyDatV[KeyId].Next;}
 
-  //IAssertR(KeyId!=-1, Key.GetStr()); //J: vsi razredi nimajo nujno funkcije GetStr()?
-  IAssert(KeyId!=-1); //J: vsi razredi nimajo nujno funkcije GetStr()?
+  //IAssertR(KeyId!=-1, Key.GetStr()); //J: some classes do not provide GetStr()?
+  IAssert(KeyId!=-1); //J: some classes do not provide GetStr()?
   if (PrevKeyId==-1){PortV[PortN]=KeyDatV[KeyId].Next;}
   else {KeyDatV[PrevKeyId].Next=KeyDatV[KeyId].Next;}
   KeyDatV[KeyId].Next=FFreeKeyId; FFreeKeyId=KeyId; FreeKeys++;
@@ -402,7 +403,7 @@ void THash<TKey, TDat, THashFunc>::DelKey(const TKey& Key){
 
 template<class TKey, class TDat, class THashFunc>
 void THash<TKey, TDat, THashFunc>::MarkDelKey(const TKey& Key){
-  // MarkDelKey is same as Delkey expect last two lines
+  // MarkDelKey is same as Delkey except last two lines
   IAssert(!PortV.Empty());
   const int PortN=abs(THashFunc::GetPrimHashCd(Key)%PortV.Len());
   const int HashCd=abs(THashFunc::GetSecHashCd(Key));
@@ -1138,7 +1139,7 @@ bool TCache<TKey, TDat, THashFunc>::FNextKeyDat(void*& KeyDatP, TKey& Key, TDat&
 }
 
 /////////////////////////////////////////////////
-// String-Hash-Functions
+// Old-Hash-Functions
 
 // Old-String-Hash-Function
 class TStrHashF_OldGLib {
