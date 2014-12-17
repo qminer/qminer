@@ -710,7 +710,9 @@ v8::Handle<v8::Value> TScript::require(const v8::Arguments& Args) {
             return TJsGeoIp::New();
         } else if (ModuleFNm == "dmoz") { 
             return TJsDMoz::New();
-        } 
+		} else if (ModuleFNm == "misc") {
+			return TJsMisc::New();
+		}
         // load the source of the module
         InfoLog("Loading " + ModuleFNm);
         TStr ModuleSource = Script->LoadModuleSrc(ModuleFNm);
@@ -3034,6 +3036,7 @@ v8::Handle<v8::ObjectTemplate> TJsRecSet::GetTemplate() {
 		JsRegisterFunction(TmpTemp, sortByFq);
 		JsRegisterFunction(TmpTemp, sortByField);
 		JsRegisterFunction(TmpTemp, sort);
+		JsRegisterFunction(TmpTemp, permute);
 		JsRegisterFunction(TmpTemp, filterById);
 		JsRegisterFunction(TmpTemp, filterByFq);
 		JsRegisterFunction(TmpTemp, filterByField);
@@ -3236,6 +3239,24 @@ v8::Handle<v8::Value> TJsRecSet::sort(const v8::Arguments& Args) {
 	JsRecSet->RecSet->SortCmp(TJsRecCmp(JsRecSet->Js, JsRecSet->Store, CmpFun));
 	return Args.Holder();
 }
+
+v8::Handle<v8::Value> TJsRecSet::permute(const v8::Arguments& Args) {
+  v8::HandleScope HandleScope;
+  TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
+  QmAssertR(Args.Length() == 1, "permute(..) expects one argument.");
+  QmAssert(TJsObjUtil<TJsRecSet>::IsArgClass(Args, 0, "TIntV"));
+  TJsIntV* IdxV = TJsObjUtil<TQm::TJsVec<TInt, TAuxIntV> >::GetArgObj(Args, 0);
+  QmAssert(IdxV->Vec.Len() == JsRecSet->RecSet->GetRecs());
+  int Len = IdxV->Vec.Len();
+  TIntV RecIdV(Len);
+  for (int RecN = 0; RecN < Len; RecN++) {
+	RecIdV[RecN] = JsRecSet->RecSet->GetRec(RecN).GetRecId();
+  }
+  PRecSet Permuted = TRecSet::New(JsRecSet->RecSet->GetStore(), RecIdV);
+  JsRecSet->RecSet = Permuted;
+  return Args.Holder();
+}
+
 
 v8::Handle<v8::Value> TJsRecSet::filterById(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
@@ -7747,7 +7768,11 @@ v8::Handle<v8::Value> TJsTm::fromWindowsTimestamp(const v8::Arguments& Args) {
 v8::Handle<v8::Value> TJsTm::fromUnixTimestamp(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 	// read timestamp
-	uint Timestamp = (uint)TJsTmUtil::GetArgInt32(Args, 0);
+	uint Timestamp = 0;
+	if (TJsTmUtil::IsArgFlt(Args, 0)) { Timestamp = (uint)TJsTmUtil::GetArgFlt(Args, 0); }
+	else {
+	  Timestamp = (uint)TJsTmUtil::GetArgInt32(Args, 0);
+	}
 	// prepare response object
 	TTm Tm = TTm::GetTmFromDateTimeInt(Timestamp);
 	return TJsTm::New(Tm);
@@ -8994,6 +9019,57 @@ void TJsFuncFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
 		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
 		FltV.AddV(Res);
 	}
+}
+
+v8::Handle<v8::ObjectTemplate> TJsMisc::GetTemplate() {
+	v8::HandleScope HandleScope;
+	static v8::Persistent<v8::ObjectTemplate> Template;
+	if (Template.IsEmpty()) {
+		v8::Handle<v8::ObjectTemplate> TmpTemp = v8::ObjectTemplate::New();
+		JsRegisterFunction(TmpTemp, word_co);
+		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
+		TmpTemp->SetInternalFieldCount(1);
+		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
+	}
+	return Template;
+}
+
+v8::Handle<v8::Value> TJsMisc::word_co(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	QmAssertR(Args.Length() == 2 &&
+		Args[0]->IsObject() &&
+		Args[1]->IsObject() &&
+		TJsMiscUtil::IsArgClass(Args, 0, "TStrV") &&
+		TJsMiscUtil::IsArgClass(Args, 1, "TStrV"),
+		"args 0 and 1 must be string vectors!"
+	);
+
+	TJsStrV* JsDataVec = TJsObjUtil<TQm::TJsStrV>::GetArgObj(Args, 0);
+	TStrV& Data = JsDataVec->Vec;
+	TJsStrV* JsSearchVec = TJsObjUtil<TQm::TJsStrV>::GetArgObj(Args, 1);
+	TStrV& Match = JsSearchVec->Vec;
+
+	// sets to zero
+	TFltVV Mat(Match.Len(), Match.Len());
+	int Len = Data.Len();
+	int MatchLen = Match.Len();
+	for (int DataN = 0; DataN < Len; DataN++) {
+		// get indices of all occurrences (reserve space)
+		TIntV FoundIdx(MatchLen, 0);
+		for (int MatchN = 0; MatchN < MatchLen; MatchN++) {
+			bool Found = Data[DataN].SearchStr(Match[MatchN]) > -1;
+			if (Found) {
+				FoundIdx.Add(MatchN);
+			}
+		}
+		int FoundLen = FoundIdx.Len();
+		for (int RowN = 0; RowN < FoundLen; RowN++) {
+			for (int ColN = 0; ColN < FoundLen; ColN++) {
+				Mat.At(FoundIdx[RowN], FoundIdx[ColN]) += 1;
+			}
+		}
+	}
+	return TJsFltVV::New(JsDataVec->Js, Mat);
 }
 
 }

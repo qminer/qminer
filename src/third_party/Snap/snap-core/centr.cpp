@@ -184,11 +184,11 @@ double GetGroupDegreeCentr(const PUNGraph& Graph, const PUNGraph& Group) {
   int deg;
   TIntH NN;
   for (TUNGraph::TNodeI NI = Group->BegNI(); NI < Group->EndNI(); NI++) { 
-	  deg = Graph->GetNI(NI.GetId()).GetDeg();
-	  for (int i=0; i<deg; i++) {
-		  if (Group->IsNode(Graph->GetNI(NI.GetId()).GetNbrNId(i))==0)
-			NN.AddDat(Graph->GetNI(NI.GetId()).GetNbrNId(i),NI.GetId());
-	  }
+    deg = Graph->GetNI(NI.GetId()).GetDeg();
+    for (int i=0; i<deg; i++) {
+      if (Group->IsNode(Graph->GetNI(NI.GetId()).GetNbrNId(i))==0)
+      NN.AddDat(Graph->GetNI(NI.GetId()).GetNbrNId(i),NI.GetId());
+    }
   }
   return (double)NN.Len();
 }
@@ -197,11 +197,11 @@ double GetGroupDegreeCentr0(const PUNGraph& Graph, const TIntH& GroupNodes) {
   int deg;
   TIntH NN;
   for (int i = 0; i<GroupNodes.Len(); i++) { 
-	  deg = Graph->GetNI(GroupNodes.GetDat(i)).GetDeg();
-	  for (int j = 0; j < deg; j++) {
-		  if (GroupNodes.IsKey(Graph->GetNI(GroupNodes.GetDat(i)).GetNbrNId(j))==0)
-			NN.AddDat(Graph->GetNI(GroupNodes.GetDat(i)).GetNbrNId(j),GroupNodes.GetDat(i));
-	  }
+    deg = Graph->GetNI(GroupNodes.GetDat(i)).GetDeg();
+    for (int j = 0; j < deg; j++) {
+      if (GroupNodes.IsKey(Graph->GetNI(GroupNodes.GetDat(i)).GetNbrNId(j))==0)
+      NN.AddDat(Graph->GetNI(GroupNodes.GetDat(i)).GetNbrNId(j),GroupNodes.GetDat(i));
+    }
   }
   return (double)NN.Len();
 }
@@ -212,15 +212,15 @@ double GetGroupDegreeCentr(const PUNGraph& Graph, const TIntH& GroupNodes) {
   TIntH GroupNodes1;
 
   for (THashKeyDatI<TInt,TInt> NI = GroupNodes.BegI(); NI < GroupNodes.EndI(); NI++)
-	  GroupNodes1.AddDat(NI.GetDat(),NI.GetDat());
+    GroupNodes1.AddDat(NI.GetDat(),NI.GetDat());
 
   for (THashKeyDatI<TInt,TInt> NI = GroupNodes1.BegI(); NI < GroupNodes1.EndI(); NI++){
-	  TUNGraph::TNodeI node = Graph->GetNI(NI.GetKey());
-	  deg = node.GetDeg();
-	  for (int j = 0; j < deg; j++){
-		  if (GroupNodes1.IsKey(node.GetNbrNId(j))==0 && NN.IsKey(node.GetNbrNId(j))==0)
-			  NN.AddDat(node.GetNbrNId(j),NI.GetKey());
-	  }
+    TUNGraph::TNodeI node = Graph->GetNI(NI.GetKey());
+    deg = node.GetDeg();
+    for (int j = 0; j < deg; j++){
+      if (GroupNodes1.IsKey(node.GetNbrNId(j))==0 && NN.IsKey(node.GetNbrNId(j))==0)
+        NN.AddDat(node.GetNbrNId(j),NI.GetKey());
+    }
   }
 
   return (double)NN.Len();
@@ -231,7 +231,7 @@ double GetGroupFarnessCentr(const PUNGraph& Graph, const TIntH& GroupNodes) {
   
   for (int i=0; i<GroupNodes.Len(); i++){
     NDistH[i](Graph->GetNodes());
-	TSnap::GetShortPath<PUNGraph>(Graph, GroupNodes.GetDat(i), NDistH[i], true, TInt::Mx);
+  TSnap::GetShortPath<PUNGraph>(Graph, GroupNodes.GetDat(i), NDistH[i], true, TInt::Mx);
   }
 
   int min, dist, sum=0, len=0;
@@ -241,17 +241,17 @@ double GetGroupFarnessCentr(const PUNGraph& Graph, const TIntH& GroupNodes) {
     else
       min = -1;
     for (int j=1; j<GroupNodes.Len(); j++){
-	  if (NDistH[j].IsKey(NI.GetId()))
-	    dist = NDistH[j].GetDat(NI.GetId());
+    if (NDistH[j].IsKey(NI.GetId()))
+      dist = NDistH[j].GetDat(NI.GetId());
       else
-	    dist = -1;
-	  if ((dist < min && dist != -1) || (dist > min && min == -1))
-	    min = dist;
+      dist = -1;
+    if ((dist < min && dist != -1) || (dist > min && min == -1))
+      min = dist;
     }
-    if (min>0){	
+    if (min>0){  
       sum += min;
       len++;
-	}
+  }
     
   }
 
@@ -263,17 +263,17 @@ PUNGraph *AllGraphsWithNNodes(int n){
   PUNGraph* g = new PUNGraph[(((n*n)-n)/2)+1];
   PUNGraph g0;
   for(int i=0; i<n; i++)
-	  g0->AddNode(i);
+    g0->AddNode(i);
   
   g[0] = g0;
   int br=1;
 
   for(int i=0; i<n; i++)
-	for(int j=i; j<n; j++){
+  for(int j=i; j<n; j++){
       g0->AddEdge(i,j);
-	  g[br] = g0;
-	  br++;
-	}
+    g[br] = g0;
+    br++;
+  }
 
   return g;
 }
@@ -283,7 +283,7 @@ TIntH *AllCombinationsMN(int m, int n){
   for(int i=n; i>0; i--){
     N *= (float)m/(float)n;
     m--;
-	n--;
+  n--;
   }
 
   TIntH* C = new TIntH[(int)N];
@@ -304,41 +304,41 @@ TIntH MaxCPGreedyBetter(const PUNGraph& Graph, const int k) {
   int addId, addIdPrev = 0;
   
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
-	  Nodes.AddDat(NI.GetId(),NI.GetDeg());
+    Nodes.AddDat(NI.GetId(),NI.GetDeg());
   }
 
   Nodes.SortByDat(false);
 
   int br=0;
   while (br < k) {
-	for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
-	  if((NI.GetDat() <= (int)gc0))
-		  break;
-	  gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes);
-	  if (gc>gc0){
-	    gc0 = gc;
-	    addId = NI.GetKey();
-	  }
+  for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
+    if((NI.GetDat() <= (int)gc0))
+      break;
+    gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes);
+    if (gc>gc0){
+      gc0 = gc;
+      addId = NI.GetKey();
     }
-	
-	if (addId!=addIdPrev){
+    }
+  
+  if (addId!=addIdPrev){
 
-	  GroupNodes.AddDat(br,addId);
-	  br++;
-	  gc0=0;
+    GroupNodes.AddDat(br,addId);
+    br++;
+    gc0=0;
 
-	  NNodes.AddDat(addId,0);
-	  for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
-	  {
-	    NNodes.AddDat(Graph->GetNI(addId).GetNbrNId(i),0);
-	  }
-	  addIdPrev = addId;
-	  Nodes.DelKey(addId);
-	}
-	else{
+    NNodes.AddDat(addId,0);
+    for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
+    {
+      NNodes.AddDat(Graph->GetNI(addId).GetNbrNId(i),0);
+    }
+    addIdPrev = addId;
+    Nodes.DelKey(addId);
+  }
+  else{
       br = k;
-	}
-	printf("%i,",br);
+  }
+  printf("%i,",br);
   }
 
 
@@ -356,38 +356,38 @@ TIntH MaxCPGreedyBetter1(const PUNGraph& Graph, const int k) {
   
   // put nodes in the container and sort them by vertex degree
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
-	  Nodes.AddDat(NI.GetId(),NI.GetDeg());
+    Nodes.AddDat(NI.GetId(),NI.GetDeg());
   }
   Nodes.SortByDat(false);
 
 
   int br=0;
   while (br < k) {
-	for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
-	  if((NI.GetDat() < (int)gc0))
-		  break;
-	  gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes);
-	  if (gc>gc0){
-	    gc0 = gc;
-	    addId = NI.GetKey();
-	  }
+  for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
+    if((NI.GetDat() < (int)gc0))
+      break;
+    gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes);
+    if (gc>gc0){
+      gc0 = gc;
+      addId = NI.GetKey();
     }
-	
-	if (addId!=addIdPrev){
+    }
+  
+  if (addId!=addIdPrev){
 
-	  GroupNodes.AddDat(br,addId);
-	  br++;
-	  gc0=-10000000;
-	
-	
-	  NNodes.AddDat(addId,0);
-	  for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
-	  {
-	    NNodes.AddDat(Graph->GetNI(addId).GetNbrNId(i),0);
-	  }
-	  addIdPrev = addId;
-	  Nodes.DelKey(addId);
-	}
+    GroupNodes.AddDat(br,addId);
+    br++;
+    gc0=-10000000;
+  
+  
+    NNodes.AddDat(addId,0);
+    for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
+    {
+      NNodes.AddDat(Graph->GetNI(addId).GetNbrNId(i),0);
+    }
+    addIdPrev = addId;
+    Nodes.DelKey(addId);
+  }
 
   }
 
@@ -405,47 +405,47 @@ TIntH MaxCPGreedyBetter2(const PUNGraph& Graph, const int k) {
   int addId, addIdPrev=0;
   
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
-	  Nodes.AddDat(NI.GetId(),NI.GetDeg());
+    Nodes.AddDat(NI.GetId(),NI.GetDeg());
   }
 
   Nodes.SortByDat(false);
 
   int br=0;
   while (br < k) {
-	for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
-	  if((NI.GetDat() <= (int)gc0))
-		  break;
-	  gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes);
-	  if (gc>gc0){
-	    gc0 = gc;
-	    addId = NI.GetKey();
-	  }
+  for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
+    if((NI.GetDat() <= (int)gc0))
+      break;
+    gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes);
+    if (gc>gc0){
+      gc0 = gc;
+      addId = NI.GetKey();
     }
-	
-	if (addId!=addIdPrev){
+    }
+  
+  if (addId!=addIdPrev){
 
-	  GroupNodes.AddDat(br,addId);
-	  br++;
-	  gc0=0;
-	  
-	  TInt digi = addId;
-	  TStr buf = digi.GetStr();
+    GroupNodes.AddDat(br,addId);
+    br++;
+    gc0=0;
+    
+    TInt digi = addId;
+    TStr buf = digi.GetStr();
 
-	  NNodes += " "+buf;
+    NNodes += " "+buf;
 
-	  for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
-	  {
-	    TInt digi = Graph->GetNI(addId).GetNbrNId(i);
-	    TStr buf = digi.GetStr();
-		NNodes += " "+buf;
-	  }
-	  addIdPrev = addId;
-	  Nodes.DelKey(addId);
-	}
-	else{
+    for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
+    {
+      TInt digi = Graph->GetNI(addId).GetNbrNId(i);
+      TStr buf = digi.GetStr();
+    NNodes += " "+buf;
+    }
+    addIdPrev = addId;
+    Nodes.DelKey(addId);
+  }
+  else{
       br = k;
-	}
-	printf("%i,",br);
+  }
+  printf("%i,",br);
   }
 
 
@@ -464,65 +464,65 @@ TIntH MaxCPGreedyBetter3(const PUNGraph& Graph, const int k) {
   int addId, addIdPrev = 0;
   
   for (TUNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
-	  Nodes.AddDat(NI.GetId(),NI.GetDeg());
+    Nodes.AddDat(NI.GetId(),NI.GetDeg());
   }
 
   Nodes.SortByDat(false);
 
   int br=0;
   while (br < k) {
-	for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
-	  if((NI.GetDat() <= (int)gc0))
-		  break;
-	  gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes,NNodes_br);
-	  if (gc>gc0){
-	    gc0 = gc;
-	    addId = NI.GetKey();
-	  }
+  for (THashKeyDatI<TInt,TInt> NI = Nodes.BegI(); NI < Nodes.EndI(); NI++){
+    if((NI.GetDat() <= (int)gc0))
+      break;
+    gc = NI.GetDat()-Intersect(Graph->GetNI(NI.GetKey()),NNodes,NNodes_br);
+    if (gc>gc0){
+      gc0 = gc;
+      addId = NI.GetKey();
     }
-	
-	if (addId!=addIdPrev){
+    }
+  
+  if (addId!=addIdPrev){
 
-	  GroupNodes.AddDat(br,addId);
-	  br++;
-	  gc0=0;
+    GroupNodes.AddDat(br,addId);
+    br++;
+    gc0=0;
 
-	  int nn = addId;
-	  bool nnnew = true;
-	  for (int j=0; j<NNodes_br; j++)
-		  if (NNodes[j] == nn){
-			  nnnew = false;
-				j = NNodes_br;
-		  }
+    int nn = addId;
+    bool nnnew = true;
+    for (int j=0; j<NNodes_br; j++)
+      if (NNodes[j] == nn){
+        nnnew = false;
+        j = NNodes_br;
+      }
 
-		if (nnnew){
-			NNodes[NNodes_br] = nn;
-			NNodes_br++;
-		}
+    if (nnnew){
+      NNodes[NNodes_br] = nn;
+      NNodes_br++;
+    }
 
 
 
-		for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
-		{
-		int nn = Graph->GetNI(addId).GetNbrNId(i);
-		bool nnnew = true;
-		for (int j=0; j<NNodes_br; j++)
-			if (NNodes[j] == nn){
-				nnnew = false;
-				j = NNodes_br;
-			}
-		if (nnnew){
-			NNodes[NNodes_br] = nn;
-			NNodes_br++;
-		}
-	  }
-	  addIdPrev = addId;
-	  Nodes.DelKey(addId);
-	}
-	else{
+    for (int i=0; i<Graph->GetNI(addId).GetDeg(); i++)
+    {
+    int nn = Graph->GetNI(addId).GetNbrNId(i);
+    bool nnnew = true;
+    for (int j=0; j<NNodes_br; j++)
+      if (NNodes[j] == nn){
+        nnnew = false;
+        j = NNodes_br;
+      }
+    if (nnnew){
+      NNodes[NNodes_br] = nn;
+      NNodes_br++;
+    }
+    }
+    addIdPrev = addId;
+    Nodes.DelKey(addId);
+  }
+  else{
       br = k;
-	}
-	printf("%i,",br);
+  }
+  printf("%i,",br);
   }
 
   delete NNodes;
@@ -535,25 +535,25 @@ TIntFltH EventImportance(const PNGraph& Graph, const int k) {
   TIntFltH NodeList; // values for nodese
 
   for (TNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
-	  NodeList.AddDat(NI.GetId(),NI.GetOutDeg());
+    NodeList.AddDat(NI.GetId(),NI.GetOutDeg());
   }
 
 
   for (THashKeyDatI<TInt,TFlt> NI = NodeList.BegI(); NI < NodeList.EndI(); NI++){
-	  int outdeg = Graph->GetNI(NI.GetKey()).GetOutDeg();
-	  int indeg = Graph->GetNI(NI.GetKey()).GetInDeg();
-	  
-	  if (outdeg>1 && indeg>0){
-		  double val = (1-(1/(double)outdeg))/(double)indeg;
-		  for(int i=0; i<(outdeg+indeg);i++){
-			  int nid = Graph->GetNI(NI.GetKey()).GetNbrNId(i);
-			  if (Graph->GetNI(NI.GetKey()).IsInNId(nid) == true){
-				NodeList.AddDat(nid,NodeList.GetDat(nid)+val);
-			  }
-				
-		  }
-	  }
-	  
+    int outdeg = Graph->GetNI(NI.GetKey()).GetOutDeg();
+    int indeg = Graph->GetNI(NI.GetKey()).GetInDeg();
+    
+    if (outdeg>1 && indeg>0){
+      double val = (1-(1/(double)outdeg))/(double)indeg;
+      for(int i=0; i<(outdeg+indeg);i++){
+        int nid = Graph->GetNI(NI.GetKey()).GetNbrNId(i);
+        if (Graph->GetNI(NI.GetKey()).IsInNId(nid) == true){
+        NodeList.AddDat(nid,NodeList.GetDat(nid)+val);
+        }
+        
+      }
+    }
+    
   }
 
   return NodeList;
@@ -564,25 +564,25 @@ TIntFltH EventImportance1 (const PNGraph& Graph, const int k) {
   TIntFltH NodeList; // values for nodese
 
   for (TNGraph::TNodeI NI = Graph->BegNI(); NI < Graph->EndNI(); NI++){
-	  NodeList.AddDat(NI.GetId(),NI.GetOutDeg());
+    NodeList.AddDat(NI.GetId(),NI.GetOutDeg());
   }
 
 
   for (THashKeyDatI<TInt,TFlt> NI = NodeList.BegI(); NI < NodeList.EndI(); NI++){
-	  int outdeg = Graph->GetNI(NI.GetKey()).GetOutDeg();
-	  int indeg = Graph->GetNI(NI.GetKey()).GetInDeg();
-	  
-	  if (outdeg>1 && indeg>0){
-		  double val = (1-(1/(double)outdeg))/(double)indeg;
-		  for(int i=0; i<(outdeg+indeg);i++){
-			  int nid = Graph->GetNI(NI.GetKey()).GetNbrNId(i);
-			  if (Graph->GetNI(NI.GetKey()).IsInNId(nid) == true){
-				NodeList.AddDat(nid,NodeList.GetDat(nid)+val);
-			  }
-				
-		  }
-	  }
-	  
+    int outdeg = Graph->GetNI(NI.GetKey()).GetOutDeg();
+    int indeg = Graph->GetNI(NI.GetKey()).GetInDeg();
+    
+    if (outdeg>1 && indeg>0){
+      double val = (1-(1/(double)outdeg))/(double)indeg;
+      for(int i=0; i<(outdeg+indeg);i++){
+        int nid = Graph->GetNI(NI.GetKey()).GetNbrNId(i);
+        if (Graph->GetNI(NI.GetKey()).IsInNId(nid) == true){
+        NodeList.AddDat(nid,NodeList.GetDat(nid)+val);
+        }
+        
+      }
+    }
+    
   }
 
   return NodeList;
@@ -609,11 +609,11 @@ int Intersect(TUNGraph::TNodeI Node, TStr NNodes){
 
   for (int i=0; i<Node.GetDeg(); i++)
   {
-	  digi = Node.GetNbrNId(i);
-	  TStr buf = digi.GetStr();
+    digi = Node.GetNbrNId(i);
+    TStr buf = digi.GetStr();
 
-	  if (NNodes.IsStrIn(buf.CStr()))
-		br++;
+    if (NNodes.IsStrIn(buf.CStr()))
+    br++;
   }
 
   digi = Node.GetId();
@@ -630,25 +630,25 @@ int Intersect(TUNGraph::TNodeI Node, int *NNodes, int NNodes_br){
   int neig;
   for (int i=0; i<Node.GetDeg(); i++)
   {
-	  neig = Node.GetNbrNId(i);
-	  for (int j=0; j<NNodes_br; j++)
-	  {
-		if (neig == NNodes[j])
-		{
-			br++;
-			j = NNodes_br;
-		}
-	  }
+    neig = Node.GetNbrNId(i);
+    for (int j=0; j<NNodes_br; j++)
+    {
+    if (neig == NNodes[j])
+    {
+      br++;
+      j = NNodes_br;
+    }
+    }
   }
 
   neig = Node.GetId();
   for (int j=0; j<NNodes_br; j++)
   {
-		if (neig == NNodes[j])
-		{
-			br++;
-			j = NNodes_br;
-		}
+    if (neig == NNodes[j])
+    {
+      br++;
+      j = NNodes_br;
+    }
   }
 
   return br;
@@ -658,12 +658,12 @@ int Intersect1(TUNGraph::TNodeI Node, TStr NNodes){
   int br=0;
   for (int i=0; i<Node.GetDeg(); i++)
   {
-	  TInt digi = Node.GetNbrNId(i);
-	  TStr buf = "";
-	  buf = digi.GetStr();
+    TInt digi = Node.GetNbrNId(i);
+    TStr buf = "";
+    buf = digi.GetStr();
 
-	  if (NNodes.SearchStr(buf.CStr())!=-1)
-		br++;
+    if (NNodes.SearchStr(buf.CStr())!=-1)
+    br++;
   }
   
   TInt digi = Node.GetId();
@@ -681,9 +681,9 @@ TIntH LoadNodeList(TStr InFNmNodes){
   int br = 0, NId;
   while (Ss.Next()) {
     if (Ss.GetInt(0, NId)) { 
-		Nodes.AddDat(br,NId);
-		br++;
-	}
+    Nodes.AddDat(br,NId);
+    br++;
+  }
   }
   return Nodes;
 }
