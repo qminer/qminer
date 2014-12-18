@@ -811,9 +811,9 @@ void TNodeJsStore::addTrigger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssert(TriggerVal->IsObject());
 
 	try {
-		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		///TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
 
-		TWPt<TQm::TStore>& Store = JsStore->Store;
+		//TWPt<TQm::TStore>& Store = JsStore->Store;
 		// TODO
 		//TQm::PStoreTrigger Trigger = TJsStoreTrigger::New(TriggerVal->ToObject());
 
@@ -1587,7 +1587,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsIntV()) {
 		// check if we have JavaScript array
-		QmAssertR(Value->IsArray(), TStr::Fmt("rec.%s should be set to an array!", FieldNm));
+		QmAssertR(Value->IsArray(), TStr::Fmt("rec.%s should be set to an array!", FieldNm.CStr()));
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Value);
 		TIntV IntV;
 		for (uint32_t FltN = 0; FltN < Array->Length(); FltN++) {
@@ -2031,7 +2031,7 @@ void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args.Holder());
+	//TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args.Holder());
 
 	Args.GetReturnValue().Set(Args.Holder());
 
