@@ -51,20 +51,13 @@
                 'src/nodejs/utils.cpp'
             ],
             'include_dirs': [
-                'src/nodejs/qm',
                 'src/nodejs/la',
                 'src/nodejs/',
-                'src/qminer/',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
-            ],
-            'defines': [
-                'MODULE_INCLUDE_LA'
             ],
             'dependencies': [
-                'glib',
-                'qminer'
+                'glib'
             ],
             'conditions': [
                 # operating system specific parameters

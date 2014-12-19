@@ -41,6 +41,10 @@ Build system for Node.JS modules.
 
 ### Building modules
 
+Downlaod code:
+
+	git clone https://github.com/qminer/qminer.git QMINER_ROOT
+
 Safe way:
 
 	node-gyp configure --python PYTHON_PATH --nodedir=NODE_PATH
@@ -53,7 +57,9 @@ Simple way, when correct version of Python is in path and node-gyp takes care of
 
 ### Running tests
 
-	mocha test/nodejs/
+Go to QMINER_ROOT and execute:
+
+	mocha test/nodejs/test.js
 
 
 ## Windows
@@ -75,52 +81,54 @@ Example of how to setup enivronment variables from command-line:
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
  - Visual studio 2013
 
-(*) Folders
-PYTHON_PATH: path to python.exe: e.g. c:\python26\python.exe
-QMINER_ROOT qminer root folder
-NODE_ROOT folder with node source code
+#### NPM (Node Package Manager)
 
-> set PYTHON_PATH=c:\Python27
-> set NODE_ROOT=D:\work\code\cpp\node
-> set QMINER_ROOT=D:\work\code\cpp\qminer
+Build system for Node.JS modules.
+
+- Download npm: [http://nodejs.org/dist/npm/]
+- Extract npm to `%NODE_ROOT%\Release`
+
+	set PATH=%NODE_ROOT%\Release;%PATH%
+	cd %NODE_ROOT%\Release
+	npm update
+
+#### Node.JS source code
+
+Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and unzip it to `NODE_ROOT`.
+
+	cd %NODE_ROOT%
+	set PATH=%PYTHON_PATH%;%PATH%
+	vcbuild clean nosign
+	vcbuild release x64 nosign
+
+#### Node GYP
+
+	cd %NODE_ROOT%\Release
+	npm install node-gyp -g
+
+#### Mocha and Chai (for testing)
+
+	npm install -g mocha
+	npm install -g chai
+
+### Building modules
+
+Download QMiner code:
+
+	git clone https://github.com/qminer/qminer.git %QMINER_ROOT%
+
+Build:
+
+	cd %QMINER_ROOT%\src\qminer\nodejs\la
+	node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT%
 
 
-(*) Install node and build la addon
+### Running tests
 
-(1) Node: Download https://github.com/joyent/node/archive/v0.11.14.zip 
-- Unzip to NODE_ROOT
-> cd %NODE_ROOT%
-> set PATH=%PYTHON_PATH%;%PATH%
-> vcbuild clean nosign
-> vcbuild release x64 nosign
+Go to QMINER_ROOT and execute:
 
-(2) NPM (node package manager)
-> set PATH=%NODE_ROOT%\Release;%PATH%
-- Download npm: http://nodejs.org/dist/npm/
-- Extract npm to %NODE_ROOT%\Release;
-> cd %NODE_ROOT%\Release
-> npm update
+	mocha test/nodejs/test.js
 
-(3) Qminer
-> git clone https://github.com/qminer/qminer.git %QMINER_ROOT%
-
-(4) Gyp, build addon
-> cd %NODE_ROOT%\Release
-> npm install node-gyp -g
-> cd %QMINER_ROOT%\src\qminer\nodejs\la
-> node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT%
-
-HOW TO - Running Mocha with Chai, unit test files and examples
-
-Install Testing Framework:
-1. Install mocha: "npm install -g mocha"
-2. If you want to use Chai assertion library install chai: "npm install -g chai"
-3. For running tests, use a file named test.js
- 
-NOTE: test-assert.js uses standard Node.js assertion library with fewer testing 
-capabilities (Shown below only as an example) Recommended is the use of Chai library with test-chai.js file.
- 
-4. Run command "mocha" to execute all tests
 
 ## Mac
 
