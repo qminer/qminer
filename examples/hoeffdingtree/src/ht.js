@@ -214,14 +214,14 @@ function testRegressionDisAttr() {
    var htParams = {
       "gracePeriod": 300,
       "splitConfidence": 1e-6,
-      "tieBreaking": 0.005,
+      "tieBreaking": 0.005, 
       "conceptDriftP": false,
       "phAlpha": 0.005,
       "phLambda": 50.0,
       "phInit": 100,
       "maxNodes": 50,
       "regLeafModel": "mean",
-      "attrDiscretization": "bst",
+      "attrDiscretization": "bst", 
       "sdrThreshold": 0.1,
       "sdThreshold": 0.01
    };
