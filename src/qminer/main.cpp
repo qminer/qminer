@@ -181,7 +181,7 @@ public:
 			// parse out index and default store cache sizes
 			IndexCacheSize = int64(CacheVal->GetObjNum("index", 1024)) * int64(TInt::Mega);
 			DefStoreCacheSize = int64(CacheVal->GetObjNum("store", 1024)) * int64(TInt::Mega);
-			// prase out store specific sizes, when available
+			// parse out store specific sizes, when available
 			if (CacheVal->IsObjKey("stores")) {
 				PJsonVal StoreCacheVals = CacheVal->GetObjKey("stores");
 				for (int StoreN = 0; StoreN < StoreCacheVals->GetArrVals(); StoreN++) {
@@ -360,15 +360,16 @@ int main(int argc, char* argv[]) {
 		const bool StopP = Env.IsArgStr("stop");
 		//const bool ReloadP = Env.IsArgStr("reload");
 		const bool ImportP = Env.IsArgStr("import");
+		const bool TestP = Env.IsArgStr("test");
 		const bool DebugP = Env.IsArgStr("debug");
 		// stop if no action given
-		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP || ImportP);
+		const bool ActionP = (ConfigP || CreateP || StartP || StopP /*|| ReloadP*/ || DebugP || ImportP || TestP);
 		// provide basic instruction when no action given
 		if (!ActionP) {
 			printf("\n");
 			printf("Usage: qm ACTION [OPTION]...\n");
 			printf("\n");
-			printf("Actions: config, create, start, stop, reload, debug, import\n");			
+			printf("Actions: config, create, start, stop, reload, debug, import, test\n");
 		} else {
 			Env.SetSilent();
 		}
@@ -531,13 +532,9 @@ int main(int argc, char* argv[]) {
 
 		// Run QMiner engine to import file
 		if (ImportP) {
-			// do not mess with folders with running qminer instance
 			Lock.Lock();
-			// load database and start the server
 			{
-				// resolve access type
 				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
-				// load base
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 				{
@@ -551,30 +548,180 @@ int main(int argc, char* argv[]) {
 						}
 					}
 				}
-				{
-					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm(ImportStoreNm);
-					TQm::TRec rec = store->GetRec(1);
-					TQm::PRecSet res = rec.DoJoin(Base, "Actor");
-					for (int i = 0; i < res->GetRecs(); i++) {
-						auto rr = res->GetRec(i);
-						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
-					}
-				}
-				{
-					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-					TQm::TRec rec = store->GetRec(1);
-					TQm::PRecSet res = rec.DoJoin(Base, "ActedIn");
-					for (int i = 0; i < res->GetRecs(); i++) {
-						auto rr = res->GetRec(i);
-						printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
-					}
-				}
-				/*{
-					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-					store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
-				}*/
 				// save base
 				TQm::TStorage::SaveBase(Base);
+			}
+			// remove lock
+			Lock.Unlock();
+		}
+
+		// Run QMiner engine in test mode - execute custom code
+		if (TestP) {
+			Lock.Lock();
+			{
+#ifdef _DEBUG
+				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
+				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
+
+				//{
+				//	// this demo assumes movies database was initialized. it can contain existing data.
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+				//	TRnd rnd(1212);
+				//	for (int i = 0; i < 1000 * 1000; i++) {
+				//		if (i % 1000 == 0) printf("== %d\n", i);
+				//		// perform insert of new record
+				//		auto json = TJsonVal::NewObj();
+				//		json->AddToObj("Title", TStr::Fmt("Title %d", i));
+				//		json->AddToObj("Plot", TStr::Fmt("Plot %d", i));
+				//		json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
+				//		json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
+
+				//		auto json_a = TJsonVal::NewArr();
+				//		json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
+				//		json->AddToObj("Genres", json_a);
+
+				//		auto json_p = TJsonVal::NewObj();
+				//		json_p->AddToObj("Name", TStr::Fmt("Director %d", (13 * i) % 100000));
+				//		json_p->AddToObj("Gender", "Male");
+				//		json->AddToObj("Director", json_p);
+
+				//		json_a = TJsonVal::NewArr();
+				//		int actors = rnd.GetUniDevInt(8) + 5;
+				//		for (int k = 0; k < actors; k++) {
+				//			json_p = TJsonVal::NewObj();
+				//			json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(100000)));
+				//			json_p->AddToObj("Gender", "Male");
+				//			json_a->AddToArr(json_p);
+				//		}
+				//		json->AddToObj("Actor", json_a);
+
+				//		store->AddRec(json);
+				//	}
+				//}
+
+				{
+					// this demo assumes movies database was initialized and populated with initial data
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+					TRnd rnd(1212);
+					TQQueue<uint64> added_ids;
+					for (int i = 0; i < 10 * 1000; i++) {
+						int r = rnd.GetUniDevInt(100);
+						if (i % 100 == 0) printf("==================== %d\n", i);
+						//if (i > 1000)
+						//	r = 100;
+						if (r < 10) {
+							// perform insert of a new record
+							int z = 2000000 + i * 7;
+							auto json = TJsonVal::NewObj();
+							json->AddToObj("Title", TStr::Fmt("Title word%d", z));
+
+							TStr plot = "Plot";
+							int plot_len = 2 + round(rnd.GetPoissonDev(10));
+							for (int j = 0; j < plot_len; j++) {
+								int word1 = round(rnd.GetPoissonDev(100));
+								plot += TStr::Fmt(" word%d", word1);
+							}
+
+							json->AddToObj("Plot", plot);
+							json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
+							json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
+
+							auto json_a = TJsonVal::NewArr();
+							json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
+							json->AddToObj("Genres", json_a);
+
+							auto json_p = TJsonVal::NewObj();
+							json_p->AddToObj("Name", TStr::Fmt("Director %d", z % 100000));
+							json_p->AddToObj("Gender", "Male");
+							json->AddToObj("Director", json_p);
+
+							json_a = TJsonVal::NewArr();
+							int actors = rnd.GetUniDevInt(8) + 5;
+							for (int k = 0; k < actors; k++) {
+								json_p = TJsonVal::NewObj();
+								json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(10000)));
+								json_p->AddToObj("Gender", "Male");
+								json_a->AddToArr(json_p);
+							}
+							json->AddToObj("Actor", json_a);
+
+							auto id = store->AddRec(json);
+							added_ids.Push(id);
+							//printf("     added record\n");
+
+						} else if (r < 11) {
+							// perform delete of the front 5 records
+							if (store->GetRecs() > 5) {
+								store->DeleteFirstNRecs(5);
+							}
+							//printf("     deleted 5 records\n");						
+						} else {
+							// retrieve random movie and its actors
+							if (store->GetRecs() > 0) {
+								auto id = rnd.GetUniDevInt64(store->LastRecId());
+								while (!store->IsRecId(id)) {
+									id = rnd.GetUniDevInt64(store->LastRecId());
+								}
+								auto rec = store->GetRec(id);
+
+								auto actors = rec.DoJoin(Base, "Actor");
+								int actors_cnt = actors->GetRecs();
+								//printf("  actors=%d, id=%d \n", actors_cnt, rec.GetRecId());
+							}
+						}
+					}
+					Base->PrintIndexCache("XXXX_index.txt");
+				}
+
+				//{
+				//	auto store = Base->GetStoreByStoreNm("Movies");
+				//	auto recs = store->GetRecs();
+				//	uint64 cnt = 0;
+				//	for (int j = 0; j < recs; j++) {
+				//		if (j%1000==0)
+				//			printf("     j=%d, cnt=%d\n", j, cnt);
+				//		auto rec = store->GetRec(j);
+				//		auto res = rec.DoJoin(Base, "Actor");
+				//		for (int i = 0; i < res->GetRecs(); i++) {
+				//			auto rr = res->GetRec(i);
+				//			//printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+				//			cnt++;
+				//		}
+				//	}
+				//	printf("cnt=%d\n", cnt);
+				//}
+
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	TQm::TRec rec = store->GetRec(1);
+				//	TQm::PRecSet res = rec.DoJoin(Base, "ActedIn");
+				//	for (int i = 0; i < res->GetRecs(); i++) {
+				//		auto rr = res->GetRec(i);
+				//		printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
+				//	}
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	store->DeleteFirstNRecs(10);
+				//}
+				//{
+				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
+				//	auto res = store->GetAllRecs();
+				//	for (int i = 0; i < 20 /*res->GetRecs()*/; i++) {
+				//		auto rec = res->GetRec(i);
+				//		printf("*    %s\n", rec.GetRecNm().CStr());
+				//	}
+
+				//	//store->de
+				//}
+				// save base
+				TQm::TStorage::SaveBase(Base);
+#endif
 			}
 			// remove lock
 			Lock.Unlock();
@@ -619,7 +766,7 @@ int main(int argc, char* argv[]) {
                     } else if (Base->IsStoreNm(Task)) {
                         Base->GetStoreByStoreNm(Task)->PrintTypes(Base, DebugFNm + Task + ".txt");
                     } else {
-                        TQm::InfoLog("Unkown debug task '" + Task + "'");
+                        TQm::InfoLog("Unknown debug task '" + Task + "'");
                     }
                 }
             }

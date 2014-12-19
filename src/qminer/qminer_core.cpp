@@ -3413,14 +3413,12 @@ void TIndex::TQmGixDefMerger::Minus(const TQmGixItemV& MainV,
 	MainV.Diff(JoinV, ResV);
 }
 
-void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV) const {
+void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
 	if (ItemV.Empty()) { return; } // nothing to do in this case
 	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
 	// merge counts
 	int LastItemN = 0; bool ZeroP = false;
 	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
-		//const TQmGixItem& LastItem = ItemV[LastItemN];
-		//const TQmGixItem& Item = ItemV[ItemN];
 		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
 			LastItemN++;
 			ItemV[LastItemN] = ItemV[ItemN];
@@ -3435,7 +3433,7 @@ void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV) const {
 		LastItemN = 0;
 		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
 			const TQmGixItem& Item = ItemV[ItemN];
-			if (Item.Dat > 0) {
+			if (Item.Dat > 0 || (Local && Item.Dat < 0)) {
 				ItemV[LastItemN] = Item;
 				LastItemN++;
 			} else if (Item.Dat < 0) {
@@ -3579,7 +3577,7 @@ TIndex::PQmGixExpItem TIndex::ToExpItem(const TQueryItem& QueryItem) const {
 }
 
 bool TIndex::DoQuery(const TIndex::PQmGixExpItem& ExpItem, 
-        const PQmGixMerger& Merger, TQmGixItemV& ResIdFqV) const {
+        const PQmGixExpMerger& Merger, TQmGixItemV& ResIdFqV) const {
 
 	// clean if there is anything on the input
 	ResIdFqV.Clr(); 
@@ -3594,7 +3592,7 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
     Access = _Access;
     // initialize invered index
 	DefMerger = TQmGixDefMerger::New();
-    Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize, DefMerger);
+    Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize/*, DefMerger*/);
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -3840,15 +3838,18 @@ void TIndex::DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
 	Delete(Store->GetJoinKeyId(JoinNm), RecId, JoinRecId, JoinFq);	
 }
 
-void TIndex::Delete(const int& KeyId, const uint64& WordId,  const uint64& RecId, const int& RecFq) {
+void TIndex::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
 	// -1 should never come to here 
 	Assert(KeyId != -1);
 	// we shouldn't modify read-only index
 	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
-	// delete from index (add item with negative count, merger will delete item if necessary)
-	//Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
-
-	Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
+	if (RecFq == TInt::Mx) {
+		// full delete from index
+		Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
+	} else {
+		// add item with negative count, merger will delete item if necessary
+		Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+	}		
 }
 
 void TIndex::Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
@@ -3910,7 +3911,7 @@ void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFq
 }
 
 TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base,
-		const TQueryItem& QueryItem, const PQmGixMerger& Merger) const {
+		const TQueryItem& QueryItem, const PQmGixExpMerger& Merger) const {
 
 	// get query result store
 	TWPt<TStore> Store = QueryItem.GetStore(Base);
@@ -3957,6 +3958,12 @@ void TIndex::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64I
 
 void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
 	Gix->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
+}
+
+void TIndex::SaveCacheTxt(const TWPt<TBase>& Base, const TStr& FNm) {
+#ifdef _DEBUG
+	Gix->SaveCacheTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
+#endif
 }
 
 ///////////////////////////////
@@ -4280,7 +4287,7 @@ void TBase::LoadStreamAggrBaseV(TSIn& SIn) {
     }    
 }
 
-PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixMerger& Merger) {
+PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger) {
 	// prepare sorted list of all records from the store
 	TIndex::TQmGixItemV AllResIdV;
 	const TWPt<TStore>& Store = RecSet->GetStore();
@@ -4296,7 +4303,7 @@ PRecSet TBase::Invert(const PRecSet& RecSet, const TIndex::PQmGixMerger& Merger)
 	return TRecSet::New(Store, ResIdFqV, false);
 }
 
-TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixMerger& Merger) {
+TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger) {
 	if (QueryItem.IsLeafGix()) {
 		// return empty, when can be handled by index
 		return TPair<TBool, PRecSet>(false, NULL);
@@ -4656,7 +4663,7 @@ uint64 TBase::AddRec(const uint& StoreId, const PJsonVal& RecVal) {
 
 PRecSet TBase::Search(const PQuery& Query) {
 	// do the search
-	TIndex::PQmGixMerger Merger = Index->GetDefMerger();
+	TIndex::PQmGixExpMerger Merger = Index->GetDefMerger();
 	TPair<TBool, PRecSet> NotRecSet = Search(Query->GetQueryItem(), Merger);
 	// when empty, then query can be completly covered by index
 	if (NotRecSet.Val2.Empty()) { 
@@ -4924,6 +4931,10 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 			FOut.PutStrLn(StrPool->GetStr(StrId));
 		}
 	}
+}
+
+void TBase::PrintIndexCache(const TStr& FNm) {
+	Index->SaveCacheTxt(this, FNm);
 }
 
 }
