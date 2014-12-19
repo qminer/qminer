@@ -164,8 +164,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
-   exports->Set(v8::String::NewFromUtf8(Isolate, "base"),
-	   tpl->GetFunction());
+   /*exports->Set(v8::String::NewFromUtf8(Isolate, "base"),
+	   tpl->GetFunction());*/
 
 }
 
@@ -426,8 +426,8 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "store"),
-		tpl->GetFunction());
+	/*exports->Set(v8::String::NewFromUtf8(Isolate, "store"),
+		tpl->GetFunction());*/
 }
 
 v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
@@ -1768,8 +1768,8 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "rs"),
-		tpl->GetFunction());
+	/*exports->Set(v8::String::NewFromUtf8(Isolate, "rs"),
+		tpl->GetFunction());*/
 }
 
 v8::Local<v8::Object> TNodeJsRecSet::New() {
