@@ -4,7 +4,7 @@
 
 ### Folders
 
- - `PYTHON_PATH` - path to python.exe (e.g. /python26/python.exe)
+ - `PYTHON_PATH` - path to python.exe (e.g. /python27/python.exe)
  - `QMINER_ROOT` - qminer root folder (location of qminer's git repository)
  - `NODE_ROOT`   - folder with node source code (needed to build modules)
 
@@ -58,6 +58,18 @@ Simple way, when correct version of Python is in path and node-gyp takes care of
 
 ## Windows
 
+### Folders
+
+ - `PYTHON_PATH` - path to python.exe (e.g. c:/python27/python.exe)
+ - `QMINER_ROOT` - qminer root folder (location of qminer's git repository)
+ - `NODE_ROOT`   - folder with node source code (needed to build modules)
+
+Example of how to setup enivronment variables from command-line:
+
+	set PYTHON_PATH=c:\Python27
+	set NODE_ROOT=D:\work\code\cpp\node
+	set QMINER_ROOT=D:\work\code\cpp\qminer
+
 ### Prerequisites:
 
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
@@ -109,3 +121,9 @@ NOTE: test-assert.js uses standard Node.js assertion library with fewer testing
 capabilities (Shown below only as an example) Recommended is the use of Chai library with test-chai.js file.
  
 4. Run command "mocha" to execute all tests
+
+## Mac
+
+Same as on Linux. To generate XCode project files, say:
+
+	node-gyp configure -- -f xcode
