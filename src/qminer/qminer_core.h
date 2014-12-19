@@ -475,10 +475,11 @@ protected:
     
 	/// Save store to output stream
 	void SaveStore(TSOut& SOut) const;
-    
+public:    
     /// Access to base
     const TWPt<TBase>& GetBase() const { return Base; }
-    /// Access to index
+protected:
+	/// Access to index
     const TWPt<TIndex>& GetIndex() const { return Index; }
     
 	/// Register new field to the store

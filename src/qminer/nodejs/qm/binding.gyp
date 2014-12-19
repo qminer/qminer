@@ -8,7 +8,12 @@
             'qm_nodejs.h', 	#not necessary for build, but useful for visual studio solution
             'qm_nodejs.cpp',
             'qm_param.h',
+            '../la/la_nodejs.h', #not necessary for build, but useful for visual studio solution
+            '../la/la_nodejs.cpp'
          ],
+	 'defines': [
+          'MODULE_INCLUDE_LA'
+        ],
          'include_dirs': [
             '../',
             '../../'
@@ -39,7 +44,7 @@
             '-Wno-deprecated-declarations',
             '-fopenmp',
          ]
-      },
+      },      
       {
          'target_name': 'glib',
          'type': 'static_library',

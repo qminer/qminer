@@ -10,6 +10,8 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 }
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
+	
+	v8::EscapableHandleScope HandleScope(Isolate);
 	if (!JsonVal->IsDef()) {
 		return v8::Undefined(Isolate);
 	}
@@ -20,10 +22,10 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 		return v8::Null(Isolate);
 	}
 	else if (JsonVal->IsNum()) {
-		return v8::Number::New(Isolate, JsonVal->GetNum());
+		return HandleScope.Escape(v8::Number::New(Isolate, JsonVal->GetNum()));
 	}
 	else if (JsonVal->IsStr()) {
-		return v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr());
+		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr()));
 	}
 	else if (JsonVal->IsArr()) {
 		const uint Len = JsonVal->GetArrVals();
@@ -33,9 +35,10 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 		for (uint i = 0; i < Len; i++) {
 			ResArr->Set(i, ParseJson(Isolate, JsonVal->GetArrVal(i)));
 		}
-
-		return ResArr;
-	} else if (JsonVal->IsObj()) {
+		
+		return HandleScope.Escape(ResArr);
+	}
+	else if (JsonVal->IsObj()) {
 		v8::Local<v8::Object> ResObj = v8::Object::New(Isolate);
 
 		const int NKeys = JsonVal->GetObjKeys();
@@ -47,11 +50,13 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 			ResObj->Set(v8::String::NewFromUtf8(Isolate, Key.CStr()), ParseJson(Isolate, Val));
 		}
 
-		return ResObj;
-	} else {
+		return HandleScope.Escape(ResObj);
+	}
+	else {
 		throw TExcept::New("Invalid JSON!", "TNodeJsUtil::ParseJson");
 	}
 }
+
 
 PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
 	EAssertR(Obj->IsObject(), "TNodeJsUtil::GetObjJson: Cannot parse non-object types!");
