@@ -411,8 +411,10 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "matrix"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
@@ -480,7 +482,7 @@ void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             Args.GetReturnValue().Set(Instance);
          } else {
             if (Args[0]->IsObject()) {
-               const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", true);
+               const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
                const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols", 3);
                const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", 3);
                if (Cols > 0 && Rows > 0) {
@@ -945,8 +947,10 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseVector"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsSpVec::New(const TIntFltKdV& IntFltKdV) {
@@ -1283,8 +1287,10 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseColMatrix"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& Rows) {
@@ -1808,8 +1814,7 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-   //TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-   //TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);

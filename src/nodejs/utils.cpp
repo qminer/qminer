@@ -157,6 +157,26 @@ bool TNodeJsUtil::IsArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     return Val->IsBoolean();
 }
 
+bool TNodeJsUtil::IsArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN).CStr());
+
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	return Val->IsNumber();
+}
+
+bool TNodeJsUtil::IsArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN).CStr());
+
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	return Val->IsString();
+}
+
 bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -225,6 +245,41 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
         }
     }
     return DefVal;
+}
+
+double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgFlt: Missing argument %d", ArgN));
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
+	return Val->NumberValue();
+}
+
+double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const double& DefVal) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (ArgN >= Args.Length()) { return DefVal; }
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
+	return Val->NumberValue();
+}
+
+double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const double& DefVal) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	if (Args.Length() > ArgN) {
+		if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
+			v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+			EAssertR(Val->IsNumber(),
+				TStr::Fmt("Argument %d, property %s expected to be number", ArgN, Property.CStr()).CStr());
+			return Val->NumberValue();
+		}
+	}
+	return DefVal;
 }
 
 /// Extract argument ArgN as TStr
