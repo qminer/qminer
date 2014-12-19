@@ -459,6 +459,8 @@ public:
     /// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2, v8::Handle<v8::Value>& Arg3);
+    /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
@@ -2057,10 +2059,16 @@ public:
 	JsDeclareTemplatedFunction(inner);
 	//#- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(plus);
+	//#- `vec = vec.plusEq(vec2)` -- Inplace sum of `vec` with `vec2`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(plusEq);
 	//#- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(minus);
+	//#- `vec = vec.minusEq(vec2)` -- Inplace difference of `vec` with `vec2`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(minusEq);
 	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(multiply);
+	//#- `vec = vec.multiplyEq(num)` -- Inplace scalar multiplication of `vec` with `num`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(multiplyEq);
 	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
@@ -2120,8 +2128,11 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, outer);
 		JsRegisterFunction(TmpTemp, inner);
 		JsRegisterFunction(TmpTemp, plus);
+		JsRegisterFunction(TmpTemp, plusEq);
 		JsRegisterFunction(TmpTemp, minus);
+		JsRegisterFunction(TmpTemp, minusEq);
 		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, multiplyEq);
 		JsRegisterFunction(TmpTemp, normalize);
 		JsRegisterProperty(TmpTemp, length);
 		JsRegisterFunction(TmpTemp, print);
@@ -2541,8 +2552,11 @@ public:
 	JsDeclareFunction(valVec);
 	//#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
 	JsDeclareFunction(idxVec);
+    //#- `spVec = spVec.intersect(spVec2, function(a_num, b_num, idx) { ...})` -- executes given callback for each of the elements in the intersection.
+    JsDeclareFunction(intersect);
+    //#- `spVec = spVec.union(spVec2, function(a_num, b_num, idx) { ...})` -- executes given callback for each of the elements in the union.
+    JsDeclareFunction(_union);
 };
-
 
 ///////////////////////////////
 // QMiner-Sparse-Col-Matrix
@@ -2776,6 +2790,10 @@ public:
     JsDeclareProperty(dims);    
     //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
+
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
@@ -2784,14 +2802,6 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
-	JsDeclareFunction(add);
-	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
-    //#     features from record `rec` (e.g. words from string fields); results are returned
-    //#     as a string array
-    JsDeclareFunction(extractStrings);
-	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
-	JsDeclareFunction(getFtr);
 	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
     //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
@@ -2802,8 +2812,23 @@ public:
     //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
+
+	//#- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	JsDeclareFunction(getFtrExtractor);
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	JsDeclareFunction(getFtr);
+    //#- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
+    //#- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
+    JsDeclareFunction(getFtrDist);
     //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
+    //#     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
     JsDeclareFunction(filter);
+
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    //#     features from record `rec` (e.g. words from string fields); results are returned
+    //#     as a string array
+    JsDeclareFunction(extractStrings);
 };
 
 ///////////////////////////////
@@ -3047,7 +3072,6 @@ public:
 	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
-
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP

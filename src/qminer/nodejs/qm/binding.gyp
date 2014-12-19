@@ -10,8 +10,8 @@
             'qm_param.h',
             '../la/la_nodejs.h', #not necessary for build, but useful for visual studio solution
             '../la/la_nodejs.cpp'
-         ],
-	 'defines': [
+        ],
+	     'defines': [
           'MODULE_INCLUDE_LA'
         ],
          'include_dirs': [
@@ -32,17 +32,38 @@
          ],
          'cflags_cc': [
             '-std=c++0x',
- 	           '-frtti',
+ 	         '-frtti',
             '-fexceptions'
          ],
          'cflags': [
             '-g',
             '-fexceptions',
             '-frtti',
-            '-std=c++0x',
             '-Wall',
             '-Wno-deprecated-declarations',
             '-fopenmp',
+         ],
+         'conditions': [
+            ['OS == "linux"', {
+               'libraries': [
+                  '-lrt',
+                  '-luuid'
+               ]
+            }],
+            ['OS == "mac"', {
+               'xcode_settings': {
+                  'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                  'GCC_ENABLE_CPP_RTTI': 'YES',
+                  'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                  'OTHER_CFLAGS': [
+                     '-std=c++11', 
+                     '-stdlib=libc++'
+                  ],
+                  'OTHER_LDFLAGS': [
+                     '-undefined dynamic_lookup'
+                  ]
+               }
+            }]
          ]
       },      
       {
@@ -78,6 +99,17 @@
                   '-lrt',
                   '-luuid'
                ]
+            }],
+            ['OS == "mac"', {
+               'xcode_settings': {
+                  'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                  'GCC_ENABLE_CPP_RTTI': 'YES',
+                  'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                  'OTHER_CFLAGS': [
+                     '-std=c++11', 
+                     '-stdlib=libc++'
+                  ]
+               }
             }]
          ],
          'sources': [
@@ -85,7 +117,7 @@
             '../../../glib/mine/mine.cpp'
          ]
       },
-{
+      {
          'target_name': 'qminer',
          'type': 'static_library',
          'include_dirs': [
@@ -119,6 +151,17 @@
                   '-lrt',
                   '-luuid'
                ]
+            }],
+            ['OS == "mac"', {
+               'xcode_settings': {
+                  'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                  'GCC_ENABLE_CPP_RTTI': 'YES',
+                  'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                  'OTHER_CFLAGS': [
+                     '-std=c++11', 
+                     '-stdlib=libc++' 
+                  ]
+               }
             }]
          ],
          'sources': [

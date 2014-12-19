@@ -579,7 +579,7 @@ private:
     /// Flag if we are using in-memory store
     TBool DataMemP;
 	/// Store for parts of records that should be in-memory
-	TInMemStorage DataMem; 
+	TInMemStorage DataMem;
 	/// Serializator to disk
 	TRecSerializator SerializatorCache;
 	/// Serializator to memory

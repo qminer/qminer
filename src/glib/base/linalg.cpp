@@ -1487,10 +1487,8 @@ void TLinAlg::Gemm(const double& Alpha, const TFltVV& A, const TFltVV& B, const 
 	int d_j = D.GetRows();
 	
 	// assertions for dimensions
-  bool Cnd = a_i == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j;
-  if (!Cnd) {
-    EAssert(Cnd);
-  }
+  bool Cnd = (a_i == c_j) && (b_i == c_i) && (a_i == b_j) && (c_i == d_i) && (c_j == d_j);
+  if (!Cnd) { throw TExcept::New("[TLinAlg::Gemm] Dimensions do not match"); }
 
 	double Aij, Bij, Cij;
 
@@ -2422,12 +2420,15 @@ void TSparseSVD::Lanczos2(const TMatrix& Matrix, int MaxNumEig,
   //sequence of Ritz's vectors
   TFltVV Q(N, MaxNumEig);
   double tmp = 1/sqrt((double)N);
-  for (i = 0; i < N; i++)
+  for (i = 0; i < N; i++) {
       Q(i,0) = tmp;
+  }
   //converget Ritz's vectors
   TVec<TFltV> ConvgQV(MaxNumEig);
   TIntV CountConvgV(MaxNumEig);
-  for (i = 0; i < MaxNumEig; i++) CountConvgV[i] = 0;
+  for (i = 0; i < MaxNumEig; i++) {
+      CountConvgV[i] = 0;
+  }
   // const int ConvgTreshold = 50;
 
   //diagonal and subdiagonal of T
