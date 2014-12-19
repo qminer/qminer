@@ -2765,17 +2765,17 @@ int THierchCtmc::GetMaxDepth() const {
 	return MaxDepth;
 }
 
-TCtmc::PClust THierchCtmc::GetClust() const {
+TMc::PClust THierchCtmc::GetClust() const {
 	const TStr ClustType = ClustParams->GetObjStr("type");
 
 	if (ClustType == "dpmeans") {
 		const double Lambda = ClustParams->GetObjNum("lambda");
 		const int MinClusts = ClustParams->GetObjInt("minclusts");
 		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
-		return new TCtmc::TDpMeans(Lambda, MinClusts, MaxClusts, Rnd);
+		return new TMc::TDpMeans(Lambda, MinClusts, MaxClusts, Rnd);
 	} else if (ClustType == "kmeans") {
 		const int K = ClustParams->GetObjInt("k");
-		return new TCtmc::TFullKMeans(K, Rnd);
+		return new TMc::TFullKMeans(K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
 	}

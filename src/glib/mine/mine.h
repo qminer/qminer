@@ -59,7 +59,7 @@
 #include "hac.h"
 
 // Markov Chains
-#include "ctmc.h"
+#include "mc.h"
 
 // Signal-Processing
 #include "signalproc.h"

@@ -6253,7 +6253,7 @@ v8::Handle<v8::Value> TJsAnalytics::newCtmc(const v8::Arguments& Args) {
 
 	PJsonVal ArgsJson = TJsAnalyticsUtil::GetArgJson(Args, 0);
 	PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 1);
-	return TJsHierCtmc::New(JsAnalytics->Js, ArgsJson, FtrSpace);
+	return TJsHierMc::New(JsAnalytics->Js, ArgsJson, FtrSpace);
 }
 
 ///////////////////////////////
@@ -6779,32 +6779,45 @@ v8::Handle<v8::Value> TJsProcessStateModel::toJSON(const v8::Arguments& Args) {
 
 ///////////////////////////////
 // QMiner-JavaScript-Hierarchical Markov Chain
-TJsHierCtmc::TJsHierCtmc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpace& _FtrSpace):
+TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpace& _FtrSpace):
 		Js(_Js),
 		FtrSpace(_FtrSpace) {
 
+	const PNotify Notify = TStdNotify::New();
+
 	const TStr InStoreNm = ParamVal->GetObjStr("source");
 	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
-	const TStr TimeUnitStr = ParamVal->GetObjStr("timeUnit");
+	const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
 	const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
 	const PJsonVal FldsJson = ParamVal->GetObjKey("fields");
 
-	// time unit
-	uint64 TimeUnit;
-	if (TimeUnitStr == "second") {
-		TimeUnit = TCtmc::TCtMChain::TU_SECOND;
-	} else if (TimeUnitStr == "minute") {
-		TimeUnit = TCtmc::TCtMChain::TU_MINUTE;
-	} else if (TimeUnitStr == "hour") {
-		TimeUnit = TCtmc::TCtMChain::TU_HOUR;
-	} else if (TimeUnitStr == "day") {
-		TimeUnit = TCtmc::TCtMChain::TU_DAY;
-	} else {
-		throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
+	// transition modelling
+	TMc::PMChain MChain;
+	if (TransitionJson->GetObjStr("type") == "continuous") {
+		const TStr TimeUnitStr = TransitionJson->GetObjStr("timeUnit");
+		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ? TransitionJson->GetObjNum("deltaTime") : 1e-3;	// TODO hardcoded
+
+		uint64 TimeUnit;
+		if (TimeUnitStr == "second") {
+			TimeUnit = TMc::TCtMChain::TU_SECOND;
+		} else if (TimeUnitStr == "minute") {
+			TimeUnit = TMc::TCtMChain::TU_MINUTE;
+		} else if (TimeUnitStr == "hour") {
+			TimeUnit = TMc::TCtMChain::TU_HOUR;
+		} else if (TimeUnitStr == "day") {
+			TimeUnit = TMc::TCtMChain::TU_DAY;
+		} else {
+			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
+		}
+
+		MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Notify);
+	} else if (TransitionJson->GetObjStr("type") == "discrete") {
+		MChain = new TMc::TDtMChain(Notify);
 	}
 
+
 	// clustering
-	TCtmc::PClust Clust = NULL;
+	TMc::PClust Clust = NULL;
 
 	const TStr ClustAlg = ClustJson->GetObjStr("type");
 	if (ClustAlg == "dpmeans") {
@@ -6812,24 +6825,23 @@ TJsHierCtmc::TJsHierCtmc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtr
 		const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
 		const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
 		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-		Clust = new TCtmc::TDpMeans(Lambda, MinClusts, MxClusts, TRnd(RndSeed));
+		Clust = new TMc::TDpMeans(Lambda, MinClusts, MxClusts, TRnd(RndSeed), Notify);
 	} else if (ClustAlg == "kmeans") {
 		const int K = ClustJson->GetObjInt("k");
 		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-		Clust = new TCtmc::TFullKMeans(K, TRnd(RndSeed));
+		Clust = new TMc::TFullKMeans(K, TRnd(RndSeed), Notify);
 	} else {
 		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 	}
 
 	// create the model
-	TCtmc::PCtMChain MChain = new TCtmc::TCtMChain(TimeUnit);
-	TCtmc::PHierarch AggClust = new TCtmc::THierarch();
+	TMc::PHierarch AggClust = new TMc::THierarch(Notify);
 
-	McModel = new TCtmc::THierarchCtmc(Clust, MChain, AggClust);
+	McModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Notify);
 }
 
 
-v8::Handle<v8::ObjectTemplate> TJsHierCtmc::GetTemplate() {
+v8::Handle<v8::ObjectTemplate> TJsHierMc::GetTemplate() {
 	v8::HandleScope HandleScope;
 	static v8::Persistent<v8::ObjectTemplate> Template;
 	if (Template.IsEmpty()) {
@@ -6837,6 +6849,8 @@ v8::Handle<v8::ObjectTemplate> TJsHierCtmc::GetTemplate() {
 
 		JsRegisterFunction(TmpTemp, init);
 		JsRegisterFunction(TmpTemp, toJSON);
+		JsRegisterFunction(TmpTemp, futureStates);
+		JsRegisterFunction(TmpTemp, getTransitionModel);
 
 		JsRegisterFunction(TmpTemp, save);
 		JsRegisterFunction(TmpTemp, load);
@@ -6848,11 +6862,11 @@ v8::Handle<v8::ObjectTemplate> TJsHierCtmc::GetTemplate() {
 	return Template;
 }
 
-v8::Handle<v8::Value> TJsHierCtmc::init(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsHierMc::init(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 
 	try {
-		TJsHierCtmc* Model = TJsHierCtmcUtil::GetSelf(Args);
+		TJsHierMc* Model = TJsHierMcUtil::GetSelf(Args);
 
 		PRecSet InRecSet = TJsRecSet::GetArgRecSet(Args, 0);
 		Model->Init(InRecSet);
@@ -6863,11 +6877,11 @@ v8::Handle<v8::Value> TJsHierCtmc::init(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());
 }
 
-v8::Handle<v8::Value> TJsHierCtmc::toJSON(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsHierMc::toJSON(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 
 	try {
-		TJsHierCtmc* Model = TJsHierCtmcUtil::GetSelf(Args);
+		TJsHierMc* Model = TJsHierMcUtil::GetSelf(Args);
 		return HandleScope.Close(TJsUtil::ParseJson(Model->McModel->SaveJson()));
 	} catch (const PExcept& Except) {
 		printf("TJsHierCtmc::toJSON: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
@@ -6876,11 +6890,60 @@ v8::Handle<v8::Value> TJsHierCtmc::toJSON(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());
 }
 
-v8::Handle<v8::Value> TJsHierCtmc::save(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsHierMc::futureStates(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 
 	try {
-		TJsHierCtmc* JsModel = TJsHierCtmcUtil::GetSelf(Args);
+		TJsHierMc* Model = TJsHierMcUtil::GetSelf(Args);
+
+		const double Level = TJsHierMcUtil::GetArgFlt(Args, 0);
+		const int StartState = TJsHierMcUtil::GetArgInt32(Args, 1);
+		const double Tm = TJsHierMcUtil::GetArgFlt(Args, 2);
+
+		TFltV ProbV;	Model->McModel->GetFutStateProbs(Level, StartState, Tm, ProbV);
+
+		return HandleScope.Close(TJsUtil::ParseJson(TJsonVal::NewArr(ProbV)));
+	} catch (const PExcept& Except) {
+		printf("TJsHierMc::futureStates: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
+	}
+
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHierMc::getTransitionModel(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		TJsHierMc* Model = TJsHierMcUtil::GetSelf(Args);
+
+		const double Level = TJsHierMcUtil::GetArgFlt(Args, 0);
+
+		TFltVV Mat;	Model->McModel->GetTransitionModel(Level, Mat);
+
+		PJsonVal MatJson = TJsonVal::NewArr();
+		for (int i = 0; i < Mat.GetRows(); i++) {
+			PJsonVal RowJson = TJsonVal::NewArr();
+
+			for (int j = 0; j < Mat.GetCols(); j++) {
+				RowJson->AddToArr(Mat(i,j));
+			}
+
+			MatJson->AddToArr(RowJson);
+		}
+
+		return HandleScope.Close(TJsUtil::ParseJson(MatJson));
+	} catch (const PExcept& Except) {
+		printf("TJsHierMc::getTransitionModel: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
+	}
+
+	return HandleScope.Close(v8::Undefined());
+}
+
+v8::Handle<v8::Value> TJsHierMc::save(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+
+	try {
+		TJsHierMc* JsModel = TJsHierMcUtil::GetSelf(Args);
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
 		JsModel->McModel->Save(*SOut);
 	} catch (const PExcept& Except) {
@@ -6890,11 +6953,11 @@ v8::Handle<v8::Value> TJsHierCtmc::save(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());
 }
 
-v8::Handle<v8::Value> TJsHierCtmc::load(const v8::Arguments& Args) {
+v8::Handle<v8::Value> TJsHierMc::load(const v8::Arguments& Args) {
 	v8::HandleScope HandleScope;
 
 	try {
-		TJsHierCtmc* JsModel = TJsHierCtmcUtil::GetSelf(Args);
+		TJsHierMc* JsModel = TJsHierMcUtil::GetSelf(Args);
 		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
 		JsModel->McModel->Load(*SIn);
 	} catch (const PExcept& Except) {
@@ -6904,7 +6967,7 @@ v8::Handle<v8::Value> TJsHierCtmc::load(const v8::Arguments& Args) {
 	return HandleScope.Close(v8::Undefined());
 }
 
-void TJsHierCtmc::Init(const PRecSet& RecSet) {
+void TJsHierMc::Init(const PRecSet& RecSet) {
 	// generate an instance matrix
 	TFullMatrix X;	FtrSpace->GetFullVV(RecSet, X.GetMat());
 
@@ -6920,7 +6983,7 @@ void TJsHierCtmc::Init(const PRecSet& RecSet) {
 	McModel->Init(X, RecTmV);
 }
 
-uint64 TJsHierCtmc::GetRecTm(const TRec& Rec) const {
+uint64 TJsHierMc::GetRecTm(const TRec& Rec) const {
 	return Rec.GetFieldTmMSecs(Rec.GetStore()->GetFieldIdV(TFieldType::oftTm)[0]);
 }
 

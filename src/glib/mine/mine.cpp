@@ -51,7 +51,7 @@
 #include "semspace.cpp"
 
 // Markov Chains
-#include "ctmc.cpp"
+#include "mc.cpp"
 
 // Signal-Processing
 #include "signalproc.cpp"

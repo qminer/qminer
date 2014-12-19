@@ -3418,6 +3418,10 @@ TFullMatrix::TFullMatrix(TFullMatrix&& Other):
 	Other.Mat = nullptr;
 }
 
+TFullMatrix::TFullMatrix(TFltVV* _Mat):
+		IsWrapper(false),
+		Mat(_Mat) {}
+
 TFullMatrix::~TFullMatrix() {
 	Clr();
 }
@@ -3665,6 +3669,56 @@ TVector TFullMatrix::GetRow(const int& RowIdx) const {
 	return Res;
 }
 
+TFullMatrix TFullMatrix::Pow(const int& k) const {
+	EAssertR(k >= 0, "TFullMatrix::operator ^: Negative powers not implemented!");
+	EAssertR(GetRows() == GetCols(), "TFullMatrix::operator ^: Can only compute powers of square matrices!");
+
+	if (k == 0) { return TFullMatrix::Identity(GetRows()); }
+	else if (k < 0) { return GetInverse()^(-k); }
+	else {
+		// we will compute the power using the (a bit modified to save with memory
+		// and rather computing the log) square and multiply algorithm from Knuth's book
+
+		// X <- A
+		TFltVV* X = new TFltVV(*Mat);
+
+		// temporary variables
+		TFltVV* X1 = new TFltVV(GetRows(), GetCols());
+		TFltVV* Temp;
+
+		// do the work
+		uint k1 = (uint) k;
+		uint n = (uint) log2(k);
+
+		uint b;
+
+		for (uint i = 1; i <= n; i++) {
+			b = (k1 >> (n-i)) & 1;
+
+			// X <- X*X
+			TLinAlg::Multiply(*X, *X, *X1);
+
+			// swap X and X1 so that X holds the content
+			Temp = X1;
+			X1 = X;
+			X = Temp;
+			if (b == 1) {
+				// X <- X*A
+				TLinAlg::Multiply(*X, *Mat, *X1);
+				// swap X and X1 so that X holds the content
+				Temp = X1;
+				X1 = X;
+				X = Temp;
+			}
+		}
+
+		// delete the temporary variables and wrap the result
+		delete X1;
+
+		return TFullMatrix(X);
+	}
+}
+
 TVector TFullMatrix::GetCol(const int& ColIdx) const {
 	EAssertR(ColIdx < GetCols(), "Column index should be smaller then the number of columns!");
 
@@ -3729,6 +3783,10 @@ TVector TFullMatrix::ColNorm2V() const {
 	}
 
 	return Res;
+}
+
+double TFullMatrix::FromNorm() const {
+	return TLinAlg::FrobNorm(*Mat);
 }
 
 double TFullMatrix::RowSum(const int& RowIdx) const {
@@ -3799,6 +3857,11 @@ TTriple<TFullMatrix, TVector, TFullMatrix> TFullMatrix::Svd(const int& k) const 
 	TLinAlg::ComputeThinSVD(*this, k, Result.Val1.GetMat(), Result.Val2.Vec, Result.Val3.GetMat());
 
 	return Result;
+}
+
+TFullMatrix TFullMatrix::GetInverse() const {
+	EAssertR(GetRows() == GetCols(), "Can only invert square matrices!");
+	throw TExcept::New("TFullMatrix::GetInverse: Not implemented!");
 }
 
 void TFullMatrix::Save(TSOut& SOut) const {

@@ -2938,27 +2938,32 @@ public:
 	JsDeclareFunction(toJSON);
 };
 
-class TJsHierCtmc {
+class TJsHierMc {
 public:
 	/// JS script context
 	TWPt<TScript> Js;
 private:
-	TCtmc::PHierarchCtmc McModel;
+	TMc::PHierarchCtmc McModel;
 	PFtrSpace FtrSpace;
 
 private:
-	typedef TJsObjUtil<TJsHierCtmc> TJsHierCtmcUtil;
-	TJsHierCtmc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
+	typedef TJsObjUtil<TJsHierMc> TJsHierMcUtil;
+	TJsHierMc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
 
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace) {
-		return TJsHierCtmcUtil::New(new TJsHierCtmc(Js, ParamVal, FtrSpace)); }
+		return TJsHierMcUtil::New(new TJsHierMc(Js, ParamVal, FtrSpace)); }
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
 	JsDeclareFunction(init);
 	//#- `hctmc.toJSON()` -- Returns a JSON representation of the model
 	JsDeclareFunction(toJSON);
+	//#- `hctmc.futureStates(level, startState, time)` -- returns a vector of probabilities
+	//#- of future states starting from `startState` in time `time`
+	JsDeclareFunction(futureStates);
+
+	JsDeclareFunction(getTransitionModel);
 
 	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);

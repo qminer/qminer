@@ -1068,7 +1068,8 @@ public:
     TFullMatrix();
     // zero matrix with the specified number of rows and cols
     TFullMatrix(const int& Rows, const int& Cols);
-    // matrix from TFltVV
+    // matrix from TFltVV, if IsWrapper is set to true then the
+    // underlying matrix will not be deleted
     TFullMatrix(TFltVV& Mat, const bool IsWrapper=false);
     // matrix from vector
     TFullMatrix(const TVector& Vec);
@@ -1076,6 +1077,12 @@ public:
     TFullMatrix(const TFullMatrix& Mat);
 	// move constructor
     TFullMatrix(TFullMatrix&& Mat);
+
+private:
+    // wraps the matrix and takes control of all the cleanup
+    TFullMatrix(TFltVV* Mat);
+
+public:
     // destructor
     virtual ~TFullMatrix();
 
@@ -1162,6 +1169,10 @@ public:
     // divides this matrix by a scalar and returns the result
     TFullMatrix operator /(const double& Lambda) const;
 
+    // returns the power of this matrix A^n where A is this matrix and n is the argument
+    TFullMatrix Pow(const int& k) const;
+    TFullMatrix operator ^(const int& k) const { return Pow(k); };
+
     // returns the RowIdx-th row
     TVector GetRow(const int& RowIdx) const;
     // returns the ColIdx-th column
@@ -1183,6 +1194,8 @@ public:
     TVector ColNormV() const;
     // returns the squared L2 norm of each column and returns them in a row vector
     TVector ColNorm2V() const;
+    // returns the Frobenius norm of this matrix
+    double FromNorm() const;
 
     // returns the sum of the i-th row
     double RowSum(const int& i) const;
@@ -1208,6 +1221,9 @@ public:
 	// k represents the number of singular values that are computed
 	TMatVecMatTr Svd(const int& k) const;
 	TMatVecMatTr Svd() const { return Svd(TMath::Mn(GetRows(), GetCols())); }
+
+	// returns the inverse of this matrix
+	TFullMatrix GetInverse() const;
 
 
 public:
