@@ -440,8 +440,10 @@ public:
 
 /////////////////////////////////////////////////
 // Operator-Definitions
+#ifndef BSL_OVERRIDES_STD
 template <class TRec>
 bool operator!=(const TRec& Rec1, const TRec& Rec2){return !(Rec1==Rec2);}
+#endif
 
 template <class TRec>
 bool operator>(const TRec& Rec1, const TRec& Rec2){return Rec2<Rec1;}
