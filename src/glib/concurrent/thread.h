@@ -22,10 +22,10 @@
 
 #include <base.h>
 
-enum TCriticalSectionType {
+typedef enum {
 	cstFast,
 	cstRecursive
-};
+} TCriticalSectionType;
 
 #if defined(GLib_WIN)
 

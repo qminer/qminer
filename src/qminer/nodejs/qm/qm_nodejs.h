@@ -9,7 +9,7 @@
 #include "utils.h"
 
 ///////////////////////////////
-// NodeJs-Qminer
+// NodeJs QMiner.
 // A factory of base objects
 // The only part of node framework: Init
 class TNodeJsQm : public node::ObjectWrap {
@@ -32,8 +32,7 @@ private:
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Base
-// 
+// NodeJs QMiner Base
 class TNodeJsBase : public node::ObjectWrap {
 private:
 	// Node framework
@@ -43,11 +42,12 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object
 	static v8::Local<v8::Object> New(TQm::PBase _Base);
-	// C++ constructors
+    // C++ constructors
 	TNodeJsBase() { }
 	TNodeJsBase(TQm::PBase _Base) : Base(_Base) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
+    
 public:
 	// C++ wrapped object
 	TQm::PBase Base;
@@ -58,9 +58,9 @@ private:
 	//# 
 	//#- `base.close()` -- closes the base
 	JsDeclareFunction(close);
-    //#- `store = base.store(storeName)` -- store with name `storeName`; `store = null` when no such store
+    //#- `store = base.store(storeName)` -- return store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `strArr = base.getStoreList()` -- an array of strings listing all existing stores
+    //#- `strArr = base.getStoreList()` -- an array of strings listing by name all existing stores
 	JsDeclareFunction(getStoreList);
     //#- `base.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
     //#- `base.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
@@ -188,7 +188,7 @@ private:
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Rec
+// NodeJs QMiner Record
 class TNodeJsRec: public node::ObjectWrap {
 private:
 	// Modified node framework: one record template per each base,storeId combination 
@@ -242,7 +242,7 @@ private:
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Record-Set
+// NodeJs QMiner Record Set
 class TNodeJsRecSet: public node::ObjectWrap {
 private:
 	// Node framework
@@ -339,7 +339,7 @@ private:
 };
 
 ///////////////////////////////
-// JavaScript Store Iterator
+// NodeJs QMiner Store Iterator
 //# 
 //# ### Store iterator
 //# 
@@ -366,10 +366,10 @@ public:
     // placeholder for last object
 	v8::Persistent<v8::Object> RecObj;
 	TNodeJsRec* JsRec;
-	~TNodeJsStoreIter() { 
-		RecObj.Reset();
-	}
-	//# 
+    // delete placeholder
+    ~TNodeJsStoreIter() { RecObj.Reset(); }
+	
+    //#
 	//# **Functions and properties:**
 	//#   
 	//#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
@@ -378,12 +378,10 @@ public:
 	JsDeclareProperty(store);
 	//#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	JsDeclareProperty(rec);
-	
 };
 
-
 ///////////////////////////////
-// JavaScript Record Filter
+// NodeJs QMiner Record Filter
 class TJsRecFilter {
 private:
 	TWPt<TQm::TStore> Store;
@@ -405,12 +403,12 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Record Pair Filter (record splitter, record comparator)
+// NodeJs QMiner Record Filter (record splitter, record comparator)
 class TJsRecPairFilter {
 private:
 	TWPt<TQm::TStore> Store;
-	
-	v8::Persistent<v8::Function> Callback;
+	// Callbacks
+    v8::Persistent<v8::Function> Callback;
 public:
 	~TJsRecPairFilter(){
 		Callback.Reset();
@@ -424,42 +422,47 @@ public:
 
 	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
 };
-//
-/////////////////////////////////
-//// QMiner-JavaScript-IndexKey
-////# 
-////# ### Index key
-////# 
-//class TNodeJsIndexKey {
-//private:
-////	/// JS script context
-////	TWPt<TScript> Js;
-////	TIndexKey IndexKey;
-////
-////	typedef TJsObjUtil<TJsIndexKey> TJsIndexKeyUtil;
-////
-////	TJsIndexKey(TWPt<TScript> _Js, const TIndexKey& _IndexKey) :
-////		Js(_Js), IndexKey(_IndexKey) { }
-////public:
-////	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIndexKey& IndexKey) {
-////		return TJsIndexKeyUtil::New(new TJsIndexKey(Js, IndexKey));
-////	}
-////	~TJsIndexKey() { }
-////
-////	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-////
-////	//# 
-////	//# **Functions and properties:**
-////	//#   
-////	//#- `storeName = key.store` -- gets the store name `storeName`
-////	JsDeclareProperty(store);
-////	//#- `keyName = key.name` -- gets the key name
-////	JsDeclareProperty(name);
-////	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
-////	JsDeclareProperty(voc);
-////	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
-////	JsDeclareProperty(fq);
-////};
+
+///////////////////////////////
+// NodeJs QMiner Index Key
+//#
+//# ### Index key
+//#
+class TNodeJsIndexKey: public node::ObjectWrap {
+private:
+    // Node framework
+    static v8::Persistent<v8::Function> constructor;
+public:
+    // Node framework
+    static void Init(v8::Handle<v8::Object> exports);
+    // Wrapping C++ object
+    static v8::Local<v8::Object> New();
+    static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey);
+    // C++ constructors
+    TNodeJsIndexKey() {}
+    TNodeJsIndexKey(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey):
+        Store(_Store), IndexKey(_IndexKey) { }
+    // Node framework (constructor method)
+    JsDeclareFunction(New);
+    
+public:
+    // C++ wrapped object
+    TWPt<TQm::TStore> Store;
+    TQm::TIndexKey IndexKey;
+    
+public:
+    //#
+	//# **Functions and properties:**
+	//#   
+	//#- `store = key.store` -- gets the key's store
+	JsDeclareProperty(store);
+	//#- `keyName = key.name` -- gets the key's name
+	JsDeclareProperty(name);
+	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
+	JsDeclareProperty(voc);
+	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
+	JsDeclareProperty(fq);
+};
 
 
 

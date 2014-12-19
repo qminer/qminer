@@ -1057,11 +1057,13 @@ public:
 public:
 	void InitAfterLoad() {
 		cat = (TUniChCategory) chCat;
-    subCat = (TUniChSubCategory) (((static_cast<int>(static_cast<uchar>(chCat)) & 0xff) << 8) | (static_cast<int>(static_cast<uchar>(chSubCat)) & 0xff)); }
+        subCat = (TUniChSubCategory) (((static_cast<int>(static_cast<uchar>(chCat)) & 0xff) << 8) | (static_cast<int>(static_cast<uchar>(chSubCat)) & 0xff)); 
+    }
 	void SetCatAndSubCat(const TUniChSubCategory catAndSubCat) {
 		cat = (TUniChCategory) ((int(catAndSubCat) >> 8) & 0xff);
 		subCat = catAndSubCat;
-		chCat = (char) cat; chSubCat = (char) (int(subCat) & 0xff); }
+		chCat = (char) cat; chSubCat = (char) (int(subCat) & 0xff); 
+    }
 	friend class TUniChDb;
 
 	// Inexplicably missing from TSIn/TSOut...
@@ -2590,14 +2592,12 @@ void TUniChDb::FindWordBoundaries(const TSrcVec& src, const size_t srcIdx, const
 {
   if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
   dest.PutAll(false);
-  size_t position = srcIdx;
+  size_t position = srcIdx, oldPos = srcIdx;
   dest[TVecIdx(position - srcIdx)] = true;
   while (position < srcIdx + srcCount) {
-    size_t oldPos = position;
+    oldPos = position;
 	FindNextWordBoundary(src, srcIdx, srcCount, position);
-	if (oldPos >= position) {
-	  Assert(oldPos < position);
-	}
+	if (oldPos >= position) { Assert(oldPos < position); }
 	Assert(position <= srcIdx + srcCount);
 	dest[TVecIdx(position - srcIdx)] = true;
   }
@@ -2821,14 +2821,12 @@ void TUniChDb::FindSentenceBoundaries(const TSrcVec& src, const size_t srcIdx, c
 {
   if (size_t(dest.Len()) != srcCount + 1) dest.Gen(TVecIdx(srcCount + 1));
   dest.PutAll(false);
-  size_t position = srcIdx;
+  size_t position = srcIdx, oldPos = srcIdx;
   dest[TVecIdx(position - srcIdx)] = true;
   while (position < srcIdx + srcCount) {
-    size_t oldPos = position;
+    oldPos = position;
     FindNextSentenceBoundary(src, srcIdx, srcCount, position);
-    if (oldPos >= position) {
-      Assert(oldPos < position);
-    }
+    if (oldPos >= position) { Assert(oldPos < position); }
     Assert(position <= srcIdx + srcCount);
     dest[TVecIdx(position - srcIdx)] = true;
   }
