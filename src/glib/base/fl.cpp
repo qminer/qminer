@@ -307,6 +307,13 @@ TFIn::TFIn(const TStr& FNm, bool& OpenedP):
 }
 
 PSIn TFIn::New(const TStr& FNm){
+  try {
+    return PSIn(new TFIn(FNm));
+  } catch (PExcept& Except) {
+    printf("*** Exception: %s\n", Except->GetMsgStr().CStr());
+    EFailR(Except->GetMsgStr());
+  }
+
   return PSIn(new TFIn(FNm));
 }
 
@@ -794,7 +801,7 @@ TFRnd::TFRnd(const TStr& _FNm, const TFAccess& FAccess,
 }
 
 TFRnd::~TFRnd(){
-  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm)+"'.");
+  EAssertR(fclose(FileId)==0, "Can not close file '"+TStr(FNm.CStr())+"'.");
 }
 
 TStr TFRnd::GetFNm() const {
@@ -1091,7 +1098,7 @@ TStr TFile::GetUniqueFNm(const TStr& FNm){
   }
   forever{
     NewFNm=TmpFNm;
-    NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
+	NewFNm.ChangeStr("#", TStr::Fmt("%03d", Cnt)); Cnt++;
     if (!TFile::Exists(NewFNm)){break;}
   }
   return NewFNm;

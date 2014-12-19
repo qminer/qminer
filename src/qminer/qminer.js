@@ -189,7 +189,14 @@ function printj(obj) {
     } catch (exception) {
         console.println(JSON.stringify(obj.toJSON()))
     }
-}
+};
+
+//#- `exejs(fnm)` -- executes a javascript in file `fnm` in the global context
+function exejs(fnm) { try { var script = fs.openRead(fnm).readAll(); eval.call(global, script);} catch (e) { console.log('Error: ' +  e); } };
+
+//#- `exejslocal(fnm)` -- executes a javascript in file `fnm` in the local context
+function exejslocal(fnm) { try { var script = fs.openRead(fnm).readAll(); eval(script); } catch (e) { console.log('Error: ' + e); } };
+
 
 ///////////////////////////////////////// DEPRECATED
 qm.addStreamAggr = function (param) {

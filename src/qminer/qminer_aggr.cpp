@@ -621,10 +621,6 @@ PJsonVal TRecBuffer::SaveJson(const int& Limit) const {
         const TRec& NewestRec = Buffer.GetNewest();
         JsonVal->AddToObj("oldest", OldestRec.GetJson(GetBase(), true, false, false, false, true));
         JsonVal->AddToObj("newest", NewestRec.GetJson(GetBase(), true, false, false, false, true));    
-        // deprecated, only works when records passed by reference {
-        if (OldestRec.IsByRef()) { JsonVal->AddToObj("first", (int)OldestRec.GetRecId()); }
-        if (NewestRec.IsByRef()) { JsonVal->AddToObj("last", (int)NewestRec.GetRecId()); }
-        // }
     }
     return JsonVal;
 }
@@ -1646,7 +1642,7 @@ TMergerFieldMap::TMergerFieldMap(const TWPt<TBase>& Base, const TStr& InStoreNm,
     InStoreId = Base->GetStoreByStoreNm(InStoreNm)->GetStoreId();
     InFieldId = Base->GetStoreByStoreNm(InStoreNm)->GetFieldId(InFieldNm);
     // generating name of field
-	OutFieldNm = "Mer" + TGuid::GenGuid(); OutFieldNm.ChangeChAll('-','_');
+	OutFieldNm = "Mer" + TGuid::GenGuid(); OutFieldNm.ChangeChAll('-', '_');
     Interpolator = Interpolator_;    
 }
 
@@ -2175,7 +2171,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const TStr& AggrNm, const TStr& 
     // get ids of interpolated fields 
 	for(int FieldN = 0; FieldN < FieldInterpolatorPrV.Len(); FieldN++) {
         const TStr& FieldNm = FieldInterpolatorPrV[FieldN].Val1;
-        InFieldIdV.Add(InStore->GetFieldId(FieldNm()));
+        InFieldIdV.Add(InStore->GetFieldId(FieldNm));
         const TStr& InterpolatorType = FieldInterpolatorPrV[FieldN].Val2;
         InterpolatorV.Add(TSignalProc::TInterpolator::New(InterpolatorType));
 	}
@@ -2201,7 +2197,7 @@ TResampler::TResampler(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStr
 	for(int FieldN = 0; FieldN < FieldArrVal->GetArrVals(); FieldN++) {
         PJsonVal FieldVal = FieldArrVal->GetArrVal(FieldN);        
         TStr FieldNm = FieldVal->GetObjStr("name");
-        InFieldIdV.Add(InStore->GetFieldId(FieldNm()));
+        InFieldIdV.Add(InStore->GetFieldId(FieldNm));
         TStr InterpolatorType = FieldVal->GetObjStr("interpolator");
         InterpolatorV.Add(TSignalProc::TInterpolator::New(InterpolatorType));
 	}    

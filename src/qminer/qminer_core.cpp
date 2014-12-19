@@ -32,7 +32,7 @@ namespace TQm {
 
 ///////////////////////////////
 // QMiner Environment
-TIntTr TEnv::Version = TIntTr(0, 7, 0);
+TIntTr TEnv::Version = TIntTr(0, 8, 0);
 
 bool TEnv::InitP = false;
 TStr TEnv::QMinerFPath;
@@ -1660,7 +1660,7 @@ PRecSet TRec::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm) const {
 	if (Store->IsJoinNm(JoinNm)) {
 		return DoJoin(Base, Store->GetJoinId(JoinNm));
 	} else {
-		return TRecSet::New();
+        throw TQmExcept::New("Unknown join " + JoinNm);
 	}
 }
 
@@ -1820,10 +1820,6 @@ TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
     Store = TStore::LoadById(Base, SIn);
 	WgtP.Load(SIn);
 	RecIdFqV.Load(SIn);	
-}
-
-PRecSet TRecSet::New() { 
-	return new TRecSet(); 
 }
 
 PRecSet TRecSet::New(const TWPt<TStore>& Store) { 
@@ -2119,9 +2115,8 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TStr& JoinNm,
 
 	if (Store->IsJoinNm(JoinNm)) {
 		return DoJoin(Base, Store->GetJoinId(JoinNm), SampleSize, SortedP);
-	} else {
-		return TRecSet::New();
 	}
+    throw TQmExcept::New("Unknown join " + JoinNm);
 }
 
 PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const TIntPrV& JoinIdV, const bool& SortedP) const {
@@ -2708,7 +2703,7 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 		TStr KeyNm; PJsonVal KeyVal;
 		JsonVal->GetObjKeyVal(KeyN, KeyNm, KeyVal);
 		// check type
-		if (KeyNm.IsPrefix("$")) {
+		if (KeyNm.StartsWith("$")) {
 			// special values
 			if (KeyNm == "$or") {
 				if (!IgnoreOrP) {
@@ -2727,23 +2722,6 @@ void TQueryItem::ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
 				QmAssertR(KeyVal->IsObj(), "Query: $not expects object as value");
 				// handle subordinate items
 				ItemV.Add(TQueryItem(oqitNot, TQueryItem(Base, Store, KeyVal)));
-			} else if (KeyNm == "$record") {
-                InfoLog("Warning: $record in query language is deprecated. Used $id or $name instead to refer to record.");
-				uint64 RecId = TUInt64::Mx;
-				if (KeyVal->IsStr()) {
-					TStr RecNm = KeyVal->GetStr();
-					if (Store->IsRecNm(RecNm)) {
-						RecId = Store->GetRecId(RecNm);
-					}
-				} else if (KeyVal->IsNum()) {
-					const uint64 _RecId = (uint64)TFlt::Round(KeyVal->GetNum());
-					if (Store->IsRecId(RecId)) { 
-						RecId = _RecId; 
-					}
-				} else {
-					throw TQmExcept::New("Query: unsupported $record value");
-				}
-				ItemV.Add(TQueryItem(Store, RecId));
 			} else if (KeyNm == "$id") {
                 QmAssertR(KeyVal->IsNum(), "Query: unsupported $id value");
                 const uint64 _RecId = (uint64)KeyVal->GetInt();
@@ -3217,7 +3195,7 @@ PRecSet TQuery::GetLimit(const PRecSet& RecSet) {
 bool TQuery::IsOk(const TWPt<TBase>& Base, TStr& MsgStr) const {
 	try {
 		QueryItem.GetStoreId(Base);
-		MsgStr.Clr(); return true;
+		MsgStr = TStr(); return true;
 	} catch (PExcept Except) {
 		MsgStr = Except->GetMsgStr();
 		return false;

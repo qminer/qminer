@@ -55,7 +55,7 @@ public:
         NewRouter.Register(TObj::GetType(), TObj::New);
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
-private:    
+private:
     /// QMiner Base pointer
     TWPt<TBase> Base;
     
@@ -98,6 +98,11 @@ public:
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
+    /// Get feature distribution. Default is uniform over all dimensions.
+    void GetFtrDist(TFltV& FtrDistV) const;
+    /// Get feature distribution. Default is uniform over all dimensions.
+    virtual void AddFtrDist(TFltV& FtrDistV, int& Offset) const;    
+    
 	/// Update the feature extractor using the info from the given record.
     /// Returns true if the update changes the dimensionality.
 	virtual bool Update(const TRec& Rec) = 0;
@@ -158,6 +163,8 @@ public:
     static TPt<TFtrSpace> Load(const TWPt<TBase>& Base, TSIn& SIn);
     /// Save feature space to stream
 	void Save(TSOut& SOut) const;       
+	/// Add a feature extractore
+	void AddFtrExt(const PFtrExt& FtrExt);
 
 	/// Generate a name of feature space. Composed by concatenating feature extractor names.
 	TStr GetNm() const;
@@ -190,6 +197,18 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
+    /// Get feature distribution
+    void GetFtrDist(TFltV& FtrDistV) const;
+    /// Number of feature extractors
+    int GetFtrExts() const;
+    /// Get feature extractor
+    PFtrExt GetFtrExt(const int& FtrExtN) const;
+    /// Dimensionality of space formed by FtrExtN-th feature extractor
+    int GetFtrExtDim(const int& FtrExtN) const;
+    /// Start dimension for the FtrExtN-th feature extractor
+    int GetMnFtrN(const int& FtrExtN) const;
+    /// End dimension +1 for the FtrExtN-th feature extractor
+    int GetMxFtrN(const int& FtrExtN) const;
 
 	/// Prepares an empty bow and registers all the features
 	PBowDocBs MakeBowDocBs(const PRecSet& FtrRecSet);    
@@ -323,14 +342,13 @@ public:
 /// is a probability distribution that describes the result of a random event that 
 /// can take on one of K possible outcomes.
 /// [http://en.wikipedia.org/wiki/Categorical_distribution]
-// TODO do not transform integers to strings
 class TCategorical : public TFtrExt {
 private:
 	// nominal feature generator
 	TFtrGen::TCategorical FtrGen;
-	// field Id
+	/// Field Id
 	TInt FieldId;
-    // field description
+    /// Field description
     TFieldDesc FieldDesc;
 
 	TStr _GetVal(const TRec& FtrRec) const; 
@@ -373,21 +391,23 @@ public:
 /// the multinomial distribution gives the probability of any particular combination 
 /// of numbers of successes for the various categories.
 /// [http://en.wikipedia.org/wiki/Multinomial_distribution]
-// TODO do not transform integers to strings
 class TMultinomial : public TFtrExt {
 private:
 	// multinomial feature generator
 	TFtrGen::TMultinomial FtrGen;
 	// field Id
-	TInt FieldId;
+	TIntV FieldIdV;
     // field description
-    TFieldDesc FieldDesc;
+    TFieldDescV FieldDescV;
     
 	void ParseDate(const TTm& Tm, TStrV& StrV) const;
 	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
 	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
 	void GetVal(const TRec& Rec, TStrV& StrV) const; 
-
+        
+    void AddField(const int& FieldId);
+    void AddField(const TStr& FieldNm);
+    
 	TMultinomial(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& _FieldId);
     TMultinomial(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TMultinomial(const TWPt<TBase>& Base, TSIn& SIn);
@@ -401,7 +421,7 @@ public:
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;   
     
-	TStr GetNm() const { return "Multinomial[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+	TStr GetNm() const;
 	int GetDim() const { return FtrGen.GetDim(); }
 	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
 
@@ -429,9 +449,9 @@ private:
 	TFtrGen::TBagOfWords FtrGen;
     
 	/// Field Id
-	TInt FieldId;
+	TIntV FieldIdV;
     /// Field description
-    TFieldDesc FieldDesc;
+    TFieldDescV FieldDescV;
 
  	/// How to deal with multiple instances
 	TBagOfWordsMode Mode;
@@ -443,9 +463,17 @@ private:
     /// Forgetting factor
     TFlt ForgetFactor;            
 
+    /// n-grams Start
+    int NStart;
+    /// n-grams End
+    int NEnd;
+
 	void _GetVal(const PRecSet& FtrRecSet, TStrV& StrV) const; 
 	void _GetVal(const TRec& FtrRec, TStrV& StrV) const; 
 	void GetVal(const TRec& Rec, TStrV& StrV) const; 
+    
+    void AddField(const int& FieldId);
+    void AddField(const TStr& FieldNm);
 
 protected:
     // time window callback
@@ -454,30 +482,35 @@ protected:
 private:
     TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
         const int& _FieldId, const TBagOfWordsMode& _Mode, 
-        const PTokenizer& Tokenizer, const int& HashDim = -1);
+        const PTokenizer& Tokenizer, const int& HashDim = -1, 
+        const int& NStart=1, const int& NEnd=1);
     TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn);
     
 public:
-	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId, 
-        const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-            TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-
+    
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;
     
-	TStr GetNm() const { return "BagOfWords[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+	TStr GetNm() const;
 	int GetDim() const { return FtrGen.GetDim(); }
-	TStr GetFtr(const int& FtrN) const { return FtrGen.GetVal(FtrN); }
+	TStr GetFtr(const int& FtrN) const;
 
 	void Clr() { FtrGen.Clr(); }
+
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
@@ -584,6 +617,56 @@ public:
     
     // feature extractor type name 
     static TStr GetType() { return "pair"; }       
+};
+
+///////////////////////////////////////////////
+/// Date Window Feature Extractor
+class TDateWnd : public TFtrExt {
+private:
+    /// Feature generator
+    TFtrGen::TDateWnd FtrGen;
+	/// Field Id
+	TInt FieldId;
+    /// Field description
+    TFieldDesc FieldDesc;
+
+    /// Get value from a given record
+	uint64 _GetVal(const TRec& Rec) const; 
+    /// Check if there is join, and forward to _GetVal
+	uint64 GetVal(const TRec& Rec) const; 
+
+	TDateWnd(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& _FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP);
+    TDateWnd(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+    TDateWnd(const TWPt<TBase>& Base, TSIn& SIn);    
+public:
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const int& WndSize, const TTmUnit& TmUnit,
+        const bool& NormalizeP = true);
+	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+    static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
+    void Save(TSOut& SOut) const;   
+    
+	TStr GetNm() const { return "DateWnd[" + GetFtrStore()->GetFieldNm(FieldId) + "]"; };
+	int GetDim() const { return FtrGen.GetDim(); }
+	TStr GetFtr(const int& FtrN) const { return GetNm(); } //TODO return actual range
+
+	void Clr() { FtrGen.Clr(); }
+	// sparse vector extraction
+	bool Update(const TRec& Rec);
+	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+    // feature extractor type name 
+    static TStr GetType() { return "dateWindow"; }
 };
 
 } // TFtrExts namespace

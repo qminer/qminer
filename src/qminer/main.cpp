@@ -337,6 +337,8 @@ int main(int argc, char* argv[]) {
 	_setmaxstdio(2048);
 #endif
 
+    // start stopwatch to keep track of runtime
+    TTmStopWatch RunTmSw(true);    
 	try {
 		// initialize QMiner environment
 		TQm::TEnv::Init();
@@ -496,9 +498,9 @@ int main(int argc, char* argv[]) {
 						ScriptV[ScriptN]->RegSrvFun(SrvFunV);
 					}
 					// start server
-					PWebSrv WebSrv = TSAppSrv::New(Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
+					PWebSrv WebSrv = TSAppSrv::New(Env.IsArgPrefix("-port=") ? PortN : Param.PortN, SrvFunV, TQm::TEnv::Logger, true, true);
 					// report we started
-					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Param.PortN);
+					TQm::TEnv::Logger->OnStatusFmt("Server started on port %d", Env.IsArgPrefix("-port=") ? PortN : Param.PortN);
 					// wait for the end
 					TLoop::Run();
 				}
@@ -543,7 +545,7 @@ int main(int argc, char* argv[]) {
                         Base->PrintIndexVoc(DebugFNm + "indexvoc.txt");
                     } else if (Task == "stores") {
                         Base->PrintStores(DebugFNm + "stores.txt");
-                    } else if (Task.IsSuffix("_ALL")) {
+                    } else if (Task.StartsWith("_ALL")) {
                         TStr StoreNm = Task.LeftOfLast('_');
                         Base->GetStoreByStoreNm(StoreNm)->PrintAll(Base, DebugFNm + Task + ".txt");
                     } else if (Base->IsStoreNm(Task)) {
@@ -565,5 +567,8 @@ int main(int argc, char* argv[]) {
 		TQm::ErrorLog("Unknown error");
 		return 1;
 	}
+    // report on runtime
+    RunTmSw.DispTime("Total execution time");
+    // done
 	return TQm::TEnv::ReturnCode.Val;
 }

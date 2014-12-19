@@ -138,10 +138,17 @@ private:
     PSwSet SwSet;
     /// Stemmer
     PStemmer Stemmer;
-    /// Vocabulary (not use in case of hashing)
+    /// Vocabulary (not used when hashing)
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
+    /// Keep Hash Table (can be used only when hashing for debuging)
+    TBool KeepHashTable;
+
+    /// Ngrams Range Start
+    TInt NStart;
+    /// Ngrams Range End
+    TInt NEnd;
     
     /// Number of documents processed so far
     TInt Docs;
@@ -155,10 +162,14 @@ private:
     /// Document frequency counts before last forget
     TFltV OldDocFqV;
 
+    /// Set of tokens that hash into specific dimension
+    TVec<TStrSet> HashTable;
+
 public:
     TBagOfWords() { }
-    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1);
+    TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP,
+        PTokenizer _Tokenizer = NULL, const int& _HashDim = -1, const bool& KHT = false,
+        const int& NStart = 1, const int& NEnd = 1);
     TBagOfWords(TSIn& SIn);
     void Save(TSOut& SOut) const;
 
@@ -166,7 +177,8 @@ public:
     bool IsTf() const { return ((Type & btTf) != 0); }
     bool IsIdf() const { return ((Type & btIdf) != 0); }
     bool IsNormalize() const { return ((Type & btNormalize) != 0); }
-    bool IsHashing() const { return ((Type & btHashing) != 0); }    
+    bool IsHashing() const { return ((Type & btHashing) != 0); }
+    bool IsKeepingHashTable() const { return KeepHashTable; }
     
     void Clr();
     void GetFtr(const TStr& Str, TStrV& TokenStrV) const;
@@ -182,11 +194,17 @@ public:
     /// Forgetting, assumes calling on equally spaced time interval.
     void Forget(const double& Factor);
 
+    /// Hashing Related Functions
     int GetDim() const { return IsHashing() ? HashDim.Val : TokenSet.Len(); }
-    TStr GetVal(const int& ValN) const { return IsHashing() ? "hash" : TokenSet.GetKey(ValN); }
+    TStr GetVal(const int& ValN) const { return IsHashing() ? TInt::GetStr(ValN) : TokenSet.GetKey(ValN); }
+    TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
+    TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
     
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
+
+    /// Generate Ngrams
+    void GenerateNgrams(const TStrV& TokenStrV, TStrV& NgramStrV) const;
 }; 
 
 ///////////////////////////////////////
@@ -205,6 +223,45 @@ public:
     void AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offset) const;
 
     int GetVals() const { return MxId + 1; }
+};
+
+///////////////////////////////////////
+/// Date window feature generator
+class TDateWnd {
+private:
+    TBool InitP;
+    /// Start date
+    TUInt StartUnit;
+    /// End date
+    TUInt EndUnit;
+    /// Window size
+    TInt WndSize;
+    /// Time unit
+    TTmUnit TmUnit;
+    /// Normalize output to 1
+    TBool NormalizeP;
+    /// Weight used in the feature vectors
+    TFlt Wgt;
+    
+    // initialize the weight based on parameters
+    void InitWgt();
+
+public:
+    TDateWnd(): InitP(false), TmUnit(tmuUndef) { }
+    TDateWnd(const int& _WndSize, const TTmUnit& _TmUnit, const bool& _NormalizeP = true);
+    TDateWnd(const TTm& StartTm, const TTm& EndTm, const int& _WndSize, 
+        const TTmUnit& _TmUnit, const bool& _NormalizeP = true);
+    TDateWnd(TSIn& SIn): InitP(SIn), StartUnit(SIn), EndUnit(SIn), WndSize(SIn),
+        TmUnit(LoadEnum<TTmUnit>(SIn)), NormalizeP(SIn) { InitWgt(); }
+    void Save(TSOut& SOut) const;
+
+    void Clr() { InitP = false; }
+    bool Update(const TTm& Val);
+    int GetFtr(const TTm& Val) const;
+    void AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const;
+    void AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const;
+    
+    int GetDim() const { return EndUnit - StartUnit + WndSize; }
 };
 
 }

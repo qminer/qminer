@@ -493,6 +493,15 @@ double TLinAlg::EuclDist(const TFltPr& x, const TFltPr& y) {
     return sqrt(EuclDist2(x, y));
 }
 
+double TLinAlg::Frob(const TFltVV&A) {
+	double frob = 0;
+	for (int RowN = 0; RowN < A.GetRows(); RowN++) {
+		for (int ColN = 0; ColN < A.GetCols(); ColN++) {
+			frob += A.At(RowN, ColN)*A.At(RowN, ColN);
+		}
+	}
+	return sqrt(frob);
+}
 
 double TLinAlg::FrobDist2(const TFltVV&A, const TFltVV&B) {
 	double frob = 0;
@@ -597,6 +606,17 @@ void TLinAlg::Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Row
 	// sort
 	for (int ColN = 0; ColN < Rows; ColN++) {
 		At[ColN].Sort();
+	}
+}
+
+void TLinAlg::Sign(const TVec<TIntFltKdV>& Mat, TVec<TIntFltKdV>& Mat2) {
+	Mat2 = Mat;
+	int Cols = Mat2.Len();
+	for (int ColN = 0; ColN < Cols; ColN++) {
+		int Els = Mat2[ColN].Len();
+		for (int ElN = 0; ElN < Els; ElN++) {
+			Mat2[ColN][ElN].Dat = TMath::Sign(Mat2[ColN][ElN].Dat);
+		}
 	}
 }
 
@@ -1467,7 +1487,8 @@ void TLinAlg::Gemm(const double& Alpha, const TFltVV& A, const TFltVV& B, const 
 	int d_j = D.GetRows();
 	
 	// assertions for dimensions
-	EAssert(a_j == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j);
+  bool Cnd = (a_i == c_j) && (b_i == c_i) && (a_i == b_j) && (c_i == d_i) && (c_j == d_j);
+  if (!Cnd) { throw TExcept::New("[TLinAlg::Gemm] Dimensions do not match"); }
 
 	double Aij, Bij, Cij;
 
@@ -1611,7 +1632,47 @@ void TLinAlg::MGS(TFltVV& Q) {
 		for (int ColN2 = ColN+1; ColN2 < Cols; ColN2++) {
 			double r = TLinAlg::DotProduct(Q, ColN, Q, ColN2);
 			TLinAlg::AddVec(-r, Q, ColN, Q, ColN2);
-		}	
+		}
+	}
+}
+
+void TLinAlg::QR(const TFltVV& X, TFltVV& Q, TFltVV& R, const TFlt& Tol) {
+	int Rows = X.GetRows();
+	int Cols = X.GetCols();
+	int d = MIN(Rows, Cols);
+	
+	// make a copy of X
+	TFltVV A(X);
+	if (Q.GetRows() != Rows || Q.GetCols() != d) { Q.Gen(Rows, d); }
+	if (R.GetRows() != d || R.GetCols() != Cols) { R.Gen(d, Cols); }
+	TRnd Random;
+	for (int k = 0; k < d; k++) {
+		R(k, k) = TLinAlg::Norm(A, k);
+		// if the remainders norm is too small we construct a random vector (handles rank deficient) 
+		if (R(k, k) < Tol) {
+			// random Q(:,k)
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = Random.GetNrmDev();
+			}			
+			// make it orthonormal on others
+			for (int j = 0; j < k; j++) {
+				TLinAlg::AddVec(-TLinAlg::DotProduct(Q, j, Q, k), Q, j, Q, k);
+			}
+			TLinAlg::NormalizeColumn(Q, k);
+			R(k, k) = 0;
+		}
+		else {
+			// normalize
+			for (int RowN = 0; RowN < Rows; RowN++) {
+				Q(RowN, k) = A(RowN, k) / R(k, k);
+			}
+		}
+		
+		// make the rest of the columns of A orthogonal to the current basis Q
+		for (int j = k + 1; j < Cols; j++) {
+			R(k, j) = TLinAlg::DotProduct(Q, k, A, j);
+			TLinAlg::AddVec(-R(k, j), Q, k, A, j);
+		}
 	}
 }
 
@@ -1647,6 +1708,14 @@ void TLinAlg::AssertOrtogonality(const TFltVV& Vecs, const double& Threshold) {
             printf("||%d|| = %.5f", i, norm);
     }
     printf("\n");
+}
+
+bool TLinAlg::IsOrthonormal(const TFltVV& Vecs, const double& Threshold) {
+	int m = Vecs.GetCols();
+	TFltVV R(m, m);
+	TLinAlg::MultiplyT(Vecs, Vecs, R);
+	for (int i = 0; i < m; i++) { R(i, i) -= 1;}
+	return TLinAlg::Frob(R) < Threshold;
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -2063,24 +2132,39 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 	int Rows = Matrix.GetRows();
 	int Cols = Matrix.GetCols();
 	Assert(k <= Rows && k <= Cols);
+	TFltVV Q, R;
+	
 	if (S.Empty()) {S.Gen(k);}
 	if (U.Empty()) {U.Gen(Rows, k); TLAMisc::FillRnd(U);}
 	if (V.Empty()) {V.Gen(Cols, k);}
 
+
 	TFltV SOld = S;	
     for (int IterN = 0; IterN < Iters; IterN++) {
-		//U = GS(AA'U)
 		Matrix.MultiplyT(U, V);
 		for (int i = 0; i < k; i++) {
 			S[i] = TLinAlg::Norm(V,i);
 		}		
-		TLinAlg::MGS(V);
 		Matrix.Multiply(V, U);
-		TLinAlg::MGS(U);
+		//U = GS(AA'U)
+		// orthogonalization
+		TLinAlg::QR(U, U, R, Tol);
+		if (!TLinAlg::IsOrthonormal(U, Tol)) {
+			// reorthogonalization
+			TLinAlg::QR(U, U, R, Tol);
+		}
+		if (!TLinAlg::IsOrthonormal(U, Tol)) {
+			printf("Orthofail!\n");
+		}
 		if (IterN > 0 && sqrt(TLinAlg::FrobDist2(S, SOld)/TLinAlg::Norm2(S)) < Tol) {break;}
 		SOld = S;
-    } 
-	TLinAlg::NormalizeColumns(V);
+    }
+
+	Matrix.MultiplyT(U, V);
+	for (int i = 0; i < k; i++) {
+		S[i] = TLinAlg::Norm(V, i);
+	}
+	TLinAlg::QR(V, V, R, Tol);
 }
 
 void TSparseSVD::SimpleLanczos(const TMatrix& Matrix,
@@ -2177,14 +2261,15 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
   IAssertR(NumEig <= Iters, TStr::Fmt("%d <= %d", NumEig, Iters));
 
     //if (ReOrtoType == ssotFull) printf("Full reortogonalization\n");
-    int i, N = Matrix.GetCols(), K; // K - current dimension of T
+    int i, N = Matrix.GetCols(), K = 0; // K - current dimension of T
     double t = 0.0, eps = 1e-6; // t - 1-norm of T
 
     //sequence of Ritz's vectors
     TFltVV Q(N, Iters);
     double tmp = 1/sqrt((double)N);
-    for (i = 0; i < N; i++)
+    for (i = 0; i < N; i++) {
         Q(i,0) = tmp;
+    }
     //converget Ritz's vectors
     TVec<TFltV> ConvgQV(Iters);
     TIntV CountConvgV(Iters);
@@ -2250,8 +2335,9 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
       printf("Last singular value is %g\n", bb[j].Val);
       break;
     }
-        for (i = 0; i < N; i++)
+        for (i = 0; i < N; i++) {
             Q(i, j+1) = z[i] / bb[j];
+        }
 
         //next Lanzcos vector
         if (SvdMatrixProductP) {
@@ -2273,14 +2359,16 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
 
         //calculate 1-norm of T
         t = TFlt::GetMx(TFlt::Abs(d[1]) + TFlt::Abs(e[2]), TFlt::Abs(e[K]) + TFlt::Abs(d[K]));
-        for (i = 2; i < K; i++)
+        for (i = 2; i < K; i++) {
             t = TFlt::GetMx(t, TFlt::Abs(e[i]) + TFlt::Abs(d[i]) + TFlt::Abs(e[i+1]));
+        }
 
         //set V to identity matrix
         //V.Gen(K,K);
         for (i = 0; i < K; i++) {
-            for (int k = 0; k < K; k++)
+            for (int k = 0; k < K; k++) {
                 V(i,k) = 0.0;
+            }
             V(i,i) = 1.0;
         }
 
@@ -2326,18 +2414,21 @@ void TSparseSVD::Lanczos2(const TMatrix& Matrix, int MaxNumEig,
   //IAssertR(NumEig <= Iters, TStr::Fmt("%d <= %d", NumEig, Iters));
 
   //if (ReOrtoType == ssotFull) printf("Full reortogonalization\n");
-  int i, N = Matrix.GetCols(), K; // K - current dimension of T
+  int i, N = Matrix.GetCols(), K = 0; // K - current dimension of T
   double t = 0.0, eps = 1e-6; // t - 1-norm of T
 
   //sequence of Ritz's vectors
   TFltVV Q(N, MaxNumEig);
   double tmp = 1/sqrt((double)N);
-  for (i = 0; i < N; i++)
+  for (i = 0; i < N; i++) {
       Q(i,0) = tmp;
+  }
   //converget Ritz's vectors
   TVec<TFltV> ConvgQV(MaxNumEig);
   TIntV CountConvgV(MaxNumEig);
-  for (i = 0; i < MaxNumEig; i++) CountConvgV[i] = 0;
+  for (i = 0; i < MaxNumEig; i++) {
+      CountConvgV[i] = 0;
+  }
   // const int ConvgTreshold = 50;
 
   //diagonal and subdiagonal of T
@@ -2676,16 +2767,20 @@ void TLAMisc::SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName)
 
 void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, const TStr& FName) {
     PSOut out = TFOut::New(FName);
-    const int RowN = m.GetRows();
-    const int ColN = m.GetCols();
-    for (int RowId = 0; RowId < RowN; RowId++) {
-        for (int ColId = 0; ColId < ColN; ColId++) {
-            out->PutStr(TFlt::GetStr(m(RowId,ColId), 20, 18));
-            out->PutCh(' ');
-        }
-        out->PutCh('\n');
-    }
-    out->Flush();
+	TLAMisc::SaveMatlabTFltVV(m, *out);	
+}
+
+void TLAMisc::SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut) {	
+	const int RowN = m.GetRows();
+	const int ColN = m.GetCols();
+	for (int RowId = 0; RowId < RowN; RowId++) {
+		for (int ColId = 0; ColId < ColN; ColId++) {
+			SOut.PutStr(TFlt::GetStr(m(RowId, ColId), 20, 18));
+			SOut.PutCh(' ');
+		}
+		SOut.PutCh('\n');
+	}
+	SOut.Flush();
 }
 
 void TLAMisc::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,
@@ -2703,47 +2798,58 @@ void TLAMisc::SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m,
 
 void TLAMisc::LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV) {
     PSIn SIn = TFIn::New(FNm);
-    TILx Lx(SIn, TFSet()|iloRetEoln|iloSigNum|iloExcept);
-    int Row = 0, Col = 0; ColV.Clr();
-    Lx.GetSym(syFlt, syEof, syEoln);
-    //printf("%d x %d\r", Row, ColV.Len());
-    while (Lx.Sym != syEof) {
-        if (Lx.Sym == syFlt) {
-            if (ColV.Len() > Col) {
-                IAssert(ColV[Col].Len() == Row);
-                ColV[Col].Add(Lx.Flt);
-            } else {
-                IAssert(Row == 0);
-                ColV.Add(TFltV::GetV(Lx.Flt));
-            }
-            Col++;
-        } else if (Lx.Sym == syEoln) {
-            IAssert(Col == ColV.Len());
-            Col = 0; Row++;
-            if (Row%100 == 0) {
-                //printf("%d x %d\r", Row, ColV.Len());
-            }
-        } else {
-            Fail;
-        }
-        Lx.GetSym(syFlt, syEof, syEoln);
-    }
-    //printf("\n");
-    IAssert(Col == ColV.Len() || Col == 0);
+	TLAMisc::LoadMatlabTFltVV(ColV, *SIn);
 }
 
 void TLAMisc::LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV) {
-    TVec<TFltV> ColV; LoadMatlabTFltVV(FNm, ColV);
-    if (ColV.Empty()) { MatrixVV.Clr(); return; }
-    const int Rows = ColV[0].Len(), Cols = ColV.Len();
-    MatrixVV.Gen(Rows, Cols);
-    for (int RowN = 0; RowN < Rows; RowN++) {
-        for (int ColN = 0; ColN < Cols; ColN++) {
-            MatrixVV(RowN, ColN) = ColV[ColN][RowN];
-        }
-    }
+	PSIn SIn = TFIn::New(FNm);
+	TLAMisc::LoadMatlabTFltVV(MatrixVV, *SIn);
 }
 
+void TLAMisc::LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn) {
+	TVec<TFltV> ColV; LoadMatlabTFltVV(ColV, SIn);
+	if (ColV.Empty()) { MatrixVV.Clr(); return; }
+	const int Rows = ColV[0].Len(), Cols = ColV.Len();
+	MatrixVV.Gen(Rows, Cols);
+	for (int RowN = 0; RowN < Rows; RowN++) {
+		for (int ColN = 0; ColN < Cols; ColN++) {
+			MatrixVV(RowN, ColN) = ColV[ColN][RowN];
+		}
+	}
+}
+
+void TLAMisc::LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn) {
+	TILx Lx(&SIn, TFSet() | iloRetEoln | iloSigNum | iloExcept);
+	int Row = 0, Col = 0; ColV.Clr();
+	Lx.GetSym(syFlt, syEof, syEoln);
+	//printf("%d x %d\r", Row, ColV.Len());
+	while (Lx.Sym != syEof) {
+		if (Lx.Sym == syFlt) {
+			if (ColV.Len() > Col) {
+				IAssert(ColV[Col].Len() == Row);
+				ColV[Col].Add(Lx.Flt);
+			}
+			else {
+				IAssert(Row == 0);
+				ColV.Add(TFltV::GetV(Lx.Flt));
+			}
+			Col++;
+		}
+		else if (Lx.Sym == syEoln) {
+			IAssert(Col == ColV.Len());
+			Col = 0; Row++;
+			if (Row % 100 == 0) {
+				//printf("%d x %d\r", Row, ColV.Len());
+			}
+		}
+		else {
+			Fail;
+		}
+		Lx.GetSym(syFlt, syEof, syEoln);
+	}
+	//printf("\n");
+	IAssert(Col == ColV.Len() || Col == 0);
+}
 
 void TLAMisc::PrintTFltV(const TFltV& Vec, const TStr& VecNm) {
     printf("%s = [", VecNm.CStr());
@@ -2753,7 +2859,6 @@ void TLAMisc::PrintTFltV(const TFltV& Vec, const TStr& VecNm) {
     }
     printf("]\n");
 }
-
 
 void TLAMisc::PrintTFltVVToStr(const TFltVV& A, TStr& Out) {
 	Out = "";

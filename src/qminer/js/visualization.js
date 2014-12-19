@@ -132,6 +132,22 @@ exports.highchartsParams = function () {
     }
 };
 
+exports.googleAnnotatedTimeLineParams = function () {
+    return {
+        'colors': ['blue'], // The colors to be used
+        'displayAnnotations': false,
+        'displayExactValues': true, // Do not truncate values (i.e. using K suffix)
+        'displayRangeSelector': true, // display the range selector
+        'displayZoomButtons': true, // display the zoom buttons
+        'fill': 30, // Fill the area below the lines with 20% opacity
+        'scaleColumns': [0, 1], // Have two scales, by the first and second lines
+        'scaleType': 'allfixed', // See docs...
+        'thickness': 2, // Make the lines thicker
+        //'zoomStartTime': new Date(2011, 7, 1), //NOTE: month 1 = Feb (javascript to blame)
+        //'zoomEndTime': new Date(2012, 10, 1) //NOTE: month 1 = Feb (javascript to blame)
+    };
+}
+
 // given an array of strings representing absolute file paths, the function reads all files, concatenates them and returns the string
 function glueFileContents(strArr) {
     var res = "";
@@ -191,6 +207,44 @@ exports.highChartsPlot = function (data, overrideParams, containerName) {
     });
 };
 
+exports.googleAnnotatedTimeLine = function (data, overrideParams, containerName) {
+    var table = new google.visualization.DataTable();
+    table.addColumn('date', 'Time');
+    table.addColumn('number', 'Val');
+    table.addRows(data);
+
+    var params = exports.googleAnnotatedTimeLineParams();
+    if (typeof overrideParams != 'undefined') {
+        params = overwriteKeys(params, overrideParams, false);
+    }
+
+    var chart = new google.visualization.AnnotatedTimeLine(document.getElementById(containerName));
+    chart.draw(table, params);
+};
+
+//#- `vis.drawGoogleAnnotatedTimeLine(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (google time line JSON), based on plot parameters `overrideParam` (JSON) 
+exports.drawGoogleAnnotatedTimeLine = function (data, fnm, overrideParams) {
+    // read template html. Fill in data, overrideParams, containerName, code and libraries
+
+    var template = fs.openRead(process.qminer_home + "gui/visualization_templates/googleAnnotatedTimeLine.html").readAll();
+    // data, plot parameters and libraries to be filled in the template
+
+    var libPathArray = [
+        process.qminer_home + "lib/visualization.js"
+    ];
+    // TODO mustache :)
+    var output = template.replace("{{{data}}}", JSON.stringify(data)).replace("{{{overrideParams}}}", JSON.stringify(overrideParams)).replace("{{{libs}}}", glueFileContents(libPathArray));
+    fs.openWrite(fnm).write(output).close();
+};
+
+exports.convertDates = function (dataJSON) {
+    var data = [];
+    for (var i = 0; i < dataJSON.length; i++) {
+        data[i] = [new Date(dataJSON[i][0]), dataJSON[i][1]];
+    }
+    return data;
+};
+
 //#- `vis.drawCommunityEvolution(data, fnm, overrideParam)` -- generates a html file `fnm` (file name) with a visualization of  `data` (communityEvolution JSON), based on plot parameters `overrideParam` (JSON) 
 exports.drawCommunityEvolution = function (data, fnm, overrideParams) {
     // read template html. Fill in data, overrideParams, containerName, code and libraries
@@ -224,5 +278,5 @@ exports.drawGraphArray = function (data, fnm, overrideParams) {
     var output = template.replace("{{{data}}}", JSON.stringify(json_out));
     fs.openWrite(fnm).write(output).close();
 };
-
+    
 var visualize = exports;

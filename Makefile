@@ -25,6 +25,7 @@ LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib
 QMINER = src/qminer
 BUILD = build
+TEST = test/cpp
 
 # lib includes
 STATIC_LIBS = $(LIBSNAP)/libsnap.a $(GLIB)/glib.a $(LIBUV)/libuv.a \
@@ -91,6 +92,7 @@ clean:
 	make -C $(QMINER) clean
 	rm -f *.o *.gch *.a qm
 	rm -rf ./$(BUILD)/
+	make -C $(TEST) clean
 
 lib:
 	make -C $(THIRD_PARTY)
@@ -138,3 +140,5 @@ installdoc: doc
 	scp -r doc blazf@agava:www/qminer-$(DOXYGEN_TIME)
 	ssh blazf@agava ln -fsn qminer-$(DOXYGEN_TIME) www/qminer
 
+test: qm
+	make -C $(TEST) test

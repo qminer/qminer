@@ -47,8 +47,8 @@ protected:
     virtual void PMultiplyT(const TFltVV& B, int ColId, TFltV& Result) const = 0;
     virtual void PMultiply(const TFltV& Vec, TFltV& Result) const = 0;
     virtual void PMultiplyT(const TFltV& Vec, TFltV& Result) const = 0;
-	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const = 0;	
-	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const = 0;
+	virtual void PMultiply(const TFltVV& B, TFltVV& Result) const { FailR("TMatrix PMultiply(const TFltVV& B, TFltVV& Result) not implemented");}
+	virtual void PMultiplyT(const TFltVV& B, TFltVV& Result) const { FailR("TMatrix PMultiplyT(const TFltVV& B, TFltVV& Result) not implemented"); }
 
     virtual int PGetRows() const = 0;
     virtual int PGetCols() const = 0;
@@ -330,7 +330,8 @@ public:
     static double EuclDist(const TFltV& x, const TFltV& y);
     // Result = ||x-y|| (Euclidian)
     static double EuclDist(const TFltPr& x, const TFltPr& y);
-	
+	// Result = ||A||_F (Frobenious)
+	static double Frob(const TFltVV&A);
 	// Result = ||A - B||_F (Frobenious)
 	static double FrobDist2(const TFltVV& A, const TFltVV& B);
 	// Result = ||A - B||_F (Frobenious)
@@ -347,6 +348,8 @@ public:
 	static void Transpose(const TTriple<TIntV, TIntV, TFltV>& A, TTriple<TIntV, TIntV, TFltV>& At);
 	// Transpose
 	static void Transpose(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& At, int Rows = -1);
+	// Sign
+	static void Sign(const TVec<TIntFltKdV>& A, TVec<TIntFltKdV>& B);
 	// Vector of sparse vectors to sparse matrix (coordinate representation)
 	static void Convert(const TVec<TPair<TIntV, TFltV> >& A, TTriple<TIntV, TIntV, TFltV>& B);
 	// Vector of sparse vectors to sparse matrix (coordinate representation)
@@ -512,8 +515,10 @@ public:
     static void GS(TVec<TFltV>& Q);
     // Gram-Schmidt on columns of matrix Q
     static void GS(TFltVV& Q);
-	// Gram-Schmidt on columns of matrix Q
+	// Modified Gram-Schmidt on columns of matrix Q
 	static void MGS(TFltVV& Q);
+	// QR based on Modified Gram-Schmidt decomposition.
+	static void QR(const TFltVV& A, TFltVV& Q, TFltVV& R, const TFlt& Tol);
 
     // rotates vector (OldX,OldY) for angle Angle (in radians!)
     static void Rotate(const double& OldX, const double& OldY, const double& Angle, double& NewX, double& NewY);
@@ -521,6 +526,7 @@ public:
     // checks if set of vectors is ortogonal
     static void AssertOrtogonality(const TVec<TFltV>& Vecs, const double& Threshold);
     static void AssertOrtogonality(const TFltVV& Vecs, const double& Threshold);
+	static bool IsOrthonormal(const TFltVV& Vecs, const double& Threshold);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -746,12 +752,18 @@ public:
     static void SaveMatlabTFltVVCol(const TFltVV& m, int ColId, const TStr& FName);
 	// Dumps matrix to file so Matlab can read it
     static void SaveMatlabTFltVV(const TFltVV& m, const TStr& FName);
+	// Dumps matrix to output stream so Matlab can read it
+	static void SaveMatlabTFltVV(const TFltVV& m, TSOut& SOut);
 	// Dumps main minor rowN x colN to file so Matlab can read it
 	static void SaveMatlabTFltVVMjrSubMtrx(const TFltVV& m, int rowN, int colN, const TStr& FName);
     // loads matlab full matrix
     static void LoadMatlabTFltVV(const TStr& FNm, TVec<TFltV>& ColV);
     // loads matlab full matrix
     static void LoadMatlabTFltVV(const TStr& FNm, TFltVV& MatrixVV);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TVec<TFltV>& ColV, TSIn& SIn);
+	// loads matlab full matrix
+	static void LoadMatlabTFltVV(TFltVV& MatrixVV, TSIn& SIn);
     // prints vector to screen
     static void PrintTFltV(const TFltV& Vec, const TStr& VecNm);
 	// print matrix to string
@@ -885,6 +897,7 @@ public:
 	double DotProduct(const TVector& y) const;
 
 	TFlt& operator [] (const int& Idx) { return Vec[Idx]; }
+	const TFlt& operator [] (const int& Idx) const { return Vec[Idx]; }
 
     TFullMatrix operator *(const TVector& y) const;
     TVector operator *(const TFullMatrix& Mat) const;

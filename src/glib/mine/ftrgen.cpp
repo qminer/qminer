@@ -205,7 +205,8 @@ void TMultinomial::AddFtr(const TStrV& StrV, TFltV& FullV, int& Offset) const {
 ///////////////////////////////////////
 // Tokenizable-Feature-Generator
 TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& NormalizeP, 
-        PTokenizer _Tokenizer, const int& _HashDim): Tokenizer(_Tokenizer) { 
+        PTokenizer _Tokenizer, const int& _HashDim, const bool& KHT,
+        const int& _NStart, const int& _NEnd): Tokenizer(_Tokenizer) {
 
     // get settings flags
     Type = 0;
@@ -218,26 +219,36 @@ TBagOfWords::TBagOfWords(const bool& TfP, const bool& IdfP, const bool& Normaliz
         Type.Val |= btHashing;
         // .. and the dimension
         HashDim = _HashDim;
+        // keep hash table?initialize it if true
+        KeepHashTable = KHT;
+        if(KeepHashTable) { HashTable.Gen(HashDim); }
         // initialize DF counts for hashes
         DocFqV.Gen(HashDim); DocFqV.PutAll(0);
         OldDocFqV.Gen(HashDim); OldDocFqV.PutAll(0.0);
     }
+    NStart = _NStart;
+    NEnd = _NEnd;
 }
 
 TBagOfWords::TBagOfWords(TSIn& SIn): Type(SIn),
-    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), Docs(SIn), 
-        DocFqV(SIn), ForgetP(SIn), OldDocs(SIn), OldDocFqV(SIn) { }
+    Tokenizer(TTokenizer::Load(SIn)), TokenSet(SIn), HashDim(SIn), KeepHashTable(SIn),
+    NStart(SIn),NEnd(SIn), Docs(SIn), DocFqV(SIn), ForgetP(SIn), OldDocs(SIn),
+    OldDocFqV(SIn), HashTable(SIn) { }
 
 void TBagOfWords::Save(TSOut& SOut) const {
     Type.Save(SOut);
     Tokenizer->Save(SOut);
     TokenSet.Save(SOut);
     HashDim.Save(SOut);
+    KeepHashTable.Save(SOut);
+    NStart.Save(SOut);
+    NEnd.Save(SOut);
     Docs.Save(SOut);
     DocFqV.Save(SOut);
     ForgetP.Save(SOut);
     OldDocs.Save(SOut);
     OldDocFqV.Save(SOut);
+    HashTable.Save(SOut);
 }
 
 void TBagOfWords::Clr() {
@@ -265,16 +276,43 @@ void TBagOfWords::GetFtr(const TStr& Str, TStrV& TokenStrV) const {
     }*/
 }
 
+void TBagOfWords::GenerateNgrams(const TStrV& TokenStrV, TStrV &NgramStrV) const {
+    if((NStart == 1) && (NEnd == 1)) { 
+        NgramStrV = TokenStrV;
+    }
+    
+    const TSize TotalStrLen = TokenStrV.Len();
+    for(TSize TokenStrN = 0; TokenStrN < TotalStrLen; TokenStrN++) { // for each token position, generate ngrams starting at that position
+    	// Start with Token Position
+    	// End with Token Position + NEnd - 1 because ngram parameters are 1-based indexes and vectors are 0-based indexes
+       const TSize NgramEnd = MIN(TotalStrLen - 1, TokenStrN + NEnd - 1) + 1;
+        for(TSize NgramPos = TokenStrN + (NStart - 1); NgramPos < NgramEnd; NgramPos++) {
+            TChA NgramChA = TokenStrV[TokenStrN];
+            for (TSize NgramTokenN = TokenStrN + 1; NgramTokenN <= NgramPos; NgramTokenN++) {
+                NgramChA += " "; NgramChA += TokenStrV[NgramTokenN];
+            }
+//            TokenStrV.GetSubValV(TokenStrN, NgramPos, Slice);
+//            Ngram = TStr::GetStr(Slice, " ");
+            NgramStrV.Add(NgramChA);
+        }
+    }
+}
+
 bool TBagOfWords::Update(const TStrV& TokenStrV) {    
+    // Generate Ngrams if necessary
+	TStrV NgramStrV;
+    GenerateNgrams(TokenStrV, NgramStrV);
+
     // process tokens to update DF counts
     bool UpdateP = false;
     if (IsHashing()) {  
         // consolidate tokens and get their hashed IDs
         TIntSet TokenIdH;
-        for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-            const TStr& TokenStr = TokenStrV[TokenStrN];
-            const int TokenId = TokenStr.GetPrimHashCd() % HashDim;
+        for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
+            const TStr& TokenStr = NgramStrV[TokenStrN];
+            TInt TokenId = TokenStr.GetHashTrick() % HashDim;
             TokenIdH.AddKey(TokenId);
+            if(KeepHashTable) { HashTable[TokenId].AddKey(TokenStr); }
         }
         // update document counts
         int KeyId = TokenIdH.FFirstKeyId();
@@ -286,8 +324,8 @@ bool TBagOfWords::Update(const TStrV& TokenStrV) {
     } else {
         // consolidate tokens
         TStrH TokenStrH;
-        for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-            const TStr& TokenStr = TokenStrV[TokenStrN];
+        for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
+            const TStr& TokenStr = NgramStrV[TokenStrN];
             TokenStrH.AddKey(TokenStr);
         }
         // update document counts and update vocabulary with new tokens
@@ -330,11 +368,13 @@ bool TBagOfWords::Update(const TStr& Val) {
 void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV) const {
     // aggregate token counts
     TIntH TermFqH;
-    for (int TokenStrN = 0; TokenStrN < TokenStrV.Len(); TokenStrN++) {
-        const TStr& TokenStr = TokenStrV[TokenStrN];
+	TStrV NgramStrV;
+    GenerateNgrams(TokenStrV, NgramStrV);
+    for (int TokenStrN = 0; TokenStrN < NgramStrV.Len(); TokenStrN++) {
+        const TStr& TokenStr = NgramStrV[TokenStrN];
         // get token ID
         const int TokenId = IsHashing() ?
-            (TokenStr.GetPrimHashCd() % HashDim) : // hashing
+            (TokenStr.GetHashTrick() % HashDim) : // hashing
             TokenSet.GetKeyId(TokenStr); // vocabulary
         // add if known token
         if (TokenId != -1) {
@@ -371,7 +411,7 @@ void TBagOfWords::AddFtr(const TStr& Val, TIntFltKdV& SpV) const {
 }
 
 void TBagOfWords::AddFtr(const TStrV& TokenStrV, TIntFltKdV& SpV, int& Offset) const {
-    // create sparse vector
+	// create sparse vector
     TIntFltKdV ValSpV; AddFtr(TokenStrV, ValSpV);
     // add to the full feature vector and increase offset count
     for (int ValSpN = 0; ValSpN < ValSpV.Len(); ValSpN++) {
@@ -456,6 +496,91 @@ void TSparseNumeric::AddFtr(const TIntFltKdV& InSpV, TIntFltKdV& SpV, int& Offse
         SpV.Add(TIntFltKd(Offset + Id, Val));
     }
     Offset += GetVals();
+}
+
+///////////////////////////////////////
+// Date window feature generator
+void TDateWnd::InitWgt() {
+    if (NormalizeP) {
+       Wgt = 1.0 / TMath::Sqrt((double)WndSize); 
+    } else {
+       Wgt = 1.0;
+    }
+}
+
+TDateWnd::TDateWnd(const int& _WndSize, const TTmUnit& _TmUnit, 
+    const bool& _NormalizeP): InitP(false), WndSize(_WndSize), 
+        TmUnit(_TmUnit), NormalizeP(_NormalizeP) {
+    
+    EAssert(WndSize > 0);  
+    // initialize feature vector weight
+    InitWgt();
+}
+
+
+TDateWnd::TDateWnd(const TTm& StartTm, const TTm& EndTm, const int& _WndSize, 
+        const TTmUnit& _TmUnit, const bool& _NormalizeP): InitP(true),
+            WndSize(_WndSize), TmUnit(_TmUnit), NormalizeP(_NormalizeP) {
+
+    EAssert(WndSize > 0);
+    // use borders to construct time boundaries
+    Update(StartTm);
+    Update(EndTm);
+    // initialize feature vector weight
+    InitWgt();
+}
+
+void TDateWnd::Save(TSOut& SOut) const {
+    InitP.Save(SOut);
+    StartUnit.Save(SOut);
+    EndUnit.Save(SOut);
+    WndSize.Save(SOut);
+    SaveEnum<TTmUnit>(SOut, TmUnit);
+    NormalizeP.Save(SOut);
+}
+    
+bool TDateWnd::Update(const TTm& Val) {
+    // if first time, use it to initialize
+    if (!InitP) {
+        StartUnit = TSecTm(Val).GetInUnits(TmUnit);
+        EndUnit = TSecTm(Val).GetInUnits(TmUnit);
+        InitP = true;
+        return true;
+    }
+    // check if we moved start or end boundary
+    const uint ValUnit = TSecTm(Val).GetInUnits(TmUnit);
+    if (StartUnit > ValUnit) {
+        StartUnit = ValUnit; return true;
+    }
+    if (EndUnit < ValUnit) {
+        EndUnit = ValUnit; return true;
+    }
+    // nope, we are fine
+    return false;
+}
+
+int TDateWnd::GetFtr(const TTm& Val) const {
+    EAssert(InitP);
+    const uint ValUnit = TSecTm(Val).GetInUnits(TmUnit);
+    if (ValUnit < StartUnit) { return 0; }
+    if (ValUnit > EndUnit) { return (int)(EndUnit - StartUnit); }
+    return (int)(ValUnit - StartUnit);
+}
+
+void TDateWnd::AddFtr(const TTm& Val, TIntFltKdV& SpV, int& Offset) const {
+    const int Ftr = GetFtr(Val);
+    for (int FtrN = 0; FtrN < WndSize; FtrN++) {
+        SpV.Add(TIntFltKd(Offset + Ftr + FtrN, Wgt));
+    }
+    Offset += GetDim();
+}
+
+void TDateWnd::AddFtr(const TTm& Val, TFltV& FullV, int& Offset) const {
+    const int Ftr = GetFtr(Val);
+    for (int FtrN = 0; FtrN < WndSize; FtrN++) {
+        FullV[Offset + Ftr + FtrN] = Wgt;
+    }    
+    Offset += GetDim();
 }
 
 }
