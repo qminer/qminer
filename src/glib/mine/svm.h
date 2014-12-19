@@ -30,25 +30,28 @@ namespace TSvm {
 class TLinModel {
 private:
     TFltV WgtV;
+    TFlt Bias;
 public:
-    TLinModel(const TFltV& _WgtV): WgtV(_WgtV) {  }
+    TLinModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
+    TLinModel(const TFltV& _WgtV, const double& _Bias): WgtV(_WgtV), Bias(_Bias) {  }
 
-    TLinModel(TSIn& SIn): WgtV(SIn) { }
-    void Save(TSOut& SOut) const { WgtV.Save(SOut); }
+    TLinModel(TSIn& SIn): WgtV(SIn), Bias(SIn) { }
+    void Save(TSOut& SOut) const { WgtV.Save(SOut); Bias.Save(SOut); }
     
     /// Get weight vector
-    void GetWgtV(TFltV& _WgtV) const {
-        _WgtV = WgtV;
-    }
+    void GetWgtV(TFltV& _WgtV) const { _WgtV = WgtV; }
+    
+    /// Get bias
+    double GetBias() const { return Bias; }
     
     /// Classify full vector
     double Predict(const TFltV& Vec) const { 
-        return TLinAlg::DotProduct(WgtV, Vec); 
+        return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
     }
     
     /// Classify sparse vector
     double Predict(const TIntFltKdV& SpVec) const { 
-        return TLinAlg::DotProduct(WgtV, SpVec);
+        return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
     }
 };
 

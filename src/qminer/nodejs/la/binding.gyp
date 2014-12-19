@@ -3,9 +3,13 @@
       {
          'target_name': 'la',
          'sources': [
+            '../utils.h', #not necessary for build, but useful for visual studio solution
+            '../utils.cpp',
+            'la_nodejs.h', #not necessary for build, but useful for visual studio solution
             'la_nodejs.cpp'
          ],
          'include_dirs': [
+            '../',
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/'
@@ -18,19 +22,30 @@
             '-fno-exceptions',
          ],
          'cflags_cc': [
-            '-std=c++0x',
- 	           '-frtti',
+            '-std=c++0x'
+            '-frtti',
             '-fexceptions'
          ],
          'cflags': [
             '-g',
             '-fexceptions',
             '-frtti',
-            '-std=c++0x',
             '-Wall',
             '-Wno-deprecated-declarations',
             '-fopenmp',
          ],
+         'xcode_settings': {
+            'MACOSX_DEPLOYMENT_TARGET': '10.7',
+            'GCC_ENABLE_CPP_RTTI': 'YES',
+            'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+            'OTHER_CFLAGS': [
+               '-std=c++11', 
+               '-stdlib=libc++' 
+            ],
+            'OTHER_LDFLAGS': [
+               '-undefined dynamic_lookup'
+            ]
+         },         
          'dependencies': [
             'glib',
          ]
@@ -49,18 +64,17 @@
             '-fno-exceptions',
          ],
          'cflags_cc': [
-            '-std=c++0x',
             '-frtti',
-            '-fexceptions'
+            '-fexceptions',
+            '-std=c++0x'
          ],
          'cflags': [
             '-g',
             '-fexceptions',
             '-frtti',
-            '-std=c++0x',
             '-Wall',
             '-Wno-deprecated-declarations',
-            '-fopenmp',
+            '-fopenmp'
          ],
          'conditions': [
             ['OS == "linux"', {
@@ -68,6 +82,17 @@
                   '-lrt',
                   '-luuid'
                ]
+            }],
+            ['OS == "mac"', {
+               'xcode_settings': {
+                  'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                  'GCC_ENABLE_CPP_RTTI': 'YES',
+                  'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                  'OTHER_CFLAGS': [
+                     '-std=c++11', 
+                     '-stdlib=libc++' 
+                  ]
+               }
             }]
          ],
          'sources': [

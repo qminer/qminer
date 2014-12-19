@@ -352,7 +352,8 @@ void TDMozBs::GetBestKWordV(
       if (AddLevP){
         KWordStr+=TStr::Fmt("-%d", CatKWordStrN);}
       if (((MnLev==-1)||(MnLev<=CatKWordStrN))&&((MxLev==-1)||(CatKWordStrN<=MxLev))){
-        int KWordFq=KWordStrToFqH.AddDat(KWordStr)++;
+        KWordStrToFqH.AddDat(KWordStr)++;
+        const int KWordFq=KWordStrToFqH.AddDat(KWordStr);
         KWordStrToWgtH.AddDat(KWordStr)+=CatWgt/KWordFq;
       }
     }
@@ -640,7 +641,7 @@ void TDMozBs::SaveLnDocTxt(const PDMozBs& DMozBs, const TStr& RootCatNm,
   int Cats=DMozBs->GetCats(); int SavedCats=0;
   for (int CatId=0; CatId<Cats; CatId++){
     TStr CatNm=DMozBs->GetCatNm(CatId);
-    if ((!RootCatNm.Empty())&&(!CatNm.IsPrefix(RootCatNm))){continue;}
+    if ((!RootCatNm.Empty())&&(!CatNm.StartsWith(RootCatNm))){continue;}
     SavedCats++;
     if (SavedCats%1000==0){printf("  Saved Categories %d\r", SavedCats);}
     // external-urls
@@ -672,7 +673,7 @@ void TDMozBs::SaveTxt(const PDMozBs& DMozBs, const TStr& RootCatNm,
   fprintf(fOut, "#Categories: %d\n", Cats);
   for (int CatId=0; CatId<Cats; CatId++){
     TStr CatNm=DMozBs->GetCatNm(CatId);
-    if ((!RootCatNm.Empty())&&(!CatNm.IsPrefix(RootCatNm))){continue;}
+	if ((!RootCatNm.Empty()) && (!CatNm.StartsWith(RootCatNm))) { continue; }
     SavedCats++;
     if (SavedCats%1000==0){printf("  Saved Categories %d\r", SavedCats);}
     fprintf(fOut, "cat: '%s'\n", CatNm.CStr());
@@ -875,7 +876,7 @@ TDMozCfy::TDMozCfy(PBowDocBs _BowDocBs, PBowDocPart _BowDocPart, const TStr& Cat
 			bool IgnoreP = false;
 			for (int IgnoreN = 0; IgnoreN < IgnoreV.Len(); IgnoreN++) {
 				const TStr& Ignore = IgnoreV[IgnoreN];
-				if (ClustNm.IsPrefix(Ignore)) {	IgnoreP = true; break; }
+				if (ClustNm.StartsWith(Ignore)) { IgnoreP = true; break; }
 			}
 		// if category is black-listed then skip it and all it's children
 		if (IgnoreP)
@@ -886,7 +887,7 @@ TDMozCfy::TDMozCfy(PBowDocBs _BowDocBs, PBowDocPart _BowDocPart, const TStr& Cat
 			for (int PrefixN = 0; PrefixN < PrefixV.Len(); PrefixN++) {
 				const TStr& Prefix = PrefixV[PrefixN].Val1;
 				const int MxLevel = PrefixV[PrefixN].Val2;
-				if (ClustNm.IsPrefix(Prefix) && ClustNm.CountCh('/') > MxLevel)
+				if (ClustNm.StartsWith(Prefix) && ClustNm.CountCh('/') > MxLevel)
 					AddP = false;
 			}
 		}

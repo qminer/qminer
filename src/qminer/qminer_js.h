@@ -27,6 +27,7 @@
 #include <qminer_gs.h>
 #include <v8.h>
 #include <typeinfo>
+#include <Snap.h>
 
 #ifdef V8_DEBUG
     // include v8 debug headers
@@ -459,6 +460,8 @@ public:
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2, v8::Handle<v8::Value>& Arg3);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
@@ -1092,6 +1095,7 @@ public:
 	//#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
 	//#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
 	JsDeclareFunction(listFile);
+    //#JSIMPLEMENT:src/qminer/fs.js
 };
 
 ///////////////////////////////
@@ -1214,6 +1218,8 @@ public:
 	JsDeclareFunction(search);   
     //#- `qm.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
+	//#- `qm.v8gc()` -- start v8 garbage collection
+	JsDeclareFunction(v8gc);
 	//#- `sa = qm.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
 	//#- `sa = qm.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
 	//#- `sa = qm.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
@@ -1704,6 +1710,8 @@ public:
 	JsDeclareFunction(sortByField);
 	//#- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
    	JsDeclareFunction(sort);
+	//#- `rs = rs.permute(intVec)` -- permutes the record set according to the permutation vector `intVec`. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
+	JsDeclareFunction(permute);
 	//#- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
 	JsDeclareFunction(filterById);
 	//#- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
@@ -2053,10 +2061,16 @@ public:
 	JsDeclareTemplatedFunction(inner);
 	//#- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(plus);
+	//#- `vec = vec.plusEq(vec2)` -- Inplace sum of `vec` with `vec2`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(plusEq);
 	//#- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(minus);
+	//#- `vec = vec.minusEq(vec2)` -- Inplace difference of `vec` with `vec2`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(minusEq);
 	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(multiply);
+	//#- `vec = vec.multiplyEq(num)` -- Inplace scalar multiplication of `vec` with `num`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(multiplyEq);
 	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
@@ -2116,8 +2130,11 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, outer);
 		JsRegisterFunction(TmpTemp, inner);
 		JsRegisterFunction(TmpTemp, plus);
+		JsRegisterFunction(TmpTemp, plusEq);
 		JsRegisterFunction(TmpTemp, minus);
+		JsRegisterFunction(TmpTemp, minusEq);
 		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, multiplyEq);
 		JsRegisterFunction(TmpTemp, normalize);
 		JsRegisterProperty(TmpTemp, length);
 		JsRegisterFunction(TmpTemp, print);
@@ -2386,6 +2403,7 @@ public:
 	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);	
 	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
+	//#- `mat = mat.put(rowIdx, colIdx, mat2)` -- Inserts `mat2` into `mat`, where mat2.at(0,0) gets copied to mat.at(rowIdx, colIdx)
 	JsDeclareFunction(put);
 	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
 	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
@@ -2518,7 +2536,7 @@ public:
 	JsDeclareFunction(plus);	
 	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
 	JsDeclareFunction(multiply);
-	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (in-place operation). Returns self.
 	JsDeclareFunction(normalize);
 	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
 	JsDeclareProperty(nnz);	
@@ -2528,14 +2546,19 @@ public:
 	JsDeclareFunction(print);
 	//#- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
 	JsDeclareFunction(norm);
+	//#- `vec = spVec.sort()` -- sort by values and return permutation integer vector.
+	JsDeclareFunction(sort);
 	//#- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
 	JsDeclareFunction(full);
 	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
 	JsDeclareFunction(valVec);
 	//#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
 	JsDeclareFunction(idxVec);
+    //#- `spVec = spVec.intersect(spVec2, function(a_num, b_num, idx) { ...})` -- executes given callback for each of the elements in the intersection.
+    JsDeclareFunction(intersect);
+    //#- `spVec = spVec.union(spVec2, function(a_num, b_num, idx) { ...})` -- executes given callback for each of the elements in the union.
+    JsDeclareFunction(_union);
 };
-
 
 ///////////////////////////////
 // QMiner-Sparse-Col-Matrix
@@ -2769,6 +2792,10 @@ public:
     JsDeclareProperty(dims);    
     //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
+
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
@@ -2777,14 +2804,6 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
-	JsDeclareFunction(add);
-	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
-    //#     features from record `rec` (e.g. words from string fields); results are returned
-    //#     as a string array
-    JsDeclareFunction(extractStrings);
-	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
-	JsDeclareFunction(getFtr);
 	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
     //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
@@ -2795,8 +2814,23 @@ public:
     //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
+
+	//#- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	JsDeclareFunction(getFtrExtractor);
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	JsDeclareFunction(getFtr);
+    //#- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
+    //#- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
+    JsDeclareFunction(getFtrDist);
     //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
+    //#     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
     JsDeclareFunction(filter);
+
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    //#     features from record `rec` (e.g. words from string fields); results are returned
+    //#     as a string array
+    JsDeclareFunction(extractStrings);
 };
 
 ///////////////////////////////
@@ -3040,7 +3074,6 @@ public:
 	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
-
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -3442,7 +3475,7 @@ v8::Handle<v8::Value> TJsHash<TKey, TDat, TAux>::get(const v8::Arguments& Args) 
 	if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
 		return TAux::WrapDat(Dat, HandleScope);
 	}
-	else { return v8::Undefined(); }
+	else { return HandleScope.Close(v8::Null()); }
 }
 
 template <class TKey, class TDat, class TAux>
@@ -3730,12 +3763,16 @@ public:
 	JsDeclareFunction(newDMGraph);
 	//#- `number = snap.degreeCentrality(node)` -- returns degree centrality of a node
 	JsDeclareFunction(degreeCentrality);
-	//#- `spVec = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
+	//#- `spMat = snap.communityDetection(UGraph, alg)` -- returns communities of graph (alg = `gn`, `imap` or `cnm`)
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
+	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebSimplify);
+	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebRefine);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
 	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
@@ -3834,6 +3871,8 @@ public:
 	JsDeclareFunction(save);
 	//#- `graph = graph.load(fin)` -- loads graph from input stream `fin`
 	JsDeclareFunction(load);
+	//#- `spMat = graph.connectedComponents(weak)` -- computes the weakly connected components if weak=true or strongly connected components otherwise
+	JsDeclareFunction(connectedComponents)
 };
 
 ///////////////////////////////
@@ -4049,6 +4088,20 @@ public:
 
 	// feature extractor type name 
 	static TStr GetType() { return "jsfunc"; }
+};
+
+
+class TJsMisc {
+private:
+	typedef TJsObjUtil<TJsMisc> TJsMiscUtil;
+	TJsMisc() { }
+public:
+	static v8::Persistent<v8::Object> New() {
+		return TJsMiscUtil::New(new TJsMisc());
+	}
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// mat = word_co(dataStrVec, searchVec) 
+	JsDeclareFunction(word_co);
 };
 
 

@@ -99,7 +99,7 @@ void TWebPgFetchEvent::ChangeLastUrlToLc(const PHttpResp& HttpResp){
   static TStr MsNm="Microsoft";
   static TStr HttpsNm="HTTPS";
   TStr SrvNm=HttpResp->GetSrvNm();
-  if ((SrvNm.IsPrefix(MsNm))||(SrvNm.IsPrefix(HttpsNm))){
+  if ((SrvNm.StartsWith(MsNm))||(SrvNm.StartsWith(HttpsNm))){
     if (!UrlStrV.Last().IsLc()){
       PUrl Url=TUrl::New(UrlStrV.Last());
       Url->ToLcPath();
@@ -198,7 +198,7 @@ void TWebPgFetchEvent::OnConnect(const uint64& SockId){
       for (int CookieN=0; CookieN<GetCookies(); CookieN++){
         TStr KeyNm; TStr ValStr; TStr DmNm; TStr PathStr;
         GetCookie(CookieN, KeyNm, ValStr, DmNm, PathStr);
-        if (HostNm.IsSuffix(DmNm)){
+        if (HostNm.EndsWith(DmNm)){
           if (CookieN>0){RqChA+="; ";}
           RqChA+=KeyNm; RqChA+='='; RqChA+=ValStr; 
         }

@@ -55,7 +55,7 @@ public:
         NewRouter.Register(TObj::GetType(), TObj::New);
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
-private:    
+private:
     /// QMiner Base pointer
     TWPt<TBase> Base;
     
@@ -98,6 +98,11 @@ public:
 	virtual TStr GetFtr(const int& FtrN) const = 0;
    	/// Reset feature extractor to forget all previously seen records
 	virtual void Clr() = 0;
+    /// Get feature distribution. Default is uniform over all dimensions.
+    void GetFtrDist(TFltV& FtrDistV) const;
+    /// Get feature distribution. Default is uniform over all dimensions.
+    virtual void AddFtrDist(TFltV& FtrDistV, int& Offset) const;    
+    
 	/// Update the feature extractor using the info from the given record.
     /// Returns true if the update changes the dimensionality.
 	virtual bool Update(const TRec& Rec) = 0;
@@ -192,8 +197,12 @@ public:
 	int GetDim() const;
 	/// String representation of the FtrN-th feature
 	TStr GetFtr(const int& FtrN) const;
+    /// Get feature distribution
+    void GetFtrDist(TFltV& FtrDistV) const;
     /// Number of feature extractors
     int GetFtrExts() const;
+    /// Get feature extractor
+    PFtrExt GetFtrExt(const int& FtrExtN) const;
     /// Dimensionality of space formed by FtrExtN-th feature extractor
     int GetFtrExtDim(const int& FtrExtN) const;
     /// Start dimension for the FtrExtN-th feature extractor
@@ -472,28 +481,27 @@ protected:
 
 private:
     TBagOfWords(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
-                const int& _FieldId, const TBagOfWordsMode& _Mode, 
-                const PTokenizer& Tokenizer, const int& HashDim = -1, 
-                const int& NStart=1, const int& NEnd=1);
-
+        const int& _FieldId, const TBagOfWordsMode& _Mode, 
+        const PTokenizer& Tokenizer, const int& HashDim = -1, 
+        const int& NStart=1, const int& NEnd=1);
     TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn);
     
 public:
-	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const int& FieldId, 
-                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-
-	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, const int& FieldId, 
-                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-
-	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, const int& FieldId, 
-                       const TBagOfWordsMode& Mode = bowmConcat, const PTokenizer& Tokenizer =
-                        TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
-
+	static PFtrExt New(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeq& JoinSeq, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
+	static PFtrExt New(const TWPt<TBase>& Base, const TJoinSeqV& JoinSeqV, 
+        const int& FieldId, const TBagOfWordsMode& Mode = bowmConcat, 
+        const PTokenizer& Tokenizer = TTokenizers::THtmlUnicode::New(
+        TSwSet::New(swstEn523), TStemmer::New(stmtPorter, false)));
 	static PFtrExt New(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
-
+    
     static PFtrExt Load(const TWPt<TBase>& Base, TSIn& SIn);
     void Save(TSOut& SOut) const;
     
@@ -502,6 +510,7 @@ public:
 	TStr GetFtr(const int& FtrN) const;
 
 	void Clr() { FtrGen.Clr(); }
+
 	// sparse vector extraction
 	bool Update(const TRec& Rec);
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;

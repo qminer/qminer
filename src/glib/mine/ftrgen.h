@@ -138,11 +138,11 @@ private:
     PSwSet SwSet;
     /// Stemmer
     PStemmer Stemmer;
-    /// Vocabulary (not use in case of hashing)
+    /// Vocabulary (not used when hashing)
     TStrSet TokenSet;
     /// Hashing dimension
     TInt HashDim;
-    // Keep Hash Table?
+    /// Keep Hash Table (can be used only when hashing for debuging)
     TBool KeepHashTable;
 
     /// Ngrams Range Start
@@ -162,7 +162,7 @@ private:
     /// Document frequency counts before last forget
     TFltV OldDocFqV;
 
-    /// Hash Table
+    /// Set of tokens that hash into specific dimension
     TVec<TStrSet> HashTable;
 
 public:
@@ -200,7 +200,6 @@ public:
     TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
     TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
     
-
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
 

@@ -487,7 +487,7 @@ public:
 /////////////////////////////////////////////////
 // Http-Request
 void THttpRq::ParseSearch(const TStr& SearchStr){
-  PSIn SIn=TStrIn::New(SearchStr);
+  PSIn SIn=TStrIn::New(SearchStr, false);
   THttpChRet ChRet(SIn, heBadSearchStr);
   try {
   // check empty search string
@@ -798,7 +798,8 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
   if (Lx.Eof()){
     // no content
     MajorVerN=0; MinorVerN=9; StatusCd=204;
-    HdStr.Clr(); BodyMem.Clr();
+    HdStr = TStr();
+    BodyMem = TStr();
   } else {
     if (Lx.IsRespStatusLn()){
       // status-line
@@ -825,7 +826,7 @@ void THttpResp::ParseHttpResp(const PSIn& SIn){
     } else {
       // old fashion format
       MajorVerN=0; MinorVerN=9; StatusCd=200;
-      HdStr.Clr();
+      HdStr = TStr();
       Lx.ClrMemSf();
       Lx.GetRest();
       BodyMem=Lx.GetMemSf();
@@ -910,7 +911,7 @@ bool THttpResp::IsFldVal(const TStr& FldNm, const TStr& FldVal) const {
 void THttpResp::AddFldVal(const TStr& FldNm, const TStr& FldVal){
   TStr NrFldNm=THttpLx::GetNrStr(FldNm);
   FldNmToValVH.AddDat(NrFldNm).Add(FldVal);
-  if (HdStr.IsSuffix("\r\n\r\n")){
+  if (HdStr.EndsWith("\r\n\r\n")){
     TChA HdChA=HdStr;
     HdChA.Pop(); HdChA.Pop(); 
     HdChA+=NrFldNm; HdChA+=": "; HdChA+=FldVal;
@@ -932,7 +933,7 @@ void THttpResp::GetCookieKeyValDmPathQuV(TStrQuV& CookieKeyValDmPathQuV){
       TStr KeyNm; TStr ValStr; 
       if (KeyValStr.IsChIn('=')){
         KeyValStrV[KeyValStrN].SplitOnCh(KeyNm, '=', ValStr);
-        KeyNm.ToTrunc(); ValStr.ToTrunc();
+		KeyNm = KeyNm.GetTrunc(); ValStr = ValStr.GetTrunc();
       } else {
         KeyNm=KeyValStr.GetTrunc();
       }

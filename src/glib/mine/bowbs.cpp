@@ -273,9 +273,10 @@ TStr TBowSpV::GetStr(const PBowDocBs& BowDocBs,
   for (int WordN=0; WordN<WordStrWgtPrV.Len(); WordN++){
     TStr WordStr=WordStrWgtPrV[WordN].Val1;
     if (!KeepUndelineP){
-      WordStr.ChangeChAll('_', ' ');}
+		WordStr.ChangeChAll('_', ' ');
+	}
     double WordWgt=WordStrWgtPrV[WordN].Val2;
-    if (!ShowWeightsP) WordStr.ToLc();
+	if (!ShowWeightsP) WordStr = WordStr.GetLc();
     if (!ChA.Empty()){ChA+=SepStr;}
     if (ShowWeightsP){ChA+='[';}
     ChA+=WordStr;
@@ -1308,7 +1309,7 @@ void TBowDocBs::GetWordStrVFromHtml(const TStr& HtmlStr, TStrV& WordStrV) const 
     NGramBs->GetNGramStrV(HtmlStr, WordStrV);
   } else {
     // create html lexical
-    PSIn HtmlSIn=TStrIn::New(HtmlStr);
+    PSIn HtmlSIn=TStrIn::New(HtmlStr, false);
     THtmlLx HtmlLx(HtmlSIn);
     // traverse html string symbols
     while (HtmlLx.Sym!=hsyEof){

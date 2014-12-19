@@ -541,7 +541,7 @@ TSASFunRedirect::TSASFunRedirect(const TStr& FunNm,
 			EAssert(PartV.Len() >= 3);
 			TStr FldNm = PartV[1];
 			TStr FldVal = PartV[2];
-			if (FldVal.IsPrefix("$")) {
+			if (FldVal.StartsWith("$")) {
 				MapH.GetDat(OrgFunNm).FldNmMapH.AddDat(FldVal.Right(1), FldNm);
 			} else {
 				MapH.GetDat(OrgFunNm).FldNmValPrV.Add(TStrKd(FldNm, FldVal));

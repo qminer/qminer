@@ -17,11 +17,7 @@
  * 
  */
 
-#ifndef NDEBUG
-#define SW_TRACE
-#endif
-
-#if defined(SW_TRACE) && defined(GLib_UNIX)
+#if defined(SW_TRACE)
 #include <execinfo.h>
 #include <signal.h>
 #endif
@@ -85,7 +81,7 @@ void SaveToErrLog(const char* MsgCStr){
   delete[] FNm;
 }
 
-#if defined(SW_TRACE) && defined(GLib_UNIX)
+#if defined(SW_TRACE)
 void PrintBacktrace() {
 	// stack dump, works for g++
 	void *array[20];
@@ -126,6 +122,11 @@ void terminateHandler()
   PrintBacktrace();
   abort();
 }
+void Crash() {
+  char *p;
+  p = (char *) 0;
+  *p = 1234;
+}
 #endif
 
 /////////////////////////////////////////////////
@@ -137,8 +138,9 @@ void ExeStop(
  const char* CondCStr, const char* FNm, const int& LnN){
   char ReasonMsgCStr[1000];
 
-#if defined(SW_TRACE) && defined(GLib_UNIX)
+#if defined(SW_TRACE)
   PrintBacktrace();
+  //Crash();
 #endif
 #ifdef GLib_WIN
   TFileStackWalker::WriteStackTrace();
@@ -166,6 +168,11 @@ void ExeStop(
   }
   // report full message to log file
   SaveToErrLog(FullMsgCStr);
+
+#if defined(SW_NOABORT)
+  throw TExcept::New(FullMsgCStr);
+#endif
+
   // report to screen & stop execution
   bool Continue=false;
   // call handler

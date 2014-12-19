@@ -141,7 +141,7 @@ public:
       free(DemangleTypeCStr);
       return DemangleTypeStr;
     #else
-      if (TypeNm.IsPrefix("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
+      if (TypeNm.StartsWith("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
       else {return TypeNm;}
     #endif    
   }
@@ -162,7 +162,7 @@ inline void WarnNotify(const TStr& MsgStr){WarnNotify(MsgStr.CStr());}
 inline void ErrNotify(const TStr& MsgStr){ErrNotify(MsgStr.CStr());}
 inline void StatNotify(const TStr& MsgStr){StatNotify(MsgStr.CStr());}
 
-typedef enum {ntInfo, ntWarn, ntErr, ntStat} TNotifyType;
+typedef enum TNotifyType_ {ntInfo, ntWarn, ntErr, ntStat} TNotifyType;
 
 ClassTP(TNotify, PNotify)//{
 private:
@@ -381,3 +381,10 @@ public:
     if (IsOnExceptF()){(*OnExceptF)(MsgStr);}
     else {throw TExcept::New(MsgStr, LocStr);}}
 };
+
+// Needed for SNAP examples (otherwise please avoid using these)
+#define Try try {
+#define Catch } catch (PExcept Except){ErrNotify(Except->GetMsgStr());}
+#define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}
+#define CatchAll } catch (...){}
+

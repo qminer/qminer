@@ -119,6 +119,25 @@ void TFtrExt::Save(TSOut& SOut) const {
     FtrStore->SaveId(SOut);
 }
 
+void TFtrExt::GetFtrDist(TFltV& FtrDistV) const {
+    // reserve space for all features
+    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
+    // write in the vector feature distribution
+    int Offset = 0; AddFtrDist(FtrDistV, Offset);
+}
+
+void TFtrExt::AddFtrDist(TFltV& FtrDistV, int& Offset) const {
+    // get uniform value
+    const int Vals = GetDim();
+    if (Vals > 0) {
+        const double UniVal = 1.0 / (double)Vals;
+        for (int ValN = 0; ValN < Vals; ValN++) {
+            FtrDistV[Offset + ValN] = UniVal;
+        }
+        Offset += Vals;
+    }
+}
+
 void TFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     // get sparse vector
     TIntFltKdV SpV; AddSpV(Rec, SpV, Offset);
@@ -331,8 +350,22 @@ TStr TFtrSpace::GetFtr(const int& FtrN) const {
 	return TStr();
 }
 
+void TFtrSpace::GetFtrDist(TFltV& FtrDistV) const {
+    // create empty full vector
+    FtrDistV.Gen(GetDim()); FtrDistV.PutAll(0.0);
+	int Offset = 0;
+	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+		FtrExtV[FtrExtN]->AddFtrDist(FtrDistV, Offset);
+	}
+}
+
 int TFtrSpace::GetFtrExts() const {
     return FtrExtV.Len();
+}
+
+PFtrExt TFtrSpace::GetFtrExt(const int& FtrExtN) const {
+    QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
+    return FtrExtV[FtrExtN];    
 }
 
 int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
@@ -342,12 +375,22 @@ int TFtrSpace::GetFtrExtDim(const int& FtrExtN) const {
 
 int TFtrSpace::GetMnFtrN(const int& FtrExtN) const {
     QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
-    return (FtrExtN == 0) ? 0 : DimV[FtrExtN - 1].Val;
+    int MnFtrN = 0, _FtrExtN = 0;
+    while (_FtrExtN < FtrExtN) { 
+        MnFtrN += DimV[_FtrExtN];
+        _FtrExtN++;
+    }
+    return MnFtrN;
 }
 
 int TFtrSpace::GetMxFtrN(const int& FtrExtN) const {
     QmAssert(0 <= FtrExtN && FtrExtN < FtrExtV.Len());
-    return DimV[FtrExtN];
+    int MxFtrN = 0, _FtrExtN = 0;
+    while (_FtrExtN <= FtrExtN) { 
+        MxFtrN += DimV[_FtrExtN];
+        _FtrExtN++;
+    }
+    return MxFtrN;
 }
 
 void TFtrSpace::ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const {
@@ -897,7 +940,7 @@ void TMultinomial::Save(TSOut& SOut) const {
 TStr TMultinomial::GetNm() const { 
     TChA FieldNmChA = "Multinomial[";
     for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
-        if (!FieldNmChA.Empty()) { FieldNmChA += ";"; }
+        if (FieldIdN > 0) { FieldNmChA += ";"; }
         FieldNmChA += GetFtrStore()->GetFieldNm(FieldIdV[FieldIdN]);
     }
     FieldNmChA += "]";
@@ -1078,7 +1121,8 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         // default is unicode html
         Tokenizer = TTokenizers::THtmlUnicode::New(SwSet, Stemmer);
     } else {
-        Tokenizer = TTokenizers::THtmlUnicode::New(TSwSet::New(swstEn523), TStemmer::New(stmtNone, false));
+        Tokenizer = TTokenizers::THtmlUnicode::New(
+            TSwSet::New(swstEn523), TStemmer::New(stmtNone, false));
     }
 
     // hashing dimension
@@ -1208,7 +1252,7 @@ void TBagOfWords::Save(TSOut& SOut) const {
 TStr TBagOfWords::GetNm() const { 
     TChA FieldNmChA = "BagOfWords[";
     for (int FieldIdN = 0; FieldIdN < FieldIdV.Len(); FieldIdN++) {
-        if (!FieldNmChA.Empty()) { FieldNmChA += ";"; }
+        if (FieldIdN > 0) { FieldNmChA += ";"; }
         FieldNmChA += GetFtrStore()->GetFieldNm(FieldIdV[FieldIdN]);
     }
     FieldNmChA += "]";
@@ -1671,7 +1715,7 @@ TDateWnd::TDateWnd(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
     else if (UnitStr == "10minutes") { TmUnit = tmu10Min; }
     else if (UnitStr == "minute") { TmUnit = tmu1Min; }
     else if (UnitStr == "second") { TmUnit = tmu1Sec; }
-    QmAssert(TmUnit != tmuUndef);
+    QmAssert(TmUnit != tmuUndef);    
     // rest of parameters
     const int WndSize = ParamVal->GetObjInt("window", 1);
     const bool NormalizeP = ParamVal->GetObjBool("normalize", false);
