@@ -462,8 +462,10 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
+    #ifndef MODULE_INCLUDE_LA
 	exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
 		tpl->GetFunction());
+	#endif
 }
 
 template <typename TVal, typename TAux>

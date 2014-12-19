@@ -2510,8 +2510,8 @@ void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "storeIter"),
-		tpl->GetFunction());
+	//exports->Set(v8::String::NewFromUtf8(Isolate, "storeIter"),
+	//	tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsStoreIter::New(const TWPt<TQm::TStore>& _Store, const TWPt<TQm::TStoreIter>& _Iter) {
