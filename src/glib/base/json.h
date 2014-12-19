@@ -135,7 +135,7 @@ public:
   int GetObjKeys() const {EAssert(IsObj()); return KeyValH.Len();}
   void GetObjKeyVal(const int& KeyValN, TStr& Key, PJsonVal& Val) const {
     EAssert(IsObj()); Key=KeyValH.GetKey(KeyValN); Val=KeyValH[KeyValN];}
-  TStr GetObjKey(const int& KeyValN) const {
+  const TStr& GetObjKey(const int& KeyValN) const {
 	  EAssert(IsObj()); return KeyValH.GetKey(KeyValN);
   }
   bool IsObjKey(const TStr& Key) const {EAssert(IsObj()); return KeyValH.IsKey(Key);}
