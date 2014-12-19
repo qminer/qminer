@@ -506,12 +506,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TWPt<TQm::TStore>& Store, const u
 		return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
 	}
 	else if (Desc.IsStrV()) {
-		TStrV StrV; Store->GetFieldStrV(RecId, FieldId, StrV);
-		v8::Handle<v8::Array> JsStrV = v8::Array::New(Isolate, StrV.Len());
-		for (int StrN = 0; StrN < StrV.Len(); StrN++) {
-			JsStrV->Set(StrN, v8::String::NewFromUtf8(Isolate, StrV[StrN].CStr()));
-		}
-        // @BLAZ: Is this correct? Above we create v8::Array and now we make TNodeJsVec out of it?
+		TStrV StrV; Store->GetFieldStrV(RecId, FieldId, StrV);		
 		return HandleScope.Escape(TNodeJsVec<TStr, TAuxStrV>::New(StrV));
 	}
 	else if (Desc.IsBool()) {
@@ -2624,7 +2619,7 @@ void TNodeJsIndexKey::Init(v8::Handle<v8::Object> exports) {
 	
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "indexKey"), tpl->GetFunction());
+	//exports->Set(v8::String::NewFromUtf8(Isolate, "indexKey"), tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsIndexKey::New(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey) {
@@ -2708,7 +2703,7 @@ void TNodeJsIndexKey::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackI
         for (int WordN = 0; WordN < KeyValV.Len(); WordN++) {
             ValV.Add(KeyValV[WordN].Val2);
         }
-        Info.GetReturnValue().Set(TNodeJsVec<TIntV, TAuxIntV>::New(ValV));
+        Info.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ValV));
     }
 }
 
