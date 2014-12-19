@@ -2704,7 +2704,7 @@ void TNodeJsIndexKey::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackI
         for (int WordN = 0; WordN < KeyValV.Len(); WordN++) {
             ValV.Add(KeyValV[WordN].Val2);
         }
-        Info.GetReturnValue().Set(TNodeJsVec<TIntV, TAuxIntV>::New(ValV));
+        Info.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ValV));
     }
 }
 
