@@ -411,8 +411,10 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "matrix"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
@@ -945,8 +947,10 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseVector"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsSpVec::New(const TIntFltKdV& IntFltKdV) {
@@ -1283,8 +1287,10 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseColMatrix"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& Rows) {
@@ -1808,8 +1814,7 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-   //TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-   //TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);
