@@ -2018,49 +2018,46 @@ void TNodeJsRecSet::filterByFq(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 void TNodeJsRecSet::filterByField(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	//TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args.Holder());
+	TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args.Holder());
+
+	// get field
+	const TStr FieldNm = TNodeJsUtil::GetArgStr(Args, 0);
+	const int FieldId = JsRecSet->RecSet->GetStore()->GetFieldId(FieldNm);
+	const TQm::TFieldDesc& Desc = JsRecSet->RecSet->GetStore()->GetFieldDesc(FieldId);
+	// parse filter according to field type
+	if (Desc.IsInt()) {
+		const int MnVal = TNodeJsUtil::GetArgInt32(Args, 1);
+		const int MxVal = TNodeJsUtil::GetArgInt32(Args, 2);
+		JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
+	}
+	else if (Desc.IsStr() && TNodeJsUtil::IsArgStr(Args, 1)) {
+		TStr StrVal = TNodeJsUtil::GetArgStr(Args, 1);
+		JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
+	}
+	else if (Desc.IsFlt()) {
+		const double MnVal = TNodeJsUtil::GetArgFlt(Args, 1);
+		const double MxVal = TNodeJsUtil::GetArgFlt(Args, 2);
+		JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
+	}
+	else if (Desc.IsTm()) {
+		const TStr MnTmStr = TNodeJsUtil::GetArgStr(Args, 1);
+		const uint64 MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
+		if (Args.Length() >= 3) {
+			// we have upper limit
+			const TStr MxTmStr = TNodeJsUtil::GetArgStr(Args, 2);
+			const uint64 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
+			JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
+		}
+		else {
+			// we do not have upper limit
+			JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, TUInt64::Mx);
+		}
+	}
+	else {
+		throw TQm::TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
+	}
 
 	Args.GetReturnValue().Set(Args.Holder());
-
-	//v8::HandleScope HandleScope;
-	//TJsRecSet* JsRecSet = TJsRecSetUtil::GetSelf(Args);
-	//// get field
-	//const TStr FieldNm = TJsRecSetUtil::GetArgStr(Args, 0);
-	//const int FieldId = JsRecSet->Store->GetFieldId(FieldNm);
-	//const TFieldDesc& Desc = JsRecSet->Store->GetFieldDesc(FieldId);
-	//// parse filter according to field type
-	//if (Desc.IsInt()) {
-	//	const int MnVal = TJsRecSetUtil::GetArgInt32(Args, 1);
-	//	const int MxVal = TJsRecSetUtil::GetArgInt32(Args, 2);
-	//	JsRecSet->RecSet->FilterByFieldInt(FieldId, MnVal, MxVal);
-	//}
-	//else if (Desc.IsStr() && TJsRecSetUtil::IsArgStr(Args, 1)) {
-	//	TStr StrVal = TJsRecSetUtil::GetArgStr(Args, 1);
-	//	JsRecSet->RecSet->FilterByFieldStr(FieldId, StrVal);
-	//}
-	//else if (Desc.IsFlt()) {
-	//	const double MnVal = TJsRecSetUtil::GetArgFlt(Args, 1);
-	//	const double MxVal = TJsRecSetUtil::GetArgFlt(Args, 2);
-	//	JsRecSet->RecSet->FilterByFieldFlt(FieldId, MnVal, MxVal);
-	//}
-	//else if (Desc.IsTm()) {
-	//	const TStr MnTmStr = TJsRecSetUtil::GetArgStr(Args, 1);
-	//	const uint64 MnTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MnTmStr, '-', ':', '.', 'T'));
-	//	if (TJsRecSetUtil::IsArg(Args, 2)) {
-	//		// we have upper limit
-	//		const TStr MxTmStr = TJsRecSetUtil::GetArgStr(Args, 2);
-	//		const uint64 MxTmMSecs = TTm::GetMSecsFromTm(TTm::GetTmFromWebLogDateTimeStr(MxTmStr, '-', ':', '.', 'T'));
-	//		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, MxTmMSecs);
-	//	}
-	//	else {
-	//		// we do not have upper limit
-	//		JsRecSet->RecSet->FilterByFieldTm(FieldId, MnTmMSecs, TUInt64::Mx);
-	//	}
-	//}
-	//else {
-	//	throw TQmExcept::New("Unsupported filed type for record set filtering: " + Desc.GetFieldTypeStr());
-	//}
-	//return Args.Holder();
 }
 
 void TNodeJsRecSet::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
