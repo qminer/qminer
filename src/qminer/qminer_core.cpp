@@ -3960,10 +3960,11 @@ void TIndex::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64I
 void TIndex::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
 	Gix->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
 }
-
+#ifdef _DEBUG
 void TIndex::SaveCacheTxt(const TWPt<TBase>& Base, const TStr& FNm) {
 	Gix->SaveCacheTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
 }
+#endif
 
 ///////////////////////////////
 // QMiner-Temporary-Index
@@ -4931,9 +4932,9 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 		}
 	}
 }
-
+#ifdef _DEBUG
 void TBase::PrintIndexCache(const TStr& FNm) {
 	Index->SaveCacheTxt(this, FNm);
 }
-
+#endif
 }
