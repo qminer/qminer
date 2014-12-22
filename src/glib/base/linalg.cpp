@@ -3676,8 +3676,7 @@ TFullMatrix TFullMatrix::Pow(const int& k) const {
 	if (k == 0) { return TFullMatrix::Identity(GetRows()); }
 	else if (k < 0) { return GetInverse()^(-k); }
 	else {
-		// we will compute the power using the (a bit modified to save with memory
-		// and rather computing the log) square and multiply algorithm from Knuth's book
+		// we will compute the power using the binary algorithm
 
 		// X <- A
 		TFltVV* X = new TFltVV(*Mat);
