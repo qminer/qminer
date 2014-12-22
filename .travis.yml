@@ -12,7 +12,7 @@ install:
   - ./configure
   - make lib
 script: 
-  - node-gyp --nodedir=src/third_party/node build
+  - node-gyp --nodedir=src/third_party/node configure build
   - make
   - make test
   - ./test/javascript/test.sh
