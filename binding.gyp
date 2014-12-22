@@ -86,6 +86,7 @@
                 'src/nodejs/',
                 'src/glib/base/',
                 'src/glib/mine/',
+                'src/glib/net/',
             ],
             'dependencies': [
                 'glib'
@@ -119,7 +120,8 @@
                 'src/qminer',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+                'src/glib/net/'
             ],
             'conditions': [
                 # operating system specific parameters
