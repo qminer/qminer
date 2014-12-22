@@ -1857,10 +1857,6 @@ TRecSet::TRecSet(const TWPt<TBase>& Base, TSIn& SIn) {
 	RecIdFqV.Load(SIn);	
 }
 
-PRecSet TRecSet::New() {
-	return new TRecSet();
-}
-
 PRecSet TRecSet::New(const TWPt<TStore>& Store) { 
 	return new TRecSet(Store, TUInt64V()); 
 }
@@ -2083,8 +2079,7 @@ PRecSet TRecSet::GetMerge(const PRecSet& RecSet) const {
 }
 
 PRecSet TRecSet::GetMerge(const TVec<PRecSet>& RecSetV) {
-	if (RecSetV.Len() == 0)
-		return TRecSet::New();
+	QmAssert(RecSetV.Len() > 0);
 	PRecSet RecSet = RecSetV[0]->Clone();
 	for (int N = 1; N < RecSetV.Len(); N++)
 		RecSet->Merge(RecSetV[N]);
