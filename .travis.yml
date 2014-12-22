@@ -9,9 +9,9 @@ before_install:
  - sudo npm install -g node-gyp
  - ./test/cpp/install.sh
 install:
+  - ./configure
   - make lib
 script: 
-  - ./configure
   - node-gyp configure build --nodedir=src/third_party/node
   - make
   - make test
