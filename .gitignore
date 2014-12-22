@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# Autoconf
+config.log
+
 # project files from Eclipse
 .project
 .cproject
