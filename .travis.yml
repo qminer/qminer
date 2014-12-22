@@ -3,7 +3,9 @@ compiler: gcc
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq uuid-dev
- - sudo apt-get install npm; sudo npm update
+ - sudo apt-get install npm
+ - sudo npm update
+ - npm config set registry http://registry.npmjs.org/
  - sudo npm install -g node-gyp
  - ./test/cpp/install.sh
 install:
