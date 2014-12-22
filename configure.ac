@@ -1,4 +1,4 @@
-AC_INIT(qmconfig, version-0.1)
+AC_INIT(qmconfig, 0.1)
 AC_MSG_NOTICE([Configuring QMiner ...])
 
 # revision
@@ -24,13 +24,13 @@ echo "                             Checking third party libraries"
 cd src/third_party
 
 # clone Node
-if [[ ! -d src/third_party/node ]]; then
+if [[ ! -d 'node' ]]; then
 	echo 'Cloning node ...'
 	git clone --branch 'v0.11.14' https://github.com/joyent/node.git
 fi
 
 # clone V8
-if [[ ! -d src/third_party/v8 ]]; then
+if [[ ! -d 'v8' ]]; then
         echo 'Cloning V8 ...'
         svn co http://v8.googlecode.com/svn/branches/3.18/ v8
 
@@ -52,3 +52,7 @@ echo 'checking for Node... '`git describe --tags`
 cd ..
 
 cd ../..
+
+# configure Node
+echo 'Configuring gyp ...'
+node-gyp configure --nodedir=src/third_party/node
