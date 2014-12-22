@@ -7,7 +7,7 @@ GLIB_BASE = $(GLIB)/base
 GLIB_MINE = $(GLIB)/mine
 GLIB_MISC = $(GLIB)/misc
 
-MAINOBJS = utils.o
+MAINOBJS = util.o
 INCLUDE = -I$(GLIB_BASE) -I$(GLIB_MINE) -I$(GLIB_MISC) -I$(QMINER) -I$(NODE)/src -I$(NODE)/deps/uv/include -I$(NODE)/deps/v8/include
 
 all: release

@@ -9,8 +9,8 @@
                 'src/nodejs/qm/qm_param.h',
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
-                'src/nodejs/utils.h',
-                'src/nodejs/utils.cpp'
+                'src/nodejs/util.h',
+                'src/nodejs/util.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
@@ -47,8 +47,8 @@
             'sources': [
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
-                'src/nodejs/utils.h',
-                'src/nodejs/utils.cpp'
+                'src/nodejs/util.h',
+                'src/nodejs/util.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/la',
@@ -78,8 +78,8 @@
             'sources': [            
                 'src/nodejs/fs/fs_nodejs.h',
                 'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/utils.h',
-                'src/nodejs/utils.cpp'
+                'src/nodejs/util.h',
+                'src/nodejs/util.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/fs',
