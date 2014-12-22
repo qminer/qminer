@@ -5,7 +5,8 @@
 all:
 	make -C libuv
 	make -C node
-	./v8-checkout.sh
+	make -C v8 dependencies
+	make -C v8 x64.release
 
 clean:
 	make -C libuv clean
