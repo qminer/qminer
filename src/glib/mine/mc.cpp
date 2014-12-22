@@ -1028,7 +1028,8 @@ void TCtMChain::AbsOnAddRec(const int& StateIdx, const uint64& RecTm) {
 			uint64 HoldingTm = RecTm - PrevJumpTm;
 			QMatStats[CurrStateIdx][StateIdx].Val1++;
 			QMatStats[CurrStateIdx][StateIdx].Val2 += (double) HoldingTm / TimeUnit;
-			printf("Updated intensity: prev state: %d, curr state: %d\n", CurrStateIdx, StateIdx);
+
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated intensity: prev state: %d, curr state: %d", CurrStateIdx, StateIdx);
 		}
 		PrevJumpTm = RecTm;
 	} else if (CurrStateIdx == -1) {
