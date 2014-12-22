@@ -6,7 +6,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
-#include "util.h"
+#include "utils.h"
 
 ///////////////////////////////
 // NodeJs QMiner.

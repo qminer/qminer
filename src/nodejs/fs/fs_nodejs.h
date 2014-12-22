@@ -6,7 +6,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
-#include "util.h"
+#include "utils.h"
 
 ///////////////////////////////
 /// JavaScript Directory
@@ -27,8 +27,8 @@ public:
 
 	/// Load list of directories
 	static void GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV);
-   /// Canonicalize file path 
-   static TStr GetCanonicalPath(const TStr& FPath);
+    /// Canonicalize file path 
+    static TStr GetCanonicalPath(const TStr& FPath);
 };
 
 ///////////////////////////////
