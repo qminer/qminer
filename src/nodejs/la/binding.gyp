@@ -10,9 +10,9 @@
          ],
          'include_dirs': [
             '../',
-            '../../../glib/',
-            '../../../glib/base/',
-            '../../../glib/mine/'
+            '../../glib/',
+            '../../glib/base/',
+            '../../glib/mine/'
          ],
          'dependencies': [
             'glib'
@@ -55,9 +55,9 @@
          'type': 'static_library',
          'include_dirs': [
             '.',
-            '../../../glib/base/',
-            '../../../glib/mine/',
-            '../../../glib/misc/'
+            '../../glib/base/',
+            '../../glib/mine/',
+            '../../glib/misc/'
          ],
          'cflags_cc!': [
             '-fno-rtti',
@@ -96,8 +96,8 @@
             }]
          ],
          'sources': [
-            '../../../glib/base/base.cpp',
-            '../../../glib/mine/mine.cpp'
+            '../../glib/base/base.cpp',
+            '../../glib/mine/mine.cpp'
          ]
       }
    ]
