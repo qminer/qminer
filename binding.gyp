@@ -73,6 +73,37 @@
                 }]
             ]
         }, {
+            # node file system module
+            'target_name': 'fs',
+            'sources': [            
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
+                'src/nodejs/utils.h',
+                'src/nodejs/utils.cpp'
+            ],
+            'include_dirs': [
+                'src/nodejs/fs',
+                'src/nodejs/',
+                'src/glib/base/',
+                'src/glib/mine/',
+            ],
+            'dependencies': [
+                'glib'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
             # qminer library
             'target_name': 'qminer',
             'type': 'static_library',
