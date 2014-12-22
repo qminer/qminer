@@ -125,6 +125,9 @@ public:
     /// in an hidden variable "class"
     static TStr GetClass(const v8::Handle<v8::Object> Obj);
     
+	/// Check if argument ArgN exists
+	static bool IsArg(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) { return (Args.Length() > ArgN); }
+
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
     static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm) ;
