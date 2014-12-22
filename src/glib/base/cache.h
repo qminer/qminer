@@ -129,6 +129,7 @@ int TValCache<TVal>::AddVal(const TVal& Val) {
     if (NewCacheSizeInc > CacheResetThreshold) {
 		// report on the size increase
         printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+		TTmStopWatch StopWatch(true);
 		// report on the current size
         //const uint64 OldSize = ValCache.GetMemUsed();
         //printf("[%s] ... ", TUInt64::GetMegaStr(OldSize).CStr());
@@ -137,7 +138,7 @@ int TValCache<TVal>::AddVal(const TVal& Val) {
 		//// report on the current size
         //const uint64 NewSize = ValCache.GetMemUsed();
 		//printf("[%s] ", TUInt64::GetMegaStr(NewSize).CStr());
-		printf("Done\n");
+		printf("Done (time needed: %.1f seconds).\n", StopWatch.GetSec());
 		// reset increase counter
         NewCacheSizeInc = 0; 
 	}

@@ -728,10 +728,10 @@ private:
 public:
 	TGix(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& _Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 100000);
+		int _SplitLen = 1000);
 	static PGix New(const TStr& Nm, const TStr& FPath = TStr(),
 		const TFAccess& Access = faRdOnly, const int64& CacheSize = 100000000,
-		int _SplitLen = 100000) {
+		int _SplitLen = 1000) {
 		return new TGix(Nm, FPath, Access, CacheSize, _SplitLen);
 	}
 
@@ -1118,6 +1118,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 	// check if we have to drop anything from the cache
 	if (NewCacheSizeInc > CacheResetThreshold) {
 		printf("Cache clean-up [%s] ... ", TUInt64::GetMegaStr(NewCacheSizeInc).CStr());
+		TTmStopWatch StopWatch(true);
 		// pack all the item sets
 		TBlobPt BlobPt;
 		PGixItemSet ItemSet;
@@ -1125,11 +1126,13 @@ void TGix<TKey, TItem, TGixMerger>::RefreshMemUsed() {
 		while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) {
 			ItemSet->DefLocal();
 		}
+		double Time1 = StopWatch.GetSec();
+		StopWatch.Reset(true);
 		// clean-up cache
 		CacheFullP = ItemSetCache.RefreshMemUsed();
 		NewCacheSizeInc = 0;
 		const uint64 NewSize = ItemSetCache.GetMemUsed();
-		printf("Done [%s]\n", TUInt64::GetMegaStr(NewSize).CStr());
+		printf("Done [%s] (time needed: %.1f + %.1f seconds).\n", TUInt64::GetMegaStr(NewSize).CStr(), Time1, StopWatch.GetSec());
 	}
 }
 
