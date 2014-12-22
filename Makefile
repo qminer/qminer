@@ -107,6 +107,9 @@ install:
 	# set QMINER_HOME environment variable
 	echo "QMINER_HOME=/usr/local/qm-$(VERSION)/\nexport QMINER_HOME" > qm.sh
 	mv ./qm.sh /etc/profile.d/
+	# Copy libraries 
+	cp qm.a /usr/local/lib/
+	cp src/glib/glib.a /usr/local/lib/
 	
 uninstall:
 	# delete installation

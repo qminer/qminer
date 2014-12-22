@@ -1,8 +1,8 @@
 include ../../../../Makefile.config
 
-NODE = /home/lstopar/workspace/JSI/projects/ProaSense/code/qminer-node/node-0.11.14
 NODE_UTILS = ../
 QMINER = ../..
+NODE = $(QMINER)/../third_party/node
 GLIB = $(QMINER)/../glib
 GLIB_BASE = $(GLIB)/base
 GLIB_MINE = $(GLIB)/mine
