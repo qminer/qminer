@@ -1,6 +1,6 @@
-include ../../../Makefile.config
+include ../../Makefile.config
 
-QMINER = ..
+QMINER = ../qminer
 NODE = $(QMINER)/../third_party/node
 GLIB = $(QMINER)/../glib
 GLIB_BASE = $(GLIB)/base

@@ -434,7 +434,7 @@ v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	TNodeJsStore* JsStore = new TNodeJsStore(_Store);
+	TNodeJsStore* JsStore = new TNodeJsStore(_Store, nullptr);	// TODO
 	JsStore->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }

@@ -16,7 +16,7 @@
         ],
          'include_dirs': [
             '../',
-            '../../'
+            '../../qminer'
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/',
@@ -71,9 +71,9 @@
          'type': 'static_library',
          'include_dirs': [
             '.',
-            '../../../glib/base/',
-            '../../../glib/mine/',
-            '../../../glib/misc/'
+            '../../glib/base/',
+            '../../glib/mine/',
+            '../../glib/misc/'
          ],
          'cflags_cc!': [
             '-fno-rtti',
@@ -122,10 +122,10 @@
          'type': 'static_library',
          'include_dirs': [
             '.',
-            '../../',
-            '../../../glib/base/',
-            '../../../glib/mine/',
-            '../../../glib/misc/'
+            '../../qminer',
+            '../../glib/base/',
+            '../../glib/mine/',
+            '../../glib/misc/'
          ],
          'cflags_cc!': [
             '-fno-rtti',
@@ -165,12 +165,12 @@
             }]
          ],
          'sources': [
-            '../../qminer_core.cpp',
-            '../../qminer_gs.cpp',
-            '../../qminer_ftr.cpp',
-            '../../qminer_aggr.cpp',
-            '../../qminer_snap.cpp',
-            '../../qminer_op.cpp'
+            '../../qminer/qminer_core.cpp',
+            '../../qminer/qminer_gs.cpp',
+            '../../qminer/qminer_ftr.cpp',
+            '../../qminer/qminer_aggr.cpp',
+            '../../qminer/qminer_snap.cpp',
+            '../../qminer/qminer_op.cpp'
          ]
       }
    ]
