@@ -1488,8 +1488,11 @@ void TNodeJsRec::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	
 	TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args.Holder());
 
-	const bool JoinRecsP = TNodeJsUtil::GetArgBool(Args, 0, false);	
-	const bool JoinRecFieldsP = TNodeJsUtil::GetArgBool(Args, 1, false);
+	const bool JoinRecsP = TNodeJsUtil::IsArg(Args, 0) ?
+		(TNodeJsUtil::IsArgBool(Args, 0) ? TNodeJsUtil::GetArgBool(Args, 0, false) : false) : false;
+	const bool JoinRecFieldsP = TNodeJsUtil::IsArg(Args, 1) ?
+		(TNodeJsUtil::IsArgBool(Args, 1) ? TNodeJsUtil::GetArgBool(Args, 1, false) : false) : false;
+
 	const bool FieldsP = true;
 	const bool StoreInfoP = false;
 	
