@@ -1,4 +1,4 @@
-#include "util.h"
+#include "nodeutil.h"
 
 /////////////////////////////////////////
 // Node - Utilities

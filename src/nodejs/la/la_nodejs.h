@@ -6,7 +6,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
-#include "../util.h"
+#include "../nodeutil.h"
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
