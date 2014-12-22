@@ -5,8 +5,10 @@ before_install:
  - sudo apt-get install -qq uuid-dev
  - ./test/cpp/install.sh
 install:
+  - ./configure
   - make lib
 script: 
+  - node-gyp --nodedir=src/third_party/node build
   - make
   - make test
   - ./test/javascript/test.sh
