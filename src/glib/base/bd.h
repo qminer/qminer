@@ -77,7 +77,11 @@ typedef ptrdiff_t ssize_t;
 #endif
 
 typedef size_t TSize;
-#define TSizeMx SIZE_MAX
+# if GLib_64Bit
+  #define TSizeMx (18446744073709551615UL)
+# else
+  #define TSizeMx (4294967295U)
+# endif
 
 /////////////////////////////////////////////////
 // Localization
