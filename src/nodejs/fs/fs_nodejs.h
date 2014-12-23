@@ -5,10 +5,9 @@
 #define BUILDING_NODE_EXTENSION
 #endif 
 
-#include "base.h"
-
 #include <node.h>
 #include <node_object_wrap.h>
+#include "base.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////

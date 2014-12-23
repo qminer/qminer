@@ -16,9 +16,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-#include <cstdint>
+
 #ifndef bd_h
 #define bd_h
+
+#include <cstdint>
 
 /////////////////////////////////////////////////
 // Basic-Macro-Definitions
