@@ -1,4 +1,4 @@
-var fs = require('./build/Release/fs.node');
+var fs = require('../../../build/Release/fs.node');
 var assert = require('assert');
 
 // Read the whole file if it exists 

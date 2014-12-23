@@ -1,4 +1,4 @@
-var la = require('./build/Release/la.node');
+var la = require('../../../build/Release/la.node');
 
 ///////////////////////////
 // Return a new vector or a new matrix 
@@ -53,9 +53,9 @@ console.log(w.at(1));
 ///////////////////////////
 // Vector: Catching exceptions 
 try {
-   console.log(w1.at(-1));
+    console.log(w1.at(-1));
 } catch (e) {
-   console.log("[*** Exception ***] \"" + e + "\"");
+    console.log("[*** Exception ***] \"" + e + "\"");
 }
 
 ///////////////////////////
@@ -64,9 +64,9 @@ console.log("== Trying out subVec function ==");
 
 var x = la.newVector([6, 54, 32, 13, 100]);
 try {
-   var z = x.subVec(w1);
+    var z = x.subVec(w1);
 } catch (e) {
-   console.log("Oops: " + e);
+    console.log("Oops: " + e);
 }
 
 // console.log("z.len = " + z.length);
@@ -106,10 +106,10 @@ var W = N.plus(M);
 W.setRow(2, la.newVector([1, 1, 1]));
 
 for (var rowN = 0; rowN < W.rows; ++rowN) {
-   for(var colN = 0; colN < W.cols; ++colN) {
-      console.log("W["+rowN+","+colN+"] = "+W.at(rowN, colN))
-   }
-   console.log("\n");
+    for(var colN = 0; colN < W.cols; ++colN) {
+        console.log("W["+rowN+","+colN+"] = "+W.at(rowN, colN))
+    }
+    console.log("\n");
 }
 
 console.log("Norm of second column of W: " + W.getCol(2).norm());
