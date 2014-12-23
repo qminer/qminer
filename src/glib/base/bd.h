@@ -77,7 +77,7 @@ typedef ptrdiff_t ssize_t;
 #endif
 
 typedef size_t TSize;
-# if GLib_64Bit
+# ifdef GLib_64Bit
   #define TSizeMx (18446744073709551615UL)
 # else
   #define TSizeMx (4294967295U)
