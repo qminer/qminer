@@ -38,7 +38,6 @@ public:
     // directories we're allowed to access 
     TVec<TJsFPath> AllowedFPathV;
 private:
-   
     TNodeJsFs(const TVec<TJsFPath>& AllowedDirV_ = TVec<TJsFPath>()): AllowedFPathV(AllowedDirV_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
@@ -92,7 +91,7 @@ public:
     */
     static PSIn GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args,
         const int& ArgN);
-    
+
     //# 
     //# **Functions and properties:**
     //#     
@@ -129,9 +128,9 @@ public:
     static void Init(v8::Handle<v8::Object> exports);
     static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
     static v8::Local<v8::Object> New(PSOut& SOut_);
-    
+
     static PSOut GetArgFOut(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
-    
+
     //# 
     //# **Functions and properties:**
     //#     

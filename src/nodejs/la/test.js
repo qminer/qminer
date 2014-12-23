@@ -10,7 +10,7 @@ var la = require("./build/Release/la.node")
 
 describe('TNodeJsVec tests', function() {
     var v = new la.vector();
-    
+
     describe('Property Tests', function(){
         describe('Vector Length Test', function(){
             it('should return 0 for vector v', function(){
@@ -18,7 +18,7 @@ describe('TNodeJsVec tests', function() {
             })
         })
     })
-    
+
     describe('Functions Tests', function(){
         describe('Push Test', function(){
             it('pushing 3.1 and 4 into a vector v, v.length should return 2', function(){
@@ -27,26 +27,26 @@ describe('TNodeJsVec tests', function() {
                 assert.equal(v.length,2);
             })
         })
-        
+
         describe('At Test', function(){
             it('returns element in with indexes 0 (3.2) and 1 (4)', function(){
                 assert.equal(3.2,v.at(0));
                 assert.equal(4,v.at(1));
             })
         })
-        
+
         describe('Sum Test', function(){
             it('should return a sum of 3.2 and 4', function(){
                 assert.equal(3.2+4,v.sum());
             })
         })
-        
+
         describe('getMaxIdx Test', function(){
             it('should return index of last element in vector, 1.', function(){
                 assert.equal(v.length-1,v.getMaxIdx());
             })
         })
-        
+
         describe('subVec Test', function(){
             it('should return [3.2,4,3.2]', function(){
                 var subV = v.subVec([0,1,0]);
@@ -57,14 +57,14 @@ describe('TNodeJsVec tests', function() {
                 assert(subV.length == 0);
             })
         })
-        
+
         describe('put Test', function(){
             it('should set v.at(1) to 2', function(){
                 var retVal = v.put(1, 2);
                 assert(v.at(1) == 2);
             })
         })
-        
+
         describe('unshift Test', function(){
             var u = new la.vector([1,2,3]);
             it('should add 5 to the beggining of v', function(){
@@ -73,7 +73,7 @@ describe('TNodeJsVec tests', function() {
                 assert(lenV == u.length);
             })
         })
-        
+
         describe('pushV Test', function(){
             it('v should be [1,2,1,2]', function(){
                 var u = new la.vector([1,2]);
@@ -82,7 +82,7 @@ describe('TNodeJsVec tests', function() {
                 assert(u.length == 4 && u.at(0) == u.at(2) && u.at(1) == u.at(3));
             })
         })
-        
+
         describe('sort Test', function(){
             var w = new la.vector([-3,-4,1,2,3,2,5]);
             var u = w.sort();
@@ -107,7 +107,7 @@ describe('TNodeJsVec tests', function() {
                 assert(w.at(6) == 5);
             })
         })
-        
+
         describe('sortPerm Test', function(){
             var w = new la.vector([-3,-4,1,2,3,2,5]);
             var u = w.sortPerm();
@@ -142,22 +142,22 @@ describe('TNodeJsVec tests', function() {
                 assert(w.at(6) == 5);
             })
         })
-        
+
         /*
         // XXX: Very "basic" 
         describe('shuffle Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('trunc Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('outer Test', function(){
             it('todo', function(){ assert(false); })
         })
         */
-        
+
         describe('inner Test', function(){
             var u1 = new la.vector([1,2,3]);
             var u2 = new la.vector([1,2,3]);
@@ -171,33 +171,33 @@ describe('TNodeJsVec tests', function() {
                 assert(w1.inner(w2) == 0);
             })
         })
-        
+
         /*
         describe('plus Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('minus Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('multiply Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('normalize Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('length Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('toString Test', function(){
             it('todo', function(){ assert(false); })
         })
         */
-        
+
         // TODO: Add test for empty vector
         describe('diag Test', function(){
             var u = new la.vector([0,1,2,3,4,5]);
@@ -214,13 +214,13 @@ describe('TNodeJsVec tests', function() {
                 }
             })
         })
-        
+
         /*
         describe('spDiag Test', function(){
             it('todo', function(){ assert(false); })
         })
         */
-        
+
         // TODO: Add test for empty vector 
         describe('norm Test', function(){
             var u = new la.vector([1,1]);
@@ -228,12 +228,12 @@ describe('TNodeJsVec tests', function() {
                 assert(u.norm() == Math.sqrt(2));
             })
         })
-        
+
         /*
         describe('sparse Test', function(){
             it('todo', function(){ assert(false); })
         })
-        
+
         describe('toMat Test', function(){
             it('todo', function(){ assert(false); })
         })

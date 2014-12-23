@@ -76,7 +76,6 @@ public:
     }
 };
 
-
 class TAuxStrV {
 public:
     static const TStr ClassId; //ClassId is set to "TStrV"
@@ -414,7 +413,7 @@ v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    
+
     TStr Name = "vector";
     if (TAux::ClassId == "TIntV") Name = "intVector";
     if (TAux::ClassId == "TStrV") Name = "strVector";
@@ -514,7 +513,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
                 else { JsVec->Vec.Gen(Vals); }
             }
         } // else return an empty vector 
-
+        
         Instance->SetHiddenValue(Key, Value);
         JsVec->Wrap(Instance);
         Args.GetReturnValue().Set(Instance);
@@ -682,8 +681,6 @@ void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Ar
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
-
-
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -693,7 +690,7 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
     bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
-    
+
     TVec<TVal> Result = JsVec->Vec;
     Result.Sort(Asc);
     Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(Result));    

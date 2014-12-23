@@ -374,7 +374,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "matrix"));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-   
+
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
     NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
@@ -399,11 +399,11 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "diag", diag);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
-    
+
     // Properties 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), rows);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), cols);
-    
+
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
     constructor.Reset(Isolate, tpl->GetFunction());
@@ -416,15 +416,15 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    
+
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
-    
+
     v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
     v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
     // v8::Local<v8::Object> Instance = Args.This();
     Instance->SetHiddenValue(Key, Value);
-    
+
     TNodeJsFltVV* JsMat = new TNodeJsFltVV(FltVV);
     JsMat->Wrap(Instance);
     return HandleScope.Escape(Instance);
@@ -433,7 +433,7 @@ v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
 v8::Local<v8::Object> TNodeJsFltVV::New(v8::Local<v8::Array> Arr) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    
+
     const int Argc = 1;
     v8::Handle<v8::Value> Argv[Argc] = { Arr };
     v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
@@ -443,7 +443,7 @@ v8::Local<v8::Object> TNodeJsFltVV::New(v8::Local<v8::Array> Arr) {
 void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TFltVV Mat;
     if (Args.IsConstructCall()) {
         v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
@@ -512,48 +512,48 @@ void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 2 && Args[0]->IsInt32() && Args[1]->IsInt32(),
         "Expected two nonnegative integers as indices");
-    
+
     const int RowIdx = Args[0]->IntegerValue();
     const int ColIdx = Args[1]->IntegerValue();
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     EAssertR(0 <= RowIdx && RowIdx < JsMat->Mat.GetRows(), "Row index out of bounds");
     EAssertR(0 <= ColIdx && ColIdx < JsMat->Mat.GetCols(), "Column index out of bounds");
-    
+
     const double Res = JsMat->Mat.At(RowIdx, ColIdx);
-    
+
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
 }
 
 void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32() &&
         Args[2]->IsNumber(), "Expected two nonnegative integers as indices");
-    
+
     const int RowIdx = Args[0]->IntegerValue();
     const int ColIdx = Args[1]->IntegerValue();
     const double Val = Args[2]->NumberValue();
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     EAssertR(0 <= RowIdx && RowIdx < JsMat->Mat.GetRows(), "Row index out of bounds");
     EAssertR(0 <= ColIdx && ColIdx < JsMat->Mat.GetCols(), "Column index out of bounds");
-    
+
     JsMat->Mat.At(RowIdx, ColIdx) = Val;
-    
+
     Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1, "Expected one argument");
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     if (Args[0]->IsNumber()) {
@@ -567,7 +567,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
             EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
             TFltV Result(JsMat->Mat.GetRows());
-            
+
             TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
             Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
         } else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
@@ -586,7 +586,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1, "Expected one argument");
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     if (Args[0]->IsNumber()) {
@@ -603,59 +603,59 @@ void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "Expected a matrix");
-    
+
     TNodeJsFltVV* JsOthMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
     TFltVV Result;
     Result.Gen(JsMat->Mat.GetRows(), JsOthMat->Mat.GetCols());
     TLinAlg::LinComb(1.0, JsMat->Mat, 1.0, JsOthMat->Mat, Result);
-    
+
     Args.GetReturnValue().Set(New(Result));
 }
 
 void TNodeJsFltVV::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TNodeJsFltVV* JsOthMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
     TFltVV Result;
     Result.Gen(JsMat->Mat.GetRows(), JsOthMat->Mat.GetCols());
     TLinAlg::LinComb(1.0, JsMat->Mat, -1.0, JsOthMat->Mat, Result);
-    
+
     Args.GetReturnValue().Set(New(Result));
 }
 
 void TNodeJsFltVV::transpose(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TFltVV ResMat;
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     ResMat.Gen(JsMat->Mat.GetCols(), JsMat->Mat.GetRows());
     TLinAlg::Transpose(JsMat->Mat, ResMat);
-    
+
     Args.GetReturnValue().Set(New(ResMat));
 }
 
 void TNodeJsFltVV::solve(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "Expected vector on the input");
-    
+
     TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
-    
+
     EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix \\ vector: dimensions mismatch");
-    
+
     TFltV Result;
     Result.Gen(JsMat->Mat.GetCols());
-    
+
     TNumericalStuff::SolveLinearSystem(JsMat->Mat, JsVec->Vec, Result);
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 }
@@ -681,7 +681,7 @@ void TNodeJsFltVV::rowNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::colNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TFltV Result;
     const int Cols = JsMat->Mat.GetCols();
@@ -696,7 +696,7 @@ void TNodeJsFltVV::colNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::normalizeCols(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TLinAlg::NormalizeColumns(JsMat->Mat);
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -705,86 +705,86 @@ void TNodeJsFltVV::normalizeCols(const v8::FunctionCallbackInfo<v8::Value>& Args
 void TNodeJsFltVV::frob(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     double FrobNorm = 0.0;
     const int Cols = JsMat->Mat.GetCols();
     for (int ColN = 0; ColN < Cols; ColN++) {
         FrobNorm += TLinAlg::Norm2(JsMat->Mat, ColN);
     }
-    
+
     Args.GetReturnValue().Set(v8::Number::New(Isolate, TMath::Sqrt(FrobNorm)));
 }
 
 void TNodeJsFltVV::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TVec<TIntFltKdV> SpMat = TVec<TIntFltKdV>();
     TLinAlg::Sparse(JsMat->Mat, SpMat);
-    
+
     Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat));
 }
 
 void TNodeJsFltVV::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TStr Out = "";
     TLAMisc::PrintTFltVVToStr(JsMat->Mat, Out);
-    
+
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Out.CStr()));
 }
 
 void TNodeJsFltVV::rowMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->Int32Value(),
         "Expected nonnegative integer");
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     const int RowN = Args[0]->Int32Value();
-    
+
     EAssertR(0 <= RowN && RowN < JsMat->Mat.GetRows(),
         "Index out of bounds.");
-    
+
     const int MxIdx = TLinAlg::GetRowMaxIdx(JsMat->Mat, RowN);
-    
+
     Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
 }
 
 void TNodeJsFltVV::colMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsInt32() &&
         Args[0]->Int32Value() >= 0, "Expected nonnegative integer");
-   
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     const int ColN = Args[0]->Int32Value();
-    
+
     EAssertR(0 <= ColN && ColN < JsMat->Mat.GetRows(),
         "Index out of bounds.");
-    
+
     const int MxIdx = TLinAlg::GetColMaxIdx(JsMat->Mat, ColN);
-    
+
     Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
 }
 
 void TNodeJsFltVV::getCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsInt32() &&
         Args[0]->Int32Value() >= 0, "Expected nonnegative integer");
-    
+
     const int ColIdx = Args[0]->Int32Value();
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     TFltV Result;
     JsMat->Mat.GetCol(ColIdx, Result);
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
@@ -793,36 +793,36 @@ void TNodeJsFltVV::getCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::setCol(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 2 && Args[1]->IsObject() && Args[0]->IsInt32(),
         "Expected vector on the input");
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[1]->ToObject());
-    
+
     const int ColN = Args[0]->Int32Value();
-    
+
     EAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len(),
         "Number of rows of the matrix should equals the size of the vector");
-    
+
     for (int RowN = 0; RowN < JsMat->Mat.GetRows(); ++RowN) {
         JsMat->Mat.At(RowN, ColN) = JsVec->Vec[RowN];
     }
-    
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsFltVV::getRow(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsInt32() &&
         Args[0]->Int32Value() >= 0, "Expected nonnegative integer");
-    
+
     const int RowIdx = Args[0]->Int32Value();
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     TFltV Result;
     JsMat->Mat.GetRow(RowIdx, Result);
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
@@ -831,82 +831,83 @@ void TNodeJsFltVV::getRow(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::setRow(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 2 && Args[1]->IsObject() && Args[0]->IsInt32(),
         "Expected vector on the input");
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[1]->ToObject());
-    
+
     const int RowN = Args[0]->Int32Value();
-    
+
     EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(),
         "Number of rows of the matrix should equals the size of the vector");
-    
+
     for (int ColN = 0; ColN < JsMat->Mat.GetCols(); ++ColN) {
         JsMat->Mat.At(RowN, ColN) = JsVec->Vec[ColN];
     }
-    
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsFltVV::diag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     EAssertR(JsMat->Mat.GetCols() == JsMat->Mat.GetRows(),
         "Expected a square matrix.");
-    
+
     TFltV DiagV; DiagV.Gen(JsMat->Mat.GetRows());
     for (int ElN = 0; ElN < JsMat->Mat.GetRows(); ++ElN) {
         DiagV[ElN] = JsMat->Mat.At(ElN, ElN);
     }
-    
+
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(DiagV));
 }
 
 void TNodeJsFltVV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     // TODO: Make Node.js compatible 
     // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     // PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
     // save to stream
     // JsMat->Mat.Save(*SOut);
-    
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsFltVV::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
+    // TODO: Make Node.js compatible 
     // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsFltVV::cols(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     v8::Local<v8::Object> Self = Info.Holder();
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Self);
-    
+
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetCols()));
 }
 
 void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     v8::Local<v8::Object> Self = Info.Holder();
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Self);
-    
+
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMat->Mat.GetRows()));
 }
 
@@ -1006,11 +1007,11 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         v8::Local<v8::Value> Argv[Argc] = { Args[0] };
         v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
         v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        
+
         v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntFltKdV");
         Instance->Set(Key, Value);
-        
+
         Args.GetReturnValue().Set(Instance);
     }
 }
@@ -1018,16 +1019,16 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpVec::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsInt32(),
         "Expected integer index");
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     const int Idx = Args[0]->Int32Value();
     EAssertR(Idx >= 0 && Idx < JsSpVec->Vec.Len(), "Index out of bounds.");
-    
+
     bool FoundP = false;
     for (int ElN = 0; ElN < JsSpVec->Vec.Len(); ++ElN) {
         if ((FoundP = JsSpVec->Vec[ElN].Key == Idx)) {
@@ -1044,17 +1045,17 @@ void TNodeJsSpVec::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpVec::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 2 && Args[0]->IsInt32() &&
         Args[0]->IsNumber(),
         "Expected integer index");
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     const int Idx = Args[0]->Int32Value();
     const double Val = Args[1]->NumberValue();
-    
+
     bool FoundP = false;
     for (int ElN = 0; ElN < JsSpVec->Vec.Len(); ++ElN) {
         if ((FoundP = (JsSpVec->Vec[ElN].Key == Idx))) {
@@ -1075,28 +1076,28 @@ void TNodeJsSpVec::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpVec::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     EAssertR(JsSpVec->Vec.Len() > 0, "Summing vector of length zero");
-    
+
     const double Result =
         JsSpVec->Vec.Len() > 0 ? TLinAlg::SumVec(JsSpVec->Vec) : 0.0;
-    
+
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
 }
 
 void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected dnese or sparse vector on the input.");
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     if (Args[0]->IsObject()) {
         double Result = 0.0;
         if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
@@ -1120,43 +1121,43 @@ void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpVec::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsNumber(), "Expected a scalar.");
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     double Scalar = Args[0]->NumberValue();
     // get the internal glib vector
     TIntFltKdV Result;
     // computation
     Result.Gen(JsSpVec->Vec.Len());
     TLinAlg::MultiplyScalar(Scalar, JsSpVec->Vec, Result);
-    
+
     Args.GetReturnValue().Set(New(Result));
 }
 
 void TNodeJsSpVec::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     if (JsSpVec->Vec.Len() > 0) {
         TLinAlg::Normalize(JsSpVec->Vec);
     } // XXX: Otherwise, throw an exception? 
-    
+
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
 void TNodeJsSpVec::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     const double Result = TLinAlg::Norm(JsSpVec->Vec);
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
 }
@@ -1164,84 +1165,84 @@ void TNodeJsSpVec::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpVec::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     int Len = JsSpVec->Vec.Len();
     if (Args.Length() > 0 && Args[0]->IsInt32()) { Len = Args[0]->Int32Value(); }
     if (Len == -1) { Len = TLAMisc::GetMaxDimIdx(JsSpVec->Vec) + 1; }
     TFltV Res;
     TLAMisc::ToVec(JsSpVec->Vec, Res, Len);        
-    
+
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
 
 void TNodeJsSpVec::valVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     const int NNZ = JsSpVec->Vec.Len();
     TFltV Res(NNZ, 0);
     // copy values to Res
     for (int ElN = 0; ElN < NNZ; ElN++) { Res.Add(JsSpVec->Vec[ElN].Dat); }
-    
+
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
 
 void TNodeJsSpVec::idxVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     int NNZ = JsSpVec->Vec.Len();
     TIntV Res(NNZ, 0);
     // copy values to Res
     for (int ElN = 0; ElN < NNZ; ElN++) {
         Res.Add(JsSpVec->Vec[ElN].Key);
     }
-    
+
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
 
 void TNodeJsSpVec::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
-    
+
     TStr Str = "[";
     for (auto It = JsSpVec->Vec.BegI(); It != JsSpVec->Vec.EndI(); ++It) {
         if (It != JsSpVec->Vec.BegI()) { Str += ", "; }
         Str += "(" + TInt::GetStr(It->Key) + "," + TFlt::GetStr(It->Dat) + ")";
     }
-    
+
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }
 
 void TNodeJsSpVec::nnz(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     v8::Local<v8::Object> Self = Info.Holder();
     TNodeJsSpVec* JsSpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Self);
-    
+
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsSpVec->Vec.Len()));
 }
 
 void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     v8::Local<v8::Object> Self = Info.Holder();
     TNodeJsSpVec* JsSpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Self);
-    
+
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsSpVec->Dim));
 }
 
@@ -1251,12 +1252,12 @@ v8::Persistent<v8::Function> TNodeJsSpMat::constructor;
 
 void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    
+
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "sparseColMatrix"));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    
+
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
     NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
@@ -1273,11 +1274,11 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "print", print);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
-     
+
     // Properties 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), rows);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), cols);
-    
+
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
     constructor.Reset(Isolate, tpl->GetFunction());
@@ -1290,14 +1291,14 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& Rows) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    
+
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
-    
+
     v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
     v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TVec<TIntFltKdV>");
     Instance->SetHiddenValue(Key, Value);
-    
+
     TNodeJsSpMat* JsSpMat = new TNodeJsSpMat(Mat, Rows);
     JsSpMat->Wrap(Instance);
     return HandleScope.Escape(Instance);
@@ -1306,7 +1307,7 @@ v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& 
 v8::Local<v8::Object> TNodeJsSpMat::New(v8::Local<v8::Array> Arr) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    
+
     const int Argc = 1;
     v8::Handle<v8::Value> Argv[Argc] = { Arr };
     v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
@@ -1316,34 +1317,34 @@ v8::Local<v8::Object> TNodeJsSpMat::New(v8::Local<v8::Array> Arr) {
 void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     if (Args.IsConstructCall()) {
         TNodeJsSpMat* JsSpMat = new TNodeJsSpMat();
-        
+
         v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TVec<TIntFltKdV>");
         v8::Local<v8::Object> Instance = Args.This();
         Instance->SetHiddenValue(Key, Value);
-        
+
         JsSpMat->Wrap(Instance);
-        
+
         if (Args.Length() > 0) {
             if (Args.Length() >= 3 && Args.Length() <= 4 &&
                 TNodeJsUtil::IsArgClass(Args, 0, "TIntV") &&
                 TNodeJsUtil::IsArgClass(Args, 1, "TIntV") &&
                 TNodeJsUtil::IsArgClass(Args, 2, "TFltV")) {
-                
+
                 TNodeJsVec<TInt, TAuxIntV>* RowIdxV =
                     ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV>>(Args[0]->ToObject());
                 TNodeJsVec<TInt, TAuxIntV>* ColIdxV =
                     ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV>>(Args[1]->ToObject());
                 TNodeJsVec<TFlt, TAuxFltV>* ValV =
                     ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[2]->ToObject());
-                
+
                 int Cols = Args.Length() == 4 && Args[3]->IsInt32() ?
                     Args[3]->Int32Value() : -1;
                 if (Cols < 0) { Cols = ColIdxV->Vec.GetMxVal() + 1; }
-                
+
                 TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(
                     RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, JsSpMat->Mat, Cols);
             } else if (Args[0]->IsArray()) {
@@ -1378,11 +1379,11 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         v8::Local<v8::Value> Argv[Argc] = { Args[0] };
         v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
         v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        
+
         v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TVec<TIntFltKdV>");
         Instance->Set(Key, Value);
-        
+
         Args.GetReturnValue().Set(Instance);
     }
 }
@@ -1390,16 +1391,16 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 2 && Args[0]->IsInt32() && Args[1]->IsInt32(),
         "Expected row and column indices as arguments.");
-    
+
     int Row = Args[0]->Int32Value();
     int Col = Args[1]->Int32Value();
-    
+
     TNodeJsSpMat* JsSpMat =
         ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
-   
+
     TInt Rows = JsSpMat->Rows;
     TInt Cols = JsSpMat->Mat.Len();
     EAssertR(Row >= 0 &&  (Row < Rows || Rows == -1) && Col >= 0 && Col < Cols,
@@ -1418,22 +1419,22 @@ void TNodeJsSpMat::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 3 && Args[0]->IsInt32() && Args[1]->IsInt32() &&
         Args[2]->IsNumber(),
         "Expected three arguments: row and col index, and a value");
-    
+
     TNodeJsSpMat* JsSpMat =
         ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
-    
+
     const int Row = Args[0]->Int32Value();
     const int Col = Args[1]->Int32Value();
     const double Val = Args[2]->NumberValue();
-    
+
     TInt Rows = JsSpMat->Rows;
     TInt Cols = JsSpMat->Mat.Len();
     EAssertR(Row >= 0 &&  (Row < Rows || Rows == -1) && Col >= 0 && Col < Cols, "sparse col matrix put: index out of bounds");
-    
+
     bool FoundP = false;
     const int Els = JsSpMat->Mat[Col].Len();
     for (int ElN = 0; ElN < Els; ElN++) {
@@ -1453,36 +1454,36 @@ void TNodeJsSpMat::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             JsSpMat->Rows = Row + 1;
         }
     }
-    
+
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
 void TNodeJsSpMat::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsObject() &&
         TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV"),
         "Expected a TIntFltKdV as the only argument");
-    
+
     TNodeJsSpMat* JsSpMat =
         ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
-    
+
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
-    
+
     JsSpMat->Mat.Add(JsSpVec->Vec);
     if (JsSpMat->Rows.Val != -1) {
         JsSpMat->Rows = MAX(JsSpMat->Rows.Val, TLAMisc::GetMaxDimIdx(JsSpVec->Vec) + 1);
     }
-    
+
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
 }
 
 void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     if (Args.Length() > 0) {
         if (Args[0]->IsNumber()) {
@@ -1536,7 +1537,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     if (Args.Length() > 0) {
         if (Args[0]->IsNumber()) {
@@ -1609,7 +1610,7 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     if (Args.Length() > 0 && Args[0]->IsObject() &&
         TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -1651,7 +1652,7 @@ void TNodeJsSpMat::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     if (Args.Length() > 0 && Args[0]->IsObject() &&
         TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
@@ -1694,18 +1695,18 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::transpose(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TVec<TIntFltKdV> Result;
     TLinAlg::Transpose(JsSpMat->Mat, Result);
-    
+
     Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
 }
 
 void TNodeJsSpMat::colNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TFltV Result;
     int Cols = JsSpMat->Mat.Len();
@@ -1713,24 +1714,24 @@ void TNodeJsSpMat::colNorms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     for (int ColN = 0; ColN < Cols; ColN++) {
         Result[ColN] = TLinAlg::Norm(JsSpMat->Mat[ColN]);
     }
-    
+
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 }
 
 void TNodeJsSpMat::normalizeCols(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TLinAlg::NormalizeColumns(JsSpMat->Mat);
-    
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsSpMat::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TFltVV Result;
     int Rows = JsSpMat->Rows;
@@ -1738,53 +1739,53 @@ void TNodeJsSpMat::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         Rows = TLAMisc::GetMaxDimIdx(JsSpMat->Mat) + 1;
     }
     TLinAlg::Full(JsSpMat->Mat, Result, Rows);    
-    
+
     Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
 }
 
 void TNodeJsSpMat::frob(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     double FrobNorm = 0.0;
     int Cols = JsSpMat->Mat.Len();
     for (int ColN = 0; ColN < Cols; ColN++) {
         FrobNorm += TLinAlg::Norm2(JsSpMat->Mat[ColN]);
     }
-    
+
     Args.GetReturnValue().Set(v8::Number::New(Isolate, FrobNorm));
 }
 
 void TNodeJsSpMat::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat =
         ObjectWrap::Unwrap<TNodeJsSpMat>(Info.Holder());
-    
+
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsSpMat->Rows));
 }
 
 void TNodeJsSpMat::cols(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat =
         ObjectWrap::Unwrap<TNodeJsSpMat>(Info.Holder());
-    
+
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsSpMat->Mat.Len()));
 }
 
 void TNodeJsSpMat::print(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
-    
+
     TStr SpMatStr;
     TLAMisc::PrintSpMat(JsSpMat->Mat, SpMatStr);
-    
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 

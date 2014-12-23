@@ -3,9 +3,9 @@ var assert = require('assert');
 
 // Read the whole file if it exists 
 if (fs.exists("./test.out")) {
-   var fin_1 = fs.openRead("./test.out");
-   var s1 = fin_1.readAll();
-   console.log(s1);
+    var fin_1 = fs.openRead("./test.out");
+    var s1 = fin_1.readAll();
+    console.log(s1);
 }
 
 var fout_1 = fs.openWrite("./test.out");
