@@ -1,11 +1,14 @@
 #ifndef QMINER_FS_NODEJS
 #define QMINER_FS_NODEJS
 
+#ifndef BUILDING_NODE_EXTENSION
 #define BUILDING_NODE_EXTENSION
+#endif 
+
+#include "base.h"
 
 #include <node.h>
 #include <node_object_wrap.h>
-#include "base.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////
@@ -96,10 +99,10 @@ public:
    static PSIn GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args,
       const int& ArgN);
    
-    //# 
-	 //# **Functions and properties:**
-	 //#     
-   JsDeclareFunction(New);
+    //#
+	//# **Functions and properties:**
+	//#
+    JsDeclareFunction(New);
     //#- `char = fin.peekCh()` -- peeks a character
 	JsDeclareFunction(peekCh);
     //#- `char = fin.getCh()` -- reads a character
@@ -135,10 +138,10 @@ public:
    
    static PSOut GetArgFOut(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
    
-   //# 
+    //#
 	//# **Functions and properties:**
 	//#     
-   JsDeclareFunction(New);
+    JsDeclareFunction(New);
     //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
 	JsDeclareFunction(write);
     //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline

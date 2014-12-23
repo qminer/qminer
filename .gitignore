@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# project files folder
+project
+
 # project files from Eclipse
 .project
 .cproject
