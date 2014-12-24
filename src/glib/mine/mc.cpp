@@ -25,16 +25,29 @@ TClust::TClust(const TRnd& _Rnd, const PNotify& _Notify):
 	CentroidDistStatV(),
 	Notify(_Notify) {}
 
+TClust::TClust(TSIn& SIn) {
+	Rnd = TRnd(SIn);
+	CentroidMat.Load(SIn);
+	CentroidDistStatV.Load(SIn);
+}
+
 void TClust::Save(TSOut& SOut) const {
+	GetType().Save(SOut);
 	Rnd.Save(SOut);
 	CentroidMat.Save(SOut);
 	CentroidDistStatV.Save(SOut);
 }
 
-void TClust::Load(TSIn& SIn) {
-	Rnd = TRnd(SIn);
-	CentroidMat.Load(SIn);
-	CentroidDistStatV.Load(SIn);
+PClust TClust::Load(TSIn& SIn) {
+	const TStr Type(SIn);
+
+	if (Type == "kmeans") {
+		return new TFullKMeans(SIn);
+	} else if (Type == "dpmeans") {
+		return new TDpMeans(SIn);
+	} else {
+		throw TExcept::New("Invalid clustering type: " + Type, "TClust::Load");
+	}
 }
 
 int TClust::Assign(const TVector& x) const {
@@ -156,14 +169,14 @@ TFullKMeans::TFullKMeans(const int& _K, const TRnd& _Rnd, const PNotify& _Notify
 		TClust(_Rnd, _Notify),
 		K(_K) {}
 
+TFullKMeans::TFullKMeans(TSIn& SIn):
+		TClust(SIn) {
+	K.Load(SIn);
+}
+
 void TFullKMeans::Save(TSOut& SOut) const {
 	TClust::Save(SOut);
 	K.Save(SOut);
-}
-
-void TFullKMeans::Load(TSIn& SIn) {
-	TClust::Load(SIn);
-	K.Load(SIn);
 }
 
 TFullMatrix TFullKMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter) {
@@ -224,18 +237,18 @@ TDpMeans::TDpMeans(const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _Max
 	EAssertR(MaxClusts >= MinClusts, "TDpMeans::TDpMeans: The max number of clusters should be greater than the min number of clusters!");
 }
 
+TDpMeans::TDpMeans(TSIn& SIn):
+		TClust(SIn) {
+	Lambda.Load(SIn);
+	MinClusts.Load(SIn);
+	MaxClusts.Load(SIn);
+}
+
 void TDpMeans::Save(TSOut& SOut) const {
 	TClust::Save(SOut);
 	Lambda.Save(SOut);
 	MinClusts.Save(SOut);
 	MaxClusts.Save(SOut);
-}
-
-void TDpMeans::Load(TSIn& SIn) {
-	TClust::Load(SIn);
-	Lambda.Load(SIn);
-	MinClusts.Load(SIn);
-	MaxClusts.Load(SIn);
 }
 
 TFullMatrix TDpMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter) {
@@ -310,6 +323,9 @@ TFullMatrix TDpMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& Max
 	return CentroidMat;
 }
 
+
+/////////////////////////////////////////////
+// MDS
 TFullMatrix TEuclMds::Project(const TFullMatrix& X, const int& d) {
 	// first center the rows of matrix X
 	TFullMatrix X1 = X.GetCenteredRows();
@@ -1040,6 +1056,12 @@ void TCtMChain::AbsOnAddRec(const int& StateIdx, const uint64& RecTm) {
 
 /////////////////////////////////////////////////////////////////
 // Hierarchical continous time Markov Chain
+THierarchCtmc::THierarchCtmc():
+		Clust(nullptr),
+		MChain(nullptr),
+		Hierarch(nullptr),
+		Notify(nullptr) {}
+
 THierarchCtmc::THierarchCtmc(const PClust& _Clust, const PMChain& _MChain,
 		const PHierarch& _Hierarch, const PNotify& _Notify):
 		Clust(_Clust),
@@ -1058,9 +1080,12 @@ void THierarchCtmc::Save(TSOut& SOut) const {
 void THierarchCtmc::Load(TSIn& SIn) {
 	Notify->OnNotify(TNotifyType::ntInfo, "THierarchCtmc::Load: loading from stream ...");
 
-	Clust->Load(SIn);
+	Clust = TClust::Load(SIn);
 	MChain->Load(SIn);
 	Hierarch->Load(SIn);
+
+	// FIXME somehow save and load notify
+	Notify = TStdNotify::New();
 }
 
 PJsonVal THierarchCtmc::SaveJson() const {
