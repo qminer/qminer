@@ -46,10 +46,14 @@ public:
 	TClust(const TRnd& Rnd=TRnd(0), const PNotify& Notify=TNullNotify::New());
 	virtual ~TClust() {}
 
+protected:
+	TClust(TSIn& SIn);
+
+public:
 	// saves the model to the output stream
 	virtual void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	virtual void Load(TSIn& SIn);
+	static PClust Load(TSIn& SIn);
 
 	// Applies the algorithm. Instances should be in the columns of X.
 	virtual TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000) = 0;
@@ -88,6 +92,9 @@ protected:
 	TVector Assign(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
 
 	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
+
+	// returns the type of this clustering
+	virtual const TStr GetType() const = 0;
 };
 
 class TFullKMeans: public TClust {
@@ -96,15 +103,17 @@ private:
 
 public:
 	TFullKMeans(const int& K, const TRnd& Rnd=TRnd(0), const PNotify& Notify=TNullNotify::New());
+	TFullKMeans(TSIn& SIn);
 
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	void Load(TSIn& SIn);
 
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
 	TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000);
+
+protected:
+	const TStr GetType() const { return "kmeans"; }
 };
 
 class TDpMeans: public TClust {
@@ -115,15 +124,17 @@ private:
 
 public:
 	TDpMeans(const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const PNotify& Notify=TNullNotify::New());
+	TDpMeans(TSIn& SIn);
 
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	void Load(TSIn& SIn);
 
 	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
 	// the point is assigned to
 	TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000);
+
+protected:
+	const TStr GetType() const { return "dpmeans"; }
 };
 
 class TEuclMds {
@@ -367,6 +378,7 @@ private:
     PNotify Notify;
 
 public:
+    THierarchCtmc();
     THierarchCtmc(const PClust& Clust, const PMChain& MChain, const PHierarch& Hierarch, const PNotify& Notify=TNullNotify::New());
 
     // saves the model to the output stream

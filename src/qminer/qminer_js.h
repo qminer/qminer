@@ -2743,6 +2743,9 @@ public:
 
 	//#- `model = analytics.newCtmc(opts)` creates a new hierarchical continous time Markov chain model
 	JsDeclareFunction(newCtmc);
+	//#- `model = analytics.loadCtmc(fname)` loads a hierarchical continous time Markov chain model
+	//#- from file `fname`
+	JsDeclareFunction(loadCtmc);
 
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
@@ -2949,10 +2952,13 @@ private:
 private:
 	typedef TJsObjUtil<TJsHierMc> TJsHierMcUtil;
 	TJsHierMc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
+	TJsHierMc(TWPt<TScript> Js, const PFtrSpace& FtrSpace, TSIn& SIn);
 
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace) {
 		return TJsHierMcUtil::New(new TJsHierMc(Js, ParamVal, FtrSpace)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace, TSIn& SIn) {
+		return TJsHierMcUtil::New(new TJsHierMc(Js, FtrSpace, SIn)); }
 	static v8::Handle<v8::ObjectTemplate> GetTemplate();
 
 	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
@@ -2967,9 +2973,6 @@ public:
 
 	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
-	//#- `hctmc.load(fin)` -- Loads the models from the input stream
-	JsDeclareFunction(load);
-
 
 private:
 	void Init(const PRecSet& RecSet);

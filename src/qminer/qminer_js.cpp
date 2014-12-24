@@ -5856,6 +5856,7 @@ v8::Handle<v8::ObjectTemplate> TJsAnalytics::GetTemplate() {
         JsRegisterFunction(TmpTemp, newTokenizer);
         JsRegisterFunction(TmpTemp, getLanguageOptions);
         JsRegisterFunction(TmpTemp, newCtmc);
+        JsRegisterFunction(TmpTemp, loadCtmc);
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
 		Template = v8::Persistent<v8::ObjectTemplate>::New(TmpTemp);
@@ -6254,6 +6255,16 @@ v8::Handle<v8::Value> TJsAnalytics::newCtmc(const v8::Arguments& Args) {
 	PJsonVal ArgsJson = TJsAnalyticsUtil::GetArgJson(Args, 0);
 	PFtrSpace FtrSpace = TJsFtrSpace::GetArgFtrSpace(Args, 1);
 	return TJsHierMc::New(JsAnalytics->Js, ArgsJson, FtrSpace);
+}
+
+v8::Handle<v8::Value> TJsAnalytics::loadCtmc(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	TJsAnalytics* JsAnalytics = TJsAnalyticsUtil::GetSelf(Args);
+
+	PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
+
+	PFtrSpace FtrSpace = TFtrSpace::Load(JsAnalytics->Js->Base, *SIn);
+	return TJsHierMc::New(JsAnalytics->Js, FtrSpace, *SIn);
 }
 
 ///////////////////////////////
@@ -6840,6 +6851,13 @@ TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpac
 	McModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Notify);
 }
 
+TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace, TSIn& SIn):
+		Js(_Js),
+		FtrSpace(_FtrSpace) {
+	McModel = new TMc::THierarchCtmc();
+	McModel->Load(SIn);
+}
+
 
 v8::Handle<v8::ObjectTemplate> TJsHierMc::GetTemplate() {
 	v8::HandleScope HandleScope;
@@ -6853,7 +6871,6 @@ v8::Handle<v8::ObjectTemplate> TJsHierMc::GetTemplate() {
 		JsRegisterFunction(TmpTemp, getTransitionModel);
 
 		JsRegisterFunction(TmpTemp, save);
-		JsRegisterFunction(TmpTemp, load);
 
 		TmpTemp->SetAccessCheckCallbacks(TJsUtil::NamedAccessCheck, TJsUtil::IndexedAccessCheck);
 		TmpTemp->SetInternalFieldCount(1);
@@ -6945,21 +6962,9 @@ v8::Handle<v8::Value> TJsHierMc::save(const v8::Arguments& Args) {
 	try {
 		TJsHierMc* JsModel = TJsHierMcUtil::GetSelf(Args);
 		PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
+
+		JsModel->FtrSpace->Save(*SOut);
 		JsModel->McModel->Save(*SOut);
-	} catch (const PExcept& Except) {
-		printf("TJsHierCtmc::toJSON: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
-	}
-
-	return HandleScope.Close(v8::Undefined());
-}
-
-v8::Handle<v8::Value> TJsHierMc::load(const v8::Arguments& Args) {
-	v8::HandleScope HandleScope;
-
-	try {
-		TJsHierMc* JsModel = TJsHierMcUtil::GetSelf(Args);
-		PSIn SIn = TJsFIn::GetArgFIn(Args, 0);
-		JsModel->McModel->Load(*SIn);
 	} catch (const PExcept& Except) {
 		printf("TJsHierCtmc::toJSON: Failed to generate JSON: %s\n", Except->GetMsgStr().CStr());
 	}
