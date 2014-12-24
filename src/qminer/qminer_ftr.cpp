@@ -279,6 +279,16 @@ void TFtrSpace::GetFullV(const TRec& Rec, TFltV& FullV) const {
 	}    
 }
 
+void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
+	int Offset = 0;
+	for (int FtrExtN = 0; FtrExtN < FtrExtV.Len(); FtrExtN++) {
+		const PFtrExt FtrExt = FtrExtV[FtrExtN];
+
+		TFltV InvV;	FtrExt->InvFullV(FullV, Offset, InvV);
+		InvertV.AddV(InvV);
+	}
+}
+
 void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const {
     TEnv::Logger->OnStatusFmt("Creating sparse feature vectors from %d records", RecSet->GetRecs());
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
@@ -446,6 +456,11 @@ void TConstant::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FullV[Offset] = Constant.Val; Offset++;
 }
 
+void TConstant::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	InvV.Add(Constant.Val);
+	Offset++;
+}
+
 void TConstant::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
 	FltV.Add(Constant.Val);
 }
@@ -493,6 +508,10 @@ void TRandom::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 
 void TRandom::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FullV[Offset] = Rnd.GetUniDev(); Offset++;
+}
+
+void TRandom::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TRandom::InvFullV");
 }
 
 void TRandom::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
@@ -607,6 +626,10 @@ void TNumeric::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FtrGen.AddFtr(GetVal(Rec), FullV, Offset);
 }
 
+void TNumeric::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	InvV.Add(FtrGen.InvFtr(FullV, Offset));
+}
+
 void TNumeric::ExtractFltV(const TRec& Rec, TFltV& FltV) const {
 	FltV.Add(FtrGen.GetFtr(GetVal(Rec)));   
 }
@@ -714,6 +737,10 @@ void TCategorical::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
 
 void TCategorical::AddFullV(const TRec& Rec, TFltV& FtrV, int& Offset) const {
 	FtrGen.AddFtr(GetVal(Rec), FtrV, Offset);
+}
+
+void TCategorical::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TCategorical::InvFullV");
 }
 
 void TCategorical::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
@@ -964,6 +991,10 @@ void TMultinomial::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     for(int SpN = 0; SpN < SpV.Len(); SpN++ ){
         FullV[SpV[SpN].Key] = SpV[SpN].Dat;
     }
+}
+
+void TMultinomial::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TMultinomial::InvFullV");
 }
 
 void TMultinomial::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
@@ -1369,6 +1400,10 @@ void TBagOfWords::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
 	}
 }
 
+void TBagOfWords::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TBagOfWords::InvFullV");
+}
+
 void TBagOfWords::ExtractStrV(const TRec& Rec, TStrV& StrV) const {
 	TStrV RecStrV; GetVal(Rec, RecStrV);
 	for (int RecStrN = 0; RecStrN < RecStrV.Len(); RecStrN++) { 
@@ -1466,6 +1501,10 @@ void TJoin::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 	}
 	// and attach to the provided vector
 	Offset += Dim;
+}
+
+void TJoin::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TJoin::InvFullV");
 }
 
 void TJoin::ExtractStrV(const TRec& FtrRec, TStrV& StrV) const {
@@ -1638,6 +1677,10 @@ void TPair::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
     Offset += GetDim();
 }
 
+void TPair::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TPair::InvFullV");
+}
+
 void TPair::ExtractStrV(const TRec& _FtrRec, TStrV& StrV) const {
 	// do the joins
 	Assert(IsStartStore(_FtrRec.GetStoreId()));
@@ -1791,6 +1834,10 @@ void TDateWnd::AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const {
 
 void TDateWnd::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
     FtrGen.AddFtr(TTm::GetTmFromMSecs(GetVal(Rec)), FullV, Offset);
+}
+
+void TDateWnd::InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+	throw TExcept::New("Not implemented yet!!", "TPair::InvFullV");
 }
 
 }

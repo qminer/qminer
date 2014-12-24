@@ -64,12 +64,11 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
 }
 
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
 	TStr FNm = TStr(*v8::String::Utf8Value(Args[0]->ToString()));
-   EAssertR(TFile::Exists(FNm),
-      TStr("File '" + FNm + "' does not exist").CStr());
+	EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
 	Args.GetReturnValue().Set(TNodeJsFIn::New(FNm));
 }
 

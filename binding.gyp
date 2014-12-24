@@ -104,6 +104,39 @@
                 }]
             ]
         }, {
+            # node analytics module
+            'target_name': 'analytics',
+            'sources': [            
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/analytics/analytics.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp'
+            ],
+            'include_dirs': [
+				'src/nodejs/',
+				'src/qminer/',
+				'src/glib/base/',
+				'src/glib/mine/',
+				'src/glib/misc/'
+            ],
+            'dependencies': [
+                'glib',
+                'qminer'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
             # qminer library
             'target_name': 'qminer',
             'type': 'static_library',
