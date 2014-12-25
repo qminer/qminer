@@ -1,12 +1,9 @@
 // 
-// Unit tests for LA addon using standard assert JS library 
-// 
-// Working with the commit c817931e72bd1102a80df59c11da4a2316b2bbf7 of the qminer:
-// Can move there with "git reset --hard <sha-1>". (WARNING: Might cause headaches.)
+// Unit tests for LA addon using standard JS assert library 
 // 
 
 var assert = require("assert")
-var la = require("./build/Release/la.node")
+var la = require("../../../build/Release/la.node")
 
 describe('TNodeJsVec tests', function() {
     var v = new la.vector();

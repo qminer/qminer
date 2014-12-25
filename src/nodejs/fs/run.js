@@ -8,20 +8,22 @@ if (fs.exists("./test.out")) {
     console.log(s1);
 }
 
+// Write to a file 
 var fout_1 = fs.openWrite("./test.out");
-fout_1.writeLine("Blue note");
+fout_1.writeLine("Test line 1.");
 fout_1.close();
 
 assert(fs.exists("./test.out"));
 
+// Append to a file 
 var fout = fs.openAppend("./test.out"); 
-fout.writeLine("Soncno zimsko jutro");
-fout.writeLine("QMiner");
+fout.writeLine("Test line 2.");
+fout.writeLine("Test line 3.");
 fout.flush();
 fout.close();
 
 // Equivalent way to read a file 
-var fin = new fs.FIn("./test.out");
+var fin = fs.openRead("./test.out");
 var s = fin.readAll();
 console.log(s);
 
@@ -29,10 +31,43 @@ console.log(s);
 var info = fs.fileInfo("./test.out");
 console.log(info);
 
-// Delte the file 
-fs.del("./test.out");
+/*
+// Copy file
+fs.copy("./test.out", "./test-copy.out");
+assert(fs.exists("./test-copy.out"));
+*/
 
-// Make sure it was deleted 
-assert(!fs.exists("./test.out"));
+/*
+// Move file 
+fs.move("./test-copy.out", "./test-moved.out");
+assert(!fs.exists("./test-copy.out"));
+assert(fs.exists("./test-moved.out"));
+*/
 
+// Rename file 
+fs.rename("test.out", "tset.out");
+assert(fs.exists("tset.out"));
+assert(!fs.exists("test.out"));
+
+// Delete file 
+fs.del("tset.out");
+assert(!fs.exists("tset.out"));
+
+/*
+// Create directory 
+assert(!fs.exists("test/"));
+fs.mkdir("test");
+assert(fs.exists("test/"));
+
+// Remove directory 
+var delP = fs.rmdir("test");
+console.log("delP = " + delP);
+assert(!fs.exists("./test"));
+*/
+
+// List all C and C++ header files in the QMiner source directory 
+var fileArr = fs.listFile("../../", "h", true);
+for (var i = 0; i < fileArr.length; ++i) {
+    console.log(fileArr[i]);
+}
 

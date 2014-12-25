@@ -66,6 +66,7 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(FNm),
@@ -79,7 +80,7 @@ void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // 
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    Args.GetReturnValue().Set(TNodeJsFOut::New(FNm));
+    Args.GetReturnValue().Set(TNodeJsFOut::New(FNm, false));
 }
 
 void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { // call with AppendP = true 
@@ -95,6 +96,7 @@ void TNodeJsFs::exists(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Exists(FNm)));
 }
@@ -103,9 +105,11 @@ void TNodeJsFs::copy(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
+        "Expected 2 arguments: source and destination file paths.");
     TStr SrcFNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
-    TStr DstFNm = TStr(*v8::String::Utf8Value(Args[1]->ToString()));
+    EAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
+    TStr DstFNm(*v8::String::Utf8Value(Args[1]->ToString()));
     TFile::Copy(SrcFNm, DstFNm);
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -114,6 +118,8 @@ void TNodeJsFs::move(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
+        "Expected 2 arguments: source and destination file paths.");
     TStr SrcFNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
     TStr DstFNm(*v8::String::Utf8Value(Args[1]->ToString()));
@@ -126,6 +132,8 @@ void TNodeJsFs::del(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 1 && Args[0]->IsString(),
+        "Expected a file path as the only argument.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
     TFile::Del(FNm, false); // ThrowExceptP = false 
@@ -136,6 +144,8 @@ void TNodeJsFs::rename(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
+        "Expected 2 arguments: source and destination file paths.");
     TStr SrcFNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
     TStr DstFNm(*v8::String::Utf8Value(Args[1]->ToString()));
@@ -147,6 +157,8 @@ void TNodeJsFs::fileInfo(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 1 && Args[0]->IsString(),
+        "Expected a file path as the only argument.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
     const uint64 CreateTm = TFile::GetCreateTm(FNm);
@@ -169,6 +181,8 @@ void TNodeJsFs::mkdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 1 && Args[0]->IsString(),
+        "Expected directory name as the only argument.");
     TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
     const bool GenDirP = TDir::GenDir(FPath);
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, GenDirP));
@@ -178,6 +192,8 @@ void TNodeJsFs::rmdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 1 && Args[0]->IsString(),
+        "Expected directory name as the only argument.");
     TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
     const bool DelDirP = TDir::DelDir(FPath);
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, DelDirP));
@@ -187,13 +203,18 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
+        "Expected directory path as the first argument.");
     // read parameters
     TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
-    TStr FExt(*v8::String::Utf8Value(Args[1]->ToString()));
+    TStrV FExtV;    
+    if (Args.Length() >= 2 && Args[1]->IsString()) {
+        FExtV.Add(TStr(*v8::String::Utf8Value(Args[1]->ToString())));
+    }
     const bool RecurseP = Args.Length() >= 3 && Args[2]->IsBoolean() && Args[2]->BooleanValue();
     // get file list
     TStrV FNmV;
-    TFFile::GetFNmV(FPath, TStrV::GetV(FExt), RecurseP, FNmV);
+    TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
     FNmV.Sort();
     v8::Handle<v8::Array> FNmArr = v8::Array::New(Isolate, FNmV.Len());
     for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {

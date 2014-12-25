@@ -38,7 +38,8 @@ public:
     // directories we're allowed to access 
     TVec<TJsFPath> AllowedFPathV;
 private:
-    TNodeJsFs(const TVec<TJsFPath>& AllowedDirV_ = TVec<TJsFPath>()): AllowedFPathV(AllowedDirV_) { }
+    TNodeJsFs(const TVec<TJsFPath>& AllowedDirV_ = TVec<TJsFPath>()):
+        AllowedFPathV(AllowedDirV_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
     //# 
@@ -66,6 +67,7 @@ public:
     JsDeclareFunction(mkdir);
     //#- `fs.rmdir(dirName)` -- delete folder
     JsDeclareFunction(rmdir);
+    //#- `strArr = fs.listFile(dirName)` -- returns list of files in directory
     //#- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
     //#- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
     JsDeclareFunction(listFile);
@@ -80,15 +82,10 @@ class TNodeJsFIn : public node::ObjectWrap {
 public:
     PSIn SIn;
 private:
-    // typedef TJsObjUtil<TJsFIn> TJsFInUtil;
     TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static v8::Local<v8::Object> New(const TStr& FNm);
-    /*
-    static v8::Persistent<v8::Object> New(const TStr& FNm) {
-        return TJsFInUtil::New(new TJsFIn(FNm)); }
-    */
     static PSIn GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args,
         const int& ArgN);
 
@@ -121,15 +118,18 @@ class TNodeJsFOut : public node::ObjectWrap {
 public:
     PSOut SOut;
 private:
-    TNodeJsFOut(const TStr& FilePath, const bool& AppendP): SOut(TFOut::New(FilePath, AppendP)) { }
+    TNodeJsFOut(const TStr& FilePath, const bool& AppendP):
+        SOut(TFOut::New(FilePath, AppendP)) { }
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
     TNodeJsFOut(PSOut& SOut_) : SOut(SOut_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
+    static v8::Local<v8::Object> New(const TStr& FilePath,
+        const bool& AppendP = false);
     static v8::Local<v8::Object> New(PSOut& SOut_);
 
-    static PSOut GetArgFOut(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    static PSOut GetArgFOut(const v8::FunctionCallbackInfo<v8::Value>& Args,
+        const int& ArgN);
 
     //# 
     //# **Functions and properties:**
