@@ -19,9 +19,9 @@ void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {
 }
 
 TStr TJsFPath::GetCanonicalPath(const TStr& FPath) {
-    // get absolute path
+    // Get absolute path
     TStr AbsFPath = TStr::GetNrAbsFPath(FPath);
-    // remove any redundancies
+    // Remove any redundancies
     TStrV CanonV; AbsFPath.SplitOnAllCh('/', CanonV);
     TSStack<TStr> CanonS; TStr CurrStr;
     for (int ElN = 0; ElN < CanonV.Len(); ++ElN) {
@@ -33,15 +33,15 @@ TStr TJsFPath::GetCanonicalPath(const TStr& FPath) {
             CanonS.Push(CurrStr+"/");
         }
     }
-    // assemble the canonical path (from left to right
+    // Assemble the canonical path (from left to right
     EAssertR(!CanonS.Empty(), "Stack empty");
-    // we start with drive letter (Windows) or slash (Unix)
+    // We start with drive letter (Windows) or slash (Unix)
     TChA CanonFPath = AbsFPath.LeftOf('/'); CanonFPath += '/';
-    // get the rest of the path
+    // Get the rest of the path
     for (int CanonN = CanonS.Len() - 1; CanonN >= 0; CanonN--) {
         CanonFPath += CanonS[CanonN];
     }
-    // done
+    // Done
     return CanonFPath;
 }
 
@@ -74,7 +74,7 @@ void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(TNodeJsFIn::New(FNm));
 }
 
-void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // call withb AppendP = false
+void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // Call withb AppendP = false
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -83,7 +83,7 @@ void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // 
     Args.GetReturnValue().Set(TNodeJsFOut::New(FNm, false));
 }
 
-void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { // call with AppendP = true 
+void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { // Call with AppendP = true 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -205,14 +205,14 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
         "Expected directory path as the first argument.");
-    // read parameters
+    // Read parameters
     TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
     TStrV FExtV;    
     if (Args.Length() >= 2 && Args[1]->IsString()) {
         FExtV.Add(TStr(*v8::String::Utf8Value(Args[1]->ToString())));
     }
     const bool RecurseP = Args.Length() >= 3 && Args[2]->IsBoolean() && Args[2]->BooleanValue();
-    // get file list
+    // Get file list
     TStrV FNmV;
     TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
     FNmV.Sort();
@@ -232,10 +232,10 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FIn"));
-    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-    // Add all prototype methods, getters and setters here.
+    // Add all prototype methods, getters and setters here
     NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
     NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
@@ -245,7 +245,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 
     // This has to be last, otherwise the properties won't show up on the
-    // object in JavaScript.
+    // object in JavaScript
     constructor.Reset(Isolate, tpl->GetFunction());
     exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
         tpl->GetFunction());
@@ -256,8 +256,8 @@ void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     if (Args.IsConstructCall()) {
-        // EAssertR(Args.Length() == 1 && Args[0]->IsString(),
-        //    "Expected a file path.");
+        EAssertR(Args.Length() == 1 && Args[0]->IsString(),
+            "Expected a file path.");
         TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
         EAssertR(TFile::Exists(FNm), "File does not exist.");
 
@@ -281,7 +281,7 @@ v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
 
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
-
+    // Pass file path as argument to New 
     const int Argc = 1;
     v8::Local<v8::Value> Argv[Argc] = { ArgFNm };
     v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
@@ -357,7 +357,7 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FOut"));
-    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
@@ -367,7 +367,7 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", _close);
 
     // This has to be last, otherwise the properties won't show up on the
-    // object in JavaScript.
+    // object in JavaScript
     constructor.Reset(Isolate, tpl->GetFunction());
     exports->Set(v8::String::NewFromUtf8(Isolate, "FOut"),
         tpl->GetFunction());
@@ -381,7 +381,7 @@ v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
 
     v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
     v8::Local<v8::Value> ArgAppendP = v8::Boolean::New(Isolate, AppendP);
-
+    // Pass file path and AppendP flag as arguments to New 
     const int Argc = 2;
     v8::Local<v8::Value> Argv[Argc] = { ArgFNm, ArgAppendP };
     v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
@@ -397,8 +397,8 @@ void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::EscapableHandleScope HandleScope(Isolate);
 
     if (Args.IsConstructCall()) {
-        // EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
-        //   "Expected file path.");
+        EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
+            "Expected file path.");
 
         TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
         bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
@@ -423,8 +423,9 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
+    EAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     if (Args[0]->IsString()) {
         JsFOut->SOut->PutStr(*v8::String::Utf8Value(Args[0]->ToString()));
     } else if (Args[0]->IsInt32()) {
