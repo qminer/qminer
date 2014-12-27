@@ -2,11 +2,12 @@ var la = require('../../../build/Release/la.node');
 
 ///////////////////////////
 // Return a new vector or a new matrix 
-la.newVector = function(args) { return new la.vector(args); }
-la.newIntVector = function(args) { return new la.vector(args); }
-la.newMatrix = function(args) { return new la.matrix(args); }
-la.newSparseVector = function(args) { return new la.sparseVector(args); }
-la.newSparseMatrix = function(args) { return new la.sparseMatrix(agrs); }
+la.newVector = function(args) { return la.newVec(args); }
+la.newIntVector = function(args) { return la.newIntVec(args); }
+la.newStrVector = function(args) { return la.newStrVec(args); }
+la.newMatrix = function(args) { return la.newMat(args); }
+la.newSparseVector = function(args) { return la.newspVec(args); }
+la.newSparseMatrix = function(args) { return la.newSpMat(agrs); }
 
 var vec = la.newVector([1, 2, 3, 4, 5]);
 var v2 = la.newVector(vec);
