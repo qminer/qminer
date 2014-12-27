@@ -6,7 +6,7 @@ la.newVector = function(args) { return la.newVec(args); }
 la.newIntVector = function(args) { return la.newIntVec(args); }
 la.newStrVector = function(args) { return la.newStrVec(args); }
 la.newMatrix = function(args) { return la.newMat(args); }
-la.newSparseVector = function(args) { return la.newspVec(args); }
+la.newSparseVector = function(args) { return la.newSpVec(args); }
 la.newSparseMatrix = function(args) { return la.newSpMat(agrs); }
 
 var vec = la.newVector([1, 2, 3, 4, 5]);
@@ -44,7 +44,7 @@ console.log("||v||_2 = " + v.norm());
 // Vector: A very simple example 
 console.log("Creating a new vector");
 
-var w1 = la.newIntVector([1, 1, 1]);
+var w1 = la.newVector([1, 1, 1]);
 var w2 = la.newVector([2, 2, 2]);
 
 var w = w1.plus(w2);

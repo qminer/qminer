@@ -10,6 +10,13 @@
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
+//# 
+//# ## Linear Algebra
+//# 
+//# A global object `la` is used to construct vectors (sparse, dense) and matrices and 
+//# it is available in any script. The object includes
+//# several functions from linear algebra.
+//# 
 class TNodeJsLinAlg : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
@@ -103,6 +110,18 @@ public:
 
 ///////////////////////////////
 // NodeJs-GLib-TVec
+//# 
+//# ### Vector
+//# 
+//# Vector is an array of objects implemented in glib/base/ds.h. 
+//# Some functions are implemented for float vectors only. Using the global `la` object, flaot and int vectors can be generated in the following ways:
+//# 
+//# ```JavaScript
+//# var vec = la.newVec(); //empty vector
+//# var intVec = la.newIntVec(); //empty vector
+//# // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
+//# ```
+//# 
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
     friend class TNodeJsFltVV;
@@ -133,7 +152,7 @@ private:
     //// JsDeclGetSetIndexedProperty(indexGet, indexSet);
     //#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
     //#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
-    JsDeclareFunction(put);    
+    JsDeclareFunction(put);
     //#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
     //#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
     JsDeclareFunction(push);
@@ -153,7 +172,7 @@ private:
     //#- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
     JsDeclareFunction(sort);
     //#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
-    JsDeclareSpecializedFunction(sortPerm);    
+    JsDeclareSpecializedFunction(sortPerm);
     //#- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
     //#- `intVec = intVec.shuffle()` -- shuffels the vector `intVec` (inplace operation). Returns self.
     JsDeclareFunction(shuffle);
@@ -175,8 +194,8 @@ private:
     //#- `len = vec.length` -- integer `len` is the length of vector `vec`
     //#- `len = intVec.length` -- integer `len` is the length of integer vector `vec`
     JsDeclareProperty(length);
-    //#- `vec = vec.print()` -- print vector in console. Returns self.
-    //#- `intVec = intVec.print()` -- print integer vector in console. Returns self.
+    //#- `vec = vec.toString()` -- returns string representation of the vector. Returns self.
+    //#- `intVec = intVec.toString()` -- returns string representation of the integer vector. 
     JsDeclareFunction(toString);
     //#- `mat = vec.diag()` -- `mat` is a diagonal dense matrix whose diagonal equals `vec`. Implemented for dense float vectors only.
     JsDeclareSpecializedFunction(diag);
