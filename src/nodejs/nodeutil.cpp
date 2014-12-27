@@ -29,10 +29,10 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
         for (uint i = 0; i < Arr->Length(); i++) {
             JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject()));
         }
-        
+
         return JsonArr;
     }
-    else {    // object
+    else { // object
         PJsonVal JsonVal = TJsonVal::NewObj();
 
         v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
@@ -41,13 +41,12 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
 
             JsonVal->AddToObj(FldNm, GetObjJson(Obj->Get(FldNmV->Get(i))->ToObject()));
         }
-        
+
         return JsonVal;
     }
 }
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
-
     v8::EscapableHandleScope HandleScope(Isolate);
     if (!JsonVal->IsDef()) {
         return v8::Undefined(Isolate);
@@ -83,7 +82,7 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
         for (int i = 0; i < NKeys; i++) {
             TStr Key;    PJsonVal Val;
             JsonVal->GetObjKeyVal(i, Key, Val);
-            
+
             ResObj->Set(v8::String::NewFromUtf8(Isolate, Key.CStr()), ParseJson(Isolate, Val));
         }
 
@@ -190,7 +189,7 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
 bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& DefVal) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));

@@ -10,38 +10,48 @@
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
-// XXX: Current implementation doesn't support all documented properties! 
 class TNodeJsLinAlg : public node::ObjectWrap {
 public:
+    static void Init(v8::Handle<v8::Object> exports);
     //# 
     //# **Functions and properties:**
     //# 
+    //#- `vec = la.newVec()` -- generate an empty float vector
+    //#- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+    //#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
+    //#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
+    JsDeclareFunction(newVec);
     //#- `intVec = la.newIntVec()` -- generate an empty integer vector
     //#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
     //#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
     //#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
-    // JsDeclareFunction(newIntVec);
+    JsDeclareFunction(newIntVec);
+    //#- `strVec = la.newStrVec()` -- generate an empty integer vector
+    //#- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+    //#- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+    //#- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
+    JsDeclareFunction(newStrVec);
     //#- `mat = la.newMat()` -- generates a 0x0 matrix
     //#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
     //#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
     //#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-    // JsDeclareFunction(newMat);
+    JsDeclareFunction(newMat);
     //#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
     //#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-    // JsDeclareFunction(newSpVec);
+    JsDeclareFunction(newSpVec);
     //#- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
     //#- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
     //#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
     //#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-    // JsDeclareFunction(newSpMat);
+    JsDeclareFunction(newSpMat);
     //#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
     //#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-    // JsDeclareFunction(svd);    
+    JsDeclareFunction(svd);
+    //#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
+    JsDeclareFunction(qr);
     //#- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-    //JsDeclareFunction(loadIntVec);
+    // (TODO) JsDeclareFunction(loadIntVec);
     //#JSIMPLEMENT:src/qminer/linalg.js
-private:
-   // 
 };
 
 class TAuxFltV {
@@ -110,6 +120,9 @@ public:
 public:
      JsDeclareFunction(New);
 private:
+    //# 
+    //# **Functions and properties:**
+    //# 
     //#- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
     //#- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
     JsDeclareFunction(at);
@@ -183,11 +196,22 @@ private:
 
 ///////////////////////////////
 // NodeJs-Qminer-FltVV
+//# 
+//# ### Matrix (dense matrix)
+//# 
+//# Matrix is a double 2D array implemented in glib/base/ds.h. 
+//# Using the global `la` object, dense matrices are generated in several ways:
+//# 
+//# ```JavaScript
+//# var fltv = la.newVec(); //empty matrix
+//# // refer to la.newMat function for alternative ways to generate dense matrices
+//# ```
+//# 
 class TNodeJsFltVV : public node::ObjectWrap {
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static v8::Local<v8::Object> New(const TFltVV& FltVV);
-    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
+    static v8::Local<v8::Object> New(const TFltV& FltV);
 public:
     TNodeJsFltVV() { } 
     TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { } 
@@ -282,8 +306,7 @@ public:
     { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV);
-    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
+    static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
 public:
     //# 
     //# **Functions and properties:**
@@ -398,7 +421,7 @@ public:
     //#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
     JsDeclareFunction(load);
     //#JSIMPLEMENT:src/qminer/spMat.js
-private:
+public:
     TVec<TIntFltKdV> Mat;
     TInt Rows;
 private:
