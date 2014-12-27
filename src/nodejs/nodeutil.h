@@ -107,8 +107,6 @@
 //////////////////////////////////////////////////////
 // Node - Utilities
 class TNodeJsUtil {
-private:
-
 public:
     /// Convert v8 Json to GLib Json (PJsonVal)
     static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);

@@ -38,7 +38,6 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
         v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
         for (uint i = 0; i < FldNmV->Length(); i++) {
             const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
-
             JsonVal->AddToObj(FldNm, GetObjJson(Obj->Get(FldNmV->Get(i))->ToObject()));
         }
 
