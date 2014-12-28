@@ -209,6 +209,18 @@ private:
     JsDeclareSpecializedFunction(sparse);
     //#- `mat = vec.toMat()` -- `mat` is a matrix with a single column that is equal to dense vector `vec`.
     JsDeclareSpecializedFunction(toMat);
+    //#- `fout = vec.save(fout)` -- saves to output stream `fout`
+    //#- `fout = intVec.save(fout)` -- saves to output stream `fout`
+    JsDeclareFunction(save);
+    //#- `vec = vec.load(fin)` -- loads from input stream `fin`
+    //#- `intVec = intVec.load(fin)` -- loads from input stream `fin`
+    JsDeclareFunction(load);
+    //#- `fout = vec.saveascii(fout)` -- saves to output stream `fout`
+    //#- `fout = intVec.saveascii(fout)` -- saves to output stream `fout`
+    JsDeclareFunction(saveascii);
+    //#- `vec = vec.loadascii(fin)` -- loads from input stream `fin`
+    //#- `intVec = intVec.loadascii(fin)` -- loads from input stream `fin`
+    JsDeclareFunction(loadascii);
 public:
     TVec<TVal> Vec;
 private:
@@ -296,10 +308,14 @@ private:
     JsDeclareFunction(setRow);
     //#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
     JsDeclareFunction(diag);
-    //#- `mat = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns self.
+    //#- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
     JsDeclareFunction(save);
     //#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
     JsDeclareFunction(load);
+    //#- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
+    JsDeclareFunction(saveascii);
+    //#- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+    JsDeclareFunction(loadascii);
 public:
     TFltVV Mat;
 private:
@@ -441,6 +457,8 @@ public:
     JsDeclareFunction(save);
     //#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
     JsDeclareFunction(load);
+    //#- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
+    // (TODO) JsDeclareFunction(sign);
     //#JSIMPLEMENT:src/qminer/spMat.js
 public:
     TVec<TIntFltKdV> Mat;

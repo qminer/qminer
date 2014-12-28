@@ -151,10 +151,26 @@ console.log(M12.toString());
 x1.pushV(x2); // appends x2 to x1 
 console.log("xx:" + x1.toString());
 
+try {
+    x1.at(-1);
+} catch (e) {
+    console.log(e);
+}
+
 ///////////////////////////
 // Sparse matrix 
 var spMatrix = x1.spDiag();
 spMatrix.print();
 
 console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
+
+// The code below crashes because V8 imposes memory limit on
+// standard JS arrays. 
+// var bigArr = new Array();
+// var bigVec = la.newVec(); // equivalent to new la.vector()
+// for (var i = 0; i < 1e8; ++i) {
+//    bigVec.push(i);
+//    bigArr.push(i);
+// }
+// console.log(bigVec.length);
 

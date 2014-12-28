@@ -728,6 +728,8 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "diag", diag);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", saveascii);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", loadascii);
 
     // Properties 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), rows);
@@ -1216,10 +1218,30 @@ void TNodeJsFltVV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // save to stream
     // JsMat->Mat.Save(*SOut);
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Args[0]);
 }
 
 void TNodeJsFltVV::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // TODO: Make Node.js compatible 
+    // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsFltVV::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // TODO: Make Node.js compatible 
+    // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsFltVV::loadascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1601,6 +1623,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "frob", frob);
     NODE_SET_PROTOTYPE_METHOD(tpl, "print", print);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
 
     // Properties 
@@ -2120,16 +2143,21 @@ void TNodeJsSpMat::print(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    // TODO: Make Node.js compatible 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    // TODO
+    // EAssertR(Args.Length() == 1, "Expected TJsNodeFOut object");
+    // TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    // PSIn SIn = JsFOut->SOut;
+    // JsMat->Mat.Load(*SOut);
+    Args.GetReturnValue().Set(Args[0]);
 }
 
 void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    // TODO: Make Node.js compatible  
+    // TODO 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
+
 
 #ifndef MODULE_INCLUDE_LA
 ///////////////////////////////
@@ -2144,6 +2172,5 @@ void init(v8::Handle<v8::Object> exports) {
 }
 
 NODE_MODULE(la, init)
-
 #endif
 

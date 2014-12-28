@@ -22,6 +22,12 @@ fout.writeLine("Test line 3.");
 fout.flush();
 fout.close();
 
+try {
+    var fin = fs.openRead("nonExistent.file");
+} catch (e) {
+    console.log(e);
+}
+
 // Equivalent way to read a file 
 var fin = fs.openRead("./test.out");
 var s = fin.readAll();
@@ -66,8 +72,8 @@ assert(!fs.exists("./test"));
 */
 
 // List all C and C++ header files in the QMiner source directory 
-var fileArr = fs.listFile("../../", "h", true);
-for (var i = 0; i < fileArr.length; ++i) {
-    console.log(fileArr[i]);
-}
+// var fileArr = fs.listFile("../../", "h", true);
+// for (var i = 0; i < fileArr.length; ++i) {
+//    console.log(fileArr[i]);
+// }
 
