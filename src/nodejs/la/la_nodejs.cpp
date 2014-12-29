@@ -1276,6 +1276,8 @@ void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 // Sparse-Vector
 v8::Persistent<v8::Function> TNodeJsSpVec::constructor;
 
+const TStr TNodeJsSpVec::ClassId = "TIntFltKdV";
+
 void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 

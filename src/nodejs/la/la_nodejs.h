@@ -109,7 +109,6 @@ public:
     }
 };
 
-
 ///////////////////////////////
 // NodeJs-GLib-TVec
 //# 
@@ -128,6 +127,8 @@ template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
     friend class TNodeJsFltVV;
 public: // So we can register the class 
+    const static TStr ClassId;	// ClassId set to TAux::ClassId
+
     static void Init(v8::Handle<v8::Object> exports);
     // Does the job of the new operator in Javascript 
     //static v8::Handle<v8::Value> NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -226,6 +227,10 @@ public:
 private:
     static v8::Persistent<v8::Function> constructor;
 };
+
+typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
+typedef TNodeJsVec<TFlt, TAuxIntV> TNodeJsIntV;
+typedef TNodeJsVec<TFlt, TAuxStrV> TNodeJsStrV;
 
 ///////////////////////////////
 // NodeJs-Qminer-FltVV
@@ -337,6 +342,8 @@ private:
 //# 
 class TNodeJsSpVec : public node::ObjectWrap {
 public:
+	const static TStr ClassId;
+
     TNodeJsSpVec() { }
     TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
         : Vec(IntFltKdV), Dim(Dim)
@@ -471,6 +478,9 @@ private:
 // NodeJs-GLib-TVec Implementations
 template <typename TVal, typename TAux>
 v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
+
+template <typename TVal, typename TAux>
+const TStr TNodeJsVec<TVal, TAux>::ClassId = TAux::ClassId;
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
