@@ -407,6 +407,7 @@ public:
 
 	// initializes the model
 	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void Init(TFltVV& X, const TUInt64V& RecTmV) { Init(TFullMatrix(X, true), RecTmV); }
 
     int GetStates() const { return Hierarch->GetStates(); }
 };

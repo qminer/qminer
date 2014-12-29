@@ -58,8 +58,8 @@ qm:
 	make -C $(GLIB) $(TARGET)
 	# compile SNAP
 	make -C $(SNAP)	
-	# compile node module
-	make -C $(QM_NODE)
+	# compile node module TODO
+	# make -C $(QM_NODE)
 	# compile qminer
 	make -C $(QMINER) $(TARGET)
 	# create qm commandline tool
