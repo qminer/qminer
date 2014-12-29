@@ -126,8 +126,7 @@ private:
     TNodeJsFOut(PSOut& SOut_) : SOut(SOut_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    static v8::Local<v8::Object> New(const TStr& FilePath,
-        const bool& AppendP = false);
+    static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
     static v8::Local<v8::Object> New(PSOut& SOut_);
 
     static PSOut GetArgFOut(const v8::FunctionCallbackInfo<v8::Value>& Args,
