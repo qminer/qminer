@@ -24,6 +24,7 @@ SNAP = $(THIRD_PARTY)/Snap
 LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib
 QMINER = src/qminer
+QM_NODE = src/nodejs
 BUILD = build
 TEST = test/cpp
 
@@ -57,6 +58,8 @@ qm:
 	make -C $(GLIB) $(TARGET)
 	# compile SNAP
 	make -C $(SNAP)	
+	# compile node module TODO
+	# make -C $(QM_NODE)
 	# compile qminer
 	make -C $(QMINER) $(TARGET)
 	# create qm commandline tool

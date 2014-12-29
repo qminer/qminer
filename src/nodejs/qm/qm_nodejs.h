@@ -1,7 +1,9 @@
 #ifndef QMINER_QM_NODEJS
 #define QMINER_QM_NODEJS
 
-#define BUILDING_NODE_EXTENSION
+#ifndef BUILDING_NODE_EXTENSION
+	#define BUILDING_NODE_EXTENSION
+#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -87,7 +89,6 @@ private:
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
-
 ///////////////////////////////
 // NodeJs-Qminer-Store
 class TNodeJsStore : public node::ObjectWrap {
@@ -95,23 +96,21 @@ private:
 	// Node framework
 	static v8::Persistent<v8::Function> constructor;
 public:
+	TWPt<TQm::TBase> Base;
+	TWPt<TQm::TStore> Store;
+
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object
 	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
 	// C++ constructors
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Base(_Base), Store(_Store) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Field accessors
 	//static v8::Local<v8::Object> Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId);
 	static v8::Local<v8::Value> Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId);
-
-public:
-	// C++ wrapped object
-	TWPt<TQm::TStore> Store;
-
 private:
 	//# 
 	//# **Functions and properties:**

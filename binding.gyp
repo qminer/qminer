@@ -85,7 +85,7 @@
                 'src/nodejs/fs',
                 'src/nodejs/',
                 'src/glib/base/',
-                'src/glib/mine/',
+                'src/glib/mine/'
             ],
             'dependencies': [
                 'glib'

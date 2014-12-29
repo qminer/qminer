@@ -6,7 +6,6 @@
 
  - `PYTHON_PATH` - path to python.exe (e.g. /python27/python.exe)
  - `QMINER_ROOT` - qminer root folder (location of qminer's git repository)
- - `NODE_ROOT`   - folder with node source code (needed to build modules)
 
 ### Prerequisites
 
@@ -14,19 +13,9 @@
 
 #### NPM (Node Package Manager)
 
-	sudo apt-get install npm; sudo npm update
+	sudo apt-get install npm
+	sudo npm update
 	sudo apt-get install uuid-dev
-
-#### Node.JS source code
-
-Modules were tested with Node.JS 0.11.14. Node-gyp can download source code as well, but it is not sure that the versions will match.
-
-	wget https://github.com/joyent/node/archive/v0.11.14.zip
-	unzip package.zip -d NODE_ROOT
-	cd NODE_ROOT/
-	./configure
-	make
-	sudo make install
 
 #### Node GYP
 
@@ -34,10 +23,10 @@ Build system for Node.JS modules.
 
 	sudo npm install -g node-gyp
 
-#### Mocha and Chai (for testing)
+#### Mocha (for testing)
 
 	sudo npm install -g mocha
-	sudo npm install -g chai
+
 
 ### Building modules
 
@@ -45,10 +34,21 @@ Downlaod code:
 
 	git clone https://github.com/qminer/qminer.git QMINER_ROOT
 
+Go to QMINER_ROOT and execute:
+	./configure
+If node is not installed
+	1. go to QMINER_ROOT/src/third_party/node/
+	2. execute: 
+		sudo make install
+	3. go to QMINER_ROOT and execute
+		./configure
+
+
+
 Safe way:
 
-	node-gyp configure --python PYTHON_PATH --nodedir=NODE_PATH
-	node-gyp build --python PYTHON_PATH --nodedir=NODE_PATH
+	node-gyp configure --python PYTHON_PATH --nodedir=src/third_party/node
+	node-gyp build --python PYTHON_PATH --nodedir=src/third_party/node
 
 Simple way, when correct version of Python is in path and node-gyp takes care of node's source code:
 
@@ -106,10 +106,9 @@ Modules were tested with Node.JS 0.11.14. Download the code from [https://github
 	cd %NODE_ROOT%\Release
 	npm install node-gyp -g
 
-#### Mocha and Chai (for testing)
+#### Mocha (for testing)
 
 	npm install -g mocha
-	npm install -g chai
 
 ### Building modules
 
@@ -119,7 +118,7 @@ Download QMiner code:
 
 Build:
 
-	cd %QMINER_ROOT%\src\qminer\nodejs\la
+	cd %QMINER_ROOT%
 	node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT%
 
 
