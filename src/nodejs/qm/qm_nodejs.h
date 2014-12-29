@@ -4,7 +4,6 @@
 #ifndef BUILDING_NODE_EXTENSION
 	#define BUILDING_NODE_EXTENSION
 #endif
-#endif 
 
 #include <node.h>
 #include <node_object_wrap.h>
