@@ -62,10 +62,11 @@ void TNodeJsLinAlg::newVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     Vec = JsOthVec->Vec;
                 } else {
                     const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
-                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
-                    if (MxVals >= 0) {
+                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
+                    if (MxVals > 0 && Vals >= 0) {
                         Vec.Gen(MxVals, Vals);
-                    } else {
+                    }
+                    if (MxVals == -1 && Vals >= 0) {
                         Vec.Gen(Vals);
                     }
                 }
@@ -99,7 +100,6 @@ void TNodeJsLinAlg::newIntVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     if (MxVals > 0 && Vals >= 0) {
                         Vec.Gen(MxVals, Vals);
                     }
-                    // TODO: Check with others whether this was the intended behavior 
                     if (MxVals == -1 && Vals >= 0) {
                         Vec.Gen(Vals);
                     }
@@ -134,7 +134,6 @@ void TNodeJsLinAlg::newStrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     if (MxVals > 0 && Vals >= 0) {
                         Vec.Gen(MxVals, Vals);
                     }
-                    // TODO: As before, check whether this was the intended behavior 
                     if (MxVals == -1 && Vals >= 0) {
                         Vec.Gen(Vals);
                     }

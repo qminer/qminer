@@ -59,7 +59,6 @@ assert(!fs.exists("test.out"));
 fs.del("tset.out");
 assert(!fs.exists("tset.out"));
 
-/*
 // Create directory 
 assert(!fs.exists("test/"));
 fs.mkdir("test");
@@ -69,7 +68,6 @@ assert(fs.exists("test/"));
 var delP = fs.rmdir("test");
 console.log("delP = " + delP);
 assert(!fs.exists("./test"));
-*/
 
 // List all C and C++ header files in the QMiner source directory 
 // var fileArr = fs.listFile("../../", "h", true);
