@@ -2709,6 +2709,8 @@ void TNodeJsIndexKey::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 
 ///////////////////////////////
 // Register functions, etc.  
+#ifndef MODULE_INCLUDE_QM
+
 void init(v8::Handle<v8::Object> exports) {
     // QMiner package
     TNodeJsQm::Init(exports);
@@ -2730,3 +2732,4 @@ void init(v8::Handle<v8::Object> exports) {
 
 NODE_MODULE(qm, init)
 
+#endif

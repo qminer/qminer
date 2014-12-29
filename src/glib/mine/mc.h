@@ -173,11 +173,12 @@ private:
 
 public:
     THierarch(const PNotify& Notify=TNullNotify::New());
+    THierarch(TSIn& SIn);
 
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	void Load(TSIn& SIn);
+	static PHierarch Load(TSIn& SIn);
 
 	void Init(const TFullMatrix& CentroidMat);
 
@@ -233,11 +234,15 @@ protected:
 
 	TMChain(const PNotify& Notify);
 	virtual ~TMChain() {}
+
+protected:
+	TMChain(TSIn& SIn);
+
 public:
 	// saves the model to the output stream
 	virtual void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	virtual void Load(TSIn& SIn);
+	static PMChain Load(TSIn& SIn);
 
 	void OnAddRec(const int& StateIdx, const uint64& RecTm);
 
@@ -267,6 +272,8 @@ protected:
 	// initializes the statistics
 	virtual void InitStats(const int& NStates) = 0;
 	virtual void AbsOnAddRec(const int& StateIdx, const uint64& RecTm) = 0;
+
+	virtual const TStr GetType() const = 0;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -277,11 +284,10 @@ private:
 
 public:
 	TDtMChain(const PNotify& Notify=TNullNotify::New());
+	TDtMChain(TSIn& SIn);
 
 	// saves the model to the output stream
 	void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	void Load(TSIn& SIn);
 
 	TVector GetStatDist(const TVec<TIntV>& JoinedStateVV) const { return GetStatDist(GetTransitionMat(JoinedStateVV)); }
 
@@ -303,6 +309,9 @@ private:
 	TFullMatrix GetTransitionMat() const;
 	TVector GetStatDist(const TFullMatrix& PMat) const;
 	TVector GetStatDist() const { return GetStatDist(GetTransitionMat()); }
+
+protected:
+	const TStr GetType() const { return "discrete"; }
 };
 
 /////////////////////////////////////////////////////////////////
@@ -324,11 +333,10 @@ private:
 
 public:
 	TCtMChain(const uint64& TimeUnit, const double& DeltaTm, const PNotify& Notify=TNullNotify::New());
+	TCtMChain(TSIn& SIn);
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	void Load(TSIn& SIn);
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
@@ -361,6 +369,8 @@ public:
 protected:
 	void InitStats(const int& NStates);
 	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm);
+
+	const TStr GetType() const { return "continuous"; }
 };
 
 class THierarchCtmc;
@@ -384,7 +394,7 @@ public:
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
 	// loads the model from the output stream
-	void Load(TSIn& SIn);
+	static PHierarchCtmc Load(TSIn& SIn);
 
 	// saves this models as JSON
 	PJsonVal SaveJson() const;

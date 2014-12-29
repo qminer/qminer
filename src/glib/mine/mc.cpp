@@ -418,6 +418,24 @@ THierarch::THierarch(const PNotify& _Notify):
 		NLeafs(0),
 		Notify(_Notify) {}
 
+THierarch::THierarch(TSIn& SIn):
+		HierarchV(),
+		StateHeightV(),
+		MxHeight(TFlt::Mn),
+		StateCoordV(),
+		NLeafs(0),
+		Notify(nullptr) {
+
+	HierarchV.Load(SIn);
+	StateHeightV.Load(SIn);
+	MxHeight.Load(SIn);
+	StateCoordV.Load(SIn);
+	NLeafs = TInt(SIn);
+
+	// FIXME
+	Notify = TStdNotify::New();
+}
+
 void THierarch::Save(TSOut& SOut) const {
 	HierarchV.Save(SOut);
 	StateHeightV.Save(SOut);
@@ -426,12 +444,8 @@ void THierarch::Save(TSOut& SOut) const {
 	TInt(NLeafs).Save(SOut);
 }
 
-void THierarch::Load(TSIn& SIn) {
-	HierarchV.Load(SIn);
-	StateHeightV.Load(SIn);
-	MxHeight.Load(SIn);
-	StateHeightV.Load(SIn);
-	NLeafs = TInt(SIn);
+PHierarch THierarch::Load(TSIn& SIn) {
+	return new THierarch(SIn);
 }
 
 void THierarch::Init(const TFullMatrix& CentroidMat) {
@@ -677,6 +691,18 @@ TMChain::TMChain(const PNotify& _Notify):
 		CurrStateIdx(-1),
 		Notify(_Notify) {}
 
+TMChain::TMChain(TSIn& SIn):
+		NStates(0),
+		CurrStateIdx(-1),
+		Notify(nullptr) {
+
+	NStates = TInt(SIn);
+	CurrStateIdx = TInt(SIn);
+
+	// FIXME Notify should be read somehow
+	Notify = TStdNotify::New();
+}
+
 void TMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64V& TmV) {
 	NStates = _NStates;
 
@@ -691,13 +717,21 @@ void TMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64
 }
 
 void TMChain::Save(TSOut& SOut) const {
+	GetType().Save(SOut);
 	TInt(NStates).Save(SOut);
 	TInt(CurrStateIdx).Save(SOut);
 }
 
-void TMChain::Load(TSIn& SIn) {
-	NStates = TInt(SIn);
-	CurrStateIdx = TInt(SIn);
+PMChain TMChain::Load(TSIn& SIn) {
+	const TStr Type(SIn);
+
+	if (Type == "discrete") {
+		return new TDtMChain(SIn);
+	} else if (Type == "continuous") {
+		return new TCtMChain(SIn);
+	} else {
+		throw TExcept::New("Invalid type of Markov chain: " + Type, "TMChain::Load");
+	}
 }
 
 void TMChain::OnAddRec(const int& StateIdx, const uint64& RecTm) {
@@ -713,14 +747,15 @@ TDtMChain::TDtMChain(const PNotify& _Notify):
 		TMChain(_Notify),
 		JumpCountMat() {}
 
+TDtMChain::TDtMChain(TSIn& SIn):
+		TMChain(SIn),
+		JumpCountMat() {
+	JumpCountMat.Load(SIn);
+}
+
 void TDtMChain::Save(TSOut& SOut) const {
 	TMChain::Save(SOut);
 	JumpCountMat.Save(SOut);
-}
-
-void TDtMChain::Load(TSIn& SIn) {
-	TMChain::Load(SIn);
-	JumpCountMat.Load(SIn);
 }
 
 TFullMatrix TDtMChain::GetTransitionMat(const TVec<TIntV>& JoinedStateVV) const {
@@ -851,18 +886,25 @@ TCtMChain::TCtMChain(const uint64& _TimeUnit, const double& _DeltaTm, const PNot
 		TimeUnit(_TimeUnit),
 		PrevJumpTm(-1) {}
 
+TCtMChain::TCtMChain(TSIn& SIn):
+		TMChain(SIn),
+		QMatStats(),
+		DeltaTm(0),
+		TimeUnit(0),
+		PrevJumpTm(0) {
+
+	QMatStats.Load(SIn);
+	DeltaTm = TFlt(SIn);
+	TimeUnit = TUInt64(SIn);
+	PrevJumpTm = TUInt64(SIn);
+}
+
 void TCtMChain::Save(TSOut& SOut) const {
 	TMChain::Save(SOut);
 	QMatStats.Save(SOut);
+	TFlt(DeltaTm).Save(SOut);
 	TUInt64(TimeUnit).Save(SOut);
 	TUInt64(PrevJumpTm).Save(SOut);
-}
-
-void TCtMChain::Load(TSIn& SIn) {
-	TMChain::Load(SIn);
-	QMatStats.Load(SIn);
-	TimeUnit = TUInt64(SIn);
-	PrevJumpTm = TUInt64(SIn);
 }
 
 TVector TCtMChain::GetStatDist() const {
@@ -1077,15 +1119,15 @@ void THierarchCtmc::Save(TSOut& SOut) const {
 	Hierarch->Save(SOut);
 }
 
-void THierarchCtmc::Load(TSIn& SIn) {
-	Notify->OnNotify(TNotifyType::ntInfo, "THierarchCtmc::Load: loading from stream ...");
-
-	Clust = TClust::Load(SIn);
-	MChain->Load(SIn);
-	Hierarch->Load(SIn);
+PHierarchCtmc THierarchCtmc::Load(TSIn& SIn) {
+	PClust Clust = TClust::Load(SIn);
+	PMChain MChain = TMChain::Load(SIn);
+	PHierarch Hierarch = THierarch::Load(SIn);
 
 	// FIXME somehow save and load notify
-	Notify = TStdNotify::New();
+	PNotify Notify = TStdNotify::New();
+
+	return new THierarchCtmc(Clust, MChain, Hierarch, Notify);
 }
 
 PJsonVal THierarchCtmc::SaveJson() const {

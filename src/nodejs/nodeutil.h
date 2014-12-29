@@ -170,9 +170,6 @@ public:
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
 	static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
-
-	/// Extract argument ArgN as GLib file input stream (PSIn)
-	static PSIn GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 };
 
 #endif

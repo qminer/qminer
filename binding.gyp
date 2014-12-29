@@ -109,15 +109,25 @@
             'sources': [            
                 'src/nodejs/analytics/analytics.h',
                 'src/nodejs/analytics/analytics.cpp',
+                'src/nodejs/qm/qm_nodejs.h',
+                'src/nodejs/qm/qm_nodejs.cpp',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
 				'src/nodejs/',
+				'src/nodejs/fs',
+				'src/nodejs/qm',
 				'src/qminer/',
 				'src/glib/base/',
 				'src/glib/mine/',
 				'src/glib/misc/'
+            ],
+            'defines': [
+            	'MODULE_INCLUDE_QM',
+                'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
                 'glib',

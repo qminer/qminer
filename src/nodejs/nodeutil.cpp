@@ -324,19 +324,3 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 	return GetObjJson(Args[ArgN]->ToObject());
 }
-
-PSIn TNodeJsUtil::GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
-	EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object!");
-
-	v8::Local<v8::Value>& Arg = Args[ArgN];
-	v8::Local<v8::Object> ArgObj = v8::Local<v8::Object>::Cast(Arg);
-	v8::Local<v8::External> ArgExt = v8::Local<v8::External>::Cast(ArgObj->GetInternalField(0));
-
-	TNodeJsFIn* JsFIn = static_cast<TNodeJsFIn*>(ArgExt->Value());
-
-	return JsFIn->SIn;
-}

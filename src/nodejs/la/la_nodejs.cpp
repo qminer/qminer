@@ -1507,7 +1507,7 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             // Copy could be omitted if we implemented SparseColMat * TFltV
             TLinAlg::Multiply(JsSpMat->Mat, TFltVV(JsVec->Vec, JsVec->Vec.Len(), 1), Result, Rows);
             // create JS result with the Result vector	
-				Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
          } else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // Matrix 
             TNodeJsFltVV* JsMat =
                ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
