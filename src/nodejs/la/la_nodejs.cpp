@@ -705,35 +705,35 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
-    NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", multiply);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", multiplyT);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "plus", plus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "minus", minus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", transpose);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "solve", solve);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "rowNorms", rowNorms);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", colNorms);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", normalizeCols);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "frob", frob);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", sparse);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "toString", toString);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "rowMaxIdx", rowMaxIdx);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "colMaxIdx", colMaxIdx);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getCol", getCol);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setCol", setCol);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getRow", getRow);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setRow", setRow);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "diag", diag);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", saveascii);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", loadascii);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", _multiplyT);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", _transpose);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "solve", _solve);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "rowNorms", _rowNorms);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", _colNorms);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", _normalizeCols);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "frob", _frob);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", _sparse);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "rowMaxIdx", _rowMaxIdx);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "colMaxIdx", _colMaxIdx);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getCol", _getCol);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setCol", _setCol);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getRow", _getRow);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setRow", _setRow);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "diag", _diag);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", _saveascii);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
 
     // Properties 
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), rows);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), cols);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -1285,21 +1285,21 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
-    NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sum", sum);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "inner", inner);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", multiply);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", normalize);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "norm", norm);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "full", full);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "valVec", valVec);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "idxVec", idxVec);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "toString", toString);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "sum", _sum);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "inner", _inner);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", _normalize);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "norm", _norm);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "full", _full);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "valVec", _valVec);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "idxVec", _idxVec);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
 
     // Properties 
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), dim);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nnz"), dim);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nnz"), _nnz);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -1609,26 +1609,25 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
-    NODE_SET_PROTOTYPE_METHOD(tpl, "at", at);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "put", put);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "push", push);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", multiply);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", multiplyT);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "plus", plus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "minus", minus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", transpose);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", colNorms);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", normalizeCols);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "full", full);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "frob", frob);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "print", print);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "save", save);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "load", load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", _multiplyT);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", _transpose);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", _colNorms);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", _normalizeCols);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "full", _full);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "frob", _frob);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "print", _print);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
 
     // Properties 
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), rows);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), cols);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
