@@ -15,10 +15,6 @@ AC_PROG_CXX
 # set default compiler to C++
 AC_LANG(C++)
 
-# check if Python is installed
-echo "                             Checking for Python"
-AC_CHECK_PROG(PYTHON_PATH, python, python, [Python not found!])
-
 echo "                             Checking third party libraries"
 
 cd src/third_party
@@ -27,6 +23,10 @@ cd src/third_party
 if [[ ! -d 'node' ]]; then
 	echo 'Cloning node ...'
 	git clone --branch 'v0.11.14' https://github.com/joyent/node.git
+	cd node
+	./configure
+	make
+	cd ..
 fi
 
 cd node
@@ -34,6 +34,12 @@ echo 'checking for Node... '`git describe --tags`
 cd ..
 
 cd ../..
+
+# check if Python is installed
+echo "                             Checking for Python"
+AC_CHECK_PROG(PYTHON_PATH, python, python, [Python not found!])
+AC_CHECK_PROG(NODE_PATH, node, node, [Node not found!])
+
 
 # configure Node
 echo 'Configuring gyp ...'
