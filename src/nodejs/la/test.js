@@ -3,13 +3,17 @@
 // 
 // Need to:
 // (*) add seperate unit tests for int and str vectors where appropriate;
-// (*) rethink organization;
+// (*) rethink organization --- consider separate describe block for FltV, IntV, and StrV;
 // (*) add missing unit tests for vectors;
 // (*) add unit tests for matrix, sparse vector, and sparse matrix. 
 //
 
 var assert = require("assert")
 var la = require("../../../build/Release/la.node")
+
+describe('TNodeJsLinAlg tests', function() {
+    // TODO 
+});
 
 describe('TNodeJsVec tests', function() {
     describe('Property Tests', function() {
@@ -314,7 +318,35 @@ describe('TNodeJsVec tests', function() {
         describe('toMat Test', function(){
             it('todo', function(){ assert(false); })
         })
+
+        describe('save Test', function(){
+            it('todo', function(){ assert(false); })
+        })
+
+        describe('load Test', function(){
+            it('todo', function(){ assert(false); })
+        })
+
+        describe('saveascii Test', function(){
+            it('todo', function(){ assert(false); })
+        })
+
+        describe('loadascii Test', function(){
+            it('todo', function(){ assert(false); })
+        })
         */
     })
+});
+
+describe('TNodeJsFltVV tests', function() {
+    // TODO 
+});
+
+describe('TNodeJsSpVec tests', function() {
+    // TODO 
+});
+
+describe('TNodeJsSpMat tests', function() {
+    // TODO 
 });
 

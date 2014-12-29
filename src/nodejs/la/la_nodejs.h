@@ -751,7 +751,7 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
     TNodeJsVec<TVal, TAux>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-    bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+    const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 
     TVec<TVal> Result = JsVec->Vec;
     Result.Sort(Asc);
