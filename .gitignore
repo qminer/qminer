@@ -12,6 +12,9 @@
 *.la
 *.a
 
+# project files folder
+project
+
 # Autoconf
 config.log
 
