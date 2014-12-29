@@ -30,19 +30,22 @@ Build system for Node.JS modules.
 
 ### Building modules
 
-Downlaod code:
+Download code:
 
-	git clone https://github.com/qminer/qminer.git QMINER_ROOT
+	git clone https://github.com/qminer/qminer.git `QMINER_ROOT`
 
-Go to QMINER_ROOT and execute:
+Go to `QMINER_ROOT` and execute:
+
 	./configure
-If node is not installed
-	1. go to QMINER_ROOT/src/third_party/node/
-	2. execute: 
-		sudo make install
-	3. go to QMINER_ROOT and execute
-		./configure
 
+If node is not installed install node following the steps below:
+- Go to `QMINER_ROOT/src/third_party/node/` and execute:
+ 
+		sudo make install
+
+- Go to `QMINER_ROOT` and execute:
+
+		./configure
 
 
 Safe way:
