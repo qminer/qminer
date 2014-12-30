@@ -13,7 +13,7 @@ bool TJsFPath::IsSubdir(const TJsFPath& JsFPath) const {
 }
 
 void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {
-    for(TStrV::TIter It = FPathV.BegI(); It != FPathV.EndI(); ++It) {
+    for (TStrV::TIter It = FPathV.BegI(); It != FPathV.EndI(); ++It) {
         JsFPathV.Add(TJsFPath(*It));
     }
 }

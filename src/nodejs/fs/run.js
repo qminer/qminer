@@ -37,18 +37,14 @@ console.log(s);
 var info = fs.fileInfo("./test.out");
 console.log(info);
 
-/*
 // Copy file
 fs.copy("./test.out", "./test-copy.out");
 assert(fs.exists("./test-copy.out"));
-*/
 
-/*
 // Move file 
 fs.move("./test-copy.out", "./test-moved.out");
 assert(!fs.exists("./test-copy.out"));
 assert(fs.exists("./test-moved.out"));
-*/
 
 // Rename file 
 fs.rename("test.out", "tset.out");

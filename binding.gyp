@@ -56,6 +56,9 @@
                 'src/glib/base/',
                 'src/glib/mine/',
             ],
+            # 'defines': [
+            #    'MODULE_INCLUDE_FS'
+            # ],
             'dependencies': [
                 'glib'
             ],

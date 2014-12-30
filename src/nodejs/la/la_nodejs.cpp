@@ -1,4 +1,5 @@
 #include "la_nodejs.h"
+#include "../fs/fs_nodejs.h"
 
 // Need to declare explicit specializations in order to use 
 // it in the TNodeJsLinAlg 
