@@ -247,6 +247,8 @@ typedef TNodeJsVec<TFlt, TAuxStrV> TNodeJsStrV;
 //# 
 class TNodeJsFltVV : public node::ObjectWrap {
 public:
+	const static TStr ClassId;
+
     static void Init(v8::Handle<v8::Object> exports);
     static v8::Local<v8::Object> New(const TFltVV& FltVV);
     static v8::Local<v8::Object> New(const TFltV& FltV);
@@ -408,6 +410,8 @@ private:
 //# 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
+	const static TStr ClassId;
+
     TNodeJsSpMat() { }
     TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
         : Mat(_Mat), Rows(_Rows) { }

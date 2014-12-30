@@ -139,6 +139,8 @@ public:
     static bool IsArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::String
     static bool IsArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Check if is argument ArgN is a JSON object
+    static bool IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
     /// Extract argument ArgN property as bool
     static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
@@ -170,17 +172,26 @@ public:
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
     /// Create a new Javascript instance wrapped by the wrapper class
-    template <class TWrapper>
-    static v8::Local<v8::Object> NewJsInstance(TWrapper* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope);
+    template <class TWrap>
+    static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope);
+    /// Convenience method, creates a handle scope. If a handle scope is already present, the method
+    /// which takes it as an argument should be used.
+    template <class TWrap>
+    static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate);
 };
 
-
-template <class TWrapper>
-v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrapper* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope) {
+template <class TWrap>
+v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope) {
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, ConsFun);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 	Wrapper->Wrap(Instance);
 	return HandleScope.Escape(Instance);
+}
+
+template <class TWrap>
+v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate) {
+	v8::EscapableHandleScope HandleScope(Isolate);
+	return NewJsInstance(Wrapper, ConsFun, Isolate, HandleScope);
 }
 
 #endif
