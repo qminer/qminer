@@ -557,7 +557,7 @@ int main(int argc, char* argv[]) {
 		if (TestP) {
 			Lock.Lock();
 			{
-#ifdef _DEBUG
+//#ifdef _DEBUG
 				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
@@ -603,7 +603,7 @@ int main(int argc, char* argv[]) {
 					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
 					TRnd rnd(1212);
 					TQQueue<uint64> added_ids;
-					for (int i = 0; i < 10 * 1000; i++) {
+					for (int i = 0; i < 200 * 1000; i++) {
 						int r = rnd.GetUniDevInt(100);
 						if (i % 100 == 0) printf("==================== %d\n", i);
 						//if (i > 1000)
@@ -648,7 +648,7 @@ int main(int argc, char* argv[]) {
 							added_ids.Push(id);
 							//printf("     added record\n");
 
-						} else if (r < 11) {
+						} else if (r < -11) {
 							// perform delete of the front 5 records
 							if (store->GetRecs() > 5) {
 								store->DeleteFirstNRecs(5);
@@ -669,7 +669,7 @@ int main(int argc, char* argv[]) {
 							}
 						}
 					}
-					Base->PrintIndexCache("XXXX_index.txt");
+					//Base->PrintIndexCache("XXXX_index.txt");
 				}
 
 				//{
@@ -719,7 +719,7 @@ int main(int argc, char* argv[]) {
 				//}
 				// save base
 				TQm::TStorage::SaveBase(Base);
-#endif
+//#endif
 			}
 			// remove lock
 			Lock.Unlock();

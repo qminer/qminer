@@ -989,8 +989,10 @@ typedef TStrHash<TIntV> TStrToIntVSH;
 // Cache
 template <class TKey, class TDat, class THashFunc = TDefaultHashFunc<TKey> >
 class TCache{
+public:
+  typedef TLstNd<TKey>* TKeyLN;
 private:
-  typedef TLst<TKey> TKeyL; typedef TLstNd<TKey>* TKeyLN;
+  typedef TLst<TKey> TKeyL; 
   typedef TPair<TKeyLN, TDat> TKeyLNDatPr;
   int64 MxMemUsed;
   int64 CurMemUsed;
@@ -1013,11 +1015,17 @@ public:
   void Put(const TKey& Key, const TDat& Dat);
   bool Get(const TKey& Key, TDat& Dat);
   void Del(const TKey& Key, const bool& DoEventCall=true);
+  void ChangeKey(const TKey& OldKey, const TKey& NewKey);
   int Len() const { return KeyDatH.Len(); }
   void Flush();
   void FlushAndClr();
   void* FFirstKeyDat();
   bool FNextKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
+  void* FLastKeyDat();
+  bool FPrevKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat);
+  
+  TKeyLN First() const { return TimeKeyL.First(); }
+  TKeyLN Last() const { return TimeKeyL.Last(); }
 
   void PutRefToBs(void* _RefToBs){RefToBs=_RefToBs;}
   void* GetRefToBs(){return RefToBs;}
@@ -1074,6 +1082,21 @@ void TCache<TKey, TDat, THashFunc>::Put(const TKey& Key, const TDat& Dat){
 }
 
 template <class TKey, class TDat, class THashFunc>
+void TCache<TKey, TDat, THashFunc>::ChangeKey(const TKey& OldKey, const TKey& NewKey) {
+	if (OldKey == NewKey)
+		return;
+	int OldKeyId = KeyDatH.GetKeyId(OldKey);
+	if (OldKeyId == -1) {
+		// nothing
+	} else {
+		TKeyLNDatPr& KeyLNDatPr = KeyDatH[OldKeyId];
+		KeyLNDatPr.Val1->GetVal() = NewKey; // update data inside linked-list node
+		KeyDatH.AddDat(NewKey, KeyLNDatPr); // store the same data pair under new key
+		KeyDatH.DelKeyId(OldKeyId);
+	}
+}
+
+template <class TKey, class TDat, class THashFunc>
 bool TCache<TKey, TDat, THashFunc>::Get(const TKey& Key, TDat& Dat){
   int KeyId=KeyDatH.GetKeyId(Key);
   if (KeyId==-1){
@@ -1127,6 +1150,10 @@ template <class TKey, class TDat, class THashFunc>
 void* TCache<TKey, TDat, THashFunc>::FFirstKeyDat(){
   return TimeKeyL.First();
 }
+template <class TKey, class TDat, class THashFunc>
+void* TCache<TKey, TDat, THashFunc>::FLastKeyDat() {
+	return TimeKeyL.Last();
+}
 
 template <class TKey, class TDat, class THashFunc>
 bool TCache<TKey, TDat, THashFunc>::FNextKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat){
@@ -1136,6 +1163,16 @@ bool TCache<TKey, TDat, THashFunc>::FNextKeyDat(void*& KeyDatP, TKey& Key, TDat&
     Key=TKeyLN(KeyDatP)->GetVal(); Dat=KeyDatH.GetDat(Key).Val2;
     KeyDatP=TKeyLN(KeyDatP)->Next(); return true;
   }
+}
+
+template <class TKey, class TDat, class THashFunc>
+bool TCache<TKey, TDat, THashFunc>::FPrevKeyDat(void*& KeyDatP, TKey& Key, TDat& Dat) {
+	if (KeyDatP == NULL) {
+		return false;
+	} else {
+		Key = TKeyLN(KeyDatP)->GetVal(); Dat = KeyDatH.GetDat(Key).Val2;
+		KeyDatP = TKeyLN(KeyDatP)->Prev(); return true;
+	}
 }
 
 /////////////////////////////////////////////////

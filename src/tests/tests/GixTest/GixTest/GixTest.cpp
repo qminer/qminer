@@ -732,17 +732,22 @@ public:
 		}
 	}
 
-	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 10000) {
+	void Test_BigInserts(int cache_size = 500 * 1024 * 1024, int split_len = 1000) {
 		TStr Nm("Test_Feed_Big");
 		TStr FName("data");
-		int total = 300 * 1000;
+		int total = 200 * 1000;
 		int keys = 0;
+		//int voc_count = 50 * 1000; // number of possible words
 		int voc_count = 50 * 1000; // number of possible words
 
+		split_len = 1000;
+		cache_size = 200 * 1024 * 1024;
+
+		TTmStopWatch sw(true);
 		THash<TInt, TInt> counts;
 		{
 			// simmulate news feed
-			// many articles, containing 50 random words + everyone containing words 1-5
+			// many articles, containing X random words + everyone containing words 1-5
 			auto gix = TMyGix::New(Nm, FName, faCreate, cache_size, split_len);
 			//TMyGix gix(Nm, FName, faCreate, cache_size, TMyMerger::New(), split_len);
 			TRnd rnd(1);
@@ -751,9 +756,10 @@ public:
 				for (int i = 1; i <= 5; i++) {
 					gix->AddItem(TIntUInt64Pr(i, i), TMyItem(j, 1));
 				}
-				// each document contains 100 random words
+				// each document contains X random words
 				TVec<int> vals;
-				for (int i = 0; i < 100; i++) {
+				int len = rnd.GetUniDevInt(50, 200);
+				for (int i = 0; i < len; i++) {
 					int w = rnd.GetUniDevInt(6, voc_count);
 
 					// prevent the same word for the same document
@@ -766,8 +772,12 @@ public:
 					gix->AddItem(key, TMyItem(j, 1));
 					AddToCounter(counts, w);
 				}
-				if (j % 10000 == 0) {
+				if (sw.GetSec() >= 5) {
 					printf("-- %d - %d\n", j, gix->GetCacheSize());
+					gix->PrintStats();
+					gix->PartialFlush();
+					gix->PrintStats();
+					sw.Reset(true);
 				}
 			}
 
@@ -779,6 +789,7 @@ public:
 			CheckCounts(counts, *gix);
 
 			keys = gix->GetKeys();
+			gix->PrintStats();
 			gix->Flush();
 		}
 		{
@@ -805,39 +816,39 @@ public:
 
 	void PerformTests() {
 
-		Test_Simple_1();
+		/*Test_Simple_1();
 		Test_Simple_220();
 		Test_Simple_220_Unsorted();
 		Test_Merge_220_Into_50();
 		Test_Merge_220_Into_120();
-		Test_Merge_22000_Into_50();
+		Test_Merge_22000_Into_50();*/
 
 		Test_BigInserts();
 
-		Test_Delete_1();
-		Test_Delete_20();
-		Test_Delete_20And1();
-		Test_Delete_120();
-		Test_Delete_120And1();
-		Test_Delete_120And110();
-		Test_Delete_22000And1000();
+		//Test_Delete_1();
+		//Test_Delete_20();
+		//Test_Delete_20And1();
+		//Test_Delete_120();
+		//Test_Delete_120And1();
+		//Test_Delete_120And110();
+		//Test_Delete_22000And1000();
 
-		Test_QuasiDelete_120And1And2();
-		Test_QuasiDelete_120And20();
-		Test_QuasiDelete_22000And1000();
+		//Test_QuasiDelete_120And1And2();
+		//Test_QuasiDelete_120And20();
+		//Test_QuasiDelete_22000And1000();
 
-		// this will split only big itemsets
-		WarnNotifyI(TStr("Split only big itemsets\n"));
-		Test_Feed(50 * 1024 * 1025, 1000);
-
-		// this will split probably all itemsets
-		WarnNotifyI(TStr("Split all itemsets\n"));
-		Test_Feed(50 * 1024 * 1025, 100);
+		//// this will split only big itemsets
+		//WarnNotifyI(TStr("Split only big itemsets\n"));
+		//Test_Feed(50 * 1024 * 1025, 1000);
 
 		//// this will split probably all itemsets
-		//// it will also limit cache to less than 10% of the itemsets
-		//WarnNotifyI(TStr("Split all itemsets, small cache\n"));
-		//Test_Feed(5 * 1024 * 1025, 1000);
+		//WarnNotifyI(TStr("Split all itemsets\n"));
+		//Test_Feed(50 * 1024 * 1025, 100);
+
+		////// this will split probably all itemsets
+		////// it will also limit cache to less than 10% of the itemsets
+		////WarnNotifyI(TStr("Split all itemsets, small cache\n"));
+		////Test_Feed(5 * 1024 * 1025, 1000);
 	}
 };
 

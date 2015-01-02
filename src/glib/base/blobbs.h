@@ -100,6 +100,35 @@ public:
 };
 
 /////////////////////////////////////////////////
+// Statistics for TBlobBs
+class TBlobBsStats {
+public:
+	uint64 Puts;
+	uint64 PutsNew;
+	uint64 Gets;
+	uint64 Dels;
+	uint64 SizeChngs;
+	double AvgGetLen;
+	double AvgPutLen;
+	double AvgPutNewLen;
+	TBlobBsStats() { Reset(); }
+	void Reset() {
+		AvgPutNewLen = AvgGetLen = AvgPutLen = 0;
+		Dels = Puts = PutsNew = Gets = SizeChngs = 0;
+	}
+	void Add(const TBlobBsStats& Othr) {
+		Puts += Othr.Puts;
+		PutsNew += Othr.PutsNew;
+		Gets += Othr.Gets;
+		SizeChngs += Othr.SizeChngs;
+		Dels += Othr.Dels;
+		AvgPutNewLen = (AvgPutNewLen*PutsNew + Othr.AvgPutNewLen*Othr.PutsNew) / (PutsNew + Othr.PutsNew);
+		AvgGetLen = (AvgGetLen*Gets + Othr.AvgGetLen*Othr.Gets) / (Gets + Othr.Gets);
+		AvgPutLen = (AvgPutLen*Puts + Othr.AvgPutLen*Othr.Puts) / (Puts + Othr.Puts);
+	}
+};
+
+/////////////////////////////////////////////////
 // Blob-Base
 typedef enum {bbsUndef, bbsOpened, bbsClosed} TBlobBsState;
 typedef enum {btUndef, btBegin, btEnd} TBlobTag;
@@ -109,7 +138,7 @@ ClassTPV(TBlobBs, PBlobBs, TBlobBsV)//{
 public:
   static const int MnBlobBfL;
   static const int MxBlobFLen;
-  UndefCopyAssign(TBlobBs);
+  UndefCopyAssign(TBlobBs);  
 public:
   TBlobBs(){}
   virtual ~TBlobBs(){}
@@ -166,6 +195,9 @@ public:
   virtual bool FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn)=0;
   bool FNextBlobPt(TBlobPt& TrvBlobPt, PSIn& BlobSIn){
     TBlobPt BlobPt; return FNextBlobPt(TrvBlobPt, BlobPt, BlobSIn);}
+
+  virtual const TBlobBsStats& GetStats()=0;
+  virtual void ResetStats() = 0;
 };
 
 /////////////////////////////////////////////////
@@ -185,6 +217,7 @@ private:
   TBlobPtV FFreeBlobPtV;
   TBlobPt FirstBlobPt;
   static TStr GetNrBlobBsFNm(const TStr& BlobBsFNm);
+  TBlobBsStats Stats;
 public:
   TGBlobBs(const TStr& BlobBsFNm, const TFAccess& _Access=faRdOnly,
    const int& _MxSegLen=-1);
@@ -206,6 +239,9 @@ public:
   bool FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn);
 
   static bool Exists(const TStr& BlobBsFNm);
+
+  const TBlobBsStats& GetStats() { return Stats; }
+  void ResetStats() { Stats.Reset(); }
 };
 
 /////////////////////////////////////////////////
@@ -222,6 +258,7 @@ private:
   static TStr GetSegFNm(const TStr& NrFPath, const TStr& NrFMid, const int& SegN);
   void LoadMain(int& Segs);
   void SaveMain() const;
+  TBlobBsStats Stats;
 public:
   TMBlobBs(const TStr& BlobBsFNm, const TFAccess& _Access=faRdOnly,
    const int& _MxSegLen=-1);
@@ -244,5 +281,8 @@ public:
   bool FNextBlobPt(TBlobPt& TrvBlobPt, TBlobPt& BlobPt, PSIn& BlobSIn);
 
   static bool Exists(const TStr& BlobBsFNm);
+
+  const TBlobBsStats& GetStats();
+  void ResetStats();
 };
 
