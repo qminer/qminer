@@ -1078,7 +1078,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TWPt<TQm::TStore>& Store, const u
 	if (Store->IsFieldNull(RecId, FieldId)) {
 		return v8::Null(Isolate);
 	}
-	TQm::TRec& Rec = Store->GetRec(RecId);
+	TQm::TRec Rec = Store->GetRec(RecId);
 	return HandleScope.Escape(Field(Rec, FieldId));
 }
 
@@ -1221,9 +1221,7 @@ void TNodeJsStore::newRec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TWPt<TQm::TStore> Store = JsStore->Store;
 
 		PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
-		printf("%s\n", TJsonVal::GetStrFromVal(RecVal).CStr());
 		TQm::TRec Rec(Store, RecVal);
-		printf("%s\n", TJsonVal::GetStrFromVal(Rec.GetJson(Store->GetBase())).CStr());
 		
 		Args.GetReturnValue().Set(TNodeJsRec::New(Rec));
 	}
@@ -1923,7 +1921,6 @@ v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq) {
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	TNodeJsRec* JsRec = new TNodeJsRec(Rec, _Fq);
-	printf("%s\n", TJsonVal::GetStrFromVal(Rec.GetJson(Rec.GetStore()->GetBase())).CStr());
 	JsRec->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
