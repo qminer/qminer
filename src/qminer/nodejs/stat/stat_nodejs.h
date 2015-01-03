@@ -7,7 +7,7 @@
 #include <node_object_wrap.h>
 #include "base.h"
 #include "utils.h"
-#include "la_nodejs.h"
+#include "../la/la_nodejs.h"
 
 ///////////////////////////////
 // NodeJs-Qminer-Stat

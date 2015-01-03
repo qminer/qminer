@@ -411,8 +411,10 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "matrix"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
@@ -945,8 +947,10 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseVector"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsSpVec::New(const TIntFltKdV& IntFltKdV) {
@@ -1283,8 +1287,10 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
    // This has to be last, otherwise the properties won't show up on the
    // object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
+   #ifndef MODULE_INCLUDE_LA
    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseColMatrix"),
       tpl->GetFunction());
+   #endif
 }
 
 v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& Rows) {
@@ -1803,7 +1809,6 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-#ifndef MODULE_INCLUDE_LA
 ///////////////////////////////
 // QMiner-LinAlg
 void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
@@ -1824,7 +1829,7 @@ void TNodeJsLinAlg::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	double Dim = TNodeJsUtil::GetArgFlt(Args, 1, 1); // Default dim is 1
 
 	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
-		printf("Im in TFltV!!");
+		//printf("Im in TFltV!!");
 		EAssertR(Args[0]->IsObject() && TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltV"), "TNodeJsStore constructor expecting store name and base object as arguments");
 		// If input argument is vec
 		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args.Holder()); // Doesent work
@@ -1833,7 +1838,7 @@ void TNodeJsLinAlg::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		return Args.GetReturnValue().Set(v8::Number::New(Isolate, TLAMisc::Mean(JsVec->Vec)));
 	}
 	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
-		printf("Im in TFltVV!!");
+		//printf("Im in TFltVV!!");
 		EAssertR(Args[0]->IsObject() && TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltVV"), "TNodeJsStore constructor expecting store name and base object as arguments");
 		 //If input argument is matrix
 		TFltV Vec;
@@ -1842,7 +1847,7 @@ void TNodeJsLinAlg::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		return Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
 	}
-	printf("Im at the end!!");
+	//printf("Im at the end!!");
 	//throw TExcept::New("la.mean() can take only matrix, or vector as first input argument.");
 	EAssertR(false, "la.mean() can take only matrix, or vector as first input argument.");
 }
@@ -1861,12 +1866,12 @@ void TNodeJsLinAlg::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	//Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
 }
 
+#ifndef MODULE_INCLUDE_LA
 ///////////////////////////////
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-   //TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-   //TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
    TNodeJsFltVV::Init(exports);
    TNodeJsSpVec::Init(exports);
    TNodeJsSpMat::Init(exports);

@@ -10,9 +10,11 @@
 			'../la/la_nodejs.cpp',
 			'../la/la_nodejs.h'
          ],
+		 'defines': [
+           'MODULE_INCLUDE_LA'
+		 ],
          'include_dirs': [
 			'../',
-			'../la/',
             '../../../glib/',
             '../../../glib/base/',
             '../../../glib/mine/'
@@ -27,40 +29,6 @@
          'cflags_cc': [
             '-std=c++0x',
  	        '-frtti',
-            '-fexceptions'
-         ],
-         'cflags': [
-            '-g',
-            '-fexceptions',
-            '-frtti',
-            '-std=c++0x',
-            '-Wall',
-            '-Wno-deprecated-declarations',
-            '-fopenmp',
-         ]
-      },
-	  {
-        'target_name': 'la',
-		'type': 'static_library',
-		'sources': [
-            '../la/la_nodejs.cpp'
-         ],
-         'include_dirs': [
-			'../',
-            '../../../glib/',
-            '../../../glib/base/',
-            '../../../glib/mine/'
-         ],
-         'dependencies': [
-            'glib'
-         ],
-         'cflags_cc!': [
-            '-fno-rtti',
-            '-fno-exceptions',
-         ],
-         'cflags_cc': [
-            '-std=c++0x',
- 	           '-frtti',
             '-fexceptions'
          ],
          'cflags': [

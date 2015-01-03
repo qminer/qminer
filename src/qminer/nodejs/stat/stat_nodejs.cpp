@@ -24,10 +24,10 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		printf("Im in TFltV!!");
 		EAssertR(Args[0]->IsObject() && TNodeJsUtil::IsClass(Args[0]->ToObject(), "TFltV"), "TNodeJsStore constructor expecting store name and base object as arguments");
 		// If input argument is vec
-		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args.Holder()); // Doesent work
+		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject()); // Doesent work
 		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Args[0]->ToObject());
-		
-		return Args.GetReturnValue().Set(v8::Number::New(Isolate, TLAMisc::Mean(JsVec->Vec)));
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, TLAMisc::Mean(JsVec->Vec)));
+		return;
 	}
 	if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
 		printf("Im in TFltVV!!");
@@ -36,8 +36,8 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TFltV Vec;
 		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 		TLAMisc::Mean(JsMat->Mat, Vec, Dim);
-
-		return Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
+		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
+		return;
 	}
 	printf("Im at the end!!");
 	//throw TExcept::New("la.mean() can take only matrix, or vector as first input argument.");
@@ -60,8 +60,11 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // Register functions, etc.  
-void init_stat(v8::Handle<v8::Object> exports) {
+void init(v8::Handle<v8::Object> exports) {
    TNodeJsStat::Init(exports);
+   // LA
+   TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
 }
 
-NODE_MODULE(stat, init_stat) // Could this be a problem? Is stat allready reserved name??
+NODE_MODULE(stat, init) // Could this be a problem? Is stat allready reserved name??

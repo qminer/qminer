@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Highcharts Example</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        
+    <script type="text/javascript" src="http://localhost:8080/admin/js/visualization.js"></script>
+    <style type="text/css">
+        $ {
+            demo .css;
+        }
+    </style>
+    
+    <script type="text/javascript">       
+       
+    	$(function () {
+    	    $(document).ready(function () {
+    	        $('#' + 'container').highcharts({
+    	            title: { text: "Online graph" },
+    	            chart: {
+    	                type: 'spline',
+    	                animation: Highcharts.svg, // don't animate in old IE
+    	                marginRight: 80,
+    	                events: {
+    	                    load: function () {
+
+    	                        // set up the updating of the chart each second
+    	                        var series = this.series;
+    	                        var maxSamples = 120;
+    	                        var count = 0;
+    	                        var lastTS = 0;
+    	                        setInterval(function () {
+    	                            $.getJSON("http://localhost:8080/updatingTsPlot/data", function (data) {
+    	                                var rec = data[0].data[0];
+    	                                var rec2 = data[1].data[0];
+    	                                if (rec[0] != lastTS) {
+    	                                    count++;
+    	                                    series[0].addPoint(rec, false, (count >= maxSamples)); //do not shift until count is bigger than maxSamples
+    	                                    series[1].addPoint(rec2, true, (count >= maxSamples)); //do not shift until count is bigger than maxSamples
+    	                                    lastTS = rec[0]
+    	                                } 
+    	                            })
+    	                        }, 1000);
+    	                    }
+    	                }
+    	            },            
+    	            series: [{
+    	                name: 'Random data',
+    	                //yAxis: 1,
+    	                data: []
+    	            }, {
+    	                name: 'ema',
+    	                type: 'spline',
+                        data: []
+    	            }],
+    	            xAxis: {
+    	                type: 'datetime',
+    	                dateTimeLabelFormats: { // don't display the dummy year
+    	                    month: '%e. %b',
+    	                    year: '%b'
+    	                },
+    	                title: {
+    	                    text: 'Time'
+    	                }
+    	            },
+    	            yAxis: [
+                        {
+                            title: { text: 'Val' }
+    	                },/*
+    	                {
+    	                    title: { text: 'Val' },
+    	                    opposite: true
+    	                }*/]
+    	            ,/*
+    	            legend: {
+    	                layout: 'vertical',
+    	                align: 'left',
+    	                x: 120, y: 80,
+    	                verticalAlign: 'top',
+    	                floating: true,
+    	                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+    	            },*/
+    	            tooltip: {
+    	                headerFormat: '<b>{series.name}</b><br>',
+    	                pointFormat: '{point.x:%Y-%m-%d %H:%M:%S}<br/>{point.y:.2f} '
+    	            },
+    	        });
+    	    });
+    	});
+        
+    </script>
+</head>
+<body>    
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+</body>
+</html>

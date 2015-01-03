@@ -1706,6 +1706,8 @@ public:
 	JsDeclareFunction(sortByField);
 	//#- `rs = rs.sort(comparatorCallback)` -- sort records according to `comparator` callback. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
    	JsDeclareFunction(sort);
+	//#- `rs = rs.permute(intVec)` -- permutes the record set according to the permutation vector `intVec`. Example: rs.sort(function(rec,rec2) {return rec.Val < rec2.Val;} ) sorts rs in ascending order (field Val is assumed to be a num). Returns self.
+	JsDeclareFunction(permute);
 	//#- `rs = rs.filterById(minId, maxId)` -- keeps only records with ids between `minId` and `maxId`. Returns self.
 	JsDeclareFunction(filterById);
 	//#- `rs = rs.filterByFq(minFq, maxFq)` -- keeps only records with weight between `minFq` and `maxFq`. Returns self.
@@ -4070,6 +4072,20 @@ public:
 
 	// feature extractor type name 
 	static TStr GetType() { return "jsfunc"; }
+};
+
+
+class TJsMisc {
+private:
+	typedef TJsObjUtil<TJsMisc> TJsMiscUtil;
+	TJsMisc() { }
+public:
+	static v8::Persistent<v8::Object> New() {
+		return TJsMiscUtil::New(new TJsMisc());
+	}
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+	// mat = word_co(dataStrVec, searchVec) 
+	JsDeclareFunction(word_co);
 };
 
 

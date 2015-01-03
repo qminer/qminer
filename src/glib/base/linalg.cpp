@@ -1524,7 +1524,10 @@ void TLinAlg::Gemm(const double& Alpha, const TFltVV& A, const TFltVV& B, const 
 	int d_j = D.GetRows();
 	
 	// assertions for dimensions
-	EAssert(a_j == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j);
+  bool Cnd = a_i == c_j && b_i == c_i && a_i == b_j && c_i == d_i && c_j == d_j;
+  if (!Cnd) {
+    EAssert(Cnd);
+  }
 
 	double Aij, Bij, Cij;
 
@@ -2297,14 +2300,15 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
   IAssertR(NumEig <= Iters, TStr::Fmt("%d <= %d", NumEig, Iters));
 
     //if (ReOrtoType == ssotFull) printf("Full reortogonalization\n");
-    int i, N = Matrix.GetCols(), K; // K - current dimension of T
+    int i, N = Matrix.GetCols(), K = 0; // K - current dimension of T
     double t = 0.0, eps = 1e-6; // t - 1-norm of T
 
     //sequence of Ritz's vectors
     TFltVV Q(N, Iters);
     double tmp = 1/sqrt((double)N);
-    for (i = 0; i < N; i++)
+    for (i = 0; i < N; i++) {
         Q(i,0) = tmp;
+    }
     //converget Ritz's vectors
     TVec<TFltV> ConvgQV(Iters);
     TIntV CountConvgV(Iters);
@@ -2370,8 +2374,9 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
       printf("Last singular value is %g\n", bb[j].Val);
       break;
     }
-        for (i = 0; i < N; i++)
+        for (i = 0; i < N; i++) {
             Q(i, j+1) = z[i] / bb[j];
+        }
 
         //next Lanzcos vector
         if (SvdMatrixProductP) {
@@ -2393,14 +2398,16 @@ void TSparseSVD::Lanczos(const TMatrix& Matrix, int NumEig,
 
         //calculate 1-norm of T
         t = TFlt::GetMx(TFlt::Abs(d[1]) + TFlt::Abs(e[2]), TFlt::Abs(e[K]) + TFlt::Abs(d[K]));
-        for (i = 2; i < K; i++)
+        for (i = 2; i < K; i++) {
             t = TFlt::GetMx(t, TFlt::Abs(e[i]) + TFlt::Abs(d[i]) + TFlt::Abs(e[i+1]));
+        }
 
         //set V to identity matrix
         //V.Gen(K,K);
         for (i = 0; i < K; i++) {
-            for (int k = 0; k < K; k++)
+            for (int k = 0; k < K; k++) {
                 V(i,k) = 0.0;
+            }
             V(i,i) = 1.0;
         }
 
@@ -2446,7 +2453,7 @@ void TSparseSVD::Lanczos2(const TMatrix& Matrix, int MaxNumEig,
   //IAssertR(NumEig <= Iters, TStr::Fmt("%d <= %d", NumEig, Iters));
 
   //if (ReOrtoType == ssotFull) printf("Full reortogonalization\n");
-  int i, N = Matrix.GetCols(), K; // K - current dimension of T
+  int i, N = Matrix.GetCols(), K = 0; // K - current dimension of T
   double t = 0.0, eps = 1e-6; // t - 1-norm of T
 
   //sequence of Ritz's vectors
