@@ -247,8 +247,10 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
     constructor.Reset(Isolate, tpl->GetFunction());
+    #ifndef MODULE_INCLUDE_FS
     exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
         tpl->GetFunction());
+    #endif
 }
 
 void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -369,8 +371,10 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
     constructor.Reset(Isolate, tpl->GetFunction());
+    #ifndef MODULE_INCLUDE_FS
     exports->Set(v8::String::NewFromUtf8(Isolate, "FOut"),
         tpl->GetFunction());
+    #endif
 }
 
 v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
