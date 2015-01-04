@@ -42,9 +42,9 @@ s1 = qm.newStreamAggr(new function () {
 // s2 : exponential moving average, takes tick as input
 s2 = qm.newStreamAggr({ name: "ema", type: "ema", inAggr: "timeseries", emaType: "linear", interval: 5 * 1000 }, "ts");
 
-
 // stores stream aggregate values
 var buffer = [];
+var bufferSize = 120; 
 
 // Offline (no server is needed)
 //viz.drawHighChartsTimeSeries(viz.highchartsTSConverter(buffer), "plot.html", { title: { text: "js(t) = sin(t) + noise, ema(t) = EMA(js(t))" } });
@@ -58,6 +58,20 @@ http.onGet("data", function (req, resp) {
     return http.jsonp(req, resp, viz.highchartsTSConverter([qm.getAllStreamAggrVals(ts)]));
 })
 
+http://localhost:8080/updatingTsPlot/histData
+http.onGet("histData", function (req, resp) {
+    //return http.jsonp(req, resp, viz.highchartsTSConverter(buffer[buffer.length - 1]));
+    // Send only current value
+    return http.jsonp(req, resp, viz.highchartsTSConverter(buffer));
+})
+
+http://localhost:8080/updatingTsPlot/debug
+http.onGet("debug", function (req, resp) {
+    console.log("Debug mode...");
+    eval(breakpoint);
+    return http.jsonp(req, resp, "Debug mode...");
+})
+
 ////send data to: http://localhost:8080/updatingTsPlot/import
 http.onGet("import", function (req, resp) {
     //printj(req)
@@ -66,11 +80,8 @@ http.onGet("import", function (req, resp) {
         printj(rec)
         ts.add(ts.newRec(rec))
 
-        //buffer.push(qm.getAllStreamAggrVals(ts));
-        //printj(buffer[buffer.length - 1])
-
-        //console.log("Debug mode...")
-        //eval(breakpoint);
+        if (buffer.length >= bufferSize) buffer.shift();
+        buffer.push(qm.getAllStreamAggrVals(ts));
 
         resp.setStatusCode(200);
         return http.jsonp(req, resp, "OK");
