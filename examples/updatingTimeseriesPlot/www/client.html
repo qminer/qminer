@@ -12,77 +12,38 @@
         }
     </style>
     
-    <script type="text/javascript">              
-    	// setup override params
+    <script type="text/javascript">          
+        
+        // Function used for updating graph
+        var onLoad = function () {
+            // set up the updating of the chart each second
+            var series = this.series;
+            var maxSamples = 120; // max number of samples before graph starts to shift
+            var count = 0; // counter for how many points have been drawm
+            var lastTS = 0; // initialize timestamp value
+            var refreshInterval = 1000 // refresh rate for updating (in ms)
+            setInterval(function () {
+                $.getJSON("http://localhost:8080/updatingTsPlot/data", function (data) {
+                    var rec = data[0].data[0]; // 'Random data' sample
+                    var rec2 = data[1].data[0]; // 'Ema' sample
+                    if (rec[0] != lastTS) { // If new recs timestamp is different than the last one
+                        count++;
+                        series[0].addPoint(rec, false, (count >= maxSamples)); //do not shift until count is bigger than maxSamples
+                        series[1].addPoint(rec2, true, (count >= maxSamples)); //do not shift until count is bigger than maxSamples
+                        lastTS = rec[0]
+                    }
+                })
+            }, refreshInterval);
+        }
+
+        // setup override params
     	var overrideParams = {
     	    title: { text: "Online graph" },
-    	    chart: {
-    	        type: 'spline',
-    	        animation: Highcharts.svg, // don't animate in old IE
-    	        marginRight: 80,
-    	        events: {
-    	            load: function () {
-
-    	                // set up the updating of the chart each second
-    	                var series = this.series;
-    	                var maxSamples = 120;
-    	                var count = 0;
-    	                var lastTS = 0;
-    	                setInterval(function () {
-    	                    $.getJSON("http://localhost:8080/updatingTsPlot/data", function (data) {
-    	                        var rec = data[0].data[0];
-    	                        var rec2 = data[1].data[0];
-    	                        if (rec[0] != lastTS) {
-    	                            count++;
-    	                            series[0].addPoint(rec, false, (count >= maxSamples)); //do not shift until count is bigger than maxSamples
-    	                            series[1].addPoint(rec2, true, (count >= maxSamples)); //do not shift until count is bigger than maxSamples
-    	                            lastTS = rec[0]
-    	                        }
-    	                    })
-    	                }, 1000);
-    	            }
-    	        }
-    	    },
-    	    series: [{
-    	        name: 'Random data',
-    	        //yAxis: 1,
-    	        data: []
-    	    }, {
-    	        name: 'ema',
-    	        type: 'spline',
-    	        data: []
-    	    }],
-    	    xAxis: {
-    	        type: 'datetime',
-    	        dateTimeLabelFormats: { // don't display the dummy year
-    	            month: '%e. %b',
-    	            year: '%b'
-    	        },
-    	        title: {
-    	            text: 'Time'
-    	        }
-    	    },
-    	    yAxis: [
-                {
-                    title: { text: 'Val' }
-                },/*
-    	                {
-    	                    title: { text: 'Val' },
-    	                    opposite: true
-    	                }*/]
-    	            ,/*
-    	            legend: {
-    	                layout: 'vertical',
-    	                align: 'left',
-    	                x: 120, y: 80,
-    	                verticalAlign: 'top',
-    	                floating: true,
-    	                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
-    	            },*/
-    	    tooltip: {
-    	        headerFormat: '<b>{series.name}</b><br>',
-    	        pointFormat: '{point.x:%Y-%m-%d %H:%M:%S}<br/>{point.y:.2f} '
-    	    },
+    	    chart: { type: 'spline', zoomType: 'x', animation: Highcharts.svg, marginRight: 80, events: { load: onLoad }},
+    	    series: [{ name: 'Random data', data: [] }, { name: 'ema', type: 'spline', data: [] }],
+    	    xAxis: { type: 'datetime', dateTimeLabelFormats: { month: '%e. %b', year: '%b' }, title: { text: 'Time' } },
+    	    yAxis: { title: { text: 'Val' }},
+    	    tooltip: { headerFormat: '<b>{series.name}</b><br>', pointFormat: '{point.x:%Y-%m-%d %H:%M:%S}<br/>{point.y:.2f}' },
     	}
 
         //// Plot with no initial data
