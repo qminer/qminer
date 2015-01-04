@@ -807,7 +807,7 @@ public:
 	/// flush all data from cache to disk
 	void Flush() { ItemSetCache.FlushAndClr(); }
 	/// flush a portion of data from cache to disk
-	int PartialFlush();
+	int PartialFlush(int WndInMsec = 500);
 
 
 	// traversing keys
@@ -836,18 +836,17 @@ public:
 
 	/// print statistics for index keys
 	void SaveTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
-#ifdef _DEBUG
-	/// export cache
-	void SaveCacheTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const;
-#endif
 	/// print simple statistics for cache
 	void PrintStats();
-
-	/// returns gix statistics
-	const TGixStats& GetStats() {
-		RefreshStats();
+	/// get blob stats
+	const TBlobBsStats& GetBlobStats() { return ItemSetBlobBs->GetStats(); }
+	/// get gix stats
+	const TGixStats& GetGixStats(bool do_refresh = true) {
+		if (do_refresh) RefreshStats();
 		return Stats;
 	}
+	/// reset blob stats
+	void ResetStats() { ItemSetBlobBs->ResetStats(); }
 
 	friend class TPt < TGix > ;
 	friend class TGixItemSet < TKey, TItem, TGixMerger > ;
@@ -856,36 +855,31 @@ public:
 #endif
 };
 
+
+
 template <class TKey, class TItem, class TGixMerger>
-int TGix<TKey, TItem, TGixMerger>::PartialFlush() {
+int TGix<TKey, TItem, TGixMerger>::PartialFlush(int WndInMsec) {
 	TTmStopWatch sw(true);
-	auto current = ItemSetCache.Last();
-	//auto current = ItemSetCache.First();	
+	TLstNd<TBlobPt>* current = ItemSetCache.Last();
 	PGixItemSet curr;
 	int cnt = 0;
 	int cnt_all = 0;
 	TBlobPt b;
-	try {
-		while (current != NULL) {
-			if (sw.GetMSecInt() > 1000) break;
-			b = current->Val;
-			if (ItemSetCache.Get(current->Val, curr)) {
-				if (curr->Dirty) {
-					TBlobPt b_new = StoreItemSet(current->Val);
-					ItemSetCache.ChangeKey(b, b_new); // blob pointer might have changed, update cache
-					cnt++;
-				}
+	while (current != NULL) {
+		if (sw.GetMSecInt() > WndInMsec) break;
+		b = current->Val;
+		if (ItemSetCache.Get(current->Val, curr)) {
+			if (curr->Dirty) {
+				TBlobPt b_new = StoreItemSet(current->Val);
+				ItemSetCache.ChangeKey(b, b_new); // blob pointer might have changed, update cache
+				cnt++;
 			}
-			cnt_all++;
-			current = current->PrevNd;
-			//current = current->NextNd;
 		}
-		printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
-		return cnt;
-	} catch (...) {
-		printf("++++++ error: %d, %d\n", cnt_all, b.Addr);
-		return 0;
+		cnt_all++;
+		current = current->PrevNd;
 	}
+	printf("Partial flush - %d itemsets saved to disk, scanned %d - %f.\n", cnt, cnt_all, ((double)cnt / cnt_all));
+	return cnt;
 }
 
 
@@ -941,9 +935,7 @@ TGix<TKey, TItem, TGixMerger>::TGix(const TStr& Nm, const TStr& FPath, const TFA
 template <class TKey, class TItem, class TGixMerger>
 TGix<TKey, TItem, TGixMerger>::~TGix() {
 	if ((Access == faCreate) || (Access == faUpdate)) {
-//#ifdef _DEBUG
 		this->PrintStats();
-//#endif
 		// flush all the latest changes in cache to the disk
 		ItemSetCache.Flush();
 		// save the rest to GixFNm
@@ -1011,13 +1003,6 @@ void TGix<TKey, TItem, TGixMerger>::AddItem(const TKey& Key, const TItem& Item) 
 		TBlobPt KeyId = EnlistItemSet(ItemSet); // now store this itemset to disk
 		KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
 	}
-
-	//// get the key handle
-	//TBlobPt KeyId = AddKeyId(Key);
-	//// load the current item set
-	//PGixItemSet ItemSet = GetItemSet(Key);
-	//ItemSet->AddItem(Item);
-
 	// check if we have to drop anything from the cache
 	RefreshMemUsed();
 }
@@ -1038,13 +1023,6 @@ void TGix<TKey, TItem, TGixMerger>::AddItemV(const TKey& Key, const TVec<TItem>&
 		TBlobPt KeyId = EnlistItemSet(ItemSet); // now store this itemset to disk
 		KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
 	}
-	//// get the key handle
-	//TBlobPt KeyId = AddKeyId(Key);
-	//// load the current item set
-	//PGixItemSet ItemSet = GetItemSet(Key);
-	//// add the new items to the set and update the size of new items
-	//ItemSet->AddItemV(ItemV);
-
 	// check if we have to drop anything from the cache
 	RefreshMemUsed();
 }
@@ -1110,33 +1088,6 @@ void TGix<TKey, TItem, TGixMerger>::SaveTxt(const TStr& FNm, const PGixKeyStr& K
 	printf("Done: %d / %d\n", Keys, Keys);
 }
 
-#ifdef _DEBUG
-
-template <class TKey, class TItem, class TGixMerger>
-void TGix<TKey, TItem, TGixMerger>::SaveCacheTxt(const TStr& FNm, const PGixKeyStr& KeyStr) const {
-	TFOut FOut(FNm);
-	// iterate over all the keys
-	printf("Starting Gix cache save\n");
-
-	int KeyN = 0;
-	int Keys = ItemSetCache.Len();
-	TBlobPt BlobPt;
-	PGixItemSet ItemSet;
-	void* KeyDatP = ItemSetCache.FFirstKeyDat();
-	while (ItemSetCache.FNextKeyDat(KeyDatP, BlobPt, ItemSet)) {
-		if (KeyN % 1000 == 0) { printf("%d / %d\r", KeyN, Keys); } KeyN++;
-		// get statistics
-		TStr KeyNm = KeyStr->GetKeyNm(ItemSet->GetKey());
-		const int Items = ItemSet->GetItems();
-		const int MemUsed = ItemSet->GetMemUsed();
-		// output statistics
-		FOut.PutStrFmtLn("%s\t%d\t%d\t%s", KeyNm.CStr(), Items, MemUsed, (ItemSet->Dirty ? "dirty" : "clean"));
-	}
-	printf("Done: %d / %d\n", KeyN, Keys);
-}
-
-#endif
-
 /// refreshes statistics for cache
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
@@ -1168,7 +1119,7 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 	RefreshStats();
-	printf(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f \n", 
+	printf(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f \n",
 		Stats.CacheAll, Stats.CacheDirty, Stats.CacheAllLoadedPerc, Stats.CacheDirtyLoadedPerc,
 		Stats.AvgLen);
 	const TBlobBsStats& blob_stats = ItemSetBlobBs->GetStats();

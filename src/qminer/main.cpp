@@ -557,7 +557,6 @@ int main(int argc, char* argv[]) {
 		if (TestP) {
 			Lock.Lock();
 			{
-//#ifdef _DEBUG
 				TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
@@ -606,8 +605,6 @@ int main(int argc, char* argv[]) {
 					for (int i = 0; i < 200 * 1000; i++) {
 						int r = rnd.GetUniDevInt(100);
 						if (i % 100 == 0) printf("==================== %d\n", i);
-						//if (i > 1000)
-						//	r = 100;
 						if (r < 10) {
 							// perform insert of a new record
 							int z = 2000000 + i * 7;
@@ -646,7 +643,6 @@ int main(int argc, char* argv[]) {
 
 							auto id = store->AddRec(json);
 							added_ids.Push(id);
-							//printf("     added record\n");
 
 						} else if (r < -11) {
 							// perform delete of the front 5 records
@@ -665,61 +661,12 @@ int main(int argc, char* argv[]) {
 
 								auto actors = rec.DoJoin(Base, "Actor");
 								int actors_cnt = actors->GetRecs();
-								//printf("  actors=%d, id=%d \n", actors_cnt, rec.GetRecId());
 							}
 						}
 					}
-					//Base->PrintIndexCache("XXXX_index.txt");
 				}
-
-				//{
-				//	auto store = Base->GetStoreByStoreNm("Movies");
-				//	auto recs = store->GetRecs();
-				//	uint64 cnt = 0;
-				//	for (int j = 0; j < recs; j++) {
-				//		if (j%1000==0)
-				//			printf("     j=%d, cnt=%d\n", j, cnt);
-				//		auto rec = store->GetRec(j);
-				//		auto res = rec.DoJoin(Base, "Actor");
-				//		for (int i = 0; i < res->GetRecs(); i++) {
-				//			auto rr = res->GetRec(i);
-				//			//printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
-				//			cnt++;
-				//		}
-				//	}
-				//	printf("cnt=%d\n", cnt);
-				//}
-
-				//{
-				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-				//	TQm::TRec rec = store->GetRec(1);
-				//	TQm::PRecSet res = rec.DoJoin(Base, "ActedIn");
-				//	for (int i = 0; i < res->GetRecs(); i++) {
-				//		auto rr = res->GetRec(i);
-				//		printf("%s \n", rr.GetJson(Base)->SaveStr().CStr());
-				//	}
-				//}
-				//{
-				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-				//	store->DelJoin(store->GetJoinId("ActedIn"), 1, 0, 1);
-				//}
-				//{
-				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-				//	store->DeleteFirstNRecs(10);
-				//}
-				//{
-				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("People");
-				//	auto res = store->GetAllRecs();
-				//	for (int i = 0; i < 20 /*res->GetRecs()*/; i++) {
-				//		auto rec = res->GetRec(i);
-				//		printf("*    %s\n", rec.GetRecNm().CStr());
-				//	}
-
-				//	//store->de
-				//}
 				// save base
 				TQm::TStorage::SaveBase(Base);
-//#endif
 			}
 			// remove lock
 			Lock.Unlock();

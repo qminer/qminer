@@ -122,6 +122,17 @@ public:
 	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
 };
 
+///////////////////////////////////////////
+// QMiner-Server-Function-PartialFlush
+//  executes partial flush of data from memory to disk
+class TSfPartialFlush : public TSrvFun {
+private:
+	TSfPartialFlush(const TWPt<TBase>& Base) : TSrvFun(Base, "qm_partial_flush", saotJSon) {}
+public:
+	static PSAppSrvFun New(const TWPt<TBase>& Base) { return new TSfPartialFlush(Base); }
+
+	TStr ExecJSon(const TStrKdV& FldNmValPrV, const PSAppSrvRqEnv& RqEnv);
+};
 }  // namespace
 
 #endif

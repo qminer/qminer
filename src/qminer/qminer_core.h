@@ -2296,10 +2296,16 @@ public:
 
 	/// Save debug statistics to a file
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
-#ifdef _DEBUG
-	/// Save debug statistics to a file - index cache
-	void SaveCacheTxt(const TWPt<TBase>& Base, const TStr& FNm);
-#endif
+
+	/// get blob stats
+	const TBlobBsStats& GetBlobStats() { return Gix->GetBlobStats(); }
+	/// get gix stats
+	const TGixStats& GetGixStats(bool do_refresh = true) { return Gix->GetGixStats(do_refresh); }
+	/// reset blob stats
+	void ResetStats() { Gix->ResetStats(); }
+
+	/// perform partial flush of index contents
+	int PartialFlush(int WndInMsec = 500) { return Gix->PartialFlush(WndInMsec); }
 };
 
 ///////////////////////////////
@@ -2803,9 +2809,16 @@ public:
     void PrintStores(const TStr& FNm, const bool& FullP = false);
 	void PrintIndexVoc(const TStr& FNm);
 	void PrintIndex(const TStr& FNm, const bool& SortP);
-#ifdef _DEBUG
-	void PrintIndexCache(const TStr& FNm);
-#endif
+		
+	/// get gix-blob stats
+	const TBlobBsStats& GetGixBlobStats() { return Index->GetBlobStats(); }
+	/// get gix stats
+	const TGixStats& GetGixStats(bool do_refresh = true) { return Index->GetGixStats(do_refresh); }
+	/// reset gix-blob stats
+	void ResetGixStats() { Index->ResetStats(); }
+
+	// perform partial flush of data
+	int PartialFlush(int WndInMsec = 500) { return Index->PartialFlush(WndInMsec); }
 };
 
 } // namespace
