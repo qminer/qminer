@@ -3,14 +3,17 @@
 /////////////////////////////////////////
 // Node - Utilities
 
-PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
+PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool IgnoreFunc) {
     EAssertR(Obj->IsObject(), "TNodeJsUtil::GetObjJson: Cannot parse non-object types!");
-    EAssertR(!Obj->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
 
-    if (Obj->IsUndefined()) {
+    if (!IgnoreFunc) {
+    	EAssertR(!Obj->IsFunction(), "TNodeJsUtil::GetObjJson: Cannot parse functions!");
+    }
+
+    if (Obj->IsUndefined() || Obj->IsFunction()) {
         return TJsonVal::New();
     }
-    if (Obj->IsNull()) {
+    else if (Obj->IsNull()) {
         return TJsonVal::NewNull();
     }
     else if (Obj->IsBooleanObject()) {
@@ -27,7 +30,11 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
 
         v8::Array* Arr = v8::Array::Cast(*Obj);
         for (uint i = 0; i < Arr->Length(); i++) {
-            JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject()));
+        	const Local<Value>& ArrVal = Arr->Get(i);
+
+        	if (!IgnoreFunc || !ArrVal->IsFunction()) {
+        		JsonArr->AddToArr(GetObjJson(ArrVal->ToObject()));
+        	}
         }
 
         return JsonArr;
@@ -38,7 +45,11 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
         v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
         for (uint i = 0; i < FldNmV->Length(); i++) {
             const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
-            JsonVal->AddToObj(FldNm, GetObjJson(Obj->Get(FldNmV->Get(i))->ToObject()));
+            const Local<Value>& ObjVal = Obj->Get(FldNmV->Get(i));
+
+            if (!IgnoreFunc || !ArrVal->IsFunction()) {
+            	JsonVal->AddToObj(FldNm, GetObjJson(ObjVal->ToObject()));
+            }
         }
 
         return JsonVal;

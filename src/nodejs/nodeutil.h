@@ -109,8 +109,9 @@
 // Node - Utilities
 class TNodeJsUtil {
 public:
-    /// Convert v8 Json to GLib Json (PJsonVal)
-    static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj);
+    /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
+	/// ignore functions otherwise an exception will be thrown when a function is encountered
+    static PJsonVal GetObjJson(const v8::Local<v8::Object>& Obj, const bool IgnoreFunc=false);
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
 
@@ -170,6 +171,18 @@ public:
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+    static double ExecuteFlt(const v8::Persistent<v8::Function>& Fun, v8::Local<v8::Object>& Arg) {
+    	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Handle<v8::Value> Argv[1] = { Arg };
+		v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+
+		EAssertR(RetVal->IsNumber(), "Return type expected to be number");
+
+		return RetVal->NumberValue();
+    }
 
     /// Create a new Javascript instance wrapped by the wrapper class
     template <class TWrap>
