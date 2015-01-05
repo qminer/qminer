@@ -1818,6 +1818,14 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
   }
 }
 
+<<<<<<< HEAD
+/////////////////////////////////////////////////
+// Below are old 32-bit implementations of TVec and other classes.
+// Old TVec takes at most 2G elements.
+// The new vector class supports 64-bits for the number of elements,
+// but also allows 32-bits for backward compatibility.
+// by Jure (Jan 2013)
+=======
 ///////////////////////////////
 // Linked queue
 template <class TVal, class TSizeTy = TUInt64>
@@ -1911,12 +1919,7 @@ void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
 	delete Temp;
 }
 
-/////////////////////////////////////////////////
-// Below are old 32-bit implementations of TVec and other classes.
-// Old TVec takes at most 2G elements.
-// The new vector class supports 64-bits for the number of elements,
-// but also allows 32-bits for backward compatibility.
-// by Jure (Jan 2013)
+>>>>>>> 93b00a7530f4a9b861024f08056a79e7bf551f9d
 namespace TGLib_OLD {
 /////////////////////////////////////////////////
 // Vector Pool

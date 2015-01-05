@@ -64,6 +64,14 @@ void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
 }
 
 void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+<<<<<<< HEAD
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
+	TStr FNm = TStr(*v8::String::Utf8Value(Args[0]->ToString()));
+	EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
+	Args.GetReturnValue().Set(TNodeJsFIn::New(FNm));
+=======
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -72,6 +80,7 @@ void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(TFile::Exists(FNm),
         TStr("File '" + FNm + "' does not exist").CStr());
     Args.GetReturnValue().Set(TNodeJsFIn::New(FNm));
+>>>>>>> 81f3c7425d6365ac1d00b146c37d5b31a63a1851
 }
 
 void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // Call withb AppendP = false
@@ -228,6 +237,31 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 v8::Persistent<v8::Function> TNodeJsFIn::constructor;
 
 void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
+<<<<<<< HEAD
+   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+
+   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+   tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FIn"));
+   // ObjectWrap uses the first internal field to store the wrapped pointer.
+   tpl->InstanceTemplate()->SetInternalFieldCount(1);
+   
+   // Add all prototype methods, getters and setters here.
+   NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
+   NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
+   
+   tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
+   tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+   
+   // This has to be last, otherwise the properties won't show up on the
+   // object in JavaScript.
+   constructor.Reset(Isolate, tpl->GetFunction());
+#ifndef MODULE_INCLUDE_FS
+   exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
+      tpl->GetFunction());
+#endif
+=======
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -247,10 +281,9 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
     constructor.Reset(Isolate, tpl->GetFunction());
-#ifndef MODULE_INCLUDE_FS
     exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
         tpl->GetFunction());
-#endif
+>>>>>>> 81f3c7425d6365ac1d00b146c37d5b31a63a1851
 }
 
 void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -476,7 +509,9 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 #ifndef MODULE_INCLUDE_FS
 ///////////////////////////////
-// Register functions, etc.  
+// Register functions, etc.
+#ifndef MODULE_INCLUDE_FS
+
 void init(v8::Handle<v8::Object> exports) {
     TNodeJsFs::Init(exports);
     TNodeJsFIn::Init(exports);
@@ -486,3 +521,4 @@ void init(v8::Handle<v8::Object> exports) {
 NODE_MODULE(fs, init)
 #endif
 
+#endif
