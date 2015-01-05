@@ -168,6 +168,106 @@ public:
 };
 
 ///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr :
+	public TQm::TStreamAggr,
+	public TQm::TStreamAggrOut::IInt,
+	//public TQm::TStreamAggrOut::IFlt,	
+	//public TQm::TStreamAggrOut::ITm,
+	public TQm::TStreamAggrOut::IFltTmIO,
+	public TQm::TStreamAggrOut::IFltVec,
+	public TQm::TStreamAggrOut::ITmVec,
+	public TQm::TStreamAggrOut::INmFlt,
+	public TQm::TStreamAggrOut::INmInt,
+	// combinations
+	public TQm::TStreamAggrOut::IFltTm
+	//public TQm::TStreamAggrOut::IFltVecTm
+{
+private:	
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
+
+	v8::Persistent<v8::Function> GetIntFun;
+	// IFlt 
+	v8::Persistent<v8::Function> GetFltFun;
+	// ITm 
+	v8::Persistent<v8::Function> GetTmMSecsFun;
+	// IFltTmIO 
+	v8::Persistent<v8::Function> GetInFltFun;
+	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetOutFltVFun;
+	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
+	v8::Persistent<v8::Function> GetNFun;
+	// IFltVec
+	v8::Persistent<v8::Function> GetFltLenFun;
+	v8::Persistent<v8::Function> GetFltAtFun;
+	v8::Persistent<v8::Function> GetFltVFun;
+	// ITmVec
+	v8::Persistent<v8::Function> GetTmLenFun;
+	v8::Persistent<v8::Function> GetTmAtFun;
+	v8::Persistent<v8::Function> GetTmVFun;
+	// INmFlt 
+	v8::Persistent<v8::Function> IsNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltVFun;
+	// INmInt
+	v8::Persistent<v8::Function> IsNmFun;
+	v8::Persistent<v8::Function> GetNmIntFun;
+	v8::Persistent<v8::Function> GetNmIntVFun;
+
+public:
+	TJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(_Base, _AggrNm, TriggerVal);
+	}
+
+	void OnAddRec(const TQm::TRec& Rec);
+	void OnUpdateRec(const TQm::TRec& Rec);
+	void OnDeleteRec(const TQm::TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "javaScript"; }
+	TStr Type() const { return GetType(); }
+	void _Save(TSOut& SOut) const;
+	v8::Persistent<v8::Function> SaveFun;
+	void _Load(TSIn& SIn);
+	v8::Persistent<v8::Function> LoadFun;
+
+	// IInt
+	int GetInt() const;
+	// IFlt 
+	double GetFlt() const;
+	// ITm 
+	uint64 GetTmMSecs() const;
+	// IFltTmIO 
+	double GetInFlt() const;
+	uint64 GetInTmMSecs() const;
+	void GetOutFltV(TFltV& ValV) const;
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	int GetN() const;
+	// IFltVec
+	int GetFltLen() const;
+	double GetFlt(const TInt& ElN) const; // GetFltAtFun
+	void GetFltV(TFltV& ValV) const;
+	// ITmVec
+	int GetTmLen() const;
+	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+	void GetTmV(TUInt64V& TmMSecsV) const;
+	// INmFlt 
+	bool IsNmFlt(const TStr& Nm) const;
+	double GetNmFlt(const TStr& Nm) const;
+	void GetNmFltV(TStrFltPrV& NmFltV) const;
+	// INmInt
+	bool IsNm(const TStr& Nm) const;
+	double GetNmInt(const TStr& Nm) const;
+	void GetNmIntV(TStrIntPrV& NmIntV) const;
+};
+
+///////////////////////////////
 // NodeJs-Qminer-Store
 class TNodeJsStore : public node::ObjectWrap {
 private:
