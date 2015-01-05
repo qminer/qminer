@@ -370,6 +370,7 @@ int main(int argc, char* argv[]) {
 		// read config-specific parameters
 		if (!Env.IsSilent()) { printf("\nConfiguration parameters:\n"); }
 		const int PortN = Env.GetIfArgPrefixInt("-port=", 8080, "Port number");
+		const bool ShowHttp = Env.GetIfArgPrefixBool("-disphttp:", true, "Show HTTP");
 		const int CacheSizeMB = Env.GetIfArgPrefixInt("-cache=", 1024, "Cache size");
 		const bool OverwriteP = Env.IsArgStr("-overwrite", "Overwrite existing configuration file");
 		// read create-specific parameters

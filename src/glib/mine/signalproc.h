@@ -590,6 +590,10 @@ public:
 
 	// returns the dimension of the instances
 	int GetDim() const { return Coeffs.Len(); }
+	// returns the forgetting factor
+	double GetForgetFact() const { return ForgetFact; }
+	// returns the regulatization parameter
+	double GetRegFact() const { return RegFact; }
 	// learns a new sample
 	void Learn(const TFltV& Sample, const double& SampleVal);
 	// predicts a value

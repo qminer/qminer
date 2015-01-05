@@ -37,7 +37,14 @@ private:
 	bool Verbose;
 	PNotify Notify;
 
-	static v8::Local<v8::Object> New(const TStr& Alg, const double& SvmCost);
+	TSvm::TLinModel* Model;
+
+	TNodeJsSvmModel(const PJsonVal& ParamVal);
+	TNodeJsSvmModel(TSIn& SIn);
+	~TNodeJsSvmModel();
+
+	static v8::Local<v8::Object> New(const PJsonVal& ParamVal);
+	static v8::Local<v8::Object> New(TSIn& SIn);
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
@@ -47,32 +54,29 @@ public:
 	//#
 	//# **Functions and properties:**
 	//#
-	//#- `num = svmModel.fit(X,y)` -- fits an SVM model
+	//#- `svmModel = svmModel.fit(X,y)` -- fits an SVM model
 	JsDeclareFunction(fit);
-};
-
-class TNodeJsSvmLinModel : public node::ObjectWrap {
-	friend class TNodeJsUtil;
-private:
-	static v8::Persistent <v8::Function> constructor;
-
-	/// SVM Model
-	TSvm::TLinModel Model;
-
-public:
-	static v8::Local<v8::Object> New(TSvm::TLinModel);
-
-	static void Init(v8::Handle<v8::Object> exports);
-
-	JsDeclareFunction(New);	// TODO do we need this here???
-
     //#- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 	//#- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 	JsDeclareFunction(predict);
+
+	//#- `params = svmModel.getParams()` -- returns the parameters of this model as
+	//#- a Javascript object
+	JsDeclareFunction(getParams);
+	//#- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given
+	//#- in the input argument `params` returns this
+	JsDeclareFunction(setParams);
+
     //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);
     //#- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
+
+private:
+	void UpdateParams(const PJsonVal& ParamVal);
+	PJsonVal GetParams() const;
+	void Save(TSOut& SOut) const;
+	void ClrModel();
 };
 
 ///////////////////////////////
@@ -104,12 +108,20 @@ public:
     //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the
     //#     model and returns the prediction as a real number `num`
 	JsDeclareFunction(predict);
+
+	//#- `params = svmModel.getParams()` -- returns the parameters of this model as
+	//#- a Javascript object
+	JsDeclareFunction(getParams);
+
     //#- `vec = recLinRegModel.weights` -- weights of the linear model as a full vector `vec`
 	JsDeclareProperty(weights);
     //#- `num = recLinRegModel.dim` -- dimensionality of the feature space on which this model works
 	JsDeclareProperty(dim);
 	//#- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
+
+private:
+	PJsonVal GetParams() const;
 };
 
 ////////////////////////////////////////////////////////
