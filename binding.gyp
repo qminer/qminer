@@ -9,12 +9,15 @@
                 'src/nodejs/qm/qm_param.h',
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
                 'src/nodejs/la',
+                'src/nodejs/fs',
                 'src/nodejs/',
                 'src/qminer/',
                 'src/glib/base/',
@@ -22,7 +25,8 @@
                 'src/glib/misc/'
             ],
             'defines': [
-                'MODULE_INCLUDE_LA'
+                'MODULE_INCLUDE_LA',
+                'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
                 'glib',

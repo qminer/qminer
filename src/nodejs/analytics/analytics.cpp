@@ -5,6 +5,8 @@
 
 ////////////////////////////////////////////////////////
 // Support Vector Machine
+v8::Persistent<v8::Function> TNodeJsSvmModel::constructor;
+
 TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 		Algorithm("SGD"),
 		SvmCost(1.0),
@@ -70,8 +72,10 @@ void TNodeJsSvmModel::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
+#ifndef MODULE_INCLUDE_ANALYTICS
 	exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"),
-		   tpl->GetFunction());
+			   tpl->GetFunction());
+#endif
 }
 
 void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -82,12 +86,13 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() > 0, "SVC: missing arguments!");
 
 	try {
-		if (TNodeJsUtil::IsArgJson(Args, 0)) {
-			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-			Args.GetReturnValue().Set(TNodeJsSvmModel::New(ParamVal));
-		} else {	// load the model from an input stream
+		if (Args[0]->IsExternal()) {
+			// load the model from an input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 			Args.GetReturnValue().Set(TNodeJsSvmModel::New(*JsFIn->SIn));
+		} else {
+			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+			Args.GetReturnValue().Set(TNodeJsSvmModel::New(ParamVal));
 		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
@@ -291,6 +296,8 @@ void TNodeJsSvmModel::ClrModel() {
 
 ////////////////////////////////////////////////
 // QMiner-NodeJS-Recursive-Linear-Regression
+v8::Persistent<v8::Function> TNodeJsRecLinReg::constructor;
+
 TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model):
 		Model(_Model) {}
 
@@ -318,6 +325,10 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
+#ifndef MODULE_INCLUDE_ANALYTICS
+	exports->Set(v8::String::NewFromUtf8(Isolate, "RecLinReg"),
+			   tpl->GetFunction());
+#endif
 }
 
 void TNodeJsRecLinReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -329,7 +340,11 @@ void TNodeJsRecLinReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
-		if (TNodeJsUtil::IsArgJson(Args, 0)) {
+		if (Args[0]->IsExternal()) {
+			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+			Args.GetReturnValue().Set(TNodeJsRecLinReg::New(TSignalProc::TRecLinReg::Load(*JsFIn->SIn)));
+		}
+		else {
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
 			const int Dim = ParamVal->GetObjInt("dim");
@@ -337,9 +352,6 @@ void TNodeJsRecLinReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			const double ForgetFact = ParamVal->GetObjNum("forgetFact", 1.0);
 
 			Args.GetReturnValue().Set(TNodeJsRecLinReg::New(TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact)));
-		} else {
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			Args.GetReturnValue().Set(TNodeJsRecLinReg::New(TSignalProc::TRecLinReg::Load(*JsFIn->SIn)));
 		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
@@ -466,6 +478,8 @@ PJsonVal TNodeJsRecLinReg::GetParams() const {
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
+v8::Persistent<v8::Function> TNodeJsHMChain::constructor;
+
 TNodeJsHMChain::TNodeJsHMChain(const TMc::PHierarchCtmc& _McModel, const TQm::PFtrSpace& _FtrSpace):
 		McModel(_McModel),
 		FtrSpace(_FtrSpace) {}
@@ -546,7 +560,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "hctmc"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "HMarkovChain"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -558,6 +572,10 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
+#ifndef MODULE_INCLUDE_ANALYTICS
+	exports->Set(v8::String::NewFromUtf8(Isolate, "HMarkovChain"),
+			   tpl->GetFunction());
+#endif
 }
 
 void TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -698,3 +716,18 @@ void TNodeJsHMChain::InitModel(const TQm::PRecSet& RecSet) {
 uint64 TNodeJsHMChain::GetRecTm(const TQm::TRec& Rec) const {
 	return Rec.GetFieldTmMSecs(Rec.GetStore()->GetFieldIdV(TQm::TFieldType::oftTm)[0]);
 }
+
+///////////////////////////////
+// Register functions, etc.
+#ifndef MODULE_INCLUDE_ANALYTICS
+
+void init(v8::Handle<v8::Object> exports) {
+    // QMiner package
+	TNodeJsSvmModel::Init(exports);
+	TNodeJsRecLinReg::Init(exports);
+	TNodeJsHMChain::Init(exports);
+}
+
+NODE_MODULE(analytics, init)
+
+#endif

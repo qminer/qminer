@@ -8,6 +8,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
+#include "fs_nodejs.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////
@@ -464,5 +465,91 @@ public:
 };
 
 
+class TNodeJsFuncFtrExt : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+
+public:
+	static PJsonVal CopySettings(const v8::Local<v8::Object> Settings);
+	static TQm::PFtrExt NewFtrExt(const PJsonVal& ParamVal, v8::Handle<v8::Function>& Func);
+};
+
+///////////////////////////////
+// NodeJs QMiner Feature Space
+class TNodeJsFtrSpace : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
+
+	TQm::PFtrSpace FtrSpace;
+
+	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
+	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
+
+public:
+	static v8::Local<v8::Object> New(const TQm::PFtrSpace& FtrSpace);
+	static v8::Local<v8::Object> New(const TWPt<TQm::TBase> Base, TSIn& SIn);
+
+	// Node framework
+	static void Init(v8::Handle<v8::Object> exports);
+
+	JsDeclareFunction(New);
+
+	//#
+	//# **Functions and properties:**
+	//#
+    //#- `num = fsp.dim` -- dimensionality of feature space
+    JsDeclareProperty(dim);
+    //#- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+    JsDeclareProperty(dims);
+    //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
+    JsDeclareFunction(save);
+
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+
+    //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
+    //#     used by bag-of-words extractor by taking into account new text.
+	JsDeclareFunction(updateRecord);
+    //#- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
+    //#     by exposing them to records from record set `rs`. Returns self. For example, this can update
+    //#     the vocabulary used by bag-of-words extractor by taking into account new text.
+	JsDeclareFunction(updateRecords);
+	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+    JsDeclareFunction(ftrSpVec);
+    //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+    JsDeclareFunction(ftrVec);
+    //#- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from
+    //#     record set `rs` and returns them as columns in a sparse matrix `spMat`.
+	JsDeclareFunction(ftrSpColMat);
+    //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from
+    //#     record set `rs` and returns them as columns in a matrix `mat`.
+    JsDeclareFunction(ftrColMat);
+
+	//#- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	JsDeclareFunction(getFtrExtractor);
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	JsDeclareFunction(getFtr);
+    //#- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
+    //#- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
+    JsDeclareFunction(getFtrDist);
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
+    //#     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
+    JsDeclareFunction(filter);
+
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string
+    //#     features from record `rec` (e.g. words from string fields); results are returned
+    //#     as a string array
+    JsDeclareFunction(extractStrings);
+
+private:
+    static TQm::PFtrExt NewFtrExtFromFunc(v8::Isolate* Isolate, v8::Local<v8::Object>& Settings) {
+    	PJsonVal ParamVal = TNodeJsFuncFtrExt::CopySettings(Settings);
+    	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
+    	return TNodeJsFuncFtrExt::NewFtrExt(ParamVal, Func);
+    }
+};
 
 #endif

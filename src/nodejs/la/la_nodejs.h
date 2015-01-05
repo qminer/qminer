@@ -491,8 +491,8 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     TStr Name = "vector";
-    if (TAux::ClassId == "TIntV") Name = "intVector";
-    if (TAux::ClassId == "TStrV") Name = "strVector";
+    if (TAux::ClassId == TNodeJsIntV::ClassId) Name = "intVector";
+    if (TAux::ClassId == TNodeJsStrV::ClassId) Name = "strVector";
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
