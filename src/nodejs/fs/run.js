@@ -37,18 +37,14 @@ console.log(s);
 var info = fs.fileInfo("./test.out");
 console.log(info);
 
-/*
 // Copy file
 fs.copy("./test.out", "./test-copy.out");
 assert(fs.exists("./test-copy.out"));
-*/
 
-/*
 // Move file 
 fs.move("./test-copy.out", "./test-moved.out");
 assert(!fs.exists("./test-copy.out"));
 assert(fs.exists("./test-moved.out"));
-*/
 
 // Rename file 
 fs.rename("test.out", "tset.out");
@@ -59,7 +55,6 @@ assert(!fs.exists("test.out"));
 fs.del("tset.out");
 assert(!fs.exists("tset.out"));
 
-/*
 // Create directory 
 assert(!fs.exists("test/"));
 fs.mkdir("test");
@@ -69,7 +64,6 @@ assert(fs.exists("test/"));
 var delP = fs.rmdir("test");
 console.log("delP = " + delP);
 assert(!fs.exists("./test"));
-*/
 
 // List all C and C++ header files in the QMiner source directory 
 // var fileArr = fs.listFile("../../", "h", true);

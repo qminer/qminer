@@ -9,6 +9,7 @@
 #include <node_object_wrap.h>
 #include "base.h"
 #include "../nodeutil.h"
+#include "../fs/fs_nodejs.h"
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
@@ -77,6 +78,9 @@ public:
     static double CastVal(const v8::Local<v8::Value>& Value) {
         return Value->ToNumber()->Value();
     }
+    static TFlt Parse(const TStr& Str) {
+        return Str.GetFlt();
+    }
 };
 
 class TAuxIntV {
@@ -93,6 +97,9 @@ public:
     static int CastVal(const v8::Local<v8::Value>& Value) {
         return Value->ToInt32()->Value();
     }
+    static TInt Parse(const TStr& Str) {
+        return Str.GetInt();
+    }
 };
 
 class TAuxStrV {
@@ -106,6 +113,9 @@ public:
     static TStr CastVal(const v8::Local<v8::Value>& Value) {
         v8::String::Utf8Value Utf8(Value);
         return TStr(*Utf8);
+    }
+    static TStr Parse(const TStr& Str) {
+        return Str;
     }
 };
 
@@ -510,8 +520,10 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "norm", _norm);
     NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", _sparse);
     NODE_SET_PROTOTYPE_METHOD(tpl, "toMat", _toMat);
-    // NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-    // NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", _saveascii);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
 
     // Properties 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
@@ -815,6 +827,73 @@ void TNodeJsVec<TVal, TAux>::length(v8::Local<v8::String> Name, const v8::Proper
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Self);
 
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsVec->Vec.Len()));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFOut object");
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    PSOut SOut = JsFOut->SOut;
+    JsVec->Vec.Save(*SOut);
+
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFIn object");
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    PSIn SIn = JsFIn->SIn;
+    JsVec->Vec.Load(*SIn);
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFOut object");
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    PSOut SOut = JsFOut->SOut;
+    const int Rows = JsVec->Vec.Len();
+    for (int RowId = 0; RowId < Rows; RowId++) {
+        SOut->PutStr(JsVec->Vec[RowId].GetStr());
+        SOut->PutCh('\n');
+    }
+
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::loadascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFIn object");
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    PSIn SIn = JsFIn->SIn;
+    TStr Line;
+    while (SIn->GetNextLn(Line)) {
+        JsVec->Vec.Add(TAux::Parse(Line));
+    }
+
+    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 #endif

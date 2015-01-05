@@ -47,14 +47,20 @@
             'sources': [
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/la',
+                'src/nodejs/fs',
                 'src/nodejs/',
                 'src/glib/base/',
                 'src/glib/mine/',
+            ],
+            'defines': [
+                'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
                 'glib'
