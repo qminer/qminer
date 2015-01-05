@@ -8,7 +8,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
-#include "fs_nodejs.h"
+#include "../fs/fs_nodejs.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////
@@ -647,8 +647,12 @@ class TNodeJsFuncFtrExt : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 
 public:
-	static PJsonVal CopySettings(const v8::Local<v8::Object> Settings);
-	static TQm::PFtrExt NewFtrExt(const PJsonVal& ParamVal, v8::Handle<v8::Function>& Func);
+	static PJsonVal CopySettings(const v8::Local<v8::Object> Settings) {
+		throw TQm::TQmExcept::New("TNodeJsFuncFtrExt::CopySettings not implemented!");
+	}
+	static TQm::PFtrExt NewFtrExt(const PJsonVal& ParamVal, v8::Handle<v8::Function>& Func) {
+		throw TQm::TQmExcept::New("TNodeJsFuncFtrExt::NewFtrExt not implemented!");
+	}
 };
 
 ///////////////////////////////
