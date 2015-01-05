@@ -1054,7 +1054,7 @@ TStr TStr::GetFromHex() const {
 
 TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
-	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::GetSubStr index out of bounds");    
+	EAssertR(0 <= BChN && /*BChN <= EChN &&*/ EChN < StrLen, "TStr::GetSubStr index out of bounds");    
     int Chs=EChN-BChN+1;
     // initialize accordingly
     char* Bf = nullptr;
@@ -1069,6 +1069,7 @@ TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
         Bf = new char[Chs+1]; strncpy(Bf, CStr()+BChN, Chs); Bf[Chs]=0;
     }
     return WrapCStr(Bf);
+
 }
 
 void TStr::InsStr(const int& BChN, const TStr& Str) {

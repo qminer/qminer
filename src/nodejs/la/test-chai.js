@@ -81,6 +81,35 @@ describe('Functions Tests', function(){
     })
   })
 
+<<<<<<< .merge_file_a01560
+<<<<<<< .merge_file_a09896
+  describe('Shuffle Test', function(){
+    //tests shuffling elemnts inside a vector
+
+    //NOTE: test needs to be refined to correctly test vectors with multiple elements of same value
+    it('should shuffle elements inside a vector randomly', function(){
+      
+      var compare = la.vector();
+
+      vec.push(3);
+      vec.push(1);
+      vec.push(15.5);
+      vec.push(8);
+
+      compare.push(3);
+      compare.push(1);
+      compare.push(15.5);
+      compare.push(8);
+
+      vec.shuffle();
+      for (var i = 0; i<vec.length; i++) {
+        expect(vec.at(i)).to.not.equal(compare.at(i));
+      }
+    })
+  })
+=======
+=======
+>>>>>>> .merge_file_a01448
 //describe('Shuffle Test', function(){
 //	//tests shuffling elemnts inside a vector
 //
@@ -105,6 +134,10 @@ describe('Functions Tests', function(){
 //		//}
 //	})
 //})
+<<<<<<< .merge_file_a01560
+>>>>>>> .merge_file_a09212
+=======
+>>>>>>> .merge_file_a01448
   
   describe('Trunc Test', function(){
     //tests vector truncating
@@ -184,17 +217,41 @@ describe('Functions Tests', function(){
 
     describe('Ascending sort test', function() {
       it('should return vector sorted by descending values', function() {
+<<<<<<< .merge_file_a01560
+<<<<<<< .merge_file_a09896
+        sortVector.sort(true)
+        for (var i = 0; i < sortVector.length-1; i++) {
+          expect(sortVector.at(i)).to.be.at.most(sortVector.at(i+1));
+=======
         var res = sortVector.sort(true)
         for (var i = 0; i < sortVector.length-1; i++) {
           expect(res.at(i)).to.be.at.most(res.at(i+1));
+>>>>>>> .merge_file_a09212
+=======
+        var res = sortVector.sort(true)
+        for (var i = 0; i < sortVector.length-1; i++) {
+          expect(res.at(i)).to.be.at.most(res.at(i+1));
+>>>>>>> .merge_file_a01448
         }
       })
     })
     describe('Descending sort test', function() {
       it('should return vector sorted by ascending values', function() {
+<<<<<<< .merge_file_a01560
+<<<<<<< .merge_file_a09896
+        sortVector.sort(false)
+        for (var i = 0; i < sortVector.length-1; i++) {
+          expect(sortVector.at(i)).to.be.at.least(sortVector.at(i+1));
+=======
         var res = sortVector.sort(false)
         for (var i = 0; i < sortVector.length-1; i++) {
           expect(res.at(i)).to.be.at.least(res.at(i+1));
+>>>>>>> .merge_file_a09212
+=======
+        var res = sortVector.sort(false)
+        for (var i = 0; i < sortVector.length-1; i++) {
+          expect(res.at(i)).to.be.at.least(res.at(i+1));
+>>>>>>> .merge_file_a01448
         }
       })
     }) 

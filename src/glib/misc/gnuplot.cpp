@@ -171,7 +171,7 @@ int TGnuPlot::AddPlot(const TStr& DataFNm, const int& ColX, const int& ColY,
   TGpSeries Plot;
   Plot.SeriesTy = SeriesTy;
   Plot.Label = Label;
-  Plot.DataFNm = DataFNm; Plot.DataFNm.ChangeStrAll("\\", "\\\\");
+  Plot.DataFNm = DataFNm;  Plot.DataFNm.ChangeStrAll("\\", "\\\\");
   Plot.XCol = ColX;  Plot.YCol = ColY;  Plot.ZCol = 0;
   Plot.WithStyle = Style;
   SeriesV.Add(Plot);

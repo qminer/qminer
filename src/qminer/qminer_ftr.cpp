@@ -1202,8 +1202,6 @@ TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
         // set callback
         TmWnd.SetCallback(this);
     }
-
-
 }
 
 TBagOfWords::TBagOfWords(const TWPt<TBase>& Base, TSIn& SIn):

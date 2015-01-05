@@ -56,6 +56,7 @@ for (var i = g2.firstNode ; br < g2.nodes; i.next()) {
 }
 br = 0;
 console.say("DIRECTED-MULTIGRAPH (g3):");
+
 for (var i = g3.firstNode ; br < g3.nodes; i.next()) {
     console.log("id: " + i.id + ", deg: " + i.deg + ", inDeg: " + i.inDeg + ", outDeg: " + i.outDeg);
     br++;
@@ -64,12 +65,14 @@ for (var i = g3.firstNode ; br < g3.nodes; i.next()) {
 // Reading graphs from files, drawing graphs, detecting communities, computing community evolution and plotting
 
 // loading graphs
+console.say("LOADING GRAPHS:");
 var g1999 = snap.newUGraph("./data/evo/1999.edg"); var g2000 = snap.newUGraph("./data/evo/2000.edg");
 var g2001 = snap.newUGraph("./data/evo/2001.edg"); var g2002 = snap.newUGraph("./data/evo/2002.edg");
 var g2003 = snap.newUGraph("./data/evo/2003.edg"); var g2004 = snap.newUGraph("./data/evo/2004.edg");
 var g2005 = snap.newUGraph("./data/evo/2005.edg"); var g2006 = snap.newUGraph("./data/evo/2006.edg");
 
 // storing graphs int an array
+console.say("storing graphs int an array:");
 var graphs = new Array();
 graphs.push(g1999); graphs.push(g2000);
 graphs.push(g2001); graphs.push(g2002);
@@ -77,6 +80,7 @@ graphs.push(g2003); graphs.push(g2004);
 graphs.push(g2005); graphs.push(g2006);
 
 // determining communities for the array of graphs and storing the results in array of sparse vectors
+console.say("determining communities for the array of graphs and storing the results in array of sparse vectors:");
 var communities = new Array();
 for (var i = 0; i < graphs.length; i++) {
     communities.push(snap.communityDetection(graphs[i], "gn"));
@@ -90,6 +94,7 @@ for (var i = 0; i < graphs.length; i++) {
 
 
 // creating hash tables for community evolultion
+console.say("creating hash tables for community evolultion:");
 var t = utilities.newIntIntH(); // time
 var c = utilities.newIntIntH(); // community membership
 var s = utilities.newIntIntH(); // community size
@@ -101,6 +106,7 @@ var gs = new Array();
 
 
 // community evolution algorithm
+console.say("community evolution algorithm:");
 snap.communityEvolution(gs, 0.5, 0.5, graph, t, c, s, e, m, "./data/evo/"); //
 
 eval(breakpoint);

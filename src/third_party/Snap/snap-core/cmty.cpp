@@ -539,7 +539,8 @@ namespace TSnap {
 	void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
 
 		if (InFNm.GetCh(InFNm.Len() - 1) == '/' || InFNm.GetCh(InFNm.Len() - 1) == '\\') {
-			TFFile FFile(InFNm);  TStr FNm;
+			TFFile FFile(InFNm);  
+			TStr FNm;
 			for (int t = 0; FFile.Next(FNm); t++) {
 				PUNGraph Graph = TSnap::LoadEdgeList<PUNGraph>(FNm.CStr(), 0, 1);
 				if (Graph->GetNodes()>0) {

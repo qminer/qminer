@@ -16,7 +16,11 @@ class TNodeJsQm : public node::ObjectWrap {
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
+<<<<<<< .merge_file_a05568
+
+=======
 	static THash<TStr, TUInt> BaseFPathToId;
+>>>>>>> .merge_file_a09076
 private:
 	//# 
 	//# **Functions and properties:**
@@ -56,7 +60,11 @@ private:
 	//# 
 	//# **Functions and properties:**
 	//# 
+<<<<<<< .merge_file_a05568
+	//#- `store = base.store(close)` -- TODO
+=======
 	//#- `base.close()` -- closes the base
+>>>>>>> .merge_file_a09076
 	JsDeclareFunction(close);
     //#- `store = base.store(storeName)` -- store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
@@ -105,8 +113,13 @@ public:
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Field accessors
+<<<<<<< .merge_file_a05568
+	static void Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static void Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
+=======
 	//static v8::Local<v8::Object> Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId);
 	static v8::Local<v8::Value> Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId);
+>>>>>>> .merge_file_a09076
 
 public:
 	// C++ wrapped object
@@ -183,7 +196,11 @@ private:
 	JsDeclareProperty(backwardIter);
 	//#- `rec = store[recId]` -- get record with ID `recId`; 
 	//#     returns `null` when no such record exists
+<<<<<<< .merge_file_a05568
+	//JsDeclIndexedProperty(indexId); TODO	
+=======
 	JsDeclIndexedProperty(indexId);	
+>>>>>>> .merge_file_a09076
 	//#JSIMPLEMENT:src/qminer/store.js
 };
 
@@ -191,11 +208,19 @@ private:
 // NodeJs-Qminer-Rec
 class TNodeJsRec: public node::ObjectWrap {
 private:
+<<<<<<< .merge_file_a05568
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
+public:
+	// Node framework 
+	static void Init(v8::Handle<v8::Object> exports);
+=======
 	// Modified node framework: one record template per each base,storeId combination 
 	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
+>>>>>>> .merge_file_a09076
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
 	// C++ constructors
@@ -234,7 +259,11 @@ private:
 	JsDeclareProperty(store);
 	//#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
+<<<<<<< .merge_file_a05568
+	//JsDeclareSetProperty(getField, setField);
+=======
 	JsDeclareSetProperty(getField, setField);
+>>>>>>> .merge_file_a09076
 	//#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
@@ -325,7 +354,13 @@ private:
 	JsDeclareFunction(getVec);
 	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
+<<<<<<< .merge_file_a05568
+	//#- `rec =  rs.at(idx)` -- returns the record at index (0-based) `idx`
+	JsDeclareFunction(at);
+
+=======
 	
+>>>>>>> .merge_file_a09076
 	//#- `storeName = rs.store` -- store of the records
 	JsDeclareProperty(store);
 	//#- `len = rs.length` -- number of records in the set
@@ -334,8 +369,14 @@ private:
 	JsDeclareProperty(empty);
 	//#- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	JsDeclareProperty(weighted);
+<<<<<<< .merge_file_a05568
+	// TODO figure out the indexed properties
+	////#- `rec = rs[n]` -- return n-th record from the record set
+	//JsDeclIndexedProperty(indexId);
+=======
 	//#- `rec = rs[n]` -- return n-th record from the record set
 	JsDeclIndexedProperty(indexId);
+>>>>>>> .merge_file_a09076
 };
 
 ///////////////////////////////

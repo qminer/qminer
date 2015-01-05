@@ -414,12 +414,10 @@ _store.add = function () {
 	/// </signature>
 };
 
-_store.getCellFlt = function () {
+_store.toString = function () {
 	/// <signature>
-	/// <summary> equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)</summary>
-	/// <param name="_recId" value="_recId">param</param>
-	/// <param name="_fieldId" value="_fieldId">param</param>
-	/// <returns value ="_val"/>
+	/// <summary> returns a string `str` - a description of `store`</summary>
+	/// <returns value ="_str"/>
 	/// </signature>
 };
 
@@ -461,24 +459,6 @@ _store.addStreamAggr = function () {
 	/// </signature>
 };
 
-_store.getCellStr = function () {
-	/// <signature>
-	/// <summary> equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)</summary>
-	/// <param name="_recId" value="_recId">param</param>
-	/// <param name="_fieldId" value="_fieldId">param</param>
-	/// <returns value ="_val"/>
-	/// </signature>
-};
-
-_store.getCellInt = function () {
-	/// <signature>
-	/// <summary> equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)</summary>
-	/// <param name="_recId" value="_recId">param</param>
-	/// <param name="_fieldId" value="_fieldId">param</param>
-	/// <returns value ="_val"/>
-	/// </signature>
-};
-
 _store.key = function () {
 	/// <signature>
 	/// <summary> get [index key](#index-key) named `keyName`</summary>
@@ -509,15 +489,6 @@ _store.addTrigger = function () {
 	/// </signature>
 };
 
-_store.getField = function () {
-	/// <signature>
-	/// <summary> equivalent to store[recId][fieldName], where field id is the internal integer id corresponding to fieldName (exposed in determined by store.fields)</summary>
-	/// <param name="_recId" value="_recId">param</param>
-	/// <param name="_fieldId" value="_fieldId">param</param>
-	/// <returns value ="_val"/>
-	/// </signature>
-};
-
 /// <field name = "fields" value = "_objArr"> array of all the field descriptor JSON objects</field>
 _store.fields = _objArr;
 
@@ -530,14 +501,6 @@ _store.clear = function () {
 	/// <summary> deletes the first `num` records and returns new length `len`</summary>
 	/// <param name="_num" value="_num">param</param>
 	/// <returns value ="_len"/>
-	/// </signature>
-};
-
-_store.getCol = function () {
-	/// <signature>
-	/// <summary> gets the `fieldName` column</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <returns value ="_vec"/>
 	/// </signature>
 };
 
@@ -1797,15 +1760,6 @@ la.genRandomPerm = function () {
 	/// </signature>
 };
 
-la.correlate = function () {
-	/// <signature>
-	/// <summary> returns the correlation matrix (Pearson). Each column should be an observation.</summary>
-	/// <param name="_m1" value="_m1">param</param>
-	/// <param name="_m2" value="_m2">param</param>
-	/// <returns value ="_mat"/>
-	/// </signature>
-};
-
 la.conjgrad = function () {
 	/// <signature>
 	/// <summary> solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors</summary>
@@ -2252,8 +2206,7 @@ _node.eachInNbr = function () {
 
 _node.prev = function () {
 	/// <signature>
-	/// <summary> calls the callback function(nodeid) {...} on all in-neighbors</summary>
-	/// <param name="_callback" value="_callback">param</param>
+	/// <summary> return previous node</summary>
 	/// <returns value ="_node"/>
 	/// </signature>
 };
@@ -2620,14 +2573,6 @@ _rs.reverse = function () {
 	/// </signature>
 };
 
-_rs.getCol = function () {
-	/// <signature>
-	/// <summary> gets the `fieldName` column</summary>
-	/// <param name="_fieldName" value="_fieldName">param</param>
-	/// <returns value ="_vec"/>
-	/// </signature>
-};
-
 _rs.filter = function () {
 	/// <signature>
 	/// <summary> keeps only records that pass `filterCallback` function. Returns self.</summary>
@@ -2972,14 +2917,15 @@ _analytics.newRecLinReg = function () {
 	/// </signature>
 };
 
-_analytics.getLanguageOptions = function () {
+_analytics.loadRecLinRegModel = function () {
 	/// <signature>
-	/// <summary> get options for text parsing</summary>
-	/// <returns value ="_langOptionsJson"/>
+	/// <summary> load serialized linear model</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_recLinRegModel"/>
 	/// </signature>
 };
 
-_analytics.newLloyd = function () {
+_analytics.crossValidation = function () {
 	/// <signature>
 	/// <summary> creates a batch</summary>
 	/// <param name="_rs" value="_rs">param</param>
@@ -2990,22 +2936,18 @@ _analytics.newLloyd = function () {
 	/// </signature>
 };
 
-_analytics.newKNearestNeighbors = function () {
+_analytics.getLanguageOptions = function () {
 	/// <signature>
-	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
-	/// <param name="_k" value="_k">param</param>
-	/// <param name="_buffer" value="_buffer">param</param>
-	/// <param name="_power" value="_power">param</param>
-	/// <returns value ="_kNearestNeighbors"/>
+	/// <summary> get options for text parsing</summary>
+	/// <returns value ="_langOptionsJson"/>
 	/// </signature>
 };
 
-_analytics.newLloyd = function () {
+_analytics.loadFeatureSpace = function () {
 	/// <signature>
-	/// <summary> online clustering based on the Lloyd alogrithm. The model intialization</summary>
-	/// <param name="_dim" value="_dim">param</param>
-	/// <param name="_k" value="_k">param</param>
-	/// <returns value ="_lloydModel"/>
+	/// <summary> load serialized feature</summary>
+	/// <param name="_fin" value="_fin">param</param>
+	/// <returns value ="_fsp"/>
 	/// </signature>
 };
 
@@ -3049,11 +2991,11 @@ _analytics.newActiveLearner = function () {
 
 _analytics.trainSvmClassify = function () {
 	/// <signature>
-	/// <summary> the Extended Kalman filter</summary>
-	/// <param name="_dynamParams" value="_dynamParams">param</param>
-	/// <param name="_measureParams" value="_measureParams">param</param>
-	/// <param name="_controlParams" value="_controlParams">param</param>
-	/// <returns value ="_ekf"/>
+	/// <summary> trains binary</summary>
+	/// <param name="_mat" value="_mat">param</param>
+	/// <param name="_vec" value="_vec">param</param>
+	/// <param name="_svmParameters" value="_svmParameters">param</param>
+	/// <returns value ="_svmModel"/>
 	/// </signature>
 };
 
@@ -3069,19 +3011,20 @@ _analytics.newExtendedKalmanFilter = function () {
 
 _analytics.newKNearestNeighbors = function () {
 	/// <signature>
-	/// <summary> solves a regularized ridge</summary>
-	/// <param name="_kappa" value="_kappa">param</param>
-	/// <param name="_dim" value="_dim">param</param>
+	/// <summary> online regression based on knn alogrithm. The model intialization</summary>
+	/// <param name="_k" value="_k">param</param>
 	/// <param name="_buffer" value="_buffer">param</param>
-	/// <returns value ="_ridgeRegressionModel"/>
+	/// <param name="_power" value="_power">param</param>
+	/// <returns value ="_kNearestNeighbors"/>
 	/// </signature>
 };
 
-_analytics.loadSvmModel = function () {
+_analytics.newPerceptron = function () {
 	/// <signature>
-	/// <summary> load serialized linear model</summary>
-	/// <param name="_fin" value="_fin">param</param>
-	/// <returns value ="_svmModel"/>
+	/// <summary> the perceptron learning algorithm initialization requires</summary>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_use_bias" value="_use_bias">param</param>
+	/// <returns value ="_perceptronModel"/>
 	/// </signature>
 };
 
@@ -3102,19 +3045,22 @@ _analytics.loadSvmModel = function () {
 	/// </signature>
 };
 
-_analytics.newNN = function () {
+_analytics.newRidgeRegression = function () {
 	/// <signature>
-	/// <summary> create new neural network</summary>
-	/// <param name="_nnParameters" value="_nnParameters">param</param>
-	/// <returns value ="_nnModel"/>
+	/// <summary> solves a regularized ridge</summary>
+	/// <param name="_kappa" value="_kappa">param</param>
+	/// <param name="_dim" value="_dim">param</param>
+	/// <param name="_buffer" value="_buffer">param</param>
+	/// <returns value ="_ridgeRegressionModel"/>
 	/// </signature>
 };
 
-_analytics.newFeatureSpace = function () {
+_analytics.newHoeffdingTree = function () {
 	/// <signature>
 	/// <summary> create new</summary>
-	/// <param name="_featureExtractors" value="_featureExtractors">param</param>
-	/// <returns value ="_fsp"/>
+	/// <param name="_jsonStream" value="_jsonStream">param</param>
+	/// <param name="_htJsonParams" value="_htJsonParams">param</param>
+	/// <returns value ="_htModel"/>
 	/// </signature>
 };
 
@@ -3996,15 +3942,16 @@ _htModel.classify = function () {
 
 _alModel.selectQuestion = function () {
 	/// <signature>
-	/// <summary> returns the settings object</summary>
-	/// <returns value ="_objJSON"/>
+	/// <summary> returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input</summary>
+	/// <returns value ="_recSetIdx"/>
 	/// </signature>
 };
 
 _alModel.getAnswer = function () {
 	/// <signature>
-	/// <summary> saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.</summary>
-	/// <param name="_fout" value="_fout">param</param>
+	/// <summary> given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.</summary>
+	/// <param name="_ALAnswer" value="_ALAnswer">param</param>
+	/// <param name="_recSetIdx" value="_recSetIdx">param</param>
 	/// <returns value =""/>
 	/// </signature>
 };
