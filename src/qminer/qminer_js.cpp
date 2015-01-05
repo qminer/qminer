@@ -7810,6 +7810,7 @@ v8::Handle<v8::ObjectTemplate> TJsSnap::GetTemplate() {
 		JsRegisterFunction(TmpTemp, degreeCentrality);
 		JsRegisterFunction(TmpTemp, communityDetection);
 		JsRegisterFunction(TmpTemp, communityEvolution);
+		JsRegisterFunction(TmpTemp, evolutionJson);
 		JsRegisterFunction(TmpTemp, corePeriphery);
 		JsRegisterFunction(TmpTemp, dagImportance);
 		JsRegisterFunction(TmpTemp, dagImportanceStore);
@@ -8003,6 +8004,38 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 	}
 	else
 		throw TQmExcept::New("TJsSnap::CommunityEvolution: 9 or 10 input arguments expected!");
+}
+
+v8::Handle<v8::Value> TJsSnap::evolutionJson(const v8::Arguments& Args) {
+	v8::HandleScope HandleScope;
+	int ArgsLen = Args.Length();
+	if (ArgsLen == 6){
+
+		QmAssertR(TJsSnapUtil::IsArgClass(Args, 0, "TNGraph"), "TJsSnap::DegreeCentrality: Args[0] expected directed graph!");
+		TJsGraph<TNGraph>* JsInGraph = TJsObjUtil<TJsGraph<TNGraph>>::GetArgObj(Args, 0);
+		PNGraph inGraph = JsInGraph->Graph();
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* timeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 1);
+		TIntH& t = timeHash->Map;
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* commHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 2);
+		TIntH& c = commHash->Map;
+
+		TJsHash<TInt, TInt, TAuxIntIntH>* sizeHash = TJsObjUtil<TJsHash<TInt, TInt, TAuxIntIntH>>::GetArgObj(Args, 3);
+		TIntH& s = sizeHash->Map;
+
+		TJsIntV* edgeSize = TJsObjUtil<TQm::TJsIntV>::GetArgObj(Args, 4);
+		TIntV& e = edgeSize->Vec;
+
+		TJsHash<TInt, TStr, TAuxIntIntH>* txtHash = TJsObjUtil<TJsHash<TInt, TStr, TAuxIntIntH>>::GetArgObj(Args, 5);
+		TIntStrH& txt = txtHash->Map;
+
+		TStr out = TSnap::CmtyEvolutionGraphToJson(inGraph, t, c, s, e, txt);
+
+		return HandleScope.Close(v8::String::New(out.CStr()));
+	}
+	else
+		throw TQmExcept::New("TJsSnap::CommunityEvolution: one input arguments expected!");
 }
 
 v8::Handle<v8::Value> TJsSnap::corePeriphery(const v8::Arguments& Args) {

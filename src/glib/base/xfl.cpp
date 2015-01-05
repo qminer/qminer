@@ -58,7 +58,6 @@ TFFile::TFFile(const TStr& FNmWc, const bool& _RecurseP):
   CsImpP(false), RecurseP(_RecurseP), FPathN(0-1),
   FFileDesc(TFFileDesc::New()), SubFFile(), CurFNm(), CurFNmN(0-1){
   // prepare file-base-name wild-card
-  printf("%s \n",FNmWc.CStr());
   FBaseWc = FNmWc.GetFBase(); 
   if (!CsImpP) { FBaseWc = FBaseWc.GetUc(); }
   // get & assign file-name

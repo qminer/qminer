@@ -130,6 +130,7 @@ while (!fin.eof) {
 }
 
 // assigning text to communities based on the members
+console.say("assigning text to communities based on the members:");
 graph.eachNode(function (N) {
     var id = N.id;
     var someText = "";
@@ -144,6 +145,7 @@ graph.eachNode(function (N) {
 });
 
 // drawing community evolution graph
+console.say("drawing community evolution graph:");
 var json_string = snap.evolutionJson(graph, t, c, s, e, txt);
 var obj_out = eval("(" + json_string + ')');
 viz.drawCommunityEvolution(JSON.stringify(obj_out), "./out/cmty.html", { title: { text: "Community evolution" } });

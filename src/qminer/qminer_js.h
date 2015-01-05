@@ -3765,6 +3765,7 @@ public:
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
+	JsDeclareFunction(evolutionJson);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
