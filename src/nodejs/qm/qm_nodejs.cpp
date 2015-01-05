@@ -1050,8 +1050,11 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	else if (Desc.IsTm()) {
 		TTm FieldTm; Rec.GetFieldTm(FieldId, FieldTm);
 		if (FieldTm.IsDef()) {
-			throw TQm::TQmExcept::New("TODO: implement TJsTm and the method Store::Field");
-			//return TJsTm::New(FieldTm);
+			// milliseconds from 1601-01-01T00:00:00Z
+			double WinMSecs = (double)TTm::GetMSecsFromTm(FieldTm);
+			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+			double UnixMSecs = WinMSecs - 11644473600000.0;
+			return HandleScope.Escape(v8::Date::New(Isolate, UnixMSecs));
 		}
 		else {
 			return v8::Null(Isolate);
@@ -2187,15 +2190,21 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
 	}
 	else if (Desc.IsTm()) {
 		QmAssertR(Value->IsObject() || Value->IsString(), "Field " + FieldNm + " not object or string");
-		if (Value->IsObject()){
-			// TODO
-			throw TQm::TQmExcept::New("TODO: TNodeJsTm not implemented yet. Cannot set record field (type tm): " + FieldNm);
-			//TJsTm* JsTm = TJsObjUtil<TJsTm>::GetSelf(Value->ToObject());
-			//Rec.SetFieldTm(FieldId, JsTm->Tm);
+		if (Value->IsDate()){
+			v8::Handle<v8::Date> Date = v8::Handle<v8::Date>::Cast(Value);
+			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
+			double UnixMSecs = Date->NumberValue();
+			// milliseconds from 1601-01-01T00:00:00Z
+			double WinMSecs = UnixMSecs + 11644473600000.0;
+			TTm Tm = TTm::GetTmFromMSecs((uint64)WinMSecs);
+			Rec.SetFieldTm(FieldId, Tm);			
 		}
 		else if (Value->IsString()){
 			v8::String::Utf8Value Utf8(Value);
 			Rec.SetFieldTm(FieldId, TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T'));
+		}
+		else {
+			throw TQm::TQmExcept::New("Field + " + FieldNm + " expects a javascript Date() object or a Weblog datetime formatted string (example: \"2012-12-31T00:00:05.100\")");
 		}
 	}
 	else if (Desc.IsNumSpV()) {
