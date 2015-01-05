@@ -2426,7 +2426,7 @@ public:
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
     
-private:
+protected:
     /// QMiner Base pointer
     TWPt<TBase> Base;
 	/// Stream aggreagte name
@@ -2683,7 +2683,7 @@ public:
 	// stores
     void AddStore(const PStore& NewStore);
     int GetStores() const { return StoreH.Len(); }
-    bool IsStoreN(const uint& StoreN) const { return StoreN < StoreH.Len(); }
+    bool IsStoreN(const uint& StoreN) const { return StoreN < (uint)StoreH.Len(); }
     const TWPt<TStore> GetStoreByStoreN(const int& StoreN) const;
     bool IsStoreId(const uint& StoreId) const { return !StoreV[StoreId].Empty(); }
     const TWPt<TStore> GetStoreByStoreId(const uint& StoreId) const;

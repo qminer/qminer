@@ -1,19 +1,13 @@
-var la = require('./build/Release/la.node');
+var la = require('../../../build/Release/la.node');
 
-<<<<<<< .merge_file_a07088
-<<<<<<< .merge_file_a02452
-console.log("process version: "+process.versions);
-=======
->>>>>>> .merge_file_a08264
-=======
->>>>>>> .merge_file_a08244
 ///////////////////////////
 // Return a new vector or a new matrix 
-la.newVector = function(args) { return new la.vector(args); }
-la.newIntVector = function(args) { return new la.vector(args); }
-la.newMatrix = function(args) { return new la.matrix(args); }
-la.newSparseVector = function(args) { return new la.sparseVector(args); }
-la.newSparseMatrix = function(args) { return new la.sparseMatrix(agrs); }
+la.newVector = function(args) { return la.newVec(args); }
+la.newIntVector = function(args) { return la.newIntVec(args); }
+la.newStrVector = function(args) { return la.newStrVec(args); }
+la.newMatrix = function(args) { return la.newMat(args); }
+la.newSparseVector = function(args) { return la.newSpVec(args); }
+la.newSparseMatrix = function(args) { return la.newSpMat(agrs); }
 
 var vec = la.newVector([1, 2, 3, 4, 5]);
 var v2 = la.newVector(vec);
@@ -50,7 +44,7 @@ console.log("||v||_2 = " + v.norm());
 // Vector: A very simple example 
 console.log("Creating a new vector");
 
-var w1 = la.newIntVector([1, 1, 1]);
+var w1 = la.newVector([1, 1, 1]);
 var w2 = la.newVector([2, 2, 2]);
 
 var w = w1.plus(w2);
@@ -60,9 +54,9 @@ console.log(w.at(1));
 ///////////////////////////
 // Vector: Catching exceptions 
 try {
-   console.log(w1.at(-1));
+    console.log(w1.at(-1));
 } catch (e) {
-   console.log("[*** Exception ***] \"" + e + "\"");
+    console.log("[*** Exception ***] \"" + e + "\"");
 }
 
 ///////////////////////////
@@ -71,9 +65,9 @@ console.log("== Trying out subVec function ==");
 
 var x = la.newVector([6, 54, 32, 13, 100]);
 try {
-   var z = x.subVec(w1);
+    var z = x.subVec(w1);
 } catch (e) {
-   console.log("Oops: " + e);
+    console.log("Oops: " + e);
 }
 
 // console.log("z.len = " + z.length);
@@ -113,10 +107,10 @@ var W = N.plus(M);
 W.setRow(2, la.newVector([1, 1, 1]));
 
 for (var rowN = 0; rowN < W.rows; ++rowN) {
-   for(var colN = 0; colN < W.cols; ++colN) {
-      console.log("W["+rowN+","+colN+"] = "+W.at(rowN, colN))
-   }
-   console.log("\n");
+    for(var colN = 0; colN < W.cols; ++colN) {
+        console.log("W["+rowN+","+colN+"] = "+W.at(rowN, colN))
+    }
+    console.log("\n");
 }
 
 console.log("Norm of second column of W: " + W.getCol(2).norm());
@@ -157,10 +151,52 @@ console.log(M12.toString());
 x1.pushV(x2); // appends x2 to x1 
 console.log("xx:" + x1.toString());
 
+try {
+    x1.at(-1);
+} catch (e) {
+    console.log(e);
+}
+
 ///////////////////////////
 // Sparse matrix 
 var spMatrix = x1.spDiag();
 spMatrix.print();
 
 console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
+
+var fs = require('../../../build/Release/fs.node');
+var v = la.newVec([1,2,3,4,5]);
+console.log("v: " + v.toString());
+
+var fout = fs.openWrite("test-vec.bin");
+v.save(fout);
+fout.close();
+var u = la.newVec();
+u.load(fs.openRead("test-vec.bin"));
+console.log("u: " + u.toString());
+
+// The code below crashes because V8 imposes memory limit on
+// standard JS arrays. 
+/*
+var bigArr = new Array();
+for (var i = 0; i < 5*1e7; ++i) {
+    // bigVec.push(i);
+    bigArr.push(i);
+}
+console.log(bigArr.length);
+
+var bigArr2 = new Array();
+for (var i = 0; i < 5*1e7; ++i) {
+    // bigVec.push(i);
+    bigArr2.push(i);
+}
+console.log(bigArr2.length);
+
+var bigArr3 = new Array();
+for (var i = 0; i < 5*1e7; ++i) {
+    // bigVec.push(i);
+    bigArr3.push(i);
+}
+console.log(bigArr3.length);
+*/
 

@@ -24,6 +24,7 @@ SNAP = $(THIRD_PARTY)/Snap
 LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib
 QMINER = src/qminer
+QM_NODE = src/nodejs
 BUILD = build
 TEST = test/cpp
 
@@ -47,7 +48,7 @@ release: TARGET=release
 release: qm
 
 # debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
-debug: CXXFLAGS += -g
+debug: CXXFLAGS += -g -DV8_DEBUG
 debug: LDFLAGS += -rdynamic
 debug: TARGET=debug
 debug: qm
@@ -57,6 +58,8 @@ qm:
 	make -C $(GLIB) $(TARGET)
 	# compile SNAP
 	make -C $(SNAP)	
+	# compile node module TODO
+	# make -C $(QM_NODE)
 	# compile qminer
 	make -C $(QMINER) $(TARGET)
 	# create qm commandline tool
@@ -107,6 +110,9 @@ install:
 	# set QMINER_HOME environment variable
 	echo "QMINER_HOME=/usr/local/qm-$(VERSION)/\nexport QMINER_HOME" > qm.sh
 	mv ./qm.sh /etc/profile.d/
+	# Copy libraries 
+	cp qm.a /usr/local/lib/
+	cp src/glib/glib.a /usr/local/lib/
 	
 uninstall:
 	# delete installation

@@ -47,6 +47,8 @@ public:
     void AddFtr(const double& Val, TIntFltKdV& SpV, int& Offset) const;
     void AddFtr(const double& Val, TFltV& FullV, int& Offset) const;
     
+    double InvFtr(const TFltV& FullV, int& Offset) const;
+
     int GetDim() const { return 1; }
 };
 
@@ -200,7 +202,6 @@ public:
     TVec<TStrSet> GetHashTable() const { return KeepHashTable ? HashTable : TVec<TStrSet>(); }
     TStrSet GetHashVals(TInt hash) const { return KeepHashTable ? HashTable.GetVal(hash) : TStrSet(); }
     
-
     PSwSet GetSwSet() const { return SwSet; }
     PStemmer GetStemmer() const { return Stemmer; }
 

@@ -1,26 +1,25 @@
 #ifndef QMINER_QM_NODEJS
 #define QMINER_QM_NODEJS
 
-#define BUILDING_NODE_EXTENSION
+#ifndef BUILDING_NODE_EXTENSION
+	#define BUILDING_NODE_EXTENSION
+#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
-#include "utils.h"
+#include "../fs/fs_nodejs.h"
+#include "../nodeutil.h"
 
 ///////////////////////////////
-// NodeJs-Qminer
+// NodeJs QMiner.
 // A factory of base objects
 // The only part of node framework: Init
 class TNodeJsQm : public node::ObjectWrap {
 public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
-<<<<<<< .merge_file_a05568
-
-=======
 	static THash<TStr, TUInt> BaseFPathToId;
->>>>>>> .merge_file_a09076
 private:
 	//# 
 	//# **Functions and properties:**
@@ -36,8 +35,7 @@ private:
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Base
-// 
+// NodeJs QMiner Base
 class TNodeJsBase : public node::ObjectWrap {
 private:
 	// Node framework
@@ -47,11 +45,12 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object
 	static v8::Local<v8::Object> New(TQm::PBase _Base);
-	// C++ constructors
+    // C++ constructors
 	TNodeJsBase() { }
 	TNodeJsBase(TQm::PBase _Base) : Base(_Base) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
+    
 public:
 	// C++ wrapped object
 	TQm::PBase Base;
@@ -60,15 +59,11 @@ private:
 	//# 
 	//# **Functions and properties:**
 	//# 
-<<<<<<< .merge_file_a05568
-	//#- `store = base.store(close)` -- TODO
-=======
 	//#- `base.close()` -- closes the base
->>>>>>> .merge_file_a09076
 	JsDeclareFunction(close);
-    //#- `store = base.store(storeName)` -- store with name `storeName`; `store = null` when no such store
+    //#- `store = base.store(storeName)` -- return store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `strArr = base.getStoreList()` -- an array of strings listing all existing stores
+    //#- `strArr = base.getStoreList()` -- an array of strings listing by name all existing stores
 	JsDeclareFunction(getStoreList);
     //#- `base.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
     //#- `base.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
@@ -95,6 +90,183 @@ private:
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
+//# 
+//# ### NodeJs Stream Aggregate
+//# 
+//# Stream aggregates are objects used for processing data streams - their main functionality includes four functions: onAdd, onUpdate, onDelte process a record, and saveJson which returns a JSON object that describes the aggregate's state.
+class TNodeJsSA : public node::ObjectWrap {
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
+public:
+	// Node framework
+	static void Init(v8::Handle<v8::Object> exports);
+	// Wrapping C++ object
+	static v8::Local<v8::Object> New(TWPt<TQm::TStreamAggr> _SA);
+	// C++ constructors
+	TNodeJsSA() { }
+	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
+	// Node framework (constructor method)
+	JsDeclareFunction(New);
+public:
+	// C++ wrapped object
+	TWPt<TQm::TStreamAggr> SA;
+
+	//# 
+	//# **Functions and properties:**
+	//# 	
+	//#- `sa = sa.onAdd(rec)` -- executes onAdd function given an input record `rec` and returns self
+	JsDeclareFunction(onAdd);
+	//#- `sa = sa.onUpdate(rec)` -- executes onUpdate function given an input record `rec` and returns self
+	JsDeclareFunction(onUpdate);
+	//#- `sa = sa.onDelete(rec)` -- executes onDelete function given an input record `rec` and returns self
+	JsDeclareFunction(onDelete);
+	//#- `objJSON = sa.saveJson(limit)` -- executes saveJson given an optional number parameter `limit`, whose meaning is specific to each type of stream aggregate
+	JsDeclareFunction(saveJson);
+	//#- `fout = sa.save(fout)` -- executes save function given output stream `fout` as input. returns `fout`.
+	JsDeclareFunction(save);
+	//#- `sa = sa.load(fin)` -- executes load function given input stream `fin` as input. returns self.
+	JsDeclareFunction(load);
+	// IInt
+	//#- `num = sa.getInt()` -- returns a number if sa implements the interface IInt
+	JsDeclareFunction(getInt);
+	// IFlt
+	//#- `num = sa.getFlt()` -- returns a number if sa implements the interface IFlt
+	JsDeclareFunction(getFlt);
+	// ITm
+	//#- `num = sa.getTm()` -- returns a number if sa implements the interface ITm. The result is a windows timestamp (number of milliseconds since 1601)
+	JsDeclareFunction(getTm);
+	// IFltVec
+	//#- `num = sa.getFltLen()` -- returns a number (internal vector length) if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltLen);
+	//#- `num = sa.getFltAt(idx)` -- returns a number (element at index) if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltAt);
+	//#- `vec = sa.getFltV()` -- returns a dense vector if sa implements the interface IFltVec.
+	JsDeclareFunction(getFltV);
+	// ITmVec
+	//#- `num = sa.getTmLen()` -- returns a number (timestamp vector length) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmLen);
+	//#- `num = sa.getTmAt(idx)` -- returns a number (windows timestamp at index) if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmAt);
+	//#- `vec = sa.getTmV()` -- returns a dense vector of windows timestamps if sa implements the interface ITmVec.
+	JsDeclareFunction(getTmV);
+	// IFltTmIO
+	//#- `num = sa.getInFlt()` -- returns a number (input value arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInFlt);
+	//#- `num = sa.getInTm()` -- returns a number (windows timestamp arriving in the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getInTm);
+	//#- `vec = sa.getOutFltV()` -- returns a dense vector (values leaving the buffer) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutFltV);
+	//#- `vec = sa.getOutTmV()` -- returns a dense vector (windows timestamps leaving the bugger) if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getOutTmV);
+	//#- `num = sa.getN()` -- returns a number of records in the input buffer if sa implements the interface IFltTmIO.
+	JsDeclareFunction(getN);
+
+	//#- `str = sa.name` -- returns the name (unique) of the stream aggregate
+	JsDeclareProperty(name);
+	//#- `objJSON = sa.val` -- same as sa.saveJson(-1)
+	JsDeclareProperty(val);
+};
+
+///////////////////////////////
+// JavaScript Stream Aggregator
+class TJsStreamAggr :
+	public TQm::TStreamAggr,
+	public TQm::TStreamAggrOut::IInt,
+	//public TQm::TStreamAggrOut::IFlt,	
+	//public TQm::TStreamAggrOut::ITm,
+	public TQm::TStreamAggrOut::IFltTmIO,
+	public TQm::TStreamAggrOut::IFltVec,
+	public TQm::TStreamAggrOut::ITmVec,
+	public TQm::TStreamAggrOut::INmFlt,
+	public TQm::TStreamAggrOut::INmInt,
+	// combinations
+	public TQm::TStreamAggrOut::IFltTm
+	//public TQm::TStreamAggrOut::IFltVecTm
+{
+private:	
+	// callbacks
+	v8::Persistent<v8::Function> OnAddFun;
+	v8::Persistent<v8::Function> OnUpdateFun;
+	v8::Persistent<v8::Function> OnDeleteFun;
+	v8::Persistent<v8::Function> SaveJsonFun;
+
+	v8::Persistent<v8::Function> GetIntFun;
+	// IFlt 
+	v8::Persistent<v8::Function> GetFltFun;
+	// ITm 
+	v8::Persistent<v8::Function> GetTmMSecsFun;
+	// IFltTmIO 
+	v8::Persistent<v8::Function> GetInFltFun;
+	v8::Persistent<v8::Function> GetInTmMSecsFun;
+	v8::Persistent<v8::Function> GetOutFltVFun;
+	v8::Persistent<v8::Function> GetOutTmMSecsVFun;
+	v8::Persistent<v8::Function> GetNFun;
+	// IFltVec
+	v8::Persistent<v8::Function> GetFltLenFun;
+	v8::Persistent<v8::Function> GetFltAtFun;
+	v8::Persistent<v8::Function> GetFltVFun;
+	// ITmVec
+	v8::Persistent<v8::Function> GetTmLenFun;
+	v8::Persistent<v8::Function> GetTmAtFun;
+	v8::Persistent<v8::Function> GetTmVFun;
+	// INmFlt 
+	v8::Persistent<v8::Function> IsNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltFun;
+	v8::Persistent<v8::Function> GetNmFltVFun;
+	// INmInt
+	v8::Persistent<v8::Function> IsNmFun;
+	v8::Persistent<v8::Function> GetNmIntFun;
+	v8::Persistent<v8::Function> GetNmIntVFun;
+
+public:
+	TJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+		return new TJsStreamAggr(_Base, _AggrNm, TriggerVal);
+	}
+
+	void OnAddRec(const TQm::TRec& Rec);
+	void OnUpdateRec(const TQm::TRec& Rec);
+	void OnDeleteRec(const TQm::TRec& Rec);
+	PJsonVal SaveJson(const int& Limit) const;
+
+	// stream aggregator type name 
+	static TStr GetType() { return "javaScript"; }
+	TStr Type() const { return GetType(); }
+	void _Save(TSOut& SOut) const;
+	v8::Persistent<v8::Function> SaveFun;
+	void _Load(TSIn& SIn);
+	v8::Persistent<v8::Function> LoadFun;
+
+	// IInt
+	int GetInt() const;
+	// IFlt 
+	double GetFlt() const;
+	// ITm 
+	uint64 GetTmMSecs() const;
+	// IFltTmIO 
+	double GetInFlt() const;
+	uint64 GetInTmMSecs() const;
+	void GetOutFltV(TFltV& ValV) const;
+	void GetOutTmMSecsV(TUInt64V& MSecsV) const;
+	int GetN() const;
+	// IFltVec
+	int GetFltLen() const;
+	double GetFlt(const TInt& ElN) const; // GetFltAtFun
+	void GetFltV(TFltV& ValV) const;
+	// ITmVec
+	int GetTmLen() const;
+	uint64 GetTm(const TInt& ElN) const; // GetTmAtFun
+	void GetTmV(TUInt64V& TmMSecsV) const;
+	// INmFlt 
+	bool IsNmFlt(const TStr& Nm) const;
+	double GetNmFlt(const TStr& Nm) const;
+	void GetNmFltV(TStrFltPrV& NmFltV) const;
+	// INmInt
+	bool IsNm(const TStr& Nm) const;
+	double GetNmInt(const TStr& Nm) const;
+	void GetNmIntV(TStrIntPrV& NmIntV) const;
+};
 
 ///////////////////////////////
 // NodeJs-Qminer-Store
@@ -103,28 +275,21 @@ private:
 	// Node framework
 	static v8::Persistent<v8::Function> constructor;
 public:
+	TWPt<TQm::TBase> Base;
+	TWPt<TQm::TStore> Store;
+
 	// Node framework 
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object
 	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
 	// C++ constructors
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Base(_Base), Store(_Store) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Field accessors
-<<<<<<< .merge_file_a05568
-	static void Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
-	static void Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId, const v8::FunctionCallbackInfo<v8::Value>& Args);
-=======
-	//static v8::Local<v8::Object> Field(const TWPt<TQm::TStore>& Store, const TQm::TRec& Rec, const int FieldId);
+	static v8::Local<v8::Value> Field(const TQm::TRec& Rec, const int FieldId);
 	static v8::Local<v8::Value> Field(const TWPt<TQm::TStore>& Store, const uint64& RecId, const int FieldId);
->>>>>>> .merge_file_a09076
-
-public:
-	// C++ wrapped object
-	TWPt<TQm::TStore> Store;
-
 private:
 	//# 
 	//# **Functions and properties:**
@@ -196,31 +361,19 @@ private:
 	JsDeclareProperty(backwardIter);
 	//#- `rec = store[recId]` -- get record with ID `recId`; 
 	//#     returns `null` when no such record exists
-<<<<<<< .merge_file_a05568
-	//JsDeclIndexedProperty(indexId); TODO	
-=======
 	JsDeclIndexedProperty(indexId);	
->>>>>>> .merge_file_a09076
 	//#JSIMPLEMENT:src/qminer/store.js
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Rec
+// NodeJs QMiner Record
 class TNodeJsRec: public node::ObjectWrap {
 private:
-<<<<<<< .merge_file_a05568
-	// Node framework
-	static v8::Persistent<v8::Function> constructor;
-public:
-	// Node framework 
-	static void Init(v8::Handle<v8::Object> exports);
-=======
 	// Modified node framework: one record template per each base,storeId combination 
 	static TVec<TVec<v8::Persistent<v8::Function> > > BaseStoreIdConstructor;
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
->>>>>>> .merge_file_a09076
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
 	// C++ constructors
@@ -259,11 +412,7 @@ private:
 	JsDeclareProperty(store);
 	//#- `rec['fieldName'] = val` -- sets the record's field `fieldName` to `val`. Equivalent: `rec.fieldName = val`.
 	//#- `val = rec['fieldName']` -- gets the value `val` at field `fieldName`. Equivalent: `val = rec.fieldName`.
-<<<<<<< .merge_file_a05568
-	//JsDeclareSetProperty(getField, setField);
-=======
 	JsDeclareSetProperty(getField, setField);
->>>>>>> .merge_file_a09076
 	//#- `rs = rec['joinName']` -- gets the record set if `joinName` is an index join. Equivalent: `rs = rec.joinName`. No setter currently.
 	//#- `rec2 = rec['joinName']` -- gets the record `rec2` is the join `joinName` is a field join. Equivalent: `rec2 = rec.joinName`. No setter currently.
 	JsDeclareProperty(join);
@@ -271,7 +420,7 @@ private:
 };
 
 ///////////////////////////////
-// NodeJs-Qminer-Record-Set
+// NodeJs QMiner Record Set
 class TNodeJsRecSet: public node::ObjectWrap {
 private:
 	// Node framework
@@ -354,13 +503,7 @@ private:
 	JsDeclareFunction(getVec);
 	//#- `vec = rs.getMat(fieldName)` -- gets the `fieldName` matrix - the corresponding field type must be float_v or num_sp_v
 	JsDeclareFunction(getMat);
-<<<<<<< .merge_file_a05568
-	//#- `rec =  rs.at(idx)` -- returns the record at index (0-based) `idx`
-	JsDeclareFunction(at);
-
-=======
 	
->>>>>>> .merge_file_a09076
 	//#- `storeName = rs.store` -- store of the records
 	JsDeclareProperty(store);
 	//#- `len = rs.length` -- number of records in the set
@@ -369,18 +512,12 @@ private:
 	JsDeclareProperty(empty);
 	//#- `bool =  rs.weighted` -- `bool = true` when records in the set are assigned weights
 	JsDeclareProperty(weighted);
-<<<<<<< .merge_file_a05568
-	// TODO figure out the indexed properties
-	////#- `rec = rs[n]` -- return n-th record from the record set
-	//JsDeclIndexedProperty(indexId);
-=======
 	//#- `rec = rs[n]` -- return n-th record from the record set
 	JsDeclIndexedProperty(indexId);
->>>>>>> .merge_file_a09076
 };
 
 ///////////////////////////////
-// JavaScript Store Iterator
+// NodeJs QMiner Store Iterator
 //# 
 //# ### Store iterator
 //# 
@@ -407,10 +544,10 @@ public:
     // placeholder for last object
 	v8::Persistent<v8::Object> RecObj;
 	TNodeJsRec* JsRec;
-	~TNodeJsStoreIter() { 
-		RecObj.Reset();
-	}
-	//# 
+    // delete placeholder
+    ~TNodeJsStoreIter() { RecObj.Reset(); }
+	
+    //#
 	//# **Functions and properties:**
 	//#   
 	//#- `bool = iter.next()` -- moves to the next record or returns false if no record left; must be called at least once before `iter.rec` is available
@@ -419,12 +556,10 @@ public:
 	JsDeclareProperty(store);
 	//#- `rec = iter.rec` -- get current record; reuses JavaScript record wrapper, need to call `rec.$clone()` on it to if there is any wish to store intermediate records.
 	JsDeclareProperty(rec);
-	
 };
 
-
 ///////////////////////////////
-// JavaScript Record Filter
+// NodeJs QMiner Record Filter
 class TJsRecFilter {
 private:
 	TWPt<TQm::TStore> Store;
@@ -446,12 +581,12 @@ public:
 };
 
 ///////////////////////////////
-// JavaScript Record Pair Filter (record splitter, record comparator)
+// NodeJs QMiner Record Filter (record splitter, record comparator)
 class TJsRecPairFilter {
 private:
 	TWPt<TQm::TStore> Store;
-	
-	v8::Persistent<v8::Function> Callback;
+	// Callbacks
+    v8::Persistent<v8::Function> Callback;
 public:
 	~TJsRecPairFilter(){
 		Callback.Reset();
@@ -465,43 +600,138 @@ public:
 
 	bool operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const;
 };
-//
-/////////////////////////////////
-//// QMiner-JavaScript-IndexKey
-////# 
-////# ### Index key
-////# 
-//class TNodeJsIndexKey {
-//private:
-////	/// JS script context
-////	TWPt<TScript> Js;
-////	TIndexKey IndexKey;
-////
-////	typedef TJsObjUtil<TJsIndexKey> TJsIndexKeyUtil;
-////
-////	TJsIndexKey(TWPt<TScript> _Js, const TIndexKey& _IndexKey) :
-////		Js(_Js), IndexKey(_IndexKey) { }
-////public:
-////	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TIndexKey& IndexKey) {
-////		return TJsIndexKeyUtil::New(new TJsIndexKey(Js, IndexKey));
-////	}
-////	~TJsIndexKey() { }
-////
-////	static v8::Handle<v8::ObjectTemplate> GetTemplate();
-////
-////	//# 
-////	//# **Functions and properties:**
-////	//#   
-////	//#- `storeName = key.store` -- gets the store name `storeName`
-////	JsDeclareProperty(store);
-////	//#- `keyName = key.name` -- gets the key name
-////	JsDeclareProperty(name);
-////	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
-////	JsDeclareProperty(voc);
-////	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
-////	JsDeclareProperty(fq);
-////};
+
+///////////////////////////////
+// NodeJs QMiner Index Key
+//#
+//# ### Index key
+//#
+class TNodeJsIndexKey: public node::ObjectWrap {
+private:
+    // Node framework
+    static v8::Persistent<v8::Function> constructor;
+public:
+    // Node framework
+    static void Init(v8::Handle<v8::Object> exports);
+    // Wrapping C++ object
+    static v8::Local<v8::Object> New();
+    static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey);
+    // C++ constructors
+    TNodeJsIndexKey() {}
+    TNodeJsIndexKey(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey):
+        Store(_Store), IndexKey(_IndexKey) { }
+    // Node framework (constructor method)
+    JsDeclareFunction(New);
+    
+public:
+    // C++ wrapped object
+    TWPt<TQm::TStore> Store;
+    TQm::TIndexKey IndexKey;
+    
+public:
+    //#
+	//# **Functions and properties:**
+	//#   
+	//#- `store = key.store` -- gets the key's store
+	JsDeclareProperty(store);
+	//#- `keyName = key.name` -- gets the key's name
+	JsDeclareProperty(name);
+	//#- `strArr = key.voc` -- gets the array of words (as strings) in the vocabulary
+	JsDeclareProperty(voc);
+	//#- `strArr = key.fq` -- gets the array of weights (as strings) in the vocabulary
+	JsDeclareProperty(fq);
+};
 
 
+class TNodeJsFuncFtrExt : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+
+public:
+	static PJsonVal CopySettings(const v8::Local<v8::Object> Settings) {
+		throw TQm::TQmExcept::New("TNodeJsFuncFtrExt::CopySettings not implemented!");
+	}
+	static TQm::PFtrExt NewFtrExt(const PJsonVal& ParamVal, v8::Handle<v8::Function>& Func) {
+		throw TQm::TQmExcept::New("TNodeJsFuncFtrExt::NewFtrExt not implemented!");
+	}
+};
+
+///////////////////////////////
+// NodeJs QMiner Feature Space
+class TNodeJsFtrSpace : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	// Node framework
+	static v8::Persistent<v8::Function> constructor;
+
+	TQm::PFtrSpace FtrSpace;
+
+	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
+	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
+
+public:
+	static v8::Local<v8::Object> New(const TQm::PFtrSpace& FtrSpace);
+	static v8::Local<v8::Object> New(const TWPt<TQm::TBase> Base, TSIn& SIn);
+
+	// Node framework
+	static void Init(v8::Handle<v8::Object> exports);
+
+	JsDeclareFunction(New);
+
+	//#
+	//# **Functions and properties:**
+	//#
+    //#- `num = fsp.dim` -- dimensionality of feature space
+    JsDeclareProperty(dim);
+    //#- `num_array = fsp.dims` -- dimensionality of feature space for each of the internal feature extarctors
+    JsDeclareProperty(dims);
+    //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
+    JsDeclareFunction(save);
+
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+
+    //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
+    //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
+    //#     used by bag-of-words extractor by taking into account new text.
+	JsDeclareFunction(updateRecord);
+    //#- `fsp = fsp.updateRecords(rs)` -- update feature space definitions and extractors
+    //#     by exposing them to records from record set `rs`. Returns self. For example, this can update
+    //#     the vocabulary used by bag-of-words extractor by taking into account new text.
+	JsDeclareFunction(updateRecords);
+	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
+    JsDeclareFunction(ftrSpVec);
+    //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
+    JsDeclareFunction(ftrVec);
+    //#- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from
+    //#     record set `rs` and returns them as columns in a sparse matrix `spMat`.
+	JsDeclareFunction(ftrSpColMat);
+    //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from
+    //#     record set `rs` and returns them as columns in a matrix `mat`.
+    JsDeclareFunction(ftrColMat);
+
+	//#- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	JsDeclareFunction(getFtrExtractor);
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	JsDeclareFunction(getFtr);
+    //#- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
+    //#- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
+    JsDeclareFunction(getFtrDist);
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
+    //#     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
+    JsDeclareFunction(filter);
+
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string
+    //#     features from record `rec` (e.g. words from string fields); results are returned
+    //#     as a string array
+    JsDeclareFunction(extractStrings);
+
+private:
+    static TQm::PFtrExt NewFtrExtFromFunc(v8::Isolate* Isolate, v8::Local<v8::Object>& Settings) {
+    	PJsonVal ParamVal = TNodeJsFuncFtrExt::CopySettings(Settings);
+    	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
+    	return TNodeJsFuncFtrExt::NewFtrExt(ParamVal, Func);
+    }
+};
 
 #endif

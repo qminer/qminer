@@ -21,8 +21,16 @@ namespace THrchAggClustSim {
 	template<class TVector, class TLinAlgProvider>
 	class TEucl {
 	public:
-		static double GetSim(const TVector& Item1, const TVector& Item2) {
-			return TLinAlgProvider::EuclDist(Item1, Item2);
+		static double GetSim(const TVector& Item1, const TVector& Item2, const double DocN) {
+			return TLinAlgProvider::EuclDist(Item1, Item2) / DocN;	// TODO is DocN used correctly???
+		}
+	};
+
+	template<class TVector, class TLinAlgProvider>
+	class TNegEucl {
+	public:
+		static double GetSim(const TVector& Item1, const TVector& Item2, const double DocN) {
+			return -TLinAlgProvider::EuclDist(Item1, Item2) / DocN;	// TODO is DocN used correctly???
 		}
 	};
 
@@ -56,7 +64,7 @@ public:
 	}
 	static const TFltV& GetRow(const TFullColMatrix *DocVV, int ItId)  {
 		return DocVV->ColV[ItId];
-	}	
+	}
 };
 
 ////////////////////////////////////////////////
@@ -208,17 +216,17 @@ private:
 	void CreateDendogram() {
 		for (int ItN1 = 0; ItN1 < GetItems() - 1; ItN1++) {			
 
-			printf("similarity matrix: \n");
-			for (int RowN = 0; RowN < GetItems(); RowN++){
-				for (int ColN = 0; ColN < GetItems(); ColN++){
-					printf("%f  ", DCSim[RowN][ColN].Val); 
-				}
-				printf("\n");
-			}	
-			printf("\n");
-			for (int RowN = 0; RowN < GetItems(); RowN++){			
-				ClusterV[RowN].PrintQueue();							
-			}	
+//			printf("similarity matrix: \n");
+//			for (int RowN = 0; RowN < GetItems(); RowN++){
+//				for (int ColN = 0; ColN < GetItems(); ColN++){
+//					printf("%f  ", DCSim[RowN][ColN].Val);
+//				}
+//				printf("\n");
+//			}
+//			printf("\n");
+//			for (int RowN = 0; RowN < GetItems(); RowN++){
+//				ClusterV[RowN].PrintQueue();
+//			}
 
 			int C1 = GetCandidateClusterId();				
 			int C2 = ClusterV[C1].GetCandidateClusterId();
@@ -313,10 +321,10 @@ public:
 			TFlt AbsDiff = abs(AssignV[AssN].GetSimilarity() - AssignV[AssN + 1].GetSimilarity());
 			SimDifV.Add(TFltIntKd(AbsDiff, AssN + 1));
 		} SimDifV.Sort(false);
-		for (int RowN = 0; RowN < SimDifV.Len(); RowN++){	
-			printf("%f %d ", SimDifV[RowN].Key.Val, SimDifV[RowN].Dat.Val);
-		}
-		printf("\n");
+//		for (int RowN = 0; RowN < SimDifV.Len(); RowN++){
+//			printf("%f %d ", SimDifV[RowN].Key.Val, SimDifV[RowN].Dat.Val);
+//		}
+//		printf("\n");
 
 		int AssStN = SimDifV[0].Dat;
 
