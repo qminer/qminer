@@ -110,6 +110,37 @@
                 }]
             ]
         }, {
+            # node time module
+            'target_name': 'time',
+            'sources': [            
+                'src/nodejs/time/time_nodejs.h',
+                'src/nodejs/time/time_nodejs.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp'
+            ],
+            'include_dirs': [
+                'src/nodejs/time',
+                'src/nodejs/',
+                'src/glib/base/',
+                'src/glib/mine/'
+            ],
+            'dependencies': [
+                'glib'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
             # qminer library
             'target_name': 'qminer',
             'type': 'static_library',
