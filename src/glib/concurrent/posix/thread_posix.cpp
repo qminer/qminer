@@ -30,9 +30,22 @@
 
 ////////////////////////////////////////////
 // Mutex
-TMutex::TMutex(const bool& LockOnStartP) {
+TMutex::TMutex(const TMutexType& _Type, const bool& LockOnStartP):
+		Type(_Type) {
 	pthread_mutexattr_init(&Attributes);
 	pthread_mutexattr_setpshared(&Attributes, PTHREAD_PROCESS_SHARED);
+
+	switch (Type) {
+	case TCriticalSectionType::cstFast:
+		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_NORMAL);
+		break;
+	case TCriticalSectionType::cstRecursive:
+		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_RECURSIVE);
+		break;
+	default:
+		throw TExcept::New("Invalid critical section type!", "TCriticalSection::Init()");
+	}
+
 	pthread_mutex_init(&MutexHandle, &Attributes);
 }
 
@@ -61,7 +74,8 @@ void TMutex::GetLock() {
 	pthread_mutex_lock(&MutexHandle);
 }
 
-TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type): Type(_Type) {
+TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type):
+		Type(_Type) {
 	pthread_mutexattr_init(&CsAttr);
 
 	switch (Type) {
@@ -89,6 +103,36 @@ bool TCriticalSection::TryEnter() {
 }
 void TCriticalSection::Leave() {
 	pthread_mutex_unlock(&Cs);
+}
+
+////////////////////////////////////////////
+// Conditional variable lock
+TCondVarLock::TCondVarLock():
+	Mutex(TMutexType::mtRecursive) {}
+
+TCondVarLock::~TCondVarLock() {
+	// pthread_cond_destroy should be called to free a condition variable that is no longer needed
+	pthread_cond_destroy(&CondVar);
+}
+
+void TCondVarLock::Lock() {
+	Mutex.GetLock();
+}
+
+bool TCondVarLock::Release() {
+	return Mutex.Release();
+}
+
+void TCondVarLock::WaitForSignal() {
+	pthread_cond_wait(&CondVar, &Mutex.MutexHandle);
+}
+
+void TCondVarLock::Signal() {
+	pthread_cond_signal(&CondVar);
+}
+
+void TCondVarLock::Broadcast() {
+	pthread_cond_broadcast(&CondVar);
 }
 
 TBlocker::TBlocker() {
@@ -120,24 +164,66 @@ void TBlocker::Release() {
 
 ////////////////////////////////////////////
 // Thread
+const int TThread::STATUS_CREATED = 0;
+const int TThread::STATUS_STARTED = 1;
+const int TThread::STATUS_CANCELLED = 2;
+const int TThread::STATUS_FINISHED = 3;
+
 void * TThread::EntryPoint(void * pArg) {
     TThread *pThis = (TThread *)pArg;
-    pThis->Run();
+
+    // set the routine which cleans up after the thread has finished
+    pthread_cleanup_push(SetFinished, pThis);
+
+    try {
+    	pThis->Run();
+    } catch (...) {
+    	printf("Unknown exception while running thread: %ld!\n", pThis->GetThreadId());
+    }
+
+    // pop and execute the cleanup routine
+    pthread_cleanup_pop(1);
     return 0;
 }
 
-TThread::TThread(): ThreadHandle(), ThreadId(0) { }
+void TThread::SetFinished(void *pArg) {
+	TThread *pThis = (TThread *) pArg;
+
+	TLock Lck(pThis->CriticalSection);
+	pThis->Status = STATUS_FINISHED;
+}
+
+TThread::TThread():
+		ThreadHandle(),
+		CriticalSection(cstRecursive),
+		Status(STATUS_CREATED) { }
 
 TThread::~TThread() {
+	TLock Lck(CriticalSection);
+	if (IsAlive() && !IsCancelled()) {
+		Cancel();
+	}
 }
 
 TThread &TThread::operator =(const TThread& Other) {
 	ThreadHandle = Other.ThreadHandle;
-	ThreadId = Other.ThreadId;
+	CriticalSection = Other.CriticalSection;
 	return *this;
 }
 
 void TThread::Start() {
+	TLock Lck(CriticalSection);
+
+	if (IsAlive()) {
+		printf("Tried to start a thread that is already alive! Ignoring ...\n");
+		return;
+	}
+	if (IsCancelled()) {
+		return;
+	}
+
+	Status = STATUS_STARTED;
+
     // create new thread
 	int code = pthread_create(
 			&ThreadHandle,	// Handle
@@ -146,8 +232,15 @@ void TThread::Start() {
 			this			// Arg
 	);
 	EAssert(code == 0);
+}
 
+void TThread::Cancel() {
+	TLock Lck(CriticalSection);
 
+	if (!IsAlive()) { return; }
+	Status = STATUS_CANCELLED;
+	int code = pthread_cancel(ThreadHandle);
+	EAssertR(code == 0, "Failed to cancel thread!");
 }
 
 int TThread::Join() {
@@ -155,6 +248,20 @@ int TThread::Join() {
 	return 0;
 }
 
+bool TThread::IsAlive() {
+	TLock Lck(CriticalSection);
+	return Status == STATUS_STARTED || IsCancelled();
+}
+
+bool TThread::IsCancelled() {
+	TLock Lck(CriticalSection);
+	return Status == STATUS_CANCELLED;
+}
+
+bool TThread::IsFinished() {
+	TLock Lck(CriticalSection);
+	return Status == STATUS_FINISHED;
+}
 
 int TThread::GetCoreCount() {
 	int NumCpu;

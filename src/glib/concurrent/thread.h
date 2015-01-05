@@ -27,6 +27,11 @@ typedef enum {
 	cstRecursive
 } TCriticalSectionType;
 
+enum TMutexType {
+	mtFast,
+	mtRecursive
+};
+
 #if defined(GLib_WIN)
 
 #include "win/thread_win.h"
@@ -59,12 +64,60 @@ public:
 //   Wrapper around criticla section, which automatically enters 
 //   on construct, and leaves on scope unwinding (destruct)
 class TLock {
+	friend class TCondVarLock;
 private:
 	TCriticalSection& CriticalSection;
 public:
 	TLock(TCriticalSection& _CriticalSection):
 		CriticalSection(_CriticalSection) { CriticalSection.Enter(); }
 	~TLock() { CriticalSection.Leave(); }
+};
+
+////////////////////////////////////////////
+// Thread executor
+//   contains a pool of threads which can execute a TRunnable object
+class TThreadExecutor {
+public:
+	ClassTP(TRunnable, PRunnable)// {
+	public:
+		virtual void Run() = 0;
+		virtual ~TRunnable() {}
+
+		bool operator ==(const TRunnable& Other) const { return this == &Other; }
+	};
+private:
+	class TExecutorThread: public TThread {
+	private:
+		TThreadExecutor* Executor;
+		PRunnable Runnable;
+		PNotify Notify;
+	public:
+		TExecutorThread();
+		TExecutorThread(TThreadExecutor* Executor, const PNotify& Notify);
+
+		void Run();
+		void SetRunnable(const PRunnable& _Runnable) { Runnable = _Runnable; };
+	};
+
+private:
+	TThreadV<TExecutorThread> ThreadV;
+	TLinkedQueue<PRunnable> TaskQ;
+
+	TCondVarLock Lock;
+
+	PNotify Notify;
+
+	volatile bool IsFinished;
+
+public:
+	TThreadExecutor(const TInt& PoolSize=1, const PNotify& Notify=TNullNotify::New());
+
+	~TThreadExecutor();
+
+	void Execute(const PRunnable& Runnable);
+
+private:
+	PRunnable WaitForTask();
 };
 
 #endif

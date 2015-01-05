@@ -47,6 +47,7 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj) {
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
     v8::EscapableHandleScope HandleScope(Isolate);
+    
     if (!JsonVal->IsDef()) {
         return v8::Undefined(Isolate);
     }
@@ -173,6 +174,16 @@ bool TNodeJsUtil::IsArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, cons
 
     v8::Handle<v8::Value> Val = Args[ArgN];
     return Val->IsString();
+}
+
+bool TNodeJsUtil::IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN).CStr());
+
+	v8::Handle<v8::Value> Val = Args[ArgN];
+	return Val->IsObject();
 }
 
 bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
@@ -323,4 +334,3 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 
     return GetObjJson(Args[ArgN]->ToObject());
 }
-

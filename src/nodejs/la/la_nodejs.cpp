@@ -695,6 +695,8 @@ void TNodeJsVec<TFlt, TAuxFltV>::toMat(const v8::FunctionCallbackInfo<v8::Value>
 // NodeJs-Qminer-FltVV
 v8::Persistent<v8::Function> TNodeJsFltVV::constructor;
 
+const TStr TNodeJsFltVV::ClassId = "TFltVV";
+
 void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -1290,6 +1292,8 @@ void TNodeJsFltVV::rows(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 // Sparse-Vector
 v8::Persistent<v8::Function> TNodeJsSpVec::constructor;
 
+const TStr TNodeJsSpVec::ClassId = "TIntFltKdV";
+
 void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
@@ -1613,6 +1617,8 @@ void TNodeJsSpVec::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
 ///////////////////////////////
 // NodeJs-QMiner-Sparse-Col-Matrix
 v8::Persistent<v8::Function> TNodeJsSpMat::constructor;
+
+const TStr TNodeJsSpMat::ClassId = "TVec<TIntFltKdV>";
 
 void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();

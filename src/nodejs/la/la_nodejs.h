@@ -119,7 +119,6 @@ public:
     }
 };
 
-
 ///////////////////////////////
 // NodeJs-GLib-TVec
 //# 
@@ -138,6 +137,8 @@ template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
     friend class TNodeJsFltVV;
 public: // So we can register the class 
+    const static TStr ClassId;	// ClassId set to TAux::ClassId
+
     static void Init(v8::Handle<v8::Object> exports);
     // Does the job of the new operator in Javascript 
     //static v8::Handle<v8::Value> NewInstance(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -237,6 +238,10 @@ private:
     static v8::Persistent<v8::Function> constructor;
 };
 
+typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
+typedef TNodeJsVec<TFlt, TAuxIntV> TNodeJsIntV;
+typedef TNodeJsVec<TFlt, TAuxStrV> TNodeJsStrV;
+
 ///////////////////////////////
 // NodeJs-Qminer-FltVV
 //# 
@@ -252,6 +257,8 @@ private:
 //# 
 class TNodeJsFltVV : public node::ObjectWrap {
 public:
+	const static TStr ClassId;
+
     static void Init(v8::Handle<v8::Object> exports);
     static v8::Local<v8::Object> New(const TFltVV& FltVV);
     static v8::Local<v8::Object> New(const TFltV& FltV);
@@ -347,6 +354,8 @@ private:
 //# 
 class TNodeJsSpVec : public node::ObjectWrap {
 public:
+	const static TStr ClassId;
+
     TNodeJsSpVec() { }
     TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
         : Vec(IntFltKdV), Dim(Dim)
@@ -411,6 +420,8 @@ private:
 //# 
 class TNodeJsSpMat : public node::ObjectWrap {
 public:
+	const static TStr ClassId;
+
     TNodeJsSpMat() { }
     TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
         : Mat(_Mat), Rows(_Rows) { }
@@ -483,12 +494,15 @@ template <typename TVal, typename TAux>
 v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 
 template <typename TVal, typename TAux>
+const TStr TNodeJsVec<TVal, TAux>::ClassId = TAux::ClassId;
+
+template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     TStr Name = "vector";
-    if (TAux::ClassId == "TIntV") Name = "intVector";
-    if (TAux::ClassId == "TStrV") Name = "strVector";
+    if (TAux::ClassId == TNodeJsIntV::ClassId) Name = "intVector";
+    if (TAux::ClassId == TNodeJsStrV::ClassId) Name = "strVector";
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));

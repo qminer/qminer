@@ -2,6 +2,7 @@
 #define QMINER_NODEJS_UTILS
 
 #include <node.h>
+#include <node_object_wrap.h>
 #include "base.h"
 
 #define JsDeclareProperty(Function) \
@@ -138,6 +139,8 @@ public:
     static bool IsArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Check if is argument ArgN of type v8::String
     static bool IsArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Check if is argument ArgN is a JSON object
+    static bool IsArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
     /// Extract argument ArgN property as bool
     static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
@@ -167,7 +170,29 @@ public:
     static TStr GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const TStr& DefVal);
     /// Extract argument ArgN as GLib Json (PJsonVal)
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+
+    /// Create a new Javascript instance wrapped by the wrapper class
+    template <class TWrap>
+    static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope);
+    /// Convenience method, creates a handle scope. If a handle scope is already present, the method
+    /// which takes it as an argument should be used.
+    template <class TWrap>
+    static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate);
 };
+
+template <class TWrap>
+v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope) {
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, ConsFun);
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	Wrapper->Wrap(Instance);
+	return HandleScope.Escape(Instance);
+}
+
+template <class TWrap>
+v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate) {
+	v8::EscapableHandleScope HandleScope(Isolate);
+	return NewJsInstance(Wrapper, ConsFun, Isolate, HandleScope);
+}
 
 #endif
 
