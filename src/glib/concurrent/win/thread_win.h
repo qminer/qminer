@@ -193,4 +193,34 @@ public:
 	void Broadcast();
 };
 
+////////////////////////////////////////////
+// Conditional variable lock
+// blocks threads on a until a condition is fulfilled
+class TCondVarLock {
+private:
+	//pthread_cond_t CondVar;
+	TMutex Mutex;
+
+public:
+	TCondVarLock();
+	~TCondVarLock();
+
+	// locks the mutex
+	void Lock();
+	// releases the mutex
+	bool Release();
+	// must be locked before calling this method
+	// unlocks the mutex and waits for a signal once it gets the signal the
+	// mutex is automatically locked
+	void WaitForSignal();
+	// must be locked before signaling
+	// unblocks at least one thread waiting on the
+	// conditional variable
+	void Signal();
+	// must be locked before broadcasting
+	// unblocks all threads waiting on the
+	// conditional variable
+	void Broadcast();
+};
+
 #endif /* THREAD_H_ */

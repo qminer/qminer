@@ -3820,7 +3820,7 @@ private:
 
 	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {		
 		return TJsSnapUtil::New(new TJsSnap(Js));
 	}
 
@@ -3841,9 +3841,12 @@ public:
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
-	JsDeclareFunction(evolutionJson);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
+	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebSimplify);
+	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
+	JsDeclareFunction(reebRefine);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
 	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
@@ -3880,10 +3883,6 @@ private:
 		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
 	};
 
-	TJsGraph(TWPt<TScript> _Js, TPt<T> _graph) : Js(_Js) {
-		Graph = _graph;
-	};
-
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
@@ -3894,13 +3893,6 @@ public:
 	}
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
-		v8::Handle<v8::String> key = v8::String::New("class");
-		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
-		obj->SetHiddenValue(key, value);
-		return obj;
-	}
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TPt<T> _graph, TStr Graph_class) {
-		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, _graph));
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
 		obj->SetHiddenValue(key, value);
@@ -4067,7 +4059,6 @@ public:
 	//#- `edge = edge.next()` -- return next edge
 	JsDeclareFunction(next);
 };
-
 
 
 
