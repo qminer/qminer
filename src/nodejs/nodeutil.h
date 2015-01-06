@@ -182,6 +182,10 @@ public:
     /// which takes it as an argument should be used.
     template <class TWrap>
     static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate);
+
+    /// Create a new Javascript instance wrapped with the wrapper pointer
+    template <class TWrap>
+    static v8::Local<v8::Object> WrapJsInstance(v8::Handle<v8::Object> Instance, TWrap* Wrapper);
 };
 
 template <class TWrap>
@@ -196,6 +200,12 @@ template <class TWrap>
 v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate) {
 	v8::EscapableHandleScope HandleScope(Isolate);
 	return NewJsInstance(Wrapper, ConsFun, Isolate, HandleScope);
+}
+
+template <class TWrap>
+v8::Local<v8::Object> TNodeJsUtil::WrapJsInstance(v8::Handle<v8::Object> Instance, TWrap* Wrapper) {
+	Wrapper->Wrap(Instance);
+	return Instance;
 }
 
 #endif

@@ -3666,6 +3666,14 @@ TNodeJsFtrSpace::TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn) {
 	FtrSpace = TQm::TFtrSpace::Load(Base, SIn);
 }
 
+v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(FtrSpace));
+}
+
+v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(Base, SIn));
+}
+
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TQm::PFtrSpace& FtrSpace) {
 	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(FtrSpace), constructor, v8::Isolate::GetCurrent());
 }
@@ -3722,7 +3730,7 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (Args[1]->IsExternal()) {
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject());
 
-			Args.GetReturnValue().Set(TNodeJsFtrSpace::New(Base, *JsFIn->SIn));
+			Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), Base, *JsFIn->SIn));
 			return;
 		}
 
@@ -3789,8 +3797,9 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         // report on what was created
         TQm::InfoLog(FtrSpace->GetNm());
 		// done
-        Args.GetReturnValue().Set(TNodeJsFtrSpace::New(FtrSpace));
+        Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), FtrSpace));
 	} catch (const PExcept& Except) {
+		TQm::ErrorLog(Except->GetMsgStr());
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
 }
