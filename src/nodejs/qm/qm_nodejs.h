@@ -220,11 +220,17 @@ private:
 	v8::Persistent<v8::Function> GetNmIntFun;
 	v8::Persistent<v8::Function> GetNmIntVFun;
 
+	// Serialization
+	v8::Persistent<v8::Function> SaveFun;
+	v8::Persistent<v8::Function> LoadFun;
+
 public:
 	TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
 		return new TNodeJsStreamAggr(_Base, _AggrNm, TriggerVal);
 	}
+
+	~TNodeJsStreamAggr();
 
 	void OnAddRec(const TQm::TRec& Rec);
 	void OnUpdateRec(const TQm::TRec& Rec);
@@ -235,9 +241,7 @@ public:
 	static TStr GetType() { return "javaScript"; }
 	TStr Type() const { return GetType(); }
 	void _Save(TSOut& SOut) const;
-	v8::Persistent<v8::Function> SaveFun;
 	void _Load(TSIn& SIn);
-	v8::Persistent<v8::Function> LoadFun;
 
 	// IInt
 	int GetInt() const;

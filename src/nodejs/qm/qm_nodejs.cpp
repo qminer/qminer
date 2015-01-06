@@ -448,8 +448,6 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
 
-		// parse out parameters
-		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 		// get aggregate type
 		TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
 
@@ -473,6 +471,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else if (TypeNm == "stmerger") {
 			// create new aggregate
+			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 			PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 			TStrV InterpNmV;
@@ -1036,6 +1035,47 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 		GetNmIntVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmIntV));
 	}
 }
+
+TNodeJsStreamAggr::~TNodeJsStreamAggr() {
+	// callbacks
+	OnAddFun.Reset();
+	OnUpdateFun.Reset();
+	OnDeleteFun.Reset();
+	SaveJsonFun.Reset();
+
+	GetIntFun.Reset();
+	// IFlt 
+	GetFltFun.Reset();
+	// ITm 
+	GetTmMSecsFun.Reset();
+	// IFltTmIO 
+	GetInFltFun.Reset();
+	GetInTmMSecsFun.Reset();
+	GetOutFltVFun.Reset();
+	GetOutTmMSecsVFun.Reset();
+	GetNFun.Reset();
+	// IFltVec
+	GetFltLenFun.Reset();
+	GetFltAtFun.Reset();
+	GetFltVFun.Reset();
+	// ITmVec
+	GetTmLenFun.Reset();
+	GetTmAtFun.Reset();
+	GetTmVFun.Reset();
+	// INmFlt 
+	IsNmFltFun.Reset();
+	GetNmFltFun.Reset();
+	GetNmFltVFun.Reset();
+	// INmInt
+	IsNmFun.Reset();
+	GetNmIntFun.Reset();
+	GetNmIntVFun.Reset();
+
+	// Serialization
+	SaveFun.Reset();
+	LoadFun.Reset();
+}
+
 
 void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
 	if (!OnAddFun.IsEmpty()) {	
