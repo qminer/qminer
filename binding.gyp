@@ -83,6 +83,53 @@
                 }]
             ]
         }, {
+            # node snap module
+            'target_name': 'snap',
+            'sources': [
+				'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.cpp',
+                'src/nodejs/la/la_nodejs.h',
+                'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp'
+            ],
+            'include_dirs': [
+				'src/nodejs/snap',
+                'src/nodejs/la',
+                'src/nodejs/fs',
+                'src/nodejs/',
+                'src/glib/base/',
+                'src/glib/mine/',
+				'src/glib/misc/',
+				'src/third_party/snap/snap-core',
+				'src/third_party/snap/snap-adv',
+				'src/third_party/snap/snap-exp',
+				'src/third_party/snap/qlib-core'
+            ],
+            'defines': [
+                'MODULE_INCLUDE_LA',
+                'MODULE_INCLUDE_FS'
+            ],
+            'dependencies': [
+                'glib',
+				'snap_lib'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
             # node file system module
             'target_name': 'fs',
             'sources': [            
@@ -198,11 +245,41 @@
             'sources': [
                 'src/glib/base/base.cpp',
                 'src/glib/mine/mine.cpp',
+				'src/third_party/snap/snap-core/Snap.cpp'
             ],        
             'include_dirs': [
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
+                'src/glib/misc/',
+				'src/third_party/snap/snap-core',
+				'src/third_party/snap/snap-adv',
+				'src/third_party/snap/snap-exp'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
+            # snap external library
+            'target_name': 'snap_lib',
+            'type': 'static_library',
+            'sources': [
+				'src/third_party/snap/snap-core/Snap.cpp'
+            ],        
+            'include_dirs': [
+				'src/third_party/snap/snap-core',
+				'src/third_party/snap/snap-adv',
+				'src/third_party/snap/snap-exp',
+				'src/third_party/snap/qlib-core'
             ],
             'conditions': [
                 # operating system specific parameters

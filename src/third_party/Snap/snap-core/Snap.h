@@ -5,8 +5,10 @@
 
 /////////////////////////////////////////////////
 // SNAP library mogoce
-#include <base.h>
-#include "gnuplot.h"
+//#include <base.h>
+#include "../../../glib/base/base.h"
+#include "../../../glib/base/bd.h"
+#include "../../../glib/misc/gnuplot.h"
 //#include "linalg.h"
 
 #include "gbase.h"
