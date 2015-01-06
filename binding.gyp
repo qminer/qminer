@@ -276,6 +276,9 @@
 				'src/third_party/snap/snap-core/Snap.cpp'
             ],        
             'include_dirs': [
+				'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/',
 				'src/third_party/snap/snap-core',
 				'src/third_party/snap/snap-adv',
 				'src/third_party/snap/snap-exp',

@@ -1,4 +1,4 @@
-#include "../../../glib/base/bd.h"
+#include "bd.h"
 
 //#//////////////////////////////////////////////
 /// Simulates a single Forest Fire on a directed graph starting for a given starting node.

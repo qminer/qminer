@@ -3,7 +3,7 @@
 #include "Snap.h"
 
 //#include "base.cpp"
-#include "../../../glib/misc/gnuplot.cpp"
+#include "gnuplot.cpp"
 //#include "linalg.cpp"
 
 #include "gbase.cpp"
