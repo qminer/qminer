@@ -278,8 +278,7 @@ class TNodeJsStore : public node::ObjectWrap {
 private:
 	// Node framework
 	static v8::Persistent<v8::Function> constructor;
-public:
-	TWPt<TQm::TBase> Base;
+public:	
 	TWPt<TQm::TStore> Store;
 
 	// Node framework 
@@ -288,7 +287,7 @@ public:
 	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
 	// C++ constructors
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Base(_Base), Store(_Store) { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Field accessors
