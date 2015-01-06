@@ -170,7 +170,7 @@ public:
 
 ///////////////////////////////
 // JavaScript Stream Aggregator
-class TJsStreamAggr :
+class TNodeJsStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
 	//public TQm::TStreamAggrOut::IFlt,	
@@ -220,9 +220,9 @@ private:
 	v8::Persistent<v8::Function> GetNmIntVFun;
 
 public:
-	TJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(_Base, _AggrNm, TriggerVal);
+		return new TNodeJsStreamAggr(_Base, _AggrNm, TriggerVal);
 	}
 
 	void OnAddRec(const TQm::TRec& Rec);
