@@ -168,7 +168,7 @@ public:
 // blocks threads on a until a condition is fulfilled
 class TCondVarLock {
 private:
-	pthread_cond_t CondVar;
+	//pthread_cond_t CondVar;
 	TMutex Mutex;
 
 public:
