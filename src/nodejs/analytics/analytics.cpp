@@ -652,7 +652,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 
 	constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_ANALYTICS
-	exports->Set(v8::String::NewFromUtf8(Isolate, "HMarkovChain"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "HMC"),
 			   tpl->GetFunction());
 #endif
 }
