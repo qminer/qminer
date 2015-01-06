@@ -1013,8 +1013,7 @@ void TFile::Copy(const TStr& SrcFNm, const TStr& DstFNm,
 
 
 	filesize = lseek(input, 0, SEEK_END);
-	lseek(output, filesize - 1, SEEK_SET);
-	write(output, '\0', 1);
+	posix_fallocate(output, 0, filesize);
 
 	if((source = mmap(0, filesize, PROT_READ, MAP_SHARED, input, 0)) == (void *) -1) {
 		close(input);

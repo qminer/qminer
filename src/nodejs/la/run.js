@@ -164,13 +164,39 @@ spMatrix.print();
 
 console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
 
+var fs = require('../../../build/Release/fs.node');
+var v = la.newVec([1,2,3,4,5]);
+console.log("v: " + v.toString());
+
+var fout = fs.openWrite("test-vec.bin");
+v.save(fout);
+fout.close();
+var u = la.newVec();
+u.load(fs.openRead("test-vec.bin"));
+console.log("u: " + u.toString());
+
 // The code below crashes because V8 imposes memory limit on
 // standard JS arrays. 
-// var bigArr = new Array();
-// var bigVec = la.newVec(); // equivalent to new la.vector()
-// for (var i = 0; i < 1e8; ++i) {
-//    bigVec.push(i);
-//    bigArr.push(i);
-// }
-// console.log(bigVec.length);
+/*
+var bigArr = new Array();
+for (var i = 0; i < 5*1e7; ++i) {
+    // bigVec.push(i);
+    bigArr.push(i);
+}
+console.log(bigArr.length);
+
+var bigArr2 = new Array();
+for (var i = 0; i < 5*1e7; ++i) {
+    // bigVec.push(i);
+    bigArr2.push(i);
+}
+console.log(bigArr2.length);
+
+var bigArr3 = new Array();
+for (var i = 0; i < 5*1e7; ++i) {
+    // bigVec.push(i);
+    bigArr3.push(i);
+}
+console.log(bigArr3.length);
+*/
 
