@@ -557,6 +557,7 @@ void TNodeJsGraph<T>::dump(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
+
 template <class T>
 void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -953,9 +954,19 @@ void TNodeJsEdge<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(JsEdge);
 }
 
+#ifndef MODULE_INCLUDE_SNAP
 ///////////////////////////////
 // Register functions, etc.
 void init(v8::Handle<v8::Object> exports) {
+
+	// Linear algebra package
+	TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+	TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+	TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+	TNodeJsFltVV::Init(exports);
+	TNodeJsSpVec::Init(exports);
+	TNodeJsSpMat::Init(exports);
+
 	TNodeJsSnap::Init(exports);
 	TNodeJsGraph<TUNGraph>::Init(exports);
 	TNodeJsGraph<TNGraph>::Init(exports);
@@ -966,11 +977,13 @@ void init(v8::Handle<v8::Object> exports) {
 	TNodeJsEdge<TUNGraph>::Init(exports);
 	TNodeJsEdge<TNGraph>::Init(exports);
 	TNodeJsEdge<TNEGraph>::Init(exports);
-	// LA
-	TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-	TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-	TNodeJsFltVV::Init(exports);
-	TNodeJsSpVec::Init(exports);
-	TNodeJsSpMat::Init(exports);
+
+	
+
+	// File stream
+	TNodeJsFIn::Init(exports);
+	TNodeJsFOut::Init(exports);
+
 }
 NODE_MODULE(snap, init)
+#endif

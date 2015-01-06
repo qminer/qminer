@@ -3,8 +3,8 @@
       {
          'target_name': 'snap',
          'sources': [
-			'../utils.h', #not necessary for build, but useful for visual studio solution
-			'../utils.cpp',
+			'../nodeutil.h', #not necessary for build, but useful for visual studio solution
+			'../nodeutil.cpp',
             'snap_nodejs.cpp',
 			'snap_nodejs.h', #not necessary for build, but useful for visual studio solution
 			'../la/la_nodejs.h', #not necessary for build, but useful for visual studio solution
