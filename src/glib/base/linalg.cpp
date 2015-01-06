@@ -3694,7 +3694,7 @@ TFullMatrix TFullMatrix::Pow(const int& k) const {
 
 		// do the work
 		uint k1 = (uint) k;
-		uint n = (uint) log2(k);
+		uint n = (uint) TMath::Log2(k);
 
 		uint b;
 

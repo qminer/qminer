@@ -84,6 +84,15 @@ Example of how to setup enivronment variables from command-line:
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
  - Visual studio 2013
 
+#### Node.JS source code
+
+Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and unzip it to `NODE_ROOT`.
+
+	cd %NODE_ROOT%
+	set PATH=%PYTHON_PATH%;%PATH%
+	vcbuild clean nosign
+	vcbuild release x64 nosign
+
 #### NPM (Node Package Manager)
 
 Build system for Node.JS modules.
@@ -95,14 +104,6 @@ Build system for Node.JS modules.
 	cd %NODE_ROOT%\Release
 	npm update
 
-#### Node.JS source code
-
-Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and unzip it to `NODE_ROOT`.
-
-	cd %NODE_ROOT%
-	set PATH=%PYTHON_PATH%;%PATH%
-	vcbuild clean nosign
-	vcbuild release x64 nosign
 
 #### Node GYP
 

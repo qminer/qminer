@@ -13,7 +13,7 @@ bool TJsFPath::IsSubdir(const TJsFPath& JsFPath) const {
 }
 
 void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {
-    for(TStrV::TIter It = FPathV.BegI(); It != FPathV.EndI(); ++It) {
+    for (TStrV::TIter It = FPathV.BegI(); It != FPathV.EndI(); ++It) {
         JsFPathV.Add(TJsFPath(*It));
     }
 }
@@ -371,8 +371,10 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
     constructor.Reset(Isolate, tpl->GetFunction());
+    #ifndef MODULE_INCLUDE_FS
     exports->Set(v8::String::NewFromUtf8(Isolate, "FOut"),
         tpl->GetFunction());
+    #endif
 }
 
 v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {

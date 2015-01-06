@@ -62,10 +62,11 @@ void TNodeJsLinAlg::newVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     Vec = JsOthVec->Vec;
                 } else {
                     const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
-                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
-                    if (MxVals >= 0) {
+                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
+                    if (MxVals > 0 && Vals >= 0) {
                         Vec.Gen(MxVals, Vals);
-                    } else {
+                    }
+                    if (MxVals == -1 && Vals >= 0) {
                         Vec.Gen(Vals);
                     }
                 }
@@ -99,7 +100,6 @@ void TNodeJsLinAlg::newIntVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     if (MxVals > 0 && Vals >= 0) {
                         Vec.Gen(MxVals, Vals);
                     }
-                    // TODO: Check with others whether this was the intended behavior 
                     if (MxVals == -1 && Vals >= 0) {
                         Vec.Gen(Vals);
                     }
@@ -134,7 +134,6 @@ void TNodeJsLinAlg::newStrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                     if (MxVals > 0 && Vals >= 0) {
                         Vec.Gen(MxVals, Vals);
                     }
-                    // TODO: As before, check whether this was the intended behavior 
                     if (MxVals == -1 && Vals >= 0) {
                         Vec.Gen(Vals);
                     }
@@ -1214,11 +1213,13 @@ void TNodeJsFltVV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    // TODO: Make Node.js compatible 
-    // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    // PSOut SOut = TJsFOut::GetArgFOut(Args, 0);
-    // save to stream
-    // JsMat->Mat.Save(*SOut);
+    TNodeJsFltVV* JsFltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFOut object");
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    PSOut SOut = JsFOut->SOut;
+    // Save to stream
+    JsFltVV->Mat.Save(*SOut);
 
     Args.GetReturnValue().Set(Args[0]);
 }
@@ -1227,8 +1228,13 @@ void TNodeJsFltVV::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    // TODO: Make Node.js compatible 
-    // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    TNodeJsFltVV* JsFltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFIn object");
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    PSIn SIn = JsFIn->SIn;
+    // Load from stream 
+    JsFltVV->Mat.Load(*SIn);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1237,8 +1243,12 @@ void TNodeJsFltVV::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    // TODO: Make Node.js compatible 
-    // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    TNodeJsFltVV* JsFltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFOut object");
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    PSOut SOut = JsFOut->SOut;
+    TLAMisc::SaveMatlabTFltVV(JsFltVV->Mat, *SOut);
 
     Args.GetReturnValue().Set(Args[0]);
 }
@@ -1247,8 +1257,12 @@ void TNodeJsFltVV::loadascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    // TODO: Make Node.js compatible 
-    // TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    TNodeJsFltVV* JsFltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+        "Expected a TNodeJsFIn object");
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    PSIn SIn = JsFIn->SIn;
+    TLAMisc::LoadMatlabTFltVV(JsFltVV->Mat, *SIn);
 
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -2148,18 +2162,26 @@ void TNodeJsSpMat::print(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSpMat::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    // TODO
-    // EAssertR(Args.Length() == 1, "Expected TJsNodeFOut object");
-    // TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-    // PSIn SIn = JsFOut->SOut;
-    // JsMat->Mat.Load(*SOut);
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "Expected TJsNodeFOut object");
+    TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    PSOut SOut = JsFOut->SOut;
+    JsSpMat->Mat.Save(*SOut);
+
     Args.GetReturnValue().Set(Args[0]);
 }
 
 void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    // TODO 
+
+    EAssertR(Args.Length() == 1 && Args[0]->IsObject(), "Expected TJsNodeFIn object");
+    TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    PSIn SIn = JsFIn->SIn;
+    JsSpMat->Mat.Load(*SIn);
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
@@ -2168,6 +2190,9 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ///////////////////////////////
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
+    TNodeJsFIn::Init(exports);
+    TNodeJsFOut::Init(exports);
+
     TNodeJsLinAlg::Init(exports);
     TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
     TNodeJsVec<TInt, TAuxIntV>::Init(exports);
