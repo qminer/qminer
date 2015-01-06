@@ -100,7 +100,6 @@
                 'src/nodejs/la',
                 'src/nodejs/fs',
                 'src/nodejs/',
-				'src/qminer/',
                 'src/glib/base/',
                 'src/glib/mine/',
 				'src/glib/misc/',				
