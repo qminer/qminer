@@ -693,35 +693,6 @@ private:
 		Vec = JsVec->Vec;
 	}
 public:
-	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
-//	static PJsonVal CopySettings(v8::Local<v8::Object> Obj) {
-//		// clone all properties except fun!
-//		v8::Local<v8::Array> Properties = Obj->GetOwnPropertyNames();
-//		PJsonVal ParamVal = TJsonVal::NewObj();
-//		for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
-//			// get each property as string, extract arg json and attach it to ParamVal
-//			TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
-//			PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
-//			if (PropStr == "fun") continue;
-//			v8::Handle<v8::Value> Val = Obj->Get(Properties->Get(PropN));
-//			if (Val->IsNumber()) {
-//				ParamVal->AddToObj(PropStr, Val->NumberValue());
-//			}
-//			if (Val->IsString()) {
-//				v8::String::Utf8Value Utf8(Val);
-//				TStr ValueStr(*Utf8);
-//				ParamVal->AddToObj(PropStr, ValueStr);
-//			}
-//			if (Val->IsBoolean()) {
-//				ParamVal->AddToObj(PropStr, Val->BooleanValue());
-//			}
-//			if (Val->IsObject() || Val->IsArray()) {
-//				ParamVal->AddToObj(PropStr, TJsFuncFtrExtUtil::GetValJson(Val));
-//			}
-//		}
-//		//printf("JSON: %s\n", TJsonVal::GetStrFromVal(ParamVal).CStr());
-//		return ParamVal;
-//	}
 // Feature extractor API
 private:
 	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
