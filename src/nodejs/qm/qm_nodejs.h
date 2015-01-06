@@ -654,7 +654,7 @@ private:
 	// private constructor
 	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
 
-	~TNodeJsFuncFtrExt() { Pers.Reset(); }
+	~TNodeJsFuncFtrExt() { Fun.Reset(); }
 public:
 	// public smart pointer
 	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
@@ -663,19 +663,23 @@ private:
 	// Core part
 	TInt Dim;
 	TStr Name;
-	v8::Handle<v8::Function> Fun;
-	v8::Persistent<v8::Function> Pers;
+	
+	v8::Persistent<v8::Function> Fun;
 
 	double ExecuteFunc(const TQm::TRec& FtrRec) const {
-		return TNodeJsUtil::ExecuteFlt(Fun, TNodeJsRec::New(FtrRec));
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
+		return TNodeJsUtil::ExecuteFlt(Callback, TNodeJsRec::New(FtrRec));
 	}
 
 	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
 		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::New(FtrRec) };
-		v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+		v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
 
 		// Cast as FltV and copy result
 		v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
