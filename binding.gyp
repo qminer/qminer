@@ -102,7 +102,7 @@
                 'src/nodejs/',
                 'src/glib/base/',
                 'src/glib/mine/',
-				'src/glib/misc/',				
+				'src/glib/misc/',
 				'src/third_party/snap/snap-core',
 				'src/third_party/snap/snap-adv',
 				'src/third_party/snap/snap-exp'
