@@ -3585,10 +3585,9 @@ TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVa
 		TQm::TFtrExt(Base, ParamVal),
 		Dim(ParamVal->GetObjInt("dim", 1)),
 		Name(ParamVal->GetObjStr("name", "jsfunc")),
-		Fun(_Fun),
-		Pers() {
+		Fun() {
 
-	Pers.Reset(Isolate, Fun);
+	Fun.Reset(Isolate, _Fun);
 }
 
 TQm::PFtrExt TNodeJsFuncFtrExt::NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate) {
