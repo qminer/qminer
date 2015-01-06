@@ -737,12 +737,17 @@ private:
 	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
 	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
 
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace);
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn);
+
 public:
 	static v8::Local<v8::Object> New(const TQm::PFtrSpace& FtrSpace);
 	static v8::Local<v8::Object> New(const TWPt<TQm::TBase> Base, TSIn& SIn);
 
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
+
+	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
 
 	JsDeclareFunction(New);
 

@@ -43,10 +43,13 @@ private:
 	TNodeJsSvmModel(TSIn& SIn);
 	~TNodeJsSvmModel();
 
-	static v8::Local<v8::Object> New(const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> New(TSIn& SIn);
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
 public:
+//	static v8::Local<v8::Object> New(const PJsonVal& ParamVal);
+//	static v8::Local<v8::Object> New(TSIn& SIn);
+
 	static void Init(v8::Handle<v8::Object> exports);
 
 	JsDeclareFunction(New);
@@ -93,9 +96,12 @@ private:
 	TSignalProc::PRecLinReg Model;
 
 	TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
-	static v8::Local<v8::Object> New(const TSignalProc::PRecLinReg& Model);
+
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TSignalProc::PRecLinReg& Model);
 
 public:
+//	static v8::Local<v8::Object> New(const TSignalProc::PRecLinReg& Model);
+
 	static void Init(v8::Handle<v8::Object> exports);
 
 	JsDeclareFunction(New);
@@ -137,11 +143,18 @@ private:
 	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel, const TQm::PFtrSpace& FtrSpace);
 	TNodeJsHMChain(const TQm::PBase Base, PSIn& SIn);
 
-	static v8::Local<v8::Object> New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace);
-	static v8::Local<v8::Object> New(const TQm::PBase Base, PSIn& SIn);
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace);
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TQm::PBase Base, PSIn& SIn);
+
 public:
+//	static v8::Local<v8::Object> New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace);
+//	static v8::Local<v8::Object> New(const TQm::PBase Base, PSIn& SIn);
+
 	static void Init(v8::Handle<v8::Object> exports);
 
+	//#- `hmc = new analytics.HMarkovChain(config, ftrSpace)` -- Creates a new model.
+	//#- `hmc = new analytics.HMarkovChain(base, fname)` -- Loads the model from file `fname`.
+	//#- `hmc = new analytics.HMarkovChain(base, fin)` -- Loads the model from input stream `fin`.
 	JsDeclareFunction(New);
 
 	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
