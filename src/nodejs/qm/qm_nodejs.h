@@ -8,7 +8,8 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
-#include "../fs/fs_nodejs.h"
+#include "la_nodejs.h"
+#include "fs_nodejs.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////
@@ -643,16 +644,107 @@ public:
 };
 
 
-class TNodeJsFuncFtrExt : public node::ObjectWrap {
-	friend class TNodeJsUtil;
+///////////////////////////////////////////////
+/// Javscript Function Feature Extractor.
+//-
+//- ## Javascript Feature Extractor
+//-
+class TNodeJsFuncFtrExt : public TQm::TFtrExt {
+private:
+	// private constructor
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
 
+	~TNodeJsFuncFtrExt() { Pers.Reset(); }
 public:
-	static PJsonVal CopySettings(const v8::Local<v8::Object> Settings) {
-		throw TQm::TQmExcept::New("TNodeJsFuncFtrExt::CopySettings not implemented!");
+	// public smart pointer
+	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
+// Core functionality
+private:
+	// Core part
+	TInt Dim;
+	TStr Name;
+	v8::Handle<v8::Function> Fun;
+	v8::Persistent<v8::Function> Pers;
+
+	double ExecuteFunc(const TQm::TRec& FtrRec) const {
+		return TNodeJsUtil::ExecuteFlt(Fun, TNodeJsRec::New(FtrRec));
 	}
-	static TQm::PFtrExt NewFtrExt(const PJsonVal& ParamVal, v8::Handle<v8::Function>& Func) {
-		throw TQm::TQmExcept::New("TNodeJsFuncFtrExt::NewFtrExt not implemented!");
+
+	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::New(FtrRec) };
+		v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+
+		// Cast as FltV and copy result
+		v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
+
+    	QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::ClassId), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
+
+    	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
+		// cast it to js vector and copy internal vector
+		TNodeJsFltV* JsVec = static_cast<TNodeJsFltV*>(WrappedObject->Value());
+
+		Vec = JsVec->Vec;
 	}
+public:
+	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
+//	static PJsonVal CopySettings(v8::Local<v8::Object> Obj) {
+//		// clone all properties except fun!
+//		v8::Local<v8::Array> Properties = Obj->GetOwnPropertyNames();
+//		PJsonVal ParamVal = TJsonVal::NewObj();
+//		for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
+//			// get each property as string, extract arg json and attach it to ParamVal
+//			TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
+//			PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
+//			if (PropStr == "fun") continue;
+//			v8::Handle<v8::Value> Val = Obj->Get(Properties->Get(PropN));
+//			if (Val->IsNumber()) {
+//				ParamVal->AddToObj(PropStr, Val->NumberValue());
+//			}
+//			if (Val->IsString()) {
+//				v8::String::Utf8Value Utf8(Val);
+//				TStr ValueStr(*Utf8);
+//				ParamVal->AddToObj(PropStr, ValueStr);
+//			}
+//			if (Val->IsBoolean()) {
+//				ParamVal->AddToObj(PropStr, Val->BooleanValue());
+//			}
+//			if (Val->IsObject() || Val->IsArray()) {
+//				ParamVal->AddToObj(PropStr, TJsFuncFtrExtUtil::GetValJson(Val));
+//			}
+//		}
+//		//printf("JSON: %s\n", TJsonVal::GetStrFromVal(ParamVal).CStr());
+//		return ParamVal;
+//	}
+// Feature extractor API
+private:
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
+public:
+	static TQm::PFtrExt New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
+	static TQm::PFtrExt Load(const TWPt<TQm::TBase>& Base, TSIn& SIn); // will throw exception (saving, loading not supported)
+	void Save(TSOut& SOut) const;
+
+	TStr GetNm() const { return Name; }
+	int GetDim() const { return Dim; }
+	TStr GetFtr(const int& FtrN) const { return TStr::Fmt("%s[%d]", GetNm().CStr(), FtrN) ; }
+
+	void Clr() { };
+	bool Update(const TQm::TRec& Rec) { return false; }
+	void AddSpV(const TQm::TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
+	void AddFullV(const TQm::TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV");
+	}
+
+	// flat feature extraction
+	void ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const;
+
+	// feature extractor type name
+	static TStr GetType() { return "jsfunc"; }
 };
 
 ///////////////////////////////
@@ -727,10 +819,10 @@ public:
     JsDeclareFunction(extractStrings);
 
 private:
-    static TQm::PFtrExt NewFtrExtFromFunc(v8::Isolate* Isolate, v8::Local<v8::Object>& Settings) {
-    	PJsonVal ParamVal = TNodeJsFuncFtrExt::CopySettings(Settings);
+    static TQm::PFtrExt NewFtrExtFromFunc(const TWPt<TQm::TBase>& Base, v8::Local<v8::Object>& Settings, v8::Isolate* Isolate) {
+    	PJsonVal ParamVal = TNodeJsUtil::GetObjProps(Settings);
     	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
-    	return TNodeJsFuncFtrExt::NewFtrExt(ParamVal, Func);
+    	return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
 };
 
