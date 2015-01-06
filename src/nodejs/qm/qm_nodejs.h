@@ -74,16 +74,6 @@ private:
 	JsDeclareFunction(search);   
     //#- `base.gc()` -- start garbage collection to remove records outside time windows
 	JsDeclareFunction(gc);
-	//#- `sa = base.newStreamAggr(paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
-	//#- `sa = base.newStreamAggr(paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//#- `sa = base.newStreamAggr(paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	//#- `sa = base.newStreamAggr(funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
-	//#- `sa = base.newStreamAggr(funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//#- `sa = base.newStreamAggr(funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	//#- `sa = base.newStreamAggr(ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
-	//#- `sa = base.newStreamAggr(ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
-	//#- `sa = base.newStreamAggr(ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
-	JsDeclareFunction(newStreamAggr);
 	//#- `sa = base.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = base.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
@@ -108,6 +98,15 @@ public:
 	TNodeJsSA() { }
 	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
 	// Node framework (constructor method)
+	//#- `sa = new qm.sa(base, paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
+	//#- `sa = new qm.sa(base, paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = new qm.sa(base, paramJSON, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = new qm.sa(base, funObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.
+	//#- `sa = new qm.sa(base, funObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = new qm.sa(base, funObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The function object `funObj` defines the aggregate name and four callbacks: onAdd (takes record as input), onUpdate (takes record as input), onDelete (takes record as input) and saveJson (takes one numeric parameter - limit) callbacks. An example: `funObj = new function () {this.name = 'aggr1'; this.onAdd = function (rec) { }; this.onUpdate = function (rec) { }; this.onDelete = function (rec) { };  this.saveJson = function (limit) { return {}; } }`.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
+	//#- `sa = new qm.sa(base, ftrExtObj)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.
+	//#- `sa = new qm.sa(base, ftrExtObj, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
+	//#- `sa = new qm.sa(base, ftrExtObj, storeNameArr)` -- create a new [Stream Aggregate](Stream-Aggregates). The `ftrExtObj = {type : 'ftrext', name : 'aggr1', featureSpace: fsp }` object has three parameters: `type='ftrext'`,`name` (string) and feature space `featureSpace` whose value is a feature space object.  Second parameter `storeNameArr` is an array of store names, where the stream aggregate will be registered.
 	JsDeclareFunction(New);
 public:
 	// C++ wrapped object
@@ -171,7 +170,7 @@ public:
 
 ///////////////////////////////
 // JavaScript Stream Aggregator
-class TJsStreamAggr :
+class TNodeJsStreamAggr :
 	public TQm::TStreamAggr,
 	public TQm::TStreamAggrOut::IInt,
 	//public TQm::TStreamAggrOut::IFlt,	
@@ -220,11 +219,17 @@ private:
 	v8::Persistent<v8::Function> GetNmIntFun;
 	v8::Persistent<v8::Function> GetNmIntVFun;
 
+	// Serialization
+	v8::Persistent<v8::Function> SaveFun;
+	v8::Persistent<v8::Function> LoadFun;
+
 public:
-	TJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
+	TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
 	static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
-		return new TJsStreamAggr(_Base, _AggrNm, TriggerVal);
+		return new TNodeJsStreamAggr(_Base, _AggrNm, TriggerVal);
 	}
+
+	~TNodeJsStreamAggr();
 
 	void OnAddRec(const TQm::TRec& Rec);
 	void OnUpdateRec(const TQm::TRec& Rec);
@@ -235,9 +240,7 @@ public:
 	static TStr GetType() { return "javaScript"; }
 	TStr Type() const { return GetType(); }
 	void _Save(TSOut& SOut) const;
-	v8::Persistent<v8::Function> SaveFun;
 	void _Load(TSIn& SIn);
-	v8::Persistent<v8::Function> LoadFun;
 
 	// IInt
 	int GetInt() const;
@@ -275,8 +278,7 @@ class TNodeJsStore : public node::ObjectWrap {
 private:
 	// Node framework
 	static v8::Persistent<v8::Function> constructor;
-public:
-	TWPt<TQm::TBase> Base;
+public:	
 	TWPt<TQm::TStore> Store;
 
 	// Node framework 
@@ -285,7 +287,7 @@ public:
 	static v8::Local<v8::Object> New(TWPt<TQm::TStore> _Store);
 	// C++ constructors
 	TNodeJsStore() { }
-	TNodeJsStore(TWPt<TQm::TStore> _Store, TWPt<TQm::TBase> _Base) : Base(_Base), Store(_Store) { }
+	TNodeJsStore(TWPt<TQm::TStore> _Store) : Store(_Store) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	// Field accessors
@@ -319,8 +321,8 @@ private:
 	JsDeclareFunction(field);
 	//#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
-	//#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
-	JsDeclareFunction(addTrigger);
+	////#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks
+	//JsDeclareFunction(addTrigger); Deprecated - use new qm.sa(...) instead
 	//#- `sa = store.getStreamAggr(saName)` -- returns a stream aggregate `sa` whose name is `saName`
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = store.getStreamAggrNames()` -- returns the names of all stream aggregators listening on the store as an array of strings `strArr`
@@ -654,7 +656,7 @@ private:
 	// private constructor
 	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
 
-	~TNodeJsFuncFtrExt() { Pers.Reset(); }
+	~TNodeJsFuncFtrExt() { Fun.Reset(); }
 public:
 	// public smart pointer
 	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
@@ -663,19 +665,23 @@ private:
 	// Core part
 	TInt Dim;
 	TStr Name;
-	v8::Handle<v8::Function> Fun;
-	v8::Persistent<v8::Function> Pers;
+	
+	v8::Persistent<v8::Function> Fun;
 
 	double ExecuteFunc(const TQm::TRec& FtrRec) const {
-		return TNodeJsUtil::ExecuteFlt(Fun, TNodeJsRec::New(FtrRec));
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
+		return TNodeJsUtil::ExecuteFlt(Callback, TNodeJsRec::New(FtrRec));
 	}
 
 	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
 
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
 		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::New(FtrRec) };
-		v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+		v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
 
 		// Cast as FltV and copy result
 		v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
@@ -689,35 +695,6 @@ private:
 		Vec = JsVec->Vec;
 	}
 public:
-	// Assumption: object without key "fun" is a JSON object (the key "fun" is reserved for a javascript function, which is not a JSON object)
-//	static PJsonVal CopySettings(v8::Local<v8::Object> Obj) {
-//		// clone all properties except fun!
-//		v8::Local<v8::Array> Properties = Obj->GetOwnPropertyNames();
-//		PJsonVal ParamVal = TJsonVal::NewObj();
-//		for (uint32 PropN = 0; PropN < Properties->Length(); PropN++) {
-//			// get each property as string, extract arg json and attach it to ParamVal
-//			TStr PropStr = TJsUtil::V8JsonToStr(Properties->Get(PropN));
-//			PropStr = PropStr.GetSubStr(1, PropStr.Len() - 2); // remove " char at the beginning and end
-//			if (PropStr == "fun") continue;
-//			v8::Handle<v8::Value> Val = Obj->Get(Properties->Get(PropN));
-//			if (Val->IsNumber()) {
-//				ParamVal->AddToObj(PropStr, Val->NumberValue());
-//			}
-//			if (Val->IsString()) {
-//				v8::String::Utf8Value Utf8(Val);
-//				TStr ValueStr(*Utf8);
-//				ParamVal->AddToObj(PropStr, ValueStr);
-//			}
-//			if (Val->IsBoolean()) {
-//				ParamVal->AddToObj(PropStr, Val->BooleanValue());
-//			}
-//			if (Val->IsObject() || Val->IsArray()) {
-//				ParamVal->AddToObj(PropStr, TJsFuncFtrExtUtil::GetValJson(Val));
-//			}
-//		}
-//		//printf("JSON: %s\n", TJsonVal::GetStrFromVal(ParamVal).CStr());
-//		return ParamVal;
-//	}
 // Feature extractor API
 private:
 	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal); // will throw exception (saving, loading not supported)
@@ -760,12 +737,17 @@ private:
 	TNodeJsFtrSpace(const TQm::PFtrSpace& FtrSpace);
 	TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn);
 
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace);
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn);
+
 public:
 	static v8::Local<v8::Object> New(const TQm::PFtrSpace& FtrSpace);
 	static v8::Local<v8::Object> New(const TWPt<TQm::TBase> Base, TSIn& SIn);
 
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
+
+	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
 
 	JsDeclareFunction(New);
 

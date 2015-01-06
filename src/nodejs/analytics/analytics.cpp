@@ -44,13 +44,21 @@ TNodeJsSvmModel::~TNodeJsSvmModel() {
 	ClrModel();
 }
 
-v8::Local<v8::Object> TNodeJsSvmModel::New(const PJsonVal& ParamVal) {
-	return TNodeJsUtil::NewJsInstance(new TNodeJsSvmModel(ParamVal), constructor, v8::Isolate::GetCurrent());
+v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsSvmModel(ParamVal));
 }
 
-v8::Local<v8::Object> TNodeJsSvmModel::New(TSIn& SIn) {
-	return TNodeJsUtil::NewJsInstance(new TNodeJsSvmModel(SIn), constructor, v8::Isolate::GetCurrent());
+v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsSvmModel(SIn));
 }
+
+//v8::Local<v8::Object> TNodeJsSvmModel::New(const PJsonVal& ParamVal) {
+//	return TNodeJsUtil::NewJsInstance(new TNodeJsSvmModel(ParamVal), constructor, v8::Isolate::GetCurrent());
+//}
+//
+//v8::Local<v8::Object> TNodeJsSvmModel::New(TSIn& SIn) {
+//	return TNodeJsUtil::NewJsInstance(new TNodeJsSvmModel(SIn), constructor, v8::Isolate::GetCurrent());
+//}
 
 void TNodeJsSvmModel::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -89,10 +97,10 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (Args[0]->IsExternal()) {
 			// load the model from an input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			Args.GetReturnValue().Set(TNodeJsSvmModel::New(*JsFIn->SIn));
+			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), *JsFIn->SIn));
 		} else {
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-			Args.GetReturnValue().Set(TNodeJsSvmModel::New(ParamVal));
+			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), ParamVal));
 		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
@@ -301,9 +309,13 @@ v8::Persistent<v8::Function> TNodeJsRecLinReg::constructor;
 TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model):
 		Model(_Model) {}
 
-v8::Local<v8::Object> TNodeJsRecLinReg::New(const TSignalProc::PRecLinReg& Model) {
-	return TNodeJsUtil::NewJsInstance(new TNodeJsRecLinReg(Model), constructor, v8::Isolate::GetCurrent());
+v8::Local<v8::Object> TNodeJsRecLinReg::WrapInst(const v8::Local<v8::Object> Obj, const TSignalProc::PRecLinReg& Model) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsRecLinReg(Model));
 }
+
+//v8::Local<v8::Object> TNodeJsRecLinReg::New(const TSignalProc::PRecLinReg& Model) {
+//	return TNodeJsUtil::NewJsInstance(new TNodeJsRecLinReg(Model), constructor, v8::Isolate::GetCurrent());
+//}
 
 void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -342,7 +354,7 @@ void TNodeJsRecLinReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		if (Args[0]->IsExternal()) {
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			Args.GetReturnValue().Set(TNodeJsRecLinReg::New(TSignalProc::TRecLinReg::Load(*JsFIn->SIn)));
+			Args.GetReturnValue().Set(TNodeJsRecLinReg::WrapInst(Args.This(), TSignalProc::TRecLinReg::Load(*JsFIn->SIn)));
 		}
 		else {
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
@@ -351,7 +363,7 @@ void TNodeJsRecLinReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			const double RegFact = ParamVal->GetObjNum("regFact", 1.0);
 			const double ForgetFact = ParamVal->GetObjNum("forgetFact", 1.0);
 
-			Args.GetReturnValue().Set(TNodeJsRecLinReg::New(TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact)));
+			Args.GetReturnValue().Set(TNodeJsRecLinReg::WrapInst(Args.This(), TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact)));
 		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
@@ -488,7 +500,7 @@ TNodeJsHMChain::TNodeJsHMChain(const TQm::PBase Base, PSIn& SIn):
 		McModel(TMc::THierarchCtmc::Load(*SIn)),
 		FtrSpace(TQm::TFtrSpace::Load(Base, *SIn)) {}
 
-v8::Local<v8::Object> TNodeJsHMChain::New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace) {
+v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
@@ -548,19 +560,86 @@ v8::Local<v8::Object> TNodeJsHMChain::New(const PJsonVal& ParamVal, const TQm::P
 
 	// finish
 	TMc::PHierarchCtmc HMcModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Notify);
-	return TNodeJsUtil::NewJsInstance(new TNodeJsHMChain(HMcModel, FtrSpace), constructor, Isolate, HandleScope);
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(HMcModel, FtrSpace));
 }
 
-v8::Local<v8::Object> TNodeJsHMChain::New(const TQm::PBase Base, PSIn& SIn) {
-	return TNodeJsUtil::NewJsInstance(new TNodeJsHMChain(Base, SIn), constructor, v8::Isolate::GetCurrent());
+v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, const TQm::PBase Base, PSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(Base, SIn));
 }
+
+//v8::Local<v8::Object> TNodeJsHMChain::New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace) {
+//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+//	v8::EscapableHandleScope HandleScope(Isolate);
+//
+//	const PNotify Notify = TStdNotify::New();
+//
+//	const TStr InStoreNm = ParamVal->GetObjStr("source");
+//	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
+//	const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
+//	const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
+//	const PJsonVal FldsJson = ParamVal->GetObjKey("fields");
+//
+//	// transition modelling
+//	TMc::PMChain MChain;
+//	if (TransitionJson->GetObjStr("type") == "continuous") {
+//		const TStr TimeUnitStr = TransitionJson->GetObjStr("timeUnit");
+//		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ? TransitionJson->GetObjNum("deltaTime") : 1e-3;	// TODO hardcoded
+//
+//		uint64 TimeUnit;
+//		if (TimeUnitStr == "second") {
+//			TimeUnit = TMc::TCtMChain::TU_SECOND;
+//		} else if (TimeUnitStr == "minute") {
+//			TimeUnit = TMc::TCtMChain::TU_MINUTE;
+//		} else if (TimeUnitStr == "hour") {
+//			TimeUnit = TMc::TCtMChain::TU_HOUR;
+//		} else if (TimeUnitStr == "day") {
+//			TimeUnit = TMc::TCtMChain::TU_DAY;
+//		} else {
+//			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
+//		}
+//
+//		MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Notify);
+//	} else if (TransitionJson->GetObjStr("type") == "discrete") {
+//		MChain = new TMc::TDtMChain(Notify);
+//	}
+//
+//
+//	// clustering
+//	TMc::PClust Clust = NULL;
+//
+//	const TStr ClustAlg = ClustJson->GetObjStr("type");
+//	if (ClustAlg == "dpmeans") {
+//		const double Lambda = ClustJson->GetObjNum("lambda");
+//		const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
+//		const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
+//		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
+//		Clust = new TMc::TDpMeans(Lambda, MinClusts, MxClusts, TRnd(RndSeed), Notify);
+//	} else if (ClustAlg == "kmeans") {
+//		const int K = ClustJson->GetObjInt("k");
+//		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
+//		Clust = new TMc::TFullKMeans(K, TRnd(RndSeed), Notify);
+//	} else {
+//		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
+//	}
+//
+//	// create the model
+//	TMc::PHierarch AggClust = new TMc::THierarch(Notify);
+//
+//	// finish
+//	TMc::PHierarchCtmc HMcModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Notify);
+//	return TNodeJsUtil::NewJsInstance(new TNodeJsHMChain(HMcModel, FtrSpace), constructor, Isolate, HandleScope);
+//}
+//
+//v8::Local<v8::Object> TNodeJsHMChain::New(const TQm::PBase Base, PSIn& SIn) {
+//	return TNodeJsUtil::NewJsInstance(new TNodeJsHMChain(Base, SIn), constructor, v8::Isolate::GetCurrent());
+//}
 
 void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "HMarkovChain"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "HMC"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -573,7 +652,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 
 	constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_ANALYTICS
-	exports->Set(v8::String::NewFromUtf8(Isolate, "HMarkovChain"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "HMC"),
 			   tpl->GetFunction());
 #endif
 }
@@ -582,23 +661,25 @@ void TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	try {
-		if (Args.IsConstructCall()) {
-			QmAssertR(0 < Args.Length() && Args.Length() <= 2, "Constructor expects 2 of less arguments!");
+	QmAssertR(Args.Length() == 2, "Constructor expects 2 of less arguments!");
+	QmAssertR(Args.IsConstructCall(), "TNodeJsHMChain::New: Not a constructor call!");
 
-			if (Args.Length() == 2) {
-				PJsonVal ArgJson = TNodeJsUtil::GetArgJson(Args, 0);
-				// TODO get feature space
-			} else if (Args.Length() == 1) {
-				TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
-				TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject());
-				Args.GetReturnValue().Set(TNodeJsHMChain::New(JsBase->Base, JsFIn->SIn));
-			}
+	try {
+		if (TNodeJsUtil::IsArgJson(Args, 0)) {
+			PJsonVal ArgJson = TNodeJsUtil::GetArgJson(Args, 0);
+			TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args[1]->ToObject());
+
+			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), ArgJson, JsFtrSpace->GetFtrSpace()));
 		} else {
-			throw TQm::TQmExcept::New("Tried to create an object with a non-constructor call!", "TNodeJsHMChain::New");
+			// load from file
+			TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
+			PSIn SIn = TNodeJsUtil::IsArgStr(Args, 1) ?
+					TFIn::New(TNodeJsUtil::GetArgStr(Args, 1)) : ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject())->SIn;
+
+			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), JsBase->Base, SIn));
 		}
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::New");
 	}
 }
 
@@ -685,9 +766,15 @@ void TNodeJsHMChain::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
-		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
 
-		PSOut SOut = JsFOut->SOut;
+		PSOut SOut;
+		if (TNodeJsUtil::IsArgStr(Args, 0)) {
+			SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
+		} else {
+			TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+			SOut = JsFOut->SOut;
+		}
+
 		JsMChain->McModel->Save(*SOut);
 		JsMChain->FtrSpace->Save(*SOut);
 
