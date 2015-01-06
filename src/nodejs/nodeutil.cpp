@@ -30,10 +30,8 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
 
         v8::Array* Arr = v8::Array::Cast(*Obj);
         for (uint i = 0; i < Arr->Length(); i++) {
-        	const Local<Value>& ArrVal = Arr->Get(i);
-
-        	if (!IgnoreFunc || !ArrVal->IsFunction()) {
-        		JsonArr->AddToArr(GetObjJson(ArrVal->ToObject()));
+        	if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
+        		JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject()));
         	}
         }
 
@@ -45,10 +43,9 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
         v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
         for (uint i = 0; i < FldNmV->Length(); i++) {
             const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
-            const Local<Value>& ObjVal = Obj->Get(FldNmV->Get(i));
 
-            if (!IgnoreFunc || !ArrVal->IsFunction()) {
-            	JsonVal->AddToObj(FldNm, GetObjJson(ObjVal->ToObject()));
+            if (!IgnoreFunc || !Obj->Get(FldNmV->Get(i))->IsFunction()) {
+            	JsonVal->AddToObj(FldNm, GetObjJson(Obj->Get(FldNmV->Get(i))->ToObject()));
             }
         }
 
@@ -344,4 +341,16 @@ PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object!");
 
     return GetObjJson(Args[ArgN]->ToObject());
+}
+
+double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Handle<v8::Value> Argv[1] = { Arg };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+
+	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
+
+	return RetVal->NumberValue();
 }

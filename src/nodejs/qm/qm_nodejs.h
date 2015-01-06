@@ -8,6 +8,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "qminer.h"
+#include "la_nodejs.h"
 #include "fs_nodejs.h"
 #include "../nodeutil.h"
 
@@ -473,23 +474,19 @@ public:
 class TNodeJsFuncFtrExt : public TQm::TFtrExt {
 private:
 	// private constructor
-	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate):
-        TQm::TFtrExt(Base, ParamVal), Fun(Isolate, _Fun) {
-            Name = ParamVal->GetObjStr("name", "jsfunc");
-            Dim = ParamVal->GetObjInt("dim", 1); }
+	TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
 
-	~TNodeJsFuncFtrExt() { Fun.Reset(); }
+	~TNodeJsFuncFtrExt() { Pers.Reset(); }
 public:
 	// public smart pointer
-	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
-        const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate) {
-            return new TNodeJsFuncFtrExt(Base, ParamVal, Fun, Isolate); }
+	static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
 // Core functionality
 private:
 	// Core part
 	TInt Dim;
 	TStr Name;
-	v8::Persistent<v8::Function> Fun;
+	v8::Handle<v8::Function> Fun;
+	v8::Persistent<v8::Function> Pers;
 
 	double ExecuteFunc(const TQm::TRec& FtrRec) const {
 		return TNodeJsUtil::ExecuteFlt(Fun, TNodeJsRec::New(FtrRec));
@@ -498,8 +495,6 @@ private:
 	void ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope HandleScope(Isolate);
-
-		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
 		v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::New(FtrRec) };
 		v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
@@ -646,8 +641,8 @@ public:
     JsDeclareFunction(extractStrings);
 
 private:
-    static TQm::PFtrExt NewFtrExtFromFunc(TWPt<TQm::TBase>& Base, v8::Local<v8::Object>& Settings, v8::Isolate* Isolate) {
-    	PJsonVal ParamVal = TNodeJsUtil::GetObjJson(Settings, true);
+    static TQm::PFtrExt NewFtrExtFromFunc(const TWPt<TQm::TBase>& Base, v8::Local<v8::Object>& Settings, v8::Isolate* Isolate) {
+    	PJsonVal ParamVal = TNodeJsUtil::GetObjProps(Settings);
     	v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
     	return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }

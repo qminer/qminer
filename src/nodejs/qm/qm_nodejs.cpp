@@ -2709,26 +2709,40 @@ void TNodeJsIndexKey::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackI
 
 ///////////////////////////////////////////////
 // Javascript Function Feature Extractor
-TNodeJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) {
-	throw TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate):
+		TQm::TFtrExt(Base, ParamVal),
+		Dim(ParamVal->GetObjInt("dim", 1)),
+		Name(ParamVal->GetObjStr("name", "jsfunc")),
+		Fun(_Fun),
+		Pers() {
+
+	Pers.Reset(Isolate, Fun);
 }
 
-TNodeJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TQm::TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
-	throw TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+TQm::PFtrExt TNodeJsFuncFtrExt::NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate) {
+	return new TNodeJsFuncFtrExt(Base, ParamVal, Fun, Isolate);
 }
 
-PFtrExt TNodeJsFuncFtrExt::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
-	return new TJsFuncFtrExt(Base, ParamVal);
+TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) {
+	throw TQm::TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
 }
 
-PFtrExt TNodeJsFuncFtrExt::Load(const TWPt<TQm::TBase>& Base, TSIn& SIn) {
-	return new TJsFuncFtrExt(Base, SIn);
+TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
+	throw TQm::TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+TQm::PFtrExt TNodeJsFuncFtrExt::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
+	return new TNodeJsFuncFtrExt(Base, ParamVal);
+}
+
+TQm::PFtrExt TNodeJsFuncFtrExt::Load(const TWPt<TQm::TBase>& Base, TSIn& SIn) {
+	return new TNodeJsFuncFtrExt(Base, SIn);
 }
 void TNodeJsFuncFtrExt::Save(TSOut& SOut) const {
-	throw TQmExcept::New("TJsFuncFtrExt::Save(TSOut& Sout) : saving is not supported");
+	throw TQm::TQmExcept::New("TJsFuncFtrExt::Save(TSOut& Sout) : saving is not supported");
 }
 
-void TNodeJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
+void TNodeJsFuncFtrExt::AddSpV(const TQm::TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
 	if (Dim == 1) {
 		SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
 	}
@@ -2743,7 +2757,7 @@ void TNodeJsFuncFtrExt::AddSpV(const TRec& FtrRec, TIntFltKdV& SpV, int& Offset)
 	}
 }
 
-void TNodeJsFuncFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const {
+void TNodeJsFuncFtrExt::AddFullV(const TQm::TRec& Rec, TFltV& FullV, int& Offset) const {
 	if (Dim == 1) {
 		FullV[Offset] = ExecuteFunc(Rec); Offset++;
 	}
@@ -2758,7 +2772,7 @@ void TNodeJsFuncFtrExt::AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) con
 	}
 }
 
-void TNodeJsFuncFtrExt::ExtractFltV(const TRec& FtrRec, TFltV& FltV) const {
+void TNodeJsFuncFtrExt::ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const {
 	if (Dim == 1) {
 		FltV.Add(ExecuteFunc(FtrRec));
 	}
@@ -2980,7 +2994,7 @@ void TNodeJsFtrSpace::add(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			// { type : 'jsfunc', source: { store: 'Tweets' }, fun : function(rec) {return rec.Text.length;}}
 			// extract function!
 			v8::Local<v8::Object> Settings = Args[0]->ToObject();
-			JsFtrSpace->FtrSpace->AddFtrExt(TNodeJsFtrSpace::NewFtrExtFromFunc(FtrSpace->GetBase(), Settings, Isolate));
+			JsFtrSpace->FtrSpace->AddFtrExt(TNodeJsFtrSpace::NewFtrExtFromFunc(JsFtrSpace->FtrSpace->GetBase(), Settings, Isolate));
 		}
 		else {
 			// JSON object expected
