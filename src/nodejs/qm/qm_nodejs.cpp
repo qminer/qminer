@@ -341,18 +341,18 @@ void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsBase::newStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-   v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
-}
-
 void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+
+   const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
+   if (JsBase->Base->IsStreamAggr(AggrNm)) {
+	   TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
+	   Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+   }
 }
 
 void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1692,31 +1692,6 @@ void TNodeJsStore::key(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-void TNodeJsStore::addTrigger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	QmAssert(Args.Length() == 1);
-	v8::Handle<v8::Value> TriggerVal = Args[0];
-	QmAssert(TriggerVal->IsObject());
-
-	try {
-		///TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
-
-		//TWPt<TQm::TStore>& Store = JsStore->Store;
-		// TODO
-		//TQm::PStoreTrigger Trigger = TJsStoreTrigger::New(TriggerVal->ToObject());
-
-		//Store->AddTrigger(Trigger);
-		//JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
-
-		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
-	}
-}
-
 void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -1731,8 +1706,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			//	TODO
-			// Args.GetReturnValue().Set(TJsSA::New(StreamAggr));
+			Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
