@@ -393,7 +393,7 @@ void TNodeJsGraph<T>::firstNode(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
-	T::TNodeI ReturnNode = NodeJsGraph->Graph->BegNI();
+	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->BegNI();
 	Args.GetReturnValue().Set(TNodeJsNode<T>::New(ReturnNode));
 }
 
@@ -404,7 +404,7 @@ void TNodeJsGraph<T>::lastNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
-	T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI();
+	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI();
 	Args.GetReturnValue().Set(TNodeJsNode<T>::New(ReturnNode));
 }
 
@@ -417,11 +417,11 @@ void TNodeJsGraph<T>::node(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
 	if (NodeJsGraph->Graph->IsNode(id)) {
-		T::TNodeI ReturnNode = NodeJsGraph->Graph->GetNI(id);
+		typename T::TNodeI ReturnNode = NodeJsGraph->Graph->GetNI(id);
 		Args.GetReturnValue().Set(TNodeJsNode<T>::New(ReturnNode));
 	}
 	else {
-		return Args.GetReturnValue().Set(NULL);
+		Args.GetReturnValue().Set(v8::Null(Isolate));
 	}
 
 }

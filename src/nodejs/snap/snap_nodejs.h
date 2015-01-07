@@ -42,7 +42,7 @@ public:
 	
 public:
 	TNodeJsGraph() { Graph = T::New(); };
-	TNodeJsGraph(TStr path) { Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm) };
+	TNodeJsGraph(TStr path) { Graph = TSnap::LoadEdgeList<TPt<T>>(path); };
 	TNodeJsGraph(TPt<T> _graph) { Graph = _graph; };
 public:
 	//# 
