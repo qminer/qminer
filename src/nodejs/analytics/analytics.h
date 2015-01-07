@@ -8,7 +8,6 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include "../nodeutil.h"
-#include "qm_nodejs.h"
 #include "fs_nodejs.h"
 #include "la_nodejs.h"
 #include "qminer_ftr.h"
@@ -138,13 +137,12 @@ private:
 	static v8::Persistent <v8::Function> constructor;
 
 	TMc::PHierarchCtmc McModel;
-	TQm::PFtrSpace FtrSpace;
 
-	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel, const TQm::PFtrSpace& FtrSpace);
-	TNodeJsHMChain(const TQm::PBase Base, PSIn& SIn);
+	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel);
+	TNodeJsHMChain(PSIn& SIn);
 
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace);
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TQm::PBase Base, PSIn& SIn);
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
 
 public:
 //	static v8::Local<v8::Object> New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace);
@@ -159,6 +157,7 @@ public:
 
 	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
 	JsDeclareFunction(init);
+	JsDeclareFunction(update);
 	//#- `hctmc.toJSON()` -- Returns a JSON representation of the model
 	JsDeclareFunction(toJSON);
 	//#- `hctmc.futureStates(level, startState, time)` -- returns a vector of probabilities
@@ -169,10 +168,6 @@ public:
 
 	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
-
-private:
-	void InitModel(const TQm::PRecSet& RecSet);
-	uint64 GetRecTm(const TQm::TRec& Rec) const;
 };
 
 #endif /* ANALYTICS_H_ */

@@ -18,7 +18,7 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_METHOD(exports, "create", _create);
 	NODE_SET_METHOD(exports, "open", _open);
 	
-	TQm::TEnv::Init();		
+	TQm::TEnv::Init();
 }
 
 void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3739,10 +3739,14 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		const TQm::PBase& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
 
-		if (Args[1]->IsExternal()) {
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject());
+		if (Args[1]->IsExternal() || Args[1]->IsString()) {
+			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();
 
-			Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), Base, *JsFIn->SIn));
+			PSIn SIn = IsArgStr ?
+					TFIn::New(TNodeJsUtil::GetArgStr(Args, 1)) :
+					ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject())->SIn;
+
+			Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), Base, *SIn));
 			return;
 		}
 
@@ -3857,9 +3861,9 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
-		PSOut SOut = JsFOut->SOut;
+		PSOut SOut = TNodeJsUtil::IsArgStr(Args, 0) ?
+				TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), true) :
+				ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject())->SOut;
 
 		// save to stream
 		JsFtrSpace->FtrSpace->Save(*SOut);
@@ -4151,7 +4155,7 @@ void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& 
 void init(v8::Handle<v8::Object> exports) {
     // QMiner package
     TNodeJsQm::Init(exports);
-    TNodeJsBase::Init(exports);   
+    TNodeJsBase::Init(exports);
 	TNodeJsSA::Init(exports);
     TNodeJsStore::Init(exports);
     // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore

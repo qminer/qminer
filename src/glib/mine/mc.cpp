@@ -968,6 +968,7 @@ TFullMatrix TCtMChain::GetQMatrix() const {
 	// compute the intensities
 	const int NStates = GetStates();
 
+
 	// Q-matrix: holds jump intensities
 	TFullMatrix QMatrix(NStates, NStates);
 	for (int i = 0; i < NStates; i++) {
@@ -979,8 +980,14 @@ TFullMatrix TCtMChain::GetQMatrix() const {
 			}
 		}
 
-		QMatrix(i,i) = -QMatrix.RowSum(i);
+		const double Q_ii = -QMatrix.RowSum(i);
+
+		if (Q_ii == 0) { Notify->OnNotifyFmt(TNotifyType::ntWarn, "QMatrix has zero row %d", i); }
+
+		QMatrix(i,i) = Q_ii;
 	}
+
+	printf("\nQMatrix\n%s\n", TStrUtil::GetStr(QMatrix.GetMat(), ", ", "%.16f").CStr());
 
 	return QMatrix;
 }
@@ -1031,7 +1038,10 @@ void TCtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const in
 		const int& NFutStates, TIntV& FutStateIdV, TFltV& FutStateProbV) const {
 	const int NFStates = TMath::Mn(NFutStates, JoinedStateVV.Len()-1);
 
-	TVector ProbVec = GetJumpMatrix(JoinedStateVV).GetRow(CurrState);
+	TFullMatrix JumpMat = GetJumpMatrix(JoinedStateVV);
+	TVector ProbVec = JumpMat.GetRow(CurrState);
+
+	printf("Fetching future states ...\n");
 
 	// TODO can be optimized
 	TIntSet TakenIdxSet;
@@ -1042,11 +1052,14 @@ void TCtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const in
 		MxProb = TFlt::Mn;
 		MxIdx = -1;
 		for (int j = 0; j < ProbVec.Len(); j++) {
+			printf("%.5f ", ProbVec[j].Val);
 			if (j != CurrState && !TakenIdxSet.IsKey(j) && ProbVec[j] > MxProb) {
 				MxProb = ProbVec[j];
 				MxIdx = j;
 			}
 		}
+
+		printf("\n");
 
 		if (ProbVec[MxIdx] <= 0) { break; }
 

@@ -409,6 +409,8 @@ public:
 	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
 	void Init(TFltVV& X, const TUInt64V& RecTmV) { Init(TFullMatrix(X, true), RecTmV); }
 
+	void OnAddRec(const uint64 RecTm, const TFltV& Rec) { /*TODO*/ }
+
     int GetStates() const { return Hierarch->GetStates(); }
 };
 

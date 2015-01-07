@@ -186,6 +186,9 @@ public:
     /// Create a new Javascript instance wrapped with the wrapper pointer
     template <class TWrap>
     static v8::Local<v8::Object> WrapJsInstance(v8::Handle<v8::Object> Instance, TWrap* Wrapper);
+
+	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
+	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
 };
 
 template <class TWrap>
