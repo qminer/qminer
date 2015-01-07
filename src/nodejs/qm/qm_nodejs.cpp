@@ -18,7 +18,7 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_METHOD(exports, "create", _create);
 	NODE_SET_METHOD(exports, "open", _open);
 	
-	TQm::TEnv::Init();		
+	TQm::TEnv::Init();
 }
 
 void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3727,10 +3727,12 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		const TQm::PBase& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
 
-		if (Args[1]->IsExternal()) {
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject());
+		if (Args[1]->IsExternal() || Args[1]->IsString()) {
+			PSIn SIn = TNodeJsUtil::IsArgStr(Args, 1) ?
+					TFIn::New(TNodeJsUtil::GetArgStr(Args, 1)) :
+					ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject())->SIn;
 
-			Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), Base, *JsFIn->SIn));
+			Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), Base, *SIn));
 			return;
 		}
 
@@ -4139,7 +4141,7 @@ void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& 
 void init(v8::Handle<v8::Object> exports) {
     // QMiner package
     TNodeJsQm::Init(exports);
-    TNodeJsBase::Init(exports);   
+    TNodeJsBase::Init(exports);
 	TNodeJsSA::Init(exports);
     TNodeJsStore::Init(exports);
     // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore

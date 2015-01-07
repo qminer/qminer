@@ -119,8 +119,6 @@
             'sources': [            
                 'src/nodejs/analytics/analytics.h',
                 'src/nodejs/analytics/analytics.cpp',
-                'src/nodejs/qm/qm_nodejs.h',
-                'src/nodejs/qm/qm_nodejs.cpp',
                 'src/nodejs/fs/fs_nodejs.h',
                 'src/nodejs/fs/fs_nodejs.cpp',
                 'src/nodejs/la/la_nodejs.h',
@@ -130,7 +128,6 @@
             ],
             'include_dirs': [
 				'src/nodejs/',
-				'src/nodejs/qm',
 				'src/nodejs/fs',
 				'src/nodejs/la',
 				'src/qminer/',
@@ -139,7 +136,6 @@
 				'src/glib/misc/'
             ],
             'defines': [
-            	'MODULE_INCLUDE_QM',
                 'MODULE_INCLUDE_FS',
                 'MODULE_INCLUDE_LA'
             ],
