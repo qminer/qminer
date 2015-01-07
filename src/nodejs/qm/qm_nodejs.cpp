@@ -156,7 +156,6 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
    NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
    NODE_SET_PROTOTYPE_METHOD(tpl, "gc", _gc);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "newStreamAggr", _newStreamAggr);
    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
    
@@ -341,18 +340,18 @@ void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsBase::newStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-   v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
-}
-
 void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+
+   const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
+   if (JsBase->Base->IsStreamAggr(AggrNm)) {
+	   TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
+	   Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+   }
 }
 
 void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -448,8 +447,6 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
 
-		// parse out parameters
-		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 		// get aggregate type
 		TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
 
@@ -459,10 +456,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			// we need a name, if not give just generate one
 			if (AggrName.Empty()) { AggrName = TGuid::GenSafeGuid(); }
 			// create aggregate
-			// TODO implement!
-			throw TQm::TQmExcept::New("JS stream aggr not implemented yet!");
-			//StreamAggr = TNodeJsStreamAggr::New(
-			//	JsBase->Js, AggrName, Args[1]->ToObject());
+			StreamAggr = TNodeJsStreamAggr::New(JsBase->Base, AggrName, Args[1]->ToObject());
 		}
 		else if (TypeNm == "ftrext") {
 			TStr AggrName = TNodeJsUtil::GetArgStr(Args, 1, "name", "");
@@ -476,6 +470,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else if (TypeNm == "stmerger") {
 			// create new aggregate
+			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 			PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 			TStrV InterpNmV;
@@ -879,7 +874,7 @@ void TNodeJsSA::getN(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// try to cast as IFltTmIO
 	TWPt<TQm::TStreamAggrOut::IFltTmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltTmIO*>(JsSA->SA());
 	if (Aggr.Empty()) {
-		throw TQm::TQmExcept::New("TJsSA::getN : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
+		throw TQm::TQmExcept::New("TNodeJsSA::getN : stream aggregate does not implement IFltTmIO: " + JsSA->SA->GetAggrNm());
 	}
 
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Aggr->GetN()));
@@ -905,6 +900,378 @@ void TNodeJsSA::val(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
 }
 
 ///////////////////////////////
+// QMiner-JavaScript-Stream-Aggr
+TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Base, _AggrNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	// Every stream aggregate should implement these two
+	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd")), "TNodeJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+	QmAssertR(TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson")), "TNodeJsStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing saveJson callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
+
+	v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
+	QmAssert(_OnAddFun->IsFunction());
+	OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
+
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onUpdate"))) {
+		v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onUpdate"));
+		QmAssert(_OnUpdateFun->IsFunction());
+		OnUpdateFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnUpdateFun));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onDelete"))) {
+		v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onDelete"));
+		QmAssert(_OnDeleteFun->IsFunction());
+		OnDeleteFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnDeleteFun));
+	}
+
+	v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveJson"));
+	QmAssert(_SaveJsonFun->IsFunction());
+	SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+
+	// StreamAggr::_Save
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "save"))) {
+		v8::Handle<v8::Value> _Save = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "save"));
+		QmAssert(_Save->IsFunction());
+		SaveFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Save));
+	}
+
+	// StreamAggr::_Load
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "load"))) {
+		v8::Handle<v8::Value> _Load = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "load"));
+		QmAssert(_Load->IsFunction());
+		LoadFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Load));
+	}
+
+	// IInt
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInt"))) {
+		v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInt"));
+		QmAssert(_GetInt->IsFunction());
+		GetIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInt));
+	}
+	// IFlt 
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFlt"))) {
+		v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFlt"));
+		QmAssert(_GetFlt->IsFunction());
+		GetFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFlt));
+	}
+	// ITm 
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTm"))) {
+		v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTm"));
+		QmAssert(_GetTm->IsFunction());
+		GetTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetTm));
+	}
+	// IFltTmIO 
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFlt"))) {
+		v8::Handle<v8::Value> _GetInFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFlt"));
+		QmAssert(_GetInFlt->IsFunction());
+		GetInFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFlt));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTm"))) {
+		v8::Handle<v8::Value> _GetInTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTm"));
+		QmAssert(_GetInTm->IsFunction());
+		GetInTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTm));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFltV"))) {
+		v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFltV"));
+		QmAssert(_GetOutFltV->IsFunction());
+		GetOutFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutFltV));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutTmV"))) {
+		v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTmV"));
+		QmAssert(_GetOutTmV->IsFunction());
+		GetOutTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutTmV));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getN"))) {
+		v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getN"));
+		QmAssert(_GetN->IsFunction());
+		GetNFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetN));
+	}
+	// IFltVec
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltLen"))) {
+		v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltLen"));
+		QmAssert(_GetFltLen->IsFunction());
+		GetFltLenFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltLen));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltAt"))) {
+		v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltAt"));
+		QmAssert(_GetFltAt->IsFunction());
+		GetFltAtFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltAt));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFltV"))) {
+		v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFltV"));
+		QmAssert(_GetFltV->IsFunction());
+		GetFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltV));
+	}
+	// INmFlt 
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNmFlt"))) {
+		v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNmFlt"));
+		QmAssert(_IsNmFlt->IsFunction());
+		IsNmFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_IsNmFlt));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNmFlt"))) {
+		v8::Handle<v8::Value> _GetNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNmFlt"));
+		QmAssert(_GetNmFlt->IsFunction());
+		GetNmFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmFlt));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNmFltV"))) {
+		v8::Handle<v8::Value> _GetNmFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNmFltV"));
+		QmAssert(_GetNmFltV->IsFunction());
+		GetNmFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmFltV));
+	}
+	// INmInt
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNm"))) {
+		v8::Handle<v8::Value> _IsNm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNm"));
+		QmAssert(_IsNm->IsFunction());
+		IsNmFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_IsNm));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNmInt"))) {
+		v8::Handle<v8::Value> _GetNmInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNmInt"));
+		QmAssert(_GetNmInt->IsFunction());
+		GetNmIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmInt));
+	}
+	if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNmIntV"))) {
+		v8::Handle<v8::Value> _GetNmIntV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNmIntV"));
+		QmAssert(_GetNmIntV->IsFunction());
+		GetNmIntVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmIntV));
+	}
+}
+
+TNodeJsStreamAggr::~TNodeJsStreamAggr() {
+	// callbacks
+	OnAddFun.Reset();
+	OnUpdateFun.Reset();
+	OnDeleteFun.Reset();
+	SaveJsonFun.Reset();
+
+	GetIntFun.Reset();
+	// IFlt 
+	GetFltFun.Reset();
+	// ITm 
+	GetTmMSecsFun.Reset();
+	// IFltTmIO 
+	GetInFltFun.Reset();
+	GetInTmMSecsFun.Reset();
+	GetOutFltVFun.Reset();
+	GetOutTmMSecsVFun.Reset();
+	GetNFun.Reset();
+	// IFltVec
+	GetFltLenFun.Reset();
+	GetFltAtFun.Reset();
+	GetFltVFun.Reset();
+	// ITmVec
+	GetTmLenFun.Reset();
+	GetTmAtFun.Reset();
+	GetTmVFun.Reset();
+	// INmFlt 
+	IsNmFltFun.Reset();
+	GetNmFltFun.Reset();
+	GetNmFltVFun.Reset();
+	// INmInt
+	IsNmFun.Reset();
+	GetNmIntFun.Reset();
+	GetNmIntVFun.Reset();
+
+	// Serialization
+	SaveFun.Reset();
+	LoadFun.Reset();
+}
+
+
+void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
+	if (!OnAddFun.IsEmpty()) {	
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnAddFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::New(Rec) };	
+		Callback->Call(GlobalContext, Argc, ArgV);
+	}
+}
+
+void TNodeJsStreamAggr::OnUpdateRec(const TQm::TRec& Rec) {
+	if (!OnUpdateFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnUpdateFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::New(Rec) };
+		Callback->Call(GlobalContext, Argc, ArgV);
+	}
+}
+
+void TNodeJsStreamAggr::OnDeleteRec(const TQm::TRec& Rec) {
+	if (!OnDeleteFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnDeleteFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::New(Rec) };
+		Callback->Call(GlobalContext, Argc, ArgV);
+	}
+}
+
+PJsonVal TNodeJsStreamAggr::SaveJson(const int& Limit) const {
+	if (!SaveJsonFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveJsonFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+		const unsigned Argc = 1;
+		v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Limit) };
+		v8::Local<v8::Value> ReturnVal = Callback->Call(GlobalContext, Argc, ArgV);
+		QmAssertR(ReturnVal->IsObject(), "Stream aggr JS callback: saveJson didn't return an object.");
+		PJsonVal Res = TNodeJsUtil::GetObjJson(ReturnVal->ToObject());
+		
+		QmAssertR(Res->IsDef(), "Stream aggr JS callback: saveJson didn't return a valid JSON.");
+		return Res;
+	}
+	else {
+		return TJsonVal::NewObj();
+	}
+}
+
+void TNodeJsStreamAggr::_Save(TSOut& SOut) const {
+	if (SaveFun.IsEmpty()) {
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::_Save (called using sa.save) : stream aggregate does not implement a save callback: " + GetAggrNm());
+	}
+}
+
+void TNodeJsStreamAggr::_Load(TSIn& SIn) {
+	if (LoadFun.IsEmpty()) {
+		throw TQm::TQmExcept::New("TNodeJsStreamAggr::_Load (called using sa.load) : stream aggregate does not implement a load callback: " + GetAggrNm());
+	}
+}
+
+// IInt
+int TNodeJsStreamAggr::GetInt() const {
+	if (!GetIntFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetIntFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (RetVal.IsEmpty()) {
+			v8::Local<v8::Value> Exception = TryCatch.Exception();
+			Isolate->ThrowException(Exception);
+		}		
+		QmAssertR(RetVal->IsInt32(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt(): Return type expected to be int32");
+		return RetVal->Int32Value();
+	}
+	else {
+		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getInt() callback is empty!");
+	}
+}
+// IFlt 
+double TNodeJsStreamAggr::GetFlt() const {
+	if (!GetFltFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (RetVal.IsEmpty()) {
+			v8::Local<v8::Value> Exception = TryCatch.Exception();
+			Isolate->ThrowException(Exception);
+		}
+		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt(): Return type expected to be int32");
+		return RetVal->NumberValue();
+	}
+	else {
+		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getFlt() callback is empty!");
+	}
+}
+// ITm 
+uint64 TNodeJsStreamAggr::GetTmMSecs() const {
+	if (!GetTmMSecsFun.IsEmpty()) {
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope HandleScope(Isolate);
+
+		v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetTmMSecsFun);
+		v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
+
+		v8::TryCatch TryCatch;
+		v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+		if (RetVal.IsEmpty()) {
+			v8::Local<v8::Value> Exception = TryCatch.Exception();
+			Isolate->ThrowException(Exception);
+		}
+		QmAssertR(RetVal->IsNumber(), "TNodeJsStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
+		return (uint64)RetVal->NumberValue();
+	}
+	else {
+		throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", getTm() callback is empty!");
+	}
+}
+// IFltTmIO 
+double TNodeJsStreamAggr::GetInFlt() const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInFlt not implemented");
+}
+uint64 TNodeJsStreamAggr::GetInTmMSecs() const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetInTmMSecs not implemented");
+}
+void TNodeJsStreamAggr::GetOutFltV(TFltV& ValV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOutFltV not implemented");
+}
+void TNodeJsStreamAggr::GetOutTmMSecsV(TUInt64V& MSecsV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetOutTmMSecsV not implemented");
+}
+int TNodeJsStreamAggr::GetN() const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetN not implemented");
+}
+// IFltVec
+int TNodeJsStreamAggr::GetFltLen() const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFltLen not implemented");
+}
+double TNodeJsStreamAggr::GetFlt(const TInt& ElN) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFlt not implemented");
+} // GetFltAtFun
+void TNodeJsStreamAggr::GetFltV(TFltV& ValV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetFltV not implemented");
+}
+// ITmVec
+int TNodeJsStreamAggr::GetTmLen() const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTmLen not implemented");
+}
+uint64 TNodeJsStreamAggr::GetTm(const TInt& ElN) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTm not implemented");
+} // GetTmAtFun
+void TNodeJsStreamAggr::GetTmV(TUInt64V& TmMSecsV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetTmV not implemented");
+}
+// INmFlt 
+bool TNodeJsStreamAggr::IsNmFlt(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", IsNmFlt not implemented");
+}
+double TNodeJsStreamAggr::GetNmFlt(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmFlt not implemented");
+}
+void TNodeJsStreamAggr::GetNmFltV(TStrFltPrV& NmFltV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmFltV not implemented");
+}
+// INmInt
+bool TNodeJsStreamAggr::IsNm(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", IsNm not implemented");
+}
+double TNodeJsStreamAggr::GetNmInt(const TStr& Nm) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmInt not implemented");
+}
+void TNodeJsStreamAggr::GetNmIntV(TStrIntPrV& NmIntV) const {
+	throw  TQm::TQmExcept::New("TNodeJsStreamAggr, name: " + GetAggrNm() + ", GetNmIntV not implemented");
+}
+
+///////////////////////////////
 // NodeJs QMiner Record
 v8::Persistent<v8::Function> TNodeJsStore::constructor;
 
@@ -926,7 +1293,6 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sample", _sample);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "field", _field);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "addTrigger", _addTrigger);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
@@ -962,7 +1328,7 @@ v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	TNodeJsStore* JsStore = new TNodeJsStore(_Store, nullptr);	// TODO
+	TNodeJsStore* JsStore = new TNodeJsStore(_Store);
 	JsStore->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
@@ -1324,31 +1690,6 @@ void TNodeJsStore::key(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-void TNodeJsStore::addTrigger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	QmAssert(Args.Length() == 1);
-	v8::Handle<v8::Value> TriggerVal = Args[0];
-	QmAssert(TriggerVal->IsObject());
-
-	try {
-		///TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
-
-		//TWPt<TQm::TStore>& Store = JsStore->Store;
-		// TODO
-		//TQm::PStoreTrigger Trigger = TJsStoreTrigger::New(TriggerVal->ToObject());
-
-		//Store->AddTrigger(Trigger);
-		//JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
-
-		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
-	}
-}
-
 void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -1363,8 +1704,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			//	TODO
-			// Args.GetReturnValue().Set(TJsSA::New(StreamAggr));
+			Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
@@ -3251,8 +3591,563 @@ void TNodeJsIndexKey::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackI
     }
 }
 
+///////////////////////////////////////////////
+// Javascript Function Feature Extractor
+TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate):
+		TQm::TFtrExt(Base, ParamVal),
+		Dim(ParamVal->GetObjInt("dim", 1)),
+		Name(ParamVal->GetObjStr("name", "jsfunc")),
+		Fun() {
+
+	Fun.Reset(Isolate, _Fun);
+}
+
+TQm::PFtrExt TNodeJsFuncFtrExt::NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal, const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate) {
+	return new TNodeJsFuncFtrExt(Base, ParamVal, Fun, Isolate);
+}
+
+TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) : TFtrExt(Base, ParamVal) {
+	throw TQm::TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, const PJsonVal& ParamVal), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+TNodeJsFuncFtrExt::TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, TSIn& SIn) : TFtrExt(Base, SIn) {
+	throw TQm::TQmExcept::New("javascript function feature extractor shouldn't be constructed calling TJsFuncFtrExt::TJsFuncFtrExt(const TWPt<TBase>& Base, TSIn& SIn), call TJsFuncFtrExt(TWPt<TScript> _Js, const PJsonVal& ParamVal) instead (construct from JS using analytics)");
+}
+
+TQm::PFtrExt TNodeJsFuncFtrExt::New(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal) {
+	return new TNodeJsFuncFtrExt(Base, ParamVal);
+}
+
+TQm::PFtrExt TNodeJsFuncFtrExt::Load(const TWPt<TQm::TBase>& Base, TSIn& SIn) {
+	return new TNodeJsFuncFtrExt(Base, SIn);
+}
+void TNodeJsFuncFtrExt::Save(TSOut& SOut) const {
+	throw TQm::TQmExcept::New("TJsFuncFtrExt::Save(TSOut& Sout) : saving is not supported");
+}
+
+void TNodeJsFuncFtrExt::AddSpV(const TQm::TRec& FtrRec, TIntFltKdV& SpV, int& Offset) const {
+	if (Dim == 1) {
+		SpV.Add(TIntFltKd(Offset, ExecuteFunc(FtrRec))); Offset++;
+	}
+	else {
+		TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::AddSpV Dim != result dimension!");
+		for (int ElN = 0; ElN < Dim; ElN++) {
+			SpV.Add(TIntFltKd(Offset + ElN, Res[ElN]));
+		}
+		Offset += Dim;
+	}
+}
+
+void TNodeJsFuncFtrExt::AddFullV(const TQm::TRec& Rec, TFltV& FullV, int& Offset) const {
+	if (Dim == 1) {
+		FullV[Offset] = ExecuteFunc(Rec); Offset++;
+	}
+	else {
+		TFltV Res;
+		ExecuteFuncVec(Rec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::AddFullV Dim != result dimension!");
+		for (int ElN = 0; ElN < Dim; ElN++) {
+			FullV[Offset + ElN] = Res[ElN];
+		}
+		Offset += Dim;
+	}
+}
+
+void TNodeJsFuncFtrExt::ExtractFltV(const TQm::TRec& FtrRec, TFltV& FltV) const {
+	if (Dim == 1) {
+		FltV.Add(ExecuteFunc(FtrRec));
+	}
+	else {
+		TFltV Res;
+		ExecuteFuncVec(FtrRec, Res);
+		QmAssertR(Res.Len() == Dim, "JsFuncFtrExt::ExtractFltV Dim != result dimension!");
+		FltV.AddV(Res);
+	}
+}
+
+///////////////////////////////
+// NodeJs QMiner Feature Space
+v8::Persistent<v8::Function> TNodeJsFtrSpace::constructor;
+
+TNodeJsFtrSpace::TNodeJsFtrSpace(const TQm::PFtrSpace& _FtrSpace):
+		FtrSpace(_FtrSpace) {}
+
+TNodeJsFtrSpace::TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn) {
+	FtrSpace = TQm::TFtrSpace::Load(Base, SIn);
+}
+
+v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(FtrSpace));
+}
+
+v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(Base, SIn));
+}
+
+v8::Local<v8::Object> TNodeJsFtrSpace::New(const TQm::PFtrSpace& FtrSpace) {
+	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(FtrSpace), constructor, v8::Isolate::GetCurrent());
+}
+
+v8::Local<v8::Object> TNodeJsFtrSpace::New(const TWPt<TQm::TBase> Base, TSIn& SIn) {
+	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(Base, SIn), constructor, v8::Isolate::GetCurrent());
+}
+
+void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FeatureSpace"));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "add", _add);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecord", _updateRecord);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecords", _updateRecords);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrSpVec", _ftrSpVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrVec", _ftrVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrSpColMat", _ftrSpColMat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrColMat", _ftrColMat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrExtractor", _getFtrExtractor);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtr", _getFtr);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrDist", _getFtrDist);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "filter", _filter);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "extractStrings", _extractStrings);
+
+	// properties
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dims"), _dims);
+
+	constructor.Reset(Isolate, tpl->GetFunction());
+#ifndef MODULE_INCLUDE_QM
+	exports->Set(v8::String::NewFromUtf8(Isolate, "FeatureSpace"),
+			   tpl->GetFunction());
+#endif
+}
+
+void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.IsConstructCall(), "FeatureSpace: not a constructor call!");
+	QmAssertR(Args.Length() > 1, "FeatureSpace: missing arguments!");
+
+	try {
+		const TQm::PBase& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
+
+		if (Args[1]->IsExternal()) {
+			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject());
+
+			Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), Base, *JsFIn->SIn));
+			return;
+		}
+
+		TQm::TFtrExtV FtrExtV;
+		if (Args[1]->IsArray()) {
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[1]);
+			for (uint32 ObjectN = 0; ObjectN < Array->Length(); ObjectN++) {
+				if (Array->Get(ObjectN)->IsObject()) {
+					v8::Local<v8::Object> Obj = Array->Get(ObjectN)->ToObject();
+					// get property "type"
+					if (Obj->Has(v8::String::NewFromUtf8(Isolate, "type"))) {
+						v8::Handle<v8::Value> TypeVal = Obj->Get(v8::String::NewFromUtf8(Isolate, "type"));
+						if (TypeVal->IsString()) {
+							v8::String::Utf8Value Utf8(TypeVal);
+							TStr Type(*Utf8);
+							if (Type == "jsfunc") {
+								QmAssertR(Obj->Has(v8::String::NewFromUtf8(Isolate, "fun")), "analytics.newFeatureSpace object of type 'jsfunc' should have a property 'fun'");
+								QmAssertR(Obj->Get(v8::String::NewFromUtf8(Isolate, "fun"))->IsFunction(), "analytics.newFeatureSpace object.fun should be a function");
+
+//								v8::Persistent<v8::Function> Fun = v8::Persistent<v8::Function>::New(Func);
+//								PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Obj);
+//								PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
+								FtrExtV.Add(TNodeJsFtrSpace::NewFtrExtFromFunc(Base, Obj, Isolate));
+							}
+							else {
+								// Json val to glib JSON
+								PJsonVal ParamVal = TNodeJsUtil::GetObjJson(Array->Get(ObjectN)->ToObject());
+								if (ParamVal->IsObj()) {
+									FtrExtV.Add(TQm::TFtrExt::New(Base, ParamVal->GetObjStr("type"), ParamVal));
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		else if (Args[1]->IsObject()) {
+			// get type
+			TStr Type = TNodeJsUtil::GetArgStr(Args, 1, "type", "");
+			if (Type == "jsfunc") {
+				// All properties should be JSON objects, except for "fun", which is a function
+				// example (Twitter text length feature extractor):
+				// { type : 'jsfunc', source: { store: 'Tweets' }, fun : function(rec) {return rec.Text.length;}}
+				// extract function!
+//				v8::Persistent<v8::Function> Fun = TJsAnalyticsUtil::GetArgFunPer(Args, 1, "fun");
+//				PJsonVal ParamVal = TJsFuncFtrExt::CopySettings(Args[1]->ToObject());
+//				PFtrExt FtrExt = TJsFuncFtrExt::NewFtrExt(JsAnalytics->Js, ParamVal, Fun);
+				v8::Local<v8::Object> Settings = Args[1]->ToObject();
+				FtrExtV.Add(TNodeJsFtrSpace::NewFtrExtFromFunc(Base, Settings, Isolate));
+			}
+			else {
+				// JSON object expected
+				// example (bag of words extractor)
+				// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+				PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
+				if (ParamVal->IsObj()) {
+					FtrExtV.Add(TQm::TFtrExt::New(Base, ParamVal->GetObjStr("type"), ParamVal));
+				}
+			}
+		}
+
+		// create feature space
+		TQm::PFtrSpace FtrSpace = TQm::TFtrSpace::New(Base, FtrExtV);
+        // report on what was created
+        TQm::InfoLog(FtrSpace->GetNm());
+		// done
+        Args.GetReturnValue().Set(TNodeJsFtrSpace::WrapInst(Args.This(), FtrSpace));
+	} catch (const PExcept& Except) {
+		TQm::ErrorLog(Except->GetMsgStr());
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+	}
+}
+
+void TNodeJsFtrSpace::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Info.Holder());
+		Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsFtrSpace->FtrSpace->GetDim()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::dim");
+	}
+}
+
+void TNodeJsFtrSpace::dims(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Info.Holder());
+
+		const int FtrExts = JsFtrSpace->FtrSpace->GetFtrExts();
+		v8::Handle<v8::Array> IntArr = v8::Array::New(Isolate, FtrExts);
+
+		for(int FtrExtN = 0; FtrExtN < FtrExts; FtrExtN++) {
+			IntArr->Set(v8::Uint32::New(Isolate, FtrExtN),
+				v8::Integer::New(Isolate, JsFtrSpace->FtrSpace->GetFtrExtDim(FtrExtN)));
+		}
+
+		Info.GetReturnValue().Set(IntArr);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::dims");
+	}
+}
+
+void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+
+		PSOut SOut = JsFOut->SOut;
+
+		// save to stream
+		JsFtrSpace->FtrSpace->Save(*SOut);
+		// return
+		Args.GetReturnValue().Set(Args[0]);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::add(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		TStr Type = TNodeJsUtil::GetArgStr(Args, 0, "type", "");
+		if (Type == "jsfunc") {
+			// All properties should be JSON objects, except for "fun", which is a function
+			// example (Twitter text length feature extractor):
+			// { type : 'jsfunc', source: { store: 'Tweets' }, fun : function(rec) {return rec.Text.length;}}
+			// extract function!
+			v8::Local<v8::Object> Settings = Args[0]->ToObject();
+			JsFtrSpace->FtrSpace->AddFtrExt(TNodeJsFtrSpace::NewFtrExtFromFunc(JsFtrSpace->FtrSpace->GetBase(), Settings, Isolate));
+		}
+		else {
+			// JSON object expected
+			// example (bag of words extractor)
+			// { type: 'numeric', source: { store: 'Movies' }, field: 'Rating', normalize: true }
+			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+			if (ParamVal->IsObj()) {
+				JsFtrSpace->FtrSpace->AddFtrExt(TQm::TFtrExt::New(JsFtrSpace->FtrSpace->GetBase(), ParamVal->GetObjStr("type"), ParamVal));
+			}
+		}
+		// return
+		Args.GetReturnValue().Set(Args.Holder());
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args[0]->ToObject());
+
+		// update with new records
+		JsFtrSpace->FtrSpace->Update(JsRec->Rec);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args[0]->ToObject());
+
+		// update with new records
+		JsFtrSpace->FtrSpace->Update(JsRecSet->RecSet);
+
+		Args.GetReturnValue().Set(Args.Holder());
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::ftrSpVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args[0]->ToObject());
+
+		// create feature vector
+		TIntFltKdV SpV;
+		JsFtrSpace->FtrSpace->GetSpV(JsRec->Rec, SpV);
+
+		Args.GetReturnValue().Set(TNodeJsSpVec::New(SpV, JsFtrSpace->FtrSpace->GetDim()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::ftrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsRec* JsRec = ObjectWrap::Unwrap<TNodeJsRec>(Args[0]->ToObject());
+
+		// create feature vector, compute
+		TFltV FltV;
+		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
+
+		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::ftrSpColMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsRecSet* RecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args[0]->ToObject());
+
+		// create feature matrix
+		TVec<TIntFltKdV> SpMat;
+		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat);
+
+		Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, RecSet->RecSet->GetRecs()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::ftrColMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+		TNodeJsRecSet* RecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args[0]->ToObject());
+
+		// create feature matrix
+		TFltVV Mat;
+		JsFtrSpace->FtrSpace->GetFullVV(RecSet->RecSet, Mat);
+
+		Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::getFtrExtractor(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+		const TStr FtrExtNm = JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->GetNm();
+
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, FtrExtNm.CStr()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::getFtr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		const int FtrN = TNodeJsUtil::GetArgInt32(Args, 0);
+		const TStr FtrNm = JsFtrSpace->FtrSpace->GetFtr(FtrN);
+
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, FtrNm.CStr()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::getFtrDist(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		TFltV FtrDistV;
+		// check if we return for one feature extractor or for whole feature space
+		if (TNodeJsUtil::IsArg(Args, 0)) {
+			const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0, 0);
+			JsFtrSpace->FtrSpace->GetFtrExt(FtrExtN)->GetFtrDist(FtrDistV);
+		} else {
+			JsFtrSpace->FtrSpace->GetFtrDist(FtrDistV);
+		}
+
+		Args.GetReturnValue().Set(TNodeJsFltV::New(FtrDistV));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() > 0, "fsp.filter: Expecting vector as parameter");
+	QmAssertR(Args[0]->IsObject(), "fsp.filter: Expecting vector as parameter");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		const TIntFltKdV& SpV = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject())->Vec;
+		const int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 1);
+		const bool KeepOffsetP = TNodeJsUtil::GetArgBool(Args, 2, true);
+		// get dimension border
+		const int MnFtrN = JsFtrSpace->FtrSpace->GetMnFtrN(FtrExtN);
+		const int MxFtrN = JsFtrSpace->FtrSpace->GetMxFtrN(FtrExtN);
+
+		// filter
+		TIntFltKdV NewSpV;
+		for (int FtrN = 0; FtrN < SpV.Len(); FtrN++) {
+			const TIntFltKd& Ftr = SpV[FtrN];
+			if (MnFtrN <= Ftr.Key && Ftr.Key < MxFtrN) {
+				NewSpV.Add(Ftr);
+			}
+		}
+		if (!KeepOffsetP) {
+			for (int NewSpN = 0; NewSpN < NewSpV.Len(); NewSpN++) {
+				NewSpV[NewSpN].Key -= MnFtrN;
+			}
+		}
+
+		const int VecDim = KeepOffsetP ? JsFtrSpace->FtrSpace->GetDim() : (MxFtrN - MnFtrN);
+
+		Args.GetReturnValue().Set(TNodeJsSpVec::New(NewSpV, VecDim));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		const PJsonVal RecVal = TNodeJsUtil::GetArgJson(Args, 0);
+		const int DimN = TNodeJsUtil::GetArgInt32(Args, 1, 0);
+
+		// get strings
+		TStrV StrV; JsFtrSpace->FtrSpace->ExtractStrV(DimN, RecVal, StrV);
+
+		v8::Handle<v8::Array> StrArr = v8::Array::New(Isolate, StrV.Len());
+
+		for (int StrN = 0; StrN < StrV.Len(); StrN++) {
+			StrArr->Set(v8::Uint32::New(Isolate, StrN), v8::String::NewFromUtf8(Isolate, StrV.GetVal(StrN).CStr()));
+		}
+
+		Args.GetReturnValue().Set(StrArr);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
 ///////////////////////////////
 // Register functions, etc.  
+#ifndef MODULE_INCLUDE_QM
+
 void init(v8::Handle<v8::Object> exports) {
     // QMiner package
     TNodeJsQm::Init(exports);
@@ -3271,7 +4166,11 @@ void init(v8::Handle<v8::Object> exports) {
     TNodeJsFltVV::Init(exports);
     TNodeJsSpVec::Init(exports);
     TNodeJsSpMat::Init(exports);
+
+    // feature space
+    TNodeJsFtrSpace::Init(exports);
 }
 
 NODE_MODULE(qm, init)
 
+#endif

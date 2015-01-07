@@ -47,19 +47,43 @@ public:
 	void Release();
 };
 
+/** Critical section */
+class TCriticalSection {
+protected:
+	//CRITICAL_SECTION Cs;
+	TCriticalSectionType Type;
+	pthread_mutex_t Cs;
+	pthread_mutexattr_t CsAttr;
+
+public:
+	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
+	~TCriticalSection();
+
+	void Enter();
+	bool TryEnter();
+	void Leave();
+};
+
 ////////////////////////////////////////////
 // Thread
 ClassTP(TThread, PThread)// {
 private:
+	const static int STATUS_CREATED;
+	const static int STATUS_STARTED;
+	const static int STATUS_CANCELLED;
+	const static int STATUS_FINISHED;
+
 	pthread_t ThreadHandle;
-	int ThreadId;
 
 	// Use for interrupting and waiting
 	TBlocker* SleeperBlocker;
+	TCriticalSection CriticalSection;
+
+	volatile sig_atomic_t Status;
 
 private:
     static void * EntryPoint(void * pArg);
-
+    static void SetFinished(void *pArg);
 public:
     TThread();
 
@@ -75,8 +99,11 @@ public:
     // when started the thread calls this function
     virtual void Run() { printf("empty run\n"); };
 
+    // terminates the thread
+    void Cancel();
+
     // windows thread id
-    int GetThreadId() const { return ThreadId; }
+    uint64 GetThreadId() const { return GetThreadHandle(); }
     // windows thread handle
     pthread_t GetThreadHandle() const { return ThreadHandle; }
 
@@ -85,7 +112,12 @@ public:
 
 	int Join();
 
+	bool IsAlive();
+	bool IsCancelled();
+	bool IsFinished();
+
 	static int GetCoreCount();
+
 };
 
 
@@ -150,16 +182,20 @@ public:
 	}
 };
 
+class TCondVarLock;
+
 ////////////////////////////////////////////
 // Mutex
 class TMutex {
+	friend class TCondVarLock;
 private:
+	TMutexType Type;
 	pthread_mutex_t MutexHandle;
 	pthread_mutexattr_t Attributes;
 
 
 public:
-    TMutex(const bool& LockOnStartP = false);
+    TMutex(const TMutexType& Type = TMutexType::mtFast, const bool& LockOnStartP = false);
     ~TMutex();
 
     // waits so the mutex is released and locks it
@@ -173,23 +209,35 @@ public:
     pthread_mutex_t GetThreadHandle() const { return MutexHandle; }
 };
 
-/** Critical section */
-class TCriticalSection {
-protected:
-	//CRITICAL_SECTION Cs;
-	TCriticalSectionType Type;
-	pthread_mutex_t Cs;
-	pthread_mutexattr_t CsAttr;
+////////////////////////////////////////////
+// Conditional variable lock
+// blocks threads on a until a condition is fulfilled
+class TCondVarLock {
+private:
+	pthread_cond_t CondVar;
+	TMutex Mutex;
 
 public:
-	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
-	~TCriticalSection();
+	TCondVarLock();
+	~TCondVarLock();
 
-	void Enter();
-	bool TryEnter();
-	void Leave();
+	// locks the mutex
+	void Lock();
+	// releases the mutex
+	bool Release();
+	// must be locked before calling this method
+	// unlocks the mutex and waits for a signal once it gets the signal the
+	// mutex is automatically locked
+	void WaitForSignal();
+	// must be locked before signaling
+	// unblocks at least one thread waiting on the
+	// conditional variable
+	void Signal();
+	// must be locked before broadcasting
+	// unblocks all threads waiting on the
+	// conditional variable
+	void Broadcast();
 };
-
 
 
 #endif /* THREAD_H_ */

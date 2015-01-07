@@ -49,6 +49,36 @@ TStr TStrUtil::GetStr(const TFltV& FltV, const TStr& DelimiterStr, const TStr& F
   return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TFltVV& FltVV, const TStr& DelimiterStr, const TStr& FmtStr) {
+	TChA ResChA;
+
+	for (int i = 0; i < FltVV.GetXDim(); i++) {
+		for (int j = 0; j < FltVV.GetYDim(); j++) {
+			ResChA += TFlt::GetStr(FltVV(i,j), FmtStr);
+			if (j < FltVV.GetYDim() - 1) { ResChA += DelimiterStr; }
+		}
+		if (i < FltVV.GetXDim() - 1) { ResChA += '\n'; }
+	}
+
+	return ResChA;
+}
+
+TStr TStrUtil::GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterStr, const TStr& FmtStr) {
+	TChA ResChA;
+
+	for (int i = 0; i < IntIntFltTrV.Len(); i++) {
+		const TIntIntFltTr& Val = IntIntFltTrV[i];
+
+		ResChA += "(";
+		ResChA += Val.Val1.GetStr() + ", " + Val.Val2.GetStr() + ", " + TFlt::GetStr(Val.Val3, FmtStr) + ")";
+		if (i < IntIntFltTrV.Len()-1) {
+			ResChA += DelimiterStr;
+		}
+	}
+
+	return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TIntFltKdV& IntFltKdV, const TStr& FieldDelimiterStr, 
  const TStr& DelimiterStr, const TStr& FmtStr) {
   TChA ResChA;
