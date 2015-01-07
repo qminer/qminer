@@ -2,23 +2,23 @@
 
 ///////////////////////////////
 // NodeJs-Directory
-TJsFPath::TJsFPath(const TStr& FPath): CanonicalFPath(GetCanonicalPath(FPath)) { }
+TNodeJsFPath::TNodeJsFPath(const TStr& FPath): CanonicalFPath(GetCanonicalPath(FPath)) { }
 
-bool TJsFPath::Equals(const TJsFPath& JsFPath) const {
+bool TNodeJsFPath::Equals(const TNodeJsFPath& JsFPath) const {
     return CanonicalFPath == JsFPath.GetFPath();
 }
 
-bool TJsFPath::IsSubdir(const TJsFPath& JsFPath) const {
+bool TNodeJsFPath::IsSubdir(const TNodeJsFPath& JsFPath) const {
     return CanonicalFPath.StartsWith(JsFPath.GetFPath());
 }
 
-void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {
+void TNodeJsFPath::GetFPathV(const TStrV& FPathV, TVec<TNodeJsFPath>& JsFPathV) {
     for (TStrV::TIter It = FPathV.BegI(); It != FPathV.EndI(); ++It) {
-        JsFPathV.Add(TJsFPath(*It));
+        JsFPathV.Add(TNodeJsFPath(*It));
     }
 }
 
-TStr TJsFPath::GetCanonicalPath(const TStr& FPath) {
+TStr TNodeJsFPath::GetCanonicalPath(const TStr& FPath) {
     // Get absolute path
     TStr AbsFPath = TStr::GetNrAbsFPath(FPath);
     // Remove any redundancies

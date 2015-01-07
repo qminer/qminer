@@ -1,8 +1,8 @@
-#ifndef QMINER_NODEJS
-#define QMINER_NODEJS
+#ifndef QMINER_LA_NODEJS_H
+#define QMINER_LA_NODEJS_H
 
 #ifndef BUILDING_NODE_EXTENSION
-	#define BUILDING_NODE_EXTENSION
+    #define BUILDING_NODE_EXTENSION
 #endif
 
 #include <node.h>

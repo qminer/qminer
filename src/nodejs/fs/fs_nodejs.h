@@ -1,8 +1,8 @@
-#ifndef QMINER_FS_NODEJS
-#define QMINER_FS_NODEJS
+#ifndef QMINER_FS_NODEJS_H
+#define QMINER_FS_NODEJS_H
 
 #ifndef BUILDING_NODE_EXTENSION
-	#define BUILDING_NODE_EXTENSION
+    #define BUILDING_NODE_EXTENSION
 #endif
 
 #include <node.h>
@@ -12,20 +12,20 @@
 
 ///////////////////////////////
 /// JavaScript Directory
-class TJsFPath {
+class TNodeJsFPath {
 private:
     /// Canonicalized file path 
     TStr CanonicalFPath; 
 public:
-    TJsFPath(const TStr& FPath = "./");
+    TNodeJsFPath(const TStr& FPath = "./");
     /// Is directory subdirectory of this 
-    bool IsSubdir(const TJsFPath& JsFPath) const; 
+    bool IsSubdir(const TNodeJsFPath& JsFPath) const; 
     /// Directory equals this 
-    bool Equals(const TJsFPath& JsFPath) const; 
+    bool Equals(const TNodeJsFPath& JsFPath) const; 
     /// Get directory name
     const TStr& GetFPath() const { return CanonicalFPath; }
     /// Load list of directories
-    static void GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV);
+    static void GetFPathV(const TStrV& FPathV, TVec<TNodeJsFPath>& JsFPathV);
     /// Canonicalize file path 
     static TStr GetCanonicalPath(const TStr& FPath);
 };
@@ -38,9 +38,9 @@ public:
 class TNodeJsFs : public node::ObjectWrap {
 public:
     // directories we're allowed to access 
-    TVec<TJsFPath> AllowedFPathV;
+    TVec<TNodeJsFPath> AllowedFPathV;
 private:
-    TNodeJsFs(const TVec<TJsFPath>& AllowedDirV_ = TVec<TJsFPath>()):
+    TNodeJsFs(const TVec<TNodeJsFPath>& AllowedDirV_ = TVec<TNodeJsFPath>()):
         AllowedFPathV(AllowedDirV_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
