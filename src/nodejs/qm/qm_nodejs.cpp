@@ -3847,9 +3847,9 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
-		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
-		PSOut SOut = JsFOut->SOut;
+		PSOut SOut = TNodeJsUtil::IsArgStr(Args, 0) ?
+				TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false) :
+				ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject())->SOut;
 
 		// save to stream
 		JsFtrSpace->FtrSpace->Save(*SOut);
