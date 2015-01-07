@@ -156,7 +156,6 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    NODE_SET_PROTOTYPE_METHOD(tpl, "createStore", _createStore);
    NODE_SET_PROTOTYPE_METHOD(tpl, "search", _search);
    NODE_SET_PROTOTYPE_METHOD(tpl, "gc", _gc);
-   NODE_SET_PROTOTYPE_METHOD(tpl, "newStreamAggr", _newStreamAggr);
    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
    NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
    
@@ -341,18 +340,18 @@ void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsBase::newStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-   v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-   v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
-}
-
 void TNodeJsBase::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
    v8::HandleScope HandleScope(Isolate);
-   // TODO
-   //Args.GetReturnValue().Set(v8::Number::New(Isolate, Sum));
+   
+   // unwrap
+   TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
+
+   const TStr AggrNm = TNodeJsUtil::GetArgStr(Args, 0);
+   if (JsBase->Base->IsStreamAggr(AggrNm)) {
+	   TQm::PStreamAggr StreamAggr = JsBase->Base->GetStreamAggr(AggrNm);
+	   Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
+   }
 }
 
 void TNodeJsBase::getStreamAggrNames(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -448,8 +447,6 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
 
-		// parse out parameters
-		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 		// get aggregate type
 		TStr TypeNm = TNodeJsUtil::GetArgStr(Args, 1, "type", "javaScript");
 
@@ -473,6 +470,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 		else if (TypeNm == "stmerger") {
 			// create new aggregate
+			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 1);
 			StreamAggr = TQm::TStreamAggr::New(JsBase->Base, TypeNm, ParamVal);
 			PJsonVal FieldArrVal = ParamVal->GetObjKey("fields");
 			TStrV InterpNmV;
@@ -1037,6 +1035,47 @@ TNodeJsStreamAggr::TNodeJsStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm
 	}
 }
 
+TNodeJsStreamAggr::~TNodeJsStreamAggr() {
+	// callbacks
+	OnAddFun.Reset();
+	OnUpdateFun.Reset();
+	OnDeleteFun.Reset();
+	SaveJsonFun.Reset();
+
+	GetIntFun.Reset();
+	// IFlt 
+	GetFltFun.Reset();
+	// ITm 
+	GetTmMSecsFun.Reset();
+	// IFltTmIO 
+	GetInFltFun.Reset();
+	GetInTmMSecsFun.Reset();
+	GetOutFltVFun.Reset();
+	GetOutTmMSecsVFun.Reset();
+	GetNFun.Reset();
+	// IFltVec
+	GetFltLenFun.Reset();
+	GetFltAtFun.Reset();
+	GetFltVFun.Reset();
+	// ITmVec
+	GetTmLenFun.Reset();
+	GetTmAtFun.Reset();
+	GetTmVFun.Reset();
+	// INmFlt 
+	IsNmFltFun.Reset();
+	GetNmFltFun.Reset();
+	GetNmFltVFun.Reset();
+	// INmInt
+	IsNmFun.Reset();
+	GetNmIntFun.Reset();
+	GetNmIntVFun.Reset();
+
+	// Serialization
+	SaveFun.Reset();
+	LoadFun.Reset();
+}
+
+
 void TNodeJsStreamAggr::OnAddRec(const TQm::TRec& Rec) {
 	if (!OnAddFun.IsEmpty()) {	
 		v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1254,7 +1293,6 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sample", _sample);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "field", _field);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "addTrigger", _addTrigger);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
@@ -1290,7 +1328,7 @@ v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
-	TNodeJsStore* JsStore = new TNodeJsStore(_Store, nullptr);	// TODO
+	TNodeJsStore* JsStore = new TNodeJsStore(_Store);
 	JsStore->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
@@ -1652,31 +1690,6 @@ void TNodeJsStore::key(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-void TNodeJsStore::addTrigger(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	QmAssert(Args.Length() == 1);
-	v8::Handle<v8::Value> TriggerVal = Args[0];
-	QmAssert(TriggerVal->IsObject());
-
-	try {
-		///TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
-
-		//TWPt<TQm::TStore>& Store = JsStore->Store;
-		// TODO
-		//TQm::PStoreTrigger Trigger = TJsStoreTrigger::New(TriggerVal->ToObject());
-
-		//Store->AddTrigger(Trigger);
-		//JsStore->Js->TriggerV.Add(TPair<TUInt, PStoreTrigger>(JsStore->Store->GetStoreId(), Trigger));
-
-		Args.GetReturnValue().Set(v8::Undefined(Isolate));
-	}
-	catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
-	}
-}
-
 void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -1691,8 +1704,7 @@ void TNodeJsStore::getStreamAggr(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		if (Base->IsStreamAggr(StoreId, AggrNm)) {
 			TQm::PStreamAggr StreamAggr = Base->GetStreamAggr(StoreId, AggrNm);
-			//	TODO
-			// Args.GetReturnValue().Set(TJsSA::New(StreamAggr));
+			Args.GetReturnValue().Set(TNodeJsSA::New(StreamAggr));
 		}
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));

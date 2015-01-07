@@ -56,7 +56,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>EXTENDEDOPENFILES;SWTIMER;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/third_party/snap/snap-exp/;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/;src/glib/concurrent;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/third_party/snap/snap-exp/;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/;src/glib/concurrent</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>INTEL;LAPACKE;EIGEN;BLAS;CBLAS;</UndefinePreprocessorDefinitions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
     </ClCompile>
@@ -81,7 +81,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>EXTENDEDOPENFILES;SWTIMER;SW_STEMMER;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/;src/glib/concurrent;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src/third_party/snap/snap-core;src/third_party/snap/snap-adv;src/glib/eigen32/;src/glib/base/;src/glib/net/;src/glib/mine;src/glib/misc/;src/third_party/v8/include/;src/qminer/</AdditionalIncludeDirectories>
       <UndefinePreprocessorDefinitions>INTEL;LAPACKE;EIGEN;BLAS;CBLAS;</UndefinePreprocessorDefinitions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OpenMPSupport>true</OpenMPSupport>
