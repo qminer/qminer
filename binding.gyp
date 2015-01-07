@@ -34,7 +34,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -71,7 +71,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -118,7 +118,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -149,7 +149,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -192,7 +192,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -223,7 +223,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -249,7 +249,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -278,7 +278,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',

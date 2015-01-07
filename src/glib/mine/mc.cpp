@@ -923,13 +923,20 @@ TVector TCtMChain::GetStatDist() const {
 	TVector EigenVec(QMat.GetRows());
 	TNumericalStuff::GetEigenVec(JumpMat.GetT().GetMat(), 1.0, EigenVec.Vec);
 
+	EAssertR(EigenVec.Norm() != 0, "EigenVector should not have norm 0!");	// TODO O(n)
+
 	// divide the elements by q_i
 	for (int i = 0; i < QMat.GetRows(); i++) {
 		EigenVec[i] /= -QMat(i,i);
 	}
 
+	const double EigSum = EigenVec.Sum();
+
+	EAssertR(EigSum != 0, "Eigenvector should not be 0, norm is " + TFlt::GetStr(EigenVec.Norm()) + "!");
+	EAssertR(!TFlt::IsNan(EigSum), "NaNs in eigenvector!");
+
 	// normalize to get a distribution
-	return EigenVec /= EigenVec.Sum();
+	return EigenVec /= EigSum;
 }
 
 TFullMatrix TCtMChain::GetJumpMatrix(const TFullMatrix& QMat) const {
@@ -944,7 +951,13 @@ TFullMatrix TCtMChain::GetJumpMatrix(const TFullMatrix& QMat) const {
 		} else {
 			for (int j = 0; j < Cols; j++) {
 				if (j != i) {
-					JumpMat(i,j) = QMat(i,j) / (-QMat(i,i));
+					const double Q_ij = QMat(i,j);
+					const double Q_ii = -QMat(i,i);
+					const double J_ij = Q_ij / Q_ii;
+
+					EAssertR(!TFlt::IsNan(J_ij), "Jump matrix contains nan on indexes " + TInt::GetHexStr(i) +", " + TInt::GetStr(j));
+
+					JumpMat(i,j) = J_ij;
 				}
 			}
 		}
@@ -982,12 +995,10 @@ TFullMatrix TCtMChain::GetQMatrix() const {
 
 		const double Q_ii = -QMatrix.RowSum(i);
 
-		if (Q_ii == 0) { Notify->OnNotifyFmt(TNotifyType::ntWarn, "QMatrix has zero row %d", i); }
+		EAssertR(Q_ii != 0, "Q_ii has a zero row!");
 
 		QMatrix(i,i) = Q_ii;
 	}
-
-	printf("\nQMatrix\n%s\n", TStrUtil::GetStr(QMatrix.GetMat(), ", ", "%.16f").CStr());
 
 	return QMatrix;
 }
@@ -1006,7 +1017,7 @@ TFullMatrix TCtMChain::GetQMatrix(const TVec<TIntV>& JoinedStateVV) const {
 			// the transition probability from set Ai to Aj can be
 			// calculated as: q_{A_i,A_j} = \frac {\sum_{k \in A_i} \pi_k * \sum_{l \in A_j} q_{k,l}} {\sum_{k \in A_i} \pi_k}
 
-			TFlt Sum = 0, SumP = 0;
+			double Sum = 0, SumP = 0;
 			for (int k = 0; k < JoinState1.Len(); k++) {
 				const int StateK = JoinState1[k];
 
@@ -1019,6 +1030,7 @@ TFullMatrix TCtMChain::GetQMatrix(const TVec<TIntV>& JoinedStateVV) const {
 				Sum += StatDist[JoinState1[k]]*SumK;
 				SumP += StatDist[JoinState1[k]];
 			}
+
 			Result(JoinState1Idx, JoinState2Idx) = Sum / SumP;
 		}
 	}

@@ -2155,7 +2155,11 @@ void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& Eige
 		EigenVTemp = EigenV;
 
 		LUSolve(A, PermIdxV, EigenV);
-		TLinAlg::Normalize(EigenV);
+
+		// normalize
+		double Norm = TLinAlg::Norm(EigenV);
+		EAssertR(Norm > 0, "Cannot normalize, norm is 0!");
+		TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
 	} while (TLinAlg::EuclDist(EigenV, EigenVTemp) < ConvergEps);
 }
 
