@@ -3728,7 +3728,9 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const TQm::PBase& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
 
 		if (Args[1]->IsExternal() || Args[1]->IsString()) {
-			PSIn SIn = TNodeJsUtil::IsArgStr(Args, 1) ?
+			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();
+
+			PSIn SIn = IsArgStr ?
 					TFIn::New(TNodeJsUtil::GetArgStr(Args, 1)) :
 					ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject())->SIn;
 
@@ -3848,7 +3850,7 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
 		PSOut SOut = TNodeJsUtil::IsArgStr(Args, 0) ?
-				TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false) :
+				TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), true) :
 				ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject())->SOut;
 
 		// save to stream
