@@ -365,6 +365,8 @@ private:
 	//#- `rec = store[recId]` -- get record with ID `recId`; 
 	//#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);	
+	//#- `base = store.base` -- get store base; 
+	JsDeclareProperty(base);
 	//#JSIMPLEMENT:src/qminer/store.js
 };
 

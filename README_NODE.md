@@ -70,8 +70,8 @@ Go to QMINER_ROOT and execute:
 ### Folders
 
  - `PYTHON_PATH` - path to python.exe (e.g. c:/python27/python.exe)
- - `QMINER_ROOT` - qminer root folder (location of qminer's git repository)
- - `NODE_ROOT`   - folder with node source code (needed to build modules)
+ - `QMINER_ROOT` - qminer root folder (location of qminer's git repository) - how to get the source code is specified later (building modules section) 
+ - `NODE_ROOT`   - folder with node source code (needed to build modules) - how to get the code is specified later (Node.JS source code section). 
 
 Example of how to setup enivronment variables from command-line:
 
@@ -86,7 +86,8 @@ Example of how to setup enivronment variables from command-line:
 
 #### Node.JS source code
 
-Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and unzip it to `NODE_ROOT`.
+Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of `node-0.11,14` it to `NODE_ROOT`.
+
 
 	cd %NODE_ROOT%
 	set PATH=%PYTHON_PATH%;%PATH%

@@ -1314,6 +1314,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "forwardIter"), _forwardIter);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "backwardIter"), _backwardIter);
 	tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexId);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "base"), _base);
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
@@ -2192,6 +2193,16 @@ void TNodeJsStore::indexId(uint32_t Index, const v8::PropertyCallbackInfo<v8::Va
 	}
 	
 	Info.GetReturnValue().Set(v8::Null(Isolate));
+}
+
+void TNodeJsStore::base(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Local<v8::Object> Self = Info.Holder();
+	TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Self);
+
+	Info.GetReturnValue().Set(TNodeJsBase::New(JsStore->Store->GetBase()));
 }
 
 ///////////////////////////////
