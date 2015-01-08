@@ -2840,7 +2840,15 @@ void TNodeJsRecSet::sortByField(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 	const TStr SortFieldNm = TNodeJsUtil::GetArgStr(Args, 0);
 	const int SortFieldId = JsRecSet->RecSet->GetStore()->GetFieldId(SortFieldNm);
-	const bool Asc = TNodeJsUtil::GetArgInt32(Args, 1, 0) > 0;
+
+	bool Asc = false;
+	if (Args.Length() > 1) {
+		QmAssertR(TNodeJsUtil::IsArgBool(Args, 1) || TNodeJsUtil::IsArgFlt(Args, 1), "TNodeJsRecSet::sortByField: Argument 1 expected to be bool or int!");
+		Asc = TNodeJsUtil::IsArgBool(Args, 1) ?
+				TNodeJsUtil::GetArgBool(Args, 1) :
+				TNodeJsUtil::GetArgFlt(Args, 1) > 0;
+	}
+
 	JsRecSet->RecSet->SortByField(Asc, SortFieldId);
 
 	Args.GetReturnValue().Set(Args.Holder());

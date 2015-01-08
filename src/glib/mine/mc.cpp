@@ -522,8 +522,6 @@ int THierarch::GetAncestorAtHeight(const int& LeafIdx, const double& Height) con
 
 	int AncestorIdx = LeafIdx;
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "\nHierarchy:\n%s", TStrUtil::GetStr(TempHierarchV, ",").CStr());
-
 	while (true) {
 		const int ParentIdx = TempHierarchV[AncestorIdx];
 
@@ -549,15 +547,10 @@ void THierarch::GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec
 		if (StateSubStateH[KeyId].Empty()) {
 			JoinedStateVV[i].Add(StateIdx);
 		} else {
-//			const TIntV& SubStateV = StateSubStateH.GetDat(StateIdx);
-//			for (int j = 0; j < SubStateV.Len(); j++) {
-//				JoinedStateVV[i].Add(SubStateV[j]);
-//			}
 			JoinedStateVV[i] = StateSubStateH[KeyId];
 		}
 
 		StateIdV[i] = StateIdx;
-//		HIdxToStateIdxH.AddDat(StateIdx, i);
 
 		i++;
 	}
@@ -714,6 +707,8 @@ void TMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64
 	for (uint64 i = 0; i < NRecs; i++) {
 		OnAddRec(StateAssignV[i], TmV[i]);
 	}
+
+//	PrintStats();
 }
 
 void TMChain::Save(TSOut& SOut) const {
@@ -923,8 +918,6 @@ TVector TCtMChain::GetStatDist() const {
 	TVector EigenVec(QMat.GetRows());
 	TNumericalStuff::GetEigenVec(JumpMat.GetT().GetMat(), 1.0, EigenVec.Vec);
 
-	EAssertR(EigenVec.Norm() != 0, "EigenVector should not have norm 0!");	// TODO O(n)
-
 	// divide the elements by q_i
 	for (int i = 0; i < QMat.GetRows(); i++) {
 		EigenVec[i] /= -QMat(i,i);
@@ -1035,6 +1028,8 @@ TFullMatrix TCtMChain::GetQMatrix(const TVec<TIntV>& JoinedStateVV) const {
 		}
 	}
 
+//	printf("\nQMatrix:\n%s\n", TStrUtil::GetStr(Result.GetMat(), ", ", "%.16f").CStr());
+
 	return Result;
 }
 
@@ -1105,19 +1100,38 @@ void TCtMChain::InitStats(const int& NStates) {
 }
 
 void TCtMChain::AbsOnAddRec(const int& StateIdx, const uint64& RecTm) {
+	// warn if times don't aren't ascending
+	if (CurrStateIdx != -1 && RecTm < PrevJumpTm) {
+		Notify->OnNotifyFmt(TNotifyType::ntWarn, "Current time larger that previous time curr: %ld, prev: %ld", RecTm, PrevJumpTm);
+	}
+
 	// update intensities
 	if (CurrStateIdx != -1 && StateIdx != CurrStateIdx) {
 		// the state has changed
-		if (PrevJumpTm != TUInt64::Mx) {
-			uint64 HoldingTm = RecTm - PrevJumpTm;
-			QMatStats[CurrStateIdx][StateIdx].Val1++;
-			QMatStats[CurrStateIdx][StateIdx].Val2 += (double) HoldingTm / TimeUnit;
+		const double Tm = (double) (RecTm - PrevJumpTm) / TimeUnit;
 
-			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated intensity: prev state: %d, curr state: %d", CurrStateIdx, StateIdx);
+		QMatStats[CurrStateIdx][StateIdx].Val1++;
+		QMatStats[CurrStateIdx][StateIdx].Val2 += Tm;
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated intensity: prev state: %d, curr state: %d, time: %.16f", CurrStateIdx, StateIdx, Tm);
+	}
+
+	if (StateIdx != CurrStateIdx) {
+		PrevJumpTm = RecTm;
+	}
+}
+
+void TCtMChain::PrintStats() const {
+	printf("\nQMatrix statistics:\n");
+
+	for (int i = 0; i < QMatStats.Len(); i++) {
+		for (int j = 0; j < QMatStats[i].Len(); j++) {
+			printf("(%ld, %.16f)", QMatStats[i][j].Val1.Val, QMatStats[i][j].Val2.Val);
+			if (j < QMatStats[i].Len()-1) {
+				printf(",");
+			}
 		}
-		PrevJumpTm = RecTm;
-	} else if (CurrStateIdx == -1) {
-		PrevJumpTm = RecTm;
+		printf("\n");
 	}
 }
 
@@ -1190,6 +1204,8 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		for (int i = 0; i < StateIdV.Len(); i++) {
 			HIdxToStateIdxH.AddDat(StateIdV[i], i);
 		}
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "HIdxToStateIdxH %s", TStrUtil::GetStr(HIdxToStateIdxH).CStr());
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "States at height %.3f:", CurrHeight);
 		for (int i = 0; i < JoinedStateVV.Len(); i++) {

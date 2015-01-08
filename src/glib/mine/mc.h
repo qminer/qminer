@@ -274,6 +274,7 @@ protected:
 	virtual void AbsOnAddRec(const int& StateIdx, const uint64& RecTm) = 0;
 
 	virtual const TStr GetType() const = 0;
+	virtual void PrintStats() const = 0;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -311,6 +312,8 @@ private:
 	TVector GetStatDist() const { return GetStatDist(GetTransitionMat()); }
 
 protected:
+	void PrintStats() const { /* TODO */ }
+
 	const TStr GetType() const { return "discrete"; }
 };
 
@@ -369,6 +372,8 @@ public:
 protected:
 	void InitStats(const int& NStates);
 	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm);
+	// prints the statistics used to build the Q-matrix
+	void PrintStats() const;
 
 	const TStr GetType() const { return "continuous"; }
 };
