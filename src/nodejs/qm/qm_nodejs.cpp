@@ -1317,8 +1317,9 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	/*exports->Set(v8::String::NewFromUtf8(Isolate, "store"),
-		tpl->GetFunction());*/
+	// TODO ifndef include qmmodule!
+	exports->Set(v8::String::NewFromUtf8(Isolate, "store"),
+		tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
@@ -1372,6 +1373,10 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 	
+	// check if field is null
+	if (Rec.IsFieldNull(FieldId)) {
+		return v8::Null(Isolate);
+	}
 	// not null, get value
 	const TQm::TFieldDesc& Desc = Rec.GetStore()->GetFieldDesc(FieldId);
 	if (Desc.IsInt()) {
