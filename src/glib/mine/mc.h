@@ -144,10 +144,72 @@ public:
 	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
 };
 
+class TGroupAverage {
+public:
+	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
+};
+
+class TCompleteLink {
+public:
+	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
+};
+
+class TSingleLink {
+public:
+	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
+};
+
+template <class TLink>
 class TAggClust {
 public:
-	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV);
+	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
+		const int NInst = X.GetCols();
+
+		printf("%s\n\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
+
+//		TFullMatrix X1 = X;	// copy
+
+		TFullMatrix ClustDistMat = TEuclDist::GetDist2(X,X);
+		TVector ItemCountV = TVector::Ones(NInst);
+
+		for (int k = 0; k < NInst-1; k++) {
+			// find active <i,j> with minimum distance
+			int MnI = -1;
+			int MnJ = -1;
+			double MnDist = TFlt::PInf;
+
+			// find clusters with min distance
+			for (int i = 0; i < NInst; i++) {
+				if (ItemCountV[i] == 0.0) { continue; }
+
+				for (int j = i+1; j < NInst; j++) {
+					if (i == j || ItemCountV[j] == 0.0) { continue; }
+
+					if (ClustDistMat(i,j) < MnDist) {
+						MnDist = ClustDistMat(i,j);
+						MnI = i;
+						MnJ = j;
+					}
+				}
+			}
+
+			double Dist = sqrt(MnDist < 0 ? 0 : MnDist);
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Merging clusters %d, %d, distance: %.3f", MnI, MnJ, Dist);
+			// merge
+			MergeV.Add(TIntIntFltTr(MnI, MnJ, Dist));
+
+			TLink::JoinClusts(ClustDistMat, ItemCountV, MnI, MnJ);
+
+			// update counts
+			ItemCountV[MnI] = ItemCountV[MnI] + ItemCountV[MnJ];
+			ItemCountV[MnJ] = 0;
+		}
+	}
 };
+
+typedef TAggClust<TGroupAverage> TGaAggClust;
+typedef TAggClust<TCompleteLink> TClAggClust;
+typedef TAggClust<TCompleteLink> TSlAggClust;
 
 class THierarch;
 typedef TPt<THierarch> PHierarch;
@@ -184,12 +246,19 @@ public:
 
 	int GetStates() const { return HierarchV.Len(); }
 
+	int GetParentId(const int& StateId) const;
+
+	bool IsRoot(const int& StateId) const;
+	bool IsOnHeight(const int& StateId, const double& Height) const;
+	bool IsBelowHeight(const int& StateId, const double& Height) const;
+	bool IsAboveHeight(const int& StateId, const double& Height) const;
+
 	// returns the index of the state with the lowest height
 	// states with flag set to true are ignored
 	int GetLowestHeightIdx(const TBoolV& IgnoreV) const;
-	// returns all the states on the specified height
+	// returns all the states just below the specified height
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdxV) const;
-	int GetAncestorAtHeight(const int& LeafIdx, const double& Height) const;
+	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
 	// returns the height of the state
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
 
@@ -200,6 +269,8 @@ public:
 	const TFltPr& GetStateCoords(const int& StateIdx) const { return StateCoordV[StateIdx]; }
 	const TFlt& GetMxStateHeight() const { return MxHeight; }
 	void GetUniqueHeightV(TFltV& UniqueHeightV) const;
+
+	void PrintHierarch() const;
 
 private:
 	// returns a hash table with keys being the states at the specified height
@@ -341,9 +412,11 @@ public:
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
 
+	TVector GetStatDist(const TFullMatrix& QMat) const;
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
 	TVector GetStatDist() const;
+	TVector GetStatDist(const TVec<TIntV>& JoinedStateVV) const;
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
 	// which state it will jump with which probability
