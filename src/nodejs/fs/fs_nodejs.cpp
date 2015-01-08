@@ -253,6 +253,23 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 #endif
 }
 
+v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
+    // Pass file path as argument to New 
+    const int Argc = 1;
+    v8::Local<v8::Value> Argv[Argc] = { ArgFNm };
+    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+
+    TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
+    JsFIn->Wrap(Instance);
+
+    return HandleScope.Escape(Instance);
+}
+
 void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -275,23 +292,6 @@ void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
         Args.GetReturnValue().Set(Instance);
     }
-}
-
-v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
-    // Pass file path as argument to New 
-    const int Argc = 1;
-    v8::Local<v8::Value> Argv[Argc] = { ArgFNm };
-    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-
-    TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
-    JsFIn->Wrap(Instance);
-
-    return HandleScope.Escape(Instance);
 }
 
 void TNodeJsFIn::peekCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {
