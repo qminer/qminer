@@ -316,9 +316,9 @@ void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
    TWPt<TQm::TBase> Base = JsBase->Base;
    try {
-	   TStr QueryStr = "";// TNodeJsUtil::GetArgJsonStr(Args, 0);
+	   PJsonVal QueryVal = TNodeJsUtil::GetArgJson(Args, 0);
 	   // execute the query
-	   TQm::PRecSet RecSet = JsBase->Base->Search(QueryStr);
+	   TQm::PRecSet RecSet = JsBase->Base->Search(QueryVal);
 	   // return results
 	   Args.GetReturnValue().Set(TNodeJsRecSet::New(RecSet));
 	   return;
@@ -2628,7 +2628,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", _trunc);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sample", _sample);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", _shuffle);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "revers", _reverse);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "reverse", _reverse);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortById", _sortById);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByFq", _sortByFq);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortByField", _sortByField);

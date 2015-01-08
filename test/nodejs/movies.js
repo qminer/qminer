@@ -233,12 +233,12 @@ var movies_aggr = [
 	{ name: "Genres", type: "count", field: "Genres" }
 ];
 for (var i = 0; i < queries.length; i++) {
-	var res = qm.search(queries[i].query);
-	assert(null != res, "qm.search(queries[" + i + "].query)");
+	var res = base.search(queries[i].query);
+	assert(null != res, "base.search(queries[" + i + "].query)");
 	assert.equal(res.length, queries[i].records, JSON.stringify(queries[i].query));
 	// check all records exist
 	for (var j = 0; j < res.length; j++) {
-		assert(null != res[j], "qm.search(queries[" + i + "].query)[" + j + "]");
+		assert(null != res[j], "base.search(queries[" + i + "].query)[" + j + "]");
 	}
 	// joins
 	if (res.store.name == "People") {

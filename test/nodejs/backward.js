@@ -4,13 +4,14 @@ exports.addToQm = function (qm_mod) {
     qm_mod.store.prototype.addTrigger = function (trigger) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         // name is automatically generated
-        // saveJson isn't needed       
-        var streamAggr = new qm_mod.sa(this.base, {
+        // saveJson isn't needed    
+        var Callbacks = {
             onAdd: trigger.onAdd,
             saveJson: function (limit) { return {}; }
-        }, this.name);
-        if (trigger.onUpdate != undefined) streamAggr["onUpdate"] = trigger.onUpdate;
-        if (trigger.onDelete != undefined) streamAggr["onDelete"] = trigger.onDelete;
+        };
+        if (trigger.onUpdate != undefined) Callbacks["onUpdate"] = trigger.onUpdate;
+        if (trigger.onDelete != undefined) Callbacks["onDelete"] = trigger.onDelete;
+        var streamAggr = new qm_mod.sa(this.base, Callbacks, this.name);        
     }
 
     // loading data into stores
