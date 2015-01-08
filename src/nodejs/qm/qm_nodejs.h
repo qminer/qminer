@@ -535,17 +535,17 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New();
-	static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& Store, const TWPt<TQm::TStoreIter>& Iter);
+	static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& Store, const TQm::PStoreIter& Iter);
 	// C++ constructors
-	TNodeJsStoreIter() {}
-	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TWPt<TQm::TStoreIter>& _Iter) : Store(_Store), Iter(_Iter) {}
+	TNodeJsStoreIter() : JsRec(nullptr) {}
+	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) : Store(_Store), Iter(_Iter), JsRec(nullptr) {}
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	
 public:
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;	
-	TWPt<TQm::TStoreIter> Iter;
+	TQm::PStoreIter Iter;
     // placeholder for last object
 	v8::Persistent<v8::Object> RecObj;
 	TNodeJsRec* JsRec;

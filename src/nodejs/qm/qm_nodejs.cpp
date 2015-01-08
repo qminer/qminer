@@ -69,7 +69,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
 			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
 		// initialize base		
-		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, 16, 16);
+		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, Param.IndexCacheSize, Param.DefStoreCacheSize);
 		// save base		
 		TQm::TStorage::SaveBase(Base_);
 		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
@@ -3019,10 +3019,10 @@ void TNodeJsRecSet::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	const int Offset = 0;
 	
     // make sure we do not try to interpet parameters when toJSON is called by JSON.stringify
-	const bool JoinRecsP = (Args.Length() > 0) ?
-        TNodeJsUtil::IsArgBool(Args, 0) ? TNodeJsUtil::GetArgBool(Args, 0, false) : false : false;
-	const bool JoinRecFieldsP = (Args.Length() > 0) ?
-        TNodeJsUtil::IsArgBool(Args, 1) ? TNodeJsUtil::GetArgBool(Args, 1, false) : false : false;
+	const bool JoinRecsP = TNodeJsUtil::IsArg(Args, 0) ?
+		(TNodeJsUtil::IsArgBool(Args, 0) ? TNodeJsUtil::GetArgBool(Args, 0, false) : false) : false;
+	const bool JoinRecFieldsP = TNodeJsUtil::IsArg(Args, 1) ?
+		(TNodeJsUtil::IsArgBool(Args, 1) ? TNodeJsUtil::GetArgBool(Args, 1, false) : false) : false;
     // rest are always
 	const bool FieldsP = true;
 	const bool StoreInfoP = false;
@@ -3392,7 +3392,7 @@ void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
 	//	tpl->GetFunction());
 }
 
-v8::Local<v8::Object> TNodeJsStoreIter::New(const TWPt<TQm::TStore>& _Store, const TWPt<TQm::TStoreIter>& _Iter) {
+v8::Local<v8::Object> TNodeJsStoreIter::New(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
@@ -3427,7 +3427,7 @@ void TNodeJsStoreIter::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TNodeJsStoreIter* JsStoreIter = ObjectWrap::Unwrap<TNodeJsStoreIter>(Args.Holder());
 	
 	const bool NextP = JsStoreIter->Iter->Next();
-	if (JsStoreIter->JsRec == NULL && NextP) {
+	if (JsStoreIter->JsRec == nullptr && NextP) {
 		// first time, create placeholder
 		const uint64 RecId = JsStoreIter->Iter->GetRecId();
 		v8::Local<v8::Object> _RecObj = TNodeJsRec::New(JsStoreIter->Store->GetRec(RecId), 1);

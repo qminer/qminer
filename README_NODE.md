@@ -125,6 +125,7 @@ Build:
 
 	cd %QMINER_ROOT%
 	node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT%
+	node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT% --debug
 
 
 ### Running tests
