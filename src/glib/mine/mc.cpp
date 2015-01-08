@@ -357,19 +357,14 @@ TFullMatrix TEuclMds::Project(const TFullMatrix& X, const int& d) {
 	return X_d;
 }
 
-void TGroupAverage::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j) {
-	// TODO
+void TAvgLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
+	TVector NewDistV(DistMat.GetRows(), false);
+	for (int i = 0; i < DistMat.GetRows(); i++) {
+		NewDistV[i] = (DistMat(MnI, i)*ItemCountV[MnI] + DistMat(MnJ, i)*ItemCountV[MnJ]) / (ItemCountV[MnI] + ItemCountV[MnJ]);
+	}
 
-
-//	// average x_i and x_j and update counts
-//	X1.SetCol(MnI, (X1.GetCol(MnI)*ItemCountV[MnI] + X1.GetCol(MnJ)*ItemCountV[MnJ]) / (double) NewClustSize);
-//
-//
-//
-//	// update distances
-//	TVector NewDistV = TEuclDist::GetDist2(TFullMatrix(X1.GetCol(MnI)), X1);
-//	ClustDistMat.SetRow(MnI, NewDistV);
-//	ClustDistMat.SetCol(MnI, NewDistV.Transpose());
+	DistMat.SetRow(MnI, NewDistV);
+	DistMat.SetCol(MnI, NewDistV.Transpose());
 }
 
 void TCompleteLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
@@ -436,7 +431,7 @@ void THierarch::Init(const TFullMatrix& CentroidMat) {
 	NLeafs = CentroidMat.GetCols();
 
 	// create a hierarchy
-	TIntIntFltTrV MergeV;	TSlAggClust::MakeDendro(CentroidMat, MergeV, Notify);
+	TIntIntFltTrV MergeV;	TAlAggClust::MakeDendro(CentroidMat, MergeV, Notify);
 
 	Notify->OnNotify(TNotifyType::ntInfo, TStrUtil::GetStr(MergeV, ", "));
 

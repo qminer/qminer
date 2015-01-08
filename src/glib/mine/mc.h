@@ -144,7 +144,7 @@ public:
 	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
 };
 
-class TGroupAverage {
+class TAvgLink {
 public:
 	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
 };
@@ -207,7 +207,7 @@ public:
 	}
 };
 
-typedef TAggClust<TGroupAverage> TGaAggClust;
+typedef TAggClust<TAvgLink> TAlAggClust;
 typedef TAggClust<TCompleteLink> TClAggClust;
 typedef TAggClust<TCompleteLink> TSlAggClust;
 
