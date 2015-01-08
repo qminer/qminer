@@ -17,7 +17,8 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
         return TJsonVal::NewNull();
     }
     else if (Obj->IsBooleanObject()) {
-        return TJsonVal::NewBool(Obj->BooleanValue());
+		v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Obj);
+		return TJsonVal::NewBool(BoolObj->ValueOf());
     }
     else if (Obj->IsNumberObject()) {
         return TJsonVal::NewNum(Obj->NumberValue());
@@ -201,7 +202,8 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
-    return static_cast<bool>(Val->BooleanValue());
+	v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());	
+	return static_cast<bool>(BoolObj->ValueOf());
 }
 
 bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& DefVal) {
@@ -211,7 +213,8 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
-    return static_cast<bool>(Val->BooleanValue());
+	v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());
+	return static_cast<bool>(BoolObj->ValueOf());
 }
 
 bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const bool& DefVal) {
@@ -223,7 +226,8 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
             v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
             EAssertR(Val->IsBoolean(),
                      TStr::Fmt("Argument %d, property %s expected to be boolean", ArgN, Property.CStr()).CStr());
-            return static_cast<bool>(Val->BooleanValue());
+			v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());
+			return static_cast<bool>(BoolObj->ValueOf());
         }
     }
     return DefVal;
@@ -353,4 +357,24 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
 
 	return RetVal->NumberValue();
+}
+
+v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+
+	v8::Handle<v8::Context> Context = v8::Context::New(Isolate);
+	v8::Context::Scope ContextScope(Context);
+
+	v8::Local<v8::Object> JSON = Context->Global()->Get(v8::String::NewFromUtf8(Isolate, "JSON"))->ToObject();
+	v8::Local<v8::Value> FunObj = JSON->Get(v8::String::NewFromUtf8(Isolate, "stringify"));
+	v8::Local<v8::Function> Fun = v8::Local<v8::Function>::Cast(FunObj);
+
+
+	v8::TryCatch TryCatch;
+	v8::Local<v8::Value> ArgV[1] = { Json };
+	v8::Local<v8::Value> JsonStr = Fun->Call(Context->Global(), 1, ArgV);
+
+	if (JsonStr.IsEmpty()) { Isolate->ThrowException(TryCatch.Exception()); }
+	return HandleScope.Escape(JsonStr);
 }

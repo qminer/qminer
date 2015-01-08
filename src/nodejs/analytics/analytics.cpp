@@ -492,25 +492,20 @@ PJsonVal TNodeJsRecLinReg::GetParams() const {
 // Hierarchical Markov Chain model
 v8::Persistent<v8::Function> TNodeJsHMChain::constructor;
 
-TNodeJsHMChain::TNodeJsHMChain(const TMc::PHierarchCtmc& _McModel, const TQm::PFtrSpace& _FtrSpace):
-		McModel(_McModel),
-		FtrSpace(_FtrSpace) {}
+TNodeJsHMChain::TNodeJsHMChain(const TMc::PHierarchCtmc& _McModel):
+		McModel(_McModel) {}
 
-TNodeJsHMChain::TNodeJsHMChain(const TQm::PBase Base, PSIn& SIn):
-		McModel(TMc::THierarchCtmc::Load(*SIn)),
-		FtrSpace(TQm::TFtrSpace::Load(Base, *SIn)) {}
+TNodeJsHMChain::TNodeJsHMChain(PSIn& SIn):
+		McModel(TMc::THierarchCtmc::Load(*SIn)) {}
 
-v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace) {
+v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
 	const PNotify Notify = TStdNotify::New();
 
-	const TStr InStoreNm = ParamVal->GetObjStr("source");
-	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
 	const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
 	const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
-	const PJsonVal FldsJson = ParamVal->GetObjKey("fields");
 
 	// transition modelling
 	TMc::PMChain MChain;
@@ -536,7 +531,6 @@ v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, 
 		MChain = new TMc::TDtMChain(Notify);
 	}
 
-
 	// clustering
 	TMc::PClust Clust = NULL;
 
@@ -560,11 +554,11 @@ v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, 
 
 	// finish
 	TMc::PHierarchCtmc HMcModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Notify);
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(HMcModel, FtrSpace));
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(HMcModel));
 }
 
-v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, const TQm::PBase Base, PSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(Base, SIn));
+v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(SIn));
 }
 
 //v8::Local<v8::Object> TNodeJsHMChain::New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace) {
@@ -645,6 +639,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "init", _init);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
@@ -661,22 +656,20 @@ void TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 2, "Constructor expects 2 of less arguments!");
+	QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 	QmAssertR(Args.IsConstructCall(), "TNodeJsHMChain::New: Not a constructor call!");
 
 	try {
 		if (TNodeJsUtil::IsArgJson(Args, 0)) {
 			PJsonVal ArgJson = TNodeJsUtil::GetArgJson(Args, 0);
-			TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args[1]->ToObject());
-
-			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), ArgJson, JsFtrSpace->GetFtrSpace()));
+			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), ArgJson));
 		} else {
 			// load from file
-			TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject());
-			PSIn SIn = TNodeJsUtil::IsArgStr(Args, 1) ?
-					TFIn::New(TNodeJsUtil::GetArgStr(Args, 1)) : ObjectWrap::Unwrap<TNodeJsFIn>(Args[1]->ToObject())->SIn;
+			PSIn SIn = TNodeJsUtil::IsArgStr(Args, 0) ?
+					TFIn::New(TNodeJsUtil::GetArgStr(Args, 0)) :
+					ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject())->SIn;
 
-			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), JsBase->Base, SIn));
+			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), SIn));
 		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::New");
@@ -689,9 +682,34 @@ void TNodeJsHMChain::init(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
-		TNodeJsRecSet* JsRecSet = ObjectWrap::Unwrap<TNodeJsRecSet>(Args[0]->ToObject());
+		TNodeJsFltVV* JsInstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+		TNodeJsFltV* JsRecTmV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
 
-		JsMChain->InitModel(JsRecSet->RecSet);
+		TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
+		for (uint64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
+			RecTmV.Add(uint64(JsRecTmV->Vec[i]));
+		}
+
+		JsMChain->McModel->Init(JsInstanceMat->Mat, RecTmV);
+
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
+	}
+}
+
+void TNodeJsHMChain::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+		TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+//		TNod
+
+		uint64 RecTm = 0;	// TODO
+
+		JsMChain->McModel->OnAddRec(RecTm, JsFtrV->Vec);
 		Args.GetReturnValue().Set(v8::Undefined(Isolate));
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
@@ -776,32 +794,11 @@ void TNodeJsHMChain::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 
 		JsMChain->McModel->Save(*SOut);
-		JsMChain->FtrSpace->Save(*SOut);
 
 		Args.GetReturnValue().Set(v8::Undefined(Isolate));
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
 	}
-}
-
-void TNodeJsHMChain::InitModel(const TQm::PRecSet& RecSet) {
-	// generate an instance matrix
-	TFltVV InstanceVV;	FtrSpace->GetFullVV(RecSet, InstanceVV);
-
-	// generate a time vector
-	const int NRecs = RecSet->GetRecs();
-	TUInt64V RecTmV(NRecs,0);
-
-	for (int i = 0; i < NRecs; i++) {
-		RecTmV.Add(GetRecTm(RecSet->GetRec(i)));
-	}
-
-	// initialize the model
-	McModel->Init(InstanceVV, RecTmV);
-}
-
-uint64 TNodeJsHMChain::GetRecTm(const TQm::TRec& Rec) const {
-	return Rec.GetFieldTmMSecs(Rec.GetStore()->GetFieldIdV(TQm::TFieldType::oftTm)[0]);
 }
 
 ///////////////////////////////
