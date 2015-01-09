@@ -45,7 +45,7 @@ function createOnlineMetric(updateCallback) {
     return this;
 }
 
-//////////// MEAN ERROR
+//////////// MEAN ERROR (ME)
 //#- `me = evaluation.newMeanError()` -- create new (online) mean error instance.
 //#   - `me.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = me.getError()` -- returns current error `num`
@@ -65,7 +65,7 @@ exports.newMeanError = function () {
     return new createOnlineMetric(calcError);
 }
 
-//////////// MEAN ABSOLUTE ERROR
+//////////// MEAN ABSOLUTE ERROR (MAE)
 //#- `mae = evaluation.newMeanAbsoluteError()` -- create new (online) mean absolute error instance.
 //#   - `mae.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = mae.getError()` -- returns current error `num`
@@ -85,7 +85,7 @@ exports.newMeanAbsoluteError = function () {
     return new createOnlineMetric(calcError);
 }
 
-//////////// MEAN SQUARE ERROR
+//////////// MEAN SQUARE ERROR (MSE)
 //#- `mse = evaluation.newMeanSquareError()` -- create new (online) mean square error instance.
 //#   - `mse.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = mse.getError()` -- returns current error `num`
@@ -105,7 +105,7 @@ exports.newMeanSquareError = function () {
     return new createOnlineMetric(calcError);
 }
 
-//////////// ROOT MEAN ABSOLUTE ERROR
+//////////// ROOT MEAN SQUARE ERROR (RMSE)
 //#- `rmse = evaluation.newRootMeanSquareError()` -- create new (online) root mean square error instance.
 //#   - `rmse.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = rmse.getError()` -- returns current error `num`
@@ -125,7 +125,29 @@ exports.newRootMeanSquareError = function () {
     return new createOnlineMetric(calcError);
 }
 
-//////////// R SQUARED SCORE
+//////////// MEAN ABSOLUTE PERCENTAGE ERROR (MAPE)
+//#- `mape = evaluation.newMeanAbsolutePercentageError()` -- create new (online) mean absolute percentage error instance.
+//#   - `mape.update(true_num, pred_num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
+//#   - `num = mape.getError()` -- returns current error `num`
+exports.newMeanAbsolutePercentageError = function () {
+    function calcError() {
+        this.sumErr = 0;
+        this.count = 0;
+        // update function
+        this.update = function (true_num, pred_num) {           
+            if (true_num != 0) { // skip if true_num is 0, otherwise we have devision by zero in the next step.
+                var err = true_num - pred_num;
+                this.sumErr += Math.abs(err / true_num) * 100;
+            }
+            this.count++;
+            var error = this.sumErr / this.count;
+            return error;
+        }
+    }
+    return new createOnlineMetric(calcError);
+}
+
+//////////// R SQUARED SCORE (R2)
 //#- `r2 = evaluation.newRSquareScore()` -- create new (online) R Square instance. This statistic measures how successful the fit is in explaining the variation of the data. Best possible score is 1.0, lower values are worse.
 //#   - `r2.update(num)` -- updates metric with ground truth target value `true_num` and estimated target value `pred_num`.
 //#   - `num = rmse.getError()` -- returns current score `num`
