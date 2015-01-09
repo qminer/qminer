@@ -3,8 +3,9 @@
 // 
 
 var assert = require("assert")
-var la = require("../../build/Release/la.node")
+var la = require("../../build/Debug/la.node")
 
+	
 describe('Import test', function(){
     it('if import of qminer.node succeeds, return true', function(){
       assert.equal(1,1);

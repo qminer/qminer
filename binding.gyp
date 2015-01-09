@@ -161,6 +161,43 @@
                 }]
             ]
         }, {
+            # node hash table 
+            'target_name': 'ht',
+            'sources': [
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.cpp',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp'
+            ],
+            'include_dirs': [
+                'src/nodejs/ht',
+                'src/nodejs/fs',
+                'src/nodejs/',
+                'src/glib/base/',
+                'src/glib/mine/'
+            ],
+            'defines': [
+                'MODULE_INCLUDE_FS'
+            ],
+            'dependencies': [
+                'glib'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
             # node analytics module
             'target_name': 'analytics',
             'sources': [            
