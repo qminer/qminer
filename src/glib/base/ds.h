@@ -81,8 +81,7 @@ public:
   void GetVal(TVal1& _Val1, TVal2& _Val2) const {_Val1=Val1; _Val2=Val2;}
   const TVal1& GetVal1() const { return Val1;}
   const TVal2& GetVal2() const { return Val2;}
-  TStr GetStr() const {
-    return TStr("Pair(")+Val1.GetStr()+", "+Val2.GetStr()+")";}
+  TStr GetStr() const {return TStr("Pair(")+Val1.GetStr()+", "+Val2.GetStr()+")";}
 };
 
 template <class TVal1, class TVal2, class TSizeTy>
@@ -158,6 +157,8 @@ public:
   TTriple(): Val1(), Val2(), Val3(){}
   TTriple(const TTriple& Triple):
     Val1(Triple.Val1), Val2(Triple.Val2), Val3(Triple.Val3){}
+  TTriple(TTriple&& Triple):
+  	Val1(std::move(Triple.Val1)), Val2(std::move(Triple.Val2)), Val3(std::move(Triple.Val3)) {}
   TTriple(const TVal1& _Val1, const TVal2& _Val2, const TVal3& _Val3):
     Val1(_Val1), Val2(_Val2), Val3(_Val3){}
   explicit TTriple(TSIn& SIn): Val1(SIn), Val2(SIn), Val3(SIn){}
@@ -170,6 +171,14 @@ public:
   TTriple& operator=(const TTriple& Triple){
     if (this!=&Triple){Val1=Triple.Val1; Val2=Triple.Val2; Val3=Triple.Val3;}
     return *this;}
+  TTriple& operator=(TTriple&& Triple) {
+	  if (this != &Triple) {
+		std::swap(Val1, Triple.Val1);
+		std::swap(Val2, Triple.Val2);
+		std::swap(Val3, Triple.Val3);
+	  }
+	  return *this;
+  }
   bool operator==(const TTriple& Triple) const {
     return (Val1==Triple.Val1)&&(Val2==Triple.Val2)&&(Val3==Triple.Val3);}
   bool operator<(const TTriple& Triple) const {
@@ -1809,6 +1818,99 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
   }
 }
 
+///////////////////////////////
+// Linked queue
+template <class TVal, class TSizeTy = TUInt64>
+class TLinkedQueue {
+private:
+	class Node {
+	public:
+		Node* Next;
+		const TVal Val;
+
+		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+	};
+
+private:
+	Node* First;
+	Node* Last;
+	TSizeTy Size;
+
+public:
+	TLinkedQueue();
+	TLinkedQueue(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	~TLinkedQueue();
+
+	void Push(const TVal& Val);
+	TVal Pop();
+	const TVal& Peek();
+	void DelFirst();
+
+	bool Empty() const { return Len() == 0; };
+	TSizeTy Len() const { return Size; };
+};
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	Node* Curr = First;
+	while (Curr != NULL) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::~TLinkedQueue() {
+	while (!Empty()) { DelFirst(); }
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
+	TLinkedQueue<TVal, TSizeTy>::Node* Node = new TLinkedQueue<TVal, TSizeTy>::Node(NULL, Val);
+
+	if (Size++ == 0) {
+		First = Node;
+		Last = Node;
+	} else {
+		Last->Next = Node;
+		Last = Node;
+	}
+}
+
+template <class TVal, class TSizeTy>
+TVal TLinkedQueue<TVal, TSizeTy>::Pop() {
+	TVal Result = Peek();
+	DelFirst();
+	return Result;
+}
+
+template <class TVal, class TSizeTy>
+const TVal& TLinkedQueue<TVal, TSizeTy>::Peek() {
+	IAssertR(!Empty(), "Cannot peek when the queue is empty!");
+	return First->Val;
+}
+
+template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
+	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
+
+	Node* Temp = First;
+
+	if (--Size == 0) {
+		First = NULL;
+		Last = NULL;
+	} else {
+		First = First->Next;
+	}
+
+	delete Temp;
+}
+
 /////////////////////////////////////////////////
 // Below are old 32-bit implementations of TVec and other classes.
 // Old TVec takes at most 2G elements.
@@ -2182,7 +2284,7 @@ public:
 
   void CopyFrom(const TVVec<TVal, TSizeTy>& VVec);
   void AddXDim();
-  void AddYDim();
+  void AddYDim(const TSizeTy& NDims=1);
   void DelX(const TSizeTy& X);
   void DelY(const TSizeTy& Y);
 
@@ -2267,8 +2369,8 @@ void TVVec<TVal, TSizeTy>::AddXDim(){
 }
 
 template <class TVal, class TSizeTy>
-void TVVec<TVal, TSizeTy>::AddYDim(){
-  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+1);
+void TVVec<TVal, TSizeTy>::AddYDim(const TSizeTy& NDims){
+  TVVec<TVal, TSizeTy> NewVVec(XDim, YDim+NDims);
   NewVVec.CopyFrom(*this);
   *this=NewVVec;
 }

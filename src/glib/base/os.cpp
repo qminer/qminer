@@ -576,7 +576,7 @@ int CreateDirectory(const char *FNm, void *useless) {
 }
 
 int RemoveDirectory(const char *FNm) {
-  return unlink(FNm)==0;
+  return rmdir(FNm)==0;
 }
 
 #define TICKS_PER_SECOND 10000000
@@ -607,9 +607,7 @@ TTm TSysTm::GetCurUniTm(){
 
   time(&t);
   int ErrCd = gettimeofday(&tv, NULL);
-  if (ErrCd != 0) {
-    EAssert((ErrCd==0)&&(t!=-1));
-  }
+  if (ErrCd != 0) { EAssert(t!=-1); }
   gmtime_r(&t, &tms);
 
   return TTm(1900+tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_wday,
@@ -623,9 +621,7 @@ TTm TSysTm::GetCurLocTm(){
 
   time(&t);
   int ErrCd = gettimeofday(&tv, NULL);
-  if (ErrCd != 0) {
-    EAssert((ErrCd==0)&&(t!=-1));
-  }
+  if (ErrCd != 0) { EAssert(t!=-1); }
   localtime_r(&t, &tms);
 
   return TTm(1900+tms.tm_year, tms.tm_mon + 1, tms.tm_mday, tms.tm_wday,
@@ -706,9 +702,7 @@ uint TSysTm::GetMSecsFromOsStart(){
 #if defined(_POSIX_MONOTONIC_CLOCK) && (_POSIX_MONOTONIC_CLOCK != -1)
   struct timespec ts;
   int ErrCd=clock_gettime(CLOCK_MONOTONIC, &ts);
-  if (ErrCd != 0) {
-    Assert(ErrCd==0);
-  }
+  if (ErrCd != 0) { Assert(ErrCd==0); }
   return (ts.tv_sec*1000) + (ts.tv_nsec/1000000);
 #else
   FILE *f;
@@ -725,17 +719,13 @@ uint64 TSysTm::GetProcessMSecs() {
 #if defined(_POSIX_CPUTIME) && (_POSIX_CPUTIME != -1)
   struct timespec ts;
   int ErrCd=clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-  if (ErrCd != 0) {
-    Assert(ErrCd==0);
-  }
+  if (ErrCd != 0) { Assert(ErrCd==0); }
   return (ts.tv_sec*1000) + (ts.tv_nsec / 1000000);
 #else
   //#warning "CLOCK_PROCESS_CPUTIME not available; using getrusage"
   struct rusage ru;
   int ErrCd = getrusage(RUSAGE_SELF, &ru);
-  if (ErrCd != 0) {
-    EAssert(ErrCd == 0);
-  }
+  if (ErrCd != 0) { EAssert(ErrCd == 0); }
   return ((ru.ru_utime.tv_usec + ru.ru_stime.tv_usec) / 1000) +
          ((ru.ru_utime.tv_sec + ru.ru_stime.tv_sec) * 1000);
 #endif
@@ -745,9 +735,7 @@ uint64 TSysTm::GetThreadMSecs() {
 #if defined(_POSIX_THREAD_CPUTIME) && (_POSIX_THREAD_CPUTIME != -1)
   struct timespec ts;
   int ErrCd=clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
-  if (ErrCd != 0) {
-    Assert(ErrCd==0);
-  }
+  if (ErrCd != 0) { Assert(ErrCd==0); }
   return (ts.tv_sec*1000) + (ts.tv_nsec / 1000000);
 #else
   //#warning "CLOCK_THREAD_CPUTIME not available; using GetProcessMSecs()"

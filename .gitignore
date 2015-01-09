@@ -12,6 +12,12 @@
 *.la
 *.a
 
+# project files folder
+project
+
+# Autoconf
+config.log
+
 # project files from Eclipse
 .project
 .cproject
@@ -97,4 +103,8 @@ out
 /test/cpp/run-all-tests
 /test/cpp/test1.txt
 /test/cpp/test.txt
-chai
+cha
+
+.DC_Store
+autom4te.cache
+autom4te.cache

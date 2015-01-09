@@ -50,6 +50,8 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
+// Markov Chains
+#include "mc.cpp"
 
 // Signal-Processing
 #include "signalproc.cpp"

@@ -158,3 +158,33 @@ int TThread::GetCoreCount() {
 	NumCpu = sysinfo.dwNumberOfProcessors;
 	return NumCpu;
 }
+
+////////////////////////////////////////////
+// Conditional variable lock
+TCondVarLock::TCondVarLock():
+	Mutex(TMutexType::mtRecursive) {}
+
+TCondVarLock::~TCondVarLock() {
+	// pthread_cond_destroy should be called to free a condition variable that is no longer needed
+//	pthread_cond_destroy(&CondVar);
+}
+
+void TCondVarLock::Lock() {
+	Mutex.GetLock();
+}
+
+bool TCondVarLock::Release() {
+	return Mutex.Release();
+}
+
+void TCondVarLock::WaitForSignal() {
+//	pthread_cond_wait(&CondVar, &Mutex.MutexHandle);
+}
+
+void TCondVarLock::Signal() {
+//	pthread_cond_signal(&CondVar);
+}
+
+void TCondVarLock::Broadcast() {
+//	pthread_cond_broadcast(&CondVar);
+}

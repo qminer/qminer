@@ -377,7 +377,6 @@ void TMom::Def(){
       if (Vari > 0.0 && SumW > 0.0) {
         SErr=sqrt(double(Vari))/sqrt(double(SumW)); //J: This seems to ok: StdDev/sqrt(N)
       } else { SErr = Mx; } // some big number
-
     }
     // Standard-Deviation
     SDev=sqrt(double(Vari));

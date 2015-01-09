@@ -23,6 +23,7 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
+#include <thread.h>
 #include <v8.h>
 #include <typeinfo>
 #include <Snap.h>
@@ -458,6 +459,8 @@ public:
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
     void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2);
+    /// Execute JavaScript callback in this script's context
+    void Execute(v8::Handle<v8::Function> Fun, v8::Handle<v8::Value>& Arg1, v8::Handle<v8::Value>& Arg2, v8::Handle<v8::Value>& Arg3);
     /// Execute JavaScript callback in this script's context
     v8::Handle<v8::Value> ExecuteV8(v8::Handle<v8::Function> Fun, v8::Handle<v8::Object>& Arg1, v8::Handle<v8::Value>& Arg2);
     /// Execute JavaScript callback in this script's context
@@ -1229,7 +1232,18 @@ public:
 	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
-	JsDeclareFunction(getStreamAggrNames);	
+	JsDeclareFunction(getStreamAggrNames);
+
+
+	//#- `aggr = analytics.newProcessStateAggr(opts)` -- new stream aggregate that describes a process as a state machine.
+	//#		the aggregate uses hierarchical clustering to compute states and substates of the process and computes transition intensities between states on each level
+	//#		`opts` is a javascript object which must contain the following fields:
+	//#		- source: name of the input store
+	//#		- name: name of the stream aggregate
+	//#		- minRecs: the minimum number of records in a state, before the state expands (substates are created)
+	//#		- timestamp: name of the time field
+	JsDeclareFunction(newProcessStateAggr);
+
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -2067,10 +2081,16 @@ public:
 	JsDeclareTemplatedFunction(inner);
 	//#- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(plus);
+	//#- `vec = vec.plusEq(vec2)` -- Inplace sum of `vec` with `vec2`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(plusEq);
 	//#- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(minus);
+	//#- `vec = vec.minusEq(vec2)` -- Inplace difference of `vec` with `vec2`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(minusEq);
 	//#- `vec2 = vec.multiply(num)` --`vec2` is a vector obtained by multiplying vector `vec` with a scalar (number) `num`. Implemented for dense float vectors only.
 	JsDeclareTemplatedFunction(multiply);
+	//#- `vec = vec.multiplyEq(num)` -- Inplace scalar multiplication of `vec` with `num`. Implemented for dense and sparse float vectors only.
+	JsDeclareTemplatedFunction(multiplyEq);
 	//#- `vec = vec.normalize()` -- normalizes the vector `vec` (inplace operation). Implemented for dense float vectors only. Returns self.
 	JsDeclareTemplatedFunction(normalize);
 	//#- `len = vec.length` -- integer `len` is the length of vector `vec`
@@ -2130,8 +2150,11 @@ v8::Handle<v8::ObjectTemplate> TJsVec<TVal, TAux>::GetTemplate() {
 		JsRegisterFunction(TmpTemp, outer);
 		JsRegisterFunction(TmpTemp, inner);
 		JsRegisterFunction(TmpTemp, plus);
+		JsRegisterFunction(TmpTemp, plusEq);
 		JsRegisterFunction(TmpTemp, minus);
+		JsRegisterFunction(TmpTemp, minusEq);
 		JsRegisterFunction(TmpTemp, multiply);
+		JsRegisterFunction(TmpTemp, multiplyEq);
 		JsRegisterFunction(TmpTemp, normalize);
 		JsRegisterProperty(TmpTemp, length);
 		JsRegisterFunction(TmpTemp, print);
@@ -2551,8 +2574,11 @@ public:
 	JsDeclareFunction(valVec);
 	//#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
 	JsDeclareFunction(idxVec);
+    //#- `spVec = spVec.intersect(spVec2, function(a_num, b_num, idx) { ...})` -- executes given callback for each of the elements in the intersection.
+    JsDeclareFunction(intersect);
+    //#- `spVec = spVec.union(spVec2, function(a_num, b_num, idx) { ...})` -- executes given callback for each of the elements in the union.
+    JsDeclareFunction(_union);
 };
-
 
 ///////////////////////////////
 // QMiner-Sparse-Col-Matrix
@@ -2746,7 +2772,14 @@ public:
     //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-	JsDeclareFunction(getLanguageOptions);     
+	JsDeclareFunction(getLanguageOptions);
+
+	//#- `model = analytics.newCtmc(opts)` creates a new hierarchical continous time Markov chain model
+	JsDeclareFunction(newCtmc);
+	//#- `model = analytics.loadCtmc(fname)` loads a hierarchical continous time Markov chain model
+	//#- from file `fname`
+	JsDeclareFunction(loadCtmc);
+
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -2786,6 +2819,10 @@ public:
     JsDeclareProperty(dims);    
     //#- `fout = fsp.save(fout)` -- serialize feature space to `fout` output stream. Returns `fout`.
     JsDeclareFunction(save);
+
+	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
+	JsDeclareFunction(add);
+
     //#- `fsp = fsp.updateRecord(rec)` -- update feature space definitions and extractors
     //#     by exposing them to record `rec`. Returns self. For example, this can update the vocabulary
     //#     used by bag-of-words extractor by taking into account new text.
@@ -2794,14 +2831,6 @@ public:
     //#     by exposing them to records from record set `rs`. Returns self. For example, this can update 
     //#     the vocabulary used by bag-of-words extractor by taking into account new text.
 	JsDeclareFunction(updateRecords);
-	//#- `fsp = fsp.add(objJson)` -- add a feature extractor parametrized by `objJson`
-	JsDeclareFunction(add);
-	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
-    //#     features from record `rec` (e.g. words from string fields); results are returned
-    //#     as a string array
-    JsDeclareFunction(extractStrings);
-	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
-	JsDeclareFunction(getFtr);
 	//#- `spVec = fsp.ftrSpVec(rec)` -- extracts sparse feature vector `spVec` from record `rec`
     JsDeclareFunction(ftrSpVec);
     //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
@@ -2812,8 +2841,23 @@ public:
     //#- `mat = fsp.ftrColMat(rs)` -- extracts feature vectors from 
     //#     record set `rs` and returns them as columns in a matrix `mat`.
     JsDeclareFunction(ftrColMat);
+
+	//#- `name = fsp.getFtrExtractor(ftrExtractor)` -- returns the name `name` (string) of `ftrExtractor`-th feature extractor in feature space `fsp`
+	JsDeclareFunction(getFtrExtractor);
+	//#- `ftrName = fsp.getFtr(idx)` -- returns the name `ftrName` (string) of `idx`-th feature in feature space `fsp`
+	JsDeclareFunction(getFtr);
+    //#- `vec = fsp.getFtrDist()` -- returns a vector with distribution over the features
+    //#- `vec = fsp.getFtrDist(ftrExtractor)` -- returns a vector with distribution over the features for feature extractor ID `ftrExtractor`
+    JsDeclareFunction(getFtrDist);
     //#- `out_vec = fsp.filter(in_vec, ftrExtractor)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`
+    //#- `out_vec = fsp.filter(in_vec, ftrExtractor, keepOffset)` -- filter the vector to keep only elements from the feature extractor ID `ftrExtractor`.
+    //#     If `keepOffset` == `true`, then original feature ID offset is kept, otherwise the first feature of `ftrExtractor` starts with position 0.
     JsDeclareFunction(filter);
+
+	//#- `strArr = fsp.extractStrings(rec)` -- use feature extractors to extract string 
+    //#     features from record `rec` (e.g. words from string fields); results are returned
+    //#     as a string array
+    JsDeclareFunction(extractStrings);
 };
 
 ///////////////////////////////
@@ -2920,6 +2964,63 @@ public:
 	JsDeclareProperty(dim);
 	//#- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
+};
+
+class TJsProcessStateModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	// model
+	PStreamAggr Model;
+
+private:
+	typedef TJsObjUtil<TJsProcessStateModel> TJsProcessStateModelUtil;
+	TJsProcessStateModel(TWPt<TScript> Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TWPt<TBase>& Base, PJsonVal& ParamVal) {
+		return TJsProcessStateModelUtil::New(new TJsProcessStateModel(Js, Base, ParamVal)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(toJSON);
+};
+
+class TJsHierMc {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	TMc::PHierarchCtmc McModel;
+	PFtrSpace FtrSpace;
+
+private:
+	typedef TJsObjUtil<TJsHierMc> TJsHierMcUtil;
+	TJsHierMc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
+	TJsHierMc(TWPt<TScript> Js, const PFtrSpace& FtrSpace, TSIn& SIn);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace) {
+		return TJsHierMcUtil::New(new TJsHierMc(Js, ParamVal, FtrSpace)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace, TSIn& SIn) {
+		return TJsHierMcUtil::New(new TJsHierMc(Js, FtrSpace, SIn)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
+	JsDeclareFunction(init);
+	//#- `hctmc.toJSON()` -- Returns a JSON representation of the model
+	JsDeclareFunction(toJSON);
+	//#- `hctmc.futureStates(level, startState, time)` -- returns a vector of probabilities
+	//#- of future states starting from `startState` in time `time`
+	JsDeclareFunction(futureStates);
+
+	JsDeclareFunction(getTransitionModel);
+
+	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
+	JsDeclareFunction(save);
+
+private:
+	void Init(const PRecSet& RecSet);
+	uint64 GetRecTm(const TRec& Rec) const;
 };
 
 ///////////////////////////////
@@ -3057,7 +3158,6 @@ public:
 	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
 	JsDeclareFunction(getParagraphs);
 };
-
 
 ///////////////////////////////
 // QMiner-JavaScript-GeoIP
@@ -3730,7 +3830,7 @@ private:
 
 	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {		
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
 		return TJsSnapUtil::New(new TJsSnap(Js));
 	}
 
@@ -3751,12 +3851,9 @@ public:
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
+	JsDeclareFunction(evolutionJson);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
-	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
-	JsDeclareFunction(reebSimplify);
-	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
-	JsDeclareFunction(reebRefine);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
 	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
@@ -3793,6 +3890,10 @@ private:
 		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
 	};
 
+	TJsGraph(TWPt<TScript> _Js, TPt<T> _graph) : Js(_Js) {
+		Graph = _graph;
+	};
+
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
@@ -3803,6 +3904,13 @@ public:
 	}
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TPt<T> _graph, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, _graph));
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
 		obj->SetHiddenValue(key, value);
@@ -3971,7 +4079,6 @@ public:
 };
 
 
-
 //#
 //# ## Other libraries
 //#
@@ -4066,6 +4173,10 @@ public:
 	bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV");
+	}
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;

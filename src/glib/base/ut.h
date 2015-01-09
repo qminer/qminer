@@ -243,7 +243,7 @@ public:
     else {throw TExcept::New(MsgStr, LocStr);}}
 };
 
-// Needed for SNAP examples
+// Needed for SNAP examples (otherwise please avoid using these)
 #define Try try {
 #define Catch } catch (PExcept Except){ErrNotify(Except->GetMsgStr());}
 #define CatchFull } catch (PExcept Except){ErrNotify(Except->GetStr());}

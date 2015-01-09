@@ -3,7 +3,7 @@
 #
 
 all:
-	make -C libuv
+	make -C libuv	
 	./v8-checkout.sh
 
 clean:
