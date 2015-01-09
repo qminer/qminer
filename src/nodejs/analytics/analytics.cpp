@@ -166,7 +166,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		QmAssertR(Model->Model != nullptr, "svm.predict: SVM not initialized");
 
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::ClassId)) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 			TNodeJsVec<TFlt, TAuxFltV>* Vec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
 			const double Res = Model->Model->Predict(Vec->Vec);
 			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
@@ -375,7 +375,7 @@ void TNodeJsRecLinReg::learn(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	// get feature vector
-	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::ClassId),
+	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()),
 		"RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)");
 	QmAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "Argument 1 should be float!");
 
@@ -403,7 +403,7 @@ void TNodeJsRecLinReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	v8::HandleScope HandleScope(Isolate);
 
 	// get feature vector
-	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::ClassId),
+	QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()),
 		"RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)");
 
 	try {

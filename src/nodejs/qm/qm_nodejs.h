@@ -688,7 +688,7 @@ private:
 		// Cast as FltV and copy result
 		v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 
-    	QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::ClassId), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
+		QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::GetClassId()), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
 
     	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
 		// cast it to js vector and copy internal vector
