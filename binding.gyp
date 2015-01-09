@@ -240,7 +240,41 @@
                     }
                 }]
             ]
-        }, {
+        },{
+            # node stat module
+            'target_name': 'stat',
+            'sources': [
+                'src/nodejs/stat/stat_nodejs.h',
+                'src/nodejs/stat/stat_nodejs.cpp',
+                'src/nodejs/la/la_nodejs.h',
+                'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/nodeutil.h',
+                'src/nodejs/nodeutil.cpp'
+            ],
+            'include_dirs': [
+		'src/glib/base/',
+		'src/glib/mine/',
+            ],
+            'defines': [
+                'MODULE_INCLUDE_LA'
+            ],
+            'dependencies': [
+                'glib'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        },{
             # qminer library
             'target_name': 'qminer',
             'type': 'static_library',

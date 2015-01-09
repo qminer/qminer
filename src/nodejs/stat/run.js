@@ -1,5 +1,5 @@
-var la = require('./build/Debug/la.node');
-var stat = require('./build/Debug/stat.node');
+var la = require('../../../build/Debug/la.node');
+var stat = require('../../../build/Debug/stat.node');
 
 /////////////////////////
 // Return a new vector or a new matrix 
