@@ -1,4 +1,5 @@
 var la = require('../../../build/Release/la.node');
+var fs = require('../../../build/Release/fs.node');
 
 ///////////////////////////
 // Return a new vector or a new matrix 
@@ -143,6 +144,13 @@ var x2 = la.newVector([4, 5, 6]);
 
 var M12 = x1.outer(x2);
 console.log(M12.toString());
+var fout = fs.openWrite("test-mat.bin");
+M12.save(fout);
+fout.close();
+var M12_x = new la.matrix();
+M12_x.load(fs.openRead("test-mat.bin"));
+console.log(M12_x.toString());
+console.log(" ==== ");
 
 console.log(M12.transpose().toString());
 console.log(" *** ");
@@ -164,7 +172,6 @@ spMatrix.print();
 
 console.log("x2.toMat().toString() = [" + x2.toMat().toString() + "]");
 
-var fs = require('../../../build/Release/fs.node');
 var v = la.newVec([1,2,3,4,5]);
 console.log("v: " + v.toString());
 
