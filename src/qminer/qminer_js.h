@@ -1922,8 +1922,18 @@ public:
 	JsDeclareFunction(svd);
 	//#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 	JsDeclareFunction(qr);
-    //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-    //JsDeclareFunction(loadIntVec);
+	//# - `num = la.mean(vec)` - returns mean `num` of vector `vec`.
+	//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`. 1 is col mean, 2 is row mean.
+	JsDeclareFunction(mean);
+    //# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+	//# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
+    JsDeclareFunction(std);
+	//# - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
+	//# - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	//# - `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	JsDeclareFunction(zscore);
+	//JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 

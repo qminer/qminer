@@ -52,7 +52,7 @@ Resampled.addTrigger({
         // the new record, and store this for evaluation later on.
         val.Prediction = linreg.predict(ftrSpace.ftrVec(val))
         // Get the id of the record from a minute ago.
-        var trainRecId = Resampled.getStreamAggr("delay").val.last;
+        var trainRecId = Resampled.getStreamAggr("delay").val.oldest.$id;
         // Update the model, once we have at leats 1 minute worth of data
         if (trainRecId > 0) { linreg.learn(ftrSpace.ftrVec(Resampled[trainRecId]), val.Value); }
         // Get the current value and compare against prediction for a minute ago
@@ -79,6 +79,10 @@ while (!fin.eof) {
     }
 }
 
+var fout = fs.openAppend("./sandbox/timeseries/test")
 // Start console
 console.say("Interactive mode: empty line to release");
 console.start();
+
+fout.flush();
+fout.close();
