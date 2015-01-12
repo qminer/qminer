@@ -162,7 +162,7 @@ private:
     //#- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
     JsDeclareFunction(subVec);
     //#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
-    //// JsDeclGetSetIndexedProperty(indexGet, indexSet);
+    JsDeclareSetIndexedProperty(indexGet, indexSet);
     //#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
     //#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
     JsDeclareFunction(put);
@@ -439,7 +439,7 @@ public:
     //#- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
     JsDeclareFunction(put);
     //#- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
-    ////(TODO)JsDeclGetSetIndexedProperty(indexGet, indexSet);
+    JsDeclareSetIndexedProperty(indexGet, indexSet);
     //#- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
     JsDeclareFunction(push);
     //#- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
@@ -540,6 +540,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
 
     // Properties 
+    tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 
     // This has to be last, otherwise the properties won't show up on the
@@ -680,8 +681,29 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
     }
 }
 
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::indexGet(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Info.Holder());
+    EAssertR(Index < static_cast<uint32_t>(JsVec->Vec.Len()), "Index out of bounds.");
+    Info.GetReturnValue().Set(TAux::GetObjVal(JsVec->Vec[Index]));
+}
+
+template<typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Info.Holder());
+    EAssertR(Index < static_cast<uint32_t>(JsVec->Vec.Len()), "Index out of bounds.");
+    JsVec->Vec[Index] = TAux::CastVal(Value);
+    Info.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
 // Returns the sum of the vectors elements (only make sense for numeric values) 
-template <class TVal, class TAux>
+template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
