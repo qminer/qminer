@@ -131,23 +131,24 @@ private:
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-class TNodeJsHMChain : public node::ObjectWrap {
+class TNodeJsHMChain : public node::ObjectWrap, public TMc::OnStateChangedCallback {
 	friend class TNodeJsUtil;
 private:
 	static v8::Persistent <v8::Function> constructor;
 
 	TMc::PHierarchCtmc McModel;
 
+	v8::Persistent<v8::Function> StateChangedCallback;
+
 	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel);
 	TNodeJsHMChain(PSIn& SIn);
+
+	~TNodeJsHMChain() { StateChangedCallback.Reset(); }
 
 	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
 	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
 
 public:
-//	static v8::Local<v8::Object> New(const PJsonVal& ParamVal, const TQm::PFtrSpace& FtrSpace);
-//	static v8::Local<v8::Object> New(const TQm::PBase Base, PSIn& SIn);
-
 	static void Init(v8::Handle<v8::Object> exports);
 
 	//#- `hmc = new analytics.HMarkovChain(config, ftrSpace)` -- Creates a new model.
@@ -155,19 +156,32 @@ public:
 	//#- `hmc = new analytics.HMarkovChain(base, fin)` -- Loads the model from input stream `fin`.
 	JsDeclareFunction(New);
 
-	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
+	//#- `hmc.init(recSet)` -- Initializes the model with the provided record set.
 	JsDeclareFunction(init);
+	//#- `hmc.update(ftrVec, recTm)`
 	JsDeclareFunction(update);
-	//#- `hctmc.toJSON()` -- Returns a JSON representation of the model
+	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
 	JsDeclareFunction(toJSON);
-	//#- `hctmc.futureStates(level, startState, time)` -- returns a vector of probabilities
-	//#- of future states starting from `startState` in time `time`
+	//#- `hmc.futureStates(level, startState[, time])` -- returns a vector of probabilities
+	//#- of future states starting from `startState` in time `time`.
+	//#- If time is not specified it returns the most likely next states.
 	JsDeclareFunction(futureStates);
 
 	JsDeclareFunction(getTransitionModel);
+	//#- `currStateV = hmc.getCurrStates()` -- returns the current states through the hierarchy
+	JsDeclareFunction(currStates);
+	//#- `coords = hmc.fullCoords(stateId)` -- returns the coordinates of the state
+	JsDeclareFunction(fullCoords);
+	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
+	JsDeclareFunction(onStateChanged);
 
-	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
+	//#- `hmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
+
+	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
+
+private:
+	void InitCallbacks();
 };
 
 #endif /* ANALYTICS_H_ */

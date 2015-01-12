@@ -174,6 +174,8 @@ public:
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
+    /// Executes the function with the specified argument
+	static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
 
     /// Create a new Javascript instance wrapped by the wrapper class
     template <class TWrap>

@@ -59,6 +59,7 @@ public:
 	virtual TFullMatrix Apply(const TFullMatrix& X, TIntV& AssignV, const int& MaxIter=10000) = 0;
 
 	int GetClusts() const { return CentroidMat.GetCols(); }
+	int GetDim() const { return CentroidMat.GetRows(); }
 	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
 
 	// assign instances to centroids
@@ -74,14 +75,16 @@ public:
 	// centroids. The input vector x should be a column vector
 	TVector GetDistVec(const TVector& x) const;
 	// returns the distance from the cluster centroid to the point
-	double GetDist(const int& CentroidIdx, const TVector& Pt) const;
+	double GetDist(const int& CentroidId, const TVector& Pt) const;
 
+	TVector GetCentroid(const int& CentroidId) const;
+	TVector GetJoinedCentroid(const TIntV& ClustIdV) const;
 
 	// returns the means distance of all the points assigned to centroid CentroidIdx
 	// to that centroid
-	double GetMeanPtCentDist(const int& CentroidIdx) const;
+	double GetMeanPtCentDist(const int& CentroidId) const;
 	// returns the number of points in the cluster
-	uint64 GetClustSize(const int& ClustIdx) const;
+	uint64 GetClustSize(const int& ClustId) const;
 
 protected:
 	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
@@ -246,9 +249,14 @@ public:
 
 	int GetStates() const { return HierarchV.Len(); }
 
+	static bool IsRoot(const int& StateId, const TIntV& HierarchV);
+	static TInt& GetParentId(const int& StateId, TIntV& HierarchV) { return HierarchV[StateId]; }
+	static int GetParentId(const int& StateId, const TIntV& HierarchV) { return HierarchV[StateId]; }
+	static int GetGrandParentId(const int& StateId, const TIntV& HierarchV) { return GetParentId(GetParentId(StateId, HierarchV), HierarchV); }
 	int GetParentId(const int& StateId) const;
 
 	bool IsRoot(const int& StateId) const;
+	bool IsLeaf(const int& StateId) const;
 	bool IsOnHeight(const int& StateId, const double& Height) const;
 	bool IsBelowHeight(const int& StateId, const double& Height) const;
 	bool IsAboveHeight(const int& StateId, const double& Height) const;
@@ -259,12 +267,16 @@ public:
 	// returns all the states just below the specified height
 	void GetStatesAtHeight(const double& Height, TIntSet& StateIdxV) const;
 	int GetAncestorAtHeight(const int& LeafId, const double& Height) const;
+	// fills the vector with IDs of the ancestors of the given state
+	void GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
 	// returns the height of the state
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
 
 	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
 	// and sets of their leafs into JoinedStateVV
 	void GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec<TIntV>& JoinedStateVV) const;
+	// fills the vector with leaf descendants
+	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
 
 	const TFltPr& GetStateCoords(const int& StateIdx) const { return StateCoordV[StateIdx]; }
 	const TFlt& GetMxStateHeight() const { return MxHeight; }
@@ -283,7 +295,7 @@ private:
 
 
 	// for each state returns the number of leafs it's subtree has
-	void GetSuccesorCountV(TIntV& SuccesorCountV) const;
+	void GetLeafSuccesorCountV(TIntV& LeafCountV) const;
 	// computes the coordinates (in 2D) of each state
 	void ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NStates);
 };
@@ -299,7 +311,7 @@ public:
 	friend class TPt<TMChain>;
 protected:
 	int NStates;
-	int CurrStateIdx;
+	int CurrStateId;
 
 	PNotify Notify;
 
@@ -315,7 +327,7 @@ public:
 	// loads the model from the output stream
 	static PMChain Load(TSIn& SIn);
 
-	void OnAddRec(const int& StateIdx, const uint64& RecTm);
+	void OnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats=true);
 
 	// initializes the markov chain
 	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV);
@@ -323,7 +335,7 @@ public:
 	// returns the total number of stats in the system
 	int GetStates() const { return NStates; };
 
-	int GetCurrStateIdx() const { return CurrStateIdx; };
+	int GetCurrStateId() const { return CurrStateId; };
 
 	virtual TVector GetStateSizeV(const TVec<TIntV>& JoinedStateVV) const = 0;
 
@@ -331,18 +343,18 @@ public:
 
 	// returns the most likely future states, excluding the current state,
 	// along with probabilities of going into those states
-	virtual void GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const int& CurrState, const int& NFutStates, TIntV& FutStateIdV, TFltV& FutStateProbV) const = 0;
+	virtual void GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const = 0;
 	// get future state probabilities for all the states for a fixed time in the future
 	virtual TFullMatrix GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const double& Tm) const = 0;
 	// get future state probabilities for a fixed time in the future
-	TVector GetFutureProbV(const TVec<TIntV>& JoinedStateVV, const int& StateIdx, const double& Tm) const { return GetFutureProbMat(JoinedStateVV, Tm).GetRow(StateIdx); };
+	void GetFutureProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV, const int& StateId, const double& Tm, TIntFltPrV& StateIdProbV) const;
 
 	virtual TFullMatrix GetModel(const TVec<TIntV>& JoinedStateVV) const = 0;
 
 protected:
 	// initializes the statistics
 	virtual void InitStats(const int& NStates) = 0;
-	virtual void AbsOnAddRec(const int& StateIdx, const uint64& RecTm) = 0;
+	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) = 0;
 
 	virtual const TStr GetType() const = 0;
 	virtual void PrintStats() const = 0;
@@ -370,12 +382,12 @@ public:
 	TFullMatrix GetModel(const TVec<TIntV>& JoinedStateVV) const { return GetTransitionMat(JoinedStateVV); };
 
 	// returns the most likely future states excluding the current state
-	void GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const int& CurrState, const int& NFutStates, TIntV& FutStateIdV, TFltV& FutStateProbV) const;
+	void GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 	// get future state probabilities for all the states for a fixed number of states in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const double& TimeSteps) const;
 protected:
 	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm);
+	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
 
 private:
 	TFullMatrix GetTransitionMat() const;
@@ -439,16 +451,22 @@ public:
 
 	TFullMatrix GetModel(const TVec<TIntV>& JoinedStateVV) const { return GetQMatrix(JoinedStateVV); }
 
-	void GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const int& CurrState, const int& NFutStates, TIntV& FutStateIdV, TFltV& FutStateProbV) const;
+	void GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 	// get future state probabilities for all the states for a fixed time in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const double& Tm) const;
 protected:
 	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm);
+	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
 	// prints the statistics used to build the Q-matrix
 	void PrintStats() const;
 
 	const TStr GetType() const { return "continuous"; }
+};
+
+class OnStateChangedCallback {
+public:
+	virtual ~OnStateChangedCallback() {}
+	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
 };
 
 class THierarchCtmc;
@@ -463,11 +481,15 @@ private:
     PMChain MChain;
     PHierarch Hierarch;
 
+    OnStateChangedCallback* StateChangedCallback;
+
     PNotify Notify;
 
 public:
     THierarchCtmc();
     THierarchCtmc(const PClust& Clust, const PMChain& MChain, const PHierarch& Hierarch, const PNotify& Notify=TNullNotify::New());
+
+    ~THierarchCtmc() { SetOnStateChangedCallback(nullptr); }
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
@@ -479,17 +501,26 @@ public:
 
 	// returns the probabilities of future states at time Tm, on the specified level
 	// starting from the specified state
-	void GetFutStateProbs(const double& Height, const int& StartState, const double& Tm, TFltV& ProbV) const;
+	void GetFutStateProbV(const double& Height, const int& StateId, const double& Tm, TIntFltPrV& StateIdProbPrV) const;
+	// returns a distribution of probabilities of the next states
+	void GetNextStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
 
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;
+
+	void GetCurrStateAncestry(TIntFltPrV& StateIdHeightPrV) const;
+
+	// returns the centroid of the given state
+	void GetCentroid(const int& StateId, TFltV& FtrV) const;
 
 	// initializes the model
 	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
 	void Init(TFltVV& X, const TUInt64V& RecTmV) { Init(TFullMatrix(X, true), RecTmV); }
 
-	void OnAddRec(const uint64 RecTm, const TFltV& Rec) { /*TODO*/ }
+	void OnAddRec(const uint64 RecTm, const TFltV& Rec);
 
     int GetStates() const { return Hierarch->GetStates(); }
+
+    void SetOnStateChangedCallback(OnStateChangedCallback* Callback);
 };
 
 }

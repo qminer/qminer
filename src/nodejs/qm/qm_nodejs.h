@@ -776,6 +776,9 @@ public:
     JsDeclareFunction(ftrSpVec);
     //#- `vec = fsp.ftrVec(rec)` -- extracts feature vector `vec` from record  `rec`
     JsDeclareFunction(ftrVec);
+    //#- `vec = fsp.invFtrVec(ftrVec)` -- performs the inverse operation of ftrVec, returns the results in
+    //#- an array
+	JsDeclareFunction(invFtrVec);
     //#- `spMat = fsp.ftrSpColMat(rs)` -- extracts sparse feature vectors from
     //#     record set `rs` and returns them as columns in a sparse matrix `spMat`.
 	JsDeclareFunction(ftrSpColMat);

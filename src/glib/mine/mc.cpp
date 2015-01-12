@@ -81,6 +81,25 @@ double TClust::GetDist(const int& CentroidIdx, const TVector& Pt) const {
 	return CentroidMat.GetCol(CentroidIdx).EuclDist(Pt);
 }
 
+TVector TClust::GetCentroid(const int& CentroidId) const {
+	return CentroidMat.GetCol(CentroidId);
+}
+
+TVector TClust::GetJoinedCentroid(const TIntV& StateIdV) const {
+	TVector Result(GetDim());
+
+	double TotalSize = 0;
+	for (int i = 0; i < StateIdV.Len(); i++) {
+		const int CentroidIdx = StateIdV[i];
+		const uint64 CentroidSize = GetClustSize(CentroidIdx);
+
+		Result += GetCentroid(CentroidIdx)*CentroidSize;
+		TotalSize += CentroidSize;
+	}
+
+	return Result /= TotalSize;
+}
+
 double TClust::GetMeanPtCentDist(const int& CentroidIdx) const {
 	EAssertR(CentroidIdx < GetClusts(), "TFullKMeans::GetMeanPtCentDist: Invalid centroid index: " + CentroidIdx);
 	return CentroidDistStatV[CentroidIdx].Val2 / CentroidDistStatV[CentroidIdx].Val1;
@@ -469,12 +488,20 @@ void THierarch::Init(const TFullMatrix& CentroidMat) {
 	ComputeStateCoords(CentroidMat, NStates);
 }
 
+bool THierarch::IsRoot(const int& StateId, const TIntV& HierarchV) {
+	return GetParentId(StateId, HierarchV) == StateId;
+}
+
 int THierarch::GetParentId(const int& StateId) const {
-	return HierarchV[StateId];
+	return GetParentId(StateId, HierarchV);
 }
 
 bool THierarch::IsRoot(const int& StateId) const {
-	return GetParentId(StateId) == StateId;
+	return IsRoot(StateId, HierarchV);
+}
+
+bool THierarch::IsLeaf(const int& StateId) const {
+	return StateId < NLeafs;
 }
 
 bool THierarch::IsOnHeight(const int& StateId, const double& Height) const {
@@ -531,6 +558,15 @@ int THierarch::GetAncestorAtHeight(const int& StateId, const double& Height) con
 	return AncestorId;
 }
 
+void THierarch::GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const {
+	int AncestorId = StateId;
+
+	do {
+		StateIdHeightPrV.Add(TIntFltPr(AncestorId, GetStateHeight(AncestorId)));
+		AncestorId = GetParentId(AncestorId);
+	} while (!IsRoot(AncestorId));
+}
+
 void THierarch::GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec<TIntV>& JoinedStateVV) const {
 	TIntIntVH StateSubStateH;	GetAncSuccH(Height, StateSubStateH);
 
@@ -554,6 +590,37 @@ void THierarch::GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec
 	}
 }
 
+void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV) const {
+	if (IsLeaf(TargetStateId)) {
+		DescendantV.Add(TargetStateId);
+		return;
+	}
+
+	const int NStates = HierarchV.Len();
+
+	TIntV TempHierarchV(HierarchV);
+
+	// for each state compute the oldest ancestor until you hit the target state or root
+	bool Change;
+	do {
+		Change = false;
+
+		for (int LeafId = 0; LeafId < NStates; LeafId++) {
+			if (GetParentId(LeafId, TempHierarchV) != TargetStateId && !IsRoot(GetParentId(LeafId, TempHierarchV), TempHierarchV)) {
+				GetParentId(LeafId, TempHierarchV) = GetGrandParentId(LeafId, TempHierarchV);
+				Change = true;
+			}
+		}
+	} while (Change);
+
+	// take only the leafs with the target ancestor
+	for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
+		if (GetParentId(LeafId, TempHierarchV) == TargetStateId) {
+			DescendantV.Add(LeafId);
+		}
+	}
+}
+
 void THierarch::GetUniqueHeightV(TFltV& UniqueHeightV) const {
 	const int NStates = GetStates();
 
@@ -564,6 +631,8 @@ void THierarch::GetUniqueHeightV(TFltV& UniqueHeightV) const {
 			UsedHeightSet.AddKey(StateHeightV[i]);
 		}
 	}
+
+	UniqueHeightV.Sort(true);	// sort ascending
 }
 
 void THierarch::PrintHierarch() const {
@@ -621,13 +690,13 @@ int THierarch::GetOldestAncestIdx(const int& StateIdx) const {
 	return AncestIdx;
 }
 
-void THierarch::GetSuccesorCountV(TIntV& SuccesorCountV) const {
+void THierarch::GetLeafSuccesorCountV(TIntV& LeafCountV) const {
 	const int NStates = GetStates();
 
-	SuccesorCountV.Gen(NStates, NStates);
+	LeafCountV.Gen(NStates, NStates);
 
 	for (int i = 0; i < NLeafs; i++) {
-		SuccesorCountV[i] = 1;
+		LeafCountV[i] = 1;
 	}
 
 	TIntV TempHierarchV(HierarchV);
@@ -636,15 +705,16 @@ void THierarch::GetSuccesorCountV(TIntV& SuccesorCountV) const {
 	do {
 		Change = false;
 
-		for (int i = 0; i < NLeafs; i++) {
-			const int AncestorIdx = TempHierarchV[i];
-			const int LeafWeight = SuccesorCountV[i];
-			SuccesorCountV[AncestorIdx] += LeafWeight;
+		for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
+			const int AncestorId = GetParentId(LeafId, TempHierarchV);
+			const int LeafWeight = LeafCountV[LeafId];
+			LeafCountV[AncestorId] += LeafWeight;
 		}
 
-		for (int i = 0; i < NLeafs; i++) {
-			if (TempHierarchV[i] != TempHierarchV[TempHierarchV[i]]) {
-				TempHierarchV[i] = TempHierarchV[TempHierarchV[i]];
+		for (int LeafId = 0; LeafId < NLeafs; LeafId++) {
+			// check if the parent is root
+			if (!IsRoot(GetParentId(LeafId, TempHierarchV), TempHierarchV)) {
+				GetParentId(LeafId, TempHierarchV) = GetGrandParentId(LeafId, TempHierarchV);
 				Change = true;
 			}
 		}
@@ -662,7 +732,7 @@ void THierarch::ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NS
 
 	// first find out how many ancestors each state has, so you can weight
 	// the childs coordinates appropriately
-	TIntV SuccesorCountV;	GetSuccesorCountV(SuccesorCountV);
+	TIntV SuccesorCountV;	GetLeafSuccesorCountV(SuccesorCountV);
 
 	TIntV TempHierarchV(HierarchV);
 
@@ -690,16 +760,16 @@ void THierarch::ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NS
 // Abstract Markov Chain
 TMChain::TMChain(const PNotify& _Notify):
 		NStates(-1),
-		CurrStateIdx(-1),
+		CurrStateId(-1),
 		Notify(_Notify) {}
 
 TMChain::TMChain(TSIn& SIn):
 		NStates(0),
-		CurrStateIdx(-1),
+		CurrStateId(-1),
 		Notify(nullptr) {
 
 	NStates = TInt(SIn);
-	CurrStateIdx = TInt(SIn);
+	CurrStateId = TInt(SIn);
 
 	// FIXME Notify should be read somehow
 	Notify = TStdNotify::New();
@@ -723,7 +793,7 @@ void TMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64
 void TMChain::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	TInt(NStates).Save(SOut);
-	TInt(CurrStateIdx).Save(SOut);
+	TInt(CurrStateId).Save(SOut);
 }
 
 PMChain TMChain::Load(TSIn& SIn) {
@@ -738,11 +808,25 @@ PMChain TMChain::Load(TSIn& SIn) {
 	}
 }
 
-void TMChain::OnAddRec(const int& StateIdx, const uint64& RecTm) {
+void TMChain::OnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) {
 	// call child method
-	AbsOnAddRec(StateIdx, RecTm);
+	AbsOnAddRec(StateId, RecTm, UpdateStats);
 	// set current state
-	CurrStateIdx = StateIdx;
+	CurrStateId = StateId;
+}
+
+void TMChain::GetFutureProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV,
+		const int& StateId, const double& Tm, TIntFltPrV& StateIdProbV) const {
+
+	const int StateIdx = StateIdV.SearchForw(StateId);
+
+	EAssertR(StateIdx >= 0, "TMChain::GetFutureProbV: Could not find target state!");
+
+	TVector ProbV = GetFutureProbMat(JoinedStateVV, Tm).GetRow(StateIdx);
+
+	for (int i = 0; i < StateIdV.Len(); i++) {
+		StateIdProbV.Add(TIntFltPr(StateIdV[i], ProbV[i]));
+	}
 }
 
 /////////////////////////////////////////////////////////////////
@@ -796,11 +880,15 @@ TFullMatrix TDtMChain::GetTransitionMat(const TVec<TIntV>& JoinedStateVV) const 
 	return Result;
 }
 
-void TDtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const int& CurrState, const int& NFutStates,
-		TIntV& FutStateIdV, TFltV& FutStateProbV) const {
-	const int NFStates = TMath::Mn(NFutStates, JoinedStateVV.Len()-1);
+void TDtMChain::GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV,
+		const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const {
 
-	TVector ProbVec = GetTransitionMat(JoinedStateVV).GetRow(CurrState);
+	const int NFStates = TMath::Mn(NFutStates, JoinedStateVV.Len()-1);
+	const int StateIdx = StateIdV.SearchForw(StateId);
+
+	EAssertR(StateIdx >= 0, "TDtMChain::GetNextStateProbV: Could not find target state!");
+
+	TVector ProbVec = GetTransitionMat(JoinedStateVV).GetRow(StateIdx);
 
 	// TODO can be optimized
 	TIntSet TakenIdxSet;
@@ -811,7 +899,7 @@ void TDtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const in
 		MxProb = TFlt::Mn;
 		MxIdx = -1;
 		for (int j = 0; j < ProbVec.Len(); j++) {
-			if (j != CurrState && !TakenIdxSet.IsKey(j) && ProbVec[j] > MxProb) {
+			if (j != StateIdx && !TakenIdxSet.IsKey(j) && ProbVec[j] > MxProb) {
 				MxProb = ProbVec[j];
 				MxIdx = j;
 			}
@@ -819,13 +907,14 @@ void TDtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const in
 
 		// if we exclude the current state than the probability that j will be the future state
 		// is sum_{k=0}^{inf} p_{ii}^k*P_{ij} = p_{ij} / (1 - p_{ii})
-		const double Prob = ProbVec[MxIdx] / (1 - ProbVec[CurrState]);
+		const double Prob = ProbVec[MxIdx] / (1 - ProbVec[StateIdx]);
 
 		if (Prob <= 0) { break; }
 
 		TakenIdxSet.AddKey(MxIdx);
-		FutStateIdV.Add(MxIdx);
-		FutStateProbV.Add(ProbVec[MxIdx] / (1 - ProbVec[CurrState]));
+		StateIdProbV.Add(TIntFltPr(StateIdV[MxIdx], Prob));
+//		FutStateIdV.Add(MxIdx);
+//		FutStateProbV.Add(ProbVec[MxIdx] / (1 - ProbVec[CurrState]));
 	}
 }
 
@@ -840,14 +929,14 @@ void TDtMChain::InitStats(const int& NStates) {
 	JumpCountMat = TFullMatrix(NStates, NStates);
 }
 
-void TDtMChain::AbsOnAddRec(const int& StateIdx, const uint64& RecTm) {
+void TDtMChain::AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) {
 	// update jump stats
-	if (CurrStateIdx != -1) {
-		JumpCountMat(CurrStateIdx, StateIdx)++;
+	if (UpdateStats && CurrStateId != -1) {
+		JumpCountMat(CurrStateId, StateId)++;
 	}
 
-	if (StateIdx != CurrStateIdx) {
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Jumped to state %d", StateIdx);
+	if (StateId != CurrStateId) {
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Jumped to state %d", StateId);
 	}
 }
 
@@ -1058,12 +1147,16 @@ TFullMatrix TCtMChain::GetTransitionMat(const TVec<TIntV>& JoinedStateVV) const 
 	return GetJumpMatrix(GetQMatrix(JoinedStateVV));
 }
 
-void TCtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const int& CurrState,
-		const int& NFutStates, TIntV& FutStateIdV, TFltV& FutStateProbV) const {
+void TCtMChain::GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV,
+		const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const {
+
 	const int NFStates = TMath::Mn(NFutStates, JoinedStateVV.Len()-1);
+	const int StateIdx = StateIdV.SearchForw(StateId);
+
+	EAssertR(StateIdx >= 0, "TCtMChain::GetNextStateProbV: Could not find target state!");
 
 	TFullMatrix JumpMat = GetJumpMatrix(JoinedStateVV);
-	TVector ProbVec = JumpMat.GetRow(CurrState);
+	TVector ProbVec = JumpMat.GetRow(StateIdx);
 
 	printf("Fetching future states ...\n");
 
@@ -1076,20 +1169,18 @@ void TCtMChain::GetLikelyFutureStateV(const TVec<TIntV>& JoinedStateVV, const in
 		MxProb = TFlt::Mn;
 		MxIdx = -1;
 		for (int j = 0; j < ProbVec.Len(); j++) {
-			printf("%.5f ", ProbVec[j].Val);
-			if (j != CurrState && !TakenIdxSet.IsKey(j) && ProbVec[j] > MxProb) {
+			if (j != StateIdx && !TakenIdxSet.IsKey(j) && ProbVec[j] > MxProb) {
 				MxProb = ProbVec[j];
 				MxIdx = j;
 			}
 		}
 
-		printf("\n");
-
 		if (ProbVec[MxIdx] <= 0) { break; }
 
 		TakenIdxSet.AddKey(MxIdx);
-		FutStateIdV.Add(MxIdx);
-		FutStateProbV.Add(ProbVec[MxIdx]);
+		StateIdProbV.Add(TIntFltPr(StateIdV[MxIdx], MxProb));
+//		FutStateIdV.Add(MxIdx);
+//		FutStateProbV.Add(ProbVec[MxIdx]);
 	}
 }
 
@@ -1116,24 +1207,24 @@ void TCtMChain::InitStats(const int& NStates) {
 	}
 }
 
-void TCtMChain::AbsOnAddRec(const int& StateIdx, const uint64& RecTm) {
+void TCtMChain::AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) {
 	// warn if times don't aren't ascending
-	if (CurrStateIdx != -1 && RecTm < PrevJumpTm) {
+	if (CurrStateId != -1 && RecTm < PrevJumpTm) {
 		Notify->OnNotifyFmt(TNotifyType::ntWarn, "Current time larger that previous time curr: %ld, prev: %ld", RecTm, PrevJumpTm);
 	}
 
 	// update intensities
-	if (CurrStateIdx != -1 && StateIdx != CurrStateIdx) {
+	if (UpdateStats && CurrStateId != -1 && StateId != CurrStateId) {
 		// the state has changed
 		const double Tm = (double) (RecTm - PrevJumpTm) / TimeUnit;
 
-		QMatStats[CurrStateIdx][StateIdx].Val1++;
-		QMatStats[CurrStateIdx][StateIdx].Val2 += Tm;
+		QMatStats[CurrStateId][StateId].Val1++;
+		QMatStats[CurrStateId][StateId].Val2 += Tm;
 
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated intensity: prev state: %d, curr state: %d, time: %.16f", CurrStateIdx, StateIdx, Tm);
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Updated intensity: prev state: %d, curr state: %d, time: %.16f", CurrStateId, StateId, Tm);
 	}
 
-	if (StateIdx != CurrStateIdx) {
+	if (StateId != CurrStateId) {
 		PrevJumpTm = RecTm;
 	}
 }
@@ -1158,6 +1249,7 @@ THierarchCtmc::THierarchCtmc():
 		Clust(nullptr),
 		MChain(nullptr),
 		Hierarch(nullptr),
+		StateChangedCallback(nullptr),
 		Notify(nullptr) {}
 
 THierarchCtmc::THierarchCtmc(const PClust& _Clust, const PMChain& _MChain,
@@ -1165,6 +1257,7 @@ THierarchCtmc::THierarchCtmc(const PClust& _Clust, const PMChain& _MChain,
 		Clust(_Clust),
 		MChain(_MChain),
 		Hierarch(_Hierarch),
+		StateChangedCallback(nullptr),
 		Notify(_Notify) {}
 
 void THierarchCtmc::Save(TSOut& SOut) const {
@@ -1195,16 +1288,13 @@ PJsonVal THierarchCtmc::SaveJson() const {
 	// on each level of the hierarchy
 
 	// variables
-	TIntV FutureStateIdV;
-	TFltV FutureStateProbV;
 	TVec<TIntV> JoinedStateVV;
 	TIntV StateIdV;
-	TIntIntH HIdxToStateIdxH;
+	TIntFltPrV StateIdProbPrV;
 
 	Hierarch->PrintHierarch();
 
 	TFltV UniqueHeightV;	Hierarch->GetUniqueHeightV(UniqueHeightV);
-	UniqueHeightV.Sort(true);	// sort ascending
 
 	// go through all the heights except the last one, which is not interesting
 	// since it is only one state
@@ -1215,16 +1305,10 @@ PJsonVal THierarchCtmc::SaveJson() const {
 
 		StateIdV.Clr();
 		JoinedStateVV.Clr();
-		HIdxToStateIdxH.Clr();
+		StateIdProbPrV.Clr();
 
 		// get the states on this level
 		Hierarch->GetStateSetsAtHeight(CurrHeight, StateIdV, JoinedStateVV);
-
-		for (int i = 0; i < StateIdV.Len(); i++) {
-			HIdxToStateIdxH.AddDat(StateIdV[i], i);
-		}
-
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "HIdxToStateIdxH: %s", TStrUtil::GetStr(HIdxToStateIdxH).CStr());
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "States at height %.3f:", CurrHeight);
 		for (int i = 0; i < JoinedStateVV.Len(); i++) {
@@ -1232,7 +1316,7 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		}
 
 		// get the index of the current state at this height
-		const int CurrStateIdx = Hierarch->GetAncestorAtHeight(MChain->GetCurrStateIdx(), CurrHeight);
+		const int CurrStateId = Hierarch->GetAncestorAtHeight(MChain->GetCurrStateId(), CurrHeight);
 
 		// ok, now that I have all the states I need their expected staying times
 		// and transition probabilities
@@ -1241,9 +1325,8 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		TFullMatrix TransitionMat = MChain->GetTransitionMat(JoinedStateVV);
 		TVector StateSizeV = MChain->GetStateSizeV(JoinedStateVV).Map([&](const TFlt& Val) { return Val*(CurrHeight + .1); });
 
-		FutureStateIdV.Clr();
-		FutureStateProbV.Clr();
-		MChain->GetLikelyFutureStateV(JoinedStateVV, HIdxToStateIdxH.GetDat(CurrStateIdx), 3, FutureStateIdV, FutureStateProbV);	// TODO 3 is hardcoded
+
+		MChain->GetNextStateProbV(JoinedStateVV, StateIdV, CurrStateId, StateIdProbPrV, 3);	// TODO 3 is hardcoded!
 
 		// construct state JSON
 		PJsonVal StateJsonV = TJsonVal::NewArr();
@@ -1262,11 +1345,12 @@ PJsonVal THierarchCtmc::SaveJson() const {
 
 		// construct future states
 		PJsonVal FutureStateJsonV = TJsonVal::NewArr();
-		for (int i = 0; i < FutureStateIdV.Len(); i++) {
+		for (int i = 0; i < StateIdProbPrV.Len(); i++) {
+			const TIntFltPr& StateIdProbPr = StateIdProbPrV[i];
 			PJsonVal FutureStateJson = TJsonVal::NewObj();
 
-			FutureStateJson->AddToObj("id", StateIdV[FutureStateIdV[i]]);
-			FutureStateJson->AddToObj("prob", FutureStateProbV[i]);
+			FutureStateJson->AddToObj("id", StateIdProbPr.Val1);
+			FutureStateJson->AddToObj("prob", StateIdProbPr.Val2);
 
 			FutureStateJsonV->AddToArr(FutureStateJson);
 		}
@@ -1285,7 +1369,7 @@ PJsonVal THierarchCtmc::SaveJson() const {
 
 		LevelJsonVal->AddToObj("height", CurrHeight);
 		LevelJsonVal->AddToObj("states", StateJsonV);
-		LevelJsonVal->AddToObj("currentState", CurrStateIdx);
+		LevelJsonVal->AddToObj("currentState", CurrStateId);
 		LevelJsonVal->AddToObj("futureStates", FutureStateJsonV);
 		LevelJsonVal->AddToObj("transitions", JumpMatJson);
 
@@ -1295,16 +1379,27 @@ PJsonVal THierarchCtmc::SaveJson() const {
 	return Result;
 }
 
-void THierarchCtmc::GetFutStateProbs(const double& Height, const int& StartState,
-		const double& Tm, TFltV& ProbV) const {
+void THierarchCtmc::GetFutStateProbV(const double& Height, const int& StateId, const double& Tm,
+		TIntFltPrV& StateIdProbPrV) const {
 	try {
-		TIntV StateIdV;
 		TVec<TIntV> JoinedStateVV;
+		TIntV StateIdV;
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, JoinedStateVV);
-
-		ProbV = MChain->GetFutureProbV(JoinedStateVV, StartState, Tm).GetVec();
+		MChain->GetFutureProbV(JoinedStateVV, StateIdV, StateId, Tm, StateIdProbPrV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarchCtmc::GetFutStateProbs: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void THierarchCtmc::GetNextStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const {
+	try {
+		TVec<TIntV> JoinedStateVV;
+		TIntV StateIdV;
+		Hierarch->GetStateSetsAtHeight(Height, StateIdV, JoinedStateVV);
+		MChain->GetNextStateProbV(JoinedStateVV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetNextStateProbs: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
@@ -1316,10 +1411,39 @@ void THierarchCtmc::GetTransitionModel(const double& Height, TFltVV& Mat) const 
 	Mat = MChain->GetModel(JoinedStateVV).GetMat();
 }
 
+void THierarchCtmc::GetCurrStateAncestry(TIntFltPrV& StateIdHeightPrV) const {
+	Hierarch->GetAncestorV(MChain->GetCurrStateId(), StateIdHeightPrV);
+}
+
+void THierarchCtmc::GetCentroid(const int& StateId, TFltV& FtrV) const {
+	TIntV LeafIdV;	Hierarch->GetLeafDescendantV(StateId, LeafIdV);
+	TVector Centroid = Clust->GetJoinedCentroid(LeafIdV);
+	FtrV = Centroid.Vec;
+}
+
 void THierarchCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
 	// partition the input space
 	TIntV AssignV;	Clust->Apply(X, AssignV, 10000);
 	// initialize intensities
 	MChain->Init(Clust->GetClusts(), AssignV, RecTmV);
 	Hierarch->Init(Clust->GetCentroidMat());
+}
+
+void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {
+	const int OldStateId = MChain->GetCurrStateId();
+
+	TVector FtrVec(Rec);	// TODO copying
+	const int StateId = Clust->Assign(FtrVec);
+	MChain->OnAddRec(StateId, RecTm, false);
+
+	const int NewStateId = MChain->GetCurrStateId();
+
+	if (NewStateId != OldStateId && StateChangedCallback != nullptr) {
+		TIntFltPrV CurrStateV;	Hierarch->GetAncestorV(NewStateId, CurrStateV);
+		StateChangedCallback->OnStateChanged(CurrStateV);
+	}
+}
+
+void THierarchCtmc::SetOnStateChangedCallback(OnStateChangedCallback* Callback) {
+	StateChangedCallback = Callback;
 }
