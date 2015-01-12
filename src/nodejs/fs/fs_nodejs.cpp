@@ -2,23 +2,23 @@
 
 ///////////////////////////////
 // NodeJs-Directory
-TJsFPath::TJsFPath(const TStr& FPath): CanonicalFPath(GetCanonicalPath(FPath)) { }
+TNodeJsFPath::TNodeJsFPath(const TStr& FPath): CanonicalFPath(GetCanonicalPath(FPath)) { }
 
-bool TJsFPath::Equals(const TJsFPath& JsFPath) const {
+bool TNodeJsFPath::Equals(const TNodeJsFPath& JsFPath) const {
     return CanonicalFPath == JsFPath.GetFPath();
 }
 
-bool TJsFPath::IsSubdir(const TJsFPath& JsFPath) const {
+bool TNodeJsFPath::IsSubdir(const TNodeJsFPath& JsFPath) const {
     return CanonicalFPath.StartsWith(JsFPath.GetFPath());
 }
 
-void TJsFPath::GetFPathV(const TStrV& FPathV, TVec<TJsFPath>& JsFPathV) {
+void TNodeJsFPath::GetFPathV(const TStrV& FPathV, TVec<TNodeJsFPath>& JsFPathV) {
     for (TStrV::TIter It = FPathV.BegI(); It != FPathV.EndI(); ++It) {
-        JsFPathV.Add(TJsFPath(*It));
+        JsFPathV.Add(TNodeJsFPath(*It));
     }
 }
 
-TStr TJsFPath::GetCanonicalPath(const TStr& FPath) {
+TStr TNodeJsFPath::GetCanonicalPath(const TStr& FPath) {
     // Get absolute path
     TStr AbsFPath = TStr::GetNrAbsFPath(FPath);
     // Remove any redundancies
@@ -253,6 +253,23 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 #endif
 }
 
+v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
+    // Pass file path as argument to New 
+    const int Argc = 1;
+    v8::Local<v8::Value> Argv[Argc] = { ArgFNm };
+    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
+
+    TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
+    JsFIn->Wrap(Instance);
+
+    return HandleScope.Escape(Instance);
+}
+
 void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -275,23 +292,6 @@ void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
         Args.GetReturnValue().Set(Instance);
     }
-}
-
-v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
-    // Pass file path as argument to New 
-    const int Argc = 1;
-    v8::Local<v8::Value> Argv[Argc] = { ArgFNm };
-    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-
-    TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
-    JsFIn->Wrap(Instance);
-
-    return HandleScope.Escape(Instance);
 }
 
 void TNodeJsFIn::peekCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {

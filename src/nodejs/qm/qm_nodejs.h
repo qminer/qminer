@@ -365,6 +365,8 @@ private:
 	//#- `rec = store[recId]` -- get record with ID `recId`; 
 	//#     returns `null` when no such record exists
 	JsDeclIndexedProperty(indexId);	
+	//#- `base = store.base` -- get store base; 
+	JsDeclareProperty(base);
 	//#JSIMPLEMENT:src/qminer/store.js
 };
 
@@ -533,17 +535,17 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New();
-	static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& Store, const TWPt<TQm::TStoreIter>& Iter);
+	static v8::Local<v8::Object> New(const TWPt<TQm::TStore>& Store, const TQm::PStoreIter& Iter);
 	// C++ constructors
-	TNodeJsStoreIter() {}
-	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TWPt<TQm::TStoreIter>& _Iter) : Store(_Store), Iter(_Iter) {}
+	TNodeJsStoreIter() : JsRec(nullptr) {}
+	TNodeJsStoreIter(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) : Store(_Store), Iter(_Iter), JsRec(nullptr) {}
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
 	
 public:
 	// C++ wrapped object
 	TWPt<TQm::TStore> Store;	
-	TWPt<TQm::TStoreIter> Iter;
+	TQm::PStoreIter Iter;
     // placeholder for last object
 	v8::Persistent<v8::Object> RecObj;
 	TNodeJsRec* JsRec;
@@ -686,7 +688,7 @@ private:
 		// Cast as FltV and copy result
 		v8::Handle<v8::Object> RetValObj = v8::Handle<v8::Object>::Cast(RetVal);
 
-    	QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::ClassId), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
+		QmAssertR(TNodeJsUtil::IsClass(RetValObj, TNodeJsFltV::GetClassId()), "TJsFuncFtrExt::ExecuteFuncVec callback should return a dense vector (same type as la.newVec()).");
 
     	v8::Local<v8::External> WrappedObject = v8::Local<v8::External>::Cast(RetValObj->GetInternalField(0));
 		// cast it to js vector and copy internal vector

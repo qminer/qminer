@@ -278,5 +278,5 @@ exports.drawGraphArray = function (data, fnm, overrideParams) {
     var output = template.replace("{{{data}}}", JSON.stringify(json_out));
     fs.openWrite(fnm).write(output).close();
 };
-    
+
 var visualize = exports;

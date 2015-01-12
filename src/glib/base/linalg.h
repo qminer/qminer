@@ -288,6 +288,12 @@ public:
 	// Z := p * X + q * Y
     static void LinComb(const double& p, const TFltVV& X,
         const double& q, const TFltVV& Y, TFltVV& Z);
+	// z := p * X(:,ColId) + q * y
+    //static void LinComb(const double& p, const TFltVV& X, int ColId,
+    //    const double& q, const TFltV& y, TFltV& z);
+	// if (Dim == 1) {z := p * X(:,ColId) + q * y} else if (Dim == 2) {z := p * X(:,RowId) + q * y}
+    static void LinComb(const double& p, const TFltVV& X, int DimId,
+        const double& q, const TFltV& y, TFltV& z, int Dim = 1);
 	// z = p * x + q * y
     static void LinComb(const double& p, const TIntFltKdV& x, const double& q, const TIntFltKdV& y, TIntFltKdV& z);	  
     // z := p * x + (1 - p) * y
@@ -852,6 +858,14 @@ public:
 	static int GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat);
 	// returns a vector with a sequence starting at Min and ending at Max
 	static void RangeV(const int& Min, const int& Max, TIntV& Res);
+	// returns the mean value of Vec.
+	static double Mean(const TFltV& Vec);
+	// returns the mean value along the dimension (Dim) of Mat. See Matlab documentation - mean().
+	static void Mean(const TFltVV& Mat, TFltV& Vec, const int& Dim = 1);
+	// returns standard deviation. See Matlab documentation - std().
+	static void Std(const TFltVV& Mat, TFltV& Vec, const int& Flag = 0, const int& Dim = 1);
+	// returns the z-score for each element of X such that columns of X are centered to have mean 0 and scaled to have standard deviation 1.
+	static void ZScore(const TFltVV& Mat, TFltVV& Vec, const int& Flag = 0, const int& Dim = 1);
 };
 
 //////////////////////////////////////////////////////////////////////
