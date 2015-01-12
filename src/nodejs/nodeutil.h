@@ -177,6 +177,10 @@ public:
     /// Executes the function with the specified argument
 	static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
 
+	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
+	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
+
+
     /// Create a new Javascript instance wrapped by the wrapper class
     template <class TWrap>
     static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope);

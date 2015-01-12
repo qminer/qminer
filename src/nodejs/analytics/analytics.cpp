@@ -627,7 +627,7 @@ void TNodeJsHMChain::init(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
 		for (uint64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
-			RecTmV.Add(uint64(JsRecTmV->Vec[i]));
+			RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
 		}
 
 		JsMChain->McModel->Init(JsInstanceMat->Mat, RecTmV);
@@ -645,7 +645,14 @@ void TNodeJsHMChain::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
 		TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
-		uint64 RecTm = TNodeJsUtil::GetArgFlt(Args, 1);
+
+		uint64 RecTm;
+		if (Args[1]->IsDate()) {
+			// TODO
+		} else {
+			// Args[1] is a timestamp (UNIX timestamp)
+			RecTm = TTm::GetWinMSecsFromUnixMSecs(TNodeJsUtil::GetArgFlt(Args, 1));
+		}
 
 		JsMChain->McModel->OnAddRec(RecTm, JsFtrV->Vec);
 		Args.GetReturnValue().Set(v8::Undefined(Isolate));

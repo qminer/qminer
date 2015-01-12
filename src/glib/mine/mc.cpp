@@ -559,11 +559,12 @@ int THierarch::GetAncestorAtHeight(const int& StateId, const double& Height) con
 }
 
 void THierarch::GetAncestorV(const int& StateId, TIntFltPrV& StateIdHeightPrV) const {
-	int AncestorId = StateId;
+	StateIdHeightPrV.Add(TIntFltPr(StateId, GetStateHeight(StateId)));
 
+	int AncestorId = StateId;
 	do {
-		StateIdHeightPrV.Add(TIntFltPr(AncestorId, GetStateHeight(AncestorId)));
 		AncestorId = GetParentId(AncestorId);
+		StateIdHeightPrV.Add(TIntFltPr(AncestorId, GetStateHeight(AncestorId)));
 	} while (!IsRoot(AncestorId));
 }
 

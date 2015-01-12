@@ -1425,7 +1425,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = (double)TTm::GetMSecsFromTm(FieldTm);
 			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-			double UnixMSecs = WinMSecs - 11644473600000.0;
+			double UnixMSecs = TNodeJsUtil::GetJsTimestamp(WinMSecs);
 			return HandleScope.Escape(v8::Date::New(Isolate, UnixMSecs));
 		}
 		else {
@@ -1860,7 +1860,7 @@ void TNodeJsStore::getVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TTm Tm;
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
-				ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+				ColV[RecN] = TNodeJsUtil::GetJsTimestamp((double) TTm::GetMSecsFromTm(Tm));
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
