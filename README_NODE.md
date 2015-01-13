@@ -48,15 +48,13 @@ If node is not installed install node following the steps below:
 		./configure
 
 
-Safe way:
+Safe way (skip --debug flag if you want release):
 
-	node-gyp configure --python PYTHON_PATH --nodedir=src/third_party/node
-	node-gyp build --python PYTHON_PATH --nodedir=src/third_party/node
+	node-gyp configure build --python PYTHON_PATH --nodedir=src/third_party/node --debug
 
-Simple way, when correct version of Python is in path and node-gyp takes care of node's source code:
+Simple way, when correct version of Python is in path and node-gyp takes care of node's source code. Skip --debug flag if you want release:
 
-	node-gyp configure
-	node-gyp build
+	node-gyp configure build --debug
 
 ### Running tests
 
