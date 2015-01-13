@@ -86,13 +86,14 @@ Example of how to setup enivronment variables from command-line:
 
 #### Node.JS source code
 
-Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of `node-0.11,14` it to `NODE_ROOT`.
+Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of `node-0.11,14` it to `NODE_ROOT`. Commands below build a release and a debug version of node.
 
 
 	cd %NODE_ROOT%
 	set PATH=%PYTHON_PATH%;%PATH%
 	vcbuild clean nosign
 	vcbuild release x64 nosign
+	vcbuild debug x64 nosign
 
 #### NPM (Node Package Manager)
 
