@@ -361,6 +361,8 @@ public:
 
 	void SetVerbose(const bool& Verbose);
 
+	virtual bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const = 0;
+
 protected:
 	// initializes the statistics
 	virtual void InitStats(const int& NStates) = 0;
@@ -395,6 +397,9 @@ public:
 	void GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 	// get future state probabilities for all the states for a fixed number of states in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const double& TimeSteps) const;
+
+	// returns true if the jump from OldStateId to NewStateId has a low enough probability
+	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
 protected:
 	void InitStats(const int& NStates);
 	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
@@ -464,6 +469,10 @@ public:
 	void GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 	// get future state probabilities for all the states for a fixed time in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const double& Tm) const;
+
+	// anomalies
+	// returns true if the jump from OldStateId to NewStateId has a low enough probability
+	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
 protected:
 	void InitStats(const int& NStates);
 	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
@@ -537,6 +546,9 @@ public:
     void SetCallback(TMcCallback* Callback);
 
     void SetVerbose(const bool& Verbose);
+
+private:
+    void DetectAnomalies(const int& NewStateId, const int& OldStateId) const;
 };
 
 }
