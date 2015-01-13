@@ -40,10 +40,11 @@ protected:
 	// assigned to the centroid to the centroid
 	TUInt64FltPrV CentroidDistStatV;
 
+	bool Verbose;
 	PNotify Notify;
 
 public:
-	TClust(const TRnd& Rnd=TRnd(0), const PNotify& Notify=TNullNotify::New());
+	TClust(const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	virtual ~TClust() {}
 
 protected:
@@ -86,6 +87,8 @@ public:
 	// returns the number of points in the cluster
 	uint64 GetClustSize(const int& ClustId) const;
 
+	void SetVerbose(const bool& Verbose);
+
 protected:
 	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
 	void UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV);
@@ -105,7 +108,7 @@ private:
 	TInt K;
 
 public:
-	TFullKMeans(const int& K, const TRnd& Rnd=TRnd(0), const PNotify& Notify=TNullNotify::New());
+	TFullKMeans(const int& K, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TFullKMeans(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -123,10 +126,10 @@ class TDpMeans: public TClust {
 private:
 	TFlt Lambda;
 	TInt MinClusts;
-	TInt MaxClusts;	// TODO max clusts is ignored for now
+	TInt MaxClusts;
 
 public:
-	TDpMeans(const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const PNotify& Notify=TNullNotify::New());
+	TDpMeans(const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TDpMeans(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -234,10 +237,11 @@ private:
     // number of leaf states, these are stored in the first part of the hierarchy vector
     int NLeafs;
 
+    bool Verbose;
     PNotify Notify;
 
 public:
-    THierarch(const PNotify& Notify=TNullNotify::New());
+    THierarch(const bool& Verbose=false);
     THierarch(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -284,6 +288,8 @@ public:
 
 	void PrintHierarch() const;
 
+	void SetVerbose(const bool& Verbose);
+
 private:
 	// returns a hash table with keys being the states at the specified height
 	// and the values containing their successor leafs
@@ -313,9 +319,11 @@ protected:
 	int NStates;
 	int CurrStateId;
 
+	bool Verbose;
+
 	PNotify Notify;
 
-	TMChain(const PNotify& Notify);
+	TMChain(const bool& Verbose);
 	virtual ~TMChain() {}
 
 protected:
@@ -351,6 +359,8 @@ public:
 
 	virtual TFullMatrix GetModel(const TVec<TIntV>& JoinedStateVV) const = 0;
 
+	void SetVerbose(const bool& Verbose);
+
 protected:
 	// initializes the statistics
 	virtual void InitStats(const int& NStates) = 0;
@@ -367,7 +377,7 @@ private:
 	TFullMatrix JumpCountMat;
 
 public:
-	TDtMChain(const PNotify& Notify=TNullNotify::New());
+	TDtMChain(const bool& Verbose=false);
 	TDtMChain(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -418,7 +428,7 @@ private:
 	uint64 PrevJumpTm;
 
 public:
-	TCtMChain(const uint64& TimeUnit, const double& DeltaTm, const PNotify& Notify=TNullNotify::New());
+	TCtMChain(const uint64& TimeUnit, const double& DeltaTm, const bool& Verbose=false);
 	TCtMChain(TSIn& SIn);
 
     // saves the model to the output stream
@@ -463,10 +473,12 @@ protected:
 	const TStr GetType() const { return "continuous"; }
 };
 
-class OnStateChangedCallback {
+class TMcCallback {
 public:
-	virtual ~OnStateChangedCallback() {}
+	virtual ~TMcCallback() {}
+
 	virtual void OnStateChanged(const TIntFltPrV& StateIdHeightV) = 0;
+	virtual void OnAnomaly(const TStr& AnomalyDesc) = 0;
 };
 
 class THierarchCtmc;
@@ -480,16 +492,18 @@ private:
 	PClust Clust;
     PMChain MChain;
     PHierarch Hierarch;
+    bool Verbose;
 
-    OnStateChangedCallback* StateChangedCallback;
+    TMcCallback* Callback;
 
     PNotify Notify;
 
 public:
     THierarchCtmc();
-    THierarchCtmc(const PClust& Clust, const PMChain& MChain, const PHierarch& Hierarch, const PNotify& Notify=TNullNotify::New());
+    THierarchCtmc(const PClust& Clust, const PMChain& MChain,
+    		const PHierarch& Hierarch, const bool& Verbose=true);
 
-    ~THierarchCtmc() { SetOnStateChangedCallback(nullptr); }
+    ~THierarchCtmc() {}
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
@@ -520,7 +534,9 @@ public:
 
     int GetStates() const { return Hierarch->GetStates(); }
 
-    void SetOnStateChangedCallback(OnStateChangedCallback* Callback);
+    void SetCallback(TMcCallback* Callback);
+
+    void SetVerbose(const bool& Verbose);
 };
 
 }

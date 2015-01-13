@@ -131,19 +131,22 @@ private:
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-class TNodeJsHMChain : public node::ObjectWrap, public TMc::OnStateChangedCallback {
+class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
 	friend class TNodeJsUtil;
 private:
+	const static double DEFAULT_DELTA_TM;
+
 	static v8::Persistent <v8::Function> constructor;
 
 	TMc::PHierarchCtmc McModel;
 
 	v8::Persistent<v8::Function> StateChangedCallback;
+	v8::Persistent<v8::Function> AnomalyCallback;
 
 	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel);
 	TNodeJsHMChain(PSIn& SIn);
 
-	~TNodeJsHMChain() { StateChangedCallback.Reset(); }
+	~TNodeJsHMChain();
 
 	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
 	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
@@ -156,8 +159,9 @@ public:
 	//#- `hmc = new analytics.HMarkovChain(base, fin)` -- Loads the model from input stream `fin`.
 	JsDeclareFunction(New);
 
-	//#- `hmc.init(recSet)` -- Initializes the model with the provided record set.
-	JsDeclareFunction(init);
+	//#- `hmc.fit(colMat, timeV)` -- Initializes the model with the instances in the columns of colMat
+	//#- which are sampled at time in timeV.
+	JsDeclareFunction(fit);
 	//#- `hmc.update(ftrVec, recTm)`
 	JsDeclareFunction(update);
 	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
@@ -166,7 +170,7 @@ public:
 	//#- of future states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely next states.
 	JsDeclareFunction(futureStates);
-
+	//#- `transitionMat = hmc.getTransitionModel()` -- returns the transition matrix on level 0
 	JsDeclareFunction(getTransitionModel);
 	//#- `currStateV = hmc.getCurrStates()` -- returns the current states through the hierarchy
 	JsDeclareFunction(currStates);
@@ -174,13 +178,21 @@ public:
 	JsDeclareFunction(fullCoords);
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
 	JsDeclareFunction(onStateChanged);
+	//#- `hmc.onAnomalyDetected(function (description) {})` -- callback when an anomaly is detected
+	JsDeclareFunction(onAnomaly);
+
+	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given
+	//#- in the input argument `params` returns this
+	JsDeclareFunction(setParams);
 
 	//#- `hmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
 
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
+	void OnAnomaly(const TStr& AnomalyDesc);
 
 private:
+	void SetParams(const PJsonVal& ParamVal);
 	void InitCallbacks();
 };
 

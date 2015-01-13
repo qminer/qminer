@@ -19,16 +19,19 @@ TFullMatrix TEuclDist::GetDist2(const TFullMatrix& X, const TFullMatrix& Y) {
 
 //////////////////////////////////////////////////
 // Abstract clustering
-TClust::TClust(const TRnd& _Rnd, const PNotify& _Notify):
+TClust::TClust(const TRnd& _Rnd, const bool& _Verbose):
 	Rnd(_Rnd),
 	CentroidMat(),
 	CentroidDistStatV(),
-	Notify(_Notify) {}
+	Verbose(_Verbose),
+	Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
 
 TClust::TClust(TSIn& SIn) {
 	Rnd = TRnd(SIn);
 	CentroidMat.Load(SIn);
 	CentroidDistStatV.Load(SIn);
+	Verbose = TBool(SIn);
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 void TClust::Save(TSOut& SOut) const {
@@ -36,6 +39,7 @@ void TClust::Save(TSOut& SOut) const {
 	Rnd.Save(SOut);
 	CentroidMat.Save(SOut);
 	CentroidDistStatV.Save(SOut);
+	TBool(Verbose).Save(SOut);
 }
 
 PClust TClust::Load(TSIn& SIn) {
@@ -107,6 +111,13 @@ double TClust::GetMeanPtCentDist(const int& CentroidIdx) const {
 
 uint64 TClust::GetClustSize(const int& ClustIdx) const {
 	return CentroidDistStatV[ClustIdx].Val1;
+}
+
+void TClust::SetVerbose(const bool& _Verbose) {
+	if (_Verbose != Verbose) {
+		Verbose = _Verbose;
+		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
 }
 
 TFullMatrix TClust::SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV) {
@@ -184,8 +195,8 @@ void TClust::InitStatistics(const TFullMatrix& X, const TVector& AssignV) {
 
 //////////////////////////////////////////////////
 // K-Means
-TFullKMeans::TFullKMeans(const int& _K, const TRnd& _Rnd, const PNotify& _Notify):
-		TClust(_Rnd, _Notify),
+TFullKMeans::TFullKMeans(const int& _K, const TRnd& _Rnd, const bool& _Verbose):
+		TClust(_Rnd, _Verbose),
 		K(_K) {}
 
 TFullKMeans::TFullKMeans(TSIn& SIn):
@@ -246,8 +257,8 @@ TFullMatrix TFullKMeans::Apply(const TFullMatrix& X, TIntV& AssignV, const int& 
 
 //////////////////////////////////////////////////
 // DPMeans
-TDpMeans::TDpMeans(const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _MaxClusts, const TRnd& _Rnd, const PNotify& _Notify):
-		TClust(_Rnd, _Notify),
+TDpMeans::TDpMeans(const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _MaxClusts, const TRnd& _Rnd, const bool& _Verbose):
+		TClust(_Rnd, _Verbose),
 		Lambda(_Lambda),
 		MinClusts(_MinClusts),
 		MaxClusts(_MaxClusts) {
@@ -408,13 +419,14 @@ void TSingleLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, con
 
 /////////////////////////////////////////////////////////////////
 // Agglomerative clustering
-THierarch::THierarch(const PNotify& _Notify):
+THierarch::THierarch(const bool& _Verbose):
 		HierarchV(),
 		StateHeightV(),
 		MxHeight(TFlt::Mn),
 		StateCoordV(),
 		NLeafs(0),
-		Notify(_Notify) {}
+		Verbose(_Verbose),
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
 
 THierarch::THierarch(TSIn& SIn):
 		HierarchV(),
@@ -429,9 +441,8 @@ THierarch::THierarch(TSIn& SIn):
 	MxHeight.Load(SIn);
 	StateCoordV.Load(SIn);
 	NLeafs = TInt(SIn);
-
-	// FIXME
-	Notify = TStdNotify::New();
+	Verbose = TBool(SIn);
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 void THierarch::Save(TSOut& SOut) const {
@@ -440,6 +451,7 @@ void THierarch::Save(TSOut& SOut) const {
 	MxHeight.Save(SOut);
 	StateCoordV.Save(SOut);
 	TInt(NLeafs).Save(SOut);
+	TBool(Verbose).Save(SOut);
 }
 
 PHierarch THierarch::Load(TSIn& SIn) {
@@ -647,6 +659,13 @@ void THierarch::PrintHierarch() const {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Hierarchy: %s", ChA.CStr());
 }
 
+void THierarch::SetVerbose(const bool& _Verbose) {
+	if (_Verbose != Verbose) {
+		Verbose = _Verbose;
+		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
+}
+
 void THierarch::GetAncSuccH(const double& Height, TIntIntVH& StateSubStateH) const {
 	const int NStates = GetStates();
 
@@ -759,21 +778,22 @@ void THierarch::ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NS
 
 /////////////////////////////////////////////////////////////////
 // Abstract Markov Chain
-TMChain::TMChain(const PNotify& _Notify):
+TMChain::TMChain(const bool& _Verbose):
 		NStates(-1),
 		CurrStateId(-1),
-		Notify(_Notify) {}
+		Verbose(_Verbose),
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
 
 TMChain::TMChain(TSIn& SIn):
 		NStates(0),
 		CurrStateId(-1),
+		Verbose(true),
 		Notify(nullptr) {
 
 	NStates = TInt(SIn);
 	CurrStateId = TInt(SIn);
-
-	// FIXME Notify should be read somehow
-	Notify = TStdNotify::New();
+	Verbose = TBool(SIn);
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
 void TMChain::Init(const int& _NStates, const TIntV& StateAssignV, const TUInt64V& TmV) {
@@ -795,6 +815,7 @@ void TMChain::Save(TSOut& SOut) const {
 	GetType().Save(SOut);
 	TInt(NStates).Save(SOut);
 	TInt(CurrStateId).Save(SOut);
+	TBool(Verbose).Save(SOut);
 }
 
 PMChain TMChain::Load(TSIn& SIn) {
@@ -830,10 +851,17 @@ void TMChain::GetFutureProbV(const TVec<TIntV>& JoinedStateVV, const TIntV& Stat
 	}
 }
 
+void TMChain::SetVerbose(const bool& _Verbose) {
+	if (_Verbose != Verbose) {
+		Verbose = _Verbose;
+		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
+}
+
 /////////////////////////////////////////////////////////////////
 // Discrete time Markov Chain
-TDtMChain::TDtMChain(const PNotify& _Notify):
-		TMChain(_Notify),
+TDtMChain::TDtMChain(const bool& _Verbose):
+		TMChain(_Verbose),
 		JumpCountMat() {}
 
 TDtMChain::TDtMChain(TSIn& SIn):
@@ -973,8 +1001,8 @@ const uint64 TCtMChain::TU_MINUTE = TU_SECOND*60;
 const uint64 TCtMChain::TU_HOUR = TU_MINUTE*60;
 const uint64 TCtMChain::TU_DAY = TU_HOUR*24;
 
-TCtMChain::TCtMChain(const uint64& _TimeUnit, const double& _DeltaTm, const PNotify& _Notify):
-		TMChain(_Notify),
+TCtMChain::TCtMChain(const uint64& _TimeUnit, const double& _DeltaTm, const bool& _Verbose):
+		TMChain(_Verbose),
 		QMatStats(),
 		DeltaTm(_DeltaTm),
 		TimeUnit(_TimeUnit),
@@ -1211,7 +1239,7 @@ void TCtMChain::InitStats(const int& NStates) {
 void TCtMChain::AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) {
 	// warn if times don't aren't ascending
 	if (CurrStateId != -1 && RecTm < PrevJumpTm) {
-		Notify->OnNotifyFmt(TNotifyType::ntWarn, "Current time larger that previous time curr: %ld, prev: %ld", RecTm, PrevJumpTm);
+		TNotify::StdNotify->OnNotifyFmt(TNotifyType::ntWarn, "Current time larger that previous time curr: %ld, prev: %ld", RecTm, PrevJumpTm);
 	}
 
 	// update intensities
@@ -1250,16 +1278,18 @@ THierarchCtmc::THierarchCtmc():
 		Clust(nullptr),
 		MChain(nullptr),
 		Hierarch(nullptr),
-		StateChangedCallback(nullptr),
+		Verbose(true),
+		Callback(nullptr),
 		Notify(nullptr) {}
 
 THierarchCtmc::THierarchCtmc(const PClust& _Clust, const PMChain& _MChain,
-		const PHierarch& _Hierarch, const PNotify& _Notify):
+		const PHierarch& _Hierarch, const bool& _Verbose):
 		Clust(_Clust),
 		MChain(_MChain),
 		Hierarch(_Hierarch),
-		StateChangedCallback(nullptr),
-		Notify(_Notify) {}
+		Verbose(_Verbose),
+		Callback(nullptr),
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
 
 void THierarchCtmc::Save(TSOut& SOut) const {
 	Notify->OnNotify(TNotifyType::ntInfo, "THierarchCtmc::Save: saving to stream ...");
@@ -1267,6 +1297,7 @@ void THierarchCtmc::Save(TSOut& SOut) const {
 	Clust->Save(SOut);
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
+	TBool(Verbose).Save(SOut);
 }
 
 PHierarchCtmc THierarchCtmc::Load(TSIn& SIn) {
@@ -1274,10 +1305,9 @@ PHierarchCtmc THierarchCtmc::Load(TSIn& SIn) {
 	PMChain MChain = TMChain::Load(SIn);
 	PHierarch Hierarch = THierarch::Load(SIn);
 
-	// FIXME somehow save and load notify
-	PNotify Notify = TStdNotify::New();
+	bool Verbose = TBool(SIn);
 
-	return new THierarchCtmc(Clust, MChain, Hierarch, Notify);
+	return new THierarchCtmc(Clust, MChain, Hierarch, Verbose);
 }
 
 PJsonVal THierarchCtmc::SaveJson() const {
@@ -1439,12 +1469,23 @@ void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {
 
 	const int NewStateId = MChain->GetCurrStateId();
 
-	if (NewStateId != OldStateId && StateChangedCallback != nullptr) {
+	if (NewStateId != OldStateId && Callback != nullptr) {
 		TIntFltPrV CurrStateV;	Hierarch->GetAncestorV(NewStateId, CurrStateV);
-		StateChangedCallback->OnStateChanged(CurrStateV);
+		Callback->OnStateChanged(CurrStateV);
 	}
 }
 
-void THierarchCtmc::SetOnStateChangedCallback(OnStateChangedCallback* Callback) {
-	StateChangedCallback = Callback;
+void THierarchCtmc::SetCallback(TMcCallback* _Callback) {
+	Callback = _Callback;
+}
+
+void THierarchCtmc::SetVerbose(const bool& _Verbose) {
+	if (_Verbose != Verbose) {
+		Verbose = _Verbose;
+		Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+	}
+
+	Clust->SetVerbose(Verbose);
+	MChain->SetVerbose(Verbose);
+	Hierarch->SetVerbose(Verbose);
 }

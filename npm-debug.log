@@ -1,0 +1,210 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   '-g',
+1 verbose cli   'ws' ]
+2 info using npm@2.0.0
+3 info using node@v0.11.14
+4 verbose cache add [ 'ws', null ]
+5 verbose cache add spec="ws" args=["ws",null]
+6 verbose parsed spec { raw: 'ws',
+6 verbose parsed spec   scope: null,
+6 verbose parsed spec   name: 'ws',
+6 verbose parsed spec   rawSpec: '',
+6 verbose parsed spec   spec: '*',
+6 verbose parsed spec   type: 'range' }
+7 verbose parsed spec { raw: 'ws',
+7 verbose parsed spec   scope: null,
+7 verbose parsed spec   name: 'ws',
+7 verbose parsed spec   rawSpec: '',
+7 verbose parsed spec   spec: '*',
+7 verbose parsed spec   type: 'range' }
+8 verbose addNamed [ 'ws', '*' ]
+9 verbose addNamed [ null, '*' ]
+10 silly lockFile 67c4a837-ws ws@*
+11 verbose lock ws@* /home/lstopar/.npm/67c4a837-ws.lock
+12 silly addNameRange { name: 'ws', range: '*', hasData: false }
+13 verbose mapToRegistry name ws
+14 verbose mapToRegistry uri https://registry.npmjs.org/ws
+15 verbose request on initialization, where is /ws
+16 verbose request after pass 1, where is /ws
+17 verbose request url raw /ws
+18 verbose request resolving registry [ 'https://registry.npmjs.org/', './ws' ]
+19 verbose request after pass 2, where is https://registry.npmjs.org/ws
+20 verbose request no auth needed
+21 info attempt registry request try #1 at 12:57:14
+22 verbose request id af824dda4e9adb35
+23 verbose etag "9HXTL4KDGTEKN09COYLF8PMT2"
+24 http request GET https://registry.npmjs.org/ws
+25 http 304 https://registry.npmjs.org/ws
+26 silly registry.get cb [ 304,
+26 silly registry.get   { date: 'Mon, 12 Jan 2015 11:58:20 GMT',
+26 silly registry.get     server: 'Apache',
+26 silly registry.get     via: '1.1 varnish',
+26 silly registry.get     'last-modified': 'Mon, 12 Jan 2015 11:58:18 GMT',
+26 silly registry.get     'cache-control': 'max-age=60',
+26 silly registry.get     etag: '"9HXTL4KDGTEKN09COYLF8PMT2"',
+26 silly registry.get     age: '11',
+26 silly registry.get     'x-served-by': 'cache-fra1241-FRA',
+26 silly registry.get     'x-cache': 'HIT',
+26 silly registry.get     'x-cache-hits': '2',
+26 silly registry.get     'x-timer': 'S1421063900.424569,VS0,VE0',
+26 silly registry.get     vary: 'Accept',
+26 silly registry.get     'content-length': '0',
+26 silly registry.get     connection: 'close' } ]
+27 verbose etag https://registry.npmjs.org/ws from cache
+28 silly addNameRange number 2 { name: 'ws', range: '*', hasData: true }
+29 silly addNameRange versions [ 'ws',
+29 silly addNameRange   [ '0.2.6',
+29 silly addNameRange     '0.2.8',
+29 silly addNameRange     '0.2.9',
+29 silly addNameRange     '0.3.0',
+29 silly addNameRange     '0.3.1',
+29 silly addNameRange     '0.3.2',
+29 silly addNameRange     '0.3.3',
+29 silly addNameRange     '0.3.4',
+29 silly addNameRange     '0.3.4-2',
+29 silly addNameRange     '0.3.5',
+29 silly addNameRange     '0.3.5-2',
+29 silly addNameRange     '0.3.5-3',
+29 silly addNameRange     '0.3.5-4',
+29 silly addNameRange     '0.3.6',
+29 silly addNameRange     '0.3.7',
+29 silly addNameRange     '0.3.8',
+29 silly addNameRange     '0.3.9',
+29 silly addNameRange     '0.4.0',
+29 silly addNameRange     '0.4.1',
+29 silly addNameRange     '0.4.2',
+29 silly addNameRange     '0.4.3',
+29 silly addNameRange     '0.4.5',
+29 silly addNameRange     '0.4.6',
+29 silly addNameRange     '0.4.7',
+29 silly addNameRange     '0.4.8',
+29 silly addNameRange     '0.4.9',
+29 silly addNameRange     '0.4.10',
+29 silly addNameRange     '0.4.11',
+29 silly addNameRange     '0.4.12',
+29 silly addNameRange     '0.4.13',
+29 silly addNameRange     '0.4.14',
+29 silly addNameRange     '0.4.15',
+29 silly addNameRange     '0.4.16',
+29 silly addNameRange     '0.4.17',
+29 silly addNameRange     '0.4.18',
+29 silly addNameRange     '0.4.19',
+29 silly addNameRange     '0.4.20',
+29 silly addNameRange     '0.4.21',
+29 silly addNameRange     '0.4.22',
+29 silly addNameRange     '0.4.23',
+29 silly addNameRange     '0.4.24',
+29 silly addNameRange     '0.4.25',
+29 silly addNameRange     '0.4.27',
+29 silly addNameRange     '0.4.28',
+29 silly addNameRange     '0.4.29',
+29 silly addNameRange     '0.4.30',
+29 silly addNameRange     '0.4.31',
+29 silly addNameRange     '0.4.32',
+29 silly addNameRange     '0.5.0',
+29 silly addNameRange     '0.6.0',
+29 silly addNameRange     '0.6.1',
+29 silly addNameRange     '0.6.2',
+29 silly addNameRange     '0.6.3',
+29 silly addNameRange     '0.6.4',
+29 silly addNameRange     '0.6.5' ] ]
+30 verbose addNamed [ 'ws', '0.6.5' ]
+31 verbose addNamed [ '0.6.5', '0.6.5' ]
+32 silly lockFile b48df489-ws-0-6-5 ws@0.6.5
+33 verbose lock ws@0.6.5 /home/lstopar/.npm/b48df489-ws-0-6-5.lock
+34 silly lockFile b48df489-ws-0-6-5 ws@0.6.5
+35 silly lockFile b48df489-ws-0-6-5 ws@0.6.5
+36 silly lockFile 67c4a837-ws ws@*
+37 silly lockFile 67c4a837-ws ws@*
+38 silly resolved [ { author:
+38 silly resolved      { name: 'Einar Otto Stangvik',
+38 silly resolved        email: 'einaros@gmail.com',
+38 silly resolved        url: 'http://2x.io' },
+38 silly resolved     name: 'ws',
+38 silly resolved     description: 'simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js, up-to-date against RFC-6455',
+38 silly resolved     version: '0.6.5',
+38 silly resolved     license: 'MIT',
+38 silly resolved     keywords:
+38 silly resolved      [ 'Hixie',
+38 silly resolved        'HyBi',
+38 silly resolved        'Push',
+38 silly resolved        'RFC-6455',
+38 silly resolved        'WebSocket',
+38 silly resolved        'WebSockets',
+38 silly resolved        'real-time' ],
+38 silly resolved     repository: { type: 'git', url: 'git://github.com/einaros/ws.git' },
+38 silly resolved     scripts:
+38 silly resolved      { test: 'make test',
+38 silly resolved        install: '(node-gyp rebuild 2> builderror.log) || (exit 0)' },
+38 silly resolved     dependencies: { nan: '1.4.x', options: '>=0.0.5', ultron: '1.0.x' },
+38 silly resolved     devDependencies:
+38 silly resolved      { ansi: '0.3.x',
+38 silly resolved        benchmark: '0.3.x',
+38 silly resolved        'expect.js': '0.3.x',
+38 silly resolved        mocha: '2.0.x',
+38 silly resolved        should: '4.3.x',
+38 silly resolved        tinycolor: '0.0.x' },
+38 silly resolved     browser: './lib/browser.js',
+38 silly resolved     component: { scripts: [Object] },
+38 silly resolved     gypfile: true,
+38 silly resolved     gitHead: '552dddaf9bcc5304c22415b81aa748384d82837c',
+38 silly resolved     bugs: { url: 'https://github.com/einaros/ws/issues' },
+38 silly resolved     homepage: 'https://github.com/einaros/ws',
+38 silly resolved     _id: 'ws@0.6.5',
+38 silly resolved     _shasum: 'f00844001ca393b003681ff32838e72a560dafd4',
+38 silly resolved     _from: 'ws@*',
+38 silly resolved     _npmVersion: '1.4.28',
+38 silly resolved     _npmUser: { name: 'V1', email: 'info@3rd-Eden.com' },
+38 silly resolved     maintainers: [ [Object], [Object] ],
+38 silly resolved     dist:
+38 silly resolved      { shasum: 'f00844001ca393b003681ff32838e72a560dafd4',
+38 silly resolved        tarball: 'http://registry.npmjs.org/ws/-/ws-0.6.5.tgz' },
+38 silly resolved     directories: {},
+38 silly resolved     _resolved: 'https://registry.npmjs.org/ws/-/ws-0.6.5.tgz',
+38 silly resolved     readme: 'ERROR: No README data found!' } ]
+39 info install ws@0.6.5 into /usr/local/lib
+40 info installOne ws@0.6.5
+41 verbose lib/node_modules/ws unbuild
+42 verbose gentlyRm vacuuming /usr/local/lib/node_modules/ws
+43 verbose tar unpack /home/lstopar/.npm/ws/0.6.5/package.tgz
+44 silly lockFile 381a2d43-ar-usr-local-lib-node-modules-ws tar:///usr/local/lib/node_modules/ws
+45 verbose lock tar:///usr/local/lib/node_modules/ws /home/lstopar/.npm/381a2d43-ar-usr-local-lib-node-modules-ws.lock
+46 silly lockFile 69e675d3-lstopar-npm-ws-0-6-5-package-tgz tar:///home/lstopar/.npm/ws/0.6.5/package.tgz
+47 verbose lock tar:///home/lstopar/.npm/ws/0.6.5/package.tgz /home/lstopar/.npm/69e675d3-lstopar-npm-ws-0-6-5-package-tgz.lock
+48 verbose gentlyRm vacuuming /usr/local/lib/node_modules/ws
+49 silly gunzTarPerm modes [ '775', '664' ]
+50 verbose fstream_path /usr/local/lib/node_modules/ws
+51 verbose fstream_type Directory
+52 verbose fstream_class DirWriter
+53 verbose stack Error: EACCES, mkdir '/usr/local/lib/node_modules/ws'
+53 verbose stack     at Error (native)
+54 verbose fstream_stack /usr/local/lib/node_modules/npm/node_modules/fstream/lib/dir-writer.js:36:23
+54 verbose fstream_stack /usr/local/lib/node_modules/npm/node_modules/mkdirp/index.js:46:53
+54 verbose fstream_stack Object.oncomplete (fs.js:93:15)
+55 verbose cwd /home/lstopar/workspace/JSI/qminer-port/qminer
+56 error Linux 3.13.0-43-generic
+57 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "install" "-g" "ws"
+58 error node v0.11.14
+59 error npm  v2.0.0
+60 error path /usr/local/lib/node_modules/ws
+61 error code EACCES
+62 error errno -13
+63 error Error: EACCES, mkdir '/usr/local/lib/node_modules/ws'
+63 error     at Error (native)
+63 error  { [Error: EACCES, mkdir '/usr/local/lib/node_modules/ws']
+63 error   stack: 'Error: EACCES, mkdir \'/usr/local/lib/node_modules/ws\'\n    at Error (native)',
+63 error   errno: -13,
+63 error   code: 'EACCES',
+63 error   path: '/usr/local/lib/node_modules/ws',
+63 error   fstream_type: 'Directory',
+63 error   fstream_path: '/usr/local/lib/node_modules/ws',
+63 error   fstream_class: 'DirWriter',
+63 error   fstream_stack:
+63 error    [ '/usr/local/lib/node_modules/npm/node_modules/fstream/lib/dir-writer.js:36:23',
+63 error      '/usr/local/lib/node_modules/npm/node_modules/mkdirp/index.js:46:53',
+63 error      'Object.oncomplete (fs.js:93:15)' ] }
+64 error Please try running this command again as root/Administrator.
+65 verbose exit [ -13, true ]
