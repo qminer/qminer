@@ -7131,7 +7131,7 @@ TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpac
 		Js(_Js),
 		FtrSpace(_FtrSpace) {
 
-	const PNotify Notify = TStdNotify::New();
+	const bool Verbose = true;
 
 	const TStr InStoreNm = ParamVal->GetObjStr("source");
 	const TStr TimeFldNm = ParamVal->GetObjStr("timestamp");
@@ -7158,9 +7158,9 @@ TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpac
 			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
 		}
 
-		MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Notify);
+		MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
 	} else if (TransitionJson->GetObjStr("type") == "discrete") {
-		MChain = new TMc::TDtMChain(Notify);
+		MChain = new TMc::TDtMChain(Verbose);
 	}
 
 
@@ -7173,19 +7173,19 @@ TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpac
 		const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
 		const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
 		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-		Clust = new TMc::TDpMeans(Lambda, MinClusts, MxClusts, TRnd(RndSeed), Notify);
+		Clust = new TMc::TDpMeans(Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
 	} else if (ClustAlg == "kmeans") {
 		const int K = ClustJson->GetObjInt("k");
 		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-		Clust = new TMc::TFullKMeans(K, TRnd(RndSeed), Notify);
+		Clust = new TMc::TFullKMeans(K, TRnd(RndSeed), Verbose);
 	} else {
 		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 	}
 
 	// create the model
-	TMc::PHierarch AggClust = new TMc::THierarch(Notify);
+	TMc::PHierarch AggClust = new TMc::THierarch(Verbose);
 
-	McModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Notify);
+	McModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Verbose);
 }
 
 TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace, TSIn& SIn):
@@ -7254,7 +7254,12 @@ v8::Handle<v8::Value> TJsHierMc::futureStates(const v8::Arguments& Args) {
 		const int StartState = TJsHierMcUtil::GetArgInt32(Args, 1);
 		const double Tm = TJsHierMcUtil::GetArgFlt(Args, 2);
 
-		TFltV ProbV;	Model->McModel->GetFutStateProbs(Level, StartState, Tm, ProbV);
+		TIntFltPrV StateIdProbPrV;	Model->McModel->GetFutStateProbV(Level, StartState, Tm, StateIdProbPrV);
+
+		TFltV ProbV(StateIdProbPrV.Len(), 0);
+		for (int i = 0; i < StateIdProbPrV.Len(); i++) {
+			ProbV.Add(StateIdProbPrV[i].Val2);
+		}
 
 		return HandleScope.Close(TJsUtil::ParseJson(TJsonVal::NewArr(ProbV)));
 	} catch (const PExcept& Except) {

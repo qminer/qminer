@@ -174,6 +174,13 @@ public:
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
+    /// Executes the function with the specified argument
+    template <class TVal>
+	static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
+
+	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
+	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
+
 
     /// Create a new Javascript instance wrapped by the wrapper class
     template <class TWrap>
@@ -190,6 +197,15 @@ public:
 	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
 	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
 };
+
+template <class TVal>
+void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Handle<v8::Value> Argv[1] = { Arg };
+	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+}
 
 template <class TWrap>
 v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope) {

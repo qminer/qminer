@@ -552,7 +552,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-	printf("new vector %s\n", TAux::ClassId.CStr());
+
     if (Args.IsConstructCall()) {
         //printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
         TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>();
