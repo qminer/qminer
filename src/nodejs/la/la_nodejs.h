@@ -570,25 +570,25 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
         }
         else if (Args[0]->IsObject()) {
             if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
-                printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
+                //printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
                 TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
             else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
-                printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
+                //printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
                 TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
             else if (TNodeJsUtil::IsArgClass(Args, 0, "TStrV")) {
-                printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
+                //printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
                 TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
             else {
-                printf("construct call, else branch, class = %s\n", TAux::ClassId.CStr());
+                //printf("construct call, else branch, class = %s\n", TAux::ClassId.CStr());
                 // We have object with parameters, parse them out
                 const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
                 const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
@@ -604,7 +604,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
         Args.GetReturnValue().Set(Instance);
     }
     else {
-        printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
+        //printf("vector NOT construct call, class = %s\n", TAux::ClassId.CStr());
         const int Argc = 1;
         v8::Local<v8::Value> Argv[Argc] = { Args[0] };
         v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
