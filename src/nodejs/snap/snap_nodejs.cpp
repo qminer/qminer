@@ -404,7 +404,7 @@ void TNodeJsGraph<T>::lastNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
-	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI();
+	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI()--;
 	Args.GetReturnValue().Set(TNodeJsNode<T>::New(ReturnNode));
 }
 
