@@ -18,6 +18,9 @@ project
 # Autoconf
 config.log
 
+# NPM
+npm-debug.log
+
 # project files from Eclipse
 .project
 .cproject

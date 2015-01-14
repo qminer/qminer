@@ -1425,7 +1425,7 @@ v8::Local<v8::Value> TNodeJsStore::Field(const TQm::TRec& Rec, const int FieldId
 			// milliseconds from 1601-01-01T00:00:00Z
 			double WinMSecs = (double)TTm::GetMSecsFromTm(FieldTm);
 			// milliseconds from 1970-01-01T00:00:00Z, which is 11644473600 seconds after Windows file time start
-			double UnixMSecs = WinMSecs - 11644473600000.0;
+			double UnixMSecs = TNodeJsUtil::GetJsTimestamp(WinMSecs);
 			return HandleScope.Escape(v8::Date::New(Isolate, UnixMSecs));
 		}
 		else {
@@ -1860,7 +1860,7 @@ void TNodeJsStore::getVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TTm Tm;
 			for (int RecN = 0; RecN < Recs; RecN++) {
 				Store->GetFieldTm(Iter->GetRecId(), FieldId, Tm);
-				ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);
+				ColV[RecN] = TNodeJsUtil::GetJsTimestamp((double) TTm::GetMSecsFromTm(Tm));
 				Iter->Next();
 			}
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
@@ -2856,7 +2856,15 @@ void TNodeJsRecSet::sortByField(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 	const TStr SortFieldNm = TNodeJsUtil::GetArgStr(Args, 0);
 	const int SortFieldId = JsRecSet->RecSet->GetStore()->GetFieldId(SortFieldNm);
-	const bool Asc = TNodeJsUtil::GetArgInt32(Args, 1, 0) > 0;
+
+	bool Asc = false;
+	if (Args.Length() > 1) {
+		QmAssertR(TNodeJsUtil::IsArgBool(Args, 1) || TNodeJsUtil::IsArgFlt(Args, 1), "TNodeJsRecSet::sortByField: Argument 1 expected to be bool or int!");
+		Asc = TNodeJsUtil::IsArgBool(Args, 1) ?
+				TNodeJsUtil::GetArgBool(Args, 1) :
+				TNodeJsUtil::GetArgFlt(Args, 1) > 0;
+	}
+
 	JsRecSet->RecSet->SortByField(Asc, SortFieldId);
 
 	Args.GetReturnValue().Set(Args.Holder());
@@ -3726,6 +3734,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "updateRecords", _updateRecords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrSpVec", _ftrSpVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrVec", _ftrVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "invFtrVec", _invFtrVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrSpColMat", _ftrSpColMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrColMat", _ftrColMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrExtractor", _getFtrExtractor);
@@ -3997,6 +4006,40 @@ void TNodeJsFtrSpace::ftrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		JsFtrSpace->FtrSpace->GetFullV(JsRec->Rec, FltV);
 
 		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::invFtrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+	QmAssertR(Args[0]->IsExternal() || Args[0]->IsArray(), "The argument should be a float array!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		TFltV InvertV;
+
+		if (Args[0]->IsExternal()) {
+			TFltV& FtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
+		} else {
+			v8::Array* Arr = v8::Array::Cast(*Args[0]);
+			TFltV FtrV(Arr->Length(), 0);
+
+			for (uint i = 0; i < Arr->Length(); i++) {
+				FtrV.Add(Arr->Get(i)->NumberValue());
+			}
+
+			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
+		}
+
+		printf("%s\n", TStrUtil::GetStr(InvertV, ", ", "%.3f").CStr());
+
+		Args.GetReturnValue().Set(TNodeJsFltV::New(InvertV));
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
 	}

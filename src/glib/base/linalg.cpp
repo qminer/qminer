@@ -2152,6 +2152,7 @@ void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& Eige
 
 	const int Dim = A.GetRows();
 	const double UEps = 1e-8;
+	const double NormA = TLinAlg::FrobNorm(A);
 
 	int i, j;
 
@@ -2164,7 +2165,7 @@ void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& Eige
 		A(i,i) -= EigenVal;
 	}
 
-	const double NormA = TLinAlg::FrobNorm(A);
+//	const double NormA = TLinAlg::FrobNorm(A);
 
 	// build an initial estimate of the eigenvector
 	// decompose (A - Lambda*I) into LU
@@ -2177,7 +2178,7 @@ void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& Eige
 	TFltV OnesV(Dim,0);
 	for (i = 0; i < Dim; i++) {
 		OnesV.Add(1);
-		U(i,i) = abs(A(i,i)) < UEps ? TMath::Sign(A(i,i))*UEps*NormA : (double) A(i,i);
+		U(i,i) = abs(A(i,i)) < UEps*NormA ? TMath::Sign(A(i,i))*UEps*NormA : (double) A(i,i);
 		for (j = i+1; j < Dim; j++) {
 			U(i,j) = A(i,j);
 		}
@@ -2192,7 +2193,11 @@ void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& Eige
 		EigenVTemp = EigenV;
 
 		LUSolve(A, PermIdxV, EigenV);
-		TLinAlg::Normalize(EigenV);
+
+		// normalize
+		double Norm = TLinAlg::Norm(EigenV);
+		EAssertR(Norm > 0, "Cannot normalize, norm is 0!");
+		TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
 	} while (TLinAlg::EuclDist(EigenV, EigenVTemp) < ConvergEps);
 }
 

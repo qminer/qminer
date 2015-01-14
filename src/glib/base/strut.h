@@ -31,4 +31,22 @@ public:
 	static TStr GetStr(const TStrH& StrH, const TStr& FieldDelimiterStr = ":", const TStr& DelimiterStr = ",");	
 	static TStr GetStr(const TFltVV& FltVV, const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");
 	static TStr GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterStr = ",", const TStr& FmtStr = "%g");
+
+	template <class TKey, class TDat>
+	static TStr GetStr(const THash<TKey, TDat>& KeyDatH);
 };
+
+template <class TKey, class TDat>
+TStr TStrUtil::GetStr(const THash<TKey, TDat>& KeyDatH) {
+	TChA ChA = "";
+
+	int KeyId = KeyDatH.FFirstKeyId();
+	while (KeyDatH.FNextKeyId(KeyId)) {
+		const TKey& Key = KeyDatH.GetKey(KeyId);
+		const TDat& Val = KeyDatH[KeyId];
+
+		ChA += "(" + Key.GetStr() + "," + Val.GetStr() + ")";
+	}
+
+	return ChA;
+}
