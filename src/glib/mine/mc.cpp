@@ -105,7 +105,7 @@ TVector TClust::GetJoinedCentroid(const TIntV& StateIdV) const {
 }
 
 double TClust::GetMeanPtCentDist(const int& CentroidIdx) const {
-	EAssertR(CentroidIdx < GetClusts(), "TFullKMeans::GetMeanPtCentDist: Invalid centroid index: " + CentroidIdx);
+	EAssertR(CentroidIdx < GetClusts(), TStr::Fmt("TFullKMeans::GetMeanPtCentDist: Invalid centroid index: %d", CentroidIdx));
 	return CentroidDistStatV[CentroidIdx].Val2 / CentroidDistStatV[CentroidIdx].Val1;
 }
 
@@ -1267,7 +1267,7 @@ void TCtMChain::PrintStats() const {
 
 	for (int i = 0; i < QMatStats.Len(); i++) {
 		for (int j = 0; j < QMatStats[i].Len(); j++) {
-			printf("(%ld, %.16f)", QMatStats[i][j].Val1.Val, QMatStats[i][j].Val2.Val);
+			printf("(%llu, %.16f)", QMatStats[i][j].Val1.Val, QMatStats[i][j].Val2.Val);
 			if (j < QMatStats[i].Len()-1) {
 				printf(",");
 			}

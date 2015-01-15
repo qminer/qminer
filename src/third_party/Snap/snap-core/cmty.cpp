@@ -319,7 +319,7 @@ void CmtyEvolutionBatchGraph(TVec<PUNGraph, TSize>& gs, PNGraph& graph, TIntH& t
   int internal_year_counter = 0;
   int newcom = 0;
   TStr Marker = "";
-  int SrcNId, DstNId;
+  //int SrcNId, DstNId;
   TIntIntVH CommsAtT;
 
   for (int gcounter = 0; gcounter < gs.Len(); gcounter++) {
@@ -533,7 +533,7 @@ void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
   else {
     TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
     Ss.Next();
-    int newcom = 0;
+    //int newcom = 0;
     TStr Marker = "";
     int SrcNId, DstNId;
 

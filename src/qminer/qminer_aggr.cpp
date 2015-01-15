@@ -2362,7 +2362,8 @@ PJsonVal THierchCtmc::TNode::SaveJson() const {
 		StateJson->AddToObj("time", SizeV[i]);
 		StateJson->AddToObj("centroid", CentroidJsonV);
 
-		printf("node id: %ld, size: %.2f, mean centroid dist: %.3f\n", NodeId.Val, SizeV[i].Val, GetMeanPtCentroidDist(i));
+		printf("node id: %llu, size: %.2f, mean centroid dist: %.3f\n",
+            NodeId.Val, SizeV[i].Val, GetMeanPtCentroidDist(i));
 
 		StateJsonV->AddToArr(StateJson);
 	}
@@ -2466,7 +2467,8 @@ void THierchCtmc::TNode::InitStateStats() {
 
 		StateStatV.Add(TUInt64FltPr(ClustSize, ClustSize * MeanPtCentDist));
 
-		printf("Node: %ld: state %d, points %ld, mean centroid dist %.3f\n", NodeId.Val, StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
+		printf("Node: %llu: state %d, points %llu, mean centroid dist %.3f\n",
+            NodeId.Val, StateIdx, GetStateSize(StateIdx), GetMeanPtCentroidDist(StateIdx));
 	}
 }
 

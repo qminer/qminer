@@ -7,9 +7,9 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
-#include "qminer.h"
-#include "la_nodejs.h"
-#include "fs_nodejs.h"
+#include <qminer.h>
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////

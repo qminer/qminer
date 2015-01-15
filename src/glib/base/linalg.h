@@ -1265,7 +1265,7 @@ TFullMatrix TFullMatrix::operator ()(const TIdxV1& RowV, const TIdxV2& ColV) con
 
 template <class TIdxV>
 TVector TFullMatrix::operator ()(const int& RowIdx, const TIdxV& ColIdxV) const {
-	EAssertR(RowIdx < GetRows(), "Invalid row index: " + RowIdx);
+	EAssertR(RowIdx < GetRows(), TStr::Fmt("Invalid row index: %d", RowIdx));
 
 	const int Cols = ColIdxV.Len();
 
