@@ -108,11 +108,17 @@
             'target_name': 'qminer',
             'type': 'static_library',
             'sources': [
+                'src/qminer/qminer_core.h',
                 'src/qminer/qminer_core.cpp',
+                'src/qminer/qminer_gs.h',
                 'src/qminer/qminer_gs.cpp',
+                'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
+                'src/qminer/qminer_aggr.h',
                 'src/qminer/qminer_aggr.cpp',
+                'src/qminer/qminer_snap.h',
                 'src/qminer/qminer_snap.cpp',
+                'src/qminer/qminer_op.h'
                 'src/qminer/qminer_op.cpp'
             ],        
             'include_dirs': [
@@ -139,7 +145,9 @@
             'target_name': 'glib',
             'type': 'static_library',
             'sources': [
+                'src/glib/base/base.h',
                 'src/glib/base/base.cpp',
+                'src/glib/mine/mine.h'
                 'src/glib/mine/mine.cpp'
             ],        
             'include_dirs': [

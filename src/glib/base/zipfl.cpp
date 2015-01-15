@@ -90,10 +90,10 @@ TZipIn::TZipIn(const TStr& FNm) : TSBase(FNm.CStr()), TSIn(FNm), ZipStdoutRd(NUL
   EAssertR(TFile::Exists(FNm), TStr::Fmt("File %s does not exist", FNm.CStr()).CStr());
   FLen = 0;
   // non-zip files not supported, need uncompressed file length information
-  if (FNm.GetFExt() != ".zip") {
-    printf("*** Error: file %s, compression format %s not supported\n", FNm.CStr(), FNm.GetFExt().CStr());
-    EFailR(TStr::Fmt("File %s: compression format %s not supported", FNm.CStr(), FNm.GetFExt().CStr()).CStr());
-  }
+//  if (FNm.GetFExt() != ".zip") {
+//    printf("*** Error: file %s, compression format %s not supported\n", FNm.CStr(), FNm.GetFExt().CStr());
+//    EFailR(TStr::Fmt("File %s: compression format %s not supported", FNm.CStr(), FNm.GetFExt().CStr()).CStr());
+//  }
   FLen = TZipIn::GetFLen(FNm);
   // return for malformed files
   if (FLen == 0) { return; } // empty file
