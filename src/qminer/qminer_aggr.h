@@ -1268,26 +1268,6 @@ public:
 	TStr Type() const { return GetType(); }
 };
 
-class THierchCtmcAggr: public TStreamAggr {
-private:
-	TWPt<TStore> InStore;
-	TIntV FldIdV;
-	TInt TimeFldId;
-
-	PFtrSpace FtrSpace;
-
-	TMc::PHierarchCtmc HCtmc;
-
-public:
-
-
-public:
-	void OnAddRec(const TRec& Rec);
-
-public:
-	static TStr GetType() { return "hctmc"; }
-	TStr Type() const { return GetType(); }
-};
 
 //////////////////////////////////////////////
 // Composed stream aggregators

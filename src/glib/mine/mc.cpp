@@ -942,8 +942,6 @@ void TDtMChain::GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV&
 
 		TakenIdxSet.AddKey(MxIdx);
 		StateIdProbV.Add(TIntFltPr(StateIdV[MxIdx], Prob));
-//		FutStateIdV.Add(MxIdx);
-//		FutStateProbV.Add(ProbVec[MxIdx] / (1 - ProbVec[CurrState]));
 	}
 }
 
@@ -952,6 +950,10 @@ TFullMatrix TDtMChain::GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const 
 	EAssertR(Steps >= 0, "Probs for past states not implemented!");
 
 	return GetTransitionMat(JoinedStateVV)^Steps;
+}
+
+bool TDtMChain::IsAnomalousJump(const int& NewStateId, const int& OldStateId) const {
+	return JumpCountMat(OldStateId, NewStateId) == 0.0;
 }
 
 void TDtMChain::InitStats(const int& NStates) {
@@ -1187,7 +1189,7 @@ void TCtMChain::GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV&
 	TFullMatrix JumpMat = GetJumpMatrix(JoinedStateVV);
 	TVector ProbVec = JumpMat.GetRow(StateIdx);
 
-	printf("Fetching future states ...\n");
+	Notify->OnNotify(TNotifyType::ntInfo, "Fetching future states ...");
 
 	// TODO can be optimized
 	TIntSet TakenIdxSet;
@@ -1208,8 +1210,6 @@ void TCtMChain::GetNextStateProbV(const TVec<TIntV>& JoinedStateVV, const TIntV&
 
 		TakenIdxSet.AddKey(MxIdx);
 		StateIdProbV.Add(TIntFltPr(StateIdV[MxIdx], MxProb));
-//		FutStateIdV.Add(MxIdx);
-//		FutStateProbV.Add(ProbVec[MxIdx]);
 	}
 }
 
@@ -1226,6 +1226,10 @@ TFullMatrix TCtMChain::GetFutureProbMat(const TVec<TIntV>& JoinedStateVV, const 
 	EAssertR(Steps >= 0, "Probs for past states not implemented!");
 
 	return (TFullMatrix::Identity(Dim) + QMat*Dt)^Steps;
+}
+
+bool TCtMChain::IsAnomalousJump(const int& NewStateId, const int& OldStateId) const {
+	return QMatStats[OldStateId][NewStateId].Val1 == 0;
 }
 
 void TCtMChain::InitStats(const int& NStates) {
@@ -1461,13 +1465,13 @@ void THierarchCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
 }
 
 void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {
-	const int OldStateId = MChain->GetCurrStateId();
-
 	TVector FtrVec(Rec);	// TODO copying
-	const int StateId = Clust->Assign(FtrVec);
-	MChain->OnAddRec(StateId, RecTm, false);
 
-	const int NewStateId = MChain->GetCurrStateId();
+	const int OldStateId = MChain->GetCurrStateId();
+	const int NewStateId = Clust->Assign(FtrVec);
+
+	DetectAnomalies(OldStateId, NewStateId);
+	MChain->OnAddRec(NewStateId, RecTm, false);
 
 	if (NewStateId != OldStateId && Callback != nullptr) {
 		TIntFltPrV CurrStateV;	Hierarch->GetAncestorV(NewStateId, CurrStateV);
@@ -1488,4 +1492,10 @@ void THierarchCtmc::SetVerbose(const bool& _Verbose) {
 	Clust->SetVerbose(Verbose);
 	MChain->SetVerbose(Verbose);
 	Hierarch->SetVerbose(Verbose);
+}
+
+void THierarchCtmc::DetectAnomalies(const int& NewStateId, const int& OldStateId) const {
+	if (NewStateId != OldStateId && MChain->IsAnomalousJump(NewStateId, OldStateId)) {
+		Callback->OnAnomaly(TStr::Fmt("Anomalous jump, old state %d, new state %d", OldStateId, NewStateId));
+	}
 }

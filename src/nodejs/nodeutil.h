@@ -43,8 +43,8 @@
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
         } \
     } \
-    static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
-    static void _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+    static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -196,6 +196,9 @@ public:
 
 	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
 	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
+
+    /// TStrV -> v8 string array
+    static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);
 };
 
 template <class TVal>

@@ -1646,6 +1646,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
 
     // Properties 
+    tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 
@@ -1826,6 +1827,26 @@ void TNodeJsSpMat::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
 
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+void TNodeJsSpMat::indexGet(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Info.Holder());
+    EAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "Sparse matrix index at: index out of bounds");
+    Info.GetReturnValue().Set(TNodeJsSpVec::New(JsSpMat->Mat[Index], JsSpMat->Rows));
+}
+
+void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Info.Holder());
+    // EAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "Sparse matrix index set: index out of bounds");
+    v8::Handle<v8::Object> ValObj = v8::Handle<v8::Object>::Cast(Value);
+    JsSpMat->Mat[Index] = ObjectWrap::Unwrap<TNodeJsSpVec>(ValObj)->Vec;
+    Info.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
 void TNodeJsSpMat::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {

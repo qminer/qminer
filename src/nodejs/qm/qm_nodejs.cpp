@@ -4037,7 +4037,7 @@ void TNodeJsFtrSpace::invFtrVec(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
 		}
 
-		printf("%s\n", TStrUtil::GetStr(InvertV, ", ", "%.3f").CStr());
+		//printf("%s\n", TStrUtil::GetStr(InvertV, ", ", "%.3f").CStr());
 
 		Args.GetReturnValue().Set(TNodeJsFltV::New(InvertV));
 	} catch (const PExcept& Except) {
