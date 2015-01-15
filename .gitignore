@@ -15,6 +15,12 @@
 # project files folder
 project
 
+# Autoconf
+config.log
+
+# NPM
+npm-debug.log
+
 # project files from Eclipse
 .project
 .cproject
@@ -103,3 +109,5 @@ out
 cha
 
 .DC_Store
+autom4te.cache
+autom4te.cache

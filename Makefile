@@ -24,6 +24,7 @@ SNAP = $(THIRD_PARTY)/Snap
 LIBSNAP = $(SNAP)/snap-core
 GLIB = src/glib
 QMINER = src/qminer
+QM_NODE = src/nodejs
 BUILD = build
 TEST = test/cpp
 
@@ -47,7 +48,7 @@ release: TARGET=release
 release: qm
 
 # debug target turns on crash debugging, get symbols with <prog> 2>&1 | c++filt
-debug: CXXFLAGS += -g
+debug: CXXFLAGS += -g -DV8_DEBUG
 debug: LDFLAGS += -rdynamic
 debug: TARGET=debug
 debug: qm
@@ -57,6 +58,8 @@ qm:
 	make -C $(GLIB) $(TARGET)
 	# compile SNAP
 	make -C $(SNAP)	
+	# compile node module TODO
+	# make -C $(QM_NODE)
 	# compile qminer
 	make -C $(QMINER) $(TARGET)
 	# create qm commandline tool

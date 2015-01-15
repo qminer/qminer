@@ -943,7 +943,9 @@ exports.kmeans = function(X, k, iter) {
         var w = new util.clsStopwatch();
         w.tic();
         var sD = colSum.spDiag();
-        var C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
+        var C = oldC;
+        if (idxMat.cols == oldC.cols)
+             C = ((X.multiply(idxMat)).plus(oldC)).multiply(sD); // modification
         return C;
     };
 
@@ -962,7 +964,7 @@ exports.kmeans = function(X, k, iter) {
     var ones_k = la.ones(k).multiply(0.5);
     w.tic();
     for (var i = 0; i < iter; i++) {
-        console.say("iter: " + i);
+        //console.say("iter: " + i);
         var norC2 = la.square(C.colNorms());
         //D =  full(C'* X) - norC2' * (0.5* ones(1, n)) - (0.5 * ones(k,1) )* norX2';
         var D = C.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
@@ -975,7 +977,7 @@ exports.kmeans = function(X, k, iter) {
         //}
         //console.say("energy: " + 1.0/ X.cols * energy);
         if (util.arraysIdentical(idxv, idxvOld)) {
-            console.say("converged at iter: " + i); //DEBUG
+            //console.say("converged at iter: " + i); //DEBUG
             break;
         }
         idxvOld = idxv.slice();
@@ -1120,7 +1122,7 @@ exports.kNearestNeighbors = function (k, buffer, power) {
     //#   - `num = kNearestNeighbors.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on k nearest neighburs,
     //#   using simple average, or inverse distance weighting average, where `power` (intiger) is optional parameter.
     this.predict = function (vec) {
-        if (this.X.cols < this.k) { return -1 }
+        if (this.X.cols < this.k) { return -1 };
         var neighbors = this.getNearestNeighbors(vec); //vector of indexes
         var targetVals = this.y.subVec(neighbors.perm);
         var prediction = getAverage(targetVals); // using simple average

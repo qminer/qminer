@@ -1791,6 +1791,7 @@ TStr TStr::GetFBase() const {
   const int ThisLen=Len(); const char* ThisBf=CStr();
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
+  if (ChN + 1 > ThisLen - 1) { return TStr(); }
   return GetSubStr(ChN+1, ThisLen - 1);
 }
 
@@ -1805,8 +1806,10 @@ TStr TStr::GetFMid() const {
     if (ThisBf[ChN]=='.'){
       int EChN= --ChN;
       while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')){ChN--;}
+	  if (ChN + 1 > EChN) { return TStr(); }
       return GetSubStr(ChN+1, EChN);
     } else {
+		if (ChN + 1 > ThisLen - 1) { return TStr(); }
       return GetSubStr(ChN+1, ThisLen - 1);
     }
   }
@@ -1817,8 +1820,10 @@ TStr TStr::GetFExt() const {
   int ChN=ThisLen-1;
   while ((ChN>=0)&&(ThisBf[ChN]!='/')&&(ThisBf[ChN]!='\\')&&
    (ThisBf[ChN]!='.')){ChN--;}
-  if ((ChN>=0)&&(ThisBf[ChN]=='.')){return GetSubStr(ChN, Len()-1);}
-  else {return TStr();}
+  if ((ChN>=0)&&(ThisBf[ChN]=='.')){
+	  if (ChN > Len() - 1) { return TStr(); }
+	  return GetSubStr(ChN, Len()-1);
+  } else {return TStr();}
 }
 
 TStr TStr::GetNrFPath(const TStr& FPath){

@@ -6,7 +6,6 @@
 
  - `PYTHON_PATH` - path to python.exe (e.g. /python27/python.exe)
  - `QMINER_ROOT` - qminer root folder (location of qminer's git repository)
- - `NODE_ROOT`   - folder with node source code (needed to build modules)
 
 ### Prerequisites
 
@@ -14,19 +13,9 @@
 
 #### NPM (Node Package Manager)
 
-	sudo apt-get install npm; sudo npm update
+	sudo apt-get install npm
+	sudo npm update
 	sudo apt-get install uuid-dev
-
-#### Node.JS source code
-
-Modules were tested with Node.JS 0.11.14. Node-gyp can download source code as well, but it is not sure that the versions will match.
-
-	wget https://github.com/joyent/node/archive/v0.11.14.zip
-	unzip package.zip -d NODE_ROOT
-	cd NODE_ROOT/
-	./configure
-	make
-	sudo make install
 
 #### Node GYP
 
@@ -34,26 +23,38 @@ Build system for Node.JS modules.
 
 	sudo npm install -g node-gyp
 
-#### Mocha and Chai (for testing)
+#### Mocha (for testing)
 
 	sudo npm install -g mocha
-	sudo npm install -g chai
+
 
 ### Building modules
 
-Downlaod code:
+Download code:
 
-	git clone https://github.com/qminer/qminer.git QMINER_ROOT
+	git clone https://github.com/qminer/qminer.git `QMINER_ROOT`
 
-Safe way:
+Go to `QMINER_ROOT` and execute:
 
-	node-gyp configure --python PYTHON_PATH --nodedir=NODE_PATH
-	node-gyp build --python PYTHON_PATH --nodedir=NODE_PATH
+	./configure
 
-Simple way, when correct version of Python is in path and node-gyp takes care of node's source code:
+If node is not installed install node following the steps below:
+- Go to `QMINER_ROOT/src/third_party/node/` and execute:
+ 
+		sudo make install
 
-	node-gyp configure
-	node-gyp build
+- Go to `QMINER_ROOT` and execute:
+
+		./configure
+
+
+Safe way (skip --debug flag if you want release):
+
+	node-gyp configure build --python PYTHON_PATH --nodedir=src/third_party/node --debug
+
+Simple way, when correct version of Python is in path and node-gyp takes care of node's source code. Skip --debug flag if you want release:
+
+	node-gyp configure build --debug
 
 ### Running tests
 
@@ -67,8 +68,8 @@ Go to QMINER_ROOT and execute:
 ### Folders
 
  - `PYTHON_PATH` - path to python.exe (e.g. c:/python27/python.exe)
- - `QMINER_ROOT` - qminer root folder (location of qminer's git repository)
- - `NODE_ROOT`   - folder with node source code (needed to build modules)
+ - `QMINER_ROOT` - qminer root folder (location of qminer's git repository) - how to get the source code is specified later (building modules section) 
+ - `NODE_ROOT`   - folder with node source code (needed to build modules) - how to get the code is specified later (Node.JS source code section). 
 
 Example of how to setup enivronment variables from command-line:
 
@@ -81,6 +82,17 @@ Example of how to setup enivronment variables from command-line:
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
  - Visual studio 2013
 
+#### Node.JS source code
+
+Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of `node-0.11,14` it to `NODE_ROOT`. Commands below build a release and a debug version of node.
+
+
+	cd %NODE_ROOT%
+	set PATH=%PYTHON_PATH%;%PATH%
+	vcbuild clean nosign
+	vcbuild release x64 nosign
+	vcbuild debug x64 nosign
+
 #### NPM (Node Package Manager)
 
 Build system for Node.JS modules.
@@ -92,24 +104,15 @@ Build system for Node.JS modules.
 	cd %NODE_ROOT%\Release
 	npm update
 
-#### Node.JS source code
-
-Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and unzip it to `NODE_ROOT`.
-
-	cd %NODE_ROOT%
-	set PATH=%PYTHON_PATH%;%PATH%
-	vcbuild clean nosign
-	vcbuild release x64 nosign
 
 #### Node GYP
 
 	cd %NODE_ROOT%\Release
 	npm install node-gyp -g
 
-#### Mocha and Chai (for testing)
+#### Mocha (for testing)
 
 	npm install -g mocha
-	npm install -g chai
 
 ### Building modules
 
@@ -119,8 +122,9 @@ Download QMiner code:
 
 Build:
 
-	cd %QMINER_ROOT%\src\qminer\nodejs\la
+	cd %QMINER_ROOT%
 	node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT%
+	node-gyp configure build --python %PYTHON_PATH%\python.exe --nodedir=%NODE_ROOT% --debug
 
 
 ### Running tests

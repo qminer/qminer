@@ -2426,7 +2426,7 @@ public:
         LoadRouter.Register(TObj::GetType(), TObj::Load);
     }
     
-private:
+protected:
     /// QMiner Base pointer
     TWPt<TBase> Base;
 	/// Stream aggreagte name

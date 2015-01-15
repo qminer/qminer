@@ -23,6 +23,7 @@
 #include <qminer.h>
 #include <qminer_srv.h>
 #include <qminer_gs.h>
+#include <thread.h>
 #include <v8.h>
 #include <typeinfo>
 #include <Snap.h>
@@ -1231,7 +1232,18 @@ public:
 	//#- `sa = qm.getStreamAggr(saName)` -- gets the stream aggregate `sa` given name (string).
 	JsDeclareFunction(getStreamAggr);
 	//#- `strArr = qm.getStreamAggrNames()` -- gets the stream aggregate names of stream aggregates in the default stream aggregate base.
-	JsDeclareFunction(getStreamAggrNames);	
+	JsDeclareFunction(getStreamAggrNames);
+
+
+	//#- `aggr = analytics.newProcessStateAggr(opts)` -- new stream aggregate that describes a process as a state machine.
+	//#		the aggregate uses hierarchical clustering to compute states and substates of the process and computes transition intensities between states on each level
+	//#		`opts` is a javascript object which must contain the following fields:
+	//#		- source: name of the input store
+	//#		- name: name of the stream aggregate
+	//#		- minRecs: the minimum number of records in a state, before the state expands (substates are created)
+	//#		- timestamp: name of the time field
+	JsDeclareFunction(newProcessStateAggr);
+
 	//#JSIMPLEMENT:src/qminer/qminer.js    
 };
 
@@ -1910,8 +1922,18 @@ public:
 	JsDeclareFunction(svd);
 	//#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
 	JsDeclareFunction(qr);
-    //TODO: #- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-    //JsDeclareFunction(loadIntVec);
+	//# - `num = la.mean(vec)` - returns mean `num` of vector `vec`.
+	//# - `vec = la.mean(mat)` - returns `vec` containing the mean of each column from matrix `mat`. 1 is col mean, 2 is row mean.
+	JsDeclareFunction(mean);
+    //# - `vec = la.std(mat)` - returns `vec` containing the standard deviation of each column from matrix `mat`.
+	//# - `vec = la.std(mat, flag)` - set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	//# - `vec = la.std(mat, flag, dim)` - computes the standard deviations along the dimension of `mat` specified by parameter `dim`. 1 is col std, 2 is row std.
+    JsDeclareFunction(std);
+	//# - `zscoreResult = la.zscore(mat)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`.
+	//# - `zscoreResult = la.zscore(mat, flag)` - returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	//# - `zscoreResult = la.zscore(mat, flag, dim)` -  Computes the standard deviations along the dimension of X specified by parameter `dim`. Returns `zscoreResult` containing the standard deviation `zscoreResult.sigma` of each column from matrix `mat`, mean vector `zscoreResult.mu` and z-score matrix `zscoreResult.Z`. Set `flag` to 0 to normalize Y by n-1; set flag to 1 to normalize by n.
+	JsDeclareFunction(zscore);
+	//JsDeclareFunction(loadIntVec);
 	//#JSIMPLEMENT:src/qminer/linalg.js
 };
 
@@ -2750,7 +2772,14 @@ public:
     //#- `langOptionsJson = analytics.getLanguageOptions()` -- get options for text parsing 
     //#     (stemmers, stop word lists) as a json object, with two arrays:
     //#     `langOptionsJson.stemmer` and `langOptionsJson.stopwords`
-	JsDeclareFunction(getLanguageOptions);     
+	JsDeclareFunction(getLanguageOptions);
+
+	//#- `model = analytics.newCtmc(opts)` creates a new hierarchical continous time Markov chain model
+	JsDeclareFunction(newCtmc);
+	//#- `model = analytics.loadCtmc(fname)` loads a hierarchical continous time Markov chain model
+	//#- from file `fname`
+	JsDeclareFunction(loadCtmc);
+
     //#JSIMPLEMENT:src/qminer/js/analytics.js
 };
 
@@ -2935,6 +2964,63 @@ public:
 	JsDeclareProperty(dim);
 	//#- `fout = recLinRegModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
+};
+
+class TJsProcessStateModel {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+	// model
+	PStreamAggr Model;
+
+private:
+	typedef TJsObjUtil<TJsProcessStateModel> TJsProcessStateModelUtil;
+	TJsProcessStateModel(TWPt<TScript> Js, const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const TWPt<TBase>& Base, PJsonVal& ParamVal) {
+		return TJsProcessStateModelUtil::New(new TJsProcessStateModel(Js, Base, ParamVal)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	JsDeclareFunction(toJSON);
+};
+
+class TJsHierMc {
+public:
+	/// JS script context
+	TWPt<TScript> Js;
+private:
+	TMc::PHierarchCtmc McModel;
+	PFtrSpace FtrSpace;
+
+private:
+	typedef TJsObjUtil<TJsHierMc> TJsHierMcUtil;
+	TJsHierMc(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace);
+	TJsHierMc(TWPt<TScript> Js, const PFtrSpace& FtrSpace, TSIn& SIn);
+
+public:
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PJsonVal& ParamVal, const PFtrSpace& FtrSpace) {
+		return TJsHierMcUtil::New(new TJsHierMc(Js, ParamVal, FtrSpace)); }
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, const PFtrSpace& FtrSpace, TSIn& SIn) {
+		return TJsHierMcUtil::New(new TJsHierMc(Js, FtrSpace, SIn)); }
+	static v8::Handle<v8::ObjectTemplate> GetTemplate();
+
+	//#- `hctmc.init(recSet)` -- Initializes the model with the provided record set.
+	JsDeclareFunction(init);
+	//#- `hctmc.toJSON()` -- Returns a JSON representation of the model
+	JsDeclareFunction(toJSON);
+	//#- `hctmc.futureStates(level, startState, time)` -- returns a vector of probabilities
+	//#- of future states starting from `startState` in time `time`
+	JsDeclareFunction(futureStates);
+
+	JsDeclareFunction(getTransitionModel);
+
+	//#- `hctmc.save(fout)` -- Saves the model into the specified output stream.
+	JsDeclareFunction(save);
+
+private:
+	void Init(const PRecSet& RecSet);
+	uint64 GetRecTm(const TRec& Rec) const;
 };
 
 ///////////////////////////////
@@ -3744,7 +3830,7 @@ private:
 
 	explicit TJsSnap(TWPt<TScript> _Js) : Js(_Js) { }
 public:
-	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {		
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js) {
 		return TJsSnapUtil::New(new TJsSnap(Js));
 	}
 
@@ -3765,12 +3851,9 @@ public:
 	JsDeclareFunction(communityDetection);
 	//#- `objJSON = snap.communityEvolution(path)` -- return communities alg = `gn`, `imap` or `cnm`
 	JsDeclareFunction(communityEvolution);
+	JsDeclareFunction(evolutionJson);
 	//#- `spVec = snap.corePeriphery(UGraph, alg)` -- return communities alg = `lip`
 	JsDeclareFunction(corePeriphery);
-	//#- `jsonstring = snap.reebSimplify(DGraph, alg)` -- return communities alg = `lip`
-	JsDeclareFunction(reebSimplify);
-	//#- `jsonstring = snap.reebRefine(DGraph, alg)` -- return communities alg = `lip`
-	JsDeclareFunction(reebRefine);
 	//#- `vec = graph.dagImportance(dmgraph)` -- return the node imporance vector. 
 	JsDeclareFunction(dagImportance);
 	//- `vec = graph.dagImportanceStore(dmgraph, nodeStoreName, nodeFieldName, edgeStoreName, edgeFieldName, decay)` -- return the node imporance vector. 
@@ -3807,6 +3890,10 @@ private:
 		Graph = TSnap::LoadEdgeList<TPt<T>>(InFNm);
 	};
 
+	TJsGraph(TWPt<TScript> _Js, TPt<T> _graph) : Js(_Js) {
+		Graph = _graph;
+	};
+
 public:
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js));
@@ -3817,6 +3904,13 @@ public:
 	}
 	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TStr path, TStr Graph_class) {
 		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, path));
+		v8::Handle<v8::String> key = v8::String::New("class");
+		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
+		obj->SetHiddenValue(key, value);
+		return obj;
+	}
+	static v8::Persistent<v8::Object> New(TWPt<TScript> Js, TPt<T> _graph, TStr Graph_class) {
+		v8::Persistent<v8::Object> obj = TJsGraphUtil::New(new TJsGraph(Js, _graph));
 		v8::Handle<v8::String> key = v8::String::New("class");
 		v8::Handle<v8::String> value = v8::String::New(Graph_class.CStr());
 		obj->SetHiddenValue(key, value);
@@ -3985,7 +4079,6 @@ public:
 };
 
 
-
 //#
 //# ## Other libraries
 //#
@@ -4080,6 +4173,10 @@ public:
 	bool Update(const TRec& Rec) { return false; }
 	void AddSpV(const TRec& Rec, TIntFltKdV& SpV, int& Offset) const;
 	void AddFullV(const TRec& Rec, TFltV& FullV, int& Offset) const;
+
+	void InvFullV(const TFltV& FullV, int& Offset, TFltV& InvV) const {
+		throw TExcept::New("Not implemented yet!", "TJsFuncFtrExt::InvFullV");
+	}
 
 	// flat feature extraction
 	void ExtractFltV(const TRec& FtrRec, TFltV& FltV) const;
