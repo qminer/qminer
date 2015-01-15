@@ -189,6 +189,9 @@ public:
 
 	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
 	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
+
+    /// TStrV -> v8 string array
+    static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);
 };
 
 template <class TWrap>

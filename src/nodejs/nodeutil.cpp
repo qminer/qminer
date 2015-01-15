@@ -378,3 +378,14 @@ v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Jso
 	if (JsonStr.IsEmpty()) { Isolate->ThrowException(TryCatch.Exception()); }
 	return HandleScope.Escape(JsonStr);
 }
+
+v8::Local<v8::Value> TNodeJsUtil::GetStrArr(const TStrV& StrV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope EscapableHandleScope(Isolate);
+    v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, StrV.Len());
+    for (int StrN = 0; StrN < StrV.Len(); StrN++) {
+        JsStrV->Set(StrN, v8::String::NewFromUtf8(Isolate, StrV[StrN].CStr()));
+    }
+    return EscapableHandleScope.Escape(JsStrV);
+}
+
