@@ -3945,7 +3945,7 @@ double TFullMatrix::FromNorm() const {
 }
 
 double TFullMatrix::RowSum(const int& RowIdx) const {
-	EAssertR(RowIdx < GetRows(), "Invalid row index: " + RowIdx);
+	EAssertR(RowIdx < GetRows(), TStr::Fmt("Invalid row index: %d", RowIdx));
 
 	const int NCols = GetCols();
 	double Sum = 0;
