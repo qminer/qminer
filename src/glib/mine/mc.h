@@ -171,17 +171,17 @@ public:
 
 class TAvgLink {
 public:
-	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
+	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i, const int& j);
 };
 
 class TCompleteLink {
 public:
-	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
+	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i, const int& j);
 };
 
 class TSingleLink {
 public:
-	static void JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& i, const int& j);
+	static void JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& i, const int& j);
 };
 
 template <class TLink>
