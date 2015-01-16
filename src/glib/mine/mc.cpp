@@ -416,7 +416,7 @@ TFullMatrix TEuclMds::Project(const TFullMatrix& X, const int& d) {
 	return X_d;
 }
 
-void TAvgLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
+void TAvgLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
 	TVector NewDistV(DistMat.GetRows(), false);
 	for (int i = 0; i < DistMat.GetRows(); i++) {
 		NewDistV[i] = (DistMat(MnI, i)*ItemCountV[MnI] + DistMat(MnJ, i)*ItemCountV[MnJ]) / (ItemCountV[MnI] + ItemCountV[MnJ]);
@@ -426,7 +426,7 @@ void TAvgLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const 
 	DistMat.SetCol(MnI, NewDistV.Transpose());
 }
 
-void TCompleteLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
+void TCompleteLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
 	TVector NewDistV(DistMat.GetRows(), false);
 	for (int i = 0; i < DistMat.GetRows(); i++) {
 		NewDistV[i] = TMath::Mx(DistMat(MnI, i), DistMat(MnJ, i));
@@ -436,7 +436,7 @@ void TCompleteLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, c
 	DistMat.SetCol(MnI, NewDistV.Transpose());
 }
 
-void TSingleLink::JoinClusts(TFullMatrix DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
+void TSingleLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, const int& MnI, const int& MnJ) {
 	TVector NewDistV(DistMat.GetRows(), false);
 	for (int i = 0; i < DistMat.GetRows(); i++) {
 		NewDistV[i] = TMath::Mn(DistMat(MnI, i), DistMat(MnJ, i));
