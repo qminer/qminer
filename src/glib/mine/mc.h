@@ -189,7 +189,7 @@ public:
 	static void MakeDendro(const TFullMatrix& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
 		const int NInst = X.GetCols();
 
-		printf("%s\n\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X.GetMat(), ", ", "%.3f").CStr());
 
 //		TFullMatrix X1 = X;	// copy
 
@@ -251,6 +251,10 @@ private:
     TFltV StateHeightV;
     TFlt MxHeight;
 
+    // past states
+    int HistCacheSize;
+    TVec<TIntV> PastStateIdV;	// TODO not optimal structure
+
     TFltPrV StateCoordV;
     // number of leaf states, these are stored in the first part of the hierarchy vector
     int NLeafs;
@@ -259,7 +263,7 @@ private:
     PNotify Notify;
 
 public:
-    THierarch(const bool& Verbose=false);
+    THierarch(const bool& HistCacheSize, const bool& Verbose=false);
     THierarch(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -267,7 +271,8 @@ public:
 	// loads the model from the output stream
 	static PHierarch Load(TSIn& SIn);
 
-	void Init(const TFullMatrix& CentroidMat);
+	void Init(const TFullMatrix& CentroidMat, const int& CurrLeafId);
+	void UpdateHistory(const int& CurrLeafId);
 
 	// returns a vector of unique heights
 	void GetUniqueHeightV(TFltV& HeightV) const;
@@ -283,6 +288,9 @@ public:
 	// fills the vector with leaf descendants
 	void GetLeafDescendantV(const int& StateId, TIntV& DescendantV) const;
 
+	void GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
+	void GetHistStateIdV(const double& Height, TIntV& StateIdV) const;
+
 	// returns the coordinates of the specified state
 	const TFltPr& GetStateCoords(const int& StateId) const { return StateCoordV[StateId]; }
 	// returns the total number of states in the hierarchy
@@ -296,6 +304,7 @@ private:
 	int GetParentId(const int& StateId) const;
 	// returns the height of the state
 	double GetStateHeight(const int& StateId) const { return StateHeightV[StateId]; }
+	int GetNearestHeightIdx(const double& Height) const;
 
 	bool IsRoot(const int& StateId) const;
 	bool IsLeaf(const int& StateId) const;
@@ -554,6 +563,7 @@ private:
 	PClust Clust;
     PMChain MChain;
     PHierarch Hierarch;
+
     bool Verbose;
 
     TMcCallback* Callback;
@@ -563,15 +573,14 @@ private:
 public:
     // constructors
     THierarchCtmc();
-    THierarchCtmc(const PClust& Clust, const PMChain& MChain,
-    		const PHierarch& Hierarch, const bool& Verbose=true);
+    THierarchCtmc(const PClust& Clust, const PMChain& MChain, const PHierarch& Hierarch,
+    		const bool& Verbose=true);
+    THierarchCtmc(TSIn& SIn);
 
     ~THierarchCtmc() {}
 
     // saves the model to the output stream
 	void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	static PHierarchCtmc Load(TSIn& SIn);
 
 	// saves this models as JSON
 	PJsonVal SaveJson() const;
@@ -583,6 +592,7 @@ public:
 	void InitClust(const TFullMatrix& X);
 	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV);
 	void InitHierarch();
+
 	void OnAddRec(const uint64 RecTm, const TFltV& Rec);
 
 	// future and past probabilities
@@ -596,6 +606,8 @@ public:
 	void GetNextStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
 	// returns a distribution of probabilities of the previous states
 	void GetPrevStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
+
+	void GetHistStateIdV(const double& Height, TIntV& StateIdV) const;
 
 	// stores the transition model for the current height into Mat
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;

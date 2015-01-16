@@ -448,29 +448,31 @@ void TSingleLink::JoinClusts(TFullMatrix& DistMat, const TVector& ItemCountV, co
 
 /////////////////////////////////////////////////////////////////
 // Agglomerative clustering
-THierarch::THierarch(const bool& _Verbose):
+THierarch::THierarch(const bool& _HistCacheSize, const bool& _Verbose):
 		HierarchV(),
 		StateHeightV(),
 		MxHeight(TFlt::Mn),
+		HistCacheSize(_HistCacheSize),
+		PastStateIdV(),
 		StateCoordV(),
 		NLeafs(0),
 		Verbose(_Verbose),
-		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
+
+	EAssertR(HistCacheSize >= 1, "Have to hold at least the current state!");
+}
 
 THierarch::THierarch(TSIn& SIn):
-		HierarchV(),
-		StateHeightV(),
-		MxHeight(TFlt::Mn),
-		StateCoordV(),
-		NLeafs(0),
+		HierarchV(SIn),
+		StateHeightV(SIn),
+		MxHeight(SIn),
+		HistCacheSize(TInt(SIn)),
+		PastStateIdV(SIn),
+		StateCoordV(SIn),
+		NLeafs(TInt(SIn)),
+		Verbose(TBool(SIn)),
 		Notify(nullptr) {
 
-	HierarchV.Load(SIn);
-	StateHeightV.Load(SIn);
-	MxHeight.Load(SIn);
-	StateCoordV.Load(SIn);
-	NLeafs = TInt(SIn);
-	Verbose = TBool(SIn);
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
 }
 
@@ -478,6 +480,8 @@ void THierarch::Save(TSOut& SOut) const {
 	HierarchV.Save(SOut);
 	StateHeightV.Save(SOut);
 	MxHeight.Save(SOut);
+	TInt(HistCacheSize).Save(SOut);
+	PastStateIdV.Save(SOut);
 	StateCoordV.Save(SOut);
 	TInt(NLeafs).Save(SOut);
 	TBool(Verbose).Save(SOut);
@@ -487,7 +491,7 @@ PHierarch THierarch::Load(TSIn& SIn) {
 	return new THierarch(SIn);
 }
 
-void THierarch::Init(const TFullMatrix& CentroidMat) {
+void THierarch::Init(const TFullMatrix& CentroidMat, const int& CurrLeafId) {
 	ClrFlds();
 
 	NLeafs = CentroidMat.GetCols();
@@ -530,6 +534,32 @@ void THierarch::Init(const TFullMatrix& CentroidMat) {
 
 	// compute state coordinates
 	ComputeStateCoords(CentroidMat, NStates);
+
+	// initialize history
+	TFltV HeightV;	GetUniqueHeightV(HeightV);
+	PastStateIdV.Gen(HeightV.Len(), HeightV.Len());
+	UpdateHistory(CurrLeafId);
+}
+
+void THierarch::UpdateHistory(const int& CurrLeafId) {
+	TFltV HeightV;	GetUniqueHeightV(HeightV);
+	TIntFltPrV StateIdHeightPrV;	GetAncestorV(CurrLeafId, StateIdHeightPrV);
+
+	EAssertR(HeightV.Len() == PastStateIdV.Len(), "Number of heights doesn't match the number of heights in the past state cache!");
+
+	int CurrHeightIdx = 0;
+	for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
+		const int CurrStateId = StateIdHeightPrV[i].Val1;
+
+		while (CurrHeightIdx < HeightV.Len() && IsOnHeight(CurrStateId, HeightV[CurrHeightIdx])) {
+			if (PastStateIdV[CurrHeightIdx].Empty() || PastStateIdV[CurrHeightIdx][0] != CurrStateId) {
+				PastStateIdV[CurrHeightIdx].Ins(0, CurrStateId);
+				// cleanup
+				while (PastStateIdV[CurrHeightIdx].Len() > HistCacheSize) { PastStateIdV[CurrHeightIdx].DelLast(); }
+			}
+			CurrHeightIdx++;
+		}
+	}
 }
 
 void THierarch::GetUniqueHeightV(TFltV& HeightV) const {
@@ -633,6 +663,23 @@ void THierarch::GetLeafDescendantV(const int& TargetStateId, TIntV& DescendantV)
 	}
 }
 
+void THierarch::GetCurrStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
+	TFltV HeightV;	GetUniqueHeightV(HeightV);
+	for (int i = 0; i < PastStateIdV.Len(); i++) {
+		const TIntV& PastStateIdVOnH = PastStateIdV[i];
+		EAssertR(!PastStateIdVOnH.Empty(), "Past state cache empty!");
+		StateIdHeightPrV.Add(TIntFltPr(PastStateIdVOnH[0], HeightV[i]));
+	}
+}
+
+void THierarch::GetHistStateIdV(const double& Height, TIntV& StateIdV) const {
+	const int NearestHeightIdx = GetNearestHeightIdx(Height);
+	const TIntV& HistV = PastStateIdV[NearestHeightIdx];
+	for (int i = 1; i < HistV.Len(); i++) {
+		StateIdV.Add(HistV[i]);
+	}
+}
+
 void THierarch::SetVerbose(const bool& _Verbose) {
 	if (_Verbose != Verbose) {
 		Verbose = _Verbose;
@@ -653,6 +700,19 @@ void THierarch::PrintHierarch() const {
 
 int THierarch::GetParentId(const int& StateId) const {
 	return GetParentId(StateId, HierarchV);
+}
+
+int THierarch::GetNearestHeightIdx(const double& Height) const {
+	// TODO optimize:
+	// 1) Precompute the unique heights
+	// 2) use binary search to find the nearest height
+	TFltV HeightV;	GetUniqueHeightV(HeightV);
+	for (int i = 0; i < HeightV.Len() - 1; i++) {
+		if (HeightV[i] <= Height && HeightV[i+1] > Height) {
+			return i;
+		}
+	}
+	return HeightV.Len() - 1;
 }
 
 bool THierarch::IsRoot(const int& StateId) const {
@@ -794,6 +854,8 @@ void THierarch::ClrFlds() {
 	HierarchV.Clr();
 	StateHeightV.Clr();
 	MxHeight = TFlt::Mn;
+	HistCacheSize = 1;
+	PastStateIdV.Clr();
 	StateCoordV.Clr();
 	NLeafs = 0;
 }
@@ -1387,7 +1449,19 @@ THierarchCtmc::THierarchCtmc(const PClust& _Clust, const PMChain& _MChain,
 		Hierarch(_Hierarch),
 		Verbose(_Verbose),
 		Callback(nullptr),
-		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
+}
+
+THierarchCtmc::THierarchCtmc(TSIn& SIn):
+	Clust(TClust::Load(SIn)),
+	MChain(TMChain::Load(SIn)),
+	Hierarch(THierarch::Load(SIn)),
+	Verbose(TBool(SIn)),
+	Callback(nullptr),
+	Notify() {
+
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
 
 void THierarchCtmc::Save(TSOut& SOut) const {
 	Notify->OnNotify(TNotifyType::ntInfo, "THierarchCtmc::Save: saving to stream ...");
@@ -1396,16 +1470,6 @@ void THierarchCtmc::Save(TSOut& SOut) const {
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
 	TBool(Verbose).Save(SOut);
-}
-
-PHierarchCtmc THierarchCtmc::Load(TSIn& SIn) {
-	PClust Clust = TClust::Load(SIn);
-	PMChain MChain = TMChain::Load(SIn);
-	PHierarch Hierarch = THierarch::Load(SIn);
-
-	bool Verbose = TBool(SIn);
-
-	return new THierarchCtmc(Clust, MChain, Hierarch, Verbose);
 }
 
 PJsonVal THierarchCtmc::SaveJson() const {
@@ -1454,9 +1518,6 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		TFullMatrix TransitionMat = MChain->GetTransitionMat(JoinedStateVV);
 		TVector StateSizeV = MChain->GetStateSizeV(JoinedStateVV).Map([&](const TFlt& Val) { return Val*(CurrHeight + .1); });
 
-
-//		MChain->GetNextStateProbV(JoinedStateVV, StateIdV, CurrStateId, StateIdProbPrV, 3);	// TODO 3 is hardcoded!
-
 		// construct state JSON
 		PJsonVal StateJsonV = TJsonVal::NewArr();
 		for (int i = 0; i < StateIdV.Len(); i++) {
@@ -1471,18 +1532,6 @@ PJsonVal THierarchCtmc::SaveJson() const {
 
 			StateJsonV->AddToArr(StateJson);
 		}
-
-//		// construct future states
-//		PJsonVal FutureStateJsonV = TJsonVal::NewArr();
-//		for (int i = 0; i < StateIdProbPrV.Len(); i++) {
-//			const TIntFltPr& StateIdProbPr = StateIdProbPrV[i];
-//			PJsonVal FutureStateJson = TJsonVal::NewObj();
-//
-//			FutureStateJson->AddToObj("id", StateIdProbPr.Val1);
-//			FutureStateJson->AddToObj("prob", StateIdProbPr.Val2);
-//
-//			FutureStateJsonV->AddToArr(FutureStateJson);
-//		}
 
 		// construct tansition JSON
 		PJsonVal JumpMatJson = TJsonVal::NewArr();
@@ -1499,7 +1548,6 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		LevelJsonVal->AddToObj("height", CurrHeight);
 		LevelJsonVal->AddToObj("states", StateJsonV);
 		LevelJsonVal->AddToObj("currentState", CurrStateId);
-//		LevelJsonVal->AddToObj("futureStates", FutureStateJsonV);
 		LevelJsonVal->AddToObj("transitions", JumpMatJson);
 
 		Result->AddToArr(LevelJsonVal);
@@ -1524,7 +1572,7 @@ void THierarchCtmc::InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV) {
 }
 
 void THierarchCtmc::InitHierarch() {
-	Hierarch->Init(Clust->GetCentroidMat());
+	Hierarch->Init(Clust->GetCentroidMat(), MChain->GetCurrStateId());
 }
 
 void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {
@@ -1539,7 +1587,9 @@ void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {
 		MChain->OnAddRec(NewStateId, RecTm, false);
 
 		if (NewStateId != OldStateId && Callback != nullptr) {
-			TIntFltPrV CurrStateV;	Hierarch->GetAncestorV(NewStateId, CurrStateV);
+			Hierarch->UpdateHistory(NewStateId);
+
+			TIntFltPrV CurrStateV;	GetCurrStateAncestry(CurrStateV);
 			Callback->OnStateChanged(CurrStateV);
 		}
 	}
@@ -1580,7 +1630,7 @@ void THierarchCtmc::GetNextStateProbV(const double& Height, const int& StateId, 
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, JoinedStateVV);
 		MChain->GetNextStateProbV(JoinedStateVV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
 	} catch (const PExcept& Except) {
-		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetNextStateProbs: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetNextStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
@@ -1592,7 +1642,16 @@ void THierarchCtmc::GetPrevStateProbV(const double& Height, const int& StateId, 
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, JoinedStateVV);
 		MChain->GetPrevStateProbV(JoinedStateVV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
 	} catch (const PExcept& Except) {
-		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetNextStateProbs: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void THierarchCtmc::GetHistStateIdV(const double& Height, TIntV& StateIdV) const {
+	try {
+		Hierarch->GetHistStateIdV(Height, StateIdV);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistStateIdV: Failed to compute fetch historical states: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
@@ -1609,7 +1668,7 @@ void THierarchCtmc::GetStateAncestry(const int& StateId, TIntFltPrV& StateIdHeig
 }
 
 void THierarchCtmc::GetCurrStateAncestry(TIntFltPrV& StateIdHeightPrV) const {
-	GetStateAncestry(MChain->GetCurrStateId(), StateIdHeightPrV);
+	return Hierarch->GetCurrStateIdHeightPrV(StateIdHeightPrV);
 }
 
 void THierarchCtmc::GetCentroid(const int& StateId, TFltV& FtrV) const {

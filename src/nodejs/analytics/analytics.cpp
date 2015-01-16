@@ -492,7 +492,7 @@ TNodeJsHMChain::TNodeJsHMChain(const TMc::PHierarchCtmc& _McModel):
 }
 
 TNodeJsHMChain::TNodeJsHMChain(PSIn& SIn):
-		McModel(TMc::THierarchCtmc::Load(*SIn)) {
+		McModel(new TMc::THierarchCtmc(*SIn)) {
 	InitCallbacks();
 }
 
@@ -506,6 +506,7 @@ v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
+	const int NPastStates = ParamVal->IsObjKey("pastStates") ? ParamVal->GetObjInt("pastStates") : 0;
 	const bool Verbose = ParamVal->IsObjKey("verbose") ? ParamVal->GetObjBool("verbose") : true;
 
 	const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
@@ -556,7 +557,7 @@ v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, 
 	}
 
 	// create the model
-	TMc::PHierarch AggClust = new TMc::THierarch(Verbose);
+	TMc::PHierarch AggClust = new TMc::THierarch(NPastStates + 1, Verbose);
 
 	// finish
 	TMc::PHierarchCtmc HMcModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Verbose);
@@ -583,6 +584,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currStates", _currStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
@@ -734,6 +736,28 @@ void TNodeJsHMChain::pastStates(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, StateIdProbPrV[i].Val2));
 
 			StateArr->Set(i, StateObj);
+		}
+
+		Args.GetReturnValue().Set(StateArr);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::futureStates");
+	}
+}
+
+void TNodeJsHMChain::histStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+		const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
+
+		TIntV StateIdV;	JsMChain->McModel->GetHistStateIdV(Level, StateIdV);
+
+		v8::Local<v8::Array> StateArr = v8::Array::New(Isolate, StateIdV.Len());
+		for (int i = 0; i < StateIdV.Len(); i++) {
+			StateArr->Set(i, v8::Integer::New(Isolate, StateIdV[i]));
 		}
 
 		Args.GetReturnValue().Set(StateArr);

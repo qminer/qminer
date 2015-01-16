@@ -172,6 +172,8 @@ public:
 	//#- of past states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely previous states.
 	JsDeclareFunction(pastStates);
+	//#- `stateIdV = hmc.getPastStates(level)` -- returns the previous states
+	JsDeclareFunction(histStates);
 
 	// state
 	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
