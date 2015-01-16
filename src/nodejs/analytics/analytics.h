@@ -162,8 +162,8 @@ public:
 	JsDeclareFunction(fit);
 	//#- `hmc.update(ftrVec, recTm)`
 	JsDeclareFunction(update);
-	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
-	JsDeclareFunction(toJSON);
+
+	// predictions
 	//#- `probs = hmc.futureStates(level, startState[, time])` -- returns a vector of probabilities
 	//#- of future states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely next states.
@@ -172,12 +172,18 @@ public:
 	//#- of past states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely previous states.
 	JsDeclareFunction(pastStates);
+
+	// state
+	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
+	JsDeclareFunction(toJSON);
 	//#- `transitionMat = hmc.getTransitionModel()` -- returns the transition matrix on level 0
 	JsDeclareFunction(getTransitionModel);
 	//#- `currStateV = hmc.getCurrStates()` -- returns the current states through the hierarchy
 	JsDeclareFunction(currStates);
 	//#- `coords = hmc.fullCoords(stateId)` -- returns the coordinates of the state
 	JsDeclareFunction(fullCoords);
+
+	// callbacks
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
 	JsDeclareFunction(onStateChanged);
 	//#- `hmc.onAnomaly(function (description) {})` -- callback when an anomaly is detected
@@ -185,6 +191,11 @@ public:
 	//#- `hmc.onOutlier(function (ftrVec) {})` -- callback when an anomaly is detected
 	JsDeclareFunction(onOutlier);
 
+	// rebuild methods
+	//#- `hmc.rebuildHierarchy()` -- rebuilds the hierarchy
+	JsDeclareFunction(rebuildHierarchy);
+
+	// parameters
 	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//#- in the input argument `params` returns this
 	JsDeclareFunction(setParams);
@@ -192,6 +203,7 @@ public:
 	//#- `hmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
 
+	// TMcCallback - callbacks
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
 	void OnOutlier(const TFltV& FtrV);

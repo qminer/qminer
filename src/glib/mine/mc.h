@@ -161,7 +161,6 @@ protected:
 	const TStr GetType() const { return "dpmeans"; }
 };
 
-
 class TEuclMds {
 public:
 	// projects the points stored in the column of X onto d
@@ -322,6 +321,9 @@ private:
 	static int GetParentId(const int& StateId, const TIntV& HierarchV) { return HierarchV[StateId]; }
 	static int GetGrandparentId(const int& StateId, const TIntV& HierarchV) { return GetParentId(GetParentId(StateId, HierarchV), HierarchV); }
 	static bool IsRoot(const int& StateId, const TIntV& HierarchV);
+
+	// clears the state
+	void ClrFlds();
 };
 
 /////////////////////////////////////////////////////////////////
@@ -578,6 +580,9 @@ public:
 	// initializes the model
 	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
 	void Init(TFltVV& X, const TUInt64V& RecTmV) { Init(TFullMatrix(X, true), RecTmV); }
+	void InitClust(const TFullMatrix& X);
+	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void InitHierarch();
 	void OnAddRec(const uint64 RecTm, const TFltV& Rec);
 
 	// future and past probabilities

@@ -581,15 +581,16 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	// Add all methods, getters and setters here.
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currStates", _currStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onAnomaly", _onAnomaly);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onOutlier", _onOutlier);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHierarchy", _rebuildHierarchy);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
@@ -669,18 +670,6 @@ void TNodeJsHMChain::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-void TNodeJsHMChain::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	try {
-		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
-		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMChain->McModel->SaveJson()));
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
-	}
-}
-
 void TNodeJsHMChain::futureStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -750,6 +739,18 @@ void TNodeJsHMChain::pastStates(const v8::FunctionCallbackInfo<v8::Value>& Args)
 		Args.GetReturnValue().Set(StateArr);
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::futureStates");
+	}
+}
+
+void TNodeJsHMChain::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+		Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsMChain->McModel->SaveJson()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
 	}
 }
 
@@ -874,6 +875,21 @@ void TNodeJsHMChain::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 		v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
 
 		JsMChain->OutlierCallback.Reset(Isolate, Callback);
+
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
+	}
+}
+
+void TNodeJsHMChain::rebuildHierarchy(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+		JsMChain->McModel->InitHierarch();
 
 		Args.GetReturnValue().Set(v8::Undefined(Isolate));
 	} catch (const PExcept& Except) {

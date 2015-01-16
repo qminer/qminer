@@ -488,6 +488,8 @@ PHierarch THierarch::Load(TSIn& SIn) {
 }
 
 void THierarch::Init(const TFullMatrix& CentroidMat) {
+	ClrFlds();
+
 	NLeafs = CentroidMat.GetCols();
 
 	// create a hierarchy
@@ -500,6 +502,7 @@ void THierarch::Init(const TFullMatrix& CentroidMat) {
 
 	HierarchV.Gen(NStates);
 	StateHeightV.Gen(NStates);
+
 	for (int i = 0; i < HierarchV.Len(); i++) {
 		HierarchV[i] = -1;
 	}
@@ -785,6 +788,14 @@ void THierarch::ComputeStateCoords(const TFullMatrix& CentroidMat, const int& NS
 
 bool THierarch::IsRoot(const int& StateId, const TIntV& HierarchV) {
 	return GetParentId(StateId, HierarchV) == StateId;
+}
+
+void THierarch::ClrFlds() {
+	HierarchV.Clr();
+	StateHeightV.Clr();
+	MxHeight = TFlt::Mn;
+	StateCoordV.Clr();
+	NLeafs = 0;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1498,11 +1509,21 @@ PJsonVal THierarchCtmc::SaveJson() const {
 }
 
 void THierarchCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
-	// partition the input space
+	InitClust(X);
+	InitMChain(X, RecTmV);
+	InitHierarch();
+}
+
+void THierarchCtmc::InitClust(const TFullMatrix& X) {
 	Clust->Init(X);
+}
+
+void THierarchCtmc::InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV) {
 	TIntV AssignV;	Clust->Assign(X, AssignV);
-	// initialize intensities
 	MChain->Init(Clust->GetClusts(), AssignV, RecTmV);
+}
+
+void THierarchCtmc::InitHierarch() {
 	Hierarch->Init(Clust->GetCentroidMat());
 }
 
