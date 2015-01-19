@@ -155,41 +155,46 @@ public:
     }
 };
 
-class TNodeJsHashUtil : public node::ObjectWrap {
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    //#
-    //# **Functions and properties:**
-    //#
-    //#- `map = utilities.newStrIntH()` -- New string-int hashmap
-    JsDeclareFunction(newStrIntH);
-    //#- `map = utilities.newStrFltH()` -- New string-flt hashmap
-    JsDeclareFunction(newStrFltH);
-    //#- `map = utilities.newStrStrH()` -- New string-string hashmap
-    JsDeclareFunction(newStrStrH);
-    //#- `map = utilities.newIntIntH()` -- New int-int hashmap
-    JsDeclareFunction(newIntIntH);
-    //#- `map = utilities.newIntFltH()` -- New int-flt hashmap
-    JsDeclareFunction(newIntFltH);
-    //#- `map = utilities.newIntStrH()` -- New int-string hashmap
-    JsDeclareFunction(newIntStrH);
-};
+//class TNodeJsHashUtil : public node::ObjectWrap {
+//public:
+//    static void Init(v8::Handle<v8::Object> exports);
+//    //#
+//    //# **Functions and properties:**
+//    //#
+//    //#- `map = utilities.newStrIntH()` -- New string-int hashmap
+//    JsDeclareFunction(newStrIntH);
+//    //#- `map = utilities.newStrFltH()` -- New string-flt hashmap
+//    JsDeclareFunction(newStrFltH);
+//    //#- `map = utilities.newStrStrH()` -- New string-string hashmap
+//    JsDeclareFunction(newStrStrH);
+//    //#- `map = utilities.newIntIntH()` -- New int-int hashmap
+//    JsDeclareFunction(newIntIntH);
+//    //#- `map = utilities.newIntFltH()` -- New int-flt hashmap
+//    JsDeclareFunction(newIntFltH);
+//    //#- `map = utilities.newIntStrH()` -- New int-string hashmap
+//    JsDeclareFunction(newIntStrH);
+//};
 
 template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 public:
-    typedef THash<TKey, TDat> HT;
-    HT Map;
-public:
+    typedef THash<TKey, TDat> TKeyDatH;
+    TKeyDatH Map;
+
+	TNodeJsHash() : Map() {}
+	TNodeJsHash(TSIn& SIn) : Map() { Map.Load(SIn); }
+
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj);
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+
     static void Init(v8::Handle<v8::Object> exports);
 
-    static v8::Local<v8::Object> New();
-
-    static HT& GetMap(const v8::Handle<v8::Object> Obj) {
+    static TKeyDatH& GetMap(const v8::Handle<v8::Object> Obj) {
         TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Obj);
         return JsMap->Map;
     }
-    static void SetMap(const v8::Handle<v8::Object> Obj, const HT& _Map) {
+    static void SetMap(const v8::Handle<v8::Object> Obj, const TKeyDatH& _Map) {
         TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Obj);
         JsMap->Map = _Map;
     }
@@ -214,28 +219,44 @@ public:
     JsDeclareFunction(load);
     //#- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
     JsDeclareFunction(save);
+
+    static TStr GetClassId() { return TAux::ClassId; }
 private:
     static v8::Persistent<v8::Function> constructor;
 };
 
+//template<class TKey, class TDat, class TAux>
+//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_STRING = "string";
+//template<class TKey, class TDat, class TAux>
+//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_INT = "int";
+//template<class TKey, class TDat, class TAux>
+//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_FLOAT = "float";
+
+typedef TNodeJsHash<TStr, TStr, TAuxStrStrH> TNodeJsStrStrH;
 typedef TNodeJsHash<TStr, TInt, TAuxStrIntH> TNodeJsStrIntH;
 typedef TNodeJsHash<TStr, TFlt, TAuxStrFltH> TNodeJsStrFltH;
-typedef TNodeJsHash<TStr, TStr, TAuxStrStrH> TNodeJsStrStrH;
+typedef TNodeJsHash<TInt, TStr, TAuxIntStrH> TNodeJsIntStrH;
 typedef TNodeJsHash<TInt, TInt, TAuxIntIntH> TNodeJsIntIntH;
 typedef TNodeJsHash<TInt, TFlt, TAuxIntFltH> TNodeJsIntFltH;
-typedef TNodeJsHash<TInt, TStr, TAuxIntStrH> TNodeJsIntStrH;
+
+template<class TKey, class TDat, class TAux>
+v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Object> Obj) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHash<TKey, TDat, TAux>());
+}
 
 template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-    TStr Name = "hashtable";
-    if (TAux::ClassId == TAuxStrIntH::ClassId) { Name = "StrIntH"; }
-    else if (TAux::ClassId == TAuxStrFltH::ClassId) { Name = "StrFltH"; }
-    else if (TAux::ClassId == TAuxStrStrH::ClassId) { Name = "StrStrH"; }
-    else if (TAux::ClassId == TAuxIntIntH::ClassId) { Name = "IntIntH"; }
-    else if (TAux::ClassId == TAuxIntFltH::ClassId) { Name = "IntFltH"; }
-    else if (TAux::ClassId == TAuxIntStrH::ClassId) { Name = "IntStrH"; }
+    TStr Name;
+    if (GetClassId() == TNodeJsStrStrH::GetClassId()) { Name = "StrStrMap"; }
+    else if (GetClassId() == TNodeJsStrIntH::GetClassId()) { Name = "StrIntMap"; }
+    else if (GetClassId() == TNodeJsStrFltH::GetClassId()) { Name = "StrFltMap"; }
+    else if (GetClassId() == TNodeJsIntStrH::GetClassId()) { Name = "IntStrMap"; }
+    else if (GetClassId() == TNodeJsIntIntH::GetClassId()) { Name = "IntIntMap"; }
+    else if (GetClassId() == TNodeJsIntFltH::GetClassId()) { Name = "IntFltMap"; }
+
+    EAssertR(!Name.Empty(), "Could not resolve class ID!");
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
@@ -261,35 +282,20 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
 }
 
 template<class TKey, class TDat, class TAux>
-v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::New() {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = new TNodeJsHash<TKey, TDat, TAux>();
-    JsMap->Wrap(Instance);
-    return HandleScope.Escape(Instance);
-}
-
-template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    if (Args.IsConstructCall()) {
-        TNodeJsHash<TKey, TDat, TAux>* JsMap = new TNodeJsHash<TKey, TDat, TAux>();
-        v8::Local<v8::Object> Instance = Args.This();
-        JsMap->Wrap(Instance);
-        Args.GetReturnValue().Set(Instance); 
+    EAssertR(Args.IsConstructCall(), "Trying to initialize HashMap without calling the constructor!");
+
+    if (Args.Length() > 0 && (Args[0]->IsExternal() || Args[0]->IsString())) {
+    	PSIn SIn = Args[0]->IsExternal() ?
+    			ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject())->SIn :
+				TFIn::New(TNodeJsUtil::GetArgStr(Args, 0));
+
+    	Args.GetReturnValue().Set(WrapInst(Args.Holder(), *SIn));
     } else {
-        const int Argc = 1;
-        v8::Local<v8::Value> Argv[Argc] = { Args[0] };
-        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-        cons->NewInstance(Argc, Argv);
-        v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        Args.GetReturnValue().Set(Instance);
+    	Args.GetReturnValue().Set(WrapInst(Args.Holder()));
     }
 }
 
