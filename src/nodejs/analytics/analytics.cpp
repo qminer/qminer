@@ -813,19 +813,29 @@ void TNodeJsHMChain::currState(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	try {
 		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
 
-		TIntFltPrV StateIdHeightPrV;	JsMChain->McModel->GetCurrStateAncestry(StateIdHeightPrV);
+		if (Args.Length() > 0) {
+			double Height = TNodeJsUtil::GetArgFlt(Args, 0);
+			int CurrStateId = JsMChain->McModel->GetCurrStateId(Height);
 
-		v8::Local<v8::Array> AncestryArr = v8::Array::New(Isolate, StateIdHeightPrV.Len());
-		for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
 			v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+			StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, CurrStateId));
 
-			StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdHeightPrV[i].Val1));
-			StateObj->Set(v8::String::NewFromUtf8(Isolate, "height"), v8::Number::New(Isolate, StateIdHeightPrV[i].Val2));
+			Args.GetReturnValue().Set(StateObj);
+		} else {
+			TIntFltPrV StateIdHeightPrV;	JsMChain->McModel->GetCurrStateAncestry(StateIdHeightPrV);
 
-			AncestryArr->Set(i, StateObj);
+			v8::Local<v8::Array> AncestryArr = v8::Array::New(Isolate, StateIdHeightPrV.Len());
+			for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
+				v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+
+				StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdHeightPrV[i].Val1));
+				StateObj->Set(v8::String::NewFromUtf8(Isolate, "height"), v8::Number::New(Isolate, StateIdHeightPrV[i].Val2));
+
+				AncestryArr->Set(i, StateObj);
+			}
+
+			Args.GetReturnValue().Set(AncestryArr);
 		}
-
-		Args.GetReturnValue().Set(AncestryArr);
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
 	}
