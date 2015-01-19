@@ -1,14 +1,6 @@
-var fs = require('fs');
-if (fs.existsSync('lock')) {
-    try {
-        fs.unlinkSync('lock');
-    } catch (e) {
-        console.log(e);
-    }
-}
-
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
+qm.delLock();
 
 qm.config('qm.conf', true, 8080, 1024);
 // add store.addTrigger method

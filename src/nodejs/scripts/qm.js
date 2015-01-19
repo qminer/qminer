@@ -2,6 +2,7 @@ module.exports = require('../../../build/debug/qm.node');
 exports = module.exports; // re-establish link
 
 var fs = require('../../../build/Debug/fs.node');
+var nodefs = require('fs');
 
 exports.Store.prototype.addTrigger = function (trigger) {
     // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
@@ -62,3 +63,13 @@ exports.load = function () {
 
     return _obj;
 }();
+
+exports.delLock = function () {
+    if (nodefs.existsSync('lock')) {
+        try {
+            nodefs.unlinkSync('lock');
+        } catch (e) {
+            console.log(e);
+        }
+    }
+}
