@@ -2447,11 +2447,11 @@ void THierchCtmc::TNode::UpdateIntensities(const TRec& Rec) {
 void THierchCtmc::TNode::UpdateStatistics(const TRec& Rec) {
 	TVector Pt = Model->GetFtrV(Rec);
 
-	int StateIdx = Clust->Assign(Pt);
-	double CentroidDist = Clust->GetDist(StateIdx, Pt);
+	int StateId = Clust->Assign(Pt);
+	double CentroidDist = Clust->GetDist(StateId, Pt);
 
-	StateStatV[StateIdx].Val1 += 1;
-	StateStatV[StateIdx].Val2 += CentroidDist;
+	StateStatV[StateId].Val1 += 1;
+	StateStatV[StateId].Val2 += CentroidDist;
 }
 
 void THierchCtmc::TNode::InitStateStats() {
@@ -2617,7 +2617,10 @@ void THierchCtmc::TNode::InitChildV() {
 void THierchCtmc::TNode::InitClusts(const PRecSet& RecSet, TIntV& AssignIdxV) {
 	TFullMatrix X = Model->GetFtrVV(RecSet);
 	// run the algorithm
-	CentroidMat = Clust->Apply(X, AssignIdxV);
+	Clust->Init(X);
+	Clust->Assign(X, AssignIdxV);
+	CentroidMat = Clust->GetCentroidMat();
+//	CentroidMat = Clust->Apply(X, AssignIdxV);
 
 //	//================================================================
 //	// TODO delete
@@ -2772,10 +2775,10 @@ TMc::PClust THierchCtmc::GetClust() const {
 		const double Lambda = ClustParams->GetObjNum("lambda");
 		const int MinClusts = ClustParams->GetObjInt("minclusts");
 		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
-		return new TMc::TDpMeans(Lambda, MinClusts, MaxClusts, Rnd);
+		return new TMc::TDpMeans(1, Lambda, MinClusts, MaxClusts, Rnd);
 	} else if (ClustType == "kmeans") {
 		const int K = ClustParams->GetObjInt("k");
-		return new TMc::TFullKMeans(K, Rnd);
+		return new TMc::TFullKMeans(1, K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
 	}

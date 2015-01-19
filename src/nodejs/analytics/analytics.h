@@ -46,9 +46,6 @@ private:
 	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
 public:
-//	static v8::Local<v8::Object> New(const PJsonVal& ParamVal);
-//	static v8::Local<v8::Object> New(TSIn& SIn);
-
 	static void Init(v8::Handle<v8::Object> exports);
 
 	JsDeclareFunction(New);
@@ -142,6 +139,7 @@ private:
 
 	v8::Persistent<v8::Function> StateChangedCallback;
 	v8::Persistent<v8::Function> AnomalyCallback;
+	v8::Persistent<v8::Function> OutlierCallback;
 
 	TNodeJsHMChain(const TMc::PHierarchCtmc& McModel);
 	TNodeJsHMChain(PSIn& SIn);
@@ -159,28 +157,47 @@ public:
 	//#- `hmc = new analytics.HMarkovChain(base, fin)` -- Loads the model from input stream `fin`.
 	JsDeclareFunction(New);
 
-	//#- `hmc.fit(colMat, timeV)` -- Initializes the model with the instances in the columns of colMat
+	//#- `hmc.fit(ftrColMat, timeV)` -- Initializes the model with the instances in the columns of colMat
 	//#- which are sampled at time in timeV.
 	JsDeclareFunction(fit);
 	//#- `hmc.update(ftrVec, recTm)`
 	JsDeclareFunction(update);
-	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
-	JsDeclareFunction(toJSON);
-	//#- `hmc.futureStates(level, startState[, time])` -- returns a vector of probabilities
+
+	// predictions
+	//#- `probs = hmc.futureStates(level, startState[, time])` -- returns a vector of probabilities
 	//#- of future states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely next states.
 	JsDeclareFunction(futureStates);
+	//#- `probs = hmc.pastStates(level, startState[, time])` -- returns a vector of probabilities
+	//#- of past states starting from `startState` in time `time`.
+	//#- If time is not specified it returns the most likely previous states.
+	JsDeclareFunction(pastStates);
+	//#- `stateIdV = hmc.getPastStates(level)` -- returns the previous states
+	JsDeclareFunction(histStates);
+
+	// state
+	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
+	JsDeclareFunction(toJSON);
 	//#- `transitionMat = hmc.getTransitionModel()` -- returns the transition matrix on level 0
 	JsDeclareFunction(getTransitionModel);
 	//#- `currStateV = hmc.getCurrStates()` -- returns the current states through the hierarchy
 	JsDeclareFunction(currStates);
 	//#- `coords = hmc.fullCoords(stateId)` -- returns the coordinates of the state
 	JsDeclareFunction(fullCoords);
+
+	// callbacks
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
 	JsDeclareFunction(onStateChanged);
-	//#- `hmc.onAnomalyDetected(function (description) {})` -- callback when an anomaly is detected
+	//#- `hmc.onAnomaly(function (description) {})` -- callback when an anomaly is detected
 	JsDeclareFunction(onAnomaly);
+	//#- `hmc.onOutlier(function (ftrVec) {})` -- callback when an anomaly is detected
+	JsDeclareFunction(onOutlier);
 
+	// rebuild methods
+	//#- `hmc.rebuildHierarchy()` -- rebuilds the hierarchy
+	JsDeclareFunction(rebuildHierarchy);
+
+	// parameters
 	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//#- in the input argument `params` returns this
 	JsDeclareFunction(setParams);
@@ -188,8 +205,10 @@ public:
 	//#- `hmc.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
 
+	// TMcCallback - callbacks
 	void OnStateChanged(const TIntFltPrV& StateIdHeightV);
 	void OnAnomaly(const TStr& AnomalyDesc);
+	void OnOutlier(const TFltV& FtrV);
 
 private:
 	void SetParams(const PJsonVal& ParamVal);

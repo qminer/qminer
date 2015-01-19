@@ -254,7 +254,7 @@ bool TFtrSpace::Update(const PRecSet& RecSet) {
     TEnv::Logger->OnStatusFmt("Updating feature space with %d records", RecSet->GetRecs());
     bool UpdateDimP = false;
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
         // update according to the record
         const bool RecUpdateDimP = Update(RecSet->GetRec(RecN));
         // check if we did a dimensionality update
@@ -292,7 +292,7 @@ void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
 void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const {
     TEnv::Logger->OnStatusFmt("Creating sparse feature vectors from %d records", RecSet->GetRecs());
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
 		SpVV.Add(TIntFltKdV()); GetSpV(RecSet->GetRec(RecN), SpVV.Last());
 	}
 }
@@ -300,7 +300,7 @@ void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const {
 void TFtrSpace::GetFullVV(const PRecSet& RecSet, TVec<TFltV>& FullVV) const {
     TEnv::Logger->OnStatusFmt("Creating full feature vectors from %d records", RecSet->GetRecs());
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
 		FullVV.Add(TFltV()); GetFullV(RecSet->GetRec(RecN), FullVV.Last());
 	}
 }
@@ -310,7 +310,7 @@ void TFtrSpace::GetFullVV(const PRecSet& RecSet, TFltVV& FullVV) const {
 	FullVV.Gen(GetDim(), RecSet->GetRecs());
 	TFltV Temp(GetDim());
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {
-		if (RecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
+		if (RecN % 10000 == 0) { TEnv::Logger->OnStatusFmt("%d\r", RecN); }
 		GetFullV(RecSet->GetRec(RecN), Temp);
 		FullVV.SetCol(RecN, Temp);
 	}

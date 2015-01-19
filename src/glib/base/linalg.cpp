@@ -2165,8 +2165,6 @@ void TNumericalStuff::GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& Eige
 		A(i,i) -= EigenVal;
 	}
 
-//	const double NormA = TLinAlg::FrobNorm(A);
-
 	// build an initial estimate of the eigenvector
 	// decompose (A - Lambda*I) into LU
 	TIntV PermIdxV;

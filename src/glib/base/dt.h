@@ -277,6 +277,7 @@ public:
   TChA& operator+=(const TStr& Str);
   TChA& operator+=(const char* CStr);
   TChA& operator+=(const char& Ch){
+	Assert(Ch != 0);
     if (BfL==MxBfL){Resize(BfL+1);}
     Bf[BfL]=Ch; BfL++; Bf[BfL]=0; return *this;}
   char operator[](const int& ChN) const {
