@@ -145,7 +145,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    v8::HandleScope HandleScope(Isolate);
 
    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-   tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "base"));
+   tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Base"));
    // ObjectWrap uses the first internal field to store the wrapped pointer.
    tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -161,7 +161,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    
    // This has to be last, otherwise the properties won't show up on the object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
-   /*exports->Set(v8::String::NewFromUtf8(Isolate, "base"),
+   /*exports->Set(v8::String::NewFromUtf8(Isolate, "Base"),
 	   tpl->GetFunction());*/
 
 }
@@ -385,7 +385,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "sa"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "StreamAggr"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -417,7 +417,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "sa"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "StreamAggr"),
 	tpl->GetFunction());
 
 }
@@ -1279,7 +1279,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "store"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Store"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -1319,7 +1319,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
 	// TODO ifndef include qmmodule!
-	exports->Set(v8::String::NewFromUtf8(Isolate, "store"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "Store"),
 		tpl->GetFunction());
 }
 
@@ -2229,7 +2229,7 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 	if (BaseStoreIdConstructor[BaseId][(int)StoreId].IsEmpty()) {
 
 		v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-		tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "rec"));
+		tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Rec"));
 		// ObjectWrap uses the first internal field to store the wrapped pointer.
 		tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -2265,7 +2265,7 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 		
 		// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 		BaseStoreIdConstructor[BaseId][(int)StoreId].Reset(Isolate, tpl->GetFunction());
-		//exports->Set(v8::String::NewFromUtf8(Isolate, "rec"), tpl->GetFunction());
+		//exports->Set(v8::String::NewFromUtf8(Isolate, "Rec"), tpl->GetFunction());
 	}
 }
 
@@ -2617,7 +2617,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "rs"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "RecSet"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -2657,7 +2657,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	/*exports->Set(v8::String::NewFromUtf8(Isolate, "rs"),
+	/*exports->Set(v8::String::NewFromUtf8(Isolate, "RecSet"),
 		tpl->GetFunction());*/
 }
 
@@ -3383,7 +3383,7 @@ void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "storeIter"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "StoreIter"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -3396,7 +3396,7 @@ void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
 	
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	//exports->Set(v8::String::NewFromUtf8(Isolate, "storeIter"),
+	//exports->Set(v8::String::NewFromUtf8(Isolate, "StoreIter"),
 	//	tpl->GetFunction());
 }
 
@@ -3513,7 +3513,7 @@ void TNodeJsIndexKey::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "indexKey"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "IndexKey"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -3527,7 +3527,7 @@ void TNodeJsIndexKey::Init(v8::Handle<v8::Object> exports) {
 	
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	//exports->Set(v8::String::NewFromUtf8(Isolate, "indexKey"), tpl->GetFunction());
+	//exports->Set(v8::String::NewFromUtf8(Isolate, "IndexKey"), tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsIndexKey::New(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey) {

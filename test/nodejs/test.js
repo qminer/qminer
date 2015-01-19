@@ -12,7 +12,7 @@ describe('Import test', function(){
     })
 })
 
-var v = new la.vector();
+var v = new la.Vector();
 
 describe('Property Tests', function(){
   describe('Vector Length Test', function(){

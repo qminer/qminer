@@ -701,7 +701,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "matrix"));
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Matrix"));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -740,7 +740,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     // object in JavaScript.
     constructor.Reset(Isolate, tpl->GetFunction());
     #ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, "matrix"),
+    exports->Set(v8::String::NewFromUtf8(Isolate, "Matrix"),
         tpl->GetFunction());
     #endif
 }
@@ -1298,7 +1298,7 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "sparseVector"));
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "SparseVector"));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -1323,7 +1323,7 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
     // object in JavaScript.
     constructor.Reset(Isolate, tpl->GetFunction());
     #ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseVector"),
+    exports->Set(v8::String::NewFromUtf8(Isolate, "SparseVector"),
         tpl->GetFunction());
     #endif
 }
@@ -1624,7 +1624,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "sparseColMatrix"));
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "SparseMatrix"));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -1654,7 +1654,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     // object in JavaScript.
     constructor.Reset(Isolate, tpl->GetFunction());
     #ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, "sparseColMatrix"),
+    exports->Set(v8::String::NewFromUtf8(Isolate, "SparseMatrix"),
         tpl->GetFunction());
     #endif
 }

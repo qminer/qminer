@@ -13,7 +13,7 @@ exports.store.prototype.addTrigger = function (trigger) {
     };
     if (trigger.onUpdate != undefined) Callbacks["onUpdate"] = trigger.onUpdate;
     if (trigger.onDelete != undefined) Callbacks["onDelete"] = trigger.onDelete;
-    var streamAggr = new exports.sa(this.base, Callbacks, this.name);
+    var streamAggr = new exports.StreamAggr(this.base, Callbacks, this.name);
 }
 
 
