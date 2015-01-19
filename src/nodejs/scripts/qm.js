@@ -3,7 +3,7 @@ exports = module.exports; // re-establish link
 
 var fs = require('../../../build/Debug/fs.node');
 
-exports.store.prototype.addTrigger = function (trigger) {
+exports.Store.prototype.addTrigger = function (trigger) {
     // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
     // name is automatically generated
     // saveJson isn't needed    
