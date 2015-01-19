@@ -813,7 +813,7 @@ void TNodeJsHMChain::currState(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	try {
 		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
 
-		if (Args.Length() > 0) {
+		if (Args.Length() > 0 && !Args[0]->IsNull() && !Args[0]->IsUndefined()) {
 			double Height = TNodeJsUtil::GetArgFlt(Args, 0);
 			int CurrStateId = JsMChain->McModel->GetCurrStateId(Height);
 
