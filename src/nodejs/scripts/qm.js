@@ -17,6 +17,10 @@ exports.Store.prototype.addTrigger = function (trigger) {
     var streamAggr = new exports.StreamAggr(this.base, Callbacks, this.name);
 }
 
+exports.Store.prototype.addStreamAggr = function (params) {
+    // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
+    var streamAggr = new exports.StreamAggr(this.base, params, this.name);
+}
 
 // loading data into stores
 exports.load = function () {
