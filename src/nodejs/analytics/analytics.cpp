@@ -585,7 +585,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "currStates", _currStates);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
@@ -684,7 +684,7 @@ void TNodeJsHMChain::futureStates(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 		TIntFltPrV StateIdProbPrV;
 
-		if (Args.Length() > 2) {
+		if (Args.Length() > 2 && !Args[2]->IsNull() && !Args[2]->IsUndefined()) {
 			const double Tm = TNodeJsUtil::GetArgFlt(Args, 2);
 			JsMChain->McModel->GetFutStateProbV(Level, StartState, Tm, StateIdProbPrV);
 		}
@@ -720,7 +720,7 @@ void TNodeJsHMChain::pastStates(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 		TIntFltPrV StateIdProbPrV;
 
-		if (Args.Length() > 2) {
+		if (Args.Length() > 2 && !Args[2]->IsNull() && !Args[2]->IsUndefined()) {
 			const double Tm = TNodeJsUtil::GetArgFlt(Args, 2);
 			JsMChain->McModel->GetPastStateProbV(Level, StartState, Tm, StateIdProbPrV);
 		}
@@ -806,26 +806,36 @@ void TNodeJsHMChain::getTransitionModel(const v8::FunctionCallbackInfo<v8::Value
 	}
 }
 
-void TNodeJsHMChain::currStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsHMChain::currState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
 	try {
 		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
 
-		TIntFltPrV StateIdHeightPrV;	JsMChain->McModel->GetCurrStateAncestry(StateIdHeightPrV);
+		if (Args.Length() > 0 && !Args[0]->IsNull() && !Args[0]->IsUndefined()) {
+			double Height = TNodeJsUtil::GetArgFlt(Args, 0);
+			int CurrStateId = JsMChain->McModel->GetCurrStateId(Height);
 
-		v8::Local<v8::Array> AncestryArr = v8::Array::New(Isolate, StateIdHeightPrV.Len());
-		for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
 			v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+			StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, CurrStateId));
 
-			StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdHeightPrV[i].Val1));
-			StateObj->Set(v8::String::NewFromUtf8(Isolate, "height"), v8::Number::New(Isolate, StateIdHeightPrV[i].Val2));
+			Args.GetReturnValue().Set(StateObj);
+		} else {
+			TIntFltPrV StateIdHeightPrV;	JsMChain->McModel->GetCurrStateAncestry(StateIdHeightPrV);
 
-			AncestryArr->Set(i, StateObj);
+			v8::Local<v8::Array> AncestryArr = v8::Array::New(Isolate, StateIdHeightPrV.Len());
+			for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
+				v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+
+				StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdHeightPrV[i].Val1));
+				StateObj->Set(v8::String::NewFromUtf8(Isolate, "height"), v8::Number::New(Isolate, StateIdHeightPrV[i].Val2));
+
+				AncestryArr->Set(i, StateObj);
+			}
+
+			Args.GetReturnValue().Set(AncestryArr);
 		}
-
-		Args.GetReturnValue().Set(AncestryArr);
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
 	}

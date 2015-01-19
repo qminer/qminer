@@ -1509,7 +1509,7 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		}
 
 		// get the index of the current state at this height
-		const int CurrStateId = Hierarch->GetAncestorAtHeight(MChain->GetCurrStateId(), CurrHeight);
+//		const int CurrStateId = Hierarch->GetAncestorAtHeight(MChain->GetCurrStateId(), CurrHeight);
 
 		// ok, now that I have all the states I need their expected staying times
 		// and transition probabilities
@@ -1547,7 +1547,7 @@ PJsonVal THierarchCtmc::SaveJson() const {
 
 		LevelJsonVal->AddToObj("height", CurrHeight);
 		LevelJsonVal->AddToObj("states", StateJsonV);
-		LevelJsonVal->AddToObj("currentState", CurrStateId);
+//		LevelJsonVal->AddToObj("currentState", CurrStateId);
 		LevelJsonVal->AddToObj("transitions", JumpMatJson);
 
 		Result->AddToArr(LevelJsonVal);
@@ -1669,6 +1669,10 @@ void THierarchCtmc::GetStateAncestry(const int& StateId, TIntFltPrV& StateIdHeig
 
 void THierarchCtmc::GetCurrStateAncestry(TIntFltPrV& StateIdHeightPrV) const {
 	return Hierarch->GetCurrStateIdHeightPrV(StateIdHeightPrV);
+}
+
+int THierarchCtmc::GetCurrStateId(const double& Height) const {
+	return Hierarch->GetAncestorAtHeight(MChain->GetCurrStateId(), Height);
 }
 
 void THierarchCtmc::GetCentroid(const int& StateId, TFltV& FtrV) const {

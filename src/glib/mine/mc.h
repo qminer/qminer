@@ -615,6 +615,8 @@ public:
 	void GetStateAncestry(const int& StateId, TIntFltPrV& StateIdHeightPrV) const;
 	// returns a list of ancestors of the current state
 	void GetCurrStateAncestry(TIntFltPrV& StateIdHeightPrV) const;
+	// returns the current state on the specified level
+	int GetCurrStateId(const double& Height) const;
 	// returns the centroid of the given state
 	void GetCentroid(const int& StateId, TFltV& FtrV) const;
 	// returns the number of states in the hierarchy
