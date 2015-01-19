@@ -585,7 +585,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
-	NODE_SET_PROTOTYPE_METHOD(tpl, "currStates", _currStates);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
@@ -684,7 +684,7 @@ void TNodeJsHMChain::futureStates(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 		TIntFltPrV StateIdProbPrV;
 
-		if (Args.Length() > 2) {
+		if (Args.Length() > 2 && !Args[2]->IsNull() && !Args[2]->IsUndefined()) {
 			const double Tm = TNodeJsUtil::GetArgFlt(Args, 2);
 			JsMChain->McModel->GetFutStateProbV(Level, StartState, Tm, StateIdProbPrV);
 		}
@@ -720,7 +720,7 @@ void TNodeJsHMChain::pastStates(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 		TIntFltPrV StateIdProbPrV;
 
-		if (Args.Length() > 2) {
+		if (Args.Length() > 2 && !Args[2]->IsNull() && !Args[2]->IsUndefined()) {
 			const double Tm = TNodeJsUtil::GetArgFlt(Args, 2);
 			JsMChain->McModel->GetPastStateProbV(Level, StartState, Tm, StateIdProbPrV);
 		}
@@ -806,7 +806,7 @@ void TNodeJsHMChain::getTransitionModel(const v8::FunctionCallbackInfo<v8::Value
 	}
 }
 
-void TNodeJsHMChain::currStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsHMChain::currState(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 

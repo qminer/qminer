@@ -245,6 +245,12 @@ v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Obje
 }
 
 template<class TKey, class TDat, class TAux>
+v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHash<TKey, TDat, TAux>(SIn));
+}
+
+
+template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 

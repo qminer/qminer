@@ -180,8 +180,8 @@ public:
 	JsDeclareFunction(toJSON);
 	//#- `transitionMat = hmc.getTransitionModel()` -- returns the transition matrix on level 0
 	JsDeclareFunction(getTransitionModel);
-	//#- `currStateV = hmc.getCurrStates()` -- returns the current states through the hierarchy
-	JsDeclareFunction(currStates);
+	//#- `currStateV = hmc.getCurrState([height])` -- returns the current states through the hierarchy, if the height is specified it returns the ID of the current state on that height
+	JsDeclareFunction(currState);
 	//#- `coords = hmc.fullCoords(stateId)` -- returns the coordinates of the state
 	JsDeclareFunction(fullCoords);
 
