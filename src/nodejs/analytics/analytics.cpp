@@ -314,7 +314,7 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "recLinReg"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "RecLinReg"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
