@@ -1017,6 +1017,79 @@ void TNodeJsHMChain::InitCallbacks() {
 }
 
 ///////////////////////////////
+// QMiner-JavaScript-Tokenizer
+v8::Persistent <v8::Function> TNodeJsTokenizer::constructor;
+
+void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Tokenizer"));
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getTokens", _getTokens);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getSentences", _getSentences);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getParagraphs", _getParagraphs);
+
+	constructor.Reset(Isolate, tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "TTokenizer"), tpl->GetFunction());
+}
+
+v8::Local<v8::Object> TNodeJsTokenizer::New(const PTokenizer& Tokenizer) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope EscapableHandleScope(Isolate);
+
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+
+	TNodeJsTokenizer* JsTokenizer = new TNodeJsTokenizer(Tokenizer);
+	JsTokenizer->Wrap(Instance);
+
+	return EscapableHandleScope.Escape(Instance);
+}
+
+void TNodeJsTokenizer::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	EFailR("Use analytics.newTokenizer() instead of new Tokenizer();");
+	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsTokenizer::getTokens(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a string as the argument.");
+	TNodeJsTokenizer* JsTokenizer = ObjectWrap::Unwrap<TNodeJsTokenizer>(Args.Holder());
+	TStr TextStr = TNodeJsUtil::GetArgStr(Args, 0);
+	TStrV TokenV; JsTokenizer->Tokenizer->GetTokens(TextStr, TokenV);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(TokenV));
+}
+
+void TNodeJsTokenizer::getSentences(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a string as the argument.");
+	TStr TextStr = TNodeJsUtil::GetArgStr(Args, 0);
+	TStrV SentenceV; TTokenizerUtil::Sentencize(TextStr, SentenceV);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(SentenceV));
+}
+
+void TNodeJsTokenizer::getParagraphs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a string as the argument.");
+	TStr TextStr = TNodeJsUtil::GetArgStr(Args, 0);
+	TStrV ParagraphV; TTokenizerUtil::Sentencize(TextStr, ParagraphV);
+
+	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(ParagraphV));
+}
+
+///////////////////////////////
 // Register functions, etc.
 #ifndef MODULE_INCLUDE_ANALYTICS
 
@@ -1025,6 +1098,7 @@ void init(v8::Handle<v8::Object> exports) {
 	TNodeJsSvmModel::Init(exports);
 	TNodeJsRecLinReg::Init(exports);
 	TNodeJsHMChain::Init(exports);
+	TNodeJsTokenizer::Init(exports);
 }
 
 NODE_MODULE(analytics, init)

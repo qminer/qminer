@@ -48,15 +48,13 @@ If node is not installed install node following the steps below:
 		./configure
 
 
-Safe way:
+Safe way (skip --debug flag if you want release):
 
-	node-gyp configure --python PYTHON_PATH --nodedir=src/third_party/node
-	node-gyp build --python PYTHON_PATH --nodedir=src/third_party/node
+	node-gyp configure build --python PYTHON_PATH --nodedir=src/third_party/node --debug
 
-Simple way, when correct version of Python is in path and node-gyp takes care of node's source code:
+Simple way, when correct version of Python is in path and node-gyp takes care of node's source code. Skip --debug flag if you want release:
 
-	node-gyp configure
-	node-gyp build
+	node-gyp configure build --debug
 
 ### Running tests
 
@@ -86,13 +84,14 @@ Example of how to setup enivronment variables from command-line:
 
 #### Node.JS source code
 
-Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of `node-0.11,14` it to `NODE_ROOT`.
+Modules were tested with Node.JS 0.11.14. Download the code from [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of `node-0.11,14` it to `NODE_ROOT`. Commands below build a release and a debug version of node.
 
 
 	cd %NODE_ROOT%
 	set PATH=%PYTHON_PATH%;%PATH%
 	vcbuild clean nosign
 	vcbuild release x64 nosign
+	vcbuild debug x64 nosign
 
 #### NPM (Node Package Manager)
 

@@ -151,6 +151,7 @@ var M12_x = new la.matrix();
 M12_x.load(fs.openRead("test-mat.bin"));
 console.log(M12_x.toString());
 console.log(" ==== ");
+fs.del("test-mat.bin");
 
 console.log(M12.transpose().toString());
 console.log(" *** ");
@@ -181,6 +182,7 @@ fout.close();
 var u = la.newVec();
 u.load(fs.openRead("test-vec.bin"));
 console.log("u: " + u.toString());
+fs.del("test-vec.bin");
 
 // The code below crashes because V8 imposes memory limit on
 // standard JS arrays. 

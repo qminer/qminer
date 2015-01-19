@@ -215,4 +215,35 @@ private:
 	void InitCallbacks();
 };
 
+///////////////////////////////
+// QMiner-JavaScript-Tokenizer
+//#
+//# ### Tokenizer
+//#
+//# Breaks text into tokens (i.e. words).
+class TNodeJsTokenizer : public node::ObjectWrap {
+public:
+	/// Tokenizer Model
+	PTokenizer Tokenizer;
+	static v8::Persistent <v8::Function> constructor;
+private:
+	TNodeJsTokenizer(const PTokenizer& _Tokenizer): 
+		Tokenizer(_Tokenizer) { }
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(const PTokenizer& Tokenizer);
+
+	//#
+	//# **Functions and properties:**
+	//#
+	JsDeclareFunction(New);
+	//#- `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
+	JsDeclareFunction(getTokens);
+	//#- `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.
+	JsDeclareFunction(getSentences);
+	//#- `arr = tokenizer.getParagraphs(string)` -- breaks text into paragraphs and returns them as an array of strings.
+	JsDeclareFunction(getParagraphs);
+};
+
 #endif /* ANALYTICS_H_ */
+

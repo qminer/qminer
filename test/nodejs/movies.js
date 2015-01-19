@@ -7,15 +7,13 @@ if (fs.existsSync('lock')) {
     }
 }
 
-var assert = require('assert');
-var qm = require('../../build/Debug/qm.node');
+var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
+var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
 
 qm.config('qm.conf', true, 8080, 1024);
 // add store.addTrigger method
-var backward = require('./backward.js');
-backward.addToQm(qm);
-backward.addToAssert(assert);
-backward.addToProcess(process);
+var backward = require('../../src/nodejs/scripts/backward.js');
+backward.addToProcess(process); // adds process.isArg function
 
 var base = qm.create('qm.conf');
 
