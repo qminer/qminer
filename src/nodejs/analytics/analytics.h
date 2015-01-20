@@ -184,6 +184,8 @@ public:
 	JsDeclareFunction(currState);
 	//#- `coords = hmc.fullCoords(stateId)` -- returns the coordinates of the state
 	JsDeclareFunction(fullCoords);
+	//#- `hist = hmc.histogram(stateId, ftrId)` -- returns the histogram of the specified feature in the specified state
+	JsDeclareFunction(histogram);
 
 	// callbacks
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
@@ -196,6 +198,9 @@ public:
 	// rebuild methods
 	//#- `hmc.rebuildHierarchy()` -- rebuilds the hierarchy
 	JsDeclareFunction(rebuildHierarchy);
+	//#- `hmc.rebuildHistograms(ftrColMat)` -- rebuilds the state histograms using the instances stored
+	//#- in the columns of the provided matrix
+	JsDeclareFunction(rebuildHistograms);
 
 	// parameters
 	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given

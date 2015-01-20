@@ -289,6 +289,18 @@ void TFtrSpace::InvertFullV(const TFltV& FullV, TFltV& InvertV) const {
 	}
 }
 
+double TFtrSpace::InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const {
+	const PFtrExt FtrExt = FtrExtV[FtrExtN];
+
+	TFltV FtrV, InvV;
+	FtrV.Add(FtrVal);
+
+	int Offset = 0;
+	FtrExt->InvFullV(FtrV, Offset, InvV);
+
+	return InvV[0];
+}
+
 void TFtrSpace::GetSpVV(const PRecSet& RecSet, TVec<TIntFltKdV>& SpVV) const {
     TEnv::Logger->OnStatusFmt("Creating sparse feature vectors from %d records", RecSet->GetRecs());
 	for (int RecN = 0; RecN < RecSet->GetRecs(); RecN++) {

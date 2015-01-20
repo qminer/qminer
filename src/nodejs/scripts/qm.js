@@ -1,4 +1,4 @@
-module.exports = require('../../../build/debug/qm.node');
+module.exports = require('../../../build/Debug/qm.node');
 exports = module.exports; // re-establish link
 
 var fs = require('../../../build/Debug/fs.node');

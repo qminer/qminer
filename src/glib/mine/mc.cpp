@@ -17,18 +17,24 @@ TFullMatrix TEuclDist::GetDist2(const TFullMatrix& X, const TFullMatrix& Y) {
 // Abstract clustering
 const int TClust::MX_ITER = 10000;
 
-TClust::TClust(const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
-	Rnd(_Rnd),
-	CentroidMat(),
-	CentroidDistStatV(),
-	Sample(_Sample),
-	Verbose(_Verbose),
-	Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+TClust::TClust(const int _NHistBins, const double& _Sample, const TRnd& _Rnd, const bool& _Verbose):
+		Rnd(_Rnd),
+		CentroidMat(),
+		CentroidDistStatV(),
+		NHistBins(_NHistBins),
+		Sample(_Sample),
+		Verbose(_Verbose),
+		Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
+	EAssertR(NHistBins >= 2, "Should have at least 2 bins for the histogram!");
+}
 
 TClust::TClust(TSIn& SIn) {
 	Rnd = TRnd(SIn);
 	CentroidMat.Load(SIn);
 	CentroidDistStatV.Load(SIn);
+	NHistBins = TInt(SIn);
+	FtrBinStartVV.Load(SIn);
+	HistStat.Load(SIn);
 	Sample = TFlt(SIn);
 	Verbose = TBool(SIn);
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
@@ -39,6 +45,9 @@ void TClust::Save(TSOut& SOut) const {
 	Rnd.Save(SOut);
 	CentroidMat.Save(SOut);
 	CentroidDistStatV.Save(SOut);
+	TInt(NHistBins).Save(SOut);
+	FtrBinStartVV.Save(SOut);
+	HistStat.Save(SOut);
 	TFlt(Sample).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
@@ -80,9 +89,79 @@ void TClust::Init(const TFullMatrix& X) {
 		Apply(X(TVector::Range(X.GetRows()), SampleV), MX_ITER);
 	}
 
+	InitHistogram(X);
+
 //	Notify->OnNotify(TNotifyType::ntInfo, "Assigning all instances ...");
 //	AssignV = Assign(X).GetIntVec();
 	Notify->OnNotify(TNotifyType::ntInfo, "Done.");
+}
+
+void TClust::InitHistogram(const TFullMatrix& X) {
+	Notify->OnNotify(TNotifyType::ntInfo, "Computing histograms ...");
+
+	const int Dim = GetDim();
+
+	const TIntV AssignV = Assign(X).GetIntVec();	// TODO not optimal
+
+	FtrBinStartVV.Gen(Dim, NHistBins+1);
+	HistStat.Clr();
+
+	// compute min and max for every feature
+	double MnVal, MxVal;
+	double Span, BinSize;
+	for (int FtrN = 0; FtrN < Dim; FtrN++) {
+		// find min and max value
+		MnVal = TFlt::Mx;
+		MxVal = TFlt::Mn;
+
+		for (int InstN = 0; InstN < X.GetCols(); InstN++) {
+			if (X(FtrN, InstN) < MnVal) { MnVal = X(FtrN, InstN); }
+			if (X(FtrN, InstN) > MxVal) { MxVal = X(FtrN, InstN); }
+		}
+
+		Span = MxVal - MnVal;
+		BinSize = Span / NHistBins;
+		for (int i = 0; i < NHistBins + 1; i++) {
+			FtrBinStartVV(FtrN, i) = MnVal + i*BinSize;
+		}
+	}
+
+	// init bin counts
+	for (int ClustId = 0; ClustId < GetClusts(); ClustId++) {
+		HistStat.Add(TClustHistStat());
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			HistStat[ClustId].Add(TFtrHistStat(0, TUInt64V(NHistBins+2, NHistBins+2)));
+		}
+	}
+
+	// compute the histogram
+	for (int InstN = 0; InstN < X.GetCols(); InstN++) {
+		const TVector FeatV = X.GetCol(InstN);
+		const int ClustId = AssignV[InstN];
+
+		TClustHistStat& ClustHistStat = HistStat[ClustId];
+
+		for (int FtrN = 0; FtrN < Dim; FtrN++) {
+			const double FtrVal = X(FtrN, InstN);
+
+			TFtrHistStat& FtrHistStat = ClustHistStat[FtrN];
+
+			FtrHistStat.Val1++;
+			TUInt64V& BinCountV = FtrHistStat.Val2;
+
+			// determine the bin
+			int BinIdx = 0;
+
+			if (FtrVal >= FtrBinStartVV(FtrN, NHistBins)) { BinIdx = BinCountV.Len()-1; }
+			else {
+				while (BinIdx < FtrBinStartVV.GetCols() && FtrVal >= FtrBinStartVV(FtrN, BinIdx)) {
+					BinIdx++;
+				}
+			}
+
+			BinCountV[BinIdx]++;
+		}
+	}
 }
 
 int TClust::Assign(const TVector& x) const {
@@ -90,6 +169,8 @@ int TClust::Assign(const TVector& x) const {
 }
 
 TVector TClust::Assign(const TFullMatrix& X) const {
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Assigning %d instances ...", X.GetCols());
+
 	const TVector OnesN = TVector::Ones(X.GetCols(), false);
 	const TVector OnesK = TVector::Ones(GetClusts(), true);
 	const TVector NormX2 = X.ColNorm2V();
@@ -142,6 +223,29 @@ double TClust::GetMeanPtCentDist(const int& CentroidIdx) const {
 
 uint64 TClust::GetClustSize(const int& ClustIdx) const {
 	return CentroidDistStatV[ClustIdx].Val1;
+}
+
+void TClust::GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const {
+	BinV.Gen(NHistBins+2);
+	BinStartV.Clr();
+
+	for (int i = 0; i < FtrBinStartVV.GetCols(); i++) {
+		BinStartV.Add(FtrBinStartVV(FtrId, i));
+	}
+
+	for (int i = 0; i < StateSet.Len(); i++) {
+		const int ClustId = StateSet[i];
+
+		const TClustHistStat& ClustHistStat = HistStat[ClustId];
+		const TFtrHistStat& FtrHistStat = ClustHistStat[FtrId];
+		const TUInt64V& CountV = FtrHistStat.Val2;
+
+		for (int j = 0; j < CountV.Len(); j++) {
+			BinV[j] += CountV[j];
+		}
+	}
+
+	TLinAlg::NormalizeL1(BinV);
 }
 
 void TClust::SetVerbose(const bool& _Verbose) {
@@ -230,8 +334,8 @@ TVector TClust::GetCentroid(const int& CentroidId) const {
 
 //////////////////////////////////////////////////
 // K-Means
-TFullKMeans::TFullKMeans(const double _Sample, const int& _K, const TRnd& _Rnd, const bool& _Verbose):
-		TClust(_Sample, _Rnd, _Verbose),
+TFullKMeans::TFullKMeans(const int& _NHistBins, const double _Sample, const int& _K, const TRnd& _Rnd, const bool& _Verbose):
+		TClust(_NHistBins, _Sample, _Rnd, _Verbose),
 		K(_K) {}
 
 TFullKMeans::TFullKMeans(TSIn& SIn):
@@ -289,8 +393,8 @@ void TFullKMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 
 //////////////////////////////////////////////////
 // DPMeans
-TDpMeans::TDpMeans(const double& _Sample, const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _MaxClusts, const TRnd& _Rnd, const bool& _Verbose):
-		TClust(_Sample, _Rnd, _Verbose),
+TDpMeans::TDpMeans(const int& _NHistBins, const double& _Sample, const TFlt& _Lambda, const TInt& _MinClusts, const TInt& _MaxClusts, const TRnd& _Rnd, const bool& _Verbose):
+		TClust(_NHistBins, _Sample, _Rnd, _Verbose),
 		Lambda(_Lambda),
 		MinClusts(_MinClusts),
 		MaxClusts(_MaxClusts) {
@@ -1575,6 +1679,10 @@ void THierarchCtmc::InitHierarch() {
 	Hierarch->Init(Clust->GetCentroidMat(), MChain->GetCurrStateId());
 }
 
+void THierarchCtmc::InitHistograms(TFltVV& InstMat) {
+	Clust->InitHistogram(TFullMatrix(InstMat, true));
+}
+
 void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {
 	TVector FtrVec(Rec);	// TODO copying
 
@@ -1637,10 +1745,10 @@ void THierarchCtmc::GetNextStateProbV(const double& Height, const int& StateId, 
 
 void THierarchCtmc::GetPrevStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const {
 	try {
-		TVec<TIntV> JoinedStateVV;
+		TVec<TIntV> StateSetV;
 		TIntV StateIdV;
-		Hierarch->GetStateSetsAtHeight(Height, StateIdV, JoinedStateVV);
-		MChain->GetPrevStateProbV(JoinedStateVV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
+		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
+		MChain->GetPrevStateProbV(StateSetV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
 		throw Except;
@@ -1652,6 +1760,17 @@ void THierarchCtmc::GetHistStateIdV(const double& Height, TIntV& StateIdV) const
 		Hierarch->GetHistStateIdV(Height, StateIdV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistStateIdV: Failed to compute fetch historical states: %s", Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void THierarchCtmc::GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const {
+	try {
+		TIntV LeafV;
+		Hierarch->GetLeafDescendantV(StateId, LeafV);
+		Clust->GetHistogram(FtrId, LeafV, BinStartV, ProbV);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }
