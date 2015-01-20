@@ -34,6 +34,10 @@ public:
 protected:
     const static int MX_ITER;
 
+    typedef TPair<TUInt64, TUInt64V> TFtrHistStat;
+    typedef TVec<TFtrHistStat> TClustHistStat;
+    typedef TVec<TClustHistStat> THistStat;
+
 	TRnd Rnd;
 	// holds centroids as column vectors
 	TFullMatrix CentroidMat;
@@ -42,12 +46,16 @@ protected:
 	// assigned to the centroid to the centroid
 	TUInt64FltPrV CentroidDistStatV;
 
+	int NHistBins;			// the number of bins used in a histogram
+	TFltVV FtrBinStartVV;		// stores where each bin starts	// TODO save/load
+	THistStat HistStat;		// stores histogram for every feature in every cluster
+
 	double Sample;
 
 	bool Verbose;
 	PNotify Notify;
 
-	TClust(const double& Sample, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+	TClust(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TClust(TSIn& SIn);
 
 	virtual ~TClust() {}
@@ -58,7 +66,10 @@ public:
 	// loads the model from the output stream
 	static PClust Load(TSIn& SIn);
 
+	// performs the clustering
 	void Init(const TFullMatrix& X);
+	// initializes histograms for every feature
+	void InitHistogram(const TFullMatrix& X);
 
 	// assign methods
 	// assign instances to centroids
@@ -87,6 +98,8 @@ public:
 	double GetMeanPtCentDist(const int& CentroidId) const;
 	// returns the number of points in the cluster
 	uint64 GetClustSize(const int& ClustId) const;
+
+	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
 
 	int GetClusts() const { return CentroidMat.GetCols(); }
 	int GetDim() const { return CentroidMat.GetRows(); }
@@ -123,7 +136,7 @@ private:
 	TInt K;
 
 public:
-	TFullKMeans(const double Sample, const int& K, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+	TFullKMeans(const int& NHistBins, const double Sample, const int& K, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TFullKMeans(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -147,7 +160,7 @@ private:
 	TInt MaxClusts;
 
 public:
-	TDpMeans(const double& Sample, const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+	TDpMeans(const int& NHistBins, const double& Sample, const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
 	TDpMeans(TSIn& SIn);
 
 	// saves the model to the output stream
@@ -592,6 +605,7 @@ public:
 	void InitClust(const TFullMatrix& X);
 	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV);
 	void InitHierarch();
+	void InitHistograms(TFltVV& InstMat);
 
 	void OnAddRec(const uint64 RecTm, const TFltV& Rec);
 
@@ -608,6 +622,8 @@ public:
 	void GetPrevStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
 
 	void GetHistStateIdV(const double& Height, TIntV& StateIdV) const;
+
+	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const;
 
 	// stores the transition model for the current height into Mat
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;

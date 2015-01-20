@@ -2775,10 +2775,10 @@ TMc::PClust THierchCtmc::GetClust() const {
 		const double Lambda = ClustParams->GetObjNum("lambda");
 		const int MinClusts = ClustParams->GetObjInt("minclusts");
 		const int MaxClusts = ClustParams->GetObjInt("maxclusts");
-		return new TMc::TDpMeans(1, Lambda, MinClusts, MaxClusts, Rnd);
+		return new TMc::TDpMeans(20, 1, Lambda, MinClusts, MaxClusts, Rnd);
 	} else if (ClustType == "kmeans") {
 		const int K = ClustParams->GetObjInt("k");
-		return new TMc::TFullKMeans(1, K, Rnd);
+		return new TMc::TFullKMeans(20, 1, K, Rnd);
 	} else {
 		throw TExcept::New("Invalid clustering type: " + ClustType, "THierchCtmc::GetClust");
 	}

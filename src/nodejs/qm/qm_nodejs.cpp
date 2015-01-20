@@ -3737,6 +3737,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrSpVec", _ftrSpVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrVec", _ftrVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "invFtrVec", _invFtrVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "invFtr", _invFtr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrSpColMat", _ftrSpColMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "ftrColMat", _ftrColMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getFtrExtractor", _getFtrExtractor);
@@ -4039,9 +4040,28 @@ void TNodeJsFtrSpace::invFtrVec(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			JsFtrSpace->FtrSpace->InvertFullV(FtrV, InvertV);
 		}
 
-		//printf("%s\n", TStrUtil::GetStr(InvertV, ", ", "%.3f").CStr());
-
 		Args.GetReturnValue().Set(TNodeJsFltV::New(InvertV));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+	}
+}
+
+void TNodeJsFtrSpace::invFtr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	QmAssertR(Args.Length() == 2, "ftrSpace.invFtr: Should have 2 arguments!");
+	QmAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "ftrSpace.invFtr: The argument should be a float!");
+
+	try {
+		TNodeJsFtrSpace* JsFtrSpace = ObjectWrap::Unwrap<TNodeJsFtrSpace>(Args.Holder());
+
+		int FtrExtN = TNodeJsUtil::GetArgInt32(Args, 0);
+		double Val = TNodeJsUtil::GetArgFlt(Args, 1);
+
+		double InvVal = JsFtrSpace->FtrSpace->InvertFtr(FtrExtN, Val);
+
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, InvVal));
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
 	}
