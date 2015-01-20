@@ -3765,8 +3765,8 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	try {
 		const TQm::PBase& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
-
-		if (Args[1]->IsExternal() || Args[1]->IsString()) {
+		
+		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::ClassId)) {
 			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();
 
 			PSIn SIn = IsArgStr ?
@@ -4234,6 +4234,10 @@ void init(v8::Handle<v8::Object> exports) {
 
     // feature space
     TNodeJsFtrSpace::Init(exports);
+
+	// file input stream
+	TNodeJsFIn::Init(exports);
+	TNodeJsFOut::Init(exports);
 }
 
 NODE_MODULE(qm, init)
