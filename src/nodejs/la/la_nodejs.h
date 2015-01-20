@@ -494,6 +494,10 @@ private:
 template <typename TVal, typename TAux>
 v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 
+typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
+typedef TNodeJsVec<TInt, TAuxIntV> TNodeJsIntV;
+typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
+
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -549,10 +553,6 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 		tpl->GetFunction());
 #endif
 }
-
-typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
-typedef TNodeJsVec<TInt, TAuxIntV> TNodeJsIntV;
-typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
 
 // Returns i = arg max_i v[i] for a vector v 
 template <>
