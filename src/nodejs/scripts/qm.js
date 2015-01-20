@@ -78,6 +78,20 @@ exports.delLock = function () {
     }
 }
 
+exports.rmDir = function (dirPath) {
+    try { var files = nodefs.readdirSync(dirPath); }
+    catch (e) { return; }
+    if (files.length > 0)
+        for (var i = 0; i < files.length; i++) {
+            var filePath = dirPath + '/' + files[i];
+            if (nodefs.statSync(filePath).isFile())
+                nodefs.unlinkSync(filePath);
+            else
+                rmDir(filePath);
+        }
+    nodefs.rmdirSync(dirPath);
+};
+
 //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
 exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
     // get index and value vectors

@@ -1,8 +1,8 @@
-var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
-var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
+var assert = require('../../../src/nodejs/scripts/assert.js'); // additional JS implementations
+var qm = require('../../../src/nodejs/scripts/qm.js'); // additional JS implementations
 qm.delLock();
 
-var backward = require('../../src/nodejs/scripts/backward.js');
+var backward = require('../../../src/nodejs/scripts/backward.js');
 backward.addToProcess(process); // adds process.isArg function
 
 console.log("PrimaryField", "Starting test of primary fields");

@@ -1,14 +1,14 @@
-var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
-var fs = require('../../build/Debug/fs.node');
+var assert = require('../../../src/nodejs/scripts/assert.js'); //adds assert.run function
+var qm = require('../../../src/nodejs/scripts/qm.js'); // additional JS implementations
+var fs = require('../../../build/Debug/fs.node');
 // test feature construction
-var analytics = require('../../build/Debug/analytics.node');
+var analytics = require('../../../build/Debug/analytics.node');
 
 qm.delLock();
 
 qm.config('qm.conf', true, 8080, 1024);
 // add store.addTrigger method
-var backward = require('../../src/nodejs/scripts/backward.js');
+var backward = require('../../../src/nodejs/scripts/backward.js');
 backward.addToProcess(process); // adds process.isArg function
 
 var base = qm.create('qm.conf');
