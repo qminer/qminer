@@ -351,7 +351,7 @@ v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
     v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
     v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
     Instance->SetHiddenValue(Key, Value);
-	printf("wrapped fltV!\n");
+	
     TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(FltV);
     JsVec->Wrap(Instance);
     return HandleScope.Escape(Instance);
