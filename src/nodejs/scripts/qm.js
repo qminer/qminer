@@ -80,7 +80,6 @@ exports.delLock = function () {
 
 //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
 exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
-
     // get index and value vectors
     var valVec = spVec.valVec();
     var idxVec = spVec.idxVec();
