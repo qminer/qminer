@@ -1,25 +1,25 @@
 #include "la_nodejs.h"
 
-// Need to declare explicit specializations in order to use 
-// it in the TNodeJsLinAlg 
-template <>
-v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TStrV& StrV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TStrV& StrV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TFltV& FltV);
-template <>
-v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV);
+//// Need to declare explicit specializations in order to use 
+//// it in the TNodeJsLinAlg 
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TStrV& StrV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TStrV& StrV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TFltV& FltV);
+//template <>
+//v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV);
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg 
@@ -42,106 +42,106 @@ void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
 }
 
 void TNodeJsLinAlg::newVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
+    //v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    //v8::HandleScope HandleScope(Isolate);
 
-    TFltV Vec;
-    if (Args.Length() > 0) {
-        if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-            const int Length = Array->Length();		
-            Vec.Gen(Length, 0);
-            for (int ElN = 0; ElN < Length; ElN++) {			
-                Vec.Add(Array->Get(ElN)->NumberValue());
-            }
-        } else {
-            if (Args[0]->IsObject()) {
-                // Got another float vector as a parameter 
-                if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
-                    TNodeJsVec<TFlt, TAuxFltV>* JsOthVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
-                    Vec = JsOthVec->Vec;
-                } else {
-                    const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
-                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
-                    if (MxVals > 0 && Vals >= 0) {
-                        Vec.Gen(MxVals, Vals);
-                    }
-                    if (MxVals == -1 && Vals >= 0) {
-                        Vec.Gen(Vals);
-                    }
-                }
-            } // Otherwise return an empty vector 
-        }
-    }
-    Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
+    //TFltV Vec;
+    //if (Args.Length() > 0) {
+    //    if (Args[0]->IsArray()) {
+    //        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+    //        const int Length = Array->Length();		
+    //        Vec.Gen(Length, 0);
+    //        for (int ElN = 0; ElN < Length; ElN++) {			
+    //            Vec.Add(Array->Get(ElN)->NumberValue());
+    //        }
+    //    } else {
+    //        if (Args[0]->IsObject()) {
+    //            // Got another float vector as a parameter 
+    //            if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+    //                TNodeJsVec<TFlt, TAuxFltV>* JsOthVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+    //                Vec = JsOthVec->Vec;
+    //            } else {
+    //                const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
+    //                const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
+    //                if (MxVals > 0 && Vals >= 0) {
+    //                    Vec.Gen(MxVals, Vals);
+    //                }
+    //                if (MxVals == -1 && Vals >= 0) {
+    //                    Vec.Gen(Vals);
+    //                }
+    //            }
+    //        } // Otherwise return an empty vector 
+    //    }
+    //}
+    //Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
 }
 
 void TNodeJsLinAlg::newIntVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
+    //v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    //v8::HandleScope HandleScope(Isolate);
 
-    TIntV Vec;
-    if (Args.Length() > 0) {
-        if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-            const int Length = Array->Length();
-            Vec.Gen(Length, 0);
-            for (int ElN = 0; ElN < Length; ElN++) {
-                Vec.Add(Array->Get(ElN)->Int32Value());
-            }
-        } else {
-            if (Args[0]->IsObject()) {
-                if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
-                    TNodeJsVec<TInt, TAuxIntV>* JsOthVec = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
-                    Vec = JsOthVec->Vec;
-                } else {
-                    const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
-                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
-                    if (MxVals > 0 && Vals >= 0) {
-                        Vec.Gen(MxVals, Vals);
-                    }
-                    if (MxVals == -1 && Vals >= 0) {
-                        Vec.Gen(Vals);
-                    }
-                }
-            } // else return an empty vector 
-        }
-    }
-    Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(Vec));
+    //TIntV Vec;
+    //if (Args.Length() > 0) {
+    //    if (Args[0]->IsArray()) {
+    //        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+    //        const int Length = Array->Length();
+    //        Vec.Gen(Length, 0);
+    //        for (int ElN = 0; ElN < Length; ElN++) {
+    //            Vec.Add(Array->Get(ElN)->Int32Value());
+    //        }
+    //    } else {
+    //        if (Args[0]->IsObject()) {
+    //            if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
+    //                TNodeJsVec<TInt, TAuxIntV>* JsOthVec = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
+    //                Vec = JsOthVec->Vec;
+    //            } else {
+    //                const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
+    //                const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
+    //                if (MxVals > 0 && Vals >= 0) {
+    //                    Vec.Gen(MxVals, Vals);
+    //                }
+    //                if (MxVals == -1 && Vals >= 0) {
+    //                    Vec.Gen(Vals);
+    //                }
+    //            }
+    //        } // else return an empty vector 
+    //    }
+    //}
+    //Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(Vec));
 }
 
 void TNodeJsLinAlg::newStrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
+    //v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    //v8::HandleScope HandleScope(Isolate);
 
-    TStrV Vec;
-    if (Args.Length() > 0) {
-        if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-            const int Length = Array->Length();
-            Vec.Gen(Length, 0);
-            for (int ElN = 0; ElN < Length; ++ElN) {
-                Vec.Add(TNodeJsUtil::GetStr(Array->Get(ElN)->ToString()));
-            }
-        } else {
-            if (Args[0]->IsObject()) {
-                if (TNodeJsUtil::IsArgClass(Args, 0, "TStrV")) {
-                    TNodeJsVec<TStr, TAuxStrV>* JsOthVec = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
-                    Vec = JsOthVec->Vec;
-                } else {
-                    const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
-                    const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
-                    if (MxVals > 0 && Vals >= 0) {
-                        Vec.Gen(MxVals, Vals);
-                    }
-                    if (MxVals == -1 && Vals >= 0) {
-                        Vec.Gen(Vals);
-                    }
-                }
-            }
-        }
-    }
-    Args.GetReturnValue().Set(TNodeJsVec<TStr, TAuxStrV>::New(Vec));
+    //TStrV Vec;
+    //if (Args.Length() > 0) {
+    //    if (Args[0]->IsArray()) {
+    //        v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+    //        const int Length = Array->Length();
+    //        Vec.Gen(Length, 0);
+    //        for (int ElN = 0; ElN < Length; ++ElN) {
+    //            Vec.Add(TNodeJsUtil::GetStr(Array->Get(ElN)->ToString()));
+    //        }
+    //    } else {
+    //        if (Args[0]->IsObject()) {
+    //            if (TNodeJsUtil::IsArgClass(Args, 0, "TStrV")) {
+    //                TNodeJsVec<TStr, TAuxStrV>* JsOthVec = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
+    //                Vec = JsOthVec->Vec;
+    //            } else {
+    //                const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
+    //                const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", -1);
+    //                if (MxVals > 0 && Vals >= 0) {
+    //                    Vec.Gen(MxVals, Vals);
+    //                }
+    //                if (MxVals == -1 && Vals >= 0) {
+    //                    Vec.Gen(Vals);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+    //Args.GetReturnValue().Set(TNodeJsVec<TStr, TAuxStrV>::New(Vec));
 }
 
 void TNodeJsLinAlg::newMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
