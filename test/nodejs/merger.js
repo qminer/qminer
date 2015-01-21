@@ -1,12 +1,12 @@
-var assert = require('../../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../../src/nodejs/scripts/qm.js'); // additional JS implementations
+var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
+var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
 
 qm.delLock();
 qm.config('qm.conf', true, 8080, 1024);
-var backward = require('../../../src/nodejs/scripts/backward.js');
+var backward = require('../../src/nodejs/scripts/backward.js');
 backward.addToProcess(process); // adds process.isArg function
 
-var base = qm.create('qm.conf');
+var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
 
 
 console.log("Merger", "Testing merger");
@@ -514,7 +514,7 @@ function testResampler() {
 }
 
 
-
 testMerger();
 testResampler();
+
 base.close();

@@ -1,8 +1,8 @@
-var assert = require('../../../src/nodejs/scripts/assert.js'); // additional JS implementations
-var qm = require('../../../src/nodejs/scripts/qm.js'); // additional JS implementations
+var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
+var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
 qm.delLock();
 
-var backward = require('../../../src/nodejs/scripts/backward.js');
+var backward = require('../../src/nodejs/scripts/backward.js');
 backward.addToProcess(process); // adds process.isArg function
 
 console.log("PrimaryField", "Starting test of primary fields");
@@ -23,7 +23,7 @@ var tmVals = ["2013-01-02T12:23:34", "2013-01-04T12:23:34", "2013-01-09T12:23:34
               "2013-05-02T12:23:34", "2013-05-06T12:23:34", "2013-05-07T12:23:34" ];
 
 qm.config('qm.conf', true, 8080, 1024);
-var base = qm.create('qm.conf');
+var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
 
 // create stores
 base.createStore([
@@ -105,3 +105,5 @@ assert.equal(base.store("primary_int").length, intVals.length, "int");
 assert.equal(base.store("primary_uint64").length, uint64Vals.length, "uint64");
 assert.equal(base.store("primary_float").length, fltVals.length, "float");
 assert.equal(base.store("primary_tm").length, tmVals.length, "tm");
+
+base.close();

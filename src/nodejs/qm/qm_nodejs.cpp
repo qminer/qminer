@@ -44,8 +44,8 @@ void TNodeJsQm::config(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	ConfigVal->SaveStr().SaveTxt(ConfFNm);
 	// make folders if needed
 	if (!TFile::Exists("db")) { TDir::GenDir("db"); }
-	if (!TFile::Exists("src")) { TDir::GenDir("src"); }
-	if (!TFile::Exists("src/lib")) { TDir::GenDir("src/lib"); }
+	//if (!TFile::Exists("src")) { TDir::GenDir("src"); }
+	//if (!TFile::Exists("src/lib")) { TDir::GenDir("src/lib"); }
 	//if (!TFile::Exists("sandbox")) { TDir::GenDir("sandbox"); }
 }
 
@@ -56,10 +56,29 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// get schema and conf
 	TStr ConfFNm = TNodeJsUtil::GetArgStr(Args, 0, "qm.conf");
 	TStr SchemaFNm = TNodeJsUtil::GetArgStr(Args, 1, "");
-	
+	TBool Clear = TNodeJsUtil::GetArgBool(Args, 2, false);
 
 	// parse configuration file
 	TQmParam Param(ConfFNm);
+	TStr FPath = Param.DbFPath;
+	if (TDir::Exists(FPath)) {
+		TStrV FNmV;
+		TStrV FExtV;
+		TFFile::GetFNmV(FPath, FExtV, true, FNmV);
+		bool DirEmpty = FNmV.Len() == 0;
+		if (!DirEmpty && !Clear) {
+			// if not empty and (clear == false) throw exception
+			throw TQm::TQmExcept::New("qm.create: database folder not empty and clear is set to false!");
+		}
+		else if (!DirEmpty && Clear) {
+			// else delete all files
+			for (int FileN = 0; FileN < FNmV.Len(); FileN++) {
+				TFile::Del(FNmV[FileN], true);
+			}			
+		}
+
+	}
+
 	// prepare lock
 	TFileLock Lock(Param.LockFNm);
 
@@ -69,7 +88,7 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		PJsonVal SchemaVal = SchemaFNm.Empty() ? TJsonVal::NewArr() :
 			TJsonVal::GetValFromStr(TStr::LoadTxt(SchemaFNm));
 		// initialize base		
-		TQm::PBase Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, Param.IndexCacheSize, Param.DefStoreCacheSize);
+		TWPt<TQm::TBase> Base_ = TQm::TStorage::NewBase(Param.DbFPath, SchemaVal, Param.IndexCacheSize, Param.DefStoreCacheSize);
 		// save base		
 		TQm::TStorage::SaveBase(Base_);
 		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
@@ -77,6 +96,13 @@ void TNodeJsQm::create(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (!TNodeJsQm::BaseFPathToId.IsKey(Base_->GetFPath())) {
 			TUInt Keys = (uint)TNodeJsQm::BaseFPathToId.Len();
 			TNodeJsQm::BaseFPathToId.AddDat(Base_->GetFPath(), Keys);
+		}
+		if (Clear) {
+			// TODO simplify TNodeJsRec template selection: see comment in v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
+			// Since contents of db folder were not empty 
+			//we must reset all record templates (one per store)
+			uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(FPath);
+			TNodeJsRec::Clear(BaseId);
 		}
 		for (int StoreN = 0; StoreN < Base_->GetStores(); StoreN++) {
 			TNodeJsRec::Init(Base_->GetStoreByStoreN(StoreN));
@@ -106,7 +132,7 @@ void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// resolve access type
 		TFAccess FAccess = RdOnlyP ? faRdOnly : faUpdate;
 		// load base
-		TQm::PBase Base_ = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
+		TWPt<TQm::TBase> Base_ = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 			Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 		Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
 		// once the base is open we need to setup the custom record templates for each store
@@ -166,7 +192,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 
 }
 
-v8::Local<v8::Object> TNodeJsBase::New(TQm::PBase _Base) {
+v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 
@@ -176,7 +202,6 @@ v8::Local<v8::Object> TNodeJsBase::New(TQm::PBase _Base) {
 	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
 	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TBase");
 	Instance->SetHiddenValue(Key, Value);
-
 	TNodeJsBase* JsBase = new TNodeJsBase(_Base);
 	JsBase->Wrap(Instance);
 	return HandleScope.Escape(Instance);
@@ -192,7 +217,7 @@ void TNodeJsBase::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			//printf("construct call, 2 args\n");
 			TStr FPath = TNodeJsUtil::GetArgStr(Args, 0);
 			int CacheSize = TNodeJsUtil::GetArgInt32(Args, 1);
-			TQm::PBase Base_ = TQm::TBase::New(FPath, CacheSize);
+			TWPt<TQm::TBase> Base_ = TQm::TBase::New(FPath, CacheSize);
 			Args.GetReturnValue().Set(TNodeJsBase::New(Base_));
 			return;
 		}
@@ -236,6 +261,7 @@ void TNodeJsBase::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (!JsBase->Base.Empty()) {
 		// save base
 		TQm::TStorage::SaveBase(JsBase->Base);
+		JsBase->Base.Del();
 		JsBase->Base.Clr();
 	}
 }
@@ -2271,10 +2297,21 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 	}
 }
 
+void TNodeJsRec::Clear(const uint BaseId) {
+	if (BaseStoreIdConstructor.Len() > BaseId) {
+		for (int StoreN = 0; StoreN < BaseStoreIdConstructor[BaseId].Len(); StoreN++) {
+			if (BaseStoreIdConstructor[BaseId][StoreN].IsEmpty()) { break; }
+			BaseStoreIdConstructor[BaseId][StoreN].Reset();
+		}
+	}
+}
+
 v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	// TODO speed-up without using file paths
+	// Use a map from (uint64)Rec.GetStore()() -> v8::Persistent<v8::Function> constructor
+	// We need a hash table with move constructor/assignment
 	QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(Rec.GetStore()->GetBase()->GetFPath()), "rec constructor: Base Id not found!");
 	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
@@ -3765,7 +3802,7 @@ void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() > 1, "FeatureSpace: missing arguments!");
 
 	try {
-		const TQm::PBase& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
+		const TWPt<TQm::TBase>& Base = ObjectWrap::Unwrap<TNodeJsBase>(Args[0]->ToObject())->Base;
 		
 		if (Args[1]->IsString() || TNodeJsUtil::IsArgClass(Args, 1, TNodeJsFIn::ClassId)) {
 			bool IsArgStr = TNodeJsUtil::IsArgStr(Args, 1);//Args[1]->IsString();

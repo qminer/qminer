@@ -291,6 +291,7 @@ void TNodeJsSvmModel::Save(TSOut& SOut) const {
 void TNodeJsSvmModel::ClrModel() {
 	if (Model != nullptr) {
 		delete Model;
+		Model = nullptr;
 	}
 }
 

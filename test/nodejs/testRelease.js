@@ -3,7 +3,7 @@
 // 
 
 var assert = require("assert")
-var la = require("../../../build/Release/la.node")
+var la = require("../../build/Release/la.node")
 
 	
 describe('Import test', function(){
