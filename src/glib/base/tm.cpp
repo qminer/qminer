@@ -1225,7 +1225,7 @@ TTm TTm::GetTmFromWebLogDateTimeStr(const TStr& DateTimeStr,
   TStr SecStr=ChA;
   // mili-second
   ChA.Clr(); ChN++;
-  while (ChN<DateTimeStrLen){
+  while (ChN<DateTimeStrLen && ChA.Len() < 3){
     ChA+=DateTimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
   // transform to numbers
