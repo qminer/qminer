@@ -366,7 +366,12 @@ void TJsonVal::GetChAFromVal(const PJsonVal& Val, TChA& ChA){
     case jvtBool:
       if (Val->GetBool()){ChA+="true";} else {ChA+="false";} break;
     case jvtNum: 
-      ChA+=TStr::Fmt("%f", Val->GetNum()); break;
+      // we want to decide whether to serialize this as a float or as an int
+      if (fabs(Val->GetNum() - round(Val->GetNum())) < 0.000001)
+        ChA += TStr::Fmt("%d", (int) round(Val->GetNum()));
+      else
+        ChA += TStr::Fmt("%f", Val->GetNum());
+      break;
     case jvtStr:
       AddQChAFromStr(Val->GetStr(), ChA); break;
     case jvtArr:
