@@ -163,8 +163,8 @@ public:
   void GetObjStrV(const char *Key, TStrV& StrV) const;
 
   // removing value
-  void DelObjKey(const TStr& Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); KeyValH.Defrag(); }
-  void DelObjKey(const char *Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); KeyValH.Defrag(); }
+  void DelObjKey(const TStr& Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
+  void DelObjKey(const char *Key) { EAssert(IsObj()); KeyValH.DelIfKey(Key); /*KeyValH.Defrag();*/ }
   void DelArrVal(const int& ValN) { EAssert(IsArr()); ValV.Del(ValN); }
 
   // (de)serialization
