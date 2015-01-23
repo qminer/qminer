@@ -1,3 +1,4 @@
+console.log(__filename)
 var la = require('../../src/nodejs/scripts/la.js');
 var assert = require('assert');
 var spmat = new la.SparseMatrix([[[0,2.2]],[[2,3.3]]]);

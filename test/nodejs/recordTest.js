@@ -1,3 +1,4 @@
+console.log(__filename)
 var assert = require('assert');
 var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
 qm.delLock();

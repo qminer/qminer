@@ -1,3 +1,4 @@
+console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
 var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
 qm.delLock();
@@ -115,16 +116,8 @@ Movies.addTrigger({
 	}
 });
 
-console.log(base.getStreamAggrNames());
-console.log(People.getStreamAggrNames());
-console.log(Movies.getStreamAggrNames());
-
-console.log(People.length);
 // insert a person
 assert.equal(People.add({ "Name": "Carolina Fortuna", "Gender": "Female" }), 0, "Person.add");
-
-
-
 assert.equal(People.length, 1, "People.length");
 assert(null != People[0], "People[0]");
 assert.equal(People[0].Name, "Carolina Fortuna", "People[0].Name");
