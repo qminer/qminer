@@ -1,6 +1,10 @@
 #ifndef QMINER_NODEJS_UTILS
 #define QMINER_NODEJS_UTILS
 
+#ifndef BUILDING_NODE_EXTENSION
+    #define BUILDING_NODE_EXTENSION
+#endif
+
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
