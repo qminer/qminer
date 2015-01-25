@@ -226,31 +226,34 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ///////////////////////////////
 // NodeJs-FIn
 v8::Persistent<v8::Function> TNodeJsFIn::constructor;
+TStr TNodeJsFIn::ClassId = "FIn";
 
 void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FIn"));
-    // ObjectWrap uses the first internal field to store the wrapped pointer
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-    // Add all prototype methods, getters and setters here
-    NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
+	// Add all prototype methods, getters and setters here
+	NODE_SET_PROTOTYPE_METHOD(tpl, "peekCh", _peekCh);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
 
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-
-    // This has to be last, otherwise the properties won't show up on the
-    // object in JavaScript
-    constructor.Reset(Isolate, tpl->GetFunction());
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+	
+	// This has to be last, otherwise the properties won't show up on the
+	// object in JavaScript	
+	constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_FS
-    exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
-        tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
+		tpl->GetFunction());
 #endif
+
 }
 
 v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
@@ -282,13 +285,17 @@ void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
         TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
         v8::Local<v8::Object> Instance = Args.This();
+		
+		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
+		Instance->SetHiddenValue(key, value);
+
         JsFIn->Wrap(Instance);
         Args.GetReturnValue().Set(Instance);
     } else {
         const int Argc = 1;
         v8::Local<v8::Value> Argv[Argc] = { Args[0] };
         v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-        cons->NewInstance(Argc, Argv);
         v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
         Args.GetReturnValue().Set(Instance);
     }
@@ -426,7 +433,6 @@ void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
     EAssertR(Args.Length() == 1, "Invalid number of arguments to fout.write()");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
