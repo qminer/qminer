@@ -10,7 +10,7 @@ before_install:
  - npm config set registry http://registry.npmjs.org/
  - sudo npm install -g node-gyp
 script: 
-  - node-gyp configure build --target=v0.11.14
+  - node-gyp configure build --target=v0.11.14 --debug
 os: linux
 notifications:
   email:  
