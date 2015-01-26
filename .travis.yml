@@ -1,24 +1,11 @@
-language: cpp
-compiler: gcc
+language: node_js
+node_js:
+  - "0.11"
 before_install:
- - sudo apt-get update -qq
- - sudo apt-get install -qq uuid-dev
- - sudo apt-get install npm
- - sudo npm update
- - npm config set registry http://registry.npmjs.org/
- - sudo npm install -g node-gyp
- - ./test/cpp/install.sh
-install:
-  - ./configure
-  - make lib
+ - sudo apt-get install build-essential
 script: 
-  - ./configure
-  - node-gyp configure build --nodedir=src/third_party/node
-  - make
-  - make test
-  - ./test/javascript/test.sh
+  - node-gyp configure build --target=v0.11.14
 os: linux
 notifications:
-  email:
-  - blaz.fortuna@ijs.si
+  email:  
   - jan.rupnik@ijs.si
