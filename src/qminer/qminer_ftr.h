@@ -195,6 +195,8 @@ public:
 	void GetCentroidV(const PRecSet& RecSet, TFltV& CentroidV, const bool& NormalizeP = true) const;
 	/// Returns the inverse operation on the feature vector
 	void InvertFullV(const TFltV& FullV, TFltV& InvertV) const;
+	/// returns the inverse operation on a single feature
+	double InvertFtr(const int& FtrExtN, const TFlt& FtrVal) const;
     
     /// String vector for a record transformed by a feature extractor
     void ExtractStrV(const int& DimN, const PJsonVal& RecVal, TStrV &StrV) const;

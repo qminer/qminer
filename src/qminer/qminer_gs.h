@@ -728,24 +728,24 @@ public:
 
 ///////////////////////////////
 /// Create new stores from a schema and add them to an existing base
-TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, 
     const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H());
 
 ///////////////////////////////
 /// Create new base given a schema definition
-PBase NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize, 
-    const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), 
-    const bool& InitP = true);
+TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+	const bool& InitP = true);
 
 ///////////////////////////////
 /// Load base created from a schema definition
-PBase LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize, 
-    const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), 
-    const bool& InitP = true);
+TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+	const uint64& StoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(),
+	const bool& InitP = true);
 
 ///////////////////////////////
 /// Save base created from a schema definition
-void SaveBase(const PBase& Base);
+void SaveBase(const TWPt<TBase>& Base);
 
 } // TStorage name space
 

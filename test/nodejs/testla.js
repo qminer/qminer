@@ -1,4 +1,5 @@
-var la = require("../../src/nodejs/la/la.js");
-var spmat = new la.sparseColMatrix([[[0,2.2]],[[2,3.3]]]);
-spmat.frob() //native addon
-spmat.frob2() //js code in la.js
+console.log(__filename)
+var la = require('../../src/nodejs/scripts/la.js');
+var assert = require('assert');
+var spmat = new la.SparseMatrix([[[0,2.2]],[[2,3.3]]]);
+assert(Math.abs(spmat.frob() * spmat.frob() - spmat.frob2()) < 1e-8, 'native + JS implementation test');

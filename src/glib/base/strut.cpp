@@ -28,6 +28,18 @@ TStr TStrUtil::GetStr(const TIntV& IntV, const TStr& DelimiterStr) {
   return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TVec<TIntV>& IntIntV, const TStr& DelimiterStr) {
+	TChA ResChA;
+	for (int RowN = 0; RowN < IntIntV.Len(); RowN++) {
+		for (int ColN = 0; ColN < IntIntV[RowN].Len(); ColN++) {
+			ResChA += IntIntV[RowN][ColN].GetStr();
+			if (ColN < IntIntV[RowN].Len() - 1) { ResChA += DelimiterStr; }
+		}
+		ResChA += "\n";
+	}
+	return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TStrIntPrV& StrIntPrV, 
  const TStr& FieldDelimiterStr, const TStr& DelimiterStr) {
   TChA ResChA;

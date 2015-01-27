@@ -1,5 +1,5 @@
 #include "snap_nodejs.h"
-#include "../la/la_nodejs.h"
+
 
 ///////////////////////////////
 // NodeJs-Qminer-Snap 

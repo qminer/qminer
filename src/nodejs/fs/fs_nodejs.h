@@ -86,7 +86,8 @@ public:
 private:
     TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Handle<v8::Object> exports);	
+	static TStr ClassId;
     static v8::Local<v8::Object> New(const TStr& FNm);
     static PSIn GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args,
         const int& ArgN);

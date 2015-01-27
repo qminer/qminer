@@ -11,6 +11,7 @@
 #include "../nodeutil.h"
 #include "../fs/fs_nodejs.h"
 
+
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
 //# 
@@ -26,36 +27,36 @@ public:
     //# 
     //# **Functions and properties:**
     //# 
-    //#- `vec = la.newVec()` -- generate an empty float vector
-    //#- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-    //#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
-    //#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
-    JsDeclareFunction(newVec);
-    //#- `intVec = la.newIntVec()` -- generate an empty integer vector
-    //#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-    //#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-    //#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
-    JsDeclareFunction(newIntVec);
-    //#- `strVec = la.newStrVec()` -- generate an empty integer vector
-    //#- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-    //#- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
-    //#- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
-    JsDeclareFunction(newStrVec);
-    //#- `mat = la.newMat()` -- generates a 0x0 matrix
-    //#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
-    //#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-    //#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-    JsDeclareFunction(newMat);
-    //#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-    //#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-    JsDeclareFunction(newSpVec);
-    //#- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
-    //#- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
-    //#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-    //#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-    JsDeclareFunction(newSpMat);
-    //#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-    //#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+    ////#- `vec = la.newVec()` -- generate an empty float vector
+    ////#- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+    ////#- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
+    ////#- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
+    //JsDeclareFunction(newVec);
+    ////#- `intVec = la.newIntVec()` -- generate an empty integer vector
+    ////#- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+    ////#- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
+    ////#- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+    //JsDeclareFunction(newIntVec);
+    ////#- `strVec = la.newStrVec()` -- generate an empty integer vector
+    ////#- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+    ////#- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+    ////#- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
+    //JsDeclareFunction(newStrVec);
+    ////#- `mat = la.newMat()` -- generates a 0x0 matrix
+    ////#- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+    ////#- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
+    ////#- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
+    //JsDeclareFunction(newMat);
+    ////#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+    ////#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
+    //JsDeclareFunction(newSpVec);
+    ////#- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
+    ////#- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+    ////#- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+    ////#- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
+    //JsDeclareFunction(newSpMat);
+    ////#- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+    ////#- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
     JsDeclareFunction(svd);
     //#- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
     JsDeclareFunction(qr);
@@ -63,6 +64,255 @@ public:
     // (TODO) JsDeclareFunction(loadIntVec);
     //#JSIMPLEMENT:src/qminer/linalg.js
 };
+
+///////////////////////////////
+// NodeJs-Linalg-FltVV
+//# 
+//# ### Matrix (dense matrix)
+//# 
+//# Matrix is a double 2D array implemented in glib/base/ds.h. 
+//# Using the global `la` object, dense matrices are generated in several ways:
+//# 
+//# ```JavaScript
+//# var fltv = la.newVec(); //empty matrix
+//# // refer to la.newMat function for alternative ways to generate dense matrices
+//# ```
+//# 
+class TNodeJsFltVV : public node::ObjectWrap {
+public:
+	const static TStr ClassId;
+
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(const TFltVV& FltVV);
+	static v8::Local<v8::Object> New(const TFltV& FltV);
+public:
+	TNodeJsFltVV() { }
+	TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { }
+public:
+	JsDeclareFunction(New);
+private:
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
+	JsDeclareFunction(at);
+	//#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
+	JsDeclareFunction(put);
+	//#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
+	//#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
+	//#- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
+	//#- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
+	//#- `mat2 = mat.multiply(spMat)` -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
+	JsDeclareFunction(multiply);
+	//#- `mat2 = mat.multiplyT(num)` -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `vec2 = mat.multiplyT(vec)` -- Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `vec = mat.multiplyT(spVec)` -- Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `mat3 = mat.multiplyT(mat2)` -- Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	//#- `mat2 = mat.multiplyT(spMat)` -- Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
+	JsDeclareFunction(multiplyT);
+	//#- `mat3 = mat.plus(mat2)` -- `mat3` is the sum of matrices `mat` and `mat2`
+	JsDeclareFunction(plus);
+	//#- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
+	JsDeclareFunction(minus);
+	//#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
+	JsDeclareFunction(transpose);
+	//#- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
+	JsDeclareFunction(solve);
+	//#- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+	JsDeclareFunction(rowNorms);
+	//#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+	JsDeclareFunction(colNorms);
+	//#- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
+	JsDeclareFunction(normalizeCols);
+	//#- `str = mat.printStr()` -- print matrix `mat` to a string `str`
+	JsDeclareFunction(toString);
+	//#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
+	JsDeclareFunction(sparse);
+	//#- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
+	JsDeclareFunction(frob);
+	//#- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
+	JsDeclareProperty(rows);
+	//#- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
+	JsDeclareProperty(cols);
+	//#- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
+	JsDeclareFunction(rowMaxIdx);
+	//#- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
+	JsDeclareFunction(colMaxIdx);
+	//#- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
+	JsDeclareFunction(getCol);
+	//#- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
+	JsDeclareFunction(setCol);
+	//#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
+	JsDeclareFunction(getRow);
+	//#- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
+	JsDeclareFunction(setRow);
+	//#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+	JsDeclareFunction(diag);
+	//#- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(save);
+	//#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(load);
+	//#- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(saveascii);
+	//#- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	JsDeclareFunction(loadascii);
+public:
+	TFltVV Mat;
+private:
+	static v8::Persistent<v8::Function> constructor;
+};
+
+
+///////////////////////////////
+// NodeJs-Linalg-Sparse-Vector
+//# 
+//# ### SpVector (sparse vector)
+//# 
+//# Sparse vector is an array of (int,double) pairs that represent column indices and values (TIntFltKdV is implemented in glib/base/ds.h.)
+//# Using the global `la` object, sparse vectors can be generated in the following ways:
+//# 
+//# ```JavaScript
+//# var spVec = la.newSpVec(); //empty vector
+//# // refer to la.newSpVec for alternative ways to generate sparse vectors
+//# ```
+//# 
+class TNodeJsSpVec : public node::ObjectWrap {
+public:
+	const static TStr ClassId;
+
+	TNodeJsSpVec() { }
+	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
+		: Vec(IntFltKdV), Dim(Dim)
+	{ }
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
+public:
+	//# 
+	//# **Functions and properties:**
+	//# 
+	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
+	// JsDeclareFunction(newSpVec);
+	JsDeclareFunction(New);
+	//#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
+	JsDeclareFunction(at);
+	//#- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
+	JsDeclareFunction(put);
+	//#- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
+	JsDeclareFunction(sum);
+	//#- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
+	//#- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
+	JsDeclareFunction(inner);
+	//#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
+	JsDeclareFunction(multiply);
+	//#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
+	JsDeclareFunction(normalize);
+	//#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
+	JsDeclareProperty(nnz);
+	//#- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
+	JsDeclareProperty(dim);
+	// #- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
+	JsDeclareFunction(norm);
+	//#- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
+	JsDeclareFunction(full);
+	//#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
+	JsDeclareFunction(valVec);
+	//#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
+	JsDeclareFunction(idxVec);
+	//#- `spVec = spVec.print()` -- returns the vector as string. 
+	JsDeclareFunction(toString);
+public:
+	TIntFltKdV Vec;
+	int Dim;
+private:
+	static v8::Persistent<v8::Function> constructor;
+};
+
+///////////////////////////////
+// NodeJs-Linalg-Sparse-Col-Matrix
+//# 
+//# ### SpMatrix (sparse column matrix)
+//# 
+//# SpMatrix is a sparse matrix represented as a dense vector of sparse vectors which correspond to matrix columns (TVec<TIntFltKdV>, implemented in glib/base/ds.h.)
+//# Using the global `la` object, sparse matrices are generated in several ways:
+//# 
+//# ```JavaScript
+//# var spMat = la.newSpMat(); //empty matrix
+//# // refer to la.newSpMat function for alternative ways to generate sparse matrices
+//# ```
+//# 
+class TNodeJsSpMat : public node::ObjectWrap {
+public:
+	const static TStr ClassId;
+
+	TNodeJsSpMat() { }
+	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
+		: Mat(_Mat), Rows(_Rows) { }
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
+	static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
+public:
+	//# 
+	//# **Functions and properties:**
+	//# 
+	JsDeclareFunction(New);
+	//#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
+	JsDeclareFunction(at);
+	//#- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
+	JsDeclareFunction(put);
+	//#- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
+	JsDeclareSetIndexedProperty(indexGet, indexSet);
+	//#- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
+	JsDeclareFunction(push);
+	//#- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
+	//#- `vec2 = spMat.multiply(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
+	//#- `vec = spMat.multiply(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector
+	//#- `mat2 = spMat.multiply(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix
+	//#- `mat = spMat.multiply(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix
+	JsDeclareFunction(multiply);
+	//#- `spMat2 = spMat.multiplyT(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `vec2 = spMat.multiplyT(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `vec = spMat.multiplyT(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `mat2 = spMat.multiplyT(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
+	//#- `mat = spMat.multiplyT(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.
+	JsDeclareFunction(multiplyT);
+	//#- `spMat3 = spMat.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
+	JsDeclareFunction(plus);
+	//#- `spMat3 = spMat.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
+	JsDeclareFunction(minus);
+	//#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
+	JsDeclareFunction(transpose);
+	//#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
+	JsDeclareFunction(colNorms);
+	//#- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
+	JsDeclareFunction(normalizeCols);
+	//#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
+	JsDeclareFunction(full);
+	//#- `num = spMat.frob()` -- number `num` is the Frobenious norm of `spMat` (sparse matrix)
+	JsDeclareFunction(frob);
+	//#- `num = spMat.rows` -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
+	JsDeclareProperty(rows);
+	//#- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
+	JsDeclareProperty(cols);
+	//#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
+	JsDeclareFunction(print);
+	//#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
+	JsDeclareFunction(save);
+	//#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
+	JsDeclareFunction(load);
+	//#- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
+	// (TODO) JsDeclareFunction(sign);
+	//#JSIMPLEMENT:src/qminer/spMat.js
+public:
+	TVec<TIntFltKdV> Mat;
+	TInt Rows;
+private:
+	static v8::Persistent<v8::Function> constructor;
+};
+
+// Vector helper classes
 
 class TAuxFltV {
 public:    
@@ -120,7 +370,7 @@ public:
 };
 
 ///////////////////////////////
-// NodeJs-GLib-TVec
+// NodeJs-Linalg-Vector
 //# 
 //# ### Vector
 //# 
@@ -238,316 +488,425 @@ private:
     static v8::Persistent<v8::Function> constructor;
 };
 
-typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
-typedef TNodeJsVec<TInt, TAuxIntV> TNodeJsIntV;
-typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
-
-///////////////////////////////
-// NodeJs-Qminer-FltVV
-//# 
-//# ### Matrix (dense matrix)
-//# 
-//# Matrix is a double 2D array implemented in glib/base/ds.h. 
-//# Using the global `la` object, dense matrices are generated in several ways:
-//# 
-//# ```JavaScript
-//# var fltv = la.newVec(); //empty matrix
-//# // refer to la.newMat function for alternative ways to generate dense matrices
-//# ```
-//# 
-class TNodeJsFltVV : public node::ObjectWrap {
-public:
-	const static TStr ClassId;
-
-    static void Init(v8::Handle<v8::Object> exports);
-    static v8::Local<v8::Object> New(const TFltVV& FltVV);
-    static v8::Local<v8::Object> New(const TFltV& FltV);
-public:
-    TNodeJsFltVV() { } 
-    TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { } 
-public:
-    JsDeclareFunction(New);
-private:
-    //# 
-    //# **Functions and properties:**
-    //# 
-    //#- `num = mat.at(rowIdx,colIdx)` -- Gets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
-    JsDeclareFunction(at);    
-    //#- `mat = mat.put(rowIdx, colIdx, num)` -- Sets the element of `mat` (matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
-    JsDeclareFunction(put);
-    //#- `mat2 = mat.multiply(num)` -- Matrix multiplication: `num` is a number, `mat2` is a matrix
-    //#- `vec2 = mat.multiply(vec)` -- Matrix multiplication: `vec` is a vector, `vec2` is a vector
-    //#- `vec = mat.multiply(spVec)` -- Matrix multiplication: `spVec` is a sparse vector, `vec` is a vector
-    //#- `mat3 = mat.multiply(mat2)` -- Matrix multiplication: `mat2` is a matrix, `mat3` is a matrix
-    //#- `mat2 = mat.multiply(spMat)` -- Matrix multiplication: `spMat` is a sparse matrix, `mat2` is a matrix
-    JsDeclareFunction(multiply);
-    //#- `mat2 = mat.multiplyT(num)` -- Matrix transposed multiplication: `num` is a number, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
-    //#- `vec2 = mat.multiplyT(vec)` -- Matrix transposed multiplication: `vec` is a vector, `vec2` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
-    //#- `vec = mat.multiplyT(spVec)` -- Matrix transposed multiplication: `spVec` is a sparse vector, `vec` is a vector. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
-    //#- `mat3 = mat.multiplyT(mat2)` -- Matrix transposed multiplication: `mat2` is a matrix, `mat3` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
-    //#- `mat2 = mat.multiplyT(spMat)` -- Matrix transposed multiplication: `spMat` is a sparse matrix, `mat2` is a matrix. The result is numerically equivalent to mat.transpose().multiply(), but more efficient
-    JsDeclareFunction(multiplyT);
-    //#- `mat3 = mat.plus(mat2)` -- `mat3` is the sum of matrices `mat` and `mat2`
-    JsDeclareFunction(plus);
-    //#- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
-    JsDeclareFunction(minus);
-    //#- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
-    JsDeclareFunction(transpose);
-    //#- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
-    JsDeclareFunction(solve);
-    //#- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
-    JsDeclareFunction(rowNorms);
-    //#- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
-    JsDeclareFunction(colNorms);
-    //#- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
-    JsDeclareFunction(normalizeCols);
-    //#- `str = mat.printStr()` -- print matrix `mat` to a string `str`
-    JsDeclareFunction(toString);
-    //#- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
-    JsDeclareFunction(sparse);
-    //#- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
-    JsDeclareFunction(frob);
-    //#- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
-    JsDeclareProperty(rows);
-    //#- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
-    JsDeclareProperty(cols);
-    //#- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
-    JsDeclareFunction(rowMaxIdx);
-    //#- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
-    JsDeclareFunction(colMaxIdx);
-    //#- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
-    JsDeclareFunction(getCol);
-    //#- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
-    JsDeclareFunction(setCol);
-    //#- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
-    JsDeclareFunction(getRow);
-    //#- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
-    JsDeclareFunction(setRow);
-    //#- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
-    JsDeclareFunction(diag);
-    //#- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
-    JsDeclareFunction(save);
-    //#- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
-    JsDeclareFunction(load);
-    //#- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
-    JsDeclareFunction(saveascii);
-    //#- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
-    JsDeclareFunction(loadascii);
-public:
-    TFltVV Mat;
-private:
-    static v8::Persistent<v8::Function> constructor;
-};
-
-///////////////////////////////
-// NodeJs-QMiner-Sparse-Vector
-//# 
-//# ### SpVector (sparse vector)
-//# 
-//# Sparse vector is an array of (int,double) pairs that represent column indices and values (TIntFltKdV is implemented in glib/base/ds.h.)
-//# Using the global `la` object, sparse vectors can be generated in the following ways:
-//# 
-//# ```JavaScript
-//# var spVec = la.newSpVec(); //empty vector
-//# // refer to la.newSpVec for alternative ways to generate sparse vectors
-//# ```
-//# 
-class TNodeJsSpVec : public node::ObjectWrap {
-public:
-	const static TStr ClassId;
-
-    TNodeJsSpVec() { }
-    TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
-        : Vec(IntFltKdV), Dim(Dim)
-    { }
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    static v8::Local<v8::Object> New(const TIntFltKdV& IntFltKdV, const int& Dim = -1);
-public:
-    //# 
-    //# **Functions and properties:**
-    //# 
-    //#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-    //#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-    // JsDeclareFunction(newSpVec);
-    JsDeclareFunction(New);
-    //#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
-    JsDeclareFunction(at);    
-    //#- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
-    JsDeclareFunction(put);        
-    //#- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
-    JsDeclareFunction(sum);    
-    //#- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
-    //#- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
-    JsDeclareFunction(inner);    
-    //#- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
-    JsDeclareFunction(multiply);
-    //#- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
-    JsDeclareFunction(normalize);
-    //#- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
-    JsDeclareProperty(nnz);    
-    //#- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
-    JsDeclareProperty(dim);    
-    // #- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
-    JsDeclareFunction(norm);
-    //#- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
-    JsDeclareFunction(full);
-    //#- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
-    JsDeclareFunction(valVec);
-    //#- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
-    JsDeclareFunction(idxVec);
-    //#- `spVec = spVec.print()` -- returns the vector as string. 
-    JsDeclareFunction(toString);
-public:
-    TIntFltKdV Vec;
-    int Dim;
-private:
-    static v8::Persistent<v8::Function> constructor;
-};
-
-///////////////////////////////
-// NodeJs-QMiner-Sparse-Col-Matrix
-//# 
-//# ### SpMatrix (sparse column matrix)
-//# 
-//# SpMatrix is a sparse matrix represented as a dense vector of sparse vectors which correspond to matrix columns (TVec<TIntFltKdV>, implemented in glib/base/ds.h.)
-//# Using the global `la` object, sparse matrices are generated in several ways:
-//# 
-//# ```JavaScript
-//# var spMat = la.newSpMat(); //empty matrix
-//# // refer to la.newSpMat function for alternative ways to generate sparse matrices
-//# ```
-//# 
-class TNodeJsSpMat : public node::ObjectWrap {
-public:
-	const static TStr ClassId;
-
-    TNodeJsSpMat() { }
-    TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
-        : Mat(_Mat), Rows(_Rows) { }
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
-    static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
-public:
-    //# 
-    //# **Functions and properties:**
-    //# 
-    JsDeclareFunction(New);
-    //#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
-    JsDeclareFunction(at);
-    //#- `spMat = spMat.put(rowIdx, colIdx, num)` -- Sets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer), value `num` (number). Uses zero-based indexing. Returns self.
-    JsDeclareFunction(put);
-    //#- `spVec = spMat[colIdx]; spMat[colIdx] = spVec` -- setting and getting sparse vectors `spVec` from sparse column matrix, given column index `colIdx` (integer)
-    JsDeclareSetIndexedProperty(indexGet, indexSet);
-    //#- `spMat = spMat.push(spVec)` -- attaches a column `spVec` (sparse vector) to `spMat` (sparse matrix). Returns self.
-    JsDeclareFunction(push);
-    //#- `spMat2 = spMat.multiply(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix
-    //#- `vec2 = spMat.multiply(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector
-    //#- `vec = spMat.multiply(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector
-    //#- `mat2 = spMat.multiply(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix
-    //#- `mat = spMat.multiply(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix
-    JsDeclareFunction(multiply);
-    //#- `spMat2 = spMat.multiplyT(num)` -- Sparse matrix multiplication: `num` is a number, `spMat` is a sparse matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
-    //#- `vec2 = spMat.multiplyT(vec)` -- Sparse matrix multiplication: `vec` is a vector, `vec2` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
-    //#- `vec = spMat.multiplyT(spVec)` -- Sparse matrix multiplication: `spVec` is a sparse vector, `vec` is a dense vector. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
-    //#- `mat2 = spMat.multiplyT(mat)` -- Sprase matrix multiplication: `mat` is a matrix, `mat2` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient
-    //#- `mat = spMat.multiplyT(spMat2)` -- Sparse matrix multiplication: `spMat2` is a sparse matrix, `mat` is a matrix. The result is numerically equivalent to spMat.transpose().multiply() but computationaly more efficient.
-    JsDeclareFunction(multiplyT);
-    //#- `spMat3 = spMat.plus(spMat2)` -- `spMat3` is the sum of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
-    JsDeclareFunction(plus);
-    //#- `spMat3 = spMat.minus(spMat2)` -- `spMat3` is the difference of matrices `spMat` and `spMat2` (all matrices are sparse column matrices)
-    JsDeclareFunction(minus);
-    //#- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
-    JsDeclareFunction(transpose);    
-    //#- `vec = spMat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `spMat`
-    JsDeclareFunction(colNorms);
-    //#- `spMat = spMat.normalizeCols()` -- normalizes each column of a sparse matrix `spMat` (inplace operation). Returns self.
-    JsDeclareFunction(normalizeCols);
-    //#- `mat = spMat.full()` -- get dense matrix representation `mat` of `spMat (sparse column matrix)`
-    JsDeclareFunction(full);
-    //#- `num = spMat.frob()` -- number `num` is the Frobenious norm of `spMat` (sparse matrix)
-    JsDeclareFunction(frob);
-    //#- `num = spMat.rows` -- integer `num` corresponds to the number of rows of `spMat` (sparse matrix)
-    JsDeclareProperty(rows);
-    //#- `num = spMat.cols` -- integer `num` corresponds to the number of columns of `spMat` (sparse matrix)
-    JsDeclareProperty(cols);
-    //#- `spMat = spMat.print()` -- print `spMat` (sparse matrix) to console. Returns self.
-    JsDeclareFunction(print);
-    //#- `spMat = spMat.save(fout)` -- print `spMat` (sparse matrix) to output stream `fout`. Returns self.
-    JsDeclareFunction(save);
-    //#- `spMat = spMat.load(fin)` -- replace `spMat` (sparse matrix) by loading from input steam `fin`. `spMat` has to be initialized first, for example using `spMat = la.newSpMat()`. Returns self.
-    JsDeclareFunction(load);
-    //#- `spMat2 = spMat.sign()` -- create a new sparse matrix `spMat2` whose elements are sign function applied to elements of `spMat`.
-    // (TODO) JsDeclareFunction(sign);
-    //#JSIMPLEMENT:src/qminer/spMat.js
-public:
-    TVec<TIntFltKdV> Mat;
-    TInt Rows;
-private:
-    static v8::Persistent<v8::Function> constructor;
-};
 
 ///////////////////////////////
 // NodeJs-GLib-TVec Implementations
 template <typename TVal, typename TAux>
 v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 
+typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
+typedef TNodeJsVec<TInt, TAuxIntV> TNodeJsIntV;
+typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
+
+
+// template <typename TVal, typename TAux>
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+    v8::Local<v8::Object> Instance = cons->NewInstance();
+
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+    Instance->SetHiddenValue(Key, Value);
+
+    TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(FltV);
+    JsVec->Wrap(Instance);
+    return HandleScope.Escape(Instance);
+}
+
+// template <typename TVal, typename TAux>
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+    v8::Local<v8::Object> Instance = cons->NewInstance();
+
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltV");
+    Instance->SetHiddenValue(Key, Value);
+
+    int Len = IntV.Len();
+    TFltV Vec(Len);
+    for (int ElN = 0; ElN < Len; ElN++) {
+        Vec[ElN] = IntV[ElN];
+    }
+
+    TNodeJsVec<TFlt, TAuxFltV>* JsVec = new TNodeJsVec<TFlt, TAuxFltV>(Vec);
+    JsVec->Wrap(Instance);
+    return HandleScope.Escape(Instance);
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+    v8::Local<v8::Object> Instance = cons->NewInstance();
+
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
+    Instance->SetHiddenValue(Key, Value);
+
+    int Len = FltV.Len();
+    TIntV Vec(Len);
+    for (int ElN = 0; ElN < Len; ElN++) {
+        Vec[ElN] = (int)FltV[ElN];
+    }
+
+    TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(Vec);
+    JsVec->Wrap(Instance);
+    return HandleScope.Escape(Instance);
+}
+
+// template <typename TVal, typename TAux>
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+
+    v8::Local<v8::Object> Instance = cons->NewInstance();
+
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TIntV");
+    Instance->SetHiddenValue(Key, Value);
+
+    TNodeJsVec<TInt, TAuxIntV>* JsVec = new TNodeJsVec<TInt, TAuxIntV>(IntV);
+    JsVec->Wrap(Instance);
+    return HandleScope.Escape(Instance);
+}
+
+
+// template <typename TVal, typename TAux>
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::EscapableHandleScope HandleScope(Isolate);
+
+    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+
+    v8::Local<v8::Object> Instance = cons->NewInstance();
+
+    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TStrV");
+    Instance->SetHiddenValue(Key, Value);
+
+    TNodeJsVec<TStr, TAuxStrV>* JsVec = new TNodeJsVec<TStr, TAuxStrV>(StrV);
+    JsVec->Wrap(Instance);
+    return HandleScope.Escape(Instance);
+}
+
+// template <typename TVal, typename TAux>
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TStrV& StrV) {
+    throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TStrV& StrV) {
+    throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TFltV& FltV) {
+    throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV) {
+    throw TExcept::New("Not implemented");
+}
+
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-    TStr Name = "vector";
-    if (TAux::ClassId == TNodeJsIntV::GetClassId()) Name = "intVector";
-	if (TAux::ClassId == TNodeJsStrV::GetClassId()) Name = "strVector";
+	TStr Name = "Vector";
+	if (TAux::ClassId == TNodeJsIntV::GetClassId()) Name = "IntVector";
+	if (TAux::ClassId == TNodeJsStrV::GetClassId()) Name = "StrVector";
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
-    // ObjectWrap uses the first internal field to store the wrapped pointer.
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-    // Add all prototype methods, getters and setters here.
-    NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", _subVec);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", _unshift);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "pushV", _pushV);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sortPerm", _sortPerm);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sum", _sum);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxIdx", _getMaxIdx);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sort", _sort);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", _shuffle);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", _trunc);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "outer", _outer);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "inner", _inner);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", _normalize);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "diag", _diag);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "spDiag", _spDiag);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "norm", _norm);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", _sparse);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "toMat", _toMat);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", _saveascii);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
+	// Add all prototype methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", _subVec);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", _unshift);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "pushV", _pushV);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortPerm", _sortPerm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sum", _sum);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getMaxIdx", _getMaxIdx);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sort", _sort);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "shuffle", _shuffle);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", _trunc);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "outer", _outer);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "inner", _inner);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "normalize", _normalize);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "diag", _diag);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "spDiag", _spDiag);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "norm", _norm);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", _sparse);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "toMat", _toMat);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", _saveascii);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
 
-    // Properties 
-    tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+	// Properties 
+	tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
+	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 
-    // This has to be last, otherwise the properties won't show up on the
-    // object in JavaScript.
-    constructor.Reset(Isolate, tpl->GetFunction());
-    #ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
-        tpl->GetFunction());
-    #endif
+	// This has to be last, otherwise the properties won't show up on the
+	// object in JavaScript.
+	constructor.Reset(Isolate, tpl->GetFunction());
+#ifndef MODULE_INCLUDE_LA
+	exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
+		tpl->GetFunction());
+#endif
 }
+
+// Returns i = arg max_i v[i] for a vector v 
+template <>
+inline void TNodeJsVec<TFlt, TAuxFltV>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	double MxVal = JsVec->Vec[0];
+	int MxIdx = 0;
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
+		const double CrrVal = JsVec->Vec[ElN];
+		if (CrrVal > MxVal) { MxIdx = ElN; MxVal = CrrVal; }
+	}
+	Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
+template <>
+inline void TNodeJsVec<TInt, TAuxIntV>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsVec<TInt, TAuxIntV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args.Holder());
+
+	double MxVal = JsVec->Vec[0];
+	int MxIdx = 0;
+	for (int ElN = 0; ElN < JsVec->Vec.Len(); ++ElN) {
+		const double CrrVal = JsVec->Vec[ElN];
+		if (CrrVal > MxVal) { MxIdx = ElN; MxVal = CrrVal; }
+	}
+	Args.GetReturnValue().Set(v8::Integer::New(Isolate, MxIdx));
+}
+
+template <>
+inline void TNodeJsVec<TFlt, TAuxFltV>::sortPerm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	TFltV SortedV;
+	TIntV PermV;
+	TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
+	v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
+	Obj->Set(v8::String::NewFromUtf8(Isolate, "vec"), New(SortedV));
+	Obj->Set(v8::String::NewFromUtf8(Isolate, "perm"), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
+	Args.GetReturnValue().Set(Obj);
+}
+
+template <>
+inline void TNodeJsVec<TFlt, TAuxFltV>::outer(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args.Holder());
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected a vector on the input");
+
+	TFltVV ResMat;
+	TNodeJsVec<TFlt, TAuxFltV>* JsArgVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
+	ResMat.Gen(JsVec->Vec.Len(), JsArgVec->Vec.Len());
+
+	TLinAlg::OuterProduct(JsVec->Vec, JsArgVec->Vec, ResMat);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(ResMat));
+}
+
+template <>
+inline void TNodeJsVec<TFlt, TAuxFltV>::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args.Holder());
+	double Result = 0.0;
+	if (Args[0]->IsObject()) {
+		TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+			ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+		Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
+	}
+
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+template <>
+inline void TNodeJsVec<TFlt, TAuxFltV>::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected an TNodeJsVec object (a vector)");
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+	TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+	TFltV Result(JsVec->Vec.Len());
+	TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
+		"Expected an TNodeJsVec object (a vector)");
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+	TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+	TFltV Result; Result.Gen(JsVec->Vec.Len());
+	TLinAlg::LinComb(1.0, JsVec->Vec, -1.0, OthVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsNumber(),
+		"Expected number");
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+	const double Scalar = Args[0]->NumberValue();
+
+	TFltV Result;
+	Result.Gen(JsVec->Vec.Len());
+	TLinAlg::MultiplyScalar(Scalar, JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(New(Result));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::normalize(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	EAssertR(JsVec->Vec.Len() > 0, "Can't normalize vector of length 0.");
+	if (JsVec->Vec.Len() > 0) {
+		TLinAlg::Normalize(JsVec->Vec);
+	}
+
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::diag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	TFltVV Result;
+	// computation
+	TLAMisc::Diag(JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
+
+	TVec<TIntFltKdV> Result;
+	// computation
+	TLAMisc::Diag(JsVec->Vec, Result);
+
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::norm(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
+	const double Result = TLinAlg::Norm(JsVec->Vec);
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
+
+	TIntFltKdV Res;
+	TLAMisc::ToSpVec(JsVec->Vec, Res);
+
+	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res));
+}
+
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::toMat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
+
+	TFltVV Res(JsVec->Vec, JsVec->Vec.Len(), 1);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(Res));
+}
+
+//////
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
