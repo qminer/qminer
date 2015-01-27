@@ -103,6 +103,7 @@ console.log("Test new feature space");
 testFtrSpace(ftrSpace1); 
 
 console.log("Saving to disk");
+fs.mkdir('./sandbox/ftrSpace');
 var fout = fs.openWrite("./sandbox/ftrSpace/fs.dat");
 ftrSpace1.save(fout);
 fout.close();
