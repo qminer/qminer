@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "author": "Blaz Fortuna <blaz.fortuna@ijs.si>",
   "contributors": [
@@ -11,24 +11,16 @@
   ],
   "repository": {
      "type": "git",
-     "url": "git://github.com/rupnikj/qminer.git"
+     "url": "https://github.com/rupnikj/qminer"
   },  
-  "main": "index.js",
+  "main": "./index.js",
   "engines": {
     "node": "0.11.14"
   },
-  "dependencies": {
-       "qminerProj": "git://github.com/rupnikj/qminer.git"
-  },
+  "dependencies": { },
   "devDependencies": {
     "mocha": "^1.17.1"
   },
-  "files": [
-    "bin",
-    "index.js",
-    "binding.gyp",
-    "LICENSE"
-  ],
   "scripts": {
     "test": "./test/nodejs/test.sh",
     "install": "node-gyp configure build --target=v0.11.14 --debug"
