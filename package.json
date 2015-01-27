@@ -1,38 +1,36 @@
 {
-    "name": "qminer",
-    "version": "0.1.0",
-    "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
-    "author": "Blaz Fortuna <blaz.fortuna@ijs.si>",
-    "contributors": [{
-       "name": "Jan Rupnik",
-       "email": "jan.rupnik@ijs.si"
-    }],
-    "repository": {
-       "type": "git",
-       "url": "https://github.com/rupnikj/qminer.git"
-    },    
-    "main": "index.js",
-    "engines": {
-        "node": "0.11.14"
-    },
-    "dependencies": { },
-    "devDependencies": {
-        "mocha": "^1.17.1"
-    },
-    "files": [
-      "bin",
-      "images",
-      "lib",
-      "index.js",
-      "mocha.css",
-      "mocha.js",
-      "LICENSE"
-    ],
-    "scripts": {
-        "test": "./test/nodejs/test.sh"
-    },
-    "repository": "",
-    "keywords": [
-         "addon"
-    ]
+  "name": "qminer",
+  "version": "0.1.1",
+  "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
+  "author": "Blaz Fortuna <blaz.fortuna@ijs.si>",
+  "contributors": [
+    {
+      "name": "Jan Rupnik",
+      "email": "jan.rupnik@ijs.si"
+    }
+  ],
+  "repository": "",
+  "main": "index.js",
+  "engines": {
+    "node": "0.11.14"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "^1.17.1"
+  },
+  "files": [
+    "bin",
+    "images",
+    "lib",
+    "index.js",
+    "mocha.css",
+    "mocha.js",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "./test/nodejs/test.sh"
+  },
+  "keywords": [
+    "addon"
+  ]
 }
