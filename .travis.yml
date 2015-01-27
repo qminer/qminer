@@ -9,8 +9,11 @@ before_install:
  - sudo npm update
  - npm config set registry http://registry.npmjs.org/
  - sudo npm install -g node-gyp
+ - ./test/cpp/install.sh
 script: 
   - node-gyp configure build --target=v0.11.14 --debug
+  - make test
+  - ./test/javascript/test.sh
 os: linux
 notifications:
   email:  
