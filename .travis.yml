@@ -1,6 +1,6 @@
 language: node_js
 node_js:
- - "0.11.15"
+ - "0.11.14"
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq uuid-dev
@@ -8,7 +8,7 @@ before_install:
  - npm install -g node-gyp
  - npm install -g mocha
 script: 
-  - node-gyp configure build --target=v0.11.15 --debug
+  - node-gyp configure build --target=v0.11.14 --debug
   - ./test/nodejs/test.sh
 os: linux
 notifications:
