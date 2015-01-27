@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "author": "Blaz Fortuna <blaz.fortuna@ijs.si>",
   "contributors": [
@@ -24,6 +24,7 @@
   "files": [
     "bin",
     "index.js",
+    "binding.gyp",
     "LICENSE"
   ],
   "scripts": {
