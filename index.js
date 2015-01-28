@@ -1,2 +1,2 @@
-var qminer = require('bindings')('qm'); 
-module.exports = qminer;
+exports.qm = require('bindings')('qm'); 
+exports.la = require('bindings')('la'); 
