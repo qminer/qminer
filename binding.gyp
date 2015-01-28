@@ -86,7 +86,7 @@
             # node snap module
             'target_name': 'snap',
             'sources': [
-				'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.h',
                 'src/nodejs/snap/snap_nodejs.cpp',
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
@@ -96,17 +96,17 @@
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-				'src/nodejs/snap',
+                'src/nodejs/snap',
                 'src/nodejs/la',
                 'src/nodejs/fs',
                 'src/nodejs/',
                 'src/glib/base/',
                 'src/glib/mine/',
-				'src/glib/misc/',
-				'src/third_party/Snap/snap-core',
-				'src/third_party/Snap/snap-adv',
-				'src/third_party/Snap/snap-exp',
-				'src/third_party/Snap/qlib-core'
+                'src/glib/misc/',
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core'
             ],
             'defines': [
                 'MODULE_INCLUDE_LA',
@@ -114,7 +114,7 @@
             ],
             'dependencies': [
                 'glib',
-				'snap_lib'
+                'snap_lib'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -211,13 +211,13 @@
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-				'src/nodejs/',
-				'src/nodejs/fs',
-				'src/nodejs/la',
-				'src/qminer/',
-				'src/glib/base/',
-				'src/glib/mine/',
-				'src/glib/misc/'
+                'src/nodejs/',
+                'src/nodejs/fs',
+                'src/nodejs/la',
+                'src/qminer/',
+                'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/'
             ],
             'defines': [
                 'MODULE_INCLUDE_FS',
@@ -252,8 +252,8 @@
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-		'src/glib/base/',
-		'src/glib/mine/',
+        'src/glib/base/',
+        'src/glib/mine/',
             ],
             'defines': [
                 'MODULE_INCLUDE_LA'
@@ -336,14 +336,14 @@
             'target_name': 'snap_lib',
             'type': 'static_library',
             'sources': [
-				'src/third_party/Snap/snap-core/Snap.cpp'
+                'src/third_party/Snap/snap-core/Snap.cpp'
             ],        
             'include_dirs': [
                 'src/third_party/Snap/snap-core',
-				'src/third_party/Snap/snap-adv',
-				'src/third_party/Snap/snap-exp',
-				'src/third_party/Snap/qlib-core',
-				'src/glib/base/',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core',
+                'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/'
             ],
