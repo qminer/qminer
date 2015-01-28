@@ -1,8 +1,8 @@
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
-var fs = require('../../build/Debug/fs.node');
+var qm = require('../../node_modules/qminer');
+var fs = qm.fs;
 // test feature construction
-var analytics = require('../../build/Debug/analytics.node');
+var analytics = qminer.analytics;
 
 qm.delLock();
 
