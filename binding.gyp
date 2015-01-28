@@ -1,17 +1,23 @@
 {
-    'conditions': [
-        # operating system specific parameters
-        ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-        ['OS == "mac"', {
-            'xcode_settings': {
-                'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                'GCC_ENABLE_CPP_RTTI': 'YES',
-                'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-            }
-        }]
-    ],
+    'target_defaults': {
+        # GCC flags
+        'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
+        'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
+        'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ],
+        'conditions': [
+            # operating system specific parameters
+            ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+            ['OS == "mac"', {
+                'xcode_settings': {
+                    'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                    'GCC_ENABLE_CPP_RTTI': 'YES',
+                    'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                    'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                    'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                }
+            }]
+        ]
+    },
     'targets': [
         {
             # node qminer module
@@ -242,14 +248,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/'
-            ],
-
+            ]
         }
-    ],
-    'target_defaults': {
-        # GCC flags
-        'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
-        'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-        'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ]    
-    } 
+    ]
 }
