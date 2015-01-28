@@ -6,7 +6,6 @@ before_install:
   - sudo apt-get install -qq uuid-dev
   - sudo apt-get install build-essential
   - npm install -g mocha
-  - npm install --debug
 script:   
   - ./test/nodejs/test.sh
 os: linux
