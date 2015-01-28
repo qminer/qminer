@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "author": "Blaz Fortuna <blaz.fortuna@ijs.si>",
   "contributors": [
@@ -22,8 +22,7 @@
     "mocha": "^1.17.1"
   },
   "scripts": {
-    "test": "./test/nodejs/test.sh",
-    "install": "node-gyp configure build --target=v0.11.14 --debug"
+    "test": "./test/nodejs/test.sh"
   },
   "keywords": [
     "addon"
