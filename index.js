@@ -1,3 +1,4 @@
+process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
 module.exports = exports = require('./src/nodejs/scripts/qm.js'); // core functionality
 exports.analytics = require('bindings')('analytics'); // pure native addon
 exports.fs = require('bindings')('fs'); // pure native addon
