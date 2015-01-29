@@ -1,18 +1,10 @@
-var fs = require('fs');
-if (fs.existsSync('lock')) {
-	try {
-		fs.unlinkSync('lock');
-	} catch (e) {
-		console.log(e);
-	}	
-}
-
+console.log(__filename)
 var assert = require('assert');
-var qm = require('../../build/Debug/qm.node');
-
+var qm = require('../../../qminer');
+qm.delLock();
 
 qm.config('qm.conf', true, 8080, 1024);
-var base = qm.create('qm.conf');
+var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
 
 console.log("Record", "Testing record serialization/deserilization/by value");
 
@@ -88,3 +80,5 @@ console.log("Record", JSON.stringify(recByVal.StrV));
 assert.equal(recByVal.Bool, false, "recByVal.Bool");
 assert.equal(recByVal.Flt, 1.23, "recByVal.Flt");
 console.log("Rec test end");
+
+base.close();

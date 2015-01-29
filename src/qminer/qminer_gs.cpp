@@ -2402,7 +2402,7 @@ void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const P
 
 ///////////////////////////////
 /// Create new stores in an existing base from a schema definition
-TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& SchemaVal, 
+TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, 
        const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH) {
 
     // parse and validate the schema
@@ -2500,49 +2500,50 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& Sc
 
 ///////////////////////////////
 /// Create new base given a schema definition
-PBase NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize, 
-        const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
+TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
+	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
 
-    // create empty base
+	// create empty base
 	InfoLog("Creating new base from schema");
-	PBase Base = TBase::New(FPath, IndexCacheSize);
-    // parse and apply the schema
-    CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
-    // finish base initialization if so required (default is true)
-    if (InitP) { Base->Init(); }
-    // done
-    return Base;
+	TWPt<TBase> Base = TBase::New(FPath, IndexCacheSize);
+	// parse and apply the schema
+	CreateStoresFromSchema(Base, SchemaVal, DefStoreCacheSize, StoreNmCacheSizeH);
+	// finish base initialization if so required (default is true)
+	if (InitP) { Base->Init(); }
+	// done
+	return Base;
 }
+
 
 ///////////////////////////////
 /// Load base created from a schema definition
-PBase LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize, 
-        const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
+TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
+	const uint64& DefStoreCacheSize, const TStrUInt64H& StoreNmCacheSizeH, const bool& InitP) {
 
-    InfoLog("Loading base created from schema definition");
-	PBase Base = TBase::Load(FPath, FAccess, IndexCacheSize);
+	InfoLog("Loading base created from schema definition");
+	TWPt<TBase> Base = TBase::Load(FPath, FAccess, IndexCacheSize);
 	// load stores
-    InfoLog("Loading stores");
-    // read store names from file
-    TFIn FIn(FPath + "StoreList.txt"); TStr StoreNm;   
-    while (FIn.GetNextLn(StoreNm)) {
-        InfoLog("  " + StoreNm);
-        // get cache size for the store
-        const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
-            StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
-        PStore Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
-        Base->AddStore(Store);
-    }
-    InfoLog("Stores loaded");
-    // finish base initialization if so required (default is true)
+	InfoLog("Loading stores");
+	// read store names from file
+	TFIn FIn(FPath + "StoreList.txt"); TStr StoreNm;
+	while (FIn.GetNextLn(StoreNm)) {
+		InfoLog("  " + StoreNm);
+		// get cache size for the store
+		const uint64 StoreCacheSize = StoreNmCacheSizeH.IsKey(StoreNm) ?
+			StoreNmCacheSizeH.GetDat(StoreNm).Val : DefStoreCacheSize;
+		PStore Store = new TStoreImpl(Base, FPath + StoreNm, FAccess, StoreCacheSize);
+		Base->AddStore(Store);
+	}
+	InfoLog("Stores loaded");
+	// finish base initialization if so required (default is true)
 	if (InitP) { Base->Init(); }
-    // done
-    return Base;
+	// done
+	return Base;
 }
 
 ///////////////////////////////
 /// Save base created from a schema definition
-void SaveBase(const PBase& Base) {
+void SaveBase(const TWPt<TBase>& Base) {
 	if (Base->IsRdOnly()) {
         InfoLog("No saving of generic base necessary!");
     } else {

@@ -1,23 +1,15 @@
-var fs = require('fs');
-if (fs.existsSync('lock')) {
-    try {
-        fs.unlinkSync('lock');
-    } catch (e) {
-        console.log(e);
-    }
-}
-
-var assert = require('assert');
-var qm = require('../../build/Debug/qm.node');
+console.log(__filename)
+var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
+var qm = require('../../../qminer');
+qm.delLock();
+//qm.rmDir('db') // run from qminer/test/nodejs 
 
 qm.config('qm.conf', true, 8080, 1024);
 // add store.addTrigger method
-var backward = require('./backward.js');
-backward.addToQm(qm);
-backward.addToAssert(assert);
-backward.addToProcess(process);
+var backward = require('../../src/nodejs/scripts/backward.js');
+backward.addToProcess(process); // adds process.isArg function
 
-var base = qm.create('qm.conf');
+var base = qm.create('qm.conf', "", true); // 2nd arg: empty schema, 3rd arg: clear db folder = true
 
 console.log("Movies", "Starting test based on IMDB sample");
 
@@ -90,7 +82,7 @@ assert.equal(Movies.forwardIter.next(), false, "Movies.forwardIter.next()");
 var PeopleAdd = 0, PeopleUpdate = 0;
 People.addTrigger({
 	onAdd: function (person) { 
-		assert(null != person, "onAdd: person");
+	    assert(null != person, "onAdd: person");
 		assert(null != person.Name, "onAdd: person.Name");
 		assert(null != person.Gender, "onAdd: person.Gender");
 		PeopleAdd = PeopleAdd + 1; 
@@ -125,7 +117,7 @@ Movies.addTrigger({
 });
 
 // insert a person
-assert.equal(People.add({"Name": "Carolina Fortuna", "Gender": "Female"}), 0, "Person.add");
+assert.equal(People.add({ "Name": "Carolina Fortuna", "Gender": "Female" }), 0, "Person.add");
 assert.equal(People.length, 1, "People.length");
 assert(null != People[0], "People[0]");
 assert.equal(People[0].Name, "Carolina Fortuna", "People[0].Name");
@@ -378,7 +370,4 @@ assert.equal(Movies.first.$id, 0, "Movies.first.$id");
 // test last record
 assert.equal(Movies.last.$id, Movies.length - 1, "Movies.last.$id");
 
-//// outdated
-//http.onGet("test1", function(req,res) { return "OK"; });
-//http.onGet("test2", function(req,res) { return "OK"; });
-//http.onPost("test3", function(req,res) { return "OK"; });
+base.close();

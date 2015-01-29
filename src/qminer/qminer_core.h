@@ -2658,10 +2658,12 @@ private:
 	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixMerger& Merger);
 
 public:
-	static PBase New(const TStr& FPath, const int64& IndexCacheSize) { 
-		return new TBase(FPath, IndexCacheSize); }
-	static PBase Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
-		return new TBase(FPath, FAccess, IndexCacheSize); }
+	static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize) {
+		return new TBase(FPath, IndexCacheSize);
+	}
+	static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize) {
+		return new TBase(FPath, FAccess, IndexCacheSize);
+	}
 
 	// check if base already exists
 	static bool Exists(const TStr& FPath);
