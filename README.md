@@ -40,10 +40,10 @@ For more detailed installation check the following instructions:
 
 ## Documentation
 
-+ [Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
-+ [Examples](https://github.com/qminer/qminer/wiki/Example)
-+ [QMiner Wiki](https://github.com/qminer/qminer/wiki)
-+ [JavaScript API](https://github.com/qminer/qminer/wiki/JavaScript)
++ [TODO: DEPRECATED: Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
++ [TODO: DEPRECATED: Examples](https://github.com/qminer/qminer/wiki/Example)
++ [TODO: DEPRECATED: QMiner Wiki](https://github.com/qminer/qminer/wiki)
++ [TODO: DEPRECATED: JavaScript API](https://github.com/qminer/qminer/wiki/JavaScript)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 
