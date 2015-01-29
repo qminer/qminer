@@ -94,11 +94,11 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() > 0, "SVC: missing arguments!");
 
 	try {
-		if (Args[0]->IsExternal()) { // preverjanje, če je input stream
+		if (Args[0]->IsExternal()) {
 			// load the model from an input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), *JsFIn->SIn));
-		} else { // dobil JSON
+		} else {
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), ParamVal));
 		}
@@ -110,18 +110,17 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSvmModel::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-    //isto
+
 	QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
 	QmAssertR(Args[1]->IsObject(), "trainSvmClassify: second argument expected to be object");
 
 	try {
-        //tuki dobiš self
+
 		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 
-		Model->ClrModel(); // popuca memory leake, ker se pointerji ne uničijo
-        // kadarkoli se kliče new je treba klicat delete
+		Model->ClrModel();
 
-		TFltV& ClsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec; // tko se dobi argse iz js v C++
+		TFltV& ClsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec;
 		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::ClassId)) {
 			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
 			if (Model->Algorithm == "SGD") {
@@ -151,9 +150,8 @@ void TNodeJsSvmModel::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
 			}
 		}
-		Args.GetReturnValue().Set(Args.Holder()); // tuki se vračajo stvari, tuki se vrne self
-        // nov integer ali cifra: v8::number::new(isolate,1) povsod se da isolate not
-        // stringi se tko delajo: v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr())
+		Args.GetReturnValue().Set(Args.Holder());
+
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
 	}
@@ -970,7 +968,8 @@ void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
 		// Add all methods, getters and setters here.
 		NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 		NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-		//NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "setLearnRate", _setLearnRate);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 		//NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 		// properties
@@ -1074,98 +1073,6 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
-	/*
-	//isto
-	QmAssertR(Args[0]->IsObject(), "first argument expected to be object");
-	QmAssertR(Args[1]->IsObject(), "trainSvmClassify: second argument expected to be object");
-
-	try {
-        //tuki dobiš self
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-
-		Model->ClrModel(); // popuca memory leake, ker se pointerji ne uničijo
-        // kadarkoli se kliče new je treba klicat delete
-
-		TFltV& ClsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec; // tko se dobi argse iz js v C++
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::ClassId)) {
-			TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
-			if (Model->Algorithm == "SGD") {
-				Model->Model = new TSvm::TLinModel(TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLAMisc::GetMaxDimIdx(VecV) + 1,
-										VecV.Len(), ClsV, Model->SvmCost, Model->SvmUnbalance, Model->MxTime,
-										Model->MxIter, Model->MnDiff, Model->SampleSize, Model->Notify));
-			} else if (Model->Algorithm == "PR_LOQO") {
-				PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
-				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, Model->SvmCost, Model->SvmUnbalance,
-					TIntV(), TSVMLearnParam::Lin(Model->MxTime, Model->Verbose ? 2 : 0));
-
-				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
-			}
-		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) {
-			TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
-			if (Model->Algorithm == "SGD") {
-				Model->Model = new TSvm::TLinModel(TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
-						VecV.GetCols(), ClsV, Model->SvmCost, Model->SvmUnbalance, Model->MxTime,
-						Model->MxIter, Model->MnDiff, Model->SampleSize, Model->Notify));
-			} else if (Model->Algorithm == "PR_LOQO") {
-				PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
-				PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, Model->SvmCost, Model->SvmUnbalance,
-					TIntV(), TSVMLearnParam::Lin(Model->MxTime, Model->Verbose ? 2 : 0));
-
-
-				Model->Model = new TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
-			}
-		}
-		Args.GetReturnValue().Set(Args.Holder()); // tuki se vračajo stvari, tuki se vrne self
-        // nov integer ali cifra: v8::number::new(isolate,1) povsod se da isolate not
-        // stringi se tko delajo: v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr())
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
-	}
-
-    if(TJsNNUtil::IsArgClass(Args, 0, "TFltV")){
-        TJsFltV* JsVecIn = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-        TJsFltV* JsVecTarget = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 1);
-        // TODO: do some checking of dimensions etc..
-        // first get output values
-        JsNN->NN->FeedFwd(JsVecIn->Vec);
-
-        v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
-        TFltV& FltV = TJsFltV::GetVec(JsFltV);
-
-        JsNN->NN->GetResults(FltV);
-
-        //printf("&&Predicted when learning %f \n", (double)FltV[0]);
-
-        // then check how we performed and learn
-        JsNN->NN->BackProp(JsVecTarget->Vec);
-    }
-    else if(TJsNNUtil::IsArgClass(Args, 0, "TFltVV")){
-        TJsFltVV* JsVVecIn = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 0);
-        TJsFltVV* JsVVecTarget = TJsObjUtil<TQm::TJsFltVV>::GetArgObj(Args, 1);
-        //TODO: check that dimensions match
-        for(int Row = 0; Row < JsVVecIn->Mat.GetRows(); Row++){
-            TFltV InFltV;
-            JsVVecIn->Mat.GetRow(Row, InFltV);
-            JsNN->NN->FeedFwd(InFltV);
-            // then check how we performed and learn
-            TFltV TargFltV;
-            JsVVecTarget->Mat.GetRow(Row, TargFltV);
-            if(Row == JsVVecIn->Mat.GetRows() - 1){
-                JsNN->NN->BackProp(TargFltV);
-            }
-            else {
-                JsNN->NN->BackProp(TargFltV, false);
-            }
-        }
-    }
-    else {
-        printf("NeuralNetwork.learn: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
-    }
-
-
-	*/
-
 }
 
 void TNodeJsNNet::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1185,57 +1092,48 @@ void TNodeJsNNet::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TFltV FltV;
 	    Model->Model->GetResults(FltV);
-	    printf("&&Predicted %f \n", (double)FltV[0]);
+	    //printf("&&Predicted %f \n", (double)FltV[0]);
 
 	    Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltV));
 
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
-	/*
-	QmAssertR(Args.Length() > 0, "svm.predict: missing argument");
+}
+
+void TNodeJsNNet::setLearnRate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder()); //A je pravilna ta vrstica?
+	TFlt NewLearnRate = TNodeJsUtil::GetArgFlt(Args, 0);
+
+	Model->Model->SetLearnRate(NewLearnRate);
+
+	//printf("&&Set learnrate to: %f \n", (double)NewLearnRate);
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsNNet::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
 	try {
-		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 
-		QmAssertR(Model->Model != nullptr, "svm.predict: SVM not initialized");
+		QmAssertR(Args.Length() == 1, "Should have 1 argument!");
+		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
 
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
-			TNodeJsVec<TFlt, TAuxFltV>* Vec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
-			const double Res = Model->Model->Predict(Vec->Vec);
-			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
-		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::ClassId)) {
-			TNodeJsSpVec* SpVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
-			const double Res = Model->Model->Predict(SpVec->Vec);
-			Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
-		}
-		else {
-			throw TQm::TQmExcept::New("svm.predict: unsupported type of the first argument");
-		}
+		PSOut SOut = JsFOut->SOut;
+
+		Model->Model->Save(*SOut);
+
+		Args.GetReturnValue().Set(Args[0]);
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsNNet::save");
 	}
-	*/
-	/*
-    // parse arguments
-    TJsNN* JsNN = TJsNNUtil::GetSelf(Args);
-    // get feature vector
-    QmAssertR(TJsNNUtil::IsArgClass(Args, 0, "TFltV"),
-        "NN.predict: The first argument must be a JsTFltV (js linalg full vector)");
-    TJsFltV* JsVec = TJsObjUtil<TQm::TJsFltV>::GetArgObj(Args, 0);
-    JsNN->NN->FeedFwd(JsVec->Vec);
-
-    v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
-    TFltV& FltV = TJsFltV::GetVec(JsFltV);
-
-    JsNN->NN->GetResults(FltV);
-
-    //printf("&&Predicted %f \n", (double)FltV[0]);
-
-    return HandleScope.Close(JsFltV);
-	 */
 }
+
 
 TSignalProc::TTFunc TNodeJsNNet::ExtractFuncFromString(const TStr& FuncString) {
 	TSignalProc::TTFunc TFunc;
@@ -1269,7 +1167,6 @@ void init(v8::Handle<v8::Object> exports) {
 	TNodeJsRecLinReg::Init(exports);
 	TNodeJsHMChain::Init(exports);
 	TNodeJsNNet::Init(exports);
-
     // Linear algebra package
     TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
     TNodeJsVec<TInt, TAuxIntV>::Init(exports);
@@ -1277,7 +1174,6 @@ void init(v8::Handle<v8::Object> exports) {
     TNodeJsFltVV::Init(exports);
     TNodeJsSpVec::Init(exports);
     TNodeJsSpMat::Init(exports);
-
 }
 
 NODE_MODULE(analytics, init)

@@ -42,7 +42,7 @@ private:
 	TNodeJsSvmModel(TSIn& SIn);
 	~TNodeJsSvmModel();
 
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal); // JOST: to sta wrapperja za konstruktorje ki morata biti vedno?
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
 	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
 public:
@@ -203,11 +203,10 @@ private:
 //#
 //# Holds online/offline neural network model. This object is result of `analytics.newNNet`.
 class TNodeJsNNet : public node::ObjectWrap {
-	friend class TNodeJsUtil; // rabiš za wrapinstance
+	friend class TNodeJsUtil;
 private:
-	static v8::Persistent <v8::Function> constructor; // mora bit not, blaz sovdat ve
-        // main požene node, args --debug=5858 main
-	TSignalProc::PNNet Model; // dal sem link na PNNet, zdi se mi da je to smart pointer
+	static v8::Persistent <v8::Function> constructor;
+	TSignalProc::PNNet Model;
 
 	TNodeJsNNet(const PJsonVal& ParamVal);
 
@@ -219,64 +218,10 @@ public:
 	JsDeclareFunction(New);
 	JsDeclareFunction(fit);
 	JsDeclareFunction(predict);
-        
-	/*
-	TStr Algorithm;
-	double SvmCost;
-	double SvmUnbalance;
-	int SampleSize;
-	int MxIter;
-	int MxTime;
-	double MnDiff;
-	bool Verbose;
-	PNotify Notify;
-
-	TSvm::TLinModel* Model;
-	TNodeJsSvmModel(const PJsonVal& ParamVal);
-	TNodeJsSvmModel(TSIn& SIn);
-	~TNodeJsSvmModel();
-
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
-
-public:
-//	static v8::Local<v8::Object> New(const PJsonVal& ParamVal);
-//	static v8::Local<v8::Object> New(TSIn& SIn);
-
-	static void Init(v8::Handle<v8::Object> exports); // nastavi vse metode in fielde js objektov, če bo prazna bo objekt brez vsega
-
-	JsDeclareFunction(New); // new je konstruktor, 
-
-        // save metodi narest, in load
-        
-	//#
-	//# **Functions and properties:**
-	//#
-	//#- `svmModel = svmModel.fit(X,y)` -- fits an SVM model
-	JsDeclareFunction(fit); // prejšnji learn, komentiram kako je z batch in online
-    //#- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
-	//#- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
-	JsDeclareFunction(predict);
-
-	//#- `params = svmModel.getParams()` -- returns the parameters of this model as
-	//#- a Javascript object
-	JsDeclareFunction(getParams); // vrne learnRate itd..
-	//#- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given
-	//#- in the input argument `params` returns this
-	JsDeclareFunction(setParams); // lahko je empty, kot pri linreg, dam not kar lahko spreminjam
-
-    //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
-	JsDeclareProperty(weights);
-    //#- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
+	JsDeclareFunction(setLearnRate);
+	//#- `NNet.save(fout)` -- Saves the model into the specified output stream.
 	JsDeclareFunction(save);
-
-private:
-        //helperji
-	void UpdateParams(const PJsonVal& ParamVal);
-	PJsonVal GetParams() const;
-	void Save(TSOut& SOut) const;
-	void ClrModel();*/
-private:
+ private:
 	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
 };
 #endif /* ANALYTICS_H_ */

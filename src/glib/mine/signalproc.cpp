@@ -727,6 +727,27 @@ void TNNet::GetResults(TFltV& ResultV) const{
     }
 }
 
+void TNNet::Save(TSOut& SOut) {
+
+	// Save model variables
+
+	// Save topology and weights
+    // go through all layers
+    for(int LayerN = 0; LayerN < LayerV.Len(); ++LayerN){
+    	TLayer& CurrLayer = LayerV[LayerN];
+        for(int NeuronN = 0; NeuronN < LayerV[LayerN].GetNeuronN() - 1; ++NeuronN){
+        	TNeuron& CurrNeuron = CurrLayer.GetNeuron(NeuronN);
+        	CurrNeuron.GetOutVal().Save(SOut);
+        	CurrNeuron.GetGradient().Save(SOut);
+            SaveEnum<TTFunc>(SOut, CurrNeuron.GetTFuncNm());
+            CurrNeuron.GetSumDeltaWeightV().Save(SOut);
+            CurrNeuron.GetOutEdgeV().Save(SOut);
+            CurrNeuron.GetId().Save(SOut);
+        }
+    }
+
+}
+
 ///////////////////////////////////////////////////////////////////
 // Recursive Linear Regression
 TRecLinReg::TRecLinReg(const TRecLinReg& LinReg):

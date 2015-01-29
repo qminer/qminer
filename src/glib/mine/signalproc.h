@@ -498,6 +498,10 @@ private:
         TFlt GetDeltaWeight(const TInt& InNodeId) { return OutEdgeV[InNodeId].Val3; };
         TFlt GetWeight(const TInt& InNodeId) const { return OutEdgeV[InNodeId].Val2; };
         TFlt GetSumDeltaWeight(const TInt& InNodeId) const { return SumDeltaWeight[InNodeId]; };
+        TFltV GetSumDeltaWeightV(void) const { return SumDeltaWeight; };
+        TTFunc GetTFuncNm(void) const { return TFuncNm; };
+        TVec<TIntFltFltTr> GetOutEdgeV(void) const { return OutEdgeV; };
+        TInt GetId(void) const { return Id; };
 
         void FeedFwd(const TLayer& PrevLayer);
         void CalcOutGradient(TFlt TargVal);
@@ -555,6 +559,8 @@ public:
     void GetResults(TFltV& ResultV) const;
     // Set learn rate
     void SetLearnRate(const TFlt& NewLearnRate) { LearnRate = NewLearnRate; };
+    // Save the model
+    void Save(TSOut& SOut);
 };
 
 /////////////////////////////////////////
