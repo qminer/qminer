@@ -20,7 +20,7 @@ config.log
 
 # NPM
 npm-debug.log
-./node_modules
+node_modules
 
 # project files from Eclipse
 .project
