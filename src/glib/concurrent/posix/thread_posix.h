@@ -103,7 +103,7 @@ public:
     void Cancel();
 
     // windows thread id
-    uint64 GetThreadId() const { return GetThreadHandle(); }
+    uint64 GetThreadId() const { return (uint64)GetThreadHandle(); }
     // windows thread handle
     pthread_t GetThreadHandle() const { return ThreadHandle; }
 

@@ -8301,7 +8301,7 @@ v8::Handle<v8::Value> TJsSnap::communityEvolution(const v8::Arguments& Args) {
 	if (ArgsLen == 9 || ArgsLen == 10){
 
 		v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-		TVec<PUNGraph, TSize> gs;
+		TVec<PUNGraph, int64> gs;
 
 		if (ArgsLen == 10) {
 			QmAssertR(TJsSnapUtil::IsArgStr(Args, 9), "TJsSnap::CommunityDetection: Args[1] expected to be string!");
