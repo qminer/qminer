@@ -1112,9 +1112,16 @@ TNodeJsNNet::TNodeJsNNet(const PJsonVal& ParamVal) {
 	TFuncOutL = ExtractFuncFromString(ParamVal->GetObjStr("tFuncOut", "tanHyper"));
 
 	try {
-		//kop klličem fit inicializiram pointer tukaj samo nastavim params
-		Model = TSignalProc::TNNet::New(LayoutV, LearnRate, Momentum, TFuncHiddenL, TFuncOutL);// = // konstruktor kot pri linreg New funkciji
-		//Args.GetReturnValue().Set(TNodeJsRecLinReg::WrapInst(Args.This(), TSignalProc::TRecLinReg::New(Dim, RegFact, ForgetFact)));
+		Model = TSignalProc::TNNet::New(LayoutV, LearnRate, Momentum, TFuncHiddenL, TFuncOutL);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+	}
+
+}
+
+TNodeJsNNet::TNodeJsNNet(TSIn& SIn) {
+	try {
+		Model = TSignalProc::TNNet::Load(SIn);
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
 	}
@@ -1123,6 +1130,10 @@ TNodeJsNNet::TNodeJsNNet(const PJsonVal& ParamVal) {
 
 v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
 	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(ParamVal));
+}
+
+v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
+	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(SIn));
 }
 
 void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
@@ -1163,17 +1174,16 @@ void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
 void TNodeJsNNet::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-    //prvi 2 vrstici vedno isti
 
 	//QmAssertR(Args.IsConstructCall(), "SVC: not a constructor call!");
 	//QmAssertR(Args.Length() > 0, "SVC: missing arguments!");
 
 	try {
-		if (Args[0]->IsExternal()) { // preverjanje, če je input stream
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) { // preverjanje, če je input stream
 			// load the model from an input stream
 			// currently not used, will be implemented
-			//TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			//Args.GetReturnValue().Set(TNodeJsNNet::WrapInst(Args.This(), *JsFIn->SIn));
+			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+			Args.GetReturnValue().Set(TNodeJsNNet::WrapInst(Args.This(), *JsFIn->SIn));
 		} else { // dobil JSON
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 			Args.GetReturnValue().Set(TNodeJsNNet::WrapInst(Args.This(), ParamVal));
@@ -1191,10 +1201,10 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	QmAssertR(Args.Length() == 2, "NNet.fit: missing argument"); // a je kul tako čekiranje za št. argsov?
+	QmAssertR(Args.Length() == 2, "NNet.fit: missing argument");
 
 	try {
-		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder()); //A je pravilna ta vrstica?
+		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
 
 			TNodeJsFltV* JsVecIn = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
@@ -1203,14 +1213,7 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			// TODO: do some checking of dimensions etc..
 	        // first get output values
 			Model->Model->FeedFwd(JsVecIn->Vec);
-	        /* WE MIGHT NOT NEED THIS GET RESULTS HERE, ONLY FOR DEBUG. BUT IT'S USING THE OLD NODE VERSION
-			v8::Persistent<v8::Object> JsFltV = TJsFltV::New(JsNN->Js);
-	        TFltV& FltV = TJsFltV::GetVec(JsFltV);
 
-	        JsNN->NN->GetResults(FltV);
-
-	        //printf("&&Predicted when learning %f \n", (double)FltV[0]);
-			*/
 	        // then check how we performed and learn
 	        Model->Model->BackProp(JsVecTarget->Vec);
 		}
@@ -1236,7 +1239,6 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	    	// TODO: throw an error
 	        printf("NeuralNetwork.learn: The arguments must be a JsTFltV or JsTFltVV (js linalg full vector or matrix)");
 	    }
-		// je tale return pravilen?
 		Args.GetReturnValue().Set(Args.Holder());
 	}
 	catch (const PExcept& Except) {
@@ -1251,7 +1253,7 @@ void TNodeJsNNet::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() > 0, "NNet.predict: missing argument");
 
 	try {
-		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder()); //A je pravilna ta vrstica?
+		TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 
 		QmAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId()),
 				"NNet.predict: The first argument must be a JsTFltV (js linalg full vector)");
@@ -1261,7 +1263,6 @@ void TNodeJsNNet::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		TFltV FltV;
 	    Model->Model->GetResults(FltV);
-	    //printf("&&Predicted %f \n", (double)FltV[0]);
 
 	    Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(FltV));
 
@@ -1274,7 +1275,7 @@ void TNodeJsNNet::setLearnRate(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder()); //A je pravilna ta vrstica?
+	TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 	TFlt NewLearnRate = TNodeJsUtil::GetArgFlt(Args, 0);
 
 	Model->Model->SetLearnRate(NewLearnRate);
@@ -1408,6 +1409,7 @@ void init(v8::Handle<v8::Object> exports) {
 	TNodeJsSvmModel::Init(exports);
 	TNodeJsRecLinReg::Init(exports);
 	TNodeJsHMChain::Init(exports);
+	TNodeJsNNet::Init(exports);
    // Linear algebra package
     TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
     TNodeJsVec<TInt, TAuxIntV>::Init(exports);
