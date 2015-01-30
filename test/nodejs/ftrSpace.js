@@ -1,7 +1,7 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../src/nodejs/scripts/qm.js'); // additional JS implementations
-var fs = require('../../build/Debug/fs.node');
+var qm = require('../../../qminer');
+var fs = qm.fs;
 
 qm.delLock();
 qm.config('qm.conf', true, 8080, 1024);
@@ -103,6 +103,7 @@ console.log("Test new feature space");
 testFtrSpace(ftrSpace1); 
 
 console.log("Saving to disk");
+fs.mkdir('./sandbox/ftrSpace');
 var fout = fs.openWrite("./sandbox/ftrSpace/fs.dat");
 ftrSpace1.save(fout);
 fout.close();

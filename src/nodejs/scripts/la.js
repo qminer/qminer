@@ -1,7 +1,4 @@
-module.exports = exports = require('../../../build/Debug/la.node');
-
-//module.exports = require('../../../build/debug/la.node');
-//exports = module.exports; // re-establish link
+module.exports = exports = require('bindings')('la.node');
 
 exports.SparseMatrix.prototype.frob2 = function () {
 	return Math.pow(this.frob(),2);
