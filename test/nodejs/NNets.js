@@ -1,19 +1,17 @@
-var fs = require("../../build/Debug/fs.node");
+var qm = require('../../');
+var fs = qm.fs;
 var assert = require('assert');
-var analytics = require('../../build/Debug/analytics.node')
-var qm = require('../../build/Debug/qm.node');
-var linalg = require("../../build/Debug/la.node")
+var analytics = qm.analytics;
+var linalg = qm.la;
 
-qm.config('qm.conf', true, 8080, 1024);
-// add store.addTrigger method
 console.log("NNets", "Starting test");
 
-console.log(analytics)
 var NN = new analytics.NNet({"layout":[2,4,1]});
+
 var lastInVec = [];
 var lastTargVec = [];
 // create a loop for learning the net
-for(var i = 0; i < 20; ++i){
+for(var i = 0; i < 2000; ++i){
     // get two random numbers 0 or 1, this is the input data
     var in1 = Math.round(Math.random())
     var in2 = Math.round(Math.random())
@@ -25,44 +23,73 @@ for(var i = 0; i < 20; ++i){
     // dimensions of the vectors should match the dimensions of the input and output layers.
     var inVec = linalg.Vector([in1, in2])
     var outVec = linalg.Vector([out1])
-    console.log("In 1: " + in1 + " In 2: " + in2)
-    console.log("Target: " + out1)
+    //console.log("In 1: " + in1 + " In 2: " + in2)
+    //console.log("Target: " + out1)
     // first we predict based on the inputs (feed-forward)
     var predictions = NN.predict(inVec)
-    console.log('----------------------')
-    console.log("Result: " + predictions[0])
-    console.log("Diff: " + (out1 - predictions[0]))
+    var error = Math.abs(predictions[0] - outVec[0]);
     // then we learn the net with inputs and expected outputs (back propagation)
     NN.fit(inVec,outVec);
     lastInVec = inVec;
     lastTargVec = outVec;
-    console.log("In vector: " + lastInVec);
-    console.log("Prediction: " + predictions)
-
 }
 
+var testIn = linalg.Vector([0, 0])
+var testOut = linalg.Vector([0])
+error = Math.abs(NN.predict(testIn)[0] - testOut[0])
+
+console.log("Is error small? : " + (error < 0.3))
+console.log("Error : " + error)
+//assert.equal(error < 0.3, true);
+
+var testIn = linalg.Vector([0, 1])
+var testOut = linalg.Vector([1])
+error = Math.abs(NN.predict(testIn)[0] - testOut[0])
+
+console.log("Is error small? : " + (error < 0.3))
+console.log("Error : " + error)
+//assert.equal(error < 0.3, true);
+
+var testIn = linalg.Vector([1, 0])
+var testOut = linalg.Vector([1])
+error = Math.abs(NN.predict(testIn)[0] - testOut[0])
+
+console.log("Is error small? : " + (error < 0.3))
+console.log("Error : " + error)
+//assert.equal(error < 0.3, true);
+
+var testIn = linalg.Vector([1, 1])
+var testOut = linalg.Vector([0])
+error = Math.abs(NN.predict(testIn)[0] - testOut[0])
+
+console.log("Is error small? : " + (error < 0.3))
+console.log("Error : " + error)
+//assert.equal(error < 0.3, true);
+
 //save
-console.log('---------------------- SAVING ------------------------')
 var fout = fs.openWrite("NN.bin");
 NN.save(fout);
 fout.close();
-console.log('---------------------- SAVED ------------------------')
 
-predictions2 = NN.predict(lastInVec)
+predictions_beforeSave = NN.predict(lastInVec)
 console.log("BeforeSave In vector: " + lastInVec);
-console.log("BeforeSave Prediction: " + predictions2)
+console.log("BeforeSave Prediction: " + predictions_beforeSave)
 
 // load
-console.log('---------------------- LOADING ------------------------')
 var fin = fs.openRead("NN.bin");
 var NNIn = new analytics.NNet(fin);
-console.log('---------------------- LOADED ------------------------')
-console.log('InVec length: ' + lastInVec.length)
 
-predictions2 = NNIn.predict(lastInVec)
+predictions_afterSave = NNIn.predict(lastInVec)
 console.log("AfterSave In vector: " + lastInVec);
-console.log("AfterSave Prediction: " + predictions2)
+console.log("AfterSave Prediction: " + predictions_afterSave)
+
+//check if we survive the fitting
 NNIn.fit(lastInVec, lastTargVec)
-predictions2 = NNIn.predict(lastInVec)
+predictions_afterSaveAndFit = NNIn.predict(lastInVec)
 console.log("AfterSave and fit In vector: " + lastInVec);
-console.log("AfterSave and fit Prediction: " + predictions2)
+console.log("AfterSave and fit Prediction: " + predictions_afterSaveAndFit)
+
+// check if nnet was saved and loaded correctly
+diff = predictions_afterSave.minus(predictions_beforeSave);
+
+assert.equal(diff.norm(), 0);

@@ -509,31 +509,6 @@ TNNet::TNeuron::TNeuron(TSIn& SIn){
     SumDeltaWeight.Load(SIn);
     OutEdgeV.Load(SIn);
     Id.Load(SIn);
-    printf("Loaded: OutputVal: %f \n", OutputVal.Val);
-    printf("Loaded: Gradient: %f \n", Gradient.Val);
-    //printf("SumDeltaWeight: %f \n", SumDeltaWeight.);
-    printf("Loaded: Id: %d \n", Id.Val);
-    switch (TFuncNm){
-        case tanHyper:
- 		  printf("Loaded: TFuncNm -> tanHyper \n");
-          return;
-        case softPlus:
-   		  printf("Loaded: TFuncNm -> softPlus \n");
-            return;
-        case sigmoid:
-   		  printf("Loaded: TFuncNm -> sigmoid \n");
-           return;
-        case fastTanh:
-   		  printf("Loaded: TFuncNm -> fastTanh \n");
-           return;
-        case fastSigmoid:
-   		  printf("Loaded: TFuncNm -> fastSigmoid \n");
-           return;
-        case linear:
-   		  printf("Loaded: TFuncNm -> linear \n");
-            return;
-    };
-
 }
 
 void TNNet::TNeuron::FeedFwd(const TLayer& PrevLayer){
@@ -657,30 +632,6 @@ void TNNet::TNeuron::Save(TSOut& SOut) {
     SumDeltaWeight.Save(SOut);
     OutEdgeV.Save(SOut);
     Id.Save(SOut);
-    printf("Saved: OutputVal: %f \n", OutputVal.Val);
-    printf("Saved: Gradient: %f \n", Gradient.Val);
-    //printf("SumDeltaWeight: %f \n", SumDeltaWeight.);
-    printf("Saved: Id: %d \n", Id.Val);
-    switch (TFuncNm){
-        case tanHyper:
- 		  printf("Saved: TFuncNm -> tanHyper \n");
-          return;
-        case softPlus:
-   		  printf("Saved: TFuncNm -> softPlus \n");
-            return;
-        case sigmoid:
-   		  printf("Saved: TFuncNm -> sigmoid \n");
-           return;
-        case fastTanh:
-   		  printf("Saved: TFuncNm -> fastTanh \n");
-           return;
-        case fastSigmoid:
-   		  printf("Saved: TFuncNm -> fastSigmoid \n");
-           return;
-        case linear:
-   		  printf("Saved: TFuncNm -> linear \n");
-            return;
-    };
 }
     
 /////////////////////////////////////////////////////////////////////////
@@ -704,11 +655,9 @@ TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& 
 }
 TNNet::TLayer::TLayer(TSIn& SIn){
 	NeuronV.Load(SIn);
-	printf("Load: NeuronV.length: %d \n", NeuronV.Len());
 }
 void TNNet::TLayer::Save(TSOut& SOut) {
 	NeuronV.Save(SOut);
-	printf("Save: NeuronV.length: %d \n", NeuronV.Len());
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -738,10 +687,6 @@ TNNet::TNNet(TSIn& SIn):
 		LearnRate(SIn),
 		Momentum(SIn) {
 	LayerV.Load(SIn);
-	printf("Load: LearnRate: %f \n", LearnRate.Val);
-	printf("Load: Momentum: %f \n", Momentum.Val);
-	printf("Load: LayerV.length: %d \n", LayerV.Len());
-
 }
 
 PNNet TNNet::Load(TSIn& SIn) {
@@ -820,24 +765,6 @@ void TNNet::Save(TSOut& SOut) const {
 	LearnRate.Save(SOut);
 	Momentum.Save(SOut);
 	LayerV.Save(SOut);
-	printf("Save: LearnRate: %f \n", LearnRate.Val);
-	printf("Save: Momentum: %f \n", Momentum.Val);
-	printf("Save: LayerV.length: %d \n", LayerV.Len());
-	// Save topology and weights
-    // go through all layers
-/*    for(int LayerN = 0; LayerN < LayerV.Len(); ++LayerN){
-    	TLayer& CurrLayer = LayerV[LayerN];
-        for(int NeuronN = 0; NeuronN < LayerV[LayerN].GetNeuronN() - 1; ++NeuronN){
-        	TNeuron& CurrNeuron = CurrLayer.GetNeuron(NeuronN);
-        	CurrNeuron.GetOutVal().Save(SOut);
-        	CurrNeuron.GetGradient().Save(SOut);
-            SaveEnum<TTFunc>(SOut, CurrNeuron.GetTFuncNm());
-            CurrNeuron.GetSumDeltaWeightV().Save(SOut);
-            CurrNeuron.GetOutEdgeV().Save(SOut);
-            CurrNeuron.GetId().Save(SOut);
-        }
-    }
-*/
 }
 
 ///////////////////////////////////////////////////////////////////
