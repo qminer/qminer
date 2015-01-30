@@ -403,6 +403,8 @@ v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
     return HandleScope.Escape(Instance);
 }
 
+
+
 void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
