@@ -1,6 +1,10 @@
 #ifndef QMINER_NODEJS_UTILS
 #define QMINER_NODEJS_UTILS
 
+#ifndef BUILDING_NODE_EXTENSION
+    #define BUILDING_NODE_EXTENSION
+#endif
+
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
@@ -198,7 +202,7 @@ public:
 	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
 
     /// TStrV -> v8 string array
-    static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);
+    static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);	
 };
 
 template <class TVal>
