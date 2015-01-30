@@ -2,7 +2,6 @@ CURRENT_PATH=`pwd`
 
 TEST_PATH_=`readlink -f $0`
 TEST_PATH=`dirname $TEST_PATH_`
-export QMINER_HOME=$TEST_PATH/../../bin/
 
 cd $TEST_PATH
 mocha *.js

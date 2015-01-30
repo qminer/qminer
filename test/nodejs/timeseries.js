@@ -1,5 +1,5 @@
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../../qminer');
+var qm = require('../../');
 var fs = qm.fs;
 // test feature construction
 var analytics = qm.analytics;

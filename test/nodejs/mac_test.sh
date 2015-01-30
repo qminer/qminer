@@ -1,8 +1,13 @@
 CURRENT_PATH=`pwd`
-export QMINER_HOME=$CURRENT_PATH/../../bin/
 
+TEST_PATH=$( cd $(dirname $0) ; pwd -P )
+# TEST_PATH_=`readlink -f $0`
+# TEST_PATH=`dirname $TEST_PATH_`
+
+cd $TEST_PATH
 mocha *.js
 CODE=$?
+cd $CURRENT_PATH
 
 if [ $CODE -eq 0 ]
 then

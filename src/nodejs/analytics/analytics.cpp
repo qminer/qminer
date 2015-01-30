@@ -644,7 +644,7 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsFltV* JsRecTmV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
 
 		TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-		for (uint64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
+		for (int64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
 			RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
 		}
 
@@ -667,6 +667,7 @@ void TNodeJsHMChain::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		uint64 RecTm;
 		if (Args[1]->IsDate()) {
 			// TODO
+            RecTm = 0;
 		} else {
 			// Args[1] is a timestamp (UNIX timestamp)
 			RecTm = TTm::GetWinMSecsFromUnixMSecs(TNodeJsUtil::GetArgFlt(Args, 1));
