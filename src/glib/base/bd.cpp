@@ -95,7 +95,7 @@ void PrintBacktrace() {
 void Crash() {
   char *p;
   p = (char *) 0;
-  *p = 1234;
+  *p = 123;
 }
 #endif
 

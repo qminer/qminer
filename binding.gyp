@@ -3,20 +3,7 @@
         # GCC flags
         'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
         'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-        'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ],
-        'conditions': [
-            # operating system specific parameters
-            ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-            ['OS == "mac"', {
-                'xcode_settings': {
-                    'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                    'GCC_ENABLE_CPP_RTTI': 'YES',
-                    'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                    'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                    'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                }
-            }]
-        ]
+        'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ]
     },
     'targets': [
         {
@@ -50,6 +37,19 @@
             'dependencies': [
                 'glib',
                 'qminer'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
             ]
         }, {
             # node linear algebra module
@@ -75,6 +75,19 @@
             'dependencies': [
                 'glib'
             ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         }, {
             # node snap module
             'target_name': 'snap',
@@ -109,6 +122,19 @@
                 'glib',
                 'snap_lib'
             ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         }, {
             # node file system module
             'target_name': 'fs',
@@ -127,6 +153,19 @@
             'dependencies': [
                 'glib'
             ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         }, {
             # node hash table 
             'target_name': 'ht',
@@ -151,6 +190,19 @@
             'dependencies': [
                 'glib'
             ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         }, {
             # node analytics module
             'target_name': 'analytics',
@@ -181,6 +233,19 @@
                 'glib',
                 'qminer'
             ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         },{
             # node stat module
             'target_name': 'stat',
@@ -193,8 +258,8 @@
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-        'src/glib/base/',
-        'src/glib/mine/',
+		'src/glib/base/',
+		'src/glib/mine/',
             ],
             'defines': [
                 'MODULE_INCLUDE_LA'
@@ -202,6 +267,19 @@
             'dependencies': [
                 'glib'
             ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         },{
             # qminer library
             'target_name': 'qminer',
@@ -217,7 +295,7 @@
                 'src/qminer/qminer_aggr.cpp',
                 'src/qminer/qminer_snap.h',
                 'src/qminer/qminer_snap.cpp',
-                'src/qminer/qminer_op.h'
+                'src/qminer/qminer_op.h',
                 'src/qminer/qminer_op.cpp'
             ],        
             'include_dirs': [
@@ -226,21 +304,19 @@
                 'src/glib/mine/',
                 'src/glib/misc/'
             ],
-        }, {
-            # glib library
-            'target_name': 'glib',
-            'type': 'static_library',
-            'sources': [
-                'src/glib/base/base.h',
-                'src/glib/base/base.cpp',
-                'src/glib/mine/mine.h'
-                'src/glib/mine/mine.cpp'
-            ],        
-            'include_dirs': [
-                'src/glib/base/',
-                'src/glib/mine/',
-                'src/glib/misc/'
-            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
         }, {
             # snap external library
             'target_name': 'snap_lib',
@@ -256,6 +332,47 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
+            # glib library
+            'target_name': 'glib',
+            'type': 'static_library',
+            'sources': [
+                'src/glib/base/base.h',
+                'src/glib/base/base.cpp',
+                'src/glib/mine/mine.h',
+                'src/glib/mine/mine.cpp'
+            ],        
+            'include_dirs': [
+                'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
             ]
         }
     ]

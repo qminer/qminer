@@ -816,14 +816,14 @@ void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
     try {ValT=new TVal[MxVals];}
     catch (std::exception Ex){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
-        Ex.what(), TInt::GetStr((int64)Vals).CStr(), TInt::GetStr((int64)MxVals).CStr(), TInt::GetStr((int64)_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
+        Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
   } else {
     TVal* NewValT = NULL;
     try {
       NewValT=new TVal[MxVals];}
     catch (std::exception Ex){
       FailR(TStr::Fmt("TVec::Resize: %s, Length:%s, Capacity:%s, New capacity:%s, Type:%s [Program failed to allocate more memory. Solution: Get a bigger machine and a 64-bit compiler.]",
-        Ex.what(), TInt::GetStr((int64)Vals).CStr(), TInt::GetStr((int64)MxVals).CStr(), TInt::GetStr((int64)_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
+        Ex.what(), TInt::GetStr(Vals).CStr(), TInt::GetStr(MxVals).CStr(), TInt::GetStr(_MxVals).CStr(), GetTypeNm(*this).CStr()).CStr());}
     IAssert(NewValT!=NULL);
     for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=std::move(ValT[ValN]);} //C++11
     //for (TSizeTy ValN=0; ValN<Vals; ValN++){NewValT[ValN]=ValT[ValN];} // C++98
@@ -834,9 +834,9 @@ void TVec<TVal, TSizeTy>::Resize(const TSizeTy& _MxVals){
 template <class TVal, class TSizeTy>
 TStr TVec<TVal, TSizeTy>::GetXOutOfBoundsErrMsg(const TSizeTy& ValN) const {
   return TStr()+
-  "Index:"+TInt::GetStr((int64)ValN)+
-  " Vals:"+TInt::GetStr((int64)Vals)+
-  " MxVals:"+TInt::GetStr((int64)MxVals)+
+  "Index:"+TInt::GetStr(ValN)+
+  " Vals:"+TInt::GetStr(Vals)+
+  " MxVals:"+TInt::GetStr(MxVals)+
   " Type:"+GetTypeNm(*this);
 }
 

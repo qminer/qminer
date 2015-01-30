@@ -246,8 +246,8 @@ void TNodeJsGraph<T>::addNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -292,8 +292,8 @@ void TNodeJsGraph<T>::delNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -338,8 +338,8 @@ void TNodeJsGraph<T>::isNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -711,7 +711,7 @@ template <class T>
 void TNodeJsNode<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int N = Args[0]->ToNumber()->Value();
+//	int N = Args[0]->ToNumber()->Value();
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	JsNode->Node++;
 	return Args.GetReturnValue().Set(JsNode);
@@ -721,7 +721,7 @@ template <class T>
 void TNodeJsNode<T>::prev(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int N = Args[0]->ToNumber()->Value();
+//	int N = Args[0]->ToNumber()->Value();
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	JsNode->Node--;
 	return Args.GetReturnValue().Set(JsNode);

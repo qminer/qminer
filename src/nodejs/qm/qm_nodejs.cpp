@@ -2297,7 +2297,7 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
 	}
 }
 
-void TNodeJsRec::Clear(const uint BaseId) {
+void TNodeJsRec::Clear(const int& BaseId) {
 	if (BaseStoreIdConstructor.Len() > BaseId) {
 		for (int StoreN = 0; StoreN < BaseStoreIdConstructor[BaseId].Len(); StoreN++) {
 			if (BaseStoreIdConstructor[BaseId][StoreN].IsEmpty()) { break; }
