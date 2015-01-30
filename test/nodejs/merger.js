@@ -1,6 +1,6 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('../../../qminer');
+var qm = require('../../');
 
 qm.delLock();
 qm.config('qm.conf', true, 8080, 1024);
