@@ -1,7 +1,8 @@
 CURRENT_PATH=`pwd`
 
-TEST_PATH_=`readlink -f $0`
-TEST_PATH=`dirname $TEST_PATH_`
+TEST_PATH=$( cd $(dirname $0) ; pwd -P )
+# TEST_PATH_=`readlink -f $0`
+# TEST_PATH=`dirname $TEST_PATH_`
 
 cd $TEST_PATH
 mocha *.js

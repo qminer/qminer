@@ -7,9 +7,9 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
-#include "qminer.h"
-#include "la_nodejs.h"
-#include "fs_nodejs.h"
+#include <qminer.h>
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////
@@ -381,7 +381,7 @@ public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
 	// when reseting a db we have to clear the old record templates
-	static void Clear(const uint BaseId);
+	static void Clear(const int& BaseId);
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
 	// C++ constructors

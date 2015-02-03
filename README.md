@@ -12,15 +12,26 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/) and [Quintelligence](http://quintelligence.com).
 
-### Installation
+### Install when prerequisites are installed. 
 
-```
-git clone git@github.com:qminer/qminer.git
-cd qminer
-make lib
-make
-./test/javascript/test.sh
-```
+Linux:
+
+ - npm install qminer
+
+Windows (see `NODE_ROOT` in prerequisites below):
+
+ - npm install qminer --nodedir=`NODE_ROOT`
+ 
+Prerequisites:
+
+To build the module we need Python, node.js, npm. In addition, Windows builds require node.js source code and Visual Studio 2013 (details below).
+
+ - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
+ - Node v0-11-14: [http://blog.nodejs.org/2014/09/24/node-v0-11-14-unstable/]. On Windows install it using the msi file.
+ - npm:  [https://www.npmjs.com/package/npm]. On Windows npm is installed with Node when using the msi file.
+ - Windows: Visual Studio 2013
+ - Windows: node.js source code. Download from:  [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of the folder `node-0.11.14` to `NODE_ROOT`.
+
 
 For more detailed installation check the following instructions:
 - [Linux installation](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
@@ -29,10 +40,10 @@ For more detailed installation check the following instructions:
 
 ## Documentation
 
-+ [Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
-+ [Examples](https://github.com/qminer/qminer/wiki/Example)
-+ [QMiner Wiki](https://github.com/qminer/qminer/wiki)
-+ [JavaScript API](https://github.com/qminer/qminer/wiki/JavaScript)
++ [TODO: DEPRECATED: Quick start](https://github.com/qminer/qminer/wiki/Quick-Start)
++ [TODO: DEPRECATED: Examples](https://github.com/qminer/qminer/wiki/Example)
++ [TODO: DEPRECATED: QMiner Wiki](https://github.com/qminer/qminer/wiki)
++ [TODO: DEPRECATED: JavaScript API](https://github.com/qminer/qminer/wiki/JavaScript)
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 

@@ -1,37 +1,46 @@
 {
   "name": "qminer",
-  "version": "0.1.4",
+  "version": "0.1.22",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
-  "author": "Blaz Fortuna <blaz.fortuna@ijs.si>",
+  "author": "Blaz Fortuna <blaz@blazfortuna.com>",
   "contributors": [
-    {
-      "name": "Jan Rupnik",
-      "email": "jan.rupnik@ijs.si"
-    }
+    { "name": "Janez Brank", "email": "janez.brank@ijs.si"},
+    { "name": "Blaz Fortuna", "email": "blaz@blazfortuna.com"},
+    { "name": "Carolina Fortuna", "email": "carolina.fortuna@ijs.si"},
+    { "name": "Marko Grobelnik", "email": "marko.grobelnik@ijs.si"},
+    { "name": "Viktor Jovanoski", "email": "viktor@carvic.si"},
+    { "name": "Mario Karlovcec", "email": "mario.karlovcec@ijs.si"},
+    { "name": "Blaz Kazic", "email": "blaz.kazic@ijs.si"},
+    { "name": "Klemen Kenda", "email": "klemen.kenda@ijs.si"},
+    { "name": "Gregor Leban", "email": "gregor.leban@ijs.si"},
+    { "name": "Blaz Novak", "email": "blaz.novak@ijs.si"},
+    { "name": "Andrej Muhic", "email": "andrej.muhic@ijs.si"},
+    { "name": "Dunja Mladenic", "email": "dunja.mladenic@ijs.si"},
+    { "name": "Jost Novljan", "email": "jost.novljan@ijs.si"},
+    { "name": "Miha Papler", "email": "miha.papler@ijs.si"},
+    { "name": "Luis Rei", "email": "luis.rei@ijs.si"},
+    { "name": "Jan Rupnik", "email": "jan.rupnik@ijs.si" },
+    { "name": "Blaz Sovdat", "email": "blaz.sovdat@ijs.si"},
+    { "name": "Luka Stopar", "email": "luka.stopar@ijs.si"}
   ],
   "repository": {
      "type": "git",
-     "url": "git://github.com/rupnikj/qminer.git"
+     "url": "https://github.com/qminer/qminer"
   },  
-  "main": "index.js",
+  "main": "./index.js",
   "engines": {
     "node": "0.11.14"
   },
-  "dependencies": {},
+  "dependencies": { 
+     "bindings": "~1.2.1"
+  },
   "devDependencies": {
     "mocha": "^1.17.1"
   },
-  "files": [
-    "bin",
-    "index.js",
-    "binding.gyp",
-    "LICENSE"
-  ],
   "scripts": {
-    "test": "./test/nodejs/test.sh",
-    "install": "node-gyp configure build --target=v0.11.14 --debug"
+    "test": "./test/nodejs/test.sh"
   },
   "keywords": [
-    "addon"
+    "addon", "machine-learning", "linear-algebra", "snap", "analytics", "data", "mining" 
   ]
 }

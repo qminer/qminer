@@ -27,13 +27,13 @@ double CommunityCNM(const PUNGraph& Graph, TCnComV& CmtyV);
 double Infomap(PUNGraph& Graph, TCnComV& CmtyV);
 
 // Create community evolution directed graph
-void CmtyEvolutionBatchGraph(TVec<PUNGraph, TSize>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg);
+void CmtyEvolutionBatchGraph(TVec<PUNGraph, int64>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg);
 
 // Create evolution graph JSON object
 TStr CmtyEvolutionGraphToJson(PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntStrH txt);
 
 // Create vector of undirected graphs
-void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs);
+void LoadGraphArray(TStr InFNm, TVec<PUNGraph, int64>& gs);
 
 namespace TSnapDetail {
   /// A single step of Girvan-Newman clustering procedure.

@@ -13,7 +13,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 		SvmUnbalance(1.0),
 		SampleSize(1000),
 		MxIter(10000),
-		MxTime(1000*600),
+		MxTime(1000*1),
 		MnDiff(1e-6),
 		Verbose(false),
 		Notify(TNotify::NullNotify),
@@ -81,12 +81,12 @@ void TNodeJsSvmModel::Init(v8::Handle<v8::Object> exports) {
 void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
-	QmAssertR(Args.IsConstructCall(), "SVC: not a constructor call!");
-	QmAssertR(Args.Length() > 0, "SVC: missing arguments!");
-
 	try {
-		if (Args[0]->IsExternal()) {
+		QmAssertR(Args.IsConstructCall(), "SVC: not a constructor call!");
+		if (Args.Length() == 0) {
+			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), TJsonVal::NewObj()));
+			return;
+		} else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) {
 			// load the model from an input stream
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), *JsFIn->SIn));
@@ -94,8 +94,10 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), ParamVal));
 		}
-	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), Except->GetLocStr());
+	}
+	catch (const PExcept& Except) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
 	}
 }
 
@@ -231,13 +233,24 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsSvmModel* Model = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
 
 		QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
-		PSOut SOut = JsFOut->SOut;
+		PSOut SOut;
+		if (TNodeJsUtil::IsArgStr(Args, 0)) {
+			SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
+		}
+		else {
+			TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+			SOut = JsFOut->SOut;
+		}
 
 		Model->Save(*SOut);
 
-		Args.GetReturnValue().Set(Args[0]);
+		// we return nothing currently, just close the stream if filename was used
+		if (TNodeJsUtil::IsArgStr(Args, 0)) {
+			SOut.Clr();
+		} else {
+			// return output stream for convenience
+			Args.GetReturnValue().Set(Args[0]);
+		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
 	}
@@ -345,7 +358,7 @@ void TNodeJsRecLinReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	try {
 		QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
-		if (Args[0]->IsExternal()) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) {
 			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
 			Args.GetReturnValue().Set(TNodeJsRecLinReg::WrapInst(Args.This(), TSignalProc::TRecLinReg::Load(*JsFIn->SIn)));
 		}
@@ -460,11 +473,24 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
 
 		QmAssertR(Args.Length() == 1, "Should have 1 argument!");
-		TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+		PSOut SOut;
+		if (TNodeJsUtil::IsArgStr(Args, 0)) {
+			SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
+		}
+		else {
+			TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+			SOut = JsFOut->SOut;
+		}
 
-		Model->Model.Save(*JsFOut->SOut);
-
-		Args.GetReturnValue().Set(Args[0]);
+		Model->Model.Save(*SOut);
+				
+		// we return nothing currently, just close the stream if filename was used
+		if (TNodeJsUtil::IsArgStr(Args, 0)) {
+			SOut.Clr();
+		} else {
+			// return output stream for convenience
+			Args.GetReturnValue().Set(Args[0]);
+		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::toJSON");
 	}
@@ -642,7 +668,7 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		TNodeJsFltV* JsRecTmV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
 
 		TUInt64V RecTmV(JsRecTmV->Vec.Len(), 0);
-		for (uint64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
+		for (int64 i = 0; i < JsRecTmV->Vec.Len(); i++) {
 			RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
 		}
 
@@ -665,6 +691,7 @@ void TNodeJsHMChain::update(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		uint64 RecTm;
 		if (Args[1]->IsDate()) {
 			// TODO
+            RecTm = 0;
 		} else {
 			// Args[1] is a timestamp (UNIX timestamp)
 			RecTm = TTm::GetWinMSecsFromUnixMSecs(TNodeJsUtil::GetArgFlt(Args, 1));
@@ -1026,8 +1053,14 @@ void TNodeJsHMChain::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		}
 
 		JsMChain->McModel->Save(*SOut);
-
-		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+		
+		// we return nothing currently, just close the stream if filename was used
+		if (TNodeJsUtil::IsArgStr(Args, 0)) {
+			SOut.Clr();
+		} else {
+			// return output stream for convenience
+			Args.GetReturnValue().Set(Args[0]);
+		}
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
 	}
@@ -1101,7 +1134,7 @@ void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getParagraphs", _getParagraphs);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "TTokenizer"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "Tokenizer"), tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsTokenizer::New(const PTokenizer& Tokenizer) {
@@ -1120,8 +1153,15 @@ v8::Local<v8::Object> TNodeJsTokenizer::New(const PTokenizer& Tokenizer) {
 void TNodeJsTokenizer::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	EFailR("Use analytics.newTokenizer() instead of new Tokenizer();");
-	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+
+	PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+	QmAssertR(ParamVal->IsObjKey("type"),
+		"Missing tokenizer type " + ParamVal->SaveStr());
+	const TStr& TypeNm = ParamVal->GetObjStr("type");
+	// create
+	PTokenizer Tokenizer = TTokenizer::New(TypeNm, ParamVal);
+	// set return object
+	Args.GetReturnValue().Set(TNodeJsTokenizer::New(Tokenizer));
 }
 
 void TNodeJsTokenizer::getTokens(const v8::FunctionCallbackInfo<v8::Value>& Args) {

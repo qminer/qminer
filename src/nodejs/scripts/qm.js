@@ -1,7 +1,7 @@
-module.exports = require('../../../build/Debug/qm.node');
-exports = module.exports; // re-establish link
+module.exports = exports = require('bindings')('qm.node');
 
-var fs = require('../../../build/Debug/fs.node');
+var fs = require('bindings')('fs.node');
+
 var nodefs = require('fs');
 
 exports.Store.prototype.addTrigger = function (trigger) {

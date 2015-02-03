@@ -1,4 +1,10 @@
 {
+    'target_defaults': {
+        # GCC flags
+        'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
+        'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
+        'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ]
+    },
     'targets': [
         {
             # node qminer module
@@ -86,7 +92,7 @@
             # node snap module
             'target_name': 'snap',
             'sources': [
-				'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.h',
                 'src/nodejs/snap/snap_nodejs.cpp',
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
@@ -96,17 +102,17 @@
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-				'src/nodejs/snap',
+                'src/nodejs/snap',
                 'src/nodejs/la',
                 'src/nodejs/fs',
                 'src/nodejs/',
                 'src/glib/base/',
                 'src/glib/mine/',
-				'src/glib/misc/',
-				'src/third_party/Snap/snap-core',
-				'src/third_party/Snap/snap-adv',
-				'src/third_party/Snap/snap-exp',
-				'src/third_party/Snap/qlib-core'
+                'src/glib/misc/',
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core'
             ],
             'defines': [
                 'MODULE_INCLUDE_LA',
@@ -114,7 +120,7 @@
             ],
             'dependencies': [
                 'glib',
-				'snap_lib'
+                'snap_lib'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -211,13 +217,13 @@
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-				'src/nodejs/',
-				'src/nodejs/fs',
-				'src/nodejs/la',
-				'src/qminer/',
-				'src/glib/base/',
-				'src/glib/mine/',
-				'src/glib/misc/'
+                'src/nodejs/',
+                'src/nodejs/fs',
+                'src/nodejs/la',
+                'src/qminer/',
+                'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/'
             ],
             'defines': [
                 'MODULE_INCLUDE_FS',
@@ -279,11 +285,17 @@
             'target_name': 'qminer',
             'type': 'static_library',
             'sources': [
+                'src/qminer/qminer_core.h',
                 'src/qminer/qminer_core.cpp',
+                'src/qminer/qminer_gs.h',
                 'src/qminer/qminer_gs.cpp',
+                'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
+                'src/qminer/qminer_aggr.h',
                 'src/qminer/qminer_aggr.cpp',
+                'src/qminer/qminer_snap.h',
                 'src/qminer/qminer_snap.cpp',
+                'src/qminer/qminer_op.h',
                 'src/qminer/qminer_op.cpp'
             ],        
             'include_dirs': [
@@ -306,11 +318,42 @@
                 }]
             ]
         }, {
+            # snap external library
+            'target_name': 'snap_lib',
+            'type': 'static_library',
+            'sources': [
+                'src/third_party/Snap/snap-core/Snap.cpp'
+            ],        
+            'include_dirs': [
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core',
+                'src/glib/base/',
+                'src/glib/mine/',
+                'src/glib/misc/'
+            ],
+            'conditions': [
+                # operating system specific parameters
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "mac"', {
+                    'xcode_settings': {
+                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+                        'GCC_ENABLE_CPP_RTTI': 'YES',
+                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
+                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
+                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
+                    }
+                }]
+            ]
+        }, {
             # glib library
             'target_name': 'glib',
             'type': 'static_library',
             'sources': [
+                'src/glib/base/base.h',
                 'src/glib/base/base.cpp',
+                'src/glib/mine/mine.h',
                 'src/glib/mine/mine.cpp'
             ],        
             'include_dirs': [
@@ -331,41 +374,6 @@
                     }
                 }]
             ]
-        }, {
-            # snap external library
-            'target_name': 'snap_lib',
-            'type': 'static_library',
-            'sources': [
-				'src/third_party/Snap/snap-core/Snap.cpp'
-            ],        
-            'include_dirs': [
-                'src/third_party/Snap/snap-core',
-				'src/third_party/Snap/snap-adv',
-				'src/third_party/Snap/snap-exp',
-				'src/third_party/Snap/qlib-core',
-				'src/glib/base/',
-                'src/glib/mine/',
-                'src/glib/misc/'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
         }
-    ],
-    'target_defaults': {
-        # GCC flags
-        'cflags_cc!': [ '-fno-rtti', '-fno-exceptions' ],
-        'cflags_cc': [ '-std=c++0x', '-frtti', '-fexceptions' ],
-        'cflags': [ '-g', '-fexceptions', '-frtti', '-Wall', '-Wno-deprecated-declarations', '-fopenmp' ]    
-    } 
+    ]
 }

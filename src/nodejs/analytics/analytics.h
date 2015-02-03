@@ -16,10 +16,10 @@
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
 //#
-//# ### Support Vector Machine model
+//# ### Support Vector Classifier
 //#
 //# Holds SVM classification or regression model. This object is result of
-//# `analytics.trainSvmClassify` or `analytics.trainSvmRegression`.
+//# `new analytics.SVC(...)`
 // TODO rewrite to JavaScript
 class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsUtil;
@@ -47,23 +47,26 @@ private:
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-
+	//#
+	//# **Constructor:**
+	//#
+	//#- `svmModel = new analytics.SVC(fin)` -- constructs a new support vector classifier
+	//#- `svmModel = new analytics.SVC(svmParameters)` -- constructs a new support vector classifier using `svmParameters`, which is a JSON object. `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+    //#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 	JsDeclareFunction(New);
-
 	//#
 	//# **Functions and properties:**
 	//#
-	//#- `svmModel = svmModel.fit(X,y)` -- fits an SVM model
+	//#- `svmModel = svmModel.fit(spMat,vec)` -- fits an SVM model, given column examples in a sparse matrix `spMat` and vector of targets `vec`
+	//#- `svmModel = svmModel.fit(mat,vec)` -- fits an SVM model, given column examples in a matrix `mat` and vector of targets `vec`
 	JsDeclareFunction(fit);
     //#- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 	//#- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
 	JsDeclareFunction(predict);
 
-	//#- `params = svmModel.getParams()` -- returns the parameters of this model as
-	//#- a Javascript object
+	//#- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
 	JsDeclareFunction(getParams);
-	//#- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given
-	//#- in the input argument `params` returns this
+	//#- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given in the input argument `params` returns this
 	JsDeclareFunction(setParams);
 
     //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
@@ -99,9 +102,14 @@ public:
 //	static v8::Local<v8::Object> New(const TSignalProc::PRecLinReg& Model);
 
 	static void Init(v8::Handle<v8::Object> exports);
-
+	//#
+	//# **Constructor:**
+	//#
+	//#- `recLinRegModel = new analytics.RecLinReg(fin)` -- constructs a recursive linear regression model by loading it from input stream `fin`
+	//#- `recLinRegModel = new analytics.RecLinReg(recLinRegParameters)` -- constructs a recursive linear regression using a JSON parameter object `recLinRegParameters, whose properties are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
+    //#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
+    //#     (regularization parameter to avoid over-fitting, default is 1.0).)
 	JsDeclareFunction(New);
-
 	//#
 	//# **Functions and properties:**
 	//#
@@ -151,12 +159,15 @@ private:
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-
-	//#- `hmc = new analytics.HMarkovChain(config, ftrSpace)` -- Creates a new model.
-	//#- `hmc = new analytics.HMarkovChain(base, fname)` -- Loads the model from file `fname`.
-	//#- `hmc = new analytics.HMarkovChain(base, fin)` -- Loads the model from input stream `fin`.
+	//#
+	//# **Constructor:**
+	//#
+	//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
+	//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
 	JsDeclareFunction(New);
-
+	//#
+	//# **Functions and properties:**
+	//#
 	//#- `hmc.fit(ftrColMat, timeV)` -- Initializes the model with the instances in the columns of colMat
 	//#- which are sampled at time in timeV.
 	JsDeclareFunction(fit);
@@ -237,11 +248,16 @@ private:
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New(const PTokenizer& Tokenizer);
-
+	//#
+	//# **Constructor:**
+	//#
+	//#- `tokenizer = new analytics.Tokenizer({ type: <type>, ...})` -- create new tokenizer
+	//#     of type `<type>`. Syntax same as when defining index keys in stores or `text` feature 
+	//#     extractors.
+	JsDeclareFunction(New);
 	//#
 	//# **Functions and properties:**
 	//#
-	JsDeclareFunction(New);
 	//#- `arr = tokenizer.getTokens(string)` -- tokenizes given strings and returns it as an array of strings.
 	JsDeclareFunction(getTokens);
 	//#- `arr = tokenizer.getSentences(string)` -- breaks text into sentence and returns them as an array of strings.

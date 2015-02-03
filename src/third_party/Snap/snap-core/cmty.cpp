@@ -315,11 +315,11 @@ double Infomap(PUNGraph& Graph, TCnComV& CmtyV){
 }
 
 // Create community evolution directed graph
-void CmtyEvolutionBatchGraph(TVec<PUNGraph, TSize>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg) {
+void CmtyEvolutionBatchGraph(TVec<PUNGraph, int64>& gs, PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TIntV& e, TIntIntVH& members, double alpha, double beta, int CmtyAlg) {
   int internal_year_counter = 0;
   int newcom = 0;
   TStr Marker = "";
-  int SrcNId, DstNId;
+  //int SrcNId, DstNId;
   TIntIntVH CommsAtT;
 
   for (int gcounter = 0; gcounter < gs.Len(); gcounter++) {
@@ -518,7 +518,7 @@ TStr CmtyEvolutionGraphToJson(PNGraph& graph, TIntH& t, TIntH& c, TIntH& s, TInt
 }
 
 // Create vector of undirected graphs
-void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
+void LoadGraphArray(TStr InFNm, TVec<PUNGraph, int64>& gs) {
 
   if (InFNm.GetCh(InFNm.Len() - 1) == '/' || InFNm.GetCh(InFNm.Len() - 1) == '\\') {
     TFFile FFile(InFNm);  
@@ -533,7 +533,7 @@ void LoadGraphArray(TStr InFNm, TVec<PUNGraph, TSize>& gs) {
   else {
     TSsParser Ss(InFNm, ssfWhiteSep, true, false, true);
     Ss.Next();
-    int newcom = 0;
+    //int newcom = 0;
     TStr Marker = "";
     int SrcNId, DstNId;
 
