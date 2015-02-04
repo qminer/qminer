@@ -15,20 +15,17 @@
 
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Machine-Model
-//#
-//# ### Support Vector Classifier
-//#
-//# Holds SVM classification or regression model. This object is result of
-//# `new analytics.SVC(...)`
+// Holds SVM classification or regression model. 
 // TODO rewrite to JavaScript
 class TNodeJsSvmModel : public node::ObjectWrap {
 	friend class TNodeJsUtil;
+	friend class TNodeJsSVC;
+	friend class TNodeJsSVR;
 private:
-	static v8::Persistent <v8::Function> constructor;
-
-	TStr Algorithm;
-	double SvmCost;
-	double SvmUnbalance;
+	TStr Algorithm;	
+	double SvmCost;	
+	double SvmUnbalance; // classification specific
+	double SvmEps; // regression specific
 	int SampleSize;
 	int MxIter;
 	int MxTime;
@@ -46,39 +43,87 @@ private:
 	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
 public:
-	static void Init(v8::Handle<v8::Object> exports);
-	//#
-	//# **Constructor:**
-	//#
-	//#- `svmModel = new analytics.SVC(fin)` -- constructs a new support vector classifier
-	//#- `svmModel = new analytics.SVC(svmParameters)` -- constructs a new support vector classifier using `svmParameters`, which is a JSON object. `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
-    //#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
 	JsDeclareFunction(New);
-	//#
-	//# **Functions and properties:**
-	//#
-	//#- `svmModel = svmModel.fit(spMat,vec)` -- fits an SVM model, given column examples in a sparse matrix `spMat` and vector of targets `vec`
-	//#- `svmModel = svmModel.fit(mat,vec)` -- fits an SVM model, given column examples in a matrix `mat` and vector of targets `vec`
-	JsDeclareFunction(fit);
-    //#- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
-	//#- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
-	JsDeclareFunction(predict);
-
-	//#- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
+	//
+	// **Functions and properties:**
+	//
+	//- `params = svmModel.getParams()` -- returns the parameters of this model as a Javascript object
 	JsDeclareFunction(getParams);
-	//#- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given in the input argument `params` returns this
+	//- `svmModel = svmModel.getParams(params)` -- sets one or more parameters given in the input argument `params` returns this
 	JsDeclareFunction(setParams);
-
-    //#- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
+    //- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
 	JsDeclareProperty(weights);
-    //#- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
+    //- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(save);
+	//- `num = svmModel.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	//- `num = svmModel.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	JsDeclareFunction(predict);
 
 private:
 	void UpdateParams(const PJsonVal& ParamVal);
 	PJsonVal GetParams() const;
 	void Save(TSOut& SOut) const;
 	void ClrModel();
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Classification
+//#
+//# ### Support Vector Classification
+//#
+//# Holds a SVM classification model. This object is result of `new analytics.SVC(...)`.
+class TNodeJsSVC : public TNodeJsSvmModel {
+	static v8::Persistent <v8::Function> constructor;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	//#
+	//# **Constructor:**
+	//#
+	//#- `svmModel = new analytics.SVC(fin)` -- constructs a new support vector classifier
+	//#- `svmModel = new analytics.SVC(svmParameters)` -- constructs a new support vector classifier using `svmParameters`, which is a JSON object. `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+	//#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
+	//#
+	//# **Functions and properties:**
+	//#
+	//#- `params = SVC.getParams()` -- returns the parameters of this model as a Javascript object
+	//#- `svmModel = SVC.getParams(params)` -- sets one or more parameters given in the input argument `params` returns this
+	//#- `vec = SVC.weights` -- weights of the SVM linear model as a full vector `vec`
+	//#- `fout = SVC.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
+	//#- `num = SVC.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	//#- `num = SVC.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	//#- `svmModel = SVC.fit(spMat,vec)` -- fits an SVM model, given column examples in a sparse matrix `spMat` and vector of targets `vec`
+	//#- `svmModel = SVC.fit(mat,vec)` -- fits an SVM model, given column examples in a matrix `mat` and vector of targets `vec`
+	JsDeclareFunction(fit);
+};
+
+///////////////////////////////
+// QMiner-JavaScript-Support-Vector-Regression
+//#
+//# ### Support Vector Regression
+//#
+//# Holds a SVM regression model. This object is result of `new analytics.SVR(...)`.
+class TNodeJsSVR : public TNodeJsSvmModel {
+	static v8::Persistent <v8::Function> constructor;
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+	//#
+	//# **Constructor:**
+	//#
+	//#- `svmModel = new analytics.SVR(fin)` -- constructs a new support vector classifier
+	//#- `svmModel = new analytics.SVR(svmParameters)` -- constructs a new support vector regression using `svmParameters`, which is a JSON object. `svmParameters = {c: 1.0, j: 1.0, batchSize: 10000, maxIterations: 10000, maxTime: 600, minDiff: 1e-6, verbose: false}`. 
+	//#     The parameter `c` is the SVM cost parameter, `j` (factor to multiply SVM cost parameter for positive examples with (default is 1.0)), `batchSize` controls the sample size for stochastic subgradient calculations, `maxIterations` limits the number of subgradient steps, `maxTime` limits the runtime in seconds, `minDiff` is a tolerance that is used as a stopping condition, `verbose` controls verbosity of the algorithm; result is a linear model
+	//#
+	//# **Functions and properties:**
+	//#
+	//#- `params = SVR.getParams()` -- returns the parameters of this model as a Javascript object
+	//#- `svmModel = SVR.getParams(params)` -- sets one or more parameters given in the input argument `params` returns this
+	//#- `vec = SVR.weights` -- weights of the SVM linear model as a full vector `vec`
+	//#- `fout = SVR.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
+	//#- `svmModel = SVR.fit(spMat,vec)` -- fits an SVM model, given column examples in a sparse matrix `spMat` and vector of targets `vec`
+	//#- `svmModel = SVR.fit(mat,vec)` -- fits an SVM model, given column examples in a matrix `mat` and vector of targets `vec`
+	//#- `num = SVR.predict(vec)` -- sends vector `vec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	//#- `num = SVR.predict(spVec)` -- sends sparse vector `spVec` through the model and returns the prediction as a real number `num` (-1 or 1 for classification)
+	JsDeclareFunction(fit);	
 };
 
 ///////////////////////////////
@@ -232,6 +277,40 @@ private:
 };
 
 ///////////////////////////////
+// QMiner-JavaScript-Neural-Networks
+//#
+//# ### Neural Network model
+//#
+//# Holds online/offline neural network model. This object is result of `analytics.newNNet`.
+class TNodeJsNNet : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent <v8::Function> constructor;
+	TSignalProc::PNNet Model;
+
+	TNodeJsNNet(const PJsonVal& ParamVal);
+	TNodeJsNNet(TSIn& SIn);
+
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	JsDeclareFunction(New);
+    //#- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
+    //#- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
+	JsDeclareFunction(fit);
+    //#- `vec = NNet.predict(vec)` -- sends vector `vec` through the
+    //#     model and returns the prediction as a vector `vec`
+	JsDeclareFunction(predict);
+	//#- `NNet.setLearnRate(num)` -- Sets the new learn rate for the network
+	JsDeclareFunction(setLearnRate);
+	//#- `NNet.save(fout)` -- Saves the model into the specified output stream.
+	JsDeclareFunction(save);
+ private:
+	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
+};
 // QMiner-JavaScript-Tokenizer
 //#
 //# ### Tokenizer

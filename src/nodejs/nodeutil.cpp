@@ -43,8 +43,12 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
         for (uint i = 0; i < FldNmV->Length(); i++) {
             const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
 
-            if (!IgnoreFunc || !Obj->Get(FldNmV->Get(i))->IsFunction()) {
-            	JsonVal->AddToObj(FldNm, GetObjJson(Obj->Get(FldNmV->Get(i))->ToObject()));
+			v8::Local<v8::Value> Val = Obj->Get(FldNmV->Get(i));
+
+			if (!IgnoreFunc || !Val->IsFunction()) {
+				// supported cases. Alternatively, we could set the object to null
+				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() || Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(), "TNodeJsUtil::GetObjJson: Cannot parse!");
+				JsonVal->AddToObj(FldNm, GetObjJson(Val->ToObject()));
             }
         }
 

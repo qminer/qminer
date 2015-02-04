@@ -145,7 +145,7 @@ void THtml::GetTokens(const PSIn& SIn, TStrV& TokenV) const {
 THtmlUnicode::THtmlUnicode(const PSwSet& _SwSet, const PStemmer& _Stemmer, 
         const bool& _ToUcP): THtml(_SwSet, _Stemmer, _ToUcP) {
         
-    EAssertR(TUnicodeDef::IsDef(), "Unicode not initilaized!"); 
+    EAssertR(TUnicodeDef::IsDef(), "Unicode not initialized!");
 }
 
 PTokenizer THtmlUnicode::New(const PJsonVal& ParamVal) {

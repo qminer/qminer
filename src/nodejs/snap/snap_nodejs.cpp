@@ -212,7 +212,7 @@ template <class T>
 v8::Local<v8::Object> TNodeJsGraph<T>::New(){
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsGraph::New: constructor is empty. Did you call TNodeJsGraph::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 
@@ -224,6 +224,7 @@ v8::Local<v8::Object> TNodeJsGraph<T>::New(){
 template <class T>
 void TNodeJsGraph<T>::New(const v8::FunctionCallbackInfo<v8::Value>& Args){
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	EAssertR(!constructor.IsEmpty(), "TNodeJsGraph::New: constructor is empty. Did you call TNodeJsGraph::Init(exports); in this module's init function?");
 	v8::EscapableHandleScope HandleScope(Isolate);
 	if (Args.IsConstructCall()) {
 		TNodeJsGraph<T>* NodeGraph = new TNodeJsGraph<T>();
@@ -643,7 +644,7 @@ v8::Local<v8::Object> TNodeJsNode<T>::New(const typename T::TNodeI node) {
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsNode::New: constructor is empty. Did you call TNodeJsNode::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 
@@ -909,7 +910,7 @@ v8::Local<v8::Object> TNodeJsEdge<T>::New(const typename T::TEdgeI edge) {
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsEdge::New: constructor is empty. Did you call TNodeEdge::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 

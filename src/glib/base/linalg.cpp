@@ -250,7 +250,7 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltV& Vec, TFltV& Result) co
 //////////////////////////////////////////////////////////////////////
 // Basic Linear Algebra Operations
 double TLinAlg::DotProduct(const TFltV& x, const TFltV& y) {
-    IAssertR(x.Len() == y.Len(), TStr::Fmt("%d != %d", x.Len(), y.Len()));
+    EAssertR(x.Len() == y.Len(), TStr::Fmt("%d != %d", x.Len(), y.Len()));
     double result = 0.0; const int Len = x.Len();
     for (int i = 0; i < Len; i++)
         result += x[i] * y[i];

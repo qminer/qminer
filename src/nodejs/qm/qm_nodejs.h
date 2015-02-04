@@ -753,9 +753,12 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
-
+	//#
+	//# **Constructor:**
+	//#
+	//#- `fsp = new qm.FeatureSpace(base, fin)` -- construct a new feature space by providing the base and input stream object
+	//#- `fsp = new qm.FeatureSpace(base, params)` -- construct a new feature space by providing the base and parameter JSON object
 	JsDeclareFunction(New);
-
 	//#
 	//# **Functions and properties:**
 	//#

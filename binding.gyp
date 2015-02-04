@@ -73,6 +73,7 @@
                 'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
+                'fs',
                 'glib'
             ],
             'conditions': [
@@ -248,23 +249,31 @@
             ]
         },{
             # node stat module
-            'target_name': 'stat',
+            'target_name': 'statistics',
             'sources': [
-                'src/nodejs/stat/stat_nodejs.h',
-                'src/nodejs/stat/stat_nodejs.cpp',
+                'src/nodejs/statistics/stat_nodejs.h',
+                'src/nodejs/statistics/stat_nodejs.cpp',
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/fs/fs_nodejs.h',
+                'src/nodejs/fs/fs_nodejs.cpp',
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
-		'src/glib/base/',
-		'src/glib/mine/',
+                'src/nodejs/fs',
+                'src/nodejs/la',
+                'src/nodejs/',
+                'src/glib/base/',
+                'src/glib/mine/',
             ],
             'defines': [
-                'MODULE_INCLUDE_LA'
+                'MODULE_INCLUDE_LA',
+                'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
+                'fs',
+                'la',
                 'glib'
             ],
             'conditions': [
