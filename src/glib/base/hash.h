@@ -1042,13 +1042,13 @@ void TCache<TKey, TDat, THashFunc>::Purge(const int64& MemToPurge){
 
 template <class TKey, class TDat, class THashFunc>
 int64 TCache<TKey, TDat, THashFunc>::GetMemUsed() const {
-  int64 MemUsed=0;
+  int64 MemUsed = 2 * sizeof(int64);
   int KeyId=KeyDatH.FFirstKeyId();
   while (KeyDatH.FNextKeyId(KeyId)){
     const TKey& Key=KeyDatH.GetKey(KeyId);
     const TKeyLNDatPr& KeyLNDatPr=KeyDatH[KeyId];
     TDat Dat=KeyLNDatPr.Val2;
-    MemUsed+=int64(Key.GetMemUsed()+Dat->GetMemUsed());
+	MemUsed += int64(Key.GetMemUsed() + Dat->GetMemUsed() + sizeof(TKeyLN));
   }
   return MemUsed;
 }

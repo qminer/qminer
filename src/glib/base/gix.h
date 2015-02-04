@@ -247,10 +247,24 @@ public:
 
 	// functions used by TCache
 	int GetMemUsed() const {
-		return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
+		int res = 2 * sizeof(TBool);
+		res += sizeof(int);
+		res += sizeof(TCRef);
+		res += sizeof(TGixMerger*);
+		res += sizeof(TGix<TKey, TItem, TGixMerger>*);
+		res += ItemSetKey.GetMemUsed();
+		res += ItemV.GetMemUsed();
+		res += ItemVDel.GetMemUsed();
+		Children.GetMemUsed();
+		res += ChildrenData.GetMemUsed();
+		res += GetChildMemUsed();
+		return res;
+
+
+		/*return ItemSetKey.GetMemUsed() + ItemV.GetMemUsed() + ItemVDel.GetMemUsed()
 			+ Children.GetMemUsed() + ChildrenData.GetMemUsed() + GetChildMemUsed()
-			+ 2 * sizeof(TBool) + sizeof(int)
-			+ sizeof(TGixMerger*) + sizeof(TGix<TKey, TItem, TGixMerger>*);
+			+ 2 * sizeof(TBool) + sizeof(int) + sizeof(TCRef)
+			+ sizeof(TGixMerger*) + sizeof(TGix<TKey, TItem, TGixMerger>*);*/
 	}
 	void OnDelFromCache(const TBlobPt& BlobPt, void* Gix);
 
@@ -686,6 +700,8 @@ public:
 	double CacheDirtyLoadedPerc;
 	/// Average length of itemsets in cache
 	double AvgLen;
+	/// memory usage for gix
+	int64 MemUsed;
 };
 
 /////////////////////////////////////////////////
@@ -823,8 +839,22 @@ public:
 
 	/// get amount of memory currently used
 	int64 GetMemUsed() const {
-		return int64(sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) +
-			int64(KeyIdH.GetMemUsed()) + int64(ItemSetCache.GetMemUsed());
+		int64 res = sizeof(TCRef);
+		res += sizeof(TFAccess);
+		res += 2 * sizeof(int64);
+		res += sizeof(bool);
+		res += sizeof(PBlobBs);
+		res += sizeof(TGixMerger);
+		res += sizeof(TGixStats);
+		res += GixFNm.GetMemUsed();
+		res += GixBlobFNm.GetMemUsed();
+		res += KeyIdH.GetMemUsed();
+		res += ItemSetCache.GetMemUsed();
+		return res;
+		/*return 
+			int64(sizeof(TCRef) + sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) +
+			int64(KeyIdH.GetMemUsed()) + sizeof(TGixMerger) + int64(ItemSetCache.GetMemUsed() + sizeof(PBlobBs) +
+			2*sizeof(int64) + sizeof(bool) + sizeof(TGixStats));*/
 	}
 	int GetNewCacheSizeInc() const { return NewCacheSizeInc; }
 	int64 GetCacheSize() const { return ItemSetCache.GetMemUsed(); }
@@ -1096,6 +1126,8 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 	Stats.CacheAllLoadedPerc = 0;
 	Stats.CacheDirtyLoadedPerc = 0;
 	Stats.AvgLen = 0;
+
+	Stats.MemUsed = this->GetMemUsed();
 	TBlobPt BlobPt;
 	PGixItemSet ItemSet;
 	void* KeyDatP = ItemSetCache.FFirstKeyDat();
@@ -1119,9 +1151,9 @@ void TGix<TKey, TItem, TGixMerger>::RefreshStats() {
 template <class TKey, class TItem, class TGixMerger>
 void TGix<TKey, TItem, TGixMerger>::PrintStats() {
 	RefreshStats();
-	printf(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f \n",
+	printf(".... gix cache stats - all=%d dirty=%d, loaded_perc=%f dirty_loaded_perc=%f, avg_len=%f, mem_used=%d \n",
 		Stats.CacheAll, Stats.CacheDirty, Stats.CacheAllLoadedPerc, Stats.CacheDirtyLoadedPerc,
-		Stats.AvgLen);
+		Stats.AvgLen, Stats.MemUsed);
 	const TBlobBsStats& blob_stats = ItemSetBlobBs->GetStats();
 	printf(".... gix blob stats - puts=%" PRIu64 " puts_new=%" PRIu64 " gets=%" PRIu64 " dels=%" PRIu64 " size_chngs=%" PRIu64 " avg_len_get=%f avg_len_put=%f avg_len_put_new=%f\n",
 		blob_stats.Puts, blob_stats.PutsNew, blob_stats.Gets,

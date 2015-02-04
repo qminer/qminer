@@ -422,6 +422,62 @@ public:
 		}
 	}
 
+	void Test_RandomGenerateRead(int cache_size = 10 * 1024 * 1024, int split_len = 100) {
+		TStr Nm("Test_Feed");
+		TStr FName("data");
+		int loops = 1000 * 1000;
+		int total_words = 10000;
+		int keys = 0;
+
+
+		// simmulate news feed
+		// many articles, containing 50 random words + everyone containing words 1-5
+		TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
+		TRnd rnd(1);
+		int doc_counter = 0;
+
+		gix.PrintStats();
+		gix.AddItem(TMyKey(5, 5), TMyItem(9000000, 1));
+		gix.PrintStats();
+
+		for (int i = 0; i < loops; i++) {
+			int r = rnd.GetUniDevInt(100);
+			if (i % 100 == 0) printf("==================== %d\n", i);
+			if (r < 10) {
+				// every doc containes the same 5 words
+				for (int j = 1; j <= 5; j++) {
+					gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
+				}
+				// each document contains 50 random words
+				TVec<int> vals;
+				for (int j = 0; j < 50; j++) {
+					int w = rnd.GetUniDevInt(10, total_words);
+
+					// prevent the same word for the same document
+					while (vals.IsIn(w)) {
+						w = rnd.GetUniDevInt(10, total_words);
+					}
+					vals.Add(w);
+
+					auto key = TMyKey(w, w);
+					gix.AddItem(key, TMyItem(doc_counter, 1));
+				}
+				doc_counter++;
+			} else {
+				// perform search in gix
+				int w = rnd.GetUniDevInt(0, total_words);
+				auto key = TMyKey(w, w);
+				if (gix.IsKey(key))
+					gix.GetItemSet(key);
+			}
+			if (i % 10000 == 0) {
+				gix.PrintStats();
+				gix.PartialFlush(100);
+				gix.PrintStats();
+			}
+		}
+	}
+
 	void Test_Delete_1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
@@ -823,7 +879,8 @@ public:
 		Test_Merge_220_Into_120();
 		Test_Merge_22000_Into_50();*/
 
-		Test_BigInserts();
+		//Test_BigInserts();
+		Test_RandomGenerateRead();
 
 		//Test_Delete_1();
 		//Test_Delete_20();

@@ -643,6 +643,8 @@ int main(int argc, char* argv[]) {
 
 							auto id = store->AddRec(json);
 							added_ids.Push(id);
+							
+							Base->PartialFlush(200);
 
 						} else if (r < -11) {
 							// perform delete of the front 5 records
