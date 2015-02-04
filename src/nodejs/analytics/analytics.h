@@ -277,6 +277,40 @@ private:
 };
 
 ///////////////////////////////
+// QMiner-JavaScript-Neural-Networks
+//#
+//# ### Neural Network model
+//#
+//# Holds online/offline neural network model. This object is result of `analytics.newNNet`.
+class TNodeJsNNet : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent <v8::Function> constructor;
+	TSignalProc::PNNet Model;
+
+	TNodeJsNNet(const PJsonVal& ParamVal);
+	TNodeJsNNet(TSIn& SIn);
+
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	JsDeclareFunction(New);
+    //#- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
+    //#- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
+	JsDeclareFunction(fit);
+    //#- `vec = NNet.predict(vec)` -- sends vector `vec` through the
+    //#     model and returns the prediction as a vector `vec`
+	JsDeclareFunction(predict);
+	//#- `NNet.setLearnRate(num)` -- Sets the new learn rate for the network
+	JsDeclareFunction(setLearnRate);
+	//#- `NNet.save(fout)` -- Saves the model into the specified output stream.
+	JsDeclareFunction(save);
+ private:
+	TSignalProc::TTFunc ExtractFuncFromString(const TStr& FuncString);
+};
 // QMiner-JavaScript-Tokenizer
 //#
 //# ### Tokenizer
