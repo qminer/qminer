@@ -504,7 +504,7 @@ template <>
 inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TFltV& FltV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsVec<TFlt, TAuxFltV>::New: constructor is empty. Did you call TNodeJsVec<TFlt, TAuxFltV>::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -522,7 +522,7 @@ template <>
 inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TIntV& IntV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsVec<TFlt, TAuxFltV>::New: constructor is empty. Did you call TNodeJsVec<TFlt, TAuxFltV>::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -545,7 +545,7 @@ template <>
 inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TFltV& FltV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsVec<TInt, TAuxIntV>::New: constructor is empty. Did you call TNodeJsVec<TInt, TAuxIntV>::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -569,7 +569,7 @@ template <>
 inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TIntV& IntV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsVec<TInt, TAuxIntV>::New: constructor is empty. Did you call TNodeJsVec<TInt, TAuxIntV>::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 
     v8::Local<v8::Object> Instance = cons->NewInstance();
@@ -589,7 +589,7 @@ template <>
 inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TStrV& StrV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsVec<TStr, TAuxStrV>::New: constructor is empty. Did you call TNodeJsVec<TStr, TAuxStrV>::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 
     v8::Local<v8::Object> Instance = cons->NewInstance();
@@ -912,7 +912,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsVec<TVal, TAux>::New: constructor is empty. Did you call TNodeJsVec<TVal, TAux>::Init(exports); in this module's init function? Vector ClassId: " + TAux::ClassId);
     if (Args.IsConstructCall()) {
         //printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
         TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>();

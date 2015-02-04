@@ -1,53 +1,62 @@
-// Import analytics module
-var analytics = require("analytics.js");
+// import libraries
+var qm = require('../../indexRelease.js');
+var analytics = qm.analytics;
+var fs = require('../../indexRelease.js').fs;
+
+qm.delLock();
+qm.config('qm.conf', true, 8080, 1024);
+
+var base = qm.create('qm.conf', 'movies.def', true); // 2nd arg: schema, 3rd arg: clear db folder = true
 
 // Prepare shortcuts to people and movies store
-var People = qm.store("People");
-var Movies = qm.store("Movies");
+var People = base.store("People");
+var Movies = base.store("Movies");
 
-// Check if we are starting for the first time
-//if (Movies.empty) {
-    // We are, we start by loading in the dataset.
-    console.log("Movies", "Loading and indexing input data")
-    var filename = "./sandbox/movies/movies.json"
-    qm.load.jsonFile(Movies, filename);
-    console.log("Loaded " + Movies.length + " movies and " + People.length + " people.");
-    
-    // Declare the features we will use to build genre classification models
-    var genreFeatures = [
-        { type: "constant", source: "Movies" },
-        { type: "text", source: "Movies", field: "Title" },
-        { type: "text", source: "Movies", field: "Plot" },        
-        { type: "multinomial", source: { store: "Movies", join: "Actor" }, field: "Name" },
-        { type: "multinomial", source: { store: "Movies", join: "Director"}, field: "Name" }
-    ];
-    // Create a model for the Genres field, using all the movies as training set.
-    // Since the target field is discrete the underlaying model will be based on classification.
-    var genreModel = analytics.newBatchModel(Movies.recs, genreFeatures, Movies.field("Genres"));
-    // Serialize the model to disk so we can use it later
-    var genreOut = fs.openWrite("./sandbox/movies/genre.dat");
-    genreModel.save(genreOut); genreOut.close();   
+// We are, we start by loading in the dataset.
+console.log("Movies", "Loading and indexing input data")
+var filename = "./sandbox/movies/movies.json"
+qm.load.jsonFile(Movies, filename);
+console.log("Loaded " + Movies.length + " movies and " + People.length + " people.");
 
-    // Declare the features we will use to build the rating regression model
-    var ratingFeatures = [
-        { type: "constant", source: "Movies" },
-        { type: "text", source: "Movies", field: "Title" },
-        { type: "text", source: "Movies", field: "Plot" },        
-        { type: "multinomial", source: "Movies", field: "Genres" },
-        { type: "multinomial", source: { store: "Movies", join: "Actor" }, field: "Name" },
-        { type: "multinomial", source: { store: "Movies", join: "Director"}, field: "Name" }
-    ];
-    // Create a model for the Rating field, using all the movies as training set.
-    // Since the target field is numeric the underlaying model will be based on regression.
-    var ratingModel = analytics.newBatchModel(Movies.recs, ratingFeatures, Movies.field("Rating"));
-    // Serialize the model to disk so we can use it later
-    var ratingOut = fs.openWrite("./sandbox/movies/rating.dat");
-    ratingModel.save(ratingOut); ratingOut.close();
-//}
+// Declare the features we will use to build genre classification models
+var genreFeatures = [
+    { type: "constant", source: "Movies" },
+    { type: "text", source: "Movies", field: "Title" },
+    { type: "text", source: "Movies", field: "Plot" },
+    { type: "multinomial", source: { store: "Movies", join: "Actor" }, field: "Name" },
+    { type: "multinomial", source: { store: "Movies", join: "Director" }, field: "Name" }
+];
+// Create a model for the Genres field, using all the movies as training set.
+// Since the target field is discrete the underlaying model will be based on classification.
+var genreModel = analytics.newBatchModel(Movies.recs, genreFeatures, Movies.field("Genres"));
+// Serialize the model to disk so we can use it later
+var genreOut = fs.openWrite("./sandbox/movies/genre.dat");
+
+genreModel.save(genreOut);
+genreOut.close();
+
+// Declare the features we will use to build the rating regression model
+var ratingFeatures = [
+    { type: "constant", source: "Movies" },
+    { type: "text", source: "Movies", field: "Title" },
+    { type: "text", source: "Movies", field: "Plot" },
+    { type: "multinomial", source: "Movies", field: "Genres" },
+    { type: "multinomial", source: { store: "Movies", join: "Actor" }, field: "Name" },
+    { type: "multinomial", source: { store: "Movies", join: "Director" }, field: "Name" }
+];
+// Create a model for the Rating field, using all the movies as training set.
+// Since the target field is numeric the underlaying model will be based on regression.
+var ratingModel = analytics.newBatchModel(Movies.recs, ratingFeatures, Movies.field("Rating"));
+// Serialize the model to disk so we can use it later
+var ratingOut = fs.openWrite("./sandbox/movies/rating.dat");
+
+ratingModel.save(ratingOut);
+ratingOut.close();
 
 // Load the models for genres and rating from disk
-var genreModel = analytics.loadBatchModel(fs.openRead("./sandbox/movies/genre.dat"));
-var ratingModel = analytics.loadBatchModel(fs.openRead("./sandbox/movies/rating.dat"));
+var genreModel = analytics.loadBatchModel(base, fs.openRead("./sandbox/movies/genre.dat"));
+var ratingModel = analytics.loadBatchModel(base, fs.openRead("./sandbox/movies/rating.dat"));
+
 
 // Test de-serialized models on two new movies
 var newHorrorMovie = Movies.newRec({
@@ -119,4 +128,4 @@ var newComedyMovie = Movies.newRec({
     ]
 });
 //console.log(JSON.stringify(genreModel.predict(newComedyMovie)));
-console.log(JSON.stringify(ratingModel.predict(newComedyMovie)) + " vs. " + newHorrorMovie.Rating);        
+console.log(JSON.stringify(ratingModel.predict(newComedyMovie)) + " vs. " + newHorrorMovie.Rating);      

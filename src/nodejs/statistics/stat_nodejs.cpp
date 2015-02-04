@@ -107,4 +107,4 @@ void init(v8::Handle<v8::Object> exports) {
    TNodeJsSpMat::Init(exports);
 }
 
-NODE_MODULE(stat, init)
+NODE_MODULE(statistics, init)

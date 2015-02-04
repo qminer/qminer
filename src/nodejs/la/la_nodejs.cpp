@@ -139,7 +139,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -156,7 +156,7 @@ v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltV& FltV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -175,7 +175,7 @@ v8::Local<v8::Object> TNodeJsFltVV::New(const TFltV& FltV) {
 void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
     TFltVV Mat;
     if (Args.IsConstructCall()) {
         v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
@@ -722,7 +722,7 @@ void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsSpVec::New(const TIntFltKdV& IntFltKdV, const int& Dim) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSpVec::New: constructor is empty. Did you call TNodeJsSpVec::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -738,7 +738,7 @@ v8::Local<v8::Object> TNodeJsSpVec::New(const TIntFltKdV& IntFltKdV, const int& 
 void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSpVec::New: constructor is empty. Did you call TNodeJsSpVec::Init(exports); in this module's init function?");
     if (Args.IsConstructCall()) {
         TNodeJsSpVec* JsSpVec = new TNodeJsSpVec();
         v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
@@ -1053,7 +1053,7 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& Rows) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSpMat::New: constructor is empty. Did you call TNodeJsSpMat::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
     v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -1069,7 +1069,7 @@ v8::Local<v8::Object> TNodeJsSpMat::New(const TVec<TIntFltKdV>& Mat, const int& 
 v8::Local<v8::Object> TNodeJsSpMat::New(v8::Local<v8::Array> Arr) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSpMat::New: constructor is empty. Did you call TNodeJsSpMat::Init(exports); in this module's init function?");
     const int Argc = 1;
     v8::Handle<v8::Value> Argv[Argc] = { Arr };
     v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
@@ -1079,7 +1079,7 @@ v8::Local<v8::Object> TNodeJsSpMat::New(v8::Local<v8::Array> Arr) {
 void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSpMat::New: constructor is empty. Did you call TNodeJsSpMat::Init(exports); in this module's init function?");
     if (Args.IsConstructCall()) {
         TNodeJsSpMat* JsSpMat = new TNodeJsSpMat();
 
@@ -1602,15 +1602,16 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ///////////////////////////////
 // Register functions, etc.  
 void init(v8::Handle<v8::Object> exports) {
-    TNodeJsFIn::Init(exports);
-    TNodeJsFOut::Init(exports);
-
     TNodeJsLinAlg::Init(exports);
     TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
     TNodeJsVec<TInt, TAuxIntV>::Init(exports);
     TNodeJsFltVV::Init(exports);
     TNodeJsSpVec::Init(exports);
     TNodeJsSpMat::Init(exports);
+
+	// File stream
+	//TNodeJsFIn::Init(exports);
+	//TNodeJsFOut::Init(exports);
 }
 
 NODE_MODULE(la, init)

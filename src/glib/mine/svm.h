@@ -193,6 +193,7 @@ TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
     EAssertR(Vecs > 0, "Number of vectors must be positive!");
+	EAssertR(Vecs == TargetV.Len(), "Number of vectors must be equal to the number of targets!");
     EAssertR(Cost > 0.0, "Cost parameter must be positive!");
     EAssertR(SampleSize > 0, "Sampling size must be positive!");
     EAssertR(MxIter > 1, "Number of iterations to small!");

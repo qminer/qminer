@@ -195,7 +195,7 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsBase::New: constructor is empty. Did you call TNodeJsBase::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -210,6 +210,7 @@ v8::Local<v8::Object> TNodeJsBase::New(TWPt<TQm::TBase> _Base) {
 void TNodeJsBase::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);	
+	EAssertR(!constructor.IsEmpty(), "TNodeJsBase::New: constructor is empty. Did you call TNodeJsBase::Init(exports); in this module's init function?");
 	// new base(...)
 	if (Args.IsConstructCall()) {
 	    // new base(fPath, cacheSize);
@@ -341,18 +342,12 @@ void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
    // unwrap
    TNodeJsBase* JsBase = ObjectWrap::Unwrap<TNodeJsBase>(Args.Holder());
    TWPt<TQm::TBase> Base = JsBase->Base;
-   try {
-	   PJsonVal QueryVal = TNodeJsUtil::GetArgJson(Args, 0);
-	   // execute the query
-	   TQm::PRecSet RecSet = JsBase->Base->Search(QueryVal);
-	   // return results
-	   Args.GetReturnValue().Set(TNodeJsRecSet::New(RecSet));
-	   return;
-   }
-   catch (const PExcept& Except) {
-	   TQm::InfoLog("[except] " + Except->GetMsgStr());
-   }
-   Args.GetReturnValue().Set(v8::Null(Isolate));
+
+   PJsonVal QueryVal = TNodeJsUtil::GetArgJson(Args, 0);
+   // execute the query
+   TQm::PRecSet RecSet = JsBase->Base->Search(QueryVal);
+   // return results
+   Args.GetReturnValue().Set(TNodeJsRecSet::New(RecSet));   
 }
 
 void TNodeJsBase::gc(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -451,7 +446,7 @@ void TNodeJsSA::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsSA::New(TWPt<TQm::TStreamAggr> _SA) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	
@@ -465,6 +460,7 @@ void TNodeJsSA::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	if (Args.Length() == 0) { return; } // 
+	EAssertR(!constructor.IsEmpty(), "TNodeJsSA::New: constructor is empty. Did you call TNodeJsSA::Init(exports); in this module's init function?");
 
 	QmAssertR(Args.Length() <= 3 && Args.Length() >= 2, "stream aggregator constructor expects at least two parameters");
 	QmAssertR(Args[0]->IsObject() && Args[1]->IsObject(), "stream aggregator constructor expects first two arguments as objects");
@@ -1354,7 +1350,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsStore::New: constructor is empty. Did you call TNodeJsStore::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -1366,6 +1362,7 @@ v8::Local<v8::Object> TNodeJsStore::New(TWPt<TQm::TStore> _Store) {
 void TNodeJsStore::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	EAssertR(!constructor.IsEmpty(), "TNodeJsStore::New: constructor is empty. Did you call TNodeJsStore::Init(exports); in this module's init function?");
 	if (Args.IsConstructCall()) {
 		if (Args.Length() == 2) {
 			QmAssertR(Args[0]->IsString() && Args[1]->IsObject() && TNodeJsUtil::IsClass(Args[1]->ToObject(), "TBase"), "TNodeJsStore constructor expecting store name and base object as arguments");
@@ -2314,6 +2311,7 @@ v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq) {
 	// We need a hash table with move constructor/assignment
 	QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(Rec.GetStore()->GetBase()->GetFPath()), "rec constructor: Base Id not found!");
 	uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(Rec.GetStore()->GetBase()->GetFPath());
+	EAssertR(!BaseStoreIdConstructor[BaseId][Rec.GetStoreId()].IsEmpty(), "TNodeJsRec::New: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, BaseStoreIdConstructor[BaseId][Rec.GetStoreId()]);
 
 	v8::Local<v8::Object> Instance = cons->NewInstance();
@@ -2351,6 +2349,7 @@ void TNodeJsRec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		QmAssertR(TNodeJsQm::BaseFPathToId.IsKey(JsStore->Store->GetBase()->GetFPath()), "rec constructor: Base Id not found!");
 		uint BaseId = TNodeJsQm::BaseFPathToId.GetDat(JsStore->Store->GetBase()->GetFPath());
+		EAssertR(!BaseStoreIdConstructor[BaseId][JsStore->Store->GetStoreId()].IsEmpty(), "TNodeJsRec::New: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
 		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, BaseStoreIdConstructor[BaseId][JsStore->Store->GetStoreId()]);
 		
 		v8::Local<v8::Object> Instance = cons->NewInstance();
@@ -2703,7 +2702,7 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsRecSet::New() {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsRecSet::New: constructor is empty. Did you call TNodeJsRecSet::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -2715,7 +2714,7 @@ v8::Local<v8::Object> TNodeJsRecSet::New() {
 v8::Local<v8::Object> TNodeJsRecSet::New(const TQm::PRecSet& RecSet) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsRecSet::New: constructor is empty. Did you call TNodeJsRecSet::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 
@@ -3442,6 +3441,7 @@ void TNodeJsStoreIter::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsStoreIter::New(const TWPt<TQm::TStore>& _Store, const TQm::PStoreIter& _Iter) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
+	EAssertR(!constructor.IsEmpty(), "TNodeJsStoreIter::New: constructor is empty. Did you call TNodeJsStoreIter::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	TNodeJsStoreIter* JsStoreIter = new TNodeJsStoreIter(_Store, _Iter);
@@ -3452,6 +3452,7 @@ v8::Local<v8::Object> TNodeJsStoreIter::New(const TWPt<TQm::TStore>& _Store, con
 void TNodeJsStoreIter::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	EAssertR(!constructor.IsEmpty(), "TNodeJsStoreIter::New: constructor is empty. Did you call TNodeJsStoreIter::Init(exports); in this module's init function?");
 	if (Args.IsConstructCall()) {
 		TNodeJsStoreIter* JsStoreIter = new TNodeJsStoreIter();
 		v8::Local<v8::Object> Instance = Args.This();
@@ -3572,6 +3573,7 @@ void TNodeJsIndexKey::Init(v8::Handle<v8::Object> exports) {
 v8::Local<v8::Object> TNodeJsIndexKey::New(const TWPt<TQm::TStore>& _Store, const TQm::TIndexKey& _IndexKey) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
+	EAssertR(!constructor.IsEmpty(), "TNodeJsIndexKey::New: constructor is empty. Did you call TNodeJsIndexKey::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	TNodeJsIndexKey* JsIndexKey = new TNodeJsIndexKey(_Store, _IndexKey);
@@ -3582,6 +3584,7 @@ v8::Local<v8::Object> TNodeJsIndexKey::New(const TWPt<TQm::TStore>& _Store, cons
 void TNodeJsIndexKey::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	EAssertR(!constructor.IsEmpty(), "TNodeJsIndexKey::New: constructor is empty. Did you call TNodeJsIndexKey::Init(exports); in this module's init function?");
 	if (Args.IsConstructCall()) {
 		TNodeJsIndexKey* JsIndexKey = new TNodeJsIndexKey;
 		v8::Local<v8::Object> Instance = Args.This();
@@ -3750,10 +3753,12 @@ v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj,
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TQm::PFtrSpace& FtrSpace) {
+	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
 	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(FtrSpace), constructor, v8::Isolate::GetCurrent());
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TWPt<TQm::TBase> Base, TSIn& SIn) {
+	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
 	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(Base, SIn), constructor, v8::Isolate::GetCurrent());
 }
 
@@ -3797,7 +3802,7 @@ void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
 void TNodeJsFtrSpace::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New: constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
 	QmAssertR(Args.IsConstructCall(), "FeatureSpace: not a constructor call!");
 	QmAssertR(Args.Length() > 1, "FeatureSpace: missing arguments!");
 
@@ -3935,7 +3940,7 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// return
 		Args.GetReturnValue().Set(Args[0]);
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::save");
 	}
 }
 
