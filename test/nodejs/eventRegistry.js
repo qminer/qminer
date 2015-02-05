@@ -1,4 +1,4 @@
-var er = require('../../src/nodejs/scripts/eventRegistry');
+var er = require('../../src/nodejs/scripts/eventRegistry'); 
 
 // suggest events with prefix 'ebola'
 var suggestions;
