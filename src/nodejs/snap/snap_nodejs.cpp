@@ -103,7 +103,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "ugraph"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "UndirectedGraph"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -131,7 +131,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "ugraph"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "UndirectedGraph"), tpl->GetFunction());
 }
 
 template <>
@@ -140,7 +140,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "dgraph"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "DirectedGraph"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -168,7 +168,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "dgraph"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "DirectedGraph"), tpl->GetFunction());
 }
 
 template <>
@@ -177,7 +177,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "dmgraph"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "DirectedMultigraph"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -205,7 +205,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "dmgraph"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "DirectedMultigraph"), tpl->GetFunction());
 }
 
 template <class T>
@@ -405,7 +405,7 @@ void TNodeJsGraph<T>::lastNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
-	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI();
+	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI()--;
 	Args.GetReturnValue().Set(TNodeJsNode<T>::New(ReturnNode));
 }
 
@@ -613,7 +613,7 @@ void TNodeJsNode<T>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "node"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Node"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 	
@@ -635,7 +635,7 @@ void TNodeJsNode<T>::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "outDeg"), _outDeg);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "node"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "Node"),
 		tpl->GetFunction());
 }
 
@@ -892,7 +892,7 @@ void TNodeJsEdge<T>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "edge"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Edge"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -901,7 +901,7 @@ void TNodeJsEdge<T>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "edge"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "Edge"),
 		tpl->GetFunction());
 }
 
