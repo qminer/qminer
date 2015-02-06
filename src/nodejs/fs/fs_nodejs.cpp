@@ -363,6 +363,7 @@ v8::Persistent<v8::Function> TNodeJsFOut::constructor;
 
 void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FOut"));
@@ -385,53 +386,35 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
 }
 
 v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    // called from C++, for example in openWrite function	
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFOut::New: constructor is empty. Did you call TNodeJsFOut::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-
-    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
-    v8::Local<v8::Value> ArgAppendP = v8::Boolean::New(Isolate, AppendP);
-    // Pass file path and AppendP flag as arguments to New 
-    const int Argc = 2;
-    v8::Local<v8::Value> Argv[Argc] = { ArgFNm, ArgAppendP };
-    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-
-	try {
-		TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);	
-		JsFOut->Wrap(Instance);
-	} catch (PExcept e) {	}
-	
-	return HandleScope.Escape(Instance);
-}
-
-
+    // create an instance
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);		
+	// no arguments to constructor
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+	// wrap our C++ object
+	return HandleScope.Escape(
+		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
+} 
 
 void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    // called from javascript using new FOut(...)	
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFOut::New: constructor is empty. Did you call TNodeJsFOut::Init(exports); in this module's init function?");
-    if (Args.IsConstructCall()) {
-        EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
-            "Expected file path.");
-
-		TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-		bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
-
-		TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);
-		v8::Local<v8::Object> Instance = Args.This();
-		JsFOut->Wrap(Instance);
-		Args.GetReturnValue().Set(Instance);
-
-
-    } else {
-        const int Argc = 1;
-        v8::Local<v8::Value> Argv[Argc] = { Args[0] };
-        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-        cons->NewInstance(Argc, Argv);
-        v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        Args.GetReturnValue().Set(Instance);
-    }
+	EAssertR(Args.IsConstructCall(), "TNodeJsFOut: not a constructor call (you forgot to use the new operator)");
+	// empty constructor call just forwards the instance
+	if (Args.Length() == 0) { Args.GetReturnValue().Set(Args.This()); return; }
+	// parse arguments
+	EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
+		"Expected file path.");
+	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+	bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
+	// Args.This() is an instance, wrap our C++ object
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::WrapJsInstance(Args.This(), new TNodeJsFOut(FNm, AppendP)));
 }
 
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {

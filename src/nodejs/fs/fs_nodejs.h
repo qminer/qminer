@@ -118,19 +118,16 @@ private:
 //# ### Output File Stream
 //# 
 class TNodeJsFOut : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 public:
     PSOut SOut;
 private:
     TNodeJsFOut(const TStr& FilePath, const bool& AppendP):
         SOut(TFOut::New(FilePath, AppendP)) { }
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
-    TNodeJsFOut(PSOut& SOut_) : SOut(SOut_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
     static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
-
-    static PSOut GetArgFOut(const v8::FunctionCallbackInfo<v8::Value>& Args,
-        const int& ArgN);
 
     //# 
     //# **Functions and properties:**
