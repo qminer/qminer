@@ -364,7 +364,7 @@ v8::Persistent<v8::Function> TNodeJsFOut::constructor;
 void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FOut"));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -397,10 +397,12 @@ v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
     v8::Local<v8::Value> Argv[Argc] = { ArgFNm, ArgAppendP };
     v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
 
-    TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);
-    JsFOut->Wrap(Instance);
-
-    return HandleScope.Escape(Instance);
+	try {
+		TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);	
+		JsFOut->Wrap(Instance);
+	} catch (PExcept e) {	}
+	
+	return HandleScope.Escape(Instance);
 }
 
 
@@ -413,15 +415,15 @@ void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
             "Expected file path.");
 
-        TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-        bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
+		TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+		bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
 
-        TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);
+		TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);
+		v8::Local<v8::Object> Instance = Args.This();
+		JsFOut->Wrap(Instance);
+		Args.GetReturnValue().Set(Instance);
 
-        v8::Local<v8::Object> Instance = Args.This();
-        JsFOut->Wrap(Instance);
 
-        Args.GetReturnValue().Set(Instance);
     } else {
         const int Argc = 1;
         v8::Local<v8::Value> Argv[Argc] = { Args[0] };
