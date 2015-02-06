@@ -29,7 +29,7 @@ er.getArticles(eventId, 10, function(A) {
 // get recent articles and activity Ids
 var recentArticles;
 var recentEventIds;
-er.getRecentActivity(10, 10, 0.3, function(J) {
+er.getRecentActivity(10, 10, 0.5, function(J) {
 	recent = J;
 	recentArticles = J.recentActivity.articles.activity;
 	recentEventIds = J.recentActivity.events.activity
@@ -37,3 +37,10 @@ er.getRecentActivity(10, 10, 0.3, function(J) {
 	for (var i=0; i < recentArticles.length; i++) { console.log(recentArticles[i].title+', '+recentArticles[i].date+', '+recentArticles[i].time); }
 });
 
+// search events
+var search;
+er.searchEvents('ljubljana',10, function(S) {
+	console.log('\nSEARCH RESULTS:');
+	search = S.events.results;
+	for (var i=0; i < search.length; i++) { console.log(search[i].uri+', '+search[i].eventDate); }
+});

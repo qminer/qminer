@@ -97,5 +97,22 @@ module.exports = {
 			});
 			
 		});
+	},
+	
+	searchEvents: function (term, count, resultCallback) {
+	
+		http.get('http://www.eventregistry.org/json/event?action=getEvents&eventsConceptLang=eng&eventsCount='+count+'&eventsPage=0&eventsSortBy=rel&ignoreKeywords=&keywords='+term+'&resultType=events',function(res) {				
+			
+			var value='';
+		
+			res.on('data', function onData(d) {
+				value += d;
+			});
+		
+			res.on('end', function() {
+					resultCallback(JSON.parse(value));
+			});
+			
+		});
 	}
 }
