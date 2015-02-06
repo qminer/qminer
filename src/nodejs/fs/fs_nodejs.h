@@ -81,6 +81,7 @@ public:
 //# ### Input File Stream
 //# 
 class TNodeJsFIn : public node::ObjectWrap {
+	friend class TNodeJsUtil;
 public:
     PSIn SIn;
 private:
@@ -88,9 +89,7 @@ private:
 public:
     static void Init(v8::Handle<v8::Object> exports);	
 	static TStr ClassId;
-    static v8::Local<v8::Object> New(const TStr& FNm);
-    static PSIn GetArgFIn(const v8::FunctionCallbackInfo<v8::Value>& Args,
-        const int& ArgN);
+    static v8::Local<v8::Object> New(const TStr& FNm);    
 
     //# 
     //# **Functions and properties:**
@@ -127,6 +126,7 @@ private:
     TNodeJsFOut(const TStr& FilePath): SOut(TZipOut::NewIfZip(FilePath)) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
+	static TStr ClassId;
     static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
 
     //# 
