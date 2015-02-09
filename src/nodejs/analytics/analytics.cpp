@@ -586,6 +586,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "update", _update);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "futureStates", _futureStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pastStates", _pastStates);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "probsOverTime", _probsOverTime);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histStates", _histStates);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
@@ -743,6 +744,78 @@ void TNodeJsHMChain::pastStates(const v8::FunctionCallbackInfo<v8::Value>& Args)
 		}
 
 		Args.GetReturnValue().Set(StateArr);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::futureStates");
+	}
+}
+
+void TNodeJsHMChain::probsOverTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+		const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
+		const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
+		const double StartTm = TNodeJsUtil::GetArgFlt(Args, 2);
+		const double EndTm = TNodeJsUtil::GetArgFlt(Args, 3);
+		const double DeltaTm = TNodeJsUtil::GetArgFlt(Args, 4);
+
+		TVec<TFltV> FutProbV, PastProbV;
+		TIntV StateIdV;
+		JsMChain->McModel->GetProbVOverTm(Level, StartState, StartTm, EndTm, DeltaTm, StateIdV, FutProbV, PastProbV);
+
+		v8::Local<v8::Array> TimeArr = v8::Array::New(Isolate, FutProbV.Len() + PastProbV.Len());
+
+		double Tm = -DeltaTm*PastProbV.Len();
+		for (int i = 0; i < PastProbV.Len(); i++) {
+			const TFltV& ProbV = PastProbV[PastProbV.Len()-1-i];
+
+			v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+			v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
+
+			for (int j = 0; j < ProbV.Len(); j++) {
+				v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
+
+				ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
+				ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
+
+				ProbArr->Set(j, ProbObj);
+			}
+
+			StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
+			StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
+
+			TimeArr->Set(i, StateObj);
+
+			Tm += DeltaTm;
+		}
+
+		for (int i = 0; i < FutProbV.Len(); i++) {
+			const TFltV& ProbV = FutProbV[i];
+
+			v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
+			v8::Local<v8::Array> ProbArr = v8::Array::New(Isolate, FutProbV[0].Len());
+
+			for (int j = 0; j < ProbV.Len(); j++) {
+				v8::Local<v8::Object> ProbObj = v8::Object::New(Isolate);
+
+				ProbObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateIdV[j]));
+				ProbObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, ProbV[j]));
+
+				ProbArr->Set(j, ProbObj);
+			}
+
+			StateObj->Set(v8::String::NewFromUtf8(Isolate, "time"), v8::Number::New(Isolate, Tm));
+			StateObj->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbArr);
+
+			TimeArr->Set(PastProbV.Len() + i, StateObj);
+
+			Tm += DeltaTm;
+		}
+
+		Args.GetReturnValue().Set(TimeArr);
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::futureStates");
 	}

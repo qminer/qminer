@@ -172,6 +172,8 @@ public:
 	//#- of past states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely previous states.
 	JsDeclareFunction(pastStates);
+	//#- `probs = hmc.probsOverTime(level, state, dt)` --
+	JsDeclareFunction(probsOverTime);
 	//#- `stateIdV = hmc.getPastStates(level)` -- returns the previous states
 	JsDeclareFunction(histStates);
 

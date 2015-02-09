@@ -396,6 +396,9 @@ public:
 	// along with probabilities of going into those states
 	virtual void GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const = 0;
 
+	virtual void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm, const double& DeltaTm,
+			const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const = 0;
+
 	// static distribution
 	// returns the static distribution for the joined states
 	virtual TVector GetStatDist(const TVec<TIntV>& StateSetV) const = 0;
@@ -427,6 +430,10 @@ protected:
 	// get [ast state probabilities for all the states for a fixed time in the past
 	virtual TFullMatrix GetPastProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const = 0;
 
+	static void GetFutureProbVOverTm(const TFullMatrix& PMat, const int& StateIdx,
+			const int& Steps, TVec<TFltV>& ProbVV, const PNotify& Notify,
+			const bool IncludeT0=true);
+
 	virtual void PrintStats() const = 0;
 	virtual const TStr GetType() const = 0;
 };
@@ -448,6 +455,8 @@ public:
 	void GetNextStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 	// returns the most likely previous states excluding the current state
 	void GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
+
+	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm, const double& DeltaTm, const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const { throw TExcept::New("Not implemented!!!", "here"); }
 
 	// static distribution
 	TVector GetStatDist(const TVec<TIntV>& StateSetV) const { return GetStatDist(GetTransitionMat(StateSetV)); }
@@ -506,6 +515,8 @@ public:
 	void GetNextStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 	// returns the most likely previous states excluding the current state
 	void GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
+
+	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm, const double& DeltaTm, const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const;
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
@@ -620,6 +631,8 @@ public:
 	void GetNextStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
 	// returns a distribution of probabilities of the previous states
 	void GetPrevStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
+
+	void GetProbVOverTm(const double& Height, const int& StateId, const double StartTm, const double EndTm, const double& DeltaTm, TIntV& StateIdV, TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const;
 
 	void GetHistStateIdV(const double& Height, TIntV& StateIdV) const;
 

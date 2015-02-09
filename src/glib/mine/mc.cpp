@@ -1070,6 +1070,30 @@ void TMChain::SetVerbose(const bool& _Verbose) {
 	}
 }
 
+void TMChain::GetFutureProbVOverTm(const TFullMatrix& PMat, const int& StateIdx,
+		const int& Steps, TVec<TFltV>& ProbVV, const PNotify& Notify, const bool IncludeT0) {
+
+	TFullMatrix CurrentMat = TFullMatrix::Identity(PMat.GetRows());
+	TVector ProbV = CurrentMat.GetRow(StateIdx);
+
+	if (IncludeT0) {
+		ProbVV.Add(ProbV.Vec);
+	}
+
+	for (int i = 0; i < Steps; i++) {
+		if (i % 100 == 0) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "steps: %d", i);
+		}
+		// increase time
+		CurrentMat = CurrentMat * PMat;
+		ProbV = CurrentMat.GetRow(StateIdx);
+		// normalize to minimize the error
+		ProbV /= ProbV.Sum();
+		// add to result
+		ProbVV.Add(ProbV.Vec);
+	}
+}
+
 /////////////////////////////////////////////////////////////////
 // Discrete time Markov Chain
 TDtMChain::TDtMChain(const bool& _Verbose):
@@ -1264,12 +1288,32 @@ void TCtMChain::GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& Sta
 	GetNextStateProbV(GetRevQMatrix(StateSetV), StateIdV, StateId, StateIdProbV, NFutStates, Notify);
 }
 
+void TCtMChain::GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm,
+		const double& DeltaTm, const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const {
+
+	const int StateIdx = StateIdV.SearchForw(StateId);
+
+	EAssertR(StateIdx >= 0, "Could not find target state!");
+	EAssertR(StartTm <= 0 && EndTm >= 0, "The start and end times should include the current time!");
+
+	const int FutureSteps = ceil(EndTm / DeltaTm);
+	const TFullMatrix FutProbMat = GetFutureProbMat(StateSetV, DeltaTm);
+
+	GetFutureProbVOverTm(FutProbMat, StateIdx, FutureSteps, FutProbVV, Notify);
+
+	if (StartTm < 0) {
+		const int PastSteps = ceil(-StartTm / DeltaTm);
+		const TFullMatrix PastProbMat = GetPastProbMat(StateSetV, DeltaTm);
+		GetFutureProbVOverTm(PastProbMat, StateIdx, PastSteps, PastProbVV, Notify, false);
+	}
+}
+
 TVector TCtMChain::GetStatDist() const {
 	return GetStatDist(GetQMatrix());
 }
 
-TVector TCtMChain::GetStatDist(const TVec<TIntV>& JoinedStateVV) const {
-	return GetStatDist(GetQMatrix(JoinedStateVV));
+TVector TCtMChain::GetStatDist(const TVec<TIntV>& StateSetV) const {
+	return GetStatDist(GetQMatrix(StateSetV));
 }
 
 TVector TCtMChain::GetStateSizeV(const TVec<TIntV>& JoinedStateVV) const {
@@ -1374,6 +1418,8 @@ TFullMatrix TCtMChain::GetQMatrix(const TVec<TIntV>& StateSetV) const {
 	for (int JoinState1Idx = 0; JoinState1Idx < StateSetV.Len(); JoinState1Idx++) {
 		const TIntV& JoinState1 = StateSetV[JoinState1Idx];
 		for (int JoinState2Idx = 0; JoinState2Idx < StateSetV.Len(); JoinState2Idx++) {
+			if (JoinState1Idx == JoinState2Idx) { continue; }
+
 			const TIntV& JoinState2 = StateSetV[JoinState2Idx];
 
 			// the transition probability from set Ai to Aj can be
@@ -1395,6 +1441,8 @@ TFullMatrix TCtMChain::GetQMatrix(const TVec<TIntV>& StateSetV) const {
 
 			Result(JoinState1Idx, JoinState2Idx) = Sum / SumP;
 		}
+
+		Result(JoinState1Idx, JoinState1Idx) = -Result.RowSum(JoinState1Idx);
 	}
 
 	return Result;
@@ -1476,7 +1524,7 @@ TVector TCtMChain::GetStatDist(const TFullMatrix& QMat) {
 	TFullMatrix JumpMat = GetJumpMatrix(QMat);
 
 	// find the eigenvector of the jump matrix with eigen value 1
-	TVector EigenVec(QMat.GetRows());
+	TVector EigenVec(QMat.GetRows(), false);
 	TNumericalStuff::GetEigenVec(JumpMat.GetT().GetMat(), 1.0, EigenVec.Vec);
 
 	// divide the elements by q_i
@@ -1749,6 +1797,17 @@ void THierarchCtmc::GetPrevStateProbV(const double& Height, const int& StateId, 
 		TIntV StateIdV;
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
 		MChain->GetPrevStateProbV(StateSetV, StateIdV, StateId, StateIdProbV, StateIdV.Len()-1);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void THierarchCtmc::GetProbVOverTm(const double& Height, const int& StateId, const double StartTm, const double EndTm, const double& DeltaTm, TIntV& StateIdV, TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const {
+	try {
+		TVec<TIntV> StateSetV;
+		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
+		MChain->GetProbVOverTm(Height, StateId, StartTm, EndTm, DeltaTm, StateSetV, StateIdV, FutProbV, PastProbV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetPrevStateProbV: Failed to compute future state probabilities: %s", Except->GetMsgStr().CStr());
 		throw Except;
