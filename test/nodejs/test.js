@@ -1,9 +1,9 @@
+console.log(__filename)
 // 
 // Sample unit test using standard assert JS library 
 // 
-
 var assert = require("assert")
-var la = require("../../build/Debug/la.node")
+var la = require('../../').la;
 
 	
 describe('Import test', function(){
@@ -12,7 +12,7 @@ describe('Import test', function(){
     })
 })
 
-var v = new la.vector();
+var v = new la.Vector();
 
 describe('Property Tests', function(){
   describe('Vector Length Test', function(){

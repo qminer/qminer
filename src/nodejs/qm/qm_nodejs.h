@@ -7,9 +7,9 @@
 
 #include <node.h>
 #include <node_object_wrap.h>
-#include "qminer.h"
-#include "la_nodejs.h"
-#include "fs_nodejs.h"
+#include <qminer.h>
+#include "../la/la_nodejs.h"
+#include "../fs/fs_nodejs.h"
 #include "../nodeutil.h"
 
 ///////////////////////////////
@@ -19,7 +19,8 @@
 class TNodeJsQm : public node::ObjectWrap {
 public:
 	// Node framework
-	static void Init(v8::Handle<v8::Object> exports);
+	static void Init(v8::Handle<v8::Object> exports);	
+	// TNodeJsRec needs this to select a template. TODO remove, see comment in v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
 	static THash<TStr, TUInt> BaseFPathToId;
 private:
 	//# 
@@ -27,7 +28,7 @@ private:
 	//# 
 	//#- `qm.config(configPath, overwrite, portN, cahceSize)` -- create directory structure with basic qm.conf file. Optional parameters: `configPath` (='qm.conf'), `overwrite (= false)`, `portN` (=8080), `cacheSize` (=1024).
 	JsDeclareFunction(config);
-	//#- `base = qm.create(configPath, schemaPath)` -- creates an empty base using the configuration in `configPath` and schema described in `schemaPath` (optional)
+	//#- `base = qm.create(configPath, schemaPath, clear)` -- creates an empty base using the configuration in `configPath` and schema described in `schemaPath` (optional)
 	JsDeclareFunction(create);
 	//#- `base = qm.open(configPath, readOnly)` -- opens a base using the configuration in `configPath` using `readOnly` (boolean) parameter
 	JsDeclareFunction(open);	
@@ -45,16 +46,15 @@ public:
 	// Node framework
 	static void Init(v8::Handle<v8::Object> exports);
 	// Wrapping C++ object
-	static v8::Local<v8::Object> New(TQm::PBase _Base);
+	static v8::Local<v8::Object> New(TWPt<TQm::TBase> _Base);
     // C++ constructors
 	TNodeJsBase() { }
-	TNodeJsBase(TQm::PBase _Base) : Base(_Base) { }
+	TNodeJsBase(TWPt<TQm::TBase> _Base) : Base(_Base) { }
 	// Node framework (constructor method)
 	JsDeclareFunction(New);
-    
 public:
 	// C++ wrapped object
-	TQm::PBase Base;
+	TWPt<TQm::TBase> Base;
 
 private:
 	//# 
@@ -97,6 +97,7 @@ public:
 	// C++ constructors
 	TNodeJsSA() { }
 	TNodeJsSA(TWPt<TQm::TStreamAggr> _SA) : SA(_SA) { }
+	~TNodeJsSA() { }
 	// Node framework (constructor method)
 	//#- `sa = new qm.sa(base, paramJSON)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate.
 	//#- `sa = new qm.sa(base, paramJSON, storeName)` -- create a new [Stream Aggregate](Stream-Aggregates) object `sa`. The constructor parameters are stored in `paramJSON` object. `paramJSON` must contain field `type` which defines the type of the aggregate. Second parameter `storeName` is used to register the stream aggregate for events on the appropriate store.
@@ -379,6 +380,8 @@ private:
 public:
 	// Node framework 
 	static void Init(const TWPt<TQm::TStore>& Store);
+	// when reseting a db we have to clear the old record templates
+	static void Clear(const int& BaseId);
 	// Wrapping C++ object	
 	static v8::Local<v8::Object> New(const TQm::TRec& Rec, const TInt& _Fq = 0);
 	// C++ constructors
@@ -750,9 +753,12 @@ public:
 	static void Init(v8::Handle<v8::Object> exports);
 
 	TQm::PFtrSpace GetFtrSpace() { return FtrSpace; }
-
+	//#
+	//# **Constructor:**
+	//#
+	//#- `fsp = new qm.FeatureSpace(base, fin)` -- construct a new feature space by providing the base and input stream object
+	//#- `fsp = new qm.FeatureSpace(base, params)` -- construct a new feature space by providing the base and parameter JSON object
 	JsDeclareFunction(New);
-
 	//#
 	//# **Functions and properties:**
 	//#

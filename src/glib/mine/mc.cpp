@@ -217,7 +217,7 @@ TVector TClust::GetJoinedCentroid(const TIntV& CentroidIdV) const {
 }
 
 double TClust::GetMeanPtCentDist(const int& CentroidIdx) const {
-	EAssertR(CentroidIdx < GetClusts(), "TFullKMeans::GetMeanPtCentDist: Invalid centroid index: " + CentroidIdx);
+	EAssertR(CentroidIdx < GetClusts(), TStr::Fmt("TFullKMeans::GetMeanPtCentDist: Invalid centroid index: %d", CentroidIdx));
 	return CentroidDistStatV[CentroidIdx].Val2 / CentroidDistStatV[CentroidIdx].Val1;
 }
 

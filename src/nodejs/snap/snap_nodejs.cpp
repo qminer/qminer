@@ -1,5 +1,5 @@
 #include "snap_nodejs.h"
-#include "../la/la_nodejs.h"
+
 
 ///////////////////////////////
 // NodeJs-Qminer-Snap 
@@ -103,7 +103,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "ugraph"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "UndirectedGraph"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -131,7 +131,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "ugraph"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "UndirectedGraph"), tpl->GetFunction());
 }
 
 template <>
@@ -140,7 +140,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "dgraph"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "DirectedGraph"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -168,7 +168,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "dgraph"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "DirectedGraph"), tpl->GetFunction());
 }
 
 template <>
@@ -177,7 +177,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "dmgraph"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "DirectedMultigraph"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -205,14 +205,14 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	// This has to be last, otherwise the properties won't show up on the
 	// object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "dmgraph"), tpl->GetFunction());
+	exports->Set(v8::String::NewFromUtf8(Isolate, "DirectedMultigraph"), tpl->GetFunction());
 }
 
 template <class T>
 v8::Local<v8::Object> TNodeJsGraph<T>::New(){
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsGraph::New: constructor is empty. Did you call TNodeJsGraph::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 
@@ -224,6 +224,7 @@ v8::Local<v8::Object> TNodeJsGraph<T>::New(){
 template <class T>
 void TNodeJsGraph<T>::New(const v8::FunctionCallbackInfo<v8::Value>& Args){
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	EAssertR(!constructor.IsEmpty(), "TNodeJsGraph::New: constructor is empty. Did you call TNodeJsGraph::Init(exports); in this module's init function?");
 	v8::EscapableHandleScope HandleScope(Isolate);
 	if (Args.IsConstructCall()) {
 		TNodeJsGraph<T>* NodeGraph = new TNodeJsGraph<T>();
@@ -246,8 +247,8 @@ void TNodeJsGraph<T>::addNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -292,8 +293,8 @@ void TNodeJsGraph<T>::delNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -338,8 +339,8 @@ void TNodeJsGraph<T>::isNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-	v8::Local<v8::Object> Instance = cons->NewInstance();
+//	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
+//	v8::Local<v8::Object> Instance = cons->NewInstance();
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
@@ -404,7 +405,7 @@ void TNodeJsGraph<T>::lastNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
 	v8::Local<v8::Object> Self = Args.Holder();
 	TNodeJsGraph* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Self);
-	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI();
+	typename T::TNodeI ReturnNode = NodeJsGraph->Graph->EndNI()--;
 	Args.GetReturnValue().Set(TNodeJsNode<T>::New(ReturnNode));
 }
 
@@ -612,7 +613,7 @@ void TNodeJsNode<T>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "node"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Node"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 	
@@ -634,7 +635,7 @@ void TNodeJsNode<T>::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "outDeg"), _outDeg);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "node"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "Node"),
 		tpl->GetFunction());
 }
 
@@ -643,7 +644,7 @@ v8::Local<v8::Object> TNodeJsNode<T>::New(const typename T::TNodeI node) {
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsNode::New: constructor is empty. Did you call TNodeJsNode::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 
@@ -711,7 +712,7 @@ template <class T>
 void TNodeJsNode<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int N = Args[0]->ToNumber()->Value();
+//	int N = Args[0]->ToNumber()->Value();
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	JsNode->Node++;
 	return Args.GetReturnValue().Set(JsNode);
@@ -721,7 +722,7 @@ template <class T>
 void TNodeJsNode<T>::prev(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	int N = Args[0]->ToNumber()->Value();
+//	int N = Args[0]->ToNumber()->Value();
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	JsNode->Node--;
 	return Args.GetReturnValue().Set(JsNode);
@@ -891,7 +892,7 @@ void TNodeJsEdge<T>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "edge"));
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Edge"));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -900,7 +901,7 @@ void TNodeJsEdge<T>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
 
 	constructor.Reset(Isolate, tpl->GetFunction());
-	exports->Set(v8::String::NewFromUtf8(Isolate, "edge"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, "Edge"),
 		tpl->GetFunction());
 }
 
@@ -909,7 +910,7 @@ v8::Local<v8::Object> TNodeJsEdge<T>::New(const typename T::TEdgeI edge) {
 
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
-
+	EAssertR(!constructor.IsEmpty(), "TNodeJsEdge::New: constructor is empty. Did you call TNodeEdge::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
 	v8::Local<v8::Object> Instance = Cons->NewInstance();
 

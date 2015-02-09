@@ -7191,8 +7191,7 @@ TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PJsonVal& ParamVal, const PFtrSpac
 TJsHierMc::TJsHierMc(TWPt<TScript> _Js, const PFtrSpace& _FtrSpace, TSIn& SIn):
 		Js(_Js),
 		FtrSpace(_FtrSpace) {
-	McModel = new TMc::THierarchCtmc();
-	McModel->Load(SIn);
+	McModel = new TMc::THierarchCtmc(SIn);
 }
 
 

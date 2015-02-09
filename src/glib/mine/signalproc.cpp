@@ -502,6 +502,14 @@ TNNet::TNeuron::TNeuron(TInt OutputsN, TInt MyId, TTFunc TransFunc){
 
     Id = MyId;
 }
+TNNet::TNeuron::TNeuron(TSIn& SIn){
+	OutputVal.Load(SIn);
+	Gradient.Load(SIn);
+	TFuncNm = LoadEnum<TTFunc>(SIn);
+    SumDeltaWeight.Load(SIn);
+    OutEdgeV.Load(SIn);
+    Id.Load(SIn);
+}
 
 void TNNet::TNeuron::FeedFwd(const TLayer& PrevLayer){
     TFlt SumIn = 0.0;
@@ -617,6 +625,14 @@ void TNNet::TNeuron::UpdateInputWeights(TLayer& PrevLayer, const TFlt& LearnRate
         }
     }
 }
+void TNNet::TNeuron::Save(TSOut& SOut) {
+	OutputVal.Save(SOut);
+	Gradient.Save(SOut);
+    SaveEnum<TTFunc>(SOut, TFuncNm);
+    SumDeltaWeight.Save(SOut);
+    OutEdgeV.Save(SOut);
+    Id.Save(SOut);
+}
     
 /////////////////////////////////////////////////////////////////////////
 //// Neural Networks - Layer of Neurons
@@ -636,6 +652,12 @@ TNNet::TLayer::TLayer(const TInt& NeuronsN, const TInt& OutputsN, const TTFunc& 
     // Force the bias node's output value to 1.0
     NeuronV.Last().SetOutVal(1.0);
     printf("\n");
+}
+TNNet::TLayer::TLayer(TSIn& SIn){
+	NeuronV.Load(SIn);
+}
+void TNNet::TLayer::Save(TSOut& SOut) {
+	NeuronV.Save(SOut);
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -659,6 +681,16 @@ TNNet::TNNet(const TIntV& LayoutV, const TFlt& _LearnRate,
         LayerV.Add(TLayer(NeuronsN, OutputsN, TransFunc));
         printf("LayerV.Len(): %d \n", LayerV.Len() );
     }
+}
+
+TNNet::TNNet(TSIn& SIn):
+		LearnRate(SIn),
+		Momentum(SIn) {
+	LayerV.Load(SIn);
+}
+
+PNNet TNNet::Load(TSIn& SIn) {
+	return new TNNet(SIn);
 }
 
 void TNNet::FeedFwd(const TFltV& InValV){
@@ -725,6 +757,14 @@ void TNNet::GetResults(TFltV& ResultV) const{
     for(int NeuronN = 0; NeuronN < LayerV.Last().GetNeuronN() - 1; ++NeuronN){
         ResultV.Add(LayerV.Last().GetOutVal(NeuronN));
     }
+}
+
+void TNNet::Save(TSOut& SOut) const {
+
+	// Save model variables
+	LearnRate.Save(SOut);
+	Momentum.Save(SOut);
+	LayerV.Save(SOut);
 }
 
 ///////////////////////////////////////////////////////////////////

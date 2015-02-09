@@ -1,6 +1,9 @@
-module.exports = require('assert');
-exports = module.exports; // re-establish link
+module.exports = exports = require('assert');
 
 exports.run = function (test, msg) {
     return;
+}
+
+exports.exists = function (obj, msg) {
+    exports.ok(obj != null, msg);
 }

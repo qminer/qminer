@@ -10,6 +10,7 @@
 #include "base.h"
 #include "../nodeutil.h"
 #include "../fs/fs_nodejs.h"
+#include "../la/la_nodejs.h"
 #include "Snap.h"
 
 ///////////////////////////////
