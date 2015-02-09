@@ -24,162 +24,110 @@ public:
 	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
 };
 
-class TClust;
-typedef TPt<TClust> PClust;
-class TClust {
-private:
-  TCRef CRef;
-public:
-  friend class TPt<TClust>;
-protected:
-    const static int MX_ITER;
+//class TClust;
+//typedef TPt<TClust> PClust;
+//class TClust {
+//private:
+//  TCRef CRef;
+//public:
+//  friend class TPt<TClust>;
+//protected:
+//    const static int MX_ITER;
+//
+//    typedef TPair<TUInt64, TUInt64V> TFtrHistStat;
+//    typedef TVec<TFtrHistStat> TClustHistStat;
+//    typedef TVec<TClustHistStat> THistStat;
+//
+//	TRnd Rnd;
+//	// holds centroids as column vectors
+//	TFullMatrix CentroidMat;
+//	// holds pairs <n,sum> where n is the number of points assigned to the
+//	// centroid at index i and sum is the sum of distances of all the points
+//	// assigned to the centroid to the centroid
+//	TUInt64FltPrV CentroidDistStatV;
+//
+//	int NHistBins;			// the number of bins used in a histogram
+//	TFltVV FtrBinStartVV;		// stores where each bin starts	// TODO save/load
+//	THistStat HistStat;		// stores histogram for every feature in every cluster
+//
+//	double Sample;
+//
+//	bool Verbose;
+//	PNotify Notify;
+//
+//	TClust(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+//	TClust(TSIn& SIn);
+//
+//	virtual ~TClust() {}
+//
+//public:
+//	// saves the model to the output stream
+//	virtual void Save(TSOut& SOut) const;
+//	// loads the model from the output stream
+//	static PClust Load(TSIn& SIn);
+//
+//	// performs the clustering
+//	void Init(const TFullMatrix& X);
+//	// initializes histograms for every feature
+//	void InitHistogram(const TFullMatrix& X);
+//
+//	// assign methods
+//	// assign instances to centroids
+//	int Assign(const TVector& Inst) const;
+//	// assign instances to centroids, instances should be in the columns of the matrix
+//	TVector Assign(const TFullMatrix& InstMat) const;
+//	void Assign(const TFullMatrix& InstMat, TIntV& AssignV) const;
+//
+//	// distance methods
+//	// returns a matrix D with the distance to all the centroids
+//	// D_ij is the distance between centroid i and instance j
+//	// points should be represented as columns of X
+//	TFullMatrix GetDistMat(const TFullMatrix& X) const;
+//	// Returns a vector y containing the distance to all the
+//	// centroids. The input vector x should be a column vector
+//	TVector GetDistVec(const TVector& x) const;
+//	// returns the distance from the cluster centroid to the point
+//	double GetDist(const int& CentroidId, const TVector& Pt) const;
+//
+//	// returns the coordinates of a "joined" centroid
+//	TVector GetJoinedCentroid(const TIntV& CentroidIdV) const;
+//
+//	// cluster statistics
+//	// returns the means distance of all the points assigned to centroid CentroidIdx
+//	// to that centroid
+//	double GetMeanPtCentDist(const int& CentroidId) const;
+//	// returns the number of points in the cluster
+//	uint64 GetClustSize(const int& ClustId) const;
+//
+//	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
+//
+//	int GetClusts() const { return CentroidMat.GetCols(); }
+//	int GetDim() const { return CentroidMat.GetRows(); }
+//	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
+//
+//	// sets the log to verbose or none
+//	void SetVerbose(const bool& Verbose);
+//
+//protected:
+//	// Applies the algorithm. Instances should be in the columns of X.
+//	virtual void Apply(const TFullMatrix& X, const int& MaxIter=10000) = 0;
+//	TVector Assign(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
+//	// returns a matrix of squared distances
+//	TFullMatrix GetDistMat2(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
+//
+//	// used during initialization
+//	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
+//	void UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV);
+//	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
+//
+//	// returns the type of this clustering
+//	virtual const TStr GetType() const = 0;
+//
+//private:
+//	// returns the coordinates of the centroid with the specified ID
+//	TVector GetCentroid(const int& CentroidId) const;
+//};
 
-    typedef TPair<TUInt64, TUInt64V> TFtrHistStat;
-    typedef TVec<TFtrHistStat> TClustHistStat;
-    typedef TVec<TClustHistStat> THistStat;
-
-	TRnd Rnd;
-	// holds centroids as column vectors
-	TFullMatrix CentroidMat;
-	// holds pairs <n,sum> where n is the number of points assigned to the
-	// centroid at index i and sum is the sum of distances of all the points
-	// assigned to the centroid to the centroid
-	TUInt64FltPrV CentroidDistStatV;
-
-	int NHistBins;			// the number of bins used in a histogram
-	TFltVV FtrBinStartVV;		// stores where each bin starts	// TODO save/load
-	THistStat HistStat;		// stores histogram for every feature in every cluster
-
-	double Sample;
-
-	bool Verbose;
-	PNotify Notify;
-
-	TClust(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
-	TClust(TSIn& SIn);
-
-	virtual ~TClust() {}
-
-public:
-	// saves the model to the output stream
-	virtual void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	static PClust Load(TSIn& SIn);
-
-	// performs the clustering
-	void Init(const TFullMatrix& X);
-	// initializes histograms for every feature
-	void InitHistogram(const TFullMatrix& X);
-
-	// assign methods
-	// assign instances to centroids
-	int Assign(const TVector& Inst) const;
-	// assign instances to centroids, instances should be in the columns of the matrix
-	TVector Assign(const TFullMatrix& InstMat) const;
-	void Assign(const TFullMatrix& InstMat, TIntV& AssignV) const;
-
-	// distance methods
-	// returns a matrix D with the distance to all the centroids
-	// D_ij is the distance between centroid i and instance j
-	// points should be represented as columns of X
-	TFullMatrix GetDistMat(const TFullMatrix& X) const;
-	// Returns a vector y containing the distance to all the
-	// centroids. The input vector x should be a column vector
-	TVector GetDistVec(const TVector& x) const;
-	// returns the distance from the cluster centroid to the point
-	double GetDist(const int& CentroidId, const TVector& Pt) const;
-
-	// returns the coordinates of a "joined" centroid
-	TVector GetJoinedCentroid(const TIntV& CentroidIdV) const;
-
-	// cluster statistics
-	// returns the means distance of all the points assigned to centroid CentroidIdx
-	// to that centroid
-	double GetMeanPtCentDist(const int& CentroidId) const;
-	// returns the number of points in the cluster
-	uint64 GetClustSize(const int& ClustId) const;
-
-	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
-
-	int GetClusts() const { return CentroidMat.GetCols(); }
-	int GetDim() const { return CentroidMat.GetRows(); }
-	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
-
-	// sets the log to verbose or none
-	void SetVerbose(const bool& Verbose);
-
-protected:
-	// Applies the algorithm. Instances should be in the columns of X.
-	virtual void Apply(const TFullMatrix& X, const int& MaxIter=10000) = 0;
-	TVector Assign(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
-	// returns a matrix of squared distances
-	TFullMatrix GetDistMat2(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
-
-	// used during initialization
-	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
-	void UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV);
-	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
-
-	// returns the type of this clustering
-	virtual const TStr GetType() const = 0;
-
-private:
-	// returns the coordinates of the centroid with the specified ID
-	TVector GetCentroid(const int& CentroidId) const;
-};
-
-
-///////////////////////////////////////////
-// K-Means
-class TFullKMeans: public TClust {
-private:
-	TInt K;
-
-public:
-	TFullKMeans(const int& NHistBins, const double Sample, const int& K, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
-	TFullKMeans(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-
-	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
-	// the point is assigned to
-	void Apply(const TFullMatrix& X, const int& MaxIter);
-
-protected:
-	const TStr GetType() const { return "kmeans"; }
-};
-
-
-///////////////////////////////////////////
-// DPMeans
-class TDpMeans: public TClust {
-private:
-	TFlt Lambda;
-	TInt MinClusts;
-	TInt MaxClusts;
-
-public:
-	TDpMeans(const int& NHistBins, const double& Sample, const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
-	TDpMeans(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-
-	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
-	// the point is assigned to
-	void Apply(const TFullMatrix& X, const int& MaxIter);
-
-protected:
-	const TStr GetType() const { return "dpmeans"; }
-};
-
-class TEuclMds {
-public:
-	// projects the points stored in the column of X onto d
-	// dimensions
-	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
-};
 
 class TAvgLink {
 public:
@@ -272,6 +220,8 @@ private:
     // number of leaf states, these are stored in the first part of the hierarchy vector
     int NLeafs;
 
+    TStrV StateNmV;
+
     bool Verbose;
     PNotify Notify;
 
@@ -308,6 +258,10 @@ public:
 	const TFltPr& GetStateCoords(const int& StateId) const { return StateCoordV[StateId]; }
 	// returns the total number of states in the hierarchy
 	int GetStates() const { return HierarchV.Len(); }
+
+	bool IsStateNm(const int& StateId) const;
+	void SetStateNm(const int& StateId, const TStr& StateNm);
+	const TStr& GetStateNm(const int& StateId) const;
 
 	void SetVerbose(const bool& Verbose);
 	void PrintHierarch() const;
@@ -584,7 +538,7 @@ private:
 public:
 	friend class TPt<THierarchCtmc>;
 private:
-	PClust Clust;
+	PFullClust Clust;
     PMChain MChain;
     PHierarch Hierarch;
 
@@ -597,7 +551,7 @@ private:
 public:
     // constructors
     THierarchCtmc();
-    THierarchCtmc(const PClust& Clust, const PMChain& MChain, const PHierarch& Hierarch,
+    THierarchCtmc(const PFullClust& Clust, const PMChain& MChain, const PHierarch& Hierarch,
     		const bool& Verbose=true);
     THierarchCtmc(TSIn& SIn);
 
@@ -650,6 +604,10 @@ public:
 	void GetCentroid(const int& StateId, TFltV& FtrV) const;
 	// returns the number of states in the hierarchy
     int GetStates() const { return Hierarch->GetStates(); }
+
+    // sets the name of the specified state
+    void SetStateNm(const int& StateId, const TStr& StateNm);
+    const TStr& GetStateNm(const int& StateId) const;
 
     void SetVerbose(const bool& Verbose);
     void SetCallback(TMcCallback* Callback);

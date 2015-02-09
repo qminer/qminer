@@ -1128,7 +1128,7 @@ private:
 		// and sum is the sum of distances to the centroid
 		TVec<TUInt64FltPr> StateStatV;
 
-		TMc::PClust Clust;
+		PFullClust Clust;
 
 		TUInt64V RecIdV;
 
@@ -1252,7 +1252,7 @@ protected:
 	int GetMaxDepth() const;
 
 	// clustering
-	TMc::PClust GetClust() const;
+	PFullClust GetClust() const;
 
 	// records
 	PRecSet GetRecSet(const TUInt64V& RecIdV) const;

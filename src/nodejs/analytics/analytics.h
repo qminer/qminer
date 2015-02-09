@@ -260,6 +260,11 @@ public:
 	//#- in the columns of the provided matrix
 	JsDeclareFunction(rebuildHistograms);
 
+	//#- `name = hmc.setStateName(stateId, stateNm)` -- Returns the name of the specified state.
+	JsDeclareFunction(getStateName);
+	//#- `hmc.setStateName(stateId, stateNm)` -- Sets the name of the state with the specified ID.
+	JsDeclareFunction(setStateName);
+
 	// parameters
 	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given
 	//#- in the input argument `params` returns this

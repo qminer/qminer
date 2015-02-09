@@ -659,7 +659,7 @@ v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, 
 	}
 
 	// clustering
-	TMc::PClust Clust = NULL;
+	PFullClust Clust = NULL;
 
 	const TStr ClustAlg = ClustJson->GetObjStr("type");
 	const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
@@ -670,11 +670,11 @@ v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, 
 		const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
 		const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
 		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-		Clust = new TMc::TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
+		Clust = new TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
 	} else if (ClustAlg == "kmeans") {
 		const int K = ClustJson->GetObjInt("k");
 		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-		Clust = new TMc::TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
+		Clust = new TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
 	} else {
 		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 	}
@@ -719,6 +719,8 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onOutlier", _onOutlier);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHierarchy", _rebuildHierarchy);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "rebuildHistograms", _rebuildHistograms);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateName", _getStateName);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setStateName", _setStateName);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
@@ -1177,6 +1179,44 @@ void TNodeJsHMChain::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Value>
 		TNodeJsFltVV* JsFltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 
 		JsMChain->McModel->InitHistograms(JsFltVV->Mat);
+
+		Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
+	}
+}
+
+void TNodeJsHMChain::getStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "hmc.getStateName: expects 1 argument!");
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+		const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+		const TStr& StateNm = JsMChain->McModel->GetStateNm(StateId);
+
+		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
+	}
+}
+
+void TNodeJsHMChain::setStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 2, "hmc.setStateName: expects 2 arguments!");
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+		const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+		const TStr StateNm = TNodeJsUtil::GetArgStr(Args, 1);
+
+		JsMChain->McModel->SetStateNm(StateId, StateNm);
 
 		Args.GetReturnValue().Set(v8::Undefined(Isolate));
 	} catch (const PExcept& Except) {
