@@ -27,10 +27,10 @@ Prerequisites:
 To build the module we need Python, node.js, npm. In addition, Windows builds require node.js source code and Visual Studio 2013 (details below).
 
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
- - Node v0-11-14: [http://blog.nodejs.org/2014/09/24/node-v0-11-14-unstable/]. On Windows install it using the msi file.
+ - Node v0-12-0: [http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/]. On Windows install it using the msi file.
  - npm:  [https://www.npmjs.com/package/npm]. On Windows npm is installed with Node when using the msi file.
  - Windows: Visual Studio 2013
- - Windows: node.js source code. Download from:  [https://github.com/joyent/node/archive/v0.11.14.zip] and extract the contents of the folder `node-0.11.14` to `NODE_ROOT`.
+ - Windows: node.js source code. Download from:  [http://nodejs.org/dist/v0.12.0/node-v0.12.0.tar.gz] and extract the contents of the folder `node-0.12.0` to `NODE_ROOT`.
 
 
 For more detailed installation check the following instructions:

@@ -1022,7 +1022,11 @@ void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
     // Add all prototype methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
     NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
+
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getCol", _indexGet);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setCol", _indexSet);
+    
+	NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
     NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
     NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", _multiplyT);
     NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
@@ -1229,6 +1233,19 @@ void TNodeJsSpMat::indexGet(uint32_t Index, const v8::PropertyCallbackInfo<v8::V
     Info.GetReturnValue().Set(TNodeJsSpVec::New(JsSpMat->Mat[Index], JsSpMat->Rows));
 }
 
+void TNodeJsSpMat::indexGet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsInt32(), "Expected one integer argument");
+	int Index = TNodeJsUtil::GetArgInt32(Args, 0);
+	
+	TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+	EAssertR(Index < JsSpMat->Mat.Len(), "Sparse matrix getCol: index out of bounds");
+	
+	Args.GetReturnValue().Set(TNodeJsSpVec::New(JsSpMat->Mat[Index], JsSpMat->Rows));
+}
+
 void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -1238,6 +1255,21 @@ void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8
     v8::Handle<v8::Object> ValObj = v8::Handle<v8::Object>::Cast(Value);
     JsSpMat->Mat[Index] = ObjectWrap::Unwrap<TNodeJsSpVec>(ValObj)->Vec;
     Info.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsSpMat::indexSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 2 && Args[0]->IsInt32() && Args[1]->IsObject(), "Expected two arguments: integer column index and a sparse vector");
+	int Index = TNodeJsUtil::GetArgInt32(Args, 0);
+	
+	TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
+	EAssertR(Index < JsSpMat->Mat.Len(), "Sparse matrix getCol: index out of bounds");
+
+	JsSpMat->Mat[Index] = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[1]->ToObject())->Vec;
+
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsSpMat::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {

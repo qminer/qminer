@@ -3,19 +3,24 @@
 // communication graphs based on sets of twitter messages (twitter specific)
 
 // Import libraries
-var analytics = require('analytics.js');
-var assert = require('assert.js');
-var time = require('time');
+var qm = require('../../index.js');
+var analytics = qm.analytics;
+var fs = qm.fs;
+
+qm.delLock();
+qm.config('qm.conf', true, 8080, 1024);
+var base = qm.create('qm.conf', 'twitter.def', true); // 2nd arg: schema, 3rd arg: clear db folder = true
 
 // Load tweets from a file (toy example)
 // Set the filename
 var tweetsFile = "./sandbox/twitter/toytweets.txt";
 // Get the store
-var Tweets = qm.store("Tweets");
+var Tweets = base.store("Tweets");
 // Load tweets (each line is a json)
 qm.load.jsonFile(Tweets, tweetsFile);
 // Print number of records
-console.say("number of records: " + Tweets.length);
+
+console.log("number of records: " + Tweets.length);
 // Select all tweets
 var recSet = Tweets.recs;
 
@@ -42,7 +47,7 @@ if (justLoad) {
 }
 // The feature space provides the mapping from documents (tweets) to sparse vectors (provided by linear algebra module)
 // Create or load feature space
-var ftrSpace = analytics.newFeatureSpace([
+var ftrSpace = new qm.FeatureSpace(base, [
 	{ type: "text", source: "Tweets", field: "Text" },
 ]);
 if (buildFtrSpace) {
@@ -58,38 +63,42 @@ if (buildFtrSpace) {
     ftrSpace = analytics.loadFeatureSpace(fin);
 }
 
-
 // Learn a model of relevant tweets 
 if (learnSvmFilter) {
-    // Constructs the active learner
-    var AL = new analytics.activeLearner(ftrSpace, "Text", recSet, nPos, nNeg, relevantQuery);
+    // Constructs the active learner    
+    var al = new analytics.ActiveLearner(relevantQuery, recSet, undefined, ftrSpace,
+        {nPos: nPos, nNeg: nNeg, textField: "Text"}
+    );
     // Starts the active learner (use the keyword stop to quit)
-    AL.startLoop();
+    al.startLoop();
     // Save the model
     var fout = fs.openWrite('./sandbox/twitter/svmFilter.bin');
-    AL.saveSvmModel(fout);
+    al.saveSvmModel(fout);
     fout.close();
 }
+
 // Load the model from disk
 var fin = fs.openRead("./sandbox/twitter/svmFilter.bin");
-var svmFilter = analytics.loadSvmModel(fin);
+var svmFilter = new analytics.SVC(fin);
 // Filter relevant records: records are dropped if svmFilter predicts a v negative value (anonymous function)
 recSet.filter(function (rec) { return svmFilter.predict(ftrSpace.ftrSpVec(rec)) > 0; });
 
 // Learn a sentiment model 
 if (learnSvmSentiment) {
     // Constructs the active learner
-    var AL = new analytics.activeLearner(ftrSpace, "Text", recSet, nPos, nNeg, sentimentQuery);
+    var al = new analytics.ActiveLearner(sentimentQuery, recSet, undefined, ftrSpace,
+        {nPos: nPos, nNeg: nNeg, textField: "Text"}
+    );
     // Starts the active learner
-    AL.startLoop();
+    al.startLoop();
     // Saves the sentiment model
     var fout = fs.openWrite('./sandbox/twitter/svmSentiment.bin');
-    AL.saveSvmModel(fout);
+    al.saveSvmModel(fout);
     fout.close();
 }
 // Loads the sentiment model
 var fin = fs.openRead('./sandbox/twitter/svmSentiment.bin');
-var svmSentiment = analytics.loadSvmModel(fin);
+var svmSentiment = new analytics.SVC(fin);
 
 // Classify the sentiment of the "relevant" tweets
 for (var recN = 0; recN < recSet.length; recN++) {
@@ -100,21 +109,5 @@ for (var recN = 0; recN < recSet.length; recN++) {
 // Clone the rec set two times
 var recSet1 = recSet.clone();
 var recSet2 = recSet.clone();
-// Set the cutoff date
-var tm = time.parse("2011-08-01T00:05:06");
-// Get a record set with tweets older than tm
-recSet1.filter(function (rec) { return rec.Date.timestamp < tm.timestamp })
-// Get a record set with tweets newer than tm
-recSet2.filter(function (rec) { return rec.Date.timestamp > tm.timestamp })
-// Print the record set length
-console.say("recSet1.length: " + recSet1.length + ", recSet2.length: " + recSet2.length);
-// Build two communication graph snapshots based on the two record sets. Users represent graph nodes. A user "a" is linked to user "b" if "a" authored a tweet that contained the keyword @"b".
-// Each node is assigned a sentiment (majority sentiment based on all the tweets authored by the node)
-// Build the first graph and save it in DOT format (implemented in C++ as a qminer aggregate)
-var u1 = recSet1.aggr({ name: "tgraph1", dotName: "tesi1", type: "twitterGraph", fName: "./sandbox/twitter/graph1.gv" });
-// Build the second graph (based on the second record set) and filter the nodes that were not present in the first graph, finally save it in DOT format
-var u2 = recSet2.aggr({ name: "tgraph2", dotName: "tesi2", type: "twitterGraph", fName: "./sandbox/twitter/graph2.gv", userVec: u1 });
-// Start console
-console.say("Interactive mode: empty line to release");
-console.start();
+
 

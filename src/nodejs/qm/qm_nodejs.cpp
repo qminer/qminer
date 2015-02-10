@@ -3974,7 +3974,7 @@ void TNodeJsFtrSpace::add(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		// return
 		Args.GetReturnValue().Set(Args.Holder());
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::add");
 	}
 }
 
@@ -3993,7 +3993,7 @@ void TNodeJsFtrSpace::updateRecord(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
 		Args.GetReturnValue().Set(Args.Holder());
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::updateRecord");
 	}
 }
 
@@ -4012,7 +4012,7 @@ void TNodeJsFtrSpace::updateRecords(const v8::FunctionCallbackInfo<v8::Value>& A
 
 		Args.GetReturnValue().Set(Args.Holder());
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::updateRecords");
 	}
 }
 
@@ -4032,7 +4032,7 @@ void TNodeJsFtrSpace::ftrSpVec(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
 		Args.GetReturnValue().Set(TNodeJsSpVec::New(SpV, JsFtrSpace->FtrSpace->GetDim()));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::ftrSpVec");
 	}
 }
 
@@ -4052,7 +4052,7 @@ void TNodeJsFtrSpace::ftrVec(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		Args.GetReturnValue().Set(TNodeJsFltV::New(FltV));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::ftrVec");
 	}
 }
 
@@ -4084,7 +4084,7 @@ void TNodeJsFtrSpace::invFtrVec(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 		Args.GetReturnValue().Set(TNodeJsFltV::New(InvertV));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::invFtrVec");
 	}
 }
 
@@ -4105,7 +4105,7 @@ void TNodeJsFtrSpace::invFtr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, InvVal));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::invFtr");
 	}
 }
 
@@ -4123,9 +4123,9 @@ void TNodeJsFtrSpace::ftrSpColMat(const v8::FunctionCallbackInfo<v8::Value>& Arg
 		TVec<TIntFltKdV> SpMat;
 		JsFtrSpace->FtrSpace->GetSpVV(RecSet->RecSet, SpMat);
 
-		Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, RecSet->RecSet->GetRecs()));
+		Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, JsFtrSpace->FtrSpace->GetDim()));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::ftrSpColMat");
 	}
 }
 
@@ -4145,7 +4145,7 @@ void TNodeJsFtrSpace::ftrColMat(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 		Args.GetReturnValue().Set(TNodeJsFltVV::New(Mat));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::ftrColMat");
 	}
 }
 
@@ -4163,7 +4163,7 @@ void TNodeJsFtrSpace::getFtrExtractor(const v8::FunctionCallbackInfo<v8::Value>&
 
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, FtrExtNm.CStr()));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::getFtrExtractor");
 	}
 }
 
@@ -4181,7 +4181,7 @@ void TNodeJsFtrSpace::getFtr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, FtrNm.CStr()));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::getFtr");
 	}
 }
 
@@ -4203,7 +4203,7 @@ void TNodeJsFtrSpace::getFtrDist(const v8::FunctionCallbackInfo<v8::Value>& Args
 
 		Args.GetReturnValue().Set(TNodeJsFltV::New(FtrDistV));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::getFtrDist");
 	}
 }
 
@@ -4242,7 +4242,7 @@ void TNodeJsFtrSpace::filter(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 		Args.GetReturnValue().Set(TNodeJsSpVec::New(NewSpV, VecDim));
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::filter");
 	}
 }
 
@@ -4267,7 +4267,7 @@ void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& 
 
 		Args.GetReturnValue().Set(StrArr);
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::save");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsFtrSpace::extractStrings");
 	}
 }
 
