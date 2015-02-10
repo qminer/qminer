@@ -1,23 +1,19 @@
 module.exports = exports = require('bindings')('snap.node');
 var fs = require('bindings')('fs.node');
 
-exports.UndirectedGraph.prototype.nodes3 = function () {
-	return (this.nodes*3);
-}
-
 exports.UndirectedGraph.prototype.draw = function (fnm) {	
-	drawGraph(fnm, this);
+	drawGraph(fnm, this), "templateGraphDraw.html";
 }
 
 exports.DirectedGraph.prototype.draw = function (fnm) {	
-	drawGraph(fnm, this);
+	drawGraph(fnm, this, "templateDGraphDraw.html");
 }
 
 exports.DirectedMultigraph.prototype.draw = function (fnm) {	
-	drawGraph(fnm, this);
+	drawGraph(fnm, this, "templateDGraphDraw.html");
 }
 
-function drawGraph(fnm, graph) {
+function drawGraph(fnm, graph, template) {
 	var br = 0;
 	var json_out = {};
     var json_out_edges = new Array();
@@ -41,7 +37,7 @@ function drawGraph(fnm, graph) {
     json_out["edges"] = json_out_edges;
     json_out["data"] = json_out_data;
 	
-    var template = fs.openRead("templateGraphDraw.html").readAll();
+    var template = fs.openRead(template).readAll();
     var output = template.replace("{{{data}}}", JSON.stringify(json_out));
     fs.openWrite(fnm).write(output).close();
 	

@@ -23,6 +23,7 @@
 #include "centr.cpp"         // centrality measures
 #include "cmty.cpp"          // community detection algorithms
 #include "coreper.cpp"        // core-periphery algorithms
+#include "cascnetinf.cpp"
 
 // graph generators
 #include "ggen.cpp"          // graph generators (preferential attachment, small-world, ...)

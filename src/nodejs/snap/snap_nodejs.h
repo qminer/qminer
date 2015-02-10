@@ -26,6 +26,7 @@ public:
 	//#- `graph = snap.newUGraph()` -- generate an empty undirected graph
 private:
 	JsDeclareFunction(cmtyEvolution);
+	JsDeclareFunction(cascades);
 	//static v8::Persistent<v8::Function> constructor;
 };
 

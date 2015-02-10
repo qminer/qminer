@@ -125,6 +125,7 @@ public:
 
   void SavePajek(const TStr& OutFNm);
   void SavePlaneTextNet(const TStr& OutFNm);
+  void SaveGraph(const TStr& OutFNm);
   void SaveEdgeInfo(const TStr& OutFNm);
   void SaveObjInfo(const TStr& OutFNm);
 

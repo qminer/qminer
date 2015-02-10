@@ -334,10 +334,10 @@
                 'src/third_party/Snap/snap-core/Snap.cpp'
             ],        
             'include_dirs': [
-                'src/third_party/Snap/snap-core',
-                'src/third_party/Snap/snap-adv',
-                'src/third_party/Snap/snap-exp',
-                'src/third_party/Snap/qlib-core',
+                'src/third_party/Snap/snap-core/',
+                'src/third_party/Snap/snap-adv/',
+                'src/third_party/Snap/snap-exp/',
+                'src/third_party/Snap/qlib-core/',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/'

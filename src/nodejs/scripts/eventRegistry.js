@@ -67,7 +67,7 @@ module.exports = {
 	
 	getArticles: function (eventId, count, resultCallback) {
 	
-		http.get('http://eventregistry.org/json/event?action=getEvent&articlesCount='+count+'&articlesLang=eng&articlesPage=0&articlesSortBy=cosSim&eventUri='+eventId+'&resultType=articles',function(res) {				
+		http.get('http://eventregistry.org/json/event?action=getEvent&articlesCount='+count+'&articlesLang=eng&articlesPage=0&articlesSortBy=date&eventUri='+eventId+'&resultType=articles',function(res) {				
 			
 			var value='';
 		

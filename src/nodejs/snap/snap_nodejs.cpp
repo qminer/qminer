@@ -10,7 +10,7 @@ void TNodeJsSnap::Init(v8::Handle<v8::Object> exports) {
 	v8::HandleScope HandleScope(Isolate);
 	// Add all methods, getters and setters here.
 	NODE_SET_METHOD(exports, "cmtyEvolution", _cmtyEvolution);
-
+	NODE_SET_METHOD(exports, "cascades", _cascades);
 }
 
 void TNodeJsSnap::cmtyEvolution(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -88,6 +88,35 @@ void TNodeJsSnap::cmtyEvolution(const v8::FunctionCallbackInfo<v8::Value>& Args)
 		Args.GetReturnValue().Set(Args.Holder);
 	}*/
 	
+}
+
+void TNodeJsSnap::cascades(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::String::Utf8Value str(Args[0]->ToString());
+	TStr FNm = *str;
+
+	TNodeJsGraph<TNGraph>* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph<TNGraph>>(Args[1]->ToObject());
+
+	int Iters = Args[2]->ToNumber()->Value();
+	const double alpha = Args[3]->ToNumber()->Value();
+	const int Model = Args[4]->ToNumber()->Value();
+
+	TNetInfBs NIB;
+	TFIn FIn(FNm);
+	NIB.LoadCascadesTxt(FIn, Model, alpha);
+
+	NIB.Init();
+	NIB.GreedyOpt(Iters);
+
+	for (TNGraph::TNodeI NI = NIB.Graph->BegNI(); NI < NIB.Graph->EndNI(); NI++) {
+		NodeJsGraph->Graph->AddNode(NI.GetId());
+	}
+
+	for (TNGraph::TEdgeI EI = NIB.Graph->BegEI(); EI < NIB.Graph->EndEI(); EI++) {
+		NodeJsGraph->Graph->AddEdge(EI.GetSrcNId(), EI.GetDstNId());
+	}
 }
 
  ///////////////////////////////

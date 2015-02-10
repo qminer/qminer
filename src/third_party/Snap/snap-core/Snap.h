@@ -31,6 +31,7 @@
 #include "centr.h"           // centrality measures
 #include "cmty.h"            // community detection algorithms
 #include "coreper.h"        // core-periphery algorithms
+#include "cascnetinf.h"
 
 // graph generators
 #include "ggen.h"            // graph generators (preferential attachment, small-world, ...)
