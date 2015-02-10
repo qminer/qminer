@@ -493,7 +493,7 @@ void TNodeJsGraph<T>::eachNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsGraph);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -515,7 +515,7 @@ void TNodeJsGraph<T>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsGraph);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -744,7 +744,7 @@ void TNodeJsNode<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 //	int N = Args[0]->ToNumber()->Value();
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	JsNode->Node++;
-	return Args.GetReturnValue().Set(JsNode);
+	//return Args.GetReturnValue().Set(JsNode);
 }
 
 template <class T>
@@ -754,7 +754,7 @@ void TNodeJsNode<T>::prev(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 //	int N = Args[0]->ToNumber()->Value();
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 	JsNode->Node--;
-	return Args.GetReturnValue().Set(JsNode);
+	//return Args.GetReturnValue().Set(JsNode);
 }
 
 template <class T>
@@ -776,7 +776,7 @@ void TNodeJsNode<T>::eachNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsNode);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -798,7 +798,7 @@ void TNodeJsNode<T>::eachInNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsNode);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -820,7 +820,7 @@ void TNodeJsNode<T>::eachOutNbr(const v8::FunctionCallbackInfo<v8::Value>& Args)
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsNode);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -850,7 +850,7 @@ void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& 
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsNode);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -880,7 +880,7 @@ void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8::Value>
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsNode);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -910,7 +910,7 @@ void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8::Value
 		Count++;
 	}
 
-	Args.GetReturnValue().Set(JsNode);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <class T>
@@ -981,7 +981,7 @@ void TNodeJsEdge<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsEdge* JsEdge = ObjectWrap::Unwrap<TNodeJsEdge>(Args.Holder());
 	JsEdge->Edge++;
-	Args.GetReturnValue().Set(JsEdge);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 #ifndef MODULE_INCLUDE_SNAP

@@ -69,8 +69,7 @@ void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    EAssertR(TFile::Exists(FNm),
-        TStr("File '" + FNm + "' does not exist").CStr());
+    // file exist check is done by TFIn
     Args.GetReturnValue().Set(TNodeJsFIn::New(FNm));
 }
 
@@ -230,8 +229,9 @@ TStr TNodeJsFIn::ClassId = "FIn";
 
 void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
 	
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
@@ -257,48 +257,38 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 }
 
 v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	// called from C++	
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
+	// create an instance using the constructor
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFIn::New: constructor is empty. Did you call TNodeJsFIn::Init(exports); in this module's init function?");
     v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
-    // Pass file path as argument to New 
-    const int Argc = 1;
-    v8::Local<v8::Value> Argv[Argc] = { ArgFNm };
-    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-
-    TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
-    JsFIn->Wrap(Instance);
-
-    return HandleScope.Escape(Instance);
+    // no arguments to constructor
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+	// wrap our C++ object
+	return HandleScope.Escape(
+		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
 }
 
 void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	EAssertR(Args.IsConstructCall(), "TNodeJsFIn: not a constructor call (you forgot to use the new operator)");
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFIn::New: constructor is empty. Did you call TNodeJsFIn::Init(exports); in this module's init function?");
-    if (Args.IsConstructCall()) {
-        EAssertR(Args.Length() == 1 && Args[0]->IsString(),
-            "Expected a file path.");
-        TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-        EAssertR(TFile::Exists(FNm), "File does not exist.");
-
-        TNodeJsFIn* JsFIn = new TNodeJsFIn(FNm);
-        v8::Local<v8::Object> Instance = Args.This();
-		
-		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
-		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
-		Instance->SetHiddenValue(key, value);
-
-        JsFIn->Wrap(Instance);
-        Args.GetReturnValue().Set(Instance);
-    } else {
-        const int Argc = 1;
-        v8::Local<v8::Value> Argv[Argc] = { Args[0] };
-        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-        v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        Args.GetReturnValue().Set(Instance);
-    }
+	// set hidden class id
+	v8::Local<v8::Object> Instance = Args.This();
+	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
+	Instance->SetHiddenValue(key, value);
+	// empty constructor call just forwards the instance
+	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }
+	// parse arguments
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(),
+		"Expected a file path.");
+	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+	//EAssertR(TFile::Exists(FNm), "File does not exist.");
+    // Args.This() is an instance, wrap our C++ object
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
 }
 
 void TNodeJsFIn::peekCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -360,11 +350,13 @@ void TNodeJsFIn::length(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
 ///////////////////////////////
 // NodeJs-FOut
 v8::Persistent<v8::Function> TNodeJsFOut::constructor;
+TStr TNodeJsFOut::ClassId = "FOut";
 
 void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "FOut"));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -385,51 +377,38 @@ void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
 }
 
 v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    // called from C++	
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
+	// create an instance using the constructor
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFOut::New: constructor is empty. Did you call TNodeJsFOut::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-
-    v8::Local<v8::Value> ArgFNm = v8::String::NewFromUtf8(Isolate, FNm.CStr());
-    v8::Local<v8::Value> ArgAppendP = v8::Boolean::New(Isolate, AppendP);
-    // Pass file path and AppendP flag as arguments to New 
-    const int Argc = 2;
-    v8::Local<v8::Value> Argv[Argc] = { ArgFNm, ArgAppendP };
-    v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-
-    TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);
-    JsFOut->Wrap(Instance);
-
-    return HandleScope.Escape(Instance);
-}
-
-
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);		
+	// no arguments to constructor
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+	// wrap our C++ object
+	return HandleScope.Escape(
+		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
+} 
 
 void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	EAssertR(Args.IsConstructCall(), "TNodeJsFOut: not a constructor call (you forgot to use the new operator)");
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFOut::New: constructor is empty. Did you call TNodeJsFOut::Init(exports); in this module's init function?");
-    if (Args.IsConstructCall()) {
-        EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
-            "Expected file path.");
-
-        TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-        bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
-
-        TNodeJsFOut* JsFOut = new TNodeJsFOut(FNm, AppendP);
-
-        v8::Local<v8::Object> Instance = Args.This();
-        JsFOut->Wrap(Instance);
-
-        Args.GetReturnValue().Set(Instance);
-    } else {
-        const int Argc = 1;
-        v8::Local<v8::Value> Argv[Argc] = { Args[0] };
-        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-        cons->NewInstance(Argc, Argv);
-        v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        Args.GetReturnValue().Set(Instance);
-    }
+	// set hidden class id
+	v8::Local<v8::Object> Instance = Args.This();
+	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
+	Instance->SetHiddenValue(key, value);		
+	// empty constructor call just forwards the instance
+	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }
+	// parse arguments
+	EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
+		"Expected file path.");
+	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+	bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
+	// Args.This() is an instance, wrap our C++ object
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
 }
 
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
