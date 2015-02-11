@@ -20,7 +20,7 @@ Linux:
 
 Windows (see `NODE_ROOT` in prerequisites below):
 
- - npm install qminer --nodedir=`NODE_ROOT`
+ - npm install qminer --nodedir=NODE_ROOT
  
 Prerequisites:
 
@@ -30,7 +30,8 @@ To build the module we need Python, node.js, npm. In addition, Windows builds re
  - Node v0-12-0: [http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/]. On Windows install it using the msi file.
  - npm:  [https://www.npmjs.com/package/npm]. On Windows npm is installed with Node when using the msi file.
  - Windows: Visual Studio 2013
- - Windows: node.js source code. Download from:  [http://nodejs.org/dist/v0.12.0/node-v0.12.0.tar.gz] and extract the contents of the folder `node-0.12.0` to `NODE_ROOT`.
+ - Windows: node.js source code. Download from:  [http://nodejs.org/dist/v0.12.0/node-v0.12.0.tar.gz] and extract the archive. The extracted folder (node-0.12.0) is referred to as `NODE_ROOT`.
+ - Windows: node must be built from source as well as installed. See windows instructions
 
 
 For more detailed installation check the following instructions:

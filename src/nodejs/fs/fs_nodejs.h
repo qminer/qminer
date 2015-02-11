@@ -132,7 +132,8 @@ public:
     //# 
     //# **Functions and properties:**
     //#     
-    JsDeclareFunction(New);
+	//#- `fout = new fs.FOut(fnm, append)` -- creates a new file output stream.
+	JsDeclareFunction(New);
     //#- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
     JsDeclareFunction(write);
     //#- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
