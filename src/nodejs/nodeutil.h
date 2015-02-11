@@ -203,6 +203,9 @@ public:
 
     /// TStrV -> v8 string array
     static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);	
+
+	/// Convert v8 external array (binary data) to PMem
+	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 };
 
 template <class TVal>
