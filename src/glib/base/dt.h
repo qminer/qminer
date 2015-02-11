@@ -163,6 +163,9 @@ public:
   void AddBf(const void* Bf, const int& BfL);
   char* GetBf() const {return Bf;}
   TStr GetAsStr(const char& NewNullCh='\0') const;
+  // returns a hexadecimal representation of the byte array
+  TStr GetHexStr() const;
+  static TMem GetFromHex(const TStr& Str);
   PSIn GetSIn() const {
     TMOut MOut(BfL); MOut.SaveBf(Bf, BfL); return MOut.GetSIn();}
 

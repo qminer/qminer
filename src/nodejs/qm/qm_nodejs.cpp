@@ -2,6 +2,8 @@
 #include "qm_param.h"
 #include "../la/la_nodejs.h"
 
+#include <node_buffer.h>
+
 ///////////////////////////////
 // NodeJs QMiner
 
@@ -11,13 +13,11 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	NODE_SET_METHOD(exports, "test", _test);
-
 	// Add all methods, getters and setters here.
 	NODE_SET_METHOD(exports, "config", _config);
 	NODE_SET_METHOD(exports, "create", _create);
 	NODE_SET_METHOD(exports, "open", _open);
-	
+
 	TQm::TEnv::Init();
 }
 
@@ -148,18 +148,6 @@ void TNodeJsQm::open(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Lock.Unlock();
 }
 
-void TNodeJsQm::test(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-    
-    PJsonVal Json = TNodeJsUtil::GetArgJson(Args, 0);
-    
-    printf("Json: %s\n", TJsonVal::GetStrFromVal(Json).CStr());
-    v8::Handle<v8::Value> JsonObj = TNodeJsUtil::ParseJson(Isolate, Json);
-    printf("Done Json\n");
-    Args.GetReturnValue().Set(JsonObj->ToObject());
-    
-}
 
 ///////////////////////////////
 // NodeJs QMiner Base
