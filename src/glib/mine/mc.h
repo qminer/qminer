@@ -602,6 +602,8 @@ public:
 	int GetCurrStateId(const double& Height) const;
 	// returns the centroid of the given state
 	void GetCentroid(const int& StateId, TFltV& FtrV) const;
+	// returns the IDs of all the states on the specified height
+	void GetStateIdVAtHeight(const double& Height, TIntV& StateIdV) const;
 	// returns the number of states in the hierarchy
     int GetStates() const { return Hierarch->GetStates(); }
 

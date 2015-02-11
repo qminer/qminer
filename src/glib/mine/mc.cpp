@@ -1406,6 +1406,16 @@ void THierarchCtmc::GetCentroid(const int& StateId, TFltV& FtrV) const {
 	FtrV = Centroid.Vec;
 }
 
+void THierarchCtmc::GetStateIdVAtHeight(const double& Height, TIntV& StateIdV) const {
+	try {
+		TVec<TIntV> StateSetV;
+		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarchCtmc::THierarchCtmc::GetStateIdVAtHeight: Failed to fetch state IDs for height %.3f: %s", Height, Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
 void THierarchCtmc::SetStateNm(const int& StateId, const TStr& StateNm) {
 	try {
 		Hierarch->SetStateNm(StateId, StateNm);

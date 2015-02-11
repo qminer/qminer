@@ -712,6 +712,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "currState", _currState);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
@@ -1094,6 +1095,31 @@ void TNodeJsHMChain::histogram(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 		Result->Set(v8::String::NewFromUtf8(Isolate, "probs"), ProbJsV);
 
 		Args.GetReturnValue().Set(Result);
+	} catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
+	}
+}
+
+void TNodeJsHMChain::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "hmc.stateIds: expects 1 argument!");
+
+	try {
+		TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+		const double Height = TNodeJsUtil::GetArgFlt(Args, 0);
+
+		TIntV StateIdV;
+		JsMChain->McModel->GetStateIdVAtHeight(Height, StateIdV);
+
+		v8::Local<v8::Array> StateIdJsV = v8::Array::New(Isolate, StateIdV.Len());
+		for (int i = 0; i < StateIdV.Len(); i++) {
+			StateIdJsV->Set(i, v8::Integer::New(Isolate, StateIdV[i]));
+		}
+
+		Args.GetReturnValue().Set(StateIdJsV);
 	} catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getTransitionModel");
 	}

@@ -244,6 +244,8 @@ public:
 	JsDeclareFunction(fullCoords);
 	//#- `hist = hmc.histogram(stateId, ftrId)` -- returns the histogram of the specified feature in the specified state
 	JsDeclareFunction(histogram);
+	//#- `hist = hmc.histogram(height)` -- returns the IDs of states on the specified height
+	JsDeclareFunction(stateIds);
 
 	// callbacks
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes

@@ -64,7 +64,7 @@ private:
 	JsDeclareFunction(close);
     //#- `store = base.store(storeName)` -- return store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `strArr = base.getStoreList()` -- an array of strings listing by name all existing stores
+    //#- `strArr = base.getStoreList()` -- an array of store JSON representations
 	JsDeclareFunction(getStoreList);
     //#- `base.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
     //#- `base.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)

@@ -723,7 +723,10 @@ public:
     /// Set field value using field id (default implementation throws exception)
     void SetFieldNumSpV(const uint64& RecId, const int& FieldId, const TIntFltKdV& SpV);
     /// Set field value using field id (default implementation throws exception)
-    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);    
+    void SetFieldBowSpV(const uint64& RecId, const int& FieldId, const PBowSpV& SpV);
+
+    /// Helper function for returning JSon definition of store
+    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
 };
 
 ///////////////////////////////
