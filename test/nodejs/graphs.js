@@ -2,7 +2,7 @@ console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');
 var snap = require('../../src/nodejs/scripts/snap.js');
 
-var g = new snap.UndirectedGraph();
+var g = new snap.DirectedGraph();
 
 g.addNode(1);
 g.addNode(2);

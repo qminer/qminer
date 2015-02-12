@@ -105,18 +105,27 @@ void TNodeJsSnap::cascades(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	TNetInfBs NIB;
 	TFIn FIn(FNm);
+	
 	NIB.LoadCascadesTxt(FIn, Model, alpha);
+
+	printf("done load");
 
 	NIB.Init();
 	NIB.GreedyOpt(Iters);
 
+	printf("done opt");
+
 	for (TNGraph::TNodeI NI = NIB.Graph->BegNI(); NI < NIB.Graph->EndNI(); NI++) {
-		NodeJsGraph->Graph->AddNode(NI.GetId());
+		if (!NodeJsGraph->Graph->IsNode(NI.GetId())) {
+			NodeJsGraph->Graph->AddNode(NI.GetId());
+		}
 	}
 
 	for (TNGraph::TEdgeI EI = NIB.Graph->BegEI(); EI < NIB.Graph->EndEI(); EI++) {
 		NodeJsGraph->Graph->AddEdge(EI.GetSrcNId(), EI.GetDstNId());
 	}
+
+	printf("done all");
 }
 
  ///////////////////////////////
