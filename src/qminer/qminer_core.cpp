@@ -3445,6 +3445,76 @@ void TIndex::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
 	}
 }
 
+void TIndex::TQmGixDefMergerSmall::Union(
+	TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
+
+	TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
+	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+		const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
+		const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) { ResV.Add(Val1); ValN1++; } 
+		else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; } 
+		else { ResV.Add(TQmGixItemSmall(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
+	}
+	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
+		ResV.Add(MainV.GetVal(RestValN1));
+	}
+	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
+		ResV.Add(JoinV.GetVal(RestValN2));
+	}
+	MainV = ResV;
+}
+
+void TIndex::TQmGixDefMergerSmall::Intrs(
+	TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
+
+	TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
+	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+		const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
+		const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) { ValN1++; } 
+		else if (Val1 > Val2) { ValN2++; } 
+		else { ResV.Add(TQmGixItemSmall(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
+	}
+	MainV = ResV;
+}
+
+void TIndex::TQmGixDefMergerSmall::Minus(const TQmGixItemSmallV& MainV,
+	const TQmGixItemSmallV& JoinV, TQmGixItemSmallV& ResV) const {
+	MainV.Diff(JoinV, ResV);
+}
+
+void TIndex::TQmGixDefMergerSmall::Merge(TQmGixItemSmallV& ItemV, bool Local) const {
+	if (ItemV.Empty()) { return; } // nothing to do in this case
+	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
+	// merge counts
+	int LastItemN = 0; bool ZeroP = false;
+	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
+		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
+			LastItemN++;
+			ItemV[LastItemN] = ItemV[ItemN];
+		} else {
+			ItemV[LastItemN].Dat += ItemV[ItemN].Dat;
+		}
+		ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
+	}
+	ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
+	// remove items with zero count
+	if (ZeroP) {
+		LastItemN = 0;
+		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+			const TQmGixItemSmall& Item = ItemV[ItemN];
+			if (Item.Dat > 0 || (Local && (int16)Item.Dat < 0)) {
+				ItemV[LastItemN] = Item;
+				LastItemN++;
+			} else if ((int16)Item.Dat < 0) {
+				TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int)Item.Key, (int)Item.Dat);
+			}
+		}
+		ItemV.Reserve(ItemV.Reserved(), LastItemN);
+	}
+}
+
 void TIndex::TQmGixRmDupMerger::Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const
 {
 	TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
@@ -3490,6 +3560,46 @@ void TIndex::TQmGixRmDupMerger::Intrs(TQmGixItemV& MainV, const TQmGixItemV& Joi
 		}
     }
     MainV = ResV;
+}
+
+void TIndex::TQmGixRmDupMergerSmall::Union(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
+	TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
+	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+		const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
+		const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) { ResV.Add(TQmGixItemSmall(Val1.Key, 1)); ValN1++; } 
+		else if (Val1 > Val2) { ResV.Add(TQmGixItemSmall(Val2.Key, 1)); ValN2++; } 
+		else {
+			int fq1 = TInt::GetMn(1, Val1.Dat);
+			int fq2 = TInt::GetMn(1, Val2.Dat);
+			ResV.Add(TQmGixItemSmall(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
+		}
+	}
+	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
+		TQmGixItemSmall Item = MainV.GetVal(RestValN1);
+		Item.Dat = TInt::GetMn(1, Item.Dat);
+		ResV.Add(Item);
+	}
+	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
+		TQmGixItemSmall Item = JoinV.GetVal(RestValN2);
+		Item.Dat = TInt::GetMn(1, Item.Dat);
+		ResV.Add(Item);
+	}
+	MainV = ResV;
+}
+
+void TIndex::TQmGixRmDupMergerSmall::Intrs(TQmGixItemSmallV& MainV, const TQmGixItemSmallV& JoinV) const {
+	TQmGixItemSmallV ResV; int ValN1 = 0; int ValN2 = 0;
+	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+		const TQmGixItemSmall& Val1 = MainV.GetVal(ValN1);
+		const TQmGixItemSmall& Val2 = JoinV.GetVal(ValN2);
+		if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else {
+			int fq1 = TInt::GetMn(1, Val1.Dat);
+			int fq2 = TInt::GetMn(1, Val2.Dat);
+			ResV.Add(TQmGixItemSmall(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
+		}
+	}
+	MainV = ResV;
 }
 
 TIndex::TQmGixKeyStr::TQmGixKeyStr(const TWPt<TBase>& _Base, 
@@ -3594,6 +3704,8 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
     // initialize invered index
 	DefMerger = TQmGixDefMerger::New();
     Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize/*, DefMerger*/);
+	DefMergerSmall = TQmGixDefMergerSmall::New();
+	GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSize/*, DefMerger*/);
 	// initialize location index
 	TStr SphereFNm = IndexFPath + "Index.Geo";
 	if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -3607,6 +3719,8 @@ TIndex::~TIndex() {
 	if (!IsReadOnly()) {
 		TEnv::Logger->OnStatus("Saving and closing inverted index");
 		Gix.Clr();
+		TEnv::Logger->OnStatus("Saving and closing inverted index - small");
+		GixSmall.Clr();
 		TEnv::Logger->OnStatus("Saving and closing location index");
 		TFOut SphereFOut(IndexFPath + "Index.Geo"); GeoIndexH.Save(SphereFOut);
 		TEnv::Logger->OnStatus("Index closed");
@@ -4927,5 +5041,597 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
 		}
 	}
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//// Alternative index
+//
+/////////////////////////////////
+//// QMiner-Index
+//void TIndex2::TQmGixDefMerger::Union(
+//	TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
+//
+//	TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
+//	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+//		const TQmGixItem& Val1 = MainV.GetVal(ValN1);
+//		const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
+//		if (Val1 < Val2) { ResV.Add(Val1); ValN1++; } else if (Val1 > Val2) { ResV.Add(Val2); ValN2++; } else { ResV.Add(TQmGixItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
+//	}
+//	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
+//		ResV.Add(MainV.GetVal(RestValN1));
+//	}
+//	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
+//		ResV.Add(JoinV.GetVal(RestValN2));
+//	}
+//	MainV = ResV;
+//}
+//
+//void TIndex2::TQmGixDefMerger::Intrs(
+//	TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
+//
+//	TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
+//	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+//		const TQmGixItem& Val1 = MainV.GetVal(ValN1);
+//		const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
+//		if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else { ResV.Add(TQmGixItem(Val1.Key, Val1.Dat + Val2.Dat)); ValN1++; ValN2++; }
+//	}
+//	MainV = ResV;
+//}
+//
+//void TIndex2::TQmGixDefMerger::Minus(const TQmGixItemV& MainV,
+//	const TQmGixItemV& JoinV, TQmGixItemV& ResV) const {
+//
+//	MainV.Diff(JoinV, ResV);
+//}
+//
+//void TIndex2::TQmGixDefMerger::Merge(TQmGixItemV& ItemV, bool Local) const {
+//	if (ItemV.Empty()) { return; } // nothing to do in this case
+//	if (!ItemV.IsSorted()) { ItemV.Sort(); } // sort if not yet sorted
+//	// merge counts
+//	int LastItemN = 0; bool ZeroP = false;
+//	for (int ItemN = 1; ItemN < ItemV.Len(); ItemN++) {
+//		if (ItemV[ItemN] != ItemV[ItemN - 1]) {
+//			LastItemN++;
+//			ItemV[LastItemN] = ItemV[ItemN];
+//		} else {
+//			ItemV[LastItemN].Dat = ItemV[LastItemN].Dat + (uchar)ItemV[ItemN].Dat;
+//		}
+//		ZeroP = (ItemV[LastItemN].Dat <= 0) || ZeroP;
+//	}
+//	ItemV.Reserve(ItemV.Reserved(), LastItemN + 1);
+//	// remove items with zero count
+//	if (ZeroP) {
+//		LastItemN = 0;
+//		for (int ItemN = 0; ItemN < ItemV.Len(); ItemN++) {
+//			const TQmGixItem& Item = ItemV[ItemN];
+//			if (Item.Dat > 0 || (Local && (uchar)Item.Dat < 0)) {
+//				ItemV[LastItemN] = Item;
+//				LastItemN++;
+//			} else if ((uchar)Item.Dat < 0) {
+//				TEnv::Error->OnStatusFmt("Warning: negative item count %d:%d!", (int)Item.Key, (int)Item.Dat);
+//			}
+//		}
+//		ItemV.Reserve(ItemV.Reserved(), LastItemN);
+//	}
+//}
+//
+//void TIndex2::TQmGixRmDupMerger::Union(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
+//	TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
+//	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+//		const TQmGixItem& Val1 = MainV.GetVal(ValN1);
+//		const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
+//		if (Val1 < Val2) { ResV.Add(TQmGixItem(Val1.Key, 1)); ValN1++; } else if (Val1 > Val2) { ResV.Add(TQmGixItem(Val2.Key, 1)); ValN2++; } else {
+//			int fq1 = TInt::GetMn(1, Val1.Dat);
+//			int fq2 = TInt::GetMn(1, Val2.Dat);
+//			ResV.Add(TQmGixItem(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
+//		}
+//	}
+//	for (int RestValN1 = ValN1; RestValN1 < MainV.Len(); RestValN1++) {
+//		TQmGixItem Item = MainV.GetVal(RestValN1);
+//		Item.Dat = TInt::GetMn(1, Item.Dat);
+//		ResV.Add(Item);
+//	}
+//	for (int RestValN2 = ValN2; RestValN2 < JoinV.Len(); RestValN2++) {
+//		TQmGixItem Item = JoinV.GetVal(RestValN2);
+//		Item.Dat = TInt::GetMn(1, Item.Dat);
+//		ResV.Add(Item);
+//	}
+//	MainV = ResV;
+//}
+//
+//void TIndex2::TQmGixRmDupMerger::Intrs(TQmGixItemV& MainV, const TQmGixItemV& JoinV) const {
+//	TQmGixItemV ResV; int ValN1 = 0; int ValN2 = 0;
+//	while ((ValN1 < MainV.Len()) && (ValN2 < JoinV.Len())) {
+//		const TQmGixItem& Val1 = MainV.GetVal(ValN1);
+//		const TQmGixItem& Val2 = JoinV.GetVal(ValN2);
+//		if (Val1 < Val2) { ValN1++; } else if (Val1 > Val2) { ValN2++; } else {
+//			int fq1 = TInt::GetMn(1, Val1.Dat);
+//			int fq2 = TInt::GetMn(1, Val2.Dat);
+//			ResV.Add(TQmGixItem(Val1.Key, fq1 + fq2)); ValN1++; ValN2++;
+//		}
+//	}
+//	MainV = ResV;
+//}
+//
+//TIndex2::TQmGixKeyStr::TQmGixKeyStr(const TWPt<TBase>& _Base,
+//	const TWPt<TIndexVoc>& _IndexVoc) : Base(_Base), IndexVoc(_IndexVoc) {}
+//
+//TStr TIndex2::TQmGixKeyStr::GetKeyNm(const TQmGixKey& Key) const {
+//	// get ids
+//	const int KeyId = Key.Val1;
+//	const uint StoreId = IndexVoc->GetKeyStoreId(KeyId);
+//	const uint64 WordId = Key.Val2;
+//	// generate pretty name
+//	const TIndexKey& IndexKey = IndexVoc->GetKey(KeyId);
+//	const TWPt<TStore>& Store = Base->GetStoreByStoreId(StoreId);
+//	TChA KeyChA = Store->GetStoreNm();
+//	if (IndexKey.IsInternal()) {
+//		KeyChA += "->"; KeyChA += IndexKey.GetJoinNm();
+//		KeyChA += "->"; KeyChA += Store->GetRecNm(WordId);
+//	} else {
+//		KeyChA += '.'; KeyChA += IndexKey.GetKeyNm();
+//		if (IndexKey.IsWordVoc()) {
+//			if (IndexVoc->IsWordId(KeyId, WordId)) {
+//				KeyChA += '['; KeyChA += IndexVoc->GetWordStr(KeyId, WordId); KeyChA += ']';
+//			} else {
+//				//printf("x");
+//			}
+//		}
+//	}
+//	return KeyChA;
+//}
+//
+//TIndex2::PQmGixExpItem TIndex2::ToExpItem(const TQueryItem& QueryItem) const {
+//	if (QueryItem.IsLeafGix()) {
+//		// we have a leaf, make it into expresion item
+//		if (QueryItem.IsEqual()) {
+//			// ==
+//			TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
+//			return TQmGixExpItem::NewAndV(AllKeyV);
+//		} else if (QueryItem.IsGreater()) {
+//			// >=
+//			TKeyWordV AllGreaterV;
+//			IndexVoc->GetAllGreaterV(QueryItem.GetKeyId(),
+//				QueryItem.GetWordId(), AllGreaterV);
+//			return TQmGixExpItem::NewOrV(AllGreaterV);
+//		} else if (QueryItem.IsLess()) {
+//			// <=
+//			TKeyWordV AllLessV;
+//			IndexVoc->GetAllLessV(QueryItem.GetKeyId(),
+//				QueryItem.GetWordId(), AllLessV);
+//			return TQmGixExpItem::NewOrV(AllLessV);
+//		} else if (QueryItem.IsNotEqual()) {
+//			// !=
+//			TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
+//			return TQmGixExpItem::NewNot(TQmGixExpItem::NewAndV(AllKeyV));
+//		} else if (QueryItem.IsWildChar()) {
+//			// ~
+//			TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
+//			return TQmGixExpItem::NewOrV(AllKeyV);
+//		} else {
+//			// unknow operator
+//			throw TQmExcept::New("Index: Unknown query item operator");
+//		}
+//	} else if (QueryItem.IsAnd()) {
+//		// we have a vector of AND items
+//		TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+//		for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+//			ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+//		}
+//		return TQmGixExpItem::NewAndV(ExpItemV);
+//	} else if (QueryItem.IsOr()) {
+//		// we have a vector of OR items
+//		TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+//		for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+//			ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+//		}
+//		return TQmGixExpItem::NewOrV(ExpItemV);
+//	} else if (QueryItem.IsNot()) {
+//		// we have a negation (can have only one child item!)
+//		QmAssert(QueryItem.GetItems() == 1);
+//		return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
+//	} else {
+//		// unknow handle query item type
+//		const int QueryItemType = (int)QueryItem.GetType();
+//		throw TQmExcept::New(TStr::Fmt("Index: QueryItem of type %d which must be handled outside TIndex", QueryItemType));
+//	}
+//	return TQmGixExpItem::NewEmpty();
+//}
+//
+//bool TIndex2::DoQuery(const TIndex2::PQmGixExpItem& ExpItem,
+//	const PQmGixExpMerger& Merger, TQmGixItemV& ResIdFqV) const {
+//
+//	// clean if there is anything on the input
+//	ResIdFqV.Clr();
+//	// execute query
+//	return ExpItem->Eval(Gix, ResIdFqV, Merger);
+//}
+//
+//TIndex2::TIndex2(const TStr& _IndexFPath, const TFAccess& _Access,
+//	const PIndexVoc& _IndexVoc, const int64& CacheSize) {
+//
+//	IndexFPath = _IndexFPath;
+//	Access = _Access;
+//	// initialize invered index
+//	DefMerger = TQmGixDefMerger::New();
+//	Gix = TQmGix::New("Index2", IndexFPath, Access, CacheSize/*, DefMerger*/);
+//	// initialize location index
+//	TStr SphereFNm = IndexFPath + "Index2.Geo";
+//	if (TFile::Exists(SphereFNm) && Access != faCreate) {
+//		TFIn SphereFIn(SphereFNm); GeoIndexH.Load(SphereFIn);
+//	}
+//	// initialize vocabularies
+//	IndexVoc = _IndexVoc;
+//}
+//
+//TIndex2::~TIndex2() {
+//	if (!IsReadOnly()) {
+//		TEnv::Logger->OnStatus("Saving and closing inverted index");
+//		Gix.Clr();
+//		TEnv::Logger->OnStatus("Saving and closing location index");
+//		TFOut SphereFOut(IndexFPath + "Index.Geo"); GeoIndexH.Save(SphereFOut);
+//		TEnv::Logger->OnStatus("Index closed");
+//	} else {
+//		TEnv::Logger->OnStatus("Index opened in read-only mode, no saving needed");
+//	}
+//}
+//
+//void TIndex2::Index(const int& KeyId, const uint64& WordId, const uint64& RecId) {
+//	Index(KeyId, WordId, RecId, 1);
+//}
+//
+//void TIndex2::Index(const int& KeyId, const TStr& WordStr, const uint64& RecId) {
+//	const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
+//	Index(KeyId, WordId, RecId, 1);
+//}
+//
+//void TIndex2::Index(const int& KeyId, const TStrV& WordStrV, const uint64& RecId) {
+//	// load word-counts
+//	TUInt64H WordIdH;
+//	for (int WordN = 0; WordN < WordStrV.Len(); WordN++) {
+//		const TStr WordStr = WordStrV[WordN]; //.GetLc();
+//		WordIdH.AddDat(IndexVoc->AddWordStr(KeyId, WordStr))++;
+//	}
+//	// index words
+//	int WordKeyId = WordIdH.FFirstKeyId();
+//	while (WordIdH.FNextKeyId(WordKeyId)) {
+//		const uint64 WordId = WordIdH.GetKey(WordKeyId);
+//		const int WordFq = WordIdH[WordKeyId];
+//		Index(KeyId, WordId, RecId, WordFq);
+//	}
+//}
+//
+//void TIndex2::Index(const int& KeyId, const TStrIntPrV& WordStrFqV, const uint64& RecId) {
+//	TIntH WordIdH;
+//	for (int WordN = 0; WordN < WordStrFqV.Len(); WordN++) {
+//		const TStr WordStr = WordStrFqV[WordN].Val1; //.GetLc();
+//		const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
+//		const int WordFq = WordStrFqV[WordN].Val2;
+//		Index(KeyId, WordId, RecId, WordFq);
+//	}
+//}
+//
+//void TIndex2::Index(const uint& StoreId, const TStr& KeyNm,
+//	const TStr& WordStr, const uint64& RecId) {
+//
+//	Index(IndexVoc->GetKeyId(StoreId, KeyNm), WordStr, RecId);
+//}
+//
+//void TIndex2::Index(const uint& StoreId, const TStr& KeyNm,
+//	const TStrV& WordStrV, const uint64& RecId) {
+//
+//	Index(IndexVoc->GetKeyId(StoreId, KeyNm), WordStrV, RecId);
+//}
+//
+//void TIndex2::Index(const uint& StoreId, const TStr& KeyNm,
+//	const TStrIntPrV& WordStrFqV, const uint64& StoreRecId) {
+//
+//	Index(IndexVoc->GetKeyId(StoreId, KeyNm), WordStrFqV, StoreRecId);
+//}
+//
+//void TIndex2::Index(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId) {
+//	for (int KeyWordN = 0; KeyWordN < KeyWordV.Len(); KeyWordN++) {
+//		const TStrPr& KeyWord = KeyWordV[KeyWordN];
+//		// get key and word id
+//		const int KeyId = IndexVoc->GetKeyId(StoreId, KeyWord.Val1);
+//		const uint64 WordId = IndexVoc->AddWordStr(KeyId, KeyWord.Val2);
+//		// index the record
+//		Index(KeyId, WordId, RecId, 1);
+//	}
+//}
+//
+//void TIndex2::IndexText(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
+//	// tokenize string
+//	TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStr, WordIdV);
+//	// aggregate by word
+//	TUInt64H WordIdFqH;
+//	for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+//		WordIdFqH.AddDat(WordIdV[WordIdN])++;
+//	}
+//	// index words
+//	int WordKeyId = WordIdFqH.FFirstKeyId();
+//	while (WordIdFqH.FNextKeyId(WordKeyId)) {
+//		Index(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+//	}
+//}
+//
+//void TIndex2::IndexText(const uint& StoreId, const TStr& KeyNm,
+//	const TStr& TextStr, const uint64& RecId) {
+//
+//	IndexText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStr, RecId);
+//}
+//
+//void TIndex2::IndexText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId) {
+//	// tokenize string
+//	TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStrV, WordIdV);
+//	// aggregate by word
+//	TUInt64H WordIdFqH;
+//	for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+//		WordIdFqH.AddDat(WordIdV[WordIdN])++;
+//	}
+//	// index words
+//	int WordKeyId = WordIdFqH.FFirstKeyId();
+//	while (WordIdFqH.FNextKeyId(WordKeyId)) {
+//		Index(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+//	}
+//}
+//
+//void TIndex2::IndexText(const uint& StoreId, const TStr& KeyNm,
+//	const TStrV& TextStrV, const uint64& RecId) {
+//
+//	IndexText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStrV, RecId);
+//}
+//
+//void TIndex2::IndexJoin(const TWPt<TStore>& Store, const int& JoinId,
+//	const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
+//
+//	Index(Store->GetJoinKeyId(JoinId), RecId, JoinRecId, JoinFq);
+//}
+//
+//void TIndex2::IndexJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
+//	const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
+//
+//	Index(Store->GetJoinKeyId(JoinNm), RecId, JoinRecId, JoinFq);
+//}
+//
+//void TIndex2::Index(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
+//	// -1 should never come to here 
+//	Assert(KeyId != -1);
+//	// we shouldn't modify read-only index
+//	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+//	// index
+//	Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, RecFq));
+//}
+//
+//void TIndex2::Delete(const int& KeyId, const TStr& WordStr, const uint64& RecId) {
+//	const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
+//	Delete(KeyId, WordId, RecId, 1);
+//}
+//
+//void TIndex2::Delete(const int& KeyId, const TStrV& WordStrV, const uint64& RecId) {
+//	// load word-counts
+//	TUInt64H WordIdH;
+//	for (int WordN = 0; WordN < WordStrV.Len(); WordN++) {
+//		const TStr WordStr = WordStrV[WordN]; //.GetLc();
+//		WordIdH.AddDat(IndexVoc->AddWordStr(KeyId, WordStr))++;
+//	}
+//	// delete words from index
+//	int WordKeyId = WordIdH.FFirstKeyId();
+//	while (WordIdH.FNextKeyId(WordKeyId)) {
+//		const uint64 WordId = WordIdH.GetKey(WordKeyId);
+//		const int WordFq = WordIdH[WordKeyId];
+//		Delete(KeyId, WordId, RecId, WordFq);
+//	}
+//}
+//
+//void TIndex2::Delete(const uint& StoreId, const TStr& KeyNm, const TStr& WordStr, const uint64& RecId) {
+//	const int KeyId = IndexVoc->GetKeyId(StoreId, KeyNm);
+//	const uint64 WordId = IndexVoc->AddWordStr(KeyId, WordStr);
+//	Delete(KeyId, WordId, RecId, 1);
+//}
+//
+//void TIndex2::Delete(const uint& StoreId, const TStr& KeyNm, const uint64& WordId, const uint64& RecId) {
+//	const int KeyId = IndexVoc->GetKeyId(StoreId, KeyNm);
+//	Delete(KeyId, WordId, RecId, 1);
+//}
+//
+//void TIndex2::Delete(const uint& StoreId, const TStrPrV& KeyWordV, const uint64& RecId) {
+//	for (int KeyWordN = 0; KeyWordN < KeyWordV.Len(); KeyWordN++) {
+//		const TStrPr& KeyWord = KeyWordV[KeyWordN];
+//		// get key and word id
+//		const int KeyId = IndexVoc->GetKeyId(StoreId, KeyWord.Val1);
+//		const uint64 WordId = IndexVoc->AddWordStr(KeyId, KeyWord.Val2);
+//		// index the record
+//		Delete(KeyId, WordId, RecId, 1);
+//	}
+//}
+//
+//void TIndex2::DeleteText(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
+//	// tokenize string
+//	TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStr, WordIdV);
+//	// aggregate by word
+//	TUInt64H WordIdFqH;
+//	for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+//		WordIdFqH.AddDat(WordIdV[WordIdN])++;
+//	}
+//	// index words
+//	int WordKeyId = WordIdFqH.FFirstKeyId();
+//	while (WordIdFqH.FNextKeyId(WordKeyId)) {
+//		Delete(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+//	}
+//}
+//
+//void TIndex2::DeleteText(const uint& StoreId, const TStr& KeyNm,
+//	const TStr& TextStr, const uint64& RecId) {
+//
+//	DeleteText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStr, RecId);
+//}
+//
+//void TIndex2::DeleteText(const int& KeyId, const TStrV& TextStrV, const uint64& RecId) {
+//	// tokenize string
+//	TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStrV, WordIdV);
+//	// aggregate by word
+//	TUInt64H WordIdFqH;
+//	for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+//		WordIdFqH.AddDat(WordIdV[WordIdN])++;
+//	}
+//	// index words
+//	int WordKeyId = WordIdFqH.FFirstKeyId();
+//	while (WordIdFqH.FNextKeyId(WordKeyId)) {
+//		Delete(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+//	}
+//}
+//
+//void TIndex2::DeleteText(const uint& StoreId, const TStr& KeyNm,
+//	const TStrV& TextStrV, const uint64& RecId) {
+//
+//	DeleteText(IndexVoc->GetKeyId(StoreId, KeyNm), TextStrV, RecId);
+//}
+//
+//void TIndex2::DeleteJoin(const TWPt<TStore>& Store, const int& JoinId,
+//	const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
+//
+//	Delete(Store->GetJoinKeyId(JoinId), RecId, JoinRecId, JoinFq);
+//}
+//
+//void TIndex2::DeleteJoin(const TWPt<TStore>& Store, const TStr& JoinNm,
+//	const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
+//
+//	Delete(Store->GetJoinKeyId(JoinNm), RecId, JoinRecId, JoinFq);
+//}
+//
+//void TIndex2::Delete(const int& KeyId, const uint64& WordId, const uint64& RecId, const int& RecFq) {
+//	// -1 should never come to here 
+//	Assert(KeyId != -1);
+//	// we shouldn't modify read-only index
+//	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+//	if (RecFq == TInt::Mx) {
+//		// full delete from index
+//		Gix->DelItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, 0));
+//	} else {
+//		// add item with negative count, merger will delete item if necessary
+//		Gix->AddItem(TKeyWord(KeyId, WordId), TQmGixItem(RecId, -RecFq));
+//	}
+//}
+//
+//void TIndex2::Index(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
+//	Index(IndexVoc->GetKeyId(StoreId, KeyNm), Loc, RecId);
+//}
+//
+//void TIndex2::Index(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
+//	// we shouldn't modify read-only index
+//	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+//	// if new key, create sphere first
+//	if (!GeoIndexH.IsKey(KeyId)) { GeoIndexH.AddDat(KeyId, TGeoIndex::New()); }
+//	// index new location
+//	GeoIndexH.GetDat(KeyId)->AddKey(Loc, RecId);
+//}
+//
+//void TIndex2::Delete(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc, const uint64& RecId) {
+//	Delete(IndexVoc->GetKeyId(StoreId, KeyNm), Loc, RecId);
+//}
+//
+//void TIndex2::Delete(const int& KeyId, const TFltPr& Loc, const uint64& RecId) {
+//	// we shouldn't modify read-only index
+//	QmAssertR(!IsReadOnly(), "Cannot edit read-only index!");
+//	// delete only if index exist 
+//	if (GeoIndexH.IsKey(KeyId)) { GeoIndexH.GetDat(KeyId)->DelKey(Loc, RecId); }
+//}
+//
+//bool TIndex2::LocEquals(const uint& StoreId, const TStr& KeyNm, const TFltPr& Loc1, const TFltPr& Loc2) const {
+//	return LocEquals(IndexVoc->GetKeyId(StoreId, KeyNm), Loc1, Loc2);
+//}
+//
+//bool TIndex2::LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const {
+//	return GeoIndexH.IsKey(KeyId) ? GeoIndexH.GetDat(KeyId)->LocEquals(Loc1, Loc2) : false;
+//}
+//
+//void TIndex2::MergeIndex(const TWPt<TIndex2>& TmpIndex) {
+//	Gix->MergeIndex(TmpIndex->Gix);
+//}
+//
+//void TIndex2::SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const {
+//	// prepare the query
+//	TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
+//	for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {
+//		ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+//	}
+//	PQmGixExpItem ExpItem = TQmGixExpItem::NewAndV(ExpItemV);
+//	// execute the query and filter the results to desired item type
+//	TQmGixItemV Tmp;
+//	DoQuery(ExpItem, DefMerger, Tmp);
+//	for (int i = 0; i < Tmp.Len(); i++)
+//		StoreRecIdFqV.Add(TUInt64IntKd(Tmp[i].Key, (uchar)Tmp[i].Dat));
+//}
+//
+//void TIndex2::SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const {
+//	// prepare the query
+//	TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
+//	for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {
+//		ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+//	}
+//	PQmGixExpItem ExpItem = TQmGixExpItem::NewOrV(ExpItemV);
+//	// execute the query and filter the results to desired item type	
+//	TQmGixItemV Tmp;
+//	DoQuery(ExpItem, DefMerger, Tmp);
+//	for (int i = 0; i < Tmp.Len(); i++)
+//		StoreRecIdFqV.Add(TUInt64IntKd(Tmp[i].Key, (uchar)Tmp[i].Dat));
+//}
+//
+//TPair<TBool, PRecSet> TIndex2::Search(const TWPt<TBase>& Base,
+//	const TQueryItem& QueryItem, const PQmGixExpMerger& Merger) const {
+//
+//	// get query result store
+//	TWPt<TStore> Store = QueryItem.GetStore(Base);
+//	// when query empty, return empty set
+//	if (QueryItem.Empty()) {
+//		return TPair<TBool, PRecSet>(false, TRecSet::New(Store));
+//	}
+//	// prepare the query
+//	PQmGixExpItem ExpItem = ToExpItem(QueryItem);
+//	// do the query
+//	TQmGixItemV Tmp;
+//	const bool NotP = DoQuery(ExpItem, Merger, Tmp);
+//	TUInt64IntKdV StoreRecIdFqV;
+//	for (int i = 0; i < Tmp.Len(); i++)
+//		StoreRecIdFqV.Add(TUInt64IntKd(Tmp[i].Key, (uchar)Tmp[i].Dat));
+//	// return record set
+//	PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+//	return TPair<TBool, PRecSet>(NotP, RecSet);
+//}
+//
+//PRecSet TIndex2::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
+//	const TFltPr& Loc, const double& Radius, const int& Limit) const {
+//
+//	TUInt64V RecIdV;
+//	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+//	if (GeoIndexH.IsKey(KeyId)) { GeoIndexH.GetDat(KeyId)->SearchRange(Loc, Radius, Limit, RecIdV); }
+//	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+//}
+//
+//PRecSet TIndex2::SearchNn(const TWPt<TBase>& Base, const int& KeyId,
+//	const TFltPr& Loc, const int& Limit) const {
+//
+//	TUInt64V RecIdV;
+//	const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+//	if (GeoIndexH.IsKey(KeyId)) { GeoIndexH.GetDat(KeyId)->SearchNn(Loc, Limit, RecIdV); }
+//	return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdV);
+//}
+//
+//void TIndex2::GetJoinRecIdFqV(const int& JoinKeyId, const uint64& RecId, TUInt64IntKdV& JoinRecIdFqV) const {
+//	TKeyWord KeyWord(JoinKeyId, RecId);
+//	if (!Gix->IsKey(KeyWord)) { return; }
+//	PQmGixItemSet res = Gix->GetItemSet(KeyWord); res->Def();
+//	for (int i = 0; i<res->GetItems(); i++) {
+//		const TQmGixItem& Item = res->GetItem(i);
+//		JoinRecIdFqV.Add(TUInt64IntKd(Item.Key, (uchar)Item.Dat));
+//	}
+//}
+//
+//void TIndex2::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) {
+//	Gix->SaveTxt(FNm, TQmGixKeyStr::New(Base, IndexVoc));
+//}
+//
+//
+////////////////////////////////////////////////////////////////////////////////
 
 }
