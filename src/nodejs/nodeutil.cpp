@@ -390,3 +390,16 @@ v8::Local<v8::Value> TNodeJsUtil::GetStrArr(const TStrV& StrV) {
     }
     return EscapableHandleScope.Escape(JsStrV);
 }
+
+PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+	EAssertR(Args.Length() >= ArgN, "TNodeJsUtil::GetArgMem: Invalid number of arguments!");
+	EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgMem: Argument is not an object!");
+
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	v8::Local<v8::Object> Obj = Args[0]->ToObject();
+	v8::ExternalArrayType ExternalType = Obj->GetIndexedPropertiesExternalArrayDataType();
+	if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();
+	int Len = Obj->GetIndexedPropertiesExternalArrayDataLength();
+	return TMem::New(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
+}

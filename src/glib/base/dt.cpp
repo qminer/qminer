@@ -329,6 +329,29 @@ TStr TMem::GetAsStr(const char& NewNullCh) const {
   }
 }
 
+TStr TMem::GetHexStr() const {
+	TChA ChA;	
+	for (int ChN = 0; ChN< BfL ; ChN++){
+		uchar Ch = uchar(Bf[ChN]);
+		char MshCh = TCh::GetHexCh((Ch / 16) % 16);
+		char LshCh = TCh::GetHexCh(Ch % 16);
+		ChA += MshCh; ChA += LshCh;
+	}
+	return TStr(ChA);
+}
+
+TMem TMem::GetFromHex(const TStr& Str) {
+	int StrLen = Str.Len(); IAssert(StrLen % 2 == 0);
+	TChA ChA; int ChN = 0;
+	while (ChN<StrLen){
+		char MshCh = Str.GetCh(ChN); ChN++;
+		char LshCh = Str.GetCh(ChN); ChN++;
+		uchar Ch = uchar(TCh::GetHex(MshCh) * 16 + TCh::GetHex(LshCh));		
+		ChA += Ch;
+	}
+	return TMem(ChA.CStr(), ChA.Len());
+}
+
 /////////////////////////////////////////////////
 // Input-Memory
 TMemIn::TMemIn(const TMem& _Mem, const int& _BfC):
@@ -1047,6 +1070,7 @@ TStr TStr::GetFromHex() const {
 	char MshCh = GetCh(ChN); ChN++;
 	char LshCh = GetCh(ChN); ChN++;
     uchar Ch=uchar(TCh::GetHex(MshCh)*16+TCh::GetHex(LshCh));
+	EAssertR(Ch != 0, "TStr::GetFromHex null terminator found! ");
     ChA+=Ch;
   }
   return TStr(ChA);

@@ -31,9 +31,7 @@ private:
 	//#- `base = qm.create(configPath, schemaPath, clear)` -- creates an empty base using the configuration in `configPath` and schema described in `schemaPath` (optional)
 	JsDeclareFunction(create);
 	//#- `base = qm.open(configPath, readOnly)` -- opens a base using the configuration in `configPath` using `readOnly` (boolean) parameter
-	JsDeclareFunction(open);	
-
-	JsDeclareFunction(test);
+	JsDeclareFunction(open);
 };
 
 ///////////////////////////////
