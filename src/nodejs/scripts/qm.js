@@ -1,3 +1,6 @@
+var nodefs = require('fs');
+var csv = require('fast-csv');
+
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
@@ -6,6 +9,10 @@ module.exports = exports = function (pathPrefix) {
     var fs = require('bindings')(pathPrefix + '/fs.node');
     var nodefs = require('fs');
 
+    //==================================================================
+    // STORE
+    //==================================================================
+    
     exports.Store.prototype.addTrigger = function (trigger) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         // name is automatically generated
@@ -23,6 +30,48 @@ module.exports = exports = function (pathPrefix) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         var streamAggr = new exports.StreamAggr(this.base, params, this.name);
     }
+    
+    //==================================================================
+    // RECORD SET
+    //==================================================================
+    
+    /**
+     * Saves the record set into a CSV file. Currently only supports 
+     * fields of numeric and String types.
+     */
+    exports.RecSet.prototype.saveCSV = function (fname, callback) {
+    	console.log('Writing ' + this.length + ' lines to CSV file: ' + fname + ' ...');
+
+    	// write to file
+    	var out = nodefs.createWriteStream(fname);
+    	var csvOut = csv.createWriteStream({headers: true});
+    	
+    	out.on('error', function (e) {
+    		callback(e);
+    	});
+    	
+    	out.on('finish', function () {
+    		callback();
+    	});
+    	
+    	csvOut.pipe(out);
+    	
+    	this.each(function (rec, idx) {
+    		try {
+	    		if (idx % 10000 == 0)
+	    			console.log(idx);
+	    		csvOut.write(rec.toJSON());
+    		} catch (e) {
+    			callback(e);
+    		}
+    	});
+    	
+    	csvOut.end();
+    }
+    
+    //==================================================================
+    // EXPORTS
+    //==================================================================
 
     // loading data into stores
     exports.load = function () {

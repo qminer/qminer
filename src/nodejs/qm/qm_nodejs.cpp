@@ -1304,6 +1304,8 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "newRecSet", _newRecSet);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sample", _sample);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "field", _field);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isNumeric", _isNumeric);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isString", _isString);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
@@ -1680,6 +1682,50 @@ void TNodeJsStore::field(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
 		}
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
+}
+
+void TNodeJsStore::isNumeric(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		const TStr FldNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore>& Store = JsStore->Store;
+
+		EAssertR(Store->IsFieldNm(FldNm), "store.isNumeric: Invalid field name: " + FldNm);
+
+		const int FldId = JsStore->Store->GetFieldId(FldNm);
+		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
+
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsInt() || FldDesc.IsUInt64()));
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
+}
+
+void TNodeJsStore::isString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		const TStr FldNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore>& Store = JsStore->Store;
+
+		EAssertR(Store->IsFieldNm(FldNm), "store.isString: Invalid field name: " + FldNm);
+
+		const int FldId = JsStore->Store->GetFieldId(FldNm);
+		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
+
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsStr()));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -2683,8 +2729,9 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	/*exports->Set(v8::String::NewFromUtf8(Isolate, "RecSet"),
-		tpl->GetFunction());*/
+
+	exports->Set(v8::String::NewFromUtf8(Isolate, "RecSet"),
+			tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsRecSet::New() {
