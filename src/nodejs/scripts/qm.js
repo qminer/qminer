@@ -7,7 +7,6 @@ module.exports = exports = function (pathPrefix) {
     exports = require('bindings')(pathPrefix + '/qm.node');
 
     var fs = require('bindings')(pathPrefix + '/fs.node');
-    var nodefs = require('fs');
 
     //==================================================================
     // STORE
@@ -36,37 +35,62 @@ module.exports = exports = function (pathPrefix) {
     //==================================================================
     
     /**
-     * Saves the record set into a CSV file. Currently only supports 
-     * fields of numeric and String types.
+     * Saves the record set into a CSV file specified in the opts parameter.
+     * 
+     * @param {object} opts - The options parameter contains 2 fields. The first field 'opts.fname' specifies the output file. The second field 'opts.headers' specifies if headers should be included in the output file.
+     * @param {function} callback - The callback fired when the operation finishes.
      */
-    exports.RecSet.prototype.saveCSV = function (fname, callback) {
-    	console.log('Writing ' + this.length + ' lines to CSV file: ' + fname + ' ...');
-
+    exports.RecSet.prototype.saveCSV = function (opts, callback) {
+    	// defaults
+    	if (opts.headers == null) opts.headers = true;
+    	
     	// write to file
-    	var out = nodefs.createWriteStream(fname);
-    	var csvOut = csv.createWriteStream({headers: true});
-    	
-    	out.on('error', function (e) {
+    	try {
+	    	console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
+	
+	    	var out = nodefs.createWriteStream(opts.fname);
+	    	var csvOut = csv.createWriteStream({headers: opts.headers});
+	    	
+	    	out.on('error', function (e) {
+	    		callback(e);
+	    	});
+	    	
+	    	out.on('finish', function () {
+	    		callback();
+	    	});
+	    	
+	    	csvOut.pipe(out);
+	    	
+	    	this.each(function (rec, idx) {
+	    		try {
+		    		if (idx % 10000 == 0)
+		    			console.log(idx);
+		    		csvOut.write(rec.toJSON());
+	    		} catch (e) {
+	    			callback(e);
+	    		}
+	    	});
+	    	
+	    	csvOut.end();
+    	} catch (e) {
     		callback(e);
-    	});
-    	
-    	out.on('finish', function () {
-    		callback();
-    	});
-    	
-    	csvOut.pipe(out);
-    	
-    	this.each(function (rec, idx) {
-    		try {
-	    		if (idx % 10000 == 0)
-	    			console.log(idx);
-	    		csvOut.write(rec.toJSON());
-    		} catch (e) {
-    			callback(e);
-    		}
-    	});
-    	
-    	csvOut.end();
+    	}
+    }
+    
+    //==================================================================
+    // FEATURE SPACE
+    //==================================================================
+    
+    //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
+    exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
+        // get index and value vectors
+        var valVec = spVec.valVec();
+        var idxVec = spVec.idxVec();
+        var cols = [];
+        for (var elN = 0; elN < idxVec.length; elN++) {
+            cols.push(this.getFtr(idxVec[elN]));
+        }
+        return cols;
     }
     
     //==================================================================
@@ -142,18 +166,6 @@ module.exports = exports = function (pathPrefix) {
             }
         nodefs.rmdirSync(dirPath);
     };
-
-    //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
-    exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
-        // get index and value vectors
-        var valVec = spVec.valVec();
-        var idxVec = spVec.idxVec();
-        var cols = [];
-        for (var elN = 0; elN < idxVec.length; elN++) {
-            cols.push(this.getFtr(idxVec[elN]));
-        }
-        return cols;
-    }
 
     return exports;
 }
