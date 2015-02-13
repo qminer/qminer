@@ -85,7 +85,6 @@ public:
 	PSIn SIn;
 
 	static v8::Local<v8::Object> New(const TStr& FNm);
-//	CppDeclareConstructor(TNodeJsFIn, const TStr&);
 private:
 	TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
 public:
@@ -102,37 +101,7 @@ public:
 	//#- `str = fin.readAll()` -- reads the whole file
 	JsDeclareFunction(readAll);
 };
-//class TNodeJsFIn : public node::ObjectWrap {
-//	friend class TNodeJsUtil;
-//public:
-//    PSIn SIn;
-//private:
-//    TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-//public:
-//    static void Init(v8::Handle<v8::Object> exports);
-//	static TStr ClassId;
-//    static v8::Local<v8::Object> New(const TStr& FNm);
-//
-//    //#
-//    //# **Functions and properties:**
-//    //#
-////    JsDeclareFunction(New);
-//    JsDeclareConstructor(TNodeJsFIn);
-//    //#- `char = fin.peekCh()` -- peeks a character
-//    JsDeclareFunction(peekCh);
-//    //#- `char = fin.getCh()` -- reads a character
-//    JsDeclareFunction(getCh);
-//    //#- `line = fin.readLine()` -- reads a line
-//    JsDeclareFunction(readLine);
-//    //#- `bool = fin.eof` -- end of stream?
-//    JsDeclareProperty(eof);
-//    //#- `len = fin.length` -- returns the length of input stream
-//    JsDeclareProperty(length);
-//    //#- `str = fin.readAll()` -- reads the whole file
-//    JsDeclareFunction(readAll);
-//private:
-//    static v8::Persistent<v8::Function> constructor;
-//};
+
 
 ///////////////////////////////
 // NodeJs-FOut

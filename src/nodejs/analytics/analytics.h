@@ -181,12 +181,13 @@ private:
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
-	friend class TNodeJsUtil;
-private:
+//#
+//# **Constructor:**
+//#
+//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
+//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
+JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
 	const static double DEFAULT_DELTA_TM;
-
-	static v8::Persistent <v8::Function> constructor;
 
 	TMc::PHierarchCtmc McModel;
 
@@ -199,17 +200,10 @@ private:
 
 	~TNodeJsHMChain();
 
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
+//	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+//	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
 
 public:
-	static void Init(v8::Handle<v8::Object> exports);
-	//#
-	//# **Constructor:**
-	//#
-	//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
-	//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-	JsDeclareFunction(New);
 	//#
 	//# **Functions and properties:**
 	//#

@@ -131,17 +131,23 @@
 		}	\
 	};
 
-
-
-#define JsDeclareClass(ClassNm)	\
-class ClassNm : public node::ObjectWrap {	\
+#define JsDeclareMembers(TClass)	\
 	friend class TNodeJsUtil;	\
+	static v8::Persistent<v8::Function> constructor;	\
 public:	\
-	static TStr ClassId;	\
+	const static TStr ClassId;	\
 	static void Init(v8::Handle<v8::Object> exports);	\
-	JsDeclareConstructor(ClassNm);	\
-private:	\
-	static v8::Persistent<v8::Function> constructor;
+	JsDeclareConstructor(TClass);	\
+private:
+
+#define JsDeclareClass(TClass) \
+class TClass : public node::ObjectWrap {	\
+	JsDeclareMembers(TClass);
+
+#define JsDeclareClassE(TClass, TExtends) \
+class TClass : public node::ObjectWrap, public TExtends {	\
+	JsDeclareMembers(TClass);
+
 
 //////////////////////////////////////////////////////
 // Node - Utilities
