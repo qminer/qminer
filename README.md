@@ -14,14 +14,16 @@ QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at
 
 ### Install 
 
-Prerequisites:
+**Prerequisites:**
 
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
  - Node v0-12-0: [http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/]. On Windows install it using the msi file.
  - npm:  [https://www.npmjs.com/package/npm]. On Windows npm is installed with Node when using the msi file.
  - Windows: Visual Studio 2013
 
-Install:
+---
+
+**Install:**
 
 	npm install qminer
 
@@ -31,18 +33,23 @@ Test:
 	cd node_modules/qminer/test/nodejs
 	mocha *.js
 
+---
 
-For developers:
+**Install for developers:**
 
 	git clone https://github.com/qminer/qminer.git
 	cd qminer
 	npm install
 
-Run tests: 
+For debug build use: `npm install --debug`
+
+Run tests for developers: 
 
 	npm install mocha -g
 	cd test/nodejs
 	mocha *.js
+
+---
 
 For more detailed installation check the following instructions:
 - [Linux installation](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
