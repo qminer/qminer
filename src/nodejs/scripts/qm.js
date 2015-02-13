@@ -44,12 +44,26 @@ module.exports = exports = function (pathPrefix) {
     	// defaults
     	if (opts.headers == null) opts.headers = true;
     	
-    	// write to file
     	try {
-	    	console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
+    		console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
+    		
+    		// find out which columns to quote
+    		var store = this.store;
+    		var fields = store.fields;
+    		
+    		var quoteColumns = {};
+    		for (var i = 0; i < fields.length; i++) {
+    			var fldName = fields[i].name;
+    			quoteColumns[fldName] = store.isString(fldName) || store.isDate(fldName);
+    		}
 	
+	    	// write to file
 	    	var out = nodefs.createWriteStream(opts.fname);
-	    	var csvOut = csv.createWriteStream({headers: opts.headers});
+	    	var csvOut = csv.createWriteStream({
+	    		headers: opts.headers,
+	    		quoteHeaders: true,
+	    		quoteColumns: quoteColumns
+	    	});
 	    	
 	    	out.on('error', function (e) {
 	    		callback(e);

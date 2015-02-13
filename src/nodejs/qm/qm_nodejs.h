@@ -322,6 +322,8 @@ private:
 	JsDeclareFunction(isNumeric)
 	//#- `bool = store.isString(fieldName)` -- returns true if the field is of String type
 	JsDeclareFunction(isString)
+	//#- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
+	JsDeclareFunction(isDate)
 	//#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
 	////#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks

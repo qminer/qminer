@@ -1306,6 +1306,7 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "field", _field);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isNumeric", _isNumeric);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "isString", _isString);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isDate", _isDate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
@@ -1726,6 +1727,28 @@ void TNodeJsStore::isString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
 
 		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsStr()));
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
+}
+
+void TNodeJsStore::isDate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		const TStr FldNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore>& Store = JsStore->Store;
+
+		EAssertR(Store->IsFieldNm(FldNm), "store.isString: Invalid field name: " + FldNm);
+
+		const int FldId = JsStore->Store->GetFieldId(FldNm);
+		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
+
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsTm()));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
