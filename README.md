@@ -12,31 +12,42 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 QMiner is developed in collaboration between [AILab](http://ailab.ijs.si/) at 
 [Jozef Stefan Institute](http://www.ijs.si/) and [Quintelligence](http://quintelligence.com).
 
-### Install when prerequisites are installed. 
+### Install 
 
-Linux:
-
- - npm install qminer
-
-Windows (see `NODE_ROOT` in prerequisites below):
-
- - npm install qminer --nodedir=NODE_ROOT
- 
 Prerequisites:
-
-To build the module we need Python, node.js, npm. In addition, Windows builds require node.js source code and Visual Studio 2013 (details below).
 
  - Python v2.7.3 is recommended. It was also tested on python 2.6. It doesn't work on python 3.
  - Node v0-12-0: [http://blog.nodejs.org/2015/02/06/node-v0-12-0-stable/]. On Windows install it using the msi file.
  - npm:  [https://www.npmjs.com/package/npm]. On Windows npm is installed with Node when using the msi file.
  - Windows: Visual Studio 2013
- - Windows: node.js source code. Download from:  [http://nodejs.org/dist/v0.12.0/node-v0.12.0.tar.gz] and extract the archive. The extracted folder (node-0.12.0) is referred to as `NODE_ROOT`.
- - Windows: node must be built from source as well as installed. See windows instructions
 
+Install:
+
+	npm install qminer
+
+Test:
+
+	npm install mocha -g
+	cd node_modules/qminer/test/nodejs
+	mocha *.js
+
+
+For developers:
+
+	git clone https://github.com/qminer/qminer.git
+	cd qminer
+	npm install
+
+Run tests: 
+
+	npm install mocha -g
+	cd test/nodejs
+	mocha *.js
 
 For more detailed installation check the following instructions:
 - [Linux installation](https://github.com/qminer/qminer/wiki/Installation-on-Linux)
-- [Windows installation](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
+- [Windows quick install](https://github.com/qminer/qminer/wiki/Quick-Installation-on-Windows)
+- [Windows using node-gyp](https://github.com/qminer/qminer/wiki/Installation-on-Windows)
 - [Mac OS X installation](https://github.com/qminer/qminer/wiki/Installation-on-Mac-OSX)
 
 ## Documentation
