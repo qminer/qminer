@@ -38,7 +38,7 @@ module.exports = exports = function (pathPrefix) {
      * Saves the record set into a CSV file specified in the opts parameter.
      * 
      * @param {object} opts - The options parameter contains 2 fields. The first field 'opts.fname' specifies the output file. The second field 'opts.headers' specifies if headers should be included in the output file.
-     * @param {function} callback - The callback fired when the operation finishes.
+     * @param {function} [callback] - The callback fired when the operation finishes.
      */
     exports.RecSet.prototype.saveCSV = function (opts, callback) {
     	// defaults
