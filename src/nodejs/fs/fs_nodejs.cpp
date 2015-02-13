@@ -225,7 +225,7 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ///////////////////////////////
 // NodeJs-FIn
 v8::Persistent<v8::Function> TNodeJsFIn::constructor;
-TStr TNodeJsFIn::ClassId = "FIn";
+const TStr TNodeJsFIn::ClassId = "FIn";
 
 void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -257,7 +257,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 }
 
 v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
-	// called from C++	
+	// called from C++
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 	// create an instance using the constructor
@@ -270,25 +270,10 @@ v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
 		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
 }
 
-void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	EAssertR(Args.IsConstructCall(), "TNodeJsFIn: not a constructor call (you forgot to use the new operator)");
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-	// set hidden class id
-	v8::Local<v8::Object> Instance = Args.This();
-	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
-	Instance->SetHiddenValue(key, value);
-	// empty constructor call just forwards the instance
-	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }
+TNodeJsFIn* TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
-	EAssertR(Args.Length() == 1 && Args[0]->IsString(),
-		"Expected a file path.");
-	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-	//EAssertR(TFile::Exists(FNm), "File does not exist.");
-    // Args.This() is an instance, wrap our C++ object
-	Args.GetReturnValue().Set(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a file path.");
+	return new TNodeJsFIn(*v8::String::Utf8Value(Args[0]->ToString()));
 }
 
 void TNodeJsFIn::peekCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {

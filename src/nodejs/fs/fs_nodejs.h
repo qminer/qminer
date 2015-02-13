@@ -80,37 +80,28 @@ public:
 //#
 //# ### Input File Stream
 //# 
-class TNodeJsFIn : public node::ObjectWrap {
-	friend class TNodeJsUtil;
+JsDeclareClass(TNodeJsFIn)
 public:
-    PSIn SIn;
-private:
-    TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
-public:
-    static void Init(v8::Handle<v8::Object> exports);	
-	static TStr ClassId;
-    static v8::Local<v8::Object> New(const TStr& FNm);    
+	PSIn SIn;
 
-    //# 
-    //# **Functions and properties:**
-    //#     
-	//#- `fin = new fs.FIn(fileName)` -- open file in read mode and return file input stream `fin`
-    JsDeclareFunction(New);
-    //#- `char = fin.peekCh()` -- peeks a character
-    JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()` -- reads a character
-    JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()` -- reads a line
-    JsDeclareFunction(readLine);
-    //#- `bool = fin.eof` -- end of stream?
-    JsDeclareProperty(eof);
-    //#- `len = fin.length` -- returns the length of input stream
-    JsDeclareProperty(length);
-    //#- `str = fin.readAll()` -- reads the whole file
-    JsDeclareFunction(readAll);
+	static v8::Local<v8::Object> New(const TStr& FNm);
 private:
-    static v8::Persistent<v8::Function> constructor;
+	TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
+public:
+	//#- `char = fin.peekCh()` -- peeks a character
+	JsDeclareFunction(peekCh);
+	//#- `char = fin.getCh()` -- reads a character
+	JsDeclareFunction(getCh);
+	//#- `line = fin.readLine()` -- reads a line
+	JsDeclareFunction(readLine);
+	//#- `bool = fin.eof` -- end of stream?
+	JsDeclareProperty(eof);
+	//#- `len = fin.length` -- returns the length of input stream
+	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
 };
+
 
 ///////////////////////////////
 // NodeJs-FOut
