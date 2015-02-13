@@ -94,6 +94,7 @@ public:
     //# 
     //# **Functions and properties:**
     //#     
+	//#- `fin = new fs.FIn(fileName)` -- open file in read mode and return file input stream `fin`
     JsDeclareFunction(New);
     //#- `char = fin.peekCh()` -- peeks a character
     JsDeclareFunction(peekCh);
