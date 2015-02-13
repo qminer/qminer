@@ -83,10 +83,14 @@ public:
 JsDeclareClass(TNodeJsFIn)
 public:
 	PSIn SIn;
-
-	static v8::Local<v8::Object> New(const TStr& FNm);
+	static void Init(v8::Handle<v8::Object> exports);
+	// Object factory (creating JS objects from C++ functions)
+	static v8::Local<v8::Object> New(const TStr& FNm) { return NewJsInstance(new TNodeJsFIn(FNm)); }
 private:
-	TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
+	// Mandatory, called in JS constructor. Needed if JsDeclareClass macro is used.
+	static TNodeJsFIn* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	// C++ constructor used internally
+	TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }	
 public:
 	//#- `char = fin.peekCh()` -- peeks a character
 	JsDeclareFunction(peekCh);

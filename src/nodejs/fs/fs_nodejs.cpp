@@ -256,20 +256,6 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 
 }
 
-v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
-	// called from C++
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	// create an instance using the constructor
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFIn::New: constructor is empty. Did you call TNodeJsFIn::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    // no arguments to constructor
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-	// wrap our C++ object
-	return HandleScope.Escape(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
-}
-
 TNodeJsFIn* TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	// parse arguments
 	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a file path.");

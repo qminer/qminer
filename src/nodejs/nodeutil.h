@@ -109,8 +109,24 @@
         } \
     };
 
+
+#define JsDeclareClass(TClass) \
+class TClass : public node::ObjectWrap {	\
+	JsDeclareMembers(TClass);
+
+#define JsDeclareClassE(TClass, TExtends) \
+class TClass : public node::ObjectWrap, public TExtends {	\
+	JsDeclareMembers(TClass);
+
+#define JsDeclareMembers(TClass)	\
+	friend class TNodeJsUtil;	\
+	static v8::Persistent<v8::Function> constructor;	\
+public:	\
+	const static TStr ClassId;	\
+	JsDeclareConstructor(TClass);	\
+private:
+
 #define JsDeclareConstructor(TClass)	\
-	static TClass* New(const v8::FunctionCallbackInfo<v8::Value>& Args);	\
 	static void _ ## New(const v8::FunctionCallbackInfo<v8::Value>& Args) {	\
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
 		v8::HandleScope HandleScope(Isolate); \
@@ -127,26 +143,18 @@
 			Args.GetReturnValue().Set(TNodeJsUtil::WrapJsInstance(Instance, New(Args)));	\
 		} catch (const PExcept& Except) {	\
 			Isolate->ThrowException(v8::Exception::TypeError(\
-			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in ") + TStr(#TClass) + ":" +  Except->GetMsgStr()).CStr()))); \
 		}	\
+	}	\
+	static v8::Local<v8::Object> NewJsInstance(TClass* Obj) {	\
+		v8::Isolate* Isolate = v8::Isolate::GetCurrent();	\
+		v8::EscapableHandleScope HandleScope(Isolate);	\
+		EAssertR(!constructor.IsEmpty(), TStr(#TClass) + TStr("::New: constructor is empty. Did you call ") + TStr(#TClass) + "::Init(exports); in this module's init function?");	\
+		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);	\
+		v8::Local<v8::Object> Instance = cons->NewInstance();	\
+		return HandleScope.Escape(	\
+			TNodeJsUtil::WrapJsInstance(Instance, Obj));	\
 	};
-
-#define JsDeclareMembers(TClass)	\
-	friend class TNodeJsUtil;	\
-	static v8::Persistent<v8::Function> constructor;	\
-public:	\
-	const static TStr ClassId;	\
-	static void Init(v8::Handle<v8::Object> exports);	\
-	JsDeclareConstructor(TClass);	\
-private:
-
-#define JsDeclareClass(TClass) \
-class TClass : public node::ObjectWrap {	\
-	JsDeclareMembers(TClass);
-
-#define JsDeclareClassE(TClass, TExtends) \
-class TClass : public node::ObjectWrap, public TExtends {	\
-	JsDeclareMembers(TClass);
 
 
 //////////////////////////////////////////////////////

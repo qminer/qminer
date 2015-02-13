@@ -200,10 +200,12 @@ JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
 
 	~TNodeJsHMChain();
 
+	static TNodeJsHMChain* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
 //	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
 //	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
 
 public:
+	static void Init(v8::Handle<v8::Object> exports);
 	//#
 	//# **Functions and properties:**
 	//#
