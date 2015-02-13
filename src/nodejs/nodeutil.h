@@ -107,7 +107,41 @@
             Isolate->ThrowException(v8::Exception::TypeError(\
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
         } \
-    }; 
+    };
+
+#define JsDeclareConstructor(TClass)	\
+	static TClass* New(const v8::FunctionCallbackInfo<v8::Value>& Args);	\
+	static void _ ## New(const v8::FunctionCallbackInfo<v8::Value>& Args) {	\
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+		v8::HandleScope HandleScope(Isolate); \
+		\
+		try {	\
+			EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");	\
+			\
+			v8::Local<v8::Object> Instance = Args.This();	\
+			v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");	\
+			v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());	\
+			Instance->SetHiddenValue(key, value);	\
+			if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }	\
+			\
+			Args.GetReturnValue().Set(TNodeJsUtil::WrapJsInstance(Instance, New(Args)));	\
+		} catch (const PExcept& Except) {	\
+			Isolate->ThrowException(v8::Exception::TypeError(\
+			v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr()))); \
+		}	\
+	};
+
+
+
+#define JsDeclareClass(ClassNm)	\
+class ClassNm : public node::ObjectWrap {	\
+	friend class TNodeJsUtil;	\
+public:	\
+	static TStr ClassId;	\
+	static void Init(v8::Handle<v8::Object> exports);	\
+	JsDeclareConstructor(ClassNm);	\
+private:	\
+	static v8::Persistent<v8::Function> constructor;
 
 //////////////////////////////////////////////////////
 // Node - Utilities
