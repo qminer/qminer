@@ -2125,6 +2125,7 @@ public:
 	};
 
 	/// Merger which sums up the frequencies
+	/// For small index data
 	class TQmGixDefMergerSmall : public TGixExpMerger<TQmGixKey, TQmGixItemSmall> {
 	public:
 		static PGixExpMerger New() { return new TQmGixDefMergerSmall(); }
@@ -2152,6 +2153,7 @@ public:
 	};
 
 	/// Merger which sums the frequencies but removes the duplicates (e.g. 3+1 = 1+1 = 2)
+	/// For small index data
 	class TQmGixRmDupMergerSmall : public TQmGixDefMergerSmall {
 	public:
 		static PGixExpMerger New() { return new TQmGixRmDupMergerSmall(); }
@@ -2212,6 +2214,8 @@ private:
     /// Executes GIX query expression against the index
     bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
 		TQmGixItemV& RecIdFqV) const;
+	/// Determines which Gix should be used for given KeyId
+	bool UseGixSmall(int KeyId) const { return true; } // todo
 
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
         const PIndexVoc& IndexVoc, const int64& CacheSize);
@@ -2230,7 +2234,7 @@ public:
 	/// Get index location
 	TStr GetIndexFPath() const { return IndexFPath; }
 	/// Get index cache size
-	uint64 GetIndexCacheSize() const { return Gix->GetMxCacheSize(); }
+	uint64 GetIndexCacheSize() const { return Gix->GetMxCacheSize(); } // todo
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
@@ -2315,7 +2319,7 @@ public:
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
     /// Check if the index is taking all the available cache space
-    bool IsCacheFull() const { return Gix->IsCacheFull(); }
+    bool IsCacheFull() const { return Gix->IsCacheFull(); } // todo
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
     /// Merge with another index
@@ -2340,14 +2344,25 @@ public:
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// get blob stats
-	const TBlobBsStats& GetBlobStats() { return Gix->GetBlobStats(); }
+	const TBlobBsStats& GetBlobStats() { return Gix->GetBlobStats(); } // todo
 	/// get gix stats
-	const TGixStats& GetGixStats(bool do_refresh = true) { return Gix->GetGixStats(do_refresh); }
+	const TGixStats& GetGixStats(bool do_refresh = true) { return Gix->GetGixStats(do_refresh); } // todo
 	/// reset blob stats
-	void ResetStats() { Gix->ResetStats(); }
+	void ResetStats() { Gix->ResetStats(); } // todo
 
 	/// perform partial flush of index contents
-	int PartialFlush(int WndInMsec = 500) { return Gix->PartialFlush(WndInMsec); }
+	int PartialFlush(int WndInMsec = 500) { 
+		int WndInMsecHalf = WndInMsec / 2;
+		int Res = 0; int LastRes = 0;
+		TTmStopWatch sw(true); 
+		while (sw.GetMSecInt() <= WndInMsec) {
+			Res += Gix->PartialFlush(WndInMsecHalf);
+			Res += GixSmall->PartialFlush(WndInMsecHalf);
+			if (Res == LastRes) break;
+			LastRes = Res;
+		}
+		return Res;
+	} // todo
 };
 //
 /////////////////////////////////
