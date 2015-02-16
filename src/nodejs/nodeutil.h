@@ -234,6 +234,14 @@ public:
 	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
 
 
+	template <class TClass>
+	static void _NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	template <class TClass>
+	static void _NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	template <class TClass>
+	static v8::Local<v8::Object> NewJsInstance(TClass* Obj);
+
+
     /// Create a new Javascript instance wrapped by the wrapper class
     template <class TWrap>
     static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope);
@@ -255,6 +263,62 @@ public:
 	/// Convert v8 external array (binary data) to PMem
 	static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 };
+
+
+
+template <class TClass>
+void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	try {
+		EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");
+		v8::Local<v8::Object> Instance = Args.This();
+		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+		// static TStr TClass:ClassId must be defined
+		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::ClassId.CStr());
+		Instance->SetHiddenValue(key, value);
+		// This is skipped in _NewCpp
+		TClass* Obj = TClass::NewFromArgs(Args);
+		Obj->Wrap(Instance);
+		Args.GetReturnValue().Set(Instance);
+	} catch (const PExcept& Except) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::ClassId + ":" + Except->GetMsgStr()).CStr())));
+	}
+}
+
+template <class TClass>
+void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	try {
+		EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");
+		v8::Local<v8::Object> Instance = Args.This();
+		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
+		// static TStr TClass:ClassId must be defined
+		v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, TClass::ClassId.CStr());
+		Instance->SetHiddenValue(key, value);
+		// wrap is done elsewhere in cpp
+		Args.GetReturnValue().Set(Instance);
+	}
+	catch (const PExcept& Except) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call, ClassId: ") + TClass::ClassId + ":" + Except->GetMsgStr()).CStr())));
+	}
+}
+
+// constructor should be linked to _NewCpp!
+template <class TClass>
+v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TClass* Obj) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+	EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
+	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
+	v8::Local<v8::Object> Instance = cons->NewInstance();
+	Obj->Wrap(Instance);	
+	return HandleScope.Escape(Instance);
+}
+
 
 template <class TVal>
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {

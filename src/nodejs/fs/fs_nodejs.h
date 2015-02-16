@@ -80,18 +80,37 @@ public:
 //#
 //# ### Input File Stream
 //# 
-JsDeclareClass(TNodeJsFIn)
-public:
-	PSIn SIn;
-	static void Init(v8::Handle<v8::Object> exports);
-	// Object factory (creating JS objects from C++ functions)
-	static v8::Local<v8::Object> New(const TStr& FNm) { return NewJsInstance(new TNodeJsFIn(FNm)); }
+class TNodeJsFIn : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+// Class implementation requirements:
+// Node framework: 
+//    -implement Init
+// creating object from C++ (using TNodeJsUtil::NewJsInstance(TClass* Obj))
+//    -define Constructor member
+//    -define ClassId member
+//    -set Constructor callback to TNodeJsUtil::_NewCpp (doesn't create a new pointer to the warpper) and inherit from template
+// creating from JS using 'new' 
+//	  -implement NewFromArgs (parses arguments and returns pointer to wrapper)
+//	  -define ClassId member
+//    -set template callback to TNodeJsUtil::_NewJs (this creates a new pointer to the wrapper)
 private:
-	// Mandatory, called in JS constructor. Needed if JsDeclareClass macro is used.
-	static TNodeJsFIn* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
-	// C++ constructor used internally
-	TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }	
+	static v8::Persistent<v8::Function> Constructor;
 public:
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr ClassId;
+	// wrapped C++ object
+	PSIn SIn;
+	~TNodeJsFIn(){ Constructor.Reset(); }
+	// C++ constructor
+	TNodeJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+private:	
+	// parses arguments, called by javascript constructor 
+	//#- `fin = new fs.FIn(fnm)` -- creates a new file input stream
+	static TNodeJsFIn* TNodeJsFIn::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+public:
+	//# 
+	//# **Functions and properties:**
+	//#   
 	//#- `char = fin.peekCh()` -- peeks a character
 	JsDeclareFunction(peekCh);
 	//#- `char = fin.getCh()` -- reads a character
@@ -104,6 +123,7 @@ public:
 	JsDeclareProperty(length);
 	//#- `str = fin.readAll()` -- reads the whole file
 	JsDeclareFunction(readAll);
+
 };
 
 
