@@ -106,7 +106,7 @@ public:
 private:	
 	// parses arguments, called by javascript constructor 
 	//#- `fin = new fs.FIn(fnm)` -- creates a new file input stream
-	static TNodeJsFIn* TNodeJsFIn::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsFIn* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
 	//# 
 	//# **Functions and properties:**
