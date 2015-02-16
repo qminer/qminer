@@ -448,10 +448,7 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 #ifndef MODULE_INCLUDE_FS
 ///////////////////////////////
 // Register functions, etc.  
-void init(v8::Handle<v8::Object> exports) {//, v8::Handle<v8::Object> module
-	/*v8::Local<v8::String> filename =
-		module->Get(v8::String::NewSymbol("filename")).As<v8::String>();
-	TNodeJsUtil::*/
+void init(v8::Handle<v8::Object> exports) {
 
     TNodeJsFs::Init(exports);
     TNodeJsFIn::Init(exports);

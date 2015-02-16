@@ -1683,6 +1683,10 @@ void init(v8::Handle<v8::Object> exports) {
 	TNodeJsFltVV::Init(exports);
 	TNodeJsSpVec::Init(exports);
 	TNodeJsSpMat::Init(exports);
+
+	// File stream
+	TNodeJsFIn::Init(exports);
+	TNodeJsFOut::Init(exports);
 }
 
 NODE_MODULE(analytics, init)

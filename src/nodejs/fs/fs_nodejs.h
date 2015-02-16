@@ -100,7 +100,6 @@ public:
 	static const TStr ClassId;
 	// wrapped C++ object
 	PSIn SIn;
-	~TNodeJsFIn(){ Constructor.Reset(); }
 	// C++ constructor
 	TNodeJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
 private:	
