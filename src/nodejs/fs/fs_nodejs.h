@@ -85,14 +85,16 @@ class TNodeJsFIn : public node::ObjectWrap {
 // Class implementation requirements:
 // Node framework: 
 //    -implement Init
+//    -make sure Init is called from somewhere (in this case from init function, registered with NODE_MODULE(...))
 // creating object from C++ (using TNodeJsUtil::NewJsInstance(TClass* Obj))
 //    -define Constructor member
 //    -define ClassId member
-//    -set Constructor callback to TNodeJsUtil::_NewCpp (doesn't create a new pointer to the warpper) and inherit from template
+//    -set Constructor callback to TNodeJsUtil::_NewCpp (doesn't create a new pointer to the wrapper) and inherit from template
 // creating from JS using 'new' 
 //	  -implement NewFromArgs (parses arguments and returns pointer to wrapper)
 //	  -define ClassId member
 //    -set template callback to TNodeJsUtil::_NewJs (this creates a new pointer to the wrapper)
+//    -attach template function to exports in Init function
 private:
 	static v8::Persistent<v8::Function> Constructor;
 public:

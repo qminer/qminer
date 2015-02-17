@@ -249,7 +249,7 @@ public:
 	/// Creates a new instance using TClass::Constructor and wraps it with Obj.
 	/// The Constructor should be linked with a function template that uses TNodeJsUtil::_NewCpp<Obj> as callback
 	template <class TClass>
-	static v8::Local<v8::Object> NewJsInstance(TClass* Obj);
+	static v8::Local<v8::Object> NewInstance(TClass* Obj);
 	
 
 	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
@@ -290,7 +290,7 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	try {
-		EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");
+		EAssertR(Args.IsConstructCall(), "Not a constructor call");
 		v8::Local<v8::Object> Instance = Args.This();
 		v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
 		// static TStr TClass:ClassId must be defined
@@ -305,9 +305,8 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 }
 
-// constructor should be linked to _NewCpp!
 template <class TClass>
-v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TClass* Obj) {
+v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::EscapableHandleScope HandleScope(Isolate);
 	EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
