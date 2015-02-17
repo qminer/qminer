@@ -46,11 +46,15 @@ TNodeJsSvmModel::~TNodeJsSvmModel() {
 }
 
 v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsSvmModel(ParamVal));
+	auto Object = new TNodeJsSvmModel(ParamVal);
+	Object->Wrap(Obj);
+	return Obj;	
 }
 
 v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsSvmModel(SIn));
+	auto Object = new TNodeJsSvmModel(SIn);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -410,7 +414,9 @@ TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::PRecLinReg& _Model):
 		Model(_Model) {}
 
 v8::Local<v8::Object> TNodeJsRecLinReg::WrapInst(const v8::Local<v8::Object> Obj, const TSignalProc::PRecLinReg& Model) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsRecLinReg(Model));
+	auto Object = new TNodeJsRecLinReg(Model);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 //v8::Local<v8::Object> TNodeJsRecLinReg::New(const TSignalProc::PRecLinReg& Model) {
@@ -1384,13 +1390,13 @@ TNodeJsNNet::TNodeJsNNet(TSIn& SIn) {
 
 }
 
-v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(ParamVal));
-}
-
-v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(SIn));
-}
+//v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
+//	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(ParamVal));
+//}
+//
+//v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
+//	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(SIn));
+//}
 
 void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1438,11 +1444,15 @@ void TNodeJsNNet::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) { // preverjanje, ce je input stream
 			// load the model from an input stream
 			// currently not used, will be implemented
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
-			Args.GetReturnValue().Set(TNodeJsNNet::WrapInst(Args.This(), *JsFIn->SIn));
+			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());			
+			auto Object = new TNodeJsNNet(*JsFIn->SIn);
+			Object->Wrap(Args.This());
+			Args.GetReturnValue().Set(Args.This());
 		} else { // dobil JSON
 			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-			Args.GetReturnValue().Set(TNodeJsNNet::WrapInst(Args.This(), ParamVal));
+			auto Object = new TNodeJsNNet(ParamVal);
+			Object->Wrap(Args.This());
+			Args.GetReturnValue().Set(Args.This());
 		}
 	} catch (const PExcept& Except) {
 		Isolate->ThrowException(

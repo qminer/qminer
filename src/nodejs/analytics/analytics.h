@@ -296,8 +296,8 @@ private:
 	TNodeJsNNet(const PJsonVal& ParamVal);
 	TNodeJsNNet(TSIn& SIn);
 
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+	//static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+	//static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);

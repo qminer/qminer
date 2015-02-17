@@ -140,7 +140,9 @@ private:
 			Instance->SetHiddenValue(key, value);	\
 			if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }	\
 			\
-			Args.GetReturnValue().Set(TNodeJsUtil::WrapJsInstance(Instance, New(Args)));	\
+			auto Obj = New(Args);	\
+			Obj->Wrap(Instance);	\
+			Args.GetReturnValue().Set(Instance);	\
 		} catch (const PExcept& Except) {	\
 			Isolate->ThrowException(v8::Exception::TypeError(\
 			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in ") + TStr(#TClass) + ":" +  Except->GetMsgStr()).CStr()))); \
@@ -152,8 +154,8 @@ private:
 		EAssertR(!constructor.IsEmpty(), TStr(#TClass) + TStr("::New: constructor is empty. Did you call ") + TStr(#TClass) + "::Init(exports); in this module's init function?");	\
 		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);	\
 		v8::Local<v8::Object> Instance = cons->NewInstance();	\
-		return HandleScope.Escape(	\
-			TNodeJsUtil::WrapJsInstance(Instance, Obj));	\
+		Obj->Wrap(Instance);	\
+		return HandleScope.Escape(Instance);	\
 	};
 
 
@@ -233,26 +235,22 @@ public:
 	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
 	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
 
-
+	/// Constructor callback: sets the hidden "class" property of new instance,
+	/// creates a new wrapper object and wraps the new instance. This callback
+	/// should be used when creating object from javascript using "new"
 	template <class TClass>
 	static void _NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	/// Constructor callback: Only sets the hidden "class" property of new instance
+	/// to ClassId (wrapper pointer construction should be done elsewhere, wrapping should be done by NewJsInstance(TClass* Obj))
+	/// This callback should be used when creating objects from C++ functions, by using TNodeJsUtil::NewJsInstance<Obj>
 	template <class TClass>
 	static void _NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	
+	/// Creates a new instance using TClass::Constructor and wraps it with Obj.
+	/// The Constructor should be linked with a function template that uses TNodeJsUtil::_NewCpp<Obj> as callback
 	template <class TClass>
 	static v8::Local<v8::Object> NewJsInstance(TClass* Obj);
-
-
-    /// Create a new Javascript instance wrapped by the wrapper class
-    template <class TWrap>
-    static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope);
-    /// Convenience method, creates a handle scope. If a handle scope is already present, the method
-    /// which takes it as an argument should be used.
-    template <class TWrap>
-    static v8::Local<v8::Object> NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate);
-
-    /// Create a new Javascript instance wrapped with the wrapper pointer
-    template <class TWrap>
-    static v8::Local<v8::Object> WrapJsInstance(v8::Handle<v8::Object> Instance, TWrap* Wrapper);
+	
 
 	static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
 	static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
@@ -319,7 +317,6 @@ v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TClass* Obj) {
 	return HandleScope.Escape(Instance);
 }
 
-
 template <class TVal>
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -329,25 +326,6 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Loc
 	Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
 }
 
-template <class TWrap>
-v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate, v8::EscapableHandleScope& HandleScope) {
-	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, ConsFun);
-	v8::Local<v8::Object> Instance = Cons->NewInstance();
-	Wrapper->Wrap(Instance);
-	return HandleScope.Escape(Instance);
-}
-
-template <class TWrap>
-v8::Local<v8::Object> TNodeJsUtil::NewJsInstance(TWrap* Wrapper, v8::Persistent<v8::Function>& ConsFun, v8::Isolate* Isolate) {
-	v8::EscapableHandleScope HandleScope(Isolate);
-	return NewJsInstance(Wrapper, ConsFun, Isolate, HandleScope);
-}
-
-template <class TWrap>
-v8::Local<v8::Object> TNodeJsUtil::WrapJsInstance(v8::Handle<v8::Object> Instance, TWrap* Wrapper) {
-	Wrapper->Wrap(Instance);
-	return Instance;
-}
 
 #endif
 

@@ -3803,21 +3803,37 @@ TNodeJsFtrSpace::TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn) {
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(FtrSpace));
+	auto Object = new TNodeJsFtrSpace(FtrSpace);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(Base, SIn));
+	auto Object = new TNodeJsFtrSpace(Base, SIn);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TQm::PFtrSpace& FtrSpace) {
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
-	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(FtrSpace), constructor, v8::Isolate::GetCurrent());
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	TNodeJsFtrSpace* JsFtrSpace = new TNodeJsFtrSpace(FtrSpace);
+	JsFtrSpace->Wrap(Instance);
+	return HandleScope.Escape(Instance);	
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TWPt<TQm::TBase> Base, TSIn& SIn) {
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
-	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(Base, SIn), constructor, v8::Isolate::GetCurrent());
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	TNodeJsFtrSpace* JsFtrSpace = new TNodeJsFtrSpace(Base, SIn);
+	JsFtrSpace->Wrap(Instance);
+	return HandleScope.Escape(Instance);
 }
 
 void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {

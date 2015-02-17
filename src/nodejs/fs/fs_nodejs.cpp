@@ -366,8 +366,9 @@ v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
 	// no arguments to constructor
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	// wrap our C++ object
-	return HandleScope.Escape(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
+	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
+	Obj->Wrap(Instance);	
+	return HandleScope.Escape(Instance);
 } 
 
 void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -387,8 +388,9 @@ void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
 	bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
 	// Args.This() is an instance, wrap our C++ object
-	Args.GetReturnValue().Set(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
+	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
+	Obj->Wrap(Instance);
+	Args.GetReturnValue().Set(Instance);	
 }
 
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
