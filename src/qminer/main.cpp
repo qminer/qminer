@@ -602,7 +602,7 @@ int main(int argc, char* argv[]) {
 					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
 					TRnd rnd(1212);
 					TQQueue<uint64> added_ids;
-					for (int i = 0; i < 200 * 1000; i++) {
+					for (int i = 0; i < 10 * 1000; i++) {
 						int r = rnd.GetUniDevInt(100);
 						if (i % 100 == 0) printf("==================== %d\n", i);
 						if (r < 10) {

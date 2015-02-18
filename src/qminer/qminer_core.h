@@ -2215,7 +2215,7 @@ private:
     bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
 		TQmGixItemV& RecIdFqV) const;
 	/// Determines which Gix should be used for given KeyId
-	bool UseGixSmall(int KeyId) const { return true; } // todo
+	bool UseGixSmall(const int& KeyId) const { return false; } // todo
 
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
         const PIndexVoc& IndexVoc, const int64& CacheSize);
@@ -2239,6 +2239,8 @@ public:
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
 	PQmGixExpMerger GetDefMerger() const { return DefMerger; }
+	/// Get default index merger - small gix
+	PQmGixExpMergerSmall GetDefMergerSmall() const { return DefMergerSmall; }
 
     /// Index RecId under (Key, Word)
     void Index(const int& KeyId, const uint64& WordId, const uint64& RecId);
@@ -2330,7 +2332,7 @@ public:
 	/// Do flat OR search, given the vector of inverted index queries
 	void SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
 	/// Search with special Merger (does not handle joins)
-	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger) const;
+	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const;
 	/// Do geo-location range (in meters) search
 	PRecSet SearchRange(const TWPt<TBase>& Base, const int& KeyId, 
         const TFltPr& Loc, const double& Radius, const int& Limit) const;
@@ -2348,7 +2350,7 @@ public:
 	/// get gix stats
 	const TGixStats& GetGixStats(bool do_refresh = true) { return Gix->GetGixStats(do_refresh); } // todo
 	/// reset blob stats
-	void ResetStats() { Gix->ResetStats(); } // todo
+	void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
 
 	/// perform partial flush of index contents
 	int PartialFlush(int WndInMsec = 500) { 
@@ -2362,7 +2364,7 @@ public:
 			LastRes = Res;
 		}
 		return Res;
-	} // todo
+	}
 };
 //
 /////////////////////////////////
@@ -2965,7 +2967,7 @@ private:
     
 	// searching
 	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
-	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger);
+	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall);
 
 public:
 	static PBase New(const TStr& FPath, const int64& IndexCacheSize) { 
