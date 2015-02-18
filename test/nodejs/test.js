@@ -51,3 +51,29 @@ describe('Functions Tests', function(){
   })
 });
 
+//////////////////////////////////////////////////////////////////
+// Function tests for matrix
+
+var mat = new la.Matrix();
+
+describe('Property Tests', function () {
+    describe('Matrix Row Test', function () {
+        it('should return rows: 0 for mat', function () {
+            assert.equal(mat.rows, 0);
+        })
+    })
+
+    describe('Matrix Col Test', function () {
+        it('should return cols: 0 for mat', function () {
+            assert.equal(mat.cols, 0);
+        })
+    })
+
+    describe('Matrix At Test', function () {
+        it('should throw exception (mat is empty)', function () {
+            assert.throws(function () {
+                var k = mat.at(0, 0);      // should throw
+            });
+        })
+    })
+});
