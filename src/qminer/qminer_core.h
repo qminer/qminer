@@ -742,7 +742,7 @@ public:
 	/// Helper function for returning JSon definition of joins
     PJsonVal GetStoreJoinsJson(const TWPt<TBase>& Base) const;
 	/// Helper function for returning JSon definition of store
-    PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
+    virtual PJsonVal GetStoreJson(const TWPt<TBase>& Base) const;
     /// Parse out record id from record JSon serialization
     uint64 GetRecId(const PJsonVal& RecVal) const;
 	

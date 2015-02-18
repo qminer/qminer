@@ -62,7 +62,7 @@ private:
 	JsDeclareFunction(close);
     //#- `store = base.store(storeName)` -- return store with name `storeName`; `store = null` when no such store
 	JsDeclareFunction(store);
-    //#- `strArr = base.getStoreList()` -- an array of strings listing by name all existing stores
+    //#- `strArr = base.getStoreList()` -- an array of store JSON representations
 	JsDeclareFunction(getStoreList);
     //#- `base.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
     //#- `base.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
@@ -318,6 +318,12 @@ private:
 	JsDeclareFunction(sample);
 	//#- `field = store.field(fieldName)` -- get details of field named `fieldName`
 	JsDeclareFunction(field);
+	//#- `bool = store.isNumeric(fieldName)` -- returns true if the field is of numeric type
+	JsDeclareFunction(isNumeric)
+	//#- `bool = store.isString(fieldName)` -- returns true if the field is of String type
+	JsDeclareFunction(isString)
+	//#- `bool = store.isDate(fieldName)` -- returns true if the field is of type Date
+	JsDeclareFunction(isDate)
 	//#- `key = store.key(keyName)` -- get [index key](#index-key) named `keyName`
 	JsDeclareFunction(key);
 	////#- `store.addTrigger(trigger)` -- add `trigger` to the store triggers. Trigger is a JS object with three properties `onAdd`, `onUpdate`, `onDelete` whose values are callbacks

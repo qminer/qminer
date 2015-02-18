@@ -1,11 +1,17 @@
+var nodefs = require('fs');
+var csv = require('fast-csv');
+
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
     exports = require('bindings')(pathPrefix + '/qm.node');
 
     var fs = require('bindings')(pathPrefix + '/fs.node');
-    var nodefs = require('fs');
 
+    //==================================================================
+    // STORE
+    //==================================================================
+    
     exports.Store.prototype.addTrigger = function (trigger) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         // name is automatically generated
@@ -23,6 +29,87 @@ module.exports = exports = function (pathPrefix) {
         // this == store instance: print //console.log(util.inspect(this, { colors: true })); 
         var streamAggr = new exports.StreamAggr(this.base, params, this.name);
     }
+    
+    //==================================================================
+    // RECORD SET
+    //==================================================================
+    
+    /**
+     * Saves the record set into a CSV file specified in the opts parameter.
+     * 
+     * @param {object} opts - The options parameter contains 2 fields. The first field 'opts.fname' specifies the output file. The second field 'opts.headers' specifies if headers should be included in the output file.
+     * @param {function} [callback] - The callback fired when the operation finishes.
+     */
+    exports.RecSet.prototype.saveCSV = function (opts, callback) {
+    	// defaults
+    	if (opts.headers == null) opts.headers = true;
+    	
+    	try {
+    		console.log('Writing ' + this.length + ' lines to CSV file: ' + opts.fname + ' ...');
+    		
+    		// find out which columns to quote
+    		var store = this.store;
+    		var fields = store.fields;
+    		
+    		var quoteColumns = {};
+    		for (var i = 0; i < fields.length; i++) {
+    			var fldName = fields[i].name;
+    			quoteColumns[fldName] = store.isString(fldName) || store.isDate(fldName);
+    		}
+	
+	    	// write to file
+	    	var out = nodefs.createWriteStream(opts.fname);
+	    	var csvOut = csv.createWriteStream({
+	    		headers: opts.headers,
+	    		quoteHeaders: true,
+	    		quoteColumns: quoteColumns
+	    	});
+	    	
+	    	out.on('error', function (e) {
+	    		callback(e);
+	    	});
+	    	
+	    	out.on('finish', function () {
+	    		callback();
+	    	});
+	    	
+	    	csvOut.pipe(out);
+	    	
+	    	this.each(function (rec, idx) {
+	    		try {
+		    		if (idx % 10000 == 0)
+		    			console.log(idx);
+		    		csvOut.write(rec.toJSON());
+	    		} catch (e) {
+	    			callback(e);
+	    		}
+	    	});
+	    	
+	    	csvOut.end();
+    	} catch (e) {
+    		callback(e);
+    	}
+    }
+    
+    //==================================================================
+    // FEATURE SPACE
+    //==================================================================
+    
+    //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
+    exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
+        // get index and value vectors
+        var valVec = spVec.valVec();
+        var idxVec = spVec.idxVec();
+        var cols = [];
+        for (var elN = 0; elN < idxVec.length; elN++) {
+            cols.push(this.getFtr(idxVec[elN]));
+        }
+        return cols;
+    }
+    
+    //==================================================================
+    // EXPORTS
+    //==================================================================
 
     // loading data into stores
     exports.load = function () {
@@ -93,18 +180,6 @@ module.exports = exports = function (pathPrefix) {
             }
         nodefs.rmdirSync(dirPath);
     };
-
-    //#- `qm.FeatureSpace.getSpFeatVecCols(spVec)` -- Return array of feature names based on feature space `fsp` where the elements of a sparse feature vector `spVec` are non-zero.
-    exports.FeatureSpace.prototype.getSpFeatVecCols = function (spVec) {
-        // get index and value vectors
-        var valVec = spVec.valVec();
-        var idxVec = spVec.idxVec();
-        var cols = [];
-        for (var elN = 0; elN < idxVec.length; elN++) {
-            cols.push(this.getFtr(idxVec[elN]));
-        }
-        return cols;
-    }
 
     return exports;
 }

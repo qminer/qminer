@@ -2400,6 +2400,25 @@ void TStoreImpl::SetFieldBowSpV(const uint64& RecId, const int& FieldId, const P
 	PutRecMem(RecId, FieldId, OutRecMem);
 }
 
+PJsonVal TStoreImpl::GetStoreJson(const TWPt<TBase>& Base) const {
+	PJsonVal Result = TStore::GetStoreJson(Base);
+
+	if (WndDesc.WindowType != TStoreWndType::swtNone) {
+		PJsonVal WindowJson = TJsonVal::NewObj();
+
+		WindowJson->AddToObj("type", WndDesc.WindowType == TStoreWndType::swtLength ? "length" : "time");
+		WindowJson->AddToObj("size", (int) WndDesc.WindowSize);
+
+		if (WndDesc.WindowType == TStoreWndType::swtTime) {
+			WindowJson->AddToObj("timeField", WndDesc.TimeFieldNm);
+		}
+
+		Result->AddToObj("window", WindowJson);
+	}
+
+	return Result;
+}
+
 ///////////////////////////////
 /// Create new stores in an existing base from a schema definition
 TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, 

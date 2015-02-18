@@ -181,12 +181,13 @@ private:
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
-class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
-	friend class TNodeJsUtil;
-private:
+//#
+//# **Constructor:**
+//#
+//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
+//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
+JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
 	const static double DEFAULT_DELTA_TM;
-
-	static v8::Persistent <v8::Function> constructor;
 
 	TMc::PHierarchCtmc McModel;
 
@@ -199,17 +200,12 @@ private:
 
 	~TNodeJsHMChain();
 
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
+	static TNodeJsHMChain* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+//	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+//	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);
-	//#
-	//# **Constructor:**
-	//#
-	//#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
-	//#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-	JsDeclareFunction(New);
 	//#
 	//# **Functions and properties:**
 	//#
@@ -228,6 +224,8 @@ public:
 	//#- of past states starting from `startState` in time `time`.
 	//#- If time is not specified it returns the most likely previous states.
 	JsDeclareFunction(pastStates);
+	//#- `probs = hmc.probsOverTime(level, state, dt)` --
+	JsDeclareFunction(probsOverTime);
 	//#- `stateIdV = hmc.getPastStates(level)` -- returns the previous states
 	JsDeclareFunction(histStates);
 
@@ -242,6 +240,8 @@ public:
 	JsDeclareFunction(fullCoords);
 	//#- `hist = hmc.histogram(stateId, ftrId)` -- returns the histogram of the specified feature in the specified state
 	JsDeclareFunction(histogram);
+	//#- `hist = hmc.histogram(height)` -- returns the IDs of states on the specified height
+	JsDeclareFunction(stateIds);
 
 	// callbacks
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
@@ -257,6 +257,11 @@ public:
 	//#- `hmc.rebuildHistograms(ftrColMat)` -- rebuilds the state histograms using the instances stored
 	//#- in the columns of the provided matrix
 	JsDeclareFunction(rebuildHistograms);
+
+	//#- `name = hmc.setStateName(stateId, stateNm)` -- Returns the name of the specified state.
+	JsDeclareFunction(getStateName);
+	//#- `hmc.setStateName(stateId, stateNm)` -- Sets the name of the state with the specified ID.
+	JsDeclareFunction(setStateName);
 
 	// parameters
 	//#- `hmc = hmc.getParams(params)` -- sets one or more parameters given
@@ -291,8 +296,8 @@ private:
 	TNodeJsNNet(const PJsonVal& ParamVal);
 	TNodeJsNNet(TSIn& SIn);
 
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+	//static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
+	//static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
 public:
 	static void Init(v8::Handle<v8::Object> exports);

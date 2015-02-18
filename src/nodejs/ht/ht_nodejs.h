@@ -241,12 +241,16 @@ typedef TNodeJsHash<TInt, TFlt, TAuxIntFltH> TNodeJsIntFltH;
 
 template<class TKey, class TDat, class TAux>
 v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Object> Obj) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHash<TKey, TDat, TAux>());
+	auto Object = new TNodeJsHash<TKey, TDat, TAux>();
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 template<class TKey, class TDat, class TAux>
 v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHash<TKey, TDat, TAux>(SIn));
+	auto Object = new TNodeJsHash<TKey, TDat, TAux>(SIn);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 
