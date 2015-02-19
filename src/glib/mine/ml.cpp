@@ -1,4 +1,6 @@
-#include "clust.h"
+#include "ml.h"
+
+using namespace TMl;
 
 //////////////////////////////////////////////////
 // Abstract clustering
@@ -470,4 +472,124 @@ void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 	}
 
 	InitStatistics(X, AssignIdxV);
+}
+
+
+///////////////////////////////////////////
+// Logistic Regression
+TLogReg::TLogReg(const double& _Lambda, const bool _Verbose):
+		Lambda(_Lambda),
+		WgtV(),
+		Verbose(_Verbose),
+		Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+
+TLogReg::TLogReg(TSIn& SIn):
+		Lambda(TFlt(SIn)),
+		WgtV(SIn),
+		Verbose(TBool(SIn)) {
+
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void TLogReg::Save(TSOut& SOut) const {
+	TFlt(Lambda).Save(SOut);
+	WgtV.Save(SOut);
+	TBool(Verbose).Save(SOut);
+}
+
+
+void TLogReg::Fit(const TFltVV& X, const TFltV& y, const double& Eps) {
+	const int NInst = X.GetCols();
+	const int Dim = X.GetRows();
+
+	// minimize the following objective function:
+	// L(w) = (sum(log(1 + exp(w*x_i)) - y_i*w*x_i) + lambda*beta*beta'/2) / m
+	// using Newton-Raphson algorithm:
+	// w <- w - H^(-1)(w)*g(w)
+	// g(w) = (X*(s(beta*x) - y)' + lambda*beta')
+	// H(w) = X*W*X^(-1) + lambda*I
+	// where H is the Hessian at point w, g is the gradient of the objective function at point w
+	// W is a diagonal matrix defined as W_ii = p_i(1 - p_i)
+
+	// temporary variables
+	TFltV ProbV(NInst, NInst);					// vector of probabilities
+	TFltV PrevProbV(NInst, NInst);				// vector of probs in the previous step, used to terminate the procedure
+	TFltV DeltaWgtV(Dim, Dim);					// the step used to update the weights
+	TFltV YMinP(NInst, NInst);
+	TFltV GradV(Dim, Dim);						// gradient
+	TFltVV XTimesW(Dim, NInst);					// temporary variable to compute (X*W)*X'
+	TFltVV H(Dim, Dim);							// Hessian
+	TFltVV X_t;	TLinAlg::Transpose(X, X_t);		// the transposed instance matrix
+	TVec<TIntFltKdV> WgtColSpVV(NInst, NInst);	// weight matrix
+
+	// generate weight matrix with only ones on the diagonal
+	// so you don't recreate all the object every iteration
+	for (int i = 0; i < NInst; i++) {
+		WgtColSpVV[i].Add(TIntFltKd(i, 1));
+	}
+
+	WgtV.Gen(Dim);
+
+	// perform the algorithm
+	double Diff = TFlt::PInf;
+	int k = 1;
+	while (Diff > Eps) {
+		if (k % 10 == 0) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Step: %d, diff: %.3f", k, Diff);
+		}
+
+		// compute the probabilities p_i = 1 / (1 + exp(-w*x_i)) and
+		// compute the weight matrix diagonal W_ii = p_i(1 - p_i)
+		TLinAlg::Multiply(X_t, WgtV, ProbV);
+		for (int i = 0; i < NInst; i++) {
+			ProbV[i] = 1 / (1 + TMath::Power(TMath::E, -ProbV[i]));
+			WgtColSpVV[i][0].Dat = ProbV[i]*(1 - ProbV[i]);
+		}
+
+		// compute the Hessian H = X*W*X' + lambda*I
+		// 1) compute X*W
+		TLinAlg::Multiply(X, WgtColSpVV, XTimesW);
+		// 2) compute H = (X*W)*X'
+		TLinAlg::Multiply(XTimesW, X_t, H);
+		// 3) add lambda to the diagonal of H
+		for (int i = 0; i < Dim; i++) {
+			H(i,i) += Lambda;
+		}
+
+		// compute the gradient g(w) = X*(y - p)' + lambda * w
+		// 1) compute (y - p)
+		TLinAlg::LinComb(1, y, -1, ProbV, YMinP);
+		// 2) compute X*(y - p)
+		TLinAlg::Multiply(X, YMinP, GradV);
+		// 3) add lambda * w
+		for (int i = 0; i < Dim; i++) {
+			GradV[i] += Lambda*WgtV[i];
+		}
+
+		// compute delta_w = H(w) \ (g(w))
+		TNumericalStuff::SolveSymetricSystem(H, GradV, DeltaWgtV);
+
+		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Got NaNs while fitting logistic regression! The weights could still be OK.");
+			break;
+		}
+
+		// update the current weight vector
+		for (int i = 0; i < Dim; i++) {
+			WgtV[i] += DeltaWgtV[i];
+		}
+
+		// recompute the termination criteria and store the probabilities for
+		// the next iteration
+		Diff = TFlt::NInf;
+		for (int i = 0; i < NInst; i++) {
+			if (TFlt::Abs(PrevProbV[i] - ProbV[i]) > Diff) {
+				Diff = TFlt::Abs(PrevProbV[i] - ProbV[i]);
+			}
+
+			PrevProbV[i] = ProbV[i];
+		}
+
+		k++;
+	}
 }

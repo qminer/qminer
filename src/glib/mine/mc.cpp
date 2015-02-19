@@ -1127,6 +1127,89 @@ TFullMatrix TCtMChain::GetJumpMatrix(const TFullMatrix& QMat) {
 	return JumpMat;
 }
 
+////////////////////////////////////////////////
+// State assistant
+TStateAssist::TStateAssist(const bool _Verbose):
+		ClassifyV(),
+		Rnd(1),
+		Verbose(_Verbose),
+		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+
+TStateAssist::TStateAssist(TSIn& SIn):
+		ClassifyV(SIn),
+		Rnd(SIn),
+		Verbose(TBool(SIn)) {
+
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void TStateAssist::Save(TSOut& SOut) const {
+	ClassifyV.Save(SOut);
+	Rnd.Save(SOut);
+	TBool(Verbose).Save(SOut);
+}
+
+void TStateAssist::Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch) {
+	// get all the heights from the hierarchy
+	TFltV HeightV;	Hierarch->GetUniqueHeightV(HeightV);
+
+	TVector AssignV = Clust->Assign(X);
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist, total levels %d ...", HeightV.Len());
+
+	// go through all the heights
+	for (int HeightIdx = 0; HeightIdx < HeightV.Len() - 1; HeightIdx++) {
+		const double Height = HeightV[HeightIdx];
+
+		// on each height compute a classifier for one state vs all the rest
+		TIntV StateIdV; TVec<TIntV> StateSetV;
+		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
+
+		// create the classifiers
+		for (int i = 0; i < StateSetV.Len(); i++) {
+			ClassifyV.Add(TLogReg(10));
+		}
+
+		// each state is the target state exactly once on this level
+		for (int TrgIdx = 0; TrgIdx < StateSetV.Len(); TrgIdx++) {
+			const TIntSet TargetStateSet(StateSetV[TrgIdx]);
+
+			TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(TInt(StateId)); }, TargetIdxV);
+			TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(TInt(StateId)); }, NonTargetIdxV);
+
+			// make the sets equally sized
+			if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
+				NonTargetIdxV.Shuffle(Rnd);
+				NonTargetIdxV.Trunc(TargetIdxV.Len());
+			} else if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
+				TargetIdxV.Shuffle(Rnd);
+				TargetIdxV.Trunc(NonTargetIdxV.Len());
+			}
+
+			// get the instances
+			TFullMatrix PosInstMat = X(TVector::Range(X.GetRows()), TargetIdxV);
+			TFullMatrix NegInstMat = X(TVector::Range(X.GetRows()), NonTargetIdxV);
+
+			TFltVV InstanceMat(X.GetRows(), PosInstMat.GetCols() + NegInstMat.GetCols());
+			TFltV y(PosInstMat.GetCols() + NegInstMat.GetCols(), PosInstMat.GetCols() + NegInstMat.GetCols());
+			for (int ColIdx = 0; ColIdx < PosInstMat.GetCols(); ColIdx++) {
+				for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
+					InstanceMat(RowIdx, ColIdx) = PosInstMat(RowIdx, ColIdx);
+				}
+				y[ColIdx] = 1;
+			}
+			for (int ColIdx = 0; ColIdx < NegInstMat.GetCols(); ColIdx++) {
+				for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
+					InstanceMat(RowIdx, PosInstMat.GetCols() + ColIdx) = NegInstMat(RowIdx, ColIdx);
+				}
+				y[PosInstMat.GetCols() + ColIdx] = 0;
+			}
+
+			ClassifyV[TrgIdx].Fit(InstanceMat, y);
+		}
+	}
+}
+
 /////////////////////////////////////////////////////////////////
 // Hierarchical continous time Markov Chain
 THierarchCtmc::THierarchCtmc():
@@ -1151,6 +1234,7 @@ THierarchCtmc::THierarchCtmc(TSIn& SIn):
 	Clust(TFullClust::Load(SIn)),
 	MChain(TMChain::Load(SIn)),
 	Hierarch(THierarch::Load(SIn)),
+	StateAssist(new TStateAssist(true)),//StateAssist(StateAssist::Load(SIn)), FIXME
 	Verbose(TBool(SIn)),
 	Callback(nullptr),
 	Notify() {
@@ -1164,6 +1248,7 @@ void THierarchCtmc::Save(TSOut& SOut) const {
 	Clust->Save(SOut);
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
+	StateAssist->Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
@@ -1176,7 +1261,7 @@ PJsonVal THierarchCtmc::SaveJson() const {
 	// on each level of the hierarchy
 
 	// variables
-	TVec<TIntV> JoinedStateVV;
+	TVec<TIntV> StateSetV;
 	TIntV StateIdV;
 	TIntFltPrV StateIdProbPrV;
 
@@ -1192,26 +1277,19 @@ PJsonVal THierarchCtmc::SaveJson() const {
 		PJsonVal LevelJsonVal = TJsonVal::NewObj();
 
 		StateIdV.Clr();
-		JoinedStateVV.Clr();
+		StateSetV.Clr();
 		StateIdProbPrV.Clr();
 
 		// get the states on this level
-		Hierarch->GetStateSetsAtHeight(CurrHeight, StateIdV, JoinedStateVV);
-
-		Notify->OnNotifyFmt(TNotifyType::ntInfo, "States at height %.3f:", CurrHeight);
-		for (int i = 0; i < JoinedStateVV.Len(); i++) {
-			Notify->OnNotify(TNotifyType::ntInfo, TStrUtil::GetStr(JoinedStateVV[i], ","));
-		}
-
-		// get the index of the current state at this height
-//		const int CurrStateId = Hierarch->GetAncestorAtHeight(MChain->GetCurrStateId(), CurrHeight);
+		Hierarch->GetStateSetsAtHeight(CurrHeight, StateIdV, StateSetV);
 
 		// ok, now that I have all the states I need their expected staying times
 		// and transition probabilities
 		// iterate over all the parent states and get the joint staying times of their
 		// chindren
-		TFullMatrix TransitionMat = MChain->GetTransitionMat(JoinedStateVV);
-		TVector StateSizeV = MChain->GetStateSizeV(JoinedStateVV).Map([&](const TFlt& Val) { return Val*(CurrHeight + .1); });
+		TFullMatrix TransitionMat = MChain->GetTransitionMat(StateSetV);
+		TVector StateSizeV = MChain->GetStateSizeV(StateSetV).Map([&](const TFlt& Val) { return Val*(CurrHeight + .1); });
+		TVector HoldingTimeV = MChain->GetHoldingTimeV(StateSetV);
 
 		// construct state JSON
 		PJsonVal StateJsonV = TJsonVal::NewArr();
@@ -1224,6 +1302,7 @@ PJsonVal THierarchCtmc::SaveJson() const {
 			StateJson->AddToObj("x", StateCoords.Val1);
 			StateJson->AddToObj("y", StateCoords.Val2);
 			StateJson->AddToObj("size", StateSizeV[i]);
+			StateJson->AddToObj("holdingTime", HoldingTimeV[i]);
 
 			if (Hierarch->IsStateNm(StateId)) {
 				StateJson->AddToObj("name", Hierarch->GetStateNm(StateId));
@@ -1246,7 +1325,6 @@ PJsonVal THierarchCtmc::SaveJson() const {
 
 		LevelJsonVal->AddToObj("height", CurrHeight);
 		LevelJsonVal->AddToObj("states", StateJsonV);
-//		LevelJsonVal->AddToObj("currentState", CurrStateId);
 		LevelJsonVal->AddToObj("transitions", JumpMatJson);
 
 		Result->AddToArr(LevelJsonVal);
@@ -1259,6 +1337,7 @@ void THierarchCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
 	InitClust(X);
 	InitMChain(X, RecTmV);
 	InitHierarch();
+	InitStateAssist(X);
 }
 
 void THierarchCtmc::InitClust(const TFullMatrix& X) {
@@ -1276,6 +1355,10 @@ void THierarchCtmc::InitHierarch() {
 
 void THierarchCtmc::InitHistograms(TFltVV& InstMat) {
 	Clust->InitHistogram(TFullMatrix(InstMat, true));
+}
+
+void THierarchCtmc::InitStateAssist(const TFullMatrix& X) {
+	StateAssist->Init(X, Clust, Hierarch);
 }
 
 void THierarchCtmc::OnAddRec(const uint64 RecTm, const TFltV& Rec) {

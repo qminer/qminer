@@ -5,9 +5,10 @@
  *      Author: lstopar
  */
 
-#ifndef SRC_GLIB_MINE_CLUST_H_
-#define SRC_GLIB_MINE_CLUST_H_
+#ifndef SRC_GLIB_MINE_ML_H_
+#define SRC_GLIB_MINE_ML_H_
 
+namespace TMl {
 
 class TFullClust;
 typedef TPt<TFullClust> PFullClust;
@@ -158,12 +159,29 @@ protected:
 	const TStr GetType() const { return "dpmeans"; }
 };
 
-class TEuclMds {
+///////////////////////////////////////////
+// Logistic Regression
+class TLogReg {
+private:
+	double Lambda;
+	TFltV WgtV;
+
+	bool Verbose;
+	PNotify Notify;
+
 public:
-	// projects the points stored in the column of X onto d
-	// dimensions
-	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
+	// default constructor, sets the regularization parameter
+	TLogReg(const double& Lambda=1, const bool Verbose=true);
+	TLogReg(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	// Fits the regression model. The method assumes that the instances are stored in the
+	// columns of the matrix X and the responses are stored in vector y.
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
 };
 
 
-#endif /* SRC_GLIB_MINE_CLUST_H_ */
+}
+
+#endif /* SRC_GLIB_MINE_ML_H_ */

@@ -962,6 +962,8 @@ public:
     // with End (exclusive)
     static TVector Range(const int& End, const bool IsColVect = true);
 
+    void Add(const double& Val) { Vec.Add(Val); }
+
     // returns true if the vectors have the same orientation and the elements are the same
     bool operator ==(const TVector& Vect) const;
     // returns the element at index Idx
@@ -1009,6 +1011,7 @@ public:
 
     // returns a vector containing indexes of all the elements satisfying a condition
     template<typename TFunc> TVector Find(const TFunc& Func) const;
+    template<typename TFunc, typename TRes> void Find(const TFunc& Func, TRes& Res) const;
 
     // returns the 'euclidian' L2 norm
     double Norm() const;
@@ -1053,17 +1056,30 @@ TVector& TVector::Map(const TFunc& Func) {
 
 template <typename TFunc>
 TVector TVector::Find(const TFunc& Func) const {
-	const int& Dim = Len();
+	TVector Res; Find(Func, Res);
+	return Res;
+//	const int& Dim = Len();
+//
+//	TVector Res(IsColVector);
+//
+//	for (int i = 0; i < Dim; i++) {
+//		if (Func(Vec[i])) {
+//			Res.Vec.Add(i);
+//		}
+//	}
+//
+//	return Res;
+}
 
-	TVector Res(IsColVector);
+template <typename TFunc, typename TRes>
+void TVector::Find(const TFunc& Func, TRes& Res) const {
+	const int& Dim = Len();
 
 	for (int i = 0; i < Dim; i++) {
 		if (Func(Vec[i])) {
-			Res.Vec.Add(i);
+			Res.Add(i);
 		}
 	}
-
-	return Res;
 }
 
 /////////////////////////////////////////////////////////////////////////

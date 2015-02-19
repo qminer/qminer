@@ -624,76 +624,6 @@ TNodeJsHMChain::~TNodeJsHMChain() {
 	OutlierCallback.Reset();
 }
 
-//v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::EscapableHandleScope HandleScope(Isolate);
-//
-//	const int NPastStates = ParamVal->IsObjKey("pastStates") ? ParamVal->GetObjInt("pastStates") : 0;
-//	const bool Verbose = ParamVal->IsObjKey("verbose") ? ParamVal->GetObjBool("verbose") : true;
-//
-//	const PJsonVal TransitionJson = ParamVal->GetObjKey("transitions");
-//	const PJsonVal ClustJson = ParamVal->GetObjKey("clustering");
-//
-//	// transition modelling
-//	TMc::PMChain MChain;
-//	if (TransitionJson->GetObjStr("type") == "continuous") {
-//		const TStr TimeUnitStr = TransitionJson->GetObjStr("timeUnit");
-//		const double DeltaTm = TransitionJson->IsObjKey("deltaTime") ?
-//				TransitionJson->GetObjNum("deltaTime") : DEFAULT_DELTA_TM;
-//
-//		uint64 TimeUnit;
-//		if (TimeUnitStr == "second") {
-//			TimeUnit = TMc::TCtMChain::TU_SECOND;
-//		} else if (TimeUnitStr == "minute") {
-//			TimeUnit = TMc::TCtMChain::TU_MINUTE;
-//		} else if (TimeUnitStr == "hour") {
-//			TimeUnit = TMc::TCtMChain::TU_HOUR;
-//		} else if (TimeUnitStr == "day") {
-//			TimeUnit = TMc::TCtMChain::TU_DAY;
-//		} else {
-//			throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
-//		}
-//
-//		MChain = new TMc::TCtMChain(TimeUnit, DeltaTm, Verbose);
-//	} else if (TransitionJson->GetObjStr("type") == "discrete") {
-//		MChain = new TMc::TDtMChain(Verbose);
-//	}
-//
-//	// clustering
-//	PFullClust Clust = NULL;
-//
-//	const TStr ClustAlg = ClustJson->GetObjStr("type");
-//	const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
-//	const int NHistBins = ClustJson->IsObjKey("histogramBins") ? ClustJson->GetObjInt("histogramBins") : 20;
-//
-//	if (ClustAlg == "dpmeans") {
-//		const double Lambda = ClustJson->GetObjNum("lambda");
-//		const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
-//		const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
-//		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-//		Clust = new TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
-//	} else if (ClustAlg == "kmeans") {
-//		const int K = ClustJson->GetObjInt("k");
-//		const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-//		Clust = new TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
-//	} else {
-//		throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
-//	}
-//
-//	// create the model
-//	TMc::PHierarch AggClust = new TMc::THierarch(NPastStates + 1, Verbose);
-//
-//	// finish
-//	TMc::PHierarchCtmc HMcModel = new TMc::THierarchCtmc(Clust, MChain, AggClust, Verbose);
-//
-//	TNodeJsHMChain* Result = new TNodeJsHMChain(HMcModel);
-//	return TNodeJsUtil::WrapJsInstance(Obj, Result);
-//}
-//
-//v8::Local<v8::Object> TNodeJsHMChain::WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn) {
-//	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHMChain(SIn));
-//}
-
 void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -733,30 +663,6 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 #endif
 }
 
-//void TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//
-//	QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
-//	QmAssertR(Args.IsConstructCall(), "TNodeJsHMChain::New: Not a constructor call!");
-//
-//	try {
-//		if (TNodeJsUtil::IsArgJson(Args, 0)) {
-//			PJsonVal ArgJson = TNodeJsUtil::GetArgJson(Args, 0);
-//			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), ArgJson));
-//		} else {
-//			// load from file
-//			PSIn SIn = TNodeJsUtil::IsArgStr(Args, 0) ?
-//					TFIn::New(TNodeJsUtil::GetArgStr(Args, 0)) :
-//					ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject())->SIn;
-//
-//			Args.GetReturnValue().Set(TNodeJsHMChain::WrapInst(Args.This(), SIn));
-//		}
-//	} catch (const PExcept& Except) {
-//		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::New");
-//	}
-//}
-
 TNodeJsHMChain* TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
@@ -795,7 +701,7 @@ TNodeJsHMChain* TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& A
 		}
 
 		// clustering
-		PFullClust Clust = NULL;
+		TMl::PFullClust Clust = NULL;
 
 		const TStr ClustAlg = ClustJson->GetObjStr("type");
 		const double Sample = ClustJson->IsObjKey("sample") ? ClustJson->GetObjNum("sample") : 1;
@@ -806,11 +712,11 @@ TNodeJsHMChain* TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& A
 			const int MinClusts = ClustJson->IsObjKey("minClusts") ? ClustJson->GetObjInt("minClusts") : 1;
 			const int MxClusts = ClustJson->IsObjKey("maxClusts") ? ClustJson->GetObjInt("maxClusts") : TInt::Mx;
 			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
+			Clust = new TMl::TDpMeans(NHistBins, Sample, Lambda, MinClusts, MxClusts, TRnd(RndSeed), Verbose);
 		} else if (ClustAlg == "kmeans") {
 			const int K = ClustJson->GetObjInt("k");
 			const int RndSeed = ClustJson->IsObjKey("rndseed") ? ClustJson->GetObjInt("rndseed") : 0;
-			Clust = new TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
+			Clust = new TMl::TFullKMeans(NHistBins, Sample, K, TRnd(RndSeed), Verbose);
 		} else {
 			throw TExcept::New("Invalivalid clustering type: " + ClustAlg, "TJsHierCtmc::TJsHierCtmc");
 		}

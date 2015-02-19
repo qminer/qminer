@@ -10,6 +10,8 @@
 
 namespace TMc {
 
+using namespace TMl;
+
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
 class TEuclDist {
@@ -22,6 +24,13 @@ public:
 	// X and Y are assumed to have column vectors
 	// D_ij is the distance between x_i and y_j
 	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
+};
+
+class TEuclMds {
+public:
+	// projects the points stored in the column of X onto d
+	// dimensions
+	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
 };
 
 //class TClust;
@@ -258,6 +267,8 @@ public:
 	const TFltPr& GetStateCoords(const int& StateId) const { return StateCoordV[StateId]; }
 	// returns the total number of states in the hierarchy
 	int GetStates() const { return HierarchV.Len(); }
+	// returns the number of leafs in the hierarchy
+	int GetLeafs() const { return NLeafs; }
 
 	bool IsStateNm(const int& StateId) const;
 	void SetStateNm(const int& StateId, const TStr& StateNm);
@@ -364,6 +375,8 @@ public:
 	virtual TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const = 0;
 	virtual TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const = 0;
 
+	virtual TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const = 0;
+
 	// returns the number of states
 	int GetStates() const { return NStates; };
 	// returns the ID of the current state
@@ -419,6 +432,8 @@ public:
 	TVector GetStateSizeV(const TVec<TIntV>& StateSetV) const { return GetStatDist(StateSetV); }
 	TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const { return GetTransitionMat(StateSetV); };
+
+	TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const { throw TExcept::New("Not implemented!", "GetHoldingTimeV"); }
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
 	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
@@ -482,6 +497,8 @@ public:
 	TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const { return GetQMatrix(StateSetV); }
 
+	TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const { return GetHoldingTimeV(GetQMatrix(StateSetV)); }
+
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
 	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
 
@@ -521,6 +538,32 @@ private:
 	static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
 };
 
+////////////////////////////////////////////////
+// State assistant
+class TStateAssist;
+typedef TPt<TStateAssist> PStateAssist;
+class TStateAssist {
+private:
+	TCRef CRef;
+public:
+	friend class TPt<TStateAssist>;
+private:
+	TVec<TLogReg> ClassifyV;
+
+	TRnd Rnd;
+
+	bool Verbose;
+	PNotify Notify;
+
+public:
+	TStateAssist(const bool Verbose);
+	TStateAssist(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	void Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch);
+};
+
 class TMcCallback {
 public:
 	virtual ~TMcCallback() {}
@@ -541,6 +584,7 @@ private:
 	PFullClust Clust;
     PMChain MChain;
     PHierarch Hierarch;
+    PStateAssist StateAssist;
 
     bool Verbose;
 
@@ -571,6 +615,7 @@ public:
 	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV);
 	void InitHierarch();
 	void InitHistograms(TFltVV& InstMat);
+	void InitStateAssist(const TFullMatrix& X);
 
 	void OnAddRec(const uint64 RecTm, const TFltV& Rec);
 
