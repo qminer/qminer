@@ -50,6 +50,9 @@
 #include "kernelmethods.cpp"
 #include "semspace.cpp"
 
+// clustering
+#include "clust.cpp"
+
 // Markov Chains
 #include "mc.cpp"
 
