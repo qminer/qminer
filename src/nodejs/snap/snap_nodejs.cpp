@@ -95,7 +95,7 @@ void TNodeJsSnap::cascades(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	v8::String::Utf8Value str(Args[0]->ToString());
-	TStr FNm = *str;
+	TStr InStr = *str;
 
 	TNodeJsGraph<TNGraph>* NodeJsGraph = ObjectWrap::Unwrap<TNodeJsGraph<TNGraph>>(Args[1]->ToObject());
 
@@ -104,16 +104,17 @@ void TNodeJsSnap::cascades(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	const int Model = Args[4]->ToNumber()->Value();
 
 	TNetInfBs NIB;
-	TFIn FIn(FNm);
+
+	if (InStr.CountCh('\n') > 0) {
+		NIB.LoadCascadesTxt(InStr, Model, alpha);
+	}
+	else {
+		TFIn FIn(InStr);
+		NIB.LoadCascadesTxt(InStr, Model, alpha);
+	}
 	
-	NIB.LoadCascadesTxt(FIn, Model, alpha);
-
-	printf("done load");
-
 	NIB.Init();
 	NIB.GreedyOpt(Iters);
-
-	printf("done opt");
 
 	for (TNGraph::TNodeI NI = NIB.Graph->BegNI(); NI < NIB.Graph->EndNI(); NI++) {
 		if (!NodeJsGraph->Graph->IsNode(NI.GetId())) {
@@ -125,7 +126,6 @@ void TNodeJsSnap::cascades(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		NodeJsGraph->Graph->AddEdge(EI.GetSrcNId(), EI.GetDstNId());
 	}
 
-	printf("done all");
 }
 
  ///////////////////////////////
@@ -160,6 +160,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
 
 	// Properties
@@ -197,6 +198,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
 
 	// Properties
@@ -234,6 +236,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "adjMat", _adjMat);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "clusteringCoefficient", _clusteringCoefficient);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
 
 	// Properties
@@ -623,6 +626,17 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
 	}
 
 	Args.GetReturnValue().Set(TNodeJsSpMat::New(Mat));
+}
+
+template <class T>
+void TNodeJsGraph<T>::clusteringCoefficient(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+	
+	double Ccf = TSnap::GetClustCf(JsGraph->Graph);
+
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Ccf));
 }
 
 template <class T>

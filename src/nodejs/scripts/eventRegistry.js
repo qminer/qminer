@@ -6,6 +6,49 @@ function replaceAll(find, replace, str) {
 }
 
 module.exports = {
+		
+	login: function (resultCallback) {
+		
+		var user = {
+			email: 'mario.karlovcec@ijs.si',
+			pass: 'jerneja4521tioS'
+		};
+
+		var userString = JSON.stringify(user);
+
+		var headers = {
+		  'Content-Type': 'application/json',
+		  'Content-Length': userString.length
+		};
+
+		var options = {
+		  host: 'eventregistry.org',
+		  path: '/login',
+		  method: 'POST',
+		  headers: headers
+		};
+
+		var req = http.request(options, function(res) {
+			res.setEncoding('utf-8');
+			var responseString = '';
+
+			res.on('data', function(data) {
+				responseString += data;
+			});
+
+			res.on('end', function() {
+				resultCallback(JSON.parse(responseString));
+			});
+		});
+
+		req.on('error', function(e) {
+			console.log('error happened: '+e);
+		});
+		
+		req.write(userString);
+		req.end();
+		
+	},
 	
 	suggest: function (prefix, resultCallback) {
 	
@@ -67,7 +110,7 @@ module.exports = {
 	
 	getArticles: function (eventId, count, resultCallback) {
 	
-		http.get('http://eventregistry.org/json/event?action=getEvent&articlesCount='+count+'&articlesLang=eng&articlesPage=0&articlesSortBy=date&eventUri='+eventId+'&resultType=articles',function(res) {				
+		http.get('http://eventregistry.org/json/event?action=getEvent&articlesCount='+count+'&articlesPage=0&articlesSortBy=date&eventUri='+eventId+'&resultType=articles',function(res) {				
 			
 			var value='';
 		
@@ -114,5 +157,28 @@ module.exports = {
 			});
 			
 		});
+	},
+	
+	getArticleBatchesArr: function (er, arr, outArray, resultCallback) {
+		var i=0;
+		getArticleBatchesArr_rec(er, arr, i, outArray, resultCallback);
 	}
+}
+
+function getArticleBatchesArr_rec(er, arr, i, outArray, resultCallback) {
+
+	var eventId = arr[i];
+	
+	er.getArticles(eventId, 100, function(A) { 
+		articles = A[eventId].articles.results;
+		outArray.push(articles);
+		if (outArray.length<arr.length) {
+			i++;
+			getArticleBatchesArr_rec(er, arr, i, outArray, resultCallback);
+		}
+		if (outArray.length==arr.length) {
+			console.log('now calling back '+i);
+			resultCallback(outArray);
+		}
+	});
 }

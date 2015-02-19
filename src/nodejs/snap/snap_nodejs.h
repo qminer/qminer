@@ -67,6 +67,7 @@ private:
 	JsDeclareFunction(adjMat);
 	JsDeclareFunction(dump);
 	JsDeclareFunction(components);
+	JsDeclareFunction(clusteringCoefficient);
 	JsDeclareFunction(degreeCentrality);
 private:
 	static v8::Persistent<v8::Function> constructor;

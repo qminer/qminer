@@ -100,6 +100,7 @@ public:
   void Save(TSOut& SOut) const { CascV.Save(SOut); NodeNmH.Save(SOut); }
 
   void LoadCascadesTxt(TSIn& SIn, const int& Model, const double& alpha);
+  void LoadCascadesTxt(TStr& SIn, const int& Model, const double& alpha);
   void LoadGroundTruthTxt(TSIn& SIn);
 
   void AddGroundTruth(PNGraph& gt) { GroundTruth = gt; }
