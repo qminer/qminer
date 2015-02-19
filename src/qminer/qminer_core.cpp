@@ -3669,24 +3669,27 @@ namespace TQm {
 				// unknow operator
 				throw TQmExcept::New("Index: Unknown query item operator");
 			}
-		} else if (QueryItem.IsAnd()) {
-			// we have a vector of AND items
-			TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-				ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-			}
-			return TQmGixExpItem::NewAndV(ExpItemV);
-		} else if (QueryItem.IsOr()) {
-			// we have a vector of OR items
-			TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-				ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-			}
-			return TQmGixExpItem::NewOrV(ExpItemV);
-		} else if (QueryItem.IsNot()) {
-			// we have a negation (can have only one child item!)
-			QmAssert(QueryItem.GetItems() == 1);
-			return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
+
+			// todo dodaj še za gix small
+
+		//} else if (QueryItem.IsAnd()) {
+		//	// we have a vector of AND items
+		//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+		//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+		//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+		//	}
+		//	return TQmGixExpItem::NewAndV(ExpItemV);
+		//} else if (QueryItem.IsOr()) {
+		//	// we have a vector of OR items
+		//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+		//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+		//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+		//	}
+		//	return TQmGixExpItem::NewOrV(ExpItemV);
+		//} else if (QueryItem.IsNot()) {
+		//	// we have a negation (can have only one child item!)
+		//	QmAssert(QueryItem.GetItems() == 1);
+		//	return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
 		} else {
 			// unknow handle query item type
 			const int QueryItemType = (int)QueryItem.GetType();
