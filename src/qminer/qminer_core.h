@@ -2346,9 +2346,14 @@ public:
 	void SaveTxt(const TWPt<TBase>& Base, const TStr& FNm);
 
 	/// get blob stats
-	const TBlobBsStats& GetBlobStats() { return Gix->GetBlobStats(); } // todo
+	const TBlobBsStats& GetBlobStats() { 
+		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
+	}
 	/// get gix stats
-	const TGixStats& GetGixStats(bool do_refresh = true) { return Gix->GetGixStats(do_refresh); } // todo
+	const TGixStats& GetGixStats(bool do_refresh = true) { 
+		return TGixStats::Add(Gix->GetGixStats(do_refresh), GixSmall->GetGixStats(do_refresh));
+	}
+
 	/// reset blob stats
 	void ResetStats() { Gix->ResetStats(); GixSmall->ResetStats(); }
 

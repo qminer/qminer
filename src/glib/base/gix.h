@@ -702,6 +702,22 @@ public:
 	double AvgLen;
 	/// memory usage for gix
 	int64 MemUsed;
+
+	/// This method combines statistics from to Gix objects
+	static TGixStats Add(const TGixStats& Stat1, const TGixStats& Stat2) {
+		TGixStats res;
+		res.CacheAll = Stat1.CacheAll + Stat2.CacheAll;
+		res.CacheDirty = Stat1.CacheDirty + Stat2.CacheDirty;
+		res.MemUsed = Stat1.MemUsed + Stat2.MemUsed;
+		if (res.CacheAll > 0) {
+			res.CacheAllLoadedPerc = (Stat1.CacheAll*Stat1.CacheAllLoadedPerc + Stat2.CacheAll * Stat2.CacheAllLoadedPerc) / res.CacheAll;
+			res.AvgLen = (Stat1.CacheAll*Stat1.AvgLen + Stat2.CacheAll * Stat2.AvgLen) / res.CacheAll;
+		}
+		if (res.CacheDirty > 0) {
+			res.CacheDirtyLoadedPerc = (Stat1.CacheDirty*Stat1.CacheDirtyLoadedPerc + Stat2.CacheDirty * Stat2.CacheDirtyLoadedPerc) / res.CacheDirty;
+		}
+		return res;
+	}
 };
 
 /////////////////////////////////////////////////
@@ -851,7 +867,7 @@ public:
 		res += KeyIdH.GetMemUsed();
 		res += ItemSetCache.GetMemUsed();
 		return res;
-		/*return 
+		/*return
 			int64(sizeof(TCRef) + sizeof(TFAccess) + GixFNm.GetMemUsed() + GixBlobFNm.GetMemUsed()) +
 			int64(KeyIdH.GetMemUsed()) + sizeof(TGixMerger) + int64(ItemSetCache.GetMemUsed() + sizeof(PBlobBs) +
 			2*sizeof(int64) + sizeof(bool) + sizeof(TGixStats));*/

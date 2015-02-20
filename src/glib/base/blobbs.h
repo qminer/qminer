@@ -116,15 +116,43 @@ public:
 		AvgPutNewLen = AvgGetLen = AvgPutLen = 0;
 		Dels = Puts = PutsNew = Gets = SizeChngs = 0;
 	}
+	TBlobBsStats Clone() const {
+		TBlobBsStats res;
+		res.AvgGetLen = this->AvgGetLen;
+		res.AvgPutLen = this->AvgPutLen;
+		res.AvgPutNewLen = this->AvgPutNewLen;
+		res.Dels = this->Dels;
+		res.Gets = this->Gets;
+		res.Puts = this->Puts;
+		res.PutsNew = this->PutsNew;
+		res.SizeChngs = this->SizeChngs;
+		return res;
+	}
 	void Add(const TBlobBsStats& Othr) {
 		Puts += Othr.Puts;
 		PutsNew += Othr.PutsNew;
 		Gets += Othr.Gets;
 		SizeChngs += Othr.SizeChngs;
 		Dels += Othr.Dels;
-		AvgPutNewLen = (AvgPutNewLen*PutsNew + Othr.AvgPutNewLen*Othr.PutsNew) / (PutsNew + Othr.PutsNew);
-		AvgGetLen = (AvgGetLen*Gets + Othr.AvgGetLen*Othr.Gets) / (Gets + Othr.Gets);
-		AvgPutLen = (AvgPutLen*Puts + Othr.AvgPutLen*Othr.Puts) / (Puts + Othr.Puts);
+
+		AvgPutNewLen = 0;
+		AvgPutLen = 0;
+		AvgGetLen = 0;
+
+		if (PutsNew + Othr.PutsNew > 0) {
+			AvgPutNewLen = (AvgPutNewLen*PutsNew + Othr.AvgPutNewLen*Othr.PutsNew) / (PutsNew + Othr.PutsNew);
+		}
+		if (Gets + Othr.Gets) {
+			AvgGetLen = (AvgGetLen*Gets + Othr.AvgGetLen*Othr.Gets) / (Gets + Othr.Gets);
+		}
+		if (Puts + Othr.Puts > 0) {
+			AvgPutLen = (AvgPutLen*Puts + Othr.AvgPutLen*Othr.Puts) / (Puts + Othr.Puts);
+		}
+	}
+	static TBlobBsStats Add(const TBlobBsStats& Stat1, const TBlobBsStats& Stat2) {
+		TBlobBsStats res = Stat1.Clone();
+		res.Add(Stat2);
+		return res;
 	}
 };
 
