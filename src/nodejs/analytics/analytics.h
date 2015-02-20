@@ -131,35 +131,29 @@ public:
 //#
 //# ### Recursive Linear Regression model
 //#
-//# Holds online regression model. This object is result of `analytics.newRecLinReg`.
+//# Holds online regression model.
 class TNodeJsRecLinReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
-	static v8::Persistent <v8::Function> constructor;
-
 	TSignalProc::PRecLinReg Model;
-
 	TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
-
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TSignalProc::PRecLinReg& Model);
-
 public:
-//	static v8::Local<v8::Object> New(const TSignalProc::PRecLinReg& Model);
-
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr ClassId;
+private:
 	//#
 	//# **Constructor:**
 	//#
 	//#- `recLinRegModel = new analytics.RecLinReg(fin)` -- constructs a recursive linear regression model by loading it from input stream `fin`
 	//#- `recLinRegModel = new analytics.RecLinReg(recLinRegParameters)` -- constructs a recursive linear regression using a JSON parameter object `recLinRegParameters, whose properties are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
-    //#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
-    //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-	JsDeclareFunction(New);
+	//#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
+	//#     (regularization parameter to avoid over-fitting, default is 1.0).)
+	static TNodeJsRecLinReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 	//#
 	//# **Functions and properties:**
 	//#
-    //#- `recLinRegModel = recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
-	JsDeclareFunction(learn);
+    //#- `recLinRegModel = recLinRegModel.fit(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
+	JsDeclareFunction(fit);
     //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the
     //#     model and returns the prediction as a real number `num`
 	JsDeclareFunction(predict);
