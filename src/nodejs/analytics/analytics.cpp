@@ -1311,8 +1311,7 @@ void TNodeJsHMChain::InitCallbacks() {
 }
 ////////////////////////////////////////////////////////
 // Neural Network model
-v8::Persistent<v8::Function> TNodeJsNNet::constructor;
-
+const TStr TNodeJsNNet::ClassId = "NNet";
 TNodeJsNNet::TNodeJsNNet(const PJsonVal& ParamVal) {
 	TIntV LayoutV; // kako naj initiram tuki nek placeholder Vector?
 	double LearnRate;
@@ -1351,76 +1350,47 @@ TNodeJsNNet::TNodeJsNNet(TSIn& SIn) {
 
 }
 
-//v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
-//	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(ParamVal));
-//}
-//
-//v8::Local<v8::Object> TNodeJsNNet::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
-//	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsNNet(SIn));
-//}
-
 void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	try {
-		v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-		tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "NNet"));
-		// ObjectWrap uses the first internal field to store the wrapped pointer.
-		tpl->InstanceTemplate()->SetInternalFieldCount(1);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsNNet>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "NNet"));
+	// ObjectWrap uses the first internal field to store the wrapped pointer.
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-		// Add all methods, getters and setters here.
-		NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "setLearnRate", _setLearnRate);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-		//NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	// Add all methods, getters and setters here.
+	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "setLearnRate", _setLearnRate);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	//NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
-		// properties
-		//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-		//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
+	// properties
+	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+	//tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 
-		constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_ANALYTICS
 	exports->Set(v8::String::NewFromUtf8(Isolate, "NNet"),
-			   tpl->GetFunction());
+		tpl->GetFunction());
 #endif
-	} catch(const PExcept& Except) {
-		Isolate->ThrowException(
-			v8::Exception::TypeError(
-				v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())
-			)
-		);
 
-	}
 }
 
-void TNodeJsNNet::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsNNet* TNodeJsNNet::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	//QmAssertR(Args.IsConstructCall(), "SVC: not a constructor call!");
-	//QmAssertR(Args.Length() > 0, "SVC: missing arguments!");
+	EAssertR(Args.Length() == 1, "Expected one argument.");
 
-	try {
-		if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) { // preverjanje, ce je input stream
-			// load the model from an input stream
-			// currently not used, will be implemented
-			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());			
-			auto Object = new TNodeJsNNet(*JsFIn->SIn);
-			Object->Wrap(Args.This());
-			Args.GetReturnValue().Set(Args.This());
-		} else { // dobil JSON
-			PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-			auto Object = new TNodeJsNNet(ParamVal);
-			Object->Wrap(Args.This());
-			Args.GetReturnValue().Set(Args.This());
-		}
-	} catch (const PExcept& Except) {
-		Isolate->ThrowException(
-			v8::Exception::TypeError(
-				v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())
-			)
-		);
+	if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) {
+		// load the model from an input stream
+		// currently not used, will be implemented
+		TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+		return new TNodeJsNNet(*JsFIn->SIn);
+	}
+	else { // got JSON
+		PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+		return new TNodeJsNNet(ParamVal);
 	}
 }
 
