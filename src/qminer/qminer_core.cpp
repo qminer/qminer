@@ -2260,7 +2260,7 @@ namespace TQm {
 		KeyNm(SIn), WordVocId(SIn),
 		TypeFlags(LoadEnum<TIndexKeyType>(SIn)),
 		SortType(LoadEnum<TIndexKeySortType>(SIn)),
-		FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn) {}
+		FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn), UseSmallGix(SIn) {}
 
 	void TIndexKey::Save(TSOut& SOut) const {
 		StoreId.Save(SOut);
@@ -2269,6 +2269,7 @@ namespace TQm {
 		SaveEnum<TIndexKeySortType>(SOut, SortType);
 		FieldIdV.Save(SOut); JoinNm.Save(SOut);
 		Tokenizer.Save(SOut);
+		UseSmallGix.Save(SOut);
 	}
 
 	///////////////////////////////
@@ -3670,26 +3671,26 @@ namespace TQm {
 				throw TQmExcept::New("Index: Unknown query item operator");
 			}
 
-			// todo dodaj še za gix small
+			// this code was never really called from main TBase
 
-		//} else if (QueryItem.IsAnd()) {
-		//	// we have a vector of AND items
-		//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-		//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-		//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-		//	}
-		//	return TQmGixExpItem::NewAndV(ExpItemV);
-		//} else if (QueryItem.IsOr()) {
-		//	// we have a vector of OR items
-		//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-		//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-		//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-		//	}
-		//	return TQmGixExpItem::NewOrV(ExpItemV);
-		//} else if (QueryItem.IsNot()) {
-		//	// we have a negation (can have only one child item!)
-		//	QmAssert(QueryItem.GetItems() == 1);
-		//	return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
+			//} else if (QueryItem.IsAnd()) {
+			//	// we have a vector of AND items
+			//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+			//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+			//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+			//	}
+			//	return TQmGixExpItem::NewAndV(ExpItemV);
+			//} else if (QueryItem.IsOr()) {
+			//	// we have a vector of OR items
+			//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+			//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+			//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+			//	}
+			//	return TQmGixExpItem::NewOrV(ExpItemV);
+			//} else if (QueryItem.IsNot()) {
+			//	// we have a negation (can have only one child item!)
+			//	QmAssert(QueryItem.GetItems() == 1);
+			//	return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
 		} else {
 			// unknow handle query item type
 			const int QueryItemType = (int)QueryItem.GetType();
@@ -3697,6 +3698,47 @@ namespace TQm {
 		}
 		return TQmGixExpItem::NewEmpty();
 	}
+
+	TIndex::PQmGixExpItemSmall TIndex::ToExpItemSmall(const TQueryItem& QueryItem) const {
+		// todo
+		if (QueryItem.IsLeafGixSmall()) {
+			// we have a leaf, make it into expresion item
+			if (QueryItem.IsEqual()) {
+				// ==
+				TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
+				return TQmGixExpItemSmall::NewAndV(AllKeyV);
+			} else if (QueryItem.IsGreater()) {
+				// >=
+				TKeyWordV AllGreaterV;
+				IndexVoc->GetAllGreaterV(QueryItem.GetKeyId(),
+					QueryItem.GetWordId(), AllGreaterV);
+				return TQmGixExpItemSmall::NewOrV(AllGreaterV);
+			} else if (QueryItem.IsLess()) {
+				// <=
+				TKeyWordV AllLessV;
+				IndexVoc->GetAllLessV(QueryItem.GetKeyId(),
+					QueryItem.GetWordId(), AllLessV);
+				return TQmGixExpItemSmall::NewOrV(AllLessV);
+			} else if (QueryItem.IsNotEqual()) {
+				// !=
+				TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
+				return TQmGixExpItemSmall::NewNot(TQmGixExpItemSmall::NewAndV(AllKeyV));
+			} else if (QueryItem.IsWildChar()) {
+				// ~
+				TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
+				return TQmGixExpItemSmall::NewOrV(AllKeyV);
+			} else {
+				// unknow operator
+				throw TQmExcept::New("Index: Unknown query item operator");
+			}
+		} else {
+			// unknow handle query item type
+			const int QueryItemType = (int)QueryItem.GetType();
+			throw TQmExcept::New(TStr::Fmt("Index: QueryItem of type %d which must be handled outside TIndex", QueryItemType));
+		}
+		return TQmGixExpItemSmall::NewEmpty();
+	}
+
 	// todo
 	bool TIndex::DoQuery(const TIndex::PQmGixExpItem& ExpItem,
 		const PQmGixExpMerger& Merger, TQmGixItemV& ResIdFqV) const {
@@ -3706,9 +3748,18 @@ namespace TQm {
 		// execute query
 		return ExpItem->Eval(Gix, ResIdFqV, Merger);
 	}
+	// todo
+	bool TIndex::DoQuerySmall(const TIndex::PQmGixExpItemSmall& ExpItem,
+		const PQmGixExpMergerSmall& Merger, TQmGixItemSmallV& ResIdFqV) const {
+
+		// clean if there is anything on the input
+		ResIdFqV.Clr();
+		// execute query
+		return ExpItem->Eval(GixSmall, ResIdFqV, Merger);
+	}
 
 	TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access,
-		const PIndexVoc& _IndexVoc, const int64& CacheSize) {
+		const PIndexVoc& _IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall) {
 
 		IndexFPath = _IndexFPath;
 		Access = _Access;
@@ -3716,7 +3767,7 @@ namespace TQm {
 		DefMerger = TQmGixDefMerger::New();
 		Gix = TQmGix::New("Index", IndexFPath, Access, CacheSize/*, DefMerger*/);
 		DefMergerSmall = TQmGixDefMergerSmall::New();
-		GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSize/*, DefMerger*/);
+		GixSmall = TQmGixSmall::New("IndexSmall", IndexFPath, Access, CacheSizeSmall/*, DefMerger*/);
 		// initialize location index
 		TStr SphereFNm = IndexFPath + "Index.Geo";
 		if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -4030,27 +4081,56 @@ namespace TQm {
 	}
 
 	// todo
-	void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const {
+	void TIndex::SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
 		// prepare the query
 		TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
+		TVec<PQmGixExpItemSmall> ExpItemSmallV(KeyWordV.Len(), 0);
 		for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {
-			ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+			if (UseGixSmall(KeyWordV[ItemN].Val1)) {
+				ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+			} else {
+				ExpItemSmallV.Add(TQmGixExpItemSmall::NewItem(KeyWordV[ItemN]));
+			}
 		}
 		PQmGixExpItem ExpItem = TQmGixExpItem::NewAndV(ExpItemV);
+		PQmGixExpItemSmall ExpItemSmall = TQmGixExpItemSmall::NewAndV(ExpItemSmallV);
+
 		// execute the query and filter the results to desired item type
 		DoQuery(ExpItem, DefMerger, StoreRecIdFqV);
+		TQmGixItemSmallV Tmp;
+		DoQuerySmall(ExpItemSmall, DefMergerSmall, Tmp);
+		if (Tmp.Len()>0) {
+			TQmGixItemV Tmp2;
+			Upgrade(Tmp, Tmp2);
+			DefMerger->Intrs(StoreRecIdFqV, Tmp2);
+		}
 	}
 
 	// todo
-	void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const {
+	void TIndex::SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const {
+		
 		// prepare the query
 		TVec<PQmGixExpItem> ExpItemV(KeyWordV.Len(), 0);
-		for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {
-			ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+		TVec<PQmGixExpItemSmall> ExpItemSmallV(KeyWordV.Len(), 0);
+		for (int ItemN = 0; ItemN < KeyWordV.Len(); ItemN++) {			
+			if (UseGixSmall(KeyWordV[ItemN].Val1)) {
+				ExpItemV.Add(TQmGixExpItem::NewItem(KeyWordV[ItemN]));
+			} else {
+				ExpItemSmallV.Add(TQmGixExpItemSmall::NewItem(KeyWordV[ItemN]));
+			}
 		}
 		PQmGixExpItem ExpItem = TQmGixExpItem::NewOrV(ExpItemV);
+		PQmGixExpItemSmall ExpItemSmall = TQmGixExpItemSmall::NewOrV(ExpItemSmallV);
+
 		// execute the query and filter the results to desired item type
 		DoQuery(ExpItem, DefMerger, StoreRecIdFqV);
+		TQmGixItemSmallV Tmp;
+		DoQuerySmall(ExpItemSmall, DefMergerSmall, Tmp);
+		if (Tmp.Len()>0) {
+			TQmGixItemV Tmp2;
+			Upgrade(Tmp, Tmp2);
+			DefMerger->Union(StoreRecIdFqV, Tmp2);
+		}
 	}
 
 	// todo
@@ -4063,14 +4143,29 @@ namespace TQm {
 		if (QueryItem.Empty()) {
 			return TPair<TBool, PRecSet>(false, TRecSet::New(Store));
 		}
-		// prepare the query
-		PQmGixExpItem ExpItem = ToExpItem(QueryItem);
-		// do the query
-		TUInt64IntKdV StoreRecIdFqV;
-		const bool NotP = DoQuery(ExpItem, Merger, StoreRecIdFqV);
-		// return record set
-		PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
-		return TPair<TBool, PRecSet>(NotP, RecSet);
+		if (QueryItem.IsLeafGix()) {
+			// prepare the query
+			PQmGixExpItem ExpItem = ToExpItem(QueryItem);
+			// do the query
+			TUInt64IntKdV StoreRecIdFqV;
+			const bool NotP = DoQuery(ExpItem, Merger, StoreRecIdFqV);
+			// return record set
+			PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+			return TPair<TBool, PRecSet>(NotP, RecSet);
+		} else if (QueryItem.IsLeafGixSmall()) {
+			// prepare the query
+			PQmGixExpItemSmall ExpItem = ToExpItemSmall(QueryItem);
+			// do the query
+			TQmGixItemSmallV StoreRecIdFqVSmall;
+			const bool NotP = DoQuerySmall(ExpItem, MergerSmall, StoreRecIdFqVSmall);
+			TQmGixItemV StoreRecIdFqV;
+			Upgrade(StoreRecIdFqVSmall, StoreRecIdFqV);
+			// return record set
+			PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
+			return TPair<TBool, PRecSet>(NotP, RecSet);
+		} else {
+			Fail; // TODO this is error
+		}
 	}
 
 	PRecSet TIndex::SearchRange(const TWPt<TBase>& Base, const int& KeyId,
@@ -4125,7 +4220,7 @@ namespace TQm {
 		TempIndexFPathQ.Push(TempIndexFPath);
 		// prepare new temporary index
 		TEnv::Logger->OnStatus(TStr::Fmt("Creating a temporary index in %s ...", TempIndexFPath.CStr()));
-		TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize);
+		TempIndex = TIndex::New(TempIndexFPath, faCreate, IndexVoc, IndexCacheSize, IndexCacheSize);
 	}
 
 	void TTempIndex::Merge(const TWPt<TIndex>& Index) {
@@ -4138,7 +4233,7 @@ namespace TQm {
 			// load index
 			TEnv::Logger->OnStatus(TStr::Fmt("Merging a temporary index from %s ...", TempIndexFPath.CStr()));
 			PIndex NewIndex = TIndex::New(TempIndexFPath,
-				faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega));
+				faRdOnly, Index->GetIndexVoc(), int64(10 * TInt::Mega), int64(10 * TInt::Mega));
 			// merge with main index
 			Index->MergeIndex(NewIndex);
 			TEnv::Logger->OnStatus("Closing temporary index Start");
@@ -4355,7 +4450,7 @@ namespace TQm {
 		TEnv::Logger->OnStatus("Opening in create mode");
 		// prepare index
 		IndexVoc = TIndexVoc::New();
-		Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
+		Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize); // todo gix size small
 		// add standard operators
 		AddOp(TOpLinSearch::New());
 		AddOp(TOpGroupBy::New());
@@ -4384,7 +4479,7 @@ namespace TQm {
 		// load index
 		TFIn IndexVocFIn(FPath + "IndexVoc.dat");
 		IndexVoc = TIndexVoc::Load(IndexVocFIn);
-		Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize);
+		Index = TIndex::New(FPath, FAccess, IndexVoc, IndexCacheSize, IndexCacheSize); // todo gix size small
 		// add standard operators
 		AddOp(TOpLinSearch::New());
 		AddOp(TOpGroupBy::New());

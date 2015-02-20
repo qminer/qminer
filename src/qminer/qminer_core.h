@@ -1521,6 +1521,8 @@ private:
 	TStr JoinNm;
     /// Tokenizer, when key requires one (e.g. text)
     PTokenizer Tokenizer;
+	/// Flag if gix-small should be used for this key
+	TBool UseSmallGix;
 
 public:
 	/// Empty constructor creates undefined key
@@ -1549,7 +1551,8 @@ public:
 	TStr GetKeyNm() const { return KeyNm; }
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
-
+	/// Get flag UseSmallGix
+	bool GetUseSmallGix() const { return UseSmallGix; }
 
     /// Get key type
     TIndexKeyType GetTypeFlags() const { return TypeFlags; }
@@ -1785,7 +1788,7 @@ public:
 typedef enum { 
 	oqitUndef        = 0, 
 	oqitLeafGix      = 1, ///< Leaf inverted index query
-	// todo dodaj še oqitLeafGixSmall
+	oqitLeafGixSmall = 10,///< Leaf inverted index query - for small items
 	oqitGeo          = 8, ///< Geoindex query
 	oqitAnd          = 2, ///< AND between two or more queries
 	oqitOr           = 3, ///< OR between two or more queries
@@ -1917,7 +1920,9 @@ public:
 	/// Check query type
 	bool IsRecSet() const { return (Type == oqitRecSet); }
 	/// Check query type
-	bool IsLeafGix() const { return (Type == oqitLeafGix); } // todo dodaj še IsLeafGixSmall()
+	bool IsLeafGix() const { return (Type == oqitLeafGix); }
+	/// Check query type
+	bool IsLeafGixSmall() const { return (Type == oqitLeafGixSmall); }
 	/// Check query type
 	bool IsGeo() const { return (Type == oqitGeo); }
 	/// Check query type
@@ -2212,20 +2217,36 @@ private:
 
     /// Converts query item tree to GIX query expression
 	PQmGixExpItem ToExpItem(const TQueryItem& QueryItem) const;
+	/// Converts query item tree to GIX-small query expression
+	PQmGixExpItemSmall ToExpItemSmall(const TQueryItem& QueryItem) const;
     /// Executes GIX query expression against the index
     bool DoQuery(const PQmGixExpItem& ExpItem, const PQmGixExpMerger& Merger, 
 		TQmGixItemV& RecIdFqV) const;
+	/// Executes GIX-small query expression against the index
+	bool DoQuerySmall(const PQmGixExpItemSmall& ExpItem, const PQmGixExpMergerSmall& Merger,
+		TQmGixItemSmallV& RecIdFqV) const;
 	/// Determines which Gix should be used for given KeyId
-	bool UseGixSmall(const int& KeyId) const { return false; } // todo
+	bool UseGixSmall(const int& KeyId) const { 
+		return IndexVoc->GetKey(KeyId).GetUseSmallGix();
+	} // todo
 
+	/// Upgrades a vector of small items into a vector of big ones
+	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
+		Dest.Clr(); Dest.Reserve(Src.Len());
+		for (int i = 0; i < Src.Len(); i++) {
+			Dest.Add(TQmGixItem((uint64)Src[i].Key, (int)Src[i].Dat));
+		}
+	}
+
+	/// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, 
-        const PIndexVoc& IndexVoc, const int64& CacheSize);
+		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall);
 public:
 	/// Create (Access==faCreate) or open existing index
-	// todo send in 2 cache sizes, + CacheSize -> GixCacheSize, GixCacheSizeSmall
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
-        const PIndexVoc& IndexVoc, const int64& CacheSize) {
-            return new TIndex(IndexFPath, Access, IndexVoc, CacheSize); }
+		const PIndexVoc& IndexVoc, const int64& CacheSize, const int64& CacheSizeSmall) {
+		return new TIndex(IndexFPath, Access, IndexVoc, CacheSize, CacheSizeSmall);
+	}
 	/// Checks if there is an existing index at the given path
 	static bool Exists(const TStr& IndexFPath) {
 		return TFile::Exists(IndexFPath + "Index.Gix"); }
@@ -2236,7 +2257,7 @@ public:
 	/// Get index location
 	TStr GetIndexFPath() const { return IndexFPath; }
 	/// Get index cache size - this one looks obsolete, so it was commented out
-	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); } // todo
+	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); }
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
@@ -2323,16 +2344,16 @@ public:
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
     /// Check if the index is taking all the available cache space
-	bool IsCacheFull() const { return Gix->IsCacheFull(); } // todo deprecated
+	bool IsCacheFull() const { Fail; return Gix->IsCacheFull(); } // deprecated
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
     /// Merge with another index
-	void MergeIndex(const TWPt<TIndex>& TmpIndex); // todo deprecated
+	void MergeIndex(const TWPt<TIndex>& TmpIndex); // basically deprecated
 
 	/// Do flat AND search, given the vector of inverted index queries
-	void SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
+	void SearchAnd(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
 	/// Do flat OR search, given the vector of inverted index queries
-	void SearchOr(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
+	void SearchOr(const TIntUInt64PrV& KeyWordV, TQmGixItemV& StoreRecIdFqV) const;
 	/// Search with special Merger (does not handle joins)
 	TPair<TBool, PRecSet> Search(const TWPt<TBase>& Base, const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const;
 	/// Do geo-location range (in meters) search
