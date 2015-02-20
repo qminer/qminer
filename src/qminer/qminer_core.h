@@ -1785,6 +1785,7 @@ public:
 typedef enum { 
 	oqitUndef        = 0, 
 	oqitLeafGix      = 1, ///< Leaf inverted index query
+	// todo dodaj še oqitLeafGixSmall
 	oqitGeo          = 8, ///< Geoindex query
 	oqitAnd          = 2, ///< AND between two or more queries
 	oqitOr           = 3, ///< OR between two or more queries
@@ -1916,7 +1917,7 @@ public:
 	/// Check query type
 	bool IsRecSet() const { return (Type == oqitRecSet); }
 	/// Check query type
-	bool IsLeafGix() const { return (Type == oqitLeafGix); }
+	bool IsLeafGix() const { return (Type == oqitLeafGix); } // todo dodaj še IsLeafGixSmall()
 	/// Check query type
 	bool IsGeo() const { return (Type == oqitGeo); }
 	/// Check query type
@@ -2221,6 +2222,7 @@ private:
         const PIndexVoc& IndexVoc, const int64& CacheSize);
 public:
 	/// Create (Access==faCreate) or open existing index
+	// todo send in 2 cache sizes, + CacheSize -> GixCacheSize, GixCacheSizeSmall
     static PIndex New(const TStr& IndexFPath, const TFAccess& Access, 
         const PIndexVoc& IndexVoc, const int64& CacheSize) {
             return new TIndex(IndexFPath, Access, IndexVoc, CacheSize); }
@@ -2233,8 +2235,8 @@ public:
 
 	/// Get index location
 	TStr GetIndexFPath() const { return IndexFPath; }
-	/// Get index cache size
-	uint64 GetIndexCacheSize() const { return Gix->GetMxCacheSize(); } // todo
+	/// Get index cache size - this one looks obsolete, so it was commented out
+	//uint64 GetIndexCacheSize() const { return Gix->GetCacheSize() + GixSmall->GetCacheSize(); } // todo
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
 	/// Get default index merger
@@ -2321,11 +2323,11 @@ public:
 	bool LocEquals(const int& KeyId, const TFltPr& Loc1, const TFltPr& Loc2) const;
 
     /// Check if the index is taking all the available cache space
-    bool IsCacheFull() const { return Gix->IsCacheFull(); } // todo
+	bool IsCacheFull() const { return Gix->IsCacheFull(); } // todo deprecated
 	/// Check if index opened in read-only mode
 	bool IsReadOnly() const { return Access == faRdOnly; }
     /// Merge with another index
-    void MergeIndex(const TWPt<TIndex>& TmpIndex);
+	void MergeIndex(const TWPt<TIndex>& TmpIndex); // todo deprecated
 
 	/// Do flat AND search, given the vector of inverted index queries
 	void SearchAnd(const TIntUInt64PrV& KeyWordV, TUInt64IntKdV& StoreRecIdFqV) const;
