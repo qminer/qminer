@@ -37,7 +37,7 @@ describe('Functions Tests', function(){
       assert.equal(4,v.at(1));
     })
   })
-  
+
   describe('Sum Test', function(){
     it('should return a sum of 3.2 and 4', function(){
       assert.equal(3.2+4,v.sum());
@@ -96,6 +96,48 @@ describe('Functions Tests', function(){
           var vec = vec1.plus(vec2);
           var controlVec = new la.Vector([5, 6, 12, 10.1]);
           assert.deepEqual(vec, controlVec);
+      })
+  })
+
+  describe('Subvector Test', function () {
+      it('should return the subvector of vector vec', function () {
+          var vec = new la.Vector([3, -51, 22, 19]);
+          var indVec = new la.IntVector([1, 3, 2, 0]);
+          vec = vec.subVec(indVec);
+
+          var controlVec = new la.Vector([-51, 19, 22, 3]);
+
+          assert.deepEqual(vec, controlVec);
+      })
+  })
+
+  describe('At [] Test', function () {
+      it('should return elements with indexes 0 (3.2) and 1 (4)', function () {
+          assert.equal(3.2, v[0]);
+          assert.equal(4, v[1]);
+      })
+      it('should save new value at index 0 (12)', function () {
+          v[0] = 12;
+          assert.equal(12, v[0]);
+      })
+  })
+
+  describe('Put Test', function () {
+      it('should put the value -21 at index 1', function () {
+          v.put(1, -21);
+          assert.equal(-21, v[1]);
+      })
+  })
+
+  describe('Diag Test', function () {
+      it('should return a matrix with the vector v on it\'s diagonal', function () {
+          var mat = v.diag();
+          for (var i = 0; i < mat.rows; i++) {
+              for (var j = 0; j < mat.cols; j++) {
+                  if (i == j) { assert.equal(mat.at(i, j), v[i]); }
+                  else { assert.equal(mat.at(i, j), 0); }
+              }
+          }
       })
   })
 
