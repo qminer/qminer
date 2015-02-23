@@ -1,10 +1,10 @@
+console.log(__filename)
 var assert = require('assert');
 var analytics = require('../../').analytics;
 var la = require('../../').la;
 
 var vec = new la.Vector({vals:4});
 var mat = new la.Matrix({rows:2, cols:4});
-
 
 var vec = new la.Vector({vals:4});
 var mat = new la.Matrix({rows:2, cols:4});

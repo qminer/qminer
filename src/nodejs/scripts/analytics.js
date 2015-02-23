@@ -443,6 +443,72 @@ module.exports = exports = function (pathPrefix) {
     };
 
 
+//////////// RIDGE REGRESSION 
+// solve a regularized least squares problem
+//#- `ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+//#  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+//#  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
+//#  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
+exports.RidgeRegression = function (kappa, dim, buffer) {
+    var X = [];
+    var y = [];
+    buffer = typeof buffer !== 'undefined' ? buffer : -1;
+    var w = new la.Vector({ "vals": dim });
+    //#   - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
+    this.add = function (x, target) {
+        X.push(x);
+        y.push(target);
+        if (buffer > 0) {
+            if (X.length > buffer) {
+                this.forget(X.length - buffer);
+            }
+        }
+    };
+    //#   - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
+    this.addupdate = function (x, target) {
+        this.add(x, target);
+        this.update();
+    }
+    //#   - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
+    this.forget = function (ndeleted) {
+        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
+        ndeleted = Math.min(X.length, ndeleted);
+        X.splice(0, ndeleted);
+        y.splice(0, ndeleted);
+    };
+    //#   - `ridgeRegressionModel.update()` -- recomputes the model
+    this.update = function () {
+        var A = this.getMatrix();
+        var b = new la.Vector(y);
+        w = this.compute(A, b);
+    };
+    //#   - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
+    this.getModel = function () {
+        return w;
+    };
+    this.getMatrix = function () {
+        if (X.length > 0) {
+            var A = new la.Matrix({ "cols": X[0].length, "rows": X.length });
+            for (var i = 0; i < X.length; i++) {
+                A.setRow(i, X[i]);
+            }
+            return A;
+        }
+    };
+    //#   - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given 
+    //#    a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
+    //#   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
+    //#    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
+    this.compute = function (A, b) {
+        var I = la.eye(A.cols);
+        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
+        return coefs;
+    };
+    //#   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
+    this.predict = function (x) {
+        return w.inner(x);
+    };
+};
 
 
 

@@ -110,4 +110,19 @@ for (var recN = 0; recN < recSet.length; recN++) {
 var recSet1 = recSet.clone();
 var recSet2 = recSet.clone();
 
+// Set the cutoff date
+var tm = new Date("2011-08-01T00:05:06");
+// Get a record set with tweets older than tm
+recSet1.filter(function (rec) { return rec.Date.getTime() < tm.getTime() })
+// Get a record set with tweets newer than tm
+recSet2.filter(function (rec) { return rec.Date.getTime() > tm.getTime() })
 
+// Print the record set length
+console.log("recSet1.length: " + recSet1.length + ", recSet2.length: " + recSet2.length);
+
+// Build two communication graph snapshots based on the two record sets. Users represent graph nodes. A user "a" is linked to user "b" if "a" authored a tweet that contained the keyword @"b".
+// Each node is assigned a sentiment (majority sentiment based on all the tweets authored by the node)
+// Build the first graph and save it in DOT format (implemented in C++ as a qminer aggregate)
+var u1 = recSet1.aggr({ name: "tgraph1", dotName: "tesi1", type: "twitterGraph", fName: "./sandbox/twitter/graph1.gv" });
+// Build the second graph (based on the second record set) and filter the nodes that were not present in the first graph, finally save it in DOT format
+var u2 = recSet2.aggr({ name: "tgraph2", dotName: "tesi2", type: "twitterGraph", fName: "./sandbox/twitter/graph2.gv", userVec: u1 });

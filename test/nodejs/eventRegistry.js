@@ -1,3 +1,4 @@
+console.log(__filename)
 var er = require('../../src/nodejs/scripts/eventRegistry'); 
 
 // suggest events with prefix 'ebola'

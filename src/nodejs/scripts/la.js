@@ -25,7 +25,9 @@ module.exports = exports = function (pathPrefix) {
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
     //#- `Matrix.print()` -- prints matrix
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
-
+	//#- `Vector.print()` -- prints vector
+	exports.Vector.prototype.print = function () { console.log(this.toString()); }
+	
     
     //#- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
     exports.copyVecToArray = function (vec) {
@@ -119,6 +121,48 @@ module.exports = exports = function (pathPrefix) {
     exports.Vector.prototype.print = function () {
         console.log(this.toString());
     }
+    
+    ///////// COMMON MATRICES
+/////// VECTOR, MATRIX GENERATION
+// generate identity matrix
+//#- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
+exports.eye = function(dim) {
+    var identity = new exports.Matrix({ "rows": dim, "cols": dim });
+    for (var rowN = 0; rowN < identity.rows; rowN++) {
+        identity.put(rowN, rowN, 1.0);
+    }
+    return identity;
+};
+
+//#- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
+exports.speye = function (dim) {
+    var vec = exports.ones(dim);
+    return vec.spDiag();
+};
+
+//#- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
+exports.sparse = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var spmat = new exports.SparseMatrix({ "rows": rows, "cols": cols });
+    return spmat;
+};
+
+//#- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
+exports.zeros = function (rows, cols) {
+    cols = typeof cols == 'undefined' ? rows : cols;
+    var mat = new exports.Matrix({ "rows": rows, "cols": cols });
+    return mat;
+};
+
+// generate a C++ vector of ones
+//#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
+exports.ones = function(k) {
+    var ones_k = new exports.Vector({ "vals": k });
+    for (var i = 0; i < k; i++) {
+        ones_k.put(i, 1.0);
+    }
+    return ones_k;
+};
 
     ///////// ALGORITHMS
 
