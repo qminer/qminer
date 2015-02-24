@@ -10,7 +10,9 @@ exports.exists = function (obj, msg) {
 
 exports.eqtol = function (flt1, flt2, tol, msg) {
     tol = typeof tol !== 'undefined' ? tol : Math.pow(10, -10);
-    var err = 'AssertionError: relative difference between ' + flt1 + ' and '
+    msg = typeof msg !== 'undefined' ? msg : "";
+
+    var err = 'relative difference between ' + flt1 + ' and '
         + flt2 + ' is not within tol= ' + tol + '. ' + msg;
 
     var abs1 = Math.abs(flt1);
