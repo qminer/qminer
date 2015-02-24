@@ -106,7 +106,8 @@ public:
 	TStoreJoinType JoinType;
     /// Name of reverse join (empty if none)
 	TStr InverseJoinName;
-    
+    /// Flag if index should use small storage
+	TBool IsSmall;
 public:
 	TJoinDescEx(): JoinType(osjtUndef) { }
 };

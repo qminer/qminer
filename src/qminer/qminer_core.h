@@ -165,7 +165,7 @@ public:
 	TJoinDesc(): JoinId(-1), JoinStoreId(TUInt::Mx), JoinType(osjtUndef), InverseJoinId(-1) { } 
 	/// Create an index based join (1-N or N-M)
 	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
-		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc);
+		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall);
 	/// Create a field based join (1-1)
 	TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId, const int& _JoinRecFieldId,
         const int& _JoinFqFieldId): JoinId(-1), JoinNm(_JoinNm), JoinStoreId(_JoinStoreId), 
@@ -1486,7 +1486,8 @@ typedef enum {
 	oiktValue    = (1 << 0), ///< Index by exact value, using inverted index
 	oiktText     = (1 << 1), ///< Index as free text, using inverted index 
 	oiktLocation = (1 << 2), ///< Index as location. using geoindex 
-	oiktInternal = (1 << 3)  ///< Index used internaly for joins, using inverted index
+	oiktInternal = (1 << 3), ///< Index used internaly for joins, using inverted index
+	oiktSmall    = (1 << 4), ///< Index uses small Gix storage type
 } TIndexKeyType;
 
 ///////////////////////////////
@@ -1521,17 +1522,19 @@ private:
 	TStr JoinNm;
     /// Tokenizer, when key requires one (e.g. text)
     PTokenizer Tokenizer;
-	/// Flag if gix-small should be used for this key
-	TBool UseSmallGix;
 
 public:
 	/// Empty constructor creates undefined key
 	TIndexKey(): StoreId(TUInt::Mx), KeyId(-1), KeyNm(""), 
-		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) { }
+		WordVocId(-1), TypeFlags(oiktUndef), SortType(oikstUndef) {}
 	/// Create internal key, used for index joins
-	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm): 
-		StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1), TypeFlags(oiktInternal), 
-		SortType(oikstUndef), JoinNm(_JoinNm) { TValidNm::AssertValidNm(KeyNm); }
+	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const TStr& _JoinNm, const bool& IsSmall) :
+		StoreId(_StoreId), KeyNm(_KeyNm), WordVocId(-1), TypeFlags(oiktInternal),
+		SortType(oikstUndef), JoinNm(_JoinNm) {
+		if (IsSmall)
+			TypeFlags = (TIndexKeyType)(TypeFlags | oiktSmall);
+		TValidNm::AssertValidNm(KeyNm);
+	}
 	/// Create new key using given word vocabulary
 	TIndexKey(const uint& _StoreId, const TStr& _KeyNm, const int& _WordVocId, 
 		const TIndexKeyType& _Type, const TIndexKeySortType& _SortType);
@@ -1551,8 +1554,6 @@ public:
 	TStr GetKeyNm() const { return KeyNm; }
 	/// Set key id (used only when creating new keys)
 	void PutKeyId(const int& _KeyId) { KeyId = _KeyId; }
-	/// Get flag UseSmallGix
-	bool GetUseSmallGix() const { return UseSmallGix; }
 
     /// Get key type
     TIndexKeyType GetTypeFlags() const { return TypeFlags; }
@@ -1564,6 +1565,8 @@ public:
 	bool IsLocation() const { return ((TypeFlags & oiktLocation) != 0); }
 	/// Checks key type is internal
 	bool IsInternal() const { return ((TypeFlags & oiktInternal) != 0); }
+	/// Get flag that instructs index to use small gix
+	bool IsSmall() const { return (TypeFlags | oiktSmall) != 0; }
 
 	/// Get key sort type
 	TIndexKeySortType GetSortType() const { return SortType; }
@@ -1732,7 +1735,7 @@ public:
 	int AddKey(const uint& StoreId, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type, const TIndexKeySortType& SortType = oikstUndef);
 	/// Create new internal key
-	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm);
+	int AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall);
 	/// Linking key to a field
 	void AddKeyField(const int& KeyId, const uint& StoreId, const int& FieldId);
     /// Check if store has any index keys
@@ -2227,7 +2230,7 @@ private:
 		TQmGixItemSmallV& RecIdFqV) const;
 	/// Determines which Gix should be used for given KeyId
 	bool UseGixSmall(const int& KeyId) const { 
-		return IndexVoc->GetKey(KeyId).GetUseSmallGix();
+		return IndexVoc->GetKey(KeyId).IsSmall();
 	} // todo
 
 	/// Upgrades a vector of small items into a vector of big ones
@@ -2373,7 +2376,7 @@ public:
 		return TBlobBsStats::Add(Gix->GetBlobStats(), GixSmall->GetBlobStats());
 	}
 	/// get gix stats
-	const TGixStats& GetGixStats(bool do_refresh = true) { 
+	const TGixStats GetGixStats(bool do_refresh = true) { 
 		return TGixStats::Add(Gix->GetGixStats(do_refresh), GixSmall->GetGixStats(do_refresh));
 	}
 
@@ -3064,7 +3067,7 @@ public:
 	// creates index key, without linking it to a filed, returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const TIndexKeyType& Type = oiktValue,
 		const TIndexKeySortType& SortType = oikstUndef);
-    // creates index key, without linking it to a filed using specified vocabulary,
+    // creates index key, without linking it to a field using specified vocabulary,
 	// returns the id of created key
 	int NewIndexKey(const TWPt<TStore>& Store, const TStr& KeyNm, const int& WordVocId, 
 		const TIndexKeyType& Type = oiktValue, const TIndexKeySortType& SortType = oikstUndef);

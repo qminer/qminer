@@ -135,6 +135,10 @@ TJoinDescEx TStoreSchema::ParseJoinDescEx(const PJsonVal& JoinVal) {
 	if (JoinVal->IsObjKey("inverse")){
 		JoinDescEx.InverseJoinName = JoinVal->GetObjKey("inverse")->GetStr();
 	}
+	// get "is small" flag
+	if (JoinVal->IsObjKey("small")) {
+		JoinDescEx.IsSmall = JoinVal->GetObjKey("small")->GetBool();
+	}
     // done
 	return JoinDescEx;
 }
@@ -2463,7 +2467,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const PBase& Base, const PJsonVal& Sc
 				// index join
 				Store->AddJoinDesc(TJoinDesc(JoinDescEx.JoinName, 
                     JoinStore->GetStoreId(), Store->GetStoreId(), 
-                    Base->GetIndexVoc()));
+					Base->GetIndexVoc(), JoinDescEx.IsSmall));
 			} else {
                 ErrorLog("Unknown join type for join " + JoinDescEx.JoinName);
             }

@@ -134,7 +134,7 @@ namespace TQm {
 	///////////////////////////////
 	// QMiner-Join-Description
 	TJoinDesc::TJoinDesc(const TStr& _JoinNm, const uint& _JoinStoreId,
-		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc) :
+		const uint& StoreId, const TWPt<TIndexVoc>& IndexVoc, const bool& IsSmall) :
 		JoinId(-1), InverseJoinId(-1) {
 
 		// remember join parameters
@@ -145,7 +145,7 @@ namespace TQm {
 		JoinFqFieldId = -1;
 		// create an internal join key in the index
 		TStr JoinKeyNm = "Join" + JoinNm;
-		JoinKeyId = IndexVoc->AddInternalKey(StoreId, JoinKeyNm, JoinNm);
+		JoinKeyId = IndexVoc->AddInternalKey(StoreId, JoinKeyNm, JoinNm, IsSmall);
 		// assert the name is valid
 		TValidNm::AssertValidNm(JoinNm);
 	}
@@ -2260,7 +2260,7 @@ namespace TQm {
 		KeyNm(SIn), WordVocId(SIn),
 		TypeFlags(LoadEnum<TIndexKeyType>(SIn)),
 		SortType(LoadEnum<TIndexKeySortType>(SIn)),
-		FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn), UseSmallGix(SIn) {}
+		FieldIdV(SIn), JoinNm(SIn), Tokenizer(SIn) {}
 
 	void TIndexKey::Save(TSOut& SOut) const {
 		StoreId.Save(SOut);
@@ -2269,7 +2269,6 @@ namespace TQm {
 		SaveEnum<TIndexKeySortType>(SOut, SortType);
 		FieldIdV.Save(SOut); JoinNm.Save(SOut);
 		Tokenizer.Save(SOut);
-		UseSmallGix.Save(SOut);
 	}
 
 	///////////////////////////////
@@ -2442,9 +2441,9 @@ namespace TQm {
 		return KeyId;
 	}
 
-	int TIndexVoc::AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm) {
+	int TIndexVoc::AddInternalKey(const uint& StoreId, const TStr& KeyNm, const TStr& JoinNm, const bool& IsSmall) {
 		const int KeyId = KeyH.AddKey(TUIntStrPr(StoreId, KeyNm));
-		KeyH[KeyId] = TIndexKey(StoreId, KeyNm, JoinNm);
+		KeyH[KeyId] = TIndexKey(StoreId, KeyNm, JoinNm, IsSmall);
 		KeyH[KeyId].PutKeyId(KeyId);
 		return KeyId;
 	}
