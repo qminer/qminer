@@ -2,7 +2,7 @@ console.log(__filename)
 // 
 // Sample unit test using standard assert JS library 
 // 
-var assert = require("assert")
+var assert = require("../../src/nodejs/scripts/assert.js")
 var la = require('../../').la;
 
 	
@@ -53,7 +53,11 @@ describe('Functions Tests', function(){
   describe('Clone Test', function () {
       it('should return true if v is equal w', function () {
           var w = new la.Vector(v);
+
           assert.deepEqual(v, w);
+          for (var i = 0; i < v.length; i++) {
+              assert.equal(w.at(i), v.at(i));
+          }
     })
   })
 
@@ -61,6 +65,7 @@ describe('Functions Tests', function(){
       it('should return a 5-dimensional vector whose entries are set to 1.0', function () {
           var n = 5;
           var w = new la.ones(n);
+
           for (var i = 0; i < w.length; i++) {
               assert.equal(w.at(i), 1);
           }
@@ -86,6 +91,9 @@ describe('Functions Tests', function(){
           var vec = vec.sort();
 
           assert.deepEqual(vec, sortedVec);
+          for (var i = 0; i < vec.length; i++) {
+              assert.equal(vec.at(i), sortedVec.at(i));
+          }
       })
   })
 
@@ -95,7 +103,38 @@ describe('Functions Tests', function(){
           var vec2 = new la.Vector([4, 3, 8, 2.1]);
           var vec = vec1.plus(vec2);
           var controlVec = new la.Vector([5, 6, 12, 10.1]);
+
           assert.deepEqual(vec, controlVec);
+          for (var i = 0; i < controlVec.length; i++) {
+              assert.equal(vec.at(i), controlVec.at(i));
+          }
+      })
+  })
+
+  describe('Minus Test', function () {
+      it('should substract the vectors', function () {
+          var vec1 = new la.Vector([1, 3, 4, 8]);
+          var vec2 = new la.Vector([4, 3, 8, 2.1]);
+          var vec = vec1.minus(vec2);
+          var controlVec = new la.Vector([-3, 0, -4, 5.9]);
+
+          assert.deepEqual(vec, controlVec);
+          for (var i = 0; i < controlVec.length; i++) {
+              assert.equal(vec.at(i), controlVec.at(i));
+          }
+      })
+  })
+
+  describe('Multiply Test', function () {
+      it('should multiply vector vec with scalar 3.14', function () {
+          var vec = new la.Vector([3, 0, -12, 0.0001]);
+          var vec2 = vec.multiply(3.14);
+          var controlVec = new la.Vector([9.42, 0, -37.68, 0.000314]);
+
+          assert.deepEqual(vec2, controlVec);
+          for (var i = 0; i < controlVec.length; i++) {
+              assert.eqtol(vec2.at(i), controlVec.at(i));
+          }
       })
   })
 
@@ -104,10 +143,12 @@ describe('Functions Tests', function(){
           var vec = new la.Vector([3, -51, 22, 19]);
           var indVec = new la.IntVector([1, 3, 2, 0]);
           vec = vec.subVec(indVec);
-
           var controlVec = new la.Vector([-51, 19, 22, 3]);
 
           assert.deepEqual(vec, controlVec);
+          for (var i = 0; i < controlVec.length; i++) {
+              assert.equal(vec.at(i), controlVec.at(i));
+          }
       })
   })
 
@@ -137,6 +178,20 @@ describe('Functions Tests', function(){
                   if (i == j) { assert.equal(mat.at(i, j), v[i]); }
                   else { assert.equal(mat.at(i, j), 0); }
               }
+          }
+      })
+  })
+
+  describe('PushV Test', function () {
+      it('should return v with appended vector [1, 2, 3]', function () {
+          var w = new la.Vector([1, 2, 3]);
+          v.pushV(w);
+          assert.equal(v.length, 5);
+          var controlVec = new la.Vector([12, -21, 1, 2, 3]);
+ 
+          assert.deepEqual(v, controlVec);
+          for (var i = 0; i < controlVec.length; i++) {
+              assert.equal(v.at(i), controlVec.at(i));
           }
       })
   })
