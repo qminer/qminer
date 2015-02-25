@@ -212,6 +212,12 @@ void THierarch::GetUniqueHeightV(TFltV& HeightV) const {
 	HeightV.Sort(true);	// sort ascending
 }
 
+void THierarch::GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const {
+	for (int i = 0; i < HierarchV.Len(); i++) {
+		StateIdHeightPrV.Add(TIntFltPr(i, GetStateHeight(i)));
+	}
+}
+
 void THierarch::GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec<TIntV>& StateSetV) const {
 	TIntIntVH StateSubStateH;	GetAncSuccH(Height, StateSubStateH);
 
@@ -1326,63 +1332,72 @@ void TStateAssist::Save(TSOut& SOut) const {
 
 void TStateAssist::Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch) {
 	// get all the heights from the hierarchy
-	TFltV HeightV;	Hierarch->GetUniqueHeightV(HeightV);
-
+	TIntFltPrV StateIdHeightPrV;	Hierarch->GetStateIdHeightPrV(StateIdHeightPrV);
 	TVector AssignV = Clust->Assign(X);
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist, total levels %d ...", HeightV.Len());
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist, total states %d ...", StateIdHeightPrV.Len());
 
-	// go through all the heights
-	for (int HeightIdx = 0; HeightIdx < HeightV.Len() - 1; HeightIdx++) {
-		const double Height = HeightV[HeightIdx];
+	for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
+		const TIntFltPr& StateIdHeightPr = StateIdHeightPrV[i];
+		const int StateId = StateIdHeightPr.Val1;
+		const double Height = StateIdHeightPr.Val2;
 
-		// on each height compute a classifier for one state vs all the rest
+		ClassifyV.Add(TLogReg(10));
+
+		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist for state %d ...", StateId);
+
 		TIntV StateIdV; TVec<TIntV> StateSetV;
 		Hierarch->GetStateSetsAtHeight(Height, StateIdV, StateSetV);
 
-		// create the classifiers
-		for (int i = 0; i < StateSetV.Len(); i++) {
-			ClassifyV.Add(TLogReg(10));
+		const int StateIdx = StateIdV.SearchForw(StateId);
+
+		EAssertR(StateIdx >= 0, "Could not find the target state!");
+
+		const TIntSet TargetStateSet(StateSetV[StateIdx]);
+
+		TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(TInt(StateId)); }, TargetIdxV);
+		TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(TInt(StateId)); }, NonTargetIdxV);
+
+		if (TargetIdxV.Len() == 0 || NonTargetIdxV.Len() == 0) continue;
+
+		// make the sets equally sized
+		if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
+			NonTargetIdxV.Shuffle(Rnd);
+			NonTargetIdxV.Trunc(TargetIdxV.Len());
+		} else if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
+			TargetIdxV.Shuffle(Rnd);
+			TargetIdxV.Trunc(NonTargetIdxV.Len());
 		}
 
-		// each state is the target state exactly once on this level
-		for (int TrgIdx = 0; TrgIdx < StateSetV.Len(); TrgIdx++) {
-			const TIntSet TargetStateSet(StateSetV[TrgIdx]);
+		// get the instances
+		TFullMatrix PosInstMat = X(TVector::Range(X.GetRows()), TargetIdxV);
+		TFullMatrix NegInstMat = X(TVector::Range(X.GetRows()), NonTargetIdxV);
 
-			TIntV TargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return TargetStateSet.IsKey(TInt(StateId)); }, TargetIdxV);
-			TIntV NonTargetIdxV;	AssignV.Find([&](const TFlt& StateId) { return !TargetStateSet.IsKey(TInt(StateId)); }, NonTargetIdxV);
-
-			// make the sets equally sized
-			if (NonTargetIdxV.Len() > TargetIdxV.Len()) {
-				NonTargetIdxV.Shuffle(Rnd);
-				NonTargetIdxV.Trunc(TargetIdxV.Len());
-			} else if (TargetIdxV.Len() > NonTargetIdxV.Len()) {
-				TargetIdxV.Shuffle(Rnd);
-				TargetIdxV.Trunc(NonTargetIdxV.Len());
+		TFltVV InstanceMat(X.GetRows(), PosInstMat.GetCols() + NegInstMat.GetCols());
+		TFltV y(PosInstMat.GetCols() + NegInstMat.GetCols(), PosInstMat.GetCols() + NegInstMat.GetCols());
+		for (int ColIdx = 0; ColIdx < PosInstMat.GetCols(); ColIdx++) {
+			for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
+				InstanceMat(RowIdx, ColIdx) = PosInstMat(RowIdx, ColIdx);
 			}
-
-			// get the instances
-			TFullMatrix PosInstMat = X(TVector::Range(X.GetRows()), TargetIdxV);
-			TFullMatrix NegInstMat = X(TVector::Range(X.GetRows()), NonTargetIdxV);
-
-			TFltVV InstanceMat(X.GetRows(), PosInstMat.GetCols() + NegInstMat.GetCols());
-			TFltV y(PosInstMat.GetCols() + NegInstMat.GetCols(), PosInstMat.GetCols() + NegInstMat.GetCols());
-			for (int ColIdx = 0; ColIdx < PosInstMat.GetCols(); ColIdx++) {
-				for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
-					InstanceMat(RowIdx, ColIdx) = PosInstMat(RowIdx, ColIdx);
-				}
-				y[ColIdx] = 1;
-			}
-			for (int ColIdx = 0; ColIdx < NegInstMat.GetCols(); ColIdx++) {
-				for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
-					InstanceMat(RowIdx, PosInstMat.GetCols() + ColIdx) = NegInstMat(RowIdx, ColIdx);
-				}
-				y[PosInstMat.GetCols() + ColIdx] = 0;
-			}
-
-			ClassifyV[TrgIdx].Fit(InstanceMat, y);
+			y[ColIdx] = 1;
 		}
+		for (int ColIdx = 0; ColIdx < NegInstMat.GetCols(); ColIdx++) {
+			for (int RowIdx = 0; RowIdx < X.GetRows(); RowIdx++) {
+				InstanceMat(RowIdx, PosInstMat.GetCols() + ColIdx) = NegInstMat(RowIdx, ColIdx);
+			}
+			y[PosInstMat.GetCols() + ColIdx] = 0;
+		}
+
+		// TODO include the intercept
+		ClassifyV.Last().Fit(InstanceMat, y);
 	}
+}
+
+void TStateAssist::GetSuggestFtrs(const int& StateId, TFltV& WgtV) const {
+	EAssertR(0 <= StateId && StateId < ClassifyV.Len(), "Invalid state ID!");
+
+	const TLogReg& Classify = ClassifyV[StateId];
+	Classify.GetWgtV(WgtV);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1391,6 +1406,7 @@ THierarchCtmc::THierarchCtmc():
 		Clust(nullptr),
 		MChain(nullptr),
 		Hierarch(nullptr),
+		StateAssist(nullptr),
 		Verbose(true),
 		Callback(nullptr),
 		Notify(nullptr) {}
@@ -1400,6 +1416,7 @@ THierarchCtmc::THierarchCtmc(const PFullClust& _Clust, const PMChain& _MChain,
 		Clust(_Clust),
 		MChain(_MChain),
 		Hierarch(_Hierarch),
+		StateAssist(new TStateAssist(_Verbose)),
 		Verbose(_Verbose),
 		Callback(nullptr),
 		Notify(_Verbose ? TNotify::StdNotify : TNotify::NullNotify) {
@@ -1409,7 +1426,8 @@ THierarchCtmc::THierarchCtmc(TSIn& SIn):
 	Clust(TFullClust::Load(SIn)),
 	MChain(TMChain::Load(SIn)),
 	Hierarch(THierarch::Load(SIn)),
-	StateAssist(new TStateAssist(true)),//StateAssist(StateAssist::Load(SIn)), FIXME
+//	StateAssist(new TStateAssist(true)),//StateAssist(StateAssist::Load(SIn)), FIXME
+	StateAssist(new TStateAssist(SIn)),	// TODO
 	Verbose(TBool(SIn)),
 	Callback(nullptr),
 	Notify() {
@@ -1423,7 +1441,7 @@ void THierarchCtmc::Save(TSOut& SOut) const {
 	Clust->Save(SOut);
 	MChain->Save(SOut);
 	Hierarch->Save(SOut);
-//	StateAssist->Save(SOut);	// FIXME
+	StateAssist->Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
@@ -1646,6 +1664,15 @@ void THierarchCtmc::GetHistogram(const int& StateId, const int& FtrId, TFltV& Bi
 		Clust->GetHistogram(FtrId, LeafV, BinStartV, ProbV);
 	} catch (const PExcept& Except) {
 		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarch::GetHistogram: Failed to fetch histogram: %s", Except->GetMsgStr().CStr());
+		throw Except;
+	}
+}
+
+void THierarchCtmc::GetStateWgtV(const int& StateId, TFltV& WgtV) const {
+	try {
+		StateAssist->GetSuggestFtrs(StateId, WgtV);
+	} catch (const PExcept& Except) {
+		Notify->OnNotifyFmt(TNotifyType::ntErr, "THierarchCtmc::GetStateWgtV: Failed to fetch weight vector for state %d: %s", StateId, Except->GetMsgStr().CStr());
 		throw Except;
 	}
 }

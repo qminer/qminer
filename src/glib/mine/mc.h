@@ -248,6 +248,8 @@ public:
 
 	// returns a vector of unique heights
 	void GetUniqueHeightV(TFltV& HeightV) const;
+	// return a list of state IDs and their heights
+	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
 	// and sets of their leafs into JoinedStateVV
 	void GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec<TIntV>& StateSetV) const;
@@ -580,6 +582,8 @@ public:
 	void Save(TSOut& SOut) const;
 
 	void Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch);
+
+	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
 };
 
 class TMcCallback {
@@ -655,6 +659,8 @@ public:
 	void GetHistStateIdV(const double& Height, TIntV& StateIdV) const;
 
 	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const;
+
+	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
 
 	// stores the transition model for the current height into Mat
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;

@@ -644,6 +644,7 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fullCoords", _fullCoords);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "histogram", _histogram);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "stateIds", _stateIds);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "getStateWgtV", _getStateWgtV);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getTransitionModel", _getTransitionModel);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "onStateChanged", _onStateChanged);
@@ -1067,6 +1068,28 @@ void TNodeJsHMChain::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 
 	Args.GetReturnValue().Set(StateIdJsV);
+}
+
+void TNodeJsHMChain::getStateWgtV(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1, "hmc.getStateWgtV: expects 1 argument!");
+
+	TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
+
+	const double StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+
+	TFltV WgtV;
+	JsMChain->McModel->GetStateWgtV(StateId, WgtV);
+
+
+	v8::Local<v8::Array> JsWgtV = v8::Array::New(Isolate, WgtV.Len());
+	for (int i = 0; i < WgtV.Len(); i++) {
+		JsWgtV->Set(i, v8::Number::New(Isolate, WgtV[i]));
+	}
+
+	Args.GetReturnValue().Set(JsWgtV);
 }
 
 void TNodeJsHMChain::onStateChanged(const v8::FunctionCallbackInfo<v8::Value>& Args) {

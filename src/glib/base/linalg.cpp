@@ -2040,6 +2040,7 @@ void TNumericalStuff::InverseTriagonal(TFltVV& A) {
         for (j = i+1; j < n; j++)
             A(j,i) = A(i,j);
     }
+
     // solve
     for (i = 0; i < n; i++) {
         // solve R * x = e_i, store in x
@@ -2274,10 +2275,11 @@ void TNumericalStuff::TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
 		LeadingDimension_Matrix, &x[0].Val, LeadingDimension_Vector);
 }
 
-void TNumericalStuff::GetEigenVec(const TFltVV& C, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
-	TFltVV A1 = C;
+void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
+	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
 
-	EAssertR(A1.GetRows() == A1.GetCols(), "A should be a square matrix to compute eigenvalues!");
+	TFltVV A1 = A;
+
     printf("input matrix:\n%s\n", TStrUtil::GetStr(A1, ", ", "%.7f").CStr());
 
     const int Dim = A1.GetRows();
@@ -2290,7 +2292,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& C, const double& EigenVal, TFltV
 
     const double UEps = 1e-8 * TLinAlg::FrobNorm(A1);
     double Dist, Norm;
-    double Sgn, Temp;
+    double Sgn;
 
     TFltVV L, U;
 	TFltV OnesV(Dim), TempV(Dim);
@@ -2320,9 +2322,6 @@ void TNumericalStuff::GetEigenVec(const TFltVV& C, const double& EigenVal, TFltV
     	const int pi = PermV[i] - 1;
     	// swap rows i and pi in A
     	for (int ColIdx = 0; ColIdx < Dim; ColIdx++) {
-//				Temp = A1(i, ColIdx);
-//				A1(i, ColIdx) = A1(pi, ColIdx);
-//				A1(pi, ColIdx) = Temp;
 			std::swap(A1(i, ColIdx), A1(pi, ColIdx));
 		}
     }
@@ -2349,7 +2348,7 @@ void TNumericalStuff::GetEigenVec(const TFltVV& C, const double& EigenVal, TFltV
 
         // normalize
 //        Norm = TLinAlg::Normalize(EigenV);
-        Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations
+        Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations when using the norm
         EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
         TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
 

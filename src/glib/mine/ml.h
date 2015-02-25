@@ -160,7 +160,7 @@ protected:
 };
 
 ///////////////////////////////////////////
-// Logistic Regression
+// Logistic Regression using the Newton-Raphson method
 class TLogReg {
 private:
 	double Lambda;
@@ -179,6 +179,8 @@ public:
 	// Fits the regression model. The method assumes that the instances are stored in the
 	// columns of the matrix X and the responses are stored in vector y.
 	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
+
+	void GetWgtV(TFltV& WgtV) const;
 };
 
 

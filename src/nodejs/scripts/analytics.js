@@ -569,6 +569,7 @@ module.exports = exports = function (pathPrefix) {
     			var futureStates = mc.futureStates(level, stateId);
     			var pastStates = mc.pastStates(level, stateId);
     			var stateNm = mc.getStateName(stateId);
+    			var wgts = mc.getStateWgtV(stateId);
     			
     			var ftrNames = that.getFtrNames();
     			var features = [];
@@ -581,7 +582,8 @@ module.exports = exports = function (pathPrefix) {
     				name: stateNm.length > 0 ? stateNm : null,
     				features: features,
     				futureStates: futureStates,
-    				pastStates: pastStates
+    				pastStates: pastStates,
+    				featureWeights: wgts
     			};
     		},
     		

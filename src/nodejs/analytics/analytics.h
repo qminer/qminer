@@ -228,7 +228,11 @@ public:
 	JsDeclareFunction(histStates);
 
 	// state
-	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
+	/**
+	 * Returns an object representation of this model.
+	 *
+	 * @returns {Object}
+	 */
 	JsDeclareFunction(toJSON);
 	//#- `transitionMat = hmc.getTransitionModel()` -- returns the transition matrix on level 0
 	JsDeclareFunction(getTransitionModel);
@@ -238,8 +242,22 @@ public:
 	JsDeclareFunction(fullCoords);
 	//#- `hist = hmc.histogram(stateId, ftrId)` -- returns the histogram of the specified feature in the specified state
 	JsDeclareFunction(histogram);
-	//#- `hist = hmc.histogram(height)` -- returns the IDs of states on the specified height
+
+	/**
+	 * Returns an array of IDs of all the states on the specified height.
+	 *
+	 * @param {Number} height - the height
+	 * @returns {Array} - the array of IDs
+	 */
 	JsDeclareFunction(stateIds);
+
+	/**
+	 * Returns the weights of features in this state.
+	 *
+	 * @param {Number} stateId - The Id of the state.
+	 * @returns {Array} - An array of weights.
+	 */
+	JsDeclareFunction(getStateWgtV);
 
 	// callbacks
 	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes

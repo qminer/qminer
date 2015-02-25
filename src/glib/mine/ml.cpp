@@ -519,7 +519,7 @@ void TLogReg::Fit(const TFltVV& X, const TFltV& y, const double& Eps) {
 	TFltV GradV(Dim, Dim);						// gradient
 	TFltVV XTimesW(Dim, NInst);					// temporary variable to compute (X*W)*X'
 	TFltVV H(Dim, Dim);							// Hessian
-	TFltVV X_t;	TLinAlg::Transpose(X, X_t);		// the transposed instance matrix
+	TFltVV X_t(X.GetCols(), X.GetRows());	TLinAlg::Transpose(X, X_t);		// the transposed instance matrix
 	TVec<TIntFltKdV> WgtColSpVV(NInst, NInst);	// weight matrix
 
 	// generate weight matrix with only ones on the diagonal
@@ -531,9 +531,9 @@ void TLogReg::Fit(const TFltVV& X, const TFltV& y, const double& Eps) {
 	WgtV.Gen(Dim);
 
 	// perform the algorithm
-	double Diff = TFlt::PInf;
+	double Diff;
 	int k = 1;
-	while (Diff > Eps) {
+	do {
 		if (k % 10 == 0) {
 			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Step: %d, diff: %.3f", k, Diff);
 		}
@@ -591,5 +591,11 @@ void TLogReg::Fit(const TFltVV& X, const TFltV& y, const double& Eps) {
 		}
 
 		k++;
-	}
+	} while (Diff > Eps);
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
+}
+
+void TLogReg::GetWgtV(TFltV& _WgtV) const {
+	_WgtV = WgtV;
 }
