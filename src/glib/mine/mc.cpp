@@ -1512,7 +1512,7 @@ void THierarchCtmc::Init(const TFullMatrix& X, const TUInt64V& RecTmV) {
 	InitClust(X);
 	InitMChain(X, RecTmV, false, TBoolV());
 	InitHierarch();
-//	InitStateAssist(X);	// TODO
+	InitStateAssist(X);
 }
 
 void THierarchCtmc::InitBatches(const TFullMatrix& X, const TUInt64V& RecTmV,
@@ -1522,6 +1522,7 @@ void THierarchCtmc::InitBatches(const TFullMatrix& X, const TUInt64V& RecTmV,
 	InitClust(X);
 	InitMChain(X, RecTmV, true, BatchEndV);
 	InitHierarch();
+	InitStateAssist(X);
 }
 
 void THierarchCtmc::InitClust(const TFullMatrix& X) {

@@ -758,12 +758,6 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	if (Args.Length() > 2) {
 		const TNodeJsBoolV* BatchEndJsV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[2]->ToObject());
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
-
-		printf("Batches:\n");
-		for (int i = 0; i < BatchEndV.Len(); i++) {
-			printf("%s\n", BatchEndV[i].Val ? "true" : "false");
-		}
-
 		JsMChain->McModel->InitBatches(JsInstanceMat->Mat, RecTmV, BatchEndV);
 	} else {
 		JsMChain->McModel->Init(JsInstanceMat->Mat, RecTmV);
