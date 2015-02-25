@@ -166,12 +166,14 @@ private:
 	double Lambda;
 	TFltV WgtV;
 
+	bool IncludeIntercept;
+
 	bool Verbose;
 	PNotify Notify;
 
 public:
 	// default constructor, sets the regularization parameter
-	TLogReg(const double& Lambda=1, const bool Verbose=true);
+	TLogReg(const double& Lambda=1, const bool IncludeIntercept=false, const bool Verbose=true);
 	TLogReg(TSIn& SIn);
 
 	void Save(TSOut& SOut) const;

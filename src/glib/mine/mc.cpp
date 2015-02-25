@@ -1342,7 +1342,7 @@ void TStateAssist::Init(const TFullMatrix& X, const PFullClust& Clust, const PHi
 		const int StateId = StateIdHeightPr.Val1;
 		const double Height = StateIdHeightPr.Val2;
 
-		ClassifyV.Add(TLogReg(10));
+		ClassifyV.Add(TLogReg(10), true);
 
 		Notify->OnNotifyFmt(TNotifyType::ntInfo, "Computing state assist for state %d ...", StateId);
 

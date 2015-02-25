@@ -477,15 +477,17 @@ void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 
 ///////////////////////////////////////////
 // Logistic Regression
-TLogReg::TLogReg(const double& _Lambda, const bool _Verbose):
+TLogReg::TLogReg(const double& _Lambda, const bool _IncludeIntercept, const bool _Verbose):
 		Lambda(_Lambda),
 		WgtV(),
+		IncludeIntercept(_IncludeIntercept),
 		Verbose(_Verbose),
 		Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
 
 TLogReg::TLogReg(TSIn& SIn):
 		Lambda(TFlt(SIn)),
 		WgtV(SIn),
+		IncludeIntercept(TBool(SIn)),
 		Verbose(TBool(SIn)) {
 
 	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
@@ -494,11 +496,22 @@ TLogReg::TLogReg(TSIn& SIn):
 void TLogReg::Save(TSOut& SOut) const {
 	TFlt(Lambda).Save(SOut);
 	WgtV.Save(SOut);
+	TBool(IncludeIntercept).Save(SOut);
 	TBool(Verbose).Save(SOut);
 }
 
 
-void TLogReg::Fit(const TFltVV& X, const TFltV& y, const double& Eps) {
+void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
+	TFltVV X(_X);
+
+	if (IncludeIntercept) {
+		// add 1s into the last row
+		X.AddXDim();
+		for (int i = 0; i < X.GetCols(); i++) {
+			X(X.GetRows()-1, i) = 1;
+		}
+	}
+
 	const int NInst = X.GetCols();
 	const int Dim = X.GetRows();
 
@@ -598,4 +611,7 @@ void TLogReg::Fit(const TFltVV& X, const TFltV& y, const double& Eps) {
 
 void TLogReg::GetWgtV(TFltV& _WgtV) const {
 	_WgtV = WgtV;
+	if (IncludeIntercept) {
+		_WgtV.DelLast();
+	}
 }
