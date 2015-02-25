@@ -2313,24 +2313,18 @@ void TNumericalStuff::GetEigenVec(const TFltVV& C, const double& EigenVal, TFltV
     printf("U:\n%s\n", TStrUtil::GetStr(U, ", ", "%.7f").CStr());
     printf("PermV:\n%s\n", TStrUtil::GetStr(PermV, ", ").CStr());
 
+    // construct A from LU
     TLinAlg::Multiply(L, U, A1);
     // swap column i with column PermV[i]
     for (int i = 0; i < Dim; i++) {
     	const int pi = PermV[i] - 1;
-    	// swap columns i and pi in A
-//    	for (int RowIdx = 0; RowIdx < Dim; RowIdx++) {
-//    		Temp = A1(RowIdx, i);
-//    		A1(RowIdx, i) = A1(RowIdx, pi);
-//    		A1(RowIdx, pi) = Temp;
-////			std::swap(A1(RowIdx, i), A1(RowIdx, pi));
-//    	}
-
+    	// swap rows i and pi in A
     	for (int ColIdx = 0; ColIdx < Dim; ColIdx++) {
-				Temp = A1(i, ColIdx);
-				A1(i, ColIdx) = A1(pi, ColIdx);
-				A1(pi, ColIdx) = Temp;
-	//			std::swap(A1(RowIdx, i), A1(RowIdx, pi));
-			}
+//				Temp = A1(i, ColIdx);
+//				A1(i, ColIdx) = A1(pi, ColIdx);
+//				A1(pi, ColIdx) = Temp;
+			std::swap(A1(i, ColIdx), A1(pi, ColIdx));
+		}
     }
 
     // compute an initial estimate for the eigenvector

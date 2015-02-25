@@ -991,11 +991,11 @@ void TCtMChain::AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool 
 }
 
 TFullMatrix TCtMChain::GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const {
-	return GetFutureProbMat(GetQMatrix(StateSetV), Tm, DeltaTm);
+	return GetFutureProbMat(GetQMatrix(StateSetV), Tm, DeltaTm, HasHiddenState);
 }
 
 TFullMatrix TCtMChain::GetPastProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const {
-	return GetFutureProbMat(GetRevQMatrix(StateSetV), Tm, DeltaTm);
+	return GetFutureProbMat(GetRevQMatrix(StateSetV), Tm, DeltaTm, HasHiddenState);
 }
 
 void TCtMChain::PrintStats() const {
@@ -1239,7 +1239,8 @@ TVector TCtMChain::GetStatDist(const TFullMatrix& QMat, const PNotify& Notify) {
 	return EigenVec /= EigSum;
 }
 
-TFullMatrix TCtMChain::GetFutureProbMat(const TFullMatrix& QMat, const double& Tm, const double& DeltaTm) {
+TFullMatrix TCtMChain::GetFutureProbMat(const TFullMatrix& QMat, const double& Tm,
+		const double& DeltaTm, const bool HasHiddenState) {
 	EAssertR(Tm >= 0, "TCtMChain::GetFutureProbMat: does not work for negative time!");
 
 	const int Dim = QMat.GetRows();
@@ -1252,7 +1253,22 @@ TFullMatrix TCtMChain::GetFutureProbMat(const TFullMatrix& QMat, const double& T
 
 	const int Steps = (int) ceil(Tm / Dt);
 
-	return (TFullMatrix::Identity(Dim) + QMat*Dt)^Steps;
+	TFullMatrix ProbMat = TFullMatrix::Identity(Dim) + QMat*Dt;
+
+	// the probabilities from state i to the hidden state should now go from i to i
+	if (HasHiddenState) {
+		const int Dim = ProbMat.GetRows()-1;
+
+		TFullMatrix CorrProbMat = ProbMat(TVector::Range(Dim), TVector::Range(Dim));
+		for (int RowIdx = 0; RowIdx < Dim; RowIdx++) {
+			const double HiddenProb = ProbMat(RowIdx, Dim);
+			CorrProbMat(RowIdx, RowIdx) += HiddenProb;
+		}
+
+		ProbMat = CorrProbMat;
+	}
+
+	return ProbMat^Steps;
 }
 
 TFullMatrix TCtMChain::GetJumpMatrix(const TFullMatrix& QMat) {

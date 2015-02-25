@@ -548,7 +548,8 @@ private:
 
 	static void GetNextStateProbV(const TFullMatrix& QMat, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates, const PNotify& Notify);
 	static TVector GetStatDist(const TFullMatrix& QMat, const PNotify& Notify);
-	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm, const double& DeltaTm);
+	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm,
+			const double& DeltaTm, const bool HasHiddenState=false);
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
 	// which state it will jump with which probability
