@@ -456,7 +456,7 @@ module.exports = exports = function (pathPrefix) {
     	var ftrSpace;
     	
     	if (opts.hmcConfig != null && opts.ftrSpaceConfig != null && opts.base != null) {
-    		mc = new exports.HMC(opts.hmcConfig);
+    		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
     		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceConfig);
     	} 
     	else if (opts.hmcFile != null && opts.ftrSpaceFile != null) {
@@ -469,15 +469,15 @@ module.exports = exports = function (pathPrefix) {
     		/**
     		 * Creates a new model out of the record set.
     		 */
-    		fit: function (recSet) {
+    		fit: function (recSet, batchEndV) {
     			log.info('Updating feature space ...');
     			ftrSpace.updateRecords(recSet);
     			
     			var colMat = ftrSpace.ftrColMat(recSet);
-    			var timeV = recSet.getVec('time');
+    			var timeV = recSet.getVec(CTMC_TIME_FIELD_ID);
     			
     			log.info('Creating model ...');
-    			mc.fit(colMat, timeV);
+    			mc.fit(colMat, timeV, batchEndV);
     			log.info('Done!');
     			
     			return that;

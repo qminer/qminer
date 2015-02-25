@@ -175,8 +175,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    
    // This has to be last, otherwise the properties won't show up on the object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
-   /*exports->Set(v8::String::NewFromUtf8(Isolate, "Base"),
-	   tpl->GetFunction());*/
+   exports->Set(v8::String::NewFromUtf8(Isolate, "Base"),
+	   tpl->GetFunction());
 
 }
 
@@ -319,8 +319,9 @@ void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		   JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
 			   TNodeJsStore::New(NewStoreV[NewStoreN]));
 	   }
+   } else {
+	   Args.GetReturnValue().Set(v8::Null(Isolate));
    }
-   Args.GetReturnValue().Set(v8::Null(Isolate));
 }
 
 void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3599,8 +3600,8 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 
-	QmAssertR(ReturnVal->IsBoolean(), "Comparator callback must return a boolean!");
-	return ReturnVal->BooleanValue();
+	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
+	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
 }
 
 ///////////////////////////////

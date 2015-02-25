@@ -70,7 +70,10 @@
                 'src/glib/mine/'
             ],
             'defines': [
-                'MODULE_INCLUDE_FS'
+                'MODULE_INCLUDE_FS',
+                'BLAS',
+                'LAPACKE',
+                'EIGEN'
             ],
             'dependencies': [
                 'fs',
@@ -78,7 +81,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke', '-llapack', '-lblas' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -228,7 +231,10 @@
             ],
             'defines': [
                 'MODULE_INCLUDE_FS',
-                'MODULE_INCLUDE_LA'
+                'MODULE_INCLUDE_LA',
+                'BLAS',
+                'LAPACKE',
+                'EIGEN'
             ],
             'dependencies': [
                 'glib',
@@ -236,7 +242,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke', '-llapack', '-lblas' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',

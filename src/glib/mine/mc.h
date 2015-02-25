@@ -326,6 +326,8 @@ protected:
 	int NStates;
 	int CurrStateId;
 
+	bool HasHiddenState;
+
 	bool Verbose;
 
 	PNotify Notify;
@@ -345,10 +347,10 @@ public:
 	static PMChain Load(TSIn& SIn);
 
 	// initializes the markov chain
-	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV);
+	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV, const bool SequencedData, const TBoolV& SequenceEndV);
 	// adds a single record to the model, the flag UpdateStates indicates if the statistics
 	// should be updated
-	void OnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats=true);
+	void OnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats, const bool IsLastInSeq);
 
 	// get future state probabilities for a fixed time in the future
 	void GetFutureProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, const double& Tm, TIntFltPrV& StateIdProbV) const;
@@ -367,8 +369,6 @@ public:
 	// static distribution
 	// returns the static distribution for the joined states
 	virtual TVector GetStatDist(const TVec<TIntV>& StateSetV) const = 0;
-	// returns the static distribution
-	virtual TVector GetStatDist() const = 0;
 
 	// returns a vector of state sizes
 	virtual TVector GetStateSizeV(const TVec<TIntV>& StateSetV) const = 0;
@@ -388,9 +388,18 @@ public:
 	void SetVerbose(const bool& Verbose);
 
 protected:
+	// handling the hidden state
+	int GetHiddenStateId() const;
+	// inserts the hidden state into the state set vector
+	void InsHiddenState(TVec<TIntV>& StateSetV) const;
+	// inserts the hidden state into the state set vector
+	void InsHiddenState(TIntV& StateIdV) const;
+	// removes the hidden state probability from the probability vector
+	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
+
 	// initializes the statistics
 	virtual void InitStats(const int& NStates) = 0;
-	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) = 0;
+	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats, const bool EndsBatch) = 0;
 
 	// get future state probabilities for all the states for a fixed time in the future
 	virtual TFullMatrix GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const = 0;
@@ -441,7 +450,7 @@ public:
 protected:
 	// initializes the statistics needed to model the Markov chain
 	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
+	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed number of states in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& TimeSteps) const;
@@ -464,8 +473,12 @@ public:
 	const static uint64 TU_MINUTE;
 	const static uint64 TU_HOUR;
 	const static uint64 TU_DAY;
+	const static uint64 TU_MONTH;
 
 private:
+	const static double MIN_JUMP_TM;
+	const static double HIDDEN_STATE_INTENSITY;
+
 	TVec<TUInt64FltPrV> QMatStats;
 
 	double DeltaTm;
@@ -489,22 +502,24 @@ public:
 
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
-	TVector GetStatDist() const;
 	TVector GetStatDist(const TVec<TIntV>& StateSetV) const;
 
 	// returns the size of each state used in the visualization
 	TVector GetStateSizeV(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const;
+	TFullMatrix GetJumpMatrix(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const { return GetQMatrix(StateSetV); }
 
-	TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const { return GetHoldingTimeV(GetQMatrix(StateSetV)); }
+	TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
 	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
 
+	int GetStates() const { return HasHiddenState ? QMatStats.Len() - 1 : QMatStats.Len(); }
+
 protected:
 	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
+	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const;
@@ -517,20 +532,22 @@ protected:
 private:
 	// returns the intensity matrix (Q-matrix)
 	TFullMatrix GetQMatrix() const;
+
 	// returns a Q matrix for the joined states
 	TFullMatrix GetQMatrix(const TVec<TIntV>& StateSetV) const;
 	// returns a Q matrix for the joined states for the time reversal Markov chain
 	TFullMatrix GetRevQMatrix(const TVec<TIntV>& StateSetV) const;
 
-	TFullMatrix GetJumpMatrix(const TVec<TIntV>& StateSetV) const { return GetJumpMatrix(GetQMatrix(StateSetV)); }
 	// returns a vector of holding times
 	// a holding time is the expected time that the process will stay in state i
 	// it is an exponential random variable of parameter -q_ii, so its expected value
 	// is -1/q_ii
 	TVector GetHoldingTimeV(const TFullMatrix& QMat) const;
 
+	void UpdateIntensity(const int& FromStateId, const int& ToStateId, const double& Tm);
+
 	static void GetNextStateProbV(const TFullMatrix& QMat, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates, const PNotify& Notify);
-	static TVector GetStatDist(const TFullMatrix& QMat);
+	static TVector GetStatDist(const TFullMatrix& QMat, const PNotify& Notify);
 	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm, const double& DeltaTm);
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
@@ -610,9 +627,10 @@ public:
 	// update methods
 	// initializes the model
 	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void InitBatches(const TFullMatrix& X, const TUInt64V& RecTmV, const TBoolV& EndBatchV);
 	void Init(TFltVV& X, const TUInt64V& RecTmV) { Init(TFullMatrix(X, true), RecTmV); }
 	void InitClust(const TFullMatrix& X);
-	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV, const bool IsBatchData, const TBoolV& EndBatchV);
 	void InitHierarch();
 	void InitHistograms(TFltVV& InstMat);
 	void InitStateAssist(const TFullMatrix& X);
@@ -661,6 +679,8 @@ public:
 
 private:
     void DetectAnomalies(const int& NewStateId, const int& OldStateId, const TVector& FtrVec) const;
+
+    static void CheckBatches(const TBoolV& BatchEndV);
 };
 
 }

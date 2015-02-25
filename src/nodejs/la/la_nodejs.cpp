@@ -80,6 +80,7 @@ void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 const TStr TAuxFltV::ClassId = "TFltV";
 const TStr TAuxIntV::ClassId = "TIntV";
 const TStr TAuxStrV::ClassId = "TStrV";
+const TStr TAuxBoolV::ClassId = "TBoolV";
 
 
 ///////////////////////////////
@@ -1637,6 +1638,7 @@ void init(v8::Handle<v8::Object> exports) {
     TNodeJsLinAlg::Init(exports);
     TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
     TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+    TNodeJsBoolV::Init(exports);
     TNodeJsFltVV::Init(exports);
     TNodeJsSpVec::Init(exports);
     TNodeJsSpMat::Init(exports);

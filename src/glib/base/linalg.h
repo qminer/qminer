@@ -28,7 +28,7 @@
 	#endif
 	#ifdef OPENBLAS		
 		#include "cblas.h"
-		#include "lapacke.h"		
+		#include "lapacke.h"
 	#endif
 #endif
 
@@ -370,8 +370,8 @@ public:
     static double Norm2(const TFltV& x);
     // ||x|| (Euclidian)
     static double Norm(const TFltV& x);
-    // x := x / ||x||
-    static void Normalize(TFltV& x);
+    // x := x / ||x||, returns the norm
+    static double Normalize(TFltV& x);
 	// Normalize X(:,ColId)
 	static void NormalizeColumn(TFltVV& X, const int& ColId);
 	// Normalize the columns of X
@@ -678,6 +678,27 @@ public:
     // zero elements, so it is efficient for use in matrix inversion.
     static void LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b);
 
+    // LU midstep used for LUFactorization and LUSolve
+    // (Warning: the matrix is overwritten in the process)
+    static void LUStep(TFltVV& A, TIntV& PermV);
+    // LUFactorization create the matrices L, U and vector of permutations P such that P*A = L*U.
+    // The L is unit lower triangular matrix and U is an upper triangular matrix.
+    // Vector P tell's us: column i is swapped with column P[i].
+    static void LUFactorization(const TFltVV& A, TFltVV& L, TFltVV& U, TIntV& P);
+    // Solves the system of linear equations A * x = b, where A is a matrix, x and b are vectors.
+    // Solution is saved in x.
+    static void LUSolve(const TFltVV& A, TFltV& x, const TFltV& b);
+    // Solves the system of linear equations A * X = B, where A, X and B are matrices.
+    // Solution is saved in X.
+    static void LUSolve(const TFltVV& A, TFltVV& X, const TFltVV& B);
+
+    // solves the system A * x = b, where A is a triangular matrix, x and b are vectors.
+    // The solution is saved in x.
+    // UpperTriangFlag: if the matrix is upper triangular (true) or lower triangular (false).
+    // DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
+    static void TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
+    		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false);
+
     // Solves system of linear equations A * x = b. A is first decomposed using
     // LUDecomposition and after solved using LUSolve. A is modified!
     static void SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x);
@@ -685,7 +706,8 @@ public:
     // Computes the eigenvector of A belonging to the specified eigenvalue
     // uses the inverse iteration algorithm
     // the algorithms does modify A due to its use of LU decomposition
-    static void GetEigenVec(TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
+    // A is modified!!!
+    static void GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps=1e-7);
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -963,6 +985,7 @@ public:
     static TVector Range(const int& End, const bool IsColVect = true);
 
     void Add(const double& Val) { Vec.Add(Val); }
+    void DelLast() { Vec.DelLast(); }
 
     // returns true if the vectors have the same orientation and the elements are the same
     bool operator ==(const TVector& Vect) const;
@@ -1226,6 +1249,11 @@ public:
     TVector ColNorm2V() const;
     // returns the Frobenius norm of this matrix
     double FromNorm() const;
+
+    // returns the norm of the i-th row
+    double RowNormL1(const int& i) const;
+    // normalizes the rows using L1 norm
+    void NormalizeRowsL1();
 
     // returns the sum of the i-th row
     double RowSum(const int& i) const;

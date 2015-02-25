@@ -691,6 +691,8 @@ TNodeJsHMChain* TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& A
 				TimeUnit = TMc::TCtMChain::TU_HOUR;
 			} else if (TimeUnitStr == "day") {
 				TimeUnit = TMc::TCtMChain::TU_DAY;
+			} else if (TimeUnitStr == "month") {
+				TimeUnit = TMc::TCtMChain::TU_MONTH;
 			} else {
 				throw TExcept::New("Invalid time unit: " + TimeUnitStr, "TJsHierCtmc::TJsHierCtmc");
 			}
@@ -742,6 +744,8 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
+	EAssertR(Args.Length() >= 2, "hmc.fit expect 2 or more arguments!");
+
 	TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
 	TNodeJsFltVV* JsInstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 	TNodeJsFltV* JsRecTmV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
@@ -751,7 +755,19 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
 	}
 
-	JsMChain->McModel->Init(JsInstanceMat->Mat, RecTmV);
+	if (Args.Length() > 2) {
+		const TNodeJsBoolV* BatchEndJsV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[2]->ToObject());
+		const TBoolV& BatchEndV = BatchEndJsV->Vec;
+
+		printf("Batches:\n");
+		for (int i = 0; i < BatchEndV.Len(); i++) {
+			printf("%s\n", BatchEndV[i].Val ? "true" : "false");
+		}
+
+		JsMChain->McModel->InitBatches(JsInstanceMat->Mat, RecTmV, BatchEndV);
+	} else {
+		JsMChain->McModel->Init(JsInstanceMat->Mat, RecTmV);
+	}
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -994,7 +1010,7 @@ void TNodeJsHMChain::fullCoords(const v8::FunctionCallbackInfo<v8::Value>& Args)
 	v8::HandleScope HandleScope(Isolate);
 
 	TNodeJsHMChain* JsMChain = ObjectWrap::Unwrap<TNodeJsHMChain>(Args.Holder());
-	int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
+	const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
 	TFltV FtrV;	JsMChain->McModel->GetCentroid(StateId, FtrV);
 
