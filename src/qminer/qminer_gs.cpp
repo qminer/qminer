@@ -167,6 +167,10 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	} else {
 		throw TQmExcept::New("Unknown key type " +  KeyTypeStr);
 	}
+	// check if small index should be used
+	if (IndexKeyVal->IsObjKey("small") && IndexKeyVal->GetObjBool("small")) {
+		IndexKeyEx.KeyType = (TIndexKeyType)(IndexKeyEx.KeyType | oiktSmall);
+	}
 	// check field type and index type match
 	if (FieldType == oftStr && IndexKeyEx.IsValue()) {
 	} else if (FieldType == oftStr && IndexKeyEx.IsText()) {
@@ -195,7 +199,7 @@ TIndexKeyEx TStoreSchema::ParseIndexKeyEx(const PJsonVal& IndexKeyVal) {
 	// parse out word vocabulary
 	IndexKeyEx.WordVocName = IndexKeyVal->GetObjStr("vocabulary", "");
     // parse out tokenizer
-    if (IndexKeyEx.KeyType == oiktText) {
+    if (IndexKeyEx.IsText()) {
         if (IndexKeyVal->IsObjKey("tokenizer")) {
             PJsonVal TokenizerVal = IndexKeyVal->GetObjKey("tokenizer");
             QmAssertR(TokenizerVal->IsObjKey("type"), 

@@ -75,11 +75,11 @@ public:
 	TIndexKeyEx() {}
 
     /// Is indexed by value
-	bool IsValue() const { return KeyType == oiktValue; }
+	bool IsValue() const { return (KeyType & oiktValue) > 0; }
     /// Is indexed as text (tokenized)
-	bool IsText() const { return KeyType == oiktText; }
+	bool IsText() const { return (KeyType & oiktText) > 0; }
     /// Is indexed as geo-location
-	bool IsLocation() const { return KeyType == oiktLocation; }
+	bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
 	// get index type
 	TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
 
@@ -490,11 +490,11 @@ private:
                 FieldTypeStr(_FieldTypeStr), KeyId(_KeyId), KeyType(_KeyType), WordVocId(_WordVocId) { }
 
         /// Is indexed by value
-        bool IsValue() const { return KeyType == oiktValue; }
+        bool IsValue() const { return (KeyType & oiktValue) > 0; }
         /// Is indexed as text (tokenized)
-        bool IsText() const { return KeyType == oiktText; }
+		bool IsText() const { return (KeyType & oiktText) > 0; }
         /// Is indexed as geo-location
-        bool IsLocation() const { return KeyType == oiktLocation; }
+		bool IsLocation() const { return (KeyType & oiktLocation) > 0; }
         // get index type
         TStr GetKeyType() const { return IsValue() ? "value" : IsText() ? "text" : "location"; }
     };    

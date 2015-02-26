@@ -10,7 +10,7 @@
             { "name": "Directed", "type": "index", "store": "Movies", "inverse" : "Director", "small" : true }
         ],
         "keys": [
-            { "field": "Gender", "type": "value" } 
+            { "field": "Gender", "type": "value", "small" : true } 
         ]
     }, 
     { 
@@ -30,7 +30,7 @@
             { "field": "Title", "type": "value" }, 
             { "field": "Title", "name": "TitleTxt", "type": "text", "vocabulary" : "voc_01" }, 
             { "field": "Plot", "type": "text", "vocabulary" : "voc_01" },
-            { "field": "Genres", "type": "value" }
+            { "field": "Genres", "type": "value", "small" : true }
         ] 
     }
 ]
