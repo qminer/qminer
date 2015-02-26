@@ -1566,7 +1566,7 @@ public:
 	/// Checks key type is internal
 	bool IsInternal() const { return ((TypeFlags & oiktInternal) != 0); }
 	/// Get flag that instructs index to use small gix
-	bool IsSmall() const { return (TypeFlags | oiktSmall) != 0; }
+	bool IsSmall() const { return (TypeFlags & oiktSmall) != 0; }
 
 	/// Get key sort type
 	TIndexKeySortType GetSortType() const { return SortType; }
