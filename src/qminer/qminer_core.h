@@ -1814,6 +1814,16 @@ typedef enum {
 	oqctWildChar = 5  ///< Wildchar string matching (* for zero or more chars, ? for exactly one char)
 } TQueryCmpType;
 
+////////////////////////////////
+/// Flags which gix objects are used in certain query
+typedef enum {
+	oqgutUnknown = 0,       ///< Value not known yet
+	oqgutNone = 1,          ///< No gix used
+	oqgutNormal = 2,        ///< Normal gix is used
+	oqgutSmall = 3,         ///< Small-gix is used
+	oqgutBoth = 4           ///< Both gixes are used
+} TQueryGixUsedType;
+
 ///////////////////////////////
 /// Query Item
 class TQueryItem; typedef TVec<TQueryItem> TQueryItemV;
@@ -1847,6 +1857,10 @@ private:
 	TRec Rec;
 	/// Store which this query node returns
 	TUInt StoreId;
+	///// Flags indicating which gix objects are used in this query
+	//mutable TQueryGixUsedType GixFlag;
+	///// Flag indicating that GixFlag contains correct value
+	//mutable bool GixFlagSet;
 	
 	/// Parse Value for leaf nodes (result stored in WordIdV)
 	void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc);
@@ -1867,7 +1881,7 @@ private:
 	/// Construct query item, where key value is given as json
 	TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, 
 		const TStr& KeyNm, const PJsonVal& KeyVal);
-
+		
 public:
 	/// New undefined item (necessary for resizing vectors)
 	TQueryItem() { };
@@ -1938,6 +1952,9 @@ public:
 	bool IsJoin() const { return (Type == oqitJoin); }
 	/// Check query type
 	bool IsStore() const { return (Type == oqitStore); }
+
+	/// Calculates Gix-usage flag
+	TQueryGixUsedType GetGixFlag() const;
 
 	/// Get result store id
 	uint GetStoreId(const TWPt<TBase>& Base) const;
@@ -2232,6 +2249,7 @@ private:
 	bool UseGixSmall(const int& KeyId) const { 
 		return IndexVoc->GetKey(KeyId).IsSmall();
 	} // todo
+	
 
 	/// Upgrades a vector of small items into a vector of big ones
 	void Upgrade(const TQmGixItemSmallV& Src, TQmGixItemV& Dest) const {
@@ -2998,7 +3016,7 @@ private:
     
 	// searching
 	PRecSet Invert(const PRecSet& RecSet, const TIndex::PQmGixExpMerger& Merger);
-	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall);
+	TPair<TBool, PRecSet> Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag);
 
 public:
 	static PBase New(const TStr& FPath, const int64& IndexCacheSize) { 

@@ -9,7 +9,7 @@
             { "name": "ActedIn", "type": "index", "store": "Movies", "inverse" : "Actor" },
             { "name": "Directed", "type": "index", "store": "Movies", "inverse" : "Director", "small" : true }
         ],
-        "keys": [
+        "keys": [ 
             { "field": "Gender", "type": "value", "small" : true } 
         ]
     }, 

@@ -2893,7 +2893,7 @@ namespace TQm {
 			// parse the key
 			KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
 			// plain string, must be equal
-			Type = oqitLeafGix;
+			Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 			CmpType = oqctEqual;
 			ParseWordStr(KeyVal->GetStr(), IndexVoc);
 		} else if (KeyVal->IsObj()) {
@@ -2923,19 +2923,19 @@ namespace TQm {
 			} else if (KeyVal->IsObjKey("$ne")) {
 				QmAssertR(KeyVal->GetObjKey("$ne")->IsStr(), "Query: $ne value must be string");
 				KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-				Type = oqitLeafGix;
+				Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 				CmpType = oqctNotEqual;
 				ParseWordStr(KeyVal->GetObjKey("$ne")->GetStr(), IndexVoc);
 			} else if (KeyVal->IsObjKey("$gt")) {
 				QmAssertR(KeyVal->GetObjKey("$gt")->IsStr(), "Query: $gt value must be string");
 				KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-				Type = oqitLeafGix;
+				Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 				CmpType = oqctGreater;
 				ParseWordStr(KeyVal->GetObjKey("$gt")->GetStr(), IndexVoc);
 			} else if (KeyVal->IsObjKey("$lt")) {
 				QmAssertR(KeyVal->GetObjKey("$lt")->IsStr(), "Query: $lt value must be string");
 				KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
-				Type = oqitLeafGix;
+				Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 				CmpType = oqctLess;
 				ParseWordStr(KeyVal->GetObjKey("$lt")->GetStr(), IndexVoc);
 			} else if (KeyVal->IsObjKey("$or")) {
@@ -2949,7 +2949,7 @@ namespace TQm {
 				QmAssertR(KeyVal->GetObjKey("$wc")->IsStr(), "Query: $wc value must be string");
 				KeyId = IndexVoc->GetKeyId(Store->GetStoreId(), KeyNm);
 				// wildchars interparted as or with all possibilities
-				Type = oqitLeafGix;
+				Type = (IndexVoc->GetKey(KeyId).IsSmall() ? oqitLeafGixSmall : oqitLeafGix);
 				CmpType = oqctWildChar;
 				// identify possibilities
 				ParseWordStr(KeyVal->GetObjKey("$wc")->GetStr(), IndexVoc);
@@ -3093,7 +3093,7 @@ namespace TQm {
 	}
 
 	uint TQueryItem::GetStoreId(const TWPt<TBase>& Base) const {
-		if (IsLeafGix() || IsGeo()) {
+		if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
 			// when in the leaf, life is easy
 			return Base->GetIndexVoc()->GetKeyStoreId(KeyId);
 		} else if (IsRecSet()) {
@@ -3134,7 +3134,7 @@ namespace TQm {
 	}
 
 	bool TQueryItem::IsWgt() const {
-		if (IsLeafGix() || IsGeo()) {
+		if (IsLeafGix() || IsLeafGixSmall() || IsGeo()) {
 			// always weighted when only one key
 			return true;
 		} else if (IsOr()) {
@@ -3666,30 +3666,27 @@ namespace TQm {
 				TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
 				return TQmGixExpItem::NewOrV(AllKeyV);
 			} else {
-				// unknow operator
+				// unknown operator
 				throw TQmExcept::New("Index: Unknown query item operator");
 			}
-
-			// this code was never really called from main TBase
-
-			//} else if (QueryItem.IsAnd()) {
-			//	// we have a vector of AND items
-			//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-			//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-			//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-			//	}
-			//	return TQmGixExpItem::NewAndV(ExpItemV);
-			//} else if (QueryItem.IsOr()) {
-			//	// we have a vector of OR items
-			//	TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
-			//	for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
-			//		ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
-			//	}
-			//	return TQmGixExpItem::NewOrV(ExpItemV);
-			//} else if (QueryItem.IsNot()) {
-			//	// we have a negation (can have only one child item!)
-			//	QmAssert(QueryItem.GetItems() == 1);
-			//	return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
+		} else if (QueryItem.IsAnd()) {
+			// we have a vector of AND items
+			TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+				ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+			}
+			return TQmGixExpItem::NewAndV(ExpItemV);
+		} else if (QueryItem.IsOr()) {
+			// we have a vector of OR items
+			TVec<PQmGixExpItem> ExpItemV(QueryItem.GetItems(), 0);
+			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+				ExpItemV.Add(ToExpItem(QueryItem.GetItem(ItemN)));
+			}
+			return TQmGixExpItem::NewOrV(ExpItemV);
+		} else if (QueryItem.IsNot()) {
+			// we have a negation (can have only one child item!)
+			QmAssert(QueryItem.GetItems() == 1);
+			return TQmGixExpItem::NewNot(ToExpItem(QueryItem.GetItem(0)));
 		} else {
 			// unknow handle query item type
 			const int QueryItemType = (int)QueryItem.GetType();
@@ -3727,9 +3724,27 @@ namespace TQm {
 				TKeyWordV AllKeyV; QueryItem.GetKeyWordV(AllKeyV);
 				return TQmGixExpItemSmall::NewOrV(AllKeyV);
 			} else {
-				// unknow operator
+				// unknown operator
 				throw TQmExcept::New("Index: Unknown query item operator");
 			}
+		} else if (QueryItem.IsAnd()) {
+			// we have a vector of AND items
+			TVec<PQmGixExpItemSmall> ExpItemV(QueryItem.GetItems(), 0);
+			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+				ExpItemV.Add(ToExpItemSmall(QueryItem.GetItem(ItemN)));
+			}
+			return TQmGixExpItemSmall::NewAndV(ExpItemV);
+		} else if (QueryItem.IsOr()) {
+			// we have a vector of OR items
+			TVec<PQmGixExpItemSmall> ExpItemV(QueryItem.GetItems(), 0);
+			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
+				ExpItemV.Add(ToExpItemSmall(QueryItem.GetItem(ItemN)));
+			}
+			return TQmGixExpItemSmall::NewOrV(ExpItemV);
+		} else if (QueryItem.IsNot()) {
+			// we have a negation (can have only one child item!)
+			QmAssert(QueryItem.GetItems() == 1);
+			return TQmGixExpItemSmall::NewNot(ToExpItemSmall(QueryItem.GetItem(0)));
 		} else {
 			// unknow handle query item type
 			const int QueryItemType = (int)QueryItem.GetType();
@@ -4132,6 +4147,28 @@ namespace TQm {
 		}
 	}
 
+	TQueryGixUsedType TQueryItem::GetGixFlag() const {
+		TQueryGixUsedType GixFlag = oqgutUnknown;
+		if (IsLeafGix()) {
+			GixFlag = oqgutNormal;
+		} else if (IsLeafGixSmall()) {
+			GixFlag = oqgutSmall;
+		} else {
+			GixFlag = oqgutNone;
+			int flag = 0;
+			for (int i = 0; i < GetItems(); i++) {
+				TQueryGixUsedType res = GetItem(i).GetGixFlag();
+				if (res == oqgutNormal) { flag |= 1; }
+				else if (res == oqgutSmall) { flag |= 2; }
+				else if (res == oqgutBoth) { flag |= 3; break; }
+			}
+			if (flag == 1) { GixFlag = oqgutNormal; }
+			else if (flag == 2) { GixFlag = oqgutSmall; }
+			else if (flag == 3) { GixFlag = oqgutBoth; }
+		}			
+		return GixFlag;
+	}
+
 	// todo
 	TPair<TBool, PRecSet> TIndex::Search(const TWPt<TBase>& Base,
 		const TQueryItem& QueryItem, const PQmGixExpMerger& Merger, const PQmGixExpMergerSmall& MergerSmall) const {
@@ -4142,7 +4179,10 @@ namespace TQm {
 		if (QueryItem.Empty()) {
 			return TPair<TBool, PRecSet>(false, TRecSet::New(Store));
 		}
-		if (QueryItem.IsLeafGix()) {
+
+		// ok, detect which gix is used - big or small one
+		TQueryGixUsedType gix_flag = QueryItem.GetGixFlag();
+		if (gix_flag == oqgutNormal) {
 			// prepare the query
 			PQmGixExpItem ExpItem = ToExpItem(QueryItem);
 			// do the query
@@ -4151,7 +4191,7 @@ namespace TQm {
 			// return record set
 			PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
 			return TPair<TBool, PRecSet>(NotP, RecSet);
-		} else if (QueryItem.IsLeafGixSmall()) {
+		} else if (gix_flag == oqgutSmall) {
 			// prepare the query
 			PQmGixExpItemSmall ExpItem = ToExpItemSmall(QueryItem);
 			// do the query
@@ -4162,8 +4202,10 @@ namespace TQm {
 			// return record set
 			PRecSet RecSet = TRecSet::New(Store, StoreRecIdFqV, QueryItem.IsWgt());
 			return TPair<TBool, PRecSet>(NotP, RecSet);
+
 		} else {
-			Fail; // TODO this is error
+			EAssertR(false, "Error in TIndex::Search - hybrid search is not supported.");
+			Fail; // TODO this is error - should not happen, we have root And node and it wasn't handled above (code was removed...)
 		}
 	}
 
@@ -4548,10 +4590,18 @@ namespace TQm {
 		return TRecSet::New(Store, ResIdFqV, false);
 	}
 
-	TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall) {
-		if (QueryItem.IsLeafGix()) {
-			// return empty, when can be handled by index
-			return TPair<TBool, PRecSet>(false, NULL);
+	TPair<TBool, PRecSet> TBase::Search(const TQueryItem& QueryItem, const TIndex::PQmGixExpMerger& Merger, const TIndex::PQmGixExpMergerSmall& MergerSmall, const TQueryGixUsedType& ParentGixFlag) {
+		if (QueryItem.IsLeafGix() || QueryItem.IsLeafGixSmall()) { // todo
+			// return empty, when can be handled by parent-index
+			if (ParentGixFlag != oqgutBoth)
+				return TPair<TBool, PRecSet>(false, NULL);
+			// we need to force index to execute the query =>
+			//      create AND node with single child and execute it
+			TQueryItem IndexQueryItem(oqitAnd, QueryItem);
+			TPair<TBool, PRecSet> NotRecSet = Index->Search(this, IndexQueryItem, Merger, MergerSmall);
+			PRecSet RecSet; int ItemN = 0; bool NotP = false;
+			NotP = NotRecSet.Val1; RecSet = NotRecSet.Val2;
+			return TPair<TBool, PRecSet>(NotP, RecSet);
 		} else if (QueryItem.IsGeo()) {
 			if (QueryItem.IsLocRadius()) {
 				// must be handled by geo index
@@ -4573,8 +4623,8 @@ namespace TQm {
 				// return joined record set
 				return TPair<TBool, PRecSet>(false, JoinRecSet);
 			} else {
-				// do the subordiante queries
-				TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(0), Merger, MergerSmall);
+				// do the subordinate queries
+				TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(0), Merger, MergerSmall, QueryItem.GetGixFlag());
 				// in case it's empty, we must go to index 
 				if (NotRecSet.Val2.Empty()) { NotRecSet = Index->Search(this, QueryItem.GetItem(0), Merger, MergerSmall); }
 				// in case it's negated, we must invert it
@@ -4601,17 +4651,18 @@ namespace TQm {
 			TQueryItemType Type = QueryItem.GetType();
 			// check it is a known type
 			QmAssert(Type == oqitAnd || Type == oqitOr || Type == oqitNot);
+			const TQueryGixUsedType GixFlag = QueryItem.GetGixFlag();
 			// do all subsequents and keep track if any needs handling
 			TBoolV NotV; TRecSetV RecSetV; bool EmptyP = true;
 			for (int ItemN = 0; ItemN < QueryItem.GetItems(); ItemN++) {
 				// do subsequent search
-				TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(ItemN), Merger, MergerSmall);
+				TPair<TBool, PRecSet> NotRecSet = Search(QueryItem.GetItem(ItemN), Merger, MergerSmall, GixFlag);
 				NotV.Add(NotRecSet.Val1); RecSetV.Add(NotRecSet.Val2);
 				// check if to do anything
 				EmptyP = EmptyP && RecSetV.Last().Empty();
 			}
 			// check if there is anything to do
-			if (EmptyP) {
+			if (EmptyP && ParentGixFlag != oqgutBoth) { // todo
 				// nope, let the father handle this with inverted index
 				return TPair<TBool, PRecSet>(false, NULL);
 			} else {
@@ -4910,7 +4961,7 @@ namespace TQm {
 		// do the search
 		TIndex::PQmGixExpMerger Merger = Index->GetDefMerger();
 		TIndex::PQmGixExpMergerSmall MergerSmall = Index->GetDefMergerSmall();
-		TPair<TBool, PRecSet> NotRecSet = Search(Query->GetQueryItem(), Merger, MergerSmall);
+		TPair<TBool, PRecSet> NotRecSet = Search(Query->GetQueryItem(), Merger, MergerSmall, Query->GetQueryItem().GetGixFlag());
 		// when empty, then query can be completly covered by index
 		if (NotRecSet.Val2.Empty()) {
 			NotRecSet = Index->Search(this, Query->GetQueryItem(), Merger, MergerSmall);
