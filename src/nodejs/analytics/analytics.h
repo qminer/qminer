@@ -179,6 +179,13 @@ private:
 	PJsonVal GetParams() const;
 };
 
+class TNodeJsLogReg : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent <v8::Function> constructor;
+
+};
+
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
 //#

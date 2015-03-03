@@ -2352,8 +2352,6 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
         EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
         TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);
 
-
-
         printf("eigen vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
         Dist = TLinAlg::EuclDist(EigenV, TempV);

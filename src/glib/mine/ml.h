@@ -185,6 +185,40 @@ public:
 	void GetWgtV(TFltV& WgtV) const;
 };
 
+///////////////////////////////////////////
+// Exponential Regression
+// One of the generalized linear models.
+// The response variables are positive jump
+// times with an exponential distribution and
+// the link function is g(t) = 1 / t.
+class TExpReg {
+private:
+	double Lambda;
+	TFltV WgtV;
+
+	bool IncludeIntercept;
+
+	bool Verbose;
+	PNotify Notify;
+
+public:
+	TExpReg(const double& Lambda=1, const bool IncludeIntercept=false, const bool Verbose=true);
+	TExpReg(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	// Fits the regression model. The method assumes that the instances are stored in the
+	// columns of the matrix X and the responses are stored in vector y.
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-8);
+	double Predict(const TFltV& x) const;
+
+	void GetWgtV(TFltV& WgtV) const;
+
+private:
+	double PredictWithoutIntercept(const TFltV& x) const;
+	void PerformFitChecks(const TFltVV& X, const TFltV& y) const;
+};
+
 
 }
 
