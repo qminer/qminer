@@ -546,7 +546,7 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	WgtV.Gen(Dim);
 
 	// perform the algorithm
-	double Diff;
+	double Diff = TFlt::NInf;
 	int k = 1;
 	do {
 		if (k % 10 == 0) {

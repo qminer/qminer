@@ -1088,8 +1088,6 @@ TFullMatrix TCtMChain::GetQMatrix(const TVec<TIntV>& InStateSetV) const {
 				const int StateK = JoinState1[k];
 				const double PiK = StatDist[JoinState1[k]];
 
-//				printf("\nQ row k: %s\n", TStrUtil::GetStr(QMat.GetRow(StateK).Vec).CStr());
-
 				double SumK = 0;
 				for (int l = 0; l < JoinState2.Len(); l++) {
 					const int StateL = JoinState2[l];

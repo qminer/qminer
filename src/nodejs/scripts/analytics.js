@@ -537,12 +537,16 @@ module.exports = exports = function (pathPrefix) {
     		/**
     		 * Creates a new model out of the record set.
     		 */
-    		fit: function (recSet, batchEndV) {
+    		fit: function (opts) {
+    			var recSet = opts.recSet;
+    			var batchEndV = opts.batchEndV;
+    			var timeField = opts.timeField;
+    			
     			log.info('Updating feature space ...');
     			ftrSpace.updateRecords(recSet);
     			
     			var colMat = ftrSpace.ftrColMat(recSet);
-    			var timeV = recSet.getVec(CTMC_TIME_FIELD_ID);
+    			var timeV = recSet.getVec(timeField);
     			
     			log.info('Creating model ...');
     			mc.fit(colMat, timeV, batchEndV);

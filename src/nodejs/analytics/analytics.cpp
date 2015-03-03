@@ -953,7 +953,7 @@ void TNodeJsHMChain::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		RecTmV.Add(TNodeJsUtil::GetCppTimestamp(JsRecTmV->Vec[i]));
 	}
 
-	if (Args.Length() > 2) {
+	if (Args.Length() > 2 && !(Args[2]->IsNull() || Args[2]->IsUndefined())) {
 		const TNodeJsBoolV* BatchEndJsV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[2]->ToObject());
 		const TBoolV& BatchEndV = BatchEndJsV->Vec;
 		JsMChain->McModel->InitBatches(JsInstanceMat->Mat, RecTmV, BatchEndV);
