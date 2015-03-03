@@ -44,15 +44,20 @@ describe('Vector Tests', function () {
         })
 
         describe('At "Out of Bound" Test', function () {
-            it('should give an error for accessing an element out of bound', function () {
+            it('should give an error for accessing an element out of bound -1', function () {
                 assert.throws(function () {
                     var n = v.at(-1);
+                })
+            })
+            it('should give an error for accessing an element out of bound 3', function () {
+                assert.throws(function () {
+                    var n = v.at(3);
                 })
             })
         })
 
         describe('Constructor "Array" Test', function () {
-            it('takes an array [1, 2, 3] and it should create a vector with same values', function () {
+            it('takes an array [1, 2, 3] and it should create a vector', function () {
                 var vec = new la.Vector([1, 2, 3]);
                 assert.equal(vec.length, 3);
                 for (var i = 0; i < vec.length; i++) {
@@ -61,8 +66,34 @@ describe('Vector Tests', function () {
             })
         })
 
+        describe('Constructor "String Array" Test', function () {
+            it('takes an array ["a", "b", "c"] and it should return an exception', function () {
+
+                assert.throws( function () {
+                    var vec = new la.Vector(["a", "b", "c"]);
+               
+                    assert.equal(vec.length, 3);
+
+                    assert.equal(vec.at(0), "a");
+                    assert.equal(vec.at(1), "b");
+                    assert.equal(vec.at(2), "c");
+                })
+            })
+        })
+
+        describe('Contructor "Empty Array" Test', function () {
+            it('takes an empty array [] and it should create an empty vector', function () {
+                var vec = new la.Vector([]);
+                assert.equal(vec.length, 0);
+
+                assert.throws(function () {
+                    var n = vec.at(0);
+                })
+            })
+        })
+
         describe('Constructor "Dictionary" Test', function () {
-            it('takes {"vals":5, "mxvals": 5} and it should create a vector with 5 zeros', function () {
+            it('takes {"vals":5, "mxvals": 5} and creates a vector with 5 zeros', function () {
                 var vec = new la.Vector({ "vals": 5, "mxvals": 5 });
                 assert.equal(vec.length, 5);
                 for (var i = 0; i < vec.length; i++) {
@@ -71,6 +102,15 @@ describe('Vector Tests', function () {
             })
         })
 
+        // crashes node.js
+        //describe('Contructor "Invalid Dictionary" Test', function () {
+        //    it('takes an invalid dictionary {"vals": "a", "maxvals": 5} and it should give an exception', function () {
+        //        assert.throws(function () {
+        //            var vec = new la.Vector({ "vals": "a", "mxvals": 5 });
+        //        })
+        //    })
+        //})
+
         describe('Copy Constructor Test', function () {
             it('should copy the vector v and save it in vec', function () {
                 var vec = new la.Vector(v);
@@ -78,6 +118,11 @@ describe('Vector Tests', function () {
                 for (var i = 0; i < v.length; i++) {
                     assert.equal(vec.at(i), v.at(i));
                 }
+            })
+            it('should copy vector v and while changed it doesn\'t change v', function () {
+                var vec = new la.Vector(v);
+                vec.put(1, -100);
+                assert.notEqual(vec.at(1), v.at(1));
             })
         })
 
@@ -101,23 +146,12 @@ describe('Vector Tests', function () {
         })
 
         // ??
-        describe('getMaxIdx "Problem" Test', function () {
-            it('what if all elements are the same, 1', function () {
+        describe('getMaxIdx "All Elements Same" Test', function () {
+            it('if all elements are the same, it should return the first max index', function () {
                 var vec = new la.Vector([1, 1, 1, 1]);
                 assert.equal(vec.getMaxIdx(), 0);
 
-                // assert.equal(vec.getMaxIdx(), 1); // should also work, but doesn't 
-            })
-        })
-
-        describe('Clone Test', function () {
-            it('should return true if v is equal w', function () {
-                var w = new la.Vector(v);
-
-                assert.deepEqual(v, w);
-                for (var i = 0; i < v.length; i++) {
-                    assert.equal(w.at(i), v.at(i));
-                }
+                // assert.equal(vec.getMaxIdx(), 1); // getMaxIdx() gets first max element?
             })
         })
 
@@ -132,6 +166,28 @@ describe('Vector Tests', function () {
             })
         })
 
+        describe('Ones "Parameter" Tests', function () {
+            it('should return an empty vector for parameter zero', function () {
+                var w = new la.ones(0);
+
+                assert.equal(w.length, 0);
+            })
+
+            // throws an exception (maybe in a bad way)
+            //it('should throw an exception for parameters less than 0', function () {
+            //    assert.throws(function () {
+            //        var w = new la.ones(-1);
+            //    })
+            //})
+
+            // node.js crash
+            //it('should throw an exception for floating number parameters', function () {
+            //    assert.throws(function () {
+            //        var w = new la.ones(2.5);
+            //    })
+            //})
+        })
+
         // not implemented
         //describe('Square test', function () {
         //    it('should square all values of vector v', function () {
@@ -143,19 +199,32 @@ describe('Vector Tests', function () {
         //    })
         //})
 
-        describe('Sort Test', function () {
+        describe('Sort Tests', function () {
             it('should sort vector in ascending order [0.11, 0.12, 3.5, 4]', function () {
                 var array = [0.11, 0.12, 3.5, 4];
-                var sortedVec = new la.Vector(array);
+                //var sortedVec = new la.Vector(array);
 
                 var vec = new la.Vector([3.5, 0.12, 4, 0.11]);
                 var vec = vec.sort();
 
-                assert.deepEqual(vec, sortedVec);
+                //assert.deepEqual(vec, sortedVec);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), sortedVec.at(i));
+                    //assert.equal(vec.at(i), sortedVec.at(i));
+                    assert.equal(vec.at(i), array[i]);
                 }
             })
+            
+            it('should sort vector in descending order [4, 3.5, 0.12, 0.11]', function () {
+                var array = [4, 3.5, 0.12, 0.11];
+
+                var vec = new la.Vector([3.5, 0.12, 4, 0.11]);
+                var vec = vec.sort(false);
+
+                for (var i = 0; i < vec.length; i++) {
+                    assert.equal(vec.at(i), array[i]);
+                }
+            })
+
         })
 
         describe('Plus Test', function () {
@@ -171,6 +240,18 @@ describe('Vector Tests', function () {
                 }
             })
         })
+
+        // throws an exception (maybe in a bad way)
+        //describe('Plus "Problem" Test', function () {
+        //    it('should throw an exception for different length vectors', function () {
+        //        var vec1 = new la.Vector([1, 3, 4, 8]);
+        //        var vec2 = new la.Vector([4, 3, 8]);
+
+        //        assert.throws(function () {
+        //            var vec = vec1.plus(vec2);
+        //        })
+        //    })
+        //})
 
         describe('Minus Test', function () {
             it('should substract the vectors', function () {
@@ -200,7 +281,7 @@ describe('Vector Tests', function () {
         })
 
         describe('Multiply "Small scalar" Test', function () {
-            it('should multiply vector vec with scalar close to 0: Number.MIN_VALUE', function () {
+            it('should multiply vector vec with scalar 10^(-5)', function () {
                 var vec = new la.Vector([3, 0, 1, 0.0001]);
                 var vec2 = vec.multiply(Math.pow(10, -5));
                 var controlVec = new la.Vector([0.00003, 0, 0.00001, 0.000000001]);
@@ -226,8 +307,19 @@ describe('Vector Tests', function () {
             })
         })
 
-        describe('At [] Test', function () {
-            it('should return elements with indexes 0 (3.2) and 1 (4)', function () {
+        describe('Subvector "Big Index" Test', function () {
+            it('should throw an exception for indVec having a value > vec.length', function () {
+                var vec = new la.Vector([3, -51, 22, 19]);
+                var indVec = new la.IntVector([1, 4, 2, 0]);
+
+                assert.throws( function () {
+                    vec = vec.subVec(indVec);
+                })
+            })
+        })
+
+        describe('At [] Tests', function () {
+            it('should return elements with indices 0 (3.2) and 1 (4)', function () {
                 assert.equal(3.2, v[0]);
                 assert.equal(4, v[1]);
             })
@@ -237,10 +329,32 @@ describe('Vector Tests', function () {
             })
         })
 
+        describe('At [] "Out of Bound" Test', function () {
+            it('should return an exception for out of bound indices', function () {
+                assert.throws(function () {
+                    v[4] = 12;
+                })
+            })
+        })
+
         describe('Put Test', function () {
             it('should put the value -21 at index 1', function () {
                 v.put(1, -21);
                 assert.equal(-21, v[1]);
+            })
+        })
+
+        describe('Put "Parameter" Tests', function () {
+            it('should throw exception for putting an element out of bounds', function () {
+                assert.throws(function () {
+                    v.put(3, 100);
+                })
+            })
+
+            it('should throw exception for putting an element in position 0.5', function () {
+                assert.throws(function () {
+                    v.put(0.5, 100);
+                })
             })
         })
 
@@ -271,10 +385,19 @@ describe('Vector Tests', function () {
         })
 
         describe('Norm Test', function () {
-            it('should return the norm of vec 5', function () {
+            it('should return the norm of vec: 5', function () {
                 var vec = new la.Vector([3, 4]);
                 var n = vec.norm();
                 assert.eqtol(n, 5);
+            })
+        })
+
+        describe('Norm "Empty Vector" Test', function () {
+            it('should throw exception for an empty vector', function () {
+                var vec = new la.Vector();
+                var n = vec.norm();
+                assert.equal(n, 0);
+               
             })
         })
 
@@ -304,12 +427,31 @@ describe('Vector Tests', function () {
             })
         })
 
+        describe('Normalize "Empty Vector" Test', function () {
+            it('should throw an exception for empty vector', function () {
+                var vec = new la.Vector();
+                assert.throws(function () {
+                    vec.normalize();
+                })
+            })
+        })
+
         describe('ToMat Test', function () {
             it('should return matrix with a single column that equals vec', function () {
                 var mat = v.toMat();
                 for (var i = 0; i < v.length; i++) {
                     assert.equal(mat.at(i, 0), v.at(i));
                 }
+            })
+        })
+
+        describe('ToMat "Empty Vector" Test', function () {
+            it('should return an empty matrix', function () {
+                var vec = new la.Vector();
+                var mat = vec.toMat();
+
+                assert.equal(mat.rows, 0);
+                // assert.equal(mat.cols, 0); // why does it make a column for an empty vector?
             })
         })
 
@@ -339,6 +481,18 @@ describe('Vector Tests', function () {
             })
         })
 
+        describe('Trunc "Parameter" Tests', function () {
+            it('should return the same vector for parameter 3', function () {
+                v.trunc(3);
+                assert.equal(v.length, 3);
+            })
+            it('should throw an exception for parameter < 0', function () {
+                assert.throws(function () {
+                    v.trunc(-1);
+                })
+            })
+        })
+
         describe('Outer Test', function () {
             it('should return a matrix v * v^T', function () {
                 var mat = v.outer(v);
@@ -357,6 +511,14 @@ describe('Vector Tests', function () {
             it('should return the scalar product of v and [1, 2, 3]', function () {
                 var n = v.inner(new la.Vector([1, 2, 3]));
                 assert.equal(n, 10 + 24 - 63);
+            })
+        })
+
+        describe('Inner "Different Length" Test', function () {
+            it('should return an exception for vectors having different lengths', function () {
+                assert.throws(function () {
+                    var n = v.inner(new la.Vector([1, 2]));
+                })
             })
         })
 
@@ -426,7 +588,7 @@ describe('IntVector Test', function () {
         })
 
         describe('Constructor "Array" Test', function () {
-            it('takes an array [1, 2, 3] and it should create a vector with same values', function () {
+            it('takes an array [1, 2, 3] and creates a vector with same values', function () {
                 var vec = new la.IntVector([1, 2, 3]);
                 assert.equal(vec.length, 3);
                 for (var i = 0; i < vec.length; i++) {
@@ -435,8 +597,19 @@ describe('IntVector Test', function () {
             })
         })
 
+        describe('Constructor "Empty Array" Test', function () {
+            it('should take an empty array and creates an empty vector', function () {
+                var vec = new la.IntVector([]);
+                assert.equal(vec.length, 0);
+
+                assert.throws(function () {
+                    var n = vec.at(-1);
+                })
+            })
+        })
+
         describe('Constructor "Dictionary" Test', function () {
-            it('takes {"vals":5, "mxvals": 5} and it should create a vector with 5 zeros', function () {
+            it('takes {"vals":5, "mxvals": 5} and creates a vector with 5 zeros', function () {
                 var vec = new la.IntVector({ "vals": 5, "mxvals": 5 });
                 assert.equal(vec.length, 5);
                 for (var i = 0; i < vec.length; i++) {
@@ -461,6 +634,15 @@ describe('IntVector Test', function () {
             })
         })
 
+        describe('Sum "Empty Vector" Test', function () {
+            it('should throw an exception for empty vector', function () {
+                var vec = new la.IntVector();
+                assert.throws(function () {
+                    var n = vec.norm();
+                })
+            })
+        })
+
         describe('getMaxIdx Test', function () {
             it('should return index of last element in vector, 1.', function () {
                 assert.equal(intV.getMaxIdx(), 1);
@@ -468,12 +650,10 @@ describe('IntVector Test', function () {
         })
 
         // ??
-        describe('getMaxIdx "Problem" Test', function () {
-            it('what if all elements are the same, 1', function () {
+        describe('getMaxIdx "All Elements Same" Test', function () {
+            it('if all elements are the same, it should return the first max index', function () {
                 var vec = new la.IntVector([1, 1, 1, 1]);
                 assert.equal(vec.getMaxIdx(), 0);
-
-                // assert.equal(vec.getMaxIdx(), 1); // should also work, but doesn't 
             })
         })
 
@@ -488,6 +668,16 @@ describe('IntVector Test', function () {
                 assert.deepEqual(vec, sortedVec);
                 for (var i = 0; i < vec.length; i++) {
                     assert.equal(vec.at(i), sortedVec.at(i));
+                }
+            })
+            it('should sort vector in descending order [15, 2, 0, -3]', function () {
+                var array = [15, 2, 0, -3];
+
+                var vec = new la.IntVector([2, 0, 15, -3]);
+                var vec = vec.sort(false);
+
+                for (var i = 0; i < vec.length; i++) {
+                    assert.equal(vec.at(i), array[i]);
                 }
             })
         })
@@ -551,6 +741,17 @@ describe('IntVector Test', function () {
             })
         })
 
+        describe('Subvector "Big Index" Test', function () {
+            it('should throw an exception for indVec having a value > vec.length', function () {
+                var vec = new la.IntVector([3, -51, 22, 19]);
+                var indVec = new la.IntVector([1, 4, 2, 0]);
+
+                assert.throws(function () {
+                    vec = vec.subVec(indVec);
+                })
+            })
+        })
+
         describe('At [] Test', function () {
             it('should return elements with indexes 0 (-1) and 1 (6)', function () {
                 assert.equal(intV[0], -1);
@@ -559,6 +760,14 @@ describe('IntVector Test', function () {
             it('should save new value at index 0 (12)', function () {
                 intV[0] = 12;
                 assert.equal(intV[0], 12);
+            })
+        })
+
+        describe('At [] "Out of Bound" Test', function () {
+            it('should return an exception for out of bound indices', function () {
+                assert.throws(function () {
+                    intV[4] = 12;
+                })
             })
         })
 
@@ -662,6 +871,18 @@ describe('IntVector Test', function () {
                 assert.equal(intV[0], 10);
             })
         })
+
+        // not implemented
+        //describe('RangeVec Test', function () {
+        //    it('should return a integer vector with elements from 3 to 8', function () {
+        //        var intV2 = la.rangeVec(3, 8);
+        //        assert.equal(intV2.length, 6);
+
+        //        for (var i = 0; i < intV2.length; i++) {
+        //            assert.equal(intV2.at(i), i + 3);
+        //        }
+        //    })
+        //})
     })
 })
 
@@ -720,6 +941,15 @@ describe('Matrix Test', function () {
             })
         })
 
+        describe('Constructor "Empty Array" Test', function () {
+            it('takes an empty array and it should return an empty matrix', function () {
+                var dMat = new la.Matrix([]);
+
+                assert.equal(dMat.rows, 0);
+                assert.equal(dMat.cols, 0);
+            })
+        })
+
         describe('Contructor "Dictionary" Test', function () {
             it('takes a dictionary of rows, columns and random and return a matrix', function () {
                 var dMat = new la.Matrix({ "rows": 3, "cols": 3, "random": false });
@@ -756,6 +986,14 @@ describe('Matrix Test', function () {
             })
         })
 
+        describe('Put "Out of Bound" Test', function () {
+            it('should throw an exception for index (3, 3)', function () {
+                assert.throws(function () {
+                    mat.put(3, 3, 100);
+                })
+            })
+        })
+
         describe('Multiply "Scalar" Test', function () {
             it('should multiply matrix with scalar 10', function () {
                 var mat3 = mat.multiply(10);
@@ -779,6 +1017,14 @@ describe('Matrix Test', function () {
             })
         })
 
+        describe('Multiply "Different Dimension Vector" Test', function () {
+            it('should throw exception for vector with length different of mat.cols', function () {
+                assert.throws(function () {
+                    var vec = mat.multiply(new la.Vector([1]));
+                })
+            })
+        })
+
         describe('Multiply "Sparse Vector" Test', function () {
             it('should multiply mat with sparse vector [1, 2]', function () {
                 var vec = mat.multiply(new la.SparseVector([[0, 1], [1, 2]]));
@@ -788,6 +1034,14 @@ describe('Matrix Test', function () {
                 for (var i = 0; i < controlVec.length; i++) {
                     assert.equal(vec.at(i), controlVec.at(i));
                 }
+            })
+        })
+
+        describe('Multiply "Different Dimension Sparse Vector" Test', function () {
+            it('should throw exception for sparse vector with length different of mat.cols', function () {
+                assert.throws(function () {
+                    var vec = mat.multiply(new la.SparseVector([[0, 1], [1, 2], [2, 3]]));  // if sparse vector is ex. [[0, 1]], it doesn't throw an exception
+                })
             })
         })
 
@@ -1328,6 +1582,15 @@ describe('Sparse Matrix Tests', function () {
         //    })
         //})
 
+        // probably not implemented
+        //describe('Constructor "Rows and Columns" Test', function () {
+        //    it('takes {"rows": 3, "cols": 3} and creates a sparse matrix', function () {
+        //        var mat = new la.SparseMatrix({ "rows": 3, "cols": 3 });
+        //        assert.equal(mat.rows, 3, "Rows: " + mat.rows + " not equal 3!");
+        //        assert.equal(mat.cols, 3, "Columns: " + mat.cols + " not equal 3!");
+        //    })
+        //})
+
         describe('Push Test', function () {
             it('should push a sparse vector [1, 2, 0, 4]', function () {
                 spMat.push(new la.SparseVector([[0, 1], [1, 2], [3, 4]]));
@@ -1576,6 +1839,20 @@ describe('Sparse Matrix Tests', function () {
                 }
             })
         })
+
+        // doesn't work properly, mat doesn't have rows and cols saved
+        //describe('Sparse Test', function () {
+        //    it('should return a 3-by-3 zero sparse matrix', function () {
+        //        var mat = la.sparse(3, 3);
+        //        assert.equal(mat.rows, 3);
+        //        assert.equal(mat.cols, 3);
+        //        for (var i = 0; i < mat.rows; i++) {
+        //            for (var j = 0; j < mat.cols; j++) {
+        //                assert.equal(mat.at(i, j), 0);
+        //            }
+        //        }
+        //    })
+        //})
 
         // doesn't work (frob doesn't square root the scalar product)
         //describe('Frob Test', function () {
