@@ -131,35 +131,29 @@ public:
 //#
 //# ### Recursive Linear Regression model
 //#
-//# Holds online regression model. This object is result of `analytics.newRecLinReg`.
+//# Holds online regression model.
 class TNodeJsRecLinReg : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
-	static v8::Persistent <v8::Function> constructor;
-
 	TSignalProc::PRecLinReg Model;
-
 	TNodeJsRecLinReg(const TSignalProc::PRecLinReg& Model);
-
-	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const TSignalProc::PRecLinReg& Model);
-
 public:
-//	static v8::Local<v8::Object> New(const TSignalProc::PRecLinReg& Model);
-
 	static void Init(v8::Handle<v8::Object> exports);
+	static const TStr ClassId;
+private:
 	//#
 	//# **Constructor:**
 	//#
 	//#- `recLinRegModel = new analytics.RecLinReg(fin)` -- constructs a recursive linear regression model by loading it from input stream `fin`
 	//#- `recLinRegModel = new analytics.RecLinReg(recLinRegParameters)` -- constructs a recursive linear regression using a JSON parameter object `recLinRegParameters, whose properties are `recLinRegParameters.dim` (dimensionality of feature space, e.g.
-    //#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
-    //#     (regularization parameter to avoid over-fitting, default is 1.0).)
-	JsDeclareFunction(New);
+	//#     `ftrSpace.dim`), `recLinRegParameters.forgetFact` (forgetting factor, default is 1.0) and `recLinRegParameters.regFact` 
+	//#     (regularization parameter to avoid over-fitting, default is 1.0).)
+	static TNodeJsRecLinReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 	//#
 	//# **Functions and properties:**
 	//#
-    //#- `recLinRegModel = recLinRegModel.learn(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
-	JsDeclareFunction(learn);
+    //#- `recLinRegModel = recLinRegModel.fit(vec, num)` -- updates the model using full vector `vec` and target number `num`as training data. Returns self.
+	JsDeclareFunction(fit);
     //#- `num = recLinRegModel.predict(vec)` -- sends vector `vec` through the
     //#     model and returns the prediction as a real number `num`
 	JsDeclareFunction(predict);
@@ -179,12 +173,121 @@ private:
 	PJsonVal GetParams() const;
 };
 
-class TNodeJsLogReg : public node::ObjectWrap {
-	friend class TNodeJsUtil;
+/////////////////////////////////////////
+// Logistic Regression
+JsDeclareClass(TNodeJsLogReg)// {
 private:
-	static v8::Persistent <v8::Function> constructor;
+	TMl::TLogReg LogReg;
 
+	TNodeJsLogReg(const TMl::TLogReg& _LogReg): LogReg(_LogReg) {}
+
+	static TNodeJsLogReg* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	/**
+	 * Logistic regression model. Uses Newtons method to compute the weights.
+	 *
+	 * @constructor
+	 * @property {object} [opts] - the options used for initialization
+	 * @property {Number} [opts.lambda = 1] - the regularization parameter
+	 * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+	 */
+	JsDeclareConstructor(TNodeJsLogReg);
+
+	/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {LogReg} - returns itself
+	 */
+	JsDeclareFunction(fit);
+
+	/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+	JsDeclareFunction(predict);
+
+	/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+	JsDeclareProperty(weights);
+
+	/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+	JsDeclareFunction(save);
 };
+
+/////////////////////////////////////////////
+// Exponential Regression
+JsDeclareClass(TNodeJsExpReg)// {
+private:
+	TMl::TExpReg ExpReg;
+
+	TNodeJsExpReg(const TMl::TExpReg& _ExpReg): ExpReg(_ExpReg) {}
+
+	static TNodeJsExpReg* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	/**
+	 * Exponential regression model, where the response is assumed to be exponentially
+	 * distributed. Finds the rate parameter with respect to the feature vector.
+	 *
+	 * Uses Newtons method to compute the weights.
+	 *
+	 * @constructor
+	 * @property {object} [opts] - the options used for initialization
+	 * @property {Number} [opts.lambda = 1] - the regularization parameter
+	 * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+	 */
+	JsDeclareConstructor(TNodeJsExpReg);
+
+	/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {ExpReg} - returns itself
+	 */
+	JsDeclareFunction(fit);
+
+	/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+	JsDeclareFunction(predict);
+
+	/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+	JsDeclareProperty(weights);
+
+	/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+	JsDeclareFunction(save);
+};
+
 
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
@@ -207,10 +310,15 @@ JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
 
 	~TNodeJsHMChain();
 
+	static TNodeJsHMChain* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
 //	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
 //	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
 
 public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	JsDeclareConstructor(TNodeJsHMChain);
+
 	//#
 	//# **Functions and properties:**
 	//#
@@ -313,19 +421,16 @@ private:
 class TNodeJsNNet : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 private:
-	static v8::Persistent <v8::Function> constructor;
 	TSignalProc::PNNet Model;
 
 	TNodeJsNNet(const PJsonVal& ParamVal);
 	TNodeJsNNet(TSIn& SIn);
-
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
+	static TNodeJsNNet* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
+	static const TStr ClassId;
 	static void Init(v8::Handle<v8::Object> exports);
 
-	JsDeclareFunction(New);
     //#- `NNet = NNet.fit(vec,vec)` -- fits the NNet model in online mode
     //#- `NNet = NNet.fit(mat,mat)` -- fits the NNet model in batch mode
 	JsDeclareFunction(fit);

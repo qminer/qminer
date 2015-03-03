@@ -1,3 +1,4 @@
+console.log(__filename)
 var qm = require('../../');
 var fs = qm.fs;
 var assert = require('assert');

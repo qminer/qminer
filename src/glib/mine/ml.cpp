@@ -611,6 +611,15 @@ void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
 	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
 }
 
+double TLogReg::Predict(const TFltV& x) const {
+	if (IncludeIntercept) {
+		TFltV x1(x);	x1.Add(1);
+		return PredictWithoutIntercept(x1);
+	} else {
+		return PredictWithoutIntercept(x);
+	}
+}
+
 void TLogReg::GetWgtV(TFltV& _WgtV) const {
 	_WgtV = WgtV;
 	if (IncludeIntercept) {
@@ -618,6 +627,13 @@ void TLogReg::GetWgtV(TFltV& _WgtV) const {
 	}
 }
 
+double TLogReg::PredictWithoutIntercept(const TFltV& x) const {
+	EAssertR(x.Len() == WgtV.Len(), "Dimension mismatch while predicting!");
+	return 1 / (1 + TMath::Power(TMath::E, -TLinAlg::DotProduct(WgtV, x)));
+}
+
+///////////////////////////////////////////
+// Exponential Regression
 TExpReg::TExpReg(const double& _Lambda, const bool _Intercept, const bool _Verbose):
 		Lambda(_Lambda),
 		WgtV(),

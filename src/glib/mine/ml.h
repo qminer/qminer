@@ -181,8 +181,12 @@ public:
 	// Fits the regression model. The method assumes that the instances are stored in the
 	// columns of the matrix X and the responses are stored in vector y.
 	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
+	// returns the expected response for the given feature vector
+	double Predict(const TFltV& x) const;
 
 	void GetWgtV(TFltV& WgtV) const;
+private:
+	double PredictWithoutIntercept(const TFltV& x) const;
 };
 
 ///////////////////////////////////////////

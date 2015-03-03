@@ -49,7 +49,7 @@ void TNodeJsLinAlg::svd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
             JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(U));
             JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(V));
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsFltVV::New(s));
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsFltV::New(s));
             Args.GetReturnValue().Set(JsObj);
         } else {
             Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -284,54 +284,134 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 1, "Expected one argument");
-    TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    if (Args[0]->IsNumber()) {
-        const double Scalar = Args[0]->NumberValue();
-        TFltVV ResMat;
-        ResMat.Gen(JsMat->Mat.GetRows(), JsMat->Mat.GetCols());
-        TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, ResMat);
-        Args.GetReturnValue().Set(New(ResMat));
-    } else if (Args[0]->IsObject()) { // IF vector, then u = A *v 
-        if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
-            TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
-            EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
-            TFltV Result(JsMat->Mat.GetRows());
+	EAssertR(Args.Length() == 1, "Expected one argument");
+	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+	if (Args[0]->IsNumber()) {
+		const double Scalar = Args[0]->NumberValue();
+		TFltVV ResMat;
+		ResMat.Gen(JsMat->Mat.GetRows(), JsMat->Mat.GetCols());
+		TLinAlg::MultiplyScalar(Scalar, JsMat->Mat, ResMat);
+		Args.GetReturnValue().Set(New(ResMat));
+	}
+	else if (Args[0]->IsObject()) { // IF vector, then u = A *v 
+		if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+			TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetCols() == JsVec->Vec.Len(), "Matrix-vector multiplication: Dimension mismatch");
+			TFltV Result(JsMat->Mat.GetRows());
 
-            TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
-            Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
-        } else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
-            TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-            TFltVV Result;
-            // computation
-            Result.Gen(JsMat->Mat.GetRows(), FltVV->Mat.GetCols());
-            TLinAlg::Multiply(JsMat->Mat, FltVV->Mat, Result);
-            Args.GetReturnValue().Set(New(Result));
-        }
-    } else {       
-        throw TExcept::New("Unsupported type");      
-    }
+			TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
+		}
+		else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
+			TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+			TFltVV Result;
+			// computation
+			Result.Gen(JsMat->Mat.GetRows(), FltVV->Mat.GetCols());
+			TLinAlg::Multiply(JsMat->Mat, FltVV->Mat, Result);
+			Args.GetReturnValue().Set(New(Result));
+		}
+		else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+			TNodeJsSpVec* JsVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetCols() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "matrix * sparse_vector: dimensions mismatch");
+			int Rows = JsMat->Mat.GetRows();
+			TFltVV Result(Rows, 1);
+			// Copy could be omitted if we implemented SparseColMat * SparseVec
+			TVec<TIntFltKdV> TempSpMat(1);
+			TempSpMat[0] = JsVec->Vec;
+			TLinAlg::Multiply(JsMat->Mat, TempSpMat, Result);
+			// create JS result with the Result vector
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
+		}
+		else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+			TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetCols() >= JsMat2->Rows, "matrix * sparse_col_matrix: dimensions mismatch");
+			// computation				
+			int Rows = JsMat->Mat.GetRows();
+			int Cols = JsMat->Mat.GetCols();
+			if (JsMat2->Rows == -1) {
+				EAssertR(Cols > TLAMisc::GetMaxDimIdx(JsMat2->Mat), "matrix * sparse_col_matrix: dimensions mismatch");
+			}
+			TFltVV Result(Rows, JsMat2->Mat.Len());
+			TLinAlg::Multiply(JsMat->Mat, JsMat2->Mat, Result);
+			// create JS result with the Result vector	
+			Args.GetReturnValue().Set(New(Result));
+		}
+	}
+	else {
+		throw TExcept::New("Unsupported type");
+	}
 }
 
 void TNodeJsFltVV::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 1, "Expected one argument");
-    TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
-    if (Args[0]->IsNumber()) {
-       const double Scalar = Args[0]->NumberValue();
-       TFltVV ResMat (JsMat->Mat);
-       ResMat.Transpose();
-       TLinAlg::MultiplyScalar(Scalar, ResMat, ResMat);
-       Args.GetReturnValue().Set(New(ResMat));
-    } else {
-        throw TExcept::New("Unsupported type");
-    }
+	EAssertR(Args.Length() == 1, "Expected one argument");
+	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
+	if (Args[0]->IsNumber()) {
+		const double Scalar = Args[0]->NumberValue();
+		TFltVV ResMat(JsMat->Mat);
+		ResMat.Transpose();
+		TLinAlg::MultiplyScalar(Scalar, ResMat, ResMat);
+		Args.GetReturnValue().Set(New(ResMat));
+		return;
+	}
+	else if (Args[0]->IsObject()) {
+		if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+			TNodeJsFltV* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetRows() == JsVec->Vec.Len(), "matrix' * vector: dimensions mismatch");
+			// computation				
+			TFltV Result(JsMat->Mat.GetCols());
+			TLinAlg::MultiplyT(JsMat->Mat, JsVec->Vec, Result);
+			// create JS result with the Result vector	
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
+		}
+		else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) {
+			TNodeJsFltVV* JsMat2 = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetRows() == JsMat2->Mat.GetRows(), "matrix' * matrix: dimensions mismatch");
+			TFltVV Result;
+			// computation
+			Result.Gen(JsMat->Mat.GetCols(), JsMat2->Mat.GetCols());
+			TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+		}
+		else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
+			TNodeJsSpVec* JsVec = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetRows() > TLAMisc::GetMaxDimIdx(JsVec->Vec), "matrix' * sparse_vector: dimensions mismatch");
+			TFltVV Result(JsMat->Mat.GetCols(), 1);
+			// Copy could be omitted if we implemented SparseColMat * SparseVec
+			TVec<TIntFltKdV> TempSpMat(1);
+			TempSpMat[0] = JsVec->Vec;
+			TLinAlg::MultiplyT(JsMat->Mat, TempSpMat, Result);
+			// create JS result with the Result vector	
+			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
+		}
+		else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) {
+			TNodeJsSpMat* JsMat2 = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
+			EAssertR(JsMat->Mat.GetRows() >= JsMat2->Rows, "matrix' * sparse_col_matrix: dimensions mismatch");
+			// computation				
+			int Rows = JsMat->Mat.GetRows();
+			int Cols = JsMat->Mat.GetCols();
+			if (JsMat2->Rows == -1) {
+				EAssertR(Rows > TLAMisc::GetMaxDimIdx(JsMat2->Mat), "matrix' * sparse_col_matrix: dimensions mismatch");
+			}
+			TFltVV Result(Cols, JsMat2->Mat.Len());
+			TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
+			// create JS result with the Result vector	
+			Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
+		}
+		else {
+			throw TExcept::New("Unsupported type");
+		}
+	}
+	else {
+		throw TExcept::New("Unsupported type");
+	}
 }
+
 
 void TNodeJsFltVV::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -458,7 +538,7 @@ void TNodeJsFltVV::sparse(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TVec<TIntFltKdV> SpMat = TVec<TIntFltKdV>();
     TLinAlg::Sparse(JsMat->Mat, SpMat);
 
-    Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat));
+    Args.GetReturnValue().Set(TNodeJsSpMat::New(SpMat, JsMat->Mat.GetRows()));
 }
 
 void TNodeJsFltVV::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {

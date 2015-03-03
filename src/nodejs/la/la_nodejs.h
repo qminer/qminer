@@ -898,7 +898,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8
 	// computation
 	TLAMisc::Diag(JsVec->Vec, Result);
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result, JsVec->Vec.Len()));
 }
 
 template<>
