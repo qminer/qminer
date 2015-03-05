@@ -26,10 +26,11 @@
 	#ifdef INTEL 
 		#include "mkl.h"
 	#endif
-	#ifdef OPENBLAS		
-		#include "cblas.h"
-		#include "lapacke.h"
-	#endif
+#endif
+
+#ifdef OPENBLAS
+	#include "cblas.h"
+	#include "lapacke.h"
 #endif
 
 ///////////////////////////////////////////////////////////////////////
@@ -678,6 +679,7 @@ public:
     // zero elements, so it is efficient for use in matrix inversion.
     static void LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b);
 
+#ifdef OPENBLAS
     // LU midstep used for LUFactorization and LUSolve
     // (Warning: the matrix is overwritten in the process)
     static void LUStep(TFltVV& A, TIntV& PermV);
@@ -698,6 +700,7 @@ public:
     // DiagUnitFlag: if the matrix has ones on the diagonal (true) or not (false).
     static void TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
     		bool UpperTriangFlag = true, bool DiagonalUnitFlag = false);
+#endif
 
     // Solves system of linear equations A * x = b. A is first decomposed using
     // LUDecomposition and after solved using LUSolve. A is modified!

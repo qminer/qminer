@@ -17,7 +17,6 @@
  * 
  */
 #include "bd.h"
-#include <lapacke.h> // FIXME remove this!
 
 #ifdef EIGEN
 #include <Eigen/Dense>
@@ -2150,6 +2149,8 @@ void TNumericalStuff::SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x) {
     LUSolve(A, indx, x);
 }
 
+#ifdef OPENBLAS
+
 void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
 	Assert(A.GetRows() == A.GetCols());
 
@@ -2275,7 +2276,10 @@ void TNumericalStuff::TriangularSolve(TFltVV& A, TFltV& x, TFltV& b,
 		LeadingDimension_Matrix, &x[0].Val, LeadingDimension_Vector);
 }
 
+#endif
+
 void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV& EigenV, const double& ConvergEps) {
+#ifdef OPENBLAS
 	EAssertR(A.GetRows() == A.GetCols(), "A should be a square matrix to compute eigenvalues!");
 
 	TFltVV A1 = A;
@@ -2357,6 +2361,9 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
 
         Dist = TLinAlg::EuclDist(EigenV, TempV);
     } while (Dist > ConvergEps);
+#else
+    throw TExcept::New("Should include OpenBLAS!!!");
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////

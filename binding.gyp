@@ -77,10 +77,7 @@
                 'src/glib/misc/'
             ],
             'defines': [
-                'MODULE_INCLUDE_FS',
-                'BLAS',
-                'LAPACKE',
-                'EIGEN'
+                'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
                 'fs',
@@ -89,7 +86,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke', '-llapack', '-lblas' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
