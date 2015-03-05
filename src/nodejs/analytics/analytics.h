@@ -227,6 +227,8 @@ public:
 	 * @param {FOut} sout - the output stream
 	 */
 	JsDeclareFunction(save);
+
+	JsDeclareFunction(newMatrix);	// TODO remove this, it is just for debugging purposes
 };
 
 /////////////////////////////////////////////

@@ -263,7 +263,7 @@ v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
 	EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
 	v8::Local<v8::Object> Instance = cons->NewInstance();
-	Obj->Wrap(Instance);	
+	Obj->Wrap(Instance);
 	return HandleScope.Escape(Instance);
 }
 

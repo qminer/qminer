@@ -584,6 +584,7 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "newMatrix", _newMatrix);
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
@@ -683,6 +684,17 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	JsModel->LogReg.Save(*JsFOut->SOut);
 
 	Args.GetReturnValue().Set(v8::Undefined(Isolate));
+}
+
+void TNodeJsLogReg::newMatrix(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TFltV FltV;
+	FltV.Add(1);
+	FltV.Add(2);
+
+	Args.GetReturnValue().Set(TNodeJsFltVV::New(FltV));
 }
 
 ////////////////////////////////////////////////////////

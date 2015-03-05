@@ -254,7 +254,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	// Add properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-	
+
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
 	// Constructor is used when creating the object from C++
 	Constructor.Reset(Isolate, child->GetFunction());

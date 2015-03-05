@@ -85,161 +85,130 @@ const TStr TAuxBoolV::ClassId = "TBoolV";
 
 ///////////////////////////////
 // NodeJs-Qminer-FltVV
-v8::Persistent<v8::Function> TNodeJsFltVV::constructor;
+v8::Persistent<v8::Function> TNodeJsFltVV::Constructor;
 
 const TStr TNodeJsFltVV::ClassId = "TFltVV";
+const TStr TNodeJsFltVV::JsClassNm = "Matrix";
 
 void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Matrix"));
-    // ObjectWrap uses the first internal field to store the wrapped pointer.
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    v8::Local<v8::FunctionTemplate> Tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFltVV>);
+    // child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> Child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFIn>);
+	Child->Inherit(Tpl);
+
+	Child->SetClassName(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	Child->InstanceTemplate()->SetInternalFieldCount(1);
+
+	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	Tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all prototype methods, getters and setters here.
-    NODE_SET_PROTOTYPE_METHOD(tpl, "at", _at);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "multiplyT", _multiplyT);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "transpose", _transpose);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "solve", _solve);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "rowNorms", _rowNorms);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "colNorms", _colNorms);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "normalizeCols", _normalizeCols);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "frob", _frob);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "sparse", _sparse);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "rowMaxIdx", _rowMaxIdx);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "colMaxIdx", _colMaxIdx);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getCol", _getCol);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setCol", _setCol);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "getRow", _getRow);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setRow", _setRow);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "diag", _diag);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", _saveascii);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "at", _at);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "put", _put);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "multiply", _multiply);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "multiplyT", _multiplyT);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "plus", _plus);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "minus", _minus);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "transpose", _transpose);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "solve", _solve);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "rowNorms", _rowNorms);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "colNorms", _colNorms);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "normalizeCols", _normalizeCols);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "frob", _frob);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "sparse", _sparse);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "toString", _toString);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "rowMaxIdx", _rowMaxIdx);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "colMaxIdx", _colMaxIdx);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "getCol", _getCol);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "setCol", _setCol);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "getRow", _getRow);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "setRow", _setRow);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "diag", _diag);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "save", _save);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "load", _load);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "saveascii", _saveascii);
+    NODE_SET_PROTOTYPE_METHOD(Tpl, "loadascii", _loadascii);
 
     // Properties 
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
+    Tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "rows"), _rows);
+    Tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "cols"), _cols);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
-    constructor.Reset(Isolate, tpl->GetFunction());
-    #ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, "Matrix"),
-        tpl->GetFunction());
-    #endif
+    Constructor.Reset(Isolate, Child->GetFunction());
+#ifndef MODULE_INCLUDE_LA
+    exports->Set(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()),
+        Tpl->GetFunction());
+#endif
+}
+
+TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	EAssertR(!Constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
+
+	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
+	v8::Local<v8::Object> Instance = Args.This();
+	Instance->SetHiddenValue(Key, Value);
+
+	TFltVV Mat;
+	if (Args.Length() > 0) {
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+			int Rows = Array->Length();
+			if (Rows > 0) {
+				// are the objects arrays
+				int Cols = 0;
+				for (int RowN = 0; RowN < Rows; RowN++) {
+					EAssertR(Array->Get(RowN)->IsArray(),
+						"Object is not an array of arrays in TJsLinAlg::newMat()");
+					v8::Handle<v8::Array> Row = v8::Handle<v8::Array>::Cast(Array->Get(RowN));
+					if (RowN == 0) {
+						Cols = Row->Length();
+						Mat.Gen(Rows, Cols);
+					} else {
+						EAssertR((int)Row->Length() == Cols,
+							"Inconsistent number of columns in TJsLinAlg::newMat()");
+					}
+					for (int ColN = 0; ColN < Cols; ColN++) {
+						Mat.PutXY(RowN, ColN, Row->Get(ColN)->NumberValue());
+					}
+				}
+			}
+			return new TNodeJsFltVV(Mat);
+		} else {
+			if (Args[0]->IsObject()) {
+				const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
+				const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols", 3);
+				const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", 3);
+				if (Cols > 0 && Rows > 0) {
+					Mat.Gen(Rows, Cols);
+					if (GenRandom) {
+						TLAMisc::FillRnd(Mat);
+					}
+				}
+				return new TNodeJsFltVV(Mat);
+			} else {
+				throw TExcept::New("Expected either array or object");
+			}
+		}
+	} else { // Returns an empty matrix
+		return new TNodeJsFltVV();
+	}
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltVV& FltVV) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
-    // v8::Local<v8::Object> Instance = Args.This();
-    Instance->SetHiddenValue(Key, Value);
-
-    TNodeJsFltVV* JsMat = new TNodeJsFltVV(FltVV);
-    JsMat->Wrap(Instance);
-    return HandleScope.Escape(Instance);
+    return TNodeJsUtil::NewInstance(new TNodeJsFltVV(FltVV));
 }
 
 v8::Local<v8::Object> TNodeJsFltVV::New(const TFltV& FltV) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    v8::Local<v8::Object> Instance = cons->NewInstance();
-
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
-    // v8::Local<v8::Object> Instance = Args.This();
-    Instance->SetHiddenValue(Key, Value);
-
-    TFltVV FltVV;
-    TLAMisc::Diag(FltV, FltVV);
-    TNodeJsFltVV* JsMat = new TNodeJsFltVV(FltVV);
-    JsMat->Wrap(Instance);
-    return HandleScope.Escape(Instance);
-}
-
-void TNodeJsFltVV::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
-    TFltVV Mat;
-    if (Args.IsConstructCall()) {
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
-        v8::Local<v8::Object> Instance = Args.This();
-        Instance->SetHiddenValue(Key, Value);
-        if (Args.Length() > 0) {
-            if (Args[0]->IsArray()) {
-                v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
-                int Rows = Array->Length();
-                if (Rows > 0) {
-                    // are the objects arrays
-                    int Cols = 0;
-                    for (int RowN = 0; RowN < Rows; RowN++) {
-                        EAssertR(Array->Get(RowN)->IsArray(),
-                            "Object is not an array of arrays in TJsLinAlg::newMat()");
-                        v8::Handle<v8::Array> Row = v8::Handle<v8::Array>::Cast(Array->Get(RowN));
-                        if (RowN == 0) {
-                            Cols = Row->Length();
-                            Mat.Gen(Rows, Cols);
-                        } else {
-                            EAssertR((int)Row->Length() == Cols,
-                                "Inconsistent number of columns in TJsLinAlg::newMat()");
-                        }
-                        for (int ColN = 0; ColN < Cols; ColN++) {
-                            Mat.PutXY(RowN, ColN, Row->Get(ColN)->NumberValue());
-                        }
-                    }
-                }
-                TNodeJsFltVV* JsMat = new TNodeJsFltVV(Mat);
-                JsMat->Wrap(Instance);
-                Args.GetReturnValue().Set(Instance);
-            } else {
-                if (Args[0]->IsObject()) {
-                    const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
-                    const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols", 3);
-                    const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", 3);
-                    if (Cols > 0 && Rows > 0) {
-                        Mat.Gen(Rows, Cols);
-                        if (GenRandom) {
-                            TLAMisc::FillRnd(Mat);
-                        }
-                    }
-                    TNodeJsFltVV* JsMat = new TNodeJsFltVV(Mat);
-                    JsMat->Wrap(Args.This());
-                    Args.GetReturnValue().Set(Args.This());
-                } else {
-                    throw TExcept::New("Expected either array or object");
-                }
-            }
-        } else { // Returns an empty matrix 
-            TNodeJsFltVV* JsMat = new TNodeJsFltVV();
-            JsMat->Wrap(Args.This());
-            Args.GetReturnValue().Set(Args.This());
-        }
-    } else {
-        const int Argc = 1;
-        v8::Local<v8::Value> Argv[Argc] = { Args[0] };
-        v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-        cons->NewInstance(Argc, Argv);
-        v8::Local<v8::Object> Instance = cons->NewInstance(Argc, Argv);
-        Args.GetReturnValue().Set(Instance);
-    }
+    TFltVV FltVV;	TLAMisc::Diag(FltV, FltVV);
+    return TNodeJsUtil::NewInstance(new TNodeJsFltVV(FltVV));
 }
 
 void TNodeJsFltVV::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {

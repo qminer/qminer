@@ -79,10 +79,17 @@ public:
 //# ```
 //# 
 class TNodeJsFltVV : public node::ObjectWrap {
-public:
-	const static TStr ClassId;
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
 
+public:
 	static void Init(v8::Handle<v8::Object> exports);
+	const static TStr ClassId;
+	const static TStr JsClassNm;
+
+	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 	static v8::Local<v8::Object> New(const TFltVV& FltVV);
 	static v8::Local<v8::Object> New(const TFltV& FltV);
 public:
@@ -158,8 +165,6 @@ private:
 	JsDeclareFunction(loadascii);
 public:
 	TFltVV Mat;
-private:
-	static v8::Persistent<v8::Function> constructor;
 };
 
 
