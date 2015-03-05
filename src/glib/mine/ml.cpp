@@ -726,7 +726,11 @@ void TExpReg::Fit(const TFltVV& _X, const TFltV& y, const double& _Eps) {
 	// compute X*y'*eps_constr
 	TLinAlg::Multiply(X, IntensV, DeltaWgtV);
 	// solve the linear system (X*X' \ X*y'*eps_constr)
+#ifdef OPENBLAS
 	TNumericalStuff::LUSolve(H, WgtV, DeltaWgtV);
+#else
+	throw TExcept::New("Should include OpenBLAS!!");
+#endif
 
 	Notify->OnNotify(TNotifyType::ntInfo, "Found initial estimate, optimizing ...");
 
@@ -778,6 +782,8 @@ void TExpReg::Fit(const TFltVV& _X, const TFltV& y, const double& _Eps) {
 #ifdef OPENBLAS
 		// solve -delta_wgts = H^(-1) * g
 		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
+#else
+	throw TExcept::New("Should include OpenBLAS!!");
 #endif
 
 		// subtract the negative difference from the weights
