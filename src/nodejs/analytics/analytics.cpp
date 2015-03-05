@@ -48,7 +48,7 @@ TNodeJsSvmModel::~TNodeJsSvmModel() {
 v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, const PJsonVal& ParamVal) {
 	auto Object = new TNodeJsSvmModel(ParamVal);
 	Object->Wrap(Obj);
-	return Obj;	
+	return Obj;
 }
 
 v8::Local<v8::Object> TNodeJsSvmModel::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
@@ -570,33 +570,13 @@ PJsonVal TNodeJsRecLinReg::GetParams() const {
 ////////////////////////////////////////////////////////
 // Logistic regression model
 const TStr TNodeJsLogReg::ClassId = "LogReg";
-v8::Persistent<v8::Function> TNodeJsLogReg::constructor;
-
-TNodeJsLogReg* TNodeJsLogReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	try {
-		// parse the argumentts
-		PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
-
-		const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
-		const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
-
-		return new TNodeJsLogReg(TMl::TLogReg(Lambda, IncludeIntercept));
-	} catch (const PExcept& Except) {
-		Isolate->ThrowException(v8::Exception::TypeError(
-					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
-		return nullptr;
-	}
-}
 
 void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "LogReg"));
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsLogReg>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -607,12 +587,35 @@ void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-
-	constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_ANALYTICS
-	exports->Set(v8::String::NewFromUtf8(Isolate, "LogReg"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()),
 			   tpl->GetFunction());
 #endif
+}
+
+TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) {
+			// load the model from the input stream
+			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+			return new TNodeJsLogReg(*JsFIn->SIn);
+		} else {
+			// parse the argumentts
+			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
+
+			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
+			const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
+
+			return new TNodeJsLogReg(TMl::TLogReg(Lambda, IncludeIntercept));
+		}
+	} catch (const PExcept& Except) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
+		return nullptr;
+	}
 }
 
 
@@ -685,32 +688,12 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ////////////////////////////////////////////////////////
 // Exponential Regression
 const TStr TNodeJsExpReg::ClassId = "ExpReg";
-v8::Persistent<v8::Function> TNodeJsExpReg::constructor;
-
-TNodeJsExpReg* TNodeJsExpReg::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	try {
-		// parse the argumentts
-		PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
-
-		const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
-		const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
-
-		return new TNodeJsExpReg(TMl::TExpReg(Lambda, IncludeIntercept));
-	} catch (const PExcept& Except) {
-		Isolate->ThrowException(v8::Exception::TypeError(
-					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
-		return nullptr;
-	}
-}
 
 void TNodeJsExpReg::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsExpReg>);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -722,12 +705,35 @@ void TNodeJsExpReg::Init(v8::Handle<v8::Object> exports) {
 
 	// properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-
-	constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_ANALYTICS
 	exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()),
 			   tpl->GetFunction());
 #endif
+}
+
+TNodeJsExpReg* TNodeJsExpReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		if (Args.Length() > 0 && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId)) {
+			// load the model from the input stream
+			TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+			return new TNodeJsExpReg(TMl::TExpReg(*JsFIn->SIn));
+		} else {
+			// parse the arguments
+			PJsonVal ArgJson = Args.Length() > 0 ? TNodeJsUtil::GetArgJson(Args, 0) : TJsonVal::NewObj();
+
+			const double Lambda = ArgJson->IsObjKey("lambda") ? ArgJson->GetObjNum("lambda") : 1;
+			const bool IncludeIntercept = ArgJson->IsObjKey("intercept") ? ArgJson->GetObjBool("intercept") : false;
+
+			return new TNodeJsExpReg(TMl::TExpReg(Lambda, IncludeIntercept));
+		}
+	} catch (const PExcept& Except) {
+		Isolate->ThrowException(v8::Exception::TypeError(
+					v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
+		return nullptr;
+	}
 }
 
 void TNodeJsExpReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -803,30 +809,12 @@ void TNodeJsExpReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 const TStr TNodeJsHMChain::ClassId = "HMC";
 const double TNodeJsHMChain::DEFAULT_DELTA_TM = 1e-3;
 
-v8::Persistent<v8::Function> TNodeJsHMChain::constructor;
-
-TNodeJsHMChain::TNodeJsHMChain(const TMc::PHierarchCtmc& _McModel):
-		McModel(_McModel) {
-	InitCallbacks();
-}
-
-TNodeJsHMChain::TNodeJsHMChain(PSIn& SIn):
-		McModel(new TMc::THierarchCtmc(*SIn)) {
-	InitCallbacks();
-}
-
-TNodeJsHMChain::~TNodeJsHMChain() {
-	StateChangedCallback.Reset();
-	AnomalyCallback.Reset();
-	OutlierCallback.Reset();
-}
-
 void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "HMC"));
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsHMChain>);
+	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -854,14 +842,31 @@ void TNodeJsHMChain::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
-	constructor.Reset(Isolate, tpl->GetFunction());
 #ifndef MODULE_INCLUDE_ANALYTICS
-	exports->Set(v8::String::NewFromUtf8(Isolate, "HMC"),
+	exports->Set(v8::String::NewFromUtf8(Isolate, ClassId.CStr()),
 			   tpl->GetFunction());
 #endif
 }
 
-TNodeJsHMChain* TNodeJsHMChain::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+TNodeJsHMChain::TNodeJsHMChain(const TMc::PHierarchCtmc& _McModel):
+		McModel(_McModel) {
+	InitCallbacks();
+}
+
+TNodeJsHMChain::TNodeJsHMChain(PSIn& SIn):
+		McModel(new TMc::THierarchCtmc(*SIn)) {
+	InitCallbacks();
+}
+
+TNodeJsHMChain::~TNodeJsHMChain() {
+	StateChangedCallback.Reset();
+	AnomalyCallback.Reset();
+	OutlierCallback.Reset();
+}
+
+
+
+TNodeJsHMChain* TNodeJsHMChain::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	QmAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
 	if (TNodeJsUtil::IsArgJson(Args, 0)) {

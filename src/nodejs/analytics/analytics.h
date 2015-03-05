@@ -173,29 +173,29 @@ private:
 	PJsonVal GetParams() const;
 };
 
-/////////////////////////////////////////
-// Logistic Regression
-JsDeclareClass(TNodeJsLogReg)// {
+
+/**
+ * Logistic regression model. Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ */
+class TNodeJsLogReg : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static const TStr ClassId;	// set to LogReg
+	static void Init(v8::Handle<v8::Object> exports);
+
 private:
 	TMl::TLogReg LogReg;
 
 	TNodeJsLogReg(const TMl::TLogReg& _LogReg): LogReg(_LogReg) {}
 
-	static TNodeJsLogReg* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	static void Init(v8::Handle<v8::Object> exports);
-
-	/**
-	 * Logistic regression model. Uses Newtons method to compute the weights.
-	 *
-	 * @constructor
-	 * @property {object} [opts] - the options used for initialization
-	 * @property {Number} [opts.lambda = 1] - the regularization parameter
-	 * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
-	 */
-	JsDeclareConstructor(TNodeJsLogReg);
-
 	/**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
 	 *
@@ -231,30 +231,31 @@ public:
 
 /////////////////////////////////////////////
 // Exponential Regression
-JsDeclareClass(TNodeJsExpReg)// {
+/**
+ * Exponential regression model, where the response is assumed to be exponentially
+ * distributed. Finds the rate parameter with respect to the feature vector.
+ *
+ * Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ */
+class TNodeJsExpReg : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static const TStr ClassId;
+	static void Init(v8::Handle<v8::Object> exports);
+
 private:
 	TMl::TExpReg ExpReg;
 
 	TNodeJsExpReg(const TMl::TExpReg& _ExpReg): ExpReg(_ExpReg) {}
 
-	static TNodeJsExpReg* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsExpReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	static void Init(v8::Handle<v8::Object> exports);
-
-	/**
-	 * Exponential regression model, where the response is assumed to be exponentially
-	 * distributed. Finds the rate parameter with respect to the feature vector.
-	 *
-	 * Uses Newtons method to compute the weights.
-	 *
-	 * @constructor
-	 * @property {object} [opts] - the options used for initialization
-	 * @property {Number} [opts.lambda = 1] - the regularization parameter
-	 * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
-	 */
-	JsDeclareConstructor(TNodeJsExpReg);
-
 	/**
 	 * Fits a column matrix of feature vectors X onto the response variable y.
 	 *
@@ -296,7 +297,13 @@ public:
 //#
 //#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
 //#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
+class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
+	friend class TNodeJsUtil;
+public:
+	static const TStr ClassId;
+	static void Init(v8::Handle<v8::Object> exports);
+
+private:
 	const static double DEFAULT_DELTA_TM;
 
 	TMc::PHierarchCtmc McModel;
@@ -310,13 +317,9 @@ JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
 
 	~TNodeJsHMChain();
 
-	static TNodeJsHMChain* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
+	static TNodeJsHMChain* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	static void Init(v8::Handle<v8::Object> exports);
-
-	JsDeclareConstructor(TNodeJsHMChain);
-
 	/**
 	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
 	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in

@@ -17,7 +17,7 @@
  * 
  */
 #include "bd.h"
-#include <lapacke.h>
+#include <lapacke.h> // FIXME remove this!
 
 #ifdef EIGEN
 #include <Eigen/Dense>
@@ -2342,12 +2342,13 @@ void TNumericalStuff::GetEigenVec(const TFltVV& A, const double& EigenVal, TFltV
     do {
     	TempV = EigenV;
 
-        LUSolve(A1, EigenV, TempV);	// TODO if A is singular then we have a problem
+        LUSolve(A1, EigenV, TempV);
 
         printf("solution vector: %s\n", TStrUtil::GetStr(EigenV, ", ", "%.7f").CStr());
 
         // normalize
 //        Norm = TLinAlg::Normalize(EigenV);
+        // FIXME: not a general solution, works only in my case, where the eigen vector only has all positive or all negative elements
         Norm = TLinAlg::SumVec(EigenV);	// taking the sum because sometimes I get +- on consecutive iterations when using the norm
         EAssertR(Norm != 0, "Cannot normalize, norm is 0!");
         TLinAlg::MultiplyScalar(1/Norm, EigenV, EigenV);

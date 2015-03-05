@@ -110,55 +110,6 @@
     };
 
 
-#define JsDeclareClass(TClass) \
-class TClass : public node::ObjectWrap {	\
-	friend class TNodeJsUtil;	\
-	JsDeclareMembers(TClass);
-
-#define JsDeclareClassE(TClass, TExtends) \
-class TClass : public node::ObjectWrap, public TExtends {	\
-	friend class TNodeJsUtil;	\
-	JsDeclareMembers(TClass);
-
-#define JsDeclareMembers(TClass)	\
-	static v8::Persistent<v8::Function> constructor;	\
-public:	\
-	const static TStr ClassId;	\
-private:
-
-#define JsDeclareConstructor(TClass)	\
-	static void _ ## New(const v8::FunctionCallbackInfo<v8::Value>& Args) {	\
-        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
-		v8::HandleScope HandleScope(Isolate); \
-		\
-		try {	\
-			EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");	\
-			\
-			v8::Local<v8::Object> Instance = Args.This();	\
-			v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");	\
-			v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());	\
-			Instance->SetHiddenValue(key, value);	\
-			if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }	\
-			\
-			auto Obj = New(Args);	\
-			Obj->Wrap(Instance);	\
-			Args.GetReturnValue().Set(Instance);	\
-		} catch (const PExcept& Except) {	\
-			Isolate->ThrowException(v8::Exception::TypeError(\
-			v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in ") + TStr(#TClass) + ":" +  Except->GetMsgStr()).CStr()))); \
-		}	\
-	}	\
-	static v8::Local<v8::Object> NewJsInstance(TClass* Obj) {	\
-		v8::Isolate* Isolate = v8::Isolate::GetCurrent();	\
-		v8::EscapableHandleScope HandleScope(Isolate);	\
-		EAssertR(!constructor.IsEmpty(), TStr(#TClass) + TStr("::New: constructor is empty. Did you call ") + TStr(#TClass) + "::Init(exports); in this module's init function?");	\
-		v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);	\
-		v8::Local<v8::Object> Instance = cons->NewInstance();	\
-		Obj->Wrap(Instance);	\
-		return HandleScope.Escape(Instance);	\
-	};
-
-
 //////////////////////////////////////////////////////
 // Node - Utilities
 class TNodeJsUtil {
