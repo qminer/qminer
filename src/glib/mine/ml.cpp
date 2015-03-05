@@ -775,8 +775,10 @@ void TExpReg::Fit(const TFltVV& _X, const TFltV& y, const double& _Eps) {
 			GradV[i] += Lambda*WgtV[i];
 		}
 
+#ifdef OPENBLAS
 		// solve -delta_wgts = H^(-1) * g
 		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
+#endif
 
 		// subtract the negative difference from the weights
 		for (int i = 0; i < Dim; i++) {
