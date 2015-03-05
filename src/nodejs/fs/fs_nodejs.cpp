@@ -449,16 +449,16 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-#ifndef MODULE_INCLUDE_FS
-///////////////////////////////
-// Register functions, etc.  
-void init(v8::Handle<v8::Object> exports) {
-
-    TNodeJsFs::Init(exports);
-    TNodeJsFIn::Init(exports);
-    TNodeJsFOut::Init(exports);
-}
-
-NODE_MODULE(fs, init)
-#endif
+//#ifndef MODULE_INCLUDE_FS
+/////////////////////////////////
+//// Register functions, etc.
+//void init(v8::Handle<v8::Object> exports) {
+//
+//    TNodeJsFs::Init(exports);
+//    TNodeJsFIn::Init(exports);
+//    TNodeJsFOut::Init(exports);
+//}
+//
+//NODE_MODULE(fs, init)
+//#endif
 

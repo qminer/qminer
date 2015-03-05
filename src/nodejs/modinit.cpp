@@ -2,52 +2,126 @@
 
 using namespace v8;
 
-void InitLa(Handle<Object> Exports, const TStr& NameSpaceNm) {
+void InitHt(Handle<Object> Exports, const TStr& NsNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	Handle<Object> NameSpaceObj = Object::New(Isolate);
+	Handle<Object> NsObj = Object::New(Isolate);
 
-	TNodeJsLinAlg::Init(NameSpaceObj);
-	TNodeJsVec<TFlt, TAuxFltV>::Init(NameSpaceObj);
-	TNodeJsVec<TInt, TAuxIntV>::Init(NameSpaceObj);
-	TNodeJsBoolV::Init(NameSpaceObj);
-	TNodeJsFltVV::Init(NameSpaceObj);
-	TNodeJsSpVec::Init(NameSpaceObj);
-	TNodeJsSpMat::Init(NameSpaceObj);
+	TNodeJsStrStrH::Init(NsObj);
+	TNodeJsStrIntH::Init(NsObj);
+	TNodeJsStrFltH::Init(NsObj);
 
-	Exports->Set(String::NewFromUtf8(Isolate, NameSpaceNm.CStr()), NameSpaceObj);
+	TNodeJsIntStrH::Init(NsObj);
+	TNodeJsIntIntH::Init(NsObj);
+	TNodeJsIntFltH::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
-void InitAnalytics(Handle<Object> Exports, const TStr& NameSpaceNm) {
+void InitFs(Handle<Object> Exports, const TStr& NsNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
-	Handle<Object> NameSpaceObj = Object::New(Isolate);
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsFs::Init(NsObj);
+	TNodeJsFIn::Init(NsObj);
+	TNodeJsFOut::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
+void InitLa(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsLinAlg::Init(NsObj);
+	TNodeJsVec<TFlt, TAuxFltV>::Init(NsObj);
+	TNodeJsVec<TInt, TAuxIntV>::Init(NsObj);
+	TNodeJsBoolV::Init(NsObj);
+	TNodeJsFltVV::Init(NsObj);
+	TNodeJsSpVec::Init(NsObj);
+	TNodeJsSpMat::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
+void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
 
 	// QMiner package
-	TNodeJsSVC::Init(NameSpaceObj);
-	TNodeJsSVR::Init(NameSpaceObj);
-	TNodeJsRecLinReg::Init(NameSpaceObj);
-	TNodeJsLogReg::Init(NameSpaceObj);
-	TNodeJsExpReg::Init(NameSpaceObj);
-	TNodeJsHMChain::Init(NameSpaceObj);
-	TNodeJsNNet::Init(NameSpaceObj);
-	TNodeJsTokenizer::Init(NameSpaceObj);
+	TNodeJsSVC::Init(NsObj);
+	TNodeJsSVR::Init(NsObj);
+	TNodeJsRecLinReg::Init(NsObj);
+	TNodeJsLogReg::Init(NsObj);
+	TNodeJsExpReg::Init(NsObj);
+	TNodeJsHMChain::Init(NsObj);
+	TNodeJsNNet::Init(NsObj);
+	TNodeJsTokenizer::Init(NsObj);
 
-	// FIXME remove
-	//===============================================
-	// File stream
-	TNodeJsFIn::Init(Exports);
-	TNodeJsFOut::Init(Exports);
-	//===============================================
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
 
-	Exports->Set(String::NewFromUtf8(Isolate, NameSpaceNm.CStr()), NameSpaceObj);
+void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsSnap::Init(NsObj);
+	TNodeJsGraph<TUNGraph>::Init(NsObj);
+	TNodeJsGraph<TNGraph>::Init(NsObj);
+	TNodeJsGraph<TNEGraph>::Init(NsObj);
+	TNodeJsNode<TUNGraph>::Init(NsObj);
+	TNodeJsNode<TNGraph>::Init(NsObj);
+	TNodeJsNode<TNEGraph>::Init(NsObj);
+	TNodeJsEdge<TUNGraph>::Init(NsObj);
+	TNodeJsEdge<TNGraph>::Init(NsObj);
+	TNodeJsEdge<TNEGraph>::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
+void InitStat(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsStat::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
+void InitQm(Handle<Object> Exports) {
+	// QMiner package
+	TNodeJsQm::Init(Exports);
+	TNodeJsBase::Init(Exports);
+	TNodeJsSA::Init(Exports);
+	TNodeJsStore::Init(Exports);
+	// the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
+	TNodeJsRecSet::Init(Exports);
+	TNodeJsStoreIter::Init(Exports);
+	TNodeJsIndexKey::Init(Exports);
+
+	// feature space
+	TNodeJsFtrSpace::Init(Exports);
 }
 
 void Init(Handle<Object> exports, Handle<Object> module) {
+	InitHt(exports, "ht");
+	InitFs(exports, "fs");
 	InitLa(exports, "la");
 	InitAnalytics(exports, "analytics");
+	InitSnap(exports, "snap");
+	InitStat(exports, "statistics");
+	InitQm(exports);
 }
 
 NODE_MODULE(qm1, Init);

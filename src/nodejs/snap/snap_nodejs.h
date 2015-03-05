@@ -1,9 +1,9 @@
 #ifndef QMINER_SNAP_NODEJS
 #define QMINER_SNAP_NODEJS
 
-#ifndef BUILDING_NODE_EXTENSION
-	#define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//	#define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>

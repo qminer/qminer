@@ -955,32 +955,32 @@ void TNodeJsEdge<T>::next(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(Args.Holder());
 }
 
-#ifndef MODULE_INCLUDE_SNAP
-///////////////////////////////
-// Register functions, etc.
-void init(v8::Handle<v8::Object> exports) {
-	TNodeJsSnap::Init(exports);
-	TNodeJsGraph<TUNGraph>::Init(exports);
-	TNodeJsGraph<TNGraph>::Init(exports);
-	TNodeJsGraph<TNEGraph>::Init(exports);
-	TNodeJsNode<TUNGraph>::Init(exports);
-	TNodeJsNode<TNGraph>::Init(exports);
-	TNodeJsNode<TNEGraph>::Init(exports);
-	TNodeJsEdge<TUNGraph>::Init(exports);
-	TNodeJsEdge<TNGraph>::Init(exports);
-	TNodeJsEdge<TNEGraph>::Init(exports);
-
-	// Linear algebra package
-	TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-	TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-	TNodeJsVec<TStr, TAuxStrV>::Init(exports);
-	TNodeJsFltVV::Init(exports);
-	TNodeJsSpVec::Init(exports);
-	TNodeJsSpMat::Init(exports);
-
-	// File stream
-	TNodeJsFIn::Init(exports);
-	TNodeJsFOut::Init(exports);
-}
-NODE_MODULE(snap, init)
-#endif
+//#ifndef MODULE_INCLUDE_SNAP
+/////////////////////////////////
+//// Register functions, etc.
+//void init(v8::Handle<v8::Object> exports) {
+//	TNodeJsSnap::Init(exports);
+//	TNodeJsGraph<TUNGraph>::Init(exports);
+//	TNodeJsGraph<TNGraph>::Init(exports);
+//	TNodeJsGraph<TNEGraph>::Init(exports);
+//	TNodeJsNode<TUNGraph>::Init(exports);
+//	TNodeJsNode<TNGraph>::Init(exports);
+//	TNodeJsNode<TNEGraph>::Init(exports);
+//	TNodeJsEdge<TUNGraph>::Init(exports);
+//	TNodeJsEdge<TNGraph>::Init(exports);
+//	TNodeJsEdge<TNEGraph>::Init(exports);
+//
+//	// Linear algebra package
+//	TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+//	TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+//	TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+//	TNodeJsFltVV::Init(exports);
+//	TNodeJsSpVec::Init(exports);
+//	TNodeJsSpMat::Init(exports);
+//
+//	// File stream
+//	TNodeJsFIn::Init(exports);
+//	TNodeJsFOut::Init(exports);
+//}
+//NODE_MODULE(snap, init)
+//#endif

@@ -4346,37 +4346,37 @@ void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& 
 	}
 }
 
-///////////////////////////////
-// Register functions, etc.  
-#ifndef MODULE_INCLUDE_QM
-
-void init(v8::Handle<v8::Object> exports) {
-    // QMiner package
-    TNodeJsQm::Init(exports);
-    TNodeJsBase::Init(exports);
-	TNodeJsSA::Init(exports);
-    TNodeJsStore::Init(exports);
-    // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
-    TNodeJsRecSet::Init(exports);
-    TNodeJsStoreIter::Init(exports);
-    TNodeJsIndexKey::Init(exports);
-    
-    // Linear algebra package
-    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-    TNodeJsVec<TStr, TAuxStrV>::Init(exports);
-    TNodeJsFltVV::Init(exports);
-    TNodeJsSpVec::Init(exports);
-    TNodeJsSpMat::Init(exports);
-
-    // feature space
-    TNodeJsFtrSpace::Init(exports);
-
-	// file input stream
-	TNodeJsFIn::Init(exports);
-	TNodeJsFOut::Init(exports);
-}
-
-NODE_MODULE(qm, init)
-
-#endif
+/////////////////////////////////
+//// Register functions, etc.
+//#ifndef MODULE_INCLUDE_QM
+//
+//void init(v8::Handle<v8::Object> exports) {
+//    // QMiner package
+//    TNodeJsQm::Init(exports);
+//    TNodeJsBase::Init(exports);
+//	TNodeJsSA::Init(exports);
+//    TNodeJsStore::Init(exports);
+//    // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
+//    TNodeJsRecSet::Init(exports);
+//    TNodeJsStoreIter::Init(exports);
+//    TNodeJsIndexKey::Init(exports);
+//
+//    // Linear algebra package
+//    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+//    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+//    TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+//    TNodeJsFltVV::Init(exports);
+//    TNodeJsSpVec::Init(exports);
+//    TNodeJsSpMat::Init(exports);
+//
+//    // feature space
+//    TNodeJsFtrSpace::Init(exports);
+//
+//	// file input stream
+//	TNodeJsFIn::Init(exports);
+//	TNodeJsFOut::Init(exports);
+//}
+//
+//NODE_MODULE(qm, init)
+//
+//#endif

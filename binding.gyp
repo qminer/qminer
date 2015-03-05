@@ -10,111 +10,45 @@
             # node qminer module
             'target_name': 'qm',
             'sources': [
+                # init functions
+                'src/nodejs/modinit.h',
+                'src/nodejs/modinit.cpp',
+                # core qm module
                 'src/nodejs/qm/qm_nodejs.h',
                 'src/nodejs/qm/qm_nodejs.cpp',
                 'src/nodejs/qm/qm_param.h',
+                # la
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
+                # analytics
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/analytics/analytics.cpp',
+                # fs
                 'src/nodejs/fs/fs_nodejs.h',
                 'src/nodejs/fs/fs_nodejs.cpp',
+                # snap
+                'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.cpp',
+                # ht
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.cpp',
+                # statistics
+                'src/nodejs/statistics/stat_nodejs.h',
+                'src/nodejs/statistics/stat_nodejs.cpp',
+                # addon utilities
                 'src/nodejs/nodeutil.h',
                 'src/nodejs/nodeutil.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
                 'src/nodejs/la',
-                'src/nodejs/fs',
-                'src/nodejs/',
-                'src/qminer/',
-                'src/glib/base/',
-                'src/glib/mine/',
-                'src/glib/misc/'
-            ],
-            'defines': [
-                'MODULE_INCLUDE_LA',
-                'MODULE_INCLUDE_FS'
-            ],
-            'dependencies': [
-                'glib',
-                'qminer'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
-        }, {
-            # node linear algebra module
-            'target_name': 'qm1',
-            'sources': [
-				'src/nodejs/modinit.h',
-				'src/nodejs/modinit.cpp',
-                'src/nodejs/la/la_nodejs.h',
-                'src/nodejs/la/la_nodejs.cpp',
-                'src/nodejs/analytics/analytics.h',
-                'src/nodejs/analytics/analytics.cpp',
-                'src/nodejs/fs/fs_nodejs.h',
-                'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
-            ],
-            'include_dirs': [
-                'src/nodejs/la',
                 'src/nodejs/analytics',
                 'src/nodejs/fs',
+                'src/nodejs/snap',
+                'src/nodejs/ht',
+                'src/nodejs/statistics',
                 'src/nodejs/',
                 'src/qminer/',
-                'src/glib/base/',
-                'src/glib/mine/',
-                'src/glib/misc/'
-            ],
-            'defines': [
-                'MODULE_INCLUDE_FS'
-            ],
-            'dependencies': [
-                'fs',
-                'glib',
-                'qminer'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
-        }, {
-            # node snap module
-            'target_name': 'snap',
-            'sources': [
-                'src/nodejs/snap/snap_nodejs.h',
-                'src/nodejs/snap/snap_nodejs.cpp',
-                'src/nodejs/la/la_nodejs.h',
-                'src/nodejs/la/la_nodejs.cpp',
-                'src/nodejs/fs/fs_nodejs.h',
-                'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
-            ],
-            'include_dirs': [
-                'src/nodejs/snap',
-                'src/nodejs/la',
-                'src/nodejs/fs',
-                'src/nodejs/',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
@@ -124,126 +58,14 @@
                 'src/third_party/Snap/qlib-core'
             ],
             'defines': [
-                'MODULE_INCLUDE_LA',
-                'MODULE_INCLUDE_FS'
             ],
             'dependencies': [
                 'glib',
-                'snap_lib'
+                'qminer'
             ],
             'conditions': [
                 # operating system specific parameters
                 ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
-        }, {
-            # node file system module
-            'target_name': 'fs',
-            'sources': [            
-                'src/nodejs/fs/fs_nodejs.h',
-                'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
-            ],
-            'include_dirs': [
-                'src/nodejs/fs',
-                'src/nodejs/',
-                'src/glib/base/',
-                'src/glib/mine/'
-            ],
-            'dependencies': [
-                'glib'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
-        }, {
-            # node hash table 
-            'target_name': 'ht',
-            'sources': [
-                'src/nodejs/ht/ht_nodejs.h',
-                'src/nodejs/ht/ht_nodejs.cpp',
-                'src/nodejs/fs/fs_nodejs.h',
-                'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
-            ],
-            'include_dirs': [
-                'src/nodejs/ht',
-                'src/nodejs/fs',
-                'src/nodejs/',
-                'src/glib/base/',
-                'src/glib/mine/'
-            ],
-            'defines': [
-                'MODULE_INCLUDE_FS'
-            ],
-            'dependencies': [
-                'glib'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
-        },{
-            # node stat module
-            'target_name': 'statistics',
-            'sources': [
-                'src/nodejs/statistics/stat_nodejs.h',
-                'src/nodejs/statistics/stat_nodejs.cpp',
-                'src/nodejs/la/la_nodejs.h',
-                'src/nodejs/la/la_nodejs.cpp',
-                'src/nodejs/fs/fs_nodejs.h',
-                'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
-            ],
-            'include_dirs': [
-                'src/nodejs/fs',
-                'src/nodejs/la',
-                'src/nodejs/',
-                'src/glib/base/',
-                'src/glib/mine/',
-            ],
-            'defines': [
-                'MODULE_INCLUDE_LA',
-                'MODULE_INCLUDE_FS'
-            ],
-            'dependencies': [
-                'fs',
-                'qm1',
-                'glib'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
