@@ -53,10 +53,14 @@
             ]
         }, {
             # node linear algebra module
-            'target_name': 'la',
+            'target_name': 'qm1',
             'sources': [
+				'src/nodejs/modinit.h',
+				'src/nodejs/modinit.cpp',
                 'src/nodejs/la/la_nodejs.h',
                 'src/nodejs/la/la_nodejs.cpp',
+                'src/nodejs/analytics/analytics.h',
+                'src/nodejs/analytics/analytics.cpp',
                 'src/nodejs/fs/fs_nodejs.h',
                 'src/nodejs/fs/fs_nodejs.cpp',
                 'src/nodejs/nodeutil.h',
@@ -64,10 +68,13 @@
             ],
             'include_dirs': [
                 'src/nodejs/la',
+                'src/nodejs/analytics',
                 'src/nodejs/fs',
                 'src/nodejs/',
+                'src/qminer/',
                 'src/glib/base/',
-                'src/glib/mine/'
+                'src/glib/mine/',
+                'src/glib/misc/'
             ],
             'defines': [
                 'MODULE_INCLUDE_FS',
@@ -77,7 +84,8 @@
             ],
             'dependencies': [
                 'fs',
-                'glib'
+                'glib',
+                'qminer'
             ],
             'conditions': [
                 # operating system specific parameters
@@ -207,52 +215,6 @@
                     }
                 }]
             ]
-        }, {
-            # node analytics module
-            'target_name': 'analytics',
-            'sources': [            
-                'src/nodejs/analytics/analytics.h',
-                'src/nodejs/analytics/analytics.cpp',
-                'src/nodejs/fs/fs_nodejs.h',
-                'src/nodejs/fs/fs_nodejs.cpp',
-                'src/nodejs/la/la_nodejs.h',
-                'src/nodejs/la/la_nodejs.cpp',
-                'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
-            ],
-            'include_dirs': [
-                'src/nodejs/',
-                'src/nodejs/fs',
-                'src/nodejs/la',
-                'src/qminer/',
-                'src/glib/base/',
-                'src/glib/mine/',
-                'src/glib/misc/'
-            ],
-            'defines': [
-                'MODULE_INCLUDE_FS',
-                'MODULE_INCLUDE_LA',
-                'BLAS',
-                'LAPACKE',
-                'EIGEN'
-            ],
-            'dependencies': [
-                'glib',
-                'qminer'
-            ],
-            'conditions': [
-                # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke', '-llapack', '-lblas' ]}],
-                ['OS == "mac"', {
-                    'xcode_settings': {
-                        'MACOSX_DEPLOYMENT_TARGET': '10.7',
-                        'GCC_ENABLE_CPP_RTTI': 'YES',
-                        'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
-                        'OTHER_CFLAGS': [ '-std=c++11', '-stdlib=libc++' ],
-                        'OTHER_LDFLAGS': [ '-undefined dynamic_lookup' ]
-                    }
-                }]
-            ]
         },{
             # node stat module
             'target_name': 'statistics',
@@ -279,7 +241,7 @@
             ],
             'dependencies': [
                 'fs',
-                'la',
+                'qm1',
                 'glib'
             ],
             'conditions': [

@@ -1,7 +1,8 @@
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-    exports = require('bindings')(pathPrefix + '/analytics.node');
+//    exports = require('bindings')(pathPrefix + '/analytics.node');
+    exports = require('bindings')(pathPrefix + '/qm1.node').analytics;
 
 
     var la = require(__dirname + '/la.js')(pathPrefix);

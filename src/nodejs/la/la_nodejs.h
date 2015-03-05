@@ -1,9 +1,9 @@
 #ifndef QMINER_LA_NODEJS_H
 #define QMINER_LA_NODEJS_H
 
-#ifndef BUILDING_NODE_EXTENSION
-    #define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//    #define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>

@@ -1,9 +1,9 @@
 #ifndef ANALYTICS_H_
 #define ANALYTICS_H_
 
-#ifndef BUILDING_NODE_EXTENSION
-	#define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//	#define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>

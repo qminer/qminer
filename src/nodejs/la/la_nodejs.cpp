@@ -1680,23 +1680,23 @@ void TNodeJsSpMat::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 
-#ifndef MODULE_INCLUDE_LA
-///////////////////////////////
-// Register functions, etc.  
-void init(v8::Handle<v8::Object> exports) {
-    TNodeJsLinAlg::Init(exports);
-    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-    TNodeJsBoolV::Init(exports);
-    TNodeJsFltVV::Init(exports);
-    TNodeJsSpVec::Init(exports);
-    TNodeJsSpMat::Init(exports);
-
-	// File stream
-	//TNodeJsFIn::Init(exports);
-	//TNodeJsFOut::Init(exports);
-}
-
-NODE_MODULE(la, init)
-#endif
+//#ifndef MODULE_INCLUDE_LA
+/////////////////////////////////
+//// Register functions, etc.
+//void init(v8::Handle<v8::Object> exports) {
+//    TNodeJsLinAlg::Init(exports);
+//    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+//    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+//    TNodeJsBoolV::Init(exports);
+//    TNodeJsFltVV::Init(exports);
+//    TNodeJsSpVec::Init(exports);
+//    TNodeJsSpMat::Init(exports);
+//
+//	// File stream
+//	//TNodeJsFIn::Init(exports);
+//	//TNodeJsFOut::Init(exports);
+//}
+//
+//NODE_MODULE(la, init)
+//#endif
 
