@@ -24,8 +24,8 @@
                 'src/nodejs/fs/fs_nodejs.h',
                 'src/nodejs/fs/fs_nodejs.cpp',
                 # snap
-                #'src/nodejs/snap/snap_nodejs.h',
-                #'src/nodejs/snap/snap_nodejs.cpp',
+                'src/nodejs/snap/snap_nodejs.h',
+                'src/nodejs/snap/snap_nodejs.cpp',
                 # ht
                 'src/nodejs/ht/ht_nodejs.h',
                 'src/nodejs/ht/ht_nodejs.cpp',
@@ -44,18 +44,18 @@
                 'src/nodejs/la',
                 'src/nodejs/analytics',
                 'src/nodejs/fs',
-                #'src/nodejs/snap',
+                'src/nodejs/snap',
                 'src/nodejs/ht',
                 'src/nodejs/statistics',
                 'src/nodejs/',
                 'src/qminer/',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/'
-                #'src/third_party/Snap/snap-core',
-                #'src/third_party/Snap/snap-adv',
-                #'src/third_party/Snap/snap-exp',
-                #'src/third_party/Snap/qlib-core'
+                'src/glib/misc/',
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core'
             ],
             'defines': [
             ],

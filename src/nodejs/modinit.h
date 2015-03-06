@@ -9,7 +9,7 @@
 #include "la_nodejs.h"
 #include "analytics.h"
 #include "fs_nodejs.h"
-//#include "snap_nodejs.h"
+#include "snap_nodejs.h"
 #include "ht_nodejs.h"
 #include "stat_nodejs.h"
 

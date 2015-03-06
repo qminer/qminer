@@ -68,25 +68,25 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
-//void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//
-//	Handle<Object> NsObj = Object::New(Isolate);
-//
-//	TNodeJsSnap::Init(NsObj);
-//	TNodeJsGraph<TUNGraph>::Init(NsObj);
-//	TNodeJsGraph<TNGraph>::Init(NsObj);
-//	TNodeJsGraph<TNEGraph>::Init(NsObj);
-//	TNodeJsNode<TUNGraph>::Init(NsObj);
-//	TNodeJsNode<TNGraph>::Init(NsObj);
-//	TNodeJsNode<TNEGraph>::Init(NsObj);
-//	TNodeJsEdge<TUNGraph>::Init(NsObj);
-//	TNodeJsEdge<TNGraph>::Init(NsObj);
-//	TNodeJsEdge<TNEGraph>::Init(NsObj);
-//
-//	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
-//}
+void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsSnap::Init(NsObj);
+	TNodeJsGraph<TUNGraph>::Init(NsObj);
+	TNodeJsGraph<TNGraph>::Init(NsObj);
+	TNodeJsGraph<TNEGraph>::Init(NsObj);
+	TNodeJsNode<TUNGraph>::Init(NsObj);
+	TNodeJsNode<TNGraph>::Init(NsObj);
+	TNodeJsNode<TNEGraph>::Init(NsObj);
+	TNodeJsEdge<TUNGraph>::Init(NsObj);
+	TNodeJsEdge<TNGraph>::Init(NsObj);
+	TNodeJsEdge<TNEGraph>::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
 
 void InitStat(Handle<Object> Exports, const TStr& NsNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -115,11 +115,13 @@ void InitQm(Handle<Object> Exports) {
 }
 
 void Init(Handle<Object> exports, Handle<Object> module) {
-	InitHt(exports, "ht");
 	InitFs(exports, "fs");
 	InitLa(exports, "la");
 	InitAnalytics(exports, "analytics");
-//	InitSnap(exports, "snap");
+	InitHt(exports, "ht");
+
+
+	InitSnap(exports, "snap");
 	InitStat(exports, "statistics");
 	InitQm(exports);
 }
