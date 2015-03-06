@@ -2,7 +2,7 @@
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
 //    exports = require('bindings')(pathPrefix + '/la.node');
-    exports = require('bindings')(pathPrefix + '/qm1.node').la;
+    exports = require('bindings')(pathPrefix + '/qm.node').la;
 
     
     var assert = require('assert');

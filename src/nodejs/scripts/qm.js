@@ -4,9 +4,12 @@ var csv = require('fast-csv');
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-    exports = require('bindings')(pathPrefix + '/qm.node');
+    var qm = require('bindings')(pathPrefix + '/qm.node');
+    var fs = qm.fs;
+    
+    exports = qm;
 
-    var fs = require('bindings')(pathPrefix + '/fs.node');
+    
 
     //==================================================================
     // BASE

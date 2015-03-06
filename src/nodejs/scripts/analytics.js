@@ -2,14 +2,14 @@
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
 //    exports = require('bindings')(pathPrefix + '/analytics.node');
-    exports = require('bindings')(pathPrefix + '/qm1.node').analytics;
-
+    var sget = require('sget');
+    var qm = require('bindings')(pathPrefix + '/qm.node');
+    var fs = qm.fs;
+    
+    exports = qm.analytics;
 
     var la = require(__dirname + '/la.js')(pathPrefix);
-    var qm = require('bindings')(pathPrefix + '/qm.node');
-    var fs = require('bindings')(pathPrefix + '/fs.node');
     var qm_util = require(__dirname + '/qm_util.js');
-    var sget = require('sget');
 
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;

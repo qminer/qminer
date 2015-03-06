@@ -2,23 +2,6 @@
 
 using namespace v8;
 
-void InitHt(Handle<Object> Exports, const TStr& NsNm) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	Handle<Object> NsObj = Object::New(Isolate);
-
-	TNodeJsStrStrH::Init(NsObj);
-	TNodeJsStrIntH::Init(NsObj);
-	TNodeJsStrFltH::Init(NsObj);
-
-	TNodeJsIntStrH::Init(NsObj);
-	TNodeJsIntIntH::Init(NsObj);
-	TNodeJsIntFltH::Init(NsObj);
-
-	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
-}
-
 void InitFs(Handle<Object> Exports, const TStr& NsNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -49,6 +32,23 @@ void InitLa(Handle<Object> Exports, const TStr& NsNm) {
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
+void InitHt(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsStrStrH::Init(NsObj);
+	TNodeJsStrIntH::Init(NsObj);
+	TNodeJsStrFltH::Init(NsObj);
+
+	TNodeJsIntStrH::Init(NsObj);
+	TNodeJsIntIntH::Init(NsObj);
+	TNodeJsIntFltH::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
 void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
@@ -64,6 +64,17 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsHMChain::Init(NsObj);
 	TNodeJsNNet::Init(NsObj);
 	TNodeJsTokenizer::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
+void InitStat(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsStat::Init(NsObj);
 
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
@@ -88,17 +99,6 @@ void InitSnap(Handle<Object> Exports, const TStr& NsNm) {
 	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
-void InitStat(Handle<Object> Exports, const TStr& NsNm) {
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope HandleScope(Isolate);
-
-	Handle<Object> NsObj = Object::New(Isolate);
-
-	TNodeJsStat::Init(NsObj);
-
-	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
-}
-
 void InitQm(Handle<Object> Exports) {
 	// QMiner package
 	TNodeJsQm::Init(Exports);
@@ -114,16 +114,14 @@ void InitQm(Handle<Object> Exports) {
 	TNodeJsFtrSpace::Init(Exports);
 }
 
-void Init(Handle<Object> exports, Handle<Object> module) {
-	InitFs(exports, "fs");
-	InitLa(exports, "la");
-	InitAnalytics(exports, "analytics");
-	InitHt(exports, "ht");
-
-
-	InitSnap(exports, "snap");
-	InitStat(exports, "statistics");
-	InitQm(exports);
+void Init(Handle<Object> Exports, Handle<Object> module) {
+	InitFs(Exports, "fs");
+	InitLa(Exports, "la");
+	InitHt(Exports, "ht");
+	InitAnalytics(Exports, "analytics");
+	InitStat(Exports, "statistics");
+	InitSnap(Exports, "snap");
+	InitQm(Exports);
 }
 
-NODE_MODULE(qm1, Init);
+NODE_MODULE(qm, Init);

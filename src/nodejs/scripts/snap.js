@@ -1,5 +1,5 @@
-module.exports = exports = require('bindings')('snap.node');
-var fs = require('bindings')('fs.node');
+module.exports = exports = require('bindings')('qm.node').snap;
+var fs = require('bindings')('qm.node').fs;
 
 exports.UndirectedGraph.prototype.nodes3 = function () {
 	return (this.nodes*3);
