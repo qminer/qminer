@@ -88,7 +88,6 @@ const TStr TAuxBoolV::ClassId = "TBoolV";
 v8::Persistent<v8::Function> TNodeJsFltVV::Constructor;
 
 const TStr TNodeJsFltVV::ClassId = "TFltVV";
-const TStr TNodeJsFltVV::JsClassNm = "Matrix";
 
 void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -140,21 +139,12 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
     Constructor.Reset(Isolate, Child->GetFunction());
-#ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()),
-        Tpl->GetFunction());
-#endif
+    exports->Set(v8::String::NewFromUtf8(Isolate, "Matrix"), Tpl->GetFunction());
 }
 
 TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	EAssertR(!Constructor.IsEmpty(), "TNodeJsFltVV::New: constructor is empty. Did you call TNodeJsFltVV::Init(exports); in this module's init function?");
-
-	v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, "TFltVV");
-	v8::Local<v8::Object> Instance = Args.This();
-	Instance->SetHiddenValue(Key, Value);
 
 	TFltVV Mat;
 	if (Args.Length() > 0) {
@@ -255,7 +245,7 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	printf("%s\n", TNodeJsUtil::GetClass(Args[0]->ToObject()));
+
 	EAssertR(Args.Length() == 1, "Expected one argument");
 	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
 	if (Args[0]->IsNumber()) {
