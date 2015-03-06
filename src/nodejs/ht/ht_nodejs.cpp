@@ -9,8 +9,6 @@ const TStr TAuxIntStrH::ClassId = "IntStrH";
 
 ///////////////////////////////
 // NodeJs-Hash-Map
-template<class TKey, class TDat, class TAux>
-v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
 
 //void TNodeJsHashUtil::Init(v8::Handle<v8::Object> exports) {
 //    NODE_SET_METHOD(exports, "newStrIntH", _newStrIntH);

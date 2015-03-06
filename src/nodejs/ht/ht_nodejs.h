@@ -225,6 +225,9 @@ private:
     static v8::Persistent<v8::Function> constructor;
 };
 
+template<class TKey, class TDat, class TAux>
+v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
+
 //template<class TKey, class TDat, class TAux>
 //const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_STRING = "string";
 //template<class TKey, class TDat, class TAux>
