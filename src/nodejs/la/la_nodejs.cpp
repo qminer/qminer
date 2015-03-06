@@ -98,11 +98,11 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
 	v8::Local<v8::FunctionTemplate> Child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFltVV>);
 	Child->Inherit(Tpl);
 
-	Child->SetClassName(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()));
+	Child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	Child->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()));
+	Tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
 	Tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
