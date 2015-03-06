@@ -97,6 +97,7 @@ public:
 	TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { }
 public:
 	JsDeclareFunction(New);
+
 private:
 	//# 
 	//# **Functions and properties:**
