@@ -68,4 +68,4 @@ For more detailed installation check the following instructions:
 
 ## Acknowledgments
 
-**Thanks to Deleaker we find leaks in our project.**
+**Thanks to [Deleaker](http://deleaker.com) we find leaks in our project.**
