@@ -158,6 +158,9 @@
                 'src/glib/mine/',
                 'src/glib/misc/'
             ],
+            'defines': [
+                #'OPENBLAS'        
+            ],
             'conditions': [
                 # operating system specific parameters
                 ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
