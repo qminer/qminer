@@ -6,8 +6,8 @@
 #endif
 
 #include <node.h>
-#include "qm_nodejs.h"
 #include "la_nodejs.h"
+#include "qm_nodejs.h"
 #include "analytics.h"
 #include "fs_nodejs.h"
 //#include "snap_nodejs.h"
