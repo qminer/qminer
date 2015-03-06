@@ -66,7 +66,7 @@
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
@@ -159,11 +159,10 @@
                 'src/glib/misc/'
             ],
             'defines': [
-                'OPENBLAS' 
             ],
             'conditions': [
                 # operating system specific parameters
-                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp', '-llapacke' ]}],
+                ['OS == "linux"', { 'libraries': [ '-lrt', '-luuid', '-fopenmp' ]}],
                 ['OS == "mac"', {
                     'xcode_settings': {
                         'MACOSX_DEPLOYMENT_TARGET': '10.7',
