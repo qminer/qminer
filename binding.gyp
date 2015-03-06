@@ -10,9 +10,6 @@
             # node qminer module
             'target_name': 'qm',
             'sources': [
-                # init functions
-                'src/nodejs/modinit.h',
-                'src/nodejs/modinit.cpp',
                 # core qm module
                 'src/nodejs/qm/qm_nodejs.h',
                 'src/nodejs/qm/qm_nodejs.cpp',
@@ -27,17 +24,20 @@
                 'src/nodejs/fs/fs_nodejs.h',
                 'src/nodejs/fs/fs_nodejs.cpp',
                 # snap
-                'src/nodejs/snap/snap_nodejs.h',
-                'src/nodejs/snap/snap_nodejs.cpp',
+                #'src/nodejs/snap/snap_nodejs.h',
+                #'src/nodejs/snap/snap_nodejs.cpp',
                 # ht
-                'src/nodejs/ht/ht_nodejs.h',
-                'src/nodejs/ht/ht_nodejs.cpp',
+                #'src/nodejs/ht/ht_nodejs.h',
+                #'src/nodejs/ht/ht_nodejs.cpp',
                 # statistics
                 'src/nodejs/statistics/stat_nodejs.h',
                 'src/nodejs/statistics/stat_nodejs.cpp',
                 # addon utilities
                 'src/nodejs/nodeutil.h',
-                'src/nodejs/nodeutil.cpp'
+                'src/nodejs/nodeutil.cpp',
+                # init functions
+                'src/nodejs/modinit.h',
+                'src/nodejs/modinit.cpp'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
@@ -45,22 +45,23 @@
                 'src/nodejs/analytics',
                 'src/nodejs/fs',
                 'src/nodejs/snap',
-                'src/nodejs/ht',
+                #'src/nodejs/ht',
                 'src/nodejs/statistics',
                 'src/nodejs/',
                 'src/qminer/',
                 'src/glib/base/',
                 'src/glib/mine/',
-                'src/glib/misc/',
-                'src/third_party/Snap/snap-core',
-                'src/third_party/Snap/snap-adv',
-                'src/third_party/Snap/snap-exp',
-                'src/third_party/Snap/qlib-core'
+                'src/glib/misc/'
+                #'src/third_party/Snap/snap-core',
+                #'src/third_party/Snap/snap-adv',
+                #'src/third_party/Snap/snap-exp',
+                #'src/third_party/Snap/qlib-core'
             ],
             'defines': [
             ],
             'dependencies': [
                 'glib',
+                'snap_lib',
                 'qminer'
             ],
             'conditions': [
