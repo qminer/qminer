@@ -27,8 +27,8 @@
                 #'src/nodejs/snap/snap_nodejs.h',
                 #'src/nodejs/snap/snap_nodejs.cpp',
                 # ht
-                #'src/nodejs/ht/ht_nodejs.h',
-                #'src/nodejs/ht/ht_nodejs.cpp',
+                'src/nodejs/ht/ht_nodejs.h',
+                'src/nodejs/ht/ht_nodejs.cpp',
                 # statistics
                 'src/nodejs/statistics/stat_nodejs.h',
                 'src/nodejs/statistics/stat_nodejs.cpp',
@@ -44,8 +44,8 @@
                 'src/nodejs/la',
                 'src/nodejs/analytics',
                 'src/nodejs/fs',
-                'src/nodejs/snap',
-                #'src/nodejs/ht',
+                #'src/nodejs/snap',
+                'src/nodejs/ht',
                 'src/nodejs/statistics',
                 'src/nodejs/',
                 'src/qminer/',

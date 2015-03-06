@@ -2,22 +2,22 @@
 
 using namespace v8;
 
-//void InitHt(Handle<Object> Exports, const TStr& NsNm) {
-//	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//	v8::HandleScope HandleScope(Isolate);
-//
-//	Handle<Object> NsObj = Object::New(Isolate);
-//
-//	TNodeJsStrStrH::Init(NsObj);
-//	TNodeJsStrIntH::Init(NsObj);
-//	TNodeJsStrFltH::Init(NsObj);
-//
-//	TNodeJsIntStrH::Init(NsObj);
-//	TNodeJsIntIntH::Init(NsObj);
-//	TNodeJsIntFltH::Init(NsObj);
-//
-//	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
-//}
+void InitHt(Handle<Object> Exports, const TStr& NsNm) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	Handle<Object> NsObj = Object::New(Isolate);
+
+	TNodeJsStrStrH::Init(NsObj);
+	TNodeJsStrIntH::Init(NsObj);
+	TNodeJsStrFltH::Init(NsObj);
+
+	TNodeJsIntStrH::Init(NsObj);
+	TNodeJsIntIntH::Init(NsObj);
+	TNodeJsIntFltH::Init(NsObj);
+
+	Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
 
 void InitFs(Handle<Object> Exports, const TStr& NsNm) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -115,7 +115,7 @@ void InitQm(Handle<Object> Exports) {
 }
 
 void Init(Handle<Object> exports, Handle<Object> module) {
-//	InitHt(exports, "ht");
+	InitHt(exports, "ht");
 	InitFs(exports, "fs");
 	InitLa(exports, "la");
 	InitAnalytics(exports, "analytics");
