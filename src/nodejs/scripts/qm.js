@@ -5,11 +5,6 @@ var csv = require('fast-csv');
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
     
-//    require('./analytics.js').init();
-//    require('./analytics.js').init();
-//    require('./analytics.js').init();
-//    require('./analytics.js').init();
-    
     var qm = require('bindings')(pathPrefix + '/qm.node');
     var fs = qm.fs;
     

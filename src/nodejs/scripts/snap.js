@@ -1,5 +1,10 @@
-module.exports = exports = require('bindings')('qm.node').snap;
-var fs = require('bindings')('qm.node').fs;
+// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
+module.exports = exports = function (pathPrefix) {
+    pathPrefix = pathPrefix || '';
+    exports = require('bindings')(pathPrefix + '/qm.node').snap;
+
+    
+var fs = require('bindings')(pathPrefix + '/qm.node').fs;
 
 exports.UndirectedGraph.prototype.nodes3 = function () {
 	return (this.nodes*3);
@@ -46,4 +51,6 @@ function drawGraph(fnm, graph) {
     fs.openWrite(fnm).write(output).close();
 	
 	return json_out;
+}
+
 }
