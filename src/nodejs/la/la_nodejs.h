@@ -694,10 +694,43 @@ inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV) 
     throw TExcept::New("Not implemented");
 }
 
+// TODO implement the following three
 template <>
-inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxBoolV>::New(const TBoolV& IntV) {
-    throw TExcept::New("Not implemented");
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TBoolV& BoolV) {
+    throw TExcept::New("Not implemented. TODO");
 }
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TBoolV& BoolV) {
+	throw TExcept::New("Not implemented. TODO");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TBoolV& BoolV) {
+	throw TExcept::New("Not implemented. TODO");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TBoolV& BoolV) {
+	throw TExcept::New("Not implemented.");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TStrV& StrV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TFltV& FltV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TIntV& IntV) {
+	throw TExcept::New("Not implemented");
+}
+
+
 
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
