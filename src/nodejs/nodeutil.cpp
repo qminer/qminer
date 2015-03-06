@@ -262,7 +262,8 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     if (Args.Length() > ArgN) {
         if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
             v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
-            EAssertR(Val->IsInt32(),
+			bool IsInt = Val->IsInt32();
+			EAssertR(IsInt,
                      TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
             return Val->ToNumber()->Int32Value();
         }

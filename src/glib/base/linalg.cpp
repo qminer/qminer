@@ -338,7 +338,7 @@ void TLinAlg::OuterProduct(const TFltV& x, const TFltV& y, TFltVV& Z) {
 void TLinAlg::LinComb(const double& p, const TFltV& x,
         const double& q, const TFltV& y, TFltV& z) {
 
-    Assert(x.Len() == y.Len() && y.Len() == z.Len());
+    EAssert(x.Len() == y.Len() && y.Len() == z.Len());
     const int Len = x.Len();
     for (int i = 0; i < Len; i++) {
         z[i] = p * x[i] + q * y[i]; }
@@ -1239,12 +1239,12 @@ void TLinAlg::Multiply(const TFltVV& A, const TPair<TIntV, TFltV>& x, TFltV& y){
 }
 #ifdef BLAS
 void TLinAlg::Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C) {
-    Assert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
+    EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
 	TLinAlg::Multiply(A, B, C, TLinAlg::TLinAlgBlasTranspose::NOTRANS, TLinAlg::TLinAlgBlasTranspose::NOTRANS);
 }
 #else
 void TLinAlg::Multiply(const TFltVV& A, const TFltVV& B, TFltVV& C) {
-	Assert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
+	EAssert(A.GetRows() == C.GetRows() && B.GetCols() == C.GetCols() && A.GetCols() == B.GetRows());
 
 	int n = C.GetRows(), m = C.GetCols(), l = A.GetCols();
 	for (int i = 0; i < n; i++) {

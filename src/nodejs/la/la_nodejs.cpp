@@ -95,7 +95,7 @@ void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
 
     v8::Local<v8::FunctionTemplate> Tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFltVV>);
     // child will have the same properties and methods, but a different callback: _NewCpp
-	v8::Local<v8::FunctionTemplate> Child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFIn>);
+	v8::Local<v8::FunctionTemplate> Child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFltVV>);
 	Child->Inherit(Tpl);
 
 	Child->SetClassName(v8::String::NewFromUtf8(Isolate, JsClassNm.CStr()));
@@ -255,7 +255,7 @@ void TNodeJsFltVV::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-
+	printf("%s\n", TNodeJsUtil::GetClass(Args[0]->ToObject()));
 	EAssertR(Args.Length() == 1, "Expected one argument");
 	TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
 	if (Args[0]->IsNumber()) {
@@ -274,7 +274,7 @@ void TNodeJsFltVV::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 			TLinAlg::Multiply(JsMat->Mat, JsVec->Vec, Result);
 			Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 		}
-		else if (TNodeJsUtil::IsArgClass(Args, 0, "TFltVV")) { // IF matrix, then C = A * B 
+		else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) { // IF matrix, then C = A * B 
 			TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
 			TFltVV Result;
 			// computation
@@ -437,8 +437,8 @@ void TNodeJsFltVV::solve(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TFltV Result;
     Result.Gen(JsMat->Mat.GetCols());
-
-    TNumericalStuff::SolveLinearSystem(JsMat->Mat, JsVec->Vec, Result);
+	TFltVV MatCopy(JsMat->Mat);
+	TNumericalStuff::SolveLinearSystem(MatCopy, JsVec->Vec, Result);
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result));
 }
 
@@ -525,8 +525,8 @@ void TNodeJsFltVV::rowMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    EAssertR(Args.Length() == 1 && Args[0]->Int32Value(),
-        "Expected nonnegative integer");
+    EAssertR(Args.Length() == 1 && Args[0]->IsInt32(),
+        "Expected integer");
 
     TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args.Holder());
     const int RowN = Args[0]->Int32Value();
@@ -800,8 +800,7 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         // If we got Javascript array on the input: vector.new([1,2,3]) 
         if (Args[0]->IsArray()) {
             v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
-            const int Len = Arr->Length();
-            JsSpVec->Dim = Len;
+            const int Len = Arr->Length();            
             for (int ElN = 0; ElN < Len; ++ElN) {
                 v8::Handle<v8::Array> CrrArr = v8::Handle<v8::Array>::Cast(Arr->Get(ElN));
                 EAssertR(CrrArr->Length() == 2 && CrrArr->Get(0)->IsInt32() &&
@@ -809,6 +808,8 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsSpVec->Vec.Add(TIntFltKd(
                 CrrArr->Get(0)->Int32Value(), CrrArr->Get(1)->NumberValue()));
             }
+			JsSpVec->Vec.Sort();
+			//JsSpVec->Dim = JsSpVec->Vec.Last().Key + 1;
         }
         Args.GetReturnValue().Set(Instance);
     } else {
@@ -836,8 +837,11 @@ void TNodeJsSpVec::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
 
     const int Idx = Args[0]->Int32Value();
-    EAssertR(Idx >= 0 && Idx < JsSpVec->Vec.Len(), "Index out of bounds.");
-
+	if (JsSpVec->Dim != -1) {
+		EAssertR(Idx >= 0 && Idx < JsSpVec->Dim, "Index out of bounds.");
+	} else {
+		EAssertR(Idx >= 0, "Index out of bounds.");
+	}
     bool FoundP = false;
     for (int ElN = 0; ElN < JsSpVec->Vec.Len(); ++ElN) {
         if ((FoundP = JsSpVec->Vec[ElN].Key == Idx)) {

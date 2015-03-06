@@ -24,6 +24,8 @@ void InitLa(Handle<Object> Exports, const TStr& NsNm) {
 	TNodeJsLinAlg::Init(NsObj);
 	TNodeJsVec<TFlt, TAuxFltV>::Init(NsObj);
 	TNodeJsVec<TInt, TAuxIntV>::Init(NsObj);
+	TNodeJsVec<TStr, TAuxStrV>::Init(NsObj);
+
 	TNodeJsBoolV::Init(NsObj);
 	TNodeJsFltVV::Init(NsObj);
 	TNodeJsSpVec::Init(NsObj);
