@@ -86,7 +86,6 @@ private:
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	const static TStr ClassId;
-	const static TStr JsClassNm;
 
 	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
