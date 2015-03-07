@@ -95,16 +95,16 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Args.GetReturnValue().Set(JsObj);
 }
 
-///////////////////////////////
-// Register functions, etc.  
-void init(v8::Handle<v8::Object> exports) {
-   TNodeJsStat::Init(exports);
-   // LA
-   TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-   TNodeJsFltVV::Init(exports);
-   TNodeJsSpVec::Init(exports);
-   TNodeJsSpMat::Init(exports);
-}
-
-NODE_MODULE(statistics, init)
+/////////////////////////////////
+//// Register functions, etc.
+//void init(v8::Handle<v8::Object> exports) {
+//   TNodeJsStat::Init(exports);
+//   // LA
+//   TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+//   TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+//   TNodeJsFltVV::Init(exports);
+//   TNodeJsSpVec::Init(exports);
+//   TNodeJsSpMat::Init(exports);
+//}
+//
+//NODE_MODULE(statistics, init)

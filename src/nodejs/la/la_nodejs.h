@@ -1,9 +1,9 @@
 #ifndef QMINER_LA_NODEJS_H
 #define QMINER_LA_NODEJS_H
 
-#ifndef BUILDING_NODE_EXTENSION
-    #define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//    #define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -79,10 +79,16 @@ public:
 //# ```
 //# 
 class TNodeJsFltVV : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+private:
+	static v8::Persistent<v8::Function> Constructor;
+
 public:
+	static void Init(v8::Handle<v8::Object> exports);
 	const static TStr ClassId;
 
-	static void Init(v8::Handle<v8::Object> exports);
+	static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
 	static v8::Local<v8::Object> New(const TFltVV& FltVV);
 	static v8::Local<v8::Object> New(const TFltV& FltV);
 public:
@@ -90,6 +96,7 @@ public:
 	TNodeJsFltVV(const TFltVV& _Mat) : Mat(_Mat) { }
 public:
 	JsDeclareFunction(New);
+
 private:
 	//# 
 	//# **Functions and properties:**
@@ -158,8 +165,6 @@ private:
 	JsDeclareFunction(loadascii);
 public:
 	TFltVV Mat;
-private:
-	static v8::Persistent<v8::Function> constructor;
 };
 
 
@@ -375,6 +380,22 @@ public:
     }
 };
 
+class TAuxBoolV {
+public:
+    static const TStr ClassId; //ClassId is set to "TBoolV"
+    static v8::Handle<v8::Value> GetObjVal(const TBool& Val) {
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+        v8::EscapableHandleScope HandleScope(Isolate);
+        return v8::Boolean::New(Isolate, Val);
+    }
+    static bool CastVal(const v8::Local<v8::Value>& Value) {
+    	return Value->BooleanValue();
+    }
+    static TBool Parse(const TStr& Str) {
+		return TBool::GetValFromStr(Str);
+	}
+};
+
 ///////////////////////////////
 // NodeJs-Linalg-Vector
 //# 
@@ -401,9 +422,10 @@ public: // So we can register the class
     static v8::Local<v8::Object> New(const TFltV& FltV);
     static v8::Local<v8::Object> New(const TIntV& IntV);
     static v8::Local<v8::Object> New(const TStrV& StrV);
+    static v8::Local<v8::Object> New(const TBoolV& BoolV);
     //static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
-    TNodeJsVec() { }
+    TNodeJsVec() : Vec() { }
     TNodeJsVec(const TVec<TVal>& ValV) : Vec(ValV) { }
 public:
      JsDeclareFunction(New);
@@ -419,20 +441,57 @@ private:
     JsDeclareFunction(subVec);
     //#- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
     JsDeclareSetIndexedProperty(indexGet, indexSet);
-    //#- `vec = vec.put(idx, num)` -- set value of vector `vec` at index `idx` to `num` (0-based indexing). Returns self.
-    //#- `intVec = intVec.put(idx, num)` -- set value of integer vector `intVec` at index `idx` to `num` (0-based indexing). Returns self.
+
+    /**
+     * Sets the element at position i.
+     *
+     * vec = vec.put(i, val)
+     *
+     * @param {Number} i - the position of the element
+     * @returns {Vector} vec - a reference to itself
+     */
     JsDeclareFunction(put);
-    //#- `len = vec.push(num)` -- append value `num` to vector `vec`. Returns `len` - the length  of the modified array
-    //#- `len = intVec.push(num)` -- append value `num` to integer vector `intVec`. Returns `len` - the length  of the modified array
+
+    /**
+     * Adds an element to the end of the vector.
+     *
+     * len = vector.push(val)
+     *
+     * @param {Object} val - the element added to the vector
+     * @returns {Number} len - the length of the vector
+     */
     JsDeclareFunction(push);
-    //#- `len = vec.unshift(num)` -- insert value `num` to the begining of vector `vec`. Returns the length of the modified array.
-    //#- `len = intVec.unshift(num)` -- insert value `num` to the begining of integer vector `intVec`. Returns the length of the modified array.
+
+    /**
+     * The splice() method changes the content of an array by removing existing elements and/or adding new elements.
+     *
+     * array.splice(start, deleteCount[, item1[, item2[, ...]]])
+     *
+     * @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
+     * @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
+     * @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
+     * @returns {Vector} - a reference to itself
+     */
+    JsDeclareFunction(splice);
+
+    /**
+	 * Adds an element to the beginning of the vector.
+	 *
+	 * len = vector.unshift(val)
+	 *
+	 * @param {Object} val - the element added to the vector
+	 * @returns {Number} len - the length of the vector
+	 */
     JsDeclareFunction(unshift);
     //#- `len = vec.pushV(vec2)` -- append vector `vec2` to vector `vec`.
     //#- `len = intVec.pushV(intVec2)` -- append integer vector `intVec2` to integer vector `intVec`.
     JsDeclareFunction(pushV);
-    //#- `num = vec.sum()` -- return `num`: the sum of elements of vector `vec`
-    //#- `num = intVec.sum()` -- return `num`: the sum of elements of integer vector `intVec`
+
+    /**
+     * Sums the elements in the vector.
+     *
+     * @returns {Object} - the sum
+     */
     JsDeclareFunction(sum);
     //#- `idx = vec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in vector `vec`
     //#- `idx = intVec.getMaxIdx()` -- returns the integer index `idx` of the maximal element in integer vector `vec`
@@ -442,8 +501,12 @@ private:
     JsDeclareFunction(sort);
     //#- `sortRes = vec.sortPerm(asc)` -- returns a sorted copy of the vector in `sortRes.vec` and the permutation `sortRes.perm`. `asc=true` sorts in ascending order (equivalent `sortPerm()`), `asc`=false sorts in descending order.
     JsDeclareSpecializedFunction(sortPerm);
-    //#- `vec = vec.shuffle()` -- shuffels the vector `vec` (inplace operation). Returns self.
-    //#- `intVec = intVec.shuffle()` -- shuffels the vector `intVec` (inplace operation). Returns self.
+
+    /**
+     * Randomly reorders the elements of the vector.
+     *
+     * @returns {Vector} - returns a reference to itself
+     */
     JsDeclareFunction(shuffle);
     //#- `vec = vec.trunc(num)` -- truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.
     //#- `intVec = intVec.trunc(num)` -- truncates the vector `intVec` to lenght 'num' (inplace operation). Returns self.
@@ -503,6 +566,7 @@ v8::Persistent<v8::Function> TNodeJsVec<TVal, TAux>::constructor;
 typedef TNodeJsVec<TFlt, TAuxFltV> TNodeJsFltV;
 typedef TNodeJsVec<TInt, TAuxIntV> TNodeJsIntV;
 typedef TNodeJsVec<TStr, TAuxStrV> TNodeJsStrV;
+typedef TNodeJsVec<TBool, TAuxBoolV> TNodeJsBoolV;
 
 
 // template <typename TVal, typename TAux>
@@ -630,6 +694,44 @@ inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TIntV& IntV) 
     throw TExcept::New("Not implemented");
 }
 
+// TODO implement the following three
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TBoolV& BoolV) {
+    throw TExcept::New("Not implemented. TODO");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TFlt, TAuxFltV>::New(const TBoolV& BoolV) {
+	throw TExcept::New("Not implemented. TODO");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TInt, TAuxIntV>::New(const TBoolV& BoolV) {
+	throw TExcept::New("Not implemented. TODO");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TStr, TAuxStrV>::New(const TBoolV& BoolV) {
+	throw TExcept::New("Not implemented.");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TStrV& StrV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TFltV& FltV) {
+	throw TExcept::New("Not implemented");
+}
+
+template <>
+inline v8::Local<v8::Object> TNodeJsVec<TBool, TAuxBoolV>::New(const TIntV& IntV) {
+	throw TExcept::New("Not implemented");
+}
+
+
+
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -637,6 +739,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	TStr Name = "Vector";
 	if (TAux::ClassId == TNodeJsIntV::GetClassId()) Name = "IntVector";
 	if (TAux::ClassId == TNodeJsStrV::GetClassId()) Name = "StrVector";
+	if (TAux::ClassId == TNodeJsBoolV::GetClassId()) Name = "BoolVector";
 
 	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
@@ -648,6 +751,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "subVec", _subVec);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "put", _put);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "splice", _splice);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "unshift", _unshift);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "pushV", _pushV);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortPerm", _sortPerm);
@@ -871,7 +975,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::spDiag(const v8::FunctionCallbackInfo<v8
 	// computation
 	TLAMisc::Diag(JsVec->Vec, Result);
 
-	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result));
+	Args.GetReturnValue().Set(TNodeJsSpMat::New(Result, JsVec->Vec.Len()));
 }
 
 template<>
@@ -935,23 +1039,28 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
             for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Arr->Get(ElN))); }
         }
         else if (Args[0]->IsObject()) {
-            if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
+            if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltV::GetClassId())) {
                 //printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
                 TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
-            else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntV")) {
+            else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsIntV::GetClassId())) {
                 //printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
                 TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
-            else if (TNodeJsUtil::IsArgClass(Args, 0, "TStrV")) {
+            else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsStrV::GetClassId())) {
                 //printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
                 TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
+            }
+            else if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsBoolV::GetClassId())) {
+            	TNodeJsBoolV* JsBoolV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[0]->ToObject());
+            	Args.GetReturnValue().Set(New(JsBoolV->Vec));
+            	return;
             }
             else {
                 //printf("construct call, else branch, class = %s\n", TAux::ClassId.CStr());
@@ -1114,7 +1223,7 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
         Isolate->ThrowException(v8::Exception::TypeError(
             v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
     }
-    else if (!Args[0]->IsNumber() && !Args[0]->IsString()) {
+    else if (!Args[0]->IsNumber() && !Args[0]->IsString() && !Args[0]->IsBoolean()) {
         Isolate->ThrowException(v8::Exception::TypeError(
             v8::String::NewFromUtf8(Isolate, "Expected number")));
     }
@@ -1122,6 +1231,55 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
         JsVec->Vec.Add(TAux::CastVal(Args[0]));
         Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
     }
+}
+
+// Appends an element to the vector
+template <typename TVal, typename TAux>
+void TNodeJsVec<TVal, TAux>::splice(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() >= 2, "vec.splice expects at least 2 arguments!");
+
+    TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
+	TVec<TVal>& Vec = JsVec->Vec;
+
+	// from the Javascript documentation:
+	// If greater than the length of the array, actual starting index will be set to the length of the array.
+	// If negative, will begin that many elements from the end
+    int StartIdx = TMath::Mn(TNodeJsUtil::GetArgInt32(Args, 0), Vec.Len());
+	if (StartIdx < 0) StartIdx += Vec.Len();
+
+    const int DelCount = TMath::Mn(TNodeJsUtil::GetArgInt32(Args, 1), Vec.Len() - StartIdx);	// mimic javascript default behavior
+    const int InsCount = Args.Length() - 2;
+
+    EAssert(StartIdx + DelCount <= Vec.Len());
+
+    const int NOverride = TMath::Mn(DelCount, InsCount);
+    const int NDel = TMath::Mx(DelCount - InsCount, 0);
+    const int NIns = TMath::Mx(InsCount - DelCount, 0);
+
+    // override
+    for (int i = 0; i < NOverride; i++) {
+    	Vec[StartIdx + i] = TAux::CastVal(Args[2 + i]);
+    }
+
+    // insert
+    for (int i = 0; i < NIns; i++) {
+    	const int Idx = StartIdx + NOverride + i;
+    	if (Idx == Vec.Len()) {
+    		Vec.Add(TAux::CastVal(Args[2 + NOverride + i]));
+    	} else {
+    		Vec.Ins(StartIdx + NOverride + i, TAux::CastVal(Args[2 + NOverride + i]));
+    	}
+    }
+
+    // delete
+    if (NDel > 0) {
+    	Vec.Del(StartIdx + NOverride, StartIdx + NOverride + NDel - 1);
+    }
+
+    Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <typename TVal, typename TAux>

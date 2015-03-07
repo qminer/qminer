@@ -1,14 +1,15 @@
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-    exports = require('bindings')(pathPrefix + '/analytics.node');
-
+//    exports = require('bindings')(pathPrefix + '/analytics.node');
+    var sget = require('sget');
+    var qm = require('bindings')(pathPrefix + '/qm.node');
+    var fs = qm.fs;
+    
+    exports = qm.analytics;
 
     var la = require(__dirname + '/la.js')(pathPrefix);
-    var qm = require('bindings')(pathPrefix + '/qm.node');
-    var fs = require('bindings')(pathPrefix + '/fs.node');
     var qm_util = require(__dirname + '/qm_util.js');
-    var sget = require('sget');
 
     function defarg(arg, defaultval) {
         return arg == undefined ? defaultval : arg;
@@ -443,12 +444,283 @@ module.exports = exports = function (pathPrefix) {
     };
 
 
-
-
-
-
-
-
+	//////////// RIDGE REGRESSION 
+	// solve a regularized least squares problem
+	//#- `ridgeRegressionModel = new analytics.RidgeRegression(kappa, dim, buffer)` -- solves a regularized ridge
+	//#  regression problem: min|X w - y|^2 + kappa |w|^2. The inputs to the algorithm are: `kappa`, the regularization parameter,
+	//#  `dim` the dimension of the model and (optional) parameter `buffer` (integer) which specifies
+	//#  the length of the window of tracked examples (useful in online mode). The model exposes the following functions:
+	exports.RidgeRegression = function (kappa, dim, buffer) {
+	    var X = [];
+	    var y = [];
+	    buffer = typeof buffer !== 'undefined' ? buffer : -1;
+	    var w = new la.Vector({ "vals": dim });
+	    //#   - `ridgeRegressionModel.add(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set
+	    this.add = function (x, target) {
+	        X.push(x);
+	        y.push(target);
+	        if (buffer > 0) {
+	            if (X.length > buffer) {
+	                this.forget(X.length - buffer);
+	            }
+	        }
+	    };
+	    //#   - `ridgeRegressionModel.addupdate(vec, num)` -- adds a vector `vec` and target `num` (number) to the training set and retrains the model
+	    this.addupdate = function (x, target) {
+	        this.add(x, target);
+	        this.update();
+	    }
+	    //#   - `ridgeRegressionModel.forget(n)` -- deletes first `n` (integer) examples from the training set
+	    this.forget = function (ndeleted) {
+	        ndeleted = typeof ndeleted !== 'undefined' ? ndeleted : 1;
+	        ndeleted = Math.min(X.length, ndeleted);
+	        X.splice(0, ndeleted);
+	        y.splice(0, ndeleted);
+	    };
+	    //#   - `ridgeRegressionModel.update()` -- recomputes the model
+	    this.update = function () {
+	        var A = this.getMatrix();
+	        var b = new la.Vector(y);
+	        w = this.compute(A, b);
+	    };
+	    //#   - `vec = ridgeRegressionModel.getModel()` -- returns the parameter vector `vec` (dense vector)
+	    this.getModel = function () {
+	        return w;
+	    };
+	    this.getMatrix = function () {
+	        if (X.length > 0) {
+	            var A = new la.Matrix({ "cols": X[0].length, "rows": X.length });
+	            for (var i = 0; i < X.length; i++) {
+	                A.setRow(i, X[i]);
+	            }
+	            return A;
+	        }
+	    };
+	    //#   - `vec2 = ridgeRegressionModel.compute(mat, vec)` -- computes the model parameters `vec2`, given 
+	    //#    a row training example matrix `mat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |mat' vec2 - vec|^2 + kappa |vec2|^2.
+	    //#   - `vec2 = ridgeRegressionModel.compute(spMat, vec)` -- computes the model parameters `vec2`, given 
+	    //#    a row training example sparse matrix `spMat` and target vector `vec` (dense vector). The vector `vec2` solves min_vec2 |spMat' vec2 - vec|^2 + kappa |vec2|^2.
+	    this.compute = function (A, b) {
+	        var I = la.eye(A.cols);
+	        var coefs = (A.transpose().multiply(A).plus(I.multiply(kappa))).solve(A.transpose().multiply(b));
+	        return coefs;
+	    };
+	    //#   - `num = model.predict(vec)` -- predicts the target `num` (number), given feature vector `vec` based on the internal model parameters.
+	    this.predict = function (x) {
+	        return w.inner(x);
+	    };
+	};
+	    
+    
+    /**
+     * Hierarchical Markov model.
+     */
+    exports.HierarchMarkov = function (opts) {
+    	// constructor
+    	if (opts == null) throw 'Missing parameters!';
+    	if (opts.base == null) throw 'Missing parameter base!';
+    	
+    	// create model and feature space
+    	var mc;
+    	var ftrSpace;
+    	
+    	if (opts.hmcConfig != null && opts.ftrSpaceConfig != null && opts.base != null) {
+    		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
+    		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceConfig);
+    	} 
+    	else if (opts.hmcFile != null && opts.ftrSpaceFile != null) {
+    		mc = new exports.HMC(opts.hmcFile);
+    		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceFile);
+    	}
+    	
+    	// public methods
+    	var that = {
+    		/**
+    		 * Creates a new model out of the record set.
+    		 */
+    		fit: function (opts) {
+    			var recSet = opts.recSet;
+    			var batchEndV = opts.batchEndV;
+    			var timeField = opts.timeField;
+    			
+    			log.info('Updating feature space ...');
+    			ftrSpace.updateRecords(recSet);
+    			
+    			var colMat = ftrSpace.ftrColMat(recSet);
+    			var timeV = recSet.getVec(timeField);
+    			
+    			log.info('Creating model ...');
+    			mc.fit(colMat, timeV, batchEndV);
+    			log.info('Done!');
+    			
+    			return that;
+    		},
+    		
+    		/**
+    		 * Adds a new record. Doesn't update the models statistics.
+    		 */
+    		update: function (rec) {
+    			var ftrVec = ftrSpace.ftrVec(rec);
+    			var recTm = rec.time;
+    			var timestamp = recTm.getTime();
+    			
+    			mc.update(ftrVec, timestamp);
+    		},
+    		
+    		/**
+    		 * Saves the feature space and model into the specified files.
+    		 */
+    		save: function (mcFName, ftrFname) {
+    			log.info('Saving Markov chain ...');
+    			mc.save(mcFName);
+    			log.info('Saving feature space ...');
+    			ftrSpace.save(ftrFname);
+    			log.info('Done!');
+    		},
+    		
+    		/**
+    		 * Returns the state used in the visualization.
+    		 */
+    		getVizState: function () {
+    			log.debug('Fetching visualization ...');
+    			return mc.toJSON();
+    		},
+    		
+    		/**
+    		 * Returns the hierarchical Markov chain model.
+    		 */
+    		getModel: function () {
+    			return mc;
+    		},
+    		
+    		/**
+    		 * Returns the feature space.
+    		 */
+    		getFtrSpace: function () {
+    			return ftrSpace;
+    		},
+    		
+    		/**
+    		 * Returns the current state at the specified height. If the height is not specified it
+    		 * returns the current states through the hierarchy.
+    		 */
+    		currState: function (height) {
+    			return mc.currState(height);
+    		},
+    		
+    		/**
+    		 * Returns the most likely future states.
+    		 */
+    		futureStates: function (level, state, time) {
+    			return mc.futureStates(level, state, time);
+    		},
+    		
+    		/**
+    		 * Returns the most likely future states.
+    		 */
+    		pastStates: function (level, state, time) {
+    			return mc.pastStates(level, state, time);
+    		},
+    		
+    		getFtrNames: function () {
+    			var names = [];
+    			
+    			var dims = ftrSpace.dims;
+    			for (var i = 0; i < dims.length; i++) {
+    				names.push(ftrSpace.getFtr(i));
+    			}
+    			
+    			return names;
+    		},
+    		
+    		/**
+    		 * Returns state details as a Javascript object.
+    		 */
+    		stateDetails: function (stateId, level) {
+    			var coords = mc.fullCoords(stateId);
+    			var invCoords = ftrSpace.invFtrVec(coords);
+    			var futureStates = mc.futureStates(level, stateId);
+    			var pastStates = mc.pastStates(level, stateId);
+    			var stateNm = mc.getStateName(stateId);
+    			var wgts = mc.getStateWgtV(stateId);
+    			
+    			var ftrNames = that.getFtrNames();
+    			var features = [];
+    			for (var i = 0; i < invCoords.length; i++) {
+    				features.push({name: ftrNames[i], value: invCoords.at(i)});
+    			}
+    			
+    			return {
+    				id: stateId,
+    				name: stateNm.length > 0 ? stateNm : null,
+    				features: features,
+    				futureStates: futureStates,
+    				pastStates: pastStates,
+    				featureWeights: wgts
+    			};
+    		},
+    		
+    		/**
+    		 * Returns a histogram for the desired feature in the desired state.
+    		 */
+    		histogram: function (stateId, ftrIdx) {
+    			var hist = mc.histogram(stateId, ftrIdx);
+    			
+    			for (var i = 0; i < hist.binStartV.length; i++) {
+    				hist.binStartV[i] = ftrSpace.invFtr(ftrIdx, hist.binStartV[i]);
+    			}
+    			
+    			return hist;
+    		},
+    		
+    		/**
+    		 * Callback when the current state changes.
+    		 */
+    		onStateChanged: function (callback) {
+    			mc.onStateChanged(callback);
+    		},
+    		
+    		/**
+    		 * Callback when an anomaly is detected.
+    		 */
+    		onAnomaly: function (callback) {
+    			mc.onAnomaly(callback);
+    		},
+    		
+    		onOutlier: function (callback) {
+    			mc.onOutlier(function (ftrV) {
+    				var invFtrV = ftrSpace.invFtrVec(ftrV);
+    				
+    				var features = [];
+    				for (var i = 0; i < invFtrV.length; i++) {
+    					features.push({name: ftrSpace.getFtr(i), value: invFtrV.at(i)});
+    				}
+    				
+    				callback(features);
+    			});
+    		},
+    		
+    		/**
+    		 * Returns the distribution of features accross the states on the
+    		 * specified height.
+    		 */
+    		getFtrDist: function (height, ftrIdx) {
+    			var stateIds = mc.stateIds(height);
+    			
+    			var result = [];
+    			for (var i = 0; i < stateIds.length; i++) {
+    				var stateId = stateIds[i];
+    				var coords = ftrSpace.invFtrVec(mc.fullCoords(stateId));
+    				
+    				result.push({ state: stateId, value: coords[ftrIdx] });
+    			}
+    			
+    			return result;
+    		}
+    	};
+    	
+    	return that;
+    };
 
     return exports;
 }

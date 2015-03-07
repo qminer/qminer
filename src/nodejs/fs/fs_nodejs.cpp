@@ -70,7 +70,9 @@ void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     // file exist check is done by TFIn
-    Args.GetReturnValue().Set(TNodeJsFIn::New(FNm));
+
+	Args.GetReturnValue().Set(
+		TNodeJsUtil::NewInstance<TNodeJsFIn>(new TNodeJsFIn(FNm)));
 }
 
 void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // Call withb AppendP = false
@@ -224,14 +226,21 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ///////////////////////////////
 // NodeJs-FIn
-v8::Persistent<v8::Function> TNodeJsFIn::constructor;
-TStr TNodeJsFIn::ClassId = "FIn";
+v8::Persistent<v8::Function> TNodeJsFIn::Constructor;
+const TStr TNodeJsFIn::ClassId = "FIn";
 
 void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
+	// template for creating function from javascript using "new", uses _NewJs callback
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFIn>);
+	// child will have the same properties and methods, but a different callback: _NewCpp
+	v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFIn>);
+	child->Inherit(tpl);
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
+	child->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
+	// ObjectWrap uses the first internal field to store the wrapped pointer
+	child->InstanceTemplate()->SetInternalFieldCount(1);
 	
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, ClassId.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer
@@ -242,54 +251,27 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getCh", _getCh);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "readLine", _readLine);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "readAll", _readAll);
-
+	// Add properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-	
-	// This has to be last, otherwise the properties won't show up on the
-	// object in JavaScript	
-	constructor.Reset(Isolate, tpl->GetFunction());
+
+	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
+	// Constructor is used when creating the object from C++
+	Constructor.Reset(Isolate, child->GetFunction());
 #ifndef MODULE_INCLUDE_FS
+	// we need to export the class for calling using "new FIn(...)"
 	exports->Set(v8::String::NewFromUtf8(Isolate, "FIn"),
 		tpl->GetFunction());
 #endif
 
 }
 
-v8::Local<v8::Object> TNodeJsFIn::New(const TStr& FNm) {
-	// called from C++	
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::EscapableHandleScope HandleScope(Isolate);
-	// create an instance using the constructor
-	EAssertR(!constructor.IsEmpty(), "TNodeJsFIn::New: constructor is empty. Did you call TNodeJsFIn::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, constructor);
-    // no arguments to constructor
-	v8::Local<v8::Object> Instance = cons->NewInstance();
-	// wrap our C++ object
-	return HandleScope.Escape(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
+TNodeJsFIn* TNodeJsFIn::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	// parse arguments
+	EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a file path.");
+	return new TNodeJsFIn(*v8::String::Utf8Value(Args[0]->ToString()));
 }
 
-void TNodeJsFIn::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-	EAssertR(Args.IsConstructCall(), "TNodeJsFIn: not a constructor call (you forgot to use the new operator)");
-	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-	// set hidden class id
-	v8::Local<v8::Object> Instance = Args.This();
-	v8::Handle<v8::String> key = v8::String::NewFromUtf8(Isolate, "class");
-	v8::Handle<v8::String> value = v8::String::NewFromUtf8(Isolate, ClassId.CStr());
-	Instance->SetHiddenValue(key, value);
-	// empty constructor call just forwards the instance
-	if (Args.Length() == 0) { Args.GetReturnValue().Set(Instance); return; }
-	// parse arguments
-	EAssertR(Args.Length() == 1 && Args[0]->IsString(),
-		"Expected a file path.");
-	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-	//EAssertR(TFile::Exists(FNm), "File does not exist.");
-    // Args.This() is an instance, wrap our C++ object
-	Args.GetReturnValue().Set(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFIn(FNm)));
-}
 
 void TNodeJsFIn::peekCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -386,8 +368,9 @@ v8::Local<v8::Object> TNodeJsFOut::New(const TStr& FNm, const bool& AppendP) {
 	// no arguments to constructor
 	v8::Local<v8::Object> Instance = cons->NewInstance();
 	// wrap our C++ object
-	return HandleScope.Escape(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
+	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
+	Obj->Wrap(Instance);	
+	return HandleScope.Escape(Instance);
 } 
 
 void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -407,8 +390,9 @@ void TNodeJsFOut::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
 	bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
 	// Args.This() is an instance, wrap our C++ object
-	Args.GetReturnValue().Set(
-		TNodeJsUtil::WrapJsInstance(Instance, new TNodeJsFOut(FNm, AppendP)));
+	TNodeJsFOut* Obj = new TNodeJsFOut(FNm, AppendP);
+	Obj->Wrap(Instance);
+	Args.GetReturnValue().Set(Instance);	
 }
 
 void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -465,19 +449,16 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-#ifndef MODULE_INCLUDE_FS
-///////////////////////////////
-// Register functions, etc.  
-void init(v8::Handle<v8::Object> exports) {//, v8::Handle<v8::Object> module
-	/*v8::Local<v8::String> filename =
-		module->Get(v8::String::NewSymbol("filename")).As<v8::String>();
-	TNodeJsUtil::*/
-
-    TNodeJsFs::Init(exports);
-    TNodeJsFIn::Init(exports);
-    TNodeJsFOut::Init(exports);
-}
-
-NODE_MODULE(fs, init)
-#endif
+//#ifndef MODULE_INCLUDE_FS
+/////////////////////////////////
+//// Register functions, etc.
+//void init(v8::Handle<v8::Object> exports) {
+//
+//    TNodeJsFs::Init(exports);
+//    TNodeJsFIn::Init(exports);
+//    TNodeJsFOut::Init(exports);
+//}
+//
+//NODE_MODULE(fs, init)
+//#endif
 

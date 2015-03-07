@@ -10,6 +10,8 @@
 
 namespace TMc {
 
+using namespace TMl;
+
 //////////////////////////////////////////////////////
 // Distance measures - eucledian distance
 class TEuclDist {
@@ -24,162 +26,117 @@ public:
 	static TFullMatrix GetDist2(const TFullMatrix& X, const TFullMatrix& Y);
 };
 
-class TClust;
-typedef TPt<TClust> PClust;
-class TClust {
-private:
-  TCRef CRef;
-public:
-  friend class TPt<TClust>;
-protected:
-    const static int MX_ITER;
-
-    typedef TPair<TUInt64, TUInt64V> TFtrHistStat;
-    typedef TVec<TFtrHistStat> TClustHistStat;
-    typedef TVec<TClustHistStat> THistStat;
-
-	TRnd Rnd;
-	// holds centroids as column vectors
-	TFullMatrix CentroidMat;
-	// holds pairs <n,sum> where n is the number of points assigned to the
-	// centroid at index i and sum is the sum of distances of all the points
-	// assigned to the centroid to the centroid
-	TUInt64FltPrV CentroidDistStatV;
-
-	int NHistBins;			// the number of bins used in a histogram
-	TFltVV FtrBinStartVV;		// stores where each bin starts	// TODO save/load
-	THistStat HistStat;		// stores histogram for every feature in every cluster
-
-	double Sample;
-
-	bool Verbose;
-	PNotify Notify;
-
-	TClust(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
-	TClust(TSIn& SIn);
-
-	virtual ~TClust() {}
-
-public:
-	// saves the model to the output stream
-	virtual void Save(TSOut& SOut) const;
-	// loads the model from the output stream
-	static PClust Load(TSIn& SIn);
-
-	// performs the clustering
-	void Init(const TFullMatrix& X);
-	// initializes histograms for every feature
-	void InitHistogram(const TFullMatrix& X);
-
-	// assign methods
-	// assign instances to centroids
-	int Assign(const TVector& Inst) const;
-	// assign instances to centroids, instances should be in the columns of the matrix
-	TVector Assign(const TFullMatrix& InstMat) const;
-	void Assign(const TFullMatrix& InstMat, TIntV& AssignV) const;
-
-	// distance methods
-	// returns a matrix D with the distance to all the centroids
-	// D_ij is the distance between centroid i and instance j
-	// points should be represented as columns of X
-	TFullMatrix GetDistMat(const TFullMatrix& X) const;
-	// Returns a vector y containing the distance to all the
-	// centroids. The input vector x should be a column vector
-	TVector GetDistVec(const TVector& x) const;
-	// returns the distance from the cluster centroid to the point
-	double GetDist(const int& CentroidId, const TVector& Pt) const;
-
-	// returns the coordinates of a "joined" centroid
-	TVector GetJoinedCentroid(const TIntV& CentroidIdV) const;
-
-	// cluster statistics
-	// returns the means distance of all the points assigned to centroid CentroidIdx
-	// to that centroid
-	double GetMeanPtCentDist(const int& CentroidId) const;
-	// returns the number of points in the cluster
-	uint64 GetClustSize(const int& ClustId) const;
-
-	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
-
-	int GetClusts() const { return CentroidMat.GetCols(); }
-	int GetDim() const { return CentroidMat.GetRows(); }
-	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
-
-	// sets the log to verbose or none
-	void SetVerbose(const bool& Verbose);
-
-protected:
-	// Applies the algorithm. Instances should be in the columns of X.
-	virtual void Apply(const TFullMatrix& X, const int& MaxIter=10000) = 0;
-	TVector Assign(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
-	// returns a matrix of squared distances
-	TFullMatrix GetDistMat2(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
-
-	// used during initialization
-	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
-	void UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV);
-	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
-
-	// returns the type of this clustering
-	virtual const TStr GetType() const = 0;
-
-private:
-	// returns the coordinates of the centroid with the specified ID
-	TVector GetCentroid(const int& CentroidId) const;
-};
-
-
-///////////////////////////////////////////
-// K-Means
-class TFullKMeans: public TClust {
-private:
-	TInt K;
-
-public:
-	TFullKMeans(const int& NHistBins, const double Sample, const int& K, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
-	TFullKMeans(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-
-	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
-	// the point is assigned to
-	void Apply(const TFullMatrix& X, const int& MaxIter);
-
-protected:
-	const TStr GetType() const { return "kmeans"; }
-};
-
-
-///////////////////////////////////////////
-// DPMeans
-class TDpMeans: public TClust {
-private:
-	TFlt Lambda;
-	TInt MinClusts;
-	TInt MaxClusts;
-
-public:
-	TDpMeans(const int& NHistBins, const double& Sample, const TFlt& Lambda, const TInt& MinClusts=1, const TInt& MaxClusts=TInt::Mx, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
-	TDpMeans(TSIn& SIn);
-
-	// saves the model to the output stream
-	void Save(TSOut& SOut) const;
-
-	// Applies the algorithm. Instances should be in the columns of X. AssignV contains indexes of the cluster
-	// the point is assigned to
-	void Apply(const TFullMatrix& X, const int& MaxIter);
-
-protected:
-	const TStr GetType() const { return "dpmeans"; }
-};
-
 class TEuclMds {
 public:
 	// projects the points stored in the column of X onto d
 	// dimensions
 	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
 };
+
+//class TClust;
+//typedef TPt<TClust> PClust;
+//class TClust {
+//private:
+//  TCRef CRef;
+//public:
+//  friend class TPt<TClust>;
+//protected:
+//    const static int MX_ITER;
+//
+//    typedef TPair<TUInt64, TUInt64V> TFtrHistStat;
+//    typedef TVec<TFtrHistStat> TClustHistStat;
+//    typedef TVec<TClustHistStat> THistStat;
+//
+//	TRnd Rnd;
+//	// holds centroids as column vectors
+//	TFullMatrix CentroidMat;
+//	// holds pairs <n,sum> where n is the number of points assigned to the
+//	// centroid at index i and sum is the sum of distances of all the points
+//	// assigned to the centroid to the centroid
+//	TUInt64FltPrV CentroidDistStatV;
+//
+//	int NHistBins;			// the number of bins used in a histogram
+//	TFltVV FtrBinStartVV;		// stores where each bin starts	// TODO save/load
+//	THistStat HistStat;		// stores histogram for every feature in every cluster
+//
+//	double Sample;
+//
+//	bool Verbose;
+//	PNotify Notify;
+//
+//	TClust(const int NHistBins, const double& Sample, const TRnd& Rnd=TRnd(0), const bool& Verbose=false);
+//	TClust(TSIn& SIn);
+//
+//	virtual ~TClust() {}
+//
+//public:
+//	// saves the model to the output stream
+//	virtual void Save(TSOut& SOut) const;
+//	// loads the model from the output stream
+//	static PClust Load(TSIn& SIn);
+//
+//	// performs the clustering
+//	void Init(const TFullMatrix& X);
+//	// initializes histograms for every feature
+//	void InitHistogram(const TFullMatrix& X);
+//
+//	// assign methods
+//	// assign instances to centroids
+//	int Assign(const TVector& Inst) const;
+//	// assign instances to centroids, instances should be in the columns of the matrix
+//	TVector Assign(const TFullMatrix& InstMat) const;
+//	void Assign(const TFullMatrix& InstMat, TIntV& AssignV) const;
+//
+//	// distance methods
+//	// returns a matrix D with the distance to all the centroids
+//	// D_ij is the distance between centroid i and instance j
+//	// points should be represented as columns of X
+//	TFullMatrix GetDistMat(const TFullMatrix& X) const;
+//	// Returns a vector y containing the distance to all the
+//	// centroids. The input vector x should be a column vector
+//	TVector GetDistVec(const TVector& x) const;
+//	// returns the distance from the cluster centroid to the point
+//	double GetDist(const int& CentroidId, const TVector& Pt) const;
+//
+//	// returns the coordinates of a "joined" centroid
+//	TVector GetJoinedCentroid(const TIntV& CentroidIdV) const;
+//
+//	// cluster statistics
+//	// returns the means distance of all the points assigned to centroid CentroidIdx
+//	// to that centroid
+//	double GetMeanPtCentDist(const int& CentroidId) const;
+//	// returns the number of points in the cluster
+//	uint64 GetClustSize(const int& ClustId) const;
+//
+//	void GetHistogram(const int FtrId, const TIntV& StateSet, TFltV& BinStartV, TFltV& BinV) const;
+//
+//	int GetClusts() const { return CentroidMat.GetCols(); }
+//	int GetDim() const { return CentroidMat.GetRows(); }
+//	const TFullMatrix& GetCentroidMat() const { return CentroidMat; }
+//
+//	// sets the log to verbose or none
+//	void SetVerbose(const bool& Verbose);
+//
+//protected:
+//	// Applies the algorithm. Instances should be in the columns of X.
+//	virtual void Apply(const TFullMatrix& X, const int& MaxIter=10000) = 0;
+//	TVector Assign(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
+//	// returns a matrix of squared distances
+//	TFullMatrix GetDistMat2(const TFullMatrix& X, const TVector& NormX2, const TVector& NormC2, const TVector& OnesN, const TVector& OnesK) const;
+//
+//	// used during initialization
+//	TFullMatrix SelectInitCentroids(const TFullMatrix& X, const int& NCentroids, TVector& AssignIdxV);
+//	void UpdateCentroids(const TFullMatrix& X, const TVector& AssignIdxV);
+//	void InitStatistics(const TFullMatrix& X, const TVector& AssignV);
+//
+//	// returns the type of this clustering
+//	virtual const TStr GetType() const = 0;
+//
+//private:
+//	// returns the coordinates of the centroid with the specified ID
+//	TVector GetCentroid(const int& CentroidId) const;
+//};
+
 
 class TAvgLink {
 public:
@@ -272,6 +229,8 @@ private:
     // number of leaf states, these are stored in the first part of the hierarchy vector
     int NLeafs;
 
+    TStrV StateNmV;
+
     bool Verbose;
     PNotify Notify;
 
@@ -289,6 +248,8 @@ public:
 
 	// returns a vector of unique heights
 	void GetUniqueHeightV(TFltV& HeightV) const;
+	// return a list of state IDs and their heights
+	void GetStateIdHeightPrV(TIntFltPrV& StateIdHeightPrV) const;
 	// returns the 'joined' states at the specified height, puts teh state IDs into StateIdV
 	// and sets of their leafs into JoinedStateVV
 	void GetStateSetsAtHeight(const double& Height, TIntV& StateIdV, TVec<TIntV>& StateSetV) const;
@@ -308,6 +269,12 @@ public:
 	const TFltPr& GetStateCoords(const int& StateId) const { return StateCoordV[StateId]; }
 	// returns the total number of states in the hierarchy
 	int GetStates() const { return HierarchV.Len(); }
+	// returns the number of leafs in the hierarchy
+	int GetLeafs() const { return NLeafs; }
+
+	bool IsStateNm(const int& StateId) const;
+	void SetStateNm(const int& StateId, const TStr& StateNm);
+	const TStr& GetStateNm(const int& StateId) const;
 
 	void SetVerbose(const bool& Verbose);
 	void PrintHierarch() const;
@@ -361,6 +328,8 @@ protected:
 	int NStates;
 	int CurrStateId;
 
+	bool HasHiddenState;
+
 	bool Verbose;
 
 	PNotify Notify;
@@ -380,10 +349,10 @@ public:
 	static PMChain Load(TSIn& SIn);
 
 	// initializes the markov chain
-	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV);
+	void Init(const int& NStates, const TIntV& StateAssignV, const TUInt64V& TmV, const bool SequencedData, const TBoolV& SequenceEndV);
 	// adds a single record to the model, the flag UpdateStates indicates if the statistics
 	// should be updated
-	void OnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats=true);
+	void OnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats, const bool IsLastInSeq);
 
 	// get future state probabilities for a fixed time in the future
 	void GetFutureProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, const double& Tm, TIntFltPrV& StateIdProbV) const;
@@ -396,16 +365,19 @@ public:
 	// along with probabilities of going into those states
 	virtual void GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const = 0;
 
+	virtual void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm, const double& DeltaTm,
+			const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const = 0;
+
 	// static distribution
 	// returns the static distribution for the joined states
 	virtual TVector GetStatDist(const TVec<TIntV>& StateSetV) const = 0;
-	// returns the static distribution
-	virtual TVector GetStatDist() const = 0;
 
 	// returns a vector of state sizes
 	virtual TVector GetStateSizeV(const TVec<TIntV>& StateSetV) const = 0;
 	virtual TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const = 0;
 	virtual TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const = 0;
+
+	virtual TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const = 0;
 
 	// returns the number of states
 	int GetStates() const { return NStates; };
@@ -418,14 +390,27 @@ public:
 	void SetVerbose(const bool& Verbose);
 
 protected:
+	// handling the hidden state
+	int GetHiddenStateId() const;
+	// inserts the hidden state into the state set vector
+	void InsHiddenState(TVec<TIntV>& StateSetV) const;
+	// inserts the hidden state into the state set vector
+	void InsHiddenState(TIntV& StateIdV) const;
+	// removes the hidden state probability from the probability vector
+	void RemoveHiddenStateProb(TIntFltPrV& StateIdProbV) const;
+
 	// initializes the statistics
 	virtual void InitStats(const int& NStates) = 0;
-	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats) = 0;
+	virtual void AbsOnAddRec(const int& StateId, const uint64& RecTm, const bool UpdateStats, const bool EndsBatch) = 0;
 
 	// get future state probabilities for all the states for a fixed time in the future
 	virtual TFullMatrix GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const = 0;
 	// get [ast state probabilities for all the states for a fixed time in the past
 	virtual TFullMatrix GetPastProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const = 0;
+
+	static void GetFutureProbVOverTm(const TFullMatrix& PMat, const int& StateIdx,
+			const int& Steps, TVec<TFltV>& ProbVV, const PNotify& Notify,
+			const bool IncludeT0=true);
 
 	virtual void PrintStats() const = 0;
 	virtual const TStr GetType() const = 0;
@@ -449,6 +434,8 @@ public:
 	// returns the most likely previous states excluding the current state
 	void GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 
+	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm, const double& DeltaTm, const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const { throw TExcept::New("Not implemented!!!", "here"); }
+
 	// static distribution
 	TVector GetStatDist(const TVec<TIntV>& StateSetV) const { return GetStatDist(GetTransitionMat(StateSetV)); }
 	TVector GetStatDist() const { return GetStatDist(GetTransitionMat()); }
@@ -457,13 +444,15 @@ public:
 	TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const { return GetTransitionMat(StateSetV); };
 
+	TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const { throw TExcept::New("Not implemented!", "GetHoldingTimeV"); }
+
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
 	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
 
 protected:
 	// initializes the statistics needed to model the Markov chain
 	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
+	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed number of states in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& TimeSteps) const;
@@ -486,8 +475,12 @@ public:
 	const static uint64 TU_MINUTE;
 	const static uint64 TU_HOUR;
 	const static uint64 TU_DAY;
+	const static uint64 TU_MONTH;
 
 private:
+	const static double MIN_JUMP_TM;
+	const static double HIDDEN_STATE_INTENSITY;
+
 	TVec<TUInt64FltPrV> QMatStats;
 
 	double DeltaTm;
@@ -507,22 +500,28 @@ public:
 	// returns the most likely previous states excluding the current state
 	void GetPrevStateProbV(const TVec<TIntV>& StateSetV, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates) const;
 
+	void GetProbVOverTm(const double& Height, const int& StateId, const double& StartTm, const double EndTm, const double& DeltaTm, const TVec<TIntV>& StateSetV, const TIntV& StateIdV, TVec<TFltV>& FutProbVV, TVec<TFltV>& PastProbVV) const;
+
 	// continuous time Markov chain stuff
 	// returns the stationary distribution of the stohastic process
-	TVector GetStatDist() const;
 	TVector GetStatDist(const TVec<TIntV>& StateSetV) const;
 
 	// returns the size of each state used in the visualization
 	TVector GetStateSizeV(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetTransitionMat(const TVec<TIntV>& StateSetV) const;
+	TFullMatrix GetJumpMatrix(const TVec<TIntV>& StateSetV) const;
 	TFullMatrix GetModel(const TVec<TIntV>& StateSetV) const { return GetQMatrix(StateSetV); }
+
+	TVector GetHoldingTimeV(const TVec<TIntV>& StateSetV) const;
 
 	// returns true if the jump from OldStateId to NewStateId has a low enough probability
 	bool IsAnomalousJump(const int& NewStateId, const int& OldStateId) const;
 
+	int GetStates() const { return HasHiddenState ? QMatStats.Len() - 1 : QMatStats.Len(); }
+
 protected:
 	void InitStats(const int& NStates);
-	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats);
+	void AbsOnAddRec(const int& StateIdx, const uint64& RecTm, const bool UpdateStats, const bool EndsBatch);
 
 	// get future state probabilities for all the states for a fixed time in the future
 	TFullMatrix GetFutureProbMat(const TVec<TIntV>& StateSetV, const double& Tm) const;
@@ -535,25 +534,56 @@ protected:
 private:
 	// returns the intensity matrix (Q-matrix)
 	TFullMatrix GetQMatrix() const;
+
 	// returns a Q matrix for the joined states
 	TFullMatrix GetQMatrix(const TVec<TIntV>& StateSetV) const;
 	// returns a Q matrix for the joined states for the time reversal Markov chain
 	TFullMatrix GetRevQMatrix(const TVec<TIntV>& StateSetV) const;
 
-	TFullMatrix GetJumpMatrix(const TVec<TIntV>& StateSetV) const { return GetJumpMatrix(GetQMatrix(StateSetV)); }
 	// returns a vector of holding times
 	// a holding time is the expected time that the process will stay in state i
 	// it is an exponential random variable of parameter -q_ii, so its expected value
 	// is -1/q_ii
 	TVector GetHoldingTimeV(const TFullMatrix& QMat) const;
 
+	void UpdateIntensity(const int& FromStateId, const int& ToStateId, const double& Tm);
+
 	static void GetNextStateProbV(const TFullMatrix& QMat, const TIntV& StateIdV, const int& StateId, TIntFltPrV& StateIdProbV, const int& NFutStates, const PNotify& Notify);
-	static TVector GetStatDist(const TFullMatrix& QMat);
-	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm, const double& DeltaTm);
+	static TVector GetStatDist(const TFullMatrix& QMat, const PNotify& Notify);
+	static TFullMatrix GetFutureProbMat(const TFullMatrix& QMat, const double& Tm,
+			const double& DeltaTm, const bool HasHiddenState=false);
 	// returns a jump matrix for the given transition rate matrix
 	// when the process decides to jump the jump matrix describes to
 	// which state it will jump with which probability
 	static TFullMatrix GetJumpMatrix(const TFullMatrix& QMat);
+};
+
+////////////////////////////////////////////////
+// State assistant
+class TStateAssist;
+typedef TPt<TStateAssist> PStateAssist;
+class TStateAssist {
+private:
+	TCRef CRef;
+public:
+	friend class TPt<TStateAssist>;
+private:
+	TVec<TLogReg> ClassifyV;
+
+	TRnd Rnd;
+
+	bool Verbose;
+	PNotify Notify;
+
+public:
+	TStateAssist(const bool Verbose);
+	TStateAssist(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	void Init(const TFullMatrix& X, const PFullClust& Clust, const PHierarch& Hierarch);
+
+	void GetSuggestFtrs(const int& StateId, TFltV& WgtV) const;
 };
 
 class TMcCallback {
@@ -573,9 +603,10 @@ private:
 public:
 	friend class TPt<THierarchCtmc>;
 private:
-	PClust Clust;
+	PFullClust Clust;
     PMChain MChain;
     PHierarch Hierarch;
+    PStateAssist StateAssist;
 
     bool Verbose;
 
@@ -586,7 +617,7 @@ private:
 public:
     // constructors
     THierarchCtmc();
-    THierarchCtmc(const PClust& Clust, const PMChain& MChain, const PHierarch& Hierarch,
+    THierarchCtmc(const PFullClust& Clust, const PMChain& MChain, const PHierarch& Hierarch,
     		const bool& Verbose=true);
     THierarchCtmc(TSIn& SIn);
 
@@ -601,11 +632,13 @@ public:
 	// update methods
 	// initializes the model
 	void Init(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void InitBatches(const TFullMatrix& X, const TUInt64V& RecTmV, const TBoolV& EndBatchV);
 	void Init(TFltVV& X, const TUInt64V& RecTmV) { Init(TFullMatrix(X, true), RecTmV); }
 	void InitClust(const TFullMatrix& X);
-	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV);
+	void InitMChain(const TFullMatrix& X, const TUInt64V& RecTmV, const bool IsBatchData, const TBoolV& EndBatchV);
 	void InitHierarch();
 	void InitHistograms(TFltVV& InstMat);
+	void InitStateAssist(const TFullMatrix& X);
 
 	void OnAddRec(const uint64 RecTm, const TFltV& Rec);
 
@@ -621,9 +654,13 @@ public:
 	// returns a distribution of probabilities of the previous states
 	void GetPrevStateProbV(const double& Height, const int& StateId, TIntFltPrV& StateIdProbV) const;
 
+	void GetProbVOverTm(const double& Height, const int& StateId, const double StartTm, const double EndTm, const double& DeltaTm, TIntV& StateIdV, TVec<TFltV>& FutProbV, TVec<TFltV>& PastProbV) const;
+
 	void GetHistStateIdV(const double& Height, TIntV& StateIdV) const;
 
 	void GetHistogram(const int& StateId, const int& FtrId, TFltV& BinStartV, TFltV& ProbV) const;
+
+	void GetStateWgtV(const int& StateId, TFltV& WgtV) const;
 
 	// stores the transition model for the current height into Mat
 	void GetTransitionModel(const double& Height, TFltVV& Mat) const;
@@ -635,14 +672,22 @@ public:
 	int GetCurrStateId(const double& Height) const;
 	// returns the centroid of the given state
 	void GetCentroid(const int& StateId, TFltV& FtrV) const;
+	// returns the IDs of all the states on the specified height
+	void GetStateIdVAtHeight(const double& Height, TIntV& StateIdV) const;
 	// returns the number of states in the hierarchy
     int GetStates() const { return Hierarch->GetStates(); }
+
+    // sets the name of the specified state
+    void SetStateNm(const int& StateId, const TStr& StateNm);
+    const TStr& GetStateNm(const int& StateId) const;
 
     void SetVerbose(const bool& Verbose);
     void SetCallback(TMcCallback* Callback);
 
 private:
     void DetectAnomalies(const int& NewStateId, const int& OldStateId, const TVector& FtrVec) const;
+
+    static void CheckBatches(const TBoolV& BatchEndV);
 };
 
 }

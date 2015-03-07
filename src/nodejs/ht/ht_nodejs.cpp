@@ -9,8 +9,6 @@ const TStr TAuxIntStrH::ClassId = "IntStrH";
 
 ///////////////////////////////
 // NodeJs-Hash-Map
-template<class TKey, class TDat, class TAux>
-v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
 
 //void TNodeJsHashUtil::Init(v8::Handle<v8::Object> exports) {
 //    NODE_SET_METHOD(exports, "newStrIntH", _newStrIntH);
@@ -57,17 +55,17 @@ v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
 //    Args.GetReturnValue().Set(TNodeJsIntStrH::New());
 //}
 
-void init(v8::Handle<v8::Object> exports) {
-//    TNodeJsHashUtil::Init(exports);
-
-	TNodeJsStrStrH::Init(exports);
-    TNodeJsStrIntH::Init(exports);
-    TNodeJsStrFltH::Init(exports);
-
-    TNodeJsIntStrH::Init(exports);
-    TNodeJsIntIntH::Init(exports);
-    TNodeJsIntFltH::Init(exports);
-}
-
-NODE_MODULE(ht, init);
+//void init(v8::Handle<v8::Object> exports) {
+////    TNodeJsHashUtil::Init(exports);
+//
+//	TNodeJsStrStrH::Init(exports);
+//    TNodeJsStrIntH::Init(exports);
+//    TNodeJsStrFltH::Init(exports);
+//
+//    TNodeJsIntStrH::Init(exports);
+//    TNodeJsIntIntH::Init(exports);
+//    TNodeJsIntFltH::Init(exports);
+//}
+//
+//NODE_MODULE(ht, init);
 

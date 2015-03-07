@@ -175,8 +175,8 @@ void TNodeJsBase::Init(v8::Handle<v8::Object> exports) {
    
    // This has to be last, otherwise the properties won't show up on the object in JavaScript.
    constructor.Reset(Isolate, tpl->GetFunction());
-   /*exports->Set(v8::String::NewFromUtf8(Isolate, "Base"),
-	   tpl->GetFunction());*/
+   exports->Set(v8::String::NewFromUtf8(Isolate, "Base"),
+	   tpl->GetFunction());
 
 }
 
@@ -319,8 +319,9 @@ void TNodeJsBase::createStore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		   JsNewStoreV->Set(v8::Number::New(Isolate, NewStoreN),
 			   TNodeJsStore::New(NewStoreV[NewStoreN]));
 	   }
+   } else {
+	   Args.GetReturnValue().Set(v8::Null(Isolate));
    }
-   Args.GetReturnValue().Set(v8::Null(Isolate));
 }
 
 void TNodeJsBase::search(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1304,6 +1305,9 @@ void TNodeJsStore::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "newRecSet", _newRecSet);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sample", _sample);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "field", _field);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isNumeric", _isNumeric);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isString", _isString);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "isDate", _isDate);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "key", _key);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggr", _getStreamAggr);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "getStreamAggrNames", _getStreamAggrNames);
@@ -1680,6 +1684,72 @@ void TNodeJsStore::field(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		else {
 			Args.GetReturnValue().Set(v8::Null(Isolate));
 		}
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
+}
+
+void TNodeJsStore::isNumeric(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		const TStr FldNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore>& Store = JsStore->Store;
+
+		EAssertR(Store->IsFieldNm(FldNm), "store.isNumeric: Invalid field name: " + FldNm);
+
+		const int FldId = JsStore->Store->GetFieldId(FldNm);
+		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
+
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsFlt() || FldDesc.IsInt() || FldDesc.IsUInt64()));
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
+}
+
+void TNodeJsStore::isString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		const TStr FldNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore>& Store = JsStore->Store;
+
+		EAssertR(Store->IsFieldNm(FldNm), "store.isString: Invalid field name: " + FldNm);
+
+		const int FldId = JsStore->Store->GetFieldId(FldNm);
+		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
+
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsStr()));
+	}
+	catch (const PExcept& Except) {
+		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
+	}
+}
+
+void TNodeJsStore::isDate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	try {
+		const TStr FldNm = TNodeJsUtil::GetArgStr(Args, 0);
+
+		TNodeJsStore* JsStore = ObjectWrap::Unwrap<TNodeJsStore>(Args.Holder());
+		TWPt<TQm::TStore>& Store = JsStore->Store;
+
+		EAssertR(Store->IsFieldNm(FldNm), "store.isString: Invalid field name: " + FldNm);
+
+		const int FldId = JsStore->Store->GetFieldId(FldNm);
+		const TQm::TFieldDesc& FldDesc = Store->GetFieldDesc(FldId);
+
+		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, FldDesc.IsTm()));
 	}
 	catch (const PExcept& Except) {
 		throw TQm::TQmExcept::New("[except] " + Except->GetMsgStr());
@@ -2683,8 +2753,9 @@ void TNodeJsRecSet::Init(v8::Handle<v8::Object> exports) {
 
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript.
 	constructor.Reset(Isolate, tpl->GetFunction());
-	/*exports->Set(v8::String::NewFromUtf8(Isolate, "RecSet"),
-		tpl->GetFunction());*/
+
+	exports->Set(v8::String::NewFromUtf8(Isolate, "RecSet"),
+			tpl->GetFunction());
 }
 
 v8::Local<v8::Object> TNodeJsRecSet::New() {
@@ -3529,8 +3600,8 @@ bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64In
 	v8::Local<v8::Value> ArgV[Argc] = { JsRec1, JsRec2 };
 	v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
 
-	QmAssertR(ReturnVal->IsBoolean(), "Comparator callback must return a boolean!");
-	return ReturnVal->BooleanValue();
+	QmAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean!");
+	return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
 }
 
 ///////////////////////////////
@@ -3733,21 +3804,37 @@ TNodeJsFtrSpace::TNodeJsFtrSpace(const TWPt<TQm::TBase> Base, TSIn& SIn) {
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TQm::PFtrSpace& FtrSpace) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(FtrSpace));
+	auto Object = new TNodeJsFtrSpace(FtrSpace);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::WrapInst(const v8::Local<v8::Object> Obj, const TWPt<TQm::TBase> Base, TSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsFtrSpace(Base, SIn));
+	auto Object = new TNodeJsFtrSpace(Base, SIn);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TQm::PFtrSpace& FtrSpace) {
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
-	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(FtrSpace), constructor, v8::Isolate::GetCurrent());
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	TNodeJsFtrSpace* JsFtrSpace = new TNodeJsFtrSpace(FtrSpace);
+	JsFtrSpace->Wrap(Instance);
+	return HandleScope.Escape(Instance);	
 }
 
 v8::Local<v8::Object> TNodeJsFtrSpace::New(const TWPt<TQm::TBase> Base, TSIn& SIn) {
 	EAssertR(!constructor.IsEmpty(), "TNodeJsFtrSpace::New constructor is empty. Did you call TNodeJsFtrSpace::Init(exports); in this module's init function?");
-	return TNodeJsUtil::NewJsInstance(new TNodeJsFtrSpace(Base, SIn), constructor, v8::Isolate::GetCurrent());
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::EscapableHandleScope HandleScope(Isolate);
+	v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, constructor);
+	v8::Local<v8::Object> Instance = Cons->NewInstance();
+	TNodeJsFtrSpace* JsFtrSpace = new TNodeJsFtrSpace(Base, SIn);
+	JsFtrSpace->Wrap(Instance);
+	return HandleScope.Escape(Instance);
 }
 
 void TNodeJsFtrSpace::Init(v8::Handle<v8::Object> exports) {
@@ -4259,37 +4346,37 @@ void TNodeJsFtrSpace::extractStrings(const v8::FunctionCallbackInfo<v8::Value>& 
 	}
 }
 
-///////////////////////////////
-// Register functions, etc.  
-#ifndef MODULE_INCLUDE_QM
-
-void init(v8::Handle<v8::Object> exports) {
-    // QMiner package
-    TNodeJsQm::Init(exports);
-    TNodeJsBase::Init(exports);
-	TNodeJsSA::Init(exports);
-    TNodeJsStore::Init(exports);
-    // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
-    TNodeJsRecSet::Init(exports);
-    TNodeJsStoreIter::Init(exports);
-    TNodeJsIndexKey::Init(exports);
-    
-    // Linear algebra package
-    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-    TNodeJsVec<TStr, TAuxStrV>::Init(exports);
-    TNodeJsFltVV::Init(exports);
-    TNodeJsSpVec::Init(exports);
-    TNodeJsSpMat::Init(exports);
-
-    // feature space
-    TNodeJsFtrSpace::Init(exports);
-
-	// file input stream
-	TNodeJsFIn::Init(exports);
-	TNodeJsFOut::Init(exports);
-}
-
-NODE_MODULE(qm, init)
-
-#endif
+/////////////////////////////////
+//// Register functions, etc.
+//#ifndef MODULE_INCLUDE_QM
+//
+//void init(v8::Handle<v8::Object> exports) {
+//    // QMiner package
+//    TNodeJsQm::Init(exports);
+//    TNodeJsBase::Init(exports);
+//	TNodeJsSA::Init(exports);
+//    TNodeJsStore::Init(exports);
+//    // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
+//    TNodeJsRecSet::Init(exports);
+//    TNodeJsStoreIter::Init(exports);
+//    TNodeJsIndexKey::Init(exports);
+//
+//    // Linear algebra package
+//    TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
+//    TNodeJsVec<TInt, TAuxIntV>::Init(exports);
+//    TNodeJsVec<TStr, TAuxStrV>::Init(exports);
+//    TNodeJsFltVV::Init(exports);
+//    TNodeJsSpVec::Init(exports);
+//    TNodeJsSpMat::Init(exports);
+//
+//    // feature space
+//    TNodeJsFtrSpace::Init(exports);
+//
+//	// file input stream
+//	TNodeJsFIn::Init(exports);
+//	TNodeJsFOut::Init(exports);
+//}
+//
+//NODE_MODULE(qm, init)
+//
+//#endif

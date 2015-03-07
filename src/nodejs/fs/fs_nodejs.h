@@ -1,9 +1,9 @@
 #ifndef QMINER_FS_NODEJS_H
 #define QMINER_FS_NODEJS_H
 
-#ifndef BUILDING_NODE_EXTENSION
-    #define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//    #define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -82,34 +82,51 @@ public:
 //# 
 class TNodeJsFIn : public node::ObjectWrap {
 	friend class TNodeJsUtil;
-public:
-    PSIn SIn;
+// Class implementation requirements:
+// Node framework: 
+//    -implement Init
+//    -make sure Init is called from somewhere (in this case from init function, registered with NODE_MODULE(...))
+// creating object from C++ (using TNodeJsUtil::NewJsInstance(TClass* Obj))
+//    -define Constructor member
+//    -define ClassId member
+//    -set Constructor callback to TNodeJsUtil::_NewCpp (doesn't create a new pointer to the wrapper) and inherit from template
+// creating from JS using 'new' 
+//	  -implement NewFromArgs (parses arguments and returns pointer to wrapper)
+//	  -define ClassId member
+//    -set template callback to TNodeJsUtil::_NewJs (this creates a new pointer to the wrapper)
+//    -attach template function to exports in Init function
 private:
-    TNodeJsFIn(const TStr& FNm): SIn(TZipIn::NewIfZip(FNm)) { }
+	static v8::Persistent<v8::Function> Constructor;
 public:
-    static void Init(v8::Handle<v8::Object> exports);	
-	static TStr ClassId;
-    static v8::Local<v8::Object> New(const TStr& FNm);    
+	static void Init(v8::Handle<v8::Object> Exports);
+	static const TStr ClassId;
+	// wrapped C++ object
+	PSIn SIn;
+	// C++ constructor
+	TNodeJsFIn(const TStr& FNm) : SIn(TZipIn::NewIfZip(FNm)) { }
+private:	
+	// parses arguments, called by javascript constructor 
+	//#- `fin = new fs.FIn(fnm)` -- creates a new file input stream
+	static TNodeJsFIn* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+public:
+	//# 
+	//# **Functions and properties:**
+	//#   
+	//#- `char = fin.peekCh()` -- peeks a character
+	JsDeclareFunction(peekCh);
+	//#- `char = fin.getCh()` -- reads a character
+	JsDeclareFunction(getCh);
+	//#- `line = fin.readLine()` -- reads a line
+	JsDeclareFunction(readLine);
+	//#- `bool = fin.eof` -- end of stream?
+	JsDeclareProperty(eof);
+	//#- `len = fin.length` -- returns the length of input stream
+	JsDeclareProperty(length);
+	//#- `str = fin.readAll()` -- reads the whole file
+	JsDeclareFunction(readAll);
 
-    //# 
-    //# **Functions and properties:**
-    //#     
-    JsDeclareFunction(New);
-    //#- `char = fin.peekCh()` -- peeks a character
-    JsDeclareFunction(peekCh);
-    //#- `char = fin.getCh()` -- reads a character
-    JsDeclareFunction(getCh);
-    //#- `line = fin.readLine()` -- reads a line
-    JsDeclareFunction(readLine);
-    //#- `bool = fin.eof` -- end of stream?
-    JsDeclareProperty(eof);
-    //#- `len = fin.length` -- returns the length of input stream
-    JsDeclareProperty(length);
-    //#- `str = fin.readAll()` -- reads the whole file
-    JsDeclareFunction(readAll);
-private:
-    static v8::Persistent<v8::Function> constructor;
 };
+
 
 ///////////////////////////////
 // NodeJs-FOut

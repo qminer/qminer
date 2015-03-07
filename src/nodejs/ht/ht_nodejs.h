@@ -1,9 +1,9 @@
 #ifndef QMINER_HT_NODEJS_H
 #define QMINER_HT_NODEJS_H
 
-#ifndef BUILDING_NODE_EXTENSION
-    #define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//    #define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -225,6 +225,9 @@ private:
     static v8::Persistent<v8::Function> constructor;
 };
 
+template<class TKey, class TDat, class TAux>
+v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
+
 //template<class TKey, class TDat, class TAux>
 //const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_STRING = "string";
 //template<class TKey, class TDat, class TAux>
@@ -241,12 +244,16 @@ typedef TNodeJsHash<TInt, TFlt, TAuxIntFltH> TNodeJsIntFltH;
 
 template<class TKey, class TDat, class TAux>
 v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Object> Obj) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHash<TKey, TDat, TAux>());
+	auto Object = new TNodeJsHash<TKey, TDat, TAux>();
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 template<class TKey, class TDat, class TAux>
 v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn) {
-	return TNodeJsUtil::WrapJsInstance(Obj, new TNodeJsHash<TKey, TDat, TAux>(SIn));
+	auto Object = new TNodeJsHash<TKey, TDat, TAux>(SIn);
+	Object->Wrap(Obj);
+	return Obj;
 }
 
 

@@ -54,11 +54,12 @@
 #include "kernelmethods.h"
 #include "semspace.h"
 
+// some ML methods
+#include "ml.h"
+
 // clustering
 #include "kmpp.h"
 #include "hac.h"
-
-// Markov Chains
 #include "mc.h"
 
 // Signal-Processing
