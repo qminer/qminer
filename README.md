@@ -66,3 +66,6 @@ For more detailed installation check the following instructions:
 + [Code documentation](http://agava.ijs.si/~blazf/qminer/)
 + [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
 
+## Acknowledgments
+
+**Thanks to [Deleaker](http://deleaker.com) we find leaks in our project.**
