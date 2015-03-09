@@ -1,9 +1,6 @@
 #ifndef QMINER_HT_NODEJS_H
 #define QMINER_HT_NODEJS_H
 
-//#ifndef BUILDING_NODE_EXTENSION
-//    #define BUILDING_NODE_EXTENSION
-//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -13,9 +10,6 @@
 
 ///////////////////////////////
 // NodeJs-Hash-Map
-//# 
-//# ### Hash Map
-//# 
 
 class TAuxStrIntH {
 public:
@@ -155,25 +149,13 @@ public:
     }
 };
 
-//class TNodeJsHashUtil : public node::ObjectWrap {
-//public:
-//    static void Init(v8::Handle<v8::Object> exports);
-//    //#
-//    //# **Functions and properties:**
-//    //#
-//    //#- `map = utilities.newStrIntH()` -- New string-int hashmap
-//    JsDeclareFunction(newStrIntH);
-//    //#- `map = utilities.newStrFltH()` -- New string-flt hashmap
-//    JsDeclareFunction(newStrFltH);
-//    //#- `map = utilities.newStrStrH()` -- New string-string hashmap
-//    JsDeclareFunction(newStrStrH);
-//    //#- `map = utilities.newIntIntH()` -- New int-int hashmap
-//    JsDeclareFunction(newIntIntH);
-//    //#- `map = utilities.newIntFltH()` -- New int-flt hashmap
-//    JsDeclareFunction(newIntFltH);
-//    //#- `map = utilities.newIntStrH()` -- New int-string hashmap
-//    JsDeclareFunction(newIntStrH);
-//};
+
+
+
+/**
+* Hashtable module.
+* @module ht
+*/
 
 template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
@@ -199,25 +181,109 @@ public:
         JsMap->Map = _Map;
     }
 
-    //# 
-    //# **Functions and properties:**
-    //# 
-    JsDeclareFunction(New);
-    //#- `dat = map.get(key)` -- return data given on key
+    /**
+	* String-int hashmap.
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
+	* @class
+	*/
+	//# exports.StrIntMap = function() {}
+	
+    /**
+	* String-float hashmap
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
+	* @class
+	*/
+	//# exports.StrFltMap = function() {}
+	
+    /**
+	* Int-string hashmap
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
+	* @class
+	*/
+	//# exports.IntStrMap = function() {}
+	
+    /**
+	* Int-int hashmap
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
+	* @class
+	*/
+	//# exports.IntIntMap = function() {}
+	
+    /**
+	* Int-float hashmap
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
+	* @class
+	*/
+	//# exports.IntFltMap = function() {}
+    
+	/**
+	* String-string hashmap	
+	* @class
+	*/
+	//# exports.StrStrMap = function() {}
+	JsDeclareFunction(New);	
+	
+	/**
+	* Returns dat given key
+	* @param {string} key - Hashmap key.
+	* @returns {string} data - Hashmap data.
+	*/
+    //# exports.StrStrMap.prototype.get = function(key) {}
     JsDeclareFunction(get);
-    //#- `map = map.put(key, dat)` -- add/update key-value pair. Returns self
-    JsDeclareFunction(put);
-    //#- `bool = map.hasKey(key)` -- returns true if the map has a given key `key`
+	
+	/**
+	* add/update key-value pair
+	* @param {string} key - Hashmap key.
+	* @param {string} data - Hashmap data.
+	* @returns {module:ht.StrStrMap} this - Returns self.
+	*/
+    //# exports.StrStrMap.prototype.put = function(key, data) {}
+    JsDeclareFunction(put);    
+	
+	/**
+	* returns true if the map has a given key 
+	* @param {string} key - Hashmap key.	
+	* @returns {boolean} haskey - Returns true if the map contains key.
+	*/
+    //# exports.StrStrMap.prototype.hasKey = function(key) {}
     JsDeclareFunction(hasKey);
-    //#- `num = map.length` -- returns the number of keys
-    JsDeclareProperty(length);
-    //#- `key = map.key(idx)` -- returns the `idx`-th key
+	
+	/**
+    * @property {number} length Number of key/dat pairs
+	*/
+	//# exports.StrStrMap.prototype.length = undefined;
+	JsDeclareProperty(length);
+    
+	/**
+	* returns n-th key
+	* @param {number} n - Hashmap key number.	
+	* @returns {string} key - Returns n-th key.
+	*/
+    //# exports.StrStrMap.prototype.key = function(n) {}	
     JsDeclareFunction(key);
-    //#- `dat = map.dat(idx)` -- returns the `idx`-th dat
+
+	/**
+	* returns n-th dat
+	* @param {number} n - Hashmap dat number.	
+	* @returns {string} dat - Returns n-th data value.
+	*/
+    //# exports.StrStrMap.prototype.dat = function(n) {}    
     JsDeclareFunction(dat);
-    //#- `map = map.load(fin)` -- loads the hashtable from input stream `fin`
+    
+	/**
+	* loads the hashtable from input stream
+	* @param {module:fs.FIn} fin - Input stream.	
+	* @returns {module:ht.StrStrMap} map - Returns map.
+	*/
+    //# exports.StrStrMap.prototype.load = function(fin) {}  	
     JsDeclareFunction(load);
-    //#- `fout = map.save(fout)` -- saves the hashtable to output stream `fout`
+
+	/**
+	* saves the hashtable to output stream
+	* @param {module:fs.FOut} fout - Output stream.	
+	* @returns {module:fs.FOut} fout - Returns the input parameter (so close can be called if needed).
+	*/
+    //# exports.StrStrMap.prototype.save = function(fout) {}  	    
     JsDeclareFunction(save);
 
     static TStr GetClassId() { return TAux::ClassId; }
@@ -228,12 +294,6 @@ private:
 template<class TKey, class TDat, class TAux>
 v8::Persistent<v8::Function> TNodeJsHash<TKey, TDat, TAux>::constructor;
 
-//template<class TKey, class TDat, class TAux>
-//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_STRING = "string";
-//template<class TKey, class TDat, class TAux>
-//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_INT = "int";
-//template<class TKey, class TDat, class TAux>
-//const TStr TNodeJsHash<TKey, TDat, TAux>::TYPE_FLOAT = "float";
 
 typedef TNodeJsHash<TStr, TStr, TAuxStrStrH> TNodeJsStrStrH;
 typedef TNodeJsHash<TStr, TInt, TAuxStrIntH> TNodeJsStrIntH;

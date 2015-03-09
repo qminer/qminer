@@ -174,14 +174,14 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 		} else {
 			if (Args[0]->IsObject()) {
 				const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
-				const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols", 3);
-				const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", 3);
-				if (Cols > 0 && Rows > 0) {
-					Mat.Gen(Rows, Cols);
-					if (GenRandom) {
-						TLAMisc::FillRnd(Mat);
-					}
+				const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
+				const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows");
+				EAssert(Cols > 0 && Rows > 0);
+				Mat.Gen(Rows, Cols);
+				if (GenRandom) {
+					TLAMisc::FillRnd(Mat);
 				}
+
 				return new TNodeJsFltVV(Mat);
 			} else {
 				throw TExcept::New("Expected either array or object");
@@ -799,7 +799,8 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 CrrArr->Get(0)->Int32Value(), CrrArr->Get(1)->NumberValue()));
             }
 			JsSpVec->Vec.Sort();
-			//JsSpVec->Dim = JsSpVec->Vec.Last().Key + 1;
+			int Dim = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+			JsSpVec->Dim = Dim;
         }
         Args.GetReturnValue().Set(Instance);
     } else {
@@ -1139,7 +1140,7 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         JsSpMat->Wrap(Instance);
 
         if (Args.Length() > 0) {
-            if (Args.Length() >= 3 && Args.Length() <= 4 &&
+            if (Args.Length() >= 3 && Args.Length() <= 5 &&
                 TNodeJsUtil::IsArgClass(Args, 0, "TIntV") &&
                 TNodeJsUtil::IsArgClass(Args, 1, "TIntV") &&
                 TNodeJsUtil::IsArgClass(Args, 2, "TFltV")) {
@@ -1151,8 +1152,12 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TNodeJsVec<TFlt, TAuxFltV>* ValV =
                     ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[2]->ToObject());
 
-                int Cols = Args.Length() == 4 && Args[3]->IsInt32() ?
-                    Args[3]->Int32Value() : -1;
+				int Rows = Args.Length() >= 4 && Args[3]->IsInt32() ?
+					Args[3]->Int32Value() : -1;
+				JsSpMat->Rows = Rows;
+
+                int Cols = Args.Length() == 5 && Args[4]->IsInt32() ?
+                    Args[4]->Int32Value() : -1;
                 if (Cols < 0) { Cols = ColIdxV->Vec.GetMxVal() + 1; }
 
                 TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(
