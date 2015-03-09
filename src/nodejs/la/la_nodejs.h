@@ -1071,6 +1071,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
                 // We have object with parameters, parse them out
                 const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
                 const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
+				EAssertR(Vals >= 0, "vals should be nonnegative");
                 if (MxVals >= 0) {
                     JsVec->Vec.Gen(MxVals, Vals);
                 }
