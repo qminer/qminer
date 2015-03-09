@@ -960,8 +960,10 @@ void TLinAlg::MultiplyScalar(const double& k, const TFltV& x, TFltV& y) {
 void TLinAlg::MultiplyScalar(const double& k, const TIntFltKdV& x, TIntFltKdV& y) {
     Assert(x.Len() == y.Len());
     int Len = x.Len();
-    for (int i = 0; i < Len; i++)
-        y[i].Dat = k * x[i].Dat;
+	for (int i = 0; i < Len; i++) {
+		y[i].Key = x[i].Key;
+		y[i].Dat = k * x[i].Dat;
+	}
 }
 
 void TLinAlg::MultiplyScalar(const double& k, const TVec<TIntFltKdV>& X, TVec<TIntFltKdV>& Y) {
