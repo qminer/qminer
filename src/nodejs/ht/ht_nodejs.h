@@ -151,6 +151,7 @@ public:
 
 
 
+
 /**
 * Hashtable module.
 * @module ht
@@ -182,35 +183,35 @@ public:
 
     /**
 	* String-int hashmap.
-	* @classdesc See {@link StrStrMap}.
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
 	* @class
 	*/
 	//# exports.StrIntMap = function() {}
 	
     /**
 	* String-float hashmap
-	* @classdesc See {@link StrStrMap}.
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
 	* @class
 	*/
 	//# exports.StrFltMap = function() {}
 	
     /**
 	* Int-string hashmap
-	* @classdesc See {@link StrStrMap}.
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
 	* @class
 	*/
 	//# exports.IntStrMap = function() {}
 	
     /**
 	* Int-int hashmap
-	* @classdesc See {@link StrStrMap}.
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
 	* @class
 	*/
 	//# exports.IntIntMap = function() {}
 	
     /**
 	* Int-float hashmap
-	* @classdesc See {@link StrStrMap}.
+	* @classdesc See {@link module:ht.StrStrMap}. The only difference are the key and data types.
 	* @class
 	*/
 	//# exports.IntFltMap = function() {}
@@ -234,7 +235,7 @@ public:
 	* add/update key-value pair
 	* @param {string} key - Hashmap key.
 	* @param {string} data - Hashmap data.
-	* @returns {StrStrMap} this - Returns self.
+	* @returns {module:ht.StrStrMap} this - Returns self.
 	*/
     //# exports.StrStrMap.prototype.put = function(key, data) {}
     JsDeclareFunction(put);    
@@ -271,16 +272,16 @@ public:
     
 	/**
 	* loads the hashtable from input stream
-	* @param {FIn} fin - Input stream.	
-	* @returns {StrStrMap} map - Returns map.
+	* @param {module:fs.FIn} fin - Input stream.	
+	* @returns {module:ht.StrStrMap} map - Returns map.
 	*/
     //# exports.StrStrMap.prototype.load = function(fin) {}  	
     JsDeclareFunction(load);
 
 	/**
 	* saves the hashtable to output stream
-	* @param {FOut} fout - Output stream.	
-	* @returns {FOut} fout - Returns the input parameter (so close can be called if needed).
+	* @param {module:fs.FOut} fout - Output stream.	
+	* @returns {module:fs.FOut} fout - Returns the input parameter (so close can be called if needed).
 	*/
     //# exports.StrStrMap.prototype.save = function(fout) {}  	    
     JsDeclareFunction(save);
