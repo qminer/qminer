@@ -150,6 +150,12 @@ public:
 };
 
 
+
+/**
+* Hashtable module.
+* @module ht
+*/
+
 template <class TKey = TStr, class TDat = TInt, class TAux = TAuxStrIntH>
 class TNodeJsHash : public node::ObjectWrap {
 	friend class TNodeJsUtil;
@@ -179,41 +185,41 @@ public:
 	* @classdesc See {@link StrStrMap}.
 	* @class
 	*/
-	//# function StrIntMap() {}
+	//# exports.StrIntMap = function() {}
 	
     /**
 	* String-float hashmap
 	* @classdesc See {@link StrStrMap}.
 	* @class
 	*/
-	//# function StrFltMap() {}
+	//# exports.StrFltMap = function() {}
 	
     /**
 	* Int-string hashmap
 	* @classdesc See {@link StrStrMap}.
 	* @class
 	*/
-	//# function IntStrMap() {}
+	//# exports.IntStrMap = function() {}
 	
     /**
 	* Int-int hashmap
 	* @classdesc See {@link StrStrMap}.
 	* @class
 	*/
-	//# function IntIntMap() {}
+	//# exports.IntIntMap = function() {}
 	
     /**
 	* Int-float hashmap
 	* @classdesc See {@link StrStrMap}.
 	* @class
 	*/
-	//# function IntFltMap() {}
+	//# exports.IntFltMap = function() {}
     
 	/**
 	* String-string hashmap	
 	* @class
 	*/
-	//# function StrStrMap() {}
+	//# exports.StrStrMap = function() {}
 	JsDeclareFunction(New);	
 	
 	/**
@@ -221,7 +227,7 @@ public:
 	* @param {string} key - Hashmap key.
 	* @returns {string} data - Hashmap data.
 	*/
-    //# StrStrMap.prototype.get = function(key) {}
+    //# exports.StrStrMap.prototype.get = function(key) {}
     JsDeclareFunction(get);
 	
 	/**
@@ -230,7 +236,7 @@ public:
 	* @param {string} data - Hashmap data.
 	* @returns {StrStrMap} this - Returns self.
 	*/
-    //# StrStrMap.prototype.put = function(key, data) {}
+    //# exports.StrStrMap.prototype.put = function(key, data) {}
     JsDeclareFunction(put);    
 	
 	/**
@@ -238,13 +244,13 @@ public:
 	* @param {string} key - Hashmap key.	
 	* @returns {boolean} haskey - Returns true if the map contains key.
 	*/
-    //# StrStrMap.prototype.hasKey = function(key) {}
+    //# exports.StrStrMap.prototype.hasKey = function(key) {}
     JsDeclareFunction(hasKey);
 	
 	/**
     * @property {number} length Number of key/dat pairs
 	*/
-	//# StrStrMap.prototype.length = undefined;
+	//# exports.StrStrMap.prototype.length = undefined;
 	JsDeclareProperty(length);
     
 	/**
@@ -252,7 +258,7 @@ public:
 	* @param {number} n - Hashmap key number.	
 	* @returns {string} key - Returns n-th key.
 	*/
-    //# StrStrMap.prototype.key = function(n) {}	
+    //# exports.StrStrMap.prototype.key = function(n) {}	
     JsDeclareFunction(key);
 
 	/**
@@ -260,7 +266,7 @@ public:
 	* @param {number} n - Hashmap dat number.	
 	* @returns {string} dat - Returns n-th data value.
 	*/
-    //# StrStrMap.prototype.dat = function(n) {}    
+    //# exports.StrStrMap.prototype.dat = function(n) {}    
     JsDeclareFunction(dat);
     
 	/**
@@ -268,7 +274,7 @@ public:
 	* @param {FIn} fin - Input stream.	
 	* @returns {StrStrMap} map - Returns map.
 	*/
-    //# StrStrMap.prototype.load = function(fin) {}  	
+    //# exports.StrStrMap.prototype.load = function(fin) {}  	
     JsDeclareFunction(load);
 
 	/**
@@ -276,7 +282,7 @@ public:
 	* @param {FOut} fout - Output stream.	
 	* @returns {FOut} fout - Returns the input parameter (so close can be called if needed).
 	*/
-    //# StrStrMap.prototype.save = function(fout) {}  	    
+    //# exports.StrStrMap.prototype.save = function(fout) {}  	    
     JsDeclareFunction(save);
 
     static TStr GetClassId() { return TAux::ClassId; }
