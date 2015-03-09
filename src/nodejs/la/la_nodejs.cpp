@@ -1139,7 +1139,7 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         JsSpMat->Wrap(Instance);
 
         if (Args.Length() > 0) {
-            if (Args.Length() >= 3 && Args.Length() <= 4 &&
+            if (Args.Length() >= 3 && Args.Length() <= 5 &&
                 TNodeJsUtil::IsArgClass(Args, 0, "TIntV") &&
                 TNodeJsUtil::IsArgClass(Args, 1, "TIntV") &&
                 TNodeJsUtil::IsArgClass(Args, 2, "TFltV")) {
