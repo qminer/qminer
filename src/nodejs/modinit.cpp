@@ -116,7 +116,7 @@ void InitQm(Handle<Object> Exports) {
 	TNodeJsFtrSpace::Init(Exports);
 }
 
-void Init(Handle<Object> Exports, Handle<Object> module) {
+void Init(Handle<Object> Exports) {
 	InitFs(Exports, "fs");
 	InitLa(Exports, "la");
 	InitHt(Exports, "ht");
