@@ -745,7 +745,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	if (TAux::ClassId == TNodeJsStrV::GetClassId()) Name = "StrVector";
 	if (TAux::ClassId == TNodeJsBoolV::GetClassId()) Name = "BoolVector";
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
