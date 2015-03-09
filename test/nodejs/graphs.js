@@ -1,6 +1,6 @@
 console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');
-var snap = require('../../src/nodejs/scripts/snap.js');
+var snap = require('../../').snap;
 
 var g = new snap.UndirectedGraph();
 

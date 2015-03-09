@@ -1,8 +1,10 @@
 // typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
 module.exports = exports = function (pathPrefix) {
     pathPrefix = pathPrefix || '';
-    exports = require('bindings')(pathPrefix + '/la.node');
-        
+//    exports = require('bindings')(pathPrefix + '/la.node');
+    exports = require('bindings')(pathPrefix + '/qm.node').la;
+
+    
     var assert = require('assert');
 
     exports.SparseMatrix.prototype.frob2 = function () {

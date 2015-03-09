@@ -254,7 +254,7 @@ void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
 	// Add properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
-	
+
 	// This has to be last, otherwise the properties won't show up on the object in JavaScript	
 	// Constructor is used when creating the object from C++
 	Constructor.Reset(Isolate, child->GetFunction());
@@ -449,16 +449,16 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-#ifndef MODULE_INCLUDE_FS
-///////////////////////////////
-// Register functions, etc.  
-void init(v8::Handle<v8::Object> exports) {
-
-    TNodeJsFs::Init(exports);
-    TNodeJsFIn::Init(exports);
-    TNodeJsFOut::Init(exports);
-}
-
-NODE_MODULE(fs, init)
-#endif
+//#ifndef MODULE_INCLUDE_FS
+/////////////////////////////////
+//// Register functions, etc.
+//void init(v8::Handle<v8::Object> exports) {
+//
+//    TNodeJsFs::Init(exports);
+//    TNodeJsFIn::Init(exports);
+//    TNodeJsFOut::Init(exports);
+//}
+//
+//NODE_MODULE(fs, init)
+//#endif
 

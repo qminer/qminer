@@ -1,9 +1,10 @@
 #ifndef QMINER_QM_NODEJS
 #define QMINER_QM_NODEJS
 
-#ifndef BUILDING_NODE_EXTENSION
-	#define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//	#define BUILDING_NODE_EXTENSION
+//#endif
+
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -60,9 +61,20 @@ private:
 	//# 
 	//#- `base.close()` -- closes the base
 	JsDeclareFunction(close);
-    //#- `store = base.store(storeName)` -- return store with name `storeName`; `store = null` when no such store
+
+	/**
+	 * Returns the store with the specified name.
+	 *
+	 * @param {String} name - name of the store
+	 * @returns {Store} - the store
+	 */
 	JsDeclareFunction(store);
-    //#- `strArr = base.getStoreList()` -- an array of store JSON representations
+
+	/**
+	 * Returns a list of store descriptors.
+	 *
+	 * @returns {Object[]}
+	 */
 	JsDeclareFunction(getStoreList);
     //#- `base.createStore(storeDef)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)
     //#- `base.createStore(storeDef, storeSizeInMB)` -- create new store(s) based on given `storeDef` (Json) [definition](Store Definition)

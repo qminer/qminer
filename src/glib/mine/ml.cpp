@@ -1,4 +1,6 @@
-#include "clust.h"
+#include "ml.h"
+
+using namespace TMl;
 
 //////////////////////////////////////////////////
 // Abstract clustering
@@ -470,4 +472,355 @@ void TDpMeans::Apply(const TFullMatrix& X, const int& MaxIter) {
 	}
 
 	InitStatistics(X, AssignIdxV);
+}
+
+
+///////////////////////////////////////////
+// Logistic Regression
+TLogReg::TLogReg(const double& _Lambda, const bool _IncludeIntercept, const bool _Verbose):
+		Lambda(_Lambda),
+		WgtV(),
+		IncludeIntercept(_IncludeIntercept),
+		Verbose(_Verbose),
+		Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+
+TLogReg::TLogReg(TSIn& SIn):
+		Lambda(TFlt(SIn)),
+		WgtV(SIn),
+		IncludeIntercept(TBool(SIn)),
+		Verbose(TBool(SIn)),
+		Notify(nullptr) {
+
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void TLogReg::Save(TSOut& SOut) const {
+	TFlt(Lambda).Save(SOut);
+	WgtV.Save(SOut);
+	TBool(IncludeIntercept).Save(SOut);
+	TBool(Verbose).Save(SOut);
+}
+
+
+void TLogReg::Fit(const TFltVV& _X, const TFltV& y, const double& Eps) {
+	TFltVV X(_X);
+
+	if (IncludeIntercept) {
+		// add 1s into the last row
+		X.AddXDim();
+		for (int i = 0; i < X.GetCols(); i++) {
+			X(X.GetRows()-1, i) = 1;
+		}
+	}
+
+	const int NInst = X.GetCols();
+	const int Dim = X.GetRows();
+	const int OrigDim = IncludeIntercept ? Dim-1 : Dim;
+
+	// minimize the following objective function:
+	// L(w) = (sum(log(1 + exp(w*x_i)) - y_i*w*x_i) + lambda*beta*beta'/2) / m
+	// using Newton-Raphson algorithm:
+	// w <- w - H^(-1)(w)*g(w)
+	// g(w) = (X*(s(beta*x) - y)' + lambda*beta')
+	// H(w) = X*W*X^(-1) + lambda*I
+	// where H is the Hessian at point w, g is the gradient of the objective function at point w
+	// W is a diagonal matrix defined as W_ii = p_i(1 - p_i)
+
+	// temporary variables
+	TFltV ProbV(NInst, NInst);					// vector of probabilities
+	TFltV PrevProbV(NInst, NInst);				// vector of probs in the previous step, used to terminate the procedure
+	TFltV DeltaWgtV(Dim, Dim);					// the step used to update the weights
+	TFltV YMinP(NInst, NInst);
+	TFltV GradV(Dim, Dim);						// gradient
+	TFltVV XTimesW(Dim, NInst);					// temporary variable to compute (X*W)*X'
+	TFltVV H(Dim, Dim);							// Hessian
+	TFltVV X_t(X.GetCols(), X.GetRows());	TLinAlg::Transpose(X, X_t);		// the transposed instance matrix
+	TVec<TIntFltKdV> WgtColSpVV(NInst, NInst);	// weight matrix
+
+	// generate weight matrix with only ones on the diagonal
+	// so you don't recreate all the object every iteration
+	for (int i = 0; i < NInst; i++) {
+		WgtColSpVV[i].Add(TIntFltKd(i, 1));
+	}
+
+	WgtV.Gen(Dim);
+
+	// perform the algorithm
+	double Diff = TFlt::NInf;
+	int k = 1;
+	do {
+		if (k % 10 == 0) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Step: %d, diff: %.3f", k, Diff);
+		}
+
+		// compute the probabilities p_i = 1 / (1 + exp(-w*x_i)) and
+		// compute the weight matrix diagonal W_ii = p_i(1 - p_i)
+		TLinAlg::Multiply(X_t, WgtV, ProbV);
+		for (int i = 0; i < NInst; i++) {
+			ProbV[i] = 1 / (1 + TMath::Power(TMath::E, -ProbV[i]));
+			WgtColSpVV[i][0].Dat = ProbV[i]*(1 - ProbV[i]);
+		}
+
+		// compute the Hessian H = X*W*X' + lambda*I
+		// 1) compute X*W
+		TLinAlg::Multiply(X, WgtColSpVV, XTimesW);
+		// 2) compute H = (X*W)*X'
+		TLinAlg::Multiply(XTimesW, X_t, H);
+		// 3) add lambda to the diagonal of H, exclude the punishment for the intercept
+		for (int i = 0; i < OrigDim; i++) {
+			H(i,i) += Lambda;
+		}
+
+		// compute the gradient g(w) = X*(y - p)' + lambda * w
+		// 1) compute (y - p)
+		TLinAlg::LinComb(1, y, -1, ProbV, YMinP);
+		// 2) compute X*(y - p)
+		TLinAlg::Multiply(X, YMinP, GradV);
+		// 3) add lambda * w, exclude the punishment for the intercept
+		for (int i = 0; i < OrigDim; i++) {
+			GradV[i] += Lambda*WgtV[i];
+		}
+
+		// compute delta_w = H(w) \ (g(w))
+		TNumericalStuff::SolveSymetricSystem(H, GradV, DeltaWgtV);
+
+		if (TFlt::IsNan(TLinAlg::Norm(DeltaWgtV))) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Got NaNs while fitting logistic regression! The weights could still be OK.");
+			break;
+		}
+
+		// update the current weight vector
+		for (int i = 0; i < Dim; i++) {
+			WgtV[i] += DeltaWgtV[i];
+		}
+
+		// recompute the termination criteria and store the probabilities for
+		// the next iteration
+		Diff = TFlt::NInf;
+		for (int i = 0; i < NInst; i++) {
+			if (TFlt::Abs(PrevProbV[i] - ProbV[i]) > Diff) {
+				Diff = TFlt::Abs(PrevProbV[i] - ProbV[i]);
+			}
+
+			PrevProbV[i] = ProbV[i];
+		}
+
+		k++;
+	} while (Diff > Eps);
+
+	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Converged. Diff: %.5f", Diff);
+}
+
+double TLogReg::Predict(const TFltV& x) const {
+	if (IncludeIntercept) {
+		TFltV x1(x);	x1.Add(1);
+		return PredictWithoutIntercept(x1);
+	} else {
+		return PredictWithoutIntercept(x);
+	}
+}
+
+void TLogReg::GetWgtV(TFltV& _WgtV) const {
+	_WgtV = WgtV;
+	if (IncludeIntercept) {
+		_WgtV.DelLast();
+	}
+}
+
+double TLogReg::PredictWithoutIntercept(const TFltV& x) const {
+	EAssertR(x.Len() == WgtV.Len(), "Dimension mismatch while predicting!");
+	return 1 / (1 + TMath::Power(TMath::E, -TLinAlg::DotProduct(WgtV, x)));
+}
+
+///////////////////////////////////////////
+// Exponential Regression
+TExpReg::TExpReg(const double& _Lambda, const bool _Intercept, const bool _Verbose):
+		Lambda(_Lambda),
+		WgtV(),
+		IncludeIntercept(_Intercept),
+		Verbose(_Verbose),
+		Notify(Verbose ? TNotify::StdNotify : TNotify::NullNotify) {}
+
+TExpReg::TExpReg(TSIn& SIn):
+		Lambda(TFlt(SIn)),
+		WgtV(SIn),
+		IncludeIntercept(TBool(SIn)),
+		Verbose(TBool(SIn)),
+		Notify(nullptr) {
+	Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void TExpReg::Save(TSOut& SOut) const {
+	TFlt(Lambda).Save(SOut);
+	WgtV.Save(SOut);
+	TBool(IncludeIntercept).Save(SOut);
+	TBool(Verbose).Save(SOut);
+}
+
+void TExpReg::Fit(const TFltVV& _X, const TFltV& y, const double& _Eps) {
+	PerformFitChecks(_X, y);
+	TFltVV X(_X);
+
+	if (IncludeIntercept) {
+		// add 1s into the last row
+		X.AddXDim();
+		for (int i = 0; i < X.GetCols(); i++) {
+			X(X.GetRows()-1, i) = 1;
+		}
+	}
+
+	// minimize the following objective function:
+	// L(w) = (sum(lambda_i*t_i - log(lambda_i)) + gamma*beta*beta'/2) / m
+	// where lambda are the approximated intensities, t_i are the observed times
+	// and gamma is the regularization parameter
+	// using Newton-Raphson algorithm:
+	// w <- w - H^(-1)(w)*g(w)
+	// g(w) = (lambda .* (1 - lambda .* t)*X' + gamma*beta) / m
+	// H(w) = (X*W*X' + lambda*I) / m
+	// where H is the Hessian at point w, g is the gradient of the objective function at point w
+	// and W = diag(lambda .* lambda .*(2*lambda .* t - 1))
+	const int NInst = X.GetCols();
+	const int Dim = X.GetRows();
+	const int OrigDim = IncludeIntercept ? Dim - 1 : Dim;
+
+	const double Eps = Dim*_Eps;
+	const double ConstrEsp = 1e-2;
+
+	double Intens;
+	double Diff = TFlt::PInf;
+
+	TFltV IntensV(NInst, NInst);
+	TFltV DeltaWgtV(Dim, Dim);
+	TFltV TempNInstV(NInst, NInst);
+	TFltV GradV(Dim, Dim);
+
+	TFltVV X_t;	TLinAlg::Transpose(X, X_t);
+	TFltVV H;
+	TFltVV XTimesW(Dim, NInst);
+
+	TVec<TIntFltKdV> WgtColSpVV(NInst, NInst);	// weight matrix
+
+	WgtV.Gen(Dim);
+
+	// generate weight matrix with only ones on the diagonal
+	// so you don't recreate all the object every iteration
+	for (int i = 0; i < NInst; i++) {
+		WgtColSpVV[i].Add(TIntFltKd(i, 1));
+	}
+
+	// find an initial estimate
+	// the initial estimate must lie in the region where the
+	// function is convex:
+	// solve the system (X*X' \ X*y'*eps_constr)'
+	// this solution should lie in that region, or at least it should not lie in
+	// beta*x_i < 0, where the algorithm has trouble converging
+	Notify->OnNotify(TNotifyType::ntInfo, "Finding a feasible solution ...");
+
+	// store y'*eps_constr into IntensV to not waste memory
+	for (int i = 0; i < NInst; i++) {
+		IntensV[i] = ConstrEsp * y[i];
+	}
+
+	// compute X*X'
+	TLinAlg::Multiply(X, X_t, H);
+	// compute X*y'*eps_constr
+	TLinAlg::Multiply(X, IntensV, DeltaWgtV);
+	// solve the linear system (X*X' \ X*y'*eps_constr)
+#ifdef OPENBLAS
+	TNumericalStuff::LUSolve(H, WgtV, DeltaWgtV);
+#else
+	throw TExcept::New("Should include OpenBLAS!!");
+#endif
+
+	Notify->OnNotify(TNotifyType::ntInfo, "Found initial estimate, optimizing ...");
+
+	int k = 0;
+	do {
+		if (++k % 10 == 0) {
+			Notify->OnNotifyFmt(TNotifyType::ntInfo, "Step: %d, diff: %.3f", k, Diff);
+		}
+
+		// construct the intensities
+		// lambda_i = 1 / (beta*x_i)
+		// first compute beta*X and then invert
+		TLinAlg::MultiplyT(X, WgtV, IntensV);
+		for (int i = 0; i < NInst; i++) {
+			Intens = 1 / IntensV[i];
+
+			IntensV[i] = Intens;
+			WgtColSpVV[i][0].Dat = Intens * Intens * (2*Intens*y[i] - 1);
+
+			if (IntensV[i] < 0) {
+				Notify->OnNotifyFmt(TNotifyType::ntInfo, "Intensity lower then 0: %.3f, the algorithm may have trouble converging!", IntensV[i].Val);
+			}
+		}
+
+		// construct the hessian
+		// 1) compute X*W
+		TLinAlg::Multiply(X, WgtColSpVV, XTimesW);
+		// 2) compute H = (X*W)*X'
+		TLinAlg::Multiply(XTimesW, X_t, H);
+		// 3) add lambda to the diagonal of H
+		// exclude the punishment for the intercept
+		for (int i = 0; i < OrigDim; i++) {
+			H(i,i) += Lambda;
+		}
+
+		// construct the gradient
+		// g = ((intens .* (1 - intens .* y)) * X' + lambda*beta)
+		// 1) compute (intens .* (1 - intens .* y)
+		for (int i = 0; i < NInst; i++) {
+			TempNInstV[i] = IntensV[i] * (1 - IntensV[i]*y[i]);
+		}
+		// 2) compute ((intens .* (1 - intens .* y)) * X'
+		TLinAlg::Multiply(X, TempNInstV, GradV);
+		// 3) add lambda*beta, exclude the punishment for the intercept
+		for (int i = 0; i < OrigDim; i++) {
+			GradV[i] += Lambda*WgtV[i];
+		}
+
+#ifdef OPENBLAS
+		// solve -delta_wgts = H^(-1) * g
+		TNumericalStuff::LUSolve(H, DeltaWgtV, GradV);
+#else
+	throw TExcept::New("Should include OpenBLAS!!");
+#endif
+
+		// subtract the negative difference from the weights
+		for (int i = 0; i < Dim; i++) {
+			WgtV[i] -= DeltaWgtV[i];
+		}
+
+		// done, compute the norm of the difference to see if we need to exit
+		Diff = TLinAlg::Norm(DeltaWgtV);
+	} while (Diff > Eps);
+}
+
+double TExpReg::Predict(const TFltV& x) const {
+	if (IncludeIntercept) {
+		TFltV x1(x); x1.Add(1);
+		return PredictWithoutIntercept(x1);
+	} else {
+		return PredictWithoutIntercept(x);
+	}
+}
+
+void TExpReg::GetWgtV(TFltV& _WgtV) const {
+	_WgtV = WgtV;
+	if (IncludeIntercept) {
+		_WgtV.DelLast();
+	}
+}
+
+double TExpReg::PredictWithoutIntercept(const TFltV& x) const {
+	EAssertR(x.Len() == WgtV.Len(), "Invalid dimension of the feature vector!");
+	return 1 / TLinAlg::DotProduct(WgtV, x);
+}
+
+void TExpReg::PerformFitChecks(const TFltVV& X, const TFltV& y) const {
+	EAssertR(X.GetCols() == y.Len(), "More instances than responses!");
+	// check if the input is OK
+	for (int i = 0; i < y.Len(); i++) {
+		EAssertR(y[i] > 0, "Times must be greater than 0!");
+	}
 }

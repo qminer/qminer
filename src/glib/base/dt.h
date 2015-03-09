@@ -986,6 +986,7 @@ public:
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
   TBool& operator=(const TBool& Bool){Val=Bool.Val; return *this;}
+  TBool& operator+=(const TBool& Bool) {Val |= Bool.Val; return *this;}
   bool operator==(const TBool& Bool) const {return Val==Bool.Val;}
   bool operator<(const TBool& Bool) const {//return Val<Bool.Val;
     return (Val==false)&&(Bool.Val==true);}
@@ -994,6 +995,8 @@ public:
 
   int GetPrimHashCd() const {return Val;}
   int GetSecHashCd() const {return Val;}
+
+  TStr GetStr() { return GetStr(Val); }
 
   static bool GetRnd(){return Rnd.GetUniDevInt(2)==1;}
 

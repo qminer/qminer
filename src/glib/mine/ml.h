@@ -5,9 +5,10 @@
  *      Author: lstopar
  */
 
-#ifndef SRC_GLIB_MINE_CLUST_H_
-#define SRC_GLIB_MINE_CLUST_H_
+#ifndef SRC_GLIB_MINE_ML_H_
+#define SRC_GLIB_MINE_ML_H_
 
+namespace TMl {
 
 class TFullClust;
 typedef TPt<TFullClust> PFullClust;
@@ -158,12 +159,71 @@ protected:
 	const TStr GetType() const { return "dpmeans"; }
 };
 
-class TEuclMds {
+///////////////////////////////////////////
+// Logistic Regression using the Newton-Raphson method
+class TLogReg {
+private:
+	double Lambda;
+	TFltV WgtV;
+
+	bool IncludeIntercept;
+
+	bool Verbose;
+	PNotify Notify;
+
 public:
-	// projects the points stored in the column of X onto d
-	// dimensions
-	static TFullMatrix Project(const TFullMatrix& X, const int& d=2);
+	// default constructor, sets the regularization parameter
+	TLogReg(const double& Lambda=1, const bool IncludeIntercept=false, const bool Verbose=true);
+	TLogReg(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	// Fits the regression model. The method assumes that the instances are stored in the
+	// columns of the matrix X and the responses are stored in vector y.
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-3);
+	// returns the expected response for the given feature vector
+	double Predict(const TFltV& x) const;
+
+	void GetWgtV(TFltV& WgtV) const;
+private:
+	double PredictWithoutIntercept(const TFltV& x) const;
+};
+
+///////////////////////////////////////////
+// Exponential Regression
+// One of the generalized linear models.
+// The response variables are positive jump
+// times with an exponential distribution and
+// the link function is g(t) = 1 / t.
+class TExpReg {
+private:
+	double Lambda;
+	TFltV WgtV;
+
+	bool IncludeIntercept;
+
+	bool Verbose;
+	PNotify Notify;
+
+public:
+	TExpReg(const double& Lambda=1, const bool IncludeIntercept=false, const bool Verbose=true);
+	TExpReg(TSIn& SIn);
+
+	void Save(TSOut& SOut) const;
+
+	// Fits the regression model. The method assumes that the instances are stored in the
+	// columns of the matrix X and the responses are stored in vector y.
+	void Fit(const TFltVV& X, const TFltV& y, const double& Eps=1e-8);
+	double Predict(const TFltV& x) const;
+
+	void GetWgtV(TFltV& WgtV) const;
+
+private:
+	double PredictWithoutIntercept(const TFltV& x) const;
+	void PerformFitChecks(const TFltVV& X, const TFltV& y) const;
 };
 
 
-#endif /* SRC_GLIB_MINE_CLUST_H_ */
+}
+
+#endif /* SRC_GLIB_MINE_ML_H_ */

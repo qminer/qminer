@@ -1,9 +1,9 @@
 #ifndef ANALYTICS_H_
 #define ANALYTICS_H_
 
-#ifndef BUILDING_NODE_EXTENSION
-	#define BUILDING_NODE_EXTENSION
-#endif
+//#ifndef BUILDING_NODE_EXTENSION
+//	#define BUILDING_NODE_EXTENSION
+//#endif
 
 #include <node.h>
 #include <node_object_wrap.h>
@@ -173,6 +173,125 @@ private:
 	PJsonVal GetParams() const;
 };
 
+
+/**
+ * Logistic regression model. Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ */
+class TNodeJsLogReg : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static const TStr ClassId;	// set to LogReg
+	static void Init(v8::Handle<v8::Object> exports);
+
+private:
+	TMl::TLogReg LogReg;
+
+	TNodeJsLogReg(const TMl::TLogReg& _LogReg): LogReg(_LogReg) {}
+
+	static TNodeJsLogReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {LogReg} - returns itself
+	 */
+	JsDeclareFunction(fit);
+
+	/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+	JsDeclareFunction(predict);
+
+	/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+	JsDeclareProperty(weights);
+
+	/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+	JsDeclareFunction(save);
+
+	JsDeclareFunction(newMatrix);	// TODO remove this, it is just for debugging purposes
+};
+
+/////////////////////////////////////////////
+// Exponential Regression
+/**
+ * Exponential regression model, where the response is assumed to be exponentially
+ * distributed. Finds the rate parameter with respect to the feature vector.
+ *
+ * Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ */
+class TNodeJsExpReg : public node::ObjectWrap {
+	friend class TNodeJsUtil;
+public:
+	static const TStr ClassId;
+	static void Init(v8::Handle<v8::Object> exports);
+
+private:
+	TMl::TExpReg ExpReg;
+
+	TNodeJsExpReg(const TMl::TExpReg& _ExpReg): ExpReg(_ExpReg) {}
+
+	static TNodeJsExpReg* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+	/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {ExpReg} - returns itself
+	 */
+	JsDeclareFunction(fit);
+
+	/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+	JsDeclareFunction(predict);
+
+	/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+	JsDeclareProperty(weights);
+
+	/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+	JsDeclareFunction(save);
+};
+
+
 ////////////////////////////////////////////////////////
 // Hierarchical Markov Chain model
 //#
@@ -180,7 +299,13 @@ private:
 //#
 //#- `hmc = new analytics.HMC(params)` -- Creates a new model using `params` JSON. TODO param description.
 //#- `hmc = new analytics.HMC(fin)` -- Loads the model from input stream `fin`.
-JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
+class TNodeJsHMChain : public node::ObjectWrap, public TMc::TMcCallback {
+	friend class TNodeJsUtil;
+public:
+	static const TStr ClassId;
+	static void Init(v8::Handle<v8::Object> exports);
+
+private:
 	const static double DEFAULT_DELTA_TM;
 
 	TMc::PHierarchCtmc McModel;
@@ -194,67 +319,169 @@ JsDeclareClassE(TNodeJsHMChain, TMc::TMcCallback)
 
 	~TNodeJsHMChain();
 
-	static TNodeJsHMChain* New(const v8::FunctionCallbackInfo<v8::Value>& Args);
-//	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, const PJsonVal& ParamVal);
-//	static v8::Local<v8::Object> WrapInst(const v8::Local<v8::Object> Obj, PSIn& SIn);
+	static TNodeJsHMChain* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-	static void Init(v8::Handle<v8::Object> exports);
-	//#
-	//# **Functions and properties:**
-	//#
-	//#- `hmc.fit(ftrColMat, timeV)` -- Initializes the model with the instances in the columns of colMat
-	//#- which are sampled at time in timeV.
+	/**
+	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
+	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
+	 * batches and indicates wether the instance at index i ends a batch.
+	 *
+	 * @param {Matrix} X - the column matrix containing the data instances
+	 * @param {Vector} timeV - a vector containing the sampling times of the instances
+	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
+	 * @returns {HMC} - returns itself
+	 */
 	JsDeclareFunction(fit);
-	//#- `hmc.update(ftrVec, recTm)`
+	//#- `hmc.update(ftrVec, recTm)` TODO write documentation
 	JsDeclareFunction(update);
 
-	// predictions
-	//#- `probs = hmc.futureStates(level, startState[, time])` -- returns a vector of probabilities
-	//#- of future states starting from `startState` in time `time`.
-	//#- If time is not specified it returns the most likely next states.
+	/**
+	 * Returns the probability distribution over the future states given that the current state is the one in
+	 * the parameter.
+	 *
+	 * @param {Number} level - the level on which we want the future states
+	 * @param {Number} startState - the ID of the current state (the state we are starting from)
+	 * @param {Number} [time] - optional parameter, if not specified the distribution of the next state will be returned
+	 * @returns {Array} - the probability distribution
+	 */
 	JsDeclareFunction(futureStates);
-	//#- `probs = hmc.pastStates(level, startState[, time])` -- returns a vector of probabilities
-	//#- of past states starting from `startState` in time `time`.
-	//#- If time is not specified it returns the most likely previous states.
+
+	/**
+	 * Returns the probability distribution over the past states given that the current state is the one in
+	 * the parameter.
+	 *
+	 * @param {Number} level - the level on which we want the past states
+	 * @param {Number} startState - the ID of the current state (the state we are starting from)
+	 * @param {Number} [time] - optional parameter, if not specified the distribution of the previous state will be returned
+	 * @returns {Array} - the probability distribution
+	 */
 	JsDeclareFunction(pastStates);
-	//#- `probs = hmc.probsOverTime(level, state, dt)` --
+
+	/**
+	 * Returns the probability distribution of past and future states over time.
+	 *
+	 * @param {Number} level - the level on which we want the distributions
+	 * @param {Number} state - the state we are starting from
+	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
+	 * @returns {Array} - array of probability distributions over time
+	 */
 	JsDeclareFunction(probsOverTime);
-	//#- `stateIdV = hmc.getPastStates(level)` -- returns the previous states
+
+	/**
+	 * Returns information about previous states.
+	 *
+	 * @param {Number} level - the level on which we want the past states
+	 * @retuns {Array} - information about the past states
+	 */
 	JsDeclareFunction(histStates);
 
-	// state
-	//#- `hmc.toJSON()` -- Returns a JSON representation of the model
+	/**
+	 * Returns an object representation of this model.
+	 *
+	 * @returns {Object}
+	 */
 	JsDeclareFunction(toJSON);
-	//#- `transitionMat = hmc.getTransitionModel()` -- returns the transition matrix on level 0
+
+	/**
+	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
+	 *
+	 * @returns {Array} - the transition model
+	 */
 	JsDeclareFunction(getTransitionModel);
-	//#- `currStateV = hmc.getCurrState([height])` -- returns the current states through the hierarchy, if the height is specified it returns the ID of the current state on that height
+
+	/**
+	 * Returns the current state throughout the hierarchy. If the level is specified it
+	 * will return the current state only on that level.
+	 *
+	 * @param {Number} [level] - optional level parameter
+	 * @returns {Array|Number} - if the level is specified it returns info about the current state on that level, otherwise it return info about the current state on each level on the hierarchy
+	 */
 	JsDeclareFunction(currState);
-	//#- `coords = hmc.fullCoords(stateId)` -- returns the coordinates of the state
+
+	/**
+	 * Returns the centroid of the specified state.
+	 *
+	 * @param {Number} stateId - the ID of the state
+	 * @returns {Array} - the coordinates of the state
+	 */
 	JsDeclareFunction(fullCoords);
-	//#- `hist = hmc.histogram(stateId, ftrId)` -- returns the histogram of the specified feature in the specified state
+
+	/**
+	 * Returns a histogram of the specified feature in the specified state.
+	 *
+	 * @param {Number} stateId - the ID of the state
+	 * @param {Number} ftrId - the ID of the feature
+	 * @returns {Array} - the histogram
+	 */
 	JsDeclareFunction(histogram);
-	//#- `hist = hmc.histogram(height)` -- returns the IDs of states on the specified height
+
+	/**
+	 * Returns an array of IDs of all the states on the specified height.
+	 *
+	 * @param {Number} height - the height
+	 * @returns {Array} - the array of IDs
+	 */
 	JsDeclareFunction(stateIds);
 
-	// callbacks
-	//#- `hmc.onStateChanged(function (stateV) {})` -- callback when the current state changes
+	/**
+	 * Returns the weights of features in this state.
+	 *
+	 * @param {Number} stateId - The Id of the state.
+	 * @returns {Array} - An array of weights.
+	 */
+	JsDeclareFunction(getStateWgtV);
+
+	/**
+	 * Sets a callback function which is fired when the model changes states. An array of current states
+	 * throughout the hierarchy is passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
 	JsDeclareFunction(onStateChanged);
-	//#- `hmc.onAnomaly(function (description) {})` -- callback when an anomaly is detected
+
+	/**
+	 * Sets a callback function which is fired when the model detects an anomaly. A string description is
+	 * passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
 	JsDeclareFunction(onAnomaly);
-	//#- `hmc.onOutlier(function (ftrVec) {})` -- callback when an anomaly is detected
+
+	/**
+	 * Sets a callback function which is fired when the model detects an outlier. A string description is
+	 * passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
 	JsDeclareFunction(onOutlier);
 
-	// rebuild methods
-	//#- `hmc.rebuildHierarchy()` -- rebuilds the hierarchy
+	/**
+	 * Rebuilds its hierarchy.
+	 */
 	JsDeclareFunction(rebuildHierarchy);
-	//#- `hmc.rebuildHistograms(ftrColMat)` -- rebuilds the state histograms using the instances stored
-	//#- in the columns of the provided matrix
+
+	/**
+	 * Rebuilds the histograms using the instances stored in the columns of X.
+	 *
+	 * @param {Matrix} X - the column matrix containing data instances
+	 */
 	JsDeclareFunction(rebuildHistograms);
 
-	//#- `name = hmc.setStateName(stateId, stateNm)` -- Returns the name of the specified state.
+	/**
+	 * Returns the name of a state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @returns {String} - the name of the state
+	 */
 	JsDeclareFunction(getStateName);
-	//#- `hmc.setStateName(stateId, stateNm)` -- Sets the name of the state with the specified ID.
+
+	/**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @param {String} name - name of the state
+	 */
 	JsDeclareFunction(setStateName);
 
 	// parameters
@@ -262,7 +489,11 @@ public:
 	//#- in the input argument `params` returns this
 	JsDeclareFunction(setParams);
 
-	//#- `hmc.save(fout)` -- Saves the model into the specified output stream.
+	/**
+	 * Saves the model to the output stream.
+	 *
+	 * @param {FOut} fout - the output stream
+	 */
 	JsDeclareFunction(save);
 
 	// TMcCallback - callbacks
