@@ -162,9 +162,23 @@ public:
     //! **Functions and properties:**
     //!     
 	//!- `fout = new fs.FOut(fnm, append)` -- creates a new file output stream.
+	/**
+	* Output file stream.
+	* @classdesc Used for writing files.
+	* @class
+	* @param {String} fileName - File name
+	* @param {boolean} [append=false] - Append flag
+	*/
+	//# exports.FOut = function(fileName, append) {}	
 	JsDeclareFunction(New);
     //!- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-    JsDeclareFunction(write);
+    /**
+	* Writes a string
+	* @param {String} str - String to write
+	* @returns {module:fs.FOut} this - Returns self.
+	*/
+	//# exports.FOut.prototype.write = function(str) {}
+	JsDeclareFunction(write);
     //!- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
     JsDeclareFunction(writeLine);
     //!- `fout = fout.flush()` -- flushes output stream
