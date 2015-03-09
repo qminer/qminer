@@ -185,7 +185,7 @@ class TNodeJsSpVec : public node::ObjectWrap {
 public:
 	const static TStr ClassId;
 
-	TNodeJsSpVec() { }
+	TNodeJsSpVec() : Dim(-1) { }
 	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
 		: Vec(IntFltKdV), Dim(Dim)
 	{ }
@@ -196,9 +196,8 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-	// JsDeclareFunction(newSpVec);
+	//#- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
 	JsDeclareFunction(New);
 	//#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	JsDeclareFunction(at);
@@ -229,7 +228,7 @@ public:
 	JsDeclareFunction(toString);
 public:
 	TIntFltKdV Vec;
-	int Dim;
+	TInt Dim;
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
