@@ -799,7 +799,8 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 CrrArr->Get(0)->Int32Value(), CrrArr->Get(1)->NumberValue()));
             }
 			JsSpVec->Vec.Sort();
-			//JsSpVec->Dim = JsSpVec->Vec.Last().Key + 1;
+			int Dim = TNodeJsUtil::GetArgInt32(Args, 1, -1);
+			JsSpVec->Dim = Dim;
         }
         Args.GetReturnValue().Set(Instance);
     } else {
