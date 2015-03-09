@@ -185,7 +185,7 @@ class TNodeJsSpVec : public node::ObjectWrap {
 public:
 	const static TStr ClassId;
 
-	TNodeJsSpVec() { }
+	TNodeJsSpVec() : Dim(-1) { }
 	TNodeJsSpVec(const TIntFltKdV& IntFltKdV, const int& Dim = -1)
 		: Vec(IntFltKdV), Dim(Dim)
 	{ }
@@ -196,9 +196,8 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
-	//#- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-	//#- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-	// JsDeclareFunction(newSpVec);
+	//#- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
+	//#- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
 	JsDeclareFunction(New);
 	//#- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
 	JsDeclareFunction(at);
@@ -229,7 +228,7 @@ public:
 	JsDeclareFunction(toString);
 public:
 	TIntFltKdV Vec;
-	int Dim;
+	TInt Dim;
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
@@ -251,7 +250,7 @@ class TNodeJsSpMat : public node::ObjectWrap {
 public:
 	const static TStr ClassId;
 
-	TNodeJsSpMat() { }
+	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
 public:
@@ -262,6 +261,11 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
+
+	//#- `spMat = new la.newSpMat()` -- creates an empty sparse matrix `spMat`
+	//#- `spMat = new la.newSpMat(rowIdxVec, colIdxVec, valVec [, rows, cols])` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec` and optionally sets the row and column dimension
+	//#- `spMat = new la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	//#- `spMat = new la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(New);
 	//#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
@@ -741,7 +745,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	if (TAux::ClassId == TNodeJsStrV::GetClassId()) Name = "StrVector";
 	if (TAux::ClassId == TNodeJsBoolV::GetClassId()) Name = "BoolVector";
 
-	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
 	tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
 	// ObjectWrap uses the first internal field to store the wrapped pointer.
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -1067,6 +1071,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
                 // We have object with parameters, parse them out
                 const int MxVals = TNodeJsUtil::GetArgInt32(Args, 0, "mxVals", -1);
                 const int Vals = TNodeJsUtil::GetArgInt32(Args, 0, "vals", 0);
+				EAssertR(Vals >= 0, "vals should be nonnegative");
                 if (MxVals >= 0) {
                     JsVec->Vec.Gen(MxVals, Vals);
                 }

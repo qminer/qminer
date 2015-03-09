@@ -159,7 +159,9 @@ public:
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN as int, and use DefVal in case when not present
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal);
-    /// Extract argument ArgN property as int
+	/// Extract argument ArgN property as int
+	static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property);
+	/// Extract argument ArgN property as int
     static int GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal);
 
     /// Extract argument ArgN as double
