@@ -1151,8 +1151,12 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TNodeJsVec<TFlt, TAuxFltV>* ValV =
                     ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[2]->ToObject());
 
-                int Cols = Args.Length() == 4 && Args[3]->IsInt32() ?
-                    Args[3]->Int32Value() : -1;
+				int Rows = Args.Length() >= 4 && Args[3]->IsInt32() ?
+					Args[3]->Int32Value() : -1;
+				JsSpMat->Rows = Rows;
+
+                int Cols = Args.Length() == 5 && Args[4]->IsInt32() ?
+                    Args[4]->Int32Value() : -1;
                 if (Cols < 0) { Cols = ColIdxV->Vec.GetMxVal() + 1; }
 
                 TSparseOps<TInt, TFlt>::CoordinateCreateSparseColMatrix(

@@ -251,7 +251,7 @@ class TNodeJsSpMat : public node::ObjectWrap {
 public:
 	const static TStr ClassId;
 
-	TNodeJsSpMat() { }
+	TNodeJsSpMat() : Rows(-1) { }
 	TNodeJsSpMat(const TVec<TIntFltKdV>& _Mat, const int& _Rows = -1)
 		: Mat(_Mat), Rows(_Rows) { }
 public:
@@ -262,6 +262,11 @@ public:
 	//# 
 	//# **Functions and properties:**
 	//# 
+
+	//#- `spMat = new la.newSpMat()` -- creates an empty sparse matrix `spMat`
+	//#- `spMat = new la.newSpMat(rowIdxVec, colIdxVec, valVec [, rows, cols])` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec` and optionally sets the row and column dimension
+	//#- `spMat = new la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	//#- `spMat = new la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
 	JsDeclareFunction(New);
 	//#- `num = spMat.at(rowIdx,colIdx)` -- Gets the element of `spMat` (sparse matrix). Input: row index `rowIdx` (integer), column index `colIdx` (integer). Output: `num` (number). Uses zero-based indexing.
 	JsDeclareFunction(at);
