@@ -87,10 +87,9 @@ public:
 		friend class TPt<TRunnable>;
 	public:
 		TRunnable() {}
-
-		virtual void Run() = 0;
 		virtual ~TRunnable() {}
 
+		virtual void Run() = 0;
 		bool operator ==(const TRunnable& Other) const { return this == &Other; }
 	};
 private:

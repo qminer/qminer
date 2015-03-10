@@ -1839,10 +1839,9 @@ private:
 public:
 	TLinkedQueue();
 	TLinkedQueue(TSIn& SIn);
+	~TLinkedQueue();
 
 	void Save(TSOut& SOut) const;
-
-	~TLinkedQueue();
 
 	void Push(const TVal& Val);
 	TVal Pop();
@@ -1854,13 +1853,20 @@ public:
 };
 
 template <class TVal, class TSizeTy>
-void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
-	Size.Save(SOut);
+TLinkedQueue<TVal, TSizeTy>::TLinkedQueue():
+		First(nullptr),
+		Last(nullptr),
+		Size() {}
 
-	Node* Curr = First;
-	while (Curr != NULL) {
-		Curr->Val.Save(SOut);
-		Curr = Curr->Next;
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TLinkedQueue(TSIn& SIn):
+		First(nullptr),
+		Last(nullptr),
+		Size() {
+
+	const TSizeTy FinalSize(SIn);
+	for (TSizeTy i = 0; i < FinalSize; i++) {
+		Push(TVal(SIn));
 	}
 }
 
@@ -1870,16 +1876,27 @@ TLinkedQueue<TVal, TSizeTy>::~TLinkedQueue() {
 }
 
 template <class TVal, class TSizeTy>
+void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
+	Size.Save(SOut);
+
+	Node* Curr = First;
+	while (Curr != nullptr) {
+		Curr->Val.Save(SOut);
+		Curr = Curr->Next;
+	}
+}
+
+template <class TVal, class TSizeTy>
 void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
 	TLinkedQueue<TVal, TSizeTy>::Node* Node = new TLinkedQueue<TVal, TSizeTy>::Node(NULL, Val);
 
 	if (Size++ == 0) {
 		First = Node;
-		Last = Node;
 	} else {
 		Last->Next = Node;
-		Last = Node;
 	}
+
+	Last = Node;
 }
 
 template <class TVal, class TSizeTy>
@@ -1902,8 +1919,8 @@ void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
 	Node* Temp = First;
 
 	if (--Size == 0) {
-		First = NULL;
-		Last = NULL;
+		First = nullptr;
+		Last = nullptr;
 	} else {
 		First = First->Next;
 	}
