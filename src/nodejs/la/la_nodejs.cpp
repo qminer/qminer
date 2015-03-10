@@ -1622,6 +1622,7 @@ void TNodeJsSpMat::frob(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     for (int ColN = 0; ColN < Cols; ColN++) {
         FrobNorm += TLinAlg::Norm2(JsSpMat->Mat[ColN]);
     }
+	FrobNorm = sqrt(FrobNorm);
 
     Args.GetReturnValue().Set(v8::Number::New(Isolate, FrobNorm));
 }
