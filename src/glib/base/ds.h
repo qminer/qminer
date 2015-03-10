@@ -1831,7 +1831,7 @@ private:
 		TLinkNode(TLinkNode* Next, const TVal& Val);
 	};
 
-	typedef TLinkedQueue<TVal, TSizeTy>::TLinkNode TNode;
+	typedef typename TLinkedQueue<TVal, TSizeTy>::TLinkNode TNode;
 
 	TNode* First;
 	TNode* Last;
