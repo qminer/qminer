@@ -109,6 +109,9 @@ public:
 
 	// get number of cores in the system
 	static int GetCoreCount();
+
+	bool IsAlive() { throw TExcept::New("Not implemented!"); }
+	void Cancel() { throw TExcept::New("Not implemented!"); }
 };
 
 // waits until the given thread finishes the execution

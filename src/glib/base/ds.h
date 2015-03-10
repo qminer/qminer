@@ -498,7 +498,7 @@ public:
   int WriteN(int fd, char *ptr, int nbytes);
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm="");
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
-  
+
   /// Assigns new contents to the vector, replacing its current content.
   TVec<TVal, TSizeTy>& operator=(const TVec<TVal, TSizeTy>& Vec);
   // Move assignment
