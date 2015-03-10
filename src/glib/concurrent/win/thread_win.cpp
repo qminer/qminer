@@ -51,7 +51,7 @@ bool TMutex::Release() {
 
 ////////////////////////////////////////////
 // Critical Section
-TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type) {
+TCriticalSection::TCriticalSection() {
 	InitializeCriticalSection(&Cs);
 }
 TCriticalSection::~TCriticalSection() {
