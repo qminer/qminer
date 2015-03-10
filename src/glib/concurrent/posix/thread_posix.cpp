@@ -36,10 +36,10 @@ TMutex::TMutex(const TMutexType& _Type, const bool& LockOnStartP):
 	pthread_mutexattr_setpshared(&Attributes, PTHREAD_PROCESS_SHARED);
 
 	switch (Type) {
-	case TCriticalSectionType::cstFast:
+	case mtFast:
 		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_NORMAL);
 		break;
-	case TCriticalSectionType::cstRecursive:
+	case mtRecursive:
 		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_RECURSIVE);
 		break;
 	default:
@@ -74,20 +74,11 @@ void TMutex::GetLock() {
 	pthread_mutex_lock(&MutexHandle);
 }
 
-TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type):
-		Type(_Type) {
+TCriticalSection::TCriticalSection() {
 	pthread_mutexattr_init(&CsAttr);
 
-	switch (Type) {
-	case TCriticalSectionType::cstFast:
-		pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_NORMAL);
-		break;
-	case TCriticalSectionType::cstRecursive:
-		pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
-		break;
-	default:
-		throw TExcept::New("Invalid critical section type!", "TCriticalSection::Init()");
-	}
+	// allow the thread to enter thecritical section multiple times
+	pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
 
 	pthread_mutex_init(&Cs, &CsAttr);
 }
@@ -195,7 +186,7 @@ void TThread::SetFinished(void *pArg) {
 
 TThread::TThread():
 		ThreadHandle(),
-		CriticalSection(cstRecursive),
+		CriticalSection(),
 		Status(STATUS_CREATED) { }
 
 TThread::~TThread() {

@@ -52,8 +52,6 @@ bool TMutex::Release() {
 ////////////////////////////////////////////
 // Critical Section
 TCriticalSection::TCriticalSection(const TCriticalSectionType& _Type) {
-	//TODO: add support for other types
-	Assert(_Type == TCriticalSectionType::cstFast);
 	InitializeCriticalSection(&Cs);
 }
 TCriticalSection::~TCriticalSection() {

@@ -22,11 +22,6 @@
 
 #include <base.h>
 
-typedef enum {
-	cstFast,
-	cstRecursive
-} TCriticalSectionType;
-
 enum TMutexType {
 	mtFast,
 	mtRecursive

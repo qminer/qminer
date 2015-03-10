@@ -1823,17 +1823,19 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
 template <class TVal, class TSizeTy = TUInt64>
 class TLinkedQueue {
 private:
-	class Node {
+	class TLinkNode {
 	public:
-		Node* Next;
+		TLinkNode* Next;
 		const TVal Val;
 
-		Node(Node* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+		TLinkNode(TLinkNode* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
 	};
 
 private:
-	Node* First;
-	Node* Last;
+	typedef TLinkedQueue<TVal, TSizeTy>::TLinkNode TNode;
+
+	TNode* First;
+	TNode* Last;
 	TSizeTy Size;
 
 public:
@@ -1856,13 +1858,16 @@ template <class TVal, class TSizeTy>
 TLinkedQueue<TVal, TSizeTy>::TLinkedQueue():
 		First(nullptr),
 		Last(nullptr),
-		Size() {}
+		Size() {
+	Size = 0;	// explicitly set the size in case the default constructor does nothing
+}
 
 template <class TVal, class TSizeTy>
 TLinkedQueue<TVal, TSizeTy>::TLinkedQueue(TSIn& SIn):
 		First(nullptr),
 		Last(nullptr),
 		Size() {
+	Size = 0;	// explicitly set the size in case the default constructor does nothing
 
 	const TSizeTy FinalSize(SIn);
 	for (TSizeTy i = 0; i < FinalSize; i++) {
@@ -1879,7 +1884,7 @@ template <class TVal, class TSizeTy>
 void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
 	Size.Save(SOut);
 
-	Node* Curr = First;
+	TNode* Curr = First;
 	while (Curr != nullptr) {
 		Curr->Val.Save(SOut);
 		Curr = Curr->Next;
@@ -1888,7 +1893,7 @@ void TLinkedQueue<TVal, TSizeTy>::Save(TSOut& SOut) const {
 
 template <class TVal, class TSizeTy>
 void TLinkedQueue<TVal, TSizeTy>::Push(const TVal& Val) {
-	TLinkedQueue<TVal, TSizeTy>::Node* Node = new TLinkedQueue<TVal, TSizeTy>::Node(NULL, Val);
+	TNode* Node = new TNode(nullptr, Val);
 
 	if (Size++ == 0) {
 		First = Node;
@@ -1916,7 +1921,7 @@ template <class TVal, class TSizeTy>
 void TLinkedQueue<TVal, TSizeTy>::DelFirst() {
 	IAssertR(!Empty(), "Cannot delete elements from empty buffer!");
 
-	Node* Temp = First;
+	TNode* Temp = First;
 
 	if (--Size == 0) {
 		First = nullptr;

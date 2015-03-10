@@ -44,12 +44,13 @@ public:
 
 ////////////////////////////////////////////
 // Critical Section
+// allows only 1 thread to enter, but the same thread can enter multiple times
 class TCriticalSection {
 private:
 	CRITICAL_SECTION Cs;
 
 public:
-	TCriticalSection(const TCriticalSectionType& _Type = TCriticalSectionType::cstFast);
+	TCriticalSection();
 	~TCriticalSection();
 
 	// start of critical section
