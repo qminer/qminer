@@ -1,6 +1,6 @@
 {
   "name": "qminer",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
   "contributors": [
@@ -51,6 +51,10 @@
     {
       "name": "Dunja Mladenic",
       "email": "dunja.mladenic@ijs.si"
+    },
+    {
+      "name": "Erik Novak",
+      "email": "novak.erik@gmail.com"
     },
     {
       "name": "Jost Novljan",

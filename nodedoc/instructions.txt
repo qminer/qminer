@@ -8,6 +8,7 @@ makedoc usage:
 Example:
 ```
 node makedoc.js src/nodejs/ht/ht_nodejs.h src/nodejs/scripts/ht.js nodedoc/htdoc.js
+node makedoc.js src/nodejs/fs/fs_nodejs.h "" nodedoc/fsdoc.js
 ```
 
 Install jsdoc:
@@ -15,4 +16,4 @@ Install jsdoc:
 npm install jsdoc -g
 ```
 
-jsdoc nodedoc/htdoc.js -d nodedoc/htdoc
+jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js -d nodedoc

@@ -121,6 +121,8 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
@@ -158,6 +160,8 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
@@ -195,6 +199,8 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "dump", _dump);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "components", _components);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "degreeCentrality", _degreeCentrality);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
 	// Properties
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
