@@ -1390,7 +1390,10 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 if (JsSpMat2->Rows == -1) {
                     EAssertR(JsSpMat->Mat.Len() >= TLAMisc::GetMaxDimIdx(JsSpMat2->Mat) + 1,
                         "sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
-                }
+				} else {
+					EAssertR(JsSpMat->Mat.Len() == JsSpMat2->Rows,
+						"sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
+				}
                 TFltVV Result(Rows, JsSpMat2->Mat.Len());    
                 TLinAlg::Multiply(JsSpMat->Mat, JsSpMat2->Mat, Result);
                 Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
