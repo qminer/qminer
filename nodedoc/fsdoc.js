@@ -9,6 +9,12 @@
 	*/
  exports.openRead = function(fileName) {}
 /**
+	* open file in write mode and return file output stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FOut} fout - Output stream.
+	*/
+ exports.openWrite = function(fileName) {}
+/**
 	* Input file stream.
 	* @classdesc Used for reading files.
 	* @class

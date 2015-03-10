@@ -53,7 +53,12 @@ public:
 	*/
 	//# exports.openRead = function(fileName) {}
     JsDeclareFunction(openRead);
-    //!- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+    /**
+	* open file in write mode and return file output stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FOut} fout - Output stream.
+	*/
+	//# exports.openWrite = function(fileName) {}
     JsDeclareFunction(openWrite);
     //!- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
     JsDeclareFunction(openAppend);

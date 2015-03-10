@@ -1378,8 +1378,11 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TFltVV Result(Rows, 1);
                 // Copy could be omitted if we implemented SparseColMat * SparseVec
                 TVec<TIntFltKdV> TempSpMat(1);
-                TempSpMat[0] = JsSpVec->Vec;    
-                TLinAlg::Multiply(JsSpMat->Mat, TempSpMat, Result);
+                TempSpMat[0] = JsSpVec->Vec;
+				if (JsSpVec->Dim != -1) {
+					EAssert(JsSpVec->Dim == JsSpMat->Mat.Len());
+				}
+                TLinAlg::Multiply(JsSpMat->Mat, TempSpMat, Result, Rows);
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
             } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) { // Sparse matrix 
                 TNodeJsSpMat* JsSpMat2 =

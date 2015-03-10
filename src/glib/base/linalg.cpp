@@ -1508,7 +1508,8 @@ void TLinAlg::Multiply(const TVec<TIntFltKdV>& A, const TVec<TIntFltKdV>& B, TFl
 	}
 	if (C.Empty()) {		
 		C.Gen(Rows, ColsB);
-	}	
+	}
+	EAssert(TLAMisc::GetMaxDimIdx(B) + 1 <= A.Len());
 	C.PutAll(0.0);
 	for (int ColN = 0; ColN < ColsB; ColN++) {
 		int ElsB = B[ColN].Len();
