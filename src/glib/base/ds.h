@@ -1823,16 +1823,16 @@ void TVecPool<TVal, TSizeTy>::ShuffleAll(TRnd& Rnd) {
 template <class TVal, class TSizeTy = TUInt64>
 class TLinkedQueue {
 private:
+	template <class T>
 	class TLinkNode {
 	public:
-		TLinkNode* Next;
-		const TVal Val;
+		TLinkNode<T>* Next;
+		const T Val;
 
-		TLinkNode(TLinkNode* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+		TLinkNode(TLinkNode<T>* _Next, const T& _Val): Next(_Next), Val(_Val) {}
 	};
 
-private:
-	typedef TLinkedQueue<TVal, TSizeTy>::TLinkNode TNode;
+	typedef TLinkedQueue<TVal, TSizeTy>::TLinkNode<TVal> TNode;
 
 	TNode* First;
 	TNode* Last;
