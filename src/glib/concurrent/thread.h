@@ -78,7 +78,13 @@ public:
 //   contains a pool of threads which can execute a TRunnable object
 class TThreadExecutor {
 public:
-	ClassTP(TRunnable, PRunnable)// {
+	class TRunnable;
+		typedef TPt<TRunnable> PRunnable;
+	class TRunnable {
+	private:
+		TCRef CRef;
+	public:
+		friend class TPt<TRunnable>;
 	public:
 		virtual void Run() = 0;
 		virtual ~TRunnable() {}
@@ -100,8 +106,11 @@ private:
 	};
 
 private:
-	TThreadV<TExecutorThread> ThreadV;
-	TLinkedQueue<PRunnable> TaskQ;
+	typedef TThreadV<TExecutorThread> TExecThreadV;
+	typedef TLinkedQueue<PRunnable> TTaskQueue;
+
+	TExecThreadV ThreadV;
+	TTaskQueue TaskQ;
 
 	TCondVarLock Lock;
 
