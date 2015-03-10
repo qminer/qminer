@@ -1539,7 +1539,7 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         int Len = Result.Len();
         for (int ColN = 0; ColN < Len; ColN++) {
             if (ColN < Len1 && ColN < Len2) {
-                TLinAlg::LinComb(-1.0, JsSpMat->Mat[ColN], 1.0, JsSpMat2->Mat[ColN], Result[ColN]);
+                TLinAlg::LinComb(1.0, JsSpMat->Mat[ColN], -1.0, JsSpMat2->Mat[ColN], Result[ColN]);
             }
             if (ColN >= Len1 && ColN < Len2) {
                 Result[ColN].Gen(JsSpMat2->Mat[ColN].Len());
