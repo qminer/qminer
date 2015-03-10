@@ -86,6 +86,8 @@ public:
 	public:
 		friend class TPt<TRunnable>;
 	public:
+		TRunnable() {}
+
 		virtual void Run() = 0;
 		virtual ~TRunnable() {}
 
