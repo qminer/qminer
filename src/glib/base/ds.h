@@ -1828,9 +1828,7 @@ private:
 		TLinkNode* Next;
 		const TVal Val;
 
-		const TVal& GetVal() const { return Val; }
-
-		TLinkNode(TLinkNode* _Next, const TVal& _Val): Next(_Next), Val(_Val) {}
+		TLinkNode(TLinkNode* Next, const TVal& Val);
 	};
 
 	typedef TLinkedQueue<TVal, TSizeTy>::TLinkNode TNode;
@@ -1854,6 +1852,11 @@ public:
 	bool Empty() const { return Len() == 0; };
 	TSizeTy Len() const { return Size; };
 };
+
+template <class TVal, class TSizeTy>
+TLinkedQueue<TVal, TSizeTy>::TLinkNode::TLinkNode(TLinkNode* _Next, const TVal& _Val):
+		Next(_Next),
+		Val(_Val) {}
 
 template <class TVal, class TSizeTy>
 TLinkedQueue<TVal, TSizeTy>::TLinkedQueue():
