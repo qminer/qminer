@@ -30,7 +30,7 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
         v8::Array* Arr = v8::Array::Cast(*Obj);
         for (uint i = 0; i < Arr->Length(); i++) {
         	if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
-        		JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject()));
+        		JsonArr->AddToArr(GetObjJson(Arr->Get(i)->ToObject(), IgnoreFunc));
         	}
         }
 
@@ -48,7 +48,7 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Object>& Obj, const bool Ig
 			if (!IgnoreFunc || !Val->IsFunction()) {
 				// supported cases. Alternatively, we could set the object to null
 				EAssertR(Val->IsObject() || Val->IsBoolean() || Val->IsNumber() || Val->IsString() || Val->IsArray() || Val->IsNull() || Val->IsRegExp() || Val->IsDate(), "TNodeJsUtil::GetObjJson: Cannot parse!");
-				JsonVal->AddToObj(FldNm, GetObjJson(Val->ToObject()));
+				JsonVal->AddToObj(FldNm, GetObjJson(Val->ToObject(), IgnoreFunc));
             }
         }
 
@@ -360,6 +360,22 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
 	EAssertR(RetVal->IsNumber(), "Return type expected to be number");
 
 	return RetVal->NumberValue();
+}
+
+PJsonVal TNodeJsUtil::ExecuteJson(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	v8::Handle<v8::Value> Argv[2] = { Arg1, Arg2 };
+	v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 2, Argv);
+
+	EAssertR(RetVal->IsObject() || RetVal->IsArray(), "The returned value is not an object!");
+
+	return TNodeJsUtil::GetObjJson(RetVal->ToObject());
+}
+
+void TNodeJsUtil::ThrowJsException(v8::Isolate* Isolate, const PExcept& Except) {
+	Isolate->ThrowException(v8::Exception::TypeError(v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetMsgStr()).CStr())));
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Json) {

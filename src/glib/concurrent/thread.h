@@ -56,7 +56,7 @@ public:
 
 ////////////////////////////////////////////
 // Lock 
-//   Wrapper around criticla section, which automatically enters 
+//   Wrapper around critical section, which automatically enters
 //   on construct, and leaves on scope unwinding (destruct)
 class TLock {
 	friend class TCondVarLock;

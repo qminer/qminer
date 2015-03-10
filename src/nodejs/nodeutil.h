@@ -179,12 +179,17 @@ public:
     static PJsonVal GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Executes the function with the specified argument and returns a double result.
     static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
+    /// Executes the function with the specified argument and returns an object as a JSON object.
+    static PJsonVal ExecuteJson(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2);
     /// Executes the function with the specified argument
     template <class TVal>
 	static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
 
 	static uint64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
 	static uint64 GetCppTimestamp(const uint64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
+
+	/// Throws and exception which can be caught in Javascript
+	static void ThrowJsException(v8::Isolate* Isolate, const PExcept& Except);
 
 	/// Constructor callback: sets the hidden "class" property of new instance,
 	/// creates a new wrapper object and wraps the new instance. This callback
