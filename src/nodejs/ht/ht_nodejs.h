@@ -218,7 +218,28 @@ public:
     
 	/**
 	* String-string hashmap	
+	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
 	* @class
+	* @example
+	* // create a new string-string hashtable
+	* ht = require('qminer').ht;
+	* var h = new ht.StrStrMap();
+	* // Adding two key/dat pairs
+	* h.put('key1', 'val1');
+	* h.put('key2', 'val2');
+	* // Getting data
+	* h.hasKey('key1'); // returns true
+	* h.get('key2'); // returns 'val2'
+	* h.key(1); // returns 'key2'
+	* h.dat(1); // returns 'dat2'
+	* h.length; // returns 2
+	* // Saving and loading:
+	* var fs = require('qminer').fs;
+	* fout = fs.openWrite('map.dat'); // open write stream
+	* h.save(fout).close(); // save and close write stream
+	* var h2 = new ht.StrStrMap(); // new empty table
+	* var fin = fs.openRead('map.dat'); // open read stream
+	* h2.load(fin); // load
 	*/
 	//# exports.StrStrMap = function() {}
 	JsDeclareFunction(New);	
@@ -226,7 +247,7 @@ public:
 	/**
 	* Returns dat given key
 	* @param {string} key - Hashmap key.
-	* @returns {string} data - Hashmap data.
+	* @returns {string} Hashmap data.
 	*/
     //# exports.StrStrMap.prototype.get = function(key) {}
     JsDeclareFunction(get);
@@ -235,7 +256,7 @@ public:
 	* add/update key-value pair
 	* @param {string} key - Hashmap key.
 	* @param {string} data - Hashmap data.
-	* @returns {module:ht.StrStrMap} this - Returns self.
+	* @returns {module:ht.StrStrMap} Self.
 	*/
     //# exports.StrStrMap.prototype.put = function(key, data) {}
     JsDeclareFunction(put);    
@@ -243,13 +264,13 @@ public:
 	/**
 	* returns true if the map has a given key 
 	* @param {string} key - Hashmap key.	
-	* @returns {boolean} haskey - Returns true if the map contains key.
+	* @returns {boolean} True if the map contains key.
 	*/
     //# exports.StrStrMap.prototype.hasKey = function(key) {}
     JsDeclareFunction(hasKey);
 	
 	/**
-    * @property {number} length Number of key/dat pairs
+    * @property {number} length - Number of key/dat pairs
 	*/
 	//# exports.StrStrMap.prototype.length = undefined;
 	JsDeclareProperty(length);
@@ -257,7 +278,7 @@ public:
 	/**
 	* returns n-th key
 	* @param {number} n - Hashmap key number.	
-	* @returns {string} key - Returns n-th key.
+	* @returns {string} n-th key.
 	*/
     //# exports.StrStrMap.prototype.key = function(n) {}	
     JsDeclareFunction(key);
@@ -265,7 +286,7 @@ public:
 	/**
 	* returns n-th dat
 	* @param {number} n - Hashmap dat number.	
-	* @returns {string} dat - Returns n-th data value.
+	* @returns {string} n-th data value.
 	*/
     //# exports.StrStrMap.prototype.dat = function(n) {}    
     JsDeclareFunction(dat);
@@ -273,7 +294,7 @@ public:
 	/**
 	* loads the hashtable from input stream
 	* @param {module:fs.FIn} fin - Input stream.	
-	* @returns {module:ht.StrStrMap} map - Returns map.
+	* @returns {module:ht.StrStrMap} Self.
 	*/
     //# exports.StrStrMap.prototype.load = function(fin) {}  	
     JsDeclareFunction(load);
@@ -281,7 +302,7 @@ public:
 	/**
 	* saves the hashtable to output stream
 	* @param {module:fs.FOut} fout - Output stream.	
-	* @returns {module:fs.FOut} fout - Returns the input parameter (so close can be called if needed).
+	* @returns {module:fs.FOut} fout.
 	*/
     //# exports.StrStrMap.prototype.save = function(fout) {}  	    
     JsDeclareFunction(save);

@@ -1378,8 +1378,11 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 TFltVV Result(Rows, 1);
                 // Copy could be omitted if we implemented SparseColMat * SparseVec
                 TVec<TIntFltKdV> TempSpMat(1);
-                TempSpMat[0] = JsSpVec->Vec;    
-                TLinAlg::Multiply(JsSpMat->Mat, TempSpMat, Result);
+                TempSpMat[0] = JsSpVec->Vec;
+				if (JsSpVec->Dim != -1) {
+					EAssert(JsSpVec->Dim == JsSpMat->Mat.Len());
+				}
+                TLinAlg::Multiply(JsSpMat->Mat, TempSpMat, Result, Rows);
                 Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Result.Get1DVec()));
             } else if (TNodeJsUtil::IsArgClass(Args, 0, "TVec<TIntFltKdV>")) { // Sparse matrix 
                 TNodeJsSpMat* JsSpMat2 =
@@ -1387,7 +1390,10 @@ void TNodeJsSpMat::multiply(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 if (JsSpMat2->Rows == -1) {
                     EAssertR(JsSpMat->Mat.Len() >= TLAMisc::GetMaxDimIdx(JsSpMat2->Mat) + 1,
                         "sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
-                }
+				} else {
+					EAssertR(JsSpMat->Mat.Len() == JsSpMat2->Rows,
+						"sparse_col_matrix * sparse_col_matrix: dimensions mismatch");
+				}
                 TFltVV Result(Rows, JsSpMat2->Mat.Len());    
                 TLinAlg::Multiply(JsSpMat->Mat, JsSpMat2->Mat, Result);
                 Args.GetReturnValue().Set(TNodeJsFltVV::New(Result));
@@ -1533,7 +1539,7 @@ void TNodeJsSpMat::minus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         int Len = Result.Len();
         for (int ColN = 0; ColN < Len; ColN++) {
             if (ColN < Len1 && ColN < Len2) {
-                TLinAlg::LinComb(-1.0, JsSpMat->Mat[ColN], 1.0, JsSpMat2->Mat[ColN], Result[ColN]);
+                TLinAlg::LinComb(1.0, JsSpMat->Mat[ColN], -1.0, JsSpMat2->Mat[ColN], Result[ColN]);
             }
             if (ColN >= Len1 && ColN < Len2) {
                 Result[ColN].Gen(JsSpMat2->Mat[ColN].Len());
@@ -1616,6 +1622,7 @@ void TNodeJsSpMat::frob(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     for (int ColN = 0; ColN < Cols; ColN++) {
         FrobNorm += TLinAlg::Norm2(JsSpMat->Mat[ColN]);
     }
+	FrobNorm = sqrt(FrobNorm);
 
     Args.GetReturnValue().Set(v8::Number::New(Isolate, FrobNorm));
 }

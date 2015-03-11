@@ -29,13 +29,22 @@ public:
 
 ///////////////////////////////
 // NodeJs-Filesystem
-//!
-//! ### File system
-//! 
 
 /**
 * File-system module.
 * @module fs
+* @example
+* // import module
+* var fs = require('qminer').fs;
+* // open file in write mode
+* var fout = fs.openWrite('file.txt');
+* // write sync and close
+* fout.writeLine('example text');
+* fout.close();
+* // open file in read mode
+* var fin = fs.openRead('file.txt');
+* // read a line
+* var str = fin.readLine();
 */
 class TNodeJsFs : public node::ObjectWrap {
 public:
@@ -46,36 +55,112 @@ private:
         AllowedFPathV(AllowedDirV_) { }
 public:
     static void Init(v8::Handle<v8::Object> exports);
-    /**
+    
+	/**
 	* open file in read mode and return file input stream
 	* @param {string} fileName - File name.
-	* @returns {module:fs.FIn} fin - Input stream.
+	* @returns {module:fs.FIn} Input stream.
 	*/
 	//# exports.openRead = function(fileName) {}
     JsDeclareFunction(openRead);
-    //!- `fout = fs.openWrite(fileName)` -- open file in write mode and return file output stream `fout`
+    
+	/**
+	* open file in write mode and return file output stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FOut} Output stream.
+	*/
+	//# exports.openWrite = function(fileName) {}
     JsDeclareFunction(openWrite);
-    //!- `fout = fs.openAppend(fileName)` -- open file in append mode and return file output stream `fout`
-    JsDeclareFunction(openAppend);
-    //!- `bool = fs.exists(fileName)` -- does file exist?
+	
+	/**
+	* open file in append mode and return file output stream
+	* @param {string} fileName - File name.
+	* @returns {module:fs.FOut} Output stream.
+	*/
+	//# exports.openAppend = function(fileName) {}	
+	JsDeclareFunction(openAppend);
+	
+	/**
+	* checks if the file exists
+	* @param {string} fileName - File name.
+	* @returns {boolean} True if file exists.
+	*/
+	//# exports.exists = function(fileName) {}	
     JsDeclareFunction(exists);
-    //!- `fs.copy(fromFileName, toFileName)` -- copy file
+	
+	/**
+	* copies a file
+	* @param {string} source - Source file name.
+	* @param {string} dest - Destination file name.
+	*/
+	//# exports.copy = function(source, dest) {}	
     JsDeclareFunction(copy);
-    //!- `fs.move(fromFileName, toFileName)` -- move file
-    JsDeclareFunction(move);
-    //!- `fs.del(fileName)` -- delete file
+	
+	/**
+	* moves a file
+	* @param {string} source - Source file name.
+	* @param {string} dest - Destination file name.
+	*/
+	//# exports.move = function(source, dest) {}
+	JsDeclareFunction(move);
+	
+	/**
+	* deletes a file
+	* @param {string} fileName - File name.
+	* @returns {boolean} True if delete succeeded.
+	*/
+	//# exports.del = function(fileName) {}	
     JsDeclareFunction(del);
-    //!- `fs.rename(fromFileName, toFileName)` -- rename file
+	
+	/**
+	* renames a file
+	* @param {string} source - Source file name.
+	* @param {string} dest - Destination file name.
+	*/
+	//# exports.rename = function(source, dest) {}
     JsDeclareFunction(rename);
-    //!- `fileInfoJson = fs.fileInfo(fileName)` -- returns file info as a json object {createTime:str, lastAccessTime:str, lastWriteTime:str, size:num}.
+
+	/**
+	* Information about the file
+	* @typedef {Object} FileInfo 	
+	* @property  {string} FileInfo.createTime - Create time.
+	* @property  {string} FileInfo.lastAccessTime - Last access time.
+	* @property  {string} FileInfo.lastWriteTime - Last write time.
+	* @property  {number} FileInfo.size - File size in bytes.	
+	*/	
+	
+	/**
+	* returns the file info
+	* @param {string} fileName - File name.
+	* @returns {module:fs~FileInfo} File info object.
+	*/
+	//# exports.fileInfo = function(fileName) {}	
     JsDeclareFunction(fileInfo);
-    //!- `fs.mkdir(dirName)` -- make folder
+	
+	/**
+	* Creates a folder
+	* @param {string} dirName - Folder name.
+	* @returns {boolean} True if succeeded.
+	*/
+	//# exports.mkdir = function(dirName) {}	
     JsDeclareFunction(mkdir);
-    //!- `fs.rmdir(dirName)` -- delete folder
+	
+	/**
+	* Removes a folder
+	* @param {string} dirName - Folder name.
+	* @returns {boolean} True if succeeded.
+	*/
+	//# exports.rmdir = function(dirName) {}
     JsDeclareFunction(rmdir);
-    //!- `strArr = fs.listFile(dirName)` -- returns list of files in directory
-    //!- `strArr = fs.listFile(dirName, fileExtension)` -- returns list of files in directory given file extension
-    //!- `strArr = fs.listFile(dirName, fileExtension, recursive)` -- returns list of files in directory given extension. `recursive` is a boolean
+	
+	/**
+	* Returns a list fo files in the folder
+	* @param {string} dirName - Folder name.
+	* @param {string} [fileExtension] - Results are filtered by file extension.
+	* @param {boolean} [recursive=false] - Recursively searches for file names if true.
+	* @returns {string[]} True if succeeded.
+	*/
+	//# exports.listFile = function(dirName, fileExtension, recursive) {}
     JsDeclareFunction(listFile);
 };
 
@@ -110,41 +195,63 @@ private:
 	* Input file stream.
 	* @classdesc Used for reading files.
 	* @class
-	* @param {String} fileName - File name
+	* @param {string} fileName - File name
+	* @example
+	* // import module
+	* var fs = require('qminer').fs;
+	* // open file in read mode
+	* var fin = new fs.FIn('file.txt');
+	* // read a line
+	* var str = fin.readLine();
 	*/
 	//# exports.FIn = function(fnm) {}	
 	// parses arguments, called by javascript constructor 
 	static TNodeJsFIn* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 public:
-	//! 
-	//! **Functions and properties:**
-	//!   
-	//!- `char = fin.peekCh()` -- peeks a character
-	JsDeclareFunction(peekCh);
-	//!- `char = fin.getCh()` -- reads a character
+	/**
+	* Peeks a character
+	* @returns {string} Character string.
+	*/
+	//# exports.FIn.prototype.peekCh= function() {}
+	JsDeclareFunction(peekCh);	
+	
+	/**
+	* Reads a character
+	* @returns {string} Character string.
+	*/
+	//# exports.FIn.prototype.getCh= function() {}
 	JsDeclareFunction(getCh);
-	//!- `line = fin.readLine()` -- reads a line
+	
 	/**
 	* Reads a line	
-	* @returns {String} line - Returns a line.
+	* @returns {string} Line string.
 	*/
 	//# exports.FIn.prototype.readLine = function() {}
 	JsDeclareFunction(readLine);
-	//!- `bool = fin.eof` -- end of stream?
+	
+	/**
+	* @property {boolean} eof - True if end of file is detected.
+	*/
+	//# exports.FIn.prototype.eof = undefined;
 	JsDeclareProperty(eof);
-	//!- `len = fin.length` -- returns the length of input stream
-	JsDeclareProperty(length);
-	//!- `str = fin.readAll()` -- reads the whole file
-	JsDeclareFunction(readAll);
 
+	/**
+	* @property {number} length - Length of input stream.
+	*/
+	//# exports.FIn.prototype.length = undefined;
+	JsDeclareProperty(length);
+
+	/**
+	* Reads the whole stream
+	* @returns {string} Content of the file.
+	*/
+	//# exports.FIn.prototype.readAll = function() {}
+	JsDeclareFunction(readAll);
 };
 
 
 ///////////////////////////////
 // NodeJs-FOut
-//!
-//! ### Output File Stream
-//! 
 class TNodeJsFOut : public node::ObjectWrap {
 	friend class TNodeJsUtil;
 public:
@@ -158,18 +265,52 @@ public:
 	static TStr ClassId;
     static v8::Local<v8::Object> New(const TStr& FilePath, const bool& AppendP = false);
 
-    //! 
-    //! **Functions and properties:**
-    //!     
-	//!- `fout = new fs.FOut(fnm, append)` -- creates a new file output stream.
+	/**
+	* Output file stream.
+	* @classdesc Used for writing files.
+	* @class
+	* @param {String} fileName - File name
+	* @param {boolean} [append=false] - Append flag
+	* @example
+	* // import module
+	* var fs = require('qminer').fs;
+	* // open file in write mode
+	* var fout = new fs.FOut('file.txt');
+	* // write a line
+	* fout.writeLine('example text');
+	* // close
+	* fout.close();
+	*/
+	//# exports.FOut = function(fileName, append) {}	
 	JsDeclareFunction(New);
-    //!- `fout = fout.write(data)` -- writes to output stream. `data` can be a number, a json object or a string.
-    JsDeclareFunction(write);
-    //!- `fout = fout.writeLine(data)` -- writes data to output stream and adds newline
+    
+	/**
+	* Writes a string
+	* @param {String} str - String to write
+	* @returns {module:fs.FOut} Self.
+	*/
+	//# exports.FOut.prototype.write = function(str) {}
+	JsDeclareFunction(write);
+
+	/**
+	* Writes a string and adds a new line
+	* @param {String} str - String to write
+	* @returns {module:fs.FOut} Self.
+	*/
+	//# exports.FOut.prototype.writeLine = function(str) {}
     JsDeclareFunction(writeLine);
-    //!- `fout = fout.flush()` -- flushes output stream
+
+	/**
+	* Flushes the output stream
+	* @returns {module:fs.FOut} Self.
+	*/
+	//# exports.FOut.prototype.flush = function() {}
     JsDeclareFunction(flush);
-    //!- `fout = fout.close()` -- closes output stream
+
+	/**
+	* Closes the output stream
+	*/
+	//# exports.FOut.prototype.close = function() {}
     JsDeclareFunction(close);
 private:
     static v8::Persistent<v8::Function> constructor;

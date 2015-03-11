@@ -67,6 +67,8 @@ private:
 	JsDeclareFunction(dump);
 	JsDeclareFunction(components);
 	JsDeclareFunction(degreeCentrality);
+	JsDeclareFunction(load);
+	JsDeclareFunction(save);
 private:
 	static v8::Persistent<v8::Function> constructor;
 };
@@ -545,6 +547,36 @@ void TNodeJsGraph<T>::degreeCentrality(const v8::FunctionCallbackInfo<v8::Value>
 	Args.GetReturnValue().Set(v8::Number::New(ReturnCentrality));*/
 }
 
+
+template <class T>
+void TNodeJsGraph<T>::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFIn::ClassId),
+		"Expected a FIn object as the argument.");
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+
+	TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+	PSIn SIn = JsFIn->SIn;
+	JsGraph->Graph = JsGraph->Graph->Load(*SIn);
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+template <class T>
+void TNodeJsGraph<T>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFOut::ClassId),
+		"Expected a FOut object as the argument.");
+	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
+
+	TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+	PSOut SOut = JsFOut->SOut;
+	JsGraph->Graph->Save(*SOut);
+	Args.GetReturnValue().Set(Args[0]);
+}
 
 
 ///// node implementations
