@@ -137,8 +137,7 @@ void TNodeJsFs::del(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Expected a file path as the only argument.");
     TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
-    TFile::Del(FNm, false); // ThrowExceptP = false 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Del(FNm, false))); // ThrowExceptP = false 
 }
 
 void TNodeJsFs::rename(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -446,7 +445,6 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
     JsFOut->SOut.Clr();
 
-    Args.GetReturnValue().Set(Args.Holder());
 }
 
 //#ifndef MODULE_INCLUDE_FS
