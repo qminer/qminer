@@ -433,10 +433,7 @@ void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
 	tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 
-#ifndef MODULE_INCLUDE_ANALYTICS
-	exports->Set(v8::String::NewFromUtf8(Isolate, "RecLinReg"),
-			   tpl->GetFunction());
-#endif
+	exports->Set(v8::String::NewFromUtf8(Isolate, "RecLinReg"), tpl->GetFunction());
 }
 
 TNodeJsRecLinReg* TNodeJsRecLinReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1789,35 +1786,3 @@ void TNodeJsTokenizer::getParagraphs(const v8::FunctionCallbackInfo<v8::Value>& 
 
 	Args.GetReturnValue().Set(TNodeJsUtil::GetStrArr(ParagraphV));
 }
-
-/////////////////////////////////
-//// Register functions, etc.
-//#ifndef MODULE_INCLUDE_ANALYTICS
-//
-//void init(v8::Handle<v8::Object> exports) {
-//    // QMiner package
-//	TNodeJsSVC::Init(exports);
-//	TNodeJsSVR::Init(exports);
-//	TNodeJsRecLinReg::Init(exports);
-//	TNodeJsLogReg::Init(exports);
-//	TNodeJsExpReg::Init(exports);
-//	TNodeJsHMChain::Init(exports);
-//	TNodeJsNNet::Init(exports);
-//	TNodeJsTokenizer::Init(exports);
-//
-//	// We need this if we want to return linear algebra objects (for example TNodeJsFltV::New(TFltV ...) will crash without calling the appropriate init function)
-//	TNodeJsVec<TFlt, TAuxFltV>::Init(exports);
-//	TNodeJsVec<TInt, TAuxIntV>::Init(exports);
-//	TNodeJsVec<TStr, TAuxStrV>::Init(exports);
-//	TNodeJsFltVV::Init(exports);
-//	TNodeJsSpVec::Init(exports);
-//	TNodeJsSpMat::Init(exports);
-//
-//	// File stream
-//	TNodeJsFIn::Init(exports);
-//	TNodeJsFOut::Init(exports);
-//}
-//
-//NODE_MODULE(analytics, init)
-//
-//#endif
