@@ -1,6 +1,18 @@
 /**
 * File-system module.
 * @module fs
+* @example
+* // import module
+* var fs = require('qminer').fs;
+* // open file in write mode
+* var fout = fs.openWrite('file.txt');
+* // write sync and close
+* fout.writeLine('example text');
+* fout.close();
+* // open file in read mode
+* var fin = fs.openRead('file.txt');
+* // read a line
+* var str = fin.readLine();
 */
 /**
 	* open file in read mode and return file input stream
@@ -89,6 +101,13 @@
 	* @classdesc Used for reading files.
 	* @class
 	* @param {string} fileName - File name
+	* @example
+	* // import module
+	* var fs = require('qminer').fs;
+	* // open file in read mode
+	* var fin = new fs.FIn('file.txt');
+	* // read a line
+	* var str = fin.readLine();
 	*/
  exports.FIn = function(fnm) {}	
 /**
@@ -125,6 +144,15 @@
 	* @class
 	* @param {String} fileName - File name
 	* @param {boolean} [append=false] - Append flag
+	* @example
+	* // import module
+	* var fs = require('qminer').fs;
+	* // open file in write mode
+	* var fout = new fs.FOut('file.txt');
+	* // write a line
+	* fout.writeLine('example text');
+	* // close
+	* fout.close();
 	*/
  exports.FOut = function(fileName, append) {}	
 /**

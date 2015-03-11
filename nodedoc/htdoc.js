@@ -34,7 +34,28 @@
  exports.IntFltMap = function() {}
 /**
 	* String-string hashmap	
+	* @classdesc Used for storing key/data pairs, wrapps an efficient C++ implementation.
 	* @class
+	* @example
+	* // create a new string-string hashtable
+	* ht = require('qminer').ht;
+	* var h = new ht.StrStrMap();
+	* // Adding two key/dat pairs
+	* h.put('key1', 'val1');
+	* h.put('key2', 'val2');
+	* // Getting data
+	* h.hasKey('key1'); // returns true
+	* h.get('key2'); // returns 'val2'
+	* h.key(1); // returns 'key2'
+	* h.dat(1); // returns 'dat2'
+	* h.length; // returns 2
+	* // Saving and loading:
+	* var fs = require('qminer').fs;
+	* fout = fs.openWrite('map.dat'); // open write stream
+	* h.save(fout).close(); // save and close write stream
+	* var h2 = new ht.StrStrMap(); // new empty table
+	* var fin = fs.openRead('map.dat'); // open read stream
+	* h2.load(fin); // load
 	*/
  exports.StrStrMap = function() {}
 /**
