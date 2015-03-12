@@ -973,11 +973,12 @@ void TNodeJsSpVec::full(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsSpVec* JsSpVec =
         ObjectWrap::Unwrap<TNodeJsSpVec>(Args.Holder());
 
-    int Len = JsSpVec->Vec.Len();
-    if (Args.Length() > 0 && Args[0]->IsInt32()) { Len = Args[0]->Int32Value(); }
-    if (Len == -1) { Len = TLAMisc::GetMaxDimIdx(JsSpVec->Vec) + 1; }
+	int Dim = JsSpVec->Dim;
+    
+    if (Args.Length() > 0 && Args[0]->IsInt32()) { Dim = Args[0]->Int32Value(); }
+    if (Dim == -1) { Dim = TLAMisc::GetMaxDimIdx(JsSpVec->Vec) + 1; }
     TFltV Res;
-    TLAMisc::ToVec(JsSpVec->Vec, Res, Len);        
+	TLAMisc::ToVec(JsSpVec->Vec, Res, Dim);
 
     Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Res));
 }
@@ -1026,6 +1027,7 @@ void TNodeJsSpVec::toString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         if (It != JsSpVec->Vec.BegI()) { Str += ", "; }
         Str += "(" + TInt::GetStr(It->Key) + "," + TFlt::GetStr(It->Dat) + ")";
     }
+	Str += "]";
 
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }

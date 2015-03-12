@@ -99,7 +99,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line60">line 60</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line31">line 31</a>
     </li></ul></dd>
     
 
@@ -126,7 +126,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new string-string hashtableht = require('qminer').ht;var h = new ht.StrStrMap();// Adding two key/dat pairsh.put('key1', 'val1');h.put('key2', 'val2');// Getting datah.hasKey('key1'); // returns trueh.get('key2'); // returns 'val2'h.key(1); // returns 'key2'h.dat(1); // returns 'dat2'h.length; // returns 2// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.StrStrMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
+    <pre class="prettyprint"><code>// create a new hashtableht = require('qminer').ht;var h = new ht.StrStrMap();// Adding two key/dat pairsh.put('foo', 'bar');h.put('dog', 'tisa');// Getting datah.hasKey('foo'); // returns trueh.get('dog'); // returns 'tisa'h.key(1); // returns 'dog'h.dat(1); // returns 'tisa'h.length; // returns 2// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.StrStrMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
 
 
 
@@ -240,7 +240,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line83">line 83</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line54">line 54</a>
     </li></ul></dd>
     
 
@@ -318,7 +318,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line114">line 114</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line456">line 456</a>
     </li></ul></dd>
     
 
@@ -430,7 +430,7 @@
 
             
 
-            <td class="description last">Hashmap dat number.</td>
+            <td class="description last">Hashmap dat number. Should be between 0 and length-1</td>
         </tr>
 
     
@@ -471,7 +471,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line95">line 95</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line66">line 66</a>
     </li></ul></dd>
     
 
@@ -624,7 +624,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line66">line 66</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line37">line 37</a>
     </li></ul></dd>
     
 
@@ -777,7 +777,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line79">line 79</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line50">line 50</a>
     </li></ul></dd>
     
 
@@ -889,7 +889,7 @@
 
             
 
-            <td class="description last">Hashmap key number.</td>
+            <td class="description last">Hashmap key number. Should be between 0 and length-1.</td>
         </tr>
 
     
@@ -930,7 +930,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line89">line 89</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line60">line 60</a>
     </li></ul></dd>
     
 
@@ -1083,7 +1083,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line101">line 101</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line72">line 72</a>
     </li></ul></dd>
     
 
@@ -1259,7 +1259,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line73">line 73</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line44">line 44</a>
     </li></ul></dd>
     
 
@@ -1412,7 +1412,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line107">line 107</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line78">line 78</a>
     </li></ul></dd>
     
 
@@ -1482,7 +1482,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Wed Mar 11 2015 11:13:06 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Mar 12 2015 14:53:49 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
