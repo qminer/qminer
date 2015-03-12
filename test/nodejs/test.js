@@ -1439,7 +1439,7 @@ describe('Sparse Vector', function () {
         describe('Full Test', function () {
             it('should return the dense form of spV', function () {
                 var vec = spV.full();
-                var controlVec = new la.Vector([3, 10, -1, 0.0001, 0, 0, 0, 0, -12]);
+                var controlVec = new la.Vector([3, 10, 0, 0.0001, 0, 0, 0, 0, 0, -12]);
 
         //        assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < vec.length; i++) {
