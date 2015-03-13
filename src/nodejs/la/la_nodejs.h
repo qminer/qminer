@@ -256,7 +256,6 @@ public:
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
-	static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
 	//# 
 	//# **Functions and properties:**
@@ -1004,7 +1003,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 	TIntFltKdV Res;
 	TLAMisc::ToSpVec(JsVec->Vec, Res);
 
-	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res));
+	Args.GetReturnValue().Set(TNodeJsSpVec::New(Res, JsVec->Vec.Len()));
 }
 
 template<>
@@ -1372,7 +1371,10 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
     for (int ElN = 0; ElN < JsVec->Vec.Len() - 1; ++ElN) {
         Str += JsVec->Vec[ElN].GetStr() + ", ";
     }
-    Str += JsVec->Vec.Last().GetStr() + "]";
+	if (JsVec->Vec.Len() > 0) {
+		Str += JsVec->Vec.Last().GetStr();
+	}
+	Str += "]";
 
     Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
 }

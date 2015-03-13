@@ -34,7 +34,7 @@
         StrFltMap
         </h2>
         
-            <div class="class-description">See <a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a>. The only difference are the key and data types.</div>
+            <div class="class-description">Used for storing key/data pairs, wrapps an efficient C++ implementation.</div>
         
     
 </header>
@@ -55,7 +55,7 @@
 
 
 <div class="description">
-    String-float hashmap
+    String-Float hashmap
 </div>
 
 
@@ -99,7 +99,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line16">line 16</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line179">line 179</a>
     </li></ul></dd>
     
 
@@ -124,6 +124,11 @@
 
 
 
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// create a new hashtableht = require('qminer').ht;var h = new ht.StrFltMap();// Adding two key/dat pairsh.put('foo', 10.5);h.put('bar', 20.2);// Getting datah.hasKey('foo'); // returns trueh.get('bar'); // returns 20.2h.key(1); // returns 'bar'h.dat(1); // returns 20.2h.length; // returns 2// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.StrFltMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
+
+
 
     
     </div>
@@ -139,7 +144,1219 @@
     
 
     
+        <h3 class="subsection-title">Members</h3>
 
+        
+            
+<h4 class="name" id="length"><span class="type-signature"></span>length<span class="type-signature"></span></h4>
+
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>length</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Number of key/dat pairs</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line202">line 202</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="dat"><span class="type-signature"></span>dat<span class="signature">(n)</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+<div class="description">
+    returns n-th dat
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>n</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Hashmap dat number. Should be between 0 and length-1</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line214">line 214</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    n-th data value.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="get"><span class="type-signature"></span>get<span class="signature">(key)</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Returns dat given key
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Hashmap key.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line185">line 185</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Hashmap data.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">number</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="hasKey"><span class="type-signature"></span>hasKey<span class="signature">(key)</span><span class="type-signature"> &rarr; {boolean}</span></h4>
+
+    
+
+
+
+<div class="description">
+    returns true if the map has a given key
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Hashmap key.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line198">line 198</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    True if the map contains key.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">boolean</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="key"><span class="type-signature"></span>key<span class="signature">(n)</span><span class="type-signature"> &rarr; {string}</span></h4>
+
+    
+
+
+
+<div class="description">
+    returns n-th key
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>n</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Hashmap key number. Should be between 0 and length-1.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line208">line 208</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    n-th key.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">string</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(fin)</span><span class="type-signature"> &rarr; {<a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    loads the hashtable from input stream
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-fs.FIn.html">module:fs.FIn</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Input stream.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line220">line 220</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="put"><span class="type-signature"></span>put<span class="signature">(key, data)</span><span class="type-signature"> &rarr; {<a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    add/update key-value pair
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Hashmap key.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Hashmap data.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line192">line 192</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-ht.StrFltMap.html">module:ht.StrFltMap</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="save"><span class="type-signature"></span>save<span class="signature">(fout)</span><span class="type-signature"> &rarr; {<a href="module-fs.FOut.html">module:fs.FOut</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    saves the hashtable to output stream
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fout</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Output stream.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line226">line 226</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    fout.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
     
 
     
@@ -155,13 +1372,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li></ul><h3>Classes</h3><ul><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Wed Mar 11 2015 11:13:06 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Fri Mar 13 2015 13:46:29 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

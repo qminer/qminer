@@ -1532,18 +1532,17 @@ describe('Sparse Vector', function () {
             })
         })
 
-        // doesn't make the full dense vector
-        //        describe('Full Test', function () {
-        //            it('should return the dense form of spV', function () {
-        //                var vec = spV.full();
-        //                var controlVec = new la.Vector([3, 10, -1, 0.0001, 0, 0, 0, 0, -12]);
+        describe('Full Test', function () {
+            it('should return the dense form of spV', function () {
+                var vec = spV.full();
+                var controlVec = new la.Vector([3, 10, -1, 0.0001, 0, 0, 0, 0, 0, -12]);
 
-        //                assert.deepEqual(vec, controlVec);
-        //                for (var i = 0; i < vec.length; i++) {
-        //                    assert.eqtol(vec.at(i), controlVec.at(i));
-        //                }
-        //            })
-        //        })
+        //        assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < vec.length; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+        })
 
         describe('ValVec Test', function () {
             it('should return a vector of nnz elements of spV', function () {
