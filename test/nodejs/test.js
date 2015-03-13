@@ -3115,6 +3115,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     assert.eqtol(vec.at(i), controlVec.at(i));
                 }
             })
+            
             // TODO fix
             //it('should return a vector for spMatD, v.dim > spMatD.rows', function () {
             //    var vec = mat.spMatD.multiplyT(v);
@@ -3195,20 +3196,16 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     assert.eqtol(vec.at(i), controlVec.at(i));
                 }
             })
-            // TODO fix
-            //it('should return a sparse zero vector of dim = spMatD.rows', function () {
-            //    var vec = mat.spMatD.multiplyT(v);
-            //    var controlVec = new la.Vector([0, 0]);
+                     
+            it('should return a sparse zero vector of dim = spMatD.rows', function () {
+                var vec = mat.spMatD.multiplyT(v);
+                var controlVec = new la.Vector([0, 0]);
 
-            //    assert.deepEqual(vec, controlVec);
-            //    for (var i = 0; i < 2; i++) {
-            //        assert.eqtol(vec.at(i), controlVec.at(i));
-            //    }
-            //})
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < 2; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
         })
-
-
-
-
     })
 });
