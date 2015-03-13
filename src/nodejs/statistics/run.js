@@ -1,13 +1,13 @@
-var la = require('../../../build/Debug/la.node');
-var stat = require('../../../build/Debug/stat.node');
+var la = require('../../../index.js').la;
+var stat = require('../../../index.js').stat;
 
 /////////////////////////
 // Return a new vector or a new matrix 
-la.newVector = function(args) { return new la.vector(args); }
-la.newIntVector = function(args) { return new la.vector(args); }
-la.newMatrix = function(args) { return new la.matrix(args); }
-la.newSparseVector = function(args) { return new la.sparseVector(args); }
-la.newSparseMatrix = function(args) { return new la.sparseMatrix(agrs); }
+la.newVector = function(args) { return new la.Vector(args); }
+la.newIntVector = function(args) { return new la.Vector(args); }
+la.newMatrix = function(args) { return new la.Matrix(args); }
+la.newSparseVector = function(args) { return new la.SparseVector(args); }
+la.newSparseMatrix = function(args) { return new la.SparseMatrix(agrs); }
 
 
 ///////////////////////////
