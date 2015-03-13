@@ -256,7 +256,6 @@ public:
 public:
 	static void Init(v8::Handle<v8::Object> exports);
 	static v8::Local<v8::Object> New(const TVec<TIntFltKdV>& Mat, const int& Rows = -1);
-	static v8::Local<v8::Object> New(v8::Local<v8::Array> Arr);
 public:
 	//# 
 	//# **Functions and properties:**

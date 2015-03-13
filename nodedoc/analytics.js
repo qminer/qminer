@@ -1,13 +1,359 @@
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-    var sget = require('sget');
-    var qm = require('bindings')(pathPrefix + '/qm.node');
-    var fs = qm.fs;
-    
-    exports = qm.analytics;
+/**
+* Analytics module.
+* @module analytics
+* @example
+* // import module
+* var analytics = require('qminer').analytics;
+* // REGRESSION WITH SVR
+* // Set up fake train and test data.
+* // Four training examples with, number of features = 2
+* var featureMatrix = new la.Matrix({rows:2, cols:4});
+* // Regression targets for four examples
+* var targets = new la.Vector({vals:4});
+* // Set up the regression model
+* var SVR = new analytics.SVR({verbose:true});
+* // Train regression
+* SVR.fit(featureMatrix, targets);
+* // Save the model to disk
+* SVR.save('svr.bin');*
+* // Set up a fake test vector
+* var test = new la.Vector({vals:2});
+* // Predict the target value
+* var prediction = SVR.predict(test);
+*/
+/**
+* SVC constructor parameters
+* @typedef {Object} svcParam
+* @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) 
+* @property  {number} [svcParam.j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
+* @property  {number} [svcParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
+* @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations
+* @property  {number} [svcParam.maxTime=1.0] - Maximum runtime in seconds
+* @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance
+* @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console
+*/
+/**
+* SVC
+* @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
+* @class
+* @param {module:fs.FIn | module:analytics~svcParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @example
+* // import module
+* var analytics = require('qminer').analytics;
+* // CLASSIFICATION WITH SVC
+* // Set up fake train and test data.
+* // Four training examples with, number of features = 2
+* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* // classification targets for four examples
+* var targets = new la.Vector([-1, -1, 1, 1]);
+* // Set up the classification model
+* var SVC = new analytics.SVC({verbose:true});
+* // Train classifier
+* SVC.fit(featureMatrix, targets);
+* // Save the model to disk
+* SVC.save('svc.bin');*
+* // Set up a fake test vector
+* var test = new la.Vector([1.1, -0.5]);
+* // Predict the target value
+* var prediction = SVC.predict(test);
+*/
+ exports.SVC = function(arg) {};
+/**
+	* returns the svc parameters	
+	* @returns {module:analytics~svcParam} Parameters of the classifier model.
+	*/
+ exports.SVC.prototype.getParams = function() {};
+/**
+	* sets the svc parameters
+	* @param {module:analytics~svcParam} param - Classifier training parameters.
+	*/
+ exports.SVC.prototype.setParams = function(param) {};
+/**	
+	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	*/
+ exports.SVC.prototype.weights = undefined;
+/**
+	* saves model to output file stream 
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} Output stream
+	*/
+ exports.SVC.prototype.save = function(fout) {}
+/**
+	* sends vector through the model and returns the prediction as a real number
+	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
+	* @returns {number} Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+	*/
+ exports.SVC.prototype.predict = function(vec) {}
+/**
+	* fits an SVM classification model, given column examples in a matrix and vector of targets
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	*/
+ exports.SVC.prototype.fit = function(X, y) {}
+/**
+* SVR constructor parameters
+* @typedef {Object} svrParam
+* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)
+* @property  {number} [svrParam.eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).
+* @property  {number} [svrParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
+* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations
+* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds
+* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance
+* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console
+*/
+/**
+* SVR
+* @classdesc Support Vector Machine Regression. Implements a soft margin linear support vector regression using the PEGASOS algorithm with epsilon insensitive loss, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
+* @class
+* @param {module:fs.FIn | module:analytics~svrParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @example
+* // import module
+* var analytics = require('qminer').analytics;
+* // REGRESSION WITH SVR
+* // Set up fake train and test data.
+* // Four training examples with, number of features = 2
+* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* // Regression targets for four examples
+* var targets = new la.Vector([1.1, -2, 3, 4.2]);
+* // Set up the regression model
+* var SVR = new analytics.SVR({verbose:true});
+* // Train regression
+* SVR.fit(featureMatrix, targets);
+* // Save the model to disk
+* SVR.save('svr.bin');*
+* // Set up a fake test vector
+* var test = new la.Vector([1.1, -0.8]);
+* // Predict the target value
+* var prediction = SVR.predict(test);
+*/
+ exports.SVR = function(arg) {};
+/**
+	* returns the svr parameters
+	* @returns {module:analytics~svrParam} Parameters of the regression model.
+	*/
+ exports.SVR.prototype.getParams = function() {};
+/**
+	* sets the svr parameters
+	* @param {module:analytics~svrParam} param - Regression training parameters.
+	*/
+ exports.SVR.prototype.setParams = function(param) {};
+/**
+	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	*/
+ exports.SVR.prototype.weights = undefined;
+/**
+	* saves model to output file stream
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} Output stream
+	*/
+ exports.SVR.prototype.save = function(fout) {}
+/**
+	* sends vector through the model and returns the prediction as a real number
+	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
+	* @returns {number} Prediction real number.
+	*/
+ exports.SVR.prototype.predict = function(vec) {}
+/**
+	* fits an SVM regression model, given column examples in a matrix and vector of targets
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	*/
+ exports.SVR.prototype.fit = function(X, y) {}
+/**
+ * Logistic regression model. Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ */
+/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {LogReg} - returns itself
+	 */
+/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+/**
+ * Exponential regression model, where the response is assumed to be exponentially
+ * distributed. Finds the rate parameter with respect to the feature vector.
+ *
+ * Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ */
+/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {ExpReg} - returns itself
+	 */
+/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+/**
+	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
+	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
+	 * batches and indicates wether the instance at index i ends a batch.
+	 *
+	 * @param {Matrix} X - the column matrix containing the data instances
+	 * @param {Vector} timeV - a vector containing the sampling times of the instances
+	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
+	 * @returns {HMC} - returns itself
+	 */
+/**
+	 * Returns the probability distribution over the future states given that the current state is the one in
+	 * the parameter.
+	 *
+	 * @param {Number} level - the level on which we want the future states
+	 * @param {Number} startState - the ID of the current state (the state we are starting from)
+	 * @param {Number} [time] - optional parameter, if not specified the distribution of the next state will be returned
+	 * @returns {Array} - the probability distribution
+	 */
+/**
+	 * Returns the probability distribution over the past states given that the current state is the one in
+	 * the parameter.
+	 *
+	 * @param {Number} level - the level on which we want the past states
+	 * @param {Number} startState - the ID of the current state (the state we are starting from)
+	 * @param {Number} [time] - optional parameter, if not specified the distribution of the previous state will be returned
+	 * @returns {Array} - the probability distribution
+	 */
+/**
+	 * Returns the probability distribution of past and future states over time.
+	 *
+	 * @param {Number} level - the level on which we want the distributions
+	 * @param {Number} state - the state we are starting from
+	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
+	 * @returns {Array} - array of probability distributions over time
+	 */
+/**
+	 * Returns information about previous states.
+	 *
+	 * @param {Number} level - the level on which we want the past states
+	 * @retuns {Array} - information about the past states
+	 */
+/**
+	 * Returns an object representation of this model.
+	 *
+	 * @returns {Object}
+	 */
+/**
+	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
+	 *
+	 * @returns {Array} - the transition model
+	 */
+/**
+	 * Returns the current state throughout the hierarchy. If the level is specified it
+	 * will return the current state only on that level.
+	 *
+	 * @param {Number} [level] - optional level parameter
+	 * @returns {Array|Number} - if the level is specified it returns info about the current state on that level, otherwise it return info about the current state on each level on the hierarchy
+	 */
+/**
+	 * Returns the centroid of the specified state.
+	 *
+	 * @param {Number} stateId - the ID of the state
+	 * @returns {Array} - the coordinates of the state
+	 */
+/**
+	 * Returns a histogram of the specified feature in the specified state.
+	 *
+	 * @param {Number} stateId - the ID of the state
+	 * @param {Number} ftrId - the ID of the feature
+	 * @returns {Array} - the histogram
+	 */
+/**
+	 * Returns an array of IDs of all the states on the specified height.
+	 *
+	 * @param {Number} height - the height
+	 * @returns {Array} - the array of IDs
+	 */
+/**
+	 * Returns the weights of features in this state.
+	 *
+	 * @param {Number} stateId - The Id of the state.
+	 * @returns {Array} - An array of weights.
+	 */
+/**
+	 * Sets a callback function which is fired when the model changes states. An array of current states
+	 * throughout the hierarchy is passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
+	 * Sets a callback function which is fired when the model detects an anomaly. A string description is
+	 * passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
+	 * Sets a callback function which is fired when the model detects an outlier. A string description is
+	 * passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
+	 * Rebuilds its hierarchy.
+	 */
+/**
+	 * Rebuilds the histograms using the instances stored in the columns of X.
+	 *
+	 * @param {Matrix} X - the column matrix containing data instances
+	 */
+/**
+	 * Returns the name of a state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @returns {String} - the name of the state
+	 */
+/**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @param {String} name - name of the state
+	 */
+/**
+	 * Saves the model to the output stream.
+	 *
+	 * @param {FOut} fout - the output stream
+	 */
 
-    //!STARTJSDOC
 
 
     var la = require(__dirname + '/la.js')(pathPrefix);
@@ -727,7 +1073,4 @@ module.exports = exports = function (pathPrefix) {
     };
 
 
-    //!ENDJSDOC
-
-    return exports;
-}
+    

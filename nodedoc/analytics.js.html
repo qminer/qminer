@@ -1,13 +1,387 @@
-// typical use case: pathPrefix = 'Release' or pathPrefix = 'Debug'. Empty argument is supported as well (the first binary that the bindings finds will be used)
-module.exports = exports = function (pathPrefix) {
-    pathPrefix = pathPrefix || '';
-    var sget = require('sget');
-    var qm = require('bindings')(pathPrefix + '/qm.node');
-    var fs = qm.fs;
-    
-    exports = qm.analytics;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: analytics.js</title>
 
-    //!STARTJSDOC
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: analytics.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+* Analytics module.
+* @module analytics
+* @example
+* // import module
+* var analytics = require('qminer').analytics;
+* // REGRESSION WITH SVR
+* // Set up fake train and test data.
+* // Four training examples with, number of features = 2
+* var featureMatrix = new la.Matrix({rows:2, cols:4});
+* // Regression targets for four examples
+* var targets = new la.Vector({vals:4});
+* // Set up the regression model
+* var SVR = new analytics.SVR({verbose:true});
+* // Train regression
+* SVR.fit(featureMatrix, targets);
+* // Save the model to disk
+* SVR.save('svr.bin');*
+* // Set up a fake test vector
+* var test = new la.Vector({vals:2});
+* // Predict the target value
+* var prediction = SVR.predict(test);
+*/
+/**
+* SVC constructor parameters
+* @typedef {Object} svcParam
+* @property  {number} [svcParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) 
+* @property  {number} [svcParam.j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
+* @property  {number} [svcParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
+* @property  {number} [svcParam.maxIterations=10000] - Maximum number of iterations
+* @property  {number} [svcParam.maxTime=1.0] - Maximum runtime in seconds
+* @property  {number} [svcParam.minDiff=1e-6] - Stopping criterion tolerance
+* @property  {boolean} [svcParam.verbose=false] - Toggle verbose output in the console
+*/
+/**
+* SVC
+* @classdesc Support Vector Machine Classifier. Implements a soft margin linear support vector classifier using the PEGASOS algorithm, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
+* @class
+* @param {module:fs.FIn | module:analytics~svcParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @example
+* // import module
+* var analytics = require('qminer').analytics;
+* // CLASSIFICATION WITH SVC
+* // Set up fake train and test data.
+* // Four training examples with, number of features = 2
+* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* // classification targets for four examples
+* var targets = new la.Vector([-1, -1, 1, 1]);
+* // Set up the classification model
+* var SVC = new analytics.SVC({verbose:true});
+* // Train classifier
+* SVC.fit(featureMatrix, targets);
+* // Save the model to disk
+* SVC.save('svc.bin');*
+* // Set up a fake test vector
+* var test = new la.Vector([1.1, -0.5]);
+* // Predict the target value
+* var prediction = SVC.predict(test);
+*/
+ exports.SVC = function(arg) {};
+/**
+	* returns the svc parameters	
+	* @returns {module:analytics~svcParam} Parameters of the classifier model.
+	*/
+ exports.SVC.prototype.getParams = function() {};
+/**
+	* sets the svc parameters
+	* @param {module:analytics~svcParam} param - Classifier training parameters.
+	*/
+ exports.SVC.prototype.setParams = function(param) {};
+/**	
+	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	*/
+ exports.SVC.prototype.weights = undefined;
+/**
+	* saves model to output file stream 
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} Output stream
+	*/
+ exports.SVC.prototype.save = function(fout) {}
+/**
+	* sends vector through the model and returns the prediction as a real number
+	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
+	* @returns {number} Prediction real number. Sign of the number corresponds to the class and the magnitude corresponds to the distance from the margin (certainty).
+	*/
+ exports.SVC.prototype.predict = function(vec) {}
+/**
+	* fits an SVM classification model, given column examples in a matrix and vector of targets
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	*/
+ exports.SVC.prototype.fit = function(X, y) {}
+/**
+* SVR constructor parameters
+* @typedef {Object} svrParam
+* @property  {number} [svrParam.c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting)
+* @property  {number} [svrParam.eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity).
+* @property  {number} [svrParam.batchSize=10000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate
+* @property  {number} [svrParam.maxIterations=10000] - Maximum number of iterations
+* @property  {number} [svrParam.maxTime=1.0] - Maximum runtime in seconds
+* @property  {number} [svrParam.minDiff=1e-6] - Stopping criterion tolerance
+* @property  {boolean} [svrParam.verbose=false] - Toggle verbose output in the console
+*/
+/**
+* SVR
+* @classdesc Support Vector Machine Regression. Implements a soft margin linear support vector regression using the PEGASOS algorithm with epsilon insensitive loss, see: {@link http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf Pegasos: Primal Estimated sub-GrAdient SOlver for SVM}.
+* @class
+* @param {module:fs.FIn | module:analytics~svrParam} arg - File input stream (loads the model from disk) or constructor parameters svcParam.
+* @example
+* // import module
+* var analytics = require('qminer').analytics;
+* // REGRESSION WITH SVR
+* // Set up fake train and test data.
+* // Four training examples with, number of features = 2
+* var featureMatrix = new la.Matrix({rows:2, cols:4, random:true});
+* // Regression targets for four examples
+* var targets = new la.Vector([1.1, -2, 3, 4.2]);
+* // Set up the regression model
+* var SVR = new analytics.SVR({verbose:true});
+* // Train regression
+* SVR.fit(featureMatrix, targets);
+* // Save the model to disk
+* SVR.save('svr.bin');*
+* // Set up a fake test vector
+* var test = new la.Vector([1.1, -0.8]);
+* // Predict the target value
+* var prediction = SVR.predict(test);
+*/
+ exports.SVR = function(arg) {};
+/**
+	* returns the svr parameters
+	* @returns {module:analytics~svrParam} Parameters of the regression model.
+	*/
+ exports.SVR.prototype.getParams = function() {};
+/**
+	* sets the svr parameters
+	* @param {module:analytics~svrParam} param - Regression training parameters.
+	*/
+ exports.SVR.prototype.setParams = function(param) {};
+/**
+	* @property {module:la.Vector} weights - Vector of coefficients of the linear model
+	*/
+ exports.SVR.prototype.weights = undefined;
+/**
+	* saves model to output file stream
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} Output stream
+	*/
+ exports.SVR.prototype.save = function(fout) {}
+/**
+	* sends vector through the model and returns the prediction as a real number
+	* @param {module:la.Vector | module:la.SparseVector} vec - Input vector
+	* @returns {number} Prediction real number.
+	*/
+ exports.SVR.prototype.predict = function(vec) {}
+/**
+	* fits an SVM regression model, given column examples in a matrix and vector of targets
+	* @param {module:la.Matrix | module:la.SparseMatrix} X - Input feature matrix where columns correspond to feature vectors
+	* @param {module:la.Vector} y - Input vector of targets, one for each column of X
+	*/
+ exports.SVR.prototype.fit = function(X, y) {}
+/**
+ * Logistic regression model. Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - indicates wether to automatically include the intercept
+ */
+/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {LogReg} - returns itself
+	 */
+/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+/**
+ * Exponential regression model, where the response is assumed to be exponentially
+ * distributed. Finds the rate parameter with respect to the feature vector.
+ *
+ * Uses Newtons method to compute the weights.
+ *
+ * @constructor
+ * @property {Object|FIn} [opts] - The options used for initialization or the input stream from which the model is loaded. If this parameter is an input stream than no other parameters are required.
+ * @property {Number} [opts.lambda = 1] - the regularization parameter
+ * @property {Boolean} [opts.intercept = false] - if true, the intercept will automatically be included
+ */
+/**
+	 * Fits a column matrix of feature vectors X onto the response variable y.
+	 *
+	 * @param {Matrix} X - the column matrix which stores the feature vectors.
+	 * @param {Vector} y - the response variable.
+	 * @param {Number} [eps] - the epsilon used for convergence
+	 * @returns {ExpReg} - returns itself
+	 */
+/**
+	 * Returns the expected response for the provided feature vector.
+	 *
+	 * @param {Vector} x - the feature vector
+	 * @returns {Number} - the expected response
+	 */
+/**
+	 * The models weights.
+	 *
+	 * @type {Vector}
+	 */
+/**
+	 * Saves the model into the output stream.
+	 *
+	 * @param {FOut} sout - the output stream
+	 */
+/**
+	 * Fits the model onto the data. The data instances must be stored as column vectors in X, while their times
+	 * have to be stored in timeV. An optional parameter indicates wether the data provided is in
+	 * batches and indicates wether the instance at index i ends a batch.
+	 *
+	 * @param {Matrix} X - the column matrix containing the data instances
+	 * @param {Vector} timeV - a vector containing the sampling times of the instances
+	 * @param {BoolVector} [endsBatchV] - a vector of boolean indicating wether the current instance ends a batch
+	 * @returns {HMC} - returns itself
+	 */
+/**
+	 * Returns the probability distribution over the future states given that the current state is the one in
+	 * the parameter.
+	 *
+	 * @param {Number} level - the level on which we want the future states
+	 * @param {Number} startState - the ID of the current state (the state we are starting from)
+	 * @param {Number} [time] - optional parameter, if not specified the distribution of the next state will be returned
+	 * @returns {Array} - the probability distribution
+	 */
+/**
+	 * Returns the probability distribution over the past states given that the current state is the one in
+	 * the parameter.
+	 *
+	 * @param {Number} level - the level on which we want the past states
+	 * @param {Number} startState - the ID of the current state (the state we are starting from)
+	 * @param {Number} [time] - optional parameter, if not specified the distribution of the previous state will be returned
+	 * @returns {Array} - the probability distribution
+	 */
+/**
+	 * Returns the probability distribution of past and future states over time.
+	 *
+	 * @param {Number} level - the level on which we want the distributions
+	 * @param {Number} state - the state we are starting from
+	 * @param {Number} dt - the time step (lower dt => more distributions will be returned)
+	 * @returns {Array} - array of probability distributions over time
+	 */
+/**
+	 * Returns information about previous states.
+	 *
+	 * @param {Number} level - the level on which we want the past states
+	 * @retuns {Array} - information about the past states
+	 */
+/**
+	 * Returns an object representation of this model.
+	 *
+	 * @returns {Object}
+	 */
+/**
+	 * Returns the underlying transition model at the lowest level. (for CTMC the matrix of intensities)
+	 *
+	 * @returns {Array} - the transition model
+	 */
+/**
+	 * Returns the current state throughout the hierarchy. If the level is specified it
+	 * will return the current state only on that level.
+	 *
+	 * @param {Number} [level] - optional level parameter
+	 * @returns {Array|Number} - if the level is specified it returns info about the current state on that level, otherwise it return info about the current state on each level on the hierarchy
+	 */
+/**
+	 * Returns the centroid of the specified state.
+	 *
+	 * @param {Number} stateId - the ID of the state
+	 * @returns {Array} - the coordinates of the state
+	 */
+/**
+	 * Returns a histogram of the specified feature in the specified state.
+	 *
+	 * @param {Number} stateId - the ID of the state
+	 * @param {Number} ftrId - the ID of the feature
+	 * @returns {Array} - the histogram
+	 */
+/**
+	 * Returns an array of IDs of all the states on the specified height.
+	 *
+	 * @param {Number} height - the height
+	 * @returns {Array} - the array of IDs
+	 */
+/**
+	 * Returns the weights of features in this state.
+	 *
+	 * @param {Number} stateId - The Id of the state.
+	 * @returns {Array} - An array of weights.
+	 */
+/**
+	 * Sets a callback function which is fired when the model changes states. An array of current states
+	 * throughout the hierarchy is passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
+	 * Sets a callback function which is fired when the model detects an anomaly. A string description is
+	 * passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
+	 * Sets a callback function which is fired when the model detects an outlier. A string description is
+	 * passed to the callback.
+	 *
+	 * @param {function} callback - the funciton which is called
+	 */
+/**
+	 * Rebuilds its hierarchy.
+	 */
+/**
+	 * Rebuilds the histograms using the instances stored in the columns of X.
+	 *
+	 * @param {Matrix} X - the column matrix containing data instances
+	 */
+/**
+	 * Returns the name of a state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @returns {String} - the name of the state
+	 */
+/**
+	 * Sets the name of the state.
+	 *
+	 * @param {Number} stateId - ID of the state
+	 * @param {String} name - name of the state
+	 */
+/**
+	 * Saves the model to the output stream.
+	 *
+	 * @param {FOut} fout - the output stream
+	 */
+
 
 
     var la = require(__dirname + '/la.js')(pathPrefix);
@@ -107,7 +481,7 @@ module.exports = exports = function (pathPrefix) {
                 categories[catName].count++;
             } else {
                 // check if we should ignore this category
-                if (limitCategories && !qm_util.isInArray(limitCategories, catName)) { return; }
+                if (limitCategories &amp;&amp; !qm_util.isInArray(limitCategories, catName)) { return; }
                 // check if we should ignore this category
                 categories[catName] = {
                     name: catName,
@@ -121,14 +495,14 @@ module.exports = exports = function (pathPrefix) {
         console.log("newBatchModel", "  preparing target vectors");
         if (target.type === "string_v") {
             // get all possible values for the field
-            for (var i = 0; i < records.length; i++) {
+            for (var i = 0; i &lt; records.length; i++) {
                 var cats = records[i][target.name];
-                for (var j = 0; j < cats.length; j++) {
+                for (var j = 0; j &lt; cats.length; j++) {
                     initCats(targets, cats[j]);
                 }
             }
             // initialized with +1 or -1 for each category
-            for (var i = 0; i < records.length; i++) {
+            for (var i = 0; i &lt; records.length; i++) {
                 var cats = la.copyVecToArray(records[i][target.name]);
                 for (var cat in targets) {
                     targets[cat].target.push(qm_util.isInArray(cats, cat) ? 1.0 : -1.0);
@@ -136,12 +510,12 @@ module.exports = exports = function (pathPrefix) {
             }
         } else if (target.type === "string") {
             // get all possible values for the field
-            for (var i = 0; i < records.length; i++) {
+            for (var i = 0; i &lt; records.length; i++) {
                 var recCat = records[i][target.name];
                 initCats(targets, recCat);
             }
             // initialized with +1 or -1 for each category
-            for (var i = 0; i < records.length; i++) {
+            for (var i = 0; i &lt; records.length; i++) {
                 var recCat = records[i][target.name];
                 for (var cat in targets) {
                     targets[cat].target.push((recCat === cat) ? 1.0 : -1.0);
@@ -156,7 +530,7 @@ module.exports = exports = function (pathPrefix) {
                 target: new la.Vector({ mxVals: records.length })
 
             };
-            for (var i = 0; i < records.length; i++) {
+            for (var i = 0; i &lt; records.length; i++) {
                 targets[target.name].target.push(records[i][target.name]);
             }
         }
@@ -253,11 +627,11 @@ module.exports = exports = function (pathPrefix) {
             querySpVec = ftrSpace.ftrSpVec(queryRec);
             // use sampling? 
             var sq = qRecSet;
-            if (settings.querySampleSize >= 0 && qRecSet != undefined) {
+            if (settings.querySampleSize >= 0 &amp;&amp; qRecSet != undefined) {
                 sq = qRecSet.sample(settings.querySampleSize);
             }
             var sf = fRecSet;
-            if (settings.randomSampleSize >= 0 && fRecSet != undefined) {
+            if (settings.randomSampleSize >= 0 &amp;&amp; fRecSet != undefined) {
                 sf = fRecSet.sample(settings.randomSampleSize);
             }
             // take a union or just qset or just fset if some are undefined
@@ -312,7 +686,7 @@ module.exports = exports = function (pathPrefix) {
             if (this.queryMode) { return null; } // must be in SVM mode to return results
             if (!threshold) { threshold = 0; }
             var posIdxArray = [];
-            for (var recN = 0; recN < uRecSet.length; recN++) {
+            for (var recN = 0; recN &lt; uRecSet.length; recN++) {
                 if (resultVec[recN] >= threshold) {
                     posIdxArray.push(recN);
                 }
@@ -328,7 +702,7 @@ module.exports = exports = function (pathPrefix) {
             var idxArray = [];
             var marginArray = [];
             var sorted = resultVec.sortPerm(false);
-            for (var recN = 0; recN < uRecSet.length && recN < limit; recN++) {
+            for (var recN = 0; recN &lt; uRecSet.length &amp;&amp; recN &lt; limit; recN++) {
                 idxArray.push(sorted.perm[recN]);
                 var val = sorted.vec[recN];
                 val = val == Number.POSITIVE_INFINITY ? Number.MAX_VALUE : val;
@@ -344,15 +718,15 @@ module.exports = exports = function (pathPrefix) {
         // returns record set index of the unlabeled record that is closest to the margin
         //!   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
         this.selectQuestion = function () {
-            if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
+            if (posRecIdV.length >= settings.nPos &amp;&amp; negRecIdV.length >= settings.nNeg) { queryMode = false; }
             if (queryMode) {
-                if (posRecIdV.length < settings.nPos && nPosQ + 1 < uRecSet.length) {
+                if (posRecIdV.length &lt; settings.nPos &amp;&amp; nPosQ + 1 &lt; uRecSet.length) {
                     nPosQ = nPosQ + 1;
                     console.log("query mode, try to get pos");
                     this.selectedQuestionIdx = simVp[simVp.length - 1 - (nPosQ - 1)];
                     return this.selectedQuestionIdx;
                 }
-                if (negRecIdV.length < settings.nNeg && nNegQ + 1 < uRecSet.length) {
+                if (negRecIdV.length &lt; settings.nNeg &amp;&amp; nNegQ + 1 &lt; uRecSet.length) {
                     nNegQ = nNegQ + 1;
                     // TODO if nNegQ == rRecSet.length, find a new sample
                     console.log("query mode, try to get neg");
@@ -366,19 +740,19 @@ module.exports = exports = function (pathPrefix) {
                 svm.fit(X, y);//column examples, y float vector of +1/-1, default svm paramvals
 
                 // mark positives
-                for (var i = 0; i < posIdxV.length; i++) {
+                for (var i = 0; i &lt; posIdxV.length; i++) {
                     classVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
                     resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
                 }
                 // mark negatives
-                for (var i = 0; i < negIdxV.length; i++) {
+                for (var i = 0; i &lt; negIdxV.length; i++) {
                     classVec[negIdxV[i]] = Number.POSITIVE_INFINITY;
                     resultVec[negIdxV[i]] = Number.NEGATIVE_INFINITY;
                 }
                 var posCount = posIdxV.length;
                 var negCount = negIdxV.length;
                 // classify unlabeled
-                for (var recN = 0; recN < uRecSet.length; recN++) {
+                for (var recN = 0; recN &lt; uRecSet.length; recN++) {
                     if (classVec[recN] !== Number.POSITIVE_INFINITY) {
                         var svmMargin = svm.predict(uMat.getCol(recN));
                         if (svmMargin > 0) {
@@ -492,7 +866,7 @@ module.exports = exports = function (pathPrefix) {
 	    this.getMatrix = function () {
 	        if (X.length > 0) {
 	            var A = new la.Matrix({ "cols": X[0].length, "rows": X.length });
-	            for (var i = 0; i < X.length; i++) {
+	            for (var i = 0; i &lt; X.length; i++) {
 	                A.setRow(i, X[i]);
 	            }
 	            return A;
@@ -528,11 +902,11 @@ module.exports = exports = function (pathPrefix) {
     	var mc;
     	var ftrSpace;
     	
-    	if (opts.hmcConfig != null && opts.ftrSpaceConfig != null && opts.base != null) {
+    	if (opts.hmcConfig != null &amp;&amp; opts.ftrSpaceConfig != null &amp;&amp; opts.base != null) {
     		mc = opts.sequenceEndV != null ? new exports.HMC(opts.hmcConfig, opts.sequenceEndV) : new exports.HMC(opts.hmcConfig);
     		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceConfig);
     	} 
-    	else if (opts.hmcFile != null && opts.ftrSpaceFile != null) {
+    	else if (opts.hmcFile != null &amp;&amp; opts.ftrSpaceFile != null) {
     		mc = new exports.HMC(opts.hmcFile);
     		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceFile);
     	}
@@ -630,7 +1004,7 @@ module.exports = exports = function (pathPrefix) {
     			var names = [];
     			
     			var dims = ftrSpace.dims;
-    			for (var i = 0; i < dims.length; i++) {
+    			for (var i = 0; i &lt; dims.length; i++) {
     				names.push(ftrSpace.getFtr(i));
     			}
     			
@@ -650,7 +1024,7 @@ module.exports = exports = function (pathPrefix) {
     			
     			var ftrNames = that.getFtrNames();
     			var features = [];
-    			for (var i = 0; i < invCoords.length; i++) {
+    			for (var i = 0; i &lt; invCoords.length; i++) {
     				features.push({name: ftrNames[i], value: invCoords.at(i)});
     			}
     			
@@ -670,7 +1044,7 @@ module.exports = exports = function (pathPrefix) {
     		histogram: function (stateId, ftrIdx) {
     			var hist = mc.histogram(stateId, ftrIdx);
     			
-    			for (var i = 0; i < hist.binStartV.length; i++) {
+    			for (var i = 0; i &lt; hist.binStartV.length; i++) {
     				hist.binStartV[i] = ftrSpace.invFtr(ftrIdx, hist.binStartV[i]);
     			}
     			
@@ -696,7 +1070,7 @@ module.exports = exports = function (pathPrefix) {
     				var invFtrV = ftrSpace.invFtrVec(ftrV);
     				
     				var features = [];
-    				for (var i = 0; i < invFtrV.length; i++) {
+    				for (var i = 0; i &lt; invFtrV.length; i++) {
     					features.push({name: ftrSpace.getFtr(i), value: invFtrV.at(i)});
     				}
     				
@@ -712,7 +1086,7 @@ module.exports = exports = function (pathPrefix) {
     			var stateIds = mc.stateIds(height);
     			
     			var result = [];
-    			for (var i = 0; i < stateIds.length; i++) {
+    			for (var i = 0; i &lt; stateIds.length; i++) {
     				var stateId = stateIds[i];
     				var coords = ftrSpace.invFtrVec(mc.fullCoords(stateId));
     				
@@ -727,7 +1101,27 @@ module.exports = exports = function (pathPrefix) {
     };
 
 
-    //!ENDJSDOC
+    
+</code></pre>
+        </article>
+    </section>
 
-    return exports;
-}
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Fri Mar 13 2015 13:46:29 GMT+0100 (Central Europe Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

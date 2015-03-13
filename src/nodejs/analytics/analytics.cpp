@@ -10,7 +10,7 @@ TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
 		Algorithm("SGD"),
 		SvmCost(1.0),
 		SvmUnbalance(1.0),
-		SvmEps(1.0),
+		SvmEps(0.1),
 		SampleSize(1000),
 		MxIter(10000),
 		MxTime(1000*1),
@@ -61,7 +61,7 @@ void TNodeJsSvmModel::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 	try {
-		QmAssertR(Args.IsConstructCall(), "SVC: not a constructor call!");
+		QmAssertR(Args.IsConstructCall(), "SVM: not a constructor call!");
 		if (Args.Length() == 0) {
 			Args.GetReturnValue().Set(TNodeJsSvmModel::WrapInst(Args.This(), TJsonVal::NewObj()));
 			return;
@@ -93,7 +93,7 @@ void TNodeJsSvmModel::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 			Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, Model->GetParams()));
 		}
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getParams");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVM::getParams");
 	}
 }
 
@@ -112,7 +112,7 @@ void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 		Args.GetReturnValue().Set(Args.Holder());
 	} catch (const PExcept& Except) {
-		throw TQm::TQmExcept::New(Except->GetMsgStr(), "TNodeJsHMChain::getParams");
+		throw TQm::TQmExcept::New(Except->GetMsgStr(), "SVM::setParams");
 	}
 }
 
