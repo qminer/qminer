@@ -240,12 +240,13 @@ public:
 /// Serialization and de-serialization of records to TMem.
 /// This class handles smart serialization of JSON with respect to field 
 /// serialization definitions. It supports NULL flags. It packs fixed-width 
-/// fields together. Variable-width fields are store in two parts - first 
+/// fields together. Variable-width fields are stored in two parts - first 
 /// there's an index array so that for each field we store its offset inside 
 /// the buffer. Then there is the real variable-length part where the content
 /// is stored.
 class TRecSerializator {
 private:
+
     ///////////////////////////////
     /// Field serialization parameters.
     /// This class contains data about field serialization

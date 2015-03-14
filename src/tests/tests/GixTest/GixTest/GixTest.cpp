@@ -1,6 +1,10 @@
 #define GIX_DEBUG
 #define GIX_TEST
 
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include <base.h>
 #include <mine.h>
 
@@ -478,6 +482,45 @@ public:
 		}
 	}
 
+	void Test_SizeTest(int cache_size = 1 * 1024 * 1024, int split_len = 1000) {
+		TStr Nm("Test_Feed");
+		TStr FName("data");
+		int loops = 100000;
+		int total_words = 10000;
+		int article_max_len = 50;
+		int keys = 0;
+		{
+			TMyGix gix(Nm, FName, faCreate, cache_size, split_len);
+			gix.PrintStats();
+
+			TRnd rnd(1);
+			int doc_counter = 0;
+			for (int i = 0; i < loops; i++) {
+				//// every doc contains the same word(s)
+				//for (int j = 1; j <= total_words; j++) {
+				//	gix.AddItem(TIntUInt64Pr(j, j), TMyItem(doc_counter, 1));
+				//}
+				
+				
+				int r = rnd.GetUniDevInt(article_max_len) + 3;
+				for (int j = 1; j <= r; j++) {
+					int k = rnd.GetUniDevInt(total_words);
+					gix.AddItem(TIntUInt64Pr(k, k), TMyItem(doc_counter, 1));
+				}
+
+				doc_counter++;
+				if (i % 1000 == 0) {
+					gix.PrintStats();
+				}
+			}
+			gix.PrintStats();
+			gix.PartialFlush(100 * 1000);
+			gix.PrintStats();
+			//_ASSERTE(_CrtCheckMemory());
+			//_CrtDumpMemoryLeaks();
+		}
+	}
+
 	void Test_Delete_1() {
 		TMyGix gix("Test1", "data", faCreate, 10000, 100);
 		int i = 122;
@@ -880,7 +923,8 @@ public:
 		Test_Merge_22000_Into_50();*/
 
 		//Test_BigInserts();
-		Test_RandomGenerateRead();
+		//Test_RandomGenerateRead();
+		Test_SizeTest();
 
 		//Test_Delete_1();
 		//Test_Delete_20();
@@ -912,9 +956,9 @@ public:
 ////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char* argv[]) {
-
+	
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-
+	
 	XTest test;
 	test.PerformTests();
 

@@ -255,7 +255,7 @@ public:
 		res += ItemSetKey.GetMemUsed();
 		res += ItemV.GetMemUsed();
 		res += ItemVDel.GetMemUsed();
-		Children.GetMemUsed();
+		res += Children.GetMemUsed();
 		res += ChildrenData.GetMemUsed();
 		res += GetChildMemUsed();
 		return res;

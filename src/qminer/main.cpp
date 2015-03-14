@@ -561,127 +561,130 @@ int main(int argc, char* argv[]) {
 				TQm::PBase Base = TQm::TStorage::LoadBase(Param.DbFPath, FAccess,
 					Param.IndexCacheSize, Param.DefStoreCacheSize, Param.StoreNmCacheSizeH);
 
-				{
-					// do some querying
-					//auto res = Base->Search("{ \"$from\": \"Movies\", \"Plot\": \"American\" }");
-					//auto res = Base->Search("{ \"$from\": \"People\", \"$or\": [ { \"Gender\": \"Female\" }, { \"Gender\": \"Unknown\" } ] }");
-					
-					auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
-					printf("Records: %d\n", res->GetRecs());
-					res = Base->Search("{ \"$from\": \"Movies\", \"Genres\": \"Action\", \"Plot\": \"America\" }");
-					printf("Records: %d\n", res->GetRecs());
-					res = Base->Search("{ \"$from\": \"Movies\", \"Genres\": \"Action\"  }");
-					printf("Records: %d\n", res->GetRecs());
-					res = Base->Search("{ \"$from\": \"Movies\", \"Plot\": \"America\" }");					
-					printf("Records: %d\n", res->GetRecs());
-				}
+				//{
+				//	// do some querying of movies database
 
-				////{
-				////	// this demo assumes movies database was initialized. it can contain existing data.
-				////	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
-				////	TRnd rnd(1212);
-				////	for (int i = 0; i < 1000 * 1000; i++) {
-				////		if (i % 1000 == 0) printf("== %d\n", i);
-				////		// perform insert of new record
-				////		auto json = TJsonVal::NewObj();
-				////		json->AddToObj("Title", TStr::Fmt("Title %d", i));
-				////		json->AddToObj("Plot", TStr::Fmt("Plot %d", i));
-				////		json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
-				////		json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
-
-				////		auto json_a = TJsonVal::NewArr();
-				////		json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
-				////		json->AddToObj("Genres", json_a);
-
-				////		auto json_p = TJsonVal::NewObj();
-				////		json_p->AddToObj("Name", TStr::Fmt("Director %d", (13 * i) % 100000));
-				////		json_p->AddToObj("Gender", "Male");
-				////		json->AddToObj("Director", json_p);
-
-				////		json_a = TJsonVal::NewArr();
-				////		int actors = rnd.GetUniDevInt(8) + 5;
-				////		for (int k = 0; k < actors; k++) {
-				////			json_p = TJsonVal::NewObj();
-				////			json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(100000)));
-				////			json_p->AddToObj("Gender", "Male");
-				////			json_a->AddToArr(json_p);
-				////		}
-				////		json->AddToObj("Actor", json_a);
-
-				////		store->AddRec(json);
-				////	}
-				////}
+				//	//auto res = Base->Search("{ \"$from\": \"Movies\", \"Plot\": \"American\" }");
+				//	//auto res = Base->Search("{ \"$from\": \"People\", \"$or\": [ { \"Gender\": \"Female\" }, { \"Gender\": \"Unknown\" } ] }");
+				//	
+				//	auto res = Base->Search("{ \"$from\": \"Movies\", \"$or\": [ { \"Genres\": \"Action\" }, { \"Plot\": \"America\" } ] }");
+				//	printf("Records: %d\n", res->GetRecs());
+				//	res = Base->Search("{ \"$from\": \"Movies\", \"Genres\": \"Action\", \"Plot\": \"America\" }");
+				//	printf("Records: %d\n", res->GetRecs());
+				//	res = Base->Search("{ \"$from\": \"Movies\", \"Genres\": \"Action\"  }");
+				//	printf("Records: %d\n", res->GetRecs());
+				//	res = Base->Search("{ \"$from\": \"Movies\", \"Plot\": \"America\" }");					
+				//	printf("Records: %d\n", res->GetRecs());
+				//}
 
 				//{
-				//	// this demo assumes movies database was initialized and populated with initial data
+				//	// this demo assumes movies database was initialized. it can contain existing data.
 				//	TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
 				//	TRnd rnd(1212);
-				//	TQQueue<uint64> added_ids;
-				//	for (int i = 0; i < 10 * 1000; i++) {
-				//		int r = rnd.GetUniDevInt(100);
-				//		if (i % 100 == 0) printf("==================== %d\n", i);
-				//		if (r < 10) {
-				//			// perform insert of a new record
-				//			int z = 2000000 + i * 7;
-				//			auto json = TJsonVal::NewObj();
-				//			json->AddToObj("Title", TStr::Fmt("Title word%d", z));
+				//	for (int i = 0; i < 1000 * 1000; i++) {
+				//		if (i % 1000 == 0) printf("== %d\n", i);
+				//		// perform insert of new record
+				//		auto json = TJsonVal::NewObj();
+				//		json->AddToObj("Title", TStr::Fmt("Title %d", i));
+				//		json->AddToObj("Plot", TStr::Fmt("Plot %d", i));
+				//		json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
+				//		json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
 
-				//			TStr plot = "Plot";
-				//			int plot_len = 2 + round(rnd.GetPoissonDev(10));
-				//			for (int j = 0; j < plot_len; j++) {
-				//				int word1 = round(rnd.GetPoissonDev(100));
-				//				plot += TStr::Fmt(" word%d", word1);
-				//			}
+				//		auto json_a = TJsonVal::NewArr();
+				//		json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
+				//		json->AddToObj("Genres", json_a);
 
-				//			json->AddToObj("Plot", plot);
-				//			json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
-				//			json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
+				//		auto json_p = TJsonVal::NewObj();
+				//		json_p->AddToObj("Name", TStr::Fmt("Director %d", (13 * i) % 100000));
+				//		json_p->AddToObj("Gender", "Male");
+				//		json->AddToObj("Director", json_p);
 
-				//			auto json_a = TJsonVal::NewArr();
-				//			json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
-				//			json->AddToObj("Genres", json_a);
-
-				//			auto json_p = TJsonVal::NewObj();
-				//			json_p->AddToObj("Name", TStr::Fmt("Director %d", z % 100000));
+				//		json_a = TJsonVal::NewArr();
+				//		int actors = rnd.GetUniDevInt(8) + 5;
+				//		for (int k = 0; k < actors; k++) {
+				//			json_p = TJsonVal::NewObj();
+				//			json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(100000)));
 				//			json_p->AddToObj("Gender", "Male");
-				//			json->AddToObj("Director", json_p);
-
-				//			json_a = TJsonVal::NewArr();
-				//			int actors = rnd.GetUniDevInt(8) + 5;
-				//			for (int k = 0; k < actors; k++) {
-				//				json_p = TJsonVal::NewObj();
-				//				json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(10000)));
-				//				json_p->AddToObj("Gender", "Male");
-				//				json_a->AddToArr(json_p);
-				//			}
-				//			json->AddToObj("Actor", json_a);
-
-				//			auto id = store->AddRec(json);
-				//			added_ids.Push(id);
-				//			
-				//			Base->PartialFlush(200);
-
-				//		} else if (r < -11) {
-				//			// perform delete of the front 5 records
-				//			if (store->GetRecs() > 5) {
-				//				store->DeleteFirstNRecs(5);
-				//			}
-				//			//printf("     deleted 5 records\n");						
-				//		} else {
-				//			// retrieve random movie and its actors
-				//			if (store->GetRecs() > 0) {
-				//				auto id = rnd.GetUniDevInt64(store->LastRecId());
-				//				while (!store->IsRecId(id)) {
-				//					id = rnd.GetUniDevInt64(store->LastRecId());
-				//				}
-				//				auto rec = store->GetRec(id);
-
-				//				auto actors = rec.DoJoin(Base, "Actor");
-				//				int actors_cnt = actors->GetRecs();
-				//			}
+				//			json_a->AddToArr(json_p);
 				//		}
+				//		json->AddToObj("Actor", json_a);
+
+				//		store->AddRec(json);
 				//	}
 				//}
+
+				{
+					// this demo assumes movies database was initialized and populated with initial data
+					TWPt<TQm::TStore> store = Base->GetStoreByStoreNm("Movies");
+					TRnd rnd(1212);
+					TQQueue<uint64> added_ids;
+					for (int i = 0; i < 1000 * 1000; i++) {
+						int r = rnd.GetUniDevInt(100);
+						if (i % 100 == 0) printf("==================== %d\n", i);
+						if (r < 2) {
+							for (int j = 0; j < 30; j++) {
+								// perform insert of a new record
+								int z = 2000000 + i * 7;
+								auto json = TJsonVal::NewObj();
+								json->AddToObj("Title", TStr::Fmt("Title word%d", z));
+
+								TStr plot = "Plot";
+								int plot_len = 2 + round(rnd.GetPoissonDev(10));
+								for (int j = 0; j < plot_len; j++) {
+									int word1 = round(rnd.GetPoissonDev(100));
+									plot += TStr::Fmt(" word%d", word1);
+								}
+
+								json->AddToObj("Plot", plot);
+								json->AddToObj("Year", 1980 + rnd.GetUniDevInt(30));
+								json->AddToObj("Rating", 1 + rnd.GetUniDevInt(9));
+
+								auto json_a = TJsonVal::NewArr();
+								json_a->AddToArr(TStr::Fmt("Genre %d", rnd.GetUniDevInt(10)));
+								json->AddToObj("Genres", json_a);
+
+								auto json_p = TJsonVal::NewObj();
+								json_p->AddToObj("Name", TStr::Fmt("Director %d", z % 100000));
+								json_p->AddToObj("Gender", "Male");
+								json->AddToObj("Director", json_p);
+
+								json_a = TJsonVal::NewArr();
+								int actors = rnd.GetUniDevInt(8) + 5;
+								for (int k = 0; k < actors; k++) {
+									json_p = TJsonVal::NewObj();
+									json_p->AddToObj("Name", TStr::Fmt("Actor %d", rnd.GetUniDevInt(10000)));
+									json_p->AddToObj("Gender", "Male");
+									json_a->AddToArr(json_p);
+								}
+								json->AddToObj("Actor", json_a);
+
+								auto id = store->AddRec(json);
+								added_ids.Push(id);
+							}
+							//Base->PartialFlush(60*1000);
+							Base->PartialFlush(100);
+
+						} else if (r < -11) {
+							// perform delete of the front 5 records
+							if (store->GetRecs() > 5) {
+								store->DeleteFirstNRecs(5);
+							}
+							//printf("     deleted 5 records\n");						
+						} else {
+							// retrieve random movie and its actors
+							if (store->GetRecs() > 0) {
+								auto id = rnd.GetUniDevInt64(store->LastRecId());
+								while (!store->IsRecId(id)) {
+									id = rnd.GetUniDevInt64(store->LastRecId());
+								}
+								auto rec = store->GetRec(id);
+
+								auto actors = rec.DoJoin(Base, "Actor");
+								int actors_cnt = actors->GetRecs();
+							}
+						}
+					}
+				}
 
 				// save base
 				TQm::TStorage::SaveBase(Base);

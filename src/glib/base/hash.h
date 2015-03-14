@@ -181,8 +181,8 @@ public:
   ::TSize GetMemUsed() const {
     // return PortV.GetMemUsed()+KeyDatV.GetMemUsed()+sizeof(bool)+2*sizeof(int);}
       int64 MemUsed = sizeof(bool)+2*sizeof(int);
-      MemUsed += int64(PortV.Reserved()) * int64(sizeof(TInt));
-      for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
+	  MemUsed += int64(PortV.Reserved()) * int64(sizeof(TInt));
+	  for (int KeyDatN = 0; KeyDatN < KeyDatV.Len(); KeyDatN++) {
           MemUsed += int64(2 * sizeof(TInt));
           MemUsed += int64(KeyDatV[KeyDatN].Key.GetMemUsed());
           MemUsed += int64(KeyDatV[KeyDatN].Dat.GetMemUsed());
@@ -1089,7 +1089,7 @@ void TCache<TKey, TDat, THashFunc>::ChangeKey(const TKey& OldKey, const TKey& Ne
 	if (OldKeyId == -1) {
 		// nothing
 	} else {
-		TKeyLNDatPr& KeyLNDatPr = KeyDatH[OldKeyId];
+		TKeyLNDatPr KeyLNDatPr = KeyDatH[OldKeyId];
 		KeyLNDatPr.Val1->GetVal() = NewKey; // update data inside linked-list node
 		KeyDatH.AddDat(NewKey, KeyLNDatPr); // store the same data pair under new key
 		KeyDatH.DelKeyId(OldKeyId);

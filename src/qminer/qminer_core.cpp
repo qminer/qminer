@@ -3158,6 +3158,24 @@ namespace TQm {
 			KeyWordPrV.Add(TKeyWord(KeyId, WordIdV[WordIdN]));
 		}
 	}
+	// todo
+	TQueryGixUsedType TQueryItem::GetGixFlag() const {
+		TQueryGixUsedType GixFlag = oqgutUnknown;
+		if (IsLeafGix()) {
+			GixFlag = oqgutNormal;
+		} else if (IsLeafGixSmall()) {
+			GixFlag = oqgutSmall;
+		} else {
+			GixFlag = oqgutNone;
+			int flag = 0;
+			for (int i = 0; i < GetItems(); i++) {
+				TQueryGixUsedType res = GetItem(i).GetGixFlag();
+				if (res == oqgutNormal) { flag |= 1; } else if (res == oqgutSmall) { flag |= 2; } else if (res == oqgutBoth) { flag |= 3; break; }
+			}
+			if (flag == 1) { GixFlag = oqgutNormal; } else if (flag == 2) { GixFlag = oqgutSmall; } else if (flag == 3) { GixFlag = oqgutBoth; }
+		}
+		return GixFlag;
+	}
 
 	///////////////////////////////
 	// QMiner-Query-Aggregate
@@ -4145,28 +4163,6 @@ namespace TQm {
 			Upgrade(Tmp, Tmp2);
 			DefMerger->Union(StoreRecIdFqV, Tmp2);
 		}
-	}
-
-	TQueryGixUsedType TQueryItem::GetGixFlag() const {
-		TQueryGixUsedType GixFlag = oqgutUnknown;
-		if (IsLeafGix()) {
-			GixFlag = oqgutNormal;
-		} else if (IsLeafGixSmall()) {
-			GixFlag = oqgutSmall;
-		} else {
-			GixFlag = oqgutNone;
-			int flag = 0;
-			for (int i = 0; i < GetItems(); i++) {
-				TQueryGixUsedType res = GetItem(i).GetGixFlag();
-				if (res == oqgutNormal) { flag |= 1; }
-				else if (res == oqgutSmall) { flag |= 2; }
-				else if (res == oqgutBoth) { flag |= 3; break; }
-			}
-			if (flag == 1) { GixFlag = oqgutNormal; }
-			else if (flag == 2) { GixFlag = oqgutSmall; }
-			else if (flag == 3) { GixFlag = oqgutBoth; }
-		}			
-		return GixFlag;
 	}
 
 	// todo
