@@ -17,26 +17,37 @@ describe('Import test', function(){
 //
 var v = new la.Vector();
 
-describe('Vector Tests', function () { 
+function FVector() {
+    this.vec = new la.Vector([1, 2, 3]);
+}
+
+describe('Vector Tests', function () {
 
     describe('Property Tests', function () {
         describe('Length Test', function () {
+            //var v = new FVector();
             it('should return 0 for vector v', function () {
                 assert.equal(v.length, 0);
+            //    assert.equal(v.vec.length, 3);
             })
         })
     });
 
     describe('Functions Tests', function () {
         describe('Push Test', function () {
-            it('pushing 3.1 and 4 into a vector v, v.length should return 2', function () {
+            //var v = new FVector();
+            it('pushing 3.1 and 4 into a vector v, v.length should return 2', function () { 
                 v.push(3.2);
                 v.push(4);
                 assert.equal(v.length, 2);
+//                v.vec.push(3.2);
+//                v.vec.push(4);
+//                assert.equal(v.length, 5);
             })
         })
 
         describe('At Test', function () {
+            
             it('returns element in with indexes 0 (3.2) and 1 (4)', function () {
                 assert.equal(3.2, v.at(0));
                 assert.equal(4, v.at(1));
@@ -69,9 +80,9 @@ describe('Vector Tests', function () {
         describe('Constructor "String Array" Test', function () {
             it('takes an array ["a", "b", "c"] and it should return an exception', function () {
 
-                assert.throws( function () {
+                assert.throws(function () {
                     var vec = new la.Vector(["a", "b", "c"]);
-               
+
                     assert.equal(vec.length, 3);
 
                     assert.equal(vec.at(0), "a");
@@ -210,7 +221,7 @@ describe('Vector Tests', function () {
                     assert.equal(vec.at(i), array[i]);
                 }
             })
-            
+
             it('should sort vector in descending order [4, 3.5, 0.12, 0.11]', function () {
                 var array = [4, 3.5, 0.12, 0.11];
 
@@ -308,7 +319,7 @@ describe('Vector Tests', function () {
                 var vec = new la.Vector([3, -51, 22, 19]);
                 var indVec = new la.IntVector([1, 4, 2, 0]);
 
-                assert.throws( function () {
+                assert.throws(function () {
                     vec = vec.subVec(indVec);
                 })
             })
@@ -393,7 +404,7 @@ describe('Vector Tests', function () {
                 var vec = new la.Vector();
                 var n = vec.norm();
                 assert.equal(n, 0);
-               
+
             })
         })
 
@@ -524,9 +535,9 @@ describe('Vector Tests', function () {
 
                 for (var i = 0; i < 3; i++) {
                     for (var j = 0; j < 3; j++) {
-                        if (i == j) {assert.equal(spMat.at(i, j), controlspMat.at(i, j))}
-                        else {assert.equal(spMat.at(i, j), 0)}
-                    }   
+                        if (i == j) { assert.equal(spMat.at(i, j), controlspMat.at(i, j)) }
+                        else { assert.equal(spMat.at(i, j), 0) }
+                    }
                 }
             })
         })
@@ -1898,15 +1909,6 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
-        describe('Multiply "Sparse Matrix with Incorrect Dim" Test', function () {
-            it('should throw an exception, if m.rows is incorrect', function () {
-                assert.throws(function () {
-                    var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]], 5);
-                    var mat2 = spMat.multiply(m);
-                })
-            })
-        })
-
         describe('Multiply "Big Sparse Matrix" Test', function () {
             it('should throw an exception for big sparse matrices', function () {
                 assert.throws(function () {
@@ -1925,7 +1927,7 @@ describe('Sparse Matrix Tests', function () {
             })
             it('should throw an exception for big sparse matrices with m.dim < spMat.cols', function () {
                 assert.throws(function () {
-                    var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 4);
+                    var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 6);
                     var mat2 = spMat.multiply(m);
                 })
             })
@@ -2034,15 +2036,6 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
-        describe('MultiplyT "Sparse Vector with Incorrect Dim" Test', function () {
-            it('should transpose and multiply spMat with sparse vector, where vec.dim != spMat.rows', function () {
-                assert.throws(function () {
-                    var vec = spMat.multiplyT(new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4]], 5));
-                    var controlVec = new la.Vector([-1, 18, 4, 21]);
-                })
-            })
-        })
-
         describe('MultiplyT "Small Sparse Vector" Test', function () {
             it('should transpose and multiply spMat with the smaller vector', function () {
                 var vec = spMat.multiplyT(new la.SparseVector([[0, 1], [1, 2]]));
@@ -2063,17 +2056,17 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
-        describe('MultiplyT "Big Sparse Vector" Test', function () {
-            it('should transpose and multiply spMat with vector of vec.dim > spMat.rows', function () {
-                var vec = spMat.multiplyT(new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]));
-                var controlVec = new la.Vector([-1, 18, 4, 21]);
+//        describe('MultiplyT "Longer Sparse Vector" Test', function () {
+//            it('should transpose and multiply spMat with vector of vec.dim > spMat.rows', function () {
+//                var vec = spMat.multiplyT(new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]));
+//                var controlVec = new la.Vector([-1, 18, 4, 21]);
 
-                assert.deepEqual(vec, controlVec);
-                for (var i = 0; i < controlVec.length; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
-                }
-            })
-        })
+//                assert.deepEqual(vec, controlVec);
+//                for (var i = 0; i < controlVec.length; i++) {
+//                    assert.eqtol(vec.at(i), controlVec.at(i));
+//                }
+//            })
+//        })
 
         describe('Multiply "Big Sparse Vector with Dim" Test', function () {
             it('should throw an exception if dim is specified and dim > spMat.rows', function () {
@@ -2152,14 +2145,6 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
-        describe('MultiplyT "Sparse Matrix with Incorrect Dim" Test', function () {
-            it('should throw an exception if mat.rows is incorrect', function () {
-                assert.throws(function () {
-                    var mat = spMat.multiplyT(new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]], 5));
-                })
-            })
-        })
-
         describe('MultiplyT "Big Sparse Matrix" Test', function () {
             it('should transpose and multiply spMat with the bigger matrix', function () {
                 var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]]);
@@ -2178,7 +2163,7 @@ describe('Sparse Matrix Tests', function () {
         describe('MultiplyT "Big Sparse Matrix with Dim" Test', function () {
             it('should throw an exception if rows is specified and mat.rows > spMat.rows', function () {
                 assert.throws(function () {
-                    var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]], 5);
+                    var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]], 6);
                     var mat = spMat.multiplyT(m);
                 })
             })
@@ -2685,26 +2670,26 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        describe('Multiply "Empty Sparse Vector" Test', function () {
-            var mat = new RSparseMatrix();
-            var v = new la.SparseVector();
-            it('should return a sparse zero vector of dim = spMat.rows', function () {
-                var vec = mat.spMat.multiply(v);
-                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]]);
+        //        describe('Multiply "Empty Sparse Vector" Test', function () {
+        //            var mat = new RSparseMatrix();
+        //            var v = new la.SparseVector();
+        //            it('should return a sparse zero vector of dim = spMat.rows', function () {
+        //                var vec = mat.spMat.multiply(v);
+        //                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]]);
 
-                for (var i = 0; i < 4; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
-                }
-            })
-            it('should return a sparse zero vector of dim = spMatD.rows', function () {
-                var vec = mat.spMatD.multiply(v);
-                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]], 4);
+        //                for (var i = 0; i < 4; i++) {
+        //                    assert.eqtol(vec.at(i), controlVec.at(i));
+        //                }
+        //            })
+        //            it('should return a sparse zero vector of dim = spMatD.rows', function () {
+        //                var vec = mat.spMatD.multiply(v);
+        //                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]], 4);
 
-                for (var i = 0; i < 4; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
-                }
-            })
-        })
+        //                for (var i = 0; i < 4; i++) {
+        //                    assert.eqtol(vec.at(i), controlVec.at(i));
+        //                }
+        //            })
+        //        })
 
         describe('Multiply "Matrix" Test', function () {
             var mat = new RSparseMatrix();
@@ -2832,22 +2817,6 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        describe('Multiply "Sparse Matrix with Incorrect Dim" Test', function () {
-            var mat = new RSparseMatrix();
-            var m = new la.SparseMatrix([[[0, 1], [1, 4]], [[0, 2], [1, 5]], [[0, 3], [1, 6]]], 6);
-            it('should throw an exception for spMat, if m.rows is incorrect', function () {
-                assert.throws(function () {
-                    var mat2 = mat.spMat.multiply(m);
-                })
-            })
-            it('should throw an exception for spMatD, if m.rows is incorrect', function () {
-                assert.throws(function () {
-                    var mat2 = mat.spMatD.multiply(m);
-                })
-            })
-        })
-
-
         describe('Multiply "Big Sparse Matrix" Test', function () {
             var mat = new RSparseMatrix();
             var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]]);
@@ -2876,7 +2845,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     var mat2 = mat.spMatD.multiply(m);
                 })
             })
-            var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 1);
+            var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 6);
             it('should throw an exception it m.dim < spMat.cols', function () {
                 assert.throws(function () {
                     var mat2 = mat.spMat.multiply(m);
@@ -2980,8 +2949,6 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 }
             })
         })
-
-
 
         describe('MultiplyT "Vector" Test', function () {
             var mat = new RSparseMatrix();
@@ -3101,28 +3068,28 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        describe('MultiplyT "Longer Sparse Vector" Test', function () {
-            var mat = new RSparseMatrix();
-            var v = new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4], [4, 6]]);
-            it('should return a vector for spMat, v.dim > spMat.rows', function () {
-                var vec = mat.spMat.multiplyT(v);
-                var controlVec = new la.Vector([7, 12]);
+//        describe('MultiplyT "Longer Sparse Vector" Test', function () {
+//            var mat = new RSparseMatrix();
+//            var v = new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4], [4, 6]]);
+//            it('should return a vector for spMat, v.dim > spMat.rows', function () {
+//                var vec = mat.spMat.multiplyT(v);
+//                var controlVec = new la.Vector([7, 12]);
 
-                assert.deepEqual(vec, controlVec);
-                for (var i = 0; i < 2; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
-                }
-            })
-            it('should return a vector for spMatD, v.dim > spMatD.rows', function () {
-                var vec = mat.spMatD.multiplyT(v);
-                var controlVec = new la.Vector([7, 12]);
+//                assert.deepEqual(vec, controlVec);
+//                for (var i = 0; i < 2; i++) {
+//                    assert.eqtol(vec.at(i), controlVec.at(i));
+//                }
+//            })
+//            it('should return a vector for spMatD, v.dim > spMatD.rows', function () {
+//                var vec = mat.spMatD.multiplyT(v);
+//                var controlVec = new la.Vector([7, 12]);
 
-                assert.deepEqual(vec, controlVec);
-                for (var i = 0; i < 2; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
-                }
-            })
-        })
+//                assert.deepEqual(vec, controlVec);
+//                for (var i = 0; i < 2; i++) {
+//                    assert.eqtol(vec.at(i), controlVec.at(i));
+//                }
+//            })
+//        })
 
         describe('MultiplyT "Longer Sparse Vector with Dim" Test', function () {
             var mat = new RSparseMatrix();
@@ -3181,29 +3148,105 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        describe('Multiply "Empty Sparse Vector" Test', function () {
-            var mat = new RSparseMatrix();
-            var v = new la.SparseVector();
-            it('should return a sparse zero vector of dim = spMat.rows', function () {
-                var vec = mat.spMat.multiplyT(v);
-                var controlVec = new la.Vector([0, 0]);
+        //        describe('Multiply "Empty Sparse Vector" Test', function () {
+        //            var mat = new RSparseMatrix();
+        //            var v = new la.SparseVector();
+        //            it('should return a sparse zero vector of dim = spMat.rows', function () {
+        //                var vec = mat.spMat.multiplyT(v);
+        //                var controlVec = new la.Vector([0, 0]);
 
+        //                for (var i = 0; i < 2; i++) {
+        //                    assert.eqtol(vec.at(i), controlVec.at(i));
+        //                }
+        //            })
+        //            it('should return a sparse zero vector of dim = spMatD.rows', function () {
+        //                var vec = mat.spMatD.multiplyT(v);
+        //                var controlVec = new la.Vector([0, 0]);
+
+        //                assert.deepEqual(vec, controlVec);
+        //                for (var i = 0; i < 2; i++) {
+        //                    assert.eqtol(vec.at(i), controlVec.at(i));
+        //                }
+        //            })
+        //        })
+
+        describe('MultiplyT "Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.Matrix([[2, 3, 1], [8, 0, 1], [10, 0, 3], [-1, 8, 1]]);
+            it('should transpose and multiply spMat with m', function () {
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[22, 3, 7], [-3, 24, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
                 for (var i = 0; i < 2; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
+                    for (var j = 0; j < 3; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
                 }
             })
-            it('should return a sparse zero vector of dim = spMatD.rows', function () {
-                var vec = mat.spMatD.multiplyT(v);
-                var controlVec = new la.Vector([0, 0]);
+            it('should transpose and multiply spMatD with m', function () {
+                var mat2 = mat.spMatD.multiplyT(m);
+                var controlMat = new la.Matrix([[22, 3, 7], [-3, 24, 3]]);
 
-                assert.deepEqual(vec, controlVec);
+                assert.deepEqual(mat2, controlMat);
                 for (var i = 0; i < 2; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
+                    for (var j = 0; j < 3; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
                 }
             })
         })
 
+        describe('MultiplyT "Big Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9], [11, 0, 0], [13, 3, 4]]);
+            it('should throw an exception for spMat, m.rows > spMat.rows', function () {
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[15, 18, 21], [33, 0, 0]]);
 
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 3; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should throw an exception for spMatD, m.rows > spMatD.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        })
+
+        describe('MultiplyT "Small Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.Matrix([[1, 2], [3, 4]]);
+            it('should throw an exception for spMat, m.rows < spMat.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMat.multiplyT(m);
+                })
+            })
+            it('should throw an exception for spMatD, m.rows < spMatD.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        })
+
+        describe('MultiplyT "Empty Dense Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.Matrix();
+            it('should throw an exception for spMat, empty dense matrices', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMat.multiplyT(m);
+                })
+            })
+            it('should throw an exception for spMatD, empty dense matrices', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        })
 
 
     })
