@@ -173,15 +173,20 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
 			return new TNodeJsFltVV(Mat);
 		} else {
 			if (Args[0]->IsObject()) {
-				const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
-				const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
-				const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows");
-				EAssert(Cols > 0 && Rows > 0);
-				Mat.Gen(Rows, Cols);
-				if (GenRandom) {
-					TLAMisc::FillRnd(Mat);
-				}
+				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsFltVV::ClassId)) {
+					TNodeJsFltVV* FltVV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+					Mat = FltVV->Mat;
+				} else {
 
+					const bool GenRandom = TNodeJsUtil::GetArgBool(Args, 0, "random", false);
+					const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
+					const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows");
+					EAssert(Cols > 0 && Rows > 0);
+					Mat.Gen(Rows, Cols);
+					if (GenRandom) {
+						TLAMisc::FillRnd(Mat);
+					}
+				}
 				return new TNodeJsFltVV(Mat);
 			} else {
 				throw TExcept::New("Expected either array or object");
@@ -901,12 +906,19 @@ void TNodeJsSpVec::inner(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (Args[0]->IsObject()) {
         double Result = 0.0;
         if (TNodeJsUtil::IsArgClass(Args, 0, "TFltV")) {
-            TNodeJsVec<TFlt, TAuxFltV>* OthVec =
-                ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+			TNodeJsVec<TFlt, TAuxFltV>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+			int Dim = JsSpVec->Dim();
+			if (Dim == -1) {
+				EAssertR(TLAMisc::GetMaxDimIdx(JsSpVec->Vec) < OthVec->Vec.Len(), "TNodeJsSpVec::inner: dimension mismatch!");
+			}
+			else {
+				EAssertR(Dim < OthVec->Vec.Len(), "TNodeJsSpVec::inner: dimension mismatch!");
+			}
             Result = TLinAlg::DotProduct(OthVec->Vec, JsSpVec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
         } else if (TNodeJsUtil::IsArgClass(Args, 0, "TIntFltKdV")) {
-            TNodeJsSpVec* OthSpVec =
+            // TODO check dimensions if at least one is known!
+			TNodeJsSpVec* OthSpVec =
                 ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
             Result = TLinAlg::DotProduct(JsSpVec->Vec, OthSpVec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
@@ -1175,12 +1187,28 @@ void TNodeJsSpMat::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 						}
 					}
 				}
-				JsSpMat->Mat[ColN].Sort(); // XXX: How intense is this, computationaly? 
+				JsSpMat->Mat[ColN].Sort(); // XXX: How intense is this, computationaly? Jan: not a problem (this is meant to be used with smaller matrices - large arrays may break V8 anyway)
 			}
 			int Rows = -1;
 			if (Args.Length() > 1 && Args[1]->IsInt32()) { Rows = Args[1]->Int32Value(); }
 			JsSpMat->Rows = Rows;
-		} // else what 
+		}
+		else {
+			if (Args[0]->IsObject()) {
+				if (TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpMat::ClassId)) {
+					TNodeJsSpMat* JsSpMatArg = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject());
+					JsSpMat->Mat = JsSpMatArg->Mat;
+					JsSpMat->Rows = JsSpMatArg->Rows;
+				}
+				else {
+					const int Cols = TNodeJsUtil::GetArgInt32(Args, 0, "cols");
+					const int Rows = TNodeJsUtil::GetArgInt32(Args, 0, "rows", -1);
+					EAssert(Cols > 0 && Rows > 0);
+					JsSpMat->Mat.Gen(Cols);
+					JsSpMat->Rows = Rows;
+				}
+			}
+		}
 		Args.GetReturnValue().Set(Instance);
 	}
 	if (JsSpMat->Rows != -1) {
