@@ -113,14 +113,13 @@ describe('Vector Tests', function () {
             })
         })
 
-        // crashes node.js
-        //describe('Contructor "Invalid Dictionary" Test', function () {
-        //    it('takes an invalid dictionary {"vals": "a", "maxvals": 5} and it should give an exception', function () {
-        //        assert.throws(function () {
-        //            var vec = new la.Vector({ "vals": "a", "mxvals": 5 });
-        //        })
-        //    })
-        //})
+        describe('Contructor "Invalid Dictionary" Test', function () {
+            it('takes an invalid dictionary {"vals": "a", "maxvals": 5} and it should give an exception', function () {
+                assert.throws(function () {
+                    var vec = new la.Vector({ "vals": "a", "mxvals": 5 });
+                })
+            })
+        })
 
         describe('Copy Constructor Test', function () {
             it('should copy the vector v and save it in vec', function () {
@@ -181,19 +180,17 @@ describe('Vector Tests', function () {
                 assert.equal(w.length, 0);
             })
 
-            // throws an exception (maybe in a bad way)
-            //it('should throw an exception for parameters less than 0', function () {
-            //    assert.throws(function () {
-            //        var w = la.ones(-1);
-            //    })
-            //})
+            it('should throw an exception for parameters less than 0', function () {
+                assert.throws(function () {
+                    var w = la.ones(-1);
+                })
+            })
 
-            // node.js crash
-            //it('should throw an exception for floating number parameters', function () {
-            //    assert.throws(function () {
-            //        var w = la.ones(2.5);
-            //    })
-            //})
+            it('should throw an exception for floating number parameters', function () {
+                assert.throws(function () {
+                    var w = la.ones(2.5);
+                })
+            })
         })
 
         // not implemented
@@ -569,14 +566,14 @@ describe('IntVector Test', function () {
             })
         })
 
-        // should throw an exception
-//        describe('Push "Float" Test', function () {
-//            it('should return an exception when trying to push a floating number, 3.2', function () {
-//                assert.throws(function () {
-//                    intV.push(3.2);
-//                })
-//            })
-//        })
+        // should throw an exception. Currently TODO in la_nodejs.h - the test will be skipped until the TODO is addressed.
+        describe.skip('Push "Float" Test', function () {
+            it('should return an exception when trying to push a floating number, 3.2', function () {
+                assert.throws(function () {
+                    intV.push(3.2);
+                })
+            })
+        })
 
         describe('At Test', function () {
             it('should return the values at position 0 (-1) and at position 1 (6)', function () {
@@ -783,7 +780,7 @@ describe('IntVector Test', function () {
             })
         })
 
-        // not implemented
+        //// not implemented (low priority)
         //describe('Diag Test', function () {
         //    it('should return a matrix with the vector v on it\'s diagonal', function () {
         //        var mat = intV.diag();
@@ -810,7 +807,7 @@ describe('IntVector Test', function () {
             })
         })
 
-        // not implemented
+        // not implemented (low priority)
         //describe('Norm Test', function () {
         //    it('should return the norm of vec 5', function () {
         //        var vec = new la.IntVector([3, 4]);
@@ -819,7 +816,7 @@ describe('IntVector Test', function () {
         //    })
         //})
 
-        // not implemented
+        // not implemented (low priority)
         //describe('Normalize Test', function () {
         //    it('should normalize vec and return vector [3/5, 4/5]', function () {
         //        var vec = new la.IntVector([3, 4]);
@@ -833,7 +830,7 @@ describe('IntVector Test', function () {
         //    })
         //})
 
-        // not implemented
+        // not implemented (low priority)
         //describe('Normalize "Zer0 Vector" Test', function () {
         //    it('should return the same vector', function () {
         //        var vec = new la.IntVector([0, 0, 0, 0]);
@@ -847,7 +844,7 @@ describe('IntVector Test', function () {
         //    })
         //})
 
-        // not implemented
+        // not implemented (low priority)
         //describe('ToMat Test', function () {
         //    it('should return matrix with a single column that equals intV', function () {
         //        var mat = intV.toMat();
@@ -857,7 +854,7 @@ describe('IntVector Test', function () {
         //    })
         //})
 
-        // not implemented
+        // not implemented (low priority)
         //describe('Sparse Test', function () {
         //    it('should return the sparse vector of intV', function () {
         //        var spV = intV.sparse();
@@ -877,7 +874,7 @@ describe('IntVector Test', function () {
             })
         })
 
-        // not implemented
+        // not implemented (low priority)
         //describe('RangeVec Test', function () {
         //    it('should return a integer vector with elements from 3 to 8', function () {
         //        var intV2 = la.rangeVec(3, 8);
@@ -970,19 +967,18 @@ describe('Matrix Test', function () {
             })
         })
 
-        // not implemented yet
-        //describe('Copy Constructor Test', function () {
-        //    it('should make the same matrix as mat', function () {
-        //        var mat2 = new la.Matrix(mat);
+        describe('Copy Constructor Test', function () {
+            it('should make the same matrix as mat', function () {
+                var mat2 = new la.Matrix(mat);
 
-        //        assert.deepEqual(mat, mat2);
-        //        for (var i = 0; i < mat2.rows; i++) {
-        //            for (var j = 0; j < mat2.cols; j++) {
-        //                assert.eqtol(mat2.at(i, j), mat.at(i, j));
-        //            }
-        //        }
-        //    })
-        //})
+                assert.deepEqual(mat, mat2);
+                for (var i = 0; i < mat2.rows; i++) {
+                    for (var j = 0; j < mat2.cols; j++) {
+                        assert.eqtol(mat2.at(i, j), mat.at(i, j));
+                    }
+                }
+            })
+        })
 
         describe('Put Test', function () {
             it('should put value 10 at (1, 1)', function () {
@@ -1045,7 +1041,7 @@ describe('Matrix Test', function () {
         describe('Multiply "Different Dimension Sparse Vector" Test', function () {
             it('should throw exception for sparse vector with length different of mat.cols', function () {
                 assert.throws(function () {
-                    var vec = mat.multiply(new la.SparseVector([[0, 1], [1, 2], [2, 3]]));  // if sparse vector is ex. [[0, 1]], it doesn't throw an exception
+                    var vec = mat.multiply(new la.SparseVector([[0, 1], [1, 2], [2, 3]]));
                 })
             })
         })
@@ -1504,16 +1500,22 @@ describe('Sparse Vector', function () {
             })
         })
 
-        // It doesn't go to the end of sparse vector (not correct inner product)
-        //        describe('Inner Test', function () {
-        //            it('should return the scalar product of spV and [1, 2, 0, 3, 0, 0, 0, 4, 5]', function () {
-        //                var n = spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 4, 5]));
+        describe('Inner Test', function () {
+            it('should throw exception (dimension mismatch):  [1, 2, 0, 3, 0, 0, 0, 4, 5]', function () {
+                assert.throws(function () {
+                    var n = spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 4, 5]));
+                })
+            })
+        });
 
-        //                assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 60);
-        //            })
-        //        })
+        describe('Inner Test', function () {
+            it('should return the scalar product of spV and [1, 2, 0, 3, 0, 0, 0, 0, 4, 5]', function () {
+                var n = spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 4, 5]));
+                assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 60);
+            })
+        })
 
-        // not implemented 
+        // not implemented (TODO low priority)
         //describe('Plus Test', function () {
         //    it('should return the sum of two vectors', function () {
         //        var spVec = new la.SparseVector([[6, 10]]);
@@ -1547,9 +1549,8 @@ describe('Sparse Vector', function () {
             it('should return the dense form of spV', function () {
                 var vec = spV.full();
                 var controlVec = new la.Vector([3, 10, -1, 0.0001, 0, 0, 0, 0, 0, -12]);
-
-        //        assert.deepEqual(vec, controlVec);
-                for (var i = 0; i < vec.length; i++) {
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
                     assert.eqtol(vec.at(i), controlVec.at(i));
                 }
             })
@@ -1597,7 +1598,7 @@ describe('Sparse Vector', function () {
             })
         })
 
-        // not implemented
+        // not implemented (TODO: low priority)
         //describe('Sort Test', function () {
         //    it('should return the permutation integer vector for sorted spV', function () {
         //        spV.sort();        
@@ -1696,14 +1697,13 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
-        // probably not implemented
-        //        describe('Constructor "Rows and Columns" Test', function () {
-        //            it('takes {"rows": 3, "cols": 3} and creates a sparse matrix', function () {
-        //                var mat = new la.SparseMatrix({ "rows": 3, "cols": 3 });
-        //                assert.equal(mat.rows, 3, "Rows: " + mat.rows + " not equal 3!");
-        //                assert.equal(mat.cols, 3, "Columns: " + mat.cols + " not equal 3!");
-        //            })
-        //        })
+        describe('Constructor "Rows and Columns" Test', function () {
+            it('takes {"rows": 3, "cols": 3} and creates a sparse matrix', function () {
+                var mat = new la.SparseMatrix({ "rows": 3, "cols": 3 });
+                assert.equal(mat.rows, 3, "Rows: " + mat.rows + " not equal 3!");
+                assert.equal(mat.cols, 3, "Columns: " + mat.cols + " not equal 3!");
+            })
+        })
 
         describe('Push Test', function () {
             it('should push a sparse vector [1, 2, 0, 4]', function () {
@@ -2056,10 +2056,18 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
+<<<<<<< HEAD
 //        describe('MultiplyT "Longer Sparse Vector" Test', function () {
 //            it('should transpose and multiply spMat with vector of vec.dim > spMat.rows', function () {
 //                var vec = spMat.multiplyT(new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]));
 //                var controlVec = new la.Vector([-1, 18, 4, 21]);
+=======
+        // TODO fix test - expect throw
+        describe.skip('MultiplyT "Big Sparse Vector" Test', function () {
+            it('should transpose and multiply spMat with vector of vec.dim > spMat.rows', function () {
+                var vec = spMat.multiplyT(new la.SparseVector([[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]));
+                var controlVec = new la.Vector([-1, 18, 4, 21]);
+>>>>>>> 6dba5a2c8486b391bceb1e371d76c48ad93b0462
 
 //                assert.deepEqual(vec, controlVec);
 //                for (var i = 0; i < controlVec.length; i++) {
@@ -2307,8 +2315,8 @@ describe('Sparse Matrix Tests', function () {
         describe('Sparse Test', function () {
             it('should return a 3-by-3 zero sparse matrix', function () {
                 var mat = la.sparse(3, 3);
-                //assert.equal(mat.rows, 3);
-                //assert.equal(mat.cols, 3);
+                assert.equal(mat.rows, 3);
+                assert.equal(mat.cols, 3);
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
                         assert.equal(mat.at(i, j), 0);
@@ -2324,7 +2332,7 @@ describe('Sparse Matrix Tests', function () {
             })
         })
 
-        // not implemented
+        // not implemented (TODO low priority)
         //describe('Sign Test', function () {
         //    it('should return a sparse matrix with 1 or -1 as values', function () {
         //        var spMat2 = spMat.sign();
@@ -2845,6 +2853,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     var mat2 = mat.spMatD.multiply(m);
                 })
             })
+<<<<<<< HEAD
             var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 6);
             it('should throw an exception it m.dim < spMat.cols', function () {
                 assert.throws(function () {
@@ -2856,6 +2865,11 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     var mat2 = mat.spMatD.multiply(m);
                 })
             })
+=======
+            // TODO: Delete this test and make a test that checks if it is possible to construct an inconsistent matrix (wrong number of rows)?
+            //var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 1);
+            
+>>>>>>> 6dba5a2c8486b391bceb1e371d76c48ad93b0462
         })
 
         describe('Multiply "Small Sparse Matrix" Test', function () {
@@ -3075,6 +3089,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
 //                var vec = mat.spMat.multiplyT(v);
 //                var controlVec = new la.Vector([7, 12]);
 
+<<<<<<< HEAD
 //                assert.deepEqual(vec, controlVec);
 //                for (var i = 0; i < 2; i++) {
 //                    assert.eqtol(vec.at(i), controlVec.at(i));
@@ -3090,6 +3105,25 @@ describe('Rectangle Sparse Matrix Tests', function () {
 //                }
 //            })
 //        })
+=======
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < 2; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+            
+            // TODO fix - expect throws
+            it.skip('should return a vector for spMatD, v.dim > spMatD.rows', function () {
+                var vec = mat.spMatD.multiplyT(v);
+                var controlVec = new la.Vector([7, 12]);
+
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < 2; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+        })
+>>>>>>> 6dba5a2c8486b391bceb1e371d76c48ad93b0462
 
         describe('MultiplyT "Longer Sparse Vector with Dim" Test', function () {
             var mat = new RSparseMatrix();
@@ -3184,9 +3218,16 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     }
                 }
             })
+<<<<<<< HEAD
             it('should transpose and multiply spMatD with m', function () {
                 var mat2 = mat.spMatD.multiplyT(m);
                 var controlMat = new la.Matrix([[22, 3, 7], [-3, 24, 3]]);
+=======
+                     
+            it('should return a sparse zero vector of dim = spMatD.rows', function () {
+                var vec = mat.spMatD.multiplyT(v);
+                var controlVec = new la.Vector([0, 0]);
+>>>>>>> 6dba5a2c8486b391bceb1e371d76c48ad93b0462
 
                 assert.deepEqual(mat2, controlMat);
                 for (var i = 0; i < 2; i++) {
@@ -3217,6 +3258,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 })
             })
         })
+<<<<<<< HEAD
 
         describe('MultiplyT "Small Matrix" Test', function () {
             var mat = new RSparseMatrix();
@@ -3249,5 +3291,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
         })
 
 
+=======
+>>>>>>> 6dba5a2c8486b391bceb1e371d76c48ad93b0462
     })
 });

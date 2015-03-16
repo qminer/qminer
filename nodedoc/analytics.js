@@ -861,9 +861,9 @@
 	    
     
     /**
-     * Hierarchical Markov model.
-     * @classdesc Hierarchical Markov model.
-	 * @class
+     * Hierarchical Markov model. TODO description      
+     * @class
+     * @param {opts} HierarchMarkovParam - parameters. TODO typedef and describe
      */
     exports.HierarchMarkov = function (opts) {
     	// constructor
@@ -883,7 +883,10 @@
     		ftrSpace = new qm.FeatureSpace(opts.base, opts.ftrSpaceFile);
     	}
     	
-    	// public methods
+        // public methods
+        /**
+        * @lends module:analytics.HierarchMarkov.prototype
+        */
     	var that = {
     		/**
     		 * Creates a new model out of the record set.

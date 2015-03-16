@@ -3307,8 +3307,7 @@ void TLAMisc::Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat) {
 }
 
 int TLAMisc::GetMaxDimIdx(const TIntFltKdV& SpVec) {
-	int MaxDim = SpVec.Last().Key.Val;	 
-	return MaxDim;
+	return SpVec.Len() > 0 ? SpVec.Last().Key.Val : 0;
 }
 
 int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {
