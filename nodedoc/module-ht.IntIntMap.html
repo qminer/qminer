@@ -99,7 +99,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line327">line 327</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line367">line 367</a>
     </li></ul></dd>
     
 
@@ -126,7 +126,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new hashtableht = require('qminer').ht;var h = new ht.IntIntMap();// Adding two key/dat pairsh.put(5, 10);h.put(15, 20);// Getting datah.hasKey(5); // returns trueh.get(15); // returns 20h.key(1); // returns 15h.dat(1); // returns 20h.length; // returns 2// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.IntIntMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
+    <pre class="prettyprint"><code>// create a new hashtableht = require('qminer').ht;var h = new ht.IntIntMap();// Adding two key/dat pairsh.put(5, 10);h.put(15, 20);// Getting datah.hasKey(5); // returns trueh.get(15); // returns 20h.key(1); // returns 15h.dat(1); // returns 20h.length; // returns 2	// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.IntIntMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
 
 
 
@@ -240,7 +240,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line350">line 350</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line390">line 390</a>
     </li></ul></dd>
     
 
@@ -367,7 +367,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line362">line 362</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line402">line 402</a>
     </li></ul></dd>
     
 
@@ -520,7 +520,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line333">line 333</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line373">line 373</a>
     </li></ul></dd>
     
 
@@ -673,7 +673,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line346">line 346</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line386">line 386</a>
     </li></ul></dd>
     
 
@@ -826,7 +826,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line356">line 356</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line396">line 396</a>
     </li></ul></dd>
     
 
@@ -979,7 +979,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line368">line 368</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line408">line 408</a>
     </li></ul></dd>
     
 
@@ -1155,7 +1155,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line340">line 340</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line380">line 380</a>
     </li></ul></dd>
     
 
@@ -1308,7 +1308,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line374">line 374</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line414">line 414</a>
     </li></ul></dd>
     
 
@@ -1357,6 +1357,308 @@
 
 
         
+            
+
+    
+
+    <h4 class="name" id="sortDat"><span class="type-signature"></span>sortDat<span class="signature">(asc<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    sorts by values
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>asc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">Sort in ascending order?</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line424">line 424</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="sortKey"><span class="type-signature"></span>sortKey<span class="signature">(asc<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    sorts by keys
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>asc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">Sort in ascending order?</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line419">line 419</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -1378,7 +1680,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Mon Mar 16 2015 07:24:09 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Mar 17 2015 12:35:19 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

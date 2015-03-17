@@ -19,7 +19,7 @@
 	* h.get('dog'); // returns 'tisa'
 	* h.key(1); // returns 'dog'
 	* h.dat(1); // returns 'tisa'
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -76,6 +76,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.StrStrMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.StrStrMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.StrStrMap.prototype.sortDat = function(asc) {}
 
 /**
 	* String-Integer hashmap 
@@ -93,7 +103,7 @@
 	* h.get('bar'); // returns 20
 	* h.key(1); // returns 'bar'
 	* h.dat(1); // returns 20
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -150,6 +160,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.StrIntMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.StrIntMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.StrIntMap.prototype.sortDat = function(asc) {}
 
 /**
 	* String-Float hashmap 
@@ -167,7 +187,7 @@
 	* h.get('bar'); // returns 20.2
 	* h.key(1); // returns 'bar'
 	* h.dat(1); // returns 20.2
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -224,6 +244,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.StrFltMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.StrFltMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.StrFltMap.prototype.sortDat = function(asc) {}
 
 /**
 	* Int-string hashmap 
@@ -241,7 +271,7 @@
 	* h.get(20); // returns 'bar'
 	* h.key(1); // returns 20
 	* h.dat(1); // returns 'bar'
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -298,6 +328,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.IntStrMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.IntStrMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.IntStrMap.prototype.sortDat = function(asc) {}
 
 /**
 	* Integer-Integer hashmap 
@@ -315,7 +355,7 @@
 	* h.get(15); // returns 20
 	* h.key(1); // returns 15
 	* h.dat(1); // returns 20
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -372,6 +412,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.IntIntMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.IntIntMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.IntIntMap.prototype.sortDat = function(asc) {}
 
 /**
 	* Integer-Float hashmap 
@@ -389,7 +439,7 @@
 	* h.get(15); // returns 20.2
 	* h.key(1); // returns 15
 	* h.dat(1); // returns 20.2
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -446,6 +496,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.IntFltMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.IntFltMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.IntFltMap.prototype.sortDat = function(asc) {}
 
 
 
