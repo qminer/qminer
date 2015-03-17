@@ -679,6 +679,15 @@ public:
     // zero elements, so it is efficient for use in matrix inversion.
     static void LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b);
 
+
+	// Finds x[1...f] that minimizes ||A' x - y||^2 + ||Gamma x||^2, where A[1...f][1...n]
+	// is  a matrix with column training examples (rows = features) and y[1...n] is a
+	// vector of targets. Paramter Gamma controls overfitting (large values force models to be simpler)
+	// See http://en.wikipedia.org/wiki/Tikhonov_regularization, where the regularization matrix = Gamma*I
+	static void LeastSquares(const TFltVV& A, const TFltV& b, const double& kappa, TFltV& x);
+
+
+
 #ifdef OPENBLAS
     // LU midstep used for LUFactorization and LUSolve
     // (Warning: the matrix is overwritten in the process)

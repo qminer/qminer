@@ -202,6 +202,8 @@ private:
 	JsDeclareSpecializedFunction(outer);
 	//!- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareSpecializedFunction(inner);
+	//!- `num = vec.cosine(vec2)` -- `num` is the cosine between vectors `vec` and `vec2`. Implemented for dense float vectors only.
+	JsDeclareSpecializedFunction(cosine);
 	//!- `vec3 = vec.plus(vec2)` --`vec3` is the sum of vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareSpecializedFunction(plus);
 	//!- `vec3 = vec.minus(vec2)` --`vec3` is the difference of vectors `vec` and `vec2`. Implemented for dense float vectors only.
@@ -449,6 +451,7 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "trunc", _trunc);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "outer", _outer);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "inner", _inner);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "cosine", _cosine);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "plus", _plus);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "minus", _minus);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "multiply", _multiply);
@@ -564,6 +567,23 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::inner(const v8::FunctionCallbackInfo<v8:
 	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
 }
 
+template<>
+inline void TNodeJsVec<TFlt, TAuxFltV>::cosine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+
+	TNodeJsVec<TFlt, TAuxFltV>* JsVec =
+		ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args.Holder());
+	double Result = 0.0;
+	if (Args[0]->IsObject()) {
+		TNodeJsVec<TFlt, TAuxFltV>* OthVec =
+			ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+		Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
+		Result /= (TLinAlg::Norm(JsVec->Vec)* TLinAlg::Norm(OthVec->Vec));
+	}
+	Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+}
+
 template <>
 inline void TNodeJsVec<TFlt, TAuxFltV>::plus(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -632,7 +652,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::normalize(const v8::FunctionCallbackInfo
 		TLinAlg::Normalize(JsVec->Vec);
 	}
 
-	Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template<>

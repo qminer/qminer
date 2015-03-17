@@ -2152,6 +2152,34 @@ void TNumericalStuff::SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x) {
     LUSolve(A, indx, x);
 }
 
+void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
+	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
+	if (x.Empty()) { 
+		x.Gen(A.GetRows());
+	} else {
+		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::LeastSquares: solution dimension does not match the number of rows of A (features)");
+	}
+	// x = (A * A' + Gamma^2 * I)^{-1} A * b
+	int Feats = A.GetRows();
+	int N = A.GetCols();
+	// A'
+	TFltVV At = TFltVV(A.GetCols(), A.GetRows()); 
+	TLinAlg::Transpose(A, At);
+	// A * A'
+	TFltVV B = TFltVV(Feats, Feats);
+	TLinAlg::Multiply(A, At, B);
+	// I
+	TFltVV I = TFltVV(Feats, Feats);
+	TFltV Ones = TFltV(Feats); Ones.PutAll(1.0);
+	TLAMisc::Diag(Ones, I);
+	// B = A * A' + Gamma^2 * I
+	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
+	// Ab = A * b
+	TFltV Ab = TFltV(Feats);
+	TLinAlg::Multiply(A, b, Ab);
+	TNumericalStuff::SolveLinearSystem(B, Ab, x);
+}
+
 #ifdef OPENBLAS
 
 void TNumericalStuff::LUStep(TFltVV& A, TIntV& Perm) {
