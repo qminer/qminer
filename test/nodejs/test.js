@@ -1447,14 +1447,17 @@ describe('Matrix Test', function () {
     });
 });
 
-//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Sparse Vector
-//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var arr = [[0, 3], [1, 10], [3, 0.0001], [8, 0], [9, -12]];
 var spV = new la.SparseVector(arr);
 
 describe('Sparse Vector', function () {
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Property Tests
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Property Tests', function () {
 
         describe('Nnz Test', function () {
@@ -1469,7 +1472,9 @@ describe('Sparse Vector', function () {
             })
         });
     });
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function Tests
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Function Tests', function () {
 
         describe('At Test', function () {
@@ -1495,6 +1500,23 @@ describe('Sparse Vector', function () {
                 assert.eqtol(spV.sum(), 0.0001);
             })
         });
+
+        describe('Constructor for sparse vector', function () {
+            it('should create a vector of length 2', function () {
+                var v = new la.SparseVector([[0, 1], [1, 3]]);
+                assert.equal(v.at(0), 1);
+                assert.equal(v.at(1), 3);
+            })
+            it('should create a vector with specified dim: 3', function () {
+                var v = new la.SparseVector([[0, 1], [1, 3]], 3);
+                assert.equal(v.dim, 3);
+            })
+            it('should throw an exception if specified dim is less than max index', function () {
+                assert.throws(function () {
+                    var v = new la.SparseVector([[0, 1], [3, 5]], 2);
+                })
+            })
+        })
 
         describe('Inner Test', function () {
             it('should throw exception (dimension mismatch):  [1, 2, 0, 3, 0, 0, 0, 4, 5]', function () {
@@ -1606,7 +1628,7 @@ describe('Sparse Vector', function () {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Functions for Sparse Matrix
+// Sparse Matrix
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function SSparseMatrix() {
@@ -1702,16 +1724,17 @@ describe('Sparse Matrix Tests', function () {
         });
 
         describe('Construtor "Three Vectors" Test', function () {
+            var mat = new SSparseMatrix();
             it('should take two IntVectors of rowIndex and colIndex and a Vector of values', function () {
-                var rowIdx = new la.IntVector([0, 1, 1, 2, 3, 3]);
-                var colIdx = new la.IntVector([0, 0, 1, 1, 0, 2]);
-                var val = new la.Vector([1, 3, -3, 8, -2, 1]);
+                var rowIdx = new la.IntVector([0, 1, 3, 1, 2, 3]);
+                var colIdx = new la.IntVector([0, 0, 0, 1, 2, 3]);
+                var val = new la.Vector([1, 3, -2, 1, 8, 1]);
 
                 var spVMat = new la.SparseMatrix(rowIdx, colIdx, val);
 
                 for (var i = 0; i < 4; i++) {
-                    for (var j = 0; j < 3; j++) {
-                        assert.equal(spVMat.at(i, j), spMat.at(i, j));
+                    for (var j = 0; j < 4; j++) {
+                        assert.equal(spVMat.at(i, j), mat.spMat.at(i, j));
                     }
                 }
             })
@@ -1737,6 +1760,11 @@ describe('Sparse Matrix Tests', function () {
                 assert.equal(mat.at(1, 0), 2);
                 assert.equal(mat.at(0, 1), 5);
                 assert.equal(mat.at(1, 1), 0);
+            })
+            it('should throw an exception if row parameter is lesser than greatest index', function () {
+                assert.throws(function () {
+                    var mat = new la.SparseMatrix([[[3, 2]], [[0, 5]]], 2);
+                })
             })
         });
 
@@ -2115,13 +2143,13 @@ describe('Sparse Matrix Tests', function () {
 
         describe('Multiply "Big Sparse Matrix" Test', function () {
             var mat = new SSparseMatrix();
-            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]]);            
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]]);
             it('should throw an exception for spMat, big sparse matrices', function () {
                 assert.throws(function () {
                     var mat2 = mat.spMat.multiply(SPMat);
                 })
             })
-            it('should throw an exception for spMatD, big sparse matrices', function () {                
+            it('should throw an exception for spMatD, big sparse matrices', function () {
                 assert.throws(function () {
                     var mat2 = mat.spMatD.multiply(SPMat);
                 })
@@ -2548,61 +2576,100 @@ describe('Sparse Matrix Tests', function () {
                 }
             })
             it('should throw an exception for spMatD', function () {
-                assert.throws(function () {              
+                assert.throws(function () {
                     var mat2 = mat.spMatD.multiplyT(m);
                 })
             })
         });
 
         describe('MultiplyT "Big Sparse Matrix with Dim" Test', function () {
-            it('should throw an exception if rows is specified and mat.rows > spMat.rows', function () {
+            var mat = new SSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]], 6);
+            it('should transpose and multiply spMat with the bigger matrix', function () {
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[2, 3, 0, -2, 0], [1, 1, 0, 0, 0], [0, 0, 8, 0, 0], [1, 0, 0, 1, 0]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 5; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should throw an exception for spMatD, mat.rows > spMatD.rows', function () {
                 assert.throws(function () {
-                    var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]], 6);
-                    var mat = spMat.multiplyT(m);
+                    var mat2 = mat.spMatD.multiplyT(m);
                 })
             })
-        })
+        });
 
 
         describe('MultiplyT "Small Sparse Matrix" Test', function () {
+            var mat = new SSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1]], [[1, 1]]]);
             it('should transpose and multiply spMat with the smaller matrix', function () {
-                var m = new la.SparseMatrix([[[0, 1], [1, 1]], [[1, 1]]]);
-                var mat = spMat.multiplyT(m);
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[4, 3], [1, 1], [0, 0], [0, 0]]);
 
-                var controlMat = new la.Matrix([[4, 3], [-3, -3], [0, 0], [3, 2]]);
-
-                assert.deepEqual(mat, controlMat);
+                assert.deepEqual(mat2, controlMat);
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 2; j++) {
-                        assert.eqtol(mat.at(i, j), controlMat.at(i, j));
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
-        })
+            it('should transpose and multiply spMatD with the smaller matrix', function () {
+                var mat2 = mat.spMatD.multiplyT(m);
+                var controlMat = new la.Matrix([[4, 3], [1, 1], [0, 0], [0, 0]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
 
         describe('MultiplyT "Small Sparse Matrix with Dim" Test', function () {
+            var mat = new SSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1]], [[1, 1]]], 2);
             it('should throw an exception if rows is specified and mat.rows < spMat.rows', function () {
                 assert.throws(function () {
-                    var m = new la.SparseMatrix([[[0, 1], [1, 1]], [[1, 1]]], 2);
-                    var mat = spMat.multiplyT(m);
+                    var mat2 = mat.spMat.multiplyT(m);
                 })
             })
-        })
+            it('should throw an exception if rows is specified and mat.rows < spMatD.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        });
 
         describe('MultiplyT "Empty Sparse Matrix" Test', function () {
-            it('should return an empty matrix with 0 columns and spMat.rows rows ', function () {
-                var mat = spMat.multiplyT(new la.SparseMatrix());
+            var mat = new SSparseMatrix();
+            it('should return an empty matrix with 0 columns and spMat.rows', function () {
+                var mat2 = mat.spMat.multiplyT(new la.SparseMatrix());
 
-                assert.equal(mat.rows, 4);
-                assert.equal(mat.cols, 0);
+                assert.equal(mat2.rows, 4);
+                assert.equal(mat2.cols, 0);
             })
-        })
+            it('should return an empty matrix with 0 columns and spMatD.rows', function () {
+                var mat2 = mat.spMatD.multiplyT(new la.SparseMatrix());
+
+                assert.equal(mat2.rows, 4);
+                assert.equal(mat2.cols, 0);
+            })
+        });
 
         describe('Plus Test', function () {
-            it('should add spMat2 and spMat together and return spMat3', function () {
-                var spMat3 = spMat.plus(spMulti);
-                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 4], [3, -1]], [[1, -2], [2, 8]], [[2, 1], [3, 1]],
-                    [[0, 1], [1, 2], [3, 5]]]);
+            var mat = new SSparseMatrix();
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]]);
+            var SPMatD = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]], 4);
+            it('should add SPMat and spMat together and return spMat3', function () {
+                var spMat3 = mat.spMat.plus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 4], [3, -1]], [[1, 2]], [[2, 9]],
+                    [[3, 2]]]);
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 4; j++) {
@@ -2610,13 +2677,48 @@ describe('Sparse Matrix Tests', function () {
                     }
                 }
             })
-        })
+            it('should add SPMat and spMatD together and return spMat3', function () {
+                var spMat3 = mat.spMatD.plus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 4], [3, -1]], [[1, 2]], [[2, 9]],
+                    [[3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should add SPMatD and spMat together and return spMat3', function () {
+                var spMat3 = mat.spMat.plus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 4], [3, -1]], [[1, 2]], [[2, 9]],
+                    [[3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should add SPMatD and spMatD together and return spMat3', function () {
+                var spMat3 = mat.spMatD.plus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 4], [3, -1]], [[1, 2]], [[2, 9]],
+                    [[3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+        });
 
         describe('Minus Test', function () {
-            it('should substract spMat2 from spMat and return spMat3', function () {
-                var spMat3 = spMat.minus(spMulti);
-                var controlspMat = new la.SparseMatrix([[[1, 2], [3, -3]], [[1, -4], [2, 8]], [[2, -1], [3, 1]],
-                    [[0, 1], [1, 2], [3, 3]]]);
+            var mat = new SSparseMatrix();
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]]);
+            var SPMatD = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]], 4);
+            it('should substract SPMat from spMat and return spMat3', function () {
+                var spMat3 = mat.spMat.minus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[1, 2], [3, -3]], [], [[2, 7]], []]);
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 4; j++) {
@@ -2624,13 +2726,53 @@ describe('Sparse Matrix Tests', function () {
                     }
                 }
             })
-        })
+            it('should substract SPMat from spMatD and return spMat3', function () {
+                var spMat3 = mat.spMatD.minus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[1, 2], [3, -3]], [], [[2, 7]], []]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should substract SPMatD from spMat and return spMat3', function () {
+                var spMat3 = mat.spMat.minus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[1, 2], [3, -3]], [], [[2, 7]], []]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should substract SPMatD from spMatD and return spMat3', function () {
+                var spMat3 = mat.spMatD.minus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[1, 2], [3, -3]], [], [[2, 7]], []]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+        });
 
         describe('Transpose Test', function () {
+            var mat = new SSparseMatrix();
             it('should transpose spMat and return it in spMat2', function () {
-                var spMat2 = spMat.transpose();
-                var controlMat = new la.SparseMatrix([[[0, 1], [3, 1]], [[0, 3], [1, -3], [3, 2]], [[1, 8]],
-                    [[0, -2], [2, 1], [3, 4]]]);
+                var spMat2 = mat.spMat.transpose();
+                var controlMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 1]], [[2, 8]], [[0, -2], [3, 1]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should transpose spMatD and return it in spMat2', function () {
+                var spMat2 = mat.spMatD.transpose();
+                var controlMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 1]], [[2, 8]], [[0, -2], [3, 1]]]);
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 4; j++) {
@@ -2641,9 +2783,19 @@ describe('Sparse Matrix Tests', function () {
         })
 
         describe('ColNorms Test', function () {
+            var mat = new SSparseMatrix();
             it('should return a vector containing the norms of columns in spMat', function () {
-                var vec = spMat.colNorms();
-                var controlVec = new la.Vector([Math.sqrt(14), Math.sqrt(73), Math.sqrt(1), Math.sqrt(21)]);
+                var vec = mat.spMat.colNorms();
+                var controlVec = new la.Vector([Math.sqrt(14), Math.sqrt(1), Math.sqrt(64), Math.sqrt(1)]);
+
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
+                    assert.eqtol(vec[i], controlVec[i]);
+                }
+            })
+            it('should return a vector containing the norms of columns in spMatD', function () {
+                var vec = mat.spMatD.colNorms();
+                var controlVec = new la.Vector([Math.sqrt(14), Math.sqrt(1), Math.sqrt(64), Math.sqrt(1)]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -2653,37 +2805,58 @@ describe('Sparse Matrix Tests', function () {
         })
 
         describe('NormalizeCols Test', function () {
+            var mat = new SSparseMatrix();
             it('should normalize columns in spMat', function () {
-                var spMat2 = new la.SparseMatrix([[[0, 1], [1, 3], [3, -2]],
-                    [[1, -3], [2, 8]], [[3, 1]],
-                    [[0, 1], [1, 2], [3, 4]]]);
-                spMat2.normalizeCols();
+                mat.spMat.normalizeCols();
                 var controlMat = new la.SparseMatrix([[[0, 1 / Math.sqrt(14)], [1, 3 / Math.sqrt(14)], [3, -2 / Math.sqrt(14)]],
-                    [[1, -3 / Math.sqrt(73)], [2, 8 / Math.sqrt(73)]], [[3, 1]],
-                    [[0, 1 / Math.sqrt(21)], [1, 2 / Math.sqrt(21)], [3, 4 / Math.sqrt(21)]]]);
+                    [[1, 1 / Math.sqrt(1)]], [[2, 8 / Math.sqrt(64)]],
+                    [[3, 1 / Math.sqrt(1)]]]);
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 4; j++) {
-                        assert.eqtol(spMat2.at(i, j), controlMat.at(i, j));
+                        assert.eqtol(mat.spMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
-        })
+            it('should normalize columns in spMatD', function () {
+                mat.spMatD.normalizeCols();
+                var controlMat = new la.SparseMatrix([[[0, 1 / Math.sqrt(14)], [1, 3 / Math.sqrt(14)], [3, -2 / Math.sqrt(14)]],
+                    [[1, 1 / Math.sqrt(1)]], [[2, 8 / Math.sqrt(64)]],
+                    [[3, 1 / Math.sqrt(1)]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(mat.spMatD.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
 
         describe('Full Test', function () {
+            var mat = new SSparseMatrix();
             it('should return the dense format of spMat', function () {
+                var mat2 = mat.spMat.full();
+                var controlMat = new la.Matrix([[1, 0, 0, 0], [3, 1, 0, 0], [0, 0, 8, 0], [-2, 0, 0, 1]]);
 
-                var mat = spMat.full();
-                var controlMat = new la.Matrix([[1, 0, 0, 1], [3, -3, 0, 2], [0, 8, 0, 0], [-2, 0, 1, 4]]);
-
-                assert.deepEqual(mat, controlMat);
+                assert.deepEqual(mat2, controlMat);
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.eqtol(mat.at(i, j), controlMat.at(i, j));
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
-        })
+            it('should return the dense format of spMatD', function () {
+                var mat2 = mat.spMatD.full();
+                var controlMat = new la.Matrix([[1, 0, 0, 0], [3, 1, 0, 0], [0, 0, 8, 0], [-2, 0, 0, 1]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < controlMat.rows; i++) {
+                    for (var j = 0; j < controlMat.cols; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
 
         describe('Speye Test', function () {
             it('should return a sparse eye matrix of dimension 3', function () {
@@ -2696,7 +2869,7 @@ describe('Sparse Matrix Tests', function () {
                     }
                 }
             })
-        })
+        });
 
         describe('Sparse Test', function () {
             it('should return a 3-by-3 zero sparse matrix', function () {
@@ -2709,14 +2882,19 @@ describe('Sparse Matrix Tests', function () {
                     }
                 }
             })
-        })
+        });
 
         describe('Frob Test', function () {
+            var mat = new SSparseMatrix();
             it('should return the frobenious norm of spMat', function () {
-                var n = spMat.frob();
-                assert.eqtol(n, Math.sqrt(109));
+                var n = mat.spMat.frob();
+                assert.eqtol(n, Math.sqrt(80));
             })
-        })
+            it('should return the frobenious norm of spMat', function () {
+                var n = mat.spMatD.frob();
+                assert.eqtol(n, Math.sqrt(80));
+            })
+        });
 
         // not implemented (TODO low priority)
         //describe('Sign Test', function () {
@@ -2734,9 +2912,9 @@ describe('Sparse Matrix Tests', function () {
     });
 })
 
-//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Rectangle Sparse Matrix (rows > columns)
-//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function RSparseMatrix() {
     // rectangle sparse matrix
@@ -2746,6 +2924,9 @@ function RSparseMatrix() {
 }
 
 describe('Rectangle Sparse Matrix Tests', function () {
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Property Tests
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Property Tests', function () {
 
         describe('Rows Test', function () {
@@ -2781,7 +2962,9 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
     });
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function Tests
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Function Tests', function () {
 
         describe('At Test', function () {
@@ -3064,26 +3247,26 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        //        describe('Multiply "Empty Sparse Vector" Test', function () {
-        //            var mat = new RSparseMatrix();
-        //            var v = new la.SparseVector();
-        //            it('should return a sparse zero vector of dim = spMat.rows', function () {
-        //                var vec = mat.spMat.multiply(v);
-        //                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]]);
+        describe('Multiply "Empty Sparse Vector" Test', function () {
+            var mat = new RSparseMatrix();
+            var v = new la.SparseVector();
+            it('should return a sparse zero vector of dim = spMat.rows', function () {
+                var vec = mat.spMat.multiply(v);
+                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]]);
 
-        //                for (var i = 0; i < 4; i++) {
-        //                    assert.eqtol(vec.at(i), controlVec.at(i));
-        //                }
-        //            })
-        //            it('should return a sparse zero vector of dim = spMatD.rows', function () {
-        //                var vec = mat.spMatD.multiply(v);
-        //                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]], 4);
+                for (var i = 0; i < 4; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+            it('should return a sparse zero vector of dim = spMatD.rows', function () {
+                var vec = mat.spMatD.multiply(v);
+                var controlVec = new la.SparseVector([[0, 0], [1, 0], [2, 0], [3, 0]], 4);
 
-        //                for (var i = 0; i < 4; i++) {
-        //                    assert.eqtol(vec.at(i), controlVec.at(i));
-        //                }
-        //            })
-        //        })
+                for (var i = 0; i < 4; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+        })
 
         describe('Multiply "Matrix" Test', function () {
             var mat = new RSparseMatrix();
@@ -3239,8 +3422,6 @@ describe('Rectangle Sparse Matrix Tests', function () {
                     var mat2 = mat.spMatD.multiply(m);
                 })
             })
-            // TODO: Delete this test and make a test that checks if it is possible to construct an inconsistent matrix (wrong number of rows)?
-            //var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]], 1);
         })
 
         describe('Multiply "Small Sparse Matrix" Test', function () {
@@ -3466,15 +3647,11 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 }
             })
 
-            // TODO fix - expect throws
-            it.skip('should return a vector for spMatD, v.dim > spMatD.rows', function () {
-                var vec = mat.spMatD.multiplyT(v);
-                var controlVec = new la.Vector([7, 12]);
 
-                assert.deepEqual(vec, controlVec);
-                for (var i = 0; i < 2; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
-                }
+            it('should throw an exception for spMatD, v.dim > spMatD.rows', function () {
+                assert.throws(function () {
+                    var vec = mat.spMatD.multiplyT(v);
+                });
             })
         })
 
@@ -3520,7 +3697,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        describe('Multiply "Shorter Sparse Vector with Dim" Test', function () {
+        describe('MultiplyT "Shorter Sparse Vector with Dim" Test', function () {
             var mat = new RSparseMatrix();
             var v = new la.SparseVector([[0, 1], [1, 2], [2, 2]], 3);
             it('should throw an exception for spMat, vec.dim < spMatD.rows', function () {
@@ -3535,27 +3712,27 @@ describe('Rectangle Sparse Matrix Tests', function () {
             })
         })
 
-        //        describe('Multiply "Empty Sparse Vector" Test', function () {
-        //            var mat = new RSparseMatrix();
-        //            var v = new la.SparseVector();
-        //            it('should return a sparse zero vector of dim = spMat.rows', function () {
-        //                var vec = mat.spMat.multiplyT(v);
-        //                var controlVec = new la.Vector([0, 0]);
+        describe('MultiplyT "Empty Sparse Vector" Test', function () {
+            var mat = new RSparseMatrix();
+            var v = new la.SparseVector();
+            it('should return a sparse zero vector of dim = spMat.rows', function () {
+                var vec = mat.spMat.multiplyT(v);
+                var controlVec = new la.Vector([0, 0]);
 
-        //                for (var i = 0; i < 2; i++) {
-        //                    assert.eqtol(vec.at(i), controlVec.at(i));
-        //                }
-        //            })
-        //            it('should return a sparse zero vector of dim = spMatD.rows', function () {
-        //                var vec = mat.spMatD.multiplyT(v);
-        //                var controlVec = new la.Vector([0, 0]);
+                for (var i = 0; i < 2; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+            it('should return a sparse zero vector of dim = spMatD.rows', function () {
+                var vec = mat.spMatD.multiplyT(v);
+                var controlVec = new la.Vector([0, 0]);
 
-        //                assert.deepEqual(vec, controlVec);
-        //                for (var i = 0; i < 2; i++) {
-        //                    assert.eqtol(vec.at(i), controlVec.at(i));
-        //                }
-        //            })
-        //        })
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < 2; i++) {
+                    assert.eqtol(vec.at(i), controlVec.at(i));
+                }
+            })
+        })
 
         describe('MultiplyT "Matrix" Test', function () {
             var mat = new RSparseMatrix();
@@ -3627,5 +3804,389 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 })
             })
         })
+
+        describe('MultiplyT "Sparse Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]]);
+            it('should transpose and multiply spMat with sparse matrix', function () {
+                var mat2 = mat.spMat.multiplyT(SPMat);
+                var controlMat = new la.Matrix([[1, 0, 2, 0], [3, 0, 0, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should transpose and multiply spMatD with sparse matrix', function () {
+                var mat2 = mat.spMatD.multiplyT(SPMat);
+                var controlMat = new la.Matrix([[1, 0, 2, 0], [3, 0, 0, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        describe('MultiplyT "Sparse Matrix with Dim" Test', function () {
+            var mat = new RSparseMatrix();
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[1, 1]], [[2, 1]], [[3, 1]]], 4);
+            it('should transpose and multiply spMat with sparse matrix', function () {
+                var mat2 = mat.spMat.multiplyT(SPMat);
+                var controlMat = new la.Matrix([[1, 0, 2, 0], [3, 0, 0, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should transpose and multiply spMatD with sparse matrix', function () {
+                var mat2 = mat.spMatD.multiplyT(SPMat);
+                var controlMat = new la.Matrix([[1, 0, 2, 0], [3, 0, 0, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        describe('MultiplyT "Big Sparse Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]]);
+            it('should transpose and multiply spMat with the bigger matrix', function () {
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[1, 0, 2, 0, 0], [3, 0, 0, 3, 0]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 5; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should throw an exception for spMatD', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        });
+
+        describe('MultiplyT "Big Sparse Matrix with Dim" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]], 6);
+            it('should transpose and multiply spMat with the bigger matrix', function () {
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[1, 0, 2, 0, 0], [3, 0, 0, 3, 0]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 5; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should throw an exception for spMatD, mat.rows > spMatD.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        });
+
+
+        describe('MultiplyT "Small Sparse Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1]], [[1, 1]]]);
+            it('should transpose and multiply spMat with the smaller matrix', function () {
+                var mat2 = mat.spMat.multiplyT(m);
+                var controlMat = new la.Matrix([[1, 0], [0, 0]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should transpose and multiply spMatD with the smaller matrix', function () {
+                var mat2 = mat.spMatD.multiplyT(m);
+                var controlMat = new la.Matrix([[1, 0], [0, 0]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        describe('MultiplyT "Small Sparse Matrix with Dim" Test', function () {
+            var mat = new RSparseMatrix();
+            var m = new la.SparseMatrix([[[0, 1], [1, 1]], [[1, 1]]], 2);
+            it('should throw an exception if rows is specified and mat.rows < spMat.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMat.multiplyT(m);
+                })
+            })
+            it('should throw an exception if rows is specified and mat.rows < spMatD.rows', function () {
+                assert.throws(function () {
+                    var mat2 = mat.spMatD.multiplyT(m);
+                })
+            })
+        });
+
+        describe('MultiplyT "Empty Sparse Matrix" Test', function () {
+            var mat = new RSparseMatrix();
+            it('should return an empty matrix with 0 columns and spMat.rows', function () {
+                var mat2 = mat.spMat.multiplyT(new la.SparseMatrix());
+
+                assert.equal(mat2.rows, 2);
+                assert.equal(mat2.cols, 0);
+            })
+            it('should return an empty matrix with 0 columns and spMatD.rows', function () {
+                var mat2 = mat.spMatD.multiplyT(new la.SparseMatrix());
+
+                assert.equal(mat2.rows, 2);
+                assert.equal(mat2.cols, 0);
+            })
+        });
+
+        describe('Plus Test', function () {
+            var mat = new RSparseMatrix();
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[2, 1], [3, 1]]]);
+            var SPMatD = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[2, 1], [3, 1]]], 4);
+            it('should add SPMat and spMat together and return spMat3', function () {
+                var spMat3 = mat.spMat.plus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 1], [2, 2], [3, 1]], [[2, 1], [3, 4]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should add SPMat and spMatD together and return spMat3', function () {
+                var spMat3 = mat.spMatD.plus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 1], [2, 2], [3, 1]], [[2, 1], [3, 4]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should add SPMatD and spMat together and return spMat3', function () {
+                var spMat3 = mat.spMat.plus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 1], [2, 2], [3, 1]], [[2, 1], [3, 4]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should add SPMatD and spMatD together and return spMat3', function () {
+                var spMat3 = mat.spMatD.plus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[0, 2], [1, 1], [2, 2], [3, 1]], [[2, 1], [3, 4]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        describe('Minus Test', function () {
+            var mat = new RSparseMatrix();
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[2, 1], [3, 1]]]);
+            var SPMatD = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1]], [[2, 1], [3, 1]]], 4);
+            it('should substract SPMat from spMat and return spMat3', function () {
+                var spMat3 = mat.spMat.minus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[1, -1], [2, 2], [3, -1]], [[2, -1], [3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should substract SPMat from spMatD and return spMat3', function () {
+                var spMat3 = mat.spMatD.minus(SPMat);
+                var controlspMat = new la.SparseMatrix([[[1, -1], [2, 2], [3, -1]], [[2, -1], [3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should substract SPMatD from spMat and return spMat3', function () {
+                var spMat3 = mat.spMat.minus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[1, -1], [2, 2], [3, -1]], [[2, -1], [3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+            it('should substract SPMatD from spMatD and return spMat3', function () {
+                var spMat3 = mat.spMatD.minus(SPMatD);
+                var controlspMat = new la.SparseMatrix([[[1, -1], [2, 2], [3, -1]], [[2, -1], [3, 2]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(spMat3.at(i, j), controlspMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        describe('Transpose Test', function () {
+            var mat = new RSparseMatrix();
+            it('should transpose spMat and return it in spMat2', function () {
+                var spMat2 = mat.spMat.transpose();
+                var controlMat = new la.SparseMatrix([[[0, 1]], [], [[0, 2]], [[1, 3]]]);
+
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should transpose spMatD and return it in spMat2', function () {
+                var spMat2 = mat.spMatD.transpose();
+                var controlMat = new la.SparseMatrix([[[0, 1]], [], [[0, 2]], [[1, 3]]]);
+
+                for (var i = 0; i < 2; i++) {
+                    for (var j = 0; j < 4; j++) {
+                        assert.eqtol(spMat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        })
+
+        describe('ColNorms Test', function () {
+            var mat = new RSparseMatrix();
+            it('should return a vector containing the norms of columns in spMat', function () {
+                var vec = mat.spMat.colNorms();
+                var controlVec = new la.Vector([Math.sqrt(5), Math.sqrt(9)]);
+
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
+                    assert.eqtol(vec[i], controlVec[i]);
+                }
+            })
+            it('should return a vector containing the norms of columns in spMatD', function () {
+                var vec = mat.spMatD.colNorms();
+                var controlVec = new la.Vector([Math.sqrt(5), Math.sqrt(9)]);
+
+                assert.deepEqual(vec, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
+                    assert.eqtol(vec[i], controlVec[i]);
+                }
+            })
+        })
+
+        describe('NormalizeCols Test', function () {
+            var mat = new RSparseMatrix();
+            it('should normalize columns in spMat', function () {
+                mat.spMat.normalizeCols();
+                var controlMat = new la.SparseMatrix([[[0, 1 / Math.sqrt(5)], [2, 2 / Math.sqrt(5)]],
+                 [[3, 3 / Math.sqrt(9)]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(mat.spMat.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should normalize columns in spMatD', function () {
+                mat.spMatD.normalizeCols();
+                var controlMat = new la.SparseMatrix([[[0, 1 / Math.sqrt(5)], [2, 2 / Math.sqrt(5)]],
+                [[3, 3 / Math.sqrt(9)]]]);
+
+                for (var i = 0; i < 4; i++) {
+                    for (var j = 0; j < 2; j++) {
+                        assert.eqtol(mat.spMatD.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        describe('Full Test', function () {
+            var mat = new RSparseMatrix();
+            it('should return the dense format of spMat', function () {
+                var mat2 = mat.spMat.full();
+                var controlMat = new la.Matrix([[1, 0], [0, 0], [2, 0], [0, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < controlMat.rows; i++) {
+                    for (var j = 0; j < controlMat.cols; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+            it('should return the dense format of spMatD', function () {
+                var mat2 = mat.spMatD.full();
+                var controlMat = new la.Matrix([[1, 0], [0, 0], [2, 0], [0, 3]]);
+
+                assert.deepEqual(mat2, controlMat);
+                for (var i = 0; i < controlMat.rows; i++) {
+                    for (var j = 0; j < controlMat.cols; j++) {
+                        assert.eqtol(mat2.at(i, j), controlMat.at(i, j));
+                    }
+                }
+            })
+        });
+
+        //        describe('Speye Test', function () {
+        //            it('should return a sparse eye matrix of dimension 3', function () {
+        //                var mat = la.speye(3);
+
+        //                for (var i = 0; i < 3; i++) {
+        //                    for (var j = 0; j < 3; j++) {
+        //                        if (i == j) { assert.equal(mat.at(i, j), 1); }
+        //                        else { assert.equal(mat.at(i, j), 0); }
+        //                    }
+        //                }
+        //            })
+        //        });
+
+        //        describe('Sparse Test', function () {
+        //            it('should return a 3-by-3 zero sparse matrix', function () {
+        //                var mat = la.sparse(3, 3);
+        //                assert.equal(mat.rows, 3);
+        //                assert.equal(mat.cols, 3);
+        //                for (var i = 0; i < mat.rows; i++) {
+        //                    for (var j = 0; j < mat.cols; j++) {
+        //                        assert.equal(mat.at(i, j), 0);
+        //                    }
+        //                }
+        //            })
+        //        });
+
+        describe('Frob Test', function () {
+            var mat = new RSparseMatrix();
+            it('should return the frobenious norm of spMat', function () {
+                var n = mat.spMat.frob();
+                assert.eqtol(n, Math.sqrt(14));
+            })
+            it('should return the frobenious norm of spMat', function () {
+                var n = mat.spMatD.frob();
+                assert.eqtol(n, Math.sqrt(14));
+            })
+        });
+
     })
 });
