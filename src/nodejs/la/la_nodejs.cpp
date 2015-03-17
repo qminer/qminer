@@ -1492,6 +1492,20 @@ void TNodeJsSpMat::multiplyT(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 EAssertR(JsMat->Rows == -1 || JsMat2->Rows == -1 || JsMat->Rows == JsMat2->Rows, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
                 // computation                
                 int Cols = JsMat->Mat.Len();
+				
+				
+				int ADim = JsMat->Rows; // multiplyT
+				int BDim = JsMat2->Rows;
+
+				if (ADim == -1 && BDim != -1) {
+					// check that maxdimidx < dim
+					EAssertR(TLAMisc::GetMaxDimIdx(JsMat->Mat) < BDim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
+				}
+				else if (ADim != -1 && BDim == -1) {
+					// check that vectorMaxIdx < JsMat->Rows
+					EAssertR(TLAMisc::GetMaxDimIdx(JsMat2->Mat) < ADim, "sparse_col_matrix' * sparse_matrix: dimensions mismatch");
+				}
+
                 TFltVV Result(Cols, JsMat2->Mat.Len());                    
                 TLinAlg::MultiplyT(JsMat->Mat, JsMat2->Mat, Result);
                 // create JS result with the Result vector    

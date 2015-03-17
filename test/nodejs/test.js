@@ -2115,13 +2115,13 @@ describe('Sparse Matrix Tests', function () {
 
         describe('Multiply "Big Sparse Matrix" Test', function () {
             var mat = new SSparseMatrix();
-            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]]);
+            var SPMat = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[3, 10]]]);            
             it('should throw an exception for spMat, big sparse matrices', function () {
                 assert.throws(function () {
                     var mat2 = mat.spMat.multiply(SPMat);
                 })
             })
-            it('should throw an exception for spMatD, big sparse matrices', function () {
+            it('should throw an exception for spMatD, big sparse matrices', function () {                
                 assert.throws(function () {
                     var mat2 = mat.spMatD.multiply(SPMat);
                 })
@@ -2533,7 +2533,7 @@ describe('Sparse Matrix Tests', function () {
             })
         });
 
-        describe.only('MultiplyT "Big Sparse Matrix" Test', function () {
+        describe('MultiplyT "Big Sparse Matrix" Test', function () {
             var mat = new SSparseMatrix();
             var m = new la.SparseMatrix([[[0, 1], [1, 1], [3, 1], [5, 10]], [[1, 1]], [[2, 1]], [[3, 1]], [[4, 10]]]);
             it('should transpose and multiply spMat with the bigger matrix', function () {
@@ -2548,7 +2548,7 @@ describe('Sparse Matrix Tests', function () {
                 }
             })
             it('should throw an exception for spMatD', function () {
-                assert.throws(function () {
+                assert.throws(function () {              
                     var mat2 = mat.spMatD.multiplyT(m);
                 })
             })
