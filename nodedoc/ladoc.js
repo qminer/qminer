@@ -31,6 +31,30 @@
 	*/
  exports.Matrix.prototype.at = function(rowIdx, colIdx) {}
 /**
+	* Sets an element of matrix
+	* @param {number} rowIdx - row index (zero based)
+	* @param {number} colIdx - column index (zero based)
+	* @param {number} num - input value
+	* @returns {module:la.Matrix} Self 
+	*/
+ exports.Matrix.prototype.put = function(rowIdx, colIdx, num) {}
+/**
+	* Right-hand side multiplication of matrix with parameter
+	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input. 
+	* @returns {(module:la.Matrix | module:la.Vector)} Output - If arg is
+	* <br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
+	* <br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
+	*/
+ exports.Matrix.prototype.multiply = function(arg) {}
+/**
+	* Matrix transpose and right-hand side multiplication of matrix with parameter
+	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input. 
+	* @returns {(module:la.Matrix | module:la.Vector)} Output - If arg is
+	* <br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
+	* <br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
+	*/
+ exports.Matrix.prototype.multiplyT = function(arg) {}
+/**
      * Sets the element at position i.
      *
      * vec = vec.put(i, val)

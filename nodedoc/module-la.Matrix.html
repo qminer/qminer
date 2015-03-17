@@ -392,6 +392,541 @@
 
 
         
+            
+
+    
+
+    <h4 class="name" id="multiply"><span class="type-signature"></span>multiply<span class="signature">(arg)</span><span class="type-signature"> &rarr; {<a href="module-la.Matrix.html">module:la.Matrix</a>|module:la.Vector}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Right-hand side multiplication of matrix with parameter
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>arg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+|
+
+<span class="param-type">module:la.Vector</span>
+|
+
+<span class="param-type">module:la.SparseVector</span>
+|
+
+<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
+|
+
+<span class="param-type">module:la.SparseMatrix</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Multiplication input. Supports scalar, vector and matrix input.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line48">line 48</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Output - If arg is<br>1. number, <a href="module-la.Matrix.html">module:la.Matrix</a> or module:la.SparseMatrix: Output is <a href="module-la.Matrix.html">module:la.Matrix</a>.<br>2. module:la.Vector or {@link module:la.SparseVector}: Output is module:la.Vector.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
+|
+
+<span class="param-type">module:la.Vector</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="multiplyT"><span class="type-signature"></span>multiplyT<span class="signature">(arg)</span><span class="type-signature"> &rarr; {<a href="module-la.Matrix.html">module:la.Matrix</a>|module:la.Vector}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Matrix transpose and right-hand side multiplication of matrix with parameter
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>arg</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+|
+
+<span class="param-type">module:la.Vector</span>
+|
+
+<span class="param-type">module:la.SparseVector</span>
+|
+
+<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
+|
+
+<span class="param-type">module:la.SparseMatrix</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Multiplication input. Supports scalar, vector and matrix input.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line56">line 56</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Output - If arg is<br>1. number, <a href="module-la.Matrix.html">module:la.Matrix</a> or module:la.SparseMatrix: Output is <a href="module-la.Matrix.html">module:la.Matrix</a>.<br>2. module:la.Vector or {@link module:la.SparseVector}: Output is module:la.Vector.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
+|
+
+<span class="param-type">module:la.Vector</span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="put"><span class="type-signature"></span>put<span class="signature">(rowIdx, colIdx, num)</span><span class="type-signature"> &rarr; {<a href="module-la.Matrix.html">module:la.Matrix</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sets an element of matrix
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>rowIdx</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">row index (zero based)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>colIdx</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">column index (zero based)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>num</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">input value</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line40">line 40</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-la.Matrix.html">module:la.Matrix</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+
+        
     
 
     
@@ -413,7 +948,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Mar 17 2015 13:28:36 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Mar 17 2015 15:33:52 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
