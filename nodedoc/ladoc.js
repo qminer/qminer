@@ -55,6 +55,12 @@
 	*/
  exports.Matrix.prototype.multiplyT = function(arg) {}
 /**
+	* Addition of two matrices
+	* @param {module:la.Matrix} mat2 - Second matrix.
+	* @returns {module:la.Matrix} mat3
+	*/
+ exports.Matrix.prototype.plus = function(mat2) {}
+/**
      * Sets the element at position i.
      *
      * vec = vec.put(i, val)

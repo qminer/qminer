@@ -191,7 +191,14 @@ private:
 	JsDeclareFunction(multiplyT);
 
 	//!- `mat3 = mat.plus(mat2)` -- `mat3` is the sum of matrices `mat` and `mat2`
+	/**
+	* Addition of two matrices
+	* @param {module:la.Matrix} mat2 - Second matrix.
+	* @returns {module:la.Matrix} mat3
+	*/
+	//# exports.Matrix.prototype.plus = function(mat2) {}
 	JsDeclareFunction(plus);
+
 	//!- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
 	JsDeclareFunction(minus);
 	//!- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
