@@ -219,7 +219,7 @@ private:
 	//!- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system mat * vec2 = vec
 	/**
 	* Solves the linear system
-	* @params {module:la.Vector} vec - the right-hand side of the equation
+	* @param {module:la.Vector} vec - the right-hand side of the equation
 	* @returns {module:la.Vector} vec2 - solution of the linear system 
 	*/
 	//# exports.Matrix.prototype.solve = function (vec) {}
@@ -264,7 +264,7 @@ private:
 	//!- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
 	/**
 	* Frobenious norm of matrix
-	* @returns {number} n
+	* @returns {number} n - Frobenious norm of matrix.
 	*/
 	//# exports.Matrix.prototype.frob = function () {}
 	JsDeclareFunction(frob);
@@ -278,7 +278,7 @@ private:
 	//!- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
 	/**
 	* Index of maximum element in given row
-	* @params {number} rowIdx - row index (zero based)
+	* @param {number} rowIdx - row index (zero based)
 	* @returns {number} colId - column index (zero based)
 	*/
 	//# exports.Matrix.prototype.rowMaxIdx = function (rowIdx) {}
@@ -287,7 +287,7 @@ private:
 	//!- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
 	/**
 	* Index of maximum element in given column
-	* @params {number} colIdx - column index (zero based)
+	* @param {number} colIdx - column index (zero based)
 	* @returns {number} rowIdx - row index (zero based)
 	*/
 	//# exports.Matrix.prototype.colMaxIdx = function (colIdx) {}
