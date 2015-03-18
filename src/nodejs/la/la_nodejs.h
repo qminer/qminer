@@ -216,11 +216,11 @@ private:
 	//# exports.Matrix.prototype.transpose = function() {}
 	JsDeclareFunction(transpose);
 
-	//!- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
+	//!- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system mat * vec2 = vec
 	/**
 	* Solves the linear system
 	* @params {module:la.Vector} vec - the right-hand side of the equation
-	* @returns {module:la.Vector} vec2 - solution of the linear system `mat * vec2 = vec` 
+	* @returns {module:la.Vector} vec2 - solution of the linear system 
 	*/
 	//# exports.Matrix.prototype.solve = function (vec) {}
 	JsDeclareFunction(solve);
@@ -228,30 +228,71 @@ private:
 	//!- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	/**
 	* Vector of row norms
-	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th row of mat 
+	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th row of matrix
 	*/
 	//# exports.Matrix.prototype.rowNorms = function () {}
 	JsDeclareFunction(rowNorms);
 
 
 	//!- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
+	/**
+	* Vector of column norms
+	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th column of matrix
+	*/
+	//# exports.Matrix.prototype.colNorms = function () {}
 	JsDeclareFunction(colNorms);
+
 	//!- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
+	/**
+	* Normalizes each column of matrix
+	* @returns {module:la.Matrix} Self
+	*/
+	//# exports.Matrix.prototype.normalizeCols = function () {}
 	JsDeclareFunction(normalizeCols);
+
 	//!- `str = mat.printStr()` -- print matrix `mat` to a string `str`
 	JsDeclareFunction(toString);
+
 	//!- `spMat = mat.sparse()` -- get sparse column matrix representation `spMat` of dense matrix `mat`
+	/**
+	* Transforms the matrix from dense to sparse format
+	* @returns {module:la.SparseMatrix} spMat - sparse column matrix representation of dense matrix
+	*/
+	//# exports.Matrix.prototype.sparse = function () {}
 	JsDeclareFunction(sparse);
+
 	//!- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
+	/**
+	* Frobenious norm of matrix
+	* @returns {number} n
+	*/
+	//# exports.Matrix.prototype.frob = function () {}
 	JsDeclareFunction(frob);
+
 	//!- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
 	JsDeclareProperty(rows);
+
 	//!- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
 	JsDeclareProperty(cols);
+
 	//!- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
+	/**
+	* Index of maximum element in given row
+	* @params {number} rowIdx - row index (zero based)
+	* @returns {number} colId - column index (zero based)
+	*/
+	//# exports.Matrix.prototype.rowMaxIdx = function (rowIdx) {}
 	JsDeclareFunction(rowMaxIdx);
+
 	//!- `rowIdx = mat.colMaxIdx(colIdx)`: get the index `rowIdx` of the maximum element in column `colIdx` of dense matrix `mat`
+	/**
+	* Index of maximum element in given column
+	* @params {number} colIdx - column index (zero based)
+	* @returns {number} rowIdx - row index (zero based)
+	*/
+	//# exports.Matrix.prototype.colMaxIdx = function (colIdx) {}
 	JsDeclareFunction(colMaxIdx);
+
 	//!- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
 	JsDeclareFunction(getCol);
 	//!- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.

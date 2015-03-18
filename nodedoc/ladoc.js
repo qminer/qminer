@@ -57,15 +57,31 @@
 /**
 	* Addition of two matrices
 	* @param {module:la.Matrix} mat2 - Second matrix.
-	* @returns {module:la.Matrix} mat3
+	* @returns {module:la.Matrix} mat3 - sum of matrices
 	*/
  exports.Matrix.prototype.plus = function(mat2) {}
 /**
 	* Substraction of two matrices
 	* @param {module:la.Matrix} mat2 - Second matrix
-	* @returns {module:la.Matrix} mat3
+	* @returns {module:la.Matrix} mat3 - difference of matrices
 	*/
  exports.Matrix.prototype.minus = function(mat2) {}
+/**
+	* Matrix transpose
+	* @returns {module:la.Matrix} mat2 - transposed matrix
+	*/
+ exports.Matrix.prototype.transpose = function() {}
+/**
+	* Solves the linear system
+	* @params {module:la.Vector} vec - the right-hand side of the equation
+	* @returns {module:la.Vector} vec2 - solution of the linear system `mat * vec2 = vec` 
+	*/
+ exports.Matrix.prototype.solve = function (vec) {}
+/**
+	* Vector of row norms
+	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th row of mat 
+	*/
+ exports.Matrix.prototype.rowNorms = function () {}
 /**
      * Sets the element at position i.
      *
