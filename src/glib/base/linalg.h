@@ -580,6 +580,11 @@ public:
     TStr Message;
 public:
     TNSException(const TStr& Msg): TExcept(Msg) {}
+	TNSException(const TStr& MsgStr, const TStr& LocStr) : TExcept(MsgStr, LocStr) { }
+	/// Create new numerical exception
+	static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr()) {
+		return PExcept(new TNSException(MsgStr, LocStr));
+	}
 };
 
 //////////////////////////////////////////////////////////////////////

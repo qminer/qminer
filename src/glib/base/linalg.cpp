@@ -1806,8 +1806,8 @@ double TNumericalStuff::sign(double a, double b) {
 }
 
 void TNumericalStuff::nrerror(const TStr& error_text) {
-    printf("NR_ERROR: %s", error_text.CStr());
-    throw new TNSException(error_text);
+    //printf("NR_ERROR: %s", error_text.CStr());
+    throw TNSException::New(error_text);
 }
 
 double TNumericalStuff::pythag(double a, double b) {

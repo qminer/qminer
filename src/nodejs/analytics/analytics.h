@@ -424,7 +424,7 @@ public:
 };
 
 /////////////////////////////////////////////
-// Exponential Regression
+// Ridge Regression
 /**
 * Ridge regression. Minimizes: ||A' x - b||^2 + ||gamma x||^2
 *
