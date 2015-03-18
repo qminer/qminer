@@ -194,19 +194,46 @@ private:
 	/**
 	* Addition of two matrices
 	* @param {module:la.Matrix} mat2 - Second matrix.
-	* @returns {module:la.Matrix} mat3
+	* @returns {module:la.Matrix} mat3 - sum of matrices
 	*/
 	//# exports.Matrix.prototype.plus = function(mat2) {}
 	JsDeclareFunction(plus);
 
 	//!- `mat3 = mat.minus(mat2)` -- `mat3` is the difference of matrices `mat` and `mat2`
+	/**
+	* Substraction of two matrices
+	* @param {module:la.Matrix} mat2 - Second matrix
+	* @returns {module:la.Matrix} mat3 - difference of matrices
+	*/
+	//# exports.Matrix.prototype.minus = function(mat2) {}
 	JsDeclareFunction(minus);
+
 	//!- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
+	/**
+	* Matrix transpose
+	* @returns {module:la.Matrix} mat2 - transposed matrix
+	*/
+	//# exports.Matrix.prototype.transpose = function() {}
 	JsDeclareFunction(transpose);
+
 	//!- `vec2 = mat.solve(vec)` -- vector `vec2` is the solution to the linear system `mat * vec2 = vec`
+	/**
+	* Solves the linear system
+	* @params {module:la.Vector} vec - the right-hand side of the equation
+	* @returns {module:la.Vector} vec2 - solution of the linear system `mat * vec2 = vec` 
+	*/
+	//# exports.Matrix.prototype.solve = function (vec) {}
 	JsDeclareFunction(solve);
+
 	//!- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
+	/**
+	* Vector of row norms
+	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th row of mat 
+	*/
+	//# exports.Matrix.prototype.rowNorms = function () {}
 	JsDeclareFunction(rowNorms);
+
+
 	//!- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	JsDeclareFunction(colNorms);
 	//!- `mat = mat.normalizeCols()` -- normalizes each column of matrix `mat` (inplace operation). Returns self.
