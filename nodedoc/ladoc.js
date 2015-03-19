@@ -67,7 +67,7 @@
 	*/
  exports.Matrix.prototype.minus = function(mat2) {}
 /**
-	* Matrix transpose
+	* Transposes matrix
 	* @returns {module:la.Matrix} mat2 - transposed matrix
 	*/
  exports.Matrix.prototype.transpose = function() {}
@@ -78,12 +78,12 @@
 	*/
  exports.Matrix.prototype.solve = function (vec) {}
 /**
-	* Vector of row norms
+	* Returns a vector of row norms
 	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th row of matrix
 	*/
  exports.Matrix.prototype.rowNorms = function () {}
 /**
-	* Vector of column norms
+	* Returns a vector of column norms
 	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th column of matrix
 	*/
  exports.Matrix.prototype.colNorms = function () {}
@@ -98,10 +98,20 @@
 	*/
  exports.Matrix.prototype.sparse = function () {}
 /**
-	* Frobenious norm of matrix
-	* @returns {number} n
+	* Returns the frobenious norm of matrix
+	* @returns {number} num - Frobenious norm of matrix.
 	*/
  exports.Matrix.prototype.frob = function () {}
+/**
+	* Returns the number of rows of matrix
+	* @returns {number} rows 
+	*/
+ exports.Matrix.prototype.rows = undefined
+/**
+	* Returns the number of columns of matrix
+	* @returns {number} cols
+	*/
+ exports.Matrix.prototype.cols = undefined
 /**
 	* Index of maximum element in given row
 	* @param {number} rowIdx - row index (zero based)
@@ -114,6 +124,130 @@
 	* @returns {number} rowIdx - row index (zero based)
 	*/
  exports.Matrix.prototype.colMaxIdx = function (colIdx) {}
+/**
+	* Returns the corresponding column of matrix as vector
+	* @param {number} colIdx - column index (zero based)
+	* @returns {module:la.Vector} vec - the colIdx-th column of matrix
+	*/
+ exports.Matrix.prototype.getCol = function (colIdx) {}
+/**
+	* Sets the column of matrix
+	* @param {number} colIdx - column index (zero based)
+	* @param {module:la.Vector} vec - the new column of matrix
+	* @returns {module:la.Matrix} Self
+	*/
+ exports.Matrix.prototype.setCol = function (colIdx, vec) {}
+/**
+	* Returns the corresponding row of matrix as vector
+	* @param {number} rowIdx - row index (zero based)
+	* @returns {module:la.Vector} vec - the rowIdx-th row of matrix
+	*/
+ exports.Matrix.prototype.getRow = function (rowIdx) {}
+/**
+	* Sets the row of matrix
+	* @param {number} rowIdx - row index (zero based)
+	* @param {module:la.Vector} vec - the new row of matrix
+	* @returns {module:la.Matrix} Self
+	*/
+ exports.Matrix.prototype.setRow = function (rowIdx, vec) {}
+/**
+	* Returns the diagonal elements of matrix
+	* @returns {module:la.Vector} vec - vector containing the diagonal elements
+	*/
+ exports.Matrix.prototype.diag = function () {}
+/**
+	* saves the matrix as output stream
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout
+	*/
+ exports.Matrix.prototype.save = function (fout) {}
+/**
+	* loads the matrix from input stream
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.Matrix} Self.
+	*/
+ exports.Matrix.prototype.load = function (FIn) {}
+/**
+* Sparse Vector
+* @classdesc Represents a sparse vector
+* @class
+* @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing.
+* <br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
+* <br>2. A sparse vector (copy constructor)
+* @example
+* // TODO
+*/
+ exports.SparseVector = function(arg) {}	
+/**
+	* Returns an element of sparse vector
+	* @param {number} idx - index (zero based)
+	* @returns {number} Sparse vector element
+	*/
+ exports.SparseVector.prototype.at = function (idx) {}
+/**
+	* Puts a new element in sparse vector
+	* @param {number} idx - index (zero based)
+	* @param {number} num - input value
+	* @returns {module:la.SparseVector} Self
+	*/
+ exports.SparseVector.prototype.put = function (idx, num) {}
+/**
+	* Returns the sum of all values in sparse vector
+	* @returns {number} num - The sum of all values in sparse vector.
+	*/
+ exports.SparseVector.prototype.sum = function () {}
+/**
+	* Returns the inner product of argument and sparse vector
+	* @param {(module:la.Vector | module:la.SparseVector)} arg - Inner product input. Supports dense vector and sparse vector.
+	* @returns {number} num - The inner product.
+	*/
+ exports.SparseVector.prototype.inner = function (arg) {}
+/**
+	* Multiplies sparse vector with number
+	* @param {number} num - Number for multiplication.
+	* @returns {module:la.SparseVector} spVec - Product of num and sparse vector.
+	*/
+ exports.SparseVector.prototype.multiply = function (num) {}
+/**
+	* Normalizes the sparse vector
+	* @returns {module:la.SparseVector} Self - normalized
+	*/
+ exports.SparseVector.prototype.normalize = function () {}
+/**
+	* Returns the number of nonzero values
+	* @returns {number} num - number of nonzero values
+	*/
+ exports.SparseVector.prototype.nnz = undefined
+/**
+	* Returns the dimension of sparse vector
+	* @returns {number} num - dimension of sparse vector
+	*/
+ exports.SparseVector.prototype.dim = undefined
+/**
+	* Returns the norm of sparse vector
+	* @returns {number} num - norm of sparse vector
+	*/
+ exports.SparseVector.prototype.norm = function () {}
+/**
+	* Returns the dense vector representation of sparse vector
+	* @returns {module:la.Vector} vec - dense vector representation
+	*/
+ exports.SparseVector.prototype.full = function () {}
+/**
+	* Returns a dense vector of values of nonzero elements of sparse vector
+	* @reutrns {module:la.Vector} vec - dense vector of values
+	*/
+ exports.SparseVector.prototype.valVec = function () {}
+/**
+	* Returns a dense vector of indices (zero based) of nonzero elements of sparse vector
+	* @returns {module:la.Vector} vec - dense vector of indeces
+	*/
+ exports.SparseVector.prototype.idxVec = function () {}
+/**
+	* Returns the sparse vector as string
+	* @returns {string} str - sparse vector as string
+	*/
+ exports.SparseVector.prototype.print = function () {}
 /**
      * Sets the element at position i.
      *

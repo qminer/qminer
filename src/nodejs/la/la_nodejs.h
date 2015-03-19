@@ -210,7 +210,7 @@ private:
 
 	//!- `mat2 = mat.transpose()` -- matrix `mat2` is matrix `mat` transposed
 	/**
-	* Matrix transpose
+	* Transposes matrix
 	* @returns {module:la.Matrix} mat2 - transposed matrix
 	*/
 	//# exports.Matrix.prototype.transpose = function() {}
@@ -227,7 +227,7 @@ private:
 
 	//!- `vec = mat.rowNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th row of `mat`
 	/**
-	* Vector of row norms
+	* Returns a vector of row norms
 	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th row of matrix
 	*/
 	//# exports.Matrix.prototype.rowNorms = function () {}
@@ -236,7 +236,7 @@ private:
 
 	//!- `vec = mat.colNorms()` -- `vec` is a dense vector, where `vec[i]` is the norm of the `i`-th column of `mat`
 	/**
-	* Vector of column norms
+	* Returns a vector of column norms
 	* @returns {module:la.Vector} vec - dense vector, where vec[i] is the norm of the i-th column of matrix
 	*/
 	//# exports.Matrix.prototype.colNorms = function () {}
@@ -263,16 +263,26 @@ private:
 
 	//!- `num = mat.frob()` -- number `num` is the Frobenious norm of matrix `mat`
 	/**
-	* Frobenious norm of matrix
-	* @returns {number} n - Frobenious norm of matrix.
+	* Returns the frobenious norm of matrix
+	* @returns {number} num - Frobenious norm of matrix.
 	*/
 	//# exports.Matrix.prototype.frob = function () {}
 	JsDeclareFunction(frob);
 
 	//!- `num = mat.rows` -- integer `num` corresponds to the number of rows of `mat`
+	/**
+	* Returns the number of rows of matrix
+	* @returns {number} rows 
+	*/
+	//# exports.Matrix.prototype.rows = undefined
 	JsDeclareProperty(rows);
 
 	//!- `num = mat.cols` -- integer `num` corresponds to the number of columns of `mat`
+	/**
+	* Returns the number of columns of matrix
+	* @returns {number} cols
+	*/
+	//# exports.Matrix.prototype.cols = undefined
 	JsDeclareProperty(cols);
 
 	//!- `colIdx = mat.rowMaxIdx(rowIdx)`: get the index `colIdx` of the maximum element in row `rowIdx` of dense matrix `mat`
@@ -294,19 +304,69 @@ private:
 	JsDeclareFunction(colMaxIdx);
 
 	//!- `vec = mat.getCol(colIdx)` -- `vec` corresponds to the `colIdx`-th column of dense matrix `mat`. `colIdx` must be an integer.
+	/**
+	* Returns the corresponding column of matrix as vector
+	* @param {number} colIdx - column index (zero based)
+	* @returns {module:la.Vector} vec - the colIdx-th column of matrix
+	*/
+	//# exports.Matrix.prototype.getCol = function (colIdx) {}
 	JsDeclareFunction(getCol);
+
 	//!- `mat = mat.setCol(colIdx, vec)` -- Sets the column of a dense matrix `mat`. `colIdx` must be an integer, `vec` must be a dense vector. Returns self.
+	/**
+	* Sets the column of matrix
+	* @param {number} colIdx - column index (zero based)
+	* @param {module:la.Vector} vec - the new column of matrix
+	* @returns {module:la.Matrix} Self
+	*/
+	//# exports.Matrix.prototype.setCol = function (colIdx, vec) {}
 	JsDeclareFunction(setCol);
+
 	//!- `vec = mat.getRow(rowIdx)` -- `vec` corresponds to the `rowIdx`-th row of dense matrix `mat`. `rowIdx` must be an integer.
+	/**
+	* Returns the corresponding row of matrix as vector
+	* @param {number} rowIdx - row index (zero based)
+	* @returns {module:la.Vector} vec - the rowIdx-th row of matrix
+	*/
+	//# exports.Matrix.prototype.getRow = function (rowIdx) {}
 	JsDeclareFunction(getRow);
+
 	//!- `mat.setRow(rowIdx, vec)` -- Sets the row of a dense matrix `mat`. `rowIdx` must be an integer, `vec` must be a dense vector.
+	/**
+	* Sets the row of matrix
+	* @param {number} rowIdx - row index (zero based)
+	* @param {module:la.Vector} vec - the new row of matrix
+	* @returns {module:la.Matrix} Self
+	*/
+	//# exports.Matrix.prototype.setRow = function (rowIdx, vec) {}
 	JsDeclareFunction(setRow);
+
 	//!- `vec = mat.diag()` -- Returns the diagonal of matrix `mat` as `vec` (dense vector).
+	/**
+	* Returns the diagonal elements of matrix
+	* @returns {module:la.Vector} vec - vector containing the diagonal elements
+	*/
+	//# exports.Matrix.prototype.diag = function () {}
 	JsDeclareFunction(diag);
+
 	//!- `fout = mat.save(fout)` -- print `mat` (full matrix) to output stream `fout`. Returns `fout`.
+	/**
+	* saves the matrix as output stream
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout
+	*/
+	//# exports.Matrix.prototype.save = function (fout) {}
 	JsDeclareFunction(save);
+
 	//!- `mat = mat.load(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
+	/**
+	* loads the matrix from input stream
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.Matrix} Self.
+	*/
+	//# exports.Matrix.prototype.load = function (FIn) {}
 	JsDeclareFunction(load);
+
 	//!- `fout = mat.saveascii(fout)` -- save `mat` (full matrix) to output stream `fout`. Returns `fout`.
 	JsDeclareFunction(saveascii);
 	//!- `mat = mat.loadascii(fin)` -- replace `mat` (full matrix) by loading from input steam `fin`. `mat` has to be initialized first, for example using `mat = la.newMat()`. Returns self.
@@ -329,6 +389,20 @@ public:
 //! // refer to la.newSpVec for alternative ways to generate sparse vectors
 //! ```
 //! 
+
+/**
+* Sparse Vector
+* @classdesc Represents a sparse vector
+* @class
+* @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing.
+* <br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
+* <br>2. A sparse vector (copy constructor)
+* @example
+* // TODO
+*/
+//# exports.SparseVector = function(arg) {}	
+
+
 class TNodeJsSpVec : public node::ObjectWrap {
 public:
 	const static TStr ClassId;
@@ -347,32 +421,115 @@ public:
 	//!- `spVec = la.newSpVec(dim)` -- creates an empty sparse vector `spVec`, where `dim` is an optional (-1 by default) integer parameter that sets the dimension
 	//!- `spVec = la.newSpVec(nestedArr, dim)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `dim` is optional and sets the dimension
 	JsDeclareFunction(New);
+
 	//!- `num = spVec.at(idx)` -- Gets the element of a sparse vector `spVec`. Input: index `idx` (integer). Output: value `num` (number). Uses 0-based indexing
+	/**
+	* Returns an element of sparse vector
+	* @param {number} idx - index (zero based)
+	* @returns {number} Sparse vector element
+	*/
+	//# exports.SparseVector.prototype.at = function (idx) {}
 	JsDeclareFunction(at);
+
 	//!- `spVec = spVec.put(idx, num)` -- Set the element of a sparse vector `spVec`. Inputs: index `idx` (integer), value `num` (number). Uses 0-based indexing. Returns self.
+	/**
+	* Puts a new element in sparse vector
+	* @param {number} idx - index (zero based)
+	* @param {number} num - input value
+	* @returns {module:la.SparseVector} Self
+	*/
+	//# exports.SparseVector.prototype.put = function (idx, num) {}
 	JsDeclareFunction(put);
+
 	//!- `num = spVec.sum()` -- `num` is the sum of elements of `spVec`
+	/**
+	* Returns the sum of all values in sparse vector
+	* @returns {number} num - The sum of all values in sparse vector.
+	*/
+	//# exports.SparseVector.prototype.sum = function () {}
 	JsDeclareFunction(sum);
+
 	//!- `num = spVec.inner(vec)` -- `num` is the inner product between `spVec` and dense vector `vec`.
 	//!- `num = spVec.inner(spVec)` -- `num` is the inner product between `spVec` and sparse vector `spVec`.
+	/**
+	* Returns the inner product of argument and sparse vector
+	* @param {(module:la.Vector | module:la.SparseVector)} arg - Inner product input. Supports dense vector and sparse vector.
+	* @returns {number} num - The inner product.
+	*/
+	//# exports.SparseVector.prototype.inner = function (arg) {}
 	JsDeclareFunction(inner);
+
 	//!- `spVec2 = spVec.multiply(a)` -- `spVec2` is sparse vector, a product between `num` (number) and vector `spVec`
+	/**
+	* Multiplies sparse vector with number
+	* @param {number} num - Number for multiplication.
+	* @returns {module:la.SparseVector} spVec - Product of num and sparse vector.
+	*/
+	//# exports.SparseVector.prototype.multiply = function (num) {}
 	JsDeclareFunction(multiply);
+
 	//!- `spVec = spVec.normalize()` -- normalizes the vector spVec (inplace operation). Returns self.
+	/**
+	* Normalizes the sparse vector
+	* @returns {module:la.SparseVector} Self - normalized
+	*/
+	//# exports.SparseVector.prototype.normalize = function () {}
 	JsDeclareFunction(normalize);
+
 	//!- `num = spVec.nnz` -- gets the number of nonzero elements `num` of vector `spVec`
+	/**
+	* Returns the number of nonzero values
+	* @returns {number} num - number of nonzero values
+	*/
+	//# exports.SparseVector.prototype.nnz = undefined
 	JsDeclareProperty(nnz);
+
 	//!- `num = spVec.dim` -- gets the dimension `num` (-1 means that it is unknown)
+	/**
+	* Returns the dimension of sparse vector
+	* @returns {number} num - dimension of sparse vector
+	*/
+	//# exports.SparseVector.prototype.dim = undefined
 	JsDeclareProperty(dim);
+
 	// #- `num = spVec.norm()` -- returns `num` - the norm of `spVec`
+	/**
+	* Returns the norm of sparse vector
+	* @returns {number} num - norm of sparse vector
+	*/
+	//# exports.SparseVector.prototype.norm = function () {}
 	JsDeclareFunction(norm);
+
 	//!- `vec = spVec.full()` --  returns `vec` - a dense vector representation of sparse vector `spVec`.
+	/**
+	* Returns the dense vector representation of sparse vector
+	* @returns {module:la.Vector} vec - dense vector representation
+	*/
+	//# exports.SparseVector.prototype.full = function () {}
 	JsDeclareFunction(full);
+
 	//!- `valVec = spVec.valVec()` --  returns `valVec` - a dense (double) vector of values of nonzero elements of `spVec`.
+	/**
+	* Returns a dense vector of values of nonzero elements of sparse vector
+	* @reutrns {module:la.Vector} vec - dense vector of values
+	*/
+	//# exports.SparseVector.prototype.valVec = function () {}
 	JsDeclareFunction(valVec);
+
 	//!- `idxVec = spVec.idxVec()` --  returns `idxVec` - a dense (int) vector of indices (0-based) of nonzero elements of `spVec`.
+	/**
+	* Returns a dense vector of indices (zero based) of nonzero elements of sparse vector
+	* @returns {module:la.Vector} vec - dense vector of indeces
+	*/
+	//# exports.SparseVector.prototype.idxVec = function () {}
 	JsDeclareFunction(idxVec);
+
 	//!- `spVec = spVec.print()` -- returns the vector as string. 
+	/**
+	* Returns the sparse vector as string
+	* @returns {string} str - sparse vector as string
+	*/
+	//# exports.SparseVector.prototype.print = function () {}
 	JsDeclareFunction(toString);
 public:
 	TIntFltKdV Vec;

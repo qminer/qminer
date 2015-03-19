@@ -1520,6 +1520,15 @@ describe('Sparse Vector', function () {
                     var v = new la.SparseVector([[0, 1], [3, 5]], 2);
                 })
             })
+            //it('should copy the sparse vector', function () {
+            //    var v = new la.SparseVector([[0, 1], [1, 3]]);
+            //    var m = new la.SparseVector(v);
+
+            //    //assert.deepEqual(m, v);
+            //    assert.equal(m.at(0), v.at(0));
+            //    assert.equal(m.at(1), v.at(1));
+
+            //})
         })
 
         describe('Inner Test', function () {
