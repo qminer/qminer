@@ -796,22 +796,33 @@ void TNodeJsSpVec::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	Instance->SetHiddenValue(Key, Value);
 
 	JsSpVec->Wrap(Instance);
-	// If we got Javascript array on the input: vector.new([1,2,3]) 
-	if (Args[0]->IsArray()) {
-		v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
-		const int Len = Arr->Length();		
-		for (int ElN = 0; ElN < Len; ++ElN) {
-			EAssertR(Arr->Get(ElN)->IsArray(), "TNodeJsSpVec::New: array constructor, found an element which is not an array (should be an array with two elements)");
-			v8::Handle<v8::Array> CrrArr = v8::Handle<v8::Array>::Cast(Arr->Get(ElN));
-			EAssertR(CrrArr->Length() == 2 && CrrArr->Get(0)->IsInt32() &&
-				CrrArr->Get(1)->IsNumber(), "Expected a key-value pair.");
-			JsSpVec->Vec.Add(TIntFltKd(
-				CrrArr->Get(0)->Int32Value(), CrrArr->Get(1)->NumberValue()));
+	if (Args.Length() > 0) {
+		// If we got Javascript array on the input: vector.new([1,2,3]) 
+		if (Args[0]->IsArray()) {
+			v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
+			const int Len = Arr->Length();
+			for (int ElN = 0; ElN < Len; ++ElN) {
+				EAssertR(Arr->Get(ElN)->IsArray(), "TNodeJsSpVec::New: array constructor, found an element which is not an array (should be an array with two elements)");
+				v8::Handle<v8::Array> CrrArr = v8::Handle<v8::Array>::Cast(Arr->Get(ElN));
+				EAssertR(CrrArr->Length() == 2 && CrrArr->Get(0)->IsInt32() &&
+					CrrArr->Get(1)->IsNumber(), "Expected a key-value pair.");
+				JsSpVec->Vec.Add(TIntFltKd(
+					CrrArr->Get(0)->Int32Value(), CrrArr->Get(1)->NumberValue()));
+			}
+			JsSpVec->Vec.Sort();
+
+		} else if (Args[0]->IsObject()) {
+			EAssertR(TNodeJsUtil::IsArgClass(Args, 0, TNodeJsSpVec::ClassId), "TNodeJsSpVec::New: Arg[0] is an object, but not an instance of a sparse vector!");
+			TNodeJsSpVec* JsSpVec2 = ObjectWrap::Unwrap<TNodeJsSpVec>(Args[0]->ToObject());
+			JsSpVec->Vec = JsSpVec2->Vec;
+			JsSpVec->Dim = JsSpVec2->Dim;
+		} else {
+			throw TExcept::New("TNodeJsSpVec::New unsuported argument!");
 		}
-		JsSpVec->Vec.Sort();
 		int Dim = TNodeJsUtil::GetArgInt32(Args, 1, -1);
 		JsSpVec->Dim = Dim;
-	}
+	}	
+	
 	Args.GetReturnValue().Set(Instance);
 	if (JsSpVec->Dim != -1) {
 		EAssertR(TLAMisc::GetMaxDimIdx(JsSpVec->Vec) < JsSpVec->Dim, "TNodeJsSpVec::New inconsistent dim parameter (maximal index >= dim!)");

@@ -43,7 +43,7 @@
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)} Output - If arg is
 	* <br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
-	* <br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
+	* <br>2.{@link module:la.SparseVector}
 	*/
  exports.Matrix.prototype.multiply = function(arg) {}
 /**
