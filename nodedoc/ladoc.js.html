@@ -63,12 +63,12 @@
 	* @param {number} rowIdx - row index (zero based)
 	* @param {number} colIdx - column index (zero based)
 	* @param {number} num - input value
-	* @returns {module:la.Matrix} Self 
+	* @returns {module:la.Matrix} Self
 	*/
  exports.Matrix.prototype.put = function(rowIdx, colIdx, num) {}
 /**
 	* Right-hand side multiplication of matrix with parameter
-	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input. 
+	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)} Output - If arg is
 	* &lt;br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
 	* &lt;br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
@@ -76,7 +76,7 @@
  exports.Matrix.prototype.multiply = function(arg) {}
 /**
 	* Matrix transpose and right-hand side multiplication of matrix with parameter
-	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input. 
+	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)} Output - If arg is
 	* &lt;br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
 	* &lt;br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
@@ -102,7 +102,7 @@
 /**
 	* Solves the linear system
 	* @param {module:la.Vector} vec - the right-hand side of the equation
-	* @returns {module:la.Vector} vec2 - solution of the linear system 
+	* @returns {module:la.Vector} vec2 - solution of the linear system
 	*/
  exports.Matrix.prototype.solve = function (vec) {}
 /**
@@ -132,7 +132,7 @@
  exports.Matrix.prototype.frob = function () {}
 /**
 	* Returns the number of rows of matrix
-	* @returns {number} rows 
+	* @returns {number} rows
 	*/
  exports.Matrix.prototype.rows = undefined
 /**
@@ -263,7 +263,7 @@
  exports.SparseVector.prototype.full = function () {}
 /**
 	* Returns a dense vector of values of nonzero elements of sparse vector
-	* @reutrns {module:la.Vector} vec - dense vector of values
+	* @returns {module:la.Vector} vec - dense vector of values
 	*/
  exports.SparseVector.prototype.valVec = function () {}
 /**
@@ -277,49 +277,130 @@
 	*/
  exports.SparseVector.prototype.print = function () {}
 /**
-     * Sets the element at position i.
-     *
-     * vec = vec.put(i, val)
-     *
-     * @param {Number} i - the position of the element
-     * @returns {Vector} vec - a reference to itself
-     */
+* Sparse Matrix
+* @classdesc Represents a sparse matrix
+* @class
+* @param {(Array&lt;Array&lt;Array&lt;number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing.
+* &lt;br>1. Nested arrays of matrix elements. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns. The second nonzero element in second column has a value 3 at index 2.
+* &lt;br>2. A sparse matrix (copy constructor).
+* @example
+* // TODO
+*/
+ exports.SparseMatrix = function(arg) {}	
 /**
-     * Adds an element to the end of the vector.
-     *
-     * len = vector.push(val)
-     *
-     * @param {Object} val - the element added to the vector
-     * @returns {Number} len - the length of the vector
-     */
+	* Returns an element of sparse matrix
+	* @param {number} rowIdx - row index (zero based)
+	* @param {number} colIdx - column index (zero based)
+	* @returns {number} val - matrix value
+	*/
+ exports.SparseMatrix.prototype.at = function (rowIdx, colIdx) {}
 /**
-     * The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-     *
-     * array.splice(start, deleteCount[, item1[, item2[, ...]]])
-     *
-     * @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-     * @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-     * @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-     * @returns {Vector} - a reference to itself
-     */
+	* Puts an element in sparse matrix
+	* @param {number} rowIdx - row index (zero based)
+	* @param {number} colIdx - column index (zero based)
+	* @param {number} num - element value
+	* @returns {module:la.SparseMatrix} Self
+	*/
+ exports.SparseMatrix.prototype.put = function (rowIdx, colIdx, num) {}
 /**
-	 * Adds an element to the beginning of the vector.
-	 *
-	 * len = vector.unshift(val)
-	 *
-	 * @param {Object} val - the element added to the vector
-	 * @returns {Number} len - the length of the vector
-	 */
+	* Returns the column of sparse matrix
+	* @param {number} colIdx - column index (zero based)
+	* @returns {module:la.SparseVector} spVec - sparse vector corresponding to the colIdx-th column of sparse matrix
+	*/
+ exports.SparseMatrix.prototype.getCol = function (colIdx) {}
 /**
-     * Sums the elements in the vector.
-     *
-     * @returns {Object} - the sum
-     */
+	* Sets a column in sparse matrix
+	* @param {number} colIdx - column index (zero based)
+	* @param {module:la.SparseVector} spVec - new column sparse vector
+	* @returns {module:la.SparseMatrix} Self
+	*/
+ exports.SparseMatrix.prototype.setCol = function (colIdx, spVec) {}
 /**
-     * Randomly reorders the elements of the vector.
-     *
-     * @returns {Vector} - returns a reference to itself
-     */
+	* Attaches a column to sparse matrix
+	* @param {module:la.SparseVector} spVec - attached column as sparse vector
+	* @returns {module:la.SparseMatrix} Self
+ 	*/
+ exports.SparseMatrix.prototype.push = function (spVec) {}
+/**
+	* Multiplies argument with sparse vector
+	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
+	* @returns {(module:la.Vector | module:la.Matrix)} Output - If arg is
+	* &lt;br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
+	* &lt;br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
+	*/
+ exports.SparseMatrix.prototype.multiply = function (arg) {}
+/**
+	* Sparse matrix transpose and multiplies with argument
+	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
+	* @returns {(module:la.Vector | module:la.Matrix)} Output - If arg is
+	* &lt;br>1. number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}: Output is {@link module:la.Matrix}.
+	* &lt;br>2. {@link module:la.Vector} or {@link module:la.SparseVector}: Output is {@link module:la.Vector}.
+	*/
+ exports.SparseMatrix.prototype.multiplyT = function (arg) {}
+/**
+	* Returns the sum of two matrices
+	* @param {module:la.SparseMatrix} spMat - sparse matrix
+	* @returns {module:la.SparseMatrix} spMat2 - sum of two sparse matrices
+	*/
+ exports.SparseMatrix.prototype.plus = function (spMat) {}
+/**
+	* Returns the difference of two matrices
+	* @param {module:la.SparseMatrix} spMat - sparse matrix
+	* @returns {module:la.SparseMatrix} spMat2 - the difference of two sparse matrices
+	*/
+ exports.SparseMatrix.prototype.minus = function (spMat) {}
+/**
+	* Returns the transposed sparse matrix
+	* @returns{module:la.SparseMatrix} spMat - transposed sparse matrix
+	*/
+ exports.SparseMatrix.prototype.transpose = function () {}
+/**
+	* Returns the vector of column norms of sparse matrix
+	* @returns {module:la.Vector} vec - Vector of column norms. vec[i] is the norm of i-th column of sparse matrix
+	*/
+ exports.SparseMatrix.prototype.colNorms = function () {}
+/**
+	* Normalizes columns of sparse matrix
+	* @returns {module:la.SparseMatrix} Self - normalized columns
+	*/
+ exports.SparseMatrix.prototype.normalizeCols = function () {}
+/**
+	* Returns the dense representation of sparse matrix
+	* @returns {module:la.Matrix} mat - dense representation of sparse matrix
+	*/
+ exports.SparseMatrix.prototype.full = function () {}
+/**
+	* Returns the frobenious norm of sparse matrix
+	* @returns {number} num - frobenious norm of sparse matrix
+	*/
+ exports.SparseMatrix.prototype.frob = function () {}
+/**
+	* Returns the number of rows of sparse matrix
+	* @returns {number} num - number of rows
+	*/
+ exports.SparseMatrix.prototype.rows = undefined
+/**
+	* Returns the number of columns of sparse matrix
+	* @returns {number} num - number of columns
+	*/
+ exports.SparseMatrix.prototype.cols = undefined
+/**
+	* Returns the sparse matrix as string
+	* @returns {string} str - Sparse matrix as string. The first column represents row indeces, second column represents column indeces, third column represents value.
+	*/
+ exports.SparseMatrix.prototype.print = function () {}
+/**
+	* saves the sparse matrix as output stream
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout
+	*/
+ exports.SparseMatrix.prototype.save = function (fout) {}
+/**
+	* loads the sparse matrix from input stream
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.Matrix} Self.
+	*/
+ exports.SparseMatrix.prototype.load = function (FIn) {}
 </code></pre>
         </article>
     </section>
@@ -330,13 +411,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Mar 19 2015 13:34:07 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Mar 19 2015 15:19:35 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
