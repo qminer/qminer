@@ -41,7 +41,7 @@
 /**
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
-	* @returns {(module:la.Matrix | module:la.Vector)} 
+	* @returns {(module:la.Matrix | module:la.Vector)}
 	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
 	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
@@ -200,10 +200,14 @@
 * @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
 * <br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
 * <br>2. A sparse vector (copy constructor).
+* @param {number} [dim] - Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
-* // TODO
+* // create new sparse vector
+* var spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]); // sparse vector [1, 0, 3, 6]
+* // create new sparse vector with dim
+* var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4
 */
- exports.SparseVector = function(arg) {}	
+ exports.SparseVector = function(arg, dim) {}	
 /**
 	* Returns an element of sparse vector.
 	* @param {number} idx - Index (zero based).
@@ -279,10 +283,15 @@
 * @classdesc Represents a sparse matrix.
 * @class
 * @param {(Array<Array<Array<number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
-* <br>1. Nested arrays of matrix elements. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns. The second nonzero element in second column has a value 3 at index 2.
+* <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
+* The second nonzero element in second column has a value 3 at index 2.
 * <br>2. A sparse matrix (copy constructor).
+* @param {number} [rows] - Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
-* // TODO
+* // create a new sparse matrix with array
+* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+* // create a new sparse matrix with specified max rows
+* var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);
 */
  exports.SparseMatrix = function(arg) {}	
 /**
@@ -317,7 +326,7 @@
 	* Attaches a column to sparse matrix.
 	* @param {module:la.SparseVector} spVec - Attached column as sparse vector.
 	* @returns {module:la.SparseMatrix} Self.
- 	*/
+	*/
  exports.SparseMatrix.prototype.push = function (spVec) {}
 /**
 	* Multiplies argument with sparse vector.
@@ -349,7 +358,7 @@
  exports.SparseMatrix.prototype.minus = function (spMat) {}
 /**
 	* Returns the transposed sparse matrix.
-	* @returns{module:la.SparseMatrix} Transposed sparse matrix.
+	* @returns {module:la.SparseMatrix} Transposed sparse matrix.
 	*/
  exports.SparseMatrix.prototype.transpose = function () {}
 /**

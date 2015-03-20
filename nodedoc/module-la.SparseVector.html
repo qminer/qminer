@@ -48,7 +48,7 @@
     <h2>Constructor</h2>
     
 
-    <h4 class="name" id="SparseVector"><span class="type-signature"></span>new SparseVector<span class="signature">(arg<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="SparseVector"><span class="type-signature"></span>new SparseVector<span class="signature">(arg<span class="signature-attributes">opt</span>, dim<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
 
     
 
@@ -126,6 +126,39 @@
         </tr>
 
     
+
+        <tr>
+            
+                <td class="name"><code>dim</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.</td>
+        </tr>
+
+    
     </tbody>
 </table>
 
@@ -163,7 +196,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line206">line 206</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line210">line 210</a>
     </li></ul></dd>
     
 
@@ -190,7 +223,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// TODO</code></pre>
+    <pre class="prettyprint"><code>// create new sparse vectorvar spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]); // sparse vector [1, 0, 3, 6]// create new sparse vector with dimvar spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4</code></pre>
 
 
 
@@ -256,7 +289,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line251">line 251</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line255">line 255</a>
     </li></ul></dd>
     
 
@@ -318,7 +351,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line246">line 246</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line250">line 250</a>
     </li></ul></dd>
     
 
@@ -445,7 +478,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line212">line 212</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line216">line 216</a>
     </li></ul></dd>
     
 
@@ -549,7 +582,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line261">line 261</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line265">line 265</a>
     </li></ul></dd>
     
 
@@ -653,7 +686,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line271">line 271</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line275">line 275</a>
     </li></ul></dd>
     
 
@@ -809,7 +842,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line230">line 230</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line234">line 234</a>
     </li></ul></dd>
     
 
@@ -962,7 +995,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line236">line 236</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line240">line 240</a>
     </li></ul></dd>
     
 
@@ -1066,7 +1099,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line256">line 256</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line260">line 260</a>
     </li></ul></dd>
     
 
@@ -1170,7 +1203,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line241">line 241</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line245">line 245</a>
     </li></ul></dd>
     
 
@@ -1274,7 +1307,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line276">line 276</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line280">line 280</a>
     </li></ul></dd>
     
 
@@ -1450,7 +1483,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line219">line 219</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line223">line 223</a>
     </li></ul></dd>
     
 
@@ -1554,7 +1587,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line224">line 224</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line228">line 228</a>
     </li></ul></dd>
     
 
@@ -1658,7 +1691,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line266">line 266</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line270">line 270</a>
     </li></ul></dd>
     
 
@@ -1728,7 +1761,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Fri Mar 20 2015 12:01:30 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Fri Mar 20 2015 12:54:26 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

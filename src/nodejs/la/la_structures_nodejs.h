@@ -28,46 +28,46 @@
 
 class TNodeJsLinAlg : public node::ObjectWrap {
 public:
-    static void Init(v8::Handle<v8::Object> exports);
-    //! 
-    //! **Functions and properties:**
-    //! 
-    ////!- `vec = la.newVec()` -- generate an empty float vector
-    ////!- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-    ////!- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
-    ////!- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
-    //JsDeclareFunction(newVec);
-    ////!- `intVec = la.newIntVec()` -- generate an empty integer vector
-    ////!- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-    ////!- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
-    ////!- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
-    //JsDeclareFunction(newIntVec);
-    ////!- `strVec = la.newStrVec()` -- generate an empty integer vector
-    ////!- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
-    ////!- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
-    ////!- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
-    //JsDeclareFunction(newStrVec);
-    ////!- `mat = la.newMat()` -- generates a 0x0 matrix
-    ////!- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
-    ////!- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
-    ////!- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
-    //JsDeclareFunction(newMat);
-    ////!- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
-    ////!- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
-    //JsDeclareFunction(newSpVec);
-    ////!- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
-    ////!- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
-    ////!- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
-    ////!- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
-    //JsDeclareFunction(newSpMat);
-    ////!- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-    ////!- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
-    JsDeclareFunction(svd);
-    //!- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
-    JsDeclareFunction(qr);
-    //!- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
-    // (TODO) JsDeclareFunction(loadIntVec);
-    //!JSIMPLEMENT:src/qminer/linalg.js
+	static void Init(v8::Handle<v8::Object> exports);
+	//! 
+	//! **Functions and properties:**
+	//! 
+	////!- `vec = la.newVec()` -- generate an empty float vector
+	////!- `vec = la.newVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	////!- `vec = la.newVec(arr)` -- copy a javascript number array `arr` 
+	////!- `vec = la.newVec(vec2)` -- clone a float vector `vec2`
+	//JsDeclareFunction(newVec);
+	////!- `intVec = la.newIntVec()` -- generate an empty integer vector
+	////!- `intVec = la.newIntVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	////!- `intVec = la.newIntVec(arr)` -- copy a javascript int array `arr` 
+	////!- `intVec = la.newIntVec(vec2)` -- clone an int vector `vec2`
+	//JsDeclareFunction(newIntVec);
+	////!- `strVec = la.newStrVec()` -- generate an empty integer vector
+	////!- `strVec = la.newStrVec({"vals":num, "mxvals":num2})` -- generate a vector with `num` zeros and reserve additional `num - num2` elements 
+	////!- `strVec = la.newStrVec(arr)` -- copy a javascript int array `arr` 
+	////!- `strVec = la.newStrVec(strVec2)` -- clone an str vector `strVec2`
+	//JsDeclareFunction(newStrVec);
+	////!- `mat = la.newMat()` -- generates a 0x0 matrix
+	////!- `mat = la.newMat({"rows":num, "cols":num2, "random":bool})` -- creates a matrix with `num` rows and `num2` columns and sets it to zero if the optional "random" property is set to `false` (default) and uniform random if "random" is `true`
+	////!- `mat = la.newMat(nestedArr)` -- generates a matrix from a javascript array `nestedArr`, whose elements are arrays of numbers which correspond to matrix rows (row-major dense matrix)
+	////!- `mat = la.newMat(mat2)` -- clones a dense matrix `mat2`
+	//JsDeclareFunction(newMat);
+	////!- `spVec = la.newSpVec(len)` -- creates an empty sparse vector `spVec`, where `len` is an optional (-1 by default) integer parameter that sets the dimension
+	////!- `spVec = la.newSpVec(nestedArr, len)` -- creats a sparse vector `spVec` from a javascript array `nestedArr`, whose elements are javascript arrays with two elements (integer row index and double value). `len` is optional and sets the dimension
+	//JsDeclareFunction(newSpVec);
+	////!- `spMat = la.newSpMat()` -- creates an empty sparse matrix `spMat`
+	////!- `spMat = la.newSpMat(rowIdxVec, colIdxVec, valVec)` -- creates an sparse matrix based on two int vectors `rowIdxVec` (row indices) and `colIdxVec` (column indices) and float vector of values `valVec`
+	////!- `spMat = la.newSpMat(doubleNestedArr, rows)` -- creates an sparse matrix with `rows` rows (optional parameter), where `doubleNestedArr` is a javascript array of arrays that correspond to sparse matrix columns and each column is a javascript array of arrays corresponding to nonzero elements. Each element is an array of size 2, where the first number is an int (row index) and the second value is a number (value). Example: `spMat = linalg.newSpMat([[[0, 1.1], [1, 2.2], [3, 3.3]], [[2, 1.2]]], { "rows": 4 });`
+	////!- `spMat = la.newSpMat({"rows":num, "cols":num2})` -- creates a sparse matrix with `num` rows and `num2` columns, which should be integers
+	//JsDeclareFunction(newSpMat);
+	////!- `svdRes = la.svd(mat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition mat ~ U S V^T.  `mat` is a dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	////!- `svdRes = la.svd(spMat, k, {"iter":num, "tol":num2})` -- Computes a truncated svd decomposition spMat ~ U S V^T.  `spMat` is a sparse or dense matrix, integer `k` is the number of singular vectors, optional parameter JSON object contains properies `iter` (integer number of iterations `num`, default 100) and `tol` (the tolerance number `num2`, default 1e-6). The outpus are stored as two dense matrices: `svdRes.U`, `svdRes.V` and a dense float vector `svdRes.s`.
+	JsDeclareFunction(svd);
+	//!- `qrRes = la.qr(mat, tol)` -- Computes a qr decomposition: mat = Q R.  `mat` is a dense matrix, optional parameter `tol` (the tolerance number, default 1e-6). The outpus are stored as two dense matrices: `qrRes.Q`, `qrRes.R`.
+	JsDeclareFunction(qr);
+	//!- `intVec = la.loadIntVeC(fin)` -- load integer vector from input stream `fin`.
+	// (TODO) JsDeclareFunction(loadIntVec);
+	//!JSIMPLEMENT:src/qminer/linalg.js
 };
 
 ///////////////////////////////
@@ -108,7 +108,10 @@ public:
 * <br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
 * <br>3. A matrix (copy constructor).
 * @example
-* // TODO
+* // create new matrix with matrixArg
+* var mat = new la.Matrix({"rows": 3, "cols": 2, "random": true}); // creates a 3 x 2 matrix with random values
+* // create a new matrix with nested arrays
+* var mat2 = new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix
 */
 //# exports.Matrix = function(arg) {}	
 
@@ -166,7 +169,7 @@ private:
 	/**
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
-	* @returns {(module:la.Matrix | module:la.Vector)} 
+	* @returns {(module:la.Matrix | module:la.Vector)}
 	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
 	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
@@ -422,10 +425,14 @@ public:
 * @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
 * <br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
 * <br>2. A sparse vector (copy constructor).
+* @param {number} [dim] - Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
-* // TODO
+* // create new sparse vector with arrays
+* var spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]); // sparse vector [1, 0, 3, 6]
+* // create new sparse vector with dim
+* var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4
 */
-//# exports.SparseVector = function(arg) {}	
+//# exports.SparseVector = function(arg, dim) {}	
 
 class TNodeJsSpVec : public node::ObjectWrap {
 public:
@@ -582,10 +589,15 @@ private:
 * @classdesc Represents a sparse matrix.
 * @class
 * @param {(Array<Array<Array<number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
-* <br>1. Nested arrays of matrix elements. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns. The second nonzero element in second column has a value 3 at index 2.
+* <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
+* The second nonzero element in second column has a value 3 at index 2.
 * <br>2. A sparse matrix (copy constructor).
+* @param {number} [rows] - Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
-* // TODO
+* // create a new sparse matrix with array
+* var mat = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]]);
+* // create a new sparse matrix with specified max rows
+* var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);
 */
 //# exports.SparseMatrix = function(arg) {}	
 
@@ -635,7 +647,7 @@ public:
 	JsDeclareSetIndexedProperty(indexGet, indexSet);
 
 	JsDeclareFunction(indexGet);
-	
+
 	//!- `spVec = spMat.getCol(colIdx)` -- `spVec` corresponds to the `colIdx`-th column of a sparse matrix `spMat`. `colIdx` must be an integer.
 	/**
 	* Returns the column of sparse matrix.
@@ -659,7 +671,7 @@ public:
 	* Attaches a column to sparse matrix.
 	* @param {module:la.SparseVector} spVec - Attached column as sparse vector.
 	* @returns {module:la.SparseMatrix} Self.
- 	*/
+	*/
 	//# exports.SparseMatrix.prototype.push = function (spVec) {}
 	JsDeclareFunction(push);
 
@@ -674,7 +686,7 @@ public:
 	* @returns {(module:la.Vector | module:la.Matrix)}
 	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
 	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
-	*/ 
+	*/
 	//# exports.SparseMatrix.prototype.multiply = function (arg) {}
 	JsDeclareFunction(multiply);
 
@@ -714,7 +726,7 @@ public:
 	//!- `spMat2 = spMat.transpose()` -- `spMat2` (sparse matrix) is `spMat` (sparse matrix) transposed 
 	/**
 	* Returns the transposed sparse matrix.
-	* @returns{module:la.SparseMatrix} Transposed sparse matrix.
+	* @returns {module:la.SparseMatrix} Transposed sparse matrix.
 	*/
 	//# exports.SparseMatrix.prototype.transpose = function () {}
 	JsDeclareFunction(transpose);
