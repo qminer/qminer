@@ -50,7 +50,7 @@
 	* // create a new vector
 	* var vec = new la.Vector([1, -1]);
 	* //multiply mat and vec
-	* var vec2 = mat.multiply(vec) // returns vector [-1, -6]
+	* var vec2 = mat.multiply(vec); // returns vector [-1, -6]
 	*/
  exports.Matrix.prototype.multiply = function(arg) {}
 /**
@@ -65,7 +65,7 @@
 	* // create a new vector
 	* var vec = new la.Vector([1, -1]);
 	* //multiply mat and vec
-	* var vec2 = mat.multiplyT(vec) // returns vector [2, 7]
+	* var vec2 = mat.multiplyT(vec); // returns vector [2, 7]
 	*/
  exports.Matrix.prototype.multiplyT = function(arg) {}
 /**
@@ -89,6 +89,13 @@
 	* Solves the linear system.
 	* @param {module:la.Vector} vec - The right-hand side of the equation.
 	* @returns {module:la.Vector} Solution of the linear system.
+	* @example
+	* // create a new matrix
+	* var M = new la.Matrix([[1, 2], [-1, -5]]);
+	* // create a new vector
+	* var b = new la.Vector([-1, -6]);
+	* // solve the linear system M*x = b
+	* var x = M.solve(b); // returns vector [1, -1]
 	*/
  exports.Matrix.prototype.solve = function (vec) {}
 /**
