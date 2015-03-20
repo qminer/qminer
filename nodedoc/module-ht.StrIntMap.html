@@ -99,7 +99,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line105">line 105</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line115">line 115</a>
     </li></ul></dd>
     
 
@@ -126,7 +126,7 @@
 
     <h5>Example</h5>
     
-    <pre class="prettyprint"><code>// create a new hashtableht = require('qminer').ht;var h = new ht.StrIntMap();// Adding two key/dat pairsh.put('foo', 10);h.put('bar', 20);// Getting datah.hasKey('foo'); // returns trueh.get('bar'); // returns 20h.key(1); // returns 'bar'h.dat(1); // returns 20h.length; // returns 2// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.StrIntMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
+    <pre class="prettyprint"><code>// create a new hashtableht = require('qminer').ht;var h = new ht.StrIntMap();// Adding two key/dat pairsh.put('foo', 10);h.put('bar', 20);// Getting datah.hasKey('foo'); // returns trueh.get('bar'); // returns 20h.key(1); // returns 'bar'h.dat(1); // returns 20h.length; // returns 2	// Saving and loading:var fs = require('qminer').fs;fout = fs.openWrite('map.dat'); // open write streamh.save(fout).close(); // save and close write streamvar h2 = new ht.StrIntMap(); // new empty tablevar fin = fs.openRead('map.dat'); // open read streamh2.load(fin); // load</code></pre>
 
 
 
@@ -240,7 +240,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line128">line 128</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line138">line 138</a>
     </li></ul></dd>
     
 
@@ -367,7 +367,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line140">line 140</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line150">line 150</a>
     </li></ul></dd>
     
 
@@ -520,7 +520,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line111">line 111</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line121">line 121</a>
     </li></ul></dd>
     
 
@@ -673,7 +673,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line124">line 124</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line134">line 134</a>
     </li></ul></dd>
     
 
@@ -826,7 +826,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line134">line 134</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line144">line 144</a>
     </li></ul></dd>
     
 
@@ -979,7 +979,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line146">line 146</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line156">line 156</a>
     </li></ul></dd>
     
 
@@ -1155,7 +1155,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line118">line 118</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line128">line 128</a>
     </li></ul></dd>
     
 
@@ -1308,7 +1308,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line152">line 152</a>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line162">line 162</a>
     </li></ul></dd>
     
 
@@ -1357,6 +1357,308 @@
 
 
         
+            
+
+    
+
+    <h4 class="name" id="sortDat"><span class="type-signature"></span>sortDat<span class="signature">(asc<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    sorts by values
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>asc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">Sort in ascending order?</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line172">line 172</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="sortKey"><span class="type-signature"></span>sortKey<span class="signature">(asc<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    sorts by keys
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>asc</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
+            
+
+            <td class="description last">Sort in ascending order?</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="htdoc.js.html">htdoc.js</a>, <a href="htdoc.js.html#line167">line 167</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -1372,13 +1674,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-stat.html">stat</a></li></ul><h3>Classes</h3><ul><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Fri Mar 13 2015 20:01:17 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Mar 19 2015 15:40:18 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1806,8 +1806,8 @@ double TNumericalStuff::sign(double a, double b) {
 }
 
 void TNumericalStuff::nrerror(const TStr& error_text) {
-    printf("NR_ERROR: %s", error_text.CStr());
-    throw new TNSException(error_text);
+    //printf("NR_ERROR: %s", error_text.CStr());
+    throw TNSException::New(error_text);
 }
 
 double TNumericalStuff::pythag(double a, double b) {
@@ -2150,6 +2150,34 @@ void TNumericalStuff::SolveLinearSystem(TFltVV& A, const TFltV& b, TFltV& x) {
     LUDecomposition(A, indx, d);
     x = b;
     LUSolve(A, indx, x);
+}
+
+void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
+	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
+	if (x.Empty()) { 
+		x.Gen(A.GetRows());
+	} else {
+		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::LeastSquares: solution dimension does not match the number of rows of A (features)");
+	}
+	// x = (A * A' + Gamma^2 * I)^{-1} A * b
+	int Feats = A.GetRows();
+	int N = A.GetCols();
+	// A'
+	TFltVV At = TFltVV(A.GetCols(), A.GetRows()); 
+	TLinAlg::Transpose(A, At);
+	// A * A'
+	TFltVV B = TFltVV(Feats, Feats);
+	TLinAlg::Multiply(A, At, B);
+	// I
+	TFltVV I = TFltVV(Feats, Feats);
+	TFltV Ones = TFltV(Feats); Ones.PutAll(1.0);
+	TLAMisc::Diag(Ones, I);
+	// B = A * A' + Gamma^2 * I
+	TLinAlg::LinComb(1.0, B, Gamma*Gamma, I, B);
+	// Ab = A * b
+	TFltV Ab = TFltV(Feats);
+	TLinAlg::Multiply(A, b, Ab);
+	TNumericalStuff::SolveLinearSystem(B, Ab, x);
 }
 
 #ifdef OPENBLAS
@@ -3307,8 +3335,7 @@ void TLAMisc::Diag(const TFltV& Vec, TVec<TIntFltKdV>& Mat) {
 }
 
 int TLAMisc::GetMaxDimIdx(const TIntFltKdV& SpVec) {
-	int MaxDim = SpVec.Last().Key.Val;	 
-	return MaxDim;
+	return SpVec.Len() > 0 ? SpVec.Last().Key.Val : 0;
 }
 
 int TLAMisc::GetMaxDimIdx(const TVec<TIntFltKdV>& SpMat) {

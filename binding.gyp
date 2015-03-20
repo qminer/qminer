@@ -16,7 +16,9 @@
                 'src/nodejs/qm/qm_param.h',
                 # la
                 'src/nodejs/la/la_nodejs.h',
-                'src/nodejs/la/la_nodejs.cpp',
+				'src/nodejs/la/la_structures_nodejs.h',
+                'src/nodejs/la/la_structures_nodejs.cpp',
+                'src/nodejs/la/la_vector_nodejs.h',
                 # analytics
                 'src/nodejs/analytics/analytics.h',
                 'src/nodejs/analytics/analytics.cpp',

@@ -47,7 +47,7 @@
 	* h.get('dog'); // returns 'tisa'
 	* h.key(1); // returns 'dog'
 	* h.dat(1); // returns 'tisa'
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -104,6 +104,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.StrStrMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.StrStrMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.StrStrMap.prototype.sortDat = function(asc) {}
 
 /**
 	* String-Integer hashmap 
@@ -121,7 +131,7 @@
 	* h.get('bar'); // returns 20
 	* h.key(1); // returns 'bar'
 	* h.dat(1); // returns 20
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -178,6 +188,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.StrIntMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.StrIntMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.StrIntMap.prototype.sortDat = function(asc) {}
 
 /**
 	* String-Float hashmap 
@@ -195,7 +215,7 @@
 	* h.get('bar'); // returns 20.2
 	* h.key(1); // returns 'bar'
 	* h.dat(1); // returns 20.2
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -252,6 +272,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.StrFltMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.StrFltMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.StrFltMap.prototype.sortDat = function(asc) {}
 
 /**
 	* Int-string hashmap 
@@ -269,7 +299,7 @@
 	* h.get(20); // returns 'bar'
 	* h.key(1); // returns 20
 	* h.dat(1); // returns 'bar'
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -326,6 +356,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.IntStrMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.IntStrMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.IntStrMap.prototype.sortDat = function(asc) {}
 
 /**
 	* Integer-Integer hashmap 
@@ -343,7 +383,7 @@
 	* h.get(15); // returns 20
 	* h.key(1); // returns 15
 	* h.dat(1); // returns 20
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -400,6 +440,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.IntIntMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.IntIntMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.IntIntMap.prototype.sortDat = function(asc) {}
 
 /**
 	* Integer-Float hashmap 
@@ -417,7 +467,7 @@
 	* h.get(15); // returns 20.2
 	* h.key(1); // returns 15
 	* h.dat(1); // returns 20.2
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -474,6 +524,16 @@
 	* @returns {module:fs.FOut} fout.
 	*/
  exports.IntFltMap.prototype.save = function(fout) {}
+/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+ exports.IntFltMap.prototype.sortKey = function(asc) {}
+/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+ exports.IntFltMap.prototype.sortDat = function(asc) {}
 
 
 
@@ -494,13 +554,13 @@ exports.StrStrMap.prototype.classDesc = function () { return 'This class wraps a
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-stat.html">stat</a></li></ul><h3>Classes</h3><ul><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Fri Mar 13 2015 20:01:17 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Thu Mar 19 2015 15:40:18 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

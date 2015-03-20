@@ -190,7 +190,7 @@ public:
 	* h.get(<% key2 %>); // returns <% val2 %>
 	* h.key(1); // returns <% key2 %>
 	* h.dat(1); // returns <% val2 %>
-	* h.length; // returns 2
+	* h.length; // returns 2	
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -265,6 +265,21 @@ public:
     //# exports.<% className %>.prototype.save = function(fout) {}
     JsDeclareFunction(save);
 
+	/**
+	* sorts by keys
+	* @param {boolean} [asc=true] - Sort in ascending order?
+	*/
+	//# exports.<% className %>.prototype.sortKey = function(asc) {}
+	JsDeclareFunction(sortKey);
+
+	/**
+	* sorts by values
+	* @param {boolean} [asc=true] - Sort in ascending order?	
+	*/
+	//# exports.<% className %>.prototype.sortDat = function(asc) {}
+	JsDeclareFunction(sortDat);
+
+
     static TStr GetClassId() { return TAux::ClassId; }
 private:
     static v8::Persistent<v8::Function> constructor;
@@ -323,6 +338,8 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "dat", _dat);
     NODE_SET_PROTOTYPE_METHOD(tpl, "load", _load);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortKey", _sortKey);
+	NODE_SET_PROTOTYPE_METHOD(tpl, "sortDat", _sortDat);
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
 
@@ -446,6 +463,26 @@ void TNodeJsHash<TKey, TDat, TAux>::save(const v8::FunctionCallbackInfo<v8::Valu
     PSOut SOut = JsFOut->SOut;
     JsMap->Map.Save(*SOut);
     Args.GetReturnValue().Set(Args[0]);
+}
+
+template<class TKey, class TDat, class TAux>
+void TNodeJsHash<TKey, TDat, TAux>::sortKey(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+	JsMap->Map.SortByKey(Asc);
+	Args.GetReturnValue().Set(Args.Holder());
+}
+
+template<class TKey, class TDat, class TAux>
+void TNodeJsHash<TKey, TDat, TAux>::sortDat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope HandleScope(Isolate);
+	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
+	JsMap->Map.SortByDat(Asc);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template<class TKey, class TDat, class TAux>
