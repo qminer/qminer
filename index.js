@@ -5,4 +5,5 @@ exports.fs = require('bindings')('qm.node').fs; // pure native addon
 exports.ht = require('./src/nodejs/scripts/ht.js')(); // includes additional JS implementations
 exports.la = require('./src/nodejs/scripts/la.js')(); // includes additional JS implementations
 exports.snap = require('./src/nodejs/scripts/snap.js')(); // includes additional JS implementations
-exports.stat = require('bindings')('qm.node').statistics; // pure native addon
+exports.statistics = require('bindings')('qm.node').statistics; // pure native addon
+exports.datasets = require('./src/nodejs/datasets/datasets.js')(); // includes additional JS implementations
