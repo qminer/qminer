@@ -20,7 +20,10 @@
 * <br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
 * <br>3. A matrix (copy constructor).
 * @example
-* // TODO
+* // create new matrix with matrixArg
+* var mat = new la.Matrix({"rows": 3, "cols": 2, "random": true}); // creates a 3 x 2 matrix with random values
+* // create a new matrix with nested arrays
+* var mat2 = new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix
 */
  exports.Matrix = function(arg) {}	
 /**
@@ -179,6 +182,11 @@
 /**
 	* Returns the diagonal elements of matrix.
 	* @returns {module:la.Vector} Vector containing the diagonal elements.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, -1, 0], [15, 8, 3], [0, 1, 0]]);
+	* // call diag function
+	* var vec = mat.diag(); // returns a vector [1, 8, 0]
 	*/
  exports.Matrix.prototype.diag = function () {}
 /**
@@ -202,7 +210,7 @@
 * <br>2. A sparse vector (copy constructor).
 * @param {number} [dim] - Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
-* // create new sparse vector
+* // create new sparse vector with arrays
 * var spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]); // sparse vector [1, 0, 3, 6]
 * // create new sparse vector with dim
 * var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4

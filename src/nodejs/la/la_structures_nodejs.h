@@ -373,6 +373,11 @@ private:
 	/**
 	* Returns the diagonal elements of matrix.
 	* @returns {module:la.Vector} Vector containing the diagonal elements.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, -1, 0], [15, 8, 3], [0, 1, 0]]);
+	* // call diag function
+	* var vec = mat.diag(); // returns a vector [1, 8, 0]
 	*/
 	//# exports.Matrix.prototype.diag = function () {}
 	JsDeclareFunction(diag);
