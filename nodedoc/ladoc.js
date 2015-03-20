@@ -119,6 +119,11 @@
 /**
 	* Returns the matrix as string.
 	* @returns {string} Dense matrix as string.
+	* @example
+	* // create a new matrix
+	* var mat = new la.Matrix([[1, 2], [3, 5]]);
+	* // get matrix as string
+	* var text = mat.toString(); // returns `1 2 \n3 5 \n\n`
 	*/
  exports.Matrix.prototype.toString = function () {}
 /**
@@ -193,12 +198,26 @@
 	* Saves the matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout
+	* @example
+	* // create new matrix
+	* var mat = new la.Matrix([[1, 2], [3, 4]]);
+	* // open write stream
+	* var fout = fs.openWrite('mat.dat');
+	* // save matrix and close write stream
+	* mat.save(fout).close();
 	*/
  exports.Matrix.prototype.save = function (fout) {}
 /**
 	* Loads the matrix from input stream.
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Matrix} Self.
+	* @example
+	* // create an empty matrix
+	* var mat = new la.Matrix();
+	* // open a read stream
+	* var fin = fs.openRead('mat.dat');
+	* // load the matrix
+	* mat.load(fin);
 	*/
  exports.Matrix.prototype.load = function (FIn) {}
 /**
@@ -244,6 +263,11 @@
 	* Multiplies sparse vector with scalar.
 	* @param {number} num - Scalar.
 	* @returns {module:la.SparseVector} Product of num and sparse vector.
+	* @example
+	* // create a new sparse vector
+	* var spVec = new la.SparseVector([[0, 1], [2, 3], [3, 6]]);
+	* // multiply sparse vector with scalar 3.14
+	* var spVec2 = spVec.multiply(3.14); // returns sparse vector [3.14, 0, 9.42, 18.84]
 	*/
  exports.SparseVector.prototype.multiply = function (num) {}
 /**
@@ -282,8 +306,12 @@
 	*/
  exports.SparseVector.prototype.idxVec = function () {}
 /**
-	* Returns the sparse vector as string.
-	* @returns {string} Sparse vector as string.
+	* Prints sparse vector on-screen.
+	* @example
+	* // create new sparse vector
+	* var spVec = new la.SparseVector([[0, 1], [2, 3]]);
+	* // print sparse vector
+	* spVec.print(); // shows on-screen [(0, 1), (2, 3)]
 	*/
  exports.SparseVector.prototype.print = function () {}
 /**
@@ -400,8 +428,17 @@
 	*/
  exports.SparseMatrix.prototype.cols = undefined
 /**
-	* Returns the sparse matrix as string.
-	* @returns {string} Sparse matrix as string. The first column represents row indeces, second column represents column indeces, third column represents value.
+	* Prints sparse matrix on screen.
+	* @example
+	* // create a new sparse matrix
+	* var spMat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 8]]]);
+	* // print sparse matrix on screen
+	* // each row represents a nonzero element, where first value is row index, second 
+	* // value is column index and third value is element value. For this matrix:
+	* // 0  0  1.000000
+	* // 0  1  3.000000
+	* // 1  1  8.000000
+	* spMat.print(); 
 	*/
  exports.SparseMatrix.prototype.print = function () {}
 /**
