@@ -12,9 +12,9 @@ describe('Import test', function () {
     })
 })
 
-//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function tests for Vector
-//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var v = new la.Vector();
 
 function FVector() {
@@ -22,47 +22,49 @@ function FVector() {
 }
 
 describe('Vector Tests', function () {
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Property tests
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Property Tests', function () {
         describe('Length Test', function () {
-            //var v = new FVector();
+            var v = new FVector();
             it('should return 0 for vector v', function () {
-                assert.equal(v.length, 0);
-                //    assert.equal(v.vec.length, 3);
+
+                assert.equal(v.vec.length, 3);
             })
         })
     });
-
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Function tests
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Functions Tests', function () {
         describe('Push Test', function () {
-            //var v = new FVector();
+            var v = new FVector();
             it('pushing 3.1 and 4 into a vector v, v.length should return 2', function () {
-                v.push(3.2);
-                v.push(4);
-                assert.equal(v.length, 2);
-                //                v.vec.push(3.2);
-                //                v.vec.push(4);
-                //                assert.equal(v.length, 5);
+                v.vec.push(3.2);
+                v.vec.push(4);
+                assert.equal(v.vec.length, 5);
             })
         });
 
         describe('At Test', function () {
-
+            var v = new FVector();
             it('returns element in with indexes 0 (3.2) and 1 (4)', function () {
-                assert.equal(3.2, v.at(0));
-                assert.equal(4, v.at(1));
+                assert.equal(1, v.vec.at(0));
+                assert.equal(2, v.vec.at(1));
             })
         });
 
         describe('At "Out of Bound" Test', function () {
+            var v = new FVector();
             it('should give an error for accessing an element out of bound -1', function () {
                 assert.throws(function () {
-                    var n = v.at(-1);
+                    var n = v.vec.at(-1);
                 })
             })
             it('should give an error for accessing an element out of bound 3', function () {
                 assert.throws(function () {
-                    var n = v.at(3);
+                    var n = v.vec.at(4);
                 })
             })
         });
@@ -122,23 +124,25 @@ describe('Vector Tests', function () {
         });
 
         describe('Copy Constructor Test', function () {
+            var v = new FVector();
             it('should copy the vector v and save it in vec', function () {
-                var vec = new la.Vector(v);
-                assert.equal(vec.length, v.length);
+                var vec = new la.Vector(v.vec);
+                assert.equal(vec.length, v.vec.length);
                 for (var i = 0; i < v.length; i++) {
                     assert.equal(vec.at(i), v.at(i));
                 }
             })
             it('should copy vector v and while changed it doesn\'t change v', function () {
-                var vec = new la.Vector(v);
+                var vec = new la.Vector(v.vec);
                 vec.put(1, -100);
-                assert.notEqual(vec.at(1), v.at(1));
+                assert.notEqual(vec.at(1), v.vec.at(1));
             })
         });
 
         describe('Sum Test', function () {
-            it('should return a sum of 3.2 and 4', function () {
-                assert.equal(3.2 + 4, v.sum());
+            var v = new FVector();
+            it('should return a sum 1 + 2 + 3', function () {
+                assert.equal(6, v.vec.sum());
             })
         });
 
@@ -150,12 +154,14 @@ describe('Vector Tests', function () {
         });
 
         describe('getMaxIdx Test', function () {
+            var v = new FVector();
             it('should return index of last element in vector, 1.', function () {
-                assert.equal(v.length - 1, v.getMaxIdx());
+                assert.equal(v.vec.length - 1, v.vec.getMaxIdx());
             })
         });
 
         describe('getMaxIdx "All Elements Same" Test', function () {
+            var v = new FVector();
             it('if all elements are the same, it should return the first max index', function () {
                 var vec = new la.Vector([1, 1, 1, 1]);
                 assert.equal(vec.getMaxIdx(), 0);
@@ -207,14 +213,11 @@ describe('Vector Tests', function () {
         describe('Sort Tests', function () {
             it('should sort vector in ascending order [0.11, 0.12, 3.5, 4]', function () {
                 var array = [0.11, 0.12, 3.5, 4];
-                //var sortedVec = new la.Vector(array);
 
                 var vec = new la.Vector([3.5, 0.12, 4, 0.11]);
                 var vec = vec.sort();
 
-                //assert.deepEqual(vec, sortedVec);
                 for (var i = 0; i < vec.length; i++) {
-                    //assert.equal(vec.at(i), sortedVec.at(i));
                     assert.equal(vec.at(i), array[i]);
                 }
             })
@@ -322,51 +325,56 @@ describe('Vector Tests', function () {
         });
 
         describe('At [] Tests', function () {
+            var v = new FVector();
             it('should return elements with indices 0 (3.2) and 1 (4)', function () {
-                assert.equal(3.2, v[0]);
-                assert.equal(4, v[1]);
+                assert.equal(1, v.vec[0]);
+                assert.equal(2, v.vec[1]);
             })
             it('should save new value at index 0 (12)', function () {
-                v[0] = 12;
-                assert.equal(12, v[0]);
+                v.vec[0] = 12;
+                assert.equal(12, v.vec[0]);
             })
         });
 
         describe('At [] "Out of Bound" Test', function () {
+            var v = new FVector();
             it('should return an exception for out of bound indices', function () {
                 assert.throws(function () {
-                    v[4] = 12;
+                    v.vec[4] = 12;
                 })
             })
         });
 
         describe('Put Test', function () {
+            var v = new FVector();
             it('should put the value -21 at index 1', function () {
-                v.put(1, -21);
-                assert.equal(-21, v[1]);
+                v.vec.put(1, -21);
+                assert.equal(-21, v.vec[1]);
             })
         });
 
         describe('Put "Parameter" Tests', function () {
+            var v = new FVector();
             it('should throw exception for putting an element out of bounds', function () {
                 assert.throws(function () {
-                    v.put(3, 100);
+                    v.vec.put(4, 100);
                 })
             })
 
             it('should throw exception for putting an element in position 0.5', function () {
                 assert.throws(function () {
-                    v.put(0.5, 100);
+                    v.vec.put(0.5, 100);
                 })
             })
         });
 
         describe('Diag Test', function () {
+            var v = new FVector();
             it('should return a matrix with the vector v on it\'s diagonal', function () {
-                var mat = v.diag();
+                var mat = v.vec.diag();
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
-                        if (i == j) { assert.equal(mat.at(i, j), v[i]); }
+                        if (i == j) { assert.equal(mat.at(i, j), v.vec[i]); }
                         else { assert.equal(mat.at(i, j), 0); }
                     }
                 }
@@ -374,15 +382,16 @@ describe('Vector Tests', function () {
         });
 
         describe('PushV Test', function () {
+            var v = new FVector();
             it('should return v with appended vector [1, 2, 3]', function () {
                 var w = new la.Vector([1, 2, 3]);
-                v.pushV(w);
-                assert.equal(v.length, 5);
-                var controlVec = new la.Vector([12, -21, 1, 2, 3]);
+                v.vec.pushV(w);
+                assert.equal(v.vec.length, 6);
+                var controlVec = new la.Vector([1, 2, 3, 1, 2, 3]);
 
-                assert.deepEqual(v, controlVec);
+                assert.deepEqual(v.vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(v.at(i), controlVec.at(i));
+                    assert.equal(v.vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -439,10 +448,11 @@ describe('Vector Tests', function () {
         });
 
         describe('ToMat Test', function () {
+            var v = new FVector()
             it('should return matrix with a single column that equals vec', function () {
-                var mat = v.toMat();
-                for (var i = 0; i < v.length; i++) {
-                    assert.equal(mat.at(i, 0), v.at(i));
+                var mat = v.vec.toMat();
+                for (var i = 0; i < v.vec.length; i++) {
+                    assert.equal(mat.at(i, 0), v.vec.at(i));
                 }
             })
         });
@@ -457,11 +467,11 @@ describe('Vector Tests', function () {
         });
 
         describe('Sparse Test', function () {
+            var v = new FVector();
             it('should return the sparse vector of vec', function () {
-                var spV = v.sparse();
-                var controlVec = new la.SparseVector([[0, 12], [1, -21], [2, 1], [3, 2], [4, 3]]);
+                var spV = v.vec.sparse();
+                var controlVec = new la.SparseVector([[0, 1], [1, 2], [2, 3]]);
 
-                // assert.deepEqual(spV, controlVec);      // spV.dim = -1 instead of 5 ??
                 for (var i = 0; i < controlVec.dim; i++) {
                     assert.eqtol(spV.at(i), controlVec.at(i));
                 }
@@ -469,35 +479,39 @@ describe('Vector Tests', function () {
         });
 
         describe('Unshift Test', function () {
+            var v = new FVector();
             it('should insert the value 10 at the beginning of vector v', function () {
-                v.unshift(10);
-                assert.equal(v[0], 10);
+                v.vec.unshift(10);
+                assert.equal(v.vec[0], 10);
             })
         });
 
         describe('Trunc Test', function () {
-            it('should cut off the last 3 values in vector v', function () {
-                v.trunc(3);
-                assert.equal(v.length, 3);
+            var v = new FVector();
+            it('should cut off the last 1 values in vector v', function () {
+                v.vec.trunc(2);
+                assert.equal(v.vec.length, 2);
             })
         });
 
         describe('Trunc "Parameter" Tests', function () {
+            var v = new FVector();
             it('should return the same vector for parameter 3', function () {
-                v.trunc(3);
-                assert.equal(v.length, 3);
+                v.vec.trunc(4);
+                assert.equal(v.vec.length, 3);
             })
             it('should throw an exception for parameter < 0', function () {
                 assert.throws(function () {
-                    v.trunc(-1);
+                    v.vec.trunc(-1);
                 })
             })
         });
 
         describe('Outer Test', function () {
+            var v = new FVector();
             it('should return a matrix v * v^T', function () {
-                var mat = v.outer(v);
-                var controlMat = new la.Matrix([[100, 120, -210], [120, 144, -252], [-210, -252, 441]]);
+                var mat = v.vec.outer(v.vec);
+                var controlMat = new la.Matrix([[1, 2, 3], [2, 4, 6], [3, 6, 9]]);
 
                 assert.deepEqual(mat, controlMat);
                 for (var i = 0; i < controlMat.rows; i++) {
@@ -509,24 +523,27 @@ describe('Vector Tests', function () {
         });
 
         describe('Inner Test', function () {
+            var v = new FVector();
             it('should return the scalar product of v and [1, 2, 3]', function () {
-                var n = v.inner(new la.Vector([1, 2, 3]));
-                assert.equal(n, 10 + 24 - 63);
+                var n = v.vec.inner(new la.Vector([1, 2, 3]));
+                assert.equal(n, 1 + 4 + 9);
             })
         });
 
         describe('Inner "Different Length" Test', function () {
+            var v = new FVector();
             it('should return an exception for vectors having different lengths', function () {
                 assert.throws(function () {
-                    var n = v.inner(new la.Vector([1, 2]));
+                    var n = v.vec.inner(new la.Vector([1, 2]));
                 })
             })
         });
 
         describe('SpDiag Test', function () {
+            var v = new FVector();
             it('should return a sparse matrix with v on the diagonal', function () {
-                var spMat = v.spDiag();
-                var controlspMat = new la.SparseMatrix([[[0, 10]], [[1, 12]], [[2, -21]]], { "rows": 3 });
+                var spMat = v.vec.spDiag();
+                var controlspMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]]], { "rows": 3 });
 
                 for (var i = 0; i < 3; i++) {
                     for (var j = 0; j < 3; j++) {
