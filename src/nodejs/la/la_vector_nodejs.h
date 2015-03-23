@@ -136,7 +136,7 @@ private:
 	/**
 	* Returns element at index
 	* @param {number} index - Element index (zero-based).
-	* @returns {elementType} Vector element.
+	* @returns {<% elementType %>} Vector element.
 	*/
 	//# exports.<% className %>.prototype.at = function(number) {}
 	JsDeclareFunction(at);
