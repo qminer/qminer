@@ -97,6 +97,15 @@ public:
 //! // refer to la.newVec, la.newIntVec functions for alternative ways to generate vectors
 //! ```
 //! 
+
+/**
+* <% title %>
+* @classdesc Wrapps a C++ array.
+* @class
+* @example
+* // TODO
+*/
+//# exports.<% className %> = function() {}
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
 	friend class TNodeJsFltVV;
@@ -122,6 +131,14 @@ private:
 	//! 
 	//!- `num = vec.at(idx)` -- gets the value `num` of vector `vec` at index `idx`  (0-based indexing)
 	//!- `num = intVec.at(idx)` -- gets the value `num` of integer vector `intVec` at index `idx`  (0-based indexing)
+	
+	
+	/**
+	* Returns element at index
+	* @param {number} index - Element index (zero-based).
+	* @returns {elementType} Vector element.
+	*/
+	//# exports.<% className %>.prototype.at = function(number) {}
 	JsDeclareFunction(at);
 	//!- `vec2 = vec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
 	//!- `intVec2 = intVec.subVec(intVec)` -- gets the subvector based on an index vector `intVec` (indices can repeat, 0-based indexing)
@@ -200,7 +217,15 @@ private:
 	JsDeclareFunction(trunc);
 	//!- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
 	JsDeclareSpecializedFunction(outer);
+	
 	//!- `num = vec.inner(vec2)` -- `num` is the standard dot product between vectors `vec` and `vec2`. Implemented for dense float vectors only.
+	
+	/**
+	* Computes the inner product.
+	* @param {module:la.Vector} vec - Other vector
+	* @returns {number} Inner product between the instance and the other vector.
+	*/
+	//# <% skipInner %>exports.<% className %>.prototype.inner = function(vec) {}
 	JsDeclareSpecializedFunction(inner);
 	//!- `num = vec.cosine(vec2)` -- `num` is the cosine between vectors `vec` and `vec2`. Implemented for dense float vectors only.
 	JsDeclareSpecializedFunction(cosine);
