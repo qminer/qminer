@@ -834,6 +834,14 @@ public:
 	* Saves the sparse matrix as output stream.
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
+	* @example
+	* // create a new sparse matrix
+	* var mat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);
+	* // open write stream
+	* var fout = fs.openWrite('mat.dat');
+	* // save matrix and close write stream
+	* mat.save(fout).close();
+	* // 
 	*/
 	//# exports.SparseMatrix.prototype.save = function (fout) {}
 	JsDeclareFunction(save);
@@ -843,6 +851,13 @@ public:
 	* Loads the sparse matrix from input stream.
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Matrix} Self.
+	* @example
+	* // create an empty matrix
+	* var mat = new la.SparseMatrix();
+	* // open a read stream
+	* var fin = fs.openRead('mat.dat');
+	* // load the matrix
+	* mat.load(fin);
 	*/
 	//# exports.SparseMatrix.prototype.load = function (FIn) {}
 	JsDeclareFunction(load);
