@@ -341,7 +341,7 @@
 	* Puts an element in sparse matrix.
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {number} colIdx - Column index (zero based).
-	* @param {number} num - Rlement value.
+	* @param {number} num - Element value.
 	* @returns {module:la.SparseMatrix} Self.
 	*/
  exports.SparseMatrix.prototype.put = function (rowIdx, colIdx, num) {}
@@ -452,7 +452,6 @@
 	* var fout = fs.openWrite('mat.dat');
 	* // save matrix and close write stream
 	* mat.save(fout).close();
-	* // 
 	*/
  exports.SparseMatrix.prototype.save = function (fout) {}
 /**
@@ -575,6 +574,15 @@
     //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
     //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 
+    /**
+    * Returns an object with random numbers
+    * @param {number} [arg1] - Represents dimension of vector or number of rows in matrix. Must be an integer.
+    * @param {number} [arg2] - Represents number of columns in matrix. Must be an integer.
+    * @returns {(number | module:la.Vector | module:la.Matrix)}
+    * <br>1. Number, if no parameters are given.
+    * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
+    * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
+    */
     exports.randn = function () {
         //arguments.length
         var len = arguments.length;
@@ -808,131 +816,459 @@ exports.ones = function(k) {
 
 /**
 * Vector - array of doubles
-* @classdesc Wrapps a C++ array.
+* @classdesc Wraps a C++ array.
 * @class
+* @param {(Array<number> | module:la.Vector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: [1, 2, 3] is a vector of length 3.
+* <br>2. A vector (copy constructor).
 * @example
-* // TODO
+* // create a new empty vector
+* var vec = new la.Vector();
+* // create a new vector
+* var vec2 = new la.Vector([1, 2, 3]);
 */
  exports.Vector = function() {}
 /**
-	* Returns element at index
+	* Returns element at index.
 	* @param {number} index - Element index (zero-based).
-	* @returns {elementType} Vector element.
+	* @returns {number} Vector element.
 	*/
  exports.Vector.prototype.at = function(number) {}
 /**
-	* Sets the element at position i.
-	*
-	* vec = vec.put(i, val)
-	*
-	* @param {Number} i - the position of the element
-	* @returns {Vector} vec - a reference to itself
+	* Returns a subvector.
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @returns {module:la.Vector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
+ exports.Vector.prototype.subVec = function (arg) {}
+/**
+	* Sets an element in vector.
+	* @param {number} idx - Index (zero based).
+	* @param {number} val - Element value.
+	* @returns {module:la.Vector} Self.
+	*/
+ exports.Vector.prototype.put = function (idx, val) {}
 /**
 	* Adds an element to the end of the vector.
-	*
-	* len = vector.push(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
+	* @param {number} val - The element added to the vector.
+	* @returns {boolean} True, if val vas successfully added to the vector. Otherwise, false.
 	*/
+ exports.Vector.prototype.push = function (val) {}
 /**
-	* The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-	*
-	* array.splice(start, deleteCount[, item1[, item2[, ...]]])
-	*
-	* @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-	* @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-	* @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-	* @returns {Vector} - a reference to itself
+	//! * The splice() method changes the content of an array by removing existing elements and/or adding new elements.
+	//! *
+	//! *  array.splice(start, deleteCount[, item1[, item2[, ...]]])
+	//! *
+	//! * @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
+	//! * @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
+	//! * @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
+	//! * @returns {Vector} - a reference to itself
+	//! */
+/**
+	* Changes the vector by removing and adding elements.
+	* @param {number} start - Index at which to start changing the array.
+	* @param {number} deleteCount - 
 	*/
 /**
 	* Adds an element to the beginning of the vector.
-	*
-	* len = vector.unshift(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
+	* @param {number} val - The element added to the vector.
+	* @returns {number} The new length of vector.
 	*/
+ exports.Vector.prototype.unshift = function (val) {}
 /**
+	* Appends a second vector to the first one.
+	* @param {module:la.Vector} vec - The appended vector.
+	* @returns {boolean} True, if appending the vector is successful. Otherwise, false.
+	*/
+ exports.Vector.prototype.pushV = function (vec) {}
+/**
+	//! * Sums the elements in the vector.
+	//! *
+	//! * @returns {Object} - the sum
+	//! */
+/** 
 	* Sums the elements in the vector.
-	*
-	* @returns {Object} - the sum
+	* @returns {number} The sum of all elements in the instance.
 	*/
+ exports.Vector.prototype.sum = function () {}
 /**
-	* Randomly reorders the elements of the vector.
-	*
-	* @returns {Vector} - returns a reference to itself
+	* Gets the index of the maximal element.
+	* @returns {number} Index of the maximal element in the vector.
 	*/
+ exports.Vector.prototype.getMaxIdx = function () {}
+/**
+	* Sorts the vector in ascending or descending order.
+	* @param {boolean} [bool] - Default is true.
+	* @returns {module:la.Vector} 
+	* <br>1. Vector sorted in ascending order, if bool is true.  
+	* <br>2. Vector sorted in descending order, if bool is false.
+	*/
+ exports.Vector.prototype.sort = function (bool) {} 
+/**
+	//! * Randomly reorders the elements of the vector.
+	//! *
+	//! * @returns {Vector} - returns a reference to itself
+	//! */
+/**
+	* Randomly reorders the elements of the vector (inplace).
+	* @returns {boolean} True, if reordering was successful. Otherwise, false.
+	*/
+ exports.Vector.prototype.shuffle = function () {}
+/**
+	* Adds an element to the front of the vector.
+	* @param {number} val - Added value.
+	* @returns {module:la.Vector} Self.
+	*/
+ exports.Vector.prototype.trunc = function (val) {} 
+/**
+	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
+	* @param {module:la.Vector} vec - Second vector.
+	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
+	* @example
+	* // create two vectors
+	* var x = new la.Vector([1, 2, 3]);
+	* var y = new la.Vector([4, 5]);
+	* // create the outer product of these vectors
+	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+	*/
+ exports.Vector.prototype.outer = function (vec) {}
 /**
 	* Computes the inner product.
 	* @param {module:la.Vector} vec - Other vector
 	* @returns {number} Inner product between the instance and the other vector.
 	*/
  exports.Vector.prototype.inner = function(vec) {}
+/**
+	* Returns the cosine between the two vectors.
+	* @param {module:la.Vector} vec - Second vector.
+	* @returns {number} The cosine between the two vectors.
+	* @example
+	* // create two vectors
+	* var x = new la.Vector([1, 0]);
+	* var y = new la.Vector([0, 1]);
+	* // calculate the cosine between those two vectors
+	* var num = x.cosine(y); // returns 0
+	*/
+ exports.Vector.prototype.cosine = function (vec) {}
+/**
+	* Sums the two vectors together.
+	* @param {module:la.Vector} vec - Second vector.
+	* @returns {module:la.Vector} Sum of the instance and the second vector.
+	*/
+ exports.Vector.prototype.plus = function (vec) {}
+/**
+	* Subtracts one vector from the other.
+	* @param {module:la.Vector} vec - Second vector.
+	* @returns {module:la.Vector} The difference of the instance and the other vector.
+	*/
+ exports.Vector.prototype.minus = function (vec) {}
+/**
+	* Multiplies the vector with a scalar.
+	* @param {number} val - Scalar.
+	* @returns {module:la.Vector} Product of the vector and scalar.
+	*/
+ exports.Vector.prototype.multiply = function (val) {} 
+/**
+	* Normalizes vector.
+	* @returns {module:la.Vector} Self - Normalized.
+	*/
+ exports.Vector.prototype.normalize = function () {} 
+/**
+	* Gives the length of vector.
+	* @returns {number} Length of vector.
+	*/
+ exports.Vector.prototype.length = undefined;
+/**
+	* Returns the vector as string.
+	* @returns {string} Instance as string.
+	* @example
+	* // create a new vector
+	* var vec = new la.Vector([1, 2, 3]);
+	* // create vector as string
+	* vec.toString(); // returns '[1, 2, 3]'
+	*/
+ exports.Vector.prototype.toString = function () {}
+/**
+	* Creates a dense diagonal matrix out of the vector.
+	* @returns{module:la.Matrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ exports.Vector.prototype.diag = function () {}
+/**
+	* Creates a sparse diagonal matrix out of the vector.
+	* @returns {module:la.SparseMatrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ exports.Vector.prototype.spDiag = function () {}
+/**
+	* Calculates the norm of the vector.
+	* @returns {number} The norm of the vector.
+	*/
+ exports.Vector.prototype.norm = function () {}
+/**
+	* Creates the sparse vector representation of the vector.
+	* @returns {module:la.SparseVector} The sparse vector representation.
+	*/
+ exports.Vector.prototype.sparse = function () {}
+/**
+	* Creates a matrix with a single column that is equal to the vector.
+	* @returns {module:la.Matrix} The matrix with a single column that is equal to the instance.
+	*/
+ exports.Vector.prototype.toMat = function () {}
+/**
+	* Saves the vector as output stream.
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import the fs package
+	* var fs = require('qminer.fs');
+	* // create a new vector
+	* var vec = new la.Vector([1, 2, 3]);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save matrix and close write stream
+	* vec.save(fout).close();
+	*/
+ exports.Vector.prototype.save = function (fout) {}
+/**
+	* Loads the vector from input stream.
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.Vector} Self.
+	* @example
+	* // import the fs package
+	* var fs = require('qminer.fs');
+	* // create an empty vector
+	* var vec = new la.Vector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the matrix
+	* vec.load(fin);
+	*/
+ exports.Vector.prototype.load = function (fin) {}
 
 /**
 * Vector - array of strings
-* @classdesc Wrapps a C++ array.
+* @classdesc Wraps a C++ array.
 * @class
+* @param {(Array<string> | module:la.StrVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. An array of vector elements. Example: ['a', 'b', 'c'] is a vector of length 3.
+* <br>2. A vector (copy constructor).
 * @example
-* // TODO
+* // create a new empty vector
+* var vec = new la.StrVector();
+* // create a new vector
+* var vec2 = new la.StrVector(['a', 'b', 'c']);
 */
  exports.StrVector = function() {}
 /**
-	* Returns element at index
+	* Returns element at index.
 	* @param {number} index - Element index (zero-based).
-	* @returns {elementType} Vector element.
+	* @returns {string} Vector element.
 	*/
  exports.StrVector.prototype.at = function(number) {}
 /**
-	* Sets the element at position i.
-	*
-	* vec = vec.put(i, val)
-	*
-	* @param {Number} i - the position of the element
-	* @returns {Vector} vec - a reference to itself
+	* Returns a subvector.
+	* @param {(Array<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
+	* @returns {module:la.StrVector} Subvector, where the i-th element is the arg[i]-th element of the instance.
 	*/
+ exports.StrVector.prototype.subVec = function (arg) {}
+/**
+	* Sets an element in vector.
+	* @param {number} idx - Index (zero based).
+	* @param {string} val - Element value.
+	* @returns {module:la.StrVector} Self.
+	*/
+ exports.StrVector.prototype.put = function (idx, val) {}
 /**
 	* Adds an element to the end of the vector.
-	*
-	* len = vector.push(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
+	* @param {string} val - The element added to the vector.
+	* @returns {boolean} True, if val vas successfully added to the vector. Otherwise, false.
 	*/
+ exports.StrVector.prototype.push = function (val) {}
 /**
-	* The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-	*
-	* array.splice(start, deleteCount[, item1[, item2[, ...]]])
-	*
-	* @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-	* @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-	* @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-	* @returns {Vector} - a reference to itself
+	//! * The splice() method changes the content of an array by removing existing elements and/or adding new elements.
+	//! *
+	//! *  array.splice(start, deleteCount[, item1[, item2[, ...]]])
+	//! *
+	//! * @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
+	//! * @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
+	//! * @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
+	//! * @returns {Vector} - a reference to itself
+	//! */
+/**
+	* Changes the vector by removing and adding elements.
+	* @param {number} start - Index at which to start changing the array.
+	* @param {number} deleteCount - 
 	*/
 /**
 	* Adds an element to the beginning of the vector.
-	*
-	* len = vector.unshift(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
+	* @param {string} val - The element added to the vector.
+	* @returns {number} The new length of vector.
 	*/
+ exports.StrVector.prototype.unshift = function (val) {}
 /**
+	* Appends a second vector to the first one.
+	* @param {module:la.StrVector} vec - The appended vector.
+	* @returns {boolean} True, if appending the vector is successful. Otherwise, false.
+	*/
+ exports.StrVector.prototype.pushV = function (vec) {}
+/**
+	//! * Sums the elements in the vector.
+	//! *
+	//! * @returns {Object} - the sum
+	//! */
+/** 
 	* Sums the elements in the vector.
-	*
-	* @returns {Object} - the sum
+	* @returns {number} The sum of all elements in the instance.
 	*/
+ skip.exports.StrVector.prototype.sum = function () {}
 /**
-	* Randomly reorders the elements of the vector.
-	*
-	* @returns {Vector} - returns a reference to itself
+	* Gets the index of the maximal element.
+	* @returns {number} Index of the maximal element in the vector.
 	*/
+ skip.exports.StrVector.prototype.getMaxIdx = function () {}
+/**
+	* Sorts the vector in ascending or descending order.
+	* @param {boolean} [bool] - Default is true.
+	* @returns {module:la.StrVector} 
+	* <br>1. Vector sorted in ascending order, if bool is true.  
+	* <br>2. Vector sorted in descending order, if bool is false.
+	*/
+ skip.exports.StrVector.prototype.sort = function (bool) {} 
+/**
+	//! * Randomly reorders the elements of the vector.
+	//! *
+	//! * @returns {Vector} - returns a reference to itself
+	//! */
+/**
+	* Randomly reorders the elements of the vector (inplace).
+	* @returns {boolean} True, if reordering was successful. Otherwise, false.
+	*/
+ exports.StrVector.prototype.shuffle = function () {}
+/**
+	* Adds an element to the front of the vector.
+	* @param {string} val - Added value.
+	* @returns {module:la.StrVector} Self.
+	*/
+ exports.StrVector.prototype.trunc = function (val) {} 
+/**
+	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
+	* @param {module:la.StrVector} vec - Second vector.
+	* @returns {module:la.Matrix} Matrix obtained by the outer product of the instance and second vector.
+	* @example
+	* // create two vectors
+	* var x = new la.StrVector([1, 2, 3]);
+	* var y = new la.StrVector([4, 5]);
+	* // create the outer product of these vectors
+	* var A = vec.outer(vec2); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]
+	*/
+ skip.exports.StrVector.prototype.outer = function (vec) {}
 /**
 	* Computes the inner product.
 	* @param {module:la.Vector} vec - Other vector
 	* @returns {number} Inner product between the instance and the other vector.
 	*/
  skip.exports.StrVector.prototype.inner = function(vec) {}
+/**
+	* Returns the cosine between the two vectors.
+	* @param {module:la.StrVector} vec - Second vector.
+	* @returns {number} The cosine between the two vectors.
+	* @example
+	* // create two vectors
+	* var x = new la.StrVector([1, 0]);
+	* var y = new la.StrVector([0, 1]);
+	* // calculate the cosine between those two vectors
+	* var num = x.cosine(y); // returns 0
+	*/
+ skip.exports.StrVector.prototype.cosine = function (vec) {}
+/**
+	* Sums the two vectors together.
+	* @param {module:la.StrVector} vec - Second vector.
+	* @returns {module:la.StrVector} Sum of the instance and the second vector.
+	*/
+ skip.exports.StrVector.prototype.plus = function (vec) {}
+/**
+	* Subtracts one vector from the other.
+	* @param {module:la.StrVector} vec - Second vector.
+	* @returns {module:la.StrVector} The difference of the instance and the other vector.
+	*/
+ skip.exports.StrVector.prototype.minus = function (vec) {}
+/**
+	* Multiplies the vector with a scalar.
+	* @param {number} val - Scalar.
+	* @returns {module:la.StrVector} Product of the vector and scalar.
+	*/
+ skip.exports.StrVector.prototype.multiply = function (val) {} 
+/**
+	* Normalizes vector.
+	* @returns {module:la.StrVector} Self - Normalized.
+	*/
+ skip.exports.StrVector.prototype.normalize = function () {} 
+/**
+	* Gives the length of vector.
+	* @returns {number} Length of vector.
+	*/
+ exports.StrVector.prototype.length = undefined;
+/**
+	* Returns the vector as string.
+	* @returns {string} Instance as string.
+	* @example
+	* // create a new vector
+	* var vec = new la.StrVector(['a', 'b', 'c']);
+	* // create vector as string
+	* vec.toString(); // returns '[a, b, c]'
+	*/
+ exports.StrVector.prototype.toString = function () {}
+/**
+	* Creates a dense diagonal matrix out of the vector.
+	* @returns{module:la.Matrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ skip.exports.StrVector.prototype.diag = function () {}
+/**
+	* Creates a sparse diagonal matrix out of the vector.
+	* @returns {module:la.SparseMatrix} Diagonal matrix, where the (i, i)-th element is the i-th element of vector.
+	*/
+ skip.exports.StrVector.prototype.spDiag = function () {}
+/**
+	* Calculates the norm of the vector.
+	* @returns {number} The norm of the vector.
+	*/
+ skip.exports.StrVector.prototype.norm = function () {}
+/**
+	* Creates the sparse vector representation of the vector.
+	* @returns {module:la.SparseVector} The sparse vector representation.
+	*/
+ skip.exports.StrVector.prototype.sparse = function () {}
+/**
+	* Creates a matrix with a single column that is equal to the vector.
+	* @returns {module:la.Matrix} The matrix with a single column that is equal to the instance.
+	*/
+ skip.exports.StrVector.prototype.toMat = function () {}
+/**
+	* Saves the vector as output stream.
+	* @param {module:fs.FOut} fout - Output stream.
+	* @returns {module:fs.FOut} fout.
+	* @example
+	* // import the fs package
+	* var fs = require('qminer.fs');
+	* // create a new vector
+	* var vec = new la.StrVector(['a', 'b', 'c']);
+	* // open write stream
+	* var fout = fs.openWrite('vec.dat');
+	* // save matrix and close write stream
+	* vec.save(fout).close();
+	*/
+ skip.exports.StrVector.prototype.save = function (fout) {}
+/**
+	* Loads the vector from input stream.
+	* @param {module:fs.FIn} fin - Input stream.
+	* @returns {module:la.StrVector} Self.
+	* @example
+	* // import the fs package
+	* var fs = require('qminer.fs');
+	* // create an empty vector
+	* var vec = new la.StrVector();
+	* // open a read stream
+	* var fin = fs.openRead('vec.dat');
+	* // load the matrix
+	* vec.load(fin);
+	*/
+ skip.exports.StrVector.prototype.load = function (fin) {}
 

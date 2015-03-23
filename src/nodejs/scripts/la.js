@@ -114,6 +114,15 @@ module.exports = exports = function (pathPrefix) {
     //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
     //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
 
+    /**
+    * Returns an object with random numbers
+    * @param {number} [arg1] - Represents dimension of vector or number of rows in matrix. Must be an integer.
+    * @param {number} [arg2] - Represents number of columns in matrix. Must be an integer.
+    * @returns {(number | module:la.Vector | module:la.Matrix)}
+    * <br>1. Number, if no parameters are given.
+    * <br>2. {@link module:la.Vector}, if parameter arg1 is given.
+    * <br>3. {@link module:la.Matrix}, if parameters arg1 and arg2 are given.
+    */
     exports.randn = function () {
         //arguments.length
         var len = arguments.length;

@@ -670,7 +670,7 @@ public:
 	* Puts an element in sparse matrix.
 	* @param {number} rowIdx - Row index (zero based).
 	* @param {number} colIdx - Column index (zero based).
-	* @param {number} num - Rlement value.
+	* @param {number} num - Element value.
 	* @returns {module:la.SparseMatrix} Self.
 	*/
 	//# exports.SparseMatrix.prototype.put = function (rowIdx, colIdx, num) {}
@@ -841,7 +841,6 @@ public:
 	* var fout = fs.openWrite('mat.dat');
 	* // save matrix and close write stream
 	* mat.save(fout).close();
-	* // 
 	*/
 	//# exports.SparseMatrix.prototype.save = function (fout) {}
 	JsDeclareFunction(save);
