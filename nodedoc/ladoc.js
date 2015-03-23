@@ -850,7 +850,7 @@ exports.ones = function(k) {
 /**
 	* Adds an element to the end of the vector.
 	* @param {number} val - The element added to the vector.
-	* @returns {boolean} True, if val vas successfully added to the vector. Otherwise, false.
+	* @returns {number} The new length property of the object upon which the method was called.
 	*/
  exports.Vector.prototype.push = function (val) {}
 /**
@@ -896,9 +896,9 @@ exports.ones = function(k) {
 	*/
  exports.Vector.prototype.getMaxIdx = function () {}
 /**
-	* Sorts the vector in ascending or descending order.
-	* @param {boolean} [bool] - Default is true.
-	* @returns {module:la.Vector} 
+	* Sorts the vector in ascending or descending order (in place operation).
+	* @param {boolean} [bool] - Default is true. TODO: support comparator callback
+	* @returns {module:la.Vector} Self
 	* <br>1. Vector sorted in ascending order, if bool is true.  
 	* <br>2. Vector sorted in descending order, if bool is false.
 	*/
@@ -1079,7 +1079,7 @@ exports.ones = function(k) {
 /**
 	* Adds an element to the end of the vector.
 	* @param {string} val - The element added to the vector.
-	* @returns {boolean} True, if val vas successfully added to the vector. Otherwise, false.
+	* @returns {number} The new length property of the object upon which the method was called.
 	*/
  exports.StrVector.prototype.push = function (val) {}
 /**
@@ -1125,9 +1125,9 @@ exports.ones = function(k) {
 	*/
  skip.exports.StrVector.prototype.getMaxIdx = function () {}
 /**
-	* Sorts the vector in ascending or descending order.
-	* @param {boolean} [bool] - Default is true.
-	* @returns {module:la.StrVector} 
+	* Sorts the vector in ascending or descending order (in place operation).
+	* @param {boolean} [bool] - Default is true. TODO: support comparator callback
+	* @returns {module:la.StrVector} Self
 	* <br>1. Vector sorted in ascending order, if bool is true.  
 	* <br>2. Vector sorted in descending order, if bool is false.
 	*/

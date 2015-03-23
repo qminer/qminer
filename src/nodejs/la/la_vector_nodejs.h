@@ -174,7 +174,7 @@ private:
 	/**
 	* Adds an element to the end of the vector.
 	* @param {<% elementType %>} val - The element added to the vector.
-	* @returns {boolean} True, if val vas successfully added to the vector. Otherwise, false.
+	* @returns {number} The new length property of the object upon which the method was called.
 	*/
 	//# exports.<% className %>.prototype.push = function (val) {}
 	JsDeclareFunction(push);
@@ -240,9 +240,9 @@ private:
 	//!- `vec2 = vec.sort(asc)` -- `vec2` is a sorted copy of `vec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	//!- `intVec2 = intVec.sort(asc)` -- integer vector `intVec2` is a sorted copy of integer vector `intVec`. `asc=true` sorts in ascending order (equivalent `sort()`), `asc`=false sorts in descending order
 	/**
-	* Sorts the vector in ascending or descending order.
-	* @param {boolean} [bool] - Default is true.
-	* @returns {module:la.<% className %>} 
+	* Sorts the vector in ascending or descending order (in place operation).
+	* @param {boolean} [bool] - Default is true. TODO: support comparator callback
+	* @returns {module:la.<% className %>} Self
 	* <br>1. Vector sorted in ascending order, if bool is true.  
 	* <br>2. Vector sorted in descending order, if bool is false.
 	*/
@@ -1153,7 +1153,7 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 	}
 	else {
 		JsVec->Vec.Add(TAux::CastVal(Args[0]));
-		Args.GetReturnValue().Set(v8::Boolean::New(Isolate, true));
+		Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
 	}
 }
 
@@ -1246,9 +1246,8 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 	const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 
-	TVec<TVal> Result = JsVec->Vec;
-	Result.Sort(Asc);
-	Args.GetReturnValue().Set(TNodeJsVec<TVal, TAux>::New(Result));
+	JsVec->Vec.Sort(Asc);
+	Args.GetReturnValue().Set(Args.Holder());
 }
 
 template <typename TVal, typename TAux>
