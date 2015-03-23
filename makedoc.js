@@ -26,7 +26,7 @@ while ((match = regex.exec(hstr))!= null) {
 }
 
 if (docHead != undefined && docHead != '') {
-	var docHeadStr = fs.readFileSync(docHead, 'ascii');
+	var docHeadStr = fs.readFileSync(docHead, 'ascii');	
 	fout.write(docHeadStr + '\r\n');
 }
 

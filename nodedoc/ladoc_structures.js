@@ -1,32 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>JSDoc: Source: ladoc.js</title>
-
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
-</head>
-
-<body>
-
-<div id="main">
-
-    <h1 class="page-title">Source: ladoc.js</h1>
-
-    
-
-
-
-    
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>/**
+/**
 * Linear algebra module.
 * @module la
 * @example
@@ -43,10 +15,10 @@
 * Matrix
 * @classdesc Represents a dense matrix (2d array).
 * @class
-* @param {(module:la~matrixArg | Array&lt;Array&lt;number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
-* &lt;br>1. Parameter object module:la~matrixArg.
-* &lt;br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
-* &lt;br>3. A matrix (copy constructor).
+* @param {(module:la~matrixArg | Array<Array<number>> | module:la.Matrix)} [arg] - Constructor arguments. There are three ways of constructing:
+* <br>1. Parameter object module:la~matrixArg.
+* <br>2. Nested array of matrix elements (row major). Example: [[1,2],[3,4]] has two rows, the first row is [1,2].
+* <br>3. A matrix (copy constructor).
 * @example
 * // create new matrix with matrixArg
 * var mat = new la.Matrix({"rows": 3, "cols": 2, "random": true}); // creates a 3 x 2 matrix with random values
@@ -73,8 +45,8 @@
 	* Right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [-1, 5]]);
@@ -88,8 +60,8 @@
 	* Matrix transpose and right-hand side multiplication of matrix with parameter.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Matrix | module:la.Vector)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [-1, 5]]);
@@ -252,9 +224,9 @@
 * Sparse Vector
 * @classdesc Represents a sparse vector.
 * @class
-* @param {(Array&lt;Array&lt;number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
-* &lt;br>2. A sparse vector (copy constructor).
+* @param {(Array<Array<number>> | module:la.SparseVector)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. Nested array of vector elements. Example: [[0,2],[2,3]] has two nonzero values, first value is 2 at position 0, second value is 3 at position 2.
+* <br>2. A sparse vector (copy constructor).
 * @param {number} [dim] - Maximal length of sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
 * // create new sparse vector with arrays
@@ -346,10 +318,10 @@
 * Sparse Matrix
 * @classdesc Represents a sparse matrix.
 * @class
-* @param {(Array&lt;Array&lt;Array&lt;number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
-* &lt;br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
+* @param {(Array<Array<Array<number>>> | module:la.SparseMatrix)} [arg] - Constructor arguments. There are two ways of constructing:
+* <br>1. A nested array of sparse vectors (columns). A sparse vector is a nested array of pairs, first value is index, second is value.. Example: [[[0,2]], [[0, 1], [2,3]]] has 2 columns.
 * The second nonzero element in second column has a value 3 at index 2.
-* &lt;br>2. A sparse matrix (copy constructor).
+* <br>2. A sparse matrix (copy constructor).
 * @param {number} [rows] - Maximal number of rows in sparse vector. It is only in combinantion with nested array of vector elements.
 * @example
 * // create a new sparse matrix with array
@@ -396,16 +368,16 @@
 	* Multiplies argument with sparse vector.
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Vector | module:la.Matrix)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	*/
  exports.SparseMatrix.prototype.multiply = function (arg) {}
 /**
 	* Sparse matrix transpose and multiplies with argument
 	* @param {(number | module:la.Vector | module:la.SparseVector | module:la.Matrix | module:la.SparseMatrix)} arg - Multiplication input. Supports scalar, vector and matrix input.
 	* @returns {(module:la.Vector | module:la.Matrix)}
-	* &lt;br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
-	* &lt;br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
+	* <br>1. {@link module:la.Matrix}, if arg is number, {@link module:la.Matrix} or {@link module:la.SparseMatrix}.
+	* <br>2. {@link module:la.Vector}, if arg is {@link module:la.Vector} or {@link module:la.SparseVector}.
 	*/
  exports.SparseMatrix.prototype.multiplyT = function (arg) {}
 /**
@@ -508,7 +480,7 @@
     exports.SparseMatrix.prototype.nnz = function () {
         var nnz = 0;
         //iterate over matrix and sum nnz of each column
-        for (var colN = 0; colN &lt; this.cols; colN++) {
+        for (var colN = 0; colN < this.cols; colN++) {
             nnz += this[colN].nnz;
         }
         return nnz;
@@ -526,15 +498,15 @@
     exports.copyVecToArray = function (vec) {
         var len = vec.length;
         var arr = [];
-        for (var elN = 0; elN &lt; len; elN++) {
+        for (var elN = 0; elN < len; elN++) {
             arr[elN] = vec[elN];
         }
         return arr;
     };
 
     function isInt(value) {
-        return !isNaN(value) &amp;&amp;
-               parseInt(Number(value)) == value &amp;&amp;
+        return !isNaN(value) &&
+               parseInt(Number(value)) == value &&
                !isNaN(parseInt(value, 10));
     }
 
@@ -559,7 +531,7 @@
             var dim = arguments[0];
             assert(isInt(dim));
             var vec = new exports.Vector({ "vals": dim });
-            for (var elN = 0; elN &lt; dim; elN++) {
+            for (var elN = 0; elN < dim; elN++) {
                 vec.put(elN, exports.randn());
             }
             return vec;
@@ -569,8 +541,8 @@
             assert(isInt(rows));
             assert(isInt(cols));
             var mat = new exports.Matrix({ "cols": cols, "rows": rows });
-            for (var colN = 0; colN &lt; cols; colN++) {
-                for (var rowN = 0; rowN &lt; rows; rowN++) {
+            for (var colN = 0; colN < cols; colN++) {
+                for (var rowN = 0; rowN < rows; rowN++) {
                     mat.put(rowN, colN, exports.randn());
                 }
             }
@@ -621,7 +593,7 @@
 //!- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
 exports.eye = function(dim) {
     var identity = new exports.Matrix({ "rows": dim, "cols": dim });
-    for (var rowN = 0; rowN &lt; identity.rows; rowN++) {
+    for (var rowN = 0; rowN < identity.rows; rowN++) {
         identity.put(rowN, rowN, 1.0);
     }
     return identity;
@@ -651,7 +623,7 @@ exports.zeros = function (rows, cols) {
 //!- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 exports.ones = function(k) {
     var ones_k = new exports.Vector({ "vals": k });
-    for (var i = 0; i &lt; k; i++) {
+    for (var i = 0; i < k; i++) {
         ones_k.put(i, 1.0);
     }
     return ones_k;
@@ -669,17 +641,17 @@ exports.ones = function(k) {
         var tol = 1E-16 * Math.max(mat.cols, mat.rows) * svdRes.s.at(svdRes.s.getMaxIdx());
 
         // calculate reciprocal values for diagonal matrix = inverse diagonal
-        for (i = 0; i &lt; svdRes.s.length; i++) {
+        for (i = 0; i < svdRes.s.length; i++) {
             if (svdRes.s.at(i) > tol) svdRes.s.put(i, 1 / svdRes.s.at(i));
             else svdRes.s.put(0);
         }
 
         var sum;
 
-        for (i = 0; i &lt; svdRes.U.cols; i++) {
-            for (j = 0; j &lt; svdRes.V.rows; j++) {
+        for (i = 0; i < svdRes.U.cols; i++) {
+            for (j = 0; j < svdRes.V.rows; j++) {
                 sum = 0;
-                for (k = 0; k &lt; svdRes.U.cols; k++) {
+                for (k = 0; k < svdRes.U.cols; k++) {
                     if (svdRes.s.at(k) != 0) {
                         sum += svdRes.s.at(k) * svdRes.V.at(i, k) * svdRes.U.at(j, k);
                     }
@@ -697,14 +669,14 @@ exports.ones = function(k) {
         var r = b.minus(A.multiply(x));
         var p = new exports.Vector(r); //clone
         var rsold = r.inner(r);
-        for (var i = 0; i &lt; 2 * x.length; i++) {
+        for (var i = 0; i < 2 * x.length; i++) {
             var Ap = A.multiply(p);
             var alpha = rsold / Ap.inner(p);
             x = x.plus(p.multiply(alpha));
             r = r.minus(Ap.multiply(alpha));
             var rsnew = r.inner(r);
             console.log("resid = " + rsnew);
-            if (Math.sqrt(rsnew) &lt; 1e-6) {
+            if (Math.sqrt(rsnew) < 1e-6) {
                 break;
             }
             p = r.plus(p.multiply(rsnew / rsold));
@@ -714,157 +686,3 @@ exports.ones = function(k) {
     }
     
     
-
-/**
-* Vector - array of doubles
-* @classdesc Wrapps a C++ array.
-* @class
-* @example
-* // TODO
-*/
- exports.Vector = function() {}
-/**
-	* Returns element at index
-	* @param {number} index - Element index (zero-based).
-	* @returns {elementType} Vector element.
-	*/
- exports.Vector.prototype.at = function(number) {}
-/**
-	* Sets the element at position i.
-	*
-	* vec = vec.put(i, val)
-	*
-	* @param {Number} i - the position of the element
-	* @returns {Vector} vec - a reference to itself
-	*/
-/**
-	* Adds an element to the end of the vector.
-	*
-	* len = vector.push(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
-	*/
-/**
-	* The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-	*
-	* array.splice(start, deleteCount[, item1[, item2[, ...]]])
-	*
-	* @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-	* @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-	* @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-	* @returns {Vector} - a reference to itself
-	*/
-/**
-	* Adds an element to the beginning of the vector.
-	*
-	* len = vector.unshift(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
-	*/
-/**
-	* Sums the elements in the vector.
-	*
-	* @returns {Object} - the sum
-	*/
-/**
-	* Randomly reorders the elements of the vector.
-	*
-	* @returns {Vector} - returns a reference to itself
-	*/
-/**
-	* Computes the inner product.
-	* @param {module:la.Vector} vec - Other vector
-	* @returns {number} Inner product between the instance and the other vector.
-	*/
- exports.Vector.prototype.inner = function(vec) {}
-
-/**
-* Vector - array of strings
-* @classdesc Wrapps a C++ array.
-* @class
-* @example
-* // TODO
-*/
- exports.StrVector = function() {}
-/**
-	* Returns element at index
-	* @param {number} index - Element index (zero-based).
-	* @returns {elementType} Vector element.
-	*/
- exports.StrVector.prototype.at = function(number) {}
-/**
-	* Sets the element at position i.
-	*
-	* vec = vec.put(i, val)
-	*
-	* @param {Number} i - the position of the element
-	* @returns {Vector} vec - a reference to itself
-	*/
-/**
-	* Adds an element to the end of the vector.
-	*
-	* len = vector.push(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
-	*/
-/**
-	* The splice() method changes the content of an array by removing existing elements and/or adding new elements.
-	*
-	* array.splice(start, deleteCount[, item1[, item2[, ...]]])
-	*
-	* @param {Number} start - Index at which to start changing the array. If greater than the length of the array, actual starting index will be set to the length of the array. If negative, will begin that many elements from the end.
-	* @param {Number} deleteCount - An integer indicating the number of old array elements to remove. If deleteCount is 0, no elements are removed. In this case, you should specify at least one new element. If deleteCount is greater than the number of elements left in the array starting at start, then all of the elements through the end of the array will be deleted.
-	* @param {Object} [itemN] - The element to add to the array. If you don't specify any elements, splice() will only remove elements from the array.
-	* @returns {Vector} - a reference to itself
-	*/
-/**
-	* Adds an element to the beginning of the vector.
-	*
-	* len = vector.unshift(val)
-	*
-	* @param {Object} val - the element added to the vector
-	* @returns {Number} len - the length of the vector
-	*/
-/**
-	* Sums the elements in the vector.
-	*
-	* @returns {Object} - the sum
-	*/
-/**
-	* Randomly reorders the elements of the vector.
-	*
-	* @returns {Vector} - returns a reference to itself
-	*/
-/**
-	* Computes the inner product.
-	* @param {module:la.Vector} vec - Other vector
-	* @returns {number} Inner product between the instance and the other vector.
-	*/
- skip.exports.StrVector.prototype.inner = function(vec) {}
-
-</code></pre>
-        </article>
-    </section>
-
-
-
-
-</div>
-
-<nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-analytics.html">analytics</a></li><li><a href="module-fs.html">fs</a></li><li><a href="module-ht.html">ht</a></li><li><a href="module-la.html">la</a></li></ul><h3>Classes</h3><ul><li><a href="module-analytics.HierarchMarkov.html">HierarchMarkov</a></li><li><a href="module-analytics.RidgeReg.html">RidgeReg</a></li><li><a href="module-analytics.SVC.html">SVC</a></li><li><a href="module-analytics.SVR.html">SVR</a></li><li><a href="module-fs.FIn.html">FIn</a></li><li><a href="module-fs.FOut.html">FOut</a></li><li><a href="module-ht.IntFltMap.html">IntFltMap</a></li><li><a href="module-ht.IntIntMap.html">IntIntMap</a></li><li><a href="module-ht.IntStrMap.html">IntStrMap</a></li><li><a href="module-ht.StrFltMap.html">StrFltMap</a></li><li><a href="module-ht.StrIntMap.html">StrIntMap</a></li><li><a href="module-ht.StrStrMap.html">StrStrMap</a></li><li><a href="module-la.Matrix.html">Matrix</a></li><li><a href="module-la.SparseMatrix.html">SparseMatrix</a></li><li><a href="module-la.SparseVector.html">SparseVector</a></li><li><a href="module-la.StrVector.html">StrVector</a></li><li><a href="module-la.Vector.html">Vector</a></li></ul>
-</nav>
-
-<br class="clear">
-
-<footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Mon Mar 23 2015 09:02:34 GMT+0100 (Central Europe Standard Time)
-</footer>
-
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
-</body>
-</html>

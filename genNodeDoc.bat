@@ -3,6 +3,8 @@ node makedoc.js src/nodejs/ht/ht_nodejs.h src/nodejs/scripts/ht.js nodedoc/htdoc
 node makedoc.js src/nodejs/fs/fs_nodejs.h "" nodedoc/fsdoc.js
 node makedoc.js src/nodejs/analytics/analytics.h src/nodejs/scripts/analytics.js nodedoc/analytics.js
 
-node makedoc.js src/nodejs/la/la_structures_nodejs.h src/nodejs/scripts/la.js nodedoc/ladoc.js
+node makedoc.js src/nodejs/la/la_structures_nodejs.h src/nodejs/scripts/la.js ./nodedoc/ladoc_structures.js
+
+node makedoc.js src/nodejs/la/la_vector_nodejs.h "" ./nodedoc/ladoc.js ./nodedoc/ladoc_structures.js ./src/nodejs/la/VectorDocData.js ./src/nodejs/la/StrVectorDocData.js
 
 jsdoc nodedoc/htdoc.js nodedoc/fsdoc.js nodedoc/analytics.js  nodedoc/ladoc.js -d nodedoc
