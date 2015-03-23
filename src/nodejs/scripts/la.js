@@ -7,13 +7,15 @@ module.exports = exports = function (pathPrefix) {
     
     var assert = require('assert');
 
+    //!STARTJSDOC
+
     exports.SparseMatrix.prototype.frob2 = function () {
         return Math.pow(this.frob(), 2);
     }
 
-    //#- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
+    //!- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
-    //#- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
+    //!- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
     exports.SparseMatrix.prototype.nnz = function () {
         var nnz = 0;
         //iterate over matrix and sum nnz of each column
@@ -23,15 +25,15 @@ module.exports = exports = function (pathPrefix) {
         return nnz;
     };
 
-    //#- `SparseVector.print()` -- prints sparse vector
+    //!- `SparseVector.print()` -- prints sparse vector
     exports.SparseVector.prototype.print = function () { console.log(this.toString()); }
-    //#- `Matrix.print()` -- prints matrix
+    //!- `Matrix.print()` -- prints matrix
     exports.Matrix.prototype.print = function () { console.log(this.toString()); }
-	//#- `Vector.print()` -- prints vector
+	//!- `Vector.print()` -- prints vector
 	exports.Vector.prototype.print = function () { console.log(this.toString()); }
 	
     
-    //#- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
+    //!- `arr = la.copyVecToArray(vec)` -- copies vector `vec` into a JS array of numbers `arr`
     exports.copyVecToArray = function (vec) {
         var len = vec.length;
         var arr = [];
@@ -49,9 +51,9 @@ module.exports = exports = function (pathPrefix) {
 
     
     ///////// RANDOM GENERATORS
-    //#- `num = la.randn()` -- `num` is a sample from a standard normal random variable
-    //#- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
-    //#- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
+    //!- `num = la.randn()` -- `num` is a sample from a standard normal random variable
+    //!- `vec = la.randn(dim)` -- `vec` is a dense vector whose elements are independent samples from a standard normal random variable and whos dimension is `dim`
+    //!- `mat = la.randn(rows, cols)` -- `mat` is a dense matrix whose elements are independent samples from a standard normal random variable, with `rows` rows and `cols` columns (integers)
     exports.randn = function () {
         //arguments.length
         var len = arguments.length;
@@ -87,7 +89,7 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
-    //#- `num2 = la.randi(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num-1]`
+    //!- `num2 = la.randi(num)` -- returns an integer `num2` which is randomly selected from the set of integers `[0, ..., num-1]`
     exports.randi = function () {
         var len = arguments.length;
         if (len === 1) {
@@ -99,7 +101,7 @@ module.exports = exports = function (pathPrefix) {
         }
     };
 
-    //#- `intArr = la.randVariation(n, k)` -- returns a JS array `arr`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
+    //!- `intArr = la.randVariation(n, k)` -- returns a JS array `arr`, which is a sample of `k` numbers from `[0,...,n-1]`, sampled without replacement. `k` must be smaller or equal to `n`
     exports.randVariation = function (n, k) {
         var n = arguments[0];
         var k = arguments[1];
@@ -110,7 +112,7 @@ module.exports = exports = function (pathPrefix) {
         return idx;
     };
 
-    //#- `arr = la.randPerm(k)` -- returns a permutation of `k` elements. `arr` is a javascript array of integers
+    //!- `arr = la.randPerm(k)` -- returns a permutation of `k` elements. `arr` is a javascript array of integers
     exports.randPerm = function (k) {
         assert(isInt(k));
         // gaussian random vector
@@ -127,7 +129,7 @@ module.exports = exports = function (pathPrefix) {
     ///////// COMMON MATRICES
 /////// VECTOR, MATRIX GENERATION
 // generate identity matrix
-//#- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
+//!- `mat = la.eye(dim)` -- `mat` is a `dim`-by-`dim` identity matrix
 exports.eye = function(dim) {
     var identity = new exports.Matrix({ "rows": dim, "cols": dim });
     for (var rowN = 0; rowN < identity.rows; rowN++) {
@@ -136,20 +138,20 @@ exports.eye = function(dim) {
     return identity;
 };
 
-//#- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
+//!- `spMat = la.speye(dim)` -- `spMat` is a `dim`-by-`dim` sparse identity matrix
 exports.speye = function (dim) {
     var vec = exports.ones(dim);
     return vec.spDiag();
 };
 
-//#- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
+//!- `spMat = la.sparse(rows, cols)` -- `spMat` is a `rows`-by-`cols` sparse zero matrix
 exports.sparse = function (rows, cols) {
     cols = typeof cols == 'undefined' ? rows : cols;
     var spmat = new exports.SparseMatrix({ "rows": rows, "cols": cols });
     return spmat;
 };
 
-//#- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
+//!- `mat = la.zeros(rows, cols)` -- `mat` is a `rows`-by-`cols` sparse zero matrix
 exports.zeros = function (rows, cols) {
     cols = typeof cols == 'undefined' ? rows : cols;
     var mat = new exports.Matrix({ "rows": rows, "cols": cols });
@@ -157,7 +159,7 @@ exports.zeros = function (rows, cols) {
 };
 
 // generate a C++ vector of ones
-//#- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
+//!- `vec = la.ones(k)` -- `vec` is a `k`-dimensional vector whose entries are set to `1.0`.
 exports.ones = function(k) {
     var ones_k = new exports.Vector({ "vals": k });
     for (var i = 0; i < k; i++) {
@@ -168,7 +170,7 @@ exports.ones = function(k) {
 
     ///////// ALGORITHMS
 
-    //#- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
+    //!- `la.inverseSVD(mat)` -- calculates inverse matrix with SVD, where `mat` is a dense matrix
     exports.inverseSVD = function (mat) {
         var k = Math.min(mat.rows, mat.cols);
         var svdRes = exports.svd(mat, k, { "iter": 10, "tol": 1E-15 });  // returns U, s and V
@@ -200,8 +202,8 @@ exports.ones = function(k) {
     }
 
 
-    //#- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
-    //#- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
+    //!- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
+    //!- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
     exports.conjgrad = function (A, b, x) {
         var r = b.minus(A.multiply(x));
         var p = new exports.Vector(r); //clone
@@ -221,6 +223,8 @@ exports.ones = function(k) {
         }
         return x;
     }
+    
+    //!ENDJSDOC
 
     return exports;
 }
