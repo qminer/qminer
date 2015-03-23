@@ -777,13 +777,14 @@ exports.ones = function(k) {
     //!- `la.conjgrad(mat,vec,vec2)` -- solves the psd symmetric system mat * vec2 = vec, where `mat` is a matrix and `vec` and `vec2` are dense vectors
     //!- `la.conjgrad(spMat,vec,vec2)` -- solves the psd symmetric system spMat * vec2 = vec, where `spMat` is a matrix and `vec` and `vec2` are dense vectors
     /**
-    * Solves the PSD symmetric system.
-    * @param {(module:la.Matrix | module:la.SparseMatrix)} mat - The matrix on the left-hand side of the system.
-    * @param {module:la.Vector} vec - The vector on the right-hand side of the system.
-    * @param {module:la.Vector} vec2 - Where the solution of the system is saved.
-    * @returns {module:la.Vector} vec2. 
+    * Solves the PSD symmetric system: A x = b, where A is a positive-definite symmetric matrix.
+    * @param {(module:la.Matrix | module:la.SparseMatrix)} A - The matrix on the left-hand side of the system.
+    * @param {module:la.Vector} b - The vector on the right-hand side of the system.
+    * @param {module:la.Vector} [x] - Current solution. Default is a vector of zeros.
+    * @returns {module:la.Vector} Solution to the system. 
     */
     exports.conjgrad = function (A, b, x) {
+    	x = x || new exports.Vector({vals: A.cols});
         var r = b.minus(A.multiply(x));
         var p = new exports.Vector(r); //clone
         var rsold = r.inner(r);
