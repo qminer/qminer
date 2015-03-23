@@ -7,11 +7,16 @@ module.exports = exports = function (pathPrefix) {
     
     var assert = require('assert');
 
+    /**
+    * Returns the frobenious norm squared
+    * @returns {number} Frobenious norm squared
+    */
     exports.SparseMatrix.prototype.frob2 = function () {
         return Math.pow(this.frob(), 2);
     }
 
     //#- `str = SparseMatrix.toString()` -- returns a string displaying rows, columns and number of non-zero elements of a sparse column matrix `spMat`
+
     exports.SparseMatrix.prototype.toString = function () { return "rows: " + this.rows + ", cols:" + this.cols + ", nnz: " + this.nnz(); }
     //#- `num = SparseMatrix.nnz()` -- `num` is the number of non-zero elements of sparse column matrix `spMat`
     exports.SparseMatrix.prototype.nnz = function () {
