@@ -56,7 +56,7 @@ module.exports = exports = function (pathPrefix) {
 
     //!- `Matrix.print()` -- prints matrix
     /**
-	* Prints the matrix on-screen.
+	* Prints the matrix on-screen. 
 	* @example
 	* // create a new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);

@@ -4,7 +4,10 @@ exports.view = {
 	"elementType": "string",
 
 	"example1": "['a', 'b', 'c']",
-	"output1": "'[a, b, c]'",
+    "input1": "'d', 'e'",
+    "output1": "'[a, b, c]'",
+    "output2": "['a', 'd', 'e']",
+    
 
 	"skipInner": "skip.",
 	"skipSum": "skip.",

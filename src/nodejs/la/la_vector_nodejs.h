@@ -193,8 +193,16 @@ private:
 	/**
 	* Changes the vector by removing and adding elements.
 	* @param {number} start - Index at which to start changing the array.
-	* @param {number} deleteCount - 
+	* @param {number} deleteCount - Number of elements to be removed.
+	* @param {number} [itemN] - The element(s) to be add to the array. If no elements are given, splice() will only remove elements from the array.
+	* @returns {module:la.<% className %>} Self.
+	* @example
+	* // create a new vector
+	* var vec = new la.<% className %>(<% example1 %>);
+	* // splice the vector by removing the last two elements and adding <% input1 %>
+	* vec.splice(1, 2, <% input1 %>)// returns vector <% output2 %>
 	*/
+	//# exports.<% className %>.prototype.splice = function (start, deleteCount, itemN) {}
 	JsDeclareFunction(splice);
 
 	//!- len = vector.unshift(val)
