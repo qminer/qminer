@@ -431,8 +431,8 @@ private:
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
-	* // import the fs package
-	* var fs = require('qminer.fs');
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create a new vector
 	* var vec = new la.<% className %>(<% example1 %>);
 	* // open write stream
@@ -450,8 +450,8 @@ private:
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.<% className %>} Self.
 	* @example
-	* // import the fs package
-	* var fs = require('qminer.fs');
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty vector
 	* var vec = new la.<% className %>();
 	* // open a read stream

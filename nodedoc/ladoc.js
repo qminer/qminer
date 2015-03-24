@@ -199,6 +199,8 @@
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);
 	* // open write stream
@@ -212,6 +214,8 @@
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Matrix} Self.
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty matrix
 	* var mat = new la.Matrix();
 	* // open a read stream
@@ -446,6 +450,8 @@
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create a new sparse matrix
 	* var mat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);
 	* // open write stream
@@ -459,6 +465,8 @@
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Matrix} Self.
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty matrix
 	* var mat = new la.SparseMatrix();
 	* // open a read stream
@@ -1030,8 +1038,8 @@ exports.ones = function(k) {
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
-	* // import the fs package
-	* var fs = require('qminer.fs');
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // open write stream
@@ -1045,8 +1053,8 @@ exports.ones = function(k) {
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Vector} Self.
 	* @example
-	* // import the fs package
-	* var fs = require('qminer.fs');
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty vector
 	* var vec = new la.Vector();
 	* // open a read stream
@@ -1272,8 +1280,8 @@ exports.ones = function(k) {
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
-	* // import the fs package
-	* var fs = require('qminer.fs');
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create a new vector
 	* var vec = new la.StrVector(['a', 'b', 'c']);
 	* // open write stream
@@ -1287,8 +1295,8 @@ exports.ones = function(k) {
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.StrVector} Self.
 	* @example
-	* // import the fs package
-	* var fs = require('qminer.fs');
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty vector
 	* var vec = new la.StrVector();
 	* // open a read stream
