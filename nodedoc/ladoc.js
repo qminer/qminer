@@ -873,7 +873,7 @@ exports.ones = function(k) {
 	* // create a new vector
 	* var vec = new la.Vector([1, 2, 3]);
 	* // splice the vector by removing the last two elements and adding 4, 5
-	* vec.splice(1, 2, 4, 5)// returns vector '[1, 4, 5]'
+	* vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]
 	*/
  exports.Vector.prototype.splice = function (start, deleteCount, itemN) {}
 /**
@@ -922,11 +922,16 @@ exports.ones = function(k) {
 	*/
  exports.Vector.prototype.shuffle = function () {}
 /**
-	* Adds an element to the front of the vector.
-	* @param {number} val - Added value.
-	* @returns {module:la.Vector} Self.
+	* Deletes elements with sprecific index or more.
+	* @param {number} idx - Index (zero based).
+	* @returns {module:la.Vector} Self - Without the elements with index idx or more.
+	* @example
+	* // create a new vector
+	* var vec = new la.Vector([1, 2, 3]);
+	* // trunc all elements with index 1 or more
+	* vec.trunc(1); // returns vector [1]
 	*/
- exports.Vector.prototype.trunc = function (val) {} 
+ exports.Vector.prototype.trunc = function (idx) {} 
 /**
 	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
 	* @param {module:la.Vector} vec - Second vector.
@@ -1159,11 +1164,16 @@ exports.ones = function(k) {
 	*/
  exports.StrVector.prototype.shuffle = function () {}
 /**
-	* Adds an element to the front of the vector.
-	* @param {string} val - Added value.
-	* @returns {module:la.StrVector} Self.
+	* Deletes elements with sprecific index or more.
+	* @param {string} idx - Index (zero based).
+	* @returns {module:la.StrVector} Self - Without the elements with index idx or more.
+	* @example
+	* // create a new vector
+	* var vec = new la.StrVector(['a', 'b', 'c']);
+	* // trunc all elements with index 1 or more
+	* vec.trunc(1); // returns vector ['a']
 	*/
- exports.StrVector.prototype.trunc = function (val) {} 
+ exports.StrVector.prototype.trunc = function (idx) {} 
 /**
 	* Creates a dense matrix A by multiplying two vectors x and y: A = x * y^T.
 	* @param {module:la.StrVector} vec - Second vector.
@@ -1271,7 +1281,7 @@ exports.ones = function(k) {
 	* // save matrix and close write stream
 	* vec.save(fout).close();
 	*/
- skip.exports.StrVector.prototype.save = function (fout) {}
+ exports.StrVector.prototype.save = function (fout) {}
 /**
 	* Loads the vector from input stream.
 	* @param {module:fs.FIn} fin - Input stream.
@@ -1286,5 +1296,5 @@ exports.ones = function(k) {
 	* // load the matrix
 	* vec.load(fin);
 	*/
- skip.exports.StrVector.prototype.load = function (fin) {}
+ exports.StrVector.prototype.load = function (fin) {}
 

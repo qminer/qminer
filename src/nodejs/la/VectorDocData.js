@@ -6,7 +6,8 @@ exports.view = {
 	"example1": "[1, 2, 3]",
     "input1": "4, 5",
 	"output1": "'[1, 2, 3]'",
-    "output2": "'[1, 4, 5]'",
+	"output2": "[1, 4, 5]",
+    "output3": "[1]",
 
 	"skipInner": "",
 	"skipSum": "",

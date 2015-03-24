@@ -275,11 +275,16 @@ private:
 	//!- `vec = vec.trunc(num)` -- truncates the vector `vec` to lenght 'num' (inplace operation). Returns self.
 	//!- `intVec = intVec.trunc(num)` -- truncates the vector `intVec` to lenght 'num' (inplace operation). Returns self.
 	/**
-	* Adds an element to the front of the vector.
-	* @param {<% elementType %>} val - Added value.
-	* @returns {module:la.<% className %>} Self.
+	* Deletes elements with sprecific index or more.
+	* @param {<% elementType %>} idx - Index (zero based).
+	* @returns {module:la.<% className %>} Self - Without the elements with index idx or more.
+	* @example
+	* // create a new vector
+	* var vec = new la.<% className %>(<% example1 %>);
+	* // trunc all elements with index 1 or more
+	* vec.trunc(1); // returns vector <% output3 %>
 	*/
-	//# exports.<% className %>.prototype.trunc = function (val) {} 
+	//# exports.<% className %>.prototype.trunc = function (idx) {} 
 	JsDeclareFunction(trunc);
 	
 	//!- `mat = vec.outer(vec2)` -- the dense matrix `mat` is a rank-1 matrix obtained by multiplying `vec * vec2^T`. Implemented for dense float vectors only. 
