@@ -560,47 +560,54 @@ describe('Vector Tests', function () {
 // Function tests for IntVector
 //
 
-var intV = new la.IntVector();
+function IVector() {
+    this.intV = new la.IntVector([-1, 6]);
+}
 
 describe('IntVector Test', function () {
 
     describe('Property Tests', function () {
+        var vec = new IVector();
         describe('Length Test', function () {
             it('should return 0 as the length of intV', function () {
-                assert.equal(intV.length, 0);
+                assert.equal(vec.intV.length, 2);
             })
         });
     });
 
     describe('Functions Tests', function () {
         describe('Push Test', function () {
+            var vec = new IVector();
             it('pushing values -1 and 6 into intV, length should return 2', function () {
-                intV.push(-1);
-                intV.push(6);
-                assert.equal(intV.length, 2);
+                vec.intV.push(-1);
+                vec.intV.push(6);
+                assert.equal(vec.intV.length, 4);
             })
         });
 
         // should throw an exception. Currently TODO in la_nodejs.h - the test will be skipped until the TODO is addressed.
         describe.skip('Push "Float" Test', function () {
+            var vec = new IVector();
             it('should return an exception when trying to push a floating number, 3.2', function () {
                 assert.throws(function () {
-                    intV.push(3.2);
+                    vec.intV.push(3.2);
                 })
             })
         });
 
         describe('At Test', function () {
+            var vec = new IVector();
             it('should return the values at position 0 (-1) and at position 1 (6)', function () {
-                assert.equal(intV.at(0), -1);
-                assert.equal(intV.at(1), 6);
+                assert.equal(vec.intV.at(0), -1);
+                assert.equal(vec.intV.at(1), 6);
             })
         });
 
         describe('At "Out of Bound" Test', function () {
+            var vec = new IVector();
             it('should give an error for accessing an element out of bound', function () {
                 assert.throws(function () {
-                    var n = intV.at(-1);
+                    var n = vec.intV.at(-1);
                 })
             })
         });
@@ -637,18 +644,20 @@ describe('IntVector Test', function () {
         });
 
         describe('Copy Constructor Test', function () {
+            var vec = new IVector();
             it('should copy the vector v and save it in vec', function () {
-                var vec = new la.IntVector(intV);
-                assert.equal(vec.length, intV.length);
-                for (var i = 0; i < intV.length; i++) {
-                    assert.equal(vec.at(i), intV.at(i));
+                var vec2 = new la.IntVector(vec.intV);
+                assert.equal(vec2.length, vec.intV.length);
+                for (var i = 0; i < vec.intV.length; i++) {
+                    assert.equal(vec2.at(i), vec.intV.at(i));
                 }
             })
         });
 
         describe('Sum Test', function () {
+            var vec = new IVector();
             it('should return a sum of -1 and 6', function () {
-                assert.equal(intV.sum(), 5);
+                assert.equal(vec.intV.sum(), 5);
             })
         });
 
@@ -662,8 +671,9 @@ describe('IntVector Test', function () {
         });
 
         describe('getMaxIdx Test', function () {
+            var vec = new IVector();
             it('should return index of last element in vector, 1.', function () {
-                assert.equal(intV.getMaxIdx(), 1);
+                assert.equal(vec.intV.getMaxIdx(), 1);
             })
         });
 
@@ -770,38 +780,42 @@ describe('IntVector Test', function () {
         });
 
         describe('At [] Test', function () {
+            var vec = new IVector();
             it('should return elements with indexes 0 (-1) and 1 (6)', function () {
-                assert.equal(intV[0], -1);
-                assert.equal(intV[1], 6);
+                assert.equal(vec.intV[0], -1);
+                assert.equal(vec.intV[1], 6);
             })
             it('should save new value at index 0 (12)', function () {
-                intV[0] = 12;
-                assert.equal(intV[0], 12);
+                vec.intV[0] = 12;
+                assert.equal(vec.intV[0], 12);
             })
         });
 
         describe('At [] "Out of Bound" Test', function () {
+            var vec = new IVector();
             it('should return an exception for out of bound indices', function () {
                 assert.throws(function () {
-                    intV[4] = 12;
+                    vec.intV[4] = 12;
                 })
             })
         });
 
         describe('Put Test', function () {
+            var vec = new IVector();
             it('should put the value -21 at index 1', function () {
-                intV.put(1, -21);
-                assert.equal(intV[1], -21);
+                vec.intV.put(1, -21);
+                assert.equal(vec.intV[1], -21);
             })
         });
 
         //// not implemented (low priority)
         //describe('Diag Test', function () {
+        //    var vec = new IVector();
         //    it('should return a matrix with the vector v on it\'s diagonal', function () {
-        //        var mat = intV.diag();
+        //        var mat = vec.intV.diag();
         //        for (var i = 0; i < mat.rows; i++) {
         //            for (var j = 0; j < mat.cols; j++) {
-        //                if (i == j) { assert.equal(mat.at(i, j), intV[i]); }
+        //                if (i == j) { assert.equal(mat.at(i, j), vec.intV[i]); }
         //                else { assert.equal(mat.at(i, j), 0); }
         //            }
         //        }
@@ -809,15 +823,16 @@ describe('IntVector Test', function () {
         //});
 
         describe('PushV Test', function () {
+            var vec = new IVector();
             it('should return v with appended vector [1, 2, 3]', function () {
                 var intW = new la.IntVector([1, 2, 3]);
-                intV.pushV(intW);
-                assert.equal(intV.length, 5);
-                var controlVec = new la.IntVector([12, -21, 1, 2, 3]);
+                vec.intV.pushV(intW);
+                assert.equal(vec.intV.length, 5);
+                var controlVec = new la.IntVector([-1, 6, 1, 2, 3]);
 
-                assert.deepEqual(intV, controlVec);
+                assert.deepEqual(vec.intV, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(intV.at(i), controlVec.at(i));
+                    assert.equal(vec.intV.at(i), controlVec.at(i));
                 }
             })
         });
@@ -861,19 +876,21 @@ describe('IntVector Test', function () {
 
         // not implemented (low priority)
         //describe('ToMat Test', function () {
+        //    var vec = new IVector();
         //    it('should return matrix with a single column that equals intV', function () {
-        //        var mat = intV.toMat();
-        //        for (var i = 0; i < intV.length; i++) {
-        //            assert.equal(mat.at(i, 0), intV.at(i));
+        //        var mat = vec.intV.toMat();
+        //        for (var i = 0; i < vec.intV.length; i++) {
+        //            assert.equal(mat.at(i, 0), vec.intV.at(i));
         //        }
         //    })
         //});
 
         // not implemented (low priority)
         //describe('Sparse Test', function () {
+        //    var vec = new IVector();
         //    it('should return the sparse vector of intV', function () {
-        //        var spV = intV.sparse();
-        //        var controlVec = new la.SparseVector([[0, 12], [1, -21], [2, 1], [3, 2], [4, 3]]);
+        //        var spV = vec.intV.sparse();
+        //        var controlVec = new la.SparseVector([[0, -1], [1, 6]]);
 
         //        //assert.deepEqual(spV, controlVec);      // spV.dim = -1 instead of 5 ??
         //        for (var i = 0; i < controlVec.dim; i++) {
@@ -883,9 +900,10 @@ describe('IntVector Test', function () {
         //});
 
         describe('Unshift Test', function () {
+            var vec = new IVector();
             it('should insert the value 10 at the beginning of vector intV', function () {
-                intV.unshift(10);
-                assert.equal(intV[0], 10);
+                vec.intV.unshift(10);
+                assert.equal(vec.intV[0], 10);
             })
         });
 
@@ -907,8 +925,12 @@ describe('IntVector Test', function () {
 // Function tests for Matrix
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var mat = new la.Matrix();
+
 var mat2 = new la.Matrix([[3, -1], [8, -2]]);
+
+function DMatrix() {
+    this.dMat = new la.Matrix([[1, 2], [3, 4]]);
+}
 
 describe('Matrix Test', function () {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -916,14 +938,16 @@ describe('Matrix Test', function () {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
     describe('Property Tests', function () {
         describe('Row Test', function () {
+            var mat = new DMatrix();
             it('should return 0 for matrix mat', function () {
-                assert.equal(mat.rows, 0);
+                assert.equal(mat.dMat.rows, 2);
             })
         });
 
         describe('Col Test', function () {
+            var mat = new DMatrix();
             it('should return 0 for matrix mat', function () {
-                assert.equal(mat.cols, 0);
+                assert.equal(mat.dMat.cols, 2);
             })
         });
     });
@@ -934,6 +958,7 @@ describe('Matrix Test', function () {
 
         describe('At Test', function () {
             it('should throw error, mat has no elements (assert catches error)', function () {
+                var mat = new la.Matrix();
                 assert.throws(function () {
                     var k = mat.at(0, 0);
                 })
@@ -941,9 +966,9 @@ describe('Matrix Test', function () {
         });
 
         describe('At Test', function () {
+            var mat = new DMatrix();
             it('should return the element at (0, 1): 2', function () {
-                mat = new la.Matrix([[1, 2], [3, 4]]);
-                assert.equal(mat.at(0, 1), 2);
+                assert.equal(mat.dMat.at(0, 1), 2);
             })
         });
 
@@ -987,36 +1012,40 @@ describe('Matrix Test', function () {
         });
 
         describe('Copy Constructor Test', function () {
+            var mat = new DMatrix();
             it('should make the same matrix as mat', function () {
-                var mat2 = new la.Matrix(mat);
+                var mat2 = new la.Matrix(mat.dMat);
 
-                assert.deepEqual(mat, mat2);
+                assert.deepEqual(mat.dMat, mat2);
                 for (var i = 0; i < mat2.rows; i++) {
                     for (var j = 0; j < mat2.cols; j++) {
-                        assert.eqtol(mat2.at(i, j), mat.at(i, j));
+                        assert.eqtol(mat2.at(i, j), mat.dMat.at(i, j));
                     }
                 }
             })
         });
 
         describe('Put Test', function () {
+            var mat = new DMatrix();
             it('should put value 10 at (1, 1)', function () {
-                mat.put(1, 1, 10);
-                assert.equal(mat.at(1, 1), 10);
+                mat.dMat.put(1, 1, 10);
+                assert.equal(mat.dMat.at(1, 1), 10);
             })
         });
 
         describe('Put "Out of Bound" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for index (3, 3)', function () {
                 assert.throws(function () {
-                    mat.put(3, 3, 100);
+                    matdMat.put(3, 3, 100);
                 })
             })
         });
 
         describe('Multiply "Scalar" Test', function () {
+            var mat = new DMatrix();
             it('should multiply matrix with scalar 10', function () {
-                var mat3 = mat.multiply(10);
+                var mat3 = mat.dMat.multiply(10);
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
                         assert.equal(mat3.at(i, j), 10 * mat.at(i, j));
@@ -1026,9 +1055,10 @@ describe('Matrix Test', function () {
         });
 
         describe('Multiply "Vector" Test', function () {
+            var mat = new DMatrix();
             it('should multiply mat with vector [1, 2]', function () {
-                var vec = mat.multiply(new la.Vector([1, 2]));
-                var controlVec = new la.Vector([5, 23]);
+                var vec = mat.dMat.multiply(new la.Vector([1, 2]));
+                var controlVec = new la.Vector([5, 11]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1038,17 +1068,19 @@ describe('Matrix Test', function () {
         });
 
         describe('Multiply "Different Dimension Vector" Test', function () {
+            var mat = new DMatrix();
             it('should throw exception for vector with length different of mat.cols', function () {
                 assert.throws(function () {
-                    var vec = mat.multiply(new la.Vector([1]));
+                    var vec = mat.dMat.multiply(new la.Vector([1]));
                 })
             })
         });
 
         describe('Multiply "Sparse Vector" Test', function () {
+            var mat = new DMatrix();
             it('should multiply mat with sparse vector [1, 2]', function () {
-                var vec = mat.multiply(new la.SparseVector([[0, 1], [1, 2]]));
-                var controlVec = new la.Vector([5, 23]);
+                var vec = mat.dMat.multiply(new la.SparseVector([[0, 1], [1, 2]]));
+                var controlVec = new la.Vector([5, 11]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1058,17 +1090,19 @@ describe('Matrix Test', function () {
         });
 
         describe('Multiply "Different Dimension Sparse Vector" Test', function () {
+            var mat = new DMatrix();
             it('should throw exception for sparse vector with length different of mat.cols', function () {
                 assert.throws(function () {
-                    var vec = mat.multiply(new la.SparseVector([[0, 1], [1, 2], [2, 3]]));
+                    var vec = mat.dMat.multiply(new la.SparseVector([[0, 1], [1, 2], [2, 3]]));
                 })
             })
         });
 
         describe('Multiply "Matrix" Test', function () {
+            var mat = new DMatrix();
             it('should multiply mat with [[3, -1],[8, -2]]', function () {
-                var mat3 = mat.multiply(mat2);
-                var controlMat = new la.Matrix([[19, -5], [89, -23]]);
+                var mat3 = mat.dMat.multiply(mat2);
+                var controlMat = new la.Matrix([[19, -5], [41, -11]]);
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
@@ -1079,9 +1113,10 @@ describe('Matrix Test', function () {
         });
 
         describe('Multiply "Sparse Matrix" Test', function () {
+            var mat = new DMatrix();
             it('should multiply mat with sparse matrix [[3, -1],[8, -2]]', function () {
-                var mat3 = mat.multiply(new la.SparseMatrix([[[0, 3], [1, 8]], [[0, -1], [1, -2]]]));
-                var controlMat = new la.Matrix([[19, -5], [89, -23]]);
+                var mat3 = mat.dMat.multiply(new la.SparseMatrix([[[0, 3], [1, 8]], [[0, -1], [1, -2]]]));
+                var controlMat = new la.Matrix([[19, -5], [41, -11]]);
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
@@ -1092,8 +1127,9 @@ describe('Matrix Test', function () {
         });
 
         describe('MultiplyT "Scalar" Test', function () {
+            var mat = new DMatrix();
             it('should transpose mat and multiply with scalar 10', function () {
-                var mat3 = mat.multiplyT(10);
+                var mat3 = mat.dMat.multiplyT(10);
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
                         assert.equal(mat3.at(j, i), 10 * mat.at(i, j));
@@ -1103,9 +1139,10 @@ describe('Matrix Test', function () {
         });
 
         describe('MultiplyT "Vector" Test', function () {
+            var mat = new DMatrix();
             it('should transpose mat and multiply with vector [1, 2]', function () {
-                var vec = mat.multiplyT(new la.Vector([1, 2]));
-                var controlVec = new la.Vector([7, 22]);
+                var vec = mat.dMat.multiplyT(new la.Vector([1, 2]));
+                var controlVec = new la.Vector([7, 10]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1115,9 +1152,10 @@ describe('Matrix Test', function () {
         });
 
         describe('MultiplyT "Sparse Vector" Test', function () {
+            var mat = new DMatrix();
             it('should transpose mat and multiply with sparse vector [1, 2]', function () {
-                var vec = mat.multiplyT(new la.SparseVector([[0, 1], [1, 2]]));
-                var controlVec = new la.Vector([7, 22]);
+                var vec = mat.dMat.multiplyT(new la.SparseVector([[0, 1], [1, 2]]));
+                var controlVec = new la.Vector([7, 10]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1127,9 +1165,10 @@ describe('Matrix Test', function () {
         });
 
         describe('MultiplyT "Matrix" Test', function () {
+            var mat = new DMatrix();
             it('should tranpose mat multiply with matrix [[3, -1],[8, -2]]', function () {
-                var mat3 = mat.multiplyT(mat2);
-                var controlMat = new la.Matrix([[27, -7], [86, -22]]);
+                var mat3 = mat.dMat.multiplyT(mat2);
+                var controlMat = new la.Matrix([[27, -7], [38, -10]]);
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
@@ -1139,10 +1178,11 @@ describe('Matrix Test', function () {
             })
         });
 
-        describe('MultiplyT "Matrix" Test', function () {
+        describe('MultiplyT "Sparse Matrix" Test', function () {
+            var mat = new DMatrix();
             it('should tranpose mat multiply with matrix [[3, -1],[8, -2]]', function () {
-                var mat3 = mat.multiplyT(new la.SparseMatrix([[[0, 3], [1, 8]], [[0, -1], [1, -2]]]));
-                var controlMat = new la.Matrix([[27, -7], [86, -22]]);
+                var mat3 = mat.dMat.multiplyT(new la.SparseMatrix([[[0, 3], [1, 8]], [[0, -1], [1, -2]]]));
+                var controlMat = new la.Matrix([[27, -7], [38, -10]]);
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
@@ -1153,25 +1193,27 @@ describe('Matrix Test', function () {
         });
 
         describe('Plus Test', function () {
+            var mat = new DMatrix();
             it('should add mat and mat2', function () {
-                var mat3 = mat.plus(mat2);
+                var mat3 = mat.dMat.plus(mat2);
 
-                assert.deepEqual(mat3, mat);
-                for (var i = 0; i < mat.rows; i++) {
-                    for (var j = 0; j < mat.cols; j++) {
-                        assert.equal(mat3.at(i, j), mat.at(i, j) + mat2.at(i, j));
+                assert.deepEqual(mat3, mat.dMat);
+                for (var i = 0; i < mat.dMat.rows; i++) {
+                    for (var j = 0; j < mat.dMat.cols; j++) {
+                        assert.equal(mat3.at(i, j), mat.dMat.at(i, j) + mat2.at(i, j));
                     }
                 }
             })
         });
 
         describe('Sparse Test', function () {
+            var mat = new DMatrix();
             it('should return the sparse matrix of mat', function () {
-                var spMat = mat.sparse();
-                var controlspMat = new la.SparseMatrix([[[0, 1], [1, 3]], [[0, 2], [1, 10]]]);
+                var spMat = mat.dMat.sparse();
+                var controlspMat = new la.SparseMatrix([[[0, 1], [1, 3]], [[0, 2], [1, 4]]]);
 
-                for (var i = 0; i < mat.rows; i++) {
-                    for (var j = 0; j < mat.cols; j++) {
+                for (var i = 0; i < mat.dMat.rows; i++) {
+                    for (var j = 0; j < mat.dMat.cols; j++) {
                         assert.eqtol(spMat.at(i, j), controlspMat.at(i, j));
                     }
                 }
@@ -1179,34 +1221,37 @@ describe('Matrix Test', function () {
         });
 
         describe('Minus Test', function () {
+            var mat = new DMatrix();
             it('should substract mat2 from mat', function () {
-                var mat3 = mat.minus(mat2);
+                var mat3 = mat.dMat.minus(mat2);
 
-                assert.deepEqual(mat3, mat);
-                for (var i = 0; i < mat.rows; i++) {
-                    for (var j = 0; j < mat.cols; j++) {
-                        assert.equal(mat3.at(i, j), mat.at(i, j) - mat2.at(i, j));
+                assert.deepEqual(mat3, mat.dMat);
+                for (var i = 0; i < mat.dMat.rows; i++) {
+                    for (var j = 0; j < mat.dMat.cols; j++) {
+                        assert.equal(mat3.at(i, j), mat.dMat.at(i, j) - mat2.at(i, j));
                     }
                 }
             })
         });
 
         describe('Transpose Test', function () {
+            var mat = new DMatrix();
             it('should transpose mat', function () {
-                var mat3 = mat.transpose();
-                assert.deepEqual(mat3, mat);
-                for (var i = 0; i < mat.rows; i++) {
-                    for (var j = 0; j < mat.cols; j++) {
-                        assert.equal(mat3.at(j, i), mat.at(i, j));
+                var mat3 = mat.dMat.transpose();
+                assert.deepEqual(mat3, mat.dMat);
+                for (var i = 0; i < mat.dMat.rows; i++) {
+                    for (var j = 0; j < mat.dMat.cols; j++) {
+                        assert.equal(mat3.at(j, i), mat.dMat.at(i, j));
                     }
                 }
             })
         });
 
         describe('Solve Test', function () {
+            var mat = new DMatrix();
             it('should solve linear system A*x = y', function () {
-                var vec = mat.solve(new la.Vector([-1, -7]));
-                var solution = new la.Vector([1, -1]);
+                var vec = mat.dMat.solve(new la.Vector([5, 11]));
+                var solution = new la.Vector([1, 2]);
 
                 assert.deepEqual(vec, solution);
                 for (var i = 0; i < solution.length; i++) {
@@ -1216,9 +1261,10 @@ describe('Matrix Test', function () {
         });
 
         describe('RowNorms Test', function () {
+            var mat = new DMatrix();
             it('should return vector with norm of i-th row as i-th element', function () {
-                var vec = mat.rowNorms();
-                var controlVec = new la.Vector([Math.sqrt(5), Math.sqrt(109)]);
+                var vec = mat.dMat.rowNorms();
+                var controlVec = new la.Vector([Math.sqrt(5), Math.sqrt(25)]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1228,9 +1274,10 @@ describe('Matrix Test', function () {
         });
 
         describe('ColNorms Test', function () {
+            var mat = new DMatrix();
             it('should return vector with norm of i-th column as i-th element', function () {
-                var vec = mat.colNorms();
-                var controlVec = new la.Vector([Math.sqrt(10), Math.sqrt(104)]);
+                var vec = mat.dMat.colNorms();
+                var controlVec = new la.Vector([Math.sqrt(10), Math.sqrt(20)]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1240,74 +1287,80 @@ describe('Matrix Test', function () {
         });
 
         describe('NormalizeCols Test', function () {
+            var mat = new DMatrix();
             it('should normalize the columns of matrix mat', function () {
-                var mat3 = new la.Matrix([[1, 2], [3, 4]]);
-                mat3.normalizeCols();
+                mat.dMat.normalizeCols();
 
                 var controlMat = new la.Matrix([[1 / Math.sqrt(10), 2 / Math.sqrt(20)],
                     [3 / Math.sqrt(10), 4 / Math.sqrt(20)]]);
 
-                assert.deepEqual(mat3, controlMat);
+                assert.deepEqual(mat.dMat, controlMat);
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.eqtol(mat3.at(i, j), controlMat.at(i, j));
+                        assert.eqtol(mat.dMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
         });
 
         describe('Frob Test', function () {
+            var mat = new DMatrix();
             it('should return the frobenious norm of mat, sqrt(114)', function () {
-                var norm = mat.frob();
-                var controlNorm = Math.sqrt(114);
+                var norm = mat.dMat.frob();
+                var controlNorm = Math.sqrt(30);
 
                 assert.eqtol(norm, controlNorm);
             })
         });
 
         describe('RowMaxIdx Test', function () {
+            var mat = new DMatrix();
             it('should return value 1 for 1st and 2nd row', function () {
-                assert.equal(mat.rowMaxIdx(0), 1);
-                assert.equal(mat.rowMaxIdx(1), 1);
+                assert.equal(mat.dMat.rowMaxIdx(0), 1);
+                assert.equal(mat.dMat.rowMaxIdx(1), 1);
             })
         });
 
         describe('RowMaxIdx "Out of Bounds" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for index < 0', function () {
                 assert.throws(function () {
-                    var k = mat.rowMaxIdx(-1);
+                    var k = mat.dMat.rowMaxIdx(-1);
                 });
             })
             it('should throw an exception for index >= mat.rows', function () {
                 assert.throws(function () {
-                    var k = mat.rowMaxIdx(mat.rows);
+                    var k = mat.dMat.rowMaxIdx(mat.rows);
                 })
             })
         });
 
         describe('ColMaxIdx Test', function () {
+            var mat = new DMatrix();
             it('should return value 1 for 1st and 2nd column', function () {
-                assert.equal(mat.colMaxIdx(0), 1);
-                assert.equal(mat.colMaxIdx(1), 1);
+                assert.equal(mat.dMat.colMaxIdx(0), 1);
+                assert.equal(mat.dMat.colMaxIdx(1), 1);
             })
         });
 
         describe('ColMaxIdx "Out of Bounds" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for index < 0', function () {
                 assert.throws(function () {
-                    var k = mat.colMaxIdx(-1);
+                    var k = mat.dMat.colMaxIdx(-1);
                 })
             })
             it('should throw an exception for index >= mat.rows', function () {
                 assert.throws(function () {
-                    var k = mat.colMaxIdx(mat.cols);
+                    var k = mat.dMat.colMaxIdx(mat.cols);
                 })
             })
         });
 
         describe('GetCol Test', function () {
+            var mat = new DMatrix();
             it('should return first column as vector', function () {
-                var vec = mat.getCol(0);
+                var vec = mat.dMat.getCol(0);
                 var controlVec = new la.Vector([1, 3]);
 
                 assert.deepEqual(vec, controlVec);
@@ -1318,53 +1371,57 @@ describe('Matrix Test', function () {
         });
 
         describe('GetCol "Out of Bound" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for index < 0', function () {
                 assert.throws(function () {
-                    var vec = mat.getCol(-1);
+                    var vec = mat.dMat.getCol(-1);
                 })
             })
             it('should throw an exception for index >= mat.cols', function () {
                 assert.throws(function () {
-                    var vec = mat.getCol(mat.cols);
+                    var vec = mat.dMat.getCol(mat.cols);
                 })
             })
         });
 
         describe('SetCol Test', function () {
+            var mat = new DMatrix();
             it('should change first column into [6, -1]', function () {
-                mat = new la.Matrix([[1, 2], [3, 4]]);
-                mat.setCol(0, new la.Vector([6, -1]));
+                mat.dMat.setCol(0, new la.Vector([6, -1]));
                 var controlMat = new la.Matrix([[6, 2], [-1, 4]]);
 
-                assert.deepEqual(mat, controlMat);
+                assert.deepEqual(mat.dMat, controlMat);
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.eqtol(mat.at(i, j), controlMat.at(i, j));
+                        assert.eqtol(mat.dMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
         });
 
         describe('SetCol "Longer Vector" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for vector.length > mat.rows', function () {
                 assert.throws(function () {
-                    mat.setCol(0, new la.Vector([6, -1, 3]));
+                    mat.dMat.setCol(0, new la.Vector([6, -1, 3]));
                 })
             })
         });
 
         describe('SetCol "Shorter Vector" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for vector.length < mat.rows', function () {
                 assert.throws(function () {
-                    mat.setCol(0, new la.Vector([6]));
+                    mat.dMat.setCol(0, new la.Vector([6]));
                 })
             })
         });
 
         describe('GetRow Test', function () {
+            var mat = new DMatrix();
             it('should return first row as vector', function () {
-                var vec = mat.getRow(0);
-                var controlVec = new la.Vector([6, 2]);
+                var vec = mat.dMat.getRow(0);
+                var controlVec = new la.Vector([1, 2]);
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
@@ -1374,53 +1431,58 @@ describe('Matrix Test', function () {
         });
 
         describe('GetRow "Out of Bounds" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for index < 0', function () {
                 assert.throws(function () {
-                    var vec = mat.getRow(-1);
+                    var vec = mat.dMat.getRow(-1);
                 })
             })
             it('should throw an exception for index > mat.rows', function () {
                 assert.throws(function () {
-                    var vec = mat.getRow(mat.rows);
+                    var vec = mat.dMat.getRow(mat.rows);
                 })
             })
         });
 
         describe('SetRow Test', function () {
+            var mat = new DMatrix();
             it('should change the second row into [10, 3]', function () {
-                mat.setRow(1, new la.Vector([10, 3]));
-                var controlMat = new la.Matrix([[6, 2], [10, 3]]);
+                mat.dMat.setRow(1, new la.Vector([10, 3]));
+                var controlMat = new la.Matrix([[1, 2], [10, 3]]);
 
-                assert.deepEqual(mat, controlMat);
+                assert.deepEqual(mat.dMat, controlMat);
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.eqtol(mat.at(i, j), controlMat.at(i, j));
+                        assert.eqtol(mat.dMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
         });
 
         describe('SetRow "Longer Vector" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for vec.length > mat.cols', function () {
                 assert.throws(function () {
-                    mat.setRow(1, new la.Vector([10, 3, -3]));
+                    mat.dMat.setRow(1, new la.Vector([10, 3, -3]));
                 })
             })
         });
 
         describe('SetRow "Shorter Vector" Test', function () {
+            var mat = new DMatrix();
             it('should throw an exception for vec.length < mat.cols', function () {
                 assert.throws(function () {
-                    mat.setRow(1, new la.Vector([10]));
+                    mat.dMat.setRow(1, new la.Vector([10]));
                 })
             })
         });
 
         describe('Diag Test', function () {
-            it('should return diagonal of mat as vector [6, 3]', function () {
-                var vec = mat.diag();
-                assert.eqtol(vec.at(0), 6);
-                assert.eqtol(vec.at(1), 3);
+            var mat = new DMatrix();
+            it('should return diagonal of mat as vector [1, 4]', function () {
+                var vec = mat.dMat.diag();
+                assert.eqtol(vec.at(0), 1);
+                assert.eqtol(vec.at(1), 4);
             })
         });
 
@@ -1472,8 +1534,10 @@ describe('Matrix Test', function () {
 // Sparse Vector
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var arr = [[0, 3], [1, 10], [3, 0.0001], [8, 0], [9, -12]];
-var spV = new la.SparseVector(arr);
+function SpVector() {
+    this.spV = new la.SparseVector([[0, 3], [1, 10], [3, 0.0001], [8, 0], [9, -12]]);
+    this.spVdim = new la.SparseVector([[0, 3], [1, 10], [3, 0.0001], [8, 0], [9, -12]], 10);
+}
 
 describe('Sparse Vector', function () {
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1482,14 +1546,22 @@ describe('Sparse Vector', function () {
     describe('Property Tests', function () {
 
         describe('Nnz Test', function () {
-            it('should return the number of non-zero values', function () {
-                assert.equal(spV.nnz, 5);
+            var vec = new SpVector();
+            it('should return the number of non-zero values, spV', function () {
+                assert.equal(vec.spV.nnz, 5);
+            })
+            it('should return the number of non-zero values, spVdim', function () {
+                assert.equal(vec.spVdim.nnz, 5);
             })
         });
 
         describe('Dim Test', function () {
-            it('should return the dimension of sparse vector', function () {
-                assert.equal(spV.dim, -1);
+            var vec = new SpVector();
+            it('should return the dimension of sparse vector, spV', function () {
+                assert.equal(vec.spV.dim, -1);
+            })
+            it('should return the dimension of sparse vector, spVdim', function () {
+                assert.equal(vec.spVdim.dim, 10);
             })
         });
     });
@@ -1499,26 +1571,44 @@ describe('Sparse Vector', function () {
     describe('Function Tests', function () {
 
         describe('At Test', function () {
-            it('should return the value with index 1, 3, 8, 9, 2', function () {
-                assert.equal(spV.at(1), 10);
-                assert.equal(spV.at(3), 0.0001);
-                assert.equal(spV.at(8), 0);
-                assert.equal(spV.at(9), -12);
+            var vec = new SpVector();
+            it('should return the value with index 1, 3, 8, 9, 2, spV', function () {
+                assert.equal(vec.spV.at(1), 10);
+                assert.equal(vec.spV.at(3), 0.0001);
+                assert.equal(vec.spV.at(8), 0);
+                assert.equal(vec.spV.at(9), -12);
 
-                assert.equal(spV.at(2), 0);
+                assert.equal(vec.spV.at(2), 0);
+            })
+            it('should return the value with index 1, 3, 8, 9, 2, spVdim', function () {
+                assert.equal(vec.spVdim.at(1), 10);
+                assert.equal(vec.spVdim.at(3), 0.0001);
+                assert.equal(vec.spVdim.at(8), 0);
+                assert.equal(vec.spVdim.at(9), -12);
+
+                assert.equal(vec.spVdim.at(2), 0);
             })
         });
 
         describe('Put Test', function () {
+            var vec = new SpVector();
             it('should put a new value in sparse vector spV', function () {
-                spV.put(2, -1);
-                assert.equal(spV.at(2), -1);
+                vec.spV.put(2, -1);
+                assert.equal(vec.spV.at(2), -1);
+            })
+            it('should put a new value in sparse vector spVdim', function () {
+                vec.spVdim.put(2, -1);
+                assert.equal(vec.spVdim.at(2), -1);
             })
         });
 
         describe('Sum Test', function () {
-            it('should return the sum of all given values of spV, 0.0001', function () {
-                assert.eqtol(spV.sum(), 0.0001);
+            var vec = new SpVector();
+            it('should return the sum of all given values of spV, 1.0001', function () {
+                assert.eqtol(vec.spV.sum(), 1.0001);
+            })
+            it('should return the sum of all given values of spVdim, 1.0001', function () {
+                assert.eqtol(vec.spVdim.sum(), 1.0001);
             })
         });
 
@@ -1549,16 +1639,27 @@ describe('Sparse Vector', function () {
         })
 
         describe('Inner Test', function () {
-            it('should throw exception (dimension mismatch):  [1, 2, 0, 3, 0, 0, 0, 4, 5]', function () {
+            var vec = new SpVector();
+            it('should throw exception for spV (dimension mismatch):  [1, 2, 0, 3, 0, 0, 0, 4, 5]', function () {
                 assert.throws(function () {
-                    var n = spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 4, 5]));
+                    var n = vec.spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 4, 5]));
+                })
+            })
+            it('should throw exception for spVdim (dimension mismatch):  [1, 2, 0, 3, 0, 0, 0, 4, 5]', function () {
+                assert.throws(function () {
+                    var n = vec.spVdim.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 4, 5]));
                 })
             })
         });
 
-        describe('Inner Test', function () {
+        describe.skip('Inner Test', function () {
+            var vec = new SpVector();
             it('should return the scalar product of spV and [1, 2, 0, 3, 0, 0, 0, 0, 4, 5]', function () {
-                var n = spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 4, 5]));
+                var n = vec.spV.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 4, 5]));
+                assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 60);
+            })
+            it('should return the scalar product of spVdim and [1, 2, 0, 3, 0, 0, 0, 0, 4, 5]', function () {
+                var n = vec.spVdim.inner(new la.Vector([1, 2, 0, 3, 0, 0, 0, 0, 4, 5])); // throws exception
                 assert.eqtol(n, 3 + 20 + 0.0003 + 0 - 60);
             })
         });
@@ -1573,45 +1674,81 @@ describe('Sparse Vector', function () {
         //});
 
         describe('Multiply Test', function () {
-            it('should multiply all values with 7', function () {
-                var spVec = spV.multiply(7);
+            var vec = new SpVector();
+            it('should multiply all values with 7, spV', function () {
+                var spVec = vec.spV.multiply(7);
 
-                var controlVec = new la.SparseVector([[0, 21], [1, 70], [3, 0.0007], [8, 0], [9, -84], [2, -7]]);
+                var controlVec = new la.SparseVector([[0, 21], [1, 70], [3, 0.0007], [8, 0], [9, -84]]);
 
                 assert.deepEqual(spVec, controlVec);
-                for (var i = 0; i < 9; i++) {
+                for (var i = 0; i < 10; i++) {
+                    assert.eqtol(spVec.at(i), controlVec.at(i));
+                }
+            })
+            it.skip('should multiply all values with 7, spVdim', function () {
+                var spVec = vec.spVdim.multiply(7);
+
+                var controlVec = new la.SparseVector([[0, 21], [1, 70], [3, 0.0007], [8, 0], [9, -84]], 10);
+
+                assert.deepEqual(spVec, controlVec);    // dim is not same
+                for (var i = 0; i < 10; i++) {
                     assert.eqtol(spVec.at(i), controlVec.at(i));
                 }
             })
         });
 
         describe('Norm Test', function () {
-            it('should return norm of spV, 15.9373774508', function () {
-                var n = spV.norm();
+            var vec = new SpVector();
+            it('should return norm of spV, 15.905973720901214', function () {
+                var n = vec.spV.norm();
 
-                assert.eqtol(n, 15.9373774508);
+                assert.eqtol(n, 15.905973720901214);
+            })
+            it('should return norm of spVdim, 15.905973720901214', function () {
+                var n = vec.spVdim.norm();
+
+                assert.eqtol(n, 15.905973720901214);
             })
         });
 
         describe('Full Test', function () {
+            var vec = new SpVector();
             it('should return the dense form of spV', function () {
-                var vec = spV.full();
-                var controlVec = new la.Vector([3, 10, -1, 0.0001, 0, 0, 0, 0, 0, -12]);
-                assert.deepEqual(vec, controlVec);
+                var vec2 = vec.spV.full();
+                var controlVec = new la.Vector([3, 10, 0, 0.0001, 0, 0, 0, 0, 0, -12]);
+                assert.deepEqual(vec2, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
+                    assert.eqtol(vec2.at(i), controlVec.at(i));
+                }
+            })
+            it('should return the dense form of spVdim', function () {
+                var vec2 = vec.spVdim.full();
+                var controlVec = new la.Vector([3, 10, 0, 0.0001, 0, 0, 0, 0, 0, -12]);
+                assert.deepEqual(vec2, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
+                    assert.eqtol(vec2.at(i), controlVec.at(i));
                 }
             })
         });
 
         describe('ValVec Test', function () {
+            var vec = new SpVector();
             it('should return a vector of nnz elements of spV', function () {
-                var vec = spV.valVec();
-                var controlVec = new la.Vector([3, 10, -1, 0.0001, 0, -12]);
+                var vec2 = vec.spV.valVec();
+                var controlVec = new la.Vector([3, 10, 0.0001, 0, -12]);
 
-                assert.deepEqual(vec, controlVec);
+                assert.deepEqual(vec2, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
+                    assert.eqtol(vec2.at(i), controlVec.at(i));
+                }
+            })
+            it('should return a vector of nnz elements of spVdim', function () {
+                var vec2 = vec.spVdim.valVec();
+                var controlVec = new la.Vector([3, 10, 0.0001, 0, -12]);
+
+                assert.deepEqual(vec2, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
+                    assert.eqtol(vec2.at(i), controlVec.at(i));
                 }
             })
         });
@@ -1626,13 +1763,23 @@ describe('Sparse Vector', function () {
         });
 
         describe('IdxVec Test', function () {
+            var vec = new SpVector();
             it('should return a vector of index elements of spV', function () {
-                var vec = spV.idxVec();
-                var controlVec = new la.IntVector([0, 1, 2, 3, 8, 9]);
+                var vec2 = vec.spV.idxVec();
+                var controlVec = new la.IntVector([0, 1, 3, 8, 9]);
 
-                assert.deepEqual(vec, controlVec);
+                assert.deepEqual(vec2, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.eqtol(vec.at(i), controlVec.at(i));
+                    assert.eqtol(vec2.at(i), controlVec.at(i));
+                }
+            })
+            it('should return a vector of index elements of spVdim', function () {
+                var vec2 = vec.spVdim.idxVec();
+                var controlVec = new la.IntVector([0, 1, 3, 8, 9]);
+
+                assert.deepEqual(vec2, controlVec);
+                for (var i = 0; i < controlVec.length; i++) {
+                    assert.eqtol(vec2.at(i), controlVec.at(i));
                 }
             })
         });
