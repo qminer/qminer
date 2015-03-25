@@ -7,7 +7,7 @@ exports.view = {
     "input1": "'d', 'e'",
     "output1": "'[a, b, c]'",
     "output2": "['a', 'd', 'e']",
-    
+    "output3": "['a']",
 
 	"skipInner": "skip.",
 	"skipSum": "skip.",
@@ -25,6 +25,6 @@ exports.view = {
 	"skipNorm": "skip.",
 	"skipSparse": "skip.",
 	"skipToMat": "skip.",
-	"skipSave": "skip.",
-    "skipLoad": "skip.",
+	"skipSave": "",
+    "skipLoad": "",
 }

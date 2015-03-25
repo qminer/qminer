@@ -393,6 +393,8 @@ private:
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create new matrix
 	* var mat = new la.Matrix([[1, 2], [3, 4]]);
 	* // open write stream
@@ -409,6 +411,8 @@ private:
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Matrix} Self.
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty matrix
 	* var mat = new la.Matrix();
 	* // open a read stream
@@ -835,6 +839,8 @@ public:
 	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create a new sparse matrix
 	* var mat = new la.SparseMatrix([[[0, 1]], [[0, 3], [1, 12]]]);
 	* // open write stream
@@ -851,6 +857,8 @@ public:
 	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:la.Matrix} Self.
 	* @example
+	* // import fs module
+	* var fs = require('fs.js');
 	* // create an empty matrix
 	* var mat = new la.SparseMatrix();
 	* // open a read stream

@@ -163,7 +163,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1067">line 1067</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1080">line 1080</a>
     </li></ul></dd>
     
 
@@ -256,7 +256,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1224">line 1224</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1242">line 1242</a>
     </li></ul></dd>
     
 
@@ -383,7 +383,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1073">line 1073</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1086">line 1086</a>
     </li></ul></dd>
     
 
@@ -428,6 +428,164 @@
 </dl>
 
     
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="load"><span class="type-signature"></span>load<span class="signature">(fin)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Loads the vector from input stream.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fin</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-fs.FIn.html">module:fs.FIn</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Input stream.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1307">line 1307</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Self.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-la.StrVector.html">module:la.StrVector</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create an empty vectorvar vec = new la.StrVector();// open a read streamvar fin = fs.openRead('vec.dat');// load the matrixvec.load(fin);</code></pre>
 
 
 
@@ -536,7 +694,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1092">line 1092</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1105">line 1105</a>
     </li></ul></dd>
     
 
@@ -689,7 +847,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1127">line 1127</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1140">line 1140</a>
     </li></ul></dd>
     
 
@@ -865,7 +1023,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1086">line 1086</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1099">line 1099</a>
     </li></ul></dd>
     
 
@@ -910,6 +1068,164 @@
 </dl>
 
     
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id="save"><span class="type-signature"></span>save<span class="signature">(fout)</span><span class="type-signature"> &rarr; {<a href="module-fs.FOut.html">module:fs.FOut</a>}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Saves the vector as output stream.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fout</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Output stream.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1292">line 1292</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    fout.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="module-fs.FOut.html">module:fs.FOut</a></span>
+
+
+    </dd>
+</dl>
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// import fs modulevar fs = require('fs.js');// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// open write streamvar fout = fs.openWrite('vec.dat');// save matrix and close write streamvec.save(fout).close();</code></pre>
 
 
 
@@ -969,7 +1285,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1160">line 1160</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1173">line 1173</a>
     </li></ul></dd>
     
 
@@ -1196,7 +1512,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1115">line 1115</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1128">line 1128</a>
     </li></ul></dd>
     
 
@@ -1357,7 +1673,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1079">line 1079</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1092">line 1092</a>
     </li></ul></dd>
     
 
@@ -1461,7 +1777,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1234">line 1234</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1252">line 1252</a>
     </li></ul></dd>
     
 
@@ -1519,14 +1835,14 @@
 
     
 
-    <h4 class="name" id="trunc"><span class="type-signature"></span>trunc<span class="signature">(val)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
+    <h4 class="name" id="trunc"><span class="type-signature"></span>trunc<span class="signature">(idx)</span><span class="type-signature"> &rarr; {<a href="module-la.StrVector.html">module:la.StrVector</a>}</span></h4>
 
     
 
 
 
 <div class="description">
-    Adds an element to the front of the vector.
+    Deletes elements with sprecific index or more.
 </div>
 
 
@@ -1562,7 +1878,7 @@
 
         <tr>
             
-                <td class="name"><code>val</code></td>
+                <td class="name"><code>idx</code></td>
             
 
             <td class="type">
@@ -1578,7 +1894,7 @@
 
             
 
-            <td class="description last">Added value.</td>
+            <td class="description last">Index (zero based).</td>
         </tr>
 
     
@@ -1619,7 +1935,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1166">line 1166</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1184">line 1184</a>
     </li></ul></dd>
     
 
@@ -1646,7 +1962,7 @@
 
         
 <div class="param-desc">
-    Self.
+    Self - Without the elements with index idx or more.
 </div>
 
 
@@ -1664,6 +1980,11 @@
 </dl>
 
     
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// create a new vectorvar vec = new la.StrVector(['a', 'b', 'c']);// trunc all elements with index 1 or morevec.trunc(1); // returns vector ['a']</code></pre>
 
 
 
@@ -1772,7 +2093,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1121">line 1121</a>
+        <a href="ladoc.js.html">ladoc.js</a>, <a href="ladoc.js.html#line1134">line 1134</a>
     </li></ul></dd>
     
 
@@ -1842,7 +2163,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Mar 24 2015 09:17:35 GMT+0100 (Central Europe Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-beta2</a> on Tue Mar 24 2015 14:27:53 GMT+0100 (Central Europe Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
